@@ -72,7 +72,7 @@ CFLAGS   += -std=c99
 # note -DMAGMA_ILP64 or -DMKL_ILP64, and -integer-size 64 in FLAGS above
 LIB       = -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -lpthread -lstdc++ -lm
 
-LIB      += -lcublas -lcusparse -lcudart
+LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 
 
 # --------------------

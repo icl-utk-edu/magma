@@ -61,7 +61,7 @@ LIB       = -lmkl_intel_lp64 -lmkl_gnu_thread -lmkl_core -lpthread -lstdc++ -lm 
 # gcc with MKL 10.3, Intel OpenMP threads (remove -fopenmp from LDFLAGS above)
 #LIB       = -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lstdc++ -lm -lgfortran
 
-LIB      += -lcublas -lcusparse -lcudart
+LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 
 
 # --------------------

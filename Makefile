@@ -218,10 +218,11 @@ liblapacktest_obj  := $(addsuffix .$(o_ext), $(basename $(liblapacktest_all2)))
 testing_obj        := $(addsuffix .$(o_ext), $(basename $(testing_all)))
 sparse_testing_obj := $(addsuffix .$(o_ext), $(basename $(sparse_testing_all)))
 
+ifneq ($(libmagma_dynamic_src),)
 libmagma_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libmagma_dynamic_all)))
-libmagma_dlink_obj   := $(addsuffix .link.$(o_ext), $(basename $(libmagma_dynamic_all)))
-
-libmagma_obj += $(libmagma_dynamic_obj) $(libmagma_dlink_obj)
+libmagma_dlink_obj   := magmablas/dynamic.link.o
+libmagma_obj         += $(libmagma_dynamic_obj) $(libmagma_dlink_obj)
+endif
 
 deps :=
 deps += $(addsuffix .d, $(basename $(libmagma_all)))
@@ -560,8 +561,8 @@ sparse/testing/clean:
 $(libmagma_dynamic_obj): %.$(o_ext): %.cu
 	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dc -o $@ $<
 
-$(libmagma_dlink_obj): %.link.$(o_ext): %.$(o_ext)
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -o $@ $<
+$(libmagma_dlink_obj): $(libmagma_dynamic_obj)
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -o $@ $^
 
 %.i: %.h
 	$(CC) -E $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
@@ -703,6 +704,11 @@ echo:
 	@echo "libmagma_obj       $(libmagma_obj)\n"
 	@echo "libmagma_a         $(libmagma_a)"
 	@echo "libmagma_so        $(libmagma_so)"
+	@echo "====="
+	@echo "libmagma_dynamic_src $(libmagma_dynamic_src)\n"
+	@echo "libmagma_dynamic_all $(libmagma_dynamic_all)\n"
+	@echo "libmagma_dynamic_obj $(libmagma_dynamic_obj)\n"
+	@echo "libmagma_dlink_obj   $(libmagma_dlink_obj)\n"
 	@echo "====="             
 	@echo "libsparse_src      $(libsparse_src)\n"
 	@echo "libsparse_all      $(libsparse_all)\n"
