@@ -179,12 +179,12 @@ subdirs := \
 	magmablas       \
 	testing         \
 	testing/lin     \
-	sparse     	\
-	sparse/blas    	\
-	sparse/control 	\
-	sparse/include 	\
-	sparse/src     	\
-	sparse/testing 	\
+	sparse          \
+	sparse/blas     \
+	sparse/control  \
+	sparse/include  \
+	sparse/src      \
+	sparse/testing  \
 
 Makefiles := $(addsuffix /Makefile.src, $(subdirs))
 
@@ -350,15 +350,15 @@ endif
 # ----------------------------------------
 # targets
 
-.PHONY: all lib static shared clean test
+.PHONY: all lib static shared clean test dense sparse
 
 .DEFAULT_GOAL := all
 
-all: dense sparsela
+all: dense sparse
 
 dense: lib test
 
-sparsela: sparse-lib sparse-test
+sparse: sparse-lib sparse-test
 
 # lib defined below in shared libraries, depending on fPIC
 
@@ -474,8 +474,6 @@ magmablas:           $(magmablas_obj)
 src:                 $(src_obj)
 
 testing:             $(testers)
-
-sparse:         sparsela
 
 sparse/blas:    $(sparse_blas_obj)
 
@@ -652,9 +650,9 @@ install_dirs:
 
 install: lib sparse-lib install_dirs
 	# MAGMA
-	cp include/*.h              $(DESTDIR)$(prefix)/include
+	cp include/*.h         $(DESTDIR)$(prefix)/include
 	cp sparse/include/*.h  $(DESTDIR)$(prefix)/include
-	cp $(libs)                  $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)
+	cp $(libs)             $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)
 	# pkgconfig
 	cat lib/pkgconfig/magma.pc.in                   | \
 	sed -e s:@INSTALL_PREFIX@:"$(prefix)":          | \
