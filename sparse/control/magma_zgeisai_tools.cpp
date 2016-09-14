@@ -11,8 +11,6 @@
 */
 
 #include "magmasparse_internal.h"
-#ifdef _OPENMP
-#include <omp.h>
 
 #define WARP_SIZE 32
 
@@ -565,7 +563,4 @@ magma_zmisai_blockstruct(
 
 cleanup:
     return info;
-    
 }
-
-#endif  // _OPENMP
