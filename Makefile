@@ -1,4 +1,4 @@
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # programs
 #
 # Users should make all changes in make.inc
@@ -43,8 +43,7 @@ o_ext      ?= o
 prefix     ?= /usr/local/magma
 
 
-
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # MAGMA-specific programs & flags
 
 ifeq ($(blas_fix),1)
@@ -67,7 +66,7 @@ RPATH2     = -Wl,-rpath,../../lib
 codegen    = python tools/codegen.py
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # NVCC options for the different cards
 # First, add smXX for architecture names
 ifneq ($(findstring Fermi, $(GPU_TARGET)),)
@@ -140,7 +139,7 @@ CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
 CXXFLAGS  += -DMIN_CUDA_ARCH=$(MIN_ARCH)
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # Define the pointer size for fortran compilation
 # If there's an issue compiling sizeptr, assume 8 byte (64 bit) pointers
 PTRFILE = control/sizeptr.c
@@ -158,7 +157,7 @@ $(PTROBJ): $(PTRFILE)
 	touch $@
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # include sub-directories
 
 # variables that multiple sub-directories add to.
@@ -166,56 +165,55 @@ $(PTROBJ): $(PTRFILE)
 hdr                  :=
 libmagma_src         :=
 libmagma_dynamic_src :=
-libsparse_src        :=
 testing_src          :=
+libsparse_src        :=
 sparse_testing_src   :=
 
 subdirs := \
-	blas_fix        \
-	control         \
-	include         \
-	interface_cuda  \
-	src             \
-	magmablas       \
-	testing         \
-	testing/lin     \
-	sparse          \
-	sparse/blas     \
-	sparse/control  \
-	sparse/include  \
-	sparse/src      \
-	sparse/testing  \
+	blas_fix            \
+	control             \
+	include             \
+	interface_cuda      \
+	src                 \
+	magmablas           \
+	testing             \
+	testing/lin         \
+	sparse              \
+	sparse/blas         \
+	sparse/control      \
+	sparse/include      \
+	sparse/src          \
+	sparse/testing      \
 
 Makefiles := $(addsuffix /Makefile.src, $(subdirs))
 
 include $(Makefiles)
--include testing_v1/Makefile.src
 
 -include Makefile.internal
 -include Makefile.local
 -include Makefile.gen
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # objects
 
 ifeq ($(FORT),)
-liblapacktest_all2 := $(filter %_no_fortran.cpp, $(liblapacktest_all))
+    liblapacktest_all2 := $(filter     %_no_fortran.cpp, $(liblapacktest_all))
 else
-liblapacktest_all2 := $(filter-out %_no_fortran.cpp, $(liblapacktest_all))
+    liblapacktest_all2 := $(filter-out %_no_fortran.cpp, $(liblapacktest_all))
 endif
 
 ifeq ($(FORT),)
-libmagma_all := $(filter-out %.f %.f90 %.F90, $(libmagma_all))
-testing_all  := $(filter-out %.f %.f90 %.F90, $(testing_all))
+    libmagma_all := $(filter-out %.f %.f90 %.F90, $(libmagma_all))
+    testing_all  := $(filter-out %.f %.f90 %.F90, $(testing_all))
 endif
 
 libmagma_obj       := $(addsuffix .$(o_ext), $(basename $(libmagma_all)))
-libsparse_obj      := $(addsuffix .$(o_ext), $(basename $(libsparse_all)))
 libblas_fix_obj    := $(addsuffix .$(o_ext), $(basename $(libblas_fix_src)))
 libtest_obj        := $(addsuffix .$(o_ext), $(basename $(libtest_all)))
 liblapacktest_obj  := $(addsuffix .$(o_ext), $(basename $(liblapacktest_all2)))
 testing_obj        := $(addsuffix .$(o_ext), $(basename $(testing_all)))
+libsparse_obj      := $(addsuffix .$(o_ext), $(basename $(libsparse_all)))
 sparse_testing_obj := $(addsuffix .$(o_ext), $(basename $(sparse_testing_all)))
 
 ifneq ($(libmagma_dynamic_src),)
@@ -226,20 +224,20 @@ endif
 
 deps :=
 deps += $(addsuffix .d, $(basename $(libmagma_all)))
-deps += $(addsuffix .d, $(basename $(libsparse_all)))
 deps += $(addsuffix .d, $(basename $(libblas_fix_src)))
 deps += $(addsuffix .d, $(basename $(libtest_all)))
 deps += $(addsuffix .d, $(basename $(lapacktest_all2)))
 deps += $(addsuffix .d, $(basename $(testing_all)))
+deps += $(addsuffix .d, $(basename $(libsparse_all)))
 deps += $(addsuffix .d, $(basename $(sparse_testing_all)))
 
 # headers must exist before compiling objects, but we don't want to require
 # re-compiling the whole library for every minor header change,
 # so use order-only prerequisite (after "|").
 $(libmagma_obj):       | $(header_all)
-$(libsparse_obj):      | $(header_all)
 $(libtest_obj):        | $(header_all)
 $(testing_obj):        | $(header_all)
+$(libsparse_obj):      | $(header_all)
 $(sparse_testing_obj): | $(header_all)
 
 # changes to testings.h require re-compiling, e.g., if magma_opts changes
@@ -248,11 +246,11 @@ $(sparse_testing_obj): testing/testings.h
 
 # this allows "make force=force" to force re-compiling
 $(libmagma_obj):       $(force)
-$(libsparse_obj):      $(force)
 $(libblas_fix_obj):    $(force)
 $(libtest_obj):        $(force)
 $(liblapacktest_obj):  $(force)
 $(testing_obj):        $(force)
+$(libsparse_obj):      $(force)
 $(sparse_testing_obj): $(force)
 
 force: ;
@@ -282,19 +280,19 @@ test_headers: $(header_gch)
 # ----- libraries
 libmagma_a      := lib/libmagma.a
 libmagma_so     := lib/libmagma.so
-libsparse_a     := lib/libmagma_sparse.a
-libsparse_so    := lib/libmagma_sparse.so
 libblas_fix_a   := lib/libblas_fix.a
 libtest_a       := testing/libtest.a
 liblapacktest_a := testing/lin/liblapacktest.a
+libsparse_a     := lib/libmagma_sparse.a
+libsparse_so    := lib/libmagma_sparse.so
 
 # static libraries
 libs_a := \
 	$(libmagma_a)		\
-	$(libsparse_a)		\
 	$(libtest_a)		\
 	$(liblapacktest_a)	\
 	$(libblas_fix_a)	\
+	$(libsparse_a)		\
 
 # shared libraries
 libs_so := \
@@ -304,11 +302,11 @@ libs_so := \
 # add objects to libraries
 $(libmagma_a):      $(libmagma_obj)
 $(libmagma_so):     $(libmagma_obj)
-$(libsparse_a):     $(libsparse_obj)
-$(libsparse_so):    $(libsparse_obj)
 $(libblas_fix_a):   $(libblas_fix_obj)
 $(libtest_a):       $(libtest_obj)
 $(liblapacktest_a): $(liblapacktest_obj)
+$(libsparse_a):     $(libsparse_obj)
+$(libsparse_so):    $(libsparse_obj)
 
 # sparse requires libmagma
 $(libsparse_so): | $(libmagma_so)
@@ -339,7 +337,7 @@ ifeq ($(blas_fix),1)
 endif
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # MacOS likes shared library's path to be set; see make.inc.macos
 
 ifneq ($(INSTALL_NAME),)
@@ -348,7 +346,7 @@ ifneq ($(INSTALL_NAME),)
 endif
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # targets
 
 .PHONY: all lib static shared clean test dense sparse
@@ -377,7 +375,7 @@ clean: lib/clean testing/clean
 	-rm -f $(deps)
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # shared libraries
 
 # check whether all FLAGS have -fPIC
@@ -392,19 +390,19 @@ have_fpic = $(and $(findstring -fPIC, $(CFLAGS)),   \
 ifneq ($(have_fpic),)
 
     lib: static shared
-    
+
     sparse-lib: sparse-static sparse-shared
-    
+
     shared: $(libmagma_so)
-    
+
     sparse-shared: $(libsparse_so)
-    
+
     # as a shared library, changing libmagma.so does NOT require re-linking testers,
     # so use order-only prerequisite (after "|").
     $(testers):        | $(libmagma_a) $(libmagma_so)
     $(testers_f):      | $(libmagma_a) $(libmagma_so)
     $(sparse_testers): | $(libmagma_a) $(libmagma_so) $(libsparse_a) $(libsparse_so)
-                                      
+
     libs := $(libmagma_a) $(libmagma_so) $(libsparse_a) $(libsparse_so)
 
 # --------------------
@@ -412,24 +410,24 @@ ifneq ($(have_fpic),)
 else
 
     lib: static
-    
+
     sparse-lib: sparse-static
-    
+
     shared:
 	@echo "Error: 'make shared' requires CFLAGS, CXXFLAGS, FFLAGS, F90FLAGS, and NVCCFLAGS to have -fPIC."
 	@echo "This is now the default in most example make.inc.* files, except atlas."
 	@echo "Please edit your make.inc file and uncomment FPIC."
 	@echo "After updating make.inc, please 'make clean && make shared && make test'."
 	@echo "To compile only a static library, use 'make static'."
-    
+
     sparse-shared: shared
-    
+
     # as a static library, changing libmagma.a does require re-linking testers,
     # so use regular prerequisite.
     $(testers):        $(libmagma_a)
     $(testers_f):      $(libmagma_a)
     $(sparse_testers): $(libmagma_a) $(libsparse_a)
-    
+
     libs := $(libmagma_a) $(libsparse_a)
 
 endif
@@ -440,7 +438,7 @@ ifeq ($(blas_fix),1)
 endif
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # static libraries
 
 static: $(libmagma_a)
@@ -448,17 +446,18 @@ static: $(libmagma_a)
 sparse-static: $(libsparse_a)
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # sub-directory targets
 
-control_obj        := $(filter        control/%.o, $(libmagma_obj))
-interface_cuda_obj := $(filter interface_cuda/%.o, $(libmagma_obj))
-magmablas_obj      := $(filter      magmablas/%.o, $(libmagma_obj))
-src_obj            := $(filter            src/%.o, $(libmagma_obj))
+control_obj          := $(filter          control/%.o, $(libmagma_obj))
+interface_cuda_obj   := $(filter   interface_cuda/%.o, $(libmagma_obj))
+magmablas_obj        := $(filter        magmablas/%.o, $(libmagma_obj))
+src_obj              := $(filter              src/%.o, $(libmagma_obj))
 
-sparse_control_obj := $(filter sparse/control/%.o, $(libsparse_obj))
-sparse_blas_obj    := $(filter    sparse/blas/%.o, $(libsparse_obj))
-sparse_src_obj     := $(filter     sparse/src/%.o, $(libsparse_obj))
+sparse_control_obj   := $(filter   sparse/control/%.o, $(libsparse_obj))
+sparse_blas_obj      := $(filter      sparse/blas/%.o, $(libsparse_obj))
+sparse_src_obj       := $(filter       sparse/src/%.o, $(libsparse_obj))
+
 
 # ----------
 # sub-directory builds
@@ -483,6 +482,7 @@ sparse/control: $(sparse_control_obj)
 sparse/src:     $(sparse_src_obj)
 
 sparse/testing: $(sparse_testers)
+
 
 # ----------
 # sub-directory clean
@@ -531,7 +531,7 @@ sparse/testing/clean:
 	-rm -f $(sparse_testers) $(sparse_testing_obj)
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # rules
 
 .DELETE_ON_ERROR:
@@ -555,15 +555,6 @@ sparse/testing/clean:
 %.$(o_ext): %.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-%.$(o_ext): %.cu
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-$(libmagma_dynamic_obj): %.$(o_ext): %.cu
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dc -o $@ $<
-
-$(libmagma_dlink_obj): $(libmagma_dynamic_obj)
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -o $@ $^
-
 %.i: %.h
 	$(CC) -E $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
@@ -573,8 +564,25 @@ $(libmagma_dlink_obj): $(libmagma_dynamic_obj)
 %.i: %.cpp
 	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-%.i: %.cpp
+
+# ------------------------------------------------------------------------------
+# CUDA kernels
+
+%.i: %.cu
 	$(NVCC) -E $(NVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+%.$(o_ext): %.cu
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(libmagma_dynamic_obj): %.$(o_ext): %.cu
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dc -o $@ $<
+
+$(libmagma_dlink_obj): $(libmagma_dynamic_obj)
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -o $@ $^
+
+
+# ------------------------------------------------------------------------------
+# library rules
 
 $(libs_a):
 	@echo "===== static library $@"
@@ -583,26 +591,30 @@ $(libs_a):
 	@echo
 
 ifneq ($(have_fpic),)
-$(libmagma_so):
+    $(libmagma_so):
 	@echo "===== shared library $@"
 	$(CXX) $(LDFLAGS) -shared -o $@ \
 		$^ \
 		$(LIBS)
 	@echo
 
-# Can't add -Llib -lmagma to LIBS, because that would apply to libsparse_so's
-# prerequisites, namely libmagma_so. So libmagma and libsparse need different rules.
-# See Make section 6.11 Target-specific Variable Values.
-$(libsparse_so):
+    # Can't add -Llib -lmagma to LIBS, because that would apply to libsparse_so's
+    # prerequisites, namely libmagma_so. So libmagma and libsparse need different rules.
+    # See Make section 6.11 Target-specific Variable Values.
+    $(libsparse_so):
 	@echo "===== shared library $@"
 	$(CXX) $(LDFLAGS) -shared -o $@ \
 		$^ \
 		$(LIBS) -Llib -lmagma
 	@echo
 else
-# missing -fPIC: "make shared" prints warning
-$(libs_so): shared
+    # missing -fPIC: "make shared" prints warning
+    $(libs_so): shared
 endif
+
+
+# ------------------------------------------------------------------------------
+# testers
 
 # link testing_foo from testing_foo.o
 $(testers): %: %.$(o_ext)
@@ -631,13 +643,13 @@ $(sparse_testers): %: %.$(o_ext)
 	$(LIBS)
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # filter out MAGMA-specific options for pkg-config
 INSTALL_FLAGS := $(filter-out \
 	-DMAGMA_NOAFFINITY -DMAGMA_SETAFFINITY -DMAGMA_WITH_ACML -DMAGMA_WITH_MKL -DUSE_FLOCK \
 	-DMIN_CUDA_ARCH=100 -DMIN_CUDA_ARCH=200 -DMIN_CUDA_ARCH=300 \
 	-DMIN_CUDA_ARCH=350 -DMIN_CUDA_ARCH=500 -DMIN_CUDA_ARCH=600 \
-	-DHAVE_CUBLAS \
+	-DHAVE_CUBLAS -DHAVE_clBLAS \
 	-fno-strict-aliasing -fPIC -O0 -O1 -O2 -O3 -pedantic -std=c99 -stdc++98 -stdc++11 \
 	-Wall -Wshadow -Wno-long-long, $(CFLAGS))
 
@@ -663,16 +675,15 @@ install: lib sparse-lib install_dirs
 	    > $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)/pkgconfig/magma.pc
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 # files.txt is nearly all (active) files in SVN, excluding directories. Useful for rsync, etc.
 # files-doxygen.txt is all (active) source files in SVN, used by Doxyfile-fast
 
 # excludes non-active directories like obsolete.
 # excludes directories by matching *.* files (\w\.\w) and some exceptions like Makefile.
 files.txt: force
-	svn st -vq \
-		| egrep -v '^D|> moved' \
-		| perl -pe 's/^.{13} +\S+ +\S+ +\S+ +//' | sort \
+	hg st -m -a -c \
+		| perl -pe 's/^. +//' | sort \
 		| egrep -v '^\.$$|obsolete|deprecated|contrib\b|^exp' \
 		| egrep '\w\.\w|Makefile|docs|run' \
 		> files.txt
@@ -684,15 +695,14 @@ files.txt: force
 subdir_files = $(addsuffix /files.txt,$(subdirs) $(sparse_subdirs))
 
 $(subdir_files): force
-	svn st -N -vq $(dir $@) \
-		| egrep -v '^D|> moved' \
-		| perl -pe 's%^.{13} +\S+ +\S+ +\S+ +$(dir $@)%%' | sort \
+	cd $(dir $@) && hg st -m -a -c -X '*/*' . \
+		| perl -pe 's/^. +//' | sort \
 		| egrep -v '^\.$$|obsolete|deprecated|contrib\b|^exp' \
 		| egrep '\w\.\w|Makefile|docs|run' \
-		> $@
+		> files.txt
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 echo:
 	@echo "====="
 	@echo "hdr                $(hdr)\n"
@@ -709,17 +719,17 @@ echo:
 	@echo "libmagma_dynamic_all $(libmagma_dynamic_all)\n"
 	@echo "libmagma_dynamic_obj $(libmagma_dynamic_obj)\n"
 	@echo "libmagma_dlink_obj   $(libmagma_dlink_obj)\n"
-	@echo "====="             
+	@echo "====="
 	@echo "libsparse_src      $(libsparse_src)\n"
 	@echo "libsparse_all      $(libsparse_all)\n"
 	@echo "libsparse_obj      $(libsparse_obj)\n"
 	@echo "libsparse_a        $(libsparse_a)"
 	@echo "libsparse_so       $(libsparse_so)"
-	@echo "====="             
+	@echo "====="
 	@echo "blas_fix           $(blas_fix)"
 	@echo "libblas_fix_src    $(libblas_fix_src)"
 	@echo "libblas_fix_a      $(libblas_fix_a)"
-	@echo "====="             
+	@echo "====="
 	@echo "libtest_src        $(libtest_src)\n"
 	@echo "libtest_all        $(libtest_all)\n"
 	@echo "libtest_obj        $(libtest_obj)\n"
@@ -752,7 +762,7 @@ echo:
 	@echo "LIBS    $(LIBS)"
 
 
-# ----------------------------------------
+# ------------------------------------------------------------------------------
 cleandep:
 	-rm -f $(deps)
 

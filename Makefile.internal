@@ -9,10 +9,10 @@ Makefile.gen: $(Makefiles) tools/magmasubs.py
 	echo "# ----------------------------------------"                     >  $@
 	$(codegen) --make --prefix libmagma          $(libmagma_src)          >> $@
 	$(codegen) --make --prefix libmagma_dynamic  $(libmagma_dynamic_src)  >> $@
-	$(codegen) --make --prefix libsparse         $(libsparse_src)         >> $@
 	$(codegen) --make --prefix libtest           $(libtest_src)           >> $@
 	$(codegen) --make --prefix liblapacktest     $(liblapacktest_src)     >> $@
 	$(codegen) --make --prefix testing           $(testing_src)           >> $@
+	$(codegen) --make --prefix libsparse         $(libsparse_src)         >> $@
 	$(codegen) --make --prefix sparse_testing    $(sparse_testing_src)    >> $@
 	$(codegen) --make --prefix header            $(hdr)                   >> $@
 
