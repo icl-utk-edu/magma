@@ -237,7 +237,8 @@ magma_int_t magma_znan_inf_gpu(
     magma_uplo_t uplo, magma_int_t m, magma_int_t n,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magma_int_t *cnt_nan,
-    magma_int_t *cnt_inf )
+    magma_int_t *cnt_inf,
+    magma_queue_t queue )
 {
     magma_int_t info = 0;
     if ( uplo != MagmaLower && uplo != MagmaUpper && uplo != MagmaFull )
@@ -258,14 +259,7 @@ magma_int_t magma_znan_inf_gpu(
     magmaDoubleComplex* A;
     magma_zmalloc_cpu( &A, lda*n );
 
-    magma_queue_t queue;
-    magma_device_t cdev;
-    magma_getdevice( &cdev );
-    magma_queue_create( cdev, &queue );
-    
     magma_zgetmatrix( m, n, dA, ldda, A, lda, queue );
-    
-    magma_queue_destroy( queue );
     
     magma_int_t cnt = magma_znan_inf( uplo, m, n, A, lda, cnt_nan, cnt_inf );
     
