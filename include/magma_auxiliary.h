@@ -11,6 +11,8 @@
 
 #include "magma_types.h"
 
+#include <math.h>  // sqrtf
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,6 +42,7 @@ real_Double_t magma_sync_wtime( magma_queue_t queue );
 // =============================================================================
 // misc. functions
 
+// CUDA MAGMA only
 // magma GPU-complex PCIe connection
 magma_int_t magma_buildconnection_mgpu(
     magma_int_t gnode[MagmaMaxGPUs+2][MagmaMaxGPUs+2],
@@ -174,43 +177,56 @@ static inline magma_int_t magma_zmalloc_pinned( magmaDoubleComplex **ptr_ptr, si
 
 /// @}
 
+// CUDA MAGMA only
 magma_int_t magma_is_devptr( const void* ptr );
 
 
 // =============================================================================
 // device support
 
-magma_int_t magma_num_gpus( void );
+magma_int_t
+magma_num_gpus( void );
 /* todo: num_accelerators */
 /* todo: total accelerators? available accelerators? i.e., number to use vs. number available. */
 
-magma_int_t magma_getdevice_arch();
-/* magma_int_t magma_getdevice_arch( magma_int_t dev );   todo: new */
+// CUDA MAGMA only
+magma_int_t
+magma_getdevice_arch();
+/* magma_int_t magma_getdevice_arch( magma_int_t dev or queue );   todo: new */
 
-void magma_getdevices(
+void
+magma_getdevices(
     magma_device_t* devices,
-    magma_int_t  size,
-    magma_int_t* num_dev );
+    magma_int_t     size,
+    magma_int_t*    num_dev );
 
-void magma_getdevice( magma_device_t* dev );
+void
+magma_getdevice( magma_device_t* dev );
 
-void magma_setdevice( magma_device_t dev );
+void
+magma_setdevice( magma_device_t dev );
 
 
 // =============================================================================
 // event support
 
-void magma_event_create( magma_event_t* event_ptr );
+void
+magma_event_create( magma_event_t* event_ptr );
 
-void magma_event_destroy( magma_event_t event );
+void
+magma_event_destroy( magma_event_t event );
 
-void magma_event_record( magma_event_t event, magma_queue_t queue );
+void
+magma_event_record( magma_event_t event, magma_queue_t queue );
 
-void magma_event_query( magma_event_t event );
+void
+magma_event_query( magma_event_t event );
 
-void magma_event_sync( magma_event_t event );
+void
+magma_event_sync( magma_event_t event );
 
-void magma_queue_wait_event( magma_queue_t queue, magma_event_t event );
+void
+magma_queue_wait_event( magma_queue_t queue, magma_event_t event );
 
 
 // =============================================================================

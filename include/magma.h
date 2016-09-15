@@ -38,4 +38,4 @@
 #include "magma_ds.h"
 #include "magma_auxiliary.h"
 
-#endif        //  #ifndef MAGMA_H
+#endif  // MAGMA_H
