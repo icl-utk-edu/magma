@@ -17,6 +17,11 @@
 // __host__ and __device__ are defined in CUDA headers.
 #include "magma_types.h"
 
+#ifdef HAVE_clBLAS
+#define __host__
+#define __device__
+#endif
+
 /// @addtogroup magma_complex
 /// In C++, including magma_operators.h defines the usual unary and binary
 /// operators for complex numbers: +, +=, -, -=, *, *=, /, /=, ==, !=.
@@ -564,6 +569,11 @@ operator != (const float s, const magmaFloatComplex a)
 {
     return ! (a == s);
 }
+
+#ifdef HAVE_clBLAS
+#undef __host__
+#undef __device__
+#endif
 
 #endif /* __cplusplus */
 
