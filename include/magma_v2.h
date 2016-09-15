@@ -1,9 +1,9 @@
 /*
-    MAGMA (version 2.0)
-    Univ. of Tennessee, Knoxville
-    Univ. of California, Berkeley
-    Univ. of Colorado, Denver
-    @date
+    -- MAGMA (version 2.0) --
+       Univ. of Tennessee, Knoxville
+       Univ. of California, Berkeley
+       Univ. of Colorado, Denver
+       @date
 */
 
 #ifndef MAGMA_V2_H
@@ -29,15 +29,4 @@
 #include "magma_ds.h"
 #include "magma_auxiliary.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-// this can be used instead of magma_init() if NO v1 interfaces are ever called.
-magma_int_t magma_init_v2( void );
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif        //  #ifndef MAGMA_V2_H
+#endif  // MAGMA_V2_H
