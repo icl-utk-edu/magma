@@ -398,46 +398,6 @@ magma_zgetrf_piv(
 } /* magma_zgetrf_piv */
 
 
-/******************************************************************************/
-extern "C" magma_int_t
-magma_zgetrf2_piv(
-    magma_int_t m, magma_int_t n, magma_int_t start, magma_int_t end,
-    magmaDoubleComplex *A, magma_int_t lda, magma_int_t *ipiv,
-    magma_int_t *info)
-{
-    magma_int_t I, k1, k2, nb, incx, minmn;
-
-    *info = 0;
-
-    if (m < 0)
-        *info = -1;
-    else if (n < 0)
-        *info = -2;
-    else if (lda < max(1,m))
-        *info = -4;
-
-    if (*info != 0)
-        return *info;
-
-    /* Quick return if possible */
-    if (m == 0 || n == 0)
-        return *info;
-
-    /* initialize nb */
-    nb = magma_get_zgetrf_nb( m, n );
-    minmn = min( end, min(m,n) );
-
-    for( I=start; I < end-nb; I += nb ) {
-        incx = 1;
-        k1 = 1+I+nb;
-        k2 = minmn;
-        lapackf77_zlaswp(&nb, A(0,I), &lda, &k1, &k2, ipiv, &incx);
-    }
-
-    return *info;
-} /* magma_zgetrf_piv */
-
-
 #undef dAT
 #undef dPT
 #undef A
