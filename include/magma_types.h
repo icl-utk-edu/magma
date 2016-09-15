@@ -13,6 +13,11 @@
 #include <assert.h>
 
 
+// for backwards compatability
+#ifdef HAVE_clAmdBlas
+#define HAVE_clBLAS
+#endif
+
 // each implementation of MAGMA defines HAVE_* appropriately.
 #if ! defined(HAVE_CUBLAS) && ! defined(HAVE_clBLAS) && ! defined(HAVE_MIC)
 #define HAVE_CUBLAS
@@ -50,13 +55,6 @@ typedef double real_Double_t;
 
 
 // =============================================================================
-// opaque queue structure
-struct magma_queue;
-typedef struct magma_queue* magma_queue_t;
-
-
-
-// =============================================================================
 // define types specific to implementation (CUDA, OpenCL, MIC)
 // define macros to deal with complex numbers
 #if defined(HAVE_CUBLAS)
@@ -66,6 +64,10 @@ typedef struct magma_queue* magma_queue_t;
     #endif
 
     #include <cusparse_v2.h>
+
+    // opaque queue structure
+    struct magma_queue;
+    typedef struct magma_queue* magma_queue_t;
 
     #ifdef __cplusplus
     extern "C" {
@@ -117,6 +119,7 @@ typedef struct magma_queue* magma_queue_t;
 #elif defined(HAVE_clBLAS)
     #include <clBLAS.h>
 
+    typedef cl_command_queue  magma_queue_t;
     typedef cl_event          magma_event_t;
     typedef cl_device_id      magma_device_t;
 
@@ -124,24 +127,26 @@ typedef struct magma_queue* magma_queue_t;
     typedef FloatComplex  magmaFloatComplex;
 
     #define MAGMA_Z_MAKE(r,i)     doubleComplex(r,i)
-    #define MAGMA_Z_REAL(a)       (a).x
-    #define MAGMA_Z_IMAG(a)       (a).y
-    #define MAGMA_Z_ADD(a, b)     MAGMA_Z_MAKE((a).x+(b).x, (a).y+(b).y)
-    #define MAGMA_Z_SUB(a, b)     MAGMA_Z_MAKE((a).x-(b).x, (a).y-(b).y)
-    #define MAGMA_Z_DIV(a, b)     ((a)/(b))
+    #define MAGMA_Z_REAL(a)       (a).s[0]
+    #define MAGMA_Z_IMAG(a)       (a).s[1]
+    #define MAGMA_Z_ADD(a, b)     MAGMA_Z_MAKE((a).s[0] + (b).s[0], (a).s[1] + (b).s[1])
+    #define MAGMA_Z_SUB(a, b)     MAGMA_Z_MAKE((a).s[0] - (b).s[0], (a).s[1] - (b).s[1])
+    #define MAGMA_Z_MUL(a, b)     ((a) * (b))
+    #define MAGMA_Z_DIV(a, b)     ((a) / (b))
     #define MAGMA_Z_ABS(a)        magma_cabs(a)
-    #define MAGMA_Z_ABS1(a)       (fabs((a).x) + fabs((a).y))
-    #define MAGMA_Z_CONJ(a)       MAGMA_Z_MAKE((a).x, -(a).y)
+    #define MAGMA_Z_ABS1(a)       (fabs((a).s[0]) + fabs((a).s[1]))
+    #define MAGMA_Z_CONJ(a)       MAGMA_Z_MAKE((a).s[0], -(a).s[1])
 
     #define MAGMA_C_MAKE(r,i)     floatComplex(r,i)
-    #define MAGMA_C_REAL(a)       (a).x
-    #define MAGMA_C_IMAG(a)       (a).y
-    #define MAGMA_C_ADD(a, b)     MAGMA_C_MAKE((a).x+(b).x, (a).y+(b).y)
-    #define MAGMA_C_SUB(a, b)     MAGMA_C_MAKE((a).x-(b).x, (a).y-(b).y)
-    #define MAGMA_C_DIV(a, b)     ((a)/(b))
+    #define MAGMA_C_REAL(a)       (a).s[0]
+    #define MAGMA_C_IMAG(a)       (a).s[1]
+    #define MAGMA_C_ADD(a, b)     MAGMA_C_MAKE((a).s[0] + (b).s[0], (a).s[1] + (b).s[1])
+    #define MAGMA_C_SUB(a, b)     MAGMA_C_MAKE((a).s[0] - (b).s[0], (a).s[1] - (b).s[1])
+    #define MAGMA_C_MUL(a, b)     ((a) * (b))
+    #define MAGMA_C_DIV(a, b)     ((a) / (b))
     #define MAGMA_C_ABS(a)        magma_cabsf(a)
-    #define MAGMA_C_ABS1(a)       (fabsf((a).x) + fabsf((a).y))
-    #define MAGMA_C_CONJ(a)       MAGMA_C_MAKE((a).x, -(a).y)
+    #define MAGMA_C_ABS1(a)       (fabsf((a).s[0]) + fabsf((a).s[1]))
+    #define MAGMA_C_CONJ(a)       MAGMA_C_MAKE((a).s[0], -(a).s[1])
 
 #elif defined(HAVE_MIC)
     #include <stdio.h>
@@ -156,6 +161,7 @@ typedef struct magma_queue* magma_queue_t;
     #include <scif.h>
     //#include <mkl.h>
 
+    typedef int   magma_queue_t;
     typedef int   magma_event_t;
     typedef int   magma_device_t;
 
@@ -298,6 +304,7 @@ typedef struct magma_queue* magma_queue_t;
 
 #define MagmaMaxGPUs 8
 #define MagmaMaxAccelerators 8
+#define MagmaMaxSubs 16
 
 // trsv template parameter
 #define MagmaBigTileSize 1000000
@@ -744,4 +751,4 @@ enum CBLAS_SIDE      cblas_side_const   ( magma_side_t  side  );
 }
 #endif
 
-#endif        //  #ifndef MAGMA_TYPES_H
+#endif  // MAGMA_TYPES_H
