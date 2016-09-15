@@ -7,8 +7,6 @@
 
        @author Mark Gates
 */
-#include <cuda_runtime.h>
-
 #include "magma_internal.h"
 
 
@@ -50,8 +48,9 @@ magma_int_t magma_num_gpus( void )
     if ( ngpu_str != NULL ) {
         char* endptr;
         ngpu = strtol( ngpu_str, &endptr, 10 );
-        int ndevices;  // must be int
-        cudaGetDeviceCount( &ndevices );
+        magma_int_t ndevices;
+        magma_device_t devices[ MagmaMaxGPUs ];
+        magma_getdevices( devices, MagmaMaxGPUs, &ndevices );
         // if *endptr == '\0' then entire string was valid number (or empty)
         if ( ngpu < 1 || *endptr != '\0' ) {
             ngpu = 1;
