@@ -10,34 +10,24 @@ my $minor;
 my $micro;
 
 # default options
-my $svn      = "https://icl.cs.utk.edu/svn/magma/trunk";
-my $user     = "";
-my $revision = "";
 my $rc       = 0;  # release candidate
 my $alpha    = 0;
 my $beta     = 0;
 
+# ------------------------------------------------------------------------------
 # In alphabetic order
 # Using qw() avoids need for "quotes", but comments aren't recognized inside qw()
 my @files2delete = qw(
     ReleaseChecklist
     Makefile.internal
-    contrib
     control/sizeptr
     
     docs/Doxyfile-fast
     docs/output_err
     
-    exp
-    exp_magma_quark
-    
     include/Makefile
-    magmablas/obsolete
-    make.icl
     make.inc
     make.inc.ig.pgi
-    multi-gpu-dynamic-deprecated
-    quark
     scripts
 
     sparse/python
@@ -65,7 +55,6 @@ my @files2delete = qw(
     
     sparse/testing/test_matrices
 
-    src/obsolete
     testing/*.txt
     testing/fortran2.cpp
     testing/testing_zgetrf_f.f
@@ -86,6 +75,7 @@ my @files2delete = qw(
 # note: keep tools/{codegen.py, magmasubs.py}
 
 
+# ------------------------------------------------------------------------------
 sub myCmd
 {
     my ($cmd) = @_;
@@ -99,6 +89,8 @@ sub myCmd
     }
 }
 
+
+# ------------------------------------------------------------------------------
 sub MakeRelease
 {
     my $cmd;
@@ -138,8 +130,6 @@ EOT
         } while( not m/\bignore\b/ );
     }
 
-    # svn export won't remove an existing directory,
-    # causing old files to get mixed in with updated ones. Force user to fix it.
     my $RELEASE_PATH = $ENV{PWD}."/magma-$version";
     if ( -e $RELEASE_PATH ) {
         die( "RELEASE_PATH $RELEASE_PATH already exists.\nPlease delete it or use different version.\n" );
@@ -150,10 +140,7 @@ EOT
     chomp $dir;
 
     if ( not $rc and not $alpha and not $beta ) {
-        print <<EOT;
-Is this the final tar file for this release (that is, the release has been
-thoroughly tested), and you want to update version in magma.h in SVN (yes/no)?
-EOT
+        print "Update MAGMA version in include headers (yes/no)?"
         $_ = <STDIN>;
         if ( m/\b(y|yes)\b/ ) {
             # If run as ./tools/MakeMagmaRelease.pl, no need to change dir;
@@ -167,17 +154,12 @@ EOT
                  .             " include/magma_types.h";
             myCmd($cmd);
             myCmd("perl -pi -e 's/PROJECT_NUMBER +=.*/PROJECT_NUMBER         = $major.$minor.$micro/' docs/Doxyfile");
-            myCmd("svn diff include/magma_types.h docs/Doxyfile");
-            print "Commit these changes now (yes/no)?\n";
+            myCmd("hg diff include/magma_types.h docs/Doxyfile");
+            print "Commit & push these changes now (yes/no)?\n";
             $_ = <STDIN>;
             if ( m/\b(y|yes)\b/ ) {
-                myCmd("svn commit -m 'version $major.$minor.$micro' include/magma_types.h docs/Doxyfile");
-            }
-            
-            print "Tag release in SVN (yes/no)?\n";
-            $_ = <STDIN>;
-            if ( m/\b(y|yes)\b/ ) {
-                myCmd("svn copy -m 'version $major.$minor.$micro tag' ^/trunk ^/tags/release-$major.$minor.$micro");
+                myCmd("hg commit -m 'version $major.$minor.$micro' include/magma_types.h docs/Doxyfile");
+                myCmd("hg push");
             }
             
             # allow user to see that it went successfully
@@ -188,13 +170,13 @@ EOT
         }
     }
 
-    # Export current SVN
-    myCmd("svn export --force $revision $user $svn $RELEASE_PATH");
+    $cmd = "hg archive $revision $RELEASE_PATH";
+    myCmd($cmd);
 
     print "cd $RELEASE_PATH\n";
     chdir $RELEASE_PATH;
 
-    # Change version in magma.h (in export, not in the SVN itself)
+    # Change version in magma.h (in export, not in the hg repo itself)
     # See similar replacement above (minus stage)
     $cmd = "perl -pi -e 's/VERSION_MAJOR +[0-9]+/VERSION_MAJOR $major/; "
          .             " s/VERSION_MINOR +[0-9]+/VERSION_MINOR $minor/; "
@@ -254,32 +236,8 @@ EOT
     myCmd("(cd $DIRNAME && tar cvzf ${BASENAME}.tar.gz $BASENAME)");
 }
 
-#sub MakeInstallerRelease {
-#
-#    my $version = "$major.$minor.$micro";
-#    my $cmd;
-#
-#    $RELEASE_PATH = $ENV{ PWD}."/plasma-installer-$version";
-#
-#    # Sauvegarde du rep courant
-#    my $dir = `pwd`;
-#    chomp $dir;
-#
-#    $cmd = "svn export --force $revision $user $svninst $RELEASE_PATH";
-#    myCmd($cmd);
-#
-#    # Save the InstallationGuide if we want to do a plasma-installer release
-#    myCmd("cp README-installer $RELEASE_PATH/README");
-#
-#    #Create tarball
-#    print "Create the tarball\n";
-#    my $DIRNAME  = `dirname $RELEASE_PATH`;
-#    my $BASENAME = `basename $RELEASE_PATH`;
-#    chomp $DIRNAME;
-#    chomp $BASENAME;
-#    myCmd("(cd $DIRNAME && tar cvzf ${BASENAME}.tar.gz $BASENAME)");
-#}
 
+# ------------------------------------------------------------------------------
 sub Usage
 {
     print "MakeRelease.pl [options] major.minor.micro\n";
@@ -287,13 +245,13 @@ sub Usage
     print "   -a alpha      Alpha version\n";
     print "   -b beta       Beta version\n";
     print "   -c candidate  Release candidate number\n";
-    print "   -r revision   Choose svn revision number\n";
-    print "   -s url        Choose svn repository for export (default: $svn)\n";
-    print "   -u username   SVN username\n";
+    print "   -r revision   Choose hg revision number\n";
 }
 
+
+# ------------------------------------------------------------------------------
 my %opts;
-getopts("ha:b:c:r:s:u:",\%opts);
+getopts("ha:b:c:r:",\%opts);
 
 if ( defined $opts{h}  ) {
     Usage();
@@ -311,12 +269,6 @@ if ( defined $opts{c} ) {
 if ( defined $opts{r} ) {
     $revision = "-r $opts{r}";
 }
-if ( defined $opts{s} ) {
-    $svn = $opts{s};
-}
-if ( defined $opts{u} ) {
-    $user = "--username $opts{u}";
-}
 if ( ($#ARGV + 1) != 1 ) {
     Usage();
     exit;
@@ -330,4 +282,3 @@ if ( not ($major >= 1 and $minor >= 0 and $micro >= 0)) {
 }
 
 MakeRelease();
-#MakeInstallerRelease();
