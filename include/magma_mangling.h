@@ -33,4 +33,4 @@
     #endif
 #endif
 
-#endif        //  #ifndef MAGMA_MANGLING_H
+#endif  // MAGMA_MANGLING_H

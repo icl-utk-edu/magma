@@ -4,4 +4,4 @@
 /* Empty file. See magma_mangling.h
  * When using CMake, this gets replaced by Fortran name mangling. */
 
-#endif        //  #ifndef MAGMA_MANGLING_CMAKE_H
+#endif  // MAGMA_MANGLING_CMAKE_H
