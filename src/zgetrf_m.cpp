@@ -15,6 +15,50 @@
 #include "magma_timer.h"
 //#include "../testing/flops.h"
 
+
+/******************************************************************************/
+extern "C" magma_int_t
+magma_zgetrf_piv(
+    magma_int_t m, magma_int_t n, magma_int_t NB,
+    magmaDoubleComplex *A, magma_int_t lda, magma_int_t *ipiv,
+    magma_int_t *info)
+{
+    #define A(i,j) (A + (j)*lda + (i))
+    
+    magma_int_t I, k1, k2, incx, minmn;
+    *info = 0;
+    if (m < 0)
+        *info = -1;
+    else if (n < 0)
+        *info = -2;
+    else if (lda < max(1,m))
+        *info = -4;
+
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
+    /* Quick return if possible */
+    if (m == 0 || n == 0)
+        return *info;
+
+    /* initialize nb */
+    minmn = min(m,n);
+
+    for( I=0; I < minmn-NB; I += NB ) {
+        k1 = 1+I+NB;
+        k2 = minmn;
+        incx = 1;
+        lapackf77_zlaswp(&NB, A(0,I), &lda, &k1, &k2, ipiv, &incx);
+    }
+
+    return *info;
+    
+    #undef A
+} /* magma_zgetrf_piv */
+
+
 /***************************************************************************//**
     Purpose
     -------
@@ -357,45 +401,6 @@ magma_zgetrf_m(
         magma_zgetrf_piv(m, n, NB, A, lda, ipiv, info);
     return *info;
 } /* magma_zgetrf_m */
-
-
-/******************************************************************************/
-extern "C" magma_int_t
-magma_zgetrf_piv(
-    magma_int_t m, magma_int_t n, magma_int_t NB,
-    magmaDoubleComplex *A, magma_int_t lda, magma_int_t *ipiv,
-    magma_int_t *info)
-{
-    magma_int_t I, k1, k2, incx, minmn;
-    *info = 0;
-    if (m < 0)
-        *info = -1;
-    else if (n < 0)
-        *info = -2;
-    else if (lda < max(1,m))
-        *info = -4;
-
-    if (*info != 0) {
-        magma_xerbla( __func__, -(*info) );
-        return *info;
-    }
-
-    /* Quick return if possible */
-    if (m == 0 || n == 0)
-        return *info;
-
-    /* initialize nb */
-    minmn = min(m,n);
-
-    for( I=0; I < minmn-NB; I += NB ) {
-        k1 = 1+I+NB;
-        k2 = minmn;
-        incx = 1;
-        lapackf77_zlaswp(&NB, A(0,I), &lda, &k1, &k2, ipiv, &incx);
-    }
-
-    return *info;
-} /* magma_zgetrf_piv */
 
 
 #undef dAT
