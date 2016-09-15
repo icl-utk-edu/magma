@@ -61,10 +61,11 @@ magma_int_t magma_get_zbulge_gcperf();
 // =============================================================================
 // MAGMA function definitions
 //
-// In alphabetical order of base name (ignoring precision)
+// In alphabetical order of base name (ignoring precision).
 // Keep different versions of the same routine together, sorted this way:
-// cpu (no suffix), gpu (_gpu), cpu/multi-gpu (_m), multi-gpu (_mgpu)
+// cpu (no suffix), gpu (_gpu), cpu/multi-gpu (_m), multi-gpu (_mgpu). Ex:
 // magma_zheevdx
+// magma_zheevdx_gpu
 // magma_zheevdx_m
 // magma_zheevdx_2stage
 // magma_zheevdx_2stage_m
@@ -1011,6 +1012,7 @@ magma_zhetrf_nopiv_gpu(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *info);
 
+// CUDA MAGMA only
 magma_int_t
 magma_zhetrs_nopiv_gpu(
     magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,

@@ -107,8 +107,8 @@ int main( int argc, char** argv )
             if ( opts.verbose ) {
                 printf( "A=  " );  magma_zprint( n, n, A,  lda );
                 printf( "SA= " );  magma_cprint( n, n, SA, lda );
-                printf( "dA= " );  magma_zprint_gpu( n, n, dA,  ldda );
-                printf( "dSA=" );  magma_cprint_gpu( n, n, dSA, ldda );
+                printf( "dA= " );  magma_zprint_gpu( n, n, dA,  ldda, opts.queue );
+                printf( "dSA=" );  magma_cprint_gpu( n, n, dSA, ldda, opts.queue );
             }
             
             /* =====================================================================
@@ -178,8 +178,8 @@ int main( int argc, char** argv )
             if ( opts.verbose ) {
                 printf( "A=  " );  magma_zprint( n, n, A,  lda );
                 printf( "SA= " );  magma_cprint( n, n, SA, lda );
-                printf( "dA= " );  magma_zprint_gpu( n, n, dA,  ldda );
-                printf( "dSA=" );  magma_cprint_gpu( n, n, dSA, ldda );
+                printf( "dA= " );  magma_zprint_gpu( n, n, dA,  ldda, opts.queue );
+                printf( "dSA=" );  magma_cprint_gpu( n, n, dSA, ldda, opts.queue );
             }
             
             /* =====================================================================

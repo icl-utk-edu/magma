@@ -116,8 +116,8 @@ int main( int argc, char** argv)
             if ( opts.verbose ) {
                 printf( "A= " );  magma_zprint(     M, N, h_A, lda );
                 printf( "B= " );  magma_zprint(     M, N, h_B, ldb );
-                printf( "dA=" );  magma_zprint_gpu( M, N, d_A, ldda );
-                printf( "dB=" );  magma_zprint_gpu( M, N, d_B, lddb );
+                printf( "dA=" );  magma_zprint_gpu( M, N, d_A, ldda, opts.queue );
+                printf( "dB=" );  magma_zprint_gpu( M, N, d_B, lddb, opts.queue );
             }
             
             /* =====================================================================

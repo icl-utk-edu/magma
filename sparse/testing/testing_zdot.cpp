@@ -147,7 +147,7 @@ int main(  int argc, char** argv )
             #endif
                 
                 
-            //magma_zprint_gpu(num_vecs,1,skp.dval,num_vecs);
+            //magma_zprint_gpu( num_vecs, 1, skp.dval, num_vecs, opts.queue );
 
             //Chronometry
             #ifdef ENABLE_TIMER

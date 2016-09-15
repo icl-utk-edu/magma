@@ -77,7 +77,7 @@ int main( int argc, char** argv)
             magma_zprint( M, N, hA, lda );
             
             printf( "dA=" );
-            magma_zprint_gpu( M, N, dA, ldda );
+            magma_zprint_gpu( M, N, dA, ldda, opts.queue );
             
             magma_free_cpu( hA );
             magma_free( dA );

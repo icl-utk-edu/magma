@@ -207,10 +207,10 @@ int main( int argc, char** argv)
             magma_int_t c_gpu_nan=-1, c_gpu_inf=-1;
             
             magma_int_t c_cpu = magma_znan_inf    ( uplo[iuplo], M, N, hA, lda,  &c_cpu_nan, &c_cpu_inf );
-            magma_int_t c_gpu = magma_znan_inf_gpu( uplo[iuplo], M, N, dA, ldda, &c_gpu_nan, &c_gpu_inf );
+            magma_int_t c_gpu = magma_znan_inf_gpu( uplo[iuplo], M, N, dA, ldda, &c_gpu_nan, &c_gpu_inf, opts.queue );
             
             magma_int_t c_cpu2 = magma_znan_inf    ( uplo[iuplo], M, N, hA, lda,  NULL, NULL );
-            magma_int_t c_gpu2 = magma_znan_inf_gpu( uplo[iuplo], M, N, dA, ldda, NULL, NULL );
+            magma_int_t c_gpu2 = magma_znan_inf_gpu( uplo[iuplo], M, N, dA, ldda, NULL, NULL, opts.queue );
             
             /* =====================================================================
                Check the result

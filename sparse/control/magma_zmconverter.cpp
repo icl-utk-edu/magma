@@ -1104,7 +1104,7 @@ magma_zmconvert(
 
             intnnz = B->nnz;
             CHECK( magma_index_malloc( &nnz_per_row, A.num_rows ));
-            //magma_zprint_gpu( A.num_rows, 1, nnz_per_row, A.num_rows )
+            //magma_zprint_gpu( A.num_rows, 1, nnz_per_row, A.num_rows, queue )
             cusparseZnnz( cusparseHandle, CUSPARSE_DIRECTION_COLUMN,
                           A.num_rows, A.num_cols,
                           descr,

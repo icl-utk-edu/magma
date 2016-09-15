@@ -336,7 +336,7 @@ magma_zmprepare_batched_gpu(
         rhs, LC.num_rows, WARP_SIZE, 1);
 
     
-   // magma_zprint_gpu( 32, 32, L.dval, 32 );
+   // magma_zprint_gpu( 32, 32, L.dval, 32, queue );
     
     // Runtime API
     // cudaFuncCachePreferShared: shared memory is 48 KB
@@ -368,7 +368,7 @@ magma_zmprepare_batched_gpu(
                         rhs );
     }
     
-  //  magma_zprint_gpu( 32, 32, L.dval, 32 );
+    // magma_zprint_gpu( 32, 32, L.dval, 32, queue );
 
     
     magma_zfilltrisystems_kernel<<< grid2, block2, 0, queue->cuda_stream() >>>(    
@@ -380,7 +380,7 @@ magma_zmprepare_batched_gpu(
                         locations,
                         trisystems,
                         rhs );
-    //magma_zprint_gpu( 32, 32, L.dval, 32 );
+    //magma_zprint_gpu( 32, 32, L.dval, 32, queue );
 
     return MAGMA_SUCCESS;
 }

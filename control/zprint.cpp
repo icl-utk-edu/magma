@@ -125,7 +125,8 @@ void magma_zprint(
 extern "C"
 void magma_zprint_gpu(
     magma_int_t m, magma_int_t n,
-    const magmaDoubleComplex *dA, magma_int_t ldda )
+    const magmaDoubleComplex *dA, magma_int_t ldda,
+    magma_queue_t queue )
 {
     magma_int_t info = 0;
     if ( m < 0 )
@@ -144,14 +145,7 @@ void magma_zprint_gpu(
     magmaDoubleComplex* A;
     magma_zmalloc_cpu( &A, lda*n );
 
-    magma_queue_t queue;
-    magma_device_t cdev;
-    magma_getdevice( &cdev );
-    magma_queue_create( cdev, &queue );
-    
     magma_zgetmatrix( m, n, dA, ldda, A, lda, queue );
-    
-    magma_queue_destroy( queue );
     
     magma_zprint( m, n, A, lda );
     
