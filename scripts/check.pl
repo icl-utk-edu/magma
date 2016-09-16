@@ -237,12 +237,12 @@ while( <> ) {
 	s|(\S) +$|$1|mg;
 	
 	# add include magmasparse_common.h, either replacing common_magma.h, or as last include
-	if ( not m/common_magmasparse\.h/ ) {
-		if ( not s/#include "common_magma.h"/#include "common_magmasparse.h"/ ) {
+	if ( not m/magmasparse_internal\.h/ ) {
+		if ( not s/#include "common_magma.h"/#include "magmasparse_internal.h"/ ) {
 			s/(.*include.*?\n)/$1#include "magmasparse_common.h"\n/s;
 		}
 	}
-	s/#include "magmasparse.h"\n//;  # included via common_magmasparse.h
+	s/#include "magmasparse.h"\n//;  # included via magmasparse_internal.h
 	
 	# -----
 	# CHECK functions

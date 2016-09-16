@@ -9,7 +9,7 @@
        @author Hartwig Anzt
 
 */
-#include "common_magmasparse.h"
+#include "magmasparse_internal.h"
 
 #define BLOCK_SIZE 512
 
@@ -597,7 +597,7 @@ magma_zjacobispmvupdateselect(
     for( magma_int_t i=0; i<maxiter; i++ ) {
         zjacobispmvupdateselect_kernel<<< grid, threads, 0, queue->cuda_stream()>>>
             ( t.num_rows, t.num_cols, num_updates, indices, A.dval, A.drow, A.dcol, t.dval, b.dval, d.dval, x->dval, tmp.dval );
-        magma_device_sync();
+        // magma_device_sync();
         //swp.dval = x->dval;
         //x->dval = tmp.dval;
         //tmp.dval = swp.dval;
