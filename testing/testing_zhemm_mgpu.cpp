@@ -18,8 +18,6 @@
 #include <math.h>
 #include <assert.h>
 
-#include <cuda_runtime.h>  // for cudaEventCreateWithFlags; TODO replace
-
 // includes, project
 #include "flops.h"
 #include "magma_v2.h"
@@ -90,7 +88,7 @@ int main( int argc, char** argv)
         }
         queues0[dev] = queues[dev][0];
         for( i = 0; i < nevents; ++i ) {
-            cudaEventCreateWithFlags( &events[dev][i], cudaEventDisableTiming );
+            magma_event_create( &events[dev][i] );
         }
     }
 
