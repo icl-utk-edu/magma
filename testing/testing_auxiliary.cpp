@@ -9,7 +9,6 @@
 */
 #include <stdlib.h>
 #include <stdio.h>
-#include <cuda_runtime.h>
 
 // tests internal routines: magma_{set,get}_lapack_numthreads, magma_get_parallel_numthreads
 // so include magma_internal.h instead of magma_v2.h
@@ -37,9 +36,9 @@ void test_num_gpus()
     printf( "%%=====================================================================\n%s\n", __func__ );
     
     magma_int_t ngpu;
-    int ndevices;  // not magma_int_t
-    cudaGetDeviceCount( &ndevices );
-    magma_int_t maxgpu = min( ndevices, MagmaMaxGPUs );
+    magma_device_t devices[ MagmaMaxGPUs ];
+    magma_getdevices( devices, MagmaMaxGPUs, &ngpu );
+    magma_int_t maxgpu = min( ngpu, MagmaMaxGPUs );
     
     printf( "$MAGMA_NUM_GPUS     ngpu     expect\n" );
     printf( "%%==================================\n" );
@@ -310,6 +309,8 @@ void test_indices()
 /******************************************************************************/
 int main( int argc, char** argv )
 {
+    magma_init();
+    
     test_num_gpus();
     test_num_threads();
     test_xerbla();
@@ -322,5 +323,6 @@ int main( int argc, char** argv )
         printf( "\nAll tests passed.\n" );
     }
     
+    magma_finalize();
     return 0;
 }
