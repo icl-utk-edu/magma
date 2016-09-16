@@ -20,10 +20,6 @@
 #include <sys/stat.h>  // fchmod
 #endif
 
-#if defined(HAVE_CUBLAS)
-#include <cuda_runtime_api.h>
-#endif
-
 #include "magma_v2.h"
 #include "testings.h"
 
@@ -310,12 +306,9 @@ void magma_opts::parse_opts( int argc, char** argv )
 {
     printf( usage_short, argv[0] );
     
-    int ndevices;  // not magma_int_t
-    cudaGetDeviceCount( &ndevices );
-    if ( ndevices == 0 ) {
-        fprintf( stderr, "No CUDA devices available\n" );
-        exit(1);
-    }
+    magma_int_t ndevices;
+    magma_device_t devices[ MagmaMaxGPUs ];
+    magma_getdevices( devices, MagmaMaxGPUs, &ndevices );
     
     this->ntest = 0;
     for( int i = 1; i < argc; ++i ) {
@@ -407,7 +400,7 @@ void magma_opts::parse_opts( int argc, char** argv )
             magma_assert( this->ngpu <= MagmaMaxGPUs,
                           "error: --ngpu %s exceeds MagmaMaxGPUs, %d.\n", argv[i], MagmaMaxGPUs );
             magma_assert( this->ngpu <= ndevices,
-                          "error: --ngpu %s exceeds number of CUDA devices, %d.\n", argv[i], ndevices );
+                          "error: --ngpu %s exceeds number of CUDA or OpenCL devices, %d.\n", argv[i], ndevices );
             // allow ngpu == -1, which forces multi-GPU code with 1 GPU. see testing_zhegvd, etc.
             magma_assert( this->ngpu > 0 || this->ngpu == -1,
                           "error: --ngpu %s is invalid; ensure ngpu != 0.\n", argv[i] );
@@ -637,13 +630,9 @@ void magma_opts::parse_opts( int argc, char** argv )
     #endif
     
     // create queues on this device
-    magma_int_t num;
-    magma_device_t devices[ MagmaMaxGPUs ];
-    magma_getdevices( devices, MagmaMaxGPUs, &num );
-    
     // 2 queues + 1 extra NULL entry to catch errors
-    magma_queue_create( this->device, &this->queues2[ 0 ] );
-    magma_queue_create( this->device, &this->queues2[ 1 ] );
+    magma_queue_create( devices[ this->device ], &this->queues2[ 0 ] );
+    magma_queue_create( devices[ this->device ], &this->queues2[ 1 ] );
     this->queues2[ 2 ] = NULL;
     
     this->queue = this->queues2[ 0 ];
@@ -680,7 +669,7 @@ void magma_opts::cleanup()
 #include <string.h>  // memset
 #endif  // HAVE_PAPI
 
-int gPAPI_flops_set = -1;  /* i.e., PAPI_NULL */
+int gPAPI_flops_set = -1;  // i.e., PAPI_NULL
 
 extern "C"
 void flops_init()
