@@ -337,10 +337,12 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->row, A.num_rows + 1 ));
             CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.nnz; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
             }
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows+1; i++ ) {
                 B->row[i] = A.row[i];
             }
@@ -364,10 +366,12 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->row, A.nnz ));
             CHECK( magma_index_malloc_cpu( &B->col, A.num_cols+1 ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.nnz; i++ ) {
                 B->val[i] = A.val[i];
                 B->row[i] = A.row[i];
             }
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_cols+1; i++ ) {
                 B->col[i] = A.col[i];
             }
@@ -390,6 +394,7 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
             CHECK( magma_index_malloc_cpu( &B->rowidx, A.nnz ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.nnz; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
@@ -415,11 +420,13 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
             CHECK( magma_index_malloc_cpu( &B->rowidx, A.nnz ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.nnz; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
                 B->rowidx[i] = A.rowidx[i];
             }
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows+1; i++ ) {
                 B->row[i] = A.row[i];
             }
@@ -441,6 +448,7 @@ magma_zmtransfer(
             CHECK( magma_zmalloc_cpu( &B->val, A.num_rows * A.max_nnz_row ));
             CHECK( magma_index_malloc_cpu( &B->col, A.num_rows * A.max_nnz_row ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows*A.max_nnz_row; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
@@ -463,6 +471,7 @@ magma_zmtransfer(
             CHECK( magma_zmalloc_cpu( &B->val, A.num_rows * A.max_nnz_row ));
             CHECK( magma_index_malloc_cpu( &B->col, A.num_rows * A.max_nnz_row ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows*A.max_nnz_row; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
@@ -491,10 +500,12 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->row, A.num_rows ));
             CHECK( magma_index_malloc_cpu( &B->col, rowlength * A.num_rows ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows*rowlength; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
             }
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows; i++ ) {
                 B->row[i] = A.row[i];
             }
@@ -520,10 +531,12 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
             CHECK( magma_index_malloc_cpu( &B->row, A.numblocks + 1 ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.nnz; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
             }
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.numblocks+1; i++ ) {
                 B->row[i] = A.row[i];
             }
@@ -556,14 +569,17 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->col, A.numblocks ));
             // data transfer
             //magma_zsetvector( size_b * size_b * A.numblocks, A.val, 1, B->dval, 1, queue );
+            #pragma omp parallel for
             for( magma_int_t i=0; i<size_b*size_b*A.numblocks; i++ ) {
                 B->dval[i] = A.val[i];
             }
             //magma_index_setvector( r_blocks + 1, A.row, 1, B->drow, 1, queue );
+            #pragma omp parallel for
             for( magma_int_t i=0; i<r_blocks+1; i++ ) {
                 B->drow[i] = A.row[i];
             }
             //magma_index_setvector( A.numblocks, A.col, 1, B->dcol, 1, queue );
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.numblocks; i++ ) {
                 B->dcol[i] = A.col[i];
             }
@@ -586,6 +602,7 @@ magma_zmtransfer(
             // memory allocation
             CHECK( magma_zmalloc_cpu( &B->val, A.num_rows * A.num_cols ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows*A.num_cols; i++ ) {
                 B->val[i] = A.val[i];
             }
