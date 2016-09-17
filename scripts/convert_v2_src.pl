@@ -96,7 +96,7 @@ while( <> ) {
 	# fix headers
 	s/#include "magma.h"/#include "magma_v2.h"/;
 	s/#include "common_magma.h"/#include "magma_internal.h"/;
-	s/#include "common_magmasparse.h"/#include "magmasparse_internal.h"/;
+	s/#include "magmasparse_internal.h"/#include "magmasparse_internal.h"/;
 	
 	# change UpperLower to Full, for consistency with LAPACK
 	s/UpperLower/Full/g;
