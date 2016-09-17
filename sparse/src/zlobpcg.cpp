@@ -525,7 +525,7 @@ magma_zlobpcg(
                     //  printf("Iteration %4d, CBS %4d, Residual: %10.7f\n",
                     //         iterationNumber, cBlockSize, res);
                     printf("%4d-%2d ", int(iterationNumber), int(cBlockSize));
-                    magma_dprint_gpu(1, n, residualNorms(0, iterationNumber), 1);
+                    magma_dprint_gpu( 1, n, residualNorms(0, iterationNumber), 1, queue );
                 }
             }
 
@@ -591,7 +591,7 @@ magma_zlobpcg(
     printf("\n\n");
 
     printf("Final residuals:\n");
-    magma_dprint_gpu(1, n, residualNorms(0, iterationNumber), 1);
+    magma_dprint_gpu( 1, n, residualNorms(0, iterationNumber), 1, queue );
     printf("\n\n");
 
     //=== Prmagma_int_t residual history in a file for plotting ====
