@@ -62,7 +62,7 @@ CFLAGS   += -std=c99
 # requires gcc & gfortran >= 4.6
 LIB       = -lacml_mp           -lstdc++ -lm -lgfortran
 
-LIB      += -lcublas -lcusparse -lcudart
+LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 
 
 # --------------------

@@ -59,7 +59,7 @@ CFLAGS   += -std=c99
 # -lifcore -ldl -lf2c -lgfortran
 LIB       = -llapack -lf77blas -latlas -lstdc++ -lm -lgfortran -lifcore
 
-LIB      += -lcublas -lcusparse -lcudart
+LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 
 
 # --------------------

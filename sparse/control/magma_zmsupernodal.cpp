@@ -52,15 +52,16 @@ magma_zmsupernodal(
       
     magma_int_t info = 0;
     
-    magma_int_t *blocksizes, *blocksizes2, *start, *v, blockcount=0, blockcount2=0;
+    magma_int_t *blocksizes=NULL, *blocksizes2=NULL, *start=NULL, *v=NULL;
+    magma_int_t blockcount=0, blockcount2=0;
     
     int maxblocksize = *max_bs;
     int current_size = 0;
     
-    CHECK( magma_imalloc_cpu( &v, A.num_rows ));
-    CHECK( magma_imalloc_cpu( &start, A.num_rows ));
-    CHECK( magma_imalloc_cpu( &blocksizes, A.num_rows ));
-    CHECK( magma_imalloc_cpu( &blocksizes2, A.num_rows ));
+    CHECK( magma_imalloc_cpu( &v, A.num_rows+10 ));
+    CHECK( magma_imalloc_cpu( &start, A.num_rows+10 ));
+    CHECK( magma_imalloc_cpu( &blocksizes, A.num_rows+10 ));
+    CHECK( magma_imalloc_cpu( &blocksizes2, A.num_rows+10 ));
 
     v[0] = 1;
     
@@ -95,9 +96,9 @@ magma_zmsupernodal(
     for( magma_int_t i=0; i<blockcount; i++ ){
         blocksizes[i] = start[i+1] - start[i];   
         if( blocksizes[i] > maxblocksize ){
-            maxblocksize = blocksizes[i];
-            printf("%% warning: at i=%d set maxblocksize to %d\n", 
-                                                            i, maxblocksize );    
+            // maxblocksize = blocksizes[i];
+            printf("%% warning: at i=%d blocksize required is %d\n", 
+                                                            i, blocksizes[i] );    
         }
     }
     
@@ -126,6 +127,10 @@ cleanup:
     magma_free_cpu( blocksizes );
     magma_free_cpu( blocksizes2 );
     magma_free_cpu( start );
+    v = NULL;
+    blocksizes = NULL;
+    blocksizes2 = NULL;
+    start = NULL;
     
     return info;
     
