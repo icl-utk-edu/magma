@@ -216,4 +216,4 @@ gemvc_template_device(
 }
 
 
-#endif /* MAGMABLAS_GEMV_TEMPLATE_H  */
+#endif // MAGMABLAS_GEMV_TEMPLATE_H

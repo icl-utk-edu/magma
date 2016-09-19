@@ -298,4 +298,4 @@ __global__ void
 triple_zgemm_above64_part3_upper_kernel_batched(
     int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages);
 
-#endif        //  #ifndef ZTRTRI_H
+#endif // ZTRTRI_H

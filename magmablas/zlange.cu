@@ -238,7 +238,7 @@ zlange_one_kernel(
     @ingroup magma_lange
 *******************************************************************************/
 extern "C" double
-magmablas_zlange_q(
+magmablas_zlange(
     magma_norm_t norm, magma_int_t m, magma_int_t n,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDouble_ptr dwork, magma_int_t lwork,

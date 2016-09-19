@@ -27,7 +27,7 @@
     @ingroup magma_setmatrix_transpose
 *******************************************************************************/
 extern "C" void
-magmablas_zsetmatrix_transpose_q(
+magmablas_zsetmatrix_transpose(
     magma_int_t m, magma_int_t n, magma_int_t nb,
     const magmaDoubleComplex     *hA, magma_int_t lda,
     magmaDoubleComplex_ptr       dAT, magma_int_t ldda,
@@ -68,10 +68,10 @@ magmablas_zsetmatrix_transpose_q(
         /* Note that the previous panel (i.e., j%2) comes through the queue
            for the kernel so there is no need to synchronize.             */
         // TODO should this be ib not nb?
-        magmablas_ztranspose_q( m, nb, dwork(0,(j%2)*nb), lddw, dAT(i-nb,0), ldda, queues[j%2] );
+        magmablas_ztranspose( m, nb, dwork(0,(j%2)*nb), lddw, dAT(i-nb,0), ldda, queues[j%2] );
     }
 
     /* Transpose the last part of the matrix.                            */
     j++;
-    magmablas_ztranspose_q( m, ib, dwork(0,(j%2)*nb), lddw, dAT(i-nb,0), ldda, queues[j%2] );
+    magmablas_ztranspose( m, ib, dwork(0,(j%2)*nb), lddw, dAT(i-nb,0), ldda, queues[j%2] );
 }

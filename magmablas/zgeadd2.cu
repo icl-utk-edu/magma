@@ -102,7 +102,7 @@ void zgeadd2_full(
     @ingroup magma_geadd
 *******************************************************************************/
 extern "C" void
-magmablas_zgeadd2_q(
+magmablas_zgeadd2(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,

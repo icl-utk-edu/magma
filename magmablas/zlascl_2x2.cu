@@ -110,7 +110,7 @@ zlascl_2x2_upper(
     @ingroup magma_lascl_2x2
 *******************************************************************************/
 extern "C" void
-magmablas_zlascl_2x2_q(
+magmablas_zlascl_2x2(
     magma_type_t type, magma_int_t m,
     magmaDoubleComplex_const_ptr dW, magma_int_t lddw,
     magmaDoubleComplex_ptr       dA, magma_int_t ldda,

@@ -162,7 +162,7 @@ void magma_ztrmv_tkernel(magmaDoubleComplex *T, int ldt, magmaDoubleComplex *t, 
     LAPACK's zlarf routine. 
 */
 extern "C" void
-magma_zlarfx_gpu_q(
+magma_zlarfx_gpu(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr v,
     magmaDoubleComplex_ptr tau,

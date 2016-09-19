@@ -133,7 +133,7 @@ zlascl_upper(
     @ingroup magma_lascl
 *******************************************************************************/
 extern "C" void
-magmablas_zlascl_q(
+magmablas_zlascl(
     magma_type_t type, magma_int_t kl, magma_int_t ku,
     double cfrom, double cto,
     magma_int_t m, magma_int_t n,

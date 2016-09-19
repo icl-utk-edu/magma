@@ -335,4 +335,4 @@ magma_sum_reduce_3d( int i, int j, int k, T x[m0][m1][m2] )
 }
 // end sum_reduce_3d
 
-#endif        //  #ifndef MAGMA_TEMPLATES_H
+#endif // MAGMA_TEMPLATES_H

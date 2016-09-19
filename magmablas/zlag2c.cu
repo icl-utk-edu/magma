@@ -132,7 +132,7 @@ void zlag2c_kernel(
     @ingroup magma_lag2
 *******************************************************************************/
 extern "C" void
-magmablas_zlag2c_q(
+magmablas_zlag2c(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_const_ptr A, magma_int_t lda,
     magmaFloatComplex_ptr SA,       magma_int_t ldsa,

@@ -27,7 +27,7 @@
     @ingroup magma_getmatrix_transpose
 *******************************************************************************/
 extern "C" void
-magmablas_zgetmatrix_transpose_q(
+magmablas_zgetmatrix_transpose(
     magma_int_t m, magma_int_t n, magma_int_t nb,
     magmaDoubleComplex_const_ptr dAT, magma_int_t ldda,
     magmaDoubleComplex          *hA,  magma_int_t lda,
@@ -54,7 +54,7 @@ magmablas_zgetmatrix_transpose_q(
         /* Move data from GPU to CPU using 2 buffers; 1st transpose the data on the GPU */
         ib = min(n-i, nb);
         
-        magmablas_ztranspose_q( ib, m, dAT(i,0), ldda, dwork(0,(j%2)*nb), lddw, queues[j%2] );
+        magmablas_ztranspose( ib, m, dAT(i,0), ldda, dwork(0,(j%2)*nb), lddw, queues[j%2] );
         magma_zgetmatrix_async( m, ib,
                                 dwork(0,(j%2)*nb), lddw,
                                 hA(0,i), lda, queues[j%2] );

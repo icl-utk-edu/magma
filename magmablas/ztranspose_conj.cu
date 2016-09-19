@@ -160,7 +160,7 @@ void ztranspose_conj_kernel_batched(
     @ingroup magma_transpose
 *******************************************************************************/
 extern "C" void
-magmablas_ztranspose_conj_q(
+magmablas_ztranspose_conj(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_const_ptr dA,  magma_int_t ldda,
     magmaDoubleComplex_ptr       dAT, magma_int_t lddat,

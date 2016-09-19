@@ -110,4 +110,4 @@ zlarfg_device(
     }
 }
 
-#endif /* MAGMABLAS_ZLARFG_DEVICES_Z_H  */
+#endif // MAGMABLAS_ZLARFG_DEVICES_Z_H

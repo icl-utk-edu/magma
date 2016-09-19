@@ -139,4 +139,4 @@ zhemv_kernel_U_mgpu_sum(
 }
 #endif
 
-#endif /* COMMONBLAS_Z_H */
+#endif // COMMONBLAS_Z_H

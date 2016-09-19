@@ -296,8 +296,8 @@ magma_zgetrf_m(
                 /* applying the pivot from the previous big-panel */
                 for( d=0; d < ngpu; d++ ) {
                     magma_setdevice(d);
-                    magmablas_zlaswp_q( ldn_local, dAT(d,0,0), ldn_local, offset+1, offset+NBk, ipiv, 1, 
-                                        queues[d][1] );
+                    magmablas_zlaswp( ldn_local, dAT(d,0,0), ldn_local, offset+1, offset+NBk, ipiv, 1, 
+                                      queues[d][1] );
                 }
                 
                 /* going through each block-column of previous big-panels */

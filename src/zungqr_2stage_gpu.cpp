@@ -133,8 +133,8 @@ magma_zungqr_2stage_gpu(
 
         /* Set A(1:kk,kk+1:n) to zero. */
         /* and A(kk+1:m, kk+1:n) = I */
-        magmablas_zlaset_q( MagmaFull, kk,   n-kk, c_zero, c_zero, dA(0, kk), ldda, queues[0] );
-        magmablas_zlaset_q( MagmaFull, m-kk, n-kk, c_zero, c_one,  dA(kk,kk), ldda, queues[0] );
+        magmablas_zlaset( MagmaFull, kk,   n-kk, c_zero, c_zero, dA(0, kk), ldda, queues[0] );
+        magmablas_zlaset( MagmaFull, m-kk, n-kk, c_zero, c_one,  dA(kk,kk), ldda, queues[0] );
     }
     else {
         ki = 0;
@@ -168,8 +168,8 @@ magma_zungqr_2stage_gpu(
                           dA(kk, kk-nb), ldda, dT(kk-nb), ldt,
                           dA(kk, kk), ldda, dwork, i__2, queues[0] );
         
-        //magmablas_zlaset_q( MagmaFull, kk-nb,     nb, c_zero, c_zero, dA(0,kk-nb),     ldda, queues[0] );
-        //magmablas_zlaset_q( MagmaFull, m-(kk-nb), nb, c_zero, c_one,  dA(kk-nb,kk-nb), ldda, queues[0] );
+        //magmablas_zlaset( MagmaFull, kk-nb,     nb, c_zero, c_zero, dA(0,kk-nb),     ldda, queues[0] );
+        //magmablas_zlaset( MagmaFull, m-(kk-nb), nb, c_zero, c_one,  dA(kk-nb,kk-nb), ldda, queues[0] );
     }
 
     if (kk > 0) {
@@ -183,8 +183,8 @@ magma_zungqr_2stage_gpu(
                 /* Apply H to A(i:m,i+ib:n) from the left */
                 i__3 = n - i;
 
-                magmablas_zlaset_q( MagmaFull, i,   ib, c_zero, c_zero, dA(0,i), ldda, queues[0] );
-                magmablas_zlaset_q( MagmaFull, m-i, ib, c_zero, c_one,  dA(i,i), ldda, queues[0] );
+                magmablas_zlaset( MagmaFull, i,   ib, c_zero, c_zero, dA(0,i), ldda, queues[0] );
+                magmablas_zlaset( MagmaFull, m-i, ib, c_zero, c_one,  dA(i,i), ldda, queues[0] );
 
                 magma_zlarfb_gpu( MagmaLeft, MagmaNoTrans, MagmaForward, MagmaColumnwise,
                                   i__2, i__3, ib,
@@ -200,12 +200,12 @@ magma_zungqr_2stage_gpu(
 
             /* Set rows 1:i-1 of current block to zero */
             i__2 = i + ib;
-            //magmablas_zlaset_q( MagmaFull, i-ib,     ib, c_zero, c_zero, dA(0,i-ib),    ldda, queues[0] );
-            //magmablas_zlaset_q( MagmaFull, m-(i-ib), ib, c_zero, c_one,  dA(i-ib,i-ib), ldda, queues[0] );
+            //magmablas_zlaset( MagmaFull, i-ib,     ib, c_zero, c_zero, dA(0,i-ib),    ldda, queues[0] );
+            //magmablas_zlaset( MagmaFull, m-(i-ib), ib, c_zero, c_one,  dA(i-ib,i-ib), ldda, queues[0] );
         }
     }
 
-    magmablas_zlaset_q( MagmaFull, m, nb, c_zero, c_one, dA(0,0), ldda, queues[0] );
+    magmablas_zlaset( MagmaFull, m, nb, c_zero, c_one, dA(0,0), ldda, queues[0] );
 
     magma_queue_sync( queues[0] );
     //magma_queue_sync( queues[1] );

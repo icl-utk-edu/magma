@@ -98,7 +98,7 @@ zgemv_conj_kernel(
     @ingroup magma_gemv
 *******************************************************************************/
 extern "C" void
-magmablas_zgemv_conj_q(
+magmablas_zgemv_conj(
     magma_int_t m, magma_int_t n, magmaDoubleComplex alpha,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,

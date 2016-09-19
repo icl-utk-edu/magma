@@ -189,4 +189,4 @@
 #include "gemm_stencil.cuh"
 #include "gemm_kernel.cuh"
 
-#endif        //  #ifndef SGEMM_FERMI_KERNELS_H
+#endif // SGEMM_FERMI_KERNELS_H

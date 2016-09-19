@@ -34,13 +34,10 @@
 #include <cublas_v2.h>
 
 // defining MAGMA_LAPACK_H is a hack to NOT include magma_lapack.h
-// via common_magma.h here, since it conflicts with acml.h and we don't
+// via magma_internal.h here, since it conflicts with acml.h and we don't
 // need lapack here, but we want acml.h for the acmlversion() function.
 #define MAGMA_LAPACK_H
 
-#ifndef MAGMA_NO_V1
-#include "magma.h"
-#endif
 #include "magma_internal.h"
 
 #include "error.h"
@@ -755,7 +752,7 @@ magma_queue_t magmablasGetQueue()
 // @deprecated
 // MAGMA v1 version that doesn't take device ID.
 extern "C"
-void magma_queue_create_internal(
+void magma_queue_create_v1_internal(
     magma_queue_t* queue_ptr,
     const char* func, const char* file, int line )
 {
@@ -764,12 +761,12 @@ void magma_queue_create_internal(
     err = cudaGetDevice( &device );
     check_xerror( err, func, file, line );
     
-    magma_queue_create_v2_internal( device, queue_ptr, func, file, line );
+    magma_queue_create_internal( device, queue_ptr, func, file, line );
 }
 
 
 /***************************************************************************//**
-    @fn magma_queue_create_v2( device, queue_ptr )
+    @fn magma_queue_create( device, queue_ptr )
 
     magma_queue_create( device, queue_ptr ) is the preferred alias to this
     function.
@@ -788,7 +785,7 @@ void magma_queue_create_internal(
     @ingroup magma_queue
 *******************************************************************************/
 extern "C"
-void magma_queue_create_v2_internal(
+void magma_queue_create_internal(
     magma_device_t device, magma_queue_t* queue_ptr,
     const char* func, const char* file, int line )
 {
@@ -981,20 +978,20 @@ void magma_queue_sync_internal(
 
     @return         Amount of free memory in bytes available on the device
                     associated with the queue.
-                    (CUDA would only needs a device ID, but OpenCL requires a queue.)
 
     @ingroup magma_queue
 *******************************************************************************/
 extern "C" size_t
-magma_queue_mem_size( magma_queue_t queue )
+magma_mem_size( magma_queue_t queue )
 {
+    // CUDA would only need a device ID, but OpenCL requires a queue.
     size_t freeMem, totalMem;
-    magma_device_t dev;
-    magma_getdevice( &dev );
+    magma_device_t orig_dev;
+    magma_getdevice( &orig_dev );
     magma_setdevice( magma_queue_get_device( queue ));
     cudaError_t err = cudaMemGetInfo( &freeMem, &totalMem );
     check_error( err );
-    magma_setdevice( dev );
+    magma_setdevice( orig_dev );
     return freeMem;
 }
 

@@ -264,7 +264,7 @@ void zlaset_upper_kernel_batched(
     @ingroup magma_laset
 *******************************************************************************/
 extern "C"
-void magmablas_zlaset_q(
+void magmablas_zlaset(
     magma_uplo_t uplo, magma_int_t m, magma_int_t n,
     magmaDoubleComplex offdiag, magmaDoubleComplex diag,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,

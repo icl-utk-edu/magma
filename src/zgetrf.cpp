@@ -149,7 +149,7 @@ magma_zgetrf(
         magma_queue_create( cdev, &queues[1] );
         
         /* check the memory requirement */
-        size_t mem_size = magma_queue_mem_size( queues[0] );
+        size_t mem_size = magma_mem_size( queues[0] );
         mem_size /= sizeof(magmaDoubleComplex);
 
         magma_int_t h = 1+(2+ngpu);

@@ -414,6 +414,7 @@ subs = {
 
     # magma_ceildiv -> magma_seildiv, so revert
     ('magma_ceildiv',             'magma_seildiv'           ),
+    ('magma_copy',                'magma_sopy'              ),
     
   ], # end mixed
 
@@ -578,12 +579,12 @@ subs = {
     ('siterilu',       'diterilu',       'citerilu',       'ziterilu'        ),
     ('siteric',        'diteric',        'citeric',        'ziteric'         ),
     ('sdummy',         'ddummy',         'cdummy',         'zdummy'          ),
-    ('stest',          'dtest',	         'ctest',          'ztest'           ),
+    ('stest',          'dtest',          'ctest',          'ztest'           ),
     ('sgeisai',        'dgeisai',        'cgeisai',        'zgeisai'         ),
     ('ssyisai',        'dsyisai',        'csyisai',        'zsyisai'         ),
-    ('silu',           'dilu',           'cilu',           'zilu'            ),	
-    ('sgeblock',       'dgeblock',       'cilugeblock',    'zgeblock'        ),	
-	
+    ('silu',           'dilu',           'cilu',           'zilu'            ),
+    ('sgeblock',       'dgeblock',       'cilugeblock',    'zgeblock'        ),
+    
     # ----- SPARSE Iterative Solvers
     ('scg',            'dcg',            'ccg',            'zcg'             ),
     ('slsqr',          'dlsqr',          'clsqr',          'zlsqr'           ),
@@ -727,6 +728,7 @@ subs = {
     ('magma_direct',   'magma_sirect',   'magma_direct',   'magma_sirect'    ),
     ('lapack_diag',    'lapack_siag',    'lapack_diag',    'lapack_siag'     ),
     ('lapack_direct',  'lapack_sirect',  'lapack_direct',  'lapack_sirect'   ),
+    ('magma_copy',     'magma_sopy',     'magma_copy',     'magma_sopy'      ),
     
   ], # end normal
 

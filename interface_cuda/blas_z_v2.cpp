@@ -39,7 +39,7 @@
     @ingroup magma_iamax
 *******************************************************************************/
 extern "C" magma_int_t
-magma_izamax_q(
+magma_izamax(
     magma_int_t n,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
     magma_queue_t queue )
@@ -71,7 +71,7 @@ magma_izamax_q(
     @ingroup magma_iamin
 *******************************************************************************/
 extern "C" magma_int_t
-magma_izamin_q(
+magma_izamin(
     magma_int_t n,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
     magma_queue_t queue )
@@ -103,7 +103,7 @@ magma_izamin_q(
     @ingroup magma_asum
 *******************************************************************************/
 extern "C" double
-magma_dzasum_q(
+magma_dzasum(
     magma_int_t n,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
     magma_queue_t queue )
@@ -144,7 +144,7 @@ magma_dzasum_q(
     @ingroup magma_axpy
 *******************************************************************************/
 extern "C" void
-magma_zaxpy_q(
+magma_zaxpy(
     magma_int_t n,
     magmaDoubleComplex alpha,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
@@ -182,7 +182,7 @@ magma_zaxpy_q(
     @ingroup magma_copy
 *******************************************************************************/
 extern "C" void
-magma_zcopy_q(
+magma_zcopy(
     magma_int_t n,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
     magmaDoubleComplex_ptr       dy, magma_int_t incy,
@@ -293,7 +293,7 @@ magmaDoubleComplex magma_zdotu(
     @ingroup magma_nrm2
 *******************************************************************************/
 extern "C" double
-magma_dznrm2_q(
+magma_dznrm2(
     magma_int_t n,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
     magma_queue_t queue )
@@ -341,7 +341,7 @@ magma_dznrm2_q(
     @ingroup magma_rot
 *******************************************************************************/
 extern "C" void
-magma_zrot_q(
+magma_zrot(
     magma_int_t n,
     magmaDoubleComplex_ptr dx, magma_int_t incx,
     magmaDoubleComplex_ptr dy, magma_int_t incy,
@@ -390,7 +390,7 @@ magma_zrot_q(
     @ingroup magma_rot
 *******************************************************************************/
 extern "C" void
-magma_zdrot_q(
+magma_zdrot(
     magma_int_t n,
     magmaDoubleComplex_ptr dx, magma_int_t incx,
     magmaDoubleComplex_ptr dy, magma_int_t incy,
@@ -437,7 +437,7 @@ magma_zdrot_q(
     @ingroup magma_rotg
 *******************************************************************************/
 extern "C" void
-magma_zrotg_q(
+magma_zrotg(
     magmaDoubleComplex *a, magmaDoubleComplex *b,
     double             *c, magmaDoubleComplex *s,
     magma_queue_t queue )
@@ -453,7 +453,7 @@ magma_zrotg_q(
     @ingroup magma_rotm
 *******************************************************************************/
 extern "C" void
-magma_zrotm_q(
+magma_zrotm(
     magma_int_t n,
     double *dx, magma_int_t incx,
     double *dy, magma_int_t incy,
@@ -472,7 +472,7 @@ magma_zrotm_q(
     @ingroup magma_rotmg
 *******************************************************************************/
 extern "C" void
-magma_zrotmg_q(
+magma_zrotmg(
     double *d1, double       *d2,
     double *x1, const double *y1,
     double *param,
@@ -506,7 +506,7 @@ magma_zrotmg_q(
     @ingroup magma_scal
 *******************************************************************************/
 extern "C" void
-magma_zscal_q(
+magma_zscal(
     magma_int_t n,
     magmaDoubleComplex alpha,
     magmaDoubleComplex_ptr dx, magma_int_t incx,
@@ -540,7 +540,7 @@ magma_zscal_q(
     @ingroup magma_scal
 *******************************************************************************/
 extern "C" void
-magma_zdscal_q(
+magma_zdscal(
     magma_int_t n,
     double alpha,
     magmaDoubleComplex_ptr dx, magma_int_t incx,
@@ -578,7 +578,7 @@ magma_zdscal_q(
     @ingroup magma_swap
 *******************************************************************************/
 extern "C" void
-magma_zswap_q(
+magma_zswap(
     magma_int_t n,
     magmaDoubleComplex_ptr dx, magma_int_t incx,
     magmaDoubleComplex_ptr dy, magma_int_t incy,
@@ -642,7 +642,7 @@ magma_zswap_q(
     @ingroup magma_gemv
 *******************************************************************************/
 extern "C" void
-magma_zgemv_q(
+magma_zgemv(
     magma_trans_t transA,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
@@ -703,7 +703,7 @@ magma_zgemv_q(
     @ingroup magma_ger
 *******************************************************************************/
 extern "C" void
-magma_zgerc_q(
+magma_zgerc(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
@@ -761,7 +761,7 @@ magma_zgerc_q(
     @ingroup magma_ger
 *******************************************************************************/
 extern "C" void
-magma_zgeru_q(
+magma_zgeru(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
@@ -823,7 +823,7 @@ magma_zgeru_q(
     @ingroup magma_hemv
 *******************************************************************************/
 extern "C" void
-magma_zhemv_q(
+magma_zhemv(
     magma_uplo_t uplo,
     magma_int_t n,
     magmaDoubleComplex alpha,
@@ -879,7 +879,7 @@ magma_zhemv_q(
     @ingroup magma_her
 *******************************************************************************/
 extern "C" void
-magma_zher_q(
+magma_zher(
     magma_uplo_t uplo,
     magma_int_t n,
     double alpha,
@@ -939,7 +939,7 @@ magma_zher_q(
     @ingroup magma_her2
 *******************************************************************************/
 extern "C" void
-magma_zher2_q(
+magma_zher2(
     magma_uplo_t uplo,
     magma_int_t n,
     magmaDoubleComplex alpha,
@@ -1003,7 +1003,7 @@ magma_zher2_q(
     @ingroup magma_symv
 *******************************************************************************/
 extern "C" void
-magma_zsymv_q(
+magma_zsymv(
     magma_uplo_t uplo,
     magma_int_t n,
     magmaDoubleComplex alpha,
@@ -1057,7 +1057,7 @@ magma_zsymv_q(
     @ingroup magma_syr
 *******************************************************************************/
 extern "C" void
-magma_zsyr_q(
+magma_zsyr(
     magma_uplo_t uplo,
     magma_int_t n,
     magmaDoubleComplex alpha,
@@ -1115,7 +1115,7 @@ magma_zsyr_q(
     @ingroup magma_syr2
 *******************************************************************************/
 extern "C" void
-magma_zsyr2_q(
+magma_zsyr2(
     magma_uplo_t uplo,
     magma_int_t n,
     magmaDoubleComplex alpha,
@@ -1173,7 +1173,7 @@ magma_zsyr2_q(
     @ingroup magma_trmv
 *******************************************************************************/
 extern "C" void
-magma_ztrmv_q(
+magma_ztrmv(
     magma_uplo_t uplo, magma_trans_t trans, magma_diag_t diag,
     magma_int_t n,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
@@ -1231,7 +1231,7 @@ magma_ztrmv_q(
     @ingroup magma_trsv
 *******************************************************************************/
 extern "C" void
-magma_ztrsv_q(
+magma_ztrsv(
     magma_uplo_t uplo, magma_trans_t trans, magma_diag_t diag,
     magma_int_t n,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
@@ -1306,7 +1306,7 @@ magma_ztrsv_q(
     @ingroup magma_gemm
 *******************************************************************************/
 extern "C" void
-magma_zgemm_q(
+magma_zgemm(
     magma_trans_t transA, magma_trans_t transB,
     magma_int_t m, magma_int_t n, magma_int_t k,
     magmaDoubleComplex alpha,
@@ -1381,7 +1381,7 @@ magma_zgemm_q(
     @ingroup magma_hemm
 *******************************************************************************/
 extern "C" void
-magma_zhemm_q(
+magma_zhemm(
     magma_side_t side, magma_uplo_t uplo,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
@@ -1451,7 +1451,7 @@ magma_zhemm_q(
     @ingroup magma_herk
 *******************************************************************************/
 extern "C" void
-magma_zherk_q(
+magma_zherk(
     magma_uplo_t uplo, magma_trans_t trans,
     magma_int_t n, magma_int_t k,
     double alpha,
@@ -1527,7 +1527,7 @@ magma_zherk_q(
     @ingroup magma_her2k
 *******************************************************************************/
 extern "C" void
-magma_zher2k_q(
+magma_zher2k(
     magma_uplo_t uplo, magma_trans_t trans,
     magma_int_t n, magma_int_t k,
     magmaDoubleComplex alpha,
@@ -1602,7 +1602,7 @@ magma_zher2k_q(
     @ingroup magma_symm
 *******************************************************************************/
 extern "C" void
-magma_zsymm_q(
+magma_zsymm(
     magma_side_t side, magma_uplo_t uplo,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
@@ -1670,7 +1670,7 @@ magma_zsymm_q(
     @ingroup magma_syrk
 *******************************************************************************/
 extern "C" void
-magma_zsyrk_q(
+magma_zsyrk(
     magma_uplo_t uplo, magma_trans_t trans,
     magma_int_t n, magma_int_t k,
     magmaDoubleComplex alpha,
@@ -1744,7 +1744,7 @@ magma_zsyrk_q(
     @ingroup magma_syr2k
 *******************************************************************************/
 extern "C" void
-magma_zsyr2k_q(
+magma_zsyr2k(
     magma_uplo_t uplo, magma_trans_t trans,
     magma_int_t n, magma_int_t k,
     magmaDoubleComplex alpha,
@@ -1814,7 +1814,7 @@ magma_zsyr2k_q(
     @ingroup magma_trmm
 *******************************************************************************/
 extern "C" void
-magma_ztrmm_q(
+magma_ztrmm(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t trans, magma_diag_t diag,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
@@ -1885,7 +1885,7 @@ magma_ztrmm_q(
     @ingroup magma_trsm
 *******************************************************************************/
 extern "C" void
-magma_ztrsm_q(
+magma_ztrsm(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t trans, magma_diag_t diag,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,

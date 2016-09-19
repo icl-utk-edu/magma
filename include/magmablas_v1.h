@@ -13,6 +13,8 @@
 #error "Since MAGMA_NO_V1 is defined, magma.h is invalid; use magma_v2.h"
 #endif
 
+#include "magma_copy_v1.h"
+#include "magmablas_z.h"
 #include "magmablas_z_v1.h"
 #include "magmablas_c_v1.h"
 #include "magmablas_d_v1.h"
@@ -24,14 +26,13 @@
 extern "C" {
 #endif
 
-
 // =============================================================================
 // queue support
 // new magma_queue_create adds device
-#define magma_queue_create( queue_ptr ) \
-        magma_queue_create_internal( queue_ptr, __func__, __FILE__, __LINE__ )
+#define magma_queue_create_v1( queue_ptr ) \
+        magma_queue_create_v1_internal( queue_ptr, __func__, __FILE__, __LINE__ )
 
-void magma_queue_create_internal(
+void magma_queue_create_v1_internal(
     magma_queue_t* queue_ptr,
     const char* func, const char* file, int line );
 
@@ -58,9 +59,8 @@ magma_int_t magmablasSetKernelStream( magma_queue_t queue );
 magma_int_t magmablasGetKernelStream( magma_queue_t *queue );
 magma_queue_t magmablasGetQueue();
 
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* MAGMABLAS_V1_H */
+#endif // MAGMABLAS_V1_H

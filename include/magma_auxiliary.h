@@ -24,6 +24,16 @@ extern "C" {
 magma_int_t magma_init( void );
 magma_int_t magma_finalize( void );
 
+#ifdef HAVE_clBLAS
+magma_int_t magma_init_opencl(
+    cl_platform_id platform,
+    cl_context context,
+    magma_int_t setup_clBlas );
+
+magma_int_t magma_finalize_opencl(
+    magma_int_t finalize_clBlas );
+#endif
+
 
 // =============================================================================
 // version information
@@ -206,6 +216,66 @@ magma_getdevice( magma_device_t* dev );
 void
 magma_setdevice( magma_device_t dev );
 
+size_t
+magma_mem_size( magma_queue_t queue );
+
+
+// =============================================================================
+// queue support
+// new magma_queue_create adds device
+#define magma_queue_create(          device, queue_ptr ) \
+        magma_queue_create_internal( device, queue_ptr, __func__, __FILE__, __LINE__ )
+
+#define magma_queue_create_from_cuda(          device, cuda_stream, cublas_handle, cusparse_handle, queue_ptr ) \
+        magma_queue_create_from_cuda_internal( device, cuda_stream, cublas_handle, cusparse_handle, queue_ptr, __func__, __FILE__, __LINE__ )
+
+#define magma_queue_create_from_opencl(          device, cl_queue, queue_ptr ) \
+        magma_queue_create_from_opencl_internal( device, cl_queue, queue_ptr, __func__, __FILE__, __LINE__ )
+
+#define magma_queue_destroy( queue ) \
+        magma_queue_destroy_internal( queue, __func__, __FILE__, __LINE__ )
+
+#define magma_queue_sync( queue ) \
+        magma_queue_sync_internal( queue, __func__, __FILE__, __LINE__ )
+
+void
+magma_queue_create_internal(
+    magma_device_t device,
+    magma_queue_t* queue_ptr,
+    const char* func, const char* file, int line );
+
+#ifdef HAVE_CUBLAS
+void
+magma_queue_create_from_cuda_internal(
+    magma_device_t   device,
+    cudaStream_t     stream,
+    cublasHandle_t   cublas,
+    cusparseHandle_t cusparse,
+    magma_queue_t*   queue_ptr,
+    const char* func, const char* file, int line );
+#endif
+
+#ifdef HAVE_clBLAS
+magma_int_t
+magma_queue_create_from_opencl_internal(
+    magma_device_t   device,
+    cl_command_queue cl_queue,
+    const char* func, const char* file, int line );
+#endif
+
+void
+magma_queue_destroy_internal(
+    magma_queue_t queue,
+    const char* func, const char* file, int line );
+
+void
+magma_queue_sync_internal(
+    magma_queue_t queue,
+    const char* func, const char* file, int line );
+
+magma_int_t
+magma_queue_get_device( magma_queue_t queue );
+
 
 // =============================================================================
 // event support
@@ -285,13 +355,10 @@ magmaFloatComplex    magma_csqrt( magmaFloatComplex  x );
 /// @return Complex square root of x. @ingroup magma_sqrt
 magmaDoubleComplex   magma_zsqrt( magmaDoubleComplex x );
 
-double magma_cabs ( magmaDoubleComplex x );
-float  magma_cabsf( magmaFloatComplex  x );
-
 
 #ifdef __cplusplus
 }
 #endif
 
 
-#endif  // MAGMA_AUXILIARY_H
+#endif // MAGMA_AUXILIARY_H

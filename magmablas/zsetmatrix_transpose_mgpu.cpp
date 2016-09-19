@@ -71,6 +71,6 @@ magmablas_zsetmatrix_transpose_mgpu(
                                 dwork(d, id), lddw,
                                 queues[d][id] );
         
-        magmablas_ztranspose_q( m, ib, dwork(d,id), lddw, dAT(d,j_local), ldda, queues[d][id] );
+        magmablas_ztranspose( m, ib, dwork(d,id), lddw, dAT(d,j_local), ldda, queues[d][id] );
     }
 }

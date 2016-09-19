@@ -13,9 +13,10 @@
 */
 #ifndef MAGMA_NO_V1
 
-#include "common_magma.h"
+#include "magma_internal.h"
 #include "trace.h"
 
+#if 0 // needs updating to MAGMA v2 interfaces
 
 /***************************************************************************//**
     Purpose
@@ -510,4 +511,5 @@ magma_zpotrf_mgpu_right(
 #undef tmpprevpanel
 #undef STREAM_ID
 
+#endif // needs updating to MAGMA v2 interfaces
 #endif // MAGMA_NO_V1

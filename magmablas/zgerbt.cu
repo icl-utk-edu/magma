@@ -43,7 +43,7 @@
             Queue to execute in.
 *******************************************************************************/
 extern "C" void
-magmablas_zprbt_mtv_q(
+magmablas_zprbt_mtv(
     magma_int_t n, 
     magmaDoubleComplex *du, magmaDoubleComplex *db,
     magma_queue_t queue)
@@ -88,7 +88,7 @@ magmablas_zprbt_mtv_q(
             Queue to execute in.
 *******************************************************************************/
 extern "C" void
-magmablas_zprbt_mv_q(
+magmablas_zprbt_mv(
     magma_int_t n, 
     magmaDoubleComplex *dv, magmaDoubleComplex *db,
     magma_queue_t queue)
@@ -139,7 +139,7 @@ magmablas_zprbt_mv_q(
             Queue to execute in.
 *******************************************************************************/
 extern "C" void 
-magmablas_zprbt_q(
+magmablas_zprbt(
     magma_int_t n, 
     magmaDoubleComplex *dA, magma_int_t ldda, 
     magmaDoubleComplex *du, magmaDoubleComplex *dv,

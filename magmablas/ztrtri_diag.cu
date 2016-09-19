@@ -78,7 +78,7 @@
     @ingroup magma_trtri_diag
 *******************************************************************************/
 extern "C" void
-magmablas_ztrtri_diag_q(
+magmablas_ztrtri_diag(
     magma_uplo_t uplo, magma_diag_t diag, magma_int_t n,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_ptr d_dinvA,

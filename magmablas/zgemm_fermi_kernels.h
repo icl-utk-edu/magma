@@ -191,4 +191,4 @@
 #undef COMPLEX
 #undef DOUBLE
 
-#endif        //  #ifndef ZGEMM_FERMI_KERNELS_H
+#endif // ZGEMM_FERMI_KERNELS_H

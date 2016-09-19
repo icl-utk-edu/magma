@@ -496,4 +496,4 @@ static inline __device__ void zpotf2_smlpout_anywidth_device(const int m, const 
     #endif        
 }
 
-#endif  /* MAGMABLAS_ZPOTF2_DEVICES_Z_H */
+#endif // MAGMABLAS_ZPOTF2_DEVICES_Z_H

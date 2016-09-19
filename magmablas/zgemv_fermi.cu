@@ -177,7 +177,7 @@ zgemvc_template_fermi(
     @ingroup magma_gemv
 *******************************************************************************/
 extern "C" void
-magmablas_zgemv_q(
+magmablas_zgemv(
     magma_trans_t trans, magma_int_t m, magma_int_t n, 
     magmaDoubleComplex alpha,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,

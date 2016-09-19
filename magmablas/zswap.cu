@@ -64,7 +64,7 @@ __global__ void zswap_kernel(
     @ingroup magma_swap
 *******************************************************************************/
 extern "C" void 
-magmablas_zswap_q(
+magmablas_zswap(
     magma_int_t n,
     magmaDoubleComplex_ptr dx, magma_int_t incx, 
     magmaDoubleComplex_ptr dy, magma_int_t incy,

@@ -258,7 +258,7 @@ void zlacpy_upper_kernel_batched(
     @ingroup magma_lacpy
 *******************************************************************************/
 extern "C" void
-magmablas_zlacpy_q(
+magmablas_zlacpy(
     magma_uplo_t uplo, magma_int_t m, magma_int_t n,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_ptr       dB, magma_int_t lddb,

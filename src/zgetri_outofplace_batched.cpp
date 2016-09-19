@@ -150,8 +150,8 @@ magma_zgetri_outofplace_batched( magma_int_t n,
         return info;
     }
 
-    magmablas_zlaset_q( MagmaFull, invdiagA_msize, batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dinvdiagA, invdiagA_msize, queue );
-    magmablas_zlaset_q( MagmaFull, dwork_msize, batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dwork, dwork_msize, queue );
+    magmablas_zlaset( MagmaFull, invdiagA_msize, batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dinvdiagA, invdiagA_msize, queue );
+    magmablas_zlaset( MagmaFull, dwork_msize, batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dwork, dwork_msize, queue );
     magma_zset_pointer( dwork_array, dwork, n, 0, 0, dwork_msize, batchCount, queue );
     magma_zset_pointer( dinvdiagA_array, dinvdiagA, ZTRTRI_BATCHED_NB, 0, 0, invdiagA_msize, batchCount, queue );
 

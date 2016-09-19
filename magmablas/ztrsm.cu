@@ -143,7 +143,7 @@
     @ingroup magma_trsm
 *******************************************************************************/
 extern "C"
-void magmablas_ztrsm_outofplace_q(
+void magmablas_ztrsm_outofplace(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
@@ -389,7 +389,7 @@ void magmablas_ztrsm_outofplace_q(
     @ingroup magma_trsm
 *******************************************************************************/
 extern "C"
-void magmablas_ztrsm_work_q(
+void magmablas_ztrsm_work(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
@@ -400,7 +400,7 @@ void magmablas_ztrsm_work_q(
     magmaDoubleComplex_ptr d_dinvA, magma_int_t dinvA_length,
     magma_queue_t queue )
 {
-    magmablas_ztrsm_outofplace_q( side, uplo, transA, diag, m, n, alpha,
+    magmablas_ztrsm_outofplace( side, uplo, transA, diag, m, n, alpha,
                                   dA, ldda, dB, lddb, dX, lddx, flag,
                                   d_dinvA, dinvA_length, queue );
     // copy X to B
@@ -417,7 +417,7 @@ void magmablas_ztrsm_work_q(
     @ingroup magma_trsm
 *******************************************************************************/
 extern "C"
-void magmablas_ztrsm_q(
+void magmablas_ztrsm(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
@@ -477,7 +477,7 @@ void magmablas_ztrsm_q(
     else {
         magmablas_zlaset( MagmaFull, dinvA_length, 1, MAGMA_Z_ZERO, MAGMA_Z_ZERO, d_dinvA, dinvA_length, queue );
         magmablas_zlaset( MagmaFull, m, n, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dX, lddx, queue );
-        magmablas_ztrsm_work_q( side, uplo, transA, diag, m, n, alpha,
+        magmablas_ztrsm_work( side, uplo, transA, diag, m, n, alpha,
                                 dA, ldda, dB, lddb, dX, lddx, 1, d_dinvA, dinvA_length, queue );
     }
 

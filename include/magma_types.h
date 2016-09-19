@@ -65,28 +65,22 @@ typedef double real_Double_t;
 
     #include <cusparse_v2.h>
 
-    // opaque queue structure
-    struct magma_queue;
-    typedef struct magma_queue* magma_queue_t;
-
     #ifdef __cplusplus
     extern "C" {
     #endif
 
-    magma_int_t      magma_queue_get_device         ( magma_queue_t queue );
-    cudaStream_t     magma_queue_get_cuda_stream    ( magma_queue_t queue );
-    cublasHandle_t   magma_queue_get_cublas_handle  ( magma_queue_t queue );
-    cusparseHandle_t magma_queue_get_cusparse_handle( magma_queue_t queue );
-
-    #ifdef __cplusplus
-    }
-    #endif
-
+    // opaque queue structure
+    struct magma_queue;
+    typedef struct magma_queue* magma_queue_t;
     typedef cudaEvent_t    magma_event_t;
     typedef magma_int_t    magma_device_t;
 
     typedef cuDoubleComplex magmaDoubleComplex;
     typedef cuFloatComplex  magmaFloatComplex;
+
+    cudaStream_t     magma_queue_get_cuda_stream    ( magma_queue_t queue );
+    cublasHandle_t   magma_queue_get_cublas_handle  ( magma_queue_t queue );
+    cusparseHandle_t magma_queue_get_cusparse_handle( magma_queue_t queue );
 
     /// @addtogroup magma_complex
     /// @{
@@ -116,8 +110,15 @@ typedef double real_Double_t;
     /// @}
     // end group magma_complex
 
+    #ifdef __cplusplus
+    }
+    #endif
 #elif defined(HAVE_clBLAS)
     #include <clBLAS.h>
+
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
 
     typedef cl_command_queue  magma_queue_t;
     typedef cl_event          magma_event_t;
@@ -125,6 +126,8 @@ typedef double real_Double_t;
 
     typedef DoubleComplex magmaDoubleComplex;
     typedef FloatComplex  magmaFloatComplex;
+
+    cl_command_queue magma_queue_get_cl_queue( magma_queue_t queue );
 
     #define MAGMA_Z_MAKE(r,i)     doubleComplex(r,i)
     #define MAGMA_Z_REAL(a)       (a).s[0]
@@ -148,24 +151,20 @@ typedef double real_Double_t;
     #define MAGMA_C_ABS1(a)       (fabsf((a).s[0]) + fabsf((a).s[1]))
     #define MAGMA_C_CONJ(a)       MAGMA_C_MAKE((a).s[0], -(a).s[1])
 
+    #ifdef __cplusplus
+    }
+    #endif
 #elif defined(HAVE_MIC)
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <stdint.h>
-    #include <unistd.h>
-    #include <fcntl.h>
-    #include <string.h>
-    #include <sys/mman.h>
-    #include <sys/ioctl.h>
-    #include <sys/time.h>
-    #include <scif.h>
-    //#include <mkl.h>
+    #include <complex>
+
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
 
     typedef int   magma_queue_t;
     typedef int   magma_event_t;
     typedef int   magma_device_t;
 
-    #include <complex>
     typedef std::complex<float>   magmaFloatComplex;
     typedef std::complex<double>  magmaDoubleComplex;
 
@@ -190,8 +189,16 @@ typedef double real_Double_t;
     #define MAGMA_C_ABS(a)        abs(a)
     #define MAGMA_C_ABS1(a)       (fabs((a).real()) + fabs((a).imag()))
     #define MAGMA_C_CONJ(a)       conj(a)
+
+    #ifdef __cplusplus
+    }
+    #endif
 #else
-    #error "One of HAVE_CUBLAS, HAVE_clBLAS, or HAVE_MIC must be defined. For example, add -DHAVE_CUBLAS to CFLAGS, or #define HAVE_CUBLAS before #include <magma.h>. In MAGMA, this happens in Makefile.internal."
+    #error "One of HAVE_CUBLAS, HAVE_clBLAS, or HAVE_MIC must be defined. For example, add -DHAVE_CUBLAS to CFLAGS, or #define HAVE_CUBLAS before #include <magma.h>. In MAGMA, this happens in Makefile."
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #define MAGMA_Z_EQUAL(a,b)        (MAGMA_Z_REAL(a)==MAGMA_Z_REAL(b) && MAGMA_Z_IMAG(a)==MAGMA_Z_IMAG(b))
@@ -253,6 +260,10 @@ typedef double real_Double_t;
 #ifndef CBLAS_SADDR
 #define CBLAS_SADDR(a)  &(a)
 #endif
+
+// for MAGMA_[CZ]_ABS
+double magma_cabs ( magmaDoubleComplex x );
+float  magma_cabsf( magmaFloatComplex  x );
 
 #if defined(HAVE_clBLAS)
     // OpenCL uses opaque memory references on GPU
@@ -645,10 +656,6 @@ typedef enum {
 #define MagmaOverwriteVecStr  "Overwrite"
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // -----------------------------------------------------------------------------
 // Convert LAPACK character constants to MAGMA constants.
 // This is a one-to-many mapping, requiring multiple translators
@@ -751,4 +758,4 @@ enum CBLAS_SIDE      cblas_side_const   ( magma_side_t  side  );
 }
 #endif
 
-#endif  // MAGMA_TYPES_H
+#endif // MAGMA_TYPES_H

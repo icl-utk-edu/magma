@@ -40,7 +40,7 @@
     @ingroup magma_setmatrix_bcyclic
 *******************************************************************************/
 extern "C" void
-magma_zsetmatrix_1D_col_bcyclic_q(
+magma_zsetmatrix_1D_col_bcyclic(
     magma_int_t ngpu,
     magma_int_t m, magma_int_t n, magma_int_t nb,
     const magmaDoubleComplex *hA, magma_int_t lda,
@@ -109,7 +109,7 @@ magma_zsetmatrix_1D_col_bcyclic_q(
     @ingroup magma_getmatrix_bcyclic
 *******************************************************************************/
 extern "C" void
-magma_zgetmatrix_1D_col_bcyclic_q(
+magma_zgetmatrix_1D_col_bcyclic(
     magma_int_t ngpu,
     magma_int_t m, magma_int_t n, magma_int_t nb,
     magmaDoubleComplex_const_ptr const *dA, magma_int_t ldda,
@@ -178,7 +178,7 @@ magma_zgetmatrix_1D_col_bcyclic_q(
     @ingroup magma_setmatrix_bcyclic
 *******************************************************************************/
 extern "C" void
-magma_zsetmatrix_1D_row_bcyclic_q(
+magma_zsetmatrix_1D_row_bcyclic(
     magma_int_t ngpu,
     magma_int_t m, magma_int_t n, magma_int_t nb,
     const magmaDoubleComplex    *hA, magma_int_t lda,
@@ -247,7 +247,7 @@ magma_zsetmatrix_1D_row_bcyclic_q(
     @ingroup magma_getmatrix_bcyclic
 *******************************************************************************/
 extern "C" void
-magma_zgetmatrix_1D_row_bcyclic_q(
+magma_zgetmatrix_1D_row_bcyclic(
     magma_int_t ngpu,
     magma_int_t m, magma_int_t n, magma_int_t nb,
     magmaDoubleComplex_const_ptr const *dA, magma_int_t ldda,

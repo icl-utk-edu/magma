@@ -114,7 +114,7 @@ zlascl2_upper(int m, int n, const double *D, magmaDoubleComplex* A, int lda)
     @ingroup magma_lascl_diag
 *******************************************************************************/
 extern "C" void
-magmablas_zlascl2_q(
+magmablas_zlascl2(
     magma_type_t type, magma_int_t m, magma_int_t n,
     magmaDouble_const_ptr dD,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,

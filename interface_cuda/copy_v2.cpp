@@ -7,10 +7,10 @@
 
        @author Mark Gates
 */
-#include <cuda_runtime.h>
-
 #include "magma_internal.h"
 #include "error.h"
+
+#include <cuda_runtime.h>
 
 #ifdef HAVE_CUBLAS
 
@@ -52,7 +52,7 @@
     @ingroup magma_setvector
 *******************************************************************************/
 extern "C" void
-magma_setvector_q_internal(
+magma_setvector_internal(
     magma_int_t n, magma_int_t elemSize,
     void const* hx_src, magma_int_t incx,
     magma_ptr   dy_dst, magma_int_t incy,
@@ -163,7 +163,7 @@ magma_setvector_async_internal(
     @ingroup magma_getvector
 *******************************************************************************/
 extern "C" void
-magma_getvector_q_internal(
+magma_getvector_internal(
     magma_int_t n, magma_int_t elemSize,
     magma_const_ptr dx_src, magma_int_t incx,
     void*           hy_dst, magma_int_t incy,
@@ -276,7 +276,7 @@ magma_getvector_async_internal(
 // TODO compare performance with cublasZcopy BLAS function.
 // But this implementation can handle any element size, not just [sdcz] precisions.
 extern "C" void
-magma_copyvector_q_internal(
+magma_copyvector_internal(
     magma_int_t n, magma_int_t elemSize,
     magma_const_ptr dx_src, magma_int_t incx,
     magma_ptr       dy_dst, magma_int_t incy,
@@ -294,7 +294,7 @@ magma_copyvector_q_internal(
         check_xerror( status, func, file, line );
     }
     else {
-        magma_copymatrix_q_internal(
+        magma_copymatrix_internal(
             1, n, elemSize, dx_src, incx, dy_dst, incy, queue, func, file, line );
     }
 }
@@ -402,7 +402,7 @@ magma_copyvector_async_internal(
     @ingroup magma_setmatrix
 *******************************************************************************/
 extern "C" void
-magma_setmatrix_q_internal(
+magma_setmatrix_internal(
     magma_int_t m, magma_int_t n, magma_int_t elemSize,
     void const* hA_src, magma_int_t lda,
     magma_ptr   dB_dst, magma_int_t lddb,
@@ -519,7 +519,7 @@ magma_setmatrix_async_internal(
     @ingroup magma_getmatrix
 *******************************************************************************/
 extern "C" void
-magma_getmatrix_q_internal(
+magma_getmatrix_internal(
     magma_int_t m, magma_int_t n, magma_int_t elemSize,
     magma_const_ptr dA_src, magma_int_t ldda,
     void*           hB_dst, magma_int_t ldb,
@@ -636,7 +636,7 @@ magma_getmatrix_async_internal(
     @ingroup magma_copymatrix
 *******************************************************************************/
 extern "C" void
-magma_copymatrix_q_internal(
+magma_copymatrix_internal(
     magma_int_t m, magma_int_t n, magma_int_t elemSize,
     magma_const_ptr dA_src, magma_int_t ldda,
     magma_ptr       dB_dst, magma_int_t lddb,

@@ -36,7 +36,7 @@ zaxpycp_kernel(
     copies r = b
 *******************************************************************************/
 extern "C" void
-magmablas_zaxpycp_q(
+magmablas_zaxpycp(
     magma_int_t m,
     magmaDoubleComplex_ptr r,
     magmaDoubleComplex_ptr x,

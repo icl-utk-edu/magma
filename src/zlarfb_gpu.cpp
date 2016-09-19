@@ -130,7 +130,7 @@
     @ingroup magma_larfb
 *******************************************************************************/
 extern "C" magma_int_t
-magma_zlarfb_gpu_q(
+magma_zlarfb_gpu(
     magma_side_t side, magma_trans_t trans, magma_direct_t direct, magma_storev_t storev,
     magma_int_t m, magma_int_t n, magma_int_t k,
     magmaDoubleComplex_const_ptr dV,    magma_int_t lddv,

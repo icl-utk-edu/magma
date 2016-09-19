@@ -103,4 +103,4 @@ FloatingPoint_t tex_fetch(texture<float> tex_ref, int coord)
     
 #endif
 
-#endif //GEMM_TEMPLATE_DEVICE_DEFS_H
+#endif // GEMM_TEMPLATE_DEVICE_DEFS_H

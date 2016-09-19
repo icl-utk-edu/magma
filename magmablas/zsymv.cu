@@ -748,7 +748,7 @@ magmablas_zsymv_work(
 *******************************************************************************/
 extern "C"
 magma_int_t
-magmablas_zsymv_q(
+magmablas_zsymv(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex alpha,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,

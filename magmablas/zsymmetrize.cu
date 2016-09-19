@@ -93,7 +93,7 @@ zsymmetrize_upper( int m, magmaDoubleComplex *dA, int ldda )
     @ingroup magma_symmetrize
 *******************************************************************************/
 extern "C" void
-magmablas_zsymmetrize_q(
+magmablas_zsymmetrize(
     magma_uplo_t uplo, magma_int_t m,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_queue_t queue )

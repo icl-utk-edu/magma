@@ -231,8 +231,8 @@ magma_zgetrf2_mgpu(
                     ipiv[i] += j*nb;
                 }
             }
-            magmablas_zlaswp_q( lddat, dAT(d,0,0), lddat, j*nb + 1, j*nb + nb, ipiv, 1, 
-                                queues[d][0] );
+            magmablas_zlaswp( lddat, dAT(d,0,0), lddat, j*nb + 1, j*nb + nb, ipiv, 1, 
+                              queues[d][0] );
             trace_gpu_end( d, 1 );
             d = (d+1) % ngpu;
         }
@@ -404,8 +404,8 @@ magma_zgetrf2_mgpu(
                     ipiv[i] += s*nb;
                 }
             }
-            magmablas_zlaswp_q( lddat, dAT(d,0,0), lddat, s*nb + 1, s*nb + nb0, ipiv, 1, 
-                                queues[d][0] );
+            magmablas_zlaswp( lddat, dAT(d,0,0), lddat, s*nb + 1, s*nb + nb0, ipiv, 1, 
+                              queues[d][0] );
         }
         
         for( d=0; d < ngpu; d++ ) {

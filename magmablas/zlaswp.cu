@@ -112,7 +112,7 @@ __global__ void zlaswp_kernel(
 *******************************************************************************/
 // used in zgessm, zgetrf_incpiv.
 extern "C" void
-magmablas_zlaswp_q(
+magmablas_zlaswp(
     magma_int_t n,
     magmaDoubleComplex_ptr dAT, magma_int_t ldda,
     magma_int_t k1, magma_int_t k2,
@@ -253,7 +253,7 @@ __global__ void zlaswpx_kernel(
     @ingroup magma_laswp
 *******************************************************************************/
 extern "C" void
-magmablas_zlaswpx_q(
+magmablas_zlaswpx(
     magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldx, magma_int_t ldy,
     magma_int_t k1, magma_int_t k2,
@@ -388,7 +388,7 @@ __global__ void zlaswp2_kernel(
     @ingroup magma_laswp
 *******************************************************************************/
 extern "C" void
-magmablas_zlaswp2_q(
+magmablas_zlaswp2(
     magma_int_t n,
     magmaDoubleComplex_ptr dAT, magma_int_t ldda,
     magma_int_t k1, magma_int_t k2,

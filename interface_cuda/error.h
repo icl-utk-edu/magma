@@ -63,4 +63,4 @@ const char* magma_cublasGetErrorString( cublasStatus_t error );
 
 #endif  // not NDEBUG
 
-#endif        //  #ifndef ERROR_H
+#endif // ERROR_H

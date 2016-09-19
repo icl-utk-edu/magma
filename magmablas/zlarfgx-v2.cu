@@ -105,7 +105,7 @@ void magma_zlarfgx_gpu_kernel( int n, magmaDoubleComplex* dx0, magmaDoubleComple
     are computed outside the routine and passed to it in dxnorm (array on the GPU).
 *******************************************************************************/
 extern "C" void
-magma_zlarfgx_gpu_q(
+magma_zlarfgx_gpu(
     magma_int_t n,
     magmaDoubleComplex_ptr dx0,
     magmaDoubleComplex_ptr dx,
@@ -136,7 +136,7 @@ magma_zlarfgx_gpu_q(
     are computed outside the routine and passed to it in dxnorm (array on the GPU).
 *******************************************************************************/
 extern "C" void
-magma_zlarfgtx_gpu_q(
+magma_zlarfgtx_gpu(
     magma_int_t n,
     magmaDoubleComplex_ptr dx0,
     magmaDoubleComplex_ptr dx,
@@ -149,12 +149,12 @@ magma_zlarfgtx_gpu_q(
     magma_queue_t queue )
 {
     /*  Generate the elementary reflector H(iter)  */
-    magma_zlarfgx_gpu_q(n, dx0, dx, dtau, dxnorm, dA, iter, queue);
+    magma_zlarfgx_gpu(n, dx0, dx, dtau, dxnorm, dA, iter, queue);
     
     if (iter == 0) {
         magmaDoubleComplex tt = MAGMA_Z_ONE;
-        magmablas_zlacpy_q( MagmaFull, 1, 1, dtau, 1, T+iter+iter*ldt, 1, queue );
-        magma_zsetmatrix_q( 1, 1, &tt, 1, dx0, 1, queue );
+        magmablas_zlacpy( MagmaFull, 1, 1, dtau, 1, T+iter+iter*ldt, 1, queue );
+        magma_zsetmatrix( 1, 1, &tt, 1, dx0, 1, queue );
     }
     else {
         /* Compute the iter-th column of T */

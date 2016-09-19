@@ -23,7 +23,7 @@ extern "C" {
 
   /* Mixed precision */
 void
-magmablas_zcaxpycp(
+magmablas_zcaxpycp_v1(
     magma_int_t m,
     magmaFloatComplex_ptr  r,
     magmaDoubleComplex_ptr x,
@@ -31,7 +31,7 @@ magmablas_zcaxpycp(
     magmaDoubleComplex_ptr w );
 
 void
-magmablas_zclaswp(
+magmablas_zclaswp_v1(
     magma_int_t n,
     magmaDoubleComplex_ptr  A, magma_int_t lda,
     magmaFloatComplex_ptr  SA,
@@ -39,28 +39,28 @@ magmablas_zclaswp(
     const magma_int_t *ipiv, magma_int_t incx );
 
 void
-magmablas_zlag2c(
+magmablas_zlag2c_v1(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_const_ptr  A, magma_int_t lda,
     magmaFloatComplex_ptr        SA, magma_int_t ldsa,
     magma_int_t *info );
 
 void
-magmablas_clag2z(
+magmablas_clag2z_v1(
     magma_int_t m, magma_int_t n,
     magmaFloatComplex_const_ptr  SA, magma_int_t ldsa,
     magmaDoubleComplex_ptr        A, magma_int_t lda,
     magma_int_t *info );
 
 void
-magmablas_zlat2c(
+magmablas_zlat2c_v1(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex_const_ptr  A, magma_int_t lda,
     magmaFloatComplex_ptr        SA, magma_int_t ldsa,
     magma_int_t *info );
 
 void
-magmablas_clat2z(
+magmablas_clat2z_v1(
     magma_uplo_t uplo, magma_int_t n,
     magmaFloatComplex_const_ptr  SA, magma_int_t ldsa,
     magmaDoubleComplex_ptr        A, magma_int_t lda,
@@ -70,4 +70,4 @@ magmablas_clat2z(
 }
 #endif
 
-#endif /* MAGMABLAS_ZC_V1_H */
+#endif // MAGMABLAS_ZC_V1_H

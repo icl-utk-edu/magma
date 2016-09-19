@@ -56,4 +56,4 @@ magmablas_zapply_transpose_vector_kernel_batched(
     magma_int_t n,
     magmaDoubleComplex *du, magma_int_t offsetu, magmaDoubleComplex **db_array, magma_int_t offsetb );
 
-#endif        //  #ifndef ZGERBT_H
+#endif // ZGERBT_H

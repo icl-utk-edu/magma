@@ -39,7 +39,7 @@ zcaxpycp_kernel(
     copies w = b
 *******************************************************************************/
 extern "C" void
-magmablas_zcaxpycp_q(
+magmablas_zcaxpycp(
     magma_int_t m,
     magmaFloatComplex_ptr r,
     magmaDoubleComplex_ptr x,

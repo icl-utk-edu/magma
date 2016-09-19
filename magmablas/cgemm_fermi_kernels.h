@@ -191,4 +191,4 @@
 
 #undef COMPLEX
 
-#endif        //  #ifndef CGEMM_FERMI_KERNELS_H
+#endif // CGEMM_FERMI_KERNELS_H

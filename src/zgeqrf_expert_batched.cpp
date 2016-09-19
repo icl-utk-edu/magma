@@ -223,7 +223,7 @@ magma_zgeqrf_expert_batched(
     magma_zdisplace_pointers(dR_displ, dR_array, lddr, 0, 0, batchCount, queue); 
     magma_zdisplace_pointers(dT_displ, dT_array, lddt, 0, 0, batchCount, queue); 
     // set dwork to zero because our GEMM routine does propagate NAN when C=betaC+alphaA*B and beta=0
-    magmablas_zlaset_q( MagmaFull, 2*nb, n*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dwork, 2*nb, queue );
+    magmablas_zlaset( MagmaFull, 2*nb, n*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dwork, 2*nb, queue );
 
     // set dR and dT to zero. if provide_RT == 0 only a tile of size nbxnb is used and overwritten at each step
     magmablas_zlaset_batched( MagmaFull, lddr, (provide_RT > 0 ? n:min(min_mn,nb)), MAGMA_Z_ZERO, MAGMA_Z_ZERO, dR_displ, lddr, batchCount, queue ); 
@@ -231,13 +231,13 @@ magma_zgeqrf_expert_batched(
     /*
     if ( provide_RT > 0 )
     {
-        magmablas_zlaset_q( MagmaFull, lddr, n*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dR, lddr, queue );
-        magmablas_zlaset_q( MagmaFull, lddt, n*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dT, lddt, queue );
+        magmablas_zlaset( MagmaFull, lddr, n*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dR, lddr, queue );
+        magmablas_zlaset( MagmaFull, lddt, n*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dT, lddt, queue );
     }
     else
     {
-        magmablas_zlaset_q( MagmaFull, lddr, nb*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dR, lddr, queue );
-        magmablas_zlaset_q( MagmaFull, lddt, nb*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dT, lddt, queue );
+        magmablas_zlaset( MagmaFull, lddr, nb*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dR, lddr, queue );
+        magmablas_zlaset( MagmaFull, lddt, nb*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dT, lddt, queue );
     }
     */
     magma_int_t streamid;

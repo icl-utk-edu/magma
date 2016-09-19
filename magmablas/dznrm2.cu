@@ -90,7 +90,7 @@ magmablas_dznrm2_check_kernel(
 
 /******************************************************************************/
 extern "C" void
-magmablas_dznrm2_check_q(
+magmablas_dznrm2_check(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda, 
     magmaDouble_ptr dxnorm,
@@ -148,7 +148,7 @@ magmablas_dznrm2_smkernel(
     This routine uses only one SM (block).
 */
 extern "C" void
-magmablas_dznrm2_sm_q(
+magmablas_dznrm2_sm(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magmaDouble_ptr dxnorm,
@@ -187,7 +187,7 @@ magma_dznrm2_adjust_kernel(double *xnorm, magmaDoubleComplex *c)
     c was changed with orthogonal transformations.
 */
 extern "C" void
-magmablas_dznrm2_adjust_q(
+magmablas_dznrm2_adjust(
     magma_int_t k,
     magmaDouble_ptr dxnorm,
     magmaDoubleComplex_ptr dc,
@@ -239,7 +239,7 @@ magma_dznrm2_row_check_adjust_kernel(
     It also do checks for QP3
 */
 extern "C" void
-magmablas_dznrm2_row_check_adjust_q(
+magmablas_dznrm2_row_check_adjust(
     magma_int_t k, double tol,
     magmaDouble_ptr dxnorm,
     magmaDouble_ptr dxnorm2, 
@@ -262,7 +262,7 @@ magmablas_dznrm2_row_check_adjust_q(
     The computation can be done using n blocks (default) or on one SM (commented).
 */
 extern "C" void
-magmablas_dznrm2_cols_q(
+magmablas_dznrm2_cols(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda, 
     magmaDouble_ptr dxnorm,
@@ -275,5 +275,5 @@ magmablas_dznrm2_cols_q(
         ( m, dA, ldda, dxnorm );
 
     // The following would do the computation on one SM
-    // magmablas_dznrm2_sm_q( m, n, dA, ldda, dxnorm, queue );
+    // magmablas_dznrm2_sm( m, n, dA, ldda, dxnorm, queue );
 }

@@ -191,4 +191,4 @@
 
 #undef DOUBLE
 
-#endif        //  #ifndef DGEMM_FERMI_KERNELS_H
+#endif // DGEMM_FERMI_KERNELS_H

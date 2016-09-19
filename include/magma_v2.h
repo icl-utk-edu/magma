@@ -9,18 +9,21 @@
 #ifndef MAGMA_V2_H
 #define MAGMA_V2_H
 
-/* ------------------------------------------------------------
- * MAGMA BLAS Functions
- * --------------------------------------------------------- */
-#include "magmablas_v2.h"
-#include "magmablas_q.h"
+#define MAGMA_API 2
+
+
+// =============================================================================
+// MAGMA BLAS Functions
+
+#include "magmablas.h"
 #include "magma_batched.h"
 #include "magma_vbatched.h"
 #include "magma_bulge.h"
 
-/* ------------------------------------------------------------
- * MAGMA functions
- * --------------------------------------------------------- */
+
+// =============================================================================
+// MAGMA Functions
+
 #include "magma_z.h"
 #include "magma_c.h"
 #include "magma_d.h"
@@ -29,4 +32,4 @@
 #include "magma_ds.h"
 #include "magma_auxiliary.h"
 
-#endif  // MAGMA_V2_H
+#endif // MAGMA_V2_H

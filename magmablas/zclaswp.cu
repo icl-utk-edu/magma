@@ -114,7 +114,7 @@ zclaswp_inv_kernel(
     @ingroup magma_laswp
 *******************************************************************************/
 extern "C" void
-magmablas_zclaswp_q(
+magmablas_zclaswp(
     magma_int_t n,
     magmaDoubleComplex_ptr A, magma_int_t lda,
     magmaFloatComplex_ptr SA, magma_int_t ldsa,

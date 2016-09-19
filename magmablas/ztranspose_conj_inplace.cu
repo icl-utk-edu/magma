@@ -165,7 +165,7 @@ __global__ void ztranspose_conj_inplace_even( int n, magmaDoubleComplex *matrix,
     @ingroup magma_transpose
 *******************************************************************************/
 extern "C" void
-magmablas_ztranspose_conj_inplace_q(
+magmablas_ztranspose_conj_inplace(
     magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_queue_t queue )

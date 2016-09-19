@@ -176,7 +176,7 @@ void zlaset_band_lower(
     @ingroup magma_laset_band
 *******************************************************************************/
 extern "C" void
-magmablas_zlaset_band_q(
+magmablas_zlaset_band(
     magma_uplo_t uplo, magma_int_t m, magma_int_t n, magma_int_t k,
     magmaDoubleComplex offdiag, magmaDoubleComplex diag,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,

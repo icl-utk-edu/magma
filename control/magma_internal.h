@@ -60,17 +60,9 @@
 // provide our own support for pthread_barrier on MacOS and Windows
 #include "pthread_barrier.h"
 
-// MAGMA_SOURCE is defined in common_magma.h, so it can #include this file
-// but get the right magma.h header.
-#if MAGMA_SOURCE == 1
-    #include "magma.h"
-#else
-    #include "magma_v2.h"
-#endif
-
+#include "magma_v2.h"
 #include "magma_lapack.h"
 #include "magma_operators.h"
-#include "transpose.h"
 #include "magma_threadsetting.h"
 
 /***************************************************************************//**
@@ -113,7 +105,7 @@ public:
 
 protected:
     friend
-    void magma_queue_create_v2_internal(
+    void magma_queue_create_internal(
         magma_device_t device, magma_queue_t* queuePtr,
         const char* func, const char* file, int line );
 
@@ -188,4 +180,4 @@ magma_queue_t magmablasGetQueue();
 *******************************************************************************/
 #define MAGMA_UNUSED(var)  ((void)var)
 
-#endif /* MAGMA_INTERNAL_H */
+#endif // MAGMA_INTERNAL_H

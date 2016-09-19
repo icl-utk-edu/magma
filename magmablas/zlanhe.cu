@@ -623,7 +623,7 @@ zlanhe_max(
     @ingroup magma_lanhe
 *******************************************************************************/
 extern "C" double
-magmablas_zlanhe_q(
+magmablas_zlanhe(
     magma_norm_t norm, magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDouble_ptr dwork, magma_int_t lwork,

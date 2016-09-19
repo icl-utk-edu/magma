@@ -148,7 +148,7 @@ void clat2z_upper(
     @ingroup magma_lat2
 *******************************************************************************/
 extern "C" void
-magmablas_clat2z_q(
+magmablas_clat2z(
     magma_uplo_t uplo, magma_int_t n,
     magmaFloatComplex_const_ptr SA, magma_int_t ldsa,
     magmaDoubleComplex_ptr      A,  magma_int_t lda,

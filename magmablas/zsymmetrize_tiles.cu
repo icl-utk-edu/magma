@@ -117,7 +117,7 @@ zsymmetrize_tiles_upper( int m, magmaDoubleComplex *dA, int ldda, int mstride, i
     @ingroup magma_symmetrize_batched
 *******************************************************************************/
 extern "C" void
-magmablas_zsymmetrize_tiles_q(
+magmablas_zsymmetrize_tiles(
     magma_uplo_t uplo, magma_int_t m,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t ntile, magma_int_t mstride, magma_int_t nstride,

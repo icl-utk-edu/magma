@@ -866,8 +866,8 @@ void magmablas_ztrsm_batched(
         magma_xerbla( __func__, -(info) );
         return;
     }
-    magmablas_zlaset_q(MagmaFull, size_dinvA, batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dinvA, size_dinvA, queue);
-    magmablas_zlaset_q(MagmaFull, lddx, n*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dX, lddx, queue);
+    magmablas_zlaset(MagmaFull, size_dinvA, batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dinvA, size_dinvA, queue);
+    magmablas_zlaset(MagmaFull, lddx, n*batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dX, lddx, queue);
 
     magma_zset_pointer( dX_array, dX, lddx, 0, 0, size_x, batchCount, queue );
     magma_zset_pointer( dinvA_array, dinvA, ZTRTRI_BATCHED_NB, 0, 0, size_dinvA, batchCount, queue );
