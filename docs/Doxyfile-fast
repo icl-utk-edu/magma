@@ -1091,7 +1091,7 @@ INPUT                  = \
 	../sparse/blas/zmgeelltmv.cu                                \
 	../sparse/blas/zmgesellcmmv.cu                              \
 	../sparse/blas/zpipelinedgmres.cu                           \
-	../sparse/control/common_magmasparse.h                      \
+	../sparse/control/magmasparse_internal.h                      \
 	../sparse/control/error.cpp                                 \
 	../sparse/control/magma_zcsrsplit.cpp                       \
 	../sparse/control/magma_zdomainoverlap.cpp                  \

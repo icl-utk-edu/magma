@@ -76,7 +76,6 @@ magma_zmtransfer(
         //CSR-type
         if ( A.storage_type == Magma_CSR   ||
              A.storage_type == Magma_CUCSR ||
-             A.storage_type == Magma_CSC   ||
              A.storage_type == Magma_CSRD  ||
              A.storage_type == Magma_CSRL  ||
              A.storage_type == Magma_CSRU )
@@ -100,6 +99,29 @@ magma_zmtransfer(
             magma_zsetvector( A.nnz, A.val, 1, B->dval, 1, queue );
             magma_index_setvector( A.num_rows + 1, A.row, 1, B->drow, 1, queue );
             magma_index_setvector( A.nnz, A.col, 1, B->dcol, 1, queue );
+        }
+        //CSC-type
+        else if ( A.storage_type == Magma_CSC )
+        {
+            // fill in information for B
+            B->storage_type = A.storage_type;
+            B->memory_location = Magma_DEV;
+            B->sym = A.sym;
+            B->diagorder_type = A.diagorder_type;
+            B->fill_mode = A.fill_mode;
+            B->num_rows = A.num_rows;
+            B->num_cols = A.num_cols;
+            B->nnz = A.nnz; B->true_nnz = A.true_nnz;
+            B->max_nnz_row = A.max_nnz_row;
+            B->diameter = A.diameter;
+            // memory allocation
+            CHECK( magma_zmalloc( &B->dval, A.nnz ));
+            CHECK( magma_index_malloc( &B->drow, A.nnz ));
+            CHECK( magma_index_malloc( &B->dcol, A.num_cols+1 ));
+            // data transfer
+            magma_zsetvector( A.nnz, A.val, 1, B->dval, 1, queue );
+            magma_index_setvector( A.nnz, A.row, 1, B->drow, 1, queue );
+            magma_index_setvector( A.num_cols+1, A.col, 1, B->dcol, 1, queue );
         }
         //COO-type
         else if ( A.storage_type == Magma_COO ) {
@@ -295,7 +317,6 @@ magma_zmtransfer(
         //CSR-type
         if ( A.storage_type == Magma_CSR   ||
              A.storage_type == Magma_CUCSR ||
-             A.storage_type == Magma_CSC   ||
              A.storage_type == Magma_CSRD  ||
              A.storage_type == Magma_CSRL  ||
              A.storage_type == Magma_CSRU )
@@ -316,12 +337,43 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->row, A.num_rows + 1 ));
             CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.nnz; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
             }
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows+1; i++ ) {
                 B->row[i] = A.row[i];
+            }
+        }
+        //CSC-type
+        if ( A.storage_type == Magma_CSC )
+        {
+            // fill in information for B
+            B->storage_type = A.storage_type;
+            B->memory_location = Magma_CPU;
+            B->sym = A.sym;
+            B->diagorder_type = A.diagorder_type;
+            B->fill_mode = A.fill_mode;
+            B->num_rows = A.num_rows;
+            B->num_cols = A.num_cols;
+            B->nnz = A.nnz; B->true_nnz = A.true_nnz;
+            B->max_nnz_row = A.max_nnz_row;
+            B->diameter = A.diameter;
+            // memory allocation
+            CHECK( magma_zmalloc_cpu( &B->val, A.nnz ));
+            CHECK( magma_index_malloc_cpu( &B->row, A.nnz ));
+            CHECK( magma_index_malloc_cpu( &B->col, A.num_cols+1 ));
+            // data transfer
+            #pragma omp parallel for
+            for( magma_int_t i=0; i<A.nnz; i++ ) {
+                B->val[i] = A.val[i];
+                B->row[i] = A.row[i];
+            }
+            #pragma omp parallel for
+            for( magma_int_t i=0; i<A.num_cols+1; i++ ) {
+                B->col[i] = A.col[i];
             }
         }
         //COO-type
@@ -342,6 +394,7 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
             CHECK( magma_index_malloc_cpu( &B->rowidx, A.nnz ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.nnz; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
@@ -367,11 +420,13 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
             CHECK( magma_index_malloc_cpu( &B->rowidx, A.nnz ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.nnz; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
                 B->rowidx[i] = A.rowidx[i];
             }
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows+1; i++ ) {
                 B->row[i] = A.row[i];
             }
@@ -393,6 +448,7 @@ magma_zmtransfer(
             CHECK( magma_zmalloc_cpu( &B->val, A.num_rows * A.max_nnz_row ));
             CHECK( magma_index_malloc_cpu( &B->col, A.num_rows * A.max_nnz_row ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows*A.max_nnz_row; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
@@ -415,6 +471,7 @@ magma_zmtransfer(
             CHECK( magma_zmalloc_cpu( &B->val, A.num_rows * A.max_nnz_row ));
             CHECK( magma_index_malloc_cpu( &B->col, A.num_rows * A.max_nnz_row ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows*A.max_nnz_row; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
@@ -443,10 +500,12 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->row, A.num_rows ));
             CHECK( magma_index_malloc_cpu( &B->col, rowlength * A.num_rows ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows*rowlength; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
             }
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows; i++ ) {
                 B->row[i] = A.row[i];
             }
@@ -472,10 +531,12 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
             CHECK( magma_index_malloc_cpu( &B->row, A.numblocks + 1 ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.nnz; i++ ) {
                 B->val[i] = A.val[i];
                 B->col[i] = A.col[i];
             }
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.numblocks+1; i++ ) {
                 B->row[i] = A.row[i];
             }
@@ -508,14 +569,17 @@ magma_zmtransfer(
             CHECK( magma_index_malloc_cpu( &B->col, A.numblocks ));
             // data transfer
             //magma_zsetvector( size_b * size_b * A.numblocks, A.val, 1, B->dval, 1, queue );
+            #pragma omp parallel for
             for( magma_int_t i=0; i<size_b*size_b*A.numblocks; i++ ) {
                 B->dval[i] = A.val[i];
             }
             //magma_index_setvector( r_blocks + 1, A.row, 1, B->drow, 1, queue );
+            #pragma omp parallel for
             for( magma_int_t i=0; i<r_blocks+1; i++ ) {
                 B->drow[i] = A.row[i];
             }
             //magma_index_setvector( A.numblocks, A.col, 1, B->dcol, 1, queue );
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.numblocks; i++ ) {
                 B->dcol[i] = A.col[i];
             }
@@ -538,6 +602,7 @@ magma_zmtransfer(
             // memory allocation
             CHECK( magma_zmalloc_cpu( &B->val, A.num_rows * A.num_cols ));
             // data transfer
+            #pragma omp parallel for
             for( magma_int_t i=0; i<A.num_rows*A.num_cols; i++ ) {
                 B->val[i] = A.val[i];
             }
@@ -549,7 +614,6 @@ magma_zmtransfer(
         //CSR-type
         if ( A.storage_type == Magma_CSR   ||
              A.storage_type == Magma_CUCSR ||
-             A.storage_type == Magma_CSC   ||
              A.storage_type == Magma_CSRD  ||
              A.storage_type == Magma_CSRL  ||
              A.storage_type == Magma_CSRU )
@@ -573,6 +637,29 @@ magma_zmtransfer(
             magma_zgetvector( A.nnz, A.dval, 1, B->val, 1, queue );
             magma_index_getvector( A.num_rows + 1, A.drow, 1, B->row, 1, queue );
             magma_index_getvector( A.nnz, A.dcol, 1, B->col, 1, queue );
+        }
+        //CSC-type
+        if ( A.storage_type == Magma_CSC )
+        {
+            // fill in information for B
+            B->storage_type = A.storage_type;
+            B->memory_location = Magma_CPU;
+            B->sym = A.sym;
+            B->diagorder_type = A.diagorder_type;
+            B->fill_mode = A.fill_mode;
+            B->num_rows = A.num_rows;
+            B->num_cols = A.num_cols;
+            B->nnz = A.nnz; B->true_nnz = A.true_nnz;
+            B->max_nnz_row = A.max_nnz_row;
+            B->diameter = A.diameter;
+            // memory allocation
+            CHECK( magma_zmalloc_cpu( &B->val, A.nnz ));
+            CHECK( magma_index_malloc_cpu( &B->row, A.nnz ));
+            CHECK( magma_index_malloc_cpu( &B->col, A.num_cols+1 ));
+            // data transfer
+            magma_zgetvector( A.nnz, A.dval, 1, B->val, 1, queue );
+            magma_index_getvector( A.nnz, A.drow, 1, B->row, 1, queue );
+            magma_index_getvector( A.num_cols+1, A.dcol, 1, B->col, 1, queue );
         }
         //COO-type
         else if ( A.storage_type == Magma_COO ) {
@@ -770,7 +857,6 @@ magma_zmtransfer(
         //CSR-type
         if ( A.storage_type == Magma_CSR   ||
              A.storage_type == Magma_CUCSR ||
-             A.storage_type == Magma_CSC   ||
              A.storage_type == Magma_CSRD  ||
              A.storage_type == Magma_CSRL  ||
              A.storage_type == Magma_CSRU )
@@ -794,6 +880,29 @@ magma_zmtransfer(
             magma_zcopyvector( A.nnz, A.dval, 1, B->dval, 1, queue );
             magma_index_copyvector( A.num_rows + 1, A.drow, 1, B->drow, 1, queue );
             magma_index_copyvector( A.nnz, A.dcol, 1, B->dcol, 1, queue );
+        }
+        //CSC-type
+        if ( A.storage_type == Magma_CSC )
+        {
+            // fill in information for B
+            B->storage_type = A.storage_type;
+            B->memory_location = Magma_DEV;
+            B->sym = A.sym;
+            B->diagorder_type = A.diagorder_type;
+            B->fill_mode = A.fill_mode;
+            B->num_rows = A.num_rows;
+            B->num_cols = A.num_cols;
+            B->nnz = A.nnz; B->true_nnz = A.true_nnz;
+            B->max_nnz_row = A.max_nnz_row;
+            B->diameter = A.diameter;
+            // memory allocation
+            CHECK( magma_zmalloc( &B->dval, A.nnz ));
+            CHECK( magma_index_malloc( &B->drow, A.nnz ));
+            CHECK( magma_index_malloc( &B->dcol, A.num_cols + 1 ));
+            // data transfer
+            magma_zcopyvector( A.nnz, A.dval, 1, B->dval, 1, queue );
+            magma_index_copyvector( A.nnz, A.drow, 1, B->drow, 1, queue );
+            magma_index_copyvector( A.num_cols + 1, A.dcol, 1, B->dcol, 1, queue );
         }
         //COO-type
         else if ( A.storage_type == Magma_COO ) {

@@ -8,7 +8,7 @@
        @precisions normal z -> c d s
 
 */
-#include "common_magmasparse.h"
+#include "magmasparse_internal.h"
 #include <cuda_profiler_api.h>
 
 #define PRECISION_z
