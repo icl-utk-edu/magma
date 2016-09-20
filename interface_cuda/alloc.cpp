@@ -10,13 +10,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <cuda_runtime.h>
-
-#include <map>
 
 #ifdef DEBUG_MEMORY
+#include <map>
 #include <mutex>  // requires C++11
 #endif
+
+#include <cuda_runtime.h>
 
 #include "magma_v2.h"
 #include "error.h"
@@ -45,7 +45,7 @@ std::map< void*, size_t > g_pointers_pin;
 
     @return MAGMA_SUCCESS
     @return MAGMA_ERR_DEVICE_ALLOC on failure
-    
+
     Type-safe versions avoid the need for a (void**) cast and explicit sizeof.
     @see magma_smalloc
     @see magma_dmalloc
@@ -53,32 +53,32 @@ std::map< void*, size_t > g_pointers_pin;
     @see magma_zmalloc
     @see magma_imalloc
     @see magma_index_malloc
-    
+
     @ingroup magma_malloc
 *******************************************************************************/
 extern "C" magma_int_t
 magma_malloc( magma_ptr* ptrPtr, size_t size )
 {
-    // CUDA can't allocate 0 bytes, so allocate some minimal size
+    // malloc and free sometimes don't work for size=0, so allocate some minimal size
     if ( size == 0 )
         size = sizeof(magmaDoubleComplex);
     if ( cudaSuccess != cudaMalloc( ptrPtr, size )) {
         return MAGMA_ERR_DEVICE_ALLOC;
     }
-    
+
     #ifdef DEBUG_MEMORY
     g_pointers_mutex.lock();
     g_pointers_dev[ *ptrPtr ] = size;
     g_pointers_mutex.unlock();
     #endif
-    
+
     return MAGMA_SUCCESS;
 }
 
 
 /***************************************************************************//**
     @fn magma_free( ptr )
-    
+
     Frees GPU memory previously allocated by magma_malloc().
 
     @param[in]
@@ -103,7 +103,7 @@ magma_free_internal( magma_ptr ptr,
     }
     g_pointers_mutex.unlock();
     #endif
-    
+
     cudaError_t err = cudaFree( ptr );
     check_xerror( err, func, file, line );
     if ( err != cudaSuccess ) {
@@ -130,7 +130,7 @@ magma_free_internal( magma_ptr ptr,
 
     @return MAGMA_SUCCESS
     @return MAGMA_ERR_HOST_ALLOC on failure
-    
+
     Type-safe versions avoid the need for a (void**) cast and explicit sizeof.
     @see magma_smalloc_cpu
     @see magma_dmalloc_cpu
@@ -166,13 +166,13 @@ magma_malloc_cpu( void** ptrPtr, size_t size )
         return MAGMA_ERR_HOST_ALLOC;
     }
 #endif
-    
+
     #ifdef DEBUG_MEMORY
     g_pointers_mutex.lock();
     g_pointers_cpu[ *ptrPtr ] = size;
     g_pointers_mutex.unlock();
     #endif
-    
+
     return MAGMA_SUCCESS;
 }
 
@@ -204,7 +204,7 @@ magma_free_cpu( void* ptr )
     }
     g_pointers_mutex.unlock();
     #endif
-    
+
 #if defined( _WIN32 ) || defined( _WIN64 )
     _aligned_free( ptr );
 #else
@@ -227,7 +227,7 @@ magma_free_cpu( void* ptr )
 
     @return MAGMA_SUCCESS
     @return MAGMA_ERR_HOST_ALLOC on failure
-    
+
     Type-safe versions avoid the need for a (void**) cast and explicit sizeof.
     @see magma_smalloc_pinned
     @see magma_dmalloc_pinned
@@ -241,35 +241,32 @@ magma_free_cpu( void* ptr )
 extern "C" magma_int_t
 magma_malloc_pinned( void** ptrPtr, size_t size )
 {
-    // CUDA can't allocate 0 bytes, so allocate some minimal size
+    // malloc and free sometimes don't work for size=0, so allocate some minimal size
     // (for pinned memory, the error is detected in free)
     if ( size == 0 )
         size = sizeof(magmaDoubleComplex);
     if ( cudaSuccess != cudaMallocHost( ptrPtr, size )) {
         return MAGMA_ERR_HOST_ALLOC;
     }
-    
+
     #ifdef DEBUG_MEMORY
     g_pointers_mutex.lock();
     g_pointers_pin[ *ptrPtr ] = size;
     g_pointers_mutex.unlock();
     #endif
-    
+
     return MAGMA_SUCCESS;
 }
 
 
 /***************************************************************************//**
     @fn magma_free_pinned( ptr )
-    
+
     Frees CPU pinned memory previously allocated by magma_malloc_pinned().
-    The default implementation uses free(),
-    which works for both malloc and posix_memalign.
-    For Windows, _aligned_free() is used.
 
     @param[in]
     ptr     Pointer to free.
-    
+
     @return MAGMA_SUCCESS
     @return MAGMA_ERR_INVALID_PTR on failure
 
@@ -289,7 +286,7 @@ magma_free_pinned_internal( void* ptr,
     }
     g_pointers_mutex.unlock();
     #endif
-    
+
     cudaError_t err = cudaFreeHost( ptr );
     check_xerror( err, func, file, line );
     if ( cudaSuccess != err ) {
