@@ -125,7 +125,7 @@ void magma_zprint(
 extern "C"
 void magma_zprint_gpu(
     magma_int_t m, magma_int_t n,
-    const magmaDoubleComplex *dA, magma_int_t ldda,
+    magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magma_queue_t queue )
 {
     magma_int_t info = 0;
