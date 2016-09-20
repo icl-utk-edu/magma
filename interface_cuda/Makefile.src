@@ -21,6 +21,7 @@ libmagma_src += \
 	$(cdir)/copy_v2.cpp	\
 	$(cdir)/error.cpp	\
 	$(cdir)/interface.cpp	\
+	$(cdir)/interface_v1.cpp	\
 
 
 # ----------------------------------------------------------------------
