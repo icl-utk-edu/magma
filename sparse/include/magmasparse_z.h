@@ -335,6 +335,12 @@ magma_zwrite_csr_mtx(
     magma_queue_t queue );
 
 magma_int_t 
+magma_zwrite_vector( 
+    magma_z_matrix A,
+    const char *filename,
+    magma_queue_t queue );
+
+magma_int_t 
 magma_zwrite_csrtomtx( 
     magma_z_matrix A,
     const char *filename,
