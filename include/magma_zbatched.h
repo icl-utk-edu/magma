@@ -257,6 +257,25 @@ void magmablas_ztrsv_outofplace_batched(
     magmaDoubleComplex **x_array, 
     magma_int_t batchCount, magma_queue_t queue, magma_int_t flag);
 
+void 
+magmablas_ztrmm_batched_core(
+        magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
+        magma_int_t m, magma_int_t n, 
+        magmaDoubleComplex alpha, 
+        magmaDoubleComplex **dA_array, magma_int_t ldda,
+        magmaDoubleComplex **dB_array, magma_int_t lddb, 
+        magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, 
+        magma_int_t batchCount, magma_queue_t queue );
+
+void 
+magmablas_ztrmm_batched(
+        magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
+        magma_int_t m, magma_int_t n, 
+        magmaDoubleComplex alpha, 
+        magmaDoubleComplex **dA_array, magma_int_t ldda,
+        magmaDoubleComplex **dB_array, magma_int_t lddb, 
+        magma_int_t batchCount, magma_queue_t queue );
+
 magma_int_t 
 magma_zpotrf_batched(
     magma_uplo_t uplo, magma_int_t n,

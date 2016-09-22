@@ -121,6 +121,7 @@ libmagma_src += \
 	$(cdir)/zgerbt_func_batched.cu		\
 	$(cdir)/zgetf2_kernels.cu		\
 	$(cdir)/getrf_setup_pivinfo.cu		\
+	$(cdir)/zher2k_batched.cpp		\
 	$(cdir)/zherk_batched.cpp		\
 	$(cdir)/cherk_batched_core.cu		\
 	$(cdir)/zherk_batched_core.cu		\
@@ -129,13 +130,13 @@ libmagma_src += \
 	$(cdir)/zpotf2_kernels_old.cu		\
 	$(cdir)/set_pointer.cu			\
 	$(cdir)/zset_pointer.cu			\
+	$(cdir)/zsyr2k_batched.cpp		\
 	$(cdir)/dsyrk_batched_core.cu		\
 	$(cdir)/ssyrk_batched_core.cu		\
+	$(cdir)/ztrmm_batched_core.cu		\
 	$(cdir)/ztrsm_batched.cpp		\
 	$(cdir)/ztrsv_batched.cu		\
 	$(cdir)/ztrtri_diag_batched.cu		\
-	$(cdir)/zher2k_batched.cpp		\
-	$(cdir)/zsyr2k_batched.cpp		\
 
 # vbatched files
 libmagma_src += \
@@ -147,10 +148,11 @@ libmagma_src += \
 	$(cdir)/cgemv_vbatched_core.cu	\
 	$(cdir)/dgemv_vbatched_core.cu	\
 	$(cdir)/sgemv_vbatched_core.cu	\
-	$(cdir)/ssyrk_vbatched_core.cu	\
-	$(cdir)/dsyrk_vbatched_core.cu	\
 	$(cdir)/cherk_vbatched_core.cu	\
 	$(cdir)/zherk_vbatched_core.cu	\
+	$(cdir)/ssyrk_vbatched_core.cu	\
+	$(cdir)/dsyrk_vbatched_core.cu	\
+	$(cdir)/ztrmm_vbatched_core.cu	\
 
 libmagma_src += \
 	$(cdir)/zgemm_vbatched.cpp		\
@@ -159,6 +161,7 @@ libmagma_src += \
 	$(cdir)/zherk_vbatched.cpp		\
 	$(cdir)/zsyr2k_vbatched.cpp		\
 	$(cdir)/zsyrk_vbatched.cpp		\
+	$(cdir)/ztrmm_vbatched.cpp		\
 
 # aux vbatched files
 libmagma_src += \
