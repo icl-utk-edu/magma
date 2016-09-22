@@ -301,13 +301,13 @@ magma_zwrite_vector(
 
     #ifdef COMPLEX
     // complex case
-    for(i=0; i < A.num_cols; i++) {
+    for(i=0; i < A.num_rows; i++) {
         fprintf( fp, "%.16g %.16g\n",
             MAGMA_Z_REAL((A.val)[i]),
             MAGMA_Z_IMAG((A.val)[i]) );
     }
     #else
-    for(i=0; i < A.num_cols; i++) {
+    for(i=0; i < A.num_rows; i++) {
         fprintf( fp, "%.16g\n",
             MAGMA_Z_REAL((A.val)[i]) );
     }
