@@ -260,7 +260,7 @@ cleanup:
     Purpose
     -------
 
-    Writes a CSR matrix to a file using Matrix Market format.
+    Writes a vector to a file.
 
     Arguments
     ---------
@@ -268,12 +268,6 @@ cleanup:
     @param[in]
     A           magma_z_matrix
                 matrix to write out
-
-    @param[in]
-    MajorType   magma_index_t
-                Row or Column sort
-                default: 0 = RowMajor, 1 = ColMajor
-                TODO: use named constants (e.g., MagmaRowMajor), not numbers.
 
     @param[in]
     filename    const char*
