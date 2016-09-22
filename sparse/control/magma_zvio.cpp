@@ -312,6 +312,11 @@ magma_zwrite_vector(
             MAGMA_Z_REAL((A.val)[i]) );
     }
     #endif
+    
+    if (fclose(fp) != 0)
+        printf("\n%% error: writing matrix failed\n");
+    else
+        info = 0;
 
 cleanup:
     return info;
