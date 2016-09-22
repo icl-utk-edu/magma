@@ -153,6 +153,8 @@ libmagma_src += \
 	$(cdir)/ssyrk_vbatched_core.cu	\
 	$(cdir)/dsyrk_vbatched_core.cu	\
 	$(cdir)/ztrmm_vbatched_core.cu	\
+	$(cdir)/ztrsm_vbatched_core.cu	\
+	$(cdir)/ztrtri_diag_vbatched.cu	\
 
 libmagma_src += \
 	$(cdir)/zgemm_vbatched.cpp		\
@@ -165,6 +167,7 @@ libmagma_src += \
 
 # aux vbatched files
 libmagma_src += \
+	$(cdir)/prefix_sum.cu		\
 	$(cdir)/vbatched_aux.cu		\
 	$(cdir)/vbatched_check.cu		\
 

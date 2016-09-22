@@ -213,6 +213,7 @@ testing_src += \
 	$(cdir)/testing_zsyrk_vbatched.cpp	\
 	$(cdir)/testing_zsyr2k_vbatched.cpp	\
 	$(cdir)/testing_ztrmm_vbatched.cpp	\
+	$(cdir)/testing_ztrsm_vbatched.cpp	\
 	
 # ----------
 # fortran.c and fortran_thunking.c are provided by NVIDIA in $(CUDADIR)/src

@@ -77,7 +77,6 @@ int main( int argc, char** argv)
     batchCount = opts.batchcount;
     
     double tol = opts.tolerance * lapackf77_dlamch("E");
-
     printf("%% side = %s, uplo = %s, transA = %s, diag = %s \n",
            lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),
            lapack_trans_const(opts.transA), lapack_diag_const(opts.diag) );

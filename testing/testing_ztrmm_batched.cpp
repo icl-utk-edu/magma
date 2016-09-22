@@ -27,7 +27,7 @@
 #endif
 
 /* ////////////////////////////////////////////////////////////////////////////
-   -- Testing ztrmm
+   -- Testing ztrmm_batched
 */
 int main( int argc, char** argv)
 {
@@ -54,12 +54,11 @@ int main( int argc, char** argv)
     opts.parse_opts( argc, argv );
     opts.lapack |= opts.check;  // check (-c) implies lapack (-l)
     magma_int_t batchCount = opts.batchcount; 
-    
-    double tol = opts.tolerance * lapackf77_dlamch("E");
-    
+
     TESTING_CHECK( magma_malloc((void**)&dA_array, batchCount*sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc((void**)&dB_array, batchCount*sizeof(magmaDoubleComplex*)) );
     
+    double tol = opts.tolerance * lapackf77_dlamch("E");
     printf("%% If running lapack (option --lapack), MAGMA error is computed\n"
            "%% relative to CPU BLAS result.\n\n");
     printf("%% side = %s, uplo = %s, transA = %s, diag = %s \n",
@@ -168,18 +167,20 @@ int main( int argc, char** argv)
                     }
                     magma_error = max( err, magma_error );
                 }
-                printf("%10d %5d %5d   %7.2f (%7.2f)   %7.2f (%7.2f)    %8.2e   %s\n",
-                       (int)batchCount, 
-                       (int) M, (int) N,
+                bool okay = (magma_error < tol);
+                status += ! okay;
+                
+                printf("%10lld %5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)    %8.2e   %s\n",
+                       batchCount, 
+                       M, N,
                        magma_perf, 1000.*magma_time,
                        cpu_perf,    1000.*cpu_time,
                        magma_error, (magma_error < tol ? "ok" : "failed"));
-                status += ! (magma_error < tol);
             }
             else {
-                printf("%10d %5d %5d   %7.2f (%7.2f)    ---   (  ---  )    ---     ---\n",
-                       (int) batchCount, 
-                       (int) M, (int) N,
+                printf("%10lld %5lld %5lld   %7.2f (%7.2f)    ---   (  ---  )    ---     ---\n",
+                       batchCount, 
+                       M, N,
                        magma_perf, 1000.*magma_time);
             }
             

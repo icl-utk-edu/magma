@@ -31,7 +31,7 @@
 #endif
 
 /* ////////////////////////////////////////////////////////////////////////////
-   -- Testing zgemm_batched
+   -- Testing zgemm_vbatched
 */
 int main( int argc, char** argv)
 {
