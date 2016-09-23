@@ -410,6 +410,66 @@ magmablas_ztrtri_diag_vbatched(
     magmaDoubleComplex **dinvA_array, 
     magma_int_t resetozero, magma_int_t batchCount, magma_queue_t queue);
 
+void 
+magmablas_zhemm_vbatched_core(
+        magma_side_t side, magma_uplo_t uplo, 
+        magma_int_t *m, magma_int_t *n, 
+        magmaDoubleComplex alpha, 
+        magmaDoubleComplex **dA_array, magma_int_t *ldda,
+        magmaDoubleComplex **dB_array, magma_int_t *lddb, 
+        magmaDoubleComplex beta, 
+        magmaDoubleComplex **dC_array, magma_int_t *lddc, 
+        magma_int_t max_m, magma_int_t max_n, 
+        magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, magma_int_t roffC, magma_int_t coffC, 
+        magma_int_t specM, magma_int_t specN, 
+        magma_int_t batchCount, magma_queue_t queue );
+
+void 
+magmablas_zhemm_vbatched_max_nocheck(
+        magma_side_t side, magma_uplo_t uplo, 
+        magma_int_t *m, magma_int_t *n, 
+        magmaDoubleComplex alpha, 
+        magmaDoubleComplex **dA_array, magma_int_t *ldda,
+        magmaDoubleComplex **dB_array, magma_int_t *lddb, 
+        magmaDoubleComplex beta, 
+        magmaDoubleComplex **dC_array, magma_int_t *lddc, 
+        magma_int_t batchCount, magma_int_t max_m, magma_int_t max_n, 
+        magma_queue_t queue );
+
+void
+magmablas_zhemm_vbatched_max(
+        magma_side_t side, magma_uplo_t uplo, 
+        magma_int_t *m, magma_int_t *n, 
+        magmaDoubleComplex alpha, 
+        magmaDoubleComplex **dA_array, magma_int_t *ldda,
+        magmaDoubleComplex **dB_array, magma_int_t *lddb, 
+        magmaDoubleComplex beta, 
+        magmaDoubleComplex **dC_array, magma_int_t *lddc, 
+        magma_int_t batchCount, magma_int_t max_m, magma_int_t max_n, 
+        magma_queue_t queue );
+
+void
+magmablas_zhemm_vbatched_nocheck(
+        magma_side_t side, magma_uplo_t uplo, 
+        magma_int_t *m, magma_int_t *n, 
+        magmaDoubleComplex alpha, 
+        magmaDoubleComplex **dA_array, magma_int_t *ldda,
+        magmaDoubleComplex **dB_array, magma_int_t *lddb, 
+        magmaDoubleComplex beta, 
+        magmaDoubleComplex **dC_array, magma_int_t *lddc, 
+        magma_int_t batchCount, magma_queue_t queue );
+
+void
+magmablas_zhemm_vbatched(
+        magma_side_t side, magma_uplo_t uplo, 
+        magma_int_t *m, magma_int_t *n, 
+        magmaDoubleComplex alpha, 
+        magmaDoubleComplex **dA_array, magma_int_t *ldda,
+        magmaDoubleComplex **dB_array, magma_int_t *lddb, 
+        magmaDoubleComplex beta, 
+        magmaDoubleComplex **dC_array, magma_int_t *lddc, 
+        magma_int_t batchCount, magma_queue_t queue );
+
 void
 magmablas_zgemv_vbatched_max_nocheck(
     magma_trans_t trans, magma_int_t* m, magma_int_t* n, 

@@ -121,6 +121,7 @@ libmagma_src += \
 	$(cdir)/zgerbt_func_batched.cu		\
 	$(cdir)/zgetf2_kernels.cu		\
 	$(cdir)/getrf_setup_pivinfo.cu		\
+	$(cdir)/zhemm_batched_core.cu		\
 	$(cdir)/zher2k_batched.cpp		\
 	$(cdir)/zherk_batched.cpp		\
 	$(cdir)/cherk_batched_core.cu		\
@@ -148,6 +149,7 @@ libmagma_src += \
 	$(cdir)/cgemv_vbatched_core.cu	\
 	$(cdir)/dgemv_vbatched_core.cu	\
 	$(cdir)/sgemv_vbatched_core.cu	\
+	$(cdir)/zhemm_vbatched_core.cu	\
 	$(cdir)/cherk_vbatched_core.cu	\
 	$(cdir)/zherk_vbatched_core.cu	\
 	$(cdir)/ssyrk_vbatched_core.cu	\
@@ -159,6 +161,7 @@ libmagma_src += \
 libmagma_src += \
 	$(cdir)/zgemm_vbatched.cpp		\
 	$(cdir)/zgemv_vbatched.cpp		\
+	$(cdir)/zhemm_vbatched.cpp		\
 	$(cdir)/zher2k_vbatched.cpp		\
 	$(cdir)/zherk_vbatched.cpp		\
 	$(cdir)/zsyr2k_vbatched.cpp		\
@@ -258,15 +261,35 @@ $(cdir)/cgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.cuh $(
 $(cdir)/dgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/sgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 
-$(cdir)/zherk_batched_core.$(o_ext): $(cdir)/herk_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
-$(cdir)/cherk_batched_core.$(o_ext): $(cdir)/herk_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
-$(cdir)/dsyrk_batched_core.$(o_ext): $(cdir)/herk_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
-$(cdir)/ssyrk_batched_core.$(o_ext): $(cdir)/herk_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
-
 $(cdir)/sgemm_vbatched_core.$(o_ext): $(cdir)/gemm_template_kernel_vbatched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/dgemm_vbatched_core.$(o_ext): $(cdir)/gemm_template_kernel_vbatched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/cgemm_vbatched_core.$(o_ext): $(cdir)/gemm_template_kernel_vbatched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/zgemm_vbatched_core.$(o_ext): $(cdir)/gemm_template_kernel_vbatched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+
+$(cdir)/ztrmm_batched_core.$(o_ext): $(cdir)/trmm_template_kernel_batched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/ctrmm_batched_core.$(o_ext): $(cdir)/trmm_template_kernel_batched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/dtrmm_batched_core.$(o_ext): $(cdir)/trmm_template_kernel_batched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/strmm_batched_core.$(o_ext): $(cdir)/trmm_template_kernel_batched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+
+$(cdir)/ztrmm_vbatched_core.$(o_ext): $(cdir)/trmm_template_kernel_vbatched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/ctrmm_vbatched_core.$(o_ext): $(cdir)/trmm_template_kernel_vbatched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/dtrmm_vbatched_core.$(o_ext): $(cdir)/trmm_template_kernel_vbatched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/strmm_vbatched_core.$(o_ext): $(cdir)/trmm_template_kernel_vbatched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+
+$(cdir)/zhemm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/chemm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/dsymm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/ssymm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+
+$(cdir)/zhemm_vbatched_core.$(o_ext): $(cdir)/hemm_template_kernel_vbatched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/chemm_vbatched_core.$(o_ext): $(cdir)/hemm_template_kernel_vbatched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/dsymm_vbatched_core.$(o_ext): $(cdir)/hemm_template_kernel_vbatched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/ssymm_vbatched_core.$(o_ext): $(cdir)/hemm_template_kernel_vbatched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+
+$(cdir)/zherk_batched_core.$(o_ext): $(cdir)/herk_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/cherk_batched_core.$(o_ext): $(cdir)/herk_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/dsyrk_batched_core.$(o_ext): $(cdir)/herk_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/ssyrk_batched_core.$(o_ext): $(cdir)/herk_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 
 $(cdir)/zherk_vbatched_core.$(o_ext): $(cdir)/herk_template_kernel_vbatched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/cherk_vbatched_core.$(o_ext): $(cdir)/herk_template_kernel_vbatched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
