@@ -45,4 +45,20 @@
 #define ZTRTRI_BATCHED_NB         (128)
 #define ZTRTRI_BATCHED_BLOCK_SIZE (16)
 
+// HEMM tuning 
+#define ZHEMM_BATCHED_LEFT    8, 16, 16, 1
+#define ZHEMM_BATCHED_RIGHT   8, 16, 16, 1
+#define CHEMM_BATCHED_LEFT    16, 32, 32, 1
+#define CHEMM_BATCHED_RIGHT   16, 32, 32, 1
+#define DSYMM_BATCHED_LEFT    16, 32, 32, 0
+#define DSYMM_BATCHED_RIGHT   16, 32, 32, 0
+#define SSYMM_BATCHED_LEFT    32, 64, 64, 0
+#define SSYMM_BATCHED_RIGHT   32, 64, 64, 0
+
+// TRMM tuning
+#define ZTRMM_BATCHED_NB    (16)
+#define CTRMM_BATCHED_NB    (16)
+#define DTRMM_BATCHED_NB    (32)
+#define STRMM_BATCHED_NB    (32)
+
 #endif        //  #ifndef BATCHED_KERNEL_PARAM_H

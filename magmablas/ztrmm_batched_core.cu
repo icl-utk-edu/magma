@@ -11,13 +11,9 @@
        
 */
 #include "magma_internal.h"
+#include "batched_kernel_param.h"
 
 #define PRECISION_z
-#if defined(PRECISION_z) || defined(PRECIISION_c)
-#define BATRMM_NB    (16)
-#else
-#define BATRMM_NB    (32)
-#endif
 #include "trmm_template_kernel_batched.cuh"
 
 magma_int_t magma_get_ztrmm_batched_nb(magma_int_t n)
@@ -57,27 +53,27 @@ magmablas_ztrmm_small_batched(
     switch(shape)
     {
         case 0: // lNx
-            trmm_template_batched_lNx<magmaDoubleComplex, BATRMM_NB>
+            trmm_template_batched_lNx<magmaDoubleComplex, ZTRMM_BATCHED_NB>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         case 1: // lTx
-            trmm_template_batched_lTx<magmaDoubleComplex, BATRMM_NB, 0>
+            trmm_template_batched_lTx<magmaDoubleComplex, ZTRMM_BATCHED_NB, 0>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         case 2: // lCx
-            trmm_template_batched_lTx<magmaDoubleComplex, BATRMM_NB, 1>
+            trmm_template_batched_lTx<magmaDoubleComplex, ZTRMM_BATCHED_NB, 1>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         case 3: // rNx
-            trmm_template_batched_rNx<magmaDoubleComplex, BATRMM_NB>
+            trmm_template_batched_rNx<magmaDoubleComplex, ZTRMM_BATCHED_NB>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         case 4: // rTx
-            trmm_template_batched_rTx<magmaDoubleComplex, BATRMM_NB, 0>
+            trmm_template_batched_rTx<magmaDoubleComplex, ZTRMM_BATCHED_NB, 0>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         case 5: // rCx
-            trmm_template_batched_rTx<magmaDoubleComplex, BATRMM_NB, 1>
+            trmm_template_batched_rTx<magmaDoubleComplex, ZTRMM_BATCHED_NB, 1>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         default:; // propose something
@@ -98,7 +94,7 @@ magmablas_ztrmm_batched_core(
     
     magma_int_t nrowA = (side == MagmaLeft ? m : n);
     // stopping condition
-    if(nrowA <= BATRMM_NB){
+    if(nrowA <= ZTRMM_BATCHED_NB){
         magmablas_ztrmm_small_batched( side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue );
         return;
     }
@@ -113,7 +109,7 @@ magmablas_ztrmm_batched_core(
     else if (side == MagmaRight  && transA != MagmaNoTrans  && uplo == MagmaLower) { shape = 6; } // rTL | rCL
     else if (side == MagmaRight  && transA != MagmaNoTrans  && uplo == MagmaUpper) { shape = 7; } // rTU | rCU
     
-    // at this point we can tell that nrowA > BATRMM_NB
+    // at this point we can tell that nrowA > ZTRMM_BATCHED_NB
     switch(shape)
     {
         case 0: // lNl
