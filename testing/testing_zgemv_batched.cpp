@@ -141,8 +141,8 @@ int main( int argc, char** argv)
                                lapack_trans_const(opts.transA),
                                &M, &N,
                                &alpha, h_A + i*lda*N, &lda,
-                                       h_X + i*Xm, &incx,
-                               &beta,  h_Y + i*Ym, &incy );
+                                       h_X + i*Xm*incx, &incx,
+                               &beta,  h_Y + i*Ym*incy, &incy );
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);
@@ -160,10 +160,10 @@ int main( int argc, char** argv)
                 magma_error = 0;
                 for (int s=0; s < batchCount; s++) {
                     double Anorm = lapackf77_zlange( "F", &M, &N, h_A + s * lda * N, &lda, work );
-                    double Xnorm = lapackf77_zlange( "F", &Xm, &ione, h_X + s * Xm, &Xm, work );
+                    double Xnorm = lapackf77_zlange( "F", &ione, &Xm, h_X + s * Xm * incx, &incx, work );
                     
-                    blasf77_zaxpy( &Ym, &c_neg_one, h_Y + s * Ym, &incy, h_Ymagma + s * Ym, &incy );
-                    double err = lapackf77_zlange( "F", &Ym, &ione, h_Ymagma + s * Ym, &Ym, work ) / (Anorm * Xnorm);
+                    blasf77_zaxpy( &Ym, &c_neg_one, h_Y + s * Ym * incy, &incy, h_Ymagma + s * Ym * incy, &incy );
+                    double err = lapackf77_zlange( "F", &ione, &Ym, h_Ymagma + s * Ym * incy, &incy, work ) / (Anorm * Xnorm);
 
                     if ( isnan(err) || isinf(err) ) {
                       magma_error = err;
