@@ -43,7 +43,7 @@ int main( int argc, char** argv)
     real_Double_t t_cusparse, t_chow;
 
     magma_z_matrix hA={Magma_CSR}, hAL={Magma_CSR},
-    hAU={Magma_CSR},  hAUt={Magma_CSR},
+    hAU={Magma_CSR},  hAUt={Magma_CSR}, hLCU={Magma_CSR}, hUCU={Magma_CSR},
     hAcusparse={Magma_CSR}, hAtmp={Magma_CSR}, dA={Magma_CSR}, hLU={Magma_CSR}, 
     dL={Magma_CSR}, dU={Magma_CSR}, hL={Magma_CSR}, hU={Magma_CSR}, 
     hUT={Magma_CSR};
@@ -70,6 +70,9 @@ int main( int argc, char** argv)
         //################################################################//
         //                  cuSPARSE reference ILU                        //
         //################################################################//
+        
+        real_Double_t cunonlinres = 0.0;
+        real_Double_t cuilures = 0.0;
 
         magma_z_mtransfer( hA, &dA, Magma_CPU, Magma_DEV, queue );
         // CUSPARSE context //
@@ -115,6 +118,13 @@ int main( int argc, char** argv)
 
         // end CUSPARSE context //
         magma_z_mtransfer( dA, &hAcusparse, Magma_DEV, Magma_CPU, queue );
+        magma_z_mconvert( hAcusparse, &hLCU, Magma_CSR, Magma_CSRL, queue );
+        magma_z_mconvert( hAcusparse, &hUCU, Magma_CSR, Magma_CSRU, queue );
+        
+        magma_zilures(   hA, hLCU, hUCU, &hLU, &cuilures, &cunonlinres, queue ); 
+        magma_z_mfree( &hLCU, queue );
+        magma_z_mfree( &hUCU, queue );
+        magma_z_mfree( &hLU, queue );
 
         //################################################################//
         //                  end cuSPARSE reference ILU                    //
@@ -148,7 +158,7 @@ int main( int argc, char** argv)
     magma_zsymbilu( &hAcopy, levels, &hAL, &hAUt, queue ); 
     printf("ILU%d = [", levels);
     printf("\n%%#=======================================================================================================#\n");
-    printf("%%#\t#nnz\titers\tbs\tt_iterilu\tt_cusparse\tILU-err\t\tILU-res\t\tnonlin-res\t\t\tscaled \n");
+    printf("%%#\t#nnz\titers\tbs\tILU-time\tParILU-time\tILU-ILUres\tParILU-ILUres\tParILU-nonlinres\t\tscaled \n");
     // add a unit diagonal to L for the algorithm
     magma_zmLdiagadd( &hAL, queue ); 
 
@@ -242,9 +252,9 @@ cudaProfilerStop();
     nonlinresavg = nonlinresavg/numavg;
 
     printf(" %d\t%d\t%d\t%d\t%.2e\t",
-                              levels, nnz, 1* iters, blocksize, t_chow);
-    printf(" %.2e\t%.4e\t%.4e\t%.4e\t%.4e\t%.4e\t%.4e\n", 
-    t_cusparse, resavg, iluresavg, nonlinresavg, resavg/initres, iluresavg/initilures, nonlinresavg/initnonlinres);
+                              levels, nnz, 1* iters, blocksize, t_cusparse);
+    printf(" %.2e\t%.4e\t%.4e\t%.4e\t%.4e\t%.4e\t\n", 
+    t_chow, cuilures, iluresavg, nonlinresavg, iluresavg/initilures, nonlinresavg/initnonlinres);
 
 
  //   printf(" %.2e  &  ", iluresavg);    
