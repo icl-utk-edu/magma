@@ -159,11 +159,10 @@ int main( int argc, char** argv)
                 // |C_magma - C_lapack| / |C_lapack|
                 magma_error = 0;
                 for (int s=0; s < batchCount; s++) {
-                    double Anorm = lapackf77_zlange( "F", &M, &N, h_A + s * lda * N, &lda, work );
-                    double Xnorm = lapackf77_zlange( "F", &ione, &Xm, h_X + s * Xm * incx, &incx, work );
+                    double Ynorm = lapackf77_zlange( "F", &ione, &Ym, h_Y + s * Ym * incy, &incy, work );
                     
                     blasf77_zaxpy( &Ym, &c_neg_one, h_Y + s * Ym * incy, &incy, h_Ymagma + s * Ym * incy, &incy );
-                    double err = lapackf77_zlange( "F", &ione, &Ym, h_Ymagma + s * Ym * incy, &incy, work ) / (Anorm * Xnorm);
+                    double err = lapackf77_zlange( "F", &ione, &Ym, h_Ymagma + s * Ym * incy, &incy, work ) / Ynorm;
 
                     if ( isnan(err) || isinf(err) ) {
                       magma_error = err;
