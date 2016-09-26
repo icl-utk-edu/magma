@@ -29,7 +29,7 @@
 #endif
 
 /* ////////////////////////////////////////////////////////////////////////////
-   -- Testing zgemm_batched
+   -- Testing zgemv_batched
 */
 int main( int argc, char** argv)
 {
