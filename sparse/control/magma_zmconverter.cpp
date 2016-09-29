@@ -708,6 +708,72 @@ magma_zmconvert(
                 CHECK( magma_zmconvert(A_d, &B_d, Magma_CSR, Magma_BCSR, queue ) );            
                 CHECK( magma_zmtransfer(B_d, B, Magma_DEV, Magma_CPU, queue ) );               
             }
+
+            // CSR to CSR5
+            else if ( new_format == Magma_CSR5 ) {
+                //printf( "Conversion to CSR5: " );
+                // fill in information for B
+                B->storage_type = Magma_CSR5;
+                B->memory_location = A.memory_location;
+                B->fill_mode = A.fill_mode;
+                B->num_rows = A.num_rows; B->true_nnz = A.true_nnz;
+                B->num_cols = A.num_cols;
+                B->nnz = A.nnz;
+                B->max_nnz_row = A.max_nnz_row;
+                B->diameter = A.diameter;
+
+                // compute sigma
+                int r = 4;
+                int s = 32;
+                int t = 256;
+                int u = 6;
+        
+                int nnz_per_row = B->nnz / B->num_rows;
+                if (nnz_per_row <= r)
+                    B->csr5_sigma = r;
+                else if (nnz_per_row > r && nnz_per_row <= s)
+                    B->csr5_sigma = nnz_per_row;
+                else if (nnz_per_row <= t && nnz_per_row > s)
+                    B->csr5_sigma = s;
+                else // nnz_per_row > t
+                    B->csr5_sigma = u;
+    
+                // conversion
+                // compute #bits required for `y_offset' and `scansum_offset'
+                int base = 2;
+                B->csr5_bit_y_offset = 1;
+                while (base < MAGMA_CSR5_OMEGA * B->csr5_sigma) 
+                { base *= 2; B->csr5_bit_y_offset++; }
+
+                base = 2;
+                B->csr5_bit_scansum_offset = 1;
+                while (base < MAGMA_CSR5_OMEGA) 
+                { base *= 2; B->csr5_bit_scansum_offset++; }
+
+                if (B->csr5_bit_y_offset + B->csr5_bit_scansum_offset > 
+                    sizeof(magma_uindex_t) * 8 - 1) 
+                {
+                    printf("error: csr5-omega not supported.\n");
+                    info = MAGMA_ERR_NOT_SUPPORTED;
+                }
+
+                int bit_all = B->csr5_bit_y_offset + B->csr5_bit_scansum_offset 
+                              + B->csr5_sigma;
+                B->csr5_num_packets = ceil((double)bit_all 
+                                           /(double)(sizeof(magma_uindex_t)*8));
+
+                // calculate the number of tiles
+                B->csr5_p = ceil((double)B->nnz 
+                                 / (double)(MAGMA_CSR5_OMEGA * B->csr5_sigma));
+
+                //CHECK( magma_index_malloc_cpu( &B->tile_ptr, B->p+1 ));
+
+                //CHECK( magma_zmalloc_cpu( &B->val, B->nnz ));
+                //CHECK( magma_index_malloc_cpu( &B->col, B->nnz ));
+                //CHECK( magma_index_malloc_cpu( &B->row, B->num_rows+1 ));
+                //printf( "done\n" );
+            }
+
             else {
                 printf("error: format not supported.\n");
                 info = MAGMA_ERR_NOT_SUPPORTED;

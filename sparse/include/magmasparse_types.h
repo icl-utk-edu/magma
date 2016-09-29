@@ -31,11 +31,11 @@ extern "C" {
 #endif
 
 
-
+#define MAGMA_CSR5_OMEGA 32
 
 typedef struct magma_z_matrix
 {
-    magma_storage_t    storage_type;            // matrix format - CSR, ELL, SELL-P
+    magma_storage_t    storage_type;            // matrix format - CSR, ELL, SELL-P, CSR5
     magma_location_t   memory_location;         // CPU or DEV
     magma_symmetry_t   sym;                     // opt: indicate symmetry
     magma_diagorder_t  diagorder_type;          // opt: only needed for factorization matrices
@@ -70,17 +70,43 @@ typedef struct magma_z_matrix
         magma_index_t           *list;          // opt: linked list pointing to next element
         magmaIndex_ptr          dlist;          // opt: linked list pointing to next element
     };
+    union {
+        magma_uindex_t           *tile_ptr;              // opt: CSR5 tile pointer CPU case
+        magmaUIndex_ptr          dtile_ptr;              // opt: CSR5 tile pointer DEV case
+    };
+    union {
+        magma_uindex_t           *tile_desc;             // opt: CSR5 tile descriptor CPU case
+        magmaUIndex_ptr          dtile_desc;             // opt: CSR5 tile descriptor DEV case
+    };
+    union {
+        magma_index_t            *tile_desc_offset_ptr;  // opt: CSR5 tile descriptor offset pointer CPU case
+        magmaIndex_ptr           dtile_desc_offset_ptr;  // opt: CSR5 tile descriptor offset pointer DEV case
+    };
+    union {
+        magma_index_t            *tile_desc_offset;      // opt: CSR5 tile descriptor offset CPU case
+        magmaIndex_ptr           dtile_desc_offset;      // opt: CSR5 tile descriptor offset DEV case
+    };
+    union {
+        magmaDoubleComplex       *calibrator;            // opt: CSR5 calibrator CPU case
+        magmaDoubleComplex_ptr   dcalibrator;            // opt: CSR5 calibrator DEV case
+    };
     magma_index_t      *blockinfo;              // opt: for BCSR format CPU case
     magma_int_t        blocksize;               // opt: info for SELL-P/BCSR
     magma_int_t        numblocks;               // opt: info for SELL-P/BCSR
     magma_int_t        alignment;               // opt: info for SELL-P/BCSR
+    magma_int_t        csr5_sigma;              // opt: info for CSR5
+    magma_int_t        csr5_bit_y_offset;       // opt: info for CSR5
+    magma_int_t        csr5_bit_scansum_offset; // opt: info for CSR5
+    magma_int_t        csr5_num_packets;        // opt: info for CSR5
+    magma_index_t      csr5_p;                  // opt: info for CSR5
+    magma_index_t      csr5_num_offsets;        // opt: info for CSR5
     magma_order_t      major;                   // opt: row/col major for dense matrices
     magma_int_t        ld;                      // opt: leading dimension for dense
 } magma_z_matrix;
 
 typedef struct magma_c_matrix
 {
-    magma_storage_t    storage_type;            // matrix format - CSR, ELL, SELL-P
+    magma_storage_t    storage_type;            // matrix format - CSR, ELL, SELL-P, CSR5
     magma_location_t   memory_location;         // CPU or DEV
     magma_symmetry_t   sym;                     // opt: indicate symmetry
     magma_diagorder_t  diagorder_type;          // opt: only needed for factorization matrices
@@ -115,10 +141,36 @@ typedef struct magma_c_matrix
         magma_index_t           *list;          // opt: linked list pointing to next element
         magmaIndex_ptr          dlist;          // opt: linked list pointing to next element
     };
+    union {
+        magma_uindex_t           *tile_ptr;              // opt: CSR5 tile pointer CPU case
+        magmaUIndex_ptr          dtile_ptr;              // opt: CSR5 tile pointer DEV case
+    };
+    union {
+        magma_uindex_t           *tile_desc;             // opt: CSR5 tile descriptor CPU case
+        magmaUIndex_ptr          dtile_desc;             // opt: CSR5 tile descriptor DEV case
+    };
+    union {
+        magma_index_t            *tile_desc_offset_ptr;  // opt: CSR5 tile descriptor offset pointer CPU case
+        magmaIndex_ptr           dtile_desc_offset_ptr;  // opt: CSR5 tile descriptor offset pointer DEV case
+    };
+    union {
+        magma_index_t            *tile_desc_offset;      // opt: CSR5 tile descriptor offset CPU case
+        magmaIndex_ptr           dtile_desc_offset;      // opt: CSR5 tile descriptor offset DEV case
+    };
+    union {
+        magmaDoubleComplex       *calibrator;            // opt: CSR5 calibrator CPU case
+        magmaDoubleComplex_ptr   dcalibrator;            // opt: CSR5 calibrator DEV case
+    };
     magma_index_t      *blockinfo;              // opt: for BCSR format CPU case
     magma_int_t        blocksize;               // opt: info for SELL-P/BCSR
     magma_int_t        numblocks;               // opt: info for SELL-P/BCSR
     magma_int_t        alignment;               // opt: info for SELL-P/BCSR
+    magma_int_t        csr5_sigma;              // opt: info for CSR5
+    magma_int_t        csr5_bit_y_offset;       // opt: info for CSR5
+    magma_int_t        csr5_bit_scansum_offset; // opt: info for CSR5
+    magma_int_t        csr5_num_packets;        // opt: info for CSR5
+    magma_index_t      csr5_p;                  // opt: info for CSR5
+    magma_index_t      csr5_num_offsets;        // opt: info for CSR5
     magma_order_t      major;                   // opt: row/col major for dense matrices
     magma_int_t        ld;                      // opt: leading dimension for dense
 } magma_c_matrix;
@@ -126,7 +178,7 @@ typedef struct magma_c_matrix
 
 typedef struct magma_d_matrix
 {
-    magma_storage_t    storage_type;            // matrix format - CSR, ELL, SELL-P
+    magma_storage_t    storage_type;            // matrix format - CSR, ELL, SELL-P, CSR5
     magma_location_t   memory_location;         // CPU or DEV
     magma_symmetry_t   sym;                     // opt: indicate symmetry
     magma_diagorder_t  diagorder_type;          // opt: only needed for factorization matrices
@@ -161,10 +213,36 @@ typedef struct magma_d_matrix
         magma_index_t           *list;          // opt: linked list pointing to next element
         magmaIndex_ptr          dlist;          // opt: linked list pointing to next element
     };
+    union {
+        magma_uindex_t           *tile_ptr;              // opt: CSR5 tile pointer CPU case
+        magmaUIndex_ptr          dtile_ptr;              // opt: CSR5 tile pointer DEV case
+    };
+    union {
+        magma_uindex_t           *tile_desc;             // opt: CSR5 tile descriptor CPU case
+        magmaUIndex_ptr          dtile_desc;             // opt: CSR5 tile descriptor DEV case
+    };
+    union {
+        magma_index_t            *tile_desc_offset_ptr;  // opt: CSR5 tile descriptor offset pointer CPU case
+        magmaIndex_ptr           dtile_desc_offset_ptr;  // opt: CSR5 tile descriptor offset pointer DEV case
+    };
+    union {
+        magma_index_t            *tile_desc_offset;      // opt: CSR5 tile descriptor offset CPU case
+        magmaIndex_ptr           dtile_desc_offset;      // opt: CSR5 tile descriptor offset DEV case
+    };
+    union {
+        magmaDoubleComplex       *calibrator;            // opt: CSR5 calibrator CPU case
+        magmaDoubleComplex_ptr   dcalibrator;            // opt: CSR5 calibrator DEV case
+    };
     magma_index_t      *blockinfo;              // opt: for BCSR format CPU case
     magma_int_t        blocksize;               // opt: info for SELL-P/BCSR
     magma_int_t        numblocks;               // opt: info for SELL-P/BCSR
     magma_int_t        alignment;               // opt: info for SELL-P/BCSR
+    magma_int_t        csr5_sigma;              // opt: info for CSR5
+    magma_int_t        csr5_bit_y_offset;       // opt: info for CSR5
+    magma_int_t        csr5_bit_scansum_offset; // opt: info for CSR5
+    magma_int_t        csr5_num_packets;        // opt: info for CSR5
+    magma_index_t      csr5_p;                  // opt: info for CSR5
+    magma_index_t      csr5_num_offsets;        // opt: info for CSR5
     magma_order_t      major;                   // opt: row/col major for dense matrices
     magma_int_t        ld;                      // opt: leading dimension for dense
 } magma_d_matrix;
@@ -172,7 +250,7 @@ typedef struct magma_d_matrix
 
 typedef struct magma_s_matrix
 {
-    magma_storage_t    storage_type;            // matrix format - CSR, ELL, SELL-P
+    magma_storage_t    storage_type;            // matrix format - CSR, ELL, SELL-P, CSR5
     magma_location_t   memory_location;         // CPU or DEV
     magma_symmetry_t   sym;                     // opt: indicate symmetry
     magma_diagorder_t  diagorder_type;          // opt: only needed for factorization matrices
@@ -207,10 +285,36 @@ typedef struct magma_s_matrix
         magma_index_t           *list;          // opt: linked list pointing to next element
         magmaIndex_ptr          dlist;          // opt: linked list pointing to next element
     };
+    union {
+        magma_uindex_t           *tile_ptr;              // opt: CSR5 tile pointer CPU case
+        magmaUIndex_ptr          dtile_ptr;              // opt: CSR5 tile pointer DEV case
+    };
+    union {
+        magma_uindex_t           *tile_desc;             // opt: CSR5 tile descriptor CPU case
+        magmaUIndex_ptr          dtile_desc;             // opt: CSR5 tile descriptor DEV case
+    };
+    union {
+        magma_index_t            *tile_desc_offset_ptr;  // opt: CSR5 tile descriptor offset pointer CPU case
+        magmaIndex_ptr           dtile_desc_offset_ptr;  // opt: CSR5 tile descriptor offset pointer DEV case
+    };
+    union {
+        magma_index_t            *tile_desc_offset;      // opt: CSR5 tile descriptor offset CPU case
+        magmaIndex_ptr           dtile_desc_offset;      // opt: CSR5 tile descriptor offset DEV case
+    };
+    union {
+        magmaDoubleComplex       *calibrator;            // opt: CSR5 calibrator CPU case
+        magmaDoubleComplex_ptr   dcalibrator;            // opt: CSR5 calibrator DEV case
+    };
     magma_index_t      *blockinfo;              // opt: for BCSR format CPU case
     magma_int_t        blocksize;               // opt: info for SELL-P/BCSR
     magma_int_t        numblocks;               // opt: info for SELL-P/BCSR
     magma_int_t        alignment;               // opt: info for SELL-P/BCSR
+    magma_int_t        csr5_sigma;              // opt: info for CSR5
+    magma_int_t        csr5_bit_y_offset;       // opt: info for CSR5
+    magma_int_t        csr5_bit_scansum_offset; // opt: info for CSR5
+    magma_int_t        csr5_num_packets;        // opt: info for CSR5
+    magma_index_t      csr5_p;                  // opt: info for CSR5
+    magma_index_t      csr5_num_offsets;        // opt: info for CSR5
     magma_order_t      major;                   // opt: row/col major for dense matrices
     magma_int_t        ld;                      // opt: leading dimension for dense
 } magma_s_matrix;
