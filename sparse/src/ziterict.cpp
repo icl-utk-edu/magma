@@ -50,7 +50,7 @@
     ********************************************************************/
 extern "C"
 magma_int_t
-magma_ziterictsetup(
+magma_zparictsetup(
     magma_z_matrix A,
     magma_z_matrix b,
     magma_z_preconditioner *precond,

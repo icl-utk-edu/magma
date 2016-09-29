@@ -211,7 +211,7 @@ int main( int argc, char** argv)
         start = magma_sync_wtime( queue );
         for(int i=0; i<iters; i++){
 cudaProfilerStart();
-            magma_ziterilu_csr( dAinitguess, dL, dU, queue );
+            magma_zparilu_csr( dAinitguess, dL, dU, queue );
 cudaProfilerStop();
         }
         end = magma_sync_wtime( queue );

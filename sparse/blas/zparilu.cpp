@@ -43,7 +43,7 @@
     ********************************************************************/
 extern "C"
 magma_int_t
-magma_ziterilusetup(
+magma_zparilusetup(
     magma_z_matrix A,
     magma_z_matrix b,
     magma_z_preconditioner *precond,
@@ -88,7 +88,7 @@ magma_ziterilusetup(
     magma_zmfree(&hAU, queue );
 
     for(int i=0; i<precond->sweeps; i++){
-        CHECK( magma_ziterilu_csr( dAinitguess, dL, dU , queue ));
+        CHECK( magma_zparilu_csr( dAinitguess, dL, dU , queue ));
     }
 
     CHECK( magma_zmtransfer( dL, &hL, Magma_DEV, Magma_CPU , queue ));
@@ -251,7 +251,7 @@ cleanup:
     ********************************************************************/
 extern "C"
 magma_int_t
-magma_ziteriluupdate(
+magma_zpariluupdate(
     magma_z_matrix A,
     magma_z_preconditioner *precond,
     magma_int_t updates,
@@ -286,7 +286,7 @@ magma_ziteriluupdate(
         
         // copy original matrix as CSRCOO to device
         for(int i=0; i<updates; i++){
-            CHECK( magma_ziterilu_csr( A, dL, dU, queue ));
+            CHECK( magma_zparilu_csr( A, dL, dU, queue ));
         }
         CHECK( magma_zmtransfer( dL, &hL, Magma_DEV, Magma_CPU , queue ));
         CHECK( magma_zmtransfer( dU, &hU, Magma_DEV, Magma_CPU , queue ));
@@ -358,7 +358,7 @@ cleanup:
     ********************************************************************/
 extern "C"
 magma_int_t
-magma_zitericsetup(
+magma_zparicsetup(
     magma_z_matrix A,
     magma_z_matrix b,
     magma_z_preconditioner *precond,
@@ -400,7 +400,7 @@ magma_zitericsetup(
     magma_zmfree(&hAtmp, queue );
 
     for(int i=0; i<precond->sweeps; i++){
-        CHECK( magma_ziteric_csr( dAinitguess, dL , queue ));
+        CHECK( magma_zparic_csr( dAinitguess, dL , queue ));
     }
     CHECK( magma_zmtransfer( dL, &hAL, Magma_DEV, Magma_CPU , queue ));
     magma_zmfree(&dL, queue );
@@ -519,7 +519,7 @@ magma_zitericsetup(
     ********************************************************************/
 extern "C"
 magma_int_t
-magma_zitericupdate(
+magma_zparicupdate(
     magma_z_matrix A,
     magma_z_preconditioner *precond,
     magma_int_t updates,
@@ -533,7 +533,7 @@ magma_zitericupdate(
     if( updates > 0 ){
         // copy original matrix as CSRCOO to device
         for(int i=0; i<updates; i++){
-            CHECK( magma_ziteric_csr( A, precond->M , queue ));
+            CHECK( magma_zparic_csr( A, precond->M , queue ));
         }
         //magma_zmtransfer( precond->M, &hALt, Magma_DEV, Magma_CPU , queue );
         magma_zmfree(&precond->L, queue );

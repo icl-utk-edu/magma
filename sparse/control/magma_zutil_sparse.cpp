@@ -248,6 +248,9 @@ magma_zparse_opts(
             else if ( strcmp("ITERREF", argv[i]) == 0 ) {
                 opts->solver_par.solver = Magma_ITERREF;
             }
+            else if ( strcmp("PARDISO", argv[i]) == 0 ) {
+                opts->solver_par.solver = Magma_PARDISO;
+            }
             else {
                 printf( "%%error: invalid solver.\n" );
             }
