@@ -44,12 +44,19 @@ libsparse_src += \
 	$(cdir)/zmgeelltmv.cu                 \
 	$(cdir)/zmgesellcmmv.cu               \
 	$(cdir)/zpipelinedgmres.cu            \
+	
+# Wrappers to cusparse functions
+libsparse_src += \
+	$(cdir)/zilu.cpp                      \
+	$(cdir)/magma_zcuspmm.cpp             \
+	$(cdir)/magma_zcuspaxpy.cpp           \
 
 # Iterative factorizations
 libsparse_src += \
-	$(cdir)/ziterilu_kernels.cu           \
-	$(cdir)/ziteric.cu                    \
-
+	$(cdir)/zparilu.cpp		      \
+	$(cdir)/zparilu_kernels.cu            \
+	$(cdir)/zparic_kernels.cu             \
+	
 # Auxiliary routines
 libsparse_src += \
 	$(cdir)/zcompact.cu                   \
