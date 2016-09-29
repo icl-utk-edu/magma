@@ -176,6 +176,10 @@ magma_zsolverinfo(
                 printf("%%  BAITER performance analysis every %lld iterations\n",
                         (long long) k );
                 break;
+            case Magma_PARDISO:
+                printf("%%  PARDISO performance analysis every %lld iterations\n",
+                        (long long) k );
+                break;
             default:
                 printf("%%  Detailed performance analysis not supported.\n");
                 break;
@@ -223,7 +227,7 @@ magma_zsolverinfo(
                         (long long) precond_par->levels );
                 break;
             case Magma_PARILU:
-                printf("%%   Preconditioner used: iterative ILU(%lld).\n",
+                printf("%%   Preconditioner used: ParILU(%lld).\n",
                         (long long) precond_par->levels );
                 break;
             case Magma_ICC:
@@ -231,11 +235,11 @@ magma_zsolverinfo(
                         (long long) precond_par->levels );
                 break;
             case Magma_PARIC:
-                printf("%%   Preconditioner used: iterative IC(%lld).\n",
+                printf("%%   Preconditioner used: ParIC(%lld).\n",
                         (long long) precond_par->levels );
                 break;
             case Magma_ISAI:
-                printf("%%   Preconditioner used: iterative ILU-SPAI.\n" );
+                printf("%%   Preconditioner used: ParILU-SPAI.\n" );
                 break;
             default:
                 break;
@@ -402,6 +406,9 @@ magma_zsolverinfo(
         case Magma_BOMBARD:
         case Magma_BOMBARDMERGE:
             printf("%% multi-solver iteration summary:\n");
+            break;
+        case Magma_PARDISO:
+            printf("%% PARDISO solver summary:\n");
             break;
         default:
             printf("%%   Solver info not supported.\n");
