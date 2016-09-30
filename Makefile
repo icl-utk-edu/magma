@@ -35,7 +35,8 @@ INC        ?= -I$(CUDADIR)/include
 LIBDIR     ?= -L$(CUDADIR)/lib
 LIB        ?= -lcudart -lcublas -lcusparse -llapack -lblas
 
-GPU_TARGET ?= Fermi Kepler
+GPU_TARGET ?= Fermi Kepler Maxwell Pascal
+#GPU_TARGET ?= Kepler Maxwell Pascal
 
 # Extension for object files: o for unix, obj for Windows?
 o_ext      ?= o
@@ -79,7 +80,7 @@ ifneq ($(findstring Maxwell, $(GPU_TARGET)),)
     GPU_TARGET += sm50
 endif
 ifneq ($(findstring Pascal, $(GPU_TARGET)),)
-    GPU_TARGET += sm60
+    GPU_TARGET += sm60 sm61
 endif
 
 # Next, add compile options for specific smXX
@@ -131,8 +132,13 @@ ifneq ($(findstring sm60, $(GPU_TARGET)),)
     NV_SM    += -gencode arch=compute_60,code=sm_60
     NV_COMP  := -gencode arch=compute_60,code=compute_60
 endif
+ifneq ($(findstring sm61, $(GPU_TARGET)),)
+    MIN_ARCH ?= 610
+    NV_SM    += -gencode arch=compute_61,code=sm_61
+    NV_COMP  := -gencode arch=compute_61,code=compute_61
+endif
 ifeq ($(NV_COMP),)
-    $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, or sm{20,30,35,50,60}. Please edit your make.inc file)
+    $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, or sm{20,30,35,50,60,61}. Please edit your make.inc file)
 endif
 NVCCFLAGS += $(NV_SM) $(NV_COMP)
 CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
@@ -648,7 +654,7 @@ $(sparse_testers): %: %.$(o_ext)
 INSTALL_FLAGS := $(filter-out \
 	-DMAGMA_NOAFFINITY -DMAGMA_SETAFFINITY -DMAGMA_WITH_ACML -DMAGMA_WITH_MKL -DUSE_FLOCK \
 	-DMIN_CUDA_ARCH=100 -DMIN_CUDA_ARCH=200 -DMIN_CUDA_ARCH=300 \
-	-DMIN_CUDA_ARCH=350 -DMIN_CUDA_ARCH=500 -DMIN_CUDA_ARCH=600 \
+	-DMIN_CUDA_ARCH=350 -DMIN_CUDA_ARCH=500 -DMIN_CUDA_ARCH=600 -DMIN_CUDA_ARCH=610 \
 	-DHAVE_CUBLAS -DHAVE_clBLAS \
 	-fno-strict-aliasing -fPIC -O0 -O1 -O2 -O3 -pedantic -std=c99 -stdc++98 -stdc++11 \
 	-Wall -Wshadow -Wno-long-long, $(CFLAGS))

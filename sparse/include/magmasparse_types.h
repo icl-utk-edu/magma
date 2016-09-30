@@ -100,6 +100,7 @@ typedef struct magma_z_matrix
     magma_int_t        csr5_num_packets;        // opt: info for CSR5
     magma_index_t      csr5_p;                  // opt: info for CSR5
     magma_index_t      csr5_num_offsets;        // opt: info for CSR5
+    magma_index_t      csr5_tail_tile_start;    // opt: info for CSR5
     magma_order_t      major;                   // opt: row/col major for dense matrices
     magma_int_t        ld;                      // opt: leading dimension for dense
 } magma_z_matrix;
@@ -158,8 +159,8 @@ typedef struct magma_c_matrix
         magmaIndex_ptr           dtile_desc_offset;      // opt: CSR5 tile descriptor offset DEV case
     };
     union {
-        magmaDoubleComplex       *calibrator;            // opt: CSR5 calibrator CPU case
-        magmaDoubleComplex_ptr   dcalibrator;            // opt: CSR5 calibrator DEV case
+        magmaFloatComplex        *calibrator;            // opt: CSR5 calibrator CPU case
+        magmaFloatComplex_ptr    dcalibrator;            // opt: CSR5 calibrator DEV case
     };
     magma_index_t      *blockinfo;              // opt: for BCSR format CPU case
     magma_int_t        blocksize;               // opt: info for SELL-P/BCSR
@@ -171,6 +172,7 @@ typedef struct magma_c_matrix
     magma_int_t        csr5_num_packets;        // opt: info for CSR5
     magma_index_t      csr5_p;                  // opt: info for CSR5
     magma_index_t      csr5_num_offsets;        // opt: info for CSR5
+    magma_index_t      csr5_tail_tile_start;    // opt: info for CSR5
     magma_order_t      major;                   // opt: row/col major for dense matrices
     magma_int_t        ld;                      // opt: leading dimension for dense
 } magma_c_matrix;
@@ -230,8 +232,8 @@ typedef struct magma_d_matrix
         magmaIndex_ptr           dtile_desc_offset;      // opt: CSR5 tile descriptor offset DEV case
     };
     union {
-        magmaDoubleComplex       *calibrator;            // opt: CSR5 calibrator CPU case
-        magmaDoubleComplex_ptr   dcalibrator;            // opt: CSR5 calibrator DEV case
+        double                   *calibrator;            // opt: CSR5 calibrator CPU case
+        magmaDouble_ptr          dcalibrator;            // opt: CSR5 calibrator DEV case
     };
     magma_index_t      *blockinfo;              // opt: for BCSR format CPU case
     magma_int_t        blocksize;               // opt: info for SELL-P/BCSR
@@ -243,6 +245,7 @@ typedef struct magma_d_matrix
     magma_int_t        csr5_num_packets;        // opt: info for CSR5
     magma_index_t      csr5_p;                  // opt: info for CSR5
     magma_index_t      csr5_num_offsets;        // opt: info for CSR5
+    magma_index_t      csr5_tail_tile_start;    // opt: info for CSR5
     magma_order_t      major;                   // opt: row/col major for dense matrices
     magma_int_t        ld;                      // opt: leading dimension for dense
 } magma_d_matrix;
@@ -302,8 +305,8 @@ typedef struct magma_s_matrix
         magmaIndex_ptr           dtile_desc_offset;      // opt: CSR5 tile descriptor offset DEV case
     };
     union {
-        magmaDoubleComplex       *calibrator;            // opt: CSR5 calibrator CPU case
-        magmaDoubleComplex_ptr   dcalibrator;            // opt: CSR5 calibrator DEV case
+        float                    *calibrator;            // opt: CSR5 calibrator CPU case
+        magmaFloat_ptr           dcalibrator;            // opt: CSR5 calibrator DEV case
     };
     magma_index_t      *blockinfo;              // opt: for BCSR format CPU case
     magma_int_t        blocksize;               // opt: info for SELL-P/BCSR
@@ -315,6 +318,7 @@ typedef struct magma_s_matrix
     magma_int_t        csr5_num_packets;        // opt: info for CSR5
     magma_index_t      csr5_p;                  // opt: info for CSR5
     magma_index_t      csr5_num_offsets;        // opt: info for CSR5
+    magma_index_t      csr5_tail_tile_start;    // opt: info for CSR5
     magma_order_t      major;                   // opt: row/col major for dense matrices
     magma_int_t        ld;                      // opt: leading dimension for dense
 } magma_s_matrix;
