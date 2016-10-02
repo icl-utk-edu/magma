@@ -2077,6 +2077,30 @@ magma_zmgesellpmv_blocked(
     magmaDoubleComplex_ptr dy,
     magma_queue_t queue );
 
+magma_int_t
+magma_zgecsr5mv(
+    magma_trans_t           transA,
+    magma_int_t             m, 
+    magma_int_t             n, 
+    magma_int_t             p,
+    magmaDoubleComplex      alpha,
+    magma_int_t             sigma,
+    magma_int_t             bit_y_offset,
+    magma_int_t             bit_scansum_offset,
+    magma_int_t             num_packet,
+    magmaUIndex_ptr         dtile_ptr,
+    magmaUIndex_ptr         dtile_desc,
+    magmaIndex_ptr          dtile_desc_offset_ptr,
+    magmaIndex_ptr          dtile_desc_offset,
+    magmaDoubleComplex_ptr  dcalibrator,
+    magma_int_t             tail_tile_start,
+    magmaDoubleComplex_ptr  dval,
+    magmaIndex_ptr          drowptr,
+    magmaIndex_ptr          dcolind,
+    magmaDoubleComplex_ptr  dx,
+    magmaDoubleComplex      beta,
+    magmaDoubleComplex_ptr  dy,
+    magma_queue_t           queue );
 
 magma_int_t
 magma_zmergedgs(

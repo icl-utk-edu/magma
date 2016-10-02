@@ -36,7 +36,6 @@ LIBDIR     ?= -L$(CUDADIR)/lib
 LIB        ?= -lcudart -lcublas -lcusparse -llapack -lblas
 
 GPU_TARGET ?= Fermi Kepler Maxwell Pascal
-#GPU_TARGET ?= Kepler Maxwell Pascal
 
 # Extension for object files: o for unix, obj for Windows?
 o_ext      ?= o
@@ -77,7 +76,7 @@ ifneq ($(findstring Kepler, $(GPU_TARGET)),)
     GPU_TARGET += sm30 sm35
 endif
 ifneq ($(findstring Maxwell, $(GPU_TARGET)),)
-    GPU_TARGET += sm50
+    GPU_TARGET += sm50 sm52
 endif
 ifneq ($(findstring Pascal, $(GPU_TARGET)),)
     GPU_TARGET += sm60 sm61
@@ -127,6 +126,11 @@ ifneq ($(findstring sm50, $(GPU_TARGET)),)
     NV_SM    += -gencode arch=compute_50,code=sm_50
     NV_COMP  := -gencode arch=compute_50,code=compute_50
 endif
+ifneq ($(findstring sm52, $(GPU_TARGET)),)
+    MIN_ARCH ?= 520
+    NV_SM    += -gencode arch=compute_52,code=sm_52
+    NV_COMP  := -gencode arch=compute_52,code=compute_52
+endif
 ifneq ($(findstring sm60, $(GPU_TARGET)),)
     MIN_ARCH ?= 600
     NV_SM    += -gencode arch=compute_60,code=sm_60
@@ -138,7 +142,7 @@ ifneq ($(findstring sm61, $(GPU_TARGET)),)
     NV_COMP  := -gencode arch=compute_61,code=compute_61
 endif
 ifeq ($(NV_COMP),)
-    $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, or sm{20,30,35,50,60,61}. Please edit your make.inc file)
+    $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, or sm{20,30,35,50,52,60,61}. Please edit your make.inc file)
 endif
 NVCCFLAGS += $(NV_SM) $(NV_COMP)
 CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
