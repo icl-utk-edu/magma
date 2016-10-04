@@ -49,6 +49,7 @@ typedef int magma_int_t;
 #endif
 
 typedef int magma_index_t;
+typedef unsigned int magma_uindex_t;
 
 // Define new type that the precision generator will not change (matches PLASMA)
 typedef double real_Double_t;
@@ -287,6 +288,7 @@ float  magma_cabsf( magmaFloatComplex  x );
     typedef void               *magma_ptr;
     typedef magma_int_t        *magmaInt_ptr;
     typedef magma_index_t      *magmaIndex_ptr;
+    typedef magma_uindex_t     *magmaUIndex_ptr;
     typedef float              *magmaFloat_ptr;
     typedef double             *magmaDouble_ptr;
     typedef magmaFloatComplex  *magmaFloatComplex_ptr;
@@ -295,6 +297,7 @@ float  magma_cabsf( magmaFloatComplex  x );
     typedef void               const *magma_const_ptr;
     typedef magma_int_t        const *magmaInt_const_ptr;
     typedef magma_index_t      const *magmaIndex_const_ptr;
+    typedef magma_uindex_t     const *magmaUIndex_const_ptr;
     typedef float              const *magmaFloat_const_ptr;
     typedef double             const *magmaDouble_const_ptr;
     typedef magmaFloatComplex  const *magmaFloatComplex_const_ptr;
@@ -565,7 +568,8 @@ typedef enum {
     Magma_PARILUT      = 505,
     Magma_ISAI         = 506,
     Magma_CUSOLVE      = 507,
-    Magma_VBJACOBI     = 508
+    Magma_VBJACOBI     = 508,
+    Magma_PARDISO      = 509
 } magma_solver_type;
 
 typedef enum {

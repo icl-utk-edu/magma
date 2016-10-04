@@ -23,7 +23,7 @@ libsparse_src += \
 	$(cdir)/magma_zmio.cpp                \
 	$(cdir)/magma_zsolverinfo.cpp         \
 	$(cdir)/magma_zcsrsplit.cpp           \
-	$(cdir)/magma_ziteriluutils.cpp       \
+	$(cdir)/magma_zpariluutils.cpp       \
 	$(cdir)/magma_zmcsrpass.cpp           \
 	$(cdir)/magma_zmcsrpass_gpu.cpp       \
 	$(cdir)/magma_zmcsrcompressor.cpp     \

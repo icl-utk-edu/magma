@@ -523,21 +523,21 @@ magma_zKrylov_check( magma_solver_type solver );
 
 
 magma_int_t
-magma_ziterilusetup( 
+magma_zparilusetup( 
     magma_z_matrix A, 
     magma_z_matrix b,                                 
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
 magma_int_t
-magma_zitericsetup( 
+magma_zparicsetup( 
     magma_z_matrix A, 
     magma_z_matrix b, 
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
 magma_int_t
-magma_zitericupdate( 
+magma_zparicupdate( 
     magma_z_matrix A, 
     magma_z_preconditioner *precond, 
     magma_int_t updates,
@@ -559,21 +559,21 @@ magma_zapplyiteric_r(
 
 
 magma_int_t
-magma_ziterilu_csr( 
+magma_zparilu_csr( 
     magma_z_matrix A,
     magma_z_matrix L,
     magma_z_matrix U,
     magma_queue_t queue );
 
 magma_int_t
-magma_ziteriluupdate(
+magma_zpariluupdate(
     magma_z_matrix A,
     magma_z_preconditioner *precond,
     magma_int_t updates,
     magma_queue_t queue );
 
 magma_int_t
-magma_ziteric_csr( 
+magma_zparic_csr( 
     magma_z_matrix A,
     magma_z_matrix A_CSR,
     magma_queue_t queue );
@@ -1062,7 +1062,7 @@ magma_zmvarsizeblockstruct(
 */
 
 /* ////////////////////////////////////////////////////////////////////////////
- -- MAGMA_SPARSE solvers (Data on GPU)
+ -- MAGMA_SPARSE iterative solvers (Data on GPU)
 */
 
 magma_int_t 
@@ -1443,6 +1443,16 @@ magma_zlsqr(
     magma_z_matrix A, magma_z_matrix b, magma_z_matrix *x,
     magma_z_solver_par *solver_par,
     magma_z_preconditioner *precond_par,
+    magma_queue_t queue );
+
+/* ////////////////////////////////////////////////////////////////////////////
+ -- MAGMA_SPARSE direct solvers (Data on GPU)
+*/
+
+magma_int_t 
+magma_zpardiso(
+    magma_z_matrix A, magma_z_matrix b, 
+    magma_z_matrix *x, magma_z_solver_par *solver_par,
     magma_queue_t queue );
 
 /*/////////////////////////////////////////////////////////////////////////////
@@ -2067,6 +2077,30 @@ magma_zmgesellpmv_blocked(
     magmaDoubleComplex_ptr dy,
     magma_queue_t queue );
 
+magma_int_t
+magma_zgecsr5mv(
+    magma_trans_t           transA,
+    magma_int_t             m, 
+    magma_int_t             n, 
+    magma_int_t             p,
+    magmaDoubleComplex      alpha,
+    magma_int_t             sigma,
+    magma_int_t             bit_y_offset,
+    magma_int_t             bit_scansum_offset,
+    magma_int_t             num_packet,
+    magmaUIndex_ptr         dtile_ptr,
+    magmaUIndex_ptr         dtile_desc,
+    magmaIndex_ptr          dtile_desc_offset_ptr,
+    magmaIndex_ptr          dtile_desc_offset,
+    magmaDoubleComplex_ptr  dcalibrator,
+    magma_int_t             tail_tile_start,
+    magmaDoubleComplex_ptr  dval,
+    magmaIndex_ptr          drowptr,
+    magmaIndex_ptr          dcolind,
+    magmaDoubleComplex_ptr  dx,
+    magmaDoubleComplex      beta,
+    magmaDoubleComplex_ptr  dy,
+    magma_queue_t           queue );
 
 magma_int_t
 magma_zmergedgs(

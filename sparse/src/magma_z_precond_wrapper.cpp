@@ -173,7 +173,7 @@ magma_z_precondsetup(
         }
     }
     else if ( precond->solver == Magma_PARILU ) {
-        info = magma_ziterilusetup( A, b, precond, queue );
+        info = magma_zparilusetup( A, b, precond, queue );
         if ( precond->trisolver == Magma_ISAI ||
              precond->trisolver == Magma_JACOBI ||
              precond->trisolver == Magma_VBJACOBI ){
@@ -210,7 +210,7 @@ magma_z_precondsetup(
         }
     }
     else if ( precond->solver == Magma_PARIC ) {
-        info = magma_zitericsetup( A, b, precond, queue );
+        info = magma_zparicsetup( A, b, precond, queue );
     }
     else if ( precond->solver == Magma_PARICT ) {
         #ifdef _OPENMP

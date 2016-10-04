@@ -186,6 +186,16 @@ magma_zmconvert(
     B->drowidx = NULL;
     B->ddiag = NULL;
     B->dlist = NULL;
+    B->tile_ptr = NULL;
+    B->dtile_ptr = NULL;
+    B->tile_desc = NULL;
+    B->dtile_desc = NULL;
+    B->tile_desc_offset_ptr = NULL;
+    B->dtile_desc_offset_ptr = NULL;
+    B->tile_desc_offset = NULL;
+    B->dtile_desc_offset = NULL;
+    B->calibrator = NULL;
+    B->dcalibrator = NULL;
     
     magmaDoubleComplex zero = MAGMA_Z_MAKE( 0.0, 0.0 );
 
@@ -708,6 +718,502 @@ magma_zmconvert(
                 CHECK( magma_zmconvert(A_d, &B_d, Magma_CSR, Magma_BCSR, queue ) );            
                 CHECK( magma_zmtransfer(B_d, B, Magma_DEV, Magma_CPU, queue ) );               
             }
+
+            // CSR to CSR5
+            else if ( new_format == Magma_CSR5 ) {
+                //printf( "Conversion to CSR5: " );
+                // fill in information for B
+                B->storage_type = Magma_CSR5;
+                B->memory_location = A.memory_location;
+                B->fill_mode = A.fill_mode;
+                B->num_rows = A.num_rows; B->true_nnz = A.true_nnz;
+                B->num_cols = A.num_cols;
+                B->nnz = A.nnz;
+                B->max_nnz_row = A.max_nnz_row;
+                B->diameter = A.diameter;
+
+                CHECK( magma_zmalloc_cpu( &B->val, A.nnz ));
+                CHECK( magma_index_malloc_cpu( &B->row, A.num_rows+1 ));
+                CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
+
+                for( magma_int_t i=0; i < A.num_rows+1; i++) {
+                    B->row[i] = A.row[i];
+                }
+
+                // compute sigma
+                int r = 4;
+                int s = 32;
+                int t = 256;
+                int u = 6;
+        
+                int csr_nnz_per_row = B->nnz / B->num_rows;
+                if (csr_nnz_per_row <= r)
+                    B->csr5_sigma = r;
+                else if (csr_nnz_per_row > r && csr_nnz_per_row <= s)
+                    B->csr5_sigma = csr_nnz_per_row;
+                else if (csr_nnz_per_row <= t && csr_nnz_per_row > s)
+                    B->csr5_sigma = s;
+                else // csr_nnz_per_row > t
+                    B->csr5_sigma = u;
+
+                // conversion
+                // compute #bits required for `y_offset' and `scansum_offset'
+                int base = 2;
+                B->csr5_bit_y_offset = 1;
+                while (base < MAGMA_CSR5_OMEGA * B->csr5_sigma) 
+                { base *= 2; B->csr5_bit_y_offset++; }
+
+                base = 2;
+                B->csr5_bit_scansum_offset = 1;
+                while (base < MAGMA_CSR5_OMEGA) 
+                { base *= 2; B->csr5_bit_scansum_offset++; }
+
+                if (B->csr5_bit_y_offset + B->csr5_bit_scansum_offset > 
+                    sizeof(magma_uindex_t) * 8 - 1) 
+                {
+                    printf("error: csr5-omega not supported.\n");
+                    info = MAGMA_ERR_NOT_SUPPORTED;
+                }
+
+                int bit_all = B->csr5_bit_y_offset + B->csr5_bit_scansum_offset 
+                              + B->csr5_sigma;
+                B->csr5_num_packets = ceil((double)bit_all 
+                                           /(double)(sizeof(magma_uindex_t)*8));
+
+                // calculate the number of tiles
+                B->csr5_p = ceil((double)B->nnz 
+                                 / (double)(MAGMA_CSR5_OMEGA * B->csr5_sigma));
+                //printf("sigma = %i, p = %i\n", B->csr5_sigma, B->csr5_p);
+                // malloc the newly added arrays for CSR5
+                CHECK( magma_uindex_malloc_cpu( &B->tile_ptr, B->csr5_p+1 ));
+                for( magma_int_t i=0; i<B->csr5_p+1; i++) {
+                    B->tile_ptr[i] = 0;
+                }
+
+                CHECK( magma_uindex_malloc_cpu( &B->tile_desc, 
+                          B->csr5_p * MAGMA_CSR5_OMEGA * B->csr5_num_packets ));
+                for( magma_int_t i=0; i<B->csr5_p * MAGMA_CSR5_OMEGA 
+                                        * B->csr5_num_packets; i++) {
+                    B->tile_desc[i] = 0;
+                }
+
+
+                CHECK( magma_zmalloc_cpu( &B->calibrator, B->csr5_p ));
+                for( magma_int_t i=0; i<B->csr5_p; i++) {
+                    B->calibrator[i] = MAGMA_Z_MAKE(0., 0.);
+                }
+
+                CHECK( magma_index_malloc_cpu( &B->tile_desc_offset_ptr, 
+                                               B->csr5_p+1 ));
+                for( magma_int_t i=0; i<B->csr5_p+1; i++) {
+                    B->tile_desc_offset_ptr[i] = 0;
+                }
+
+
+                // convert csr data to csr5 data (3 steps)
+                // step 1 generate tile pointer
+                // step 1.1 binary search row pointer
+                for (magma_index_t global_id = 0; global_id <= B->csr5_p; 
+                     global_id++)
+                {
+                    // compute tile boundaries by tile of size sigma * omega
+                    magma_index_t boundary = global_id * B->csr5_sigma 
+                                             * MAGMA_CSR5_OMEGA;
+
+                    // clamp tile boundaries to [0, nnz]
+                    boundary = boundary > B->nnz ? B->nnz : boundary;
+
+                    // binary search
+                    magma_index_t start = 0, stop = B->num_rows, median;
+                    magma_index_t key_median;
+                    while (stop >= start)
+                    {
+                        median = (stop + start) / 2;
+                        key_median = B->row[median];
+                        if (boundary >= key_median)
+                            start = median + 1;
+                        else
+                            stop = median - 1;
+                    }
+                    B->tile_ptr[global_id] = start-1;
+                 }
+
+                 // step 1.2 check empty rows
+                 for (magma_index_t group_id = 0; group_id < B->csr5_p; 
+                      group_id++)
+                 {
+                     int dirty = 0;
+
+                     magma_uindex_t start = B->tile_ptr[group_id];
+                     magma_uindex_t stop  = B->tile_ptr[group_id+1];
+                     start = (start << 1) >> 1;
+                     stop  = (stop << 1) >> 1;
+
+                     if(start == stop)
+                         continue;
+
+                     for (magma_index_t row_idx = start; row_idx <= stop; 
+                          row_idx++)
+                     {
+                         if (B->row[row_idx] == B->row[row_idx+1])
+                         {
+                             dirty = 1;
+                             break;
+                         }
+                     }
+
+                     if (dirty)
+                     {
+                         start |= sizeof(magma_uindex_t) == 4 
+                                            ? 0x80000000 : 0x8000000000000000;
+                         B->tile_ptr[group_id] = start;
+                     }
+                 }
+                 B->csr5_tail_tile_start = (B->tile_ptr[B->csr5_p-1] << 1) >> 1;
+
+                 // step 2. generate tile descriptor
+
+                 int bit_all_offset = B->csr5_bit_y_offset 
+                                      + B->csr5_bit_scansum_offset;
+
+                 //generate_tile_descriptor_s1_kernel
+                 for (int par_id = 0; par_id < B->csr5_p-1; par_id++)
+                 {
+                     const magma_index_t row_start = B->tile_ptr[par_id]     
+                                                     & 0x7FFFFFFF;
+                     const magma_index_t row_stop  = B->tile_ptr[par_id + 1] 
+                                                     & 0x7FFFFFFF;
+
+                     for (int rid = row_start; rid <= row_stop; rid++)
+                     {
+                         int ptr = B->row[rid];
+                         int pid = ptr / (MAGMA_CSR5_OMEGA * B->csr5_sigma);
+
+                         if (pid == par_id)
+                         {
+                             int lx = (ptr / B->csr5_sigma) % MAGMA_CSR5_OMEGA;
+
+                             const int glid = ptr%B->csr5_sigma+bit_all_offset;
+                             const int ly = glid / 32;
+                             const int llid = glid % 32;
+
+                             const magma_uindex_t val = 0x1 << (31 - llid);
+
+                             const int location = pid * MAGMA_CSR5_OMEGA 
+                                 * B->csr5_num_packets 
+                                 + ly * MAGMA_CSR5_OMEGA + lx;
+                             B->tile_desc[location] |= val;
+                         }
+                     }
+                 }
+
+                 //generate_tile_descriptor_s2_kernel
+                 int num_thread = 1; //omp_get_max_threads();
+                 int *s_segn_scan_all = (int *)malloc(2 * MAGMA_CSR5_OMEGA 
+                                                    * sizeof(int) * num_thread);
+                 int *s_present_all   = (int *)malloc(2 * MAGMA_CSR5_OMEGA 
+                                                    * sizeof(int) * num_thread);
+                 for (int i = 0; i < num_thread; i++)
+                     s_present_all[i * 2 * MAGMA_CSR5_OMEGA + MAGMA_CSR5_OMEGA] 
+                         = 1;
+
+                 //const int bit_all_offset = bit_y_offset + bit_scansum_offset;
+
+                 //#pragma omp parallel for
+                 for (int par_id = 0; par_id < B->csr5_p-1; par_id++)
+                 {
+                     int tid = 0; //omp_get_thread_num();
+                     int *s_segn_scan = &s_segn_scan_all[tid * 2 
+                                                         * MAGMA_CSR5_OMEGA];
+                     int *s_present = &s_present_all[tid * 2 
+                                                         * MAGMA_CSR5_OMEGA];
+
+                     memset(s_segn_scan, 0, (MAGMA_CSR5_OMEGA + 1)*sizeof(int));
+                     memset(s_present, 0, MAGMA_CSR5_OMEGA * sizeof(int));
+
+                     bool with_empty_rows = (B->tile_ptr[par_id] >> 31) & 0x1;
+                     magma_index_t row_start       = B->tile_ptr[par_id]     
+                                                     & 0x7FFFFFFF;
+                     const magma_index_t row_stop  = B->tile_ptr[par_id + 1] 
+                                                     & 0x7FFFFFFF;
+
+                     if (row_start == row_stop)
+                         continue;
+
+                     //#pragma simd
+                     for (int lane_id=0; lane_id < MAGMA_CSR5_OMEGA; lane_id++)
+                     {
+                         int start = 0, stop = 0, segn = 0;
+                         bool present = 0;
+                         magma_uindex_t bitflag = 0;
+
+                         present |= !lane_id;
+
+                         // extract the first bit-flag packet
+                         int ly = 0;
+                         magma_uindex_t first_packet = B->tile_desc[par_id 
+                             * MAGMA_CSR5_OMEGA * B->csr5_num_packets+lane_id];
+                         bitflag = (first_packet << bit_all_offset) 
+                                    | ((magma_uindex_t)present << 31);
+                         start = !((bitflag >> 31) & 0x1);
+                         present |= (bitflag >> 31) & 0x1;
+
+                         for (int i = 1; i < B->csr5_sigma; i++)
+                         {
+                             if ((!ly && i == 32 - bit_all_offset) 
+                                 || (ly && (i - (32 - bit_all_offset)) % 32==0))
+                             {
+                                 ly++;
+                                 bitflag = B->tile_desc[par_id 
+                                           * MAGMA_CSR5_OMEGA 
+                                           * B->csr5_num_packets 
+                                           + ly * MAGMA_CSR5_OMEGA + lane_id];
+                             }
+                             const int norm_i = !ly ? i 
+                                                : i - (32 - bit_all_offset);
+                             stop += (bitflag >> (31 - norm_i % 32) ) & 0x1;
+                             present |= (bitflag >> (31 - norm_i % 32)) & 0x1;
+                         }
+
+                         // compute y_offset for all tiles
+                         segn = stop - start + present;
+                         segn = segn > 0 ? segn : 0;
+
+                         s_segn_scan[lane_id] = segn;
+
+                         // compute scansum_offset
+                         s_present[lane_id] = present;
+                     }
+
+                     //scan_single<int>(s_segn_scan, MAGMA_CSR5_OMEGA + 1);
+                     int old_val, new_val;
+                     old_val = s_segn_scan[0];
+                     s_segn_scan[0] = 0;
+                     for (int i = 1; i < MAGMA_CSR5_OMEGA + 1; i++)
+                     {
+                         new_val = s_segn_scan[i];
+                         s_segn_scan[i] = old_val + s_segn_scan[i-1];
+                         old_val = new_val;
+                     }
+
+                     if (with_empty_rows)
+                     {
+                         B->tile_desc_offset_ptr[par_id] 
+                             = s_segn_scan[MAGMA_CSR5_OMEGA];
+                         B->tile_desc_offset_ptr[B->csr5_p] = 1; 
+                     }
+
+                     //#pragma simd
+                     for (int lane_id=0; lane_id < MAGMA_CSR5_OMEGA; lane_id++)
+                     {
+                         int y_offset = s_segn_scan[lane_id];
+
+                         int scansum_offset = 0;
+                         int next1 = lane_id + 1;
+                         if (s_present[lane_id])
+                         {
+                             while (!s_present[next1] && next1<MAGMA_CSR5_OMEGA)
+                             {
+                                 scansum_offset++;
+                                 next1++;
+                             }
+                         }
+
+                         magma_uindex_t first_packet = B->tile_desc[par_id 
+                            * MAGMA_CSR5_OMEGA * B->csr5_num_packets + lane_id];
+
+                         y_offset = lane_id ? y_offset - 1 : 0;
+
+                         first_packet |= y_offset << (32-B->csr5_bit_y_offset);
+                         first_packet |= scansum_offset << (32-bit_all_offset);
+
+                         B->tile_desc[par_id * MAGMA_CSR5_OMEGA 
+                               * B->csr5_num_packets + lane_id] = first_packet;
+                     }
+                 }
+
+                 free(s_segn_scan_all);
+                 free(s_present_all);
+
+                 if (B->tile_desc_offset_ptr[B->csr5_p])
+                 {
+                     //scan_single(B->tile_desc_offset_ptr, p+1);
+                     int old_val, new_val;
+                     old_val = B->tile_desc_offset_ptr[0];
+                     B->tile_desc_offset_ptr[0] = 0;
+                     for (int i = 1; i < B->csr5_p+1; i++)
+                     {
+                         new_val = B->tile_desc_offset_ptr[i];
+                         B->tile_desc_offset_ptr[i] = old_val 
+                                                 + B->tile_desc_offset_ptr[i-1];
+                         old_val = new_val;
+                     }
+                 }
+
+                 B->csr5_num_offsets = B->tile_desc_offset_ptr[B->csr5_p];
+
+                 if (B->csr5_num_offsets)
+                 {
+                     CHECK( magma_index_malloc_cpu( &B->tile_desc_offset
+                                                    , B->csr5_num_offsets ));
+
+                     //err = generate_tile_descriptor_offset
+                     const int bit_bitflag = 32 - bit_all_offset;
+
+                     //#pragma omp parallel for
+                     for (int par_id = 0; par_id < B->csr5_p-1; par_id++)
+                     {
+                         bool with_empty_rows = (B->tile_ptr[par_id] >> 31)&0x1;
+                         if (!with_empty_rows)
+                             continue;
+
+                         magma_index_t row_start       = B->tile_ptr[par_id]
+                                                         & 0x7FFFFFFF;
+                         const magma_index_t row_stop  = B->tile_ptr[par_id + 1] 
+                                                         & 0x7FFFFFFF;
+
+                         int offset_pointer = B->tile_desc_offset_ptr[par_id];
+                         //#pragma simd
+                         for (int lane_id = 0; lane_id < MAGMA_CSR5_OMEGA; 
+                              lane_id++)
+                         {
+                             bool local_bit;
+
+                             // extract the first bit-flag packet
+                             int ly = 0;
+                             magma_uindex_t descriptor = B->tile_desc[par_id 
+                                 * MAGMA_CSR5_OMEGA * B->csr5_num_packets
+                                 + lane_id];
+                             int y_offset = descriptor 
+                                            >> (32 - B->csr5_bit_y_offset);
+
+                             descriptor = descriptor << bit_all_offset;
+                             descriptor = lane_id ? descriptor 
+                                          : descriptor | 0x80000000;
+
+                             local_bit = (descriptor >> 31) & 0x1;
+
+                             if (local_bit && lane_id)
+                             {
+                                 const magma_index_t idx = par_id 
+                                     * MAGMA_CSR5_OMEGA * B->csr5_sigma 
+                                     + lane_id * B->csr5_sigma;
+                                 // binary search
+                                 magma_index_t start = 0;
+                                 magma_index_t stop = row_stop - row_start - 1;
+                                 magma_index_t median, key_median;
+                                 while (stop >= start)
+                                 {
+                                     median = (stop + start) / 2;
+                                     key_median = B->row[row_start+1+median];
+                                     if (idx >= key_median)
+                                         start = median + 1;
+                                     else
+                                         stop = median - 1;
+                                 }
+                                 const magma_index_t y_index = start-1;
+
+                                 B->tile_desc_offset[offset_pointer + y_offset] 
+                                     = y_index;
+
+                                 y_offset++;
+                             }
+
+                             for (int i = 1; i < B->csr5_sigma; i++)
+                             {
+                                 if ((!ly && i == bit_bitflag) 
+                                     || (ly && !(31 & (i - bit_bitflag))))
+                                 {
+                                     ly++;
+                                     descriptor = B->tile_desc[par_id 
+                                         * MAGMA_CSR5_OMEGA 
+                                         * B->csr5_num_packets 
+                                         + ly * MAGMA_CSR5_OMEGA + lane_id];
+                                 }
+                                 const int norm_i = 31 & (!ly 
+                                                         ? i : i - bit_bitflag);
+
+                                 local_bit = (descriptor >> (31 - norm_i))&0x1;
+
+                                 if (local_bit)
+                                 {
+                                     const magma_index_t idx = par_id 
+                                         * MAGMA_CSR5_OMEGA * B->csr5_sigma 
+                                         + lane_id * B->csr5_sigma + i;
+                                     // binary search
+                                     magma_index_t start = 0;
+                                     magma_index_t stop = row_stop-row_start-1;
+                                     magma_index_t median, key_median;
+                                     while (stop >= start)
+                                     {
+                                         median = (stop + start) / 2;
+                                         key_median=B->row[row_start+1+median];
+                                         if (idx >= key_median)
+                                             start = median + 1;
+                                         else
+                                             stop = median - 1;
+                                     }
+                                     const magma_index_t y_index = start-1;
+
+                                     B->tile_desc_offset[offset_pointer 
+                                                         + y_offset] = y_index;
+
+                                     y_offset++;
+                                 }
+                             }
+                         }
+                     }
+                 }
+
+                 // step 3. transpose column_index and value arrays
+                 //#pragma omp parallel for
+                 for (int par_id = 0; par_id < B->csr5_p; par_id++)
+                 {
+                     // if this is fast track tile, do not transpose it
+                     if (B->tile_ptr[par_id] == B->tile_ptr[par_id + 1])
+                     {
+                         for (int idx = 0; idx < MAGMA_CSR5_OMEGA 
+                                                 * B->csr5_sigma; idx++)
+                         {
+                             int src_idx = par_id * MAGMA_CSR5_OMEGA 
+                                           * B->csr5_sigma + idx;
+                             B->col[src_idx] = A.col[src_idx];
+                             B->val[src_idx] = A.val[src_idx];
+                         }
+                         continue;
+                     }
+                     //#pragma simd
+                     if (par_id < B->csr5_p-1)
+                     {
+                         for (int idx = 0; idx < MAGMA_CSR5_OMEGA 
+                                                 * B->csr5_sigma; idx++)
+                         {
+                             int idx_y = idx % B->csr5_sigma;
+                             int idx_x = idx / B->csr5_sigma;
+                             int src_idx = par_id * MAGMA_CSR5_OMEGA 
+                                           * B->csr5_sigma + idx;
+                             int dst_idx = par_id * MAGMA_CSR5_OMEGA 
+                                           * B->csr5_sigma + idx_y 
+                                           * MAGMA_CSR5_OMEGA + idx_x;
+    
+                             B->col[dst_idx] = A.col[src_idx];
+                             B->val[dst_idx] = A.val[src_idx];
+                         }
+                     }
+                     else // the last tile
+                     {
+                         for (int idx = par_id * MAGMA_CSR5_OMEGA 
+                                        * B->csr5_sigma; idx < B->nnz; idx++)
+                         {
+                             B->col[idx] = A.col[idx];
+                             B->val[idx] = A.val[idx];
+                         }
+                     }
+                 }
+
+                //printf( "done\n" );
+            }
+
             else {
                 printf("error: format not supported.\n");
                 info = MAGMA_ERR_NOT_SUPPORTED;
@@ -942,9 +1448,11 @@ magma_zmconvert(
                 B->blocksize = A.blocksize;
                 B->numblocks = A.numblocks;
                 // conversion
-                CHECK( magma_zmalloc_cpu( &val_tmp, A.max_nnz_row*(A.num_rows+C) ));
+                CHECK( magma_zmalloc_cpu( &val_tmp, 
+                                          A.max_nnz_row*(A.num_rows+C) ));
                 CHECK( magma_index_malloc_cpu( &row_tmp, A.num_rows+C ));
-                CHECK( magma_index_malloc_cpu( &col_tmp, A.max_nnz_row*(A.num_rows+C) ));
+                CHECK( magma_index_malloc_cpu( &col_tmp, 
+                                               A.max_nnz_row*(A.num_rows+C) ));
                 // zero everything
                 for(magma_int_t i=0; i < A.max_nnz_row*(A.num_rows+C); i++ ) {
                     val_tmp[ i ] = MAGMA_Z_MAKE(0., 0.);
@@ -978,6 +1486,75 @@ magma_zmconvert(
                 //printf( "done\n" );
             }
             
+            // CSR5 to CSR
+            else if ( old_format == Magma_CSR5 ) {
+                // printf( "Conversion to CSR: " );
+                // fill in information for B
+                B->storage_type = Magma_CSR;
+                B->memory_location = A.memory_location;
+                B->fill_mode = A.fill_mode;
+                B->num_rows = A.num_rows; B->true_nnz = A.true_nnz;
+                B->num_cols = A.num_cols;
+                B->nnz = A.nnz;
+                B->max_nnz_row = A.max_nnz_row;
+                B->diameter = A.diameter;
+
+                // conversion
+                CHECK( magma_zmalloc_cpu( &B->val, B->nnz));
+                CHECK( magma_index_malloc_cpu( &B->row, B->num_rows+1 ));
+                CHECK( magma_index_malloc_cpu( &B->col, B->nnz ));
+
+                for( magma_int_t i=0; i < A.num_rows+1; i++) {
+                    B->row[i] = A.row[i];
+                }
+
+                // step 1. transpose column_index and value arrays
+                //#pragma omp parallel for
+                for (int par_id = 0; par_id < A.csr5_p; par_id++)
+                {
+                    // if this is fast track tile, do not transpose it
+                    if (A.tile_ptr[par_id] == A.tile_ptr[par_id + 1])
+                    {
+                         for (int idx = 0; idx < MAGMA_CSR5_OMEGA 
+                                                 * A.csr5_sigma; idx++)
+                         {
+                             int src_idx = par_id * MAGMA_CSR5_OMEGA 
+                                           * A.csr5_sigma + idx;
+                             B->col[src_idx] = A.col[src_idx];
+                             B->val[src_idx] = A.val[src_idx];
+                         }
+                         continue;
+                    }
+                    if (par_id < A.csr5_p-1)
+                    {
+                         //#pragma simd
+                        for (int idx = 0; idx < MAGMA_CSR5_OMEGA * A.csr5_sigma; 
+                                idx++)
+                        {
+                            int idx_y = idx % MAGMA_CSR5_OMEGA;
+                            int idx_x = idx / MAGMA_CSR5_OMEGA;
+                            int src_idx = par_id * MAGMA_CSR5_OMEGA*A.csr5_sigma 
+                                      + idx;
+                            int dst_idx = par_id * MAGMA_CSR5_OMEGA*A.csr5_sigma 
+                                      + idx_y * A.csr5_sigma + idx_x;
+                            B->col[dst_idx] = A.col[src_idx];
+                            B->val[dst_idx] = A.val[src_idx];
+                        }
+                    }
+                    else // the last tile
+                    {
+                        for (int idx = par_id * MAGMA_CSR5_OMEGA 
+                                       * A.csr5_sigma; idx < A.nnz; idx++)
+                        {
+                            B->col[idx] = A.col[idx];
+                            B->val[idx] = A.val[idx];
+                        }
+                    }
+                }
+
+                //printf( "done\n" );
+            }
+
             // DENSE to CSR
             else if ( old_format == Magma_DENSE ) {
                 //printf( "Conversion to CSR: " );

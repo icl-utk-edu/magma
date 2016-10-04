@@ -443,7 +443,7 @@ cleanup:
     Purpose
     -------
 
-    Computes an initial guess for the iterative ILU/IC
+    Computes an initial guess for the ParILU/ParIC
 
 
     Arguments

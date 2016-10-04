@@ -69,6 +69,16 @@ magma_zmtransfer(
     B->ddiag = NULL;
     B->list = NULL;
     B->dlist = NULL;
+    B->tile_ptr = NULL;
+    B->dtile_ptr = NULL;
+    B->tile_desc = NULL;
+    B->dtile_desc = NULL;
+    B->tile_desc_offset_ptr = NULL;
+    B->dtile_desc_offset_ptr = NULL;
+    B->tile_desc_offset = NULL;
+    B->dtile_desc_offset = NULL;
+    B->calibrator = NULL;
+    B->dcalibrator = NULL;
     
 
     // first case: copy matrix from host to device
@@ -258,6 +268,45 @@ magma_zmtransfer(
             magma_zsetvector( A.nnz, A.val, 1, B->dval, 1, queue );
             magma_index_setvector( A.nnz, A.col, 1, B->dcol, 1, queue );
             magma_index_setvector( A.numblocks + 1, A.row, 1, B->drow, 1, queue );
+        }
+        //CSR5-type
+        else if ( A.storage_type == Magma_CSR5 ) {
+            // fill in information for B
+            B->storage_type = A.storage_type;
+            B->memory_location = Magma_DEV;
+            B->sym = A.sym;
+            B->diagorder_type = A.diagorder_type;
+            B->fill_mode = A.fill_mode;
+            B->num_rows = A.num_rows;
+            B->num_cols = A.num_cols;
+            B->nnz = A.nnz; B->true_nnz = A.true_nnz;
+            B->max_nnz_row = A.max_nnz_row;
+            B->diameter = A.diameter;
+            B->csr5_sigma = A.csr5_sigma;
+            B->csr5_bit_y_offset = A.csr5_bit_y_offset;
+            B->csr5_bit_scansum_offset = A.csr5_bit_scansum_offset;
+            B->csr5_num_packets = A.csr5_num_packets;
+            B->csr5_p = A.csr5_p;
+            B->csr5_num_offsets = A.csr5_num_offsets;
+            B->csr5_tail_tile_start = A.csr5_tail_tile_start;
+            // memory allocation
+            CHECK( magma_zmalloc( &B->dval, A.nnz ));
+            CHECK( magma_index_malloc( &B->drow, A.num_rows + 1 ));
+            CHECK( magma_index_malloc( &B->dcol, A.nnz ));
+            CHECK( magma_uindex_malloc( &B->dtile_ptr, A.csr5_p+1 ));
+            CHECK( magma_uindex_malloc( &B->dtile_desc, A.csr5_p * MAGMA_CSR5_OMEGA * A.csr5_num_packets ));
+            CHECK( magma_zmalloc( &B->dcalibrator, A.csr5_p ));
+            CHECK( magma_index_malloc( &B->dtile_desc_offset_ptr, A.csr5_p+1 ));
+            CHECK( magma_index_malloc( &B->dtile_desc_offset, A.csr5_num_offsets ));
+            // data transfer
+            magma_zsetvector( A.nnz, A.val, 1, B->dval, 1, queue );
+            magma_index_setvector( A.num_rows + 1, A.row, 1, B->drow, 1, queue );
+            magma_index_setvector( A.nnz, A.col, 1, B->dcol, 1, queue );
+            magma_uindex_setvector( A.csr5_p+1, A.tile_ptr, 1, B->dtile_ptr, 1, queue );
+            magma_uindex_setvector( A.csr5_p * MAGMA_CSR5_OMEGA * A.csr5_num_packets, A.tile_desc, 1, B->dtile_desc, 1, queue );
+            magma_zsetvector( A.csr5_p, A.calibrator, 1, B->dcalibrator, 1, queue );
+            magma_index_setvector( A.csr5_p+1, A.tile_desc_offset_ptr, 1, B->dtile_desc_offset_ptr, 1, queue );
+            magma_index_setvector( A.csr5_num_offsets, A.tile_desc_offset, 1, B->dtile_desc_offset, 1, queue );
         }
         //BCSR-type
         else if ( A.storage_type == Magma_BCSR ) {
@@ -541,6 +590,66 @@ magma_zmtransfer(
                 B->row[i] = A.row[i];
             }
         }
+        //CSR5-type
+        else if ( A.storage_type == Magma_CSR5 ) {
+            // fill in information for B
+            B->storage_type = A.storage_type;
+            B->memory_location = Magma_CPU;
+            B->sym = A.sym;
+            B->diagorder_type = A.diagorder_type;
+            B->fill_mode = A.fill_mode;
+            B->num_rows = A.num_rows;
+            B->num_cols = A.num_cols;
+            B->nnz = A.nnz; B->true_nnz = A.true_nnz;
+            B->max_nnz_row = A.max_nnz_row;
+            B->diameter = A.diameter;
+            B->csr5_sigma = A.csr5_sigma;
+            B->csr5_bit_y_offset = A.csr5_bit_y_offset;
+            B->csr5_bit_scansum_offset = A.csr5_bit_scansum_offset;
+            B->csr5_num_packets = A.csr5_num_packets;
+            B->csr5_p = A.csr5_p;
+            B->csr5_num_offsets = A.csr5_num_offsets;
+            B->csr5_tail_tile_start = A.csr5_tail_tile_start;
+            // memory allocation
+            CHECK( magma_zmalloc_cpu( &B->dval, A.nnz ));
+            CHECK( magma_index_malloc_cpu( &B->drow, A.num_rows + 1 ));
+            CHECK( magma_index_malloc_cpu( &B->dcol, A.nnz ));
+            CHECK( magma_uindex_malloc_cpu( &B->dtile_ptr, A.csr5_p+1 ));
+            CHECK( magma_uindex_malloc_cpu( &B->dtile_desc, A.csr5_p * MAGMA_CSR5_OMEGA * A.csr5_num_packets ));
+            CHECK( magma_zmalloc_cpu( &B->dcalibrator, A.csr5_p ));
+            CHECK( magma_index_malloc_cpu( &B->dtile_desc_offset_ptr, A.csr5_p+1 ));
+            CHECK( magma_index_malloc_cpu( &B->dtile_desc_offset, A.csr5_num_offsets ));
+            // data transfer
+            #pragma omp parallel for
+            for( magma_int_t i=0; i<A.nnz; i++ ) {
+                B->val[i] = A.val[i];
+                B->col[i] = A.col[i];
+            }
+            #pragma omp parallel for
+            for( magma_int_t i=0; i<A.num_rows+1; i++ ) {
+                B->row[i] = A.row[i];
+            }
+            #pragma omp parallel for
+            for( magma_int_t i=0; i<A.csr5_p+1; i++ ) {
+                B->tile_ptr[i] = A.tile_ptr[i];
+            }
+            #pragma omp parallel for
+            for( magma_int_t i=0; i<A.csr5_p * MAGMA_CSR5_OMEGA * A.csr5_num_packets; i++ ) {
+                B->tile_desc[i] = A.tile_desc[i];
+            }
+            #pragma omp parallel for
+            for( magma_int_t i=0; i<A.csr5_p; i++ ) {
+                B->calibrator[i] = A.calibrator[i];
+            }
+            #pragma omp parallel for
+            for( magma_int_t i=0; i<A.csr5_p+1; i++ ) {
+                B->tile_desc_offset_ptr[i] = A.tile_desc_offset_ptr[i];
+            }
+            #pragma omp parallel for
+            for( magma_int_t i=0; i<A.csr5_num_offsets; i++ ) {
+                B->tile_desc_offset[i] = A.tile_desc_offset[i];
+            }
+        }
         //BCSR-type
         else if ( A.storage_type == Magma_BCSR ) {
             // fill in information for B
@@ -799,6 +908,45 @@ magma_zmtransfer(
             magma_index_getvector( A.nnz, A.dcol, 1, B->col, 1, queue );
             magma_index_getvector( A.numblocks + 1, A.drow, 1, B->row, 1, queue );
         }
+        //CSR5-type
+        else if ( A.storage_type == Magma_CSR5 ) {
+            // fill in information for B
+            B->storage_type = A.storage_type;
+            B->memory_location = Magma_CPU;
+            B->sym = A.sym;
+            B->diagorder_type = A.diagorder_type;
+            B->fill_mode = A.fill_mode;
+            B->num_rows = A.num_rows;
+            B->num_cols = A.num_cols;
+            B->nnz = A.nnz; B->true_nnz = A.true_nnz;
+            B->max_nnz_row = A.max_nnz_row;
+            B->diameter = A.diameter;
+            B->csr5_sigma = A.csr5_sigma;
+            B->csr5_bit_y_offset = A.csr5_bit_y_offset;
+            B->csr5_bit_scansum_offset = A.csr5_bit_scansum_offset;
+            B->csr5_num_packets = A.csr5_num_packets;
+            B->csr5_p = A.csr5_p;
+            B->csr5_num_offsets = A.csr5_num_offsets;
+            B->csr5_tail_tile_start = A.csr5_tail_tile_start;
+            // memory allocation
+            CHECK( magma_zmalloc_cpu( &B->dval, A.nnz ));
+            CHECK( magma_index_malloc_cpu( &B->drow, A.num_rows + 1 ));
+            CHECK( magma_index_malloc_cpu( &B->dcol, A.nnz ));
+            CHECK( magma_uindex_malloc_cpu( &B->dtile_ptr, A.csr5_p+1 ));
+            CHECK( magma_uindex_malloc_cpu( &B->dtile_desc, A.csr5_p * MAGMA_CSR5_OMEGA * A.csr5_num_packets ));
+            CHECK( magma_zmalloc_cpu( &B->dcalibrator, A.csr5_p ));
+            CHECK( magma_index_malloc_cpu( &B->dtile_desc_offset_ptr, A.csr5_p+1 ));
+            CHECK( magma_index_malloc_cpu( &B->dtile_desc_offset, A.csr5_num_offsets ));
+            // data transfer
+            magma_zgetvector( A.nnz, A.val, 1, B->val, 1, queue );
+            magma_index_getvector( A.num_rows + 1, A.drow, 1, B->row, 1, queue );
+            magma_index_getvector( A.nnz, A.dcol, 1, B->col, 1, queue );
+            magma_uindex_getvector( A.csr5_p+1, A.dtile_ptr, 1, B->tile_ptr, 1, queue );
+            magma_uindex_getvector( A.csr5_p * MAGMA_CSR5_OMEGA * A.csr5_num_packets, A.dtile_desc, 1, B->tile_desc, 1, queue );
+            magma_zgetvector( A.csr5_p, A.dcalibrator, 1, B->calibrator, 1, queue );
+            magma_index_getvector( A.csr5_p+1, A.dtile_desc_offset_ptr, 1, B->tile_desc_offset_ptr, 1, queue );
+            magma_index_getvector( A.csr5_num_offsets, A.dtile_desc_offset, 1, B->tile_desc_offset, 1, queue );
+        }
         //BCSR-type
         else if ( A.storage_type == Magma_BCSR ) {
             // fill in information for B
@@ -1041,6 +1189,45 @@ magma_zmtransfer(
             magma_zcopyvector( A.nnz, A.dval, 1, B->dval, 1, queue );
             magma_index_copyvector( A.nnz, A.dcol, 1, B->dcol, 1, queue );
             magma_index_copyvector( A.numblocks + 1, A.drow, 1, B->drow, 1, queue );
+        }
+        //CSR5-type
+        else if ( A.storage_type == Magma_CSR5 ) {
+            // fill in information for B
+            B->storage_type = A.storage_type;
+            B->memory_location = Magma_DEV;
+            B->sym = A.sym;
+            B->diagorder_type = A.diagorder_type;
+            B->fill_mode = A.fill_mode;
+            B->num_rows = A.num_rows;
+            B->num_cols = A.num_cols;
+            B->nnz = A.nnz; B->true_nnz = A.true_nnz;
+            B->max_nnz_row = A.max_nnz_row;
+            B->diameter = A.diameter;
+            B->csr5_sigma = A.csr5_sigma;
+            B->csr5_bit_y_offset = A.csr5_bit_y_offset;
+            B->csr5_bit_scansum_offset = A.csr5_bit_scansum_offset;
+            B->csr5_num_packets = A.csr5_num_packets;
+            B->csr5_p = A.csr5_p;
+            B->csr5_num_offsets = A.csr5_num_offsets;
+            B->csr5_tail_tile_start = A.csr5_tail_tile_start;
+            // memory allocation
+            CHECK( magma_zmalloc( &B->dval, A.nnz ));
+            CHECK( magma_index_malloc( &B->drow, A.num_rows + 1 ));
+            CHECK( magma_index_malloc( &B->dcol, A.nnz ));
+            CHECK( magma_uindex_malloc( &B->dtile_ptr, A.csr5_p+1 ));
+            CHECK( magma_uindex_malloc( &B->dtile_desc, A.csr5_p * MAGMA_CSR5_OMEGA * A.csr5_num_packets ));
+            CHECK( magma_zmalloc( &B->dcalibrator, A.csr5_p ));
+            CHECK( magma_index_malloc( &B->dtile_desc_offset_ptr, A.csr5_p+1 ));
+            CHECK( magma_index_malloc( &B->dtile_desc_offset, A.csr5_num_offsets ));
+            // data transfer
+            magma_zcopyvector( A.nnz, A.dval, 1, B->dval, 1, queue );
+            magma_index_copyvector( A.num_rows + 1, A.drow, 1, B->drow, 1, queue );
+            magma_index_copyvector( A.nnz, A.dcol, 1, B->dcol, 1, queue );
+            magma_uindex_copyvector( A.csr5_p+1, A.dtile_ptr, 1, B->dtile_ptr, 1, queue );
+            magma_uindex_copyvector( A.csr5_p * MAGMA_CSR5_OMEGA * A.csr5_num_packets, A.dtile_desc, 1, B->dtile_desc, 1, queue );
+            magma_zcopyvector( A.csr5_p, A.dcalibrator, 1, B->dcalibrator, 1, queue );
+            magma_index_copyvector( A.csr5_p+1, A.dtile_desc_offset_ptr, 1, B->dtile_desc_offset_ptr, 1, queue );
+            magma_index_copyvector( A.csr5_num_offsets, A.dtile_desc_offset, 1, B->dtile_desc_offset, 1, queue );
         }
         //BCSR-type
         else if ( A.storage_type == Magma_BCSR ) {

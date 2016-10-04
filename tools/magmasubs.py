@@ -623,6 +623,9 @@ subs = {
     # ----- SPARSE Iterative Eigensolvers
     ('slobpcg',        'dlobpcg',        'clobpcg',        'zlobpcg'         ),
 
+    # ----- SPARSE direct solver interface (PARDISO)
+    ('spardiso',       'dpardiso',       'cpardiso',       'zpardiso'        ),
+
     # ----- SPARSE auxiliary tools
     ('matrix_s',       'matrix_d',       'matrix_c',       'matrix_z'        ),
     ('svjacobi',       'dvjacobi',       'cvjacobi',       'zvjacobi'        ),

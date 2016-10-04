@@ -36,7 +36,7 @@ static const char *usage_sparse =
 " --maxiter x   Set an upper limit for the iteration count.\n"
 " --rtol x      Set a relative residual stopping criterion.\n"
 " --format      Possibility to choose a format for the sparse matrix:\n"
-"               CSR, ELL, SELLP, CUSPARSECSR\n"
+"               CSR, ELL, SELLP, CUSPARSECSR, CSR5.\n"
 " --blocksize x Set a specific blocksize for SELL-P format.\n"
 " --alignment x Set a specific alignment for SELL-P format.\n"
 " --mscale      Possibility to scale the original matrix:\n"
@@ -160,6 +160,8 @@ magma_zparse_opts(
                 opts->output_format = Magma_SELLP;
             } else if ( strcmp("CUSPARSECSR", argv[i]) == 0 ) {
                 opts->output_format = Magma_CUCSR;
+            } else if ( strcmp("CSR5", argv[i]) == 0 ) {
+                opts->output_format = Magma_CSR5;
             } else {
                 printf( "%%error: invalid format, use default (CSR).\n" );
             }
@@ -247,6 +249,9 @@ magma_zparse_opts(
             }
             else if ( strcmp("ITERREF", argv[i]) == 0 ) {
                 opts->solver_par.solver = Magma_ITERREF;
+            }
+            else if ( strcmp("PARDISO", argv[i]) == 0 ) {
+                opts->solver_par.solver = Magma_PARDISO;
             }
             else {
                 printf( "%%error: invalid solver.\n" );
