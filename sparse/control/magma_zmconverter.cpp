@@ -1514,19 +1514,41 @@ magma_zmconvert(
                 {
                     // if this is fast track tile, do not transpose it
                     if (A.tile_ptr[par_id] == A.tile_ptr[par_id + 1])
-                        continue;
-                     //#pragma simd
-                    for (int idx = 0; idx < MAGMA_CSR5_OMEGA * A.csr5_sigma; 
-                         idx++)
                     {
-                        int idx_y = idx % MAGMA_CSR5_OMEGA;
-                        int idx_x = idx / MAGMA_CSR5_OMEGA;
-                        int src_idx = par_id * MAGMA_CSR5_OMEGA * A.csr5_sigma 
+                         for (int idx = 0; idx < MAGMA_CSR5_OMEGA 
+                                                 * A.csr5_sigma; idx++)
+                         {
+                             int src_idx = par_id * MAGMA_CSR5_OMEGA 
+                                           * A.csr5_sigma + idx;
+                             B->col[src_idx] = A.col[src_idx];
+                             B->val[src_idx] = A.val[src_idx];
+                         }
+                         continue;
+                    }
+                    if (par_id < A.csr5_p-1)
+                    {
+                         //#pragma simd
+                        for (int idx = 0; idx < MAGMA_CSR5_OMEGA * A.csr5_sigma; 
+                                idx++)
+                        {
+                            int idx_y = idx % MAGMA_CSR5_OMEGA;
+                            int idx_x = idx / MAGMA_CSR5_OMEGA;
+                            int src_idx = par_id * MAGMA_CSR5_OMEGA * A.csr5_sigma 
                                       + idx;
-                        int dst_idx = par_id * MAGMA_CSR5_OMEGA * A.csr5_sigma 
+                            int dst_idx = par_id * MAGMA_CSR5_OMEGA * A.csr5_sigma 
                                       + idx_y * MAGMA_CSR5_OMEGA + idx_x;
-                        B->col[dst_idx] = A.col[src_idx];
-                        B->val[dst_idx] = A.val[src_idx];
+                            B->col[dst_idx] = A.col[src_idx];
+                            B->val[dst_idx] = A.val[src_idx];
+                        }
+                    }
+                    else // the last tile
+                    {
+                        for (int idx = par_id * MAGMA_CSR5_OMEGA 
+                                       * A.csr5_sigma; idx < A.nnz; idx++)
+                        {
+                            B->col[idx] = A.col[idx];
+                            B->val[idx] = A.val[idx];
+                        }
                     }
                 }
 
