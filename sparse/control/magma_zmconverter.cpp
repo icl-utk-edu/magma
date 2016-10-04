@@ -1533,10 +1533,10 @@ magma_zmconvert(
                         {
                             int idx_y = idx % MAGMA_CSR5_OMEGA;
                             int idx_x = idx / MAGMA_CSR5_OMEGA;
-                            int src_idx = par_id * MAGMA_CSR5_OMEGA * A.csr5_sigma 
+                            int src_idx = par_id * MAGMA_CSR5_OMEGA*A.csr5_sigma 
                                       + idx;
-                            int dst_idx = par_id * MAGMA_CSR5_OMEGA * A.csr5_sigma 
-                                      + idx_y * MAGMA_CSR5_OMEGA + idx_x;
+                            int dst_idx = par_id * MAGMA_CSR5_OMEGA*A.csr5_sigma 
+                                      + idx_y * A.csr5_sigma + idx_x;
                             B->col[dst_idx] = A.col[src_idx];
                             B->val[dst_idx] = A.val[src_idx];
                         }
