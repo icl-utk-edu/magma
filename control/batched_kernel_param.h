@@ -61,4 +61,14 @@
 #define DTRMM_BATCHED_NB    (32)
 #define STRMM_BATCHED_NB    (32)
 
+// HEMV tuning
+#define ZHEMV_BATCHED_LOWER    16, 4
+#define CHEMV_BATCHED_LOWER    16, 4
+#define DSYMV_BATCHED_LOWER    16, 4
+#define SSYMV_BATCHED_LOWER    32, 4
+#define ZHEMV_BATCHED_UPPER    16, 4
+#define CHEMV_BATCHED_UPPER    16, 4
+#define DSYMV_BATCHED_UPPER    16, 4
+#define SSYMV_BATCHED_UPPER    32, 4
+
 #endif        //  #ifndef BATCHED_KERNEL_PARAM_H

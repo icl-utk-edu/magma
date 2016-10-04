@@ -617,6 +617,77 @@ magma_gemv_vbatched_checker(
 
     return info;
 }
+/******************************************************************************/
+// HEMV checker
+// ------------
+__global__ void 
+hemv_vbatched_checker( 
+        magma_uplo_t uplo, 
+        magma_int_t* n, magma_int_t* ldda, magma_int_t* incx, magma_int_t* incy, 
+        int batchCount)
+{
+    const int tx  = threadIdx.x;
+    const int gtx = blockIdx.x * CHECKER_TX + tx; 
+    if(gtx >= batchCount) return;
+    
+    const int local_n = (int)n[gtx];
+    const int local_ldda = (int)ldda[gtx];
+    const int local_incx = (int)incx[gtx];
+    const int local_incy = (int)incy[gtx];
+    
+    if( local_n < 0 ) n[batchCount] = -1;
+    if( local_ldda < local_n ) ldda[batchCount] = -1;
+    if( local_incx == 0 ) incx[batchCount] = -1;
+    if( local_incy == 0 ) incy[batchCount] = -1;
+}
+
+
+/******************************************************************************/
+// driver
+extern "C" magma_int_t 
+magma_hemv_vbatched_checker(
+        magma_uplo_t uplo, 
+        magma_int_t* n, magma_int_t* ldda, magma_int_t* incx, magma_int_t* incy,  
+        magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    
+    magma_int_t n_err = 0; 
+    magma_int_t ldda_err = 0; 
+    magma_int_t incx_err = 0, incy_err = 0;
+    
+    // assume no error
+    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_setvector(1, sizeof(magma_int_t), &incx_err, 1, &incx[batchCount], 1, queue);
+    magma_setvector(1, sizeof(magma_int_t), &incy_err, 1, &incy[batchCount], 1, queue);
+    
+    // launch the checker kernel
+    dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
+    dim3 threads( CHECKER_TX, 1, 1 );
+    hemv_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(uplo , n, ldda, incx, incy, batchCount);
+    
+    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_getvector(1, sizeof(magma_int_t), &incx[batchCount], 1, &incx_err, 1, queue);
+    magma_getvector(1, sizeof(magma_int_t), &incy[batchCount], 1, &incy_err, 1, queue);
+    magma_queue_sync( queue );
+    
+    if      ( uplo != MagmaLower && uplo != MagmaUpper )
+        info = -1;
+    else if ( n_err < 0 )
+        info = -2;
+    else if ( ldda_err < 0 )
+        info = -5;
+    else if ( incx_err < 0 )
+        info = -7;
+    else if ( incy_err < 0 )
+        info = -10;
+    else if ( batchCount < 0)
+        info = -11;
+
+    return info;
+}
 
 
 /******************************************************************************/

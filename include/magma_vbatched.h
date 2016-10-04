@@ -90,6 +90,12 @@ magma_gemv_vbatched_checker(
         magma_int_t* ldda, magma_int_t* incx, magma_int_t* incy,  
         magma_int_t batchCount, magma_queue_t queue );
 
+magma_int_t 
+magma_hemv_vbatched_checker(
+        magma_uplo_t uplo, 
+        magma_int_t* n, magma_int_t* ldda, magma_int_t* incx, magma_int_t* incy,  
+        magma_int_t batchCount, magma_queue_t queue );
+
 // checker routines - Level 1 BLAS
 magma_int_t 
 magma_axpy_vbatched_checker( 

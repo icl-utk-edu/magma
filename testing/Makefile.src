@@ -185,6 +185,7 @@ testing_src += \
 	$(cdir)/testing_zgemm_batched.cpp	\
 	$(cdir)/testing_zgemv_batched.cpp	\
 	$(cdir)/testing_zhemm_batched.cpp	\
+	$(cdir)/testing_zhemv_batched.cpp	\
 	$(cdir)/testing_zherk_batched.cpp	\
 	$(cdir)/testing_zher2k_batched.cpp	\
 	$(cdir)/testing_zlacpy_batched.cpp	\
@@ -210,6 +211,7 @@ testing_src += \
 	$(cdir)/testing_zgemm_vbatched.cpp	\
 	$(cdir)/testing_zgemv_vbatched.cpp	\
 	$(cdir)/testing_zhemm_vbatched.cpp	\
+	$(cdir)/testing_zhemv_vbatched.cpp	\
 	$(cdir)/testing_zherk_vbatched.cpp	\
 	$(cdir)/testing_zher2k_vbatched.cpp	\
 	$(cdir)/testing_zsyrk_vbatched.cpp	\
