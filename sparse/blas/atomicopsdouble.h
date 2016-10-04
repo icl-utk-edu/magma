@@ -14,8 +14,9 @@
 
 #include "magmasparse_internal.h"
 
-#if __CUDA_ARCH__ >= 600
-#else
+#if (defined( CUDA_VERSION ) && ( CUDA_VERSION < 8000 )) \
+    || (defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ < 600 ))
+    
 __forceinline__ __device__ static double 
 atomicAdd(double *addr, double val)
 {
