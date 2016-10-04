@@ -171,16 +171,16 @@ int main( int argc, char** argv)
                 status += ! okay;
                 
                 printf("%10lld %5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)    %8.2e   %s\n",
-                       batchCount, 
-                       M, N,
+                       (long long)batchCount, 
+                       (long long)M, (long long)N,
                        magma_perf, 1000.*magma_time,
                        cpu_perf,    1000.*cpu_time,
                        magma_error, (magma_error < tol ? "ok" : "failed"));
             }
             else {
                 printf("%10lld %5lld %5lld   %7.2f (%7.2f)    ---   (  ---  )    ---     ---\n",
-                       batchCount, 
-                       M, N,
+                       (long long)batchCount, 
+                       (long long)M, (long long)N,
                        magma_perf, 1000.*magma_time);
             }
             
