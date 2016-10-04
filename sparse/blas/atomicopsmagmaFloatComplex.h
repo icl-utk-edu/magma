@@ -9,8 +9,8 @@
        @author Weifeng Liu
 
 */
-#ifndef MAGMASPARSE_ATOMICOPS_H
-#define MAGMASPARSE_ATOMICOPS_H
+#ifndef MAGMASPARSE_ATOMICOPS_MAGMAFLOATCOMPLEX_H
+#define MAGMASPARSE_ATOMICOPS_MAGMAFLOATCOMPLEX_H
 
 #include "magmasparse_internal.h"
 

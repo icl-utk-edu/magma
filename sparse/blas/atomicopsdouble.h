@@ -9,12 +9,12 @@
        @author Weifeng Liu
 
 */
-#ifndef MAGMASPARSE_ATOMICOPS_H
-#define MAGMASPARSE_ATOMICOPS_H
+#ifndef MAGMASPARSE_ATOMICOPS_DOUBLE_H
+#define MAGMASPARSE_ATOMICOPS_DOUBLE_H
 
 #include "magmasparse_internal.h"
 
-#if !defined(__CUDA_ARCH__) || __CUDA_ARCH__ >= 600
+#if __CUDA_ARCH__ >= 600
 #else
 __forceinline__ __device__ static double 
 atomicAdd(double *addr, double val)
