@@ -139,31 +139,48 @@ magma_zcumilusetup(
     CHECK( magma_zmtransfer( hL, &(precond->L), Magma_CPU, Magma_DEV, queue ));
     CHECK( magma_zmtransfer( hU, &(precond->U), Magma_CPU, Magma_DEV, queue ));
 
-
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
-    CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( &precond->cuinfoL ));
-    CHECK_CUSPARSE( cusparseZcsrsm_analysis( cusparseHandle,
-        CUSPARSE_OPERATION_NON_TRANSPOSE, precond->L.num_rows,
-        precond->L.nnz, descrL,
-        precond->L.dval, precond->L.drow, precond->L.dcol, precond->cuinfoL ));
-
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_UPPER ));
-    CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( &precond->cuinfoU ));
-    CHECK_CUSPARSE( cusparseZcsrsm_analysis( cusparseHandle,
-        CUSPARSE_OPERATION_NON_TRANSPOSE, precond->U.num_rows,
-        precond->U.nnz, descrU,
-        precond->U.dval, precond->U.drow, precond->U.dcol, precond->cuinfoU ));
-
-
-    if( precond->trisolver != 0 && precond->trisolver != Magma_CUSOLVE ){
+    if( precond->trisolver == Magma_CUSOLVE || precond->trisolver == 0 ){
+        CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
+        CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
+        CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_UNIT ));
+        CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
+        CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
+        CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( &precond->cuinfoL ));
+        CHECK_CUSPARSE( cusparseZcsrsm_analysis( cusparseHandle,
+            CUSPARSE_OPERATION_NON_TRANSPOSE, precond->L.num_rows,
+            precond->L.nnz, descrL,
+            precond->L.dval, precond->L.drow, precond->L.dcol, precond->cuinfoL ));
+    
+        CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
+        CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
+        CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
+        CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
+        CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_UPPER ));
+        CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( &precond->cuinfoU ));
+        CHECK_CUSPARSE( cusparseZcsrsm_analysis( cusparseHandle,
+            CUSPARSE_OPERATION_NON_TRANSPOSE, precond->U.num_rows,
+            precond->U.nnz, descrU,
+            precond->U.dval, precond->U.drow, precond->U.dcol, precond->cuinfoU ));
+    } else if( precond->trisolver == Magma_SPTRSV ){
+            magma_zmfree(&hL, queue );
+            magma_zmfree(&hU, queue );
+            magma_zmtransfer( precond->L, &hL, Magma_DEV, Magma_DEV, queue );
+            // conversion using CUSPARSE
+            cusparseZcsr2csc(cusparseHandle, hL.num_cols, hL.num_rows, hL.nnz,
+                             hL.dval, hL.dcol, hL.drow,
+                             precond->L.dval, precond->L.dcol, precond->L.drow,
+                             CUSPARSE_ACTION_NUMERIC,
+                             CUSPARSE_INDEX_BASE_ZERO);
+            magma_zmtransfer( precond->U, &hU, Magma_DEV, Magma_DEV, queue );
+            // conversion using CUSPARSE
+            cusparseZcsr2csc(cusparseHandle, hU.num_cols, hU.num_rows, hU.nnz,
+                             hU.dval, hU.dcol, hU.drow,
+                             precond->U.dval, precond->U.dcol, precond->U.drow,
+                             CUSPARSE_ACTION_NUMERIC,
+                             CUSPARSE_INDEX_BASE_ZERO);
+            magma_zmfree(&hL, queue );
+            magma_zmfree(&hU, queue );
+    } else {
         //prepare for iterative solves
         
         // extract the diagonal of L into precond->d

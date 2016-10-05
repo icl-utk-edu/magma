@@ -53,7 +53,8 @@ static const char *usage_sparse =
 "                   --triolver k  Solver for triangular ILU factors: e.g. CUSOLVE, JACOBI, ISAI.\n"
 "                   --ppattern k  Pattern used for ISAI preconditioner.\n"
 "                   --psweeps x   Number of iterative ParILU sweeps.\n"
-" --trisolver   Possibility to choose a triangular solver for ILU preconditioning: e.g. JACOBI, VBJACOBI, ISAI.\n"
+" --trisolver   Possibility to choose a triangular solver for ILU preconditioning: \n"
+"               e.g. CUSOLVE, ISPTRSV, JACOBI, VBJACOBI, ISAI.\n"
 " --ppattern k  Possibility to choose a pattern for the trisolver: ISAI(k) or Block Jacobi.\n"
 " --piters k    Number of preconditioner relaxation steps, e.g. for ISAI or (Block) Jacobi trisolver.\n"
 " --patol x     Set an absolute residual stopping criterion for the preconditioner.\n"
@@ -378,6 +379,9 @@ magma_zparse_opts(
             }
             else if ( strcmp("CUSOLVE", argv[i]) == 0 ) {
                 opts->precond_par.trisolver = Magma_CUSOLVE;
+            }
+            else if ( strcmp("SPTRSV", argv[i]) == 0 ) {
+                opts->precond_par.trisolver = Magma_SPTRSV;
             }
             else if ( strcmp("ISAI", argv[i]) == 0 ) {
                 opts->precond_par.trisolver = Magma_ISAI;
