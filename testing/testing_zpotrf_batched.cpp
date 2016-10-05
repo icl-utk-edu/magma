@@ -49,7 +49,7 @@ int main( int argc, char** argv)
     int status = 0;
     magmaDoubleComplex **d_A_array = NULL;
     magma_int_t *dinfo_magma;
-    magma_int_t *cpu_info;
+    magma_int_t *hinfo_magma;
 
     magma_int_t batchCount;
 
@@ -72,7 +72,7 @@ int main( int argc, char** argv)
 
             gflops = batchCount * FLOPS_ZPOTRF( N ) / 1e9;
 
-            TESTING_CHECK( magma_imalloc_cpu( &cpu_info, batchCount ));
+            TESTING_CHECK( magma_imalloc_cpu( &hinfo_magma, batchCount ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_A, n2 ));
             TESTING_CHECK( magma_zmalloc_pinned( &h_R, n2 ));
             TESTING_CHECK( magma_zmalloc( &d_A, ldda * N * batchCount ));
@@ -102,12 +102,12 @@ int main( int argc, char** argv)
             info = magma_zpotrf_batched( opts.uplo, N, d_A_array, ldda, dinfo_magma, batchCount, queue);
             gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             gpu_perf = gflops / gpu_time;
-            magma_getvector( batchCount, sizeof(magma_int_t), dinfo_magma, 1, cpu_info, 1, opts.queue );
+            magma_getvector( batchCount, sizeof(magma_int_t), dinfo_magma, 1, hinfo_magma, 1, opts.queue );
             for (int i=0; i < batchCount; i++)
             {
-                if (cpu_info[i] != 0 ) {
+                if (hinfo_magma[i] != 0 ) {
                     printf("magma_zpotrf_batched matrix %lld returned diag error %lld\n",
-                            (long long) i, (long long) cpu_info[i] );
+                            (long long) i, (long long) hinfo_magma[i] );
                     status = -1;
                 }
             }
@@ -180,7 +180,7 @@ int main( int argc, char** argv)
                        (long long) batchCount, (long long) N, gpu_perf, gpu_time*1000. );
             }
 cleanup:
-            magma_free_cpu( cpu_info );
+            magma_free_cpu( hinfo_magma );
             magma_free_cpu( h_A );
             magma_free_pinned( h_R );
             magma_free( d_A );
