@@ -507,6 +507,10 @@ magma_zparse_opts(
         && opts->precond_par.solver == Magma_PARILU )
             opts->precond_par.solver = Magma_PARIC;
             
+    // workaround for CG not being optimized for CSR5
+    if ( opts->solver_par.solver == Magma_CGMERGE && opts->output_format == Magma_CSR5 )
+        opts->solver_par.solver = Magma_CG;
+            
             
     return info;
 }
