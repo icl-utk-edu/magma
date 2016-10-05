@@ -117,6 +117,7 @@ libmagma_src += \
 	$(cdir)/dgemv_batched_core.cu		\
 	$(cdir)/sgemv_batched_core.cu		\
 	$(cdir)/zgemv_batched_core.cu		\
+	$(cdir)/zhemv_batched_core.cu		\
 	$(cdir)/zgeqr2_batched.cu		\
 	$(cdir)/zgerbt_func_batched.cu		\
 	$(cdir)/zgetf2_kernels.cu		\
@@ -150,6 +151,7 @@ libmagma_src += \
 	$(cdir)/dgemv_vbatched_core.cu	\
 	$(cdir)/sgemv_vbatched_core.cu	\
 	$(cdir)/zhemm_vbatched_core.cu	\
+	$(cdir)/zhemv_vbatched_core.cu	\
 	$(cdir)/cherk_vbatched_core.cu	\
 	$(cdir)/zherk_vbatched_core.cu	\
 	$(cdir)/ssyrk_vbatched_core.cu	\
@@ -162,6 +164,7 @@ libmagma_src += \
 	$(cdir)/zgemm_vbatched.cpp		\
 	$(cdir)/zgemv_vbatched.cpp		\
 	$(cdir)/zhemm_vbatched.cpp		\
+	$(cdir)/zhemv_vbatched.cpp		\
 	$(cdir)/zher2k_vbatched.cpp		\
 	$(cdir)/zherk_vbatched.cpp		\
 	$(cdir)/zsyr2k_vbatched.cpp		\
@@ -251,10 +254,20 @@ $(cdir)/cgemv_batched_core.$(o_ext): $(cdir)/gemv_template_kernel_batched.cuh $(
 $(cdir)/dgemv_batched_core.$(o_ext): $(cdir)/gemv_template_kernel_batched.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/sgemv_batched_core.$(o_ext): $(cdir)/gemv_template_kernel_batched.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 
+$(cdir)/zhemv_batched_core.$(o_ext): $(cdir)/hemv_template_kernel_batched.cuh $(cdir)/hemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/chemv_batched_core.$(o_ext): $(cdir)/hemv_template_kernel_batched.cuh $(cdir)/hemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/dsymv_batched_core.$(o_ext): $(cdir)/hemv_template_kernel_batched.cuh $(cdir)/hemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/ssymv_batched_core.$(o_ext): $(cdir)/hemv_template_kernel_batched.cuh $(cdir)/hemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+
 $(cdir)/zgemv_vbatched_core.$(o_ext): $(cdir)/gemv_template_kernel_vbatched.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/cgemv_vbatched_core.$(o_ext): $(cdir)/gemv_template_kernel_vbatched.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/dgemv_vbatched_core.$(o_ext): $(cdir)/gemv_template_kernel_vbatched.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/sgemv_vbatched_core.$(o_ext): $(cdir)/gemv_template_kernel_vbatched.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+
+$(cdir)/zhemv_vbatched_core.$(o_ext): $(cdir)/hemv_template_kernel_vbatched.cuh $(cdir)/hemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/chemv_vbatched_core.$(o_ext): $(cdir)/hemv_template_kernel_vbatched.cuh $(cdir)/hemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/dsymv_vbatched_core.$(o_ext): $(cdir)/hemv_template_kernel_vbatched.cuh $(cdir)/hemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/ssymv_vbatched_core.$(o_ext): $(cdir)/hemv_template_kernel_vbatched.cuh $(cdir)/hemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 
 $(cdir)/zgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/cgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh

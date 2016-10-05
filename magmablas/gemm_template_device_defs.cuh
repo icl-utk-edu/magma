@@ -83,6 +83,15 @@ FloatingPoint_t tex_fetch(texture<float> tex_ref, int coord)
     #define make_FloatingPoint(x, y) (x)
 #endif
 
+#if defined(PRECISION_z)
+    #define magmablas_atomic_add magmablas_zatomic_add
+#elif defined(PRECISION_c)
+    #define magmablas_atomic_add magmablas_catomic_add
+#elif defined(PRECISION_d)
+    #define magmablas_atomic_add magmablas_datomic_add
+#else
+    #define magmablas_atomic_add magmablas_satomic_add
+#endif
 
 // =============================================================================
 #ifdef TEXTURE_1D
