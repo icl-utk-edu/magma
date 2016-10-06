@@ -67,91 +67,99 @@ magmablas_zhemv_vbatched_nocheck(
             beta,  dy_array, incy, 
             batchCount, max_n, queue);
 }
-
-
-/***************************************************************************//**
+/***************************************************************************/
+/**
     Purpose
     -------
-    ZHEMV performs one of the matrix-vector operations
-    
-        y := alpha*A*x    + beta*y,   or
-        y := alpha*A**T*x + beta*y,   or
-        y := alpha*A**H*x + beta*y,
-    
-    where alpha and beta are scalars, x and y are vectors and A is an
-    m by n matrix.
+    ZHEMV performs the matrix-vector operation:
+
+        y := alpha*A*x + beta*y,
+
+    where alpha and beta are scalars, x and y are n element vectors and
+    A is an n by n Hermitian matrix.
+    This is the variable size batched version of the operation. 
 
     Arguments
     ----------
     @param[in]
-    trans   magma_trans_t
-            On entry, TRANS specifies the operation to be performed as
+    uplo    magma_uplo_t.
+            On entry, UPLO specifies whether the upper or lower
+            triangular part of the array A is to be referenced as
             follows:
-      -     = MagmaNoTrans:    y := alpha*A  *x + beta*y
-      -     = MagmaTrans:      y := alpha*A^T*x + beta*y
-      -     = MagmaConjTrans:  y := alpha*A^H*x + beta*y
+      -     = MagmaUpper:  Only the upper triangular part of A is to be referenced.
+      -     = MagmaLower:  Only the lower triangular part of A is to be referenced.
 
     @param[in]
-    m       Array of integers, dimension (batchCount + 1).
-            On entry, each INTEGER M specifies the number of rows of each matrix A.
-            The last element of the array is used internally by the routine. 
+    n       INTEGER array, dimension(batchCoutn + 1).
+            On entry, each element N specifies the order of each matrix A.
+            N must be at least zero.
 
     @param[in]
-    n       Array of integers, dimension (batchCount + 1).
-            On entry, each INTEGER N specifies the number of columns of each matrix A
-            The last element of the array is used internally by the routine. 
- 
-    @param[in]
-    alpha   COMPLEX_16
+    alpha   COMPLEX_16.
             On entry, ALPHA specifies the scalar alpha.
 
+    @param[in]
+    dA_array    Array of pointers, dimension(batchCount). 
+            Each is a COMPLEX_16 array A of DIMENSION ( LDDA, N ).
+            Before entry with UPLO = MagmaUpper, the leading N by N
+            upper triangular part of the array A must contain the upper
+            triangular part of the Hermitian matrix and the strictly
+            lower triangular part of A is not referenced.
+            Before entry with UPLO = MagmaLower, the leading N by N
+            lower triangular part of the array A must contain the lower
+            triangular part of the Hermitian matrix and the strictly
+            upper triangular part of A is not referenced.
+            Note that the imaginary parts of the diagonal elements need
+            not be set and are assumed to be zero.
 
     @param[in]
-    dA_array 	Array of pointers, dimension (batchCount).
-             Each is a COMPLEX_16 array A of DIMENSION ( LDDA, N ) on the GPU
-   
-    @param[in]
-    ldda    Array of integers, dimension (batchCount + 1).
-            Each INTEGER LDDA specifies the leading dimension of each matrix A.
+    ldda    INTEGER array, dimension(batchCount + 1).
+            On entry, each element LDDA specifies the first dimension of each A as declared
+            in the calling (sub) program. LDDA must be at least
+            max( 1, n ).
+            It is recommended that LDDA is multiple of 16. Otherwise
+            performance would be deteriorated as the memory accesses
+            would not be fully coalescent.
 
     @param[in]
-    dx_array 	Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array of dimension
-            N if trans == MagmaNoTrans
-            M if trans == MagmaTrans or MagmaConjTrans
-     
+    dX_array    Array of pointers, dimension(batchCount). 
+            Each is a COMPLEX_16 array X of dimension at least
+            ( 1 + ( n - 1 )*abs( INCX ) ).
+            Before entry, the incremented array X must contain the n
+            element vector X.
+
     @param[in]
-    incx    Array of integers, dimension (batchCount + 1).
-            Each integer specifies the increment for the elements of each vector X.
-            INCX must not be zero.
-            The last element of the array is used internally by the routine. 
-  
+    incx    INTEGER array, dimension(batchCount + 1).
+            On entry, each element INCX specifies the increment for the elements of
+            each X. INCX must not be zero.
+
     @param[in]
-    beta    COMPLEX_16
-            On entry, ALPHA specifies the scalar beta. When BETA is
+    beta    COMPLEX_16.
+            On entry, BETA specifies the scalar beta. When BETA is
             supplied as zero then Y need not be set on input.
 
-    @param[out]
-    dy_array 	Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array of dimension
-            M if trans == MagmaNoTrans
-            N if trans == MagmaTrans or MagmaConjTrans
+    @param[in,out]
+    dY_array    Array of pointers, dimension(batchCount). 
+            Each is a COMPLEX_16 array Y of dimension at least
+            ( 1 + ( n - 1 )*abs( INCY ) ).
+            Before entry, the incremented array Y must contain the n
+            element vector Y. On exit, Y is overwritten by the updated
+            vector Y.
 
     @param[in]
-    incy    Array of integers, dimension (batchCount + 1).
-            Each integer specifies the increment for the elements of each vector Y.
-            INCY must not be zero.
-            The last element of the array is used internally by the routine. 
+    incy    INTEGER array, dimension(batchCount + 1).
+            On entry, each element INCY specifies the increment for the elements of
+            each Y. INCY must not be zero.
 
     @param[in]
-    batchCount  INTEGER
-                The number of matrices to operate on.
-
+    batchCount    INTEGER.
+            The number of problems to operate on. 
+    
     @param[in]
     queue   magma_queue_t
             Queue to execute in.
 
-    @ingroup magma_gemv_batched
+    @ingroup magma_hemv_vbatched
 *******************************************************************************/
 extern "C" void
 magmablas_zhemv_vbatched(
