@@ -23,6 +23,13 @@
 extern "C" {
 #endif
 
+// checker routines - LAPACK
+magma_int_t 
+magma_potrf_vbatched_checker(
+        magma_uplo_t uplo, 
+        magma_int_t* n, magma_int_t* ldda,  
+        magma_int_t batchCount, magma_queue_t queue );
+
 // checker routines - Level 3 BLAS
 magma_int_t 
 magma_gemm_vbatched_checker(

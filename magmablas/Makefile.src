@@ -171,6 +171,9 @@ libmagma_src += \
 	$(cdir)/zsyrk_vbatched.cpp		\
 	$(cdir)/ztrmm_vbatched.cpp		\
 
+libmagma_src += \
+	$(cdir)/zpotf2_kernels_var.cu		\
+
 # aux vbatched files
 libmagma_src += \
 	$(cdir)/prefix_sum.cu		\

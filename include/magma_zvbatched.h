@@ -23,13 +23,55 @@
 extern "C" {
 #endif
   /*
-   *  BLAS batched routines
+   *  LAPACK vbatched routines
    */
-// Level 1
+magma_int_t
+magma_zpotrf_lpout_vbatched(
+    magma_uplo_t uplo, magma_int_t *n, magma_int_t max_n,  
+    magmaDoubleComplex **dA_array, magma_int_t *lda, magma_int_t gbstep,
+    magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue);
 
-// Level 2
+magma_int_t
+magma_zpotf2_vbatched(
+    magma_uplo_t uplo, magma_int_t* n, magma_int_t max_n, 
+    magmaDoubleComplex **dA_array, magma_int_t* lda,
+    magmaDoubleComplex **dA_displ, 
+    magmaDoubleComplex **dW_displ,
+    magmaDoubleComplex **dB_displ, 
+    magmaDoubleComplex **dC_displ, 
+    magma_int_t *info_array, magma_int_t gbstep, 
+    magma_int_t batchCount, magma_queue_t queue);
 
-// Level 3
+magma_int_t
+magma_zpotrf_panel_vbatched(
+    magma_uplo_t uplo, magma_int_t* n, magma_int_t max_n, 
+    magma_int_t *ibvec, magma_int_t nb,  
+    magmaDoubleComplex** dA_array,    magma_int_t* ldda,
+    magmaDoubleComplex** dX_array,    magma_int_t* dX_length,
+    magmaDoubleComplex** dinvA_array, magma_int_t* dinvA_length,
+    magmaDoubleComplex** dW0_displ, magmaDoubleComplex** dW1_displ, 
+    magmaDoubleComplex** dW2_displ, magmaDoubleComplex** dW3_displ,
+    magmaDoubleComplex** dW4_displ, 
+    magma_int_t *info_array, magma_int_t gbstep,
+    magma_int_t batchCount, magma_queue_t queue);
+
+magma_int_t
+magma_zpotrf_vbatched_max_nocheck(
+    magma_uplo_t uplo, magma_int_t *n, 
+    magmaDoubleComplex **dA_array, magma_int_t *ldda,
+    magma_int_t *info_array,  magma_int_t batchCount, 
+    magma_int_t max_n, magma_queue_t queue);
+
+magma_int_t
+magma_zpotrf_vbatched(
+    magma_uplo_t uplo, magma_int_t *n, 
+    magmaDoubleComplex **dA_array, magma_int_t *ldda,
+    magma_int_t *info_array,  magma_int_t batchCount, 
+    magma_queue_t queue);
+  /*
+   *  BLAS vbatched routines
+   */
+/* Level 3 */
 void 
 magmablas_zgemm_vbatched_core(
     magma_trans_t transA, magma_trans_t transB, 
@@ -470,6 +512,7 @@ magmablas_zhemm_vbatched(
         magmaDoubleComplex **dC_array, magma_int_t *lddc, 
         magma_int_t batchCount, magma_queue_t queue );
 
+/* Level 2 */
 void
 magmablas_zgemv_vbatched_max_nocheck(
     magma_trans_t trans, magma_int_t* m, magma_int_t* n, 
@@ -551,7 +594,7 @@ magmablas_zhemv_vbatched(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr dy_array[], magma_int_t* incy, 
     magma_int_t batchCount, magma_queue_t queue);
-
+/* Level 1 */
 /* Auxiliary routines */
 void magma_zset_pointer_var_cc(
     magmaDoubleComplex **output_array,
@@ -601,6 +644,12 @@ magmablas_zlacpy_vbatched(
     magmaDoubleComplex const * const * dAarray, magma_int_t* ldda,
     magmaDoubleComplex**               dBarray, magma_int_t* lddb,
     magma_int_t batchCount, magma_queue_t queue );
+
+  /*
+   *  Aux. vbatched routines
+   */    
+magma_int_t magma_get_zpotrf_vbatched_crossover();
+
 #ifdef __cplusplus
 }
 #endif

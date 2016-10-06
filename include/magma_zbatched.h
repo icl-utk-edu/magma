@@ -327,20 +327,6 @@ magma_zpotrf_batched(
     magma_int_t *info_array,
     magma_int_t batchCount, magma_queue_t queue);
 
-magma_int_t
-magma_zpotrf_lg_vbatched(
-    magma_uplo_t uplo, magma_int_t n,
-    magmaDoubleComplex **dA_array, magma_int_t ldda,
-    magma_int_t *info_array,
-    magma_int_t batchCount, magma_queue_t queue);
-
-magma_int_t
-magma_zpotrf_vbatched(
-    magma_uplo_t uplo, magma_int_t *n, magma_int_t nmax, 
-    magmaDoubleComplex **dA_array, magma_int_t *ldda,
-    magma_int_t *info_array,
-    magma_int_t batchCount, magma_queue_t queue);
-
 magma_int_t 
 magma_zpotf2_batched(
     magma_uplo_t uplo, magma_int_t m, magma_int_t n,
@@ -956,13 +942,6 @@ magma_int_t
 magma_zpotrf_v33_batched(
     magma_uplo_t uplo, magma_int_t n, 
     magmaDoubleComplex **dA_array, magma_int_t lda,
-    magma_int_t *info_array,
-    magma_int_t batchCount, magma_queue_t queue);
-
-magma_int_t
-magma_zpotrf_lpout_vbatched(
-    magma_uplo_t uplo, magma_int_t *n, magma_int_t nmax,  
-    magmaDoubleComplex **dA_array, magma_int_t *lda, magma_int_t gbstep,
     magma_int_t *info_array,
     magma_int_t batchCount, magma_queue_t queue);
 
