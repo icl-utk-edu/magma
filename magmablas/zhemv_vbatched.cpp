@@ -67,8 +67,7 @@ magmablas_zhemv_vbatched_nocheck(
             beta,  dy_array, incy, 
             batchCount, max_n, queue);
 }
-/***************************************************************************/
-/**
+/***************************************************************************//**
     Purpose
     -------
     ZHEMV performs the matrix-vector operation:

@@ -36,7 +36,7 @@ magma_int_t magma_get_ztrmm_vbatched_nb(magma_int_t n)
     else if ( n >    2 ) return   2;
     else return 1;
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
 void
 magmablas_ztrmm_small_vbatched(
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
@@ -86,7 +86,7 @@ magmablas_ztrmm_small_vbatched(
         default:; // propose something
     }
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
 extern "C" void 
 magmablas_ztrmm_vbatched_core(
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
@@ -421,4 +421,4 @@ magmablas_ztrmm_vbatched_core(
         default:; // propose something
     }
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/

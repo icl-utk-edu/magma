@@ -15,7 +15,7 @@
 #include "commonblas_z.h"
 
 #define PRECISION_z
-
+/*******************************************************************************/
 extern "C" void 
 magmablas_ztrsm_vbatched_max(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
@@ -43,7 +43,7 @@ magmablas_ztrsm_vbatched_max(
             batchCount, 
             max_m, max_n, queue);
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/*******************************************************************************/
 extern "C" void
 magmablas_ztrsm_vbatched_nocheck(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
@@ -211,4 +211,4 @@ magmablas_ztrsm_vbatched(
             batchCount, 
             max_m, max_n, queue);
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/*******************************************************************************/

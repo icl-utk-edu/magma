@@ -15,8 +15,7 @@
 
 #define PRECISION_z
 #include "hemv_template_kernel_batched.cuh"
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/***************************************************************************/
 extern "C" void 
 magmablas_zhemv_batched_core(
         magma_uplo_t uplo, magma_int_t n, 
