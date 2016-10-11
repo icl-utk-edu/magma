@@ -674,7 +674,7 @@ magma_zgecsr5mv(
     
     magma_int_t arch = magma_getdevice_arch();
     
-#if (defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ >= 600 ))
+#if (defined( CUDA_VERSION ) && ( CUDA_VERSION >= 8000 ))
     if ( arch >= 600 ) {
     
         //dim3 grid( magma_ceildiv( m, BLOCK_SIZE ) );
