@@ -24,8 +24,7 @@
 #define MAGMA_CSR5_THREAD_GROUP 128
 #define MAGMA_CSR5_THREAD_BUNCH 32
 
-#if (defined( CUDA_VERSION ) && ( CUDA_VERSION >= 8000 )) \
-    && (defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ >= 600 ))
+#if (defined( CUDA_VERSION ) && ( CUDA_VERSION >= 8000 ))
 
 __inline__ __device__ void
 sum_32(
