@@ -22,6 +22,9 @@
 #define MAGMA_CSR5_THREAD_GROUP 128
 #define MAGMA_CSR5_THREAD_BUNCH 32
 
+#if (defined( CUDA_VERSION ) && ( CUDA_VERSION > 7500 )) \
+    && (defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ > 550 ))
+
 __inline__ __device__ void
 sum_32(
              magmaDoubleComplex *s_sum,
@@ -535,6 +538,8 @@ zgecsr5mv_kernel_update_y(int    num_rows,
     }
 }
 
+#endif
+
 /**
     Purpose
     -------
@@ -665,6 +670,11 @@ magma_zgecsr5mv(
     magmaDoubleComplex_ptr  dy,
     magma_queue_t           queue )
 {
+    int info;
+    
+#if (defined( CUDA_VERSION ) && ( CUDA_VERSION > 7500 )) \
+    && (defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ > 550 ))
+    
     //dim3 grid( magma_ceildiv( m, BLOCK_SIZE ) );
     //magma_int_t threads = BLOCK_SIZE;
     //zgecsrmv_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
@@ -907,8 +917,15 @@ magma_zgecsr5mv(
             <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
             (drowptr, dcolind, dval, dx, dy,
              tail_tile_start, p, sigma, alpha);
+            
+    info = MAGMA_SUCCESS;
+    
+#else
+    info = MAGMA_ERR_NOT_SUPPORTED;
+#endif
 
-    return MAGMA_SUCCESS;
+
+    return info;
 }
 
 
