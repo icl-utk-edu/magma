@@ -14,6 +14,8 @@
 
 #include "magmasparse_internal.h"
 
+#include <cuda.h>
+
 #if (defined( CUDA_VERSION ) && ( CUDA_VERSION < 8000 )) \
     || (defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ < 600 ))
     
