@@ -22,8 +22,8 @@
 #define MAGMA_CSR5_THREAD_GROUP 128
 #define MAGMA_CSR5_THREAD_BUNCH 32
 
-#if (defined( CUDA_VERSION ) && ( CUDA_VERSION > 7500 )) \
-    && (defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ > 550 ))
+#if (defined( CUDA_VERSION ) && ( CUDA_VERSION >= 8000 )) \
+    && (defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ >= 600 ))
 
 __inline__ __device__ void
 sum_32(
@@ -670,258 +670,261 @@ magma_zgecsr5mv(
     magmaDoubleComplex_ptr  dy,
     magma_queue_t           queue )
 {
-    int info;
+    int info = MAGMA_ERR_NOT_SUPPORTED;
     
-#if (defined( CUDA_VERSION ) && ( CUDA_VERSION > 7500 )) \
-    && (defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ > 550 ))
+    magma_int_t arch = magma_getdevice_arch();
     
-    //dim3 grid( magma_ceildiv( m, BLOCK_SIZE ) );
-    //magma_int_t threads = BLOCK_SIZE;
-    //zgecsrmv_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
-    //                (m, n, alpha, dval, drowptr, dcolind, dx, beta, dy);
-
-    // phase 1. update y: y = beta * y
-    magma_int_t num_threads = MAGMA_CSR5_THREAD_GROUP;
-    magma_int_t num_blocks = magma_ceildiv( m, num_threads ); 
-    //ceil ((double)m / (double)num_threads);
-
-    zgecsr5mv_kernel_update_y
-        <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>(m, beta, dy);
-
-    // phase 2. spmv: y += alpha * A * x
-    num_threads = MAGMA_CSR5_THREAD_GROUP;
-    num_blocks = magma_ceildiv( p-1, num_threads / MAGMA_CSR5_OMEGA ); 
-    // ceil ((double)(p-1) / (double)(num_threads / MAGMA_CSR5_OMEGA));
-
-    switch (sigma)
-    {
-    case 4:
-        spmv_csr5_compute_kernel<4>
-             <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 5:
-        spmv_csr5_compute_kernel<5>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 6:
-        spmv_csr5_compute_kernel<6>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 7:
-        spmv_csr5_compute_kernel<7>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 8:
-        spmv_csr5_compute_kernel<8>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 9:
-        spmv_csr5_compute_kernel<9>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 10:
-        spmv_csr5_compute_kernel<10>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-
-    case 11:
-        spmv_csr5_compute_kernel<11>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 12:
-        spmv_csr5_compute_kernel<12>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 13:
-        spmv_csr5_compute_kernel<13>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 14:
-        spmv_csr5_compute_kernel<14>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 15:
-        spmv_csr5_compute_kernel<15>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 16:
-        spmv_csr5_compute_kernel<16>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 17:
-        spmv_csr5_compute_kernel<17>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 18:
-        spmv_csr5_compute_kernel<18>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 19:
-        spmv_csr5_compute_kernel<19>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 20:
-        spmv_csr5_compute_kernel<20>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-
-    case 21:
-        spmv_csr5_compute_kernel<21>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 22:
-        spmv_csr5_compute_kernel<22>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 23:
-        spmv_csr5_compute_kernel<23>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 24:
-        spmv_csr5_compute_kernel<24>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 25:
-        spmv_csr5_compute_kernel<25>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 26:
-        spmv_csr5_compute_kernel<26>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 27:
-        spmv_csr5_compute_kernel<27>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 28:
-        spmv_csr5_compute_kernel<28>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 29:
-        spmv_csr5_compute_kernel<29>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 30:
-        spmv_csr5_compute_kernel<30>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-
-    case 31:
-        spmv_csr5_compute_kernel<31>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
-    case 32:
-        spmv_csr5_compute_kernel<32>
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
-             dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
-             num_packet, bit_y_offset, bit_scansum_offset, alpha);
-        break;
+#if (defined( __CUDA_ARCH__ ) && ( __CUDA_ARCH__ >= 600 ))
+    if ( arch >= 600 ) {
+    
+        //dim3 grid( magma_ceildiv( m, BLOCK_SIZE ) );
+        //magma_int_t threads = BLOCK_SIZE;
+        //zgecsrmv_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
+        //                (m, n, alpha, dval, drowptr, dcolind, dx, beta, dy);
+    
+        // phase 1. update y: y = beta * y
+        magma_int_t num_threads = MAGMA_CSR5_THREAD_GROUP;
+        magma_int_t num_blocks = magma_ceildiv( m, num_threads ); 
+        //ceil ((double)m / (double)num_threads);
+    
+        zgecsr5mv_kernel_update_y
+            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>(m, beta, dy);
+    
+        // phase 2. spmv: y += alpha * A * x
+        num_threads = MAGMA_CSR5_THREAD_GROUP;
+        num_blocks = magma_ceildiv( p-1, num_threads / MAGMA_CSR5_OMEGA ); 
+        // ceil ((double)(p-1) / (double)(num_threads / MAGMA_CSR5_OMEGA));
+    
+        switch (sigma)
+        {
+        case 4:
+            spmv_csr5_compute_kernel<4>
+                 <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 5:
+            spmv_csr5_compute_kernel<5>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 6:
+            spmv_csr5_compute_kernel<6>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 7:
+            spmv_csr5_compute_kernel<7>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 8:
+            spmv_csr5_compute_kernel<8>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 9:
+            spmv_csr5_compute_kernel<9>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 10:
+            spmv_csr5_compute_kernel<10>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+    
+        case 11:
+            spmv_csr5_compute_kernel<11>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 12:
+            spmv_csr5_compute_kernel<12>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 13:
+            spmv_csr5_compute_kernel<13>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 14:
+            spmv_csr5_compute_kernel<14>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 15:
+            spmv_csr5_compute_kernel<15>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 16:
+            spmv_csr5_compute_kernel<16>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 17:
+            spmv_csr5_compute_kernel<17>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 18:
+            spmv_csr5_compute_kernel<18>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 19:
+            spmv_csr5_compute_kernel<19>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 20:
+            spmv_csr5_compute_kernel<20>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+    
+        case 21:
+            spmv_csr5_compute_kernel<21>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 22:
+            spmv_csr5_compute_kernel<22>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 23:
+            spmv_csr5_compute_kernel<23>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 24:
+            spmv_csr5_compute_kernel<24>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 25:
+            spmv_csr5_compute_kernel<25>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 26:
+            spmv_csr5_compute_kernel<26>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 27:
+            spmv_csr5_compute_kernel<27>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 28:
+            spmv_csr5_compute_kernel<28>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 29:
+            spmv_csr5_compute_kernel<29>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 30:
+            spmv_csr5_compute_kernel<30>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+    
+        case 31:
+            spmv_csr5_compute_kernel<31>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        case 32:
+            spmv_csr5_compute_kernel<32>
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dcolind, dval, drowptr, dx, dtile_ptr, dtile_desc, 
+                 dtile_desc_offset_ptr, dtile_desc_offset, dcalibrator, dy, p, 
+                 num_packet, bit_y_offset, bit_scansum_offset, alpha);
+            break;
+        }
+    
+        num_threads = MAGMA_CSR5_THREAD_GROUP;
+        num_blocks = ceil((double)(p-1)/(double)num_threads);
+    
+        spmv_csr5_calibrate_kernel
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (dtile_ptr, dcalibrator, dy, p);
+    
+        num_threads = MAGMA_CSR5_OMEGA;
+        num_blocks = m - tail_tile_start;
+    
+        spmv_csr5_tail_tile_kernel
+                <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
+                (drowptr, dcolind, dval, dx, dy,
+                 tail_tile_start, p, sigma, alpha);
+                
+        info = MAGMA_SUCCESS;
+    
+    } else {
+        info = MAGMA_ERR_NOT_SUPPORTED;
     }
-
-    num_threads = MAGMA_CSR5_THREAD_GROUP;
-    num_blocks = ceil((double)(p-1)/(double)num_threads);
-
-    spmv_csr5_calibrate_kernel
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (dtile_ptr, dcalibrator, dy, p);
-
-    num_threads = MAGMA_CSR5_OMEGA;
-    num_blocks = m - tail_tile_start;
-
-    spmv_csr5_tail_tile_kernel
-            <<< num_blocks, num_threads, 0, queue->cuda_stream() >>>
-            (drowptr, dcolind, dval, dx, dy,
-             tail_tile_start, p, sigma, alpha);
-            
-    info = MAGMA_SUCCESS;
-    
-#else
-    info = MAGMA_ERR_NOT_SUPPORTED;
 #endif
 
 
