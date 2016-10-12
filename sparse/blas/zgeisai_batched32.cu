@@ -20,10 +20,7 @@
 
 #include <cuda.h>  // for CUDA_VERSION
 
-#if (CUDA_VERSION > 6000) // only for cuda>6000
-// #if (CUDA_ARCH >= 300)
-         
-
+#if (CUDA_VERSION >= 7000) // only for cuda>6000
 
 __device__ void                                                                      
 magma_zlowerisai_regs1_kernel(                                                      
@@ -37,7 +34,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 1 )                                                                  
         return;                                                                      
@@ -117,7 +114,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 1 )                                                                  
         return;                                                                      
@@ -197,7 +194,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 2 )                                                                  
         return;                                                                      
@@ -277,7 +274,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 2 )                                                                  
         return;                                                                      
@@ -357,7 +354,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 3 )                                                                  
         return;                                                                      
@@ -437,7 +434,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 3 )                                                                  
         return;                                                                      
@@ -517,7 +514,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 4 )                                                                  
         return;                                                                      
@@ -597,7 +594,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 4 )                                                                  
         return;                                                                      
@@ -677,7 +674,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 5 )                                                                  
         return;                                                                      
@@ -757,7 +754,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 5 )                                                                  
         return;                                                                      
@@ -837,7 +834,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 6 )                                                                  
         return;                                                                      
@@ -917,7 +914,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 6 )                                                                  
         return;                                                                      
@@ -997,7 +994,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 7 )                                                                  
         return;                                                                      
@@ -1077,7 +1074,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 7 )                                                                  
         return;                                                                      
@@ -1157,7 +1154,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 8 )                                                                  
         return;                                                                      
@@ -1237,7 +1234,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 8 )                                                                  
         return;                                                                      
@@ -1317,7 +1314,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 9 )                                                                  
         return;                                                                      
@@ -1397,7 +1394,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 9 )                                                                  
         return;                                                                      
@@ -1477,7 +1474,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 10 )                                                                  
         return;                                                                      
@@ -1557,7 +1554,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 10 )                                                                  
         return;                                                                      
@@ -1637,7 +1634,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 11 )                                                                  
         return;                                                                      
@@ -1717,7 +1714,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 11 )                                                                  
         return;                                                                      
@@ -1797,7 +1794,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 12 )                                                                  
         return;                                                                      
@@ -1877,7 +1874,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 12 )                                                                  
         return;                                                                      
@@ -1957,7 +1954,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 13 )                                                                  
         return;                                                                      
@@ -2037,7 +2034,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 13 )                                                                  
         return;                                                                      
@@ -2117,7 +2114,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 14 )                                                                  
         return;                                                                      
@@ -2197,7 +2194,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 14 )                                                                  
         return;                                                                      
@@ -2277,7 +2274,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 15 )                                                                  
         return;                                                                      
@@ -2357,7 +2354,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 15 )                                                                  
         return;                                                                      
@@ -2437,7 +2434,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 16 )                                                                  
         return;                                                                      
@@ -2517,7 +2514,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 16 )                                                                  
         return;                                                                      
@@ -2597,7 +2594,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 17 )                                                                  
         return;                                                                      
@@ -2677,7 +2674,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 17 )                                                                  
         return;                                                                      
@@ -2757,7 +2754,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 18 )                                                                  
         return;                                                                      
@@ -2837,7 +2834,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 18 )                                                                  
         return;                                                                      
@@ -2917,7 +2914,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 19 )                                                                  
         return;                                                                      
@@ -2997,7 +2994,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 19 )                                                                  
         return;                                                                      
@@ -3077,7 +3074,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 20 )                                                                  
         return;                                                                      
@@ -3157,7 +3154,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 20 )                                                                  
         return;                                                                      
@@ -3237,7 +3234,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 21 )                                                                  
         return;                                                                      
@@ -3317,7 +3314,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 21 )                                                                  
         return;                                                                      
@@ -3397,7 +3394,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 22 )                                                                  
         return;                                                                      
@@ -3477,7 +3474,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 22 )                                                                  
         return;                                                                      
@@ -3557,7 +3554,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 23 )                                                                  
         return;                                                                      
@@ -3637,7 +3634,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 23 )                                                                  
         return;                                                                      
@@ -3717,7 +3714,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 24 )                                                                  
         return;                                                                      
@@ -3797,7 +3794,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 24 )                                                                  
         return;                                                                      
@@ -3877,7 +3874,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 25 )                                                                  
         return;                                                                      
@@ -3957,7 +3954,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 25 )                                                                  
         return;                                                                      
@@ -4037,7 +4034,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 26 )                                                                  
         return;                                                                      
@@ -4117,7 +4114,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 26 )                                                                  
         return;                                                                      
@@ -4197,7 +4194,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 27 )                                                                  
         return;                                                                      
@@ -4277,7 +4274,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 27 )                                                                  
         return;                                                                      
@@ -4357,7 +4354,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 28 )                                                                  
         return;                                                                      
@@ -4437,7 +4434,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 28 )                                                                  
         return;                                                                      
@@ -4517,7 +4514,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 29 )                                                                  
         return;                                                                      
@@ -4597,7 +4594,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 29 )                                                                  
         return;                                                                      
@@ -4677,7 +4674,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 30 )                                                                  
         return;                                                                      
@@ -4757,7 +4754,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 30 )                                                                  
         return;                                                                      
@@ -4837,7 +4834,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 31 )                                                                  
         return;                                                                      
@@ -4917,7 +4914,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 31 )                                                                  
         return;                                                                      
@@ -4997,7 +4994,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 32 )                                                                  
         return;                                                                      
@@ -5077,7 +5074,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 32 )                                                                  
         return;                                                                      
@@ -5162,7 +5159,7 @@ magmaDoubleComplex *Mval )
 {                                                                                                       
                                                                                                         
                                                                                                         
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                                      
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                                      
     if( row < num_rows ){                                                                               
     int N = Mrow[ row+1 ] - Mrow[ row ];                                                                
     switch( N ) {                                                                                       
@@ -5285,7 +5282,7 @@ magmaDoubleComplex *Mval )
 {                                                                                                       
                                                                                                         
                                                                                                         
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                                      
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                                      
     if( row < num_rows ){                                                                               
     int N = Mrow[ row+1 ] - Mrow[ row ];                                                                
     switch( N ) {                                                                                       
@@ -5404,7 +5401,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 1 )                                                                  
         return;                                                                      
@@ -5484,7 +5481,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 1 )                                                                  
         return;                                                                      
@@ -5564,7 +5561,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 2 )                                                                  
         return;                                                                      
@@ -5644,7 +5641,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 2 )                                                                  
         return;                                                                      
@@ -5724,7 +5721,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 3 )                                                                  
         return;                                                                      
@@ -5804,7 +5801,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 3 )                                                                  
         return;                                                                      
@@ -5884,7 +5881,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 4 )                                                                  
         return;                                                                      
@@ -5964,7 +5961,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 4 )                                                                  
         return;                                                                      
@@ -6044,7 +6041,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 5 )                                                                  
         return;                                                                      
@@ -6124,7 +6121,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 5 )                                                                  
         return;                                                                      
@@ -6204,7 +6201,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 6 )                                                                  
         return;                                                                      
@@ -6284,7 +6281,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 6 )                                                                  
         return;                                                                      
@@ -6364,7 +6361,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 7 )                                                                  
         return;                                                                      
@@ -6444,7 +6441,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 7 )                                                                  
         return;                                                                      
@@ -6524,7 +6521,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 8 )                                                                  
         return;                                                                      
@@ -6604,7 +6601,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 8 )                                                                  
         return;                                                                      
@@ -6684,7 +6681,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 9 )                                                                  
         return;                                                                      
@@ -6764,7 +6761,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 9 )                                                                  
         return;                                                                      
@@ -6844,7 +6841,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 10 )                                                                  
         return;                                                                      
@@ -6924,7 +6921,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 10 )                                                                  
         return;                                                                      
@@ -7004,7 +7001,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 11 )                                                                  
         return;                                                                      
@@ -7084,7 +7081,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 11 )                                                                  
         return;                                                                      
@@ -7164,7 +7161,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 12 )                                                                  
         return;                                                                      
@@ -7244,7 +7241,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 12 )                                                                  
         return;                                                                      
@@ -7324,7 +7321,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 13 )                                                                  
         return;                                                                      
@@ -7404,7 +7401,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 13 )                                                                  
         return;                                                                      
@@ -7484,7 +7481,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 14 )                                                                  
         return;                                                                      
@@ -7564,7 +7561,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 14 )                                                                  
         return;                                                                      
@@ -7644,7 +7641,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 15 )                                                                  
         return;                                                                      
@@ -7724,7 +7721,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 15 )                                                                  
         return;                                                                      
@@ -7804,7 +7801,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 16 )                                                                  
         return;                                                                      
@@ -7884,7 +7881,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 16 )                                                                  
         return;                                                                      
@@ -7964,7 +7961,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 17 )                                                                  
         return;                                                                      
@@ -8044,7 +8041,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 17 )                                                                  
         return;                                                                      
@@ -8124,7 +8121,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 18 )                                                                  
         return;                                                                      
@@ -8204,7 +8201,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 18 )                                                                  
         return;                                                                      
@@ -8284,7 +8281,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 19 )                                                                  
         return;                                                                      
@@ -8364,7 +8361,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 19 )                                                                  
         return;                                                                      
@@ -8444,7 +8441,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 20 )                                                                  
         return;                                                                      
@@ -8524,7 +8521,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 20 )                                                                  
         return;                                                                      
@@ -8604,7 +8601,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 21 )                                                                  
         return;                                                                      
@@ -8684,7 +8681,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 21 )                                                                  
         return;                                                                      
@@ -8764,7 +8761,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 22 )                                                                  
         return;                                                                      
@@ -8844,7 +8841,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 22 )                                                                  
         return;                                                                      
@@ -8924,7 +8921,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 23 )                                                                  
         return;                                                                      
@@ -9004,7 +9001,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 23 )                                                                  
         return;                                                                      
@@ -9084,7 +9081,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 24 )                                                                  
         return;                                                                      
@@ -9164,7 +9161,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 24 )                                                                  
         return;                                                                      
@@ -9244,7 +9241,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 25 )                                                                  
         return;                                                                      
@@ -9324,7 +9321,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 25 )                                                                  
         return;                                                                      
@@ -9404,7 +9401,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 26 )                                                                  
         return;                                                                      
@@ -9484,7 +9481,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 26 )                                                                  
         return;                                                                      
@@ -9564,7 +9561,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 27 )                                                                  
         return;                                                                      
@@ -9644,7 +9641,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 27 )                                                                  
         return;                                                                      
@@ -9724,7 +9721,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 28 )                                                                  
         return;                                                                      
@@ -9804,7 +9801,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 28 )                                                                  
         return;                                                                      
@@ -9884,7 +9881,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 29 )                                                                  
         return;                                                                      
@@ -9964,7 +9961,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 29 )                                                                  
         return;                                                                      
@@ -10044,7 +10041,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 30 )                                                                  
         return;                                                                      
@@ -10124,7 +10121,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 30 )                                                                  
         return;                                                                      
@@ -10204,7 +10201,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 31 )                                                                  
         return;                                                                      
@@ -10284,7 +10281,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 31 )                                                                  
         return;                                                                      
@@ -10364,7 +10361,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 32 )                                                                  
         return;                                                                      
@@ -10444,7 +10441,7 @@ magmaDoubleComplex *Mval )
 {                                                                                    
 #ifdef REAL                                                                          
     int tid = threadIdx.x;                                                           
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                   
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                   
                                                                                      
     if( tid >= 32 )                                                                  
         return;                                                                      
@@ -10529,7 +10526,7 @@ magmaDoubleComplex *Mval )
 {                                                                                                       
                                                                                                         
                                                                                                         
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                                      
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                                      
     if( row < num_rows ){                                                                               
     int N = Mrow[ row+1 ] - Mrow[ row ];                                                                
     switch( N ) {                                                                                       
@@ -10652,7 +10649,7 @@ magmaDoubleComplex *Mval )
 {                                                                                                       
                                                                                                         
                                                                                                         
-    int row = blockIdx.y * gridDim.x + blockIdx.x;                                                      
+    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;                                                      
     if( row < num_rows ){                                                                               
     int N = Mrow[ row+1 ] - Mrow[ row ];                                                                
     switch( N ) {                                                                                       
@@ -10829,6 +10826,8 @@ magma_zisai_generator_regs(
 {
     magma_int_t info = 0;  
     
+    magma_int_t arch = magma_getdevice_arch();
+    
     cudaDeviceSetCacheConfig( cudaFuncCachePreferL1 );
     
     
@@ -10842,42 +10841,52 @@ magma_zisai_generator_regs(
     dim3 r1block( r1bs1, r1bs2, 1 );
     dim3 r1grid( r1dg1, r1dg2, r1dg3 );
     
-    int r2bs1 = 256;
-    int r2bs2 = 1;
-    int r2dg1 = magma_ceildiv( L.num_rows, r2bs1 );
-    int r2dg2 = 1;
-    int r2dg3 = 1;
+    int r2bs1 = 32;
+    int r2bs2 = 4;
+    int necessary_blocks = L.num_rows/r2bs2;
+    int r2dg1 = min( int( sqrt( double( necessary_blocks ))), 65535 );
+    int r2dg2 = min(magma_ceildiv( necessary_blocks, r2dg1 ), 65535);
+    int r2dg3 = magma_ceildiv( necessary_blocks, r2dg1*r2dg2 );
     dim3 r2block( r2bs1, r2bs2, 1 );
     dim3 r2grid( r2dg1, r2dg2, r2dg3 );
     
-#if (CUDA_VERSION > 6000)
-// #if (CUDA_ARCH >= 300)
+ //   int r2dg1 = min( int( sqrt( double( magma_ceildiv( M->num_rows, r2bs2 )))), 65535);
+ //   int r2dg2 = min(magma_ceildiv( M->num_rows, r2dg1 ), 65535);
+ //   int r2dg3 = magma_ceildiv( M->num_rows, r2dg1*r2dg2 );
+ //   dim3 r2block( r2bs1, r2bs2, 1 );
+ //   dim3 r2grid( r2dg1, r2dg2, r2dg3 );
+    
+#if (CUDA_VERSION >= 7000)
+    if ( arch >= 300 ) {
 
-    if( uplotype == MagmaLower ){//printf("in here lower new kernel\n");
-        //cudaProfilerStart();
-        magma_zlowerisai_regs_inv_switch<<< r1grid, r1block, 0, queue->cuda_stream() >>>(                                                                           
-            L.num_rows,                                                                                   
-            L.row,
-            L.col,
-            L.val,
-            M->row,
-            M->col,
-            M->val );
-         //cudaProfilerStop(); 
-         //exit(-1);
-    } else {// printf("in here upper new kernel\n");
-        magma_zupperisai_regs_inv_switch<<< r1grid, r1block, 0, queue->cuda_stream() >>>(                                                                           
-            L.num_rows,                                                                                   
-            L.row,
-            L.col,
-            L.val,
-            M->row,
-            M->col,
-            M->val );
+        if( uplotype == MagmaLower ){//printf("in here lower new kernel\n");
+            //cudaProfilerStart();
+            magma_zlowerisai_regs_inv_switch<<< r1grid, r1block, 0, queue->cuda_stream() >>>(                                                                           
+                L.num_rows,                                                                                   
+                L.row,
+                L.col,
+                L.val,
+                M->row,
+                M->col,
+                M->val );
+             //cudaProfilerStop(); 
+             //exit(-1);
+        } else {// printf("in here upper new kernel\n");
+            magma_zupperisai_regs_inv_switch<<< r1grid, r1block, 0, queue->cuda_stream() >>>(                                                                           
+                L.num_rows,                                                                                   
+                L.row,
+                L.col,
+                L.val,
+                M->row,
+                M->col,
+                M->val );
+        }
+    } else {
+       printf( "%% error: ISAI preconditioner requires CUDA ARCHITECTURE >= 300.\n" );
+       info = MAGMA_ERR_NOT_SUPPORTED; 
     }
-// #endif
 #else
-   printf( "%% error: ISAI preconditioner requires CUDA > 6.0.\n" );
+   printf( "%% error: ISAI preconditioner requires CUDA >= 7.0.\n" );
    info = MAGMA_ERR_NOT_SUPPORTED; 
 #endif
     
