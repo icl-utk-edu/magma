@@ -140,7 +140,7 @@ int main(  int argc, char** argv )
             }
     
             start = magma_wtime();
-            for (j=0; j < 200; j++ ) {
+            for (j=0; j < 20; j++ ) {
                 mkl_zcsrmv( "N", &num_rows, &num_cols,
                             MKL_ADDR(&c_one), "GFNC", MKL_ADDR(hA.val),
                             col, row, pntre,
@@ -148,10 +148,10 @@ int main(  int argc, char** argv )
                             MKL_ADDR(&c_zero),        MKL_ADDR(hy.val) );
             }
             end = magma_wtime();
-            mkltime = (end-start)/200;
-            mklgflops = FLOPS*200/(end-start);
+            mkltime = (end-start)/20;
+            mklgflops = FLOPS*20/(end-start);
             printf( " \n%% > MKL  : %.2e seconds %.2e GFLOP/s    (CSR).\n",
-                                            (end-start)/200, FLOPS*200/(end-start) );
+                                            (end-start)/20, FLOPS*20/(end-start) );
 
             magma_free_cpu( row );
             magma_free_cpu( col );
@@ -164,18 +164,18 @@ int main(  int argc, char** argv )
         TESTING_CHECK( magma_zmtransfer( hA, &dA, Magma_CPU, Magma_DEV, queue ));
         
         // warmup
-        for (j=0; j < 200; j++) {
+        for (j=0; j < 20; j++) {
             TESTING_CHECK( magma_z_spmv( c_one, dA, dx, c_zero, dy, queue ));
         }
 
         // SpMV on GPU (CSR) -- this is the reference!
         start = magma_sync_wtime( queue );
-        for (j=0; j < 200; j++) {
+        for (j=0; j < 20; j++) {
             TESTING_CHECK( magma_z_spmv( c_one, dA, dx, c_zero, dy, queue ));
         }
         end = magma_sync_wtime( queue );
         printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (standard CSR).\n",
-                                        (end-start)/200, FLOPS*200/(end-start) );
+                                        (end-start)/20, FLOPS*20/(end-start) );
         
         magma_zmfree(&dA, queue );
         TESTING_CHECK( magma_zmtransfer( dy, &hrefvec , Magma_DEV, Magma_CPU, queue ));
@@ -192,7 +192,7 @@ int main(  int argc, char** argv )
         TESTING_CHECK( magma_zvinit( &dy, Magma_DEV, hA.num_rows, 1, c_zero, queue ));
         // SpMV on GPU (ELL)
         start = magma_sync_wtime( queue );
-        for (j=0; j < 200; j++) {
+        for (j=0; j < 20; j++) {
             TESTING_CHECK( magma_z_spmv( c_one, dA_ELL, dx, c_zero, dy, queue ));
         }
         end = magma_sync_wtime( queue );
@@ -205,11 +205,11 @@ int main(  int argc, char** argv )
         res /= ref;
         if ( res < accuracy ) {
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (standard ELL).\n",
-                (end-start)/200, FLOPS*200/(end-start) );
+                (end-start)/20, FLOPS*20/(end-start) );
             printf("%% |x-y|_F/|y| = %8.2e.  Tester spmv ELL:  ok\n", res);
         } else {
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (standard ELL).\n",
-                (end-start)/200, 0.0 );
+                (end-start)/20, 0.0 );
             printf("%% |x-y|_F/|y| = %8.2e.  Tester spmv ELL:  failed\n", res);
         }
         magma_zmfree( &hcheck, queue );
@@ -222,7 +222,7 @@ int main(  int argc, char** argv )
         TESTING_CHECK( magma_zvinit( &dy, Magma_DEV, hA.num_rows, 1, c_zero, queue ));
         // SpMV on GPU (SELLP)
         start = magma_sync_wtime( queue );
-        for (j=0; j < 200; j++) {
+        for (j=0; j < 20; j++) {
             TESTING_CHECK( magma_z_spmv( c_one, dA_SELLP, dx, c_zero, dy, queue ));
         }
         end = magma_sync_wtime( queue );
@@ -233,15 +233,15 @@ int main(  int argc, char** argv )
         }
         //res /= ref;
         res = ref == 0 ? res : res / ref;
-        sellptime = (end-start)/200;
-        sellpgflops = FLOPS*200/(end-start);
+        sellptime = (end-start)/20;
+        sellpgflops = FLOPS*20/(end-start);
         if ( res < accuracy ) {
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (SELLP).\n",
-                (end-start)/200, FLOPS*200/(end-start) );
+                (end-start)/20, FLOPS*20/(end-start) );
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv SELL-P:  ok\n", res);
         } else{
             printf( " > MAGMA: %.2e seconds %.2e GFLOP/s    (SELLP).\n",
-                (end-start)/200, 0.0);
+                (end-start)/20, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv SELL-P:  failed\n", res);
         }
         magma_zmfree( &hcheck, queue );
@@ -256,7 +256,7 @@ int main(  int argc, char** argv )
         TESTING_CHECK( magma_zvinit( &dy, Magma_DEV, hA.num_rows, 1, c_zero, queue ));
         // SpMV on GPU (CSR5)
         start = magma_sync_wtime( queue );
-        for (j=0; j < 200; j++) {
+        for (j=0; j < 20; j++) {
             info = magma_z_spmv( c_one, dA_CSR5, dx, c_zero, dy, queue );
         }
         if( info != 0 ){
@@ -268,17 +268,17 @@ int main(  int argc, char** argv )
         for(magma_int_t k=0; k < hA.num_rows; k++ ){
             res = res + MAGMA_Z_ABS(hcheck.val[k] - hrefvec.val[k]);
         }
-        csr5time = (end-start)/200;
-        csr5gflops = FLOPS*200/(end-start);
+        csr5time = (end-start)/20;
+        csr5gflops = FLOPS*20/(end-start);
         //res /= ref;
         res = ref == 0 ? res : res / ref;
         if ( res < accuracy ) {
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (CSR5).\n",
-                (end-start)/200, FLOPS*200/(end-start) );
+                (end-start)/20, FLOPS*20/(end-start) );
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv CSR5:  ok\n", res);
         } else{
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (CSR5).\n",
-                (end-start)/200, 0.0);
+                (end-start)/20, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv CSR5:  failed\n", res);
         }
         magma_zmfree( &hcheck, queue );
@@ -304,7 +304,7 @@ int main(  int argc, char** argv )
         TESTING_CHECK( magma_zmtransfer( hA, &dA, Magma_CPU, Magma_DEV, queue ));
 
         start = magma_sync_wtime( queue );
-        for (j=0; j < 200; j++) {
+        for (j=0; j < 20; j++) {
             TESTING_CHECK( cusparseZcsrmv(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
                         hA.num_rows, hA.num_cols, hA.nnz, &alpha, descr,
                         dA.dval, dA.drow, dA.dcol, dx.dval, &beta, dy.dval) );
@@ -319,16 +319,16 @@ int main(  int argc, char** argv )
             res = res + MAGMA_Z_ABS(hcheck.val[k] - hrefvec.val[k]);
         }
         //res /= ref;
-        cuCSRtime = (end-start)/200;
-        cuCSRgflops = FLOPS*200/(end-start);
+        cuCSRtime = (end-start)/20;
+        cuCSRgflops = FLOPS*20/(end-start);
         res = ref == 0 ? res : res / ref;
         if ( res < accuracy ) {
             printf( "%% > cuSPARSE: %.2e seconds %.2e GFLOP/s    (CSR).\n",
-                (end-start)/200, FLOPS*200/(end-start) );
+                (end-start)/20, FLOPS*20/(end-start) );
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv cuSPARSE CSR:  ok\n", res);
         } else{
             printf( "%% > cuSPARSE: %.2e seconds %.2e GFLOP/s    (CSR).\n",
-                (end-start)/200, 0.0);
+                (end-start)/20, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv cuSPARSE CSR:  failed\n", res);
         }
         magma_zmfree( &hcheck, queue );
@@ -339,7 +339,7 @@ int main(  int argc, char** argv )
                         hybA, 0, CUSPARSE_HYB_PARTITION_AUTO);
 
         start = magma_sync_wtime( queue );
-        for (j=0; j < 200; j++) {
+        for (j=0; j < 20; j++) {
             TESTING_CHECK( cusparseZhybmv( cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
                        &alpha, descrA, hybA,
                        dx.dval, &beta, dy.dval) );
@@ -352,16 +352,16 @@ int main(  int argc, char** argv )
             res = res + MAGMA_Z_ABS(hcheck.val[k] - hrefvec.val[k]);
         }
         //res /= ref;
-        cuHYBtime = (end-start)/200;
-        cuHYBgflops = FLOPS*200/(end-start);
+        cuHYBtime = (end-start)/20;
+        cuHYBgflops = FLOPS*20/(end-start);
         res = ref == 0 ? res : res / ref;
         if ( res < accuracy ) {
             printf( "%% > cuSPARSE: %.2e seconds %.2e GFLOP/s    (HYB).\n",
-                (end-start)/200, FLOPS*200/(end-start) );
+                (end-start)/20, FLOPS*20/(end-start) );
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv cuSPARSE HYB:  ok\n", res);
         } else{
             printf( "%% > cuSPARSE: %.2e seconds %.2e GFLOP/s    (HYB).\n",
-                (end-start)/200, 0.0);
+                (end-start)/20, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv cuSPARSE HYB:  failed\n", res);
         }
         magma_zmfree( &hcheck, queue );
