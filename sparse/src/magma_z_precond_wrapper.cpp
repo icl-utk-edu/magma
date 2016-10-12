@@ -413,6 +413,11 @@ magma_z_applyprecond_left(
                     precond->trisolver == 0 ) ){
             CHECK( magma_zapplycumilu_l( b, x, precond, queue ));
         }
+        else if ( ( precond->solver == Magma_ILU ||
+                    precond->solver == Magma_PARILU ) && 
+                  ( precond->trisolver == Magma_SPTRSV ) ){
+            // CHECK( magma_zsptrsv( b, x, precond, queue ));
+        }
         else if ( ( precond->solver == Magma_ICC ||
                     precond->solver == Magma_PARIC ) && 
                   ( precond->trisolver == Magma_CUSOLVE ||
