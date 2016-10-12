@@ -53,8 +53,8 @@ int main(  int argc, char** argv )
     magma_z_matrix hx={Magma_CSR}, hy={Magma_CSR}, dx={Magma_CSR}, 
     dy={Magma_CSR}, hrefvec={Magma_CSR}, hcheck={Magma_CSR};
             
-    hA_SELLP.blocksize = 8;
-    hA_SELLP.alignment = 8;
+    hA_SELLP.blocksize = 32;
+    hA_SELLP.alignment = 1;
     real_Double_t start, end, res, ref;
     real_Double_t mkltime = 0.0, mklgflops = 0.0, cuCSRtime = 0.0, cuCSRgflops = 0.0, 
                   cuHYBtime = 0.0, cuHYBgflops = 0.0, sellptime = 0.0, sellpgflops = 0.0, 
