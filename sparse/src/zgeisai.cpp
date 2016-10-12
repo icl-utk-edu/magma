@@ -539,13 +539,13 @@ magma_zisai_l(
     if( precond->maxiter == 0 ){
         magma_z_spmv( MAGMA_Z_ONE, precond->LD, b, MAGMA_Z_ZERO, *x, queue ); // SPAI
     } else if( precond->maxiter > 0 ){
-        magma_z_spmv( MAGMA_Z_ONE, precond->LD, b, MAGMA_Z_ZERO, precond->d, queue ); // d=L^(-1)b
+        magma_z_spmv( MAGMA_Z_ONE, precond->LD, b, MAGMA_Z_ZERO, precond->d, queue ); // d=L_d^(-1)b
         magma_z_spmv( MAGMA_Z_ONE, precond->LD, b, MAGMA_Z_ZERO, *x, queue ); // SPAI
         for( int z=0; z<precond->maxiter; z++ ){
-            magma_z_spmv( MAGMA_Z_ONE, precond->L, *x, MAGMA_Z_ZERO, precond->work1, queue ); // work1=b+Lb
-            magma_z_spmv( MAGMA_Z_ONE, precond->LD, precond->work1, MAGMA_Z_ZERO, precond->work2, queue ); // x=x+L^(-1)work1
-            magma_zaxpy( b.num_rows*b.num_cols, -MAGMA_Z_ONE, precond->work2.dval, 1 , x->dval, 1, queue );        // t = t + c
-            magma_zaxpy( b.num_rows*b.num_cols, MAGMA_Z_ONE, precond->d.dval, 1 , x->dval, 1, queue );        // t = t + c
+            magma_z_spmv( MAGMA_Z_ONE, precond->L, *x, MAGMA_Z_ZERO, precond->work1, queue ); // work1 = L * x
+            magma_z_spmv( MAGMA_Z_ONE, precond->LD, precond->work1, MAGMA_Z_ZERO, precond->work2, queue ); // work2 = L_d^(-1)work1
+            magma_zaxpy( b.num_rows*b.num_cols, -MAGMA_Z_ONE, precond->work2.dval, 1 , x->dval, 1, queue );        // x = - work2   
+            magma_zaxpy( b.num_rows*b.num_cols, MAGMA_Z_ONE, precond->d.dval, 1 , x->dval, 1, queue );        // x = d + x = L_d^(-1)b - work2 = L_d^(-1)b - L_d^(-1) * L * x
         }
     }
 
