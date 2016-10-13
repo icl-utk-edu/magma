@@ -214,8 +214,8 @@ int main(  int argc, char** argv )
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (standard ELL).\n",
                 (end-start)/200, 0.0 );
             printf("%% |x-y|_F/|y| = %8.2e.  Tester spmv ELL:  failed\n", res);
-            elltime = NaN;
-            ellgflops = NaN;
+            elltime = NAN;
+            ellgflops = NAN;
         }
         magma_zmfree( &hcheck, queue );
 
@@ -248,8 +248,8 @@ int main(  int argc, char** argv )
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (SELLP).\n",
                 (end-start)/200, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv SELL-P:  failed\n", res);
-            sellptime = NaN;
-            sellpgflops = NaN;
+            sellptime = NAN;
+            sellpgflops = NAN;
         }
         magma_zmfree( &hcheck, queue );
 
@@ -287,8 +287,8 @@ int main(  int argc, char** argv )
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (CSR5).\n",
                 (end-start)/200, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv CSR5:  failed\n", res);
-            csr5time = NaN;
-            csr5gflops = NaN;
+            csr5time = NAN;
+            csr5gflops = NAN;
         }
         magma_zmfree( &hcheck, queue );
 
@@ -339,8 +339,8 @@ int main(  int argc, char** argv )
             printf( "%% > cuSPARSE: %.2e seconds %.2e GFLOP/s    (CSR).\n",
                 (end-start)/200, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv cuSPARSE CSR:  failed\n", res);
-            cuCSRtime = NaN;
-            cuCSRgflops = NaN;
+            cuCSRtime = NAN;
+            cuCSRgflops = NAN;
         }
         magma_zmfree( &hcheck, queue );
         magma_zmfree( &dy, queue );
@@ -374,8 +374,8 @@ int main(  int argc, char** argv )
             printf( "%% > cuSPARSE: %.2e seconds %.2e GFLOP/s    (HYB).\n",
                 (end-start)/200, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv cuSPARSE HYB:  failed\n", res);
-            cuHYBtime = NaN;
-            cuHYBgflops = NaN;
+            cuHYBtime = NAN;
+            cuHYBgflops = NAN;
         }
         magma_zmfree( &hcheck, queue );
 
