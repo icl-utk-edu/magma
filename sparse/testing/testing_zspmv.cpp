@@ -56,14 +56,15 @@ int main(  int argc, char** argv )
     hA_SELLP.blocksize = 32;
     hA_SELLP.alignment = 1;
     real_Double_t start, end, res, ref;
-    real_Double_t mkltime = 0.0, mklgflops = 0.0, cuCSRtime = 0.0, cuCSRgflops = 0.0, 
+    real_Double_t elltime = 0.0, ellgflops = 0.0, mkltime = 0.0, mklgflops = 0.0, 
+                  cuCSRtime = 0.0, cuCSRgflops = 0.0, 
                   cuHYBtime = 0.0, cuHYBgflops = 0.0, sellptime = 0.0, sellpgflops = 0.0, 
                   csr5time = 0.0, csr5gflops = 0.0;
 
     magmaDoubleComplex c_one  = MAGMA_Z_MAKE(1.0, 0.0);
     magmaDoubleComplex c_zero = MAGMA_Z_MAKE(0.0, 0.0);
     
-    double accuracy = 1e-10;
+    double accuracy = 1e-8;
     
     #define PRECISION_z
     #if defined(PRECISION_c)
@@ -207,10 +208,14 @@ int main(  int argc, char** argv )
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (standard ELL).\n",
                 (end-start)/200, FLOPS*200/(end-start) );
             printf("%% |x-y|_F/|y| = %8.2e.  Tester spmv ELL:  ok\n", res);
+            elltime = (end-start)/200;
+            ellgflops = FLOPS*200/(end-start);
         } else {
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (standard ELL).\n",
                 (end-start)/200, 0.0 );
             printf("%% |x-y|_F/|y| = %8.2e.  Tester spmv ELL:  failed\n", res);
+            elltime = NaN;
+            ellgflops = NaN;
         }
         magma_zmfree( &hcheck, queue );
 
@@ -233,16 +238,18 @@ int main(  int argc, char** argv )
         }
         //res /= ref;
         res = ref == 0 ? res : res / ref;
-        sellptime = (end-start)/200;
-        sellpgflops = FLOPS*200/(end-start);
         if ( res < accuracy ) {
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (SELLP).\n",
                 (end-start)/200, FLOPS*200/(end-start) );
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv SELL-P:  ok\n", res);
+            sellptime = (end-start)/200;
+            sellpgflops = FLOPS*200/(end-start);
         } else{
-            printf( " > MAGMA: %.2e seconds %.2e GFLOP/s    (SELLP).\n",
+            printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (SELLP).\n",
                 (end-start)/200, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv SELL-P:  failed\n", res);
+            sellptime = NaN;
+            sellpgflops = NaN;
         }
         magma_zmfree( &hcheck, queue );
 
@@ -268,18 +275,20 @@ int main(  int argc, char** argv )
         for(magma_int_t k=0; k < hA.num_rows; k++ ){
             res = res + MAGMA_Z_ABS(hcheck.val[k] - hrefvec.val[k]);
         }
-        csr5time = (end-start)/200;
-        csr5gflops = FLOPS*200/(end-start);
         //res /= ref;
         res = ref == 0 ? res : res / ref;
         if ( res < accuracy ) {
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (CSR5).\n",
                 (end-start)/200, FLOPS*200/(end-start) );
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv CSR5:  ok\n", res);
+            csr5time = (end-start)/200;
+            csr5gflops = FLOPS*200/(end-start);
         } else{
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (CSR5).\n",
                 (end-start)/200, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv CSR5:  failed\n", res);
+            csr5time = NaN;
+            csr5gflops = NaN;
         }
         magma_zmfree( &hcheck, queue );
 
@@ -319,17 +328,19 @@ int main(  int argc, char** argv )
             res = res + MAGMA_Z_ABS(hcheck.val[k] - hrefvec.val[k]);
         }
         //res /= ref;
-        cuCSRtime = (end-start)/200;
-        cuCSRgflops = FLOPS*200/(end-start);
         res = ref == 0 ? res : res / ref;
         if ( res < accuracy ) {
             printf( "%% > cuSPARSE: %.2e seconds %.2e GFLOP/s    (CSR).\n",
                 (end-start)/200, FLOPS*200/(end-start) );
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv cuSPARSE CSR:  ok\n", res);
+            cuCSRtime = (end-start)/200;
+            cuCSRgflops = FLOPS*200/(end-start);
         } else{
             printf( "%% > cuSPARSE: %.2e seconds %.2e GFLOP/s    (CSR).\n",
                 (end-start)/200, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv cuSPARSE CSR:  failed\n", res);
+            cuCSRtime = NaN;
+            cuCSRgflops = NaN;
         }
         magma_zmfree( &hcheck, queue );
         magma_zmfree( &dy, queue );
@@ -352,17 +363,19 @@ int main(  int argc, char** argv )
             res = res + MAGMA_Z_ABS(hcheck.val[k] - hrefvec.val[k]);
         }
         //res /= ref;
-        cuHYBtime = (end-start)/200;
-        cuHYBgflops = FLOPS*200/(end-start);
         res = ref == 0 ? res : res / ref;
         if ( res < accuracy ) {
             printf( "%% > cuSPARSE: %.2e seconds %.2e GFLOP/s    (HYB).\n",
                 (end-start)/200, FLOPS*200/(end-start) );
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv cuSPARSE HYB:  ok\n", res);
+            cuHYBtime = (end-start)/200;
+            cuHYBgflops = FLOPS*200/(end-start);
         } else{
             printf( "%% > cuSPARSE: %.2e seconds %.2e GFLOP/s    (HYB).\n",
                 (end-start)/200, 0.0);
             printf("%% |x-y|_F/|y| = %8.2e Tester spmv cuSPARSE HYB:  failed\n", res);
+            cuHYBtime = NaN;
+            cuHYBgflops = NaN;
         }
         magma_zmfree( &hcheck, queue );
 
