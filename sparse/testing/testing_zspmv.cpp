@@ -390,13 +390,13 @@ int main(  int argc, char** argv )
         // print everything in matlab-readable output
         // cuSPARSE-CSR cuSPARSE-HYB  SELLP  CSR5
         // runtime performance 
-        printf("%% MKL cuSPARSE-CSR cuSPARSE-HYB  SELLP  CSR5\n");
-        printf("%% runtime performance (GFLOP/s)\n");
-        printf("data = [\n");
+        // printf("%% MKL cuSPARSE-CSR cuSPARSE-HYB  SELLP  CSR5\n");
+        // printf("%% runtime performance (GFLOP/s)\n");
+        // printf("data = [\n");
         printf(" %.2e %.2e\t %.2e %.2e\t %.2e %.2e\t %.2e %.2e\t %.2e %.2e\n",
                  mkltime, mklgflops, cuCSRtime, cuCSRgflops, cuHYBtime, cuHYBgflops, 
                  sellptime, sellpgflops, csr5time, csr5gflops);
-        printf("];\n");
+        // printf("];\n");
 
         // free CPU memory
         magma_zmfree( &hA, queue );
