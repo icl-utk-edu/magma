@@ -24,6 +24,9 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+ 2.2.0 - Nov 2016
+
+
  2.1.0 - Aug 30, 2016
     * Added variable size batched routines:
       magmablas_[sdcz]{gemm, gemv, syrk, herk, syr2k, her2k}_vbatched
