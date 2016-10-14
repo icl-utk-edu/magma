@@ -22,10 +22,12 @@
 #include "testings.h"
 
 // includes, papi
+#ifdef HAVE_PAPI
 #include "papi.h"
 #define NUM_EVENTS 1		 /* # of PAPI events */
 #define PAPI				 /* PAPI test variable */
 //#define NAME_TO_CODE
+#endif  // HAVE_PAPI
 
 /* ////////////////////////////////////////////////////////////////////////////
    -- testing any solver
@@ -59,20 +61,20 @@ int main(  int argc, char** argv )
     magma_z_matrix A={Magma_CSR}, B={Magma_CSR}, B_d={Magma_CSR};
     magma_z_matrix x={Magma_CSR}, b={Magma_CSR};
     
-    int i=1;
-    TESTING_CHECK( magma_zparse_opts( argc, argv, &zopts, &i, queue ));
+    int inp=1;
+    TESTING_CHECK( magma_zparse_opts( argc, argv, &zopts, &inp, queue ));
     B.blocksize = zopts.blocksize;
     B.alignment = zopts.alignment;
 
     TESTING_CHECK( magma_zsolverinfo_init( &zopts.solver_par, &zopts.precond_par, queue ));
 
-    while( i < argc ) {
-        if ( strcmp("LAPLACE2D", argv[i]) == 0 && i+1 < argc ) {   // Laplace test
-            i++;
-            magma_int_t laplace_size = atoi( argv[i] );
+    while( inp < argc ) {
+        if ( strcmp("LAPLACE2D", argv[inp]) == 0 && inp+1 < argc ) {   // Laplace test
+            inp++;
+            magma_int_t laplace_size = atoi( argv[inp] );
             TESTING_CHECK( magma_zm_5stencil(  laplace_size, &A, queue ));
         } else {                        // file-matrix test
-            TESTING_CHECK( magma_z_csr_mtx( &A,  argv[i], queue ));
+            TESTING_CHECK( magma_z_csr_mtx( &A,  argv[inp], queue ));
         }
 
         // for the eigensolver case
@@ -187,36 +189,6 @@ int main(  int argc, char** argv )
 	/**************************** START PAPI **********************************/
 	
 #ifdef PAPI
-	/* PAPI Initialization */
-	retval = PAPI_library_init( PAPI_VER_CURRENT );
-	if( retval != PAPI_VER_CURRENT )
-		fprintf( stderr, "PAPI_library_init failed\n" );
-	
-	printf( "PAPI_VERSION     : %4d %6d %7d\n",
-			PAPI_VERSION_MAJOR( PAPI_VERSION ),
-			PAPI_VERSION_MINOR( PAPI_VERSION ),
-			PAPI_VERSION_REVISION( PAPI_VERSION ) );
-	
-	
-#ifdef NAME_TO_CODE
-	/* convert PAPI native events to PAPI code */
-	for( i = 0; i < NUM_EVENTS; i++ )
-	{
-		retval = PAPI_event_name_to_code( EventName[i], &events[i] );
-		if( retval != PAPI_OK )
-			fprintf( stderr, "PAPI_event_name_to_code failed\n" );
-		else
-			printf( "Name %s --- Code: %x\n", EventName[i], events[i] );
-	}
-#endif
-	
-	retval = PAPI_create_eventset( &EventSet );
-	if( retval != PAPI_OK )
-		fprintf( stderr, "PAPI_create_eventset failed\n" );
-	
-	retval = PAPI_add_events( EventSet, events, NUM_EVENTS );
-	if( retval != PAPI_OK )
-		fprintf( stderr, "PAPI_add_events failed\n" );
 	
 	retval = PAPI_start( EventSet );
 	if( retval != PAPI_OK )
@@ -283,7 +255,7 @@ int main(  int argc, char** argv )
         magma_zmfree(&A, queue );
         magma_zmfree(&x, queue );
         magma_zmfree(&b, queue );
-        i++;
+        inp++;
     }
 
     magma_queue_destroy( queue );
