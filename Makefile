@@ -35,7 +35,7 @@ INC        ?= -I$(CUDADIR)/include
 LIBDIR     ?= -L$(CUDADIR)/lib
 LIB        ?= -lcudart -lcublas -lcusparse -llapack -lblas
 
-GPU_TARGET ?= Fermi Kepler Maxwell Pascal
+GPU_TARGET ?= Fermi Kepler
 
 # Extension for object files: o for unix, obj for Windows?
 o_ext      ?= o
@@ -272,7 +272,7 @@ MAGMA_INC  = -I./include
 $(libmagma_obj):       MAGMA_INC += -I./control
 $(libtest_obj):        MAGMA_INC += -I./testing
 $(testing_obj):        MAGMA_INC += -I./testing
-$(libsparse_obj):      MAGMA_INC += -I./control -I./sparse/include -I./sparse/control
+$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas -I./sparse/include -I./sparse/control
 $(sparse_testing_obj): MAGMA_INC += -I./sparse/include -I./sparse/control -I./testing
 
 
