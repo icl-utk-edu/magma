@@ -20,7 +20,7 @@
 /***************************************************************************//**
     Purpose
     -------
-    This function does an iterative ILU sweep.
+    This function does an ParILU sweep.
 
     Arguments
     ---------
@@ -177,7 +177,7 @@ magma_zparilut_sweep_list(
 /***************************************************************************//**
     Purpose
     -------
-    This function does an iterative ILU sweep.
+    This function computes the residuals.
 
     Arguments
     ---------
@@ -282,7 +282,7 @@ magma_zparilut_residuals_list(
 /***************************************************************************//**
     Purpose
     -------
-    This function does an iterative ILU sweep.
+    This function does an ParILU sweep.
 
     Arguments
     ---------
@@ -434,7 +434,7 @@ magma_zparilut_sweep_linkedlist(
 /***************************************************************************//**
     Purpose
     -------
-    This function does an iterative ILU sweep.
+    This function computes the residuals.
 
     Arguments
     ---------

@@ -184,10 +184,13 @@ testing_src += \
 	$(cdir)/testing_zgeadd_batched.cpp	\
 	$(cdir)/testing_zgemm_batched.cpp	\
 	$(cdir)/testing_zgemv_batched.cpp	\
+	$(cdir)/testing_zhemm_batched.cpp	\
+	$(cdir)/testing_zhemv_batched.cpp	\
 	$(cdir)/testing_zherk_batched.cpp	\
 	$(cdir)/testing_zher2k_batched.cpp	\
 	$(cdir)/testing_zlacpy_batched.cpp	\
 	$(cdir)/testing_zsyr2k_batched.cpp	\
+	$(cdir)/testing_ztrmm_batched.cpp	\
 	$(cdir)/testing_ztrsm_batched.cpp	\
 	$(cdir)/testing_ztrsv_batched.cpp	\
 	\
@@ -207,10 +210,16 @@ testing_src += \
 testing_src += \
 	$(cdir)/testing_zgemm_vbatched.cpp	\
 	$(cdir)/testing_zgemv_vbatched.cpp	\
+	$(cdir)/testing_zhemm_vbatched.cpp	\
+	$(cdir)/testing_zhemv_vbatched.cpp	\
 	$(cdir)/testing_zherk_vbatched.cpp	\
 	$(cdir)/testing_zher2k_vbatched.cpp	\
 	$(cdir)/testing_zsyrk_vbatched.cpp	\
 	$(cdir)/testing_zsyr2k_vbatched.cpp	\
+	$(cdir)/testing_ztrmm_vbatched.cpp	\
+	$(cdir)/testing_ztrsm_vbatched.cpp	\
+	\
+	$(cdir)/testing_zpotrf_vbatched.cpp	\
 	
 # ----------
 # fortran.c and fortran_thunking.c are provided by NVIDIA in $(CUDADIR)/src

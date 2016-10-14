@@ -36,7 +36,7 @@ static const char *usage_sparse =
 " --maxiter x   Set an upper limit for the iteration count.\n"
 " --rtol x      Set a relative residual stopping criterion.\n"
 " --format      Possibility to choose a format for the sparse matrix:\n"
-"               CSR, ELL, SELLP, CUSPARSECSR\n"
+"               CSR, ELL, SELLP, CUSPARSECSR, CSR5.\n"
 " --blocksize x Set a specific blocksize for SELL-P format.\n"
 " --alignment x Set a specific alignment for SELL-P format.\n"
 " --mscale      Possibility to scale the original matrix:\n"
@@ -53,7 +53,8 @@ static const char *usage_sparse =
 "                   --triolver k  Solver for triangular ILU factors: e.g. CUSOLVE, JACOBI, ISAI.\n"
 "                   --ppattern k  Pattern used for ISAI preconditioner.\n"
 "                   --psweeps x   Number of iterative ParILU sweeps.\n"
-" --trisolver   Possibility to choose a triangular solver for ILU preconditioning: e.g. JACOBI, VBJACOBI, ISAI.\n"
+" --trisolver   Possibility to choose a triangular solver for ILU preconditioning: \n"
+"               e.g. CUSOLVE, ISPTRSV, JACOBI, VBJACOBI, ISAI.\n"
 " --ppattern k  Possibility to choose a pattern for the trisolver: ISAI(k) or Block Jacobi.\n"
 " --piters k    Number of preconditioner relaxation steps, e.g. for ISAI or (Block) Jacobi trisolver.\n"
 " --patol x     Set an absolute residual stopping criterion for the preconditioner.\n"
@@ -160,6 +161,8 @@ magma_zparse_opts(
                 opts->output_format = Magma_SELLP;
             } else if ( strcmp("CUSPARSECSR", argv[i]) == 0 ) {
                 opts->output_format = Magma_CUCSR;
+            } else if ( strcmp("CSR5", argv[i]) == 0 ) {
+                opts->output_format = Magma_CSR5;
             } else {
                 printf( "%%error: invalid format, use default (CSR).\n" );
             }
@@ -247,6 +250,9 @@ magma_zparse_opts(
             }
             else if ( strcmp("ITERREF", argv[i]) == 0 ) {
                 opts->solver_par.solver = Magma_ITERREF;
+            }
+            else if ( strcmp("PARDISO", argv[i]) == 0 ) {
+                opts->solver_par.solver = Magma_PARDISO;
             }
             else {
                 printf( "%%error: invalid solver.\n" );
@@ -373,6 +379,9 @@ magma_zparse_opts(
             }
             else if ( strcmp("CUSOLVE", argv[i]) == 0 ) {
                 opts->precond_par.trisolver = Magma_CUSOLVE;
+            }
+            else if ( strcmp("SPTRSV", argv[i]) == 0 ) {
+                opts->precond_par.trisolver = Magma_SPTRSV;
             }
             else if ( strcmp("ISAI", argv[i]) == 0 ) {
                 opts->precond_par.trisolver = Magma_ISAI;
@@ -501,6 +510,10 @@ magma_zparse_opts(
     if ( ( opts->solver_par.solver == Magma_PCG || opts->solver_par.solver == Magma_PCGMERGE )
         && opts->precond_par.solver == Magma_PARILU )
             opts->precond_par.solver = Magma_PARIC;
+            
+    // workaround for CG not being optimized for CSR5
+    if ( opts->solver_par.solver == Magma_CGMERGE && opts->output_format == Magma_CSR5 )
+        opts->solver_par.solver = Magma_CG;
             
             
     return info;

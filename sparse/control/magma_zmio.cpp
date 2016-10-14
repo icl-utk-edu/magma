@@ -494,7 +494,7 @@ magma_zwrite_csr_mtx(
         // TODO what's the difference between i (or i+1) and rowindex?
         magma_index_t i=0, j=0, rowindex=1;
                 
-        for(i=0; i < B.num_cols; i++) {
+        for(i=0; i < A.num_cols; i++) {
             magma_index_t rowtemp1 = A.row[i];
             magma_index_t rowtemp2 = A.row[i+1];
             for(j=0; j < rowtemp2 - rowtemp1; j++) {

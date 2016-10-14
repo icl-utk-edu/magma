@@ -67,6 +67,26 @@ magma_zmfree(
             A->num_cols = 0;
             A->nnz = 0; A->true_nnz = 0;
         }
+        if ( A->storage_type == Magma_CSR5 ) {
+            magma_free_cpu( A->val );
+            magma_free_cpu( A->row );
+            magma_free_cpu( A->col );
+            magma_free_cpu( A->tile_ptr );
+            magma_free_cpu( A->tile_desc );
+            magma_free_cpu( A->tile_desc_offset_ptr );
+            magma_free_cpu( A->tile_desc_offset );
+            magma_free_cpu( A->calibrator );
+            A->num_rows = 0;
+            A->num_cols = 0;
+            A->nnz = 0; A->true_nnz = 0;
+            A->csr5_sigma = 0;
+            A->csr5_bit_y_offset = 0;
+            A->csr5_bit_scansum_offset = 0;
+            A->csr5_num_packets = 0;
+            A->csr5_p = 0;
+            A->csr5_num_offsets = 0;
+            A->csr5_tail_tile_start = 0;
+        }
         if ( A->storage_type == Magma_CSRLIST ) {
             magma_free_cpu( A->val );
             magma_free_cpu( A->row );
@@ -127,6 +147,16 @@ magma_zmfree(
         A->ddiag = NULL;
         A->dlist = NULL;
         A->list = NULL;
+        A->tile_ptr = NULL;
+        A->dtile_ptr = NULL;
+        A->tile_desc = NULL;
+        A->dtile_desc = NULL;
+        A->tile_desc_offset_ptr = NULL;
+        A->dtile_desc_offset_ptr = NULL;
+        A->tile_desc_offset = NULL;
+        A->dtile_desc_offset = NULL;
+        A->calibrator = NULL;
+        A->dcalibrator = NULL;
     }
 
     if ( A->memory_location == Magma_DEV ) {
@@ -192,6 +222,50 @@ magma_zmfree(
             A->num_rows = 0;
             A->num_cols = 0;
             A->nnz = 0; A->true_nnz = 0;
+        }
+        if ( A->storage_type == Magma_CSR5 ) {
+            if ( magma_free( A->dval ) != MAGMA_SUCCESS ) {
+                printf("Memory Free Error.\n");
+                return MAGMA_ERR_INVALID_PTR; 
+            }
+            if ( magma_free( A->drow ) != MAGMA_SUCCESS ) {
+                printf("Memory Free Error.\n");
+                return MAGMA_ERR_INVALID_PTR; 
+            }
+            if ( magma_free( A->dcol ) != MAGMA_SUCCESS ) {
+                printf("Memory Free Error.\n");
+                return MAGMA_ERR_INVALID_PTR; 
+            }
+            if ( magma_free( A->dtile_ptr ) != MAGMA_SUCCESS ) {
+                printf("Memory Free Error.\n");
+                return MAGMA_ERR_INVALID_PTR; 
+            }
+            if ( magma_free( A->dtile_desc ) != MAGMA_SUCCESS ) {
+                printf("Memory Free Error.\n");
+                return MAGMA_ERR_INVALID_PTR; 
+            }
+            if ( magma_free( A->dtile_desc_offset_ptr ) != MAGMA_SUCCESS ) {
+                printf("Memory Free Error.\n");
+                return MAGMA_ERR_INVALID_PTR; 
+            }
+            if ( magma_free( A->dtile_desc_offset ) != MAGMA_SUCCESS ) {
+                printf("Memory Free Error.\n");
+                return MAGMA_ERR_INVALID_PTR; 
+            }
+            if ( magma_free( A->dcalibrator ) != MAGMA_SUCCESS ) {
+                printf("Memory Free Error.\n");
+                return MAGMA_ERR_INVALID_PTR; 
+            }
+            A->num_rows = 0;
+            A->num_cols = 0;
+            A->nnz = 0; A->true_nnz = 0;
+            A->csr5_sigma = 0;
+            A->csr5_bit_y_offset = 0;
+            A->csr5_bit_scansum_offset = 0;
+            A->csr5_num_packets = 0;
+            A->csr5_p = 0;
+            A->csr5_num_offsets = 0;
+            A->csr5_tail_tile_start = 0;
         }
         if ( A->storage_type == Magma_CSRLIST ) {
             if ( magma_free( A->dval ) != MAGMA_SUCCESS ) {
@@ -301,6 +375,16 @@ magma_zmfree(
         A->ddiag = NULL;
         A->dlist = NULL;
         A->list = NULL;
+        A->tile_ptr = NULL;
+        A->dtile_ptr = NULL;
+        A->tile_desc = NULL;
+        A->dtile_desc = NULL;
+        A->tile_desc_offset_ptr = NULL;
+        A->dtile_desc_offset_ptr = NULL;
+        A->tile_desc_offset = NULL;
+        A->dtile_desc_offset = NULL;
+        A->calibrator = NULL;
+        A->dcalibrator = NULL;
     }
 
     else {

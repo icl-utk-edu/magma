@@ -70,6 +70,13 @@ libsparse_src += \
 libsparse_src += \
 	$(cdir)/zlsqr.cpp                     \
 
+
+# Sparse direct solver (PARDISO)
+#libsparse_src += \
+#        $(cdir)/zpardiso.cpp                  \
+
+
+
 # Mixed-precision solvers
 #libsparse_src += \
 #	$(cdir)/zcpbicgstab.cpp               \
@@ -87,7 +94,6 @@ libsparse_src += \
 
 # iterative ILU
 libsparse_src += \
-	$(cdir)/ziterilu.cpp                  \
 	$(cdir)/zcustomic.cpp                 \
 	$(cdir)/zcustomilu.cpp                \
 	$(cdir)/zparilut.cpp                  \
@@ -111,12 +117,6 @@ libsparse_src += \
 libsparse_src += \
 	$(cdir)/magma_zcustomspmv.cpp         \
 	$(cdir)/magma_zcustomprecond.cpp      \
-
-# Wrappers to cusparse functions
-libsparse_src += \
-	$(cdir)/zcumilu.cpp                   \
-	$(cdir)/magma_zcuspmm.cpp             \
-	$(cdir)/magma_zcuspaxpy.cpp           \
 
 # Wrappers, tools etc
 libsparse_src += \

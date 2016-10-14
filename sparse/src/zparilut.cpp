@@ -478,6 +478,30 @@ magma_zparilutsetup(
         CHECK( magma_zvinit( &precond->work2, Magma_DEV, hA.num_rows, 1, MAGMA_Z_ZERO, queue ));
     }
 
+    if( precond->trisolver == Magma_JACOBI && precond->pattern == 1 ){
+        // dirty workaround for Jacobi trisolves....
+        magma_zmfree( &hL, queue );
+        magma_zmfree( &hU, queue );
+        CHECK( magma_zmtransfer( precond->U, &hU, Magma_DEV, Magma_CPU , queue )); 
+        CHECK( magma_zmtransfer( precond->L, &hL, Magma_DEV, Magma_CPU , queue )); 
+        magma_zmfree( &hAT, queue );
+        hAT.diagorder_type = Magma_VALUE;
+        CHECK( magma_zmconvert( hL, &hAT , Magma_CSR, Magma_CSRU, queue ));
+        #pragma omp parallel for
+		for (magma_int_t i=0; i<hAT.nnz; i++) {
+			hAT.val[i] = MAGMA_Z_ONE/hAT.val[i];	
+		}
+		CHECK( magma_zmtransfer( hAT, &(precond->LD), Magma_CPU, Magma_DEV, queue ));
+		
+        magma_zmfree( &hAT, queue );
+        hAT.diagorder_type = Magma_VALUE;
+        CHECK( magma_zmconvert( hU, &hAT , Magma_CSR, Magma_CSRL, queue ));
+        #pragma omp parallel for
+		for (magma_int_t i=0; i<hAT.nnz; i++) {
+			hAT.val[i] = MAGMA_Z_ONE/hAT.val[i];	
+		}
+		CHECK( magma_zmtransfer( hAT, &(precond->UD), Magma_CPU, Magma_DEV, queue ));
+    }
     
     cleanup:
         

@@ -14,7 +14,7 @@
 
 
 __global__ void 
-magma_ziteric_csr_kernel(    
+magma_zparic_csr_kernel(    
     magma_int_t n, 
     magma_int_t nnz, 
     magma_index_t *Arowidx, 
@@ -118,7 +118,7 @@ magma_ziteric_csr_kernel(
     ********************************************************************/
 
 extern "C" magma_int_t
-magma_ziteric_csr( 
+magma_zparic_csr( 
     magma_z_matrix A,
     magma_z_matrix A_CSR,
     magma_queue_t queue )
@@ -141,7 +141,7 @@ magma_ziteric_csr(
 
     dim3 grid( dimgrid1, dimgrid2, dimgrid3 );
     dim3 block( blocksize1, blocksize2, 1 );
-    magma_ziteric_csr_kernel<<< grid, block, 0, queue->cuda_stream() >>>
+    magma_zparic_csr_kernel<<< grid, block, 0, queue->cuda_stream() >>>
             ( A.num_rows, A.nnz, 
               A.rowidx, A.col, A.val, 
               A_CSR.row, A_CSR.col,  A_CSR.val );

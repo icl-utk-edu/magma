@@ -255,3 +255,69 @@ cleanup:
     magma_zmfree( &B, queue );
     return info;
 }
+
+/**
+    Purpose
+    -------
+
+    Writes a vector to a file.
+
+    Arguments
+    ---------
+
+    @param[in]
+    A           magma_z_matrix
+                matrix to write out
+
+    @param[in]
+    filename    const char*
+                output-filname of the mtx matrix
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+    ********************************************************************/
+
+extern "C"
+magma_int_t
+magma_zwrite_vector(
+    magma_z_matrix A,
+    const char *filename,
+    magma_queue_t queue )
+{
+    magma_int_t i, info = 0;
+    
+    FILE *fp;
+    
+    fp = fopen(filename, "w");
+    if ( fp == NULL ){
+        printf("\n%% error writing vector: file exists or missing write permission\n");
+        info = -1;
+        goto cleanup;
+    }
+            
+    #define COMPLEX
+
+    #ifdef COMPLEX
+    // complex case
+    for(i=0; i < A.num_rows; i++) {
+        fprintf( fp, "%.16g %.16g\n",
+            MAGMA_Z_REAL((A.val)[i]),
+            MAGMA_Z_IMAG((A.val)[i]) );
+    }
+    #else
+    for(i=0; i < A.num_rows; i++) {
+        fprintf( fp, "%.16g\n",
+            MAGMA_Z_REAL((A.val)[i]) );
+    }
+    #endif
+    
+    if (fclose(fp) != 0)
+        printf("\n%% error: writing matrix failed\n");
+    else
+        info = 0;
+
+cleanup:
+    return info;
+}

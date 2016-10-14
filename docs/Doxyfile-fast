@@ -1082,6 +1082,7 @@ INPUT                  = \
 	../sparse/blas/zcompact.cu                                  \
 	../sparse/blas/zgeaxpy.cu                                   \
 	../sparse/blas/zgeblockstruct.cu                            \
+	../sparse/blas/zgecsr5mv.cu                                  \
 	../sparse/blas/zgecsrmv.cu                                  \
 	../sparse/blas/zgecsrreimsplit.cu                           \
 	../sparse/blas/zgedensereimsplit.cu                         \

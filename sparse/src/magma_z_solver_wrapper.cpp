@@ -132,6 +132,8 @@ magma_z_solver(
                     CHECK( magma_zbombard( A, b, x, &zopts->solver_par, queue ) ); break;
             case  Magma_BOMBARDMERGE:
                     CHECK( magma_zbombard_merge( A, b, x, &zopts->solver_par, queue ) ); break;
+            // case  Magma_PARDISO:
+            //         CHECK( magma_zpardiso( A, b, x, &zopts->solver_par, queue ) ); break;
             default:
                     printf("error: solver class not supported.\n"); break;
         }

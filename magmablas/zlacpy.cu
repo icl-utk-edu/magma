@@ -207,6 +207,54 @@ void zlacpy_upper_kernel_batched(
     int batchid = blockIdx.z;
     zlacpy_upper_device(m, n, dAarray[batchid], ldda, dBarray[batchid], lddb);
 }
+/******************************************************************************/
+/*
+    kernel wrappers to call the device functions for the vbatched routine.
+*/
+__global__
+void zlacpy_full_kernel_vbatched(
+    magma_int_t* m, magma_int_t* n,
+    magmaDoubleComplex const * const *dAarray, magma_int_t* ldda,
+    magmaDoubleComplex **dBarray, magma_int_t* lddb )
+{
+    const int batchid = blockIdx.z;
+    const int my_m = (int)m[batchid];
+    const int my_n = (int)n[batchid];
+    if(blockIdx.x >= magma_ceildiv(my_m, BLK_X)) return;
+    if(blockIdx.y >= magma_ceildiv(my_n, BLK_Y)) return;
+    
+    zlacpy_full_device(my_m, my_n, dAarray[batchid], (int)ldda[batchid], dBarray[batchid], (int)lddb[batchid]);
+}
+
+__global__
+void zlacpy_lower_kernel_vbatched(
+    magma_int_t* m, magma_int_t* n,
+    magmaDoubleComplex const * const *dAarray, magma_int_t* ldda,
+    magmaDoubleComplex **dBarray, magma_int_t* lddb )
+{
+    const int batchid = blockIdx.z;
+    const int my_m = (int)m[batchid];
+    const int my_n = (int)n[batchid];
+    if(blockIdx.x >= magma_ceildiv(my_m, BLK_X)) return;
+    if(blockIdx.y >= magma_ceildiv(my_n, BLK_Y)) return;
+    
+    zlacpy_lower_device(my_m, my_n, dAarray[batchid], (int)ldda[batchid], dBarray[batchid], (int)lddb[batchid]);
+}
+
+__global__
+void zlacpy_upper_kernel_vbatched(
+    magma_int_t* m, magma_int_t* n,
+    magmaDoubleComplex const * const *dAarray, magma_int_t* ldda,
+    magmaDoubleComplex **dBarray, magma_int_t* lddb )
+{
+    const int batchid = blockIdx.z;
+    const int my_m = (int)m[batchid];
+    const int my_n = (int)n[batchid];
+    if(blockIdx.x >= magma_ceildiv(my_m, BLK_X)) return;
+    if(blockIdx.y >= magma_ceildiv(my_n, BLK_Y)) return;
+    
+    zlacpy_upper_device(my_m, my_n, dAarray[batchid], (int)ldda[batchid], dBarray[batchid], (int)lddb[batchid]);
+}
 
 
 /***************************************************************************//**
@@ -347,8 +395,8 @@ magmablas_zlacpy(
     }
 }
 
-
-/***************************************************************************//**
+/***************************************************************************/
+/**
     Purpose
     -------
     ZLACPY_BATCHED copies all or part of each two-dimensional matrix
@@ -451,3 +499,105 @@ magmablas_zlacpy_batched(
             ( m, n, dAarray, ldda, dBarray, lddb );
     }
 }
+/***************************************************************************/
+/**
+    Purpose
+    -------
+    ZLACPY_VBATCHED copies all or part of each two-dimensional matrix
+    dAarray[i] to matrix dBarray[i], for 0 <= i < batchcount.
+    Matrices are assumed to generally have different sizes/leading dimensions
+    
+    Arguments
+    ---------
+    
+    @param[in]
+    uplo    magma_uplo_t
+            Specifies the part of each matrix dA to be copied to dB.
+      -     = MagmaUpper:      Upper triangular part
+      -     = MagmaLower:      Lower triangular part
+            Otherwise:  All of each matrix dA
+    
+    @param[in]
+    m       INTEGER array, dimension (batchCount).
+            Each is the number of rows of each matrix dA.  M >= 0.
+    
+    @param[in]
+    n       INTEGER array, dimension (batchCount).
+            The number of columns of each matrix dA.  N >= 0.
+    
+    @param[in]
+    dAarray Array of pointers , dimension (batchCount)
+            Each is a COMPLEX_16 array dA, where the ith matrix dA is of dimension (ldda[i],n[i]).
+            The M-by-N matrix dA.
+            If UPLO = MagmaUpper, only the upper triangle or trapezoid is accessed;
+            if UPLO = MagmaLower, only the lower triangle or trapezoid is accessed.
+    
+    @param[in]
+    ldda    INTEGER array, dimension (batchCount).
+            Each is the leading dimension of each array dA. For the ith matrix dA ldda[i] >= max(1,m[i]).
+    
+    @param[out]
+    dBarray Array of pointers, dimension(batchCount). 
+            Each is a COMPLEX_16 array dB, where the ith matrix dB is of dimension (lddb[i],n[i]).
+            The M-by-N matrix dB.
+            On exit, dB = dA in the locations specified by UPLO.
+    
+    @param[in]
+    lddb    INTEGER array, dimension (batchCount).
+            Each is the leading dimension of each array dB. For the ith matrix dB lddb[i] >= max(1,m[i]).
+    
+    @param[in]
+    batchCount  Number of matrices in dAarray and dBarray.
+    
+    @param[in]
+    queue   magma_queue_t
+            Queue to execute in.
+
+    @ingroup magma_zaux2
+    ********************************************************************/
+extern "C" void
+magmablas_zlacpy_vbatched(
+    magma_uplo_t uplo, 
+    magma_int_t max_m, magma_int_t max_n, 
+    magma_int_t* m, magma_int_t* n,
+    magmaDoubleComplex const * const * dAarray, magma_int_t* ldda,
+    magmaDoubleComplex**               dBarray, magma_int_t* lddb,
+    magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    if ( uplo != MagmaLower && uplo != MagmaUpper && uplo != MagmaFull )
+        info = -1;
+    //else if ( m < 0 )
+    //    info = -2;
+    //else if ( n < 0 )
+    //    info = -3;
+    //else if ( ldda < max(1,m))
+    //    info = -5;
+    //else if ( lddb < max(1,m))
+    //    info = -7;
+    else if ( batchCount < 0 )
+        info = -8;
+    
+    if ( info != 0 ) {
+        magma_xerbla( __func__, -(info) );
+        return;
+    }
+    
+    if ( max_m == 0 || max_n == 0 || batchCount == 0 ) {
+        return;
+    }
+    
+    dim3 threads( BLK_X, 1, 1 );
+    dim3 grid( magma_ceildiv( max_m, BLK_X ), magma_ceildiv( max_n, BLK_Y ), batchCount );
+    
+    if ( uplo == MagmaLower ) {
+        zlacpy_lower_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>> ( m, n, dAarray, ldda, dBarray, lddb );
+    }
+    else if ( uplo == MagmaUpper ) {
+        zlacpy_upper_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>> ( m, n, dAarray, ldda, dBarray, lddb );
+    }
+    else {
+        zlacpy_full_kernel_vbatched <<< grid, threads, 0, queue->cuda_stream() >>> ( m, n, dAarray, ldda, dBarray, lddb );
+    }
+}
+

@@ -513,6 +513,123 @@ magma_index_copyvector_async_internal(
                                      queue, func, file, line );
 }
 
+// =============================================================================
+// copying vectors - version for magma_uindex_t
+
+/// Type-safe version of magma_setvector() for magma_uindex_t arrays.
+/// @ingroup magma_setvector
+#define magma_uindex_setvector(                 n, hx_src, incx, dy_dst, incy, queue ) \
+        magma_uindex_setvector_internal(        n, hx_src, incx, dy_dst, incy, queue, __func__, __FILE__, __LINE__ )
+
+/// Type-safe version of magma_getvector() for magma_uindex_t arrays.
+/// @ingroup magma_getvector
+#define magma_uindex_getvector(                 n, dx_src, incx, hy_dst, incy, queue ) \
+        magma_uindex_getvector_internal(        n, dx_src, incx, hy_dst, incy, queue, __func__, __FILE__, __LINE__ )
+
+/// Type-safe version of magma_copyvector() for magma_uindex_t arrays.
+/// @ingroup magma_copyvector
+#define magma_uindex_copyvector(                n, dx_src, incx, dy_dst, incy, queue ) \
+        magma_uindex_copyvector_internal(       n, dx_src, incx, dy_dst, incy, queue, __func__, __FILE__, __LINE__ )
+
+/// Type-safe version of magma_setvector_async() for magma_uindex_t arrays.
+/// @ingroup magma_setvector
+#define magma_uindex_setvector_async(           n, hx_src, incx, dy_dst, incy, queue ) \
+        magma_uindex_setvector_async_internal(  n, hx_src, incx, dy_dst, incy, queue, __func__, __FILE__, __LINE__ )
+
+/// Type-safe version of magma_getvector_async() for magma_uindex_t arrays.
+/// @ingroup magma_getvector
+#define magma_uindex_getvector_async(           n, dx_src, incx, hy_dst, incy, queue ) \
+        magma_uindex_getvector_async_internal(  n, dx_src, incx, hy_dst, incy, queue, __func__, __FILE__, __LINE__ )
+
+/// Type-safe version of magma_copyvector_async() for magma_uindex_t arrays.
+/// @ingroup magma_copyvector
+#define magma_uindex_copyvector_async(          n, dx_src, incx, dy_dst, incy, queue ) \
+        magma_uindex_copyvector_async_internal( n, dx_src, incx, dy_dst, incy, queue, __func__, __FILE__, __LINE__ )
+
+static inline void
+magma_uindex_setvector_internal(
+    magma_int_t n,
+    const magma_uindex_t *hx_src, magma_int_t incx,
+    magmaUIndex_ptr       dy_dst, magma_int_t incy,
+    magma_queue_t queue,
+    const char* func, const char* file, int line )
+{
+    magma_setvector_internal( n, sizeof(magma_uindex_t),
+                              hx_src, incx,
+                              dy_dst, incy,
+                              queue, func, file, line );
+}
+
+static inline void
+magma_uindex_getvector_internal(
+    magma_int_t n,
+    magmaUIndex_const_ptr dx_src, magma_int_t incx,
+    magma_uindex_t       *hy_dst, magma_int_t incy,
+    magma_queue_t queue,
+    const char* func, const char* file, int line )
+{
+    magma_getvector_internal( n, sizeof(magma_uindex_t),
+                              dx_src, incx,
+                              hy_dst, incy,
+                              queue, func, file, line );
+}
+
+static inline void
+magma_uindex_copyvector_internal(
+    magma_int_t n,
+    magmaUIndex_const_ptr dx_src, magma_int_t incx,
+    magmaUIndex_ptr       dy_dst, magma_int_t incy,
+    magma_queue_t queue,
+    const char* func, const char* file, int line )
+{
+    magma_copyvector_internal( n, sizeof(magma_uindex_t),
+                               dx_src, incx,
+                               dy_dst, incy,
+                               queue, func, file, line );
+}
+
+static inline void
+magma_uindex_setvector_async_internal(
+    magma_int_t n,
+    const magma_uindex_t *hx_src, magma_int_t incx,
+    magmaUIndex_ptr       dy_dst, magma_int_t incy,
+    magma_queue_t queue,
+    const char* func, const char* file, int line )
+{
+    magma_setvector_async_internal( n, sizeof(magma_uindex_t),
+                                    hx_src, incx,
+                                    dy_dst, incy,
+                                    queue, func, file, line );
+}
+
+static inline void
+magma_uindex_getvector_async_internal(
+    magma_int_t n,
+    magmaUIndex_const_ptr dx_src, magma_int_t incx,
+    magma_uindex_t       *hy_dst, magma_int_t incy,
+    magma_queue_t queue,
+    const char* func, const char* file, int line )
+{
+    magma_getvector_async_internal( n, sizeof(magma_uindex_t),
+                                    dx_src, incx,
+                                    hy_dst, incy,
+                                    queue, func, file, line );
+}
+
+static inline void
+magma_uindex_copyvector_async_internal(
+    magma_int_t n,
+    magmaUIndex_const_ptr dx_src, magma_int_t incx,
+    magmaUIndex_ptr       dy_dst, magma_int_t incy,
+    magma_queue_t queue,
+    const char* func, const char* file, int line )
+{
+    magma_copyvector_async_internal( n, sizeof(magma_uindex_t),
+                                     dx_src, incx,
+                                     dy_dst, incy,
+                                     queue, func, file, line );
+}
+
 
 // =============================================================================
 // copying sub-matrices - version for magma_index_t

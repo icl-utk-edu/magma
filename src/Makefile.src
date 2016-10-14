@@ -303,6 +303,12 @@ libmagma_src += \
 	$(cdir)/zgeqrf_batched.cpp		\
 	$(cdir)/zgeqrf_expert_batched.cpp	\
 
+# ----------
+# vbatched, GPU interface
+libmagma_src += \
+	$(cdir)/zpotf2_vbatched.cpp		\
+	$(cdir)/zpotrf_panel_vbatched.cpp		\
+	$(cdir)/zpotrf_vbatched.cpp		\
 
 # additional dependencies
 $(cdir)/spotrf_batched.$(o_ext): control/batched_kernel_param.h

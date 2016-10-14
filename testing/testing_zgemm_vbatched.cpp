@@ -31,11 +31,12 @@
 #endif
 
 /* ////////////////////////////////////////////////////////////////////////////
-   -- Testing zgemm_batched
+   -- Testing zgemm_vbatched
 */
 int main( int argc, char** argv)
 {
     TESTING_CHECK( magma_init() );
+    magma_print_environment();
 
     real_Double_t   gflops, magma_perf, magma_time, cpu_perf, cpu_time;
     double          magma_error, magma_err, Cnorm, work[1];
