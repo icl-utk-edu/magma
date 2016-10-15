@@ -25,7 +25,15 @@ Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
  2.2.0 - Nov 2016
-
+ 
+    MAGMA-sparse
+    * Added Incomplete Sparse Approximate Inverse (ISAI) Preconditioner
+      for sparse triangular solves, including batched generation.
+    * Added Block-Jacobi triangular solves, including variable blocksize
+      (based on supervariable amalgamation).
+    * Added ParILUT, a parallel threshold ILU based on OpenMP.
+    * Added CSR5 format and CSR5 SpMV kernel, a sparse matrix vector product
+      often outperforming the cuSPARSE SpMV CSR and HYB.
 
  2.1.0 - Aug 30, 2016
     * Added variable size batched routines:
@@ -35,7 +43,7 @@ single (s), double (d), single-complex (c), double-complex (z).
     * Expanded and reorganized documentation.
     * Improved install (added DESTDIR, LIB_SUFFIX to Makefile; added install to CMake).
 
-    MAGMA sparse
+    MAGMA-sparse
     * Added a preconditioned QMR iterative solver (PQMR) including a kernel-merged version.
     * Updated the preconditioner structure to allow for a specific ILU triangular solver.
 
@@ -62,7 +70,7 @@ single (s), double (d), single-complex (c), double-complex (z).
     * Merged single & multi-GPU CPU interface testers (e.g., merged testing_dgeev_m into testing_dgeev).
     * Deprecated magma_device_sync; use magma_queue_sync instead.
     
-    MAGMA sparse
+    MAGMA-sparse
     * Added QMR, TFQMR, preconditioned TFQMR
     * Added CGS, preconditioned CGS
     * Added kernel-fused versions for CGS/PCGS QMR, TFQMR/PTFQMR
@@ -94,7 +102,7 @@ single (s), double (d), single-complex (c), double-complex (z).
     * Rename lapack_const to lapack_const_str, to avoid name conflict with PLASMA.
     * Allow CMake build without Fortran (already existed for make).
 
-    MAGMA sparse
+    MAGMA-sparse
     * Added Induced Dimension Reduction Iterative solver (IDR).
     * Added iterative sparse triangular solves for
       incomplete factorization preconditioners.
@@ -105,12 +113,12 @@ single (s), double (d), single-complex (c), double-complex (z).
     * Fixed magmablas_zlaset and magmablas_zlacpy for large M or N > 4M.
     * Fixed testers for geqrf_batched and trsm_batched to compile with CUDA 5.x.
 
-    MAGMA sparse
+    MAGMA-sparse
     * All allocation failures and other errors now return error codes.
     * cuSPARSE error codes mapped to MAGMA error codes.
     * LOBPCG sparse eigensolver enabled for preconditioning using Jacobi and
       incomplete LU factorizations.
-    * Some name changes in MAGMA sparse for consistency with dense MAGMA.
+    * Some name changes in MAGMA-sparse for consistency with dense MAGMA.
       All functions working on matrices now start with the prefix magma_zm***
       instead some of them starting with magma_z_m***.
     * magma_zmvisu for printing a matrix is now called magma_zprint_matrix.
