@@ -10860,7 +10860,6 @@ magma_zisai_generator_regs(
     if ( arch >= 300 ) {
 
         if( uplotype == MagmaLower ){//printf("in here lower new kernel\n");
-            //cudaProfilerStart();
             magma_zlowerisai_regs_inv_switch<<< r1grid, r1block, 0, queue->cuda_stream() >>>(                                                                           
                 L.num_rows,                                                                                   
                 L.row,
@@ -10869,8 +10868,6 @@ magma_zisai_generator_regs(
                 M->row,
                 M->col,
                 M->val );
-             //cudaProfilerStop(); 
-             //exit(-1);
         } else {// printf("in here upper new kernel\n");
             magma_zupperisai_regs_inv_switch<<< r1grid, r1block, 0, queue->cuda_stream() >>>(                                                                           
                 L.num_rows,                                                                                   

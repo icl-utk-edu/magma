@@ -19,7 +19,7 @@
 #include "magmasparse_internal.h"
 #include "atomicopsmagmaDoubleComplex.h"
 
-#include <cuda.h>
+#include <cuda.h>  // for CUDA_VERSION
 
 #define MAGMA_CSR5_THREAD_GROUP 128
 #define MAGMA_CSR5_THREAD_BUNCH 32
