@@ -92,7 +92,6 @@ magma_zbulge_applyQ_v2_m(
     */
 
     // Initialize streaming and events
-    //magma_device_sync();
     magma_device_t orig_dev;
     magma_getdevice( &orig_dev );
 

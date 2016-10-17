@@ -205,7 +205,6 @@ magma_zbulge_back_m(
          *==========================*/
     } else {
         magma_zbulge_applyQ_v2_m(ngpu, MagmaLeft, ne, n, nb, Vblksiz, Z, ldz, V, ldv, T, ldt, info);
-        //magma_device_sync();
     }
 
     timeaplQ2 = magma_wtime()-timeaplQ2;
@@ -284,7 +283,6 @@ static void *magma_zapplyQ_m_parallel_section(void *arg)
         #endif
 
         magma_zbulge_applyQ_v2_m(ngpu, MagmaLeft, n_gpu, n, nb, Vblksiz, E, lde, V, ldv, T, ldt, &info);
-        //magma_device_sync();
 
         #ifdef ENABLE_TIMER
         timeQgpu = magma_wtime()-timeQgpu;

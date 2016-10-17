@@ -319,7 +319,6 @@ magma_zhetrd_he2hb_mgpu(
                 //printf("Receiving panel ofsize %d %d from idev %d A(%d,%d)\n",(pm+pn), pn,idev,i-1,di);
                 magma_setdevice( idev );
 
-                //magma_device_sync();
                 magma_zgetmatrix_async( (pm+pn), pn,
                                         dA(idev, i, di+1), ldda,
                                         A( i, i), lda, queues[ idev ][ nqueue-1 ] );

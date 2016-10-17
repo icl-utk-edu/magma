@@ -132,7 +132,6 @@ magma_zcuspmm(
                         descrC,
                         C.dval, C.drow, C.dcol ));
         // end CUSPARSE context //
-        //magma_device_sync();
         magma_queue_sync( queue );
         CHECK( magma_zmtransfer( C, AB, Magma_DEV, Magma_DEV, queue ));
     }

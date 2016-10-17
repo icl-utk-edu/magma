@@ -262,7 +262,6 @@ magma_zlaqps_gpu(
             magmablas_dznrm2_row_check_adjust( n-k-1, tol3z, &vn1[k+1], &vn2[k+1], 
                                                dA(rk,k+1), ldda, dlsticcs, queue );
 
-            //magma_device_sync();
             magma_dgetvector( 1, &dlsticcs[0], 1, &lsticc, 1, queue );
         }
         
