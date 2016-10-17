@@ -286,4 +286,3 @@ void magma_zdisplace_pointers_var_vv(magmaDoubleComplex **output_array,
 */
     zdisplace_pointers_var_vv_kernel<<<batchCount, 1, 0, queue->cuda_stream()>>>(output_array, input_array, lda, row, column);
 }
-

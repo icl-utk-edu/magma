@@ -494,4 +494,3 @@ void magmablas_zlaset_vbatched(
         zlaset_full_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>> (m, n, offdiag, diag, dAarray, ldda);
     }
 }
-
