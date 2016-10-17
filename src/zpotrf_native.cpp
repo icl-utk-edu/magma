@@ -149,72 +149,63 @@ magma_zpotrf_recpanel_rectangle_native(
 }
 
 
-/***************************************************************************/
-/**
+/***************************************************************************//**
     Purpose
     -------
     ZPOTRF computes the Cholesky factorization of a complex Hermitian
-    positive definite matrix dA.
+    positive definite matrix A. This version does not require work
+    space on the GPU passed as input. GPU memory is allocated in the
+    routine.
 
     The factorization has the form
-        dA = U**H * U,   if UPLO = MagmaUpper, or
-        dA = L  * L**H,  if UPLO = MagmaLower,
+        A = U**H * U,  if uplo = MagmaUpper, or
+        A = L  * L**H, if uplo = MagmaLower,
     where U is an upper triangular matrix and L is lower triangular.
 
     This is the block version of the algorithm, calling Level 3 BLAS.
-    This is the fixed size batched version of the operation. 
+
+    This routine performs all the computation on the GPU (no CPU involved).
 
     Arguments
     ---------
     @param[in]
     uplo    magma_uplo_t
-      -     = MagmaUpper:  Upper triangle of dA is stored;
-      -     = MagmaLower:  Lower triangle of dA is stored.
-            Only MagmaLower is supported.
+      -     = MagmaUpper:  Upper triangle of A is stored;
+      -     = MagmaLower:  Lower triangle of A is stored.
+      
+      Only uplo = MagmaLower is supported
 
     @param[in]
     n       INTEGER
-            The order of the matrix dA.  N >= 0.
+            The order of the matrix A.  N >= 0.
 
     @param[in,out]
-    dA_array      Array of pointers, dimension (batchCount).
-             Each is a COMPLEX_16 array on the GPU, dimension (LDDA,N)
-             On entry, each pointer is a Hermitian matrix dA.  
-             If UPLO = MagmaUpper, the leading
-             N-by-N upper triangular part of dA contains the upper
-             triangular part of the matrix dA, and the strictly lower
-             triangular part of dA is not referenced.  If UPLO = MagmaLower, the
-             leading N-by-N lower triangular part of dA contains the lower
-             triangular part of the matrix dA, and the strictly upper
-             triangular part of dA is not referenced.
+    dA      COMPLEX_16 array on the GPU, dimension (LDA,N)
+            On entry, the Hermitian matrix A.  If uplo = MagmaUpper, the leading
+            N-by-N upper triangular part of A contains the upper
+            triangular part of the matrix A, and the strictly lower
+            triangular part of A is not referenced.  If uplo = MagmaLower, the
+            leading N-by-N lower triangular part of A contains the lower
+            triangular part of the matrix A, and the strictly upper
+            triangular part of A is not referenced.
     \n
-             On exit, if corresponding entry in info_array = 0, 
-             each pointer is the factor U or L from the Cholesky
-             factorization dA = U**H * U or dA = L * L**H.
+            On exit, if INFO = 0, the factor U or L from the Cholesky
+            factorization A = U**H * U or A = L * L**H.
 
     @param[in]
-    ldda     INTEGER
-            The leading dimension of each array dA.  LDDA >= max(1,N).
-            To benefit from coalescent memory accesses LDDA must be
-            divisible by 16.
+    lda     INTEGER
+            The leading dimension of the array A.  LDA >= max(1,N).
 
     @param[out]
-    info_array    Array of INTEGERs, dimension (batchCount), for corresponding matrices.
+    dinfo    INTEGER on the GPU memory
       -     = 0:  successful exit
       -     < 0:  if INFO = -i, the i-th argument had an illegal value
+                  or another error occured, such as memory allocation failed.
       -     > 0:  if INFO = i, the leading minor of order i is not
                   positive definite, and the factorization could not be
                   completed.
-    
-    @param[in]
-    batchCount  INTEGER
-                The number of matrices to operate on.
 
-    @param[in]
-    queue   magma_queue_t
-            Queue to execute in.
-
-    @ingroup magma_potrf_batched
+    @ingroup magma_potrf_native
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_native(
