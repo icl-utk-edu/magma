@@ -123,7 +123,7 @@ magma_z_solver(
             case  Magma_ITERREF:
                     CHECK( magma_ziterref( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
             case  Magma_JACOBI:
-                    CHECK( magma_zftjacobi( A, b, x, &zopts->solver_par, queue )); break;
+                    CHECK( magma_zjacobi( A, b, x, &zopts->solver_par, queue )); break;
             case  Magma_BAITER:
                     CHECK( magma_zbaiter( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
             case  Magma_BAITERO:
