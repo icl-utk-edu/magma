@@ -14,7 +14,7 @@
 #include "commonblas_z.h"
 
 #define PRECISION_z
-/***************************************************************************/
+/******************************************************************************/
 extern "C" void 
 magmablas_zhemm_vbatched_max_nocheck(
         magma_side_t side, magma_uplo_t uplo, 
@@ -36,7 +36,8 @@ magmablas_zhemm_vbatched_max_nocheck(
            0, 0, 0, 0, 0, 0, 0, 0, 
            batchCount, queue );
 }
-/***************************************************************************/
+
+/******************************************************************************/
 extern "C" void
 magmablas_zhemm_vbatched_max(
         magma_side_t side, magma_uplo_t uplo, 
@@ -67,7 +68,8 @@ magmablas_zhemm_vbatched_max(
             batchCount, max_m, max_n, 
             queue );
 }
-/***************************************************************************/
+
+/******************************************************************************/
 extern "C" void
 magmablas_zhemm_vbatched_nocheck(
         magma_side_t side, magma_uplo_t uplo, 
@@ -94,6 +96,7 @@ magmablas_zhemm_vbatched_nocheck(
             beta,  dC_array, lddc, 
             batchCount, max_m, max_n, queue );
 }
+
 /***************************************************************************//**
     Purpose
     -------
@@ -217,6 +220,7 @@ magmablas_zhemm_vbatched_nocheck(
 
     @ingroup magma_hemm_vbatched
 *******************************************************************************/
+
 extern "C" void
 magmablas_zhemm_vbatched(
         magma_side_t side, magma_uplo_t uplo, 
@@ -252,4 +256,5 @@ magmablas_zhemm_vbatched(
             beta,  dC_array, lddc, 
             batchCount, max_m, max_n, queue );
 }
+
 /******************************************************************************/

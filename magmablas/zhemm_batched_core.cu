@@ -15,7 +15,7 @@
 
 #define PRECISION_z
 #include "hemm_template_kernel_batched.cuh"
-/***************************************************************************/
+/******************************************************************************/
 extern "C" void 
 magmablas_zhemm_batched_core(
         magma_side_t side, magma_uplo_t uplo, 
@@ -44,7 +44,8 @@ magmablas_zhemm_batched_core(
             roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
     }
 }
-/***************************************************************************/
+
+/******************************************************************************/
 /**
     Purpose
     -------
@@ -167,7 +168,8 @@ magmablas_zhemm_batched_core(
     
 
     @ingroup magma_hemm_batched
-*******************************************************************************/
+    *******************************************************************************/
+
 extern "C" void 
 magmablas_zhemm_batched(
         magma_side_t side, magma_uplo_t uplo, 

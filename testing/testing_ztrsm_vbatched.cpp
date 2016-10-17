@@ -306,8 +306,8 @@ int main( int argc, char** argv)
                 h_A_array[0] = h_A; 
                 h_B_array[0] = h_Blapack; 
                 for(int k = 1; k < batchCount; k++){
-                    h_A_array[k] = h_A_array[k-1] + Ak[k-1] * h_lda[k-1];; 
-                    h_B_array[k] = h_B_array[k-1] + h_N[k-1] * h_ldb[k-1];; 
+                    h_A_array[k] = h_A_array[k-1] + Ak[k-1] * h_lda[k-1];  
+                    h_B_array[k] = h_B_array[k-1] + h_N[k-1] * h_ldb[k-1];  
                 }
                 cpu_time = magma_wtime();
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)

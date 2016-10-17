@@ -222,6 +222,11 @@ testing_src += \
 	$(cdir)/testing_zpotrf_vbatched.cpp	\
 	
 # ----------
+# native routines (e.g. QR, LU, Cholesky)
+testing_src += \
+	$(cdir)/testing_zpotrf_native.cpp	\
+
+# ----------
 # fortran.c and fortran_thunking.c are provided by NVIDIA in $(CUDADIR)/src
 ifeq ($(FORT), pgfortran)
 	#	$(cdir)/fortran_thunking.$(o_ext)

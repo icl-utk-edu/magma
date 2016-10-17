@@ -120,8 +120,7 @@ int main( int argc, char** argv)
                 max_M = max( max_M, h_M[i] );
                 max_N = max( max_N, h_N[i] );
                 
-                gflops += FLOPS_ZTRMM(opts.side, h_M[i], h_N[i]);
-                
+                gflops += FLOPS_ZTRMM(opts.side, h_M[i], h_N[i]);    
             }
             gflops /= 1e9;
             
@@ -163,7 +162,7 @@ int main( int argc, char** argv)
                Performs operation using MAGMABLAS
                =================================================================== */
             // set B
-            h_B_tmp = h_B; d_B_tmp = d_B;;
+            h_B_tmp = h_B; d_B_tmp = d_B; 
             for(int i = 0; i < batchCount; i++){
                 magma_zsetmatrix( h_M[i],  h_N[i],  h_B_tmp, h_ldb[i], d_B_tmp, h_lddb[i], opts.queue );
                 h_B_tmp += h_N[i] * h_ldb[i];

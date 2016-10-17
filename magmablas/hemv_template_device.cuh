@@ -14,7 +14,7 @@
 #define HEMV_TEMPLATE_DEVICE_CUH
 
 #define EPT    (NB/TY)
-/*******************************************************************************/
+/******************************************************************************/
 template <typename T, const int NB, const int TY>
 __device__ __inline__ void
 hemv_diag_device( magma_uplo_t uplo, int N, 
@@ -115,7 +115,8 @@ hemv_diag_device( magma_uplo_t uplo, int N,
 	  	}
 	}
 }
-/*****************************************************************************************/
+
+/******************************************************************************/
 template <typename T, const int NB, const int TY>
 __device__ __inline__ void 
 hemv_lower_device( int N, T alpha, 
@@ -259,7 +260,8 @@ hemv_lower_device( int N, T alpha,
 	   	magmablas_atomic_add(&Y[incy * tx], rv[0]);
 	}
 }
-/*****************************************************************************************/
+
+/******************************************************************************/
 template <typename T, const int NB, const int TY>
 __device__ __inline__ void 
 hemv_upper_device( int N, T alpha, 
@@ -390,5 +392,6 @@ hemv_upper_device( int N, T alpha,
 	   	 }
 	}
 }
-/*****************************************************************************************/
+
+/******************************************************************************/
 #endif // HEMV_TEMPLATE_DEVICE_CUH

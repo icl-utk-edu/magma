@@ -40,6 +40,7 @@ magmablas_ztrmm_vbatched_max_nocheck(
             0, 0, 
             batchCount, queue );
 }
+
 /******************************************************************************/
 extern "C" void
 magmablas_ztrmm_vbatched_max(
@@ -68,6 +69,7 @@ magmablas_ztrmm_vbatched_max(
             batchCount, 
             max_m, max_n, queue );
 }
+
 /******************************************************************************/
 extern "C" void
 magmablas_ztrmm_vbatched_nocheck(
@@ -92,7 +94,8 @@ magmablas_ztrmm_vbatched_nocheck(
             batchCount, 
             max_m, max_n, queue );
 }
-/***************************************************************************//**
+
+/****************************************************************************//*
     Purpose   
     =======   
 
@@ -206,8 +209,7 @@ magmablas_ztrmm_vbatched_nocheck(
     @param[in]
     queue   magma_queue_t.
             Queue to execute in.
-
-*******************************************************************************/
+    *******************************************************************************/
 extern "C" void
 magmablas_ztrmm_vbatched(
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
@@ -239,4 +241,5 @@ magmablas_ztrmm_vbatched(
             batchCount, 
             max_m, max_n, queue );
 }
-/*******************************************************************************/
+
+/******************************************************************************/

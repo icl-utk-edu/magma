@@ -11,7 +11,7 @@
 #include "magma_internal.h"
 
 
-/*********************************************************/
+/******************************************************************************/
 /*
  *  Swap diagonal blocks of two matrices.
  *  Each thread block swaps one diagonal block.
@@ -114,7 +114,7 @@ zswapdblk_batched_kernel( int nb, int n_mod_nb,
             Queue to execute in.
 
     @ingroup magma_zaux2
-    ********************************************************************/
+    ********************************************************************************/
 extern "C" void 
 magmablas_zswapdblk_batched(
     magma_int_t n, magma_int_t nb,

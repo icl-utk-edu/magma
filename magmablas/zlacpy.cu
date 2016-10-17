@@ -207,6 +207,7 @@ void zlacpy_upper_kernel_batched(
     int batchid = blockIdx.z;
     zlacpy_upper_device(m, n, dAarray[batchid], ldda, dBarray[batchid], lddb);
 }
+
 /******************************************************************************/
 /*
     kernel wrappers to call the device functions for the vbatched routine.
@@ -395,7 +396,7 @@ magmablas_zlacpy(
     }
 }
 
-/***************************************************************************/
+/****************************************************************************//*
 /**
     Purpose
     -------
@@ -499,7 +500,8 @@ magmablas_zlacpy_batched(
             ( m, n, dAarray, ldda, dBarray, lddb );
     }
 }
-/***************************************************************************/
+
+/****************************************************************************//*
 /**
     Purpose
     -------
@@ -554,7 +556,7 @@ magmablas_zlacpy_batched(
             Queue to execute in.
 
     @ingroup magma_zaux2
-    ********************************************************************/
+    *******************************************************************************/
 extern "C" void
 magmablas_zlacpy_vbatched(
     magma_uplo_t uplo, 
@@ -600,4 +602,3 @@ magmablas_zlacpy_vbatched(
         zlacpy_full_kernel_vbatched <<< grid, threads, 0, queue->cuda_stream() >>> ( m, n, dAarray, ldda, dBarray, lddb );
     }
 }
-

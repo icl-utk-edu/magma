@@ -15,7 +15,7 @@
 
 #ifndef HEMM_TEMPLATE_DEVICE_CUH
 #define HEMM_TEMPLATE_DEVICE_CUH
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
 // op<trans>( x ) returns x or conj(x).
 template<typename T, const int CONJA>
 __device__ static inline T OP( T& x )
@@ -24,7 +24,7 @@ __device__ static inline T OP( T& x )
     else return x;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/******************************************************************************/
 template<class T, const int DIM, const int BLK_M, const int BLK_N, 
          const int THR_M, const int THR_N, const int CONJA>
 static __device__ 
@@ -254,7 +254,8 @@ void hemm_template_device_ll(
         }
     }
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
 template<class T, const int DIM, const int BLK_M, const int BLK_N, 
          const int THR_M, const int THR_N, const int CONJA>
 static __device__ 
@@ -483,7 +484,8 @@ void hemm_template_device_lu(
         }
     }
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
 template<class T, const int DIM, const int BLK_M, const int BLK_N, 
          const int THR_M, const int THR_N, const int CONJA>
 static __device__ 
@@ -713,7 +715,8 @@ void hemm_template_device_rl(
         }
     }
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
+
+/******************************************************************************/
 template<class T, const int DIM, const int BLK_M, const int BLK_N, 
          const int THR_M, const int THR_N, const int CONJA>
 static __device__ 
@@ -945,6 +948,5 @@ void hemm_template_device_ru(
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
+/******************************************************************************/
 #endif //HEMM_TEMPLATE_DEVICE_CUH

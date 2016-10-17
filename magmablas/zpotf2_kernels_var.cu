@@ -3,7 +3,7 @@
    Univ. of Tennessee, Knoxville
    Univ. of California, Berkeley
    Univ. of Colorado, Denver
-   November 2013
+   @date
 
    @author Azzam Haidar
    @author Ahmad Abdelfattah
@@ -109,4 +109,3 @@ magma_zpotrf_lpout_vbatched(
     }
     return arginfo;
 }
-

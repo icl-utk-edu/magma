@@ -188,7 +188,6 @@ int main( int argc, char** argv)
             
             h_A_tmp = h_A; h_B_tmp = h_B; h_C_tmp = h_C;
             for(int i = 0; i < batchCount; i++){
-                
                 magma_zsetmatrix( An[i] , An[i] , h_A_tmp, h_lda[i], h_A_array[i], h_ldda[i], opts.queue );
                 magma_zsetmatrix( h_M[i], h_N[i], h_B_tmp, h_ldb[i], h_B_array[i], h_lddb[i], opts.queue );
                 magma_zsetmatrix( h_M[i], h_N[i], h_C_tmp, h_ldc[i], h_C_array[i], h_lddc[i], opts.queue );

@@ -246,7 +246,6 @@ void magmablas_ztrsm_outofplace_vbatched(
 
                     // remaining blocks
                     for( i=ZTRTRI_BATCHED_NB; i < max_m; i += ZTRTRI_BATCHED_NB ) {
-                        
                         magma_ivec_addc(batchCount, m, -i, jbv, queue);
                         magma_ivec_minc(batchCount, jbv, ZTRTRI_BATCHED_NB, jbv, queue);
                         
@@ -289,8 +288,7 @@ void magmablas_ztrsm_outofplace_vbatched(
                     // remaining blocks
                     magma_ivec_addc(batchCount, mm, -ZTRTRI_BATCHED_NB, mm, queue);
                     max_i -= ZTRTRI_BATCHED_NB;
-                    for( i=max_i; i >= 0; i -= ZTRTRI_BATCHED_NB )
-                    {
+                    for( i=max_i; i >= 0; i -= ZTRTRI_BATCHED_NB ){
                         magma_zdisplace_pointers_var_cv(dinvA_displ, dinvA_array, tri_nb_vec,       0,      mm, batchCount, queue);
                         magma_zdisplace_pointers_var_vc(dB_displ,       dB_array,       lddb,      mm,       0, batchCount, queue);
                         magma_zdisplace_pointers_var_vc(dX_displ,       dX_array,       lddx,      mm,       0, batchCount, queue);
@@ -371,8 +369,7 @@ void magmablas_ztrsm_outofplace_vbatched(
                                               batchCount, max_m-ZTRTRI_BATCHED_NB, max_n, ZTRTRI_BATCHED_NB, queue );
                     
                     // remaining blocks
-                    for( i=ZTRTRI_BATCHED_NB; i < max_m; i += ZTRTRI_BATCHED_NB ) 
-                    {
+                    for( i=ZTRTRI_BATCHED_NB; i < max_m; i += ZTRTRI_BATCHED_NB ) {
                         magma_ivec_addc(batchCount, m, -i, jbv, queue);
                         magma_ivec_minc(batchCount, jbv, ZTRTRI_BATCHED_NB, jbv, queue);
                         
@@ -506,8 +503,7 @@ void magmablas_ztrsm_outofplace_vbatched(
                                               batchCount, max_m, max_n-ZTRTRI_BATCHED_NB, ZTRTRI_BATCHED_NB, queue );
 
                     // remaining blocks
-                    for( i=ZTRTRI_BATCHED_NB; i < max_n; i += ZTRTRI_BATCHED_NB ) 
-                    {
+                    for( i=ZTRTRI_BATCHED_NB; i < max_n; i += ZTRTRI_BATCHED_NB ) {
                         magma_ivec_addc(batchCount, n, -i, jbv, queue);
                         magma_ivec_minc(batchCount, jbv, ZTRTRI_BATCHED_NB, jbv, queue);
                         
@@ -575,7 +571,6 @@ void magmablas_ztrsm_outofplace_vbatched(
             }
         }
     }
-    
     // free workspace
     magma_free(tmp);
 }
@@ -583,7 +578,7 @@ void magmablas_ztrsm_outofplace_vbatched(
 /**
     @see magmablas_ztrsm_outofplace_batched
     @ingroup magma_zblas3
-    ********************************************************************/
+    *******************************************************************************/
 
 /***************************************************************************//**
     Purpose
@@ -781,7 +776,7 @@ void magmablas_ztrsm_work_vbatched(
 /**
     @see magmablas_ztrsm_work
     @ingroup magma_zblas3
-    ********************************************************************/
+    *******************************************************************************/
 extern "C"
 void magmablas_ztrsm_vbatched_max_nocheck(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
@@ -884,7 +879,4 @@ void magmablas_ztrsm_vbatched_max_nocheck(
     magma_free(dinvA_array);
     magma_free(dX_array);
     magma_free(size_dinvA_array);
-
 }
-
-
