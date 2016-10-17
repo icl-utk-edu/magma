@@ -60,26 +60,50 @@ magma_z_solver(
     }
     if( b.num_cols == 1 ){
         switch( zopts->solver_par.solver ) {
-            case  Magma_CG:
-                    CHECK( magma_zcg_res( A, b, x, &zopts->solver_par, queue )); break;
             case  Magma_BICG:
                     CHECK( magma_zbicg( A, b, x, &zopts->solver_par, queue )); break;
             case  Magma_PBICG:
                     CHECK( magma_zpbicg( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
+            case  Magma_BICGSTAB:
+                    CHECK( magma_zbicgstab( A, b, x, &zopts->solver_par, queue )); break;
+            case  Magma_BICGSTABMERGE: 
+                    CHECK( magma_zbicgstab_merge( A, b, x, &zopts->solver_par, queue )); break;
+            case  Magma_PBICGSTAB:
+                    CHECK( magma_zpbicgstab( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
+            case  Magma_PBICGSTABMERGE:
+                    CHECK( magma_zpbicgstab_merge( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
+            case  Magma_CG:
+                    CHECK( magma_zcg_res( A, b, x, &zopts->solver_par, queue )); break;
             case  Magma_CGMERGE:
                     CHECK( magma_zcg_merge( A, b, x, &zopts->solver_par, queue )); break;
             case  Magma_PCG:
                     CHECK( magma_zpcg( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
             case  Magma_PCGMERGE:
                     CHECK( magma_zpcg_merge( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
-            case  Magma_BICGSTAB:
-                    CHECK( magma_zbicgstab( A, b, x, &zopts->solver_par, queue )); break;
-            case  Magma_BICGSTABMERGE: 
-                    CHECK( magma_zbicgstab_merge( A, b, x, &zopts->solver_par, queue )); break;
-            case  Magma_PBICGSTABMERGE:
-                    CHECK( magma_zpbicgstab_merge( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
-            case  Magma_PBICGSTAB:
-                    CHECK( magma_zpbicgstab( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
+            case  Magma_CGS:
+                    CHECK( magma_zcgs( A, b, x, &zopts->solver_par, queue ) ); break;
+            case  Magma_CGSMERGE:
+                    CHECK( magma_zcgs_merge( A, b, x, &zopts->solver_par, queue ) ); break;
+            case  Magma_PCGS:
+                    CHECK( magma_zpcgs( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
+            case  Magma_PCGSMERGE:
+                    CHECK( magma_zpcgs_merge( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
+            case  Magma_QMR:
+                    CHECK( magma_zqmr( A, b, x, &zopts->solver_par, queue ) ); break;
+            case  Magma_QMRMERGE:
+                    CHECK( magma_zqmr_merge( A, b, x, &zopts->solver_par, queue ) ); break;
+            case  Magma_PQMR:
+                    CHECK( magma_zpqmr( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
+            case  Magma_PQMRMERGE:
+                    CHECK( magma_zpqmr_merge( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
+            case  Magma_TFQMR:
+                    CHECK( magma_ztfqmr( A, b, x, &zopts->solver_par, queue ) ); break;
+            case  Magma_TFQMRMERGE:
+                    CHECK( magma_ztfqmr_merge( A, b, x, &zopts->solver_par, queue ) ); break;
+            case  Magma_PTFQMR:
+                    CHECK( magma_zptfqmr( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
+            case  Magma_PTFQMRMERGE:
+                    CHECK( magma_zptfqmr_merge( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
             case  Magma_GMRES:
                     CHECK( magma_zfgmres( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
             case  Magma_PGMRES:
@@ -104,30 +128,6 @@ magma_z_solver(
                     CHECK( magma_zbaiter( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
             case  Magma_BAITERO:
                     CHECK( magma_zbaiter_overlap( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
-            case  Magma_CGS:
-                    CHECK( magma_zcgs( A, b, x, &zopts->solver_par, queue ) ); break;
-            case  Magma_CGSMERGE:
-                    CHECK( magma_zcgs_merge( A, b, x, &zopts->solver_par, queue ) ); break;
-            case  Magma_PCGS:
-                    CHECK( magma_zpcgs( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
-            case  Magma_PCGSMERGE:
-                    CHECK( magma_zpcgs_merge( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
-            case  Magma_TFQMR:
-                    CHECK( magma_ztfqmr( A, b, x, &zopts->solver_par, queue ) ); break;
-            case  Magma_PTFQMR:
-                    CHECK( magma_zptfqmr( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
-            case  Magma_TFQMRMERGE:
-                    CHECK( magma_ztfqmr_merge( A, b, x, &zopts->solver_par, queue ) ); break;
-            case  Magma_PTFQMRMERGE:
-                    CHECK( magma_zptfqmr_merge( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
-            case  Magma_QMR:
-                    CHECK( magma_zqmr( A, b, x, &zopts->solver_par, queue ) ); break;
-            case  Magma_PQMR:
-                    CHECK( magma_zpqmr( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
-           case  Magma_PQMRMERGE:
-                    CHECK( magma_zpqmr_merge( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
-            case  Magma_QMRMERGE:
-                    CHECK( magma_zqmr_merge( A, b, x, &zopts->solver_par, queue ) ); break;
             case  Magma_BOMBARD:
                     CHECK( magma_zbombard( A, b, x, &zopts->solver_par, queue ) ); break;
             case  Magma_BOMBARDMERGE:

@@ -677,7 +677,6 @@ magma_zgecsr5mv(
     
 #if (defined( CUDA_VERSION ) && ( CUDA_VERSION >= 8000 ))
     if ( arch >= 600 ) {
-    
         //dim3 grid( magma_ceildiv( m, BLOCK_SIZE ) );
         //magma_int_t threads = BLOCK_SIZE;
         //zgecsrmv_kernel<<< grid, threads, 0, queue->cuda_stream() >>>

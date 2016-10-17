@@ -183,13 +183,13 @@ magma_zparse_opts(
         } else if ( strcmp("--solver", argv[i]) == 0 && i+1 < argc ) {
             i++;
             if ( strcmp("CG", argv[i]) == 0 ) {
-                opts->solver_par.solver = Magma_CGMERGE;
+                opts->solver_par.solver = Magma_PCGMERGE;
             }
             else if ( strcmp("PCG", argv[i]) == 0 ) {
                 opts->solver_par.solver = Magma_PCGMERGE;
             }
             else if ( strcmp("BICG", argv[i]) == 0 ) {
-                opts->solver_par.solver = Magma_BICG;
+                opts->solver_par.solver = Magma_PBICG;
             }
             else if ( strcmp("PBICG", argv[i]) == 0 ) {
                 opts->solver_par.solver = Magma_PBICG;
@@ -201,19 +201,19 @@ magma_zparse_opts(
                 opts->solver_par.solver = Magma_PBICGSTABMERGE;
             }
             else if ( strcmp("QMR", argv[i]) == 0 ) {
-                opts->solver_par.solver = Magma_QMRMERGE;
+                opts->solver_par.solver = Magma_PQMRMERGE;
             }
             else if ( strcmp("PQMR", argv[i]) == 0 ) {
                 opts->solver_par.solver = Magma_PQMRMERGE;
             }
             else if ( strcmp("TFQMR", argv[i]) == 0 ) {
-                opts->solver_par.solver = Magma_TFQMRMERGE;
+                opts->solver_par.solver = Magma_PTFQMRMERGE;
             }
             else if ( strcmp("PTFQMR", argv[i]) == 0 ) {
                 opts->solver_par.solver = Magma_PTFQMRMERGE;
             }
             else if ( strcmp("GMRES", argv[i]) == 0 ) {
-                opts->solver_par.solver = Magma_GMRES;
+                opts->solver_par.solver = Magma_PGMRES;
             }
             else if ( strcmp("PGMRES", argv[i]) == 0 ) {
                 opts->solver_par.solver = Magma_PGMRES;
@@ -234,13 +234,13 @@ magma_zparse_opts(
                 opts->solver_par.solver = Magma_BAITERO;
             }
             else if ( strcmp("IDR", argv[i]) == 0 ) {
-                opts->solver_par.solver = Magma_IDRMERGE;
+                opts->solver_par.solver = Magma_PIDRMERGE;
             }
             else if ( strcmp("PIDR", argv[i]) == 0 ) {
                 opts->solver_par.solver = Magma_PIDRMERGE;
             }
             else if ( strcmp("CGS", argv[i]) == 0 ) {
-                opts->solver_par.solver = Magma_CGSMERGE;
+                opts->solver_par.solver = Magma_PCGSMERGE;
             }
             else if ( strcmp("PCGS", argv[i]) == 0 ) {
                 opts->solver_par.solver = Magma_PCGSMERGE;
@@ -435,44 +435,23 @@ magma_zparse_opts(
         }
     }
     if( basic == 1 ){
-        if ( opts->solver_par.solver == Magma_CGMERGE ) {
-            opts->solver_par.solver = Magma_CG;
-        }
-        else if ( opts->solver_par.solver == Magma_PCGMERGE) {
+        if ( opts->solver_par.solver == Magma_PCGMERGE ) {
             opts->solver_par.solver = Magma_PCG;
         }
-        else if ( opts->solver_par.solver == Magma_BICGSTABMERGE ) {
-            opts->solver_par.solver = Magma_BICGSTAB;
-        }
-        else if ( opts->solver_par.solver == Magma_PBICGSTAB ) {
+        else if ( opts->solver_par.solver == Magma_PBICGSTABMERGE ) {
             opts->solver_par.solver = Magma_PBICGSTAB;
         }
-        else if ( opts->solver_par.solver == Magma_TFQMRMERGE ) {
-            opts->solver_par.solver = Magma_TFQMR;
+        else if ( opts->solver_par.solver == Magma_PBICGMERGE ) {
+            opts->solver_par.solver = Magma_PBICG;
         }
-        else if ( opts->solver_par.solver == Magma_PTFQMRMERGE) {
+        else if ( opts->solver_par.solver == Magma_PTFQMRMERGE ) {
             opts->solver_par.solver = Magma_PTFQMR;
-        }
-        else if ( opts->solver_par.solver == Magma_CGSMERGE ) {
-            opts->solver_par.solver = Magma_CGS;
         }
         else if ( opts->solver_par.solver == Magma_PCGSMERGE) {
             opts->solver_par.solver = Magma_PCGS;
         }
-        else if ( opts->solver_par.solver == Magma_QMRMERGE ) {
-            opts->solver_par.solver = Magma_QMR;
-        }
         else if ( opts->solver_par.solver == Magma_PQMRMERGE) {
             opts->solver_par.solver = Magma_PQMR;
-        }
-        else if ( opts->solver_par.solver == Magma_QMRMERGE ) {
-            opts->solver_par.solver = Magma_QMR;
-        }
-        else if ( opts->solver_par.solver == Magma_PCGMERGE) {
-            opts->solver_par.solver = Magma_PCG;
-        }
-        else if ( opts->solver_par.solver == Magma_IDRMERGE) {
-            opts->solver_par.solver = Magma_IDR;
         }
         else if ( opts->solver_par.solver == Magma_PIDRMERGE) {
             opts->solver_par.solver = Magma_PIDR;
@@ -483,25 +462,26 @@ magma_zparse_opts(
     }
     
     // make sure preconditioner is NONE for unpreconditioned systems
-    if ( opts->solver_par.solver != Magma_PCG &&
-         opts->solver_par.solver != Magma_PCGMERGE &&
-         opts->solver_par.solver != Magma_PGMRES &&
-         opts->solver_par.solver != Magma_PBICGSTAB &&
-         opts->solver_par.solver != Magma_PBICGSTABMERGE &&
-         opts->solver_par.solver != Magma_ITERREF  &&
-         opts->solver_par.solver != Magma_PIDR  &&
-         opts->solver_par.solver != Magma_PIDRMERGE  &&
-         opts->solver_par.solver != Magma_PCGS  &&
-         opts->solver_par.solver != Magma_PCGSMERGE &&
-         opts->solver_par.solver != Magma_PTFQMR &&
-         opts->solver_par.solver != Magma_PQMRMERGE &&
-         opts->solver_par.solver != Magma_PTFQMRMERGE &&
-         opts->solver_par.solver != Magma_PQMR &&
-         opts->solver_par.solver != Magma_PBICG &&
-         opts->solver_par.solver != Magma_LSQR &&
-         opts->solver_par.solver != Magma_LOBPCG ){
-                    opts->precond_par.solver = Magma_NONE;
-         }
+    if ( opts->precond_par.solver == Magma_NONE ){
+        switch( opts->solver_par.solver ) {
+            case  Magma_PBICG:              opts->solver_par.solver = Magma_BICG; break;         
+            case  Magma_PBICGMERGE:         opts->solver_par.solver = Magma_BICGMERGE; break;    
+            case  Magma_PBICGSTAB:          opts->solver_par.solver = Magma_BICGSTAB; break;     
+            case  Magma_PBICGSTABMERGE:     opts->solver_par.solver = Magma_BICGSTABMERGE; break;
+            case  Magma_PCG:                opts->solver_par.solver = Magma_CG; break;           
+            case  Magma_PCGMERGE:           opts->solver_par.solver = Magma_CGMERGE; break;    
+            case  Magma_PCGS:               opts->solver_par.solver = Magma_CGS; break;          
+            case  Magma_PCGSMERGE:          opts->solver_par.solver = Magma_CGSMERGE; break;     
+            case  Magma_PQMR:               opts->solver_par.solver = Magma_QMR; break;          
+            case  Magma_PQMRMERGE:          opts->solver_par.solver = Magma_QMRMERGE; break;     
+            case  Magma_PTFQMR:             opts->solver_par.solver = Magma_TFQMR; break;        
+            case  Magma_PTFQMRMERGE:        opts->solver_par.solver = Magma_TFQMRMERGE; break;   
+            case  Magma_PIDR:               opts->solver_par.solver = Magma_IDR; break;          
+            case  Magma_PIDRMERGE:          opts->solver_par.solver = Magma_IDRMERGE; break;     
+            case  Magma_PGMRES:             opts->solver_par.solver = Magma_GMRES; break;        
+            default:    break;
+        }
+     }
     
     // ensure to take a symmetric preconditioner for the PCG
     if ( ( opts->solver_par.solver == Magma_PCG || opts->solver_par.solver == Magma_PCGMERGE )
