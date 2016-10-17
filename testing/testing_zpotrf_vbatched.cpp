@@ -75,7 +75,6 @@ int main( int argc, char** argv)
     printf("%%========================================================================================================\n");
     for( int i = 0; i < opts.ntest; ++i ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
-            
             srand(1000); // guarantee reproducible sizes
             N   = opts.nsize[i];
             total_size_cpu = total_size_dev = 0;

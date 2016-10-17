@@ -3,7 +3,7 @@
        Univ. of Tennessee, Knoxville
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
-       November 2013
+       @date
        
        @author Azzam Haidar
        @author Tingxing Dong

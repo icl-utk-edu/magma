@@ -219,8 +219,7 @@ fin:
 
     return arginfo;
 }
-/***************************************************************************/
-/**
+/***************************************************************************//**
     Purpose
     -------
     ZPOTRF computes the Cholesky factorization of a complex Hermitian
@@ -285,7 +284,7 @@ fin:
             Queue to execute in.
 
     @ingroup magma_potrf_batched
-*******************************************************************************/
+    *******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_batched(
     magma_uplo_t uplo, magma_int_t n,

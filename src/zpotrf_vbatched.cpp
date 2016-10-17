@@ -14,7 +14,7 @@
 
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
-/***************************************************************************/
+/******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_lg_vbatched(
     magma_uplo_t uplo, magma_int_t* n, magma_int_t max_n, 
@@ -251,7 +251,8 @@ fin:
 
     return arginfo;
 }
-/***************************************************************************/
+
+/******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_vbatched_max_nocheck(
     magma_uplo_t uplo, magma_int_t *n, 
@@ -270,8 +271,7 @@ magma_zpotrf_vbatched_max_nocheck(
     magma_queue_sync(queue);
     return arginfo;
 }
-/***************************************************************************/
-/**
+/***************************************************************************//**
     Purpose
     -------
     ZPOTRF computes the Cholesky factorization of a complex Hermitian
@@ -360,4 +360,3 @@ magma_zpotrf_vbatched(
     
     return arginfo;
 }
-
