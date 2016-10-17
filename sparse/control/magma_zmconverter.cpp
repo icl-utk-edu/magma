@@ -852,7 +852,7 @@ magma_zmconvert(
                      if(start == stop)
                          continue;
 
-                     for (magma_index_t row_idx = start; row_idx <= stop; 
+                     for (magma_uindex_t row_idx = start; row_idx <= stop; 
                           row_idx++)
                      {
                          if (B->row[row_idx] == B->row[row_idx+1])
@@ -909,11 +909,19 @@ magma_zmconvert(
 
                  //generate_tile_descriptor_s2_kernel
                  int num_thread = 1; //omp_get_max_threads();
-                 int *s_segn_scan_all = (int *)malloc(2 * MAGMA_CSR5_OMEGA 
-                                                    * sizeof(int) * num_thread);
-                 int *s_present_all   = (int *)malloc(2 * MAGMA_CSR5_OMEGA 
-                                                    * sizeof(int) * num_thread);
-                 for (int i = 0; i < num_thread; i++)
+                 magma_index_t *s_segn_scan_all, *s_present_all;
+                 
+                 CHECK( magma_index_malloc_cpu( &s_segn_scan_all, 
+                                            2 * MAGMA_CSR5_OMEGA * num_thread ));
+                 CHECK( magma_index_malloc_cpu( &s_present_all, 
+                                            2 * MAGMA_CSR5_OMEGA * num_thread ));
+                
+                
+                 //int *s_segn_scan_all = (int *)malloc(2 * MAGMA_CSR5_OMEGA 
+                 //                                   * sizeof(int) * num_thread);
+                 //int *s_present_all   = (int *)malloc(2 * MAGMA_CSR5_OMEGA 
+                 //                                   * sizeof(int) * num_thread);
+                 for (magma_index_t i = 0; i < num_thread; i++)
                      s_present_all[i * 2 * MAGMA_CSR5_OMEGA + MAGMA_CSR5_OMEGA] 
                          = 1;
 
@@ -1032,8 +1040,8 @@ magma_zmconvert(
                      }
                  }
 
-                 free(s_segn_scan_all);
-                 free(s_present_all);
+                 magma_free_cpu(s_segn_scan_all);
+                 magma_free_cpu(s_present_all);
 
                  if (B->tile_desc_offset_ptr[B->csr5_p])
                  {
