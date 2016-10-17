@@ -143,7 +143,7 @@ magma_zpotrf_recpanel_rectangle_native(
                             A(n1, 0), ldda, 
                      beta,  A(n, n1), ldda, queue );
         // panel on A2
-        info = magma_zpotrf_recpanel_rectangle_native(uplo, m-n1, n2, A(n1, n1), ldda, dinfo, gbstep, queue);
+        info = magma_zpotrf_recpanel_rectangle_native(uplo, m-n1, n2, A(n1, n1), ldda, dinfo, gbstep+n1, queue);
     }
     return info;
 }
