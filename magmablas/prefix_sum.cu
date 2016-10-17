@@ -130,11 +130,11 @@ magma_prefix_sum_internal(magma_int_t* ivec, magma_int_t* ovec, magma_int_t leng
     
     magma_int_t* workspace; 
     const int lwork = nTB; 
-    cudaMalloc((void**)&workspace, lwork * sizeof(magma_int_t)); 
+    magma_imalloc(&workspace, lwork);
     
     magma_prefix_sum_internal_w(ivec, ovec, length, workspace, lwork, queue);
         
-    if(workspace != NULL)cudaFree(workspace);
+    if(workspace != NULL)magma_free( workspace );
 }
 //----------------------------------------------------------------------------------------
 

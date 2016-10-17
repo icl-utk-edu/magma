@@ -2,15 +2,16 @@
 #define ATOMICS_CUH
 
 #include "magma_internal.h"
-/***************************************************************************/
+/******************************************************************************/
 // Atomic adds 
-/***************************************************************************/
+/******************************************************************************/
 __device__ static __inline__ float 
 magmablas_satomic_add(float* address, float val)
 {
     return atomicAdd(address, val);
 }
-/***************************************************************************/
+
+/******************************************************************************/
 __device__ static __inline__ double 
 magmablas_datomic_add(double* address, double val)
 {
@@ -27,7 +28,8 @@ magmablas_datomic_add(double* address, double val)
     return atomicAdd(address, val);
 #endif
 }
-/***************************************************************************/
+
+/******************************************************************************/
 __device__ static __inline__ magmaFloatComplex 
 magmablas_catomic_add(magmaFloatComplex* address, magmaFloatComplex val)
 {
@@ -35,7 +37,8 @@ magmablas_catomic_add(magmaFloatComplex* address, magmaFloatComplex val)
 	float im = magmablas_satomic_add( (float*) (&(*address).y) ,val.y);
 	return make_cuFloatComplex(re, im);
 }
-/***************************************************************************/
+
+/******************************************************************************/
 __device__ static __inline__ magmaDoubleComplex 
 magmablas_zatomic_add(magmaDoubleComplex* address, magmaDoubleComplex val)
 {
@@ -43,5 +46,6 @@ magmablas_zatomic_add(magmaDoubleComplex* address, magmaDoubleComplex val)
 	double im = magmablas_datomic_add( (double*) (&(*address).y) ,val.y);
 	return make_cuDoubleComplex(re, im);
 }
-/***************************************************************************/
+
+/******************************************************************************/
 #endif // ATOMICS_CUH

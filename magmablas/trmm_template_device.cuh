@@ -46,7 +46,7 @@ void trmm_small_template_device_lNx(
     const int bx = blockIdx.x; 
     
     const int nblocks = magma_ceildiv(n, NB);
-    const int nn = (bx < nblocks-1) ? NB : n - (nblocks-1)*NB ;
+    const int nn = (bx < nblocks-1) ? NB : n - (nblocks-1)*NB;
     B += bx * NB * lddb;
     
     __shared__ T sA[NB * NB];
@@ -97,7 +97,7 @@ void trmm_small_template_device_lTx(
     const int bx = blockIdx.x; 
     
     const int nblocks = magma_ceildiv(n, NB);
-    const int nn = (bx < nblocks-1) ? NB : n - (nblocks-1)*NB ;
+    const int nn = (bx < nblocks-1) ? NB : n - (nblocks-1)*NB;
     B += bx * NB * lddb;
     
     __shared__ T sA[NB * NB];
@@ -151,7 +151,7 @@ void trmm_small_template_device_rNx(
     const int bx = blockIdx.x; 
     
     const int nblocks = magma_ceildiv(m, NB);
-    const int mm = (bx < nblocks-1) ? NB : m - (nblocks-1)*NB ;
+    const int mm = (bx < nblocks-1) ? NB : m - (nblocks-1)*NB;
     B += bx * NB;
     
     __shared__ T sA[NB * NB];
@@ -202,7 +202,7 @@ void trmm_small_template_device_rTx(
     const int bx = blockIdx.x; 
     
     const int nblocks = magma_ceildiv(m, NB);
-    const int mm = (bx < nblocks-1) ? NB : m - (nblocks-1)*NB ;
+    const int mm = (bx < nblocks-1) ? NB : m - (nblocks-1)*NB;
     B += bx * NB;
     
     __shared__ T sA[NB * NB];
