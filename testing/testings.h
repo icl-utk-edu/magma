@@ -145,6 +145,7 @@ public:
     magma_int_t offset;
     magma_int_t itype;     // hegvd: problem type
     magma_int_t version;   // hemm_mgpu, hetrd
+    magma_int_t hybrid;   // potrf getrf geqrf
     magma_int_t check;
     magma_int_t verbose;
     double      fraction;  // hegvdx

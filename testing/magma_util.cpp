@@ -179,6 +179,7 @@ const char *usage =
 "         max       is maximum that will be used\n"
 "\n"
 "  --version x      version of routine, e.g., during development, default 1.\n"
+"  --hybrid x       hybrid =0/1 when it is 0 it run the GPU native code (when available) otherwise run the hybrid one. default 0.\n"
 "  --fraction x     fraction of eigenvectors to compute, default 1.\n"
 "                   If fraction == 0, computes eigenvalues il=0.1*N to iu=0.3*N.\n"
 "  --tolerance x    accuracy tolerance, multiplied by machine epsilon, default 30.\n"
@@ -215,6 +216,7 @@ magma_opts::magma_opts( magma_opts_t flag )
     this->offset   = 0;
     this->itype    = 1;
     this->version  = 1;
+    this->hybrid   = 0;
     this->verbose  = 0;
     this->fraction = 1.;
     this->tolerance = 30.;
@@ -449,7 +451,11 @@ void magma_opts::parse_opts( int argc, char** argv )
             magma_assert( this->version >= 1,
                           "error: --version %s is invalid; ensure version > 0.\n", argv[i] );
         }
-        else if ( strcmp("--fraction", argv[i]) == 0 && i+1 < argc ) {
+        else if ( strcmp("--hybrid", argv[i]) == 0 && i+1 < argc ) {
+            this->hybrid = atoi( argv[++i] );
+            magma_assert( this->hybrid >= 0,
+                          "error: --hybrid %s is invalid; ensure hybrid >= 0.\n", argv[i] );
+        }        else if ( strcmp("--fraction", argv[i]) == 0 && i+1 < argc ) {
             this->fraction = atof( argv[++i] );
             magma_assert( this->fraction >= 0 && this->fraction <= 1,
                           "error: --fraction %s is invalid; ensure fraction in [0,1].\n", argv[i] );
