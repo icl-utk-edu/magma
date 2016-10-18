@@ -29,6 +29,7 @@ libmagma_src += \
 	\
 	$(cdir)/zposv_gpu.cpp		\
 	$(cdir)/zpotrf_gpu.cpp		\
+	$(cdir)/zpotrf_native_gpu.cpp		\
 	$(cdir)/zpotri_gpu.cpp		\
 	$(cdir)/zpotrs_gpu.cpp		\
 	$(cdir)/zlauum_gpu.cpp		\
