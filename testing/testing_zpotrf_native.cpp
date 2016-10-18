@@ -38,8 +38,7 @@ int main( int argc, char** argv)
     magma_int_t ISEED[4] = {0,0,0,1};
     double      Anorm, magma_error, work[1];
     int status = 0;
-    magma_int_t hinfo_magma = 0;
-    magma_int_t *dinfo_magma; 
+    magma_int_t info_magma = 0;
 
     magma_opts opts;
     opts.parse_opts( argc, argv );
@@ -63,7 +62,6 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc_cpu( &h_A, n2     ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_Rmagma, n2     ));
             TESTING_CHECK( magma_zmalloc( &d_A, ldda*N ));
-            TESTING_CHECK( magma_imalloc( &dinfo_magma, 1) );
             
             /* Initialize the matrix */
             lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
@@ -72,17 +70,14 @@ int main( int argc, char** argv)
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
-            hinfo_magma = 0;
-            magma_setvector(1, sizeof(magma_int_t), &hinfo_magma, 1, dinfo_magma, 1, opts.queue);
             magma_zsetmatrix( N, N, h_A, lda, d_A, ldda, opts.queue );
             magma_time = magma_wtime();
-            magma_zpotrf_native( opts.uplo, N, d_A, ldda, dinfo_magma, opts.queue );
+            magma_zpotrf_native( opts.uplo, N, d_A, ldda, opts.queue, info_magma );
             magma_time = magma_wtime() - magma_time;
             magma_perf = gflops / magma_time;
-            magma_getvector(1, sizeof(magma_int_t), dinfo_magma, 1, &hinfo_magma, 1, opts.queue);
-            if (hinfo_magma != 0) {
+            if (info_magma != 0) {
                 printf("magma_zpotrf_native returned error %lld: %s.\n",
-                       (long long) hinfo_magma, magma_strerror( hinfo_magma ));
+                       (long long) info_magma, magma_strerror( info_magma ));
             }
             magma_zgetmatrix( N, N, d_A, ldda, h_Rmagma, lda, opts.queue );
             
@@ -119,7 +114,6 @@ int main( int argc, char** argv)
             magma_free_cpu( h_A );
             magma_free_cpu( h_Rmagma );
             magma_free( d_A );
-            magma_free( dinfo_magma );
             fflush( stdout );
         }
         if ( opts.niter > 1 ) {

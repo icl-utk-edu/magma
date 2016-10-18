@@ -11,12 +11,10 @@
 
        @precisions normal z -> s d c
 */
-#include <cuda_runtime.h>
-
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
-#define A(i_, j_)  (dA + (i_) + (j_)*ldda)
+#define dA(i_, j_)  (dA + (i_) + (j_)*ldda)
 
 #define POTRF_NATIVE_RECNB       (128)
 #define POTRF_NATIVE_PANEL_SQ    (1024)
@@ -26,7 +24,7 @@
 /******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_recpanel_square_native(
-    magma_uplo_t uplo, magma_int_t n, magmaDoubleComplex* dA, magma_int_t ldda,
+    magma_uplo_t uplo, magma_int_t n, magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *dinfo, magma_int_t gbstep, magma_queue_t queue)
 {
     magma_int_t recnb = POTRF_NATIVE_RECNB;
@@ -34,30 +32,30 @@ magma_zpotrf_recpanel_square_native(
     double d_alpha = -1.0, d_beta = 1.0;
 
     if(n <= recnb){
-        magma_zpotf2_native(uplo, n, A(0, 0), ldda, gbstep, dinfo, queue);
+        magma_zpotf2_native(uplo, n, dA(0, 0), ldda, gbstep, dinfo, queue);
         return info; 
     }
 
     magma_int_t n1 = n/2;
     magma_int_t n2 = n - n1;
 
-    // factorize A(0, 0)
-    magma_zpotrf_recpanel_square_native(uplo, n1, A(0, 0), ldda, dinfo, gbstep, queue);
+    // factorize dA(0, 0)
+    magma_zpotrf_recpanel_square_native(uplo, n1, dA(0, 0), ldda, dinfo, gbstep, queue);
 
     // trsm
     magma_ztrsm( MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit, 
                  n2, n1, MAGMA_Z_ONE, 
-                 A(0, 0), ldda, 
-                 A(n1, 0), ldda, queue );
+                 dA(0, 0), ldda, 
+                 dA(n1, 0), ldda, queue );
 
     // herk
     magma_zherk( uplo, MagmaNoTrans, 
                  n2, n1, 
-                 d_alpha, A(n1, 0),  ldda, 
-                 d_beta,  A(n1, n1), ldda, queue );
+                 d_alpha, dA(n1, 0),  ldda, 
+                 d_beta,  dA(n1, n1), ldda, queue );
 
-    // factorize A(n1, n1) 
-    magma_zpotrf_recpanel_square_native(uplo, n2, A(n1, n1), ldda, dinfo, gbstep+n1, queue);
+    // factorize dA(n1, n1) 
+    magma_zpotrf_recpanel_square_native(uplo, n2, dA(n1, n1), ldda, dinfo, gbstep+n1, queue);
 
     return info;
 }
@@ -67,26 +65,26 @@ magma_zpotrf_recpanel_square_native(
 extern "C" magma_int_t
 magma_zpotrf_panel_rectangle_native(
     magma_uplo_t uplo, magma_int_t n, magma_int_t nb,   
-    magmaDoubleComplex* dA,    magma_int_t ldda,
+    magmaDoubleComplex_ptr dA,    magma_int_t ldda,
     magma_int_t *dinfo, magma_int_t gbstep, magma_queue_t queue)
 {
     magma_int_t info = 0;
-    info = magma_zpotf2_native(uplo, min(n, nb), A(0, 0), ldda, gbstep, dinfo, queue);
+    info = magma_zpotf2_native(uplo, min(n, nb), dA(0, 0), ldda, gbstep, dinfo, queue);
     
     if(info == 0){
         if ( (n-nb) > 0) { 
             if( n-nb > POTRF_NATIVE_TRSM_SWITCH ){
                 magmablas_ztrsm( MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit, 
                          n-nb, nb, MAGMA_Z_ONE, 
-                         A(0, 0) , ldda, 
-                         A(nb, 0), ldda, 
+                         dA(0, 0) , ldda, 
+                         dA(nb, 0), ldda, 
                          queue );
             }
             else{
                 magma_ztrsm( MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit, 
                          n-nb, nb, MAGMA_Z_ONE, 
-                         A(0, 0) , ldda, 
-                         A(nb, 0), ldda, 
+                         dA(0, 0) , ldda, 
+                         dA(nb, 0), ldda, 
                          queue );
             }
         }
@@ -99,7 +97,7 @@ magma_zpotrf_panel_rectangle_native(
 extern "C" magma_int_t
 magma_zpotrf_recpanel_rectangle_native(
     magma_uplo_t uplo, magma_int_t m, magma_int_t n,    
-    magmaDoubleComplex* dA, magma_int_t ldda,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *dinfo, magma_int_t gbstep, magma_queue_t queue)
 {
     magma_int_t info = 0;
@@ -110,8 +108,7 @@ magma_zpotrf_recpanel_rectangle_native(
     }
     
     if (m < n) {
-        printf("error m < n %lld < %lld\n", (long long) m, (long long) n );
-        info = -101;
+        info = -2; 
         magma_xerbla( __func__, -(info) );
         return info;
     }
@@ -121,29 +118,29 @@ magma_zpotrf_recpanel_rectangle_native(
     double d_alpha = -1.0, d_beta = 1.0;
     
     if (n <= recnb) {
-        info = magma_zpotrf_panel_rectangle_native(uplo, m, n, A(0,0), ldda, dinfo, gbstep, queue);
+        info = magma_zpotrf_panel_rectangle_native(uplo, m, n, dA(0,0), ldda, dinfo, gbstep, queue);
     }
     else {
         // split A over two [A1 A2]
         magma_int_t n1 = n/2;
         magma_int_t n2 = n-n1;
         // panel on A1
-        info = magma_zpotrf_recpanel_rectangle_native(uplo, m, n1, A(0, 0), ldda, dinfo, gbstep, queue);
+        info = magma_zpotrf_recpanel_rectangle_native(uplo, m, n1, dA(0, 0), ldda, dinfo, gbstep, queue);
         if (info != 0) {
             return info;
         }
         // update A2
         magma_zherk( uplo, MagmaNoTrans, 
                      n2, n1, 
-                     d_alpha, A(n1, 0),  ldda, 
-                     d_beta,  A(n1, n1), ldda, queue );
+                     d_alpha, dA(n1, 0),  ldda, 
+                     d_beta,  dA(n1, n1), ldda, queue );
         magma_zgemm( MagmaNoTrans, MagmaConjTrans, 
                      m-n1-n2, n2, n1,
-                     alpha, A(n, 0) , ldda, 
-                            A(n1, 0), ldda, 
-                     beta,  A(n, n1), ldda, queue );
+                     alpha, dA(n, 0) , ldda, 
+                            dA(n1, 0), ldda, 
+                     beta,  dA(n, n1), ldda, queue );
         // panel on A2
-        info = magma_zpotrf_recpanel_rectangle_native(uplo, m-n1, n2, A(n1, n1), ldda, dinfo, gbstep+n1, queue);
+        info = magma_zpotrf_recpanel_rectangle_native(uplo, m-n1, n2, dA(n1, n1), ldda, dinfo, gbstep+n1, queue);
     }
     return info;
 }
@@ -177,17 +174,17 @@ magma_zpotrf_recpanel_rectangle_native(
 
     @param[in]
     n       INTEGER
-            The order of the matrix A.  N >= 0.
+            The order of the matrix A.  n >= 0.
 
     @param[in,out]
-    dA      COMPLEX_16 array on the GPU, dimension (LDA,N)
-            On entry, the Hermitian matrix A.  If uplo = MagmaUpper, the leading
-            N-by-N upper triangular part of A contains the upper
-            triangular part of the matrix A, and the strictly lower
-            triangular part of A is not referenced.  If uplo = MagmaLower, the
-            leading N-by-N lower triangular part of A contains the lower
-            triangular part of the matrix A, and the strictly upper
-            triangular part of A is not referenced.
+    dA      COMPLEX_16 array on the GPU, dimension (ldda, n)
+            On entry, the Hermitian matrix dA.  If uplo = MagmaUpper, the leading
+            n-by-n upper triangular part of dA contains the upper
+            triangular part of the matrix dA, and the strictly lower
+            triangular part of dA is not referenced.  If uplo = MagmaLower, the
+            leading n-by-n lower triangular part of dA contains the lower
+            triangular part of the matrix dA, and the strictly upper
+            triangular part of dA is not referenced.
     \n
             On exit, if INFO = 0, the factor U or L from the Cholesky
             factorization A = U**H * U or A = L * L**H.
@@ -205,34 +202,39 @@ magma_zpotrf_recpanel_rectangle_native(
                   positive definite, and the factorization could not be
                   completed.
 
-    @ingroup magma_potrf_native
+    @ingroup magma_potrf
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_native(
     magma_uplo_t uplo, magma_int_t n,
-    magmaDoubleComplex *dA, magma_int_t ldda,
-    magma_int_t *dinfo, magma_queue_t queue)
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_queue_t queue, magma_int_t *info)
 {
-    magma_int_t arginfo = 0; 
-    
+    (*info) = 0;
     if ( uplo != MagmaUpper && uplo != MagmaLower) {
-        arginfo = -1;
+        (*info) = -1;
+    } else if (uplo == MagmaUpper ) {
+        (*info) = MAGMA_ERR_NOT_IMPLEMENTED;
     } else if (n < 0) {
-        arginfo = -2;
+        (*info) = -2;
     } else if (ldda < max(1,n)) {
-        arginfo = -4;
+        (*info) = -4;
     }
 
-    if (arginfo != 0) {
-        magma_xerbla( __func__, -(arginfo) );
-        return (arginfo);
+    if ( (*info) != 0 ) {
+        magma_xerbla( __func__, -(*info) );
+        return (*info);
     }
         
     // Quick return if possible
     if (n == 0) {
-        return (arginfo);
+        return (*info);
     }
 
+    magma_int_t* dinfo; 
+    magma_imalloc(&dinfo, 1);
+    magma_setvector(1, sizeof(magma_int_t), info, 1, dinfo, 1, queue);
+    
     double d_alpha = -1.0;
     double d_beta  = 1.0;
     magma_int_t j, k, ib, use_stream;
@@ -242,33 +244,29 @@ magma_zpotrf_native(
     magma_int_t panel_sq = ( n >= 20000 ); 
     nb = panel_sq ? POTRF_NATIVE_PANEL_SQ : POTRF_NATIVE_PANEL_RECT; 
     
-    if (uplo == MagmaUpper) {
-        printf("Upper side is unavailable\n");
-    }
-    else {
-        for (j = 0; j < n; j += nb) {
-            ib = min(nb, n-j);
-            // panel
-            if( panel_sq )
-                magma_zpotrf_recpanel_square_native(uplo, ib, A(j, j), ldda, dinfo, j, queue);
-            else
-                magma_zpotrf_recpanel_rectangle_native(uplo, n-j, ib, A(j, j), ldda, dinfo, j, queue);
-            // end of panel
-            
-            if ( (n-j-ib) > 0) {
-                if ( panel_sq )
-                    magmablas_ztrsm( MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit, 
-                                 n-j-ib, ib, MAGMA_Z_ONE, 
-                                 A(j,    j), ldda, 
-                                 A(j+ib, j), ldda, queue );
+    for (j = 0; j < n; j += nb) {
+        ib = min(nb, n-j);
+        // panel
+        if( panel_sq )
+            magma_zpotrf_recpanel_square_native(uplo, ib, dA(j, j), ldda, dinfo, j, queue);
+        else
+            magma_zpotrf_recpanel_rectangle_native(uplo, n-j, ib, dA(j, j), ldda, dinfo, j, queue);
+        // end of panel
+        
+        if ( (n-j-ib) > 0) {
+            if ( panel_sq )
+                magmablas_ztrsm( MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit, 
+                             n-j-ib, ib, MAGMA_Z_ONE, 
+                             dA(j,    j), ldda, 
+                             dA(j+ib, j), ldda, queue );
     
-                magma_zherk( uplo, MagmaNoTrans, n-j-ib, ib, 
-                             d_alpha, A(j+ib, j), ldda, 
-                             d_beta,  A(j+ib, j+ib), ldda, queue );
-            }
+            magma_zherk( uplo, MagmaNoTrans, n-j-ib, ib, 
+                         d_alpha, dA(j+ib, j), ldda, 
+                         d_beta,  dA(j+ib, j+ib), ldda, queue );
         }
     }
     magma_queue_sync(queue);
-    
-    return arginfo;
+    magma_getvector(1, sizeof(magma_int_t), dinfo, 1, info, 1, queue);
+    magma_free(dinfo);
+    return (*info);
 }
