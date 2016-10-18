@@ -417,7 +417,7 @@ magma_zwrite_csr_mtx(
         // TODO what's the difference between i (or i+1) and rowindex?
         magma_index_t i=0, j=0, rowindex=1;
         
-        for(i=0; i < B.num_cols; i++) {
+        for(i=0; i < B.num_rows; i++) {
             magma_index_t rowtemp1 = B.row[i];
             magma_index_t rowtemp2 = B.row[i+1];
             for(j=0; j < rowtemp2 - rowtemp1; j++) {
@@ -436,7 +436,7 @@ magma_zwrite_csr_mtx(
         // TODO what's the difference between i (or i+1) and rowindex?
         magma_index_t i=0, j=0, rowindex=1;
                 
-        for(i=0; i < B.num_cols; i++) {
+        for(i=0; i < B.num_rows; i++) {
             magma_index_t rowtemp1 = B.row[i];
             magma_index_t rowtemp2 = B.row[i+1];
             for(j=0; j < rowtemp2 - rowtemp1; j++) {
@@ -470,17 +470,17 @@ magma_zwrite_csr_mtx(
         #ifdef COMPLEX
         // complex case
         fprintf( fp, "%%%%MatrixMarket matrix coordinate complex general\n" );
-        fprintf( fp, "%d %d %d\n", int(A.num_cols), int(A.num_rows), int(A.nnz));
+        fprintf( fp, "%d %d %d\n", int(A.num_rows), int(A.num_cols), int(A.nnz));
         
         // TODO what's the difference between i (or i+1) and rowindex?
         magma_index_t i=0, j=0, rowindex=1;
         
-        for(i=0; i < A.num_cols; i++) {
+        for(i=0; i < A.num_rows; i++) {
             magma_index_t rowtemp1 = A.row[i];
             magma_index_t rowtemp2 = A.row[i+1];
             for(j=0; j < rowtemp2 - rowtemp1; j++) {
                 fprintf( fp, "%d %d %.16g %.16g\n",
-                    ((A.col)[rowtemp1+j]+1), rowindex,
+                    rowindex, ((A.col)[rowtemp1+j]+1), 
                     MAGMA_Z_REAL((A.val)[rowtemp1+j]),
                     MAGMA_Z_IMAG((A.val)[rowtemp1+j]) );
             }
@@ -489,17 +489,17 @@ magma_zwrite_csr_mtx(
         #else
         // real case
         fprintf( fp, "%%%%MatrixMarket matrix coordinate real general\n" );
-        fprintf( fp, "%d %d %d\n", int(A.num_cols), int(A.num_rows), int(A.nnz));
+        fprintf( fp, "%d %d %d\n", int(A.num_rows), int(A.num_cols), int(A.nnz));
         
         // TODO what's the difference between i (or i+1) and rowindex?
         magma_index_t i=0, j=0, rowindex=1;
                 
-        for(i=0; i < A.num_cols; i++) {
+        for(i=0; i < B.num_rows; i++) {
             magma_index_t rowtemp1 = A.row[i];
             magma_index_t rowtemp2 = A.row[i+1];
             for(j=0; j < rowtemp2 - rowtemp1; j++) {
                 fprintf( fp, "%d %d %.16g\n",
-                    ((A.col)[rowtemp1+j]+1), rowindex,
+                    rowindex, ((A.col)[rowtemp1+j]+1),
                     MAGMA_Z_REAL((A.val)[rowtemp1+j]));
             }
             rowindex++;
