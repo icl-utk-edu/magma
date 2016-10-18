@@ -28,6 +28,8 @@
     Same as ztrtri_diag, but adds queue argument.
     
     @ingroup magma_zblas3
+**/
+
 /***************************************************************************//**
     Purpose
     -------
