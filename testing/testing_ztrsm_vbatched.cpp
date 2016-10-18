@@ -360,7 +360,7 @@ int main( int argc, char** argv)
     
                     if ( isnan(err) || isinf(err) ) {
                         printf("error for matrix %lld (%lld x %lld), magma_error = %7.2f where normR=%7.2f normX=%7.2f and normA=%7.2f\n",
-                               s, h_M[s], h_N[s], err, normR, normX, normA);
+                               (long long)s, (long long)h_M[s], (long long)h_N[s], err, normR, normX, normA);
                         magma_error = err;
                         break;
                     }

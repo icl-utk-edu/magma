@@ -1350,8 +1350,8 @@ magma_zpotrf_native_gpu(
 magma_int_t
 magma_zpotrf_native(
     magma_uplo_t uplo, magma_int_t n,
-    magmaDoubleComplex *dA, magma_int_t ldda,
-    magma_int_t *info, magma_queue_t queue);
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_queue_t queue, magma_int_t *info);
 
 magma_int_t
 magma_zpotrf_rectile_native(
