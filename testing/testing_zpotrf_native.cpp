@@ -72,7 +72,7 @@ int main( int argc, char** argv)
                =================================================================== */
             magma_zsetmatrix( N, N, h_A, lda, d_A, ldda, opts.queue );
             magma_time = magma_wtime();
-            magma_zpotrf_native( opts.uplo, N, d_A, ldda, opts.queue, info_magma );
+            magma_zpotrf_native( opts.uplo, N, d_A, ldda, opts.queue, &info_magma );
             magma_time = magma_wtime() - magma_time;
             magma_perf = gflops / magma_time;
             if (info_magma != 0) {
