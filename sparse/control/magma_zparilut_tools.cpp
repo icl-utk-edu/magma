@@ -24,25 +24,25 @@
 
     Arguments
     ---------
-    
+
     @param[in,out]
     A          magma_z_matrix*
-                Current ILU approximation 
-                The format is unsorted CSR, the list array is used as linked 
+                Current ILU approximation
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
 
     @param[in,out]
     L           magma_z_matrix*
                 Current approximation for the lower triangular factor
-                The format is unsorted CSR, the list array is used as linked 
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
 
     @param[in,out]
     U           magma_z_matrix*
                 Current approximation for the upper triangular factor
-                The format is unsorted CSR, the list array is used as linked 
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -62,14 +62,14 @@ magma_zparilut_sweep_list(
     // parallel for using openmp
     #pragma omp parallel for
     for( magma_int_t e=0; e<L->nnz; e++){
-        // as we look at the lower triangular, 
+        // as we look at the lower triangular,
         // col<row, i.e. disregard last element in row
         if( L->list[e] > 0 ){
             magma_int_t i,j,icol,jcol,jold;
-            
+
             magma_index_t row = L->rowidx[ e ];
             magma_index_t col = L->col[ e ];
-            
+
             //printf("(%d,%d) ", row, col);fflush(stdout);
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
@@ -79,9 +79,9 @@ magma_zparilut_sweep_list(
                     i = A->row[row+1];
                 }
             }
-            
+
             //now do the actual iteration
-            i = L->row[ row ]; 
+            i = L->row[ row ];
             j = U->row[ col ];
             magma_int_t endi = L->row[ row+1 ];
             magma_int_t endj = U->row[ col+1 ];
@@ -106,25 +106,25 @@ magma_zparilut_sweep_list(
                 }
             }while( i<endi && j<endj );
             sum = sum - lsum;
-            
+
             // write back to location e
             L->val[ e ] =  ( A_e - sum ) / U->val[jold];
         } else if( L->list[e]==0 ){ // end check whether part of L
             L->val[ e ] = MAGMA_Z_ONE; // lower triangular has diagonal equal 1
         }
-        
+
     }// end omp parallel section
-    
+
    #pragma omp parallel for
     for( magma_int_t e=0; e<U->nnz; e++){
-        // as we look at the lower triangular, 
+        // as we look at the lower triangular,
         // col<row, i.e. disregard last element in row
         if( U->list[e] != -1 ){
             magma_int_t i,j,icol,jcol;
-            
+
             magma_index_t row = U->rowidx[ e ];
             magma_index_t col = U->col[ e ];
-            
+
             //printf("(%d,%d) ", row, col);fflush(stdout);
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
@@ -134,9 +134,9 @@ magma_zparilut_sweep_list(
                     i = A->row[row+1];
                 }
             }
-            
+
             //now do the actual iteration
-            i = L->row[ row ]; 
+            i = L->row[ row ];
             j = U->row[ col ];
             magma_int_t endi = L->row[ row+1 ];
             magma_int_t endj = U->row[ col+1 ];
@@ -160,15 +160,15 @@ magma_zparilut_sweep_list(
                 }
             }while( i<endi && j<endj );
             sum = sum - lsum;
-            
+
             // write back to location e
             U->val[ e ] =  ( A_e - sum );
-        } 
-        
+        }
+
     }// end omp parallel section
-    
-    
-    
+
+
+
     return info;
 }
 
@@ -181,20 +181,20 @@ magma_zparilut_sweep_list(
 
     Arguments
     ---------
-    
+
 
     @param[in,out]
     L           magma_z_matrix
                 Current approximation for the lower triangular factor
-                The format is unsorted CSR, the list array is used as linked 
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
 
     @param[in,out]
     U           magma_z_matrix*
                 Current approximation for the upper triangular factor
-                The format is unsorted CSR, the list array is used as linked 
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -215,15 +215,14 @@ magma_zparilut_residuals_list(
     // parallel for using openmp
     #pragma omp parallel for
     for( magma_int_t e=0; e<L_new->nnz; e++){
-        // as we look at the lower triangular, 
+        // as we look at the lower triangular,
         // col<row, i.e. disregard last element in row
         {
             magma_int_t i,j,icol,jcol,jold;
-            
+
             magma_index_t row = L_new->rowidx[ e ];
             magma_index_t col = L_new->col[ e ];
             if( row != 0 || col != 0 ){
-                
                 // printf("(%d,%d) ", row, col);fflush(stdout);
                 magmaDoubleComplex A_e = MAGMA_Z_ZERO;
                 // check whether A contains element in this location
@@ -233,9 +232,9 @@ magma_zparilut_residuals_list(
                         i = A.row[row+1];
                     }
                 }
-                
+
                 //now do the actual iteration
-                i = L.row[ row ]; 
+                i = L.row[ row ];
                 j = U.row[ col ];
                 magma_int_t endi = L.row[ row+1 ];
                 magma_int_t endj = U.row[ col+1 ];
@@ -260,7 +259,7 @@ magma_zparilut_residuals_list(
                     }
                 }while( i<endi && j<endj );
                 sum = sum - lsum;
-                
+
                 // write back to location e
                 if( row>col ){
                     L_new->val[ e ] =  ( A_e - sum ) / U.val[jold];
@@ -270,10 +269,10 @@ magma_zparilut_residuals_list(
             } else {
                 L_new->val[ e ] = MAGMA_Z_ZERO;
             }
-        } 
-        
+        }
+
     }// end omp parallel section
-    
+
     return info;
 }
 
@@ -286,25 +285,25 @@ magma_zparilut_residuals_list(
 
     Arguments
     ---------
-    
+
     @param[in,out]
     A          magma_z_matrix*
-                Current ILU approximation 
-                The format is unsorted CSR, the list array is used as linked 
+                Current ILU approximation
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
 
     @param[in,out]
     L           magma_z_matrix*
                 Current approximation for the lower triangular factor
-                The format is unsorted CSR, the list array is used as linked 
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
 
     @param[in,out]
     U           magma_z_matrix*
                 Current approximation for the upper triangular factor
-                The format is unsorted CSR, the list array is used as linked 
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -324,14 +323,14 @@ magma_zparilut_sweep_linkedlist(
     // parallel for using openmp
     #pragma omp parallel for
     for( magma_int_t e=0; e<L->nnz; e++){
-        // as we look at the lower triangular, 
+        // as we look at the lower triangular,
         // col<row, i.e. disregard last element in row
         if( L->list[e] > 0 ){
             magma_int_t i,j,icol,jcol,jold;
-            
+
             magma_index_t row = L->rowidx[ e ];
             magma_index_t col = L->col[ e ];
-            
+
             //printf("(%d,%d) ", row, col);fflush(stdout);
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
@@ -341,9 +340,9 @@ magma_zparilut_sweep_linkedlist(
                     i = A->row[row+1];
                 }
             }
-            
+
             //now do the actual iteration
-            i = L->row[ row ]; 
+            i = L->row[ row ];
             j = U->row[ col ];
             magmaDoubleComplex sum = MAGMA_Z_ZERO;
             magmaDoubleComplex lsum = MAGMA_Z_ZERO;
@@ -366,25 +365,25 @@ magma_zparilut_sweep_linkedlist(
                 }
             }while( i!=0 && j!=0 );
             sum = sum - lsum;
-            
+
             // write back to location e
             L->val[ e ] =  ( A_e - sum ) / U->val[jold];
         } else if( L->list[e]==0 ){ // end check whether part of L
             L->val[ e ] = MAGMA_Z_ONE; // lower triangular has diagonal equal 1
         }
-        
+
     }// end omp parallel section
-    
+
    #pragma omp parallel for
     for( magma_int_t e=0; e<U->nnz; e++){
-        // as we look at the lower triangular, 
+        // as we look at the lower triangular,
         // col<row, i->e-> disregard last element in row
         if( U->list[e] != -1 ){
             magma_int_t i,j,icol,jcol;
-            
+
             magma_index_t row = U->rowidx[ e ];
             magma_index_t col = U->col[ e ];
-            
+
             //printf("(%d,%d) ", row, col);fflush(stdout);
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
@@ -394,9 +393,9 @@ magma_zparilut_sweep_linkedlist(
                     i = A->row[row+1];
                 }
             }
-            
+
             //now do the actual iteration
-            i = L->row[ row ]; 
+            i = L->row[ row ];
             j = U->row[ col ];
             magmaDoubleComplex sum = MAGMA_Z_ZERO;
             magmaDoubleComplex lsum = MAGMA_Z_ZERO;
@@ -418,15 +417,15 @@ magma_zparilut_sweep_linkedlist(
                 }
             }while( i!=0 && j!=0 );
             sum = sum - lsum;
-            
+
             // write back to location e
             U->val[ e ] =  ( A_e - sum );
-        } 
-        
+        }
+
     }// end omp parallel section
-    
-    
-    
+
+
+
     return info;
 }
 
@@ -438,20 +437,20 @@ magma_zparilut_sweep_linkedlist(
 
     Arguments
     ---------
-    
+
 
     @param[in,out]
     L           magma_z_matrix
                 Current approximation for the lower triangular factor
-                The format is unsorted CSR, the list array is used as linked 
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
 
     @param[in,out]
     U           magma_z_matrix*
                 Current approximation for the upper triangular factor
-                The format is unsorted CSR, the list array is used as linked 
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -472,14 +471,14 @@ magma_zparilut_residuals_linkedlist(
     // parallel for using openmp
     #pragma omp parallel for
     for( magma_int_t e=0; e<L_new->nnz; e++){
-        // as we look at the lower triangular, 
+        // as we look at the lower triangular,
         // col<row, i.e. disregard last element in row
         {
             magma_int_t i,j,icol,jcol,jold;
-            
+
             magma_index_t row = L_new->rowidx[ e ];
             magma_index_t col = L_new->col[ e ];
-            
+
             // printf("(%d,%d) ", row, col);fflush(stdout);
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
@@ -488,9 +487,9 @@ magma_zparilut_residuals_linkedlist(
                     A_e = A.val[i];
                 }
             }
-            
+
             //now do the actual iteration
-            i = L.row[ row ]; 
+            i = L.row[ row ];
             j = U.row[ col ];
             magmaDoubleComplex sum = MAGMA_Z_ZERO;
             magmaDoubleComplex lsum = MAGMA_Z_ZERO;
@@ -513,17 +512,17 @@ magma_zparilut_residuals_linkedlist(
                 }
             }while( i!=0 && j!=0 );
             sum = sum - lsum;
-            
+
             // write back to location e
             if( row>col ){
                 L_new->val[ e ] =  ( A_e - sum ) / U.val[jold];
             } else {
                 L_new->val[ e ] =  ( A_e - sum );
             }
-        } 
-        
+        }
+
     }// end omp parallel section
-    
+
     return info;
 }
 
@@ -531,20 +530,20 @@ magma_zparilut_residuals_linkedlist(
 /***************************************************************************//**
     Purpose
     -------
-    This function creates a col-pointer and a linked list along the columns 
+    This function creates a col-pointer and a linked list along the columns
     for a row-major CSR matrix
 
     Arguments
     ---------
-    
+
     @param[in]
     A           magma_z_matrix
-                The format is unsorted CSR, the list array is used as linked 
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
 
     @param[in,out]
     AC          magma_z_matrix*
-                The matrix A but with row-pointer being for col-major, same with 
+                The matrix A but with row-pointer being for col-major, same with
                 linked list. The values, col and row indices are unchanged.
                 The respective pointers point to the entities of A.
 
@@ -562,7 +561,7 @@ magma_zparilut_colmajor(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magma_int_t num_threads=1;
     magma_index_t *checkrow;
     magma_int_t el_per_block;
@@ -577,17 +576,17 @@ magma_zparilut_colmajor(
     AC->num_cols = A.num_cols;
     AC->nnz = A.nnz;
     AC->true_nnz = A.true_nnz;
-    
+
     CHECK( magma_index_malloc_cpu( &checkrow, A.true_nnz ));
-    
+
     CHECK( magma_index_malloc_cpu( &AC->row, A.num_rows+1 ));
     CHECK( magma_index_malloc_cpu( &AC->list, A.true_nnz ));
-    
+
     #pragma omp parallel
     {
-        num_threads = omp_get_max_threads();   
+        num_threads = omp_get_max_threads();
     }
-    
+
     #pragma omp parallel for
     for( magma_int_t i=0; i<A.num_rows; i++ ){
         checkrow[i] = -1;
@@ -597,7 +596,7 @@ magma_zparilut_colmajor(
         AC->list[i] = -1;
     }
      el_per_block = magma_ceildiv( A.num_rows, num_threads );
-    
+
     #pragma omp parallel
     {
         magma_int_t id = omp_get_thread_num();
@@ -610,14 +609,14 @@ magma_zparilut_colmajor(
                 //}
                 if( checkrow[row] == -1 ){
                     // printf("thread %d write in row pointer at row[%d] = %d\n", id, row, i);
-                    AC->row[ row ] = i; 
-                    AC->list[ i ] = 0;    
+                    AC->row[ row ] = i;
+                    AC->list[ i ] = 0;
                     checkrow[ row ] = i;
                 } else {
                     // printf("thread %d list[%d] = %d\n", id, checkrow[ row ], i);
-                    AC->list[ checkrow[ row ] ] = i;  
-                    AC->list[ i ] = 0; 
-                    checkrow[ row ] = i;    
+                    AC->list[ checkrow[ row ] ] = i;
+                    AC->list[ i ] = 0;
+                    checkrow[ row ] = i;
                 }
             }
         }
@@ -635,12 +634,12 @@ cleanup:
 
     Arguments
     ---------
-                
+
     @param[in]
     LU          magma_z_matrix*
                 Current ILU approximation.
-                
-                
+
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -661,20 +660,20 @@ magma_zparilut_reorder(
     magma_index_t *rowidx=NULL;
     magma_index_t *list=NULL;
     magmaDoubleComplex *valt=NULL;
-    magma_index_t *colt=NULL;                                       
+    magma_index_t *colt=NULL;
     magma_index_t *rowt=NULL;
     magma_index_t *rowidxt=NULL;
     magma_index_t *listt=NULL;
-    
+
     magma_int_t nnz=0;
-    
-    
+
+
     CHECK( magma_zmalloc_cpu( &val, LU->true_nnz ));
     CHECK( magma_index_malloc_cpu( &rowidx, LU->true_nnz ));
     CHECK( magma_index_malloc_cpu( &col, LU->true_nnz ));
     CHECK( magma_index_malloc_cpu( &row, LU->num_rows+1 ));
     CHECK( magma_index_malloc_cpu( &list, LU->true_nnz ));
-    
+
     // do two sweeps to allow for parallel insertion
     row[ 0 ] = 0;
     #pragma omp parallel for
@@ -685,15 +684,15 @@ magma_zparilut_reorder(
             loc_nnz++;
             el = LU->list[ el ];
         }while( el != 0 );
-        row[ rowc+1 ] = loc_nnz;    
+        row[ rowc+1 ] = loc_nnz;
     }
-    
+
     // global count
     for( magma_int_t i = 0; i<LU->num_rows; i++ ){
         nnz = nnz + row[ i+1 ];
         row[ i+1 ] = nnz;
     }
-    
+
     LU->nnz = nnz;
     // parallel insertion
     #pragma omp parallel for
@@ -708,7 +707,7 @@ magma_zparilut_reorder(
             if(magma_z_isnan_inf( valtt ) ){
                 info = MAGMA_ERR_NAN;
                 el = 0;
-            } else 
+            } else
 #endif
             {
                 val[ loc ] = valtt;
@@ -716,25 +715,25 @@ magma_zparilut_reorder(
                 rowidx[ loc ] = rowc;
                 list[ loc ] = loc+1;
                 loc_nnz++;
-                el = LU->list[ el ]; 
+                el = LU->list[ el ];
             }
-            
+
         }while( el != 0 );
         list[ offset+loc_nnz - 1 ] = 0;
     }
-    
+
     listt = LU->list;
     rowt = LU->row;
     rowidxt = LU->rowidx;
     valt = LU->val;
     colt = LU->col;
-    
+
     LU->list = list;
     LU->row = row;
     LU->rowidx = rowidx;
     LU->val = val;
     LU->col = col;
-    
+
     list = listt;
     row = rowt;
     rowidx = rowidxt;
@@ -754,20 +753,20 @@ cleanup:
 /***************************************************************************//**
     Purpose
     -------
-    This function creates a col-pointer and a linked list along the columns 
+    This function creates a col-pointer and a linked list along the columns
     for a row-major CSR matrix
 
     Arguments
     ---------
-    
+
     @param[in]
     A           magma_z_matrix
-                The format is unsorted CSR, the list array is used as linked 
+                The format is unsorted CSR, the list array is used as linked
                 list pointing to the respectively next entry.
 
     @param[in,out]
     AC          magma_z_matrix*
-                The matrix A but with row-pointer being for col-major, same with 
+                The matrix A but with row-pointer being for col-major, same with
                 linked list. The values, col and row indices are unchanged.
                 The respective pointers point to the entities of A. Already allocated.
 
@@ -785,7 +784,7 @@ magma_zparilut_colmajorup(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magma_int_t num_threads=1;
     magma_index_t *checkrow;
     magma_int_t el_per_block;
@@ -794,25 +793,25 @@ magma_zparilut_colmajorup(
     AC->val=A.val;
     AC->col=A.rowidx;
     AC->rowidx=A.col;
-    
+
     CHECK( magma_index_malloc_cpu( &checkrow, A.num_rows ));
 
     #pragma omp parallel
     {
-        num_threads = omp_get_max_threads();   
+        num_threads = omp_get_max_threads();
     }
-    
+
     #pragma omp parallel for
     for( magma_int_t i=0; i<A.num_rows; i++ ){
         checkrow[i] = -1;
     }
-    
+
     #pragma omp parallel for
     for( magma_int_t i=0; i<AC->true_nnz; i++ ){
-        AC->list[ i ] = 0;    
+        AC->list[ i ] = 0;
     }
      el_per_block = magma_ceildiv( A.num_rows, num_threads );
-    
+
     #pragma omp parallel
     {
         magma_int_t id = omp_get_thread_num();
@@ -821,13 +820,13 @@ magma_zparilut_colmajorup(
                 magma_index_t row = A.col[ i ];
                 if( (row < (id+1)*el_per_block) && (row >=(id)*el_per_block)  ){
                     if( checkrow[row] == -1 ){
-                        AC->row[ row ] = i; 
-                        AC->list[ i ] = 0;    
+                        AC->row[ row ] = i;
+                        AC->list[ i ] = 0;
                         checkrow[ row ] = i;
                     } else {
-                        AC->list[ checkrow[ row ] ] = i;  
-                        AC->list[ i ] = 0; 
-                        checkrow[ row ] = i;    
+                        AC->list[ checkrow[ row ] ] = i;
+                        AC->list[ i ] = 0;
+                        checkrow[ row ] = i;
                     }
                 }
             }
@@ -844,53 +843,53 @@ cleanup:
 /***************************************************************************//**
     Purpose
     -------
-    Inserts for the iterative dynamic ILU an new element in the (empty) place. 
+    Inserts for the iterative dynamic ILU an new element in the (empty) place.
 
     Arguments
     ---------
-                
+
     @param[in]
     num_rmL     magma_int_t
                 Number of Elements that are replaced in L.
-                
+
     @param[in]
     num_rmU     magma_int_t
                 Number of Elements that are replaced in U.
-                
+
     @param[in]
     rm_locL     magma_index_t*
                 List containing the locations of the deleted elements.
-                
+
     @param[in]
     rm_locU     magma_index_t*
                 List containing the locations of the deleted elements.
-                
+
     @param[in]
     L_new       magma_z_matrix
                 Elements that will be inserted in L stored in COO format (unsorted).
-                
+
     @param[in]
     U_new       magma_z_matrix
                 Elements that will be inserted in U stored in COO format (unsorted).
 
     @param[in,out]
     L           magma_z_matrix*
-                matrix where new elements are inserted. 
-                The format is unsorted CSR, list is used as linked 
+                matrix where new elements are inserted.
+                The format is unsorted CSR, list is used as linked
                 list pointing to the respectively next entry.
-                
+
     @param[in,out]
     U           magma_z_matrix*
                 matrix where new elements are inserted. Row-major.
-                The format is unsorted CSR, list is used as linked 
+                The format is unsorted CSR, list is used as linked
                 list pointing to the respectively next entry.
-                
+
     @param[in,out]
     UR          magma_z_matrix*
                 Same matrix as U, but column-major.
-                The format is unsorted CSR, list is used as linked 
+                The format is unsorted CSR, list is used as linked
                 list pointing to the respectively next entry.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -919,11 +918,11 @@ magma_zparilut_insert(
     magma_int_t id = omp_get_thread_num();
     magma_int_t el = L_new->row[id];
     magma_int_t loc_lr = rm_locL[id];
-    
+
     while( el>-1 ){
         magma_int_t loc = L->nnz + loc_lr;
         loc_lr++;
-        magma_index_t new_row = L_new->rowidx[ el ]; 
+        magma_index_t new_row = L_new->rowidx[ el ];
         magma_index_t new_col = L_new->col[ el ];
         magma_index_t old_rowstart = L->row[ new_row ];
         //printf("%%candidate for L: (%d,%d) tid %d\n", new_row, new_col, id);
@@ -948,7 +947,6 @@ magma_zparilut_insert(
                     //printf("%% tried to insert duplicate case 1 2 in L thread %d: (%d %d) \n", id, new_row, new_col);fflush(stdout);
                     j=0; //break;
                 }else if( L->col[jn]>new_col ){
-
                     //printf("%%insert in L: (%d,%d) at location %d\n", new_row, new_col, loc);
                     L->list[j]=loc;
                     L->list[loc]=jn;
@@ -956,7 +954,7 @@ magma_zparilut_insert(
                     L->col[ loc ] = new_col;
                     L->val[ loc ] = MAGMA_Z_ZERO;
                     j=0; //break;
-                    
+
                 } else{
                     j=jn;
                     jn=L->list[jn];
@@ -972,7 +970,7 @@ magma_zparilut_insert(
     magma_int_t id = omp_get_thread_num();
     magma_int_t el = U_new->row[id];
     magma_int_t loc_ur = rm_locU[id];
-    
+
     while( el>-1 ){
         magma_int_t loc = U->nnz + loc_ur;
         loc_ur++;
@@ -1004,7 +1002,6 @@ magma_zparilut_insert(
                     //printf("%% tried to insert duplicate case 1 2 in U thread %d: (%d %d) \n", id, new_row, new_col);
                     j=0; //break;
                 }else if( U->col[jn]>new_col ){
-
                     U->list[j]=loc;
                     U->list[loc]=jn;
                     U->rowidx[ loc ] = new_row;
@@ -1019,8 +1016,8 @@ magma_zparilut_insert(
         }
         el = U_new->list[el];
     }
-    }                
-    
+    }
+
      return info;
 }
 
@@ -1032,20 +1029,20 @@ magma_zparilut_insert(
     Purpose
     -------
     This function identifies the candidates like they appear as ILU1 fill-in.
-    In this version, the matrices are assumed unordered, 
+    In this version, the matrices are assumed unordered,
     the linked list is traversed to acces the entries of a row.
 
     Arguments
     ---------
-    
+
     @param[in]
     L           magma_z_matrix
                 Current lower triangular factor.
-                
+
     @param[in]
     U           magma_z_matrix
                 Current upper triangular factor transposed.
-                
+
     @param[in]
     UR          magma_z_matrix
                 Current upper triangular factor - col-pointer and col-list.
@@ -1054,11 +1051,11 @@ magma_zparilut_insert(
     @param[in,out]
     LU_new      magma_z_matrix*
                 List of candidates for L in COO format.
-                
+
     @param[in,out]
     LU_new      magma_z_matrix*
                 List of candidates for U in COO format.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -1080,25 +1077,25 @@ magma_zparilut_candidates_linkedlist(
     magma_index_t *numaddU;
     magma_index_t *rowidxL, *rowidxU, *colL, *colU;
     magma_index_t *rowidxLt, *rowidxUt, *colLt, *colUt;
-    
+
     magma_int_t unsym = 1;
-    
+
     CHECK( magma_index_malloc_cpu( &numaddL, L.num_rows+1 ));
     CHECK( magma_index_malloc_cpu( &numaddU, U.num_rows+1 ));
-    
+
     CHECK( magma_index_malloc_cpu( &rowidxL, L_new->true_nnz ));
     CHECK( magma_index_malloc_cpu( &rowidxU, U_new->true_nnz ));
     CHECK( magma_index_malloc_cpu( &colL, L_new->true_nnz ));
     CHECK( magma_index_malloc_cpu( &colU, U_new->true_nnz ));
-    
+
     #pragma omp parallel for
     for( magma_int_t i = 0; i<L.num_rows+1; i++ ){
         numaddL[i] = 0;
         numaddU[i] = 0;
     }
-    
 
-     
+
+
     // how to determine candidates:
     // for each node i, look at any "intermediate" neighbor nodes numbered
     // less, and then see if this neighbor has another neighbor j numbered
@@ -1115,12 +1112,12 @@ magma_zparilut_candidates_linkedlist(
         //for( magma_index_t el1=L.row[row]; el1<L.row[row+1]; el1++ ){
         while( L.list[el1] != 0 ) {
             magma_index_t col1 = L.col[ el1 ];
-            
+
             // first check the lower triangular
             magma_index_t start2 = L.row[ col1 ];
             magma_index_t el2 = start2;
-            
-            
+
+
             // second loop first element over row - only for elements larger the intermediate
             while( L.list[ el2 ] != 0 ) {
             //for( el2=L.row[col1]; el2<L.row[col1+1]; el2++ ){
@@ -1154,7 +1151,7 @@ magma_zparilut_candidates_linkedlist(
         numaddU[ row+1 ] = numaddrowU;
         numaddL[ row+1 ] = numaddrowL;
     }
-            
+
     #pragma omp parallel for
     for( magma_index_t row=0; row<L.num_rows; row++){
         magma_index_t start1 = L.row[ row ];
@@ -1217,18 +1214,17 @@ magma_zparilut_candidates_linkedlist(
                 }
                 el2 = UR.list[ el2 ];
             }while( el2 != 0 );
-            
+
             el1 = L.list[ el1 ];
         }
         numaddU[ row+1 ] = numaddU[ row+1 ]+numaddrowU;
         numaddL[ row+1 ] = numaddL[ row+1 ]+numaddrowL;
     }
-    
+
     //#######################
     if( unsym == 1 ){
     #pragma omp parallel for
     for( magma_index_t row=0; row<L.num_rows; row++){
-
         magma_index_t start1 = UR.row[ row ];
         magma_index_t el1 = start1;
         magma_int_t numaddrowL = 0, numaddrowU = 0;
@@ -1291,11 +1287,11 @@ magma_zparilut_candidates_linkedlist(
             }
             el1 = UR.list[ el1 ];
         }while( el1 != 0 );
-        
+
         numaddU[ row+1 ] = numaddU[ row+1 ]+numaddrowU;
         numaddL[ row+1 ] = numaddL[ row+1 ]+numaddrowL;
     }
-    
+
     #pragma omp parallel for
     for( magma_index_t row=0; row<L.num_rows; row++){
         magma_index_t start1 = UR.row[ row ];
@@ -1332,28 +1328,28 @@ magma_zparilut_candidates_linkedlist(
                 if( exist == 0 ){
                     numaddrowU++;
                 }
-                
+
                 el2 = UR.list[ el2 ];
             }while( el2 != 0 );
-            
+
             el1 = UR.list[ el1 ];
         }while( el1 != 0 );
-         
+
         numaddU[ row+1 ] = numaddU[ row+1 ]+numaddrowU;
         numaddL[ row+1 ] = numaddL[ row+1 ]+numaddrowL;
     } //loop over all rows
     }
-    
+
     //end = magma_sync_wtime( queue ); printf("llop 1.2 : %.2e\n", end-start);
-    
+
     // #########################################################################
-    
+
     // get the total candidate count
     L_new->nnz = 0;
     U_new->nnz = 0;
     numaddL[ 0 ] = L_new->nnz;
     numaddU[ 0 ] = U_new->nnz;
-    
+
     #pragma omp parallel for
     for( magma_int_t i = 0; i<L.num_rows+1; i++ ){
             L_new->row[ i ] = 0;
@@ -1381,10 +1377,10 @@ magma_zparilut_candidates_linkedlist(
        magma_index_malloc_cpu( &L_new->rowidx, L_new->nnz*2 );
        magma_index_malloc_cpu( &L_new->col, L_new->nnz*2 );
        magma_index_malloc_cpu( &L_new->row, L_new->nnz*2 );
-       magma_index_malloc_cpu( &L_new->list, L_new->nnz*2 ); 
+       magma_index_malloc_cpu( &L_new->list, L_new->nnz*2 );
        L_new->true_nnz = L_new->nnz*2;
     }
-    
+
     if( U_new->nnz > U_new->true_nnz ){
        magma_free_cpu( U_new->val );
        magma_free_cpu( U_new->row );
@@ -1395,11 +1391,11 @@ magma_zparilut_candidates_linkedlist(
        magma_index_malloc_cpu( &U_new->rowidx, U_new->nnz*2 );
        magma_index_malloc_cpu( &U_new->col, U_new->nnz*2 );
        magma_index_malloc_cpu( &U_new->row, U_new->nnz*2 );
-       magma_index_malloc_cpu( &U_new->list, U_new->nnz*2 ); 
+       magma_index_malloc_cpu( &U_new->list, U_new->nnz*2 );
        U_new->true_nnz = U_new->nnz*2;
     }
     // #########################################################################
-    
+
     //start = magma_sync_wtime( queue );
     // insertion here
     // parallel loop
@@ -1409,13 +1405,13 @@ magma_zparilut_candidates_linkedlist(
         magma_int_t laddL = 0;
         magma_int_t laddU = 0;
         magma_int_t offsetL = numaddL[row]+L_new->row[row+1];
-        
+
         magma_index_t el1 = start1;
         // loop first element over row - only for elements smaller the diagonal
         //for( magma_index_t el1=L.row[row]; el1<L.row[row+1]; el1++ ){
         while( L.list[el1] != 0 ) {
             magma_index_t col1 = L.col[ el1 ];
-            
+
             // first check the lower triangular
             magma_index_t start2 = L.row[ col1 ];
             magma_index_t el2 = start2;
@@ -1449,7 +1445,7 @@ magma_zparilut_candidates_linkedlist(
                         }
                     }
 #endif
-                
+
                 // if it does not exist, increase counter for this location
                 // use the entry one further down to allow for parallel insertion
                 if( exist == 0 ){
@@ -1460,7 +1456,7 @@ magma_zparilut_candidates_linkedlist(
                     L_new->col[ offsetL + laddL ] = cand_col;
                     // L_new->list[ numaddL[row] + laddL ] =  -1;
                     // L_new->row[ numaddL[row] + laddL ] =  -1;
-                    laddL++; 
+                    laddL++;
                 }
                 el2 = L.list[ el2 ];
             }
@@ -1469,7 +1465,7 @@ magma_zparilut_candidates_linkedlist(
         L_new->row[row+1] = L_new->row[row+1]+laddL;
         U_new->row[row+1] = U_new->row[row+1]+laddU;
     }
-            
+
     #pragma omp parallel for
     for( magma_index_t row=0; row<L.num_rows; row++){
         magma_index_t start1 = L.row[ row ];
@@ -1482,7 +1478,7 @@ magma_zparilut_candidates_linkedlist(
         //for( magma_index_t el1=L.row[row]; el1<L.row[row+1]; el1++ ){
         while( L.list[el1] != 0 ) {
             magma_index_t col1 = L.col[ el1 ];
-            
+
             // now check the upper triangular
             magma_index_t start2 = UR.row[ col1 ];
             magma_int_t el2 = start2;
@@ -1527,7 +1523,7 @@ magma_zparilut_candidates_linkedlist(
                         L_new->col[ offsetL + laddL ] = cand_col;
                         // L_new->list[ numaddL[row] + laddL ] = -1;
                         // L_new->row[ numaddL[row] + laddL ] = -1;
-                        laddL++; 
+                        laddL++;
                     }
                 } else {
                     magma_int_t exist = 0;
@@ -1563,21 +1559,21 @@ magma_zparilut_candidates_linkedlist(
                         U_new->rowidx[ offsetU + laddU ] = cand_row;
                         // U_new->list[ numaddU[row] + laddU ] = -1;
                         // U_new->row[ numaddU[row] + laddU ] = -1;
-                        laddU++; 
+                        laddU++;
                         //if( cand_row > cand_col )
                          //   printf("inserted illegal candidate in case 4: (%d,%d) coming from (%d,%d)->(%d,%d)\n", cand_row, cand_col, row, col1, U.col[U.row[ cand_col ]], UR.col[ el2 ]);
                     }
                 }
                 el2 = UR.list[ el2 ];
             }while( el2 != 0 );
-            
+
             el1 = L.list[ el1 ];
         }
         L_new->row[row+1] = L_new->row[row+1]+laddL;
         U_new->row[row+1] = U_new->row[row+1]+laddU;
     }
-        
-    
+
+
     //#######################
     if( unsym == 1 ){
     #pragma omp parallel for
@@ -1592,7 +1588,7 @@ magma_zparilut_candidates_linkedlist(
         // loop first element over row - only for elements smaller the diagonal
         do{
             magma_index_t col1 = UR.col[ el1 ];
-              
+
           // printf("row:%d el:%d\n", row, el1);
             // first check the lower triangular
             magma_index_t start2 = L.row[ col1 ];
@@ -1636,7 +1632,7 @@ magma_zparilut_candidates_linkedlist(
                         L_new->col[ offsetL + laddL ] = cand_col;
                         // L_new->list[ numaddL[row] + laddL ] =  -1;
                         // L_new->row[ numaddL[row] + laddL ] =  -1;
-                        laddL++; 
+                        laddL++;
                     }
                 } else {
                     magma_int_t exist = 0;
@@ -1670,18 +1666,18 @@ magma_zparilut_candidates_linkedlist(
                         U_new->rowidx[ offsetU + laddU ] = cand_row;
                         // U_new->list[ numaddU[row] + laddU ] = -1;
                         // U_new->row[ numaddU[row] + laddU ] = -1;
-                        laddU++; 
+                        laddU++;
                     }
                 }
                 el2 = L.list[ el2 ];
             }
             el1 = UR.list[ el1 ];
         }while( el1 != 0 );
-        
+
         L_new->row[row+1] = L_new->row[row+1]+laddL;
         U_new->row[row+1] = U_new->row[row+1]+laddU;
     }
-    
+
     #pragma omp parallel for
     for( magma_index_t row=0; row<L.num_rows; row++){
         magma_index_t start1 = UR.row[ row ];
@@ -1733,28 +1729,28 @@ magma_zparilut_candidates_linkedlist(
                    U_new->rowidx[ offsetU + laddU ] = cand_row;
                    // U_new->list[ numaddU[row] + laddU ] = -1;
                    // U_new->row[ numaddU[row] + laddU ] = -1;
-                   laddU++; 
+                   laddU++;
                    //if( cand_row == 118 && cand_col == 163 )
                    //         printf("checked row insetion %d this element does not yet exist in U: (%d,%d) row starts with (%d,%d)\n", cand_row, cand_row, cand_col, U.col[ checkel ], cand_col );
                    //if( cand_row > cand_col )
                      //  printf("inserted illegal candidate in case 4: (%d,%d) coming from (%d,%d)->(%d,%d)\n", cand_row, cand_col, row, col1, U.col[U.row[ cand_col ]], UR.col[ el2 ]);
                }
-               
+
                el2 = UR.list[ el2 ];
            }while( el2 != 0 );
-            
+
             el1 = UR.list[ el1 ];
         }while( el1 != 0 );
-        
+
         L_new->row[row+1] = L_new->row[row+1]+laddL;
         U_new->row[row+1] = U_new->row[row+1]+laddU;
-        
+
     } //loop over all rows
     }
-    
+
 #ifdef AVOID_DUPLICATES
         // #####################################################################
-        
+
         // get the total candidate count
         L_new->nnz = 0;
         U_new->nnz = 0;
@@ -1783,19 +1779,19 @@ magma_zparilut_candidates_linkedlist(
                 rowidxU[ j ] =  U_new->rowidx[ k ];
             }
         }
-        
 
-        
+
+
         rowidxLt = L_new->rowidx;
         colLt = L_new->col;
         rowidxUt = U_new->rowidx;
         colUt = U_new->col;
-        
+
         L_new->rowidx = rowidxL;
         L_new->col = colL;
         U_new->rowidx = rowidxU;
         U_new->col = colU;
-        
+
         rowidxL = rowidxLt;
         colL = colLt;
         rowidxU = rowidxUt;
@@ -1803,7 +1799,7 @@ magma_zparilut_candidates_linkedlist(
         //end = magma_sync_wtime( queue ); printf("llop 1.2 : %.2e\n", end-start);
         // #####################################################################
 #endif
-   
+
 cleanup:
     magma_free_cpu( numaddL );
     magma_free_cpu( numaddU );
@@ -1821,7 +1817,7 @@ cleanup:
     This routine removes matrix entries from the structure that are smaller
     than the threshold. It only counts the elements deleted, does not
     save the locations.
-    
+
 
     Arguments
     ---------
@@ -1829,28 +1825,28 @@ cleanup:
     @param[out]
     thrs        magmaDoubleComplex*
                 Thrshold for removing elements.
-                
+
     @param[out]
     num_rm      magma_int_t*
                 Number of Elements that have been removed.
-                
+
     @param[in,out]
     LU          magma_z_matrix*
                 Current ILU approximation where the identified smallest components
                 are deleted.
-                
+
     @param[in,out]
     LUC         magma_z_matrix*
                 Corresponding col-list.
-                
+
     @param[in,out]
     LU_new      magma_z_matrix*
                 List of candidates in COO format.
-                
+
     @param[out]
     rm_loc      magma_index_t*
                 List containing the locations of the elements deleted.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -1871,40 +1867,39 @@ magma_zparilut_rm_thrs(
     magma_int_t count_rm = 0;
     magma_int_t num_threads = -1;
     magma_int_t el_per_block;
-    
+
     // never forget elements
     // magma_int_t offset = LU_new->diameter;
     // never forget last rm
-    
+
     double bound = MAGMA_Z_ABS(*thrs);
-    
+
     #pragma omp parallel
     {
-        num_threads = omp_get_max_threads();   
+        num_threads = omp_get_max_threads();
     }
     el_per_block = magma_ceildiv( LU->num_rows, num_threads );
-    
+
     #pragma omp parallel for
     for( magma_int_t i=0; i<num_threads; i++ ){
         rm_loc[i] = 0;
     }
-    
+
     #pragma omp parallel
     {
         magma_int_t id = omp_get_thread_num();
         magma_int_t lbound = (id+1)*el_per_block;
         if( id == num_threads-1 ){
-            lbound = LU->num_rows;    
+            lbound = LU->num_rows;
         }
         magma_int_t loc_rm_count = 0;
         for( magma_int_t r=(id)*el_per_block; r<lbound; r++ ){
-            
             magma_int_t i = LU->row[r];
             magma_int_t lasti=i;
             magma_int_t nexti=LU->list[i];
             while( nexti!=0 ){
                 if( MAGMA_Z_ABS( LU->val[ i ] ) < bound ){
-                        loc_rm_count++; 
+                        loc_rm_count++;
                         if( LU->row[r] == i ){
                        //     printf(" removed as first element in U rm: (%d,%d) at %d count [%d] \n", r, LU->col[ i ], i, count_rm); fflush(stdout);
                                 LU->row[r] = nexti;
@@ -1924,16 +1919,16 @@ magma_zparilut_rm_thrs(
                     i = nexti;
                     nexti = LU->list[nexti];
                 }
-                
+
             }
         }
         rm_loc[ id ] = rm_loc[ id ] + loc_rm_count;
     }
-    
+
     for(int j=0; j<num_threads; j++){
         count_rm = count_rm + rm_loc[j];
     }
-    
+
     // never forget elements
     // LU_new->diameter = count_rm+LU_new->diameter;
     // not forget the last rm
@@ -1954,15 +1949,15 @@ magma_zparilut_rm_thrs(
 
     Arguments
     ---------
-                
+
     @param[in]
     L           magma_z_matrix*
                 Matrix in Magm_CSRLIST format
-                
+
     @param[out]
     num         magma_index_t*
                 Number of elements counted.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -1981,14 +1976,13 @@ magma_zparilut_count(
     (*num)=0;
     magma_int_t check = 1;
     if( 5 < L.col[L.list[L.row[5]]] &&  5 == L.rowidx[L.list[L.row[5]]] ){
-        
         printf("check based on: (%d,%d)\n", L.rowidx[L.list[L.row[5]]], L.col[L.list[L.row[5]]]);
         check = -1;
     }
-    
+
     for( magma_int_t r=0; r < L.num_rows; r++ ) {
-        magma_int_t i = L.row[r];   
-        magma_int_t nexti = L.list[i];   
+        magma_int_t i = L.row[r];
+        magma_int_t nexti = L.list[i];
         do{
             if(check == 1 ){
                 if( L.col[i] > r ){
@@ -2006,16 +2000,16 @@ magma_zparilut_count(
             if( nexti != 0 && L.col[i] >  L.col[nexti] ){
                 printf("error here: %d(%d,%d) -> %d(%d,%d) \n",i,L.rowidx[i], L.col[i], nexti,L.rowidx[nexti], L.col[nexti] );
                 info = -1;
-                break; 
+                break;
             }
 
             (*num)++;
             i = nexti;
-            nexti=L.list[nexti]; 
+            nexti=L.list[nexti];
 
-            
+
         }while( i!=0 );
-        
+
     }
 
 
@@ -2029,19 +2023,19 @@ magma_zparilut_count(
     Screens the new candidates for multiple elements in the same row.
     We allow for at most one new element per row.
     This changes the algorithm, but pays off in performance.
-    
+
 
     Arguments
     ---------
-    
+
     @param[in]
     num_rmL     magma_int_t
                 Number of Elements that are replaced.
-                
+
     @param[in]
     num_rmU     magma_int_t
                 Number of Elements that are replaced.
-                
+
     @param[in]
     rm_loc      magma_int_t*
                 Number of Elements that are replaced by distinct threads.
@@ -2049,7 +2043,7 @@ magma_zparilut_count(
     @param[in]
     L_new       magma_z_matrix*
                 Elements that will be inserted stored in COO format (unsorted).
-                
+
     @param[in]
     U_new       magma_z_matrix*
                 Elements that will be inserted stored in COO format (unsorted).
@@ -2076,12 +2070,12 @@ magma_zparilut_select_candidates_L(
     magma_int_t el_per_block;
     magma_int_t cand_per_block;
     double bound1;
-    
+
     magma_index_t *bound=NULL;
     magma_index_t *firstelement=NULL, *lastelement=NULL;
     #pragma omp parallel
     {
-        num_threads = omp_get_max_threads();   
+        num_threads = omp_get_max_threads();
     }
 
     el_per_block = magma_ceildiv( L_new->num_rows, num_threads );
@@ -2090,7 +2084,7 @@ magma_zparilut_select_candidates_L(
     CHECK( magma_index_malloc_cpu( &bound, (num_threads)*(num_threads) ));
     CHECK( magma_index_malloc_cpu( &firstelement, (num_threads)*(num_threads) ));
     CHECK( magma_index_malloc_cpu( &lastelement, (num_threads)*(num_threads) ));
-    
+
     #pragma omp parallel for
     for( magma_int_t i=0; i<(num_threads)*(num_threads); i++ ){
         bound[i] = 0;
@@ -2098,13 +2092,13 @@ magma_zparilut_select_candidates_L(
         lastelement[i] = -1;
     }
     rm_loc[0] = 0;
-    
+
     //start = magma_sync_wtime( queue );
     info = magma_zparilut_set_approx_thrs( (int)(*num_rm)*thrs1, L_new, 1, &element1, queue );
     count = 0;
-         
+
     bound1 = MAGMA_Z_ABS(element1);
-    
+
     #pragma omp parallel
     {
         magma_int_t id = omp_get_thread_num();
@@ -2121,7 +2115,7 @@ magma_zparilut_select_candidates_L(
         }
         magma_int_t lbound = id*cand_per_block;
         magma_int_t ubound = min( (id+1)*cand_per_block, L_new->nnz);
-        for( magma_int_t i=lbound; i<ubound; i++ ){ 
+        for( magma_int_t i=lbound; i<ubound; i++ ){
             double val = MAGMA_Z_ABS(L_new->val[i]);
 
             if( val >= bound1 ){
@@ -2131,7 +2125,7 @@ magma_zparilut_select_candidates_L(
                     first_loc[tid] = i;
                     last_loc[tid] = i;
                 } else {
-                   L_new->list[ last_loc[tid] ] = i;  
+                   L_new->list[ last_loc[tid] ] = i;
                    last_loc[tid] = i;
                 }
                 count_loc[ tid ]++;
@@ -2142,11 +2136,11 @@ magma_zparilut_select_candidates_L(
             lastelement[z+(id*num_threads)] = last_loc[z];
             bound[ z+(id*num_threads) ] = count_loc[z];
         }
-        magma_free_cpu( first_loc );    
+        magma_free_cpu( first_loc );
         magma_free_cpu( last_loc );
         magma_free_cpu( count_loc );
     }
-    // count elements        
+    // count elements
     count = 0;
     #pragma omp parallel for
     for(int j=0; j<num_threads; j++){
@@ -2154,8 +2148,8 @@ magma_zparilut_select_candidates_L(
             bound[j] += bound[j+z*num_threads];
         }
     }
-    
-    
+
+
     for(int j=0; j<num_threads; j++){
             count = count + bound[j];
             rm_loc[j+1] = count;
@@ -2168,21 +2162,21 @@ magma_zparilut_select_candidates_L(
         for( magma_int_t j=num_threads-1; j>0; j--){
             if( ( firstelement[ i+(j*num_threads) ] > -1 ) &&
                 ( lastelement[ i+((j-1)*num_threads) ] > -1 ) ){   // connect
-                    L_new->list[ lastelement[ i+((j-1)*num_threads) ] ] 
+                    L_new->list[ lastelement[ i+((j-1)*num_threads) ] ]
                         = firstelement[ i+(j*num_threads) ];
                 //lastelement[ i+((j-1)*num_threads) ] = lastelement[ i+(j*num_threads) ];
-            } else if( firstelement[ i+(j*num_threads) ] > -1 ) { 
+            } else if( firstelement[ i+(j*num_threads) ] > -1 ) {
                 firstelement[ i+((j-1)*num_threads) ] = firstelement[ i+(j*num_threads) ];
                 lastelement[ i+((j-1)*num_threads) ] = lastelement[ i+(j*num_threads) ];
-            } 
+            }
         }
     }
     // use the rowpointer to start the linked list
     #pragma omp parallel
     for( magma_int_t i=0; i<num_threads; i++){
-        L_new->row[i] = firstelement[i];    
+        L_new->row[i] = firstelement[i];
     }
-    
+
 cleanup:
     magma_free_cpu( bound );
     magma_free_cpu( firstelement );
@@ -2196,19 +2190,19 @@ cleanup:
     Screens the new candidates for multiple elements in the same row.
     We allow for at most one new element per row.
     This changes the algorithm, but pays off in performance.
-    
+
 
     Arguments
     ---------
-    
+
     @param[in]
     num_rmL     magma_int_t
                 Number of Elements that are replaced.
-                
+
     @param[in]
     num_rmU     magma_int_t
                 Number of Elements that are replaced.
-                
+
     @param[in]
     rm_loc      magma_int_t*
                 Number of Elements that are replaced by distinct threads.
@@ -2216,7 +2210,7 @@ cleanup:
     @param[in]
     L_new       magma_z_matrix*
                 Elements that will be inserted stored in COO format (unsorted).
-                
+
     @param[in]
     U_new       magma_z_matrix*
                 Elements that will be inserted stored in COO format (unsorted).
@@ -2243,12 +2237,12 @@ magma_zparilut_select_candidates_U(
     magma_int_t el_per_block;
     magma_int_t cand_per_block;
     double bound1;
-    
+
     magma_index_t *bound=NULL;
     magma_index_t *firstelement=NULL, *lastelement=NULL;
     #pragma omp parallel
     {
-        num_threads = omp_get_max_threads();   
+        num_threads = omp_get_max_threads();
     }
 
     el_per_block = magma_ceildiv( L_new->num_rows, num_threads );
@@ -2258,7 +2252,7 @@ magma_zparilut_select_candidates_U(
     CHECK( magma_index_malloc_cpu( &bound, (num_threads)*(num_threads) ));
     CHECK( magma_index_malloc_cpu( &firstelement, (num_threads)*(num_threads) ));
     CHECK( magma_index_malloc_cpu( &lastelement, (num_threads)*(num_threads) ));
-    
+
     #pragma omp parallel for
     for( magma_int_t i=0; i<(num_threads)*(num_threads); i++ ){
         bound[i] = 0;
@@ -2266,13 +2260,13 @@ magma_zparilut_select_candidates_U(
         lastelement[i] = -1;
     }
     rm_loc[0] = 0;
-    
-    
+
+
     info = magma_zparilut_set_approx_thrs( (int)(*num_rm)*thrs1, L_new, 1, &element1, queue );
     count = 0;
-         
+
     bound1 = MAGMA_Z_ABS(element1);
-    
+
     #pragma omp parallel
     {
         magma_int_t id = omp_get_thread_num();
@@ -2290,7 +2284,7 @@ magma_zparilut_select_candidates_U(
         }
         magma_int_t lbound = id*cand_per_block;
         magma_int_t ubound = min( (id+1)*cand_per_block, L_new->nnz);
-        for( magma_int_t i=lbound; i<ubound; i++ ){ 
+        for( magma_int_t i=lbound; i<ubound; i++ ){
             double val = MAGMA_Z_ABS(L_new->val[i]);
 
             if( val >= bound1 ){
@@ -2302,7 +2296,7 @@ magma_zparilut_select_candidates_U(
                     first_loc[tid] = i;
                     last_loc[tid] = i;
                 } else {
-                   L_new->list[ last_loc[tid] ] = i;  
+                   L_new->list[ last_loc[tid] ] = i;
                    last_loc[tid] = i;
                 }
                 count_loc[ tid ]++;
@@ -2313,7 +2307,7 @@ magma_zparilut_select_candidates_U(
             lastelement[z+(id*num_threads)] = last_loc[z];
             bound[ z+(id*num_threads) ] = count_loc[z];
         }
-        magma_free_cpu( first_loc );    
+        magma_free_cpu( first_loc );
         magma_free_cpu( last_loc );
         magma_free_cpu( count_loc );
     }
@@ -2325,36 +2319,36 @@ magma_zparilut_select_candidates_U(
             bound[j] += bound[j+z*num_threads];
         }
     }
-    
-    
+
+
     for(int j=0; j<num_threads; j++){
             count = count + bound[j];
             rm_loc[j+1] = count;
             //printf("rm_loc[%d]:%d\n", j,rm_loc[j]);
     }
     *num_rm=count;
-    
+
     //now combine the linked lists...
     #pragma omp parallel for
     for( magma_int_t i=0; i<num_threads; i++){
         for( magma_int_t j=num_threads-1; j>0; j--){
             if( ( firstelement[ i+(j*num_threads) ] > -1 ) &&
                 ( lastelement[ i+((j-1)*num_threads) ] > -1 ) ){   // connect
-                    L_new->list[ lastelement[ i+((j-1)*num_threads) ] ] 
+                    L_new->list[ lastelement[ i+((j-1)*num_threads) ] ]
                         = firstelement[ i+(j*num_threads) ];
                 //lastelement[ i+((j-1)*num_threads) ] = lastelement[ i+(j*num_threads) ];
-            } else if( firstelement[ i+(j*num_threads) ] > -1 ) { 
+            } else if( firstelement[ i+(j*num_threads) ] > -1 ) {
                 firstelement[ i+((j-1)*num_threads) ] = firstelement[ i+(j*num_threads) ];
                 lastelement[ i+((j-1)*num_threads) ] = lastelement[ i+(j*num_threads) ];
-            } 
+            }
         }
     }
     // use the rowpointer to start the linked list
     #pragma omp parallel for
     for( magma_int_t i=0; i<num_threads; i++){
-        L_new->row[i] = firstelement[i];    
+        L_new->row[i] = firstelement[i];
     }
-    
+
 cleanup:
     magma_free_cpu( bound );
     magma_free_cpu( firstelement );
@@ -2374,19 +2368,19 @@ cleanup:
     @param[in]
     num_rm      magma_int_t
                 Number of Elements that are replaced.
-                
+
     @param[in]
     LU          magma_z_matrix*
                 Current ILU approximation.
-                
+
     @param[in]
     order       magma_int_t
                 Sort goal function: 0 = smallest, 1 = largest.
-                
+
     @param[out]
     thrs        magmaDoubleComplex*
                 Size of the num_rm-th smallest element.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -2407,18 +2401,18 @@ magma_zparilut_set_approx_thrs(
     magmaDoubleComplex *val=NULL;
     const magma_int_t incy = 1;
     const magma_int_t incx = (int) (LU->nnz)/(1024);
-    magma_int_t loc_nnz; 
-    double ratio; 
-    magma_int_t loc_num_rm; 
+    magma_int_t loc_nnz;
+    double ratio;
+    magma_int_t loc_num_rm;
     magma_int_t num_threads=1;
     magmaDoubleComplex *elements = NULL;
-    
+
     #pragma omp parallel
     {
-        num_threads = omp_get_max_threads();   
+        num_threads = omp_get_max_threads();
     }
     num_threads = 1;
-    
+
     //printf("largest element considered: %d\n", LU->nnz);
     if( LU->nnz < 1024 ){
         loc_nnz = LU->nnz;
@@ -2427,7 +2421,7 @@ magma_zparilut_set_approx_thrs(
         CHECK( magma_zmalloc_cpu( &val, loc_nnz ));
         CHECK( magma_zmalloc_cpu( &elements, num_threads ));
         blasf77_zcopy(&loc_nnz, LU->val, &incy, val, &incy );
-        { 
+        {
             #pragma omp parallel
             {
                 magma_int_t id = omp_get_thread_num();
@@ -2441,7 +2435,7 @@ magma_zparilut_set_approx_thrs(
                 element = element+MAGMA_Z_MAKE(MAGMA_Z_ABS(elements[z]), 0.0);
             }
             element = element/MAGMA_Z_MAKE((double)num_threads, 0.0);
-        } 
+        }
     } else {
         loc_nnz = (int) LU->nnz/incx;
         ratio = ((double)num_rm)/((double)LU->nnz);
@@ -2449,7 +2443,7 @@ magma_zparilut_set_approx_thrs(
      //   printf("loc_nnz:%d ratio:%d/%d = %.2e loc_num_rm:%d\n", loc_nnz, num_rm, LU->nnz, ratio, loc_num_rm);
         CHECK( magma_zmalloc_cpu( &val, loc_nnz ));
         blasf77_zcopy(&loc_nnz, LU->val, &incx, val, &incy );
-        { 
+        {
             if(num_threads > 1 ){
                 CHECK( magma_zmalloc_cpu( &elements, num_threads ));
                 #pragma omp parallel
@@ -2469,9 +2463,9 @@ magma_zparilut_set_approx_thrs(
                 magma_zorderstatistics(
                     val, loc_nnz, loc_num_rm, order, &element, queue );
             }
-        } 
+        }
     }
-    
+
     *thrs = element;
 
 cleanup:
