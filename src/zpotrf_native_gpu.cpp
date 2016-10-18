@@ -90,7 +90,6 @@ magma_zpotrf_native_gpu(
     const double d_neg_one = -1.0;
     
     /* Local variables */
-    const char* uplo_ = lapack_uplo_const( uplo );
     bool upper = (uplo == MagmaUpper);
     
     magma_int_t j, jb, nextj, nextjb, nb, recnb;
@@ -161,13 +160,10 @@ magma_zpotrf_native_gpu(
                 }
             }
             else{
-
-                magma_queue_sync( queues[0] );
-                magma_queue_sync( queues[1] );
-                magma_zpotrf_lpout(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[0] );
-                //magma_zpotf2_native(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[1] );
-                magma_queue_sync( queues[1] );
-                magma_queue_sync( queues[0] );
+                //magma_zpotrf_lpout(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[0] );
+                //magma_zpotf2_native(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[0] );
+                //magma_zpotf2_gpu(MagmaLower, jb, dA(j, j), ldda, queues[0], info );
+                magma_zpotrf_rectile_native(MagmaLower, jb, 128, dA(j, j), ldda, j, dinfo, info, queues[0] );
             }
  
             nextj  = j+jb; 
