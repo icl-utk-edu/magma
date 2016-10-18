@@ -236,7 +236,6 @@ magma_zparictsetup(
         
         magma_zparict_sweep( &L, &LU, queue );
         printf("%% removed elements:%d\n", num_rm);
-
     }
     end = magma_sync_wtime( queue );printf("%% >> preconditioner generation: %.4e\n", end-start);
     

@@ -154,7 +154,6 @@ magma_zmprepare_batched(
                     idx++; // leave this element equal zero
                 }
             }
-
         }
     }
 

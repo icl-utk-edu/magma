@@ -110,7 +110,6 @@ magma_zlocations_trunc_lower_kernel(
         }
 
         locations[ j*WARP_SIZE + i ] = col[ row[j+1]-BLOCKSIZE+i ];
-
     }
 }// kernel
 
@@ -185,7 +184,6 @@ magma_zlocations_trunc_upper_kernel(
         }
 
         locations[ j*WARP_SIZE + i ] = col[ row[j]+i ];
-
     }
 }// kernel
 
@@ -225,7 +223,6 @@ magma_zfilltrisystems_kernel(
                 idx++; // leave this element equal zero
             }
         }
-
     }
 }// kernel
 

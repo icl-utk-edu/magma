@@ -112,7 +112,6 @@ magma_ziluisaisetup(
         magma_zmfree( &MT, queue );
         CHECK( magma_zmtranspose( QT, &MT, queue ) );
         magma_zmfree( &QT, queue );
-
     } else if( precond->trisolver == Magma_ISAI ){
         if( precond->pattern == 100 ){
             CHECK( magma_z_mtransfer( MT, &LT, Magma_DEV, Magma_DEV, queue ) );
@@ -188,7 +187,6 @@ magma_ziluisaisetup(
         magma_zmfree( &MT, queue );
         CHECK( magma_zmtranspose( QT, &MT, queue ) );
         magma_zmfree( &QT, queue );
-
     } else if( precond->trisolver == Magma_VBJACOBI ){ // block diagonal structure with variable blocksize
         CHECK( magma_z_mtransfer( A, &QT, A.memory_location, Magma_CPU, queue ) );
         magma_zmfree( &MT, queue );
@@ -427,7 +425,6 @@ magma_ziluisaisetup_t(
         magma_zmfree( &MT, queue );
         CHECK( magma_zmtranspose( QT, &MT, queue ) );
         magma_zmfree( &QT, queue );
-
     } else if( precond->trisolver == Magma_VBJACOBI ){ // block diagonal structure with variable blocksize
         CHECK( magma_z_mtransfer( A, &QT, A.memory_location, Magma_CPU, queue ) );
         magma_zmfree( &MT, queue );

@@ -112,7 +112,6 @@ magma_zparilut_sweep_list(
         } else if( L->list[e]==0 ){ // end check whether part of L
             L->val[ e ] = MAGMA_Z_ONE; // lower triangular has diagonal equal 1
         }
-
     }// end omp parallel section
 
    #pragma omp parallel for
@@ -164,7 +163,6 @@ magma_zparilut_sweep_list(
             // write back to location e
             U->val[ e ] =  ( A_e - sum );
         }
-
     }// end omp parallel section
 
 
@@ -270,7 +268,6 @@ magma_zparilut_residuals_list(
                 L_new->val[ e ] = MAGMA_Z_ZERO;
             }
         }
-
     }// end omp parallel section
 
     return info;
@@ -371,7 +368,6 @@ magma_zparilut_sweep_linkedlist(
         } else if( L->list[e]==0 ){ // end check whether part of L
             L->val[ e ] = MAGMA_Z_ONE; // lower triangular has diagonal equal 1
         }
-
     }// end omp parallel section
 
    #pragma omp parallel for
@@ -421,7 +417,6 @@ magma_zparilut_sweep_linkedlist(
             // write back to location e
             U->val[ e ] =  ( A_e - sum );
         }
-
     }// end omp parallel section
 
 
@@ -520,7 +515,6 @@ magma_zparilut_residuals_linkedlist(
                 L_new->val[ e ] =  ( A_e - sum );
             }
         }
-
     }// end omp parallel section
 
     return info;
@@ -717,7 +711,6 @@ magma_zparilut_reorder(
                 loc_nnz++;
                 el = LU->list[ el ];
             }
-
         }while( el != 0 );
         list[ offset+loc_nnz - 1 ] = 0;
     }
@@ -954,7 +947,6 @@ magma_zparilut_insert(
                     L->col[ loc ] = new_col;
                     L->val[ loc ] = MAGMA_Z_ZERO;
                     j=0; //break;
-
                 } else{
                     j=jn;
                     jn=L->list[jn];
@@ -1744,7 +1736,6 @@ magma_zparilut_candidates_linkedlist(
 
         L_new->row[row+1] = L_new->row[row+1]+laddL;
         U_new->row[row+1] = U_new->row[row+1]+laddU;
-
     } //loop over all rows
     }
 
@@ -1919,7 +1910,6 @@ magma_zparilut_rm_thrs(
                     i = nexti;
                     nexti = LU->list[nexti];
                 }
-
             }
         }
         rm_loc[ id ] = rm_loc[ id ] + loc_rm_count;
@@ -2007,9 +1997,7 @@ magma_zparilut_count(
             i = nexti;
             nexti=L.list[nexti];
 
-
         }while( i!=0 );
-
     }
 
 

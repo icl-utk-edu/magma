@@ -242,7 +242,6 @@ cudaProfilerStop();
 
 
 
-
     }//multiple runs
 
     iluresavg = iluresavg/numavg;
@@ -260,7 +259,6 @@ cudaProfilerStop();
     magma_z_mfree( &hAcopy, queue );
     printf("\n%%#=======================================================================================================#\n];\n");
     }// levels
-
     }// localiters
 
     // free all memory
@@ -270,7 +268,6 @@ cudaProfilerStop();
     magma_z_mfree( &dA, queue );
     magma_z_mfree( &dAinitguess, queue );
     magma_z_mfree( &hA, queue );
-
 
     }// multiple matrices
 

@@ -403,7 +403,6 @@ magma_zparilutsetup(
             fflush(stdout);
         }
 
-
     }
 
     if( timing == 1 ){
