@@ -160,7 +160,8 @@ magma_zpotrf_native_gpu(
                 }
             }
             else{
-                //magma_zpotrf_lpout(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[0] );
+                //magma_zpotf2_lpout(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[0] );
+                //magma_zpotf2_lpin(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[0] );
                 //magma_zpotf2_native(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[0] );
                 //magma_zpotf2_gpu(MagmaLower, jb, dA(j, j), ldda, queues[0], info );
                 magma_zpotrf_rectile_native(MagmaLower, jb, 128, dA(j, j), ldda, j, dinfo, info, queues[0] );

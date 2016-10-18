@@ -58,8 +58,9 @@ magma_zpotrf_rectile_native(
     if (n <= recnb) {
         // if (DEBUG == 1) printf("calling bottom panel recursive with n=%lld\n", (long long) n);
         //  panel factorization
-        //magma_zpotrf_lpout(MagmaLower, n, dA, ldda, gbstep, dinfo, queue );
-        magma_zpotf2_native(MagmaLower, n, dA, ldda, gbstep, dinfo, queue );
+        //magma_zpotf2_lpout(MagmaLower, n, dA, ldda, gbstep, dinfo, queue );
+        magma_zpotf2_lpin(MagmaLower, n, dA, ldda, gbstep, dinfo, queue );
+        //magma_zpotf2_native(MagmaLower, n, dA, ldda, gbstep, dinfo, queue );
     }
     else {
         // split A over two [A11 A12;  A21 A22]
