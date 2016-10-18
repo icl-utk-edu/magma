@@ -212,6 +212,8 @@ magma_zpotrf_native_gpu(
         }
         
     }
+    magma_getvector( 1, sizeof(int), dinfo, 1, info, 1, queues[0]);
+
 cleanup:
     magma_queue_sync( queues[0] );
     magma_queue_sync( queues[1] );
