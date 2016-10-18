@@ -216,8 +216,3 @@ magma_zmisai_blockstruct_gpu(
     
     return info;
 }
-
-
-
-
-

@@ -930,5 +930,3 @@ magma_zgecsr5mv(
 
     return info;
 }
-
-

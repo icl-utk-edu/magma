@@ -522,5 +522,3 @@ magma_zparilutsetup(
 #endif
     return info;
 }
-
-

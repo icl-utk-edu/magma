@@ -1109,4 +1109,3 @@ magma_zisaigenerator_8_gpu(
 
     return info;
 }
-

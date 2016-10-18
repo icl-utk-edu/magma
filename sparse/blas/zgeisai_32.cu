@@ -3123,4 +3123,3 @@ magma_zisaigenerator_32_gpu(
 
     return info;
 }
-

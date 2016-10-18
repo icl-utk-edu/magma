@@ -495,8 +495,3 @@ magma_zmbackinsert_batched_gpu(
 
     return info;
 }
-
-
-
-
-

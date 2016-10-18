@@ -10889,4 +10889,3 @@ magma_zisai_generator_regs(
     
     return info;
 }
-

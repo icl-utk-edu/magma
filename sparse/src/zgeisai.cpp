@@ -709,4 +709,3 @@ magma_zisai_r_t(
 
     return info;
 }
-

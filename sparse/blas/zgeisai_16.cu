@@ -1641,4 +1641,3 @@ magma_zisaigenerator_16_gpu(
 
     return info;
 }
-
