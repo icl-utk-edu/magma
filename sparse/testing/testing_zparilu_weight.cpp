@@ -145,7 +145,7 @@ int main( int argc, char** argv)
                          (magmaDoubleComplex*) dA.val, (const int *) dA.row, 
                          (const int *) dA.col, info);
          if(cusparseStatus != 0)    printf("error in ILU.\n");
-                  //magma_zprint_matrix(dA, queue);getchar();
+                  //magma_zprint_matrix(dA, queue); getchar();
         end = magma_sync_wtime( queue );
         t_cusparse = end-start;
 
@@ -271,7 +271,7 @@ cudaProfilerStop();
         magma_zmlumerge( hL, hUT, &hAtmp, queue );
         // frobenius norm of error
         magma_zfrobenius( hAcusparse, hAtmp, &res, queue );
-         //magma_zprint_matrix(hAtmp, queue);getchar();
+         //magma_zprint_matrix(hAtmp, queue); getchar();
         // ilu residual
         magma_zilures(   hA, hL, hUT, &hLU, &ilures, &nonlinres, queue ); 
 
@@ -303,7 +303,7 @@ cudaProfilerStop();
  //   printf(" %.2e  &  ", iluresavg);    
     }// iters
     magma_z_mfree( &hAcopy, queue );
-    printf("\n%%#=======================================================================================================#\n];\n");
+    printf("\n%%#=======================================================================================================#\n]; \n");
     }// levels
 
     }// localiters

@@ -58,7 +58,7 @@ magma_zparilut_sweep_list(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    //printf("\n");fflush(stdout);
+    //printf("\n"); fflush(stdout);
     // parallel for using openmp
     #pragma omp parallel for
     for( magma_int_t e=0; e<L->nnz; e++){
@@ -70,7 +70,7 @@ magma_zparilut_sweep_list(
             magma_index_t row = L->rowidx[ e ];
             magma_index_t col = L->col[ e ];
 
-            //printf("(%d,%d) ", row, col);fflush(stdout);
+            //printf("(%d,%d) ", row, col); fflush(stdout);
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
             for( i = A->row[row]; i<A->row[row+1]; i++){
@@ -124,7 +124,7 @@ magma_zparilut_sweep_list(
             magma_index_t row = U->rowidx[ e ];
             magma_index_t col = U->col[ e ];
 
-            //printf("(%d,%d) ", row, col);fflush(stdout);
+            //printf("(%d,%d) ", row, col); fflush(stdout);
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
             for( i = A->row[row]; i<A->row[row+1]; i++){
@@ -209,7 +209,7 @@ magma_zparilut_residuals_list(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    // printf("start\n");fflush(stdout);
+    // printf("start\n"); fflush(stdout);
     // parallel for using openmp
     #pragma omp parallel for
     for( magma_int_t e=0; e<L_new->nnz; e++){
@@ -221,7 +221,7 @@ magma_zparilut_residuals_list(
             magma_index_t row = L_new->rowidx[ e ];
             magma_index_t col = L_new->col[ e ];
             if( row != 0 || col != 0 ){
-                // printf("(%d,%d) ", row, col);fflush(stdout);
+                // printf("(%d,%d) ", row, col); fflush(stdout);
                 magmaDoubleComplex A_e = MAGMA_Z_ZERO;
                 // check whether A contains element in this location
                 for( i = A.row[row]; i<A.row[row+1]; i++){
@@ -316,7 +316,7 @@ magma_zparilut_sweep_linkedlist(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    //printf("\n");fflush(stdout);
+    //printf("\n"); fflush(stdout);
     // parallel for using openmp
     #pragma omp parallel for
     for( magma_int_t e=0; e<L->nnz; e++){
@@ -328,7 +328,7 @@ magma_zparilut_sweep_linkedlist(
             magma_index_t row = L->rowidx[ e ];
             magma_index_t col = L->col[ e ];
 
-            //printf("(%d,%d) ", row, col);fflush(stdout);
+            //printf("(%d,%d) ", row, col); fflush(stdout);
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
             for( i = A->row[row]; i<A->row[row+1]; i++){
@@ -380,7 +380,7 @@ magma_zparilut_sweep_linkedlist(
             magma_index_t row = U->rowidx[ e ];
             magma_index_t col = U->col[ e ];
 
-            //printf("(%d,%d) ", row, col);fflush(stdout);
+            //printf("(%d,%d) ", row, col); fflush(stdout);
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
             for( i = A->row[row]; i<A->row[row+1]; i++){
@@ -462,7 +462,7 @@ magma_zparilut_residuals_linkedlist(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    // printf("start\n");fflush(stdout);
+    // printf("start\n"); fflush(stdout);
     // parallel for using openmp
     #pragma omp parallel for
     for( magma_int_t e=0; e<L_new->nnz; e++){
@@ -474,7 +474,7 @@ magma_zparilut_residuals_linkedlist(
             magma_index_t row = L_new->rowidx[ e ];
             magma_index_t col = L_new->col[ e ];
 
-            // printf("(%d,%d) ", row, col);fflush(stdout);
+            // printf("(%d,%d) ", row, col); fflush(stdout);
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
             for( i = A.row[row]; i<A.row[row+1]; i++){
@@ -928,7 +928,7 @@ magma_zparilut_insert(
             L->val[ loc ] = MAGMA_Z_ZERO;
         }
         else if( new_col == L->col[ old_rowstart ] ){
-            ;//printf("%% tried to insert duplicate in L! case 1 tid %d location %d (%d,%d) = (%d,%d)\n", id, r, new_row,new_col,L->rowidx[ old_rowstart ], L->col[ old_rowstart ]);fflush(stdout);
+            ; //printf("%% tried to insert duplicate in L! case 1 tid %d location %d (%d,%d) = (%d,%d)\n", id, r, new_row,new_col,L->rowidx[ old_rowstart ], L->col[ old_rowstart ]); fflush(stdout);
         }
         else{
             magma_int_t j = old_rowstart;
@@ -937,7 +937,7 @@ magma_zparilut_insert(
             // and we always have the diagonal!
             while( j!=0 ){
                 if( L->col[jn]==new_col ){
-                    //printf("%% tried to insert duplicate case 1 2 in L thread %d: (%d %d) \n", id, new_row, new_col);fflush(stdout);
+                    //printf("%% tried to insert duplicate case 1 2 in L thread %d: (%d %d) \n", id, new_row, new_col); fflush(stdout);
                     j=0; //break;
                 }else if( L->col[jn]>new_col ){
                     //printf("%%insert in L: (%d,%d) at location %d\n", new_row, new_col, loc);
@@ -974,7 +974,7 @@ magma_zparilut_insert(
         }
         //printf("%% candidate %d for U: (%d,%d)'\n", el, new_row, new_col);
         magma_index_t old_rowstart = U->row[ new_row ];
-        //printf("%%candidate for U: tid %d %d < %d (%d,%d) going to %d+%d+%d+%d = %d\n", id, add_loc[id+1]-1, rm_locU[id+1], new_row, new_col, U->nnz, rm_locU[id], id, add_loc[id+1]-1, loc);fflush(stdout);
+        //printf("%%candidate for U: tid %d %d < %d (%d,%d) going to %d+%d+%d+%d = %d\n", id, add_loc[id+1]-1, rm_locU[id+1], new_row, new_col, U->nnz, rm_locU[id], id, add_loc[id+1]-1, loc); fflush(stdout);
         if( new_col < U->col[ old_rowstart ] ){
             //  printf("%% insert in U as first element: (%d,%d)'\n", new_row, new_col);
             U->row[ new_row ] = loc;
@@ -984,7 +984,7 @@ magma_zparilut_insert(
             U->val[ loc ] = MAGMA_Z_ZERO;
         }
         else if( new_col == U->col[ old_rowstart ] ){
-            ;//printf("%% tried to insert duplicate in U! case 1 single element (%d,%d) at %d \n", new_row, new_col, r);
+            ; //printf("%% tried to insert duplicate in U! case 1 single element (%d,%d) at %d \n", new_row, new_col, r);
         }
         else{
             magma_int_t j = old_rowstart;
@@ -2054,7 +2054,7 @@ magma_zparilut_select_candidates_L(
     magma_int_t num_threads=1;
     magmaDoubleComplex element1;
     magma_int_t count = 0;
-    double thrs1 = 1.00;//25;
+    double thrs1 = 1.00; //25;
     magma_int_t el_per_block;
     magma_int_t cand_per_block;
     double bound1;
@@ -2096,7 +2096,7 @@ magma_zparilut_select_candidates_L(
         magma_index_malloc_cpu( &first_loc, (num_threads) );
         magma_index_malloc_cpu( &last_loc, (num_threads) );
         magma_index_malloc_cpu( &count_loc, (num_threads) );
-        for(int z=0;z<num_threads;z++){
+        for(int z=0; z<num_threads; z++){
             first_loc[z] = -1;
             last_loc[z] = -1;
             count_loc[z] = 0;
@@ -2119,7 +2119,7 @@ magma_zparilut_select_candidates_L(
                 count_loc[ tid ]++;
             }
         }
-        for(int z=0;z<num_threads;z++){
+        for(int z=0; z<num_threads; z++){
             firstelement[z+(id*num_threads)] = first_loc[z];
             lastelement[z+(id*num_threads)] = last_loc[z];
             bound[ z+(id*num_threads) ] = count_loc[z];
@@ -2132,7 +2132,7 @@ magma_zparilut_select_candidates_L(
     count = 0;
     #pragma omp parallel for
     for(int j=0; j<num_threads; j++){
-        for(int z=1;z<num_threads;z++){
+        for(int z=1; z<num_threads; z++){
             bound[j] += bound[j+z*num_threads];
         }
     }
@@ -2221,7 +2221,7 @@ magma_zparilut_select_candidates_U(
     magma_int_t num_threads=1;
     magmaDoubleComplex element1;
     magma_int_t count = 0;
-    double thrs1 = 1.00;//25;
+    double thrs1 = 1.00; //25;
     magma_int_t el_per_block;
     magma_int_t cand_per_block;
     double bound1;
@@ -2265,7 +2265,7 @@ magma_zparilut_select_candidates_U(
         magma_index_malloc_cpu( &last_loc, (num_threads) );
         magma_index_malloc_cpu( &count_loc, (num_threads) );
 
-        for(int z=0;z<num_threads;z++){
+        for(int z=0; z<num_threads; z++){
             first_loc[z] = -1;
             last_loc[z] = -1;
             count_loc[z] = 0;
@@ -2290,7 +2290,7 @@ magma_zparilut_select_candidates_U(
                 count_loc[ tid ]++;
             }
         }
-        for(int z=0;z<num_threads;z++){
+        for(int z=0; z<num_threads; z++){
             firstelement[z+(id*num_threads)] = first_loc[z];
             lastelement[z+(id*num_threads)] = last_loc[z];
             bound[ z+(id*num_threads) ] = count_loc[z];
@@ -2303,7 +2303,7 @@ magma_zparilut_select_candidates_U(
     count = 0;
     #pragma omp parallel for
     for(int j=0; j<num_threads; j++){
-        for(int z=1;z<num_threads;z++){
+        for(int z=1; z<num_threads; z++){
             bound[j] += bound[j+z*num_threads];
         }
     }

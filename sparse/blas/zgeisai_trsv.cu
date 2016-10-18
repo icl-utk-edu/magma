@@ -1199,7 +1199,7 @@ void ztrsv_lower_kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB, i
         case  32:
             ztrsv_lower_kernel_32( dA, dB ); break;
         default:
-            ztrsv_lower_kernel_general( dA, dB, sizes );break;
+            ztrsv_lower_kernel_general( dA, dB, sizes ); break;
     }
     }
 }
@@ -2274,7 +2274,7 @@ void ztrsv_upper_kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB, i
         case  32:
             ztrsv_upper_kernel_32( dA, dB ); break;
         default:
-            ztrsv_upper_kernel_general( dA, dB, sizes );break;
+            ztrsv_upper_kernel_general( dA, dB, sizes ); break;
     }
     }
 }

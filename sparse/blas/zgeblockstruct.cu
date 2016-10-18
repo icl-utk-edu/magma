@@ -173,7 +173,7 @@ magma_zmisai_blockstruct_gpu(
     magma_index_malloc( &A->drow, A->num_rows+1 );
     magma_index_malloc( &A->dcol, A->nnz );
         
-    int maxbs = 12;//max(offs, bs);
+    int maxbs = 12; //max(offs, bs);
     diagblocks = magma_ceildiv(n,maxbs);
     
     

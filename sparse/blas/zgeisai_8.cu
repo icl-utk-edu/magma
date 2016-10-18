@@ -397,7 +397,7 @@ void ztrsv_lower_8kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB, 
         case  8:
             ztrsv_lower_8kernel_8( dA, dB ); break;
         default:
-            ztrsv_lower_8kernel_general( dA, dB, sizes );break;
+            ztrsv_lower_8kernel_general( dA, dB, sizes ); break;
     }
     }
 }
@@ -673,7 +673,7 @@ void ztrsv_upper_8kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB, 
         case  8:
             ztrsv_upper_8kernel_8( dA, dB ); break;
         default:
-            ztrsv_upper_8kernel_general( dA, dB, sizes );break;
+            ztrsv_upper_8kernel_general( dA, dB, sizes ); break;
     }
     }
 }

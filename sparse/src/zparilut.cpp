@@ -327,16 +327,16 @@ magma_zparilutsetup(
         start = magma_sync_wtime( queue );
         info = magma_zparilut_set_approx_thrs( num_rmL, &L, 0, &thrsL, queue );
         if( info !=0 ){
-            printf("%% error: breakdown in iteration :%d. fallback.\n\n", iters+1);fflush(stdout);
+            printf("%% error: breakdown in iteration :%d. fallback.\n\n", iters+1); fflush(stdout);
             info = 0;
             break;
-        }//printf("done thrs L\n");fflush(stdout);
+        }//printf("done thrs L\n"); fflush(stdout);
         info = magma_zparilut_set_approx_thrs( num_rmU, &U, 0, &thrsU, queue );
         if( info !=0 ){
-            printf("%% error: breakdown in iteration :%d. fallback.\n\n", iters+1);fflush(stdout);
+            printf("%% error: breakdown in iteration :%d. fallback.\n\n", iters+1); fflush(stdout);
             info = 0;
             break;
-        }//printf("done thrs U\n");fflush(stdout);
+        }//printf("done thrs U\n"); fflush(stdout);
         end = magma_sync_wtime( queue ); t_thres=end-start;
 
         // magma_zparilut_LU_approx_thrs( num_rmL+num_rmU, &L, &U, 0, &thrsL, queue );
@@ -406,7 +406,7 @@ magma_zparilutsetup(
     }
 
     if( timing == 1 ){
-         printf("];\n");
+         printf("]; \n");
     }
     //##########################################################################
 
@@ -430,9 +430,9 @@ magma_zparilutsetup(
     magma_zmtranspose(hU, &hAT, queue );
 
 
-    //printf("%% check L:\n");fflush(stdout);
+    //printf("%% check L:\n"); fflush(stdout);
     //magma_zdiagcheck_cpu( hL, queue );
-    //printf("%% check U:\n");fflush(stdout);
+    //printf("%% check U:\n"); fflush(stdout);
     //magma_zdiagcheck_cpu( hU, queue );
 
     // for CUSPARSE
