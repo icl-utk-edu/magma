@@ -119,6 +119,5 @@ magma_zvget(
     }
     
 cleanup:
-    magma_zmfree( &v_CPU, queue );
     return info;
 }
