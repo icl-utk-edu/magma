@@ -126,6 +126,7 @@
 *  =====================================================================
       SUBROUTINE DSTT21( N, KBAND, AD, AE, SD, SE, U, LDU, WORK,
      $                   RESULT )
+      implicit none
 *
 *  -- LAPACK test routine (version 3.4.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --

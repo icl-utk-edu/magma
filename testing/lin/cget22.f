@@ -142,6 +142,7 @@
 *  =====================================================================
       SUBROUTINE CGET22( TRANSA, TRANSE, TRANSW, N, A, LDA, E, LDE, W,
      $                   WORK, RWORK, RESULT )
+      implicit none
 *
 *  -- LAPACK test routine (version 3.4.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --

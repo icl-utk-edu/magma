@@ -210,6 +210,7 @@
 *  =====================================================================
       SUBROUTINE CHET21( ITYPE, UPLO, N, KBAND, A, LDA, D, E, U, LDU, V,
      $                   LDV, TAU, WORK, RWORK, RESULT )
+      implicit none
 *
 *  -- LAPACK test routine (version 3.4.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --

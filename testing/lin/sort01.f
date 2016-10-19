@@ -115,6 +115,7 @@
 *
 *  =====================================================================
       SUBROUTINE SORT01( ROWCOL, M, N, U, LDU, WORK, LWORK, RESID )
+      implicit none
 *
 *  -- LAPACK test routine (version 3.4.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --

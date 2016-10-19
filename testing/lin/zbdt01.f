@@ -145,6 +145,7 @@
 *  =====================================================================
       SUBROUTINE ZBDT01( M, N, KD, A, LDA, Q, LDQ, D, E, PT, LDPT, WORK,
      $                   RWORK, RESID )
+      implicit none
 *
 *  -- LAPACK test routine (version 3.4.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --

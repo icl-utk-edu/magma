@@ -119,6 +119,7 @@
 *  =====================================================================
       DOUBLE PRECISION FUNCTION ZQPT01( M, N, K, A, AF, LDA, TAU, JPVT,
      $                 WORK, LWORK )
+      implicit none
 *
 *  -- LAPACK test routine (version 3.4.0) --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
