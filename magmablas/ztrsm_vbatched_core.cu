@@ -178,7 +178,7 @@
             Queue to execute in.
     
     @ingroup magma_trsm_batched
-    *******************************************************************************/
+*******************************************************************************/
 extern "C" 
 void magmablas_ztrsm_outofplace_vbatched(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
@@ -575,10 +575,6 @@ void magmablas_ztrsm_outofplace_vbatched(
     magma_free(tmp);
 }
 
-/**
-    @see magmablas_ztrsm_outofplace_batched
-    @ingroup magma_zblas3
-    *******************************************************************************/
 
 /***************************************************************************//**
     Purpose
@@ -738,7 +734,7 @@ void magmablas_ztrsm_outofplace_vbatched(
             Queue to execute in.
     
     @ingroup magma_trsm_batched
-    *******************************************************************************/
+*******************************************************************************/
 extern "C"
 void magmablas_ztrsm_work_vbatched(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
@@ -773,10 +769,11 @@ void magmablas_ztrsm_work_vbatched(
     magmablas_zlacpy_vbatched( MagmaFull, max_m, max_n, m, n, dX_displ, lddx, dB_displ, lddb, batchCount, queue );
 }
 
-/**
+
+/***************************************************************************//**
     @see magmablas_ztrsm_work
     @ingroup magma_zblas3
-    *******************************************************************************/
+*******************************************************************************/
 extern "C"
 void magmablas_ztrsm_vbatched_max_nocheck(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
@@ -832,7 +829,6 @@ void magmablas_ztrsm_vbatched_max_nocheck(
     magmaDoubleComplex *dinvA=NULL;
     magma_int_t total_size_dinvA;
     if ( side == MagmaLeft ) {
-        
         magma_ivec_roundup( batchCount, m, ZTRTRI_BATCHED_NB, size_dinvA_array, queue);
         magma_ivec_mulc( batchCount, size_dinvA_array, ZTRTRI_BATCHED_NB, size_dinvA_array, queue); // done inplace
         total_size_dinvA = magma_isum_reduce(batchCount, size_dinvA_array, w2, batchCount, queue);

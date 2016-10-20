@@ -55,7 +55,7 @@ zswapdblk_batched_kernel( int nb, int n_mod_nb,
 }
 
 
-/**
+/***************************************************************************//**
     Purpose
     -------
     zswapdblk swaps diagonal blocks of size nb x nb between matrices
@@ -114,7 +114,7 @@ zswapdblk_batched_kernel( int nb, int n_mod_nb,
             Queue to execute in.
 
     @ingroup magma_zaux2
-    ********************************************************************************/
+*******************************************************************************/
 extern "C" void 
 magmablas_zswapdblk_batched(
     magma_int_t n, magma_int_t nb,

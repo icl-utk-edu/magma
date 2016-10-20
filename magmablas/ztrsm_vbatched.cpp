@@ -15,6 +15,7 @@
 #include "commonblas_z.h"
 
 #define PRECISION_z
+
 /******************************************************************************/
 extern "C" void 
 magmablas_ztrsm_vbatched_max(
@@ -180,7 +181,7 @@ magmablas_ztrsm_vbatched_nocheck(
             Queue to execute in.
     
     @ingroup magma_trsm_batched
-    *******************************************************************************/
+*******************************************************************************/
 extern "C" void
 magmablas_ztrsm_vbatched(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
@@ -213,5 +214,3 @@ magmablas_ztrsm_vbatched(
             batchCount, 
             max_m, max_n, queue);
 }
-
-/******************************************************************************/

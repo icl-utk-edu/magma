@@ -15,6 +15,7 @@
 
 #define PRECISION_z
 #include "hemm_template_kernel_batched.cuh"
+
 /******************************************************************************/
 extern "C" void 
 magmablas_zhemm_batched_core(
@@ -45,8 +46,7 @@ magmablas_zhemm_batched_core(
     }
 }
 
-/******************************************************************************/
-/**
+/***************************************************************************//**
     Purpose
     -------
     ZHEMM performs one of the matrix-matrix operations
@@ -168,8 +168,7 @@ magmablas_zhemm_batched_core(
     
 
     @ingroup magma_hemm_batched
-    *******************************************************************************/
-
+*******************************************************************************/
 extern "C" void 
 magmablas_zhemm_batched(
         magma_side_t side, magma_uplo_t uplo, 

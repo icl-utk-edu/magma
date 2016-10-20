@@ -21,15 +21,6 @@
 #define    TRTRI_BATCHED
 #include "ztrtri.cuh"
 
-/**
-    Inverts the NB x NB diagonal blocks of a triangular matrix.
-    This routine is used in ztrsm.
-    
-    Same as ztrtri_diag, but adds queue argument.
-    
-    @ingroup magma_zblas3
-**/
-
 /***************************************************************************//**
     Purpose
     -------
@@ -84,7 +75,7 @@
             Queue to execute in.
 
     @ingroup magma_zblas3
-    *******************************************************************************/
+*******************************************************************************/
 extern "C" void
 magmablas_ztrtri_diag_vbatched(
     magma_uplo_t uplo, magma_diag_t diag, magma_int_t nmax, magma_int_t *n,

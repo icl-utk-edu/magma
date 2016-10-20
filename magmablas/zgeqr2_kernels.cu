@@ -39,7 +39,7 @@ zgeqrf_copy_upper_kernel_batched(
 }
 
 
-/**
+/***************************************************************************//**
     Purpose
     -------
     These are internal routines that might have many assumption.
@@ -82,8 +82,7 @@ zgeqrf_copy_upper_kernel_batched(
             Queue to execute in.
 
     @ingroup magma_zgeqrf_aux
-    *******************************************************************************/
-    
+*******************************************************************************/
 void zgeqrf_copy_upper_batched(                
     magma_int_t n, magma_int_t nb,
     magmaDoubleComplex **dV_array, magma_int_t lddv,
