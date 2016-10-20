@@ -33,8 +33,13 @@
     Arguments
     ---------
     @param[in]
+    hybrid  magma_int_t
+      -     = 0:  Factorize dA using GPU only version;
+      -     = 1:  Factorize dA using Hybrid (CPU/GPU) version.
+
+    @param[in]
     uplo    magma_uplo_t
-      -     = MagmaUpper:  Upper triangle of dA is stored;
+      -     = MagmaUpper:  Upper triangle of dA is stored (not implement yet);
       -     = MagmaLower:  Lower triangle of dA is stored.
 
     @param[in]
@@ -90,7 +95,6 @@ magma_zpotrf_native_gpu(
     const double d_neg_one = -1.0;
     
     /* Local variables */
-    const char* uplo_ = lapack_uplo_const( uplo );
     bool upper = (uplo == MagmaUpper);
     
     magma_int_t j, jb, nextj, nextjb, nb, recnb;
@@ -98,7 +102,7 @@ magma_zpotrf_native_gpu(
     magma_int_t *dinfo;
 
     *info = 0;
-    if (! upper && uplo != MagmaLower) {
+    if (uplo != MagmaLower) {
         *info = -1;
     } else if (n < 0) {
         *info = -2;
@@ -110,17 +114,17 @@ magma_zpotrf_native_gpu(
         return *info;
     }
     
-    nb = magma_get_zpotrf_nb( n );
+    nb = 1024;//magma_get_zpotrf_nb( n );
 
     if (MAGMA_SUCCESS != magma_zmalloc_pinned( &work, nb*nb )) {
         *info = MAGMA_ERR_HOST_ALLOC;
-        return *info;
+        goto cleanup;
     }
     
     if (MAGMA_SUCCESS != magma_imalloc( &dinfo, 1 ) ) {
         /* alloc failed for workspace */
         *info = MAGMA_ERR_DEVICE_ALLOC;
-        return *info;
+        goto cleanup;
     }
 
     magma_queue_t queues[2];
@@ -135,7 +139,8 @@ magma_zpotrf_native_gpu(
 
     /* Use blocked code. */
     if (upper) {
-     printf("not supported\n");
+        // should never come here
+        printf("not supported\n");
     }
     else {
         //=========================================================
@@ -161,13 +166,11 @@ magma_zpotrf_native_gpu(
                 }
             }
             else{
-
-                magma_queue_sync( queues[0] );
-                magma_queue_sync( queues[1] );
-                magma_zpotrf_lpout(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[0] );
-                //magma_zpotf2_native(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[1] );
-                magma_queue_sync( queues[1] );
-                magma_queue_sync( queues[0] );
+                //magma_zpotf2_lpout(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[0] );
+                //magma_zpotf2_lpin(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[0] );
+                //magma_zpotf2_native(MagmaLower, jb, dA(j, j), ldda, j, dinfo, queues[0] );
+                //magma_zpotf2_gpu(MagmaLower, jb, dA(j, j), ldda, queues[0], info );
+                magma_zpotrf_rectile_native(MagmaLower, jb, 128, dA(j, j), ldda, j, dinfo, info, queues[0] );
             }
  
             nextj  = j+jb; 
@@ -209,7 +212,9 @@ magma_zpotrf_native_gpu(
         }
         
     }
-    *info=0;
+    magma_getvector( 1, sizeof(int), dinfo, 1, info, 1, queues[0]);
+
+cleanup:
     magma_queue_sync( queues[0] );
     magma_queue_sync( queues[1] );
     magma_event_destroy( trsm_event );
@@ -217,6 +222,7 @@ magma_zpotrf_native_gpu(
     magma_queue_destroy( queues[1] );
     
     magma_free_pinned( work );
+    magma_free( dinfo );
     
     return *info;
 } /* magma_zpotrf_gpu */

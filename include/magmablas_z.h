@@ -1385,11 +1385,16 @@ magma_ztrsm(
     magma_queue_t queue );
 
 magma_int_t
-magma_zpotrf_lpout(
+magma_zpotf2_lpout(
         magma_uplo_t uplo, magma_int_t n, 
         magmaDoubleComplex *dA, magma_int_t lda, magma_int_t gbstep,
-        magma_int_t *info, magma_queue_t queue);
+        magma_int_t *dinfo, magma_queue_t queue);
 
+magma_int_t
+magma_zpotf2_lpin(
+        magma_uplo_t uplo, magma_int_t n, 
+        magmaDoubleComplex *dA, magma_int_t lda, magma_int_t gbstep,
+        magma_int_t *dinfo, magma_queue_t queue);
 
 #ifdef __cplusplus
 }

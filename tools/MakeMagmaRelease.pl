@@ -33,27 +33,12 @@ my @files2delete = qw(
     sparse/python
     
     sparse/src/ziterict.cpp
-    sparse/src/zgeisai.cpp
-    sparse/src/zsyisai.cpp
-    sparse/src/zparilut.cpp
-    sparse/src/zparict.cpp
-    sparse/src/ziteric.cpp
-    
-    sparse/control/magma_zmdynamicilu_tools.cpp
-    sparse/control/magma_zmpilut_tools.cpp
-    sparse/control/magma_zmpilut_tools_nolist.cpp
-    sparse/control/magma_zgeisai_tools.cpp
-    
-    sparse/blas/zgeisai.cu
-    sparse/blas/zgeisai_8.cu
-    sparse/blas/zgeisai_16.cu
-    sparse/blas/zgeisai_32.cu
-    sparse/blas/zgeisai_trsv.cu
-    sparse/blas/zgeblockstruct.cu
-    sparse/blas/zgeisai_maxblock.cu
-    sparse/blas/zgeisai_32_develop.cu
     
     sparse/testing/test_matrices
+    sparse/testing/testing_zpardiso.cpp
+    sparse/testing/testing_zparilu_weight.cpp
+    sparse/testing/testing_zsolver_allufmc.cpp
+    sparse/testing/testing_zsolver_energy.cpp
 
     testing/*.txt
     testing/fortran2.cpp

@@ -68,7 +68,12 @@ int main( int argc, char** argv)
                Performs operation using MAGMA
                =================================================================== */
             gpu_time = magma_wtime();
-            magma_zpotrf_gpu( opts.uplo, N, d_A, ldda, &info );
+            if ( opts.version == 1 ) {
+                magma_zpotrf_gpu( opts.uplo, N, d_A, ldda, &info );
+            }
+            else if ( opts.version == 2 ) {
+                magma_zpotrf_native_gpu( opts.hybrid, opts.uplo, N, d_A, ldda, &info );
+            }
             gpu_time = magma_wtime() - gpu_time;
             gpu_perf = gflops / gpu_time;
             if (info != 0) {

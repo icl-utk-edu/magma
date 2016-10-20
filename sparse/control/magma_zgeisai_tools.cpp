@@ -22,46 +22,46 @@
         * an array containing the sizes of the different systems
         * an array containing the indices with the locations in the sparse
           matrix where the data comes from and goes back to
-        * an array containing all the sparse triangular systems 
+        * an array containing all the sparse triangular systems
             - padded with zeros to size 32x32
         * an array containing the RHS
 
     Arguments
     ---------
-    
+
 
     @param[in]
     uplotype    magma_uplo_t
                 lower or upper triangular
-                
+
     @param[in]
     transtype   magma_trans_t
                 possibility for transposed matrix
-                
+
     @param[in]
     diagtype    magma_diag_t
                 unit diagonal or not
-                
+
     @param[in]
     L           magma_z_matrix
                 Matrix in CSR format
-                
+
     @param[in]
     LC          magma_z_matrix
                 same matrix, also CSR, but col-major
-                
+
     @param[in,out]
     sizes       magma_int_t*
                 Number of Elements that are replaced.
-                
+
     @param[in,out]
     locations   magma_int_t*
                 Array indicating the locations.
-                
+
     @param[in,out]
     trisystems  magmaDoubleComplex*
                 trisystems
-                
+
     @param[in,out]
     rhs         magmaDoubleComplex*
                 right-hand sides
@@ -83,13 +83,13 @@ magma_zmprepare_batched(
     magma_index_t *sizes,
     magma_index_t *locations,
     magmaDoubleComplex *trisystems,
-    magmaDoubleComplex *rhs,    
+    magmaDoubleComplex *rhs,
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magma_int_t warpsize = WARP_SIZE;
-    
+
     #pragma omp parallel for
     for( magma_int_t i=0; i<L.num_rows*warpsize*warpsize; i++ ){
         trisystems[i] = MAGMA_Z_ZERO;
@@ -99,7 +99,7 @@ magma_zmprepare_batched(
         rhs[i] = MAGMA_Z_ZERO;
         locations[i] = 0;
     }
-    
+
     if( uplotype == MagmaLower ){
         // fill sizes and rhs and first column of trisystems
         #pragma omp parallel for
@@ -127,7 +127,7 @@ magma_zmprepare_batched(
             rhs[ i*(warpsize)+sizes[i]-1 ] = MAGMA_Z_ONE;
         }
     }
-    
+
     // fill rest of trisystems
     #pragma omp parallel for
     for( magma_int_t i=0; i<L.num_rows; i++ ){
@@ -137,10 +137,10 @@ magma_zmprepare_batched(
             magma_int_t idx = 0;
             while( k < L.row[ locations[ j+i*warpsize ]+1 ] && l < (i+1)*warpsize ){ // stop once this column is done
                 // printf("k:%d<%d l:%d<%d\n",k,L.row[ locations[ j ]+1 ],l,(i+1)*warpsize );
-                
+
                 if( locations[ l ] == L.col[k] ){ //match
                     // printf("match: %d = %d insert %.2f at %d\n",locations[ l ], L.col[k], L.val[ k ], loc);
-                    trisystems[ i*warpsize*warpsize + j*warpsize + idx ] 
+                    trisystems[ i*warpsize*warpsize + j*warpsize + idx ]
                                                             = L.val[ k ];
                     k++;
                     l++;
@@ -153,11 +153,10 @@ magma_zmprepare_batched(
                     l++; // check next elment in the sparsity pattern
                     idx++; // leave this element equal zero
                 }
-            } 
-            
+            }
         }
     }
-    
+
     return info;
 }
 
@@ -169,40 +168,40 @@ magma_zmprepare_batched(
 
     Arguments
     ---------
-    
+
 
     @param[in]
     uplotype    magma_uplo_t
                 lower or upper triangular
-                
+
     @param[in]
     transtype   magma_trans_t
                 possibility for transposed matrix
-                
+
     @param[in]
     diagtype    magma_diag_t
                 unit diagonal or not
-                
+
     @param[in]
     L           magma_z_matrix
                 Matrix in CSR format
-                
+
     @param[in]
     LC          magma_z_matrix
                 same matrix, also CSR, but col-major
-                
+
     @param[out]
     sizes       magma_int_t*
                 Number of Elements that are replaced.
-                
+
     @param[out]
     locations   magma_int_t*
                 Array indicating the locations.
-                
+
     @param[out]
     trisystems  magmaDoubleComplex*
                 trisystems
-                
+
     @param[out]
     rhs         magmaDoubleComplex*
                 right-hand sides
@@ -224,24 +223,24 @@ magma_zmtrisolve_batched(
     magma_index_t *sizes,
     magma_index_t *locations,
     magmaDoubleComplex *trisystems,
-    magmaDoubleComplex *rhs,    
+    magmaDoubleComplex *rhs,
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magma_int_t warpsize = WARP_SIZE;
     magma_int_t ione     = 1;
-    
+
     #pragma omp parallel for
     for(magma_int_t i=0; i<L.num_rows; i++){
-        blasf77_ztrsv( lapack_uplo_const(uplotype), 
-                        lapack_trans_const(transtype), 
+        blasf77_ztrsv( lapack_uplo_const(uplotype),
+                        lapack_trans_const(transtype),
                         lapack_diag_const(diagtype),
                            (magma_int_t*)&sizes[i],
                            &trisystems[i*warpsize*warpsize], &warpsize,
                            &rhs[i*warpsize], &ione );
     }
-    
+
     return info;
 }
 
@@ -255,36 +254,36 @@ magma_zmtrisolve_batched(
 
     Arguments
     ---------
-    
+
 
     @param[in]
     uplotype    magma_uplo_t
                 lower or upper triangular
-                
+
     @param[in]
     transtype   magma_trans_t
                 possibility for transposed matrix
-                
+
     @param[in]
     diagtype    magma_diag_t
                 unit diagonal or not
-                
+
     @param[in,out]
     M           magma_z_matrix*
                 SPAI preconditioner CSR col-major
-                
+
     @param[out]
     sizes       magma_int_t*
                 Number of Elements that are replaced.
-                
+
     @param[out]
     locations   magma_int_t*
                 Array indicating the locations.
-                
+
     @param[out]
     trisystems  magmaDoubleComplex*
                 trisystems
-                
+
     @param[out]
     rhs         magmaDoubleComplex*
                 right-hand sides
@@ -305,20 +304,20 @@ magma_zmbackinsert_batched(
     magma_index_t *sizes,
     magma_index_t *locations,
     magmaDoubleComplex *trisystems,
-    magmaDoubleComplex *rhs,    
+    magmaDoubleComplex *rhs,
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magma_int_t warpsize = WARP_SIZE;
-    
+
     #pragma omp parallel for
     for(magma_int_t i=0; i<M->num_rows; i++){
         for(magma_int_t j=0; j<sizes[i]; j++){
-            M->val[M->row[i]+j] = rhs[i*warpsize+j];    
+            M->val[M->row[i]+j] = rhs[i*warpsize+j];
         }
     }
-    
+
     return info;
 }
 
@@ -331,15 +330,15 @@ magma_zmbackinsert_batched(
 
     Arguments
     ---------
-                
+
     @param[in]
     A           magma_z_matrix
                 system matrix
-                
+
     @param[in]
     batchsize   magma_int_t
                 Size of the batch (GPU thread block).
-                
+
     @param[out]
     maxsize     magma_int_t*
                 maximum A(:,i) and A(i,:).
@@ -360,7 +359,7 @@ magma_zmiluspai_sizecheck(
 {
     magma_int_t info = 0;
     magma_z_matrix AT={Magma_CSR};
-    
+
     CHECK( magma_zmtranspose( A, &AT, queue ) );
     *maxsize = 0;
     for( magma_int_t i=0; i<A.num_rows; i++ ){
@@ -373,13 +372,13 @@ magma_zmiluspai_sizecheck(
             *maxsize = AT.row[i+1] - AT.row[i];
         }
     }
-    
+
     if( *maxsize > batchsize ){
-        info = -(*maxsize - batchsize);    
+        info = -(*maxsize - batchsize);
     }
-    
+
     magma_zmfree( &AT, queue );
-    
+
 cleanup:
     return info;
 }
@@ -394,27 +393,27 @@ cleanup:
 
     Arguments
     ---------
-    
+
     @param[in]
     n           magma_int_t
                 Size of the matrix.
-                
+
     @param[in]
     bs          magma_int_t
                 Size of the diagonal blocks.
-                
+
     @param[in]
     offs        magma_int_t
                 Size of the first diagonal block.
-                
+
     @param[in]
     uplotype    magma_uplo_t
                 lower or upper triangular
-                
+
     @param[in,out]
     S           magma_z_matrix*
                 Generated sparsity pattern matrix.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -432,9 +431,9 @@ magma_zmisai_blockstruct(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magma_int_t i, k, j;
-    
+
     A->val = NULL;
     A->col = NULL;
     A->row = NULL;
@@ -455,25 +454,24 @@ magma_zmisai_blockstruct(
     CHECK( magma_zmalloc_cpu( &A->val, A->nnz ));
     CHECK( magma_index_malloc_cpu( &A->row, A->num_rows+1 ));
     CHECK( magma_index_malloc_cpu( &A->col, A->nnz ));
-        
+
     // default: every row has bs elements
     #pragma omp parallel for
     for( i=0; i<offs; i++ ){
-        A->row[i] = offs * i;    
+        A->row[i] = offs * i;
     }
     // default: every other row has bs elements
     #pragma omp parallel for
     for( i=offs; i<n+1; i++ ){
-        A->row[i] = bs * (i-offs)+offs*offs;    
+        A->row[i] = bs * (i-offs)+offs*offs;
     }
-    
+
     if( uplotype == MagmaLower ){
         // make the first block different
         for( i=0; i<offs; i+=offs ){
             for( k=i; k<min(A->num_rows,i+offs); k++ ){
                 int c = i;
                 for( j=A->row[k]; j<A->row[k+1]; j++ ){
-                    
                     if( c<n ){
                         A->col[j] = c;
                         if( c <= k){
@@ -485,7 +483,7 @@ magma_zmisai_blockstruct(
                     } else {
                         A->col[j] = 0;
                         A->val[j] = MAGMA_Z_ZERO;
-                        c++; 
+                        c++;
                     }
                 }
             }
@@ -495,7 +493,6 @@ magma_zmisai_blockstruct(
             for( k=i; k<min(A->num_rows,i+bs); k++ ){
                 int c = i;
                 for( j=A->row[k]; j<A->row[k+1]; j++ ){
-                    
                     if( c<n ){
                         A->col[j] = c;
                         if( c <= k){
@@ -507,7 +504,7 @@ magma_zmisai_blockstruct(
                     } else {
                         A->col[j] = 0;
                         A->val[j] = MAGMA_Z_ZERO;
-                        c++; 
+                        c++;
                     }
                 }
             }
@@ -518,7 +515,6 @@ magma_zmisai_blockstruct(
             for( k=i; k<min(A->num_rows,i+offs); k++ ){
                 int c = i;
                 for( j=A->row[k]; j<A->row[k+1]; j++ ){
-                    
                     if( c<n ){
                         A->col[j] = c;
                         if( c >= k){
@@ -530,7 +526,7 @@ magma_zmisai_blockstruct(
                     } else {
                         A->col[j] = 0;
                         A->val[j] = MAGMA_Z_ZERO;
-                        c++; 
+                        c++;
                     }
                 }
             }
@@ -540,7 +536,6 @@ magma_zmisai_blockstruct(
             for( k=i; k<min(A->num_rows,i+bs); k++ ){
                 int c = i;
                 for( j=A->row[k]; j<A->row[k+1]; j++ ){
-                    
                     if( c<n ){
                         A->col[j] = c;
                         if( c >= k){
@@ -552,7 +547,7 @@ magma_zmisai_blockstruct(
                     } else {
                         A->col[j] = 0;
                         A->val[j] = MAGMA_Z_ZERO;
-                        c++; 
+                        c++;
                     }
                 }
             }

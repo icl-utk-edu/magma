@@ -69,7 +69,7 @@ magma_z_csr_compressor(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magma_index_t i,j, nnz_new=0, (*row_nnz)=NULL, nnz_this_row;
     CHECK( magma_index_malloc_cpu( &(row_nnz), (*n) ));
     CHECK( magma_index_malloc_cpu( rown, *n+1 ));
@@ -160,7 +160,7 @@ magma_zmconvert(
     magma_int_t info = 0;
 
     magma_index_t *length=NULL;
-    
+
     magma_z_matrix hA={Magma_CSR}, hB={Magma_CSR};
     magma_z_matrix A_d={Magma_CSR}, B_d={Magma_CSR};
     magma_index_t *row_tmp=NULL, *col_tmp=NULL;
@@ -169,10 +169,10 @@ magma_zmconvert(
     magmaDoubleComplex *val_tmp2 = NULL;
     magmaDoubleComplex *transpose=NULL;
     magma_index_t intnnz, *nnz_per_row=NULL;
-    
+
     cusparseHandle_t cusparseHandle = 0;
     cusparseMatDescr_t descr = 0;
-    
+
     B->val = NULL;
     B->col = NULL;
     B->row = NULL;
@@ -196,7 +196,7 @@ magma_zmconvert(
     B->dtile_desc_offset = NULL;
     B->calibrator = NULL;
     B->dcalibrator = NULL;
-    
+
     magmaDoubleComplex zero = MAGMA_Z_MAKE( 0.0, 0.0 );
 
     // check whether matrix on CPU
@@ -216,11 +216,11 @@ magma_zmconvert(
                 B->nnz = A.nnz;
                 B->max_nnz_row = A.max_nnz_row;
                 B->diameter = A.diameter;
-    
+
                 CHECK( magma_zmalloc_cpu( &B->val, A.nnz ));
                 CHECK( magma_index_malloc_cpu( &B->row, A.num_rows+1 ));
                 CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
-                
+
                 for( magma_int_t i=0; i < A.nnz; i++) {
                     B->val[i] = A.val[i];
                     B->col[i] = A.col[i];
@@ -234,7 +234,7 @@ magma_zmconvert(
                 CHECK(magma_zmconvert(A, B, Magma_CSR, Magma_CSR, queue));
                 B->storage_type = Magma_CUCSR;
             }
-            
+
             // CSR to CSRL
             else if ( new_format == Magma_CSRL ) {
                 // fill in information for B
@@ -244,7 +244,7 @@ magma_zmconvert(
                 B->num_rows = A.num_rows; B->true_nnz = A.true_nnz;
                 B->num_cols = A.num_cols;
                 B->diameter = A.diameter;
-    
+
                 magma_int_t numzeros=0;
                 for( magma_int_t i=0; i < A.num_rows; i++) {
                     for( magma_int_t j=A.row[i]; j < A.row[i+1]; j++) {
@@ -257,7 +257,7 @@ magma_zmconvert(
                 CHECK( magma_zmalloc_cpu( &B->val, numzeros ));
                 CHECK( magma_index_malloc_cpu( &B->row, A.num_rows+1 ));
                 CHECK( magma_index_malloc_cpu( &B->col, numzeros ));
-                
+
                 numzeros=0;
                 for( magma_int_t i=0; i < A.num_rows; i++) {
                     B->row[i]=numzeros;
@@ -282,7 +282,7 @@ magma_zmconvert(
                 }
                 B->row[B->num_rows] = numzeros;
             }
-        
+
             // CSR to CSRU
             else if (  new_format == Magma_CSRU ) {
                 // fill in information for B
@@ -305,7 +305,7 @@ magma_zmconvert(
                 CHECK( magma_zmalloc_cpu( &B->val, numzeros ));
                 CHECK( magma_index_malloc_cpu( &B->row, A.num_rows+1 ));
                 CHECK( magma_index_malloc_cpu( &B->col, numzeros ));
-                
+
                 numzeros=0;
                 for( magma_int_t i=0; i < A.num_rows; i++) {
                     B->row[i]=numzeros;
@@ -319,7 +319,7 @@ magma_zmconvert(
                 }
                 B->row[B->num_rows] = numzeros;
             }
-            
+
             // CSR to CSRD (diagonal elements first)
             else if ( new_format == Magma_CSRD ) {
                 // fill in information for B
@@ -331,11 +331,11 @@ magma_zmconvert(
                 B->nnz = A.nnz;
                 B->max_nnz_row = A.max_nnz_row;
                 B->diameter = A.diameter;
-    
+
                 CHECK( magma_zmalloc_cpu( &B->val, A.nnz ));
                 CHECK( magma_index_malloc_cpu( &B->row, A.num_rows+1 ));
                 CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
-                
+
                 for(magma_int_t i=0; i < A.num_rows; i++) {
                     magma_int_t count = 1;
                     for(magma_int_t j=A.row[i]; j < A.row[i+1]; j++) {
@@ -353,53 +353,53 @@ magma_zmconvert(
                     B->row[i] = A.row[i];
                 }
             }
-                        
+
             // CSR to COO
             else if ( new_format == Magma_COO ) {
                 CHECK( magma_zmconvert( A, B, Magma_CSR, Magma_CSR, queue ));
                 B->storage_type = Magma_COO;
-        
+
                 magma_free_cpu( B->row );
                 CHECK( magma_index_malloc_cpu( &B->row, A.nnz ));
-                
+
                 for(magma_int_t i=0; i < A.num_rows; i++) {
                     for(magma_int_t j=A.row[i]; j < A.row[i+1]; j++) {
                         B->row[j] = i;
                     }
                 }
             }
-                    
+
             // CSR to CSRCOO
             else if ( new_format == Magma_CSRCOO ) {
                 CHECK( magma_zmconvert( A, B, Magma_CSR, Magma_CSR, queue ));
                 B->storage_type = Magma_CSRCOO;
-    
+
                 CHECK( magma_index_malloc_cpu( &B->rowidx, A.nnz ));
-                
+
                 for(magma_int_t i=0; i < A.num_rows; i++) {
                     for(magma_int_t j=A.row[i]; j < A.row[i+1]; j++) {
                         B->rowidx[j] = i;
                     }
                 }
             }
-            
+
             // CSR to CSRLIST
             else if ( new_format == Magma_CSRLIST ) {
                 CHECK( magma_zmconvert( A, B, Magma_CSR, Magma_CSR, queue ));
                 B->storage_type = Magma_CSRLIST;
                 magma_free_cpu( B->val );
                 magma_free_cpu( B->col );
-                
+
                 CHECK( magma_zmalloc_cpu( &B->val, A.nnz+A.num_rows*2 ));
                 CHECK( magma_index_malloc_cpu( &B->col, A.nnz+A.num_rows*2 ));
                 CHECK( magma_index_malloc_cpu( &B->rowidx, A.nnz+A.num_rows*2 ));
                 CHECK( magma_index_malloc_cpu( &B->list, A.nnz+A.num_rows*2 ));
-                
+
                 for(magma_int_t i=0; i < A.nnz; i++) {
                     B->col[i] = A.col[i];
                     B->val[i] = A.val[i];
                 }
-                
+
                 for(magma_int_t i=0; i < A.num_rows; i++) {
                     for(magma_int_t j=A.row[i]; j < A.row[i+1]; j++) {
                         B->rowidx[j] = i;
@@ -414,7 +414,7 @@ magma_zmconvert(
                 }
                 B->true_nnz = A.nnz+A.num_rows*2;
             }
-   
+
             // CSR to ELLPACKT (using row-major storage)
             else if (  new_format == Magma_ELLPACKT ) {
                 // fill in information for B
@@ -429,7 +429,7 @@ magma_zmconvert(
                 // conversion
                 magma_index_t i, j, maxrowlength=0;
                 CHECK( magma_index_malloc_cpu( &length, A.num_rows));
-    
+
                 for( i=0; i < A.num_rows; i++ ) {
                     length[i] = A.row[i+1]-A.row[i];
                     if (length[i] > maxrowlength)
@@ -440,7 +440,7 @@ magma_zmconvert(
                 //fflush(stdout);
                 CHECK( magma_zmalloc_cpu( &B->val, maxrowlength*A.num_rows ));
                 CHECK( magma_index_malloc_cpu( &B->col, maxrowlength*A.num_rows ));
-                
+
                 for( i=0; i < (maxrowlength*A.num_rows); i++) {
                     B->val[i] = MAGMA_Z_MAKE(0., 0.);
                     B->col[i] =  -1;
@@ -455,7 +455,7 @@ magma_zmconvert(
                 }
                 B->max_nnz_row = maxrowlength;
             }
-            
+
             // CSR to ELL
             else if ( new_format == Magma_ELL ) {
                 // fill in information for B
@@ -467,7 +467,7 @@ magma_zmconvert(
                 B->nnz = A.nnz;
                 B->max_nnz_row = A.max_nnz_row;
                 B->diameter = A.diameter;
-    
+
                 // conversion
                 magma_index_t i, j, maxrowlength=0;
                 CHECK( magma_index_malloc_cpu( &length, A.num_rows));
@@ -482,12 +482,12 @@ magma_zmconvert(
                 //fflush(stdout);
                 CHECK( magma_zmalloc_cpu( &B->val, maxrowlength*A.num_rows ));
                 CHECK( magma_index_malloc_cpu( &B->col, maxrowlength*A.num_rows ));
-                
+
                 for( i=0; i < (maxrowlength*A.num_rows); i++) {
                     B->val[i] = MAGMA_Z_MAKE(0., 0.);
                     B->col[i] = 0;
                 }
-    
+
                 for( i=0; i < A.num_rows; i++ ) {
                     magma_int_t offset = 0;
                     for( j=A.row[i]; j < A.row[i+1]; j++ ) {
@@ -499,7 +499,7 @@ magma_zmconvert(
                 B->max_nnz_row = maxrowlength;
                 //printf( "done\n" );
             }
-            
+
             // CSR to ELLD (ELLPACK with diagonal element first)
             else if ( new_format == Magma_ELLD ) {
                 // fill in information for B
@@ -511,7 +511,7 @@ magma_zmconvert(
                 B->nnz = A.nnz;
                 B->max_nnz_row = A.max_nnz_row;
                 B->diameter = A.diameter;
-    
+
                 // conversion
                 magma_index_t i, j, maxrowlength=0;
                 CHECK( magma_index_malloc_cpu( &length, A.num_rows));
@@ -526,13 +526,13 @@ magma_zmconvert(
                 //fflush(stdout);
                 CHECK( magma_zmalloc_cpu( &B->val, maxrowlength*A.num_rows ));
                 CHECK( magma_index_malloc_cpu( &B->col, maxrowlength*A.num_rows ));
-                
-                
+
+
                 for( i=0; i < (maxrowlength*A.num_rows); i++) {
                     B->val[i] = MAGMA_Z_MAKE(0., 0.);
                     B->col[i] =  -1;
                 }
-    
+
                 for( i=0; i < A.num_rows; i++ ) {
                     magma_int_t offset = 1;
                     for( j=A.row[i]; j < A.row[i+1]; j++ ) {
@@ -548,7 +548,7 @@ magma_zmconvert(
                 }
                 B->max_nnz_row = maxrowlength;
             }
-            
+
             // CSR to ELLRT (also ELLPACKRT)
             else if (  new_format == Magma_ELLRT ) {
                 // fill in information for B
@@ -560,7 +560,7 @@ magma_zmconvert(
                 B->nnz = A.nnz;
                 B->max_nnz_row = A.max_nnz_row;
                 B->diameter = A.diameter;
-    
+
                 // conversion
                 magma_index_t i, j, maxrowlength=0;
                 CHECK( magma_index_malloc_cpu( &length, A.num_rows));
@@ -573,19 +573,19 @@ magma_zmconvert(
 
                 //printf( "Conversion to ELLRT with %d elements per row: ",
                 //                                                   maxrowlength );
-    
+
                 magma_int_t threads_per_row = B->alignment;
                 magma_int_t rowlength = magma_roundup( maxrowlength, threads_per_row );
-    
+
                 CHECK( magma_zmalloc_cpu( &B->val, rowlength*A.num_rows ));
                 CHECK( magma_index_malloc_cpu( &B->col, rowlength*A.num_rows ));
                 CHECK( magma_index_malloc_cpu( &B->row, A.num_rows ));
-                
+
                 for( i=0; i < rowlength*A.num_rows; i++) {
                     B->val[i] = MAGMA_Z_MAKE(0., 0.);
                     B->col[i] =  0;
                 }
-    
+
                 for( i=0; i < A.num_rows; i++ ) {
                     magma_int_t offset = 0;
                     for( j=A.row[i]; j < A.row[i+1]; j++ ) {
@@ -598,7 +598,7 @@ magma_zmconvert(
                 B->max_nnz_row = maxrowlength;
                 //printf( "done\n" );
             }
-            
+
             // CSR to SELLP
             // SELLC is SELLP using alignment 1
             // see paper by M. KREUTZER, G. HAGER, G WELLEIN, H. FEHSKE A. BISHOP
@@ -613,7 +613,7 @@ magma_zmconvert(
                     info = MAGMA_ERR_NOT_SUPPORTED;
                     goto cleanup;
                 }
-                
+
                 // fill in information for B
                 B->storage_type = new_format;
                 if (B->alignment > 1)
@@ -633,8 +633,8 @@ magma_zmconvert(
                 CHECK( magma_index_malloc_cpu( &length, C));
                 // B-row points to the start of each slice
                 CHECK( magma_index_malloc_cpu( &B->row, slices+1 ));
-                
-                
+
+
                 B->row[0] = 0;
                 for( i=0; i < slices; i++ ) {
                     maxrowlength = 0;
@@ -656,11 +656,11 @@ magma_zmconvert(
                 B->nnz = B->row[slices];
                 //printf( "Conversion to SELLC with %d slices of size %d and"
                 //       " %d nonzeros.\n", slices, C, B->nnz );
-    
+
                 //fflush(stdout);
                 CHECK( magma_zmalloc_cpu( &B->val, B->row[slices] ));
                 CHECK( magma_index_malloc_cpu( &B->col, B->row[slices] ));
-                
+
                 // zero everything
                 for( i=0; i < B->row[slices]; i++ ) {
                     B->val[ i ] = MAGMA_Z_MAKE(0., 0.);
@@ -682,7 +682,7 @@ magma_zmconvert(
                 }
                 //B->nnz = A.nnz;
             }
-            
+
             // CSR to DENSE
             else if ( new_format == Magma_DENSE ) {
                 //printf( "Conversion to DENSE: " );
@@ -695,28 +695,28 @@ magma_zmconvert(
                 B->nnz = A.nnz;
                 B->max_nnz_row = A.max_nnz_row;
                 B->diameter = A.diameter;
-    
+
                 // conversion
                 CHECK( magma_zmalloc_cpu( &B->val, A.num_rows*A.num_cols ));
-                
+
                 for( magma_int_t i=0; i<(A.num_rows)*(A.num_cols); i++) {
                     B->val[i] = MAGMA_Z_MAKE(0., 0.);
                 }
-    
+
                 for(magma_int_t i=0; i < A.num_rows; i++ ) {
                     for(magma_int_t j=A.row[i]; j < A.row[i+1]; j++ )
                         B->val[i * (A.num_cols) + A.col[j] ] = A.val[ j ];
                 }
-    
+
                 //printf( "done\n" );
             }
-            
+
             // CSR to BCSR
             else if ( new_format == Magma_BCSR ) {
-                CHECK( magma_zmtransfer(A, &A_d, Magma_CPU, Magma_DEV, queue ) );              
-                B_d.blocksize = B->blocksize;                                                  
-                CHECK( magma_zmconvert(A_d, &B_d, Magma_CSR, Magma_BCSR, queue ) );            
-                CHECK( magma_zmtransfer(B_d, B, Magma_DEV, Magma_CPU, queue ) );               
+                CHECK( magma_zmtransfer(A, &A_d, Magma_CPU, Magma_DEV, queue ) );
+                B_d.blocksize = B->blocksize;
+                CHECK( magma_zmconvert(A_d, &B_d, Magma_CSR, Magma_BCSR, queue ) );
+                CHECK( magma_zmtransfer(B_d, B, Magma_DEV, Magma_CPU, queue ) );
             }
 
             // CSR to CSR5
@@ -745,7 +745,7 @@ magma_zmconvert(
                 int s = 32;
                 int t = 256;
                 int u = 6;
-        
+
                 int csr_nnz_per_row = B->nnz / B->num_rows;
                 if (csr_nnz_per_row <= r)
                     B->csr5_sigma = r;
@@ -760,28 +760,28 @@ magma_zmconvert(
                 // compute #bits required for `y_offset' and `scansum_offset'
                 int base = 2;
                 B->csr5_bit_y_offset = 1;
-                while (base < MAGMA_CSR5_OMEGA * B->csr5_sigma) 
+                while (base < MAGMA_CSR5_OMEGA * B->csr5_sigma)
                 { base *= 2; B->csr5_bit_y_offset++; }
 
                 base = 2;
                 B->csr5_bit_scansum_offset = 1;
-                while (base < MAGMA_CSR5_OMEGA) 
+                while (base < MAGMA_CSR5_OMEGA)
                 { base *= 2; B->csr5_bit_scansum_offset++; }
 
-                if (B->csr5_bit_y_offset + B->csr5_bit_scansum_offset > 
-                    sizeof(magma_uindex_t) * 8 - 1) 
+                if (B->csr5_bit_y_offset + B->csr5_bit_scansum_offset >
+                    sizeof(magma_uindex_t) * 8 - 1)
                 {
                     printf("error: csr5-omega not supported.\n");
                     info = MAGMA_ERR_NOT_SUPPORTED;
                 }
 
-                int bit_all = B->csr5_bit_y_offset + B->csr5_bit_scansum_offset 
+                int bit_all = B->csr5_bit_y_offset + B->csr5_bit_scansum_offset
                               + B->csr5_sigma;
-                B->csr5_num_packets = ceil((double)bit_all 
+                B->csr5_num_packets = ceil((double)bit_all
                                            /(double)(sizeof(magma_uindex_t)*8));
 
                 // calculate the number of tiles
-                B->csr5_p = ceil((double)B->nnz 
+                B->csr5_p = ceil((double)B->nnz
                                  / (double)(MAGMA_CSR5_OMEGA * B->csr5_sigma));
                 //printf("sigma = %i, p = %i\n", B->csr5_sigma, B->csr5_p);
                 // malloc the newly added arrays for CSR5
@@ -790,9 +790,9 @@ magma_zmconvert(
                     B->tile_ptr[i] = 0;
                 }
 
-                CHECK( magma_uindex_malloc_cpu( &B->tile_desc, 
+                CHECK( magma_uindex_malloc_cpu( &B->tile_desc,
                           B->csr5_p * MAGMA_CSR5_OMEGA * B->csr5_num_packets ));
-                for( magma_int_t i=0; i<B->csr5_p * MAGMA_CSR5_OMEGA 
+                for( magma_int_t i=0; i<B->csr5_p * MAGMA_CSR5_OMEGA
                                         * B->csr5_num_packets; i++) {
                     B->tile_desc[i] = 0;
                 }
@@ -803,7 +803,7 @@ magma_zmconvert(
                     B->calibrator[i] = MAGMA_Z_MAKE(0., 0.);
                 }
 
-                CHECK( magma_index_malloc_cpu( &B->tile_desc_offset_ptr, 
+                CHECK( magma_index_malloc_cpu( &B->tile_desc_offset_ptr,
                                                B->csr5_p+1 ));
                 for( magma_int_t i=0; i<B->csr5_p+1; i++) {
                     B->tile_desc_offset_ptr[i] = 0;
@@ -813,11 +813,11 @@ magma_zmconvert(
                 // convert csr data to csr5 data (3 steps)
                 // step 1 generate tile pointer
                 // step 1.1 binary search row pointer
-                for (magma_index_t global_id = 0; global_id <= B->csr5_p; 
+                for (magma_index_t global_id = 0; global_id <= B->csr5_p;
                      global_id++)
                 {
                     // compute tile boundaries by tile of size sigma * omega
-                    magma_index_t boundary = global_id * B->csr5_sigma 
+                    magma_index_t boundary = global_id * B->csr5_sigma
                                              * MAGMA_CSR5_OMEGA;
 
                     // clamp tile boundaries to [0, nnz]
@@ -839,7 +839,7 @@ magma_zmconvert(
                  }
 
                  // step 1.2 check empty rows
-                 for (magma_index_t group_id = 0; group_id < B->csr5_p; 
+                 for (magma_index_t group_id = 0; group_id < B->csr5_p;
                       group_id++)
                  {
                      int dirty = 0;
@@ -852,7 +852,7 @@ magma_zmconvert(
                      if(start == stop)
                          continue;
 
-                     for (magma_uindex_t row_idx = start; row_idx <= stop; 
+                     for (magma_uindex_t row_idx = start; row_idx <= stop;
                           row_idx++)
                      {
                          if (B->row[row_idx] == B->row[row_idx+1])
@@ -864,7 +864,7 @@ magma_zmconvert(
 
                      if (dirty)
                      {
-                         start |= sizeof(magma_uindex_t) == 4 
+                         start |= sizeof(magma_uindex_t) == 4
                                             ? 0x80000000 : 0x8000000000000000;
                          B->tile_ptr[group_id] = start;
                      }
@@ -873,15 +873,15 @@ magma_zmconvert(
 
                  // step 2. generate tile descriptor
 
-                 int bit_all_offset = B->csr5_bit_y_offset 
+                 int bit_all_offset = B->csr5_bit_y_offset
                                       + B->csr5_bit_scansum_offset;
 
                  //generate_tile_descriptor_s1_kernel
                  for (int par_id = 0; par_id < B->csr5_p-1; par_id++)
                  {
-                     const magma_index_t row_start = B->tile_ptr[par_id]     
+                     const magma_index_t row_start = B->tile_ptr[par_id]
                                                      & 0x7FFFFFFF;
-                     const magma_index_t row_stop  = B->tile_ptr[par_id + 1] 
+                     const magma_index_t row_stop  = B->tile_ptr[par_id + 1]
                                                      & 0x7FFFFFFF;
 
                      for (int rid = row_start; rid <= row_stop; rid++)
@@ -899,8 +899,8 @@ magma_zmconvert(
 
                              const magma_uindex_t val = 0x1 << (31 - llid);
 
-                             const int location = pid * MAGMA_CSR5_OMEGA 
-                                 * B->csr5_num_packets 
+                             const int location = pid * MAGMA_CSR5_OMEGA
+                                 * B->csr5_num_packets
                                  + ly * MAGMA_CSR5_OMEGA + lx;
                              B->tile_desc[location] |= val;
                          }
@@ -910,19 +910,19 @@ magma_zmconvert(
                  //generate_tile_descriptor_s2_kernel
                  int num_thread = 1; //omp_get_max_threads();
                  magma_index_t *s_segn_scan_all, *s_present_all;
-                 
-                 CHECK( magma_index_malloc_cpu( &s_segn_scan_all, 
+
+                 CHECK( magma_index_malloc_cpu( &s_segn_scan_all,
                                             2 * MAGMA_CSR5_OMEGA * num_thread ));
-                 CHECK( magma_index_malloc_cpu( &s_present_all, 
+                 CHECK( magma_index_malloc_cpu( &s_present_all,
                                             2 * MAGMA_CSR5_OMEGA * num_thread ));
-                
-                
-                 //int *s_segn_scan_all = (int *)malloc(2 * MAGMA_CSR5_OMEGA 
+
+
+                 //int *s_segn_scan_all = (int *)malloc(2 * MAGMA_CSR5_OMEGA
                  //                                   * sizeof(int) * num_thread);
-                 //int *s_present_all   = (int *)malloc(2 * MAGMA_CSR5_OMEGA 
+                 //int *s_present_all   = (int *)malloc(2 * MAGMA_CSR5_OMEGA
                  //                                   * sizeof(int) * num_thread);
                  for (magma_index_t i = 0; i < num_thread; i++)
-                     s_present_all[i * 2 * MAGMA_CSR5_OMEGA + MAGMA_CSR5_OMEGA] 
+                     s_present_all[i * 2 * MAGMA_CSR5_OMEGA + MAGMA_CSR5_OMEGA]
                          = 1;
 
                  //const int bit_all_offset = bit_y_offset + bit_scansum_offset;
@@ -931,18 +931,18 @@ magma_zmconvert(
                  for (int par_id = 0; par_id < B->csr5_p-1; par_id++)
                  {
                      int tid = 0; //omp_get_thread_num();
-                     int *s_segn_scan = &s_segn_scan_all[tid * 2 
+                     int *s_segn_scan = &s_segn_scan_all[tid * 2
                                                          * MAGMA_CSR5_OMEGA];
-                     int *s_present = &s_present_all[tid * 2 
+                     int *s_present = &s_present_all[tid * 2
                                                          * MAGMA_CSR5_OMEGA];
 
                      memset(s_segn_scan, 0, (MAGMA_CSR5_OMEGA + 1)*sizeof(int));
                      memset(s_present, 0, MAGMA_CSR5_OMEGA * sizeof(int));
 
                      bool with_empty_rows = (B->tile_ptr[par_id] >> 31) & 0x1;
-                     magma_index_t row_start       = B->tile_ptr[par_id]     
+                     magma_index_t row_start       = B->tile_ptr[par_id]
                                                      & 0x7FFFFFFF;
-                     const magma_index_t row_stop  = B->tile_ptr[par_id + 1] 
+                     const magma_index_t row_stop  = B->tile_ptr[par_id + 1]
                                                      & 0x7FFFFFFF;
 
                      if (row_start == row_stop)
@@ -959,25 +959,25 @@ magma_zmconvert(
 
                          // extract the first bit-flag packet
                          int ly = 0;
-                         magma_uindex_t first_packet = B->tile_desc[par_id 
+                         magma_uindex_t first_packet = B->tile_desc[par_id
                              * MAGMA_CSR5_OMEGA * B->csr5_num_packets+lane_id];
-                         bitflag = (first_packet << bit_all_offset) 
+                         bitflag = (first_packet << bit_all_offset)
                                     | ((magma_uindex_t)present << 31);
                          start = !((bitflag >> 31) & 0x1);
                          present |= (bitflag >> 31) & 0x1;
 
                          for (int i = 1; i < B->csr5_sigma; i++)
                          {
-                             if ((!ly && i == 32 - bit_all_offset) 
+                             if ((!ly && i == 32 - bit_all_offset)
                                  || (ly && (i - (32 - bit_all_offset)) % 32==0))
                              {
                                  ly++;
-                                 bitflag = B->tile_desc[par_id 
-                                           * MAGMA_CSR5_OMEGA 
-                                           * B->csr5_num_packets 
+                                 bitflag = B->tile_desc[par_id
+                                           * MAGMA_CSR5_OMEGA
+                                           * B->csr5_num_packets
                                            + ly * MAGMA_CSR5_OMEGA + lane_id];
                              }
-                             const int norm_i = !ly ? i 
+                             const int norm_i = !ly ? i
                                                 : i - (32 - bit_all_offset);
                              stop += (bitflag >> (31 - norm_i % 32) ) & 0x1;
                              present |= (bitflag >> (31 - norm_i % 32)) & 0x1;
@@ -1006,9 +1006,9 @@ magma_zmconvert(
 
                      if (with_empty_rows)
                      {
-                         B->tile_desc_offset_ptr[par_id] 
+                         B->tile_desc_offset_ptr[par_id]
                              = s_segn_scan[MAGMA_CSR5_OMEGA];
-                         B->tile_desc_offset_ptr[B->csr5_p] = 1; 
+                         B->tile_desc_offset_ptr[B->csr5_p] = 1;
                      }
 
                      //#pragma simd
@@ -1027,7 +1027,7 @@ magma_zmconvert(
                              }
                          }
 
-                         magma_uindex_t first_packet = B->tile_desc[par_id 
+                         magma_uindex_t first_packet = B->tile_desc[par_id
                             * MAGMA_CSR5_OMEGA * B->csr5_num_packets + lane_id];
 
                          y_offset = lane_id ? y_offset - 1 : 0;
@@ -1035,7 +1035,7 @@ magma_zmconvert(
                          first_packet |= y_offset << (32-B->csr5_bit_y_offset);
                          first_packet |= scansum_offset << (32-bit_all_offset);
 
-                         B->tile_desc[par_id * MAGMA_CSR5_OMEGA 
+                         B->tile_desc[par_id * MAGMA_CSR5_OMEGA
                                * B->csr5_num_packets + lane_id] = first_packet;
                      }
                  }
@@ -1052,7 +1052,7 @@ magma_zmconvert(
                      for (int i = 1; i < B->csr5_p+1; i++)
                      {
                          new_val = B->tile_desc_offset_ptr[i];
-                         B->tile_desc_offset_ptr[i] = old_val 
+                         B->tile_desc_offset_ptr[i] = old_val
                                                  + B->tile_desc_offset_ptr[i-1];
                          old_val = new_val;
                      }
@@ -1077,34 +1077,34 @@ magma_zmconvert(
 
                          magma_index_t row_start       = B->tile_ptr[par_id]
                                                          & 0x7FFFFFFF;
-                         const magma_index_t row_stop  = B->tile_ptr[par_id + 1] 
+                         const magma_index_t row_stop  = B->tile_ptr[par_id + 1]
                                                          & 0x7FFFFFFF;
 
                          int offset_pointer = B->tile_desc_offset_ptr[par_id];
                          //#pragma simd
-                         for (int lane_id = 0; lane_id < MAGMA_CSR5_OMEGA; 
+                         for (int lane_id = 0; lane_id < MAGMA_CSR5_OMEGA;
                               lane_id++)
                          {
                              bool local_bit;
 
                              // extract the first bit-flag packet
                              int ly = 0;
-                             magma_uindex_t descriptor = B->tile_desc[par_id 
+                             magma_uindex_t descriptor = B->tile_desc[par_id
                                  * MAGMA_CSR5_OMEGA * B->csr5_num_packets
                                  + lane_id];
-                             int y_offset = descriptor 
+                             int y_offset = descriptor
                                             >> (32 - B->csr5_bit_y_offset);
 
                              descriptor = descriptor << bit_all_offset;
-                             descriptor = lane_id ? descriptor 
+                             descriptor = lane_id ? descriptor
                                           : descriptor | 0x80000000;
 
                              local_bit = (descriptor >> 31) & 0x1;
 
                              if (local_bit && lane_id)
                              {
-                                 const magma_index_t idx = par_id 
-                                     * MAGMA_CSR5_OMEGA * B->csr5_sigma 
+                                 const magma_index_t idx = par_id
+                                     * MAGMA_CSR5_OMEGA * B->csr5_sigma
                                      + lane_id * B->csr5_sigma;
                                  // binary search
                                  magma_index_t start = 0;
@@ -1121,7 +1121,7 @@ magma_zmconvert(
                                  }
                                  const magma_index_t y_index = start-1;
 
-                                 B->tile_desc_offset[offset_pointer + y_offset] 
+                                 B->tile_desc_offset[offset_pointer + y_offset]
                                      = y_index;
 
                                  y_offset++;
@@ -1129,24 +1129,24 @@ magma_zmconvert(
 
                              for (int i = 1; i < B->csr5_sigma; i++)
                              {
-                                 if ((!ly && i == bit_bitflag) 
+                                 if ((!ly && i == bit_bitflag)
                                      || (ly && !(31 & (i - bit_bitflag))))
                                  {
                                      ly++;
-                                     descriptor = B->tile_desc[par_id 
-                                         * MAGMA_CSR5_OMEGA 
-                                         * B->csr5_num_packets 
+                                     descriptor = B->tile_desc[par_id
+                                         * MAGMA_CSR5_OMEGA
+                                         * B->csr5_num_packets
                                          + ly * MAGMA_CSR5_OMEGA + lane_id];
                                  }
-                                 const int norm_i = 31 & (!ly 
+                                 const int norm_i = 31 & (!ly
                                                          ? i : i - bit_bitflag);
 
                                  local_bit = (descriptor >> (31 - norm_i))&0x1;
 
                                  if (local_bit)
                                  {
-                                     const magma_index_t idx = par_id 
-                                         * MAGMA_CSR5_OMEGA * B->csr5_sigma 
+                                     const magma_index_t idx = par_id
+                                         * MAGMA_CSR5_OMEGA * B->csr5_sigma
                                          + lane_id * B->csr5_sigma + i;
                                      // binary search
                                      magma_index_t start = 0;
@@ -1163,7 +1163,7 @@ magma_zmconvert(
                                      }
                                      const magma_index_t y_index = start-1;
 
-                                     B->tile_desc_offset[offset_pointer 
+                                     B->tile_desc_offset[offset_pointer
                                                          + y_offset] = y_index;
 
                                      y_offset++;
@@ -1180,10 +1180,10 @@ magma_zmconvert(
                      // if this is fast track tile, do not transpose it
                      if (B->tile_ptr[par_id] == B->tile_ptr[par_id + 1])
                      {
-                         for (int idx = 0; idx < MAGMA_CSR5_OMEGA 
+                         for (int idx = 0; idx < MAGMA_CSR5_OMEGA
                                                  * B->csr5_sigma; idx++)
                          {
-                             int src_idx = par_id * MAGMA_CSR5_OMEGA 
+                             int src_idx = par_id * MAGMA_CSR5_OMEGA
                                            * B->csr5_sigma + idx;
                              B->col[src_idx] = A.col[src_idx];
                              B->val[src_idx] = A.val[src_idx];
@@ -1193,24 +1193,24 @@ magma_zmconvert(
                      //#pragma simd
                      if (par_id < B->csr5_p-1)
                      {
-                         for (int idx = 0; idx < MAGMA_CSR5_OMEGA 
+                         for (int idx = 0; idx < MAGMA_CSR5_OMEGA
                                                  * B->csr5_sigma; idx++)
                          {
                              int idx_y = idx % B->csr5_sigma;
                              int idx_x = idx / B->csr5_sigma;
-                             int src_idx = par_id * MAGMA_CSR5_OMEGA 
+                             int src_idx = par_id * MAGMA_CSR5_OMEGA
                                            * B->csr5_sigma + idx;
-                             int dst_idx = par_id * MAGMA_CSR5_OMEGA 
-                                           * B->csr5_sigma + idx_y 
+                             int dst_idx = par_id * MAGMA_CSR5_OMEGA
+                                           * B->csr5_sigma + idx_y
                                            * MAGMA_CSR5_OMEGA + idx_x;
-    
+
                              B->col[dst_idx] = A.col[src_idx];
                              B->val[dst_idx] = A.val[src_idx];
                          }
                      }
                      else // the last tile
                      {
-                         for (int idx = par_id * MAGMA_CSR5_OMEGA 
+                         for (int idx = par_id * MAGMA_CSR5_OMEGA
                                         * B->csr5_sigma; idx < B->nnz; idx++)
                          {
                              B->col[idx] = A.col[idx];
@@ -1233,12 +1233,12 @@ magma_zmconvert(
             if ( old_format == Magma_CSRU ) {
                 CHECK( magma_zmconvert( A, B, Magma_CSR, Magma_CSR, queue ));
             }
-            
+
             // CUCSR to CSR
             else if ( old_format == Magma_CUCSR ){
                 CHECK(magma_zmconvert(A, B, Magma_CSR, Magma_CSR, queue));
             }
-                    
+
             // CSRD to CSR (diagonal elements first)
             else if ( old_format == Magma_CSRD ) {
                 CHECK( magma_zmconvert( A, B, Magma_CSR, Magma_CSR, queue ));
@@ -1251,17 +1251,17 @@ magma_zmconvert(
                     queue );
                 }
             }
-            
+
             // CSRCOO to CSR
             else if ( old_format == Magma_CSRCOO ) {
                 CHECK( magma_zmconvert( A, B, Magma_CSR, Magma_CSR, queue ));
             }
-            
+
             // CSRLIST to CSR
             else if ( old_format == Magma_CSRLIST ) {
                 CHECK( magma_zmconvert( A, B, Magma_CSR, Magma_CSR, queue ));
                 magma_int_t element, row, numnnz;
-                
+
                 numnnz = 0;
                 // fill the rowpointer
                 B->row[0] = 0;
@@ -1285,7 +1285,7 @@ magma_zmconvert(
                     queue );
                 }
             }
-                
+
             // ELL/ELLPACK to CSR
             else if ( old_format == Magma_ELLPACKT ) {
                 //printf( "Conversion to CSR: " );
@@ -1298,7 +1298,7 @@ magma_zmconvert(
                 B->nnz = A.nnz;
                 B->max_nnz_row = A.max_nnz_row;
                 B->diameter = A.diameter;
-        
+
                 // conversion
 
                 CHECK( magma_index_malloc_cpu( &row_tmp, A.num_rows+1 ));
@@ -1311,7 +1311,7 @@ magma_zmconvert(
                            &B->val, &B->row, &B->col, &B->num_rows, queue ));
                 B->nnz = B->row[B->num_rows];
             }
-            
+
             // ELL (column-major) to CSR
             else if ( old_format == Magma_ELL ) {
                 //printf( "Conversion to CSR: " );
@@ -1325,7 +1325,7 @@ magma_zmconvert(
                 B->nnz = A.nnz;
                 B->max_nnz_row = A.max_nnz_row;
                 B->diameter = A.diameter;
-    
+
                 // conversion
                 CHECK( magma_zmalloc_cpu( &val_tmp, A.num_rows*A.max_nnz_row ));
                 CHECK( magma_index_malloc_cpu( &row_tmp, A.num_rows+1 ));
@@ -1345,10 +1345,10 @@ magma_zmconvert(
                 //The CSR compressor removes these
                 CHECK( magma_z_csr_compressor(&val_tmp, &row_tmp, &col_tmp,
                            &B->val, &B->row, &B->col, &B->num_rows, queue ));
-    
+
                 B->nnz = B->row[B->num_rows];
             }
-            
+
             // ELLD (ELLPACK with diagonal element first) to CSR
             else if ( old_format == Magma_ELLD ) {
           /*      CHECK( magma_zmconvert( A, B, Magma_ELL, Magma_CSR, queue ));
@@ -1360,8 +1360,8 @@ magma_zmconvert(
                     B->row[i+1]-1,
                     queue );
                 }
-            */    
-                
+            */
+
                 //printf( "Conversion to CSR: " );
                 //fflush(stdout);
                 // fill in information for B
@@ -1373,7 +1373,7 @@ magma_zmconvert(
                 B->nnz = A.nnz;
                 B->max_nnz_row = A.max_nnz_row;
                 B->diameter = A.diameter;
-    
+
                 // conversion
                 CHECK( magma_index_malloc_cpu( &row_tmp, A.num_rows+1 ));
                 //fill the row-pointer
@@ -1402,14 +1402,14 @@ magma_zmconvert(
                         val_tmp2[j*A.max_nnz_row+i] = A.val[j*A.max_nnz_row+i];
                     }
                 }
-    
+
                 //now use AA_ELL, IA_ELL, row_tmp as CSR with some zeros.
                 //The CSR compressor removes these
                 CHECK( magma_z_csr_compressor(&val_tmp2, &row_tmp, &col_tmp2,
                            &B->val, &B->row, &B->col, &B->num_rows, queue ));
                 B->nnz = B->row[B->num_rows];
             }
-            
+
             // ELLRT to CSR
             else if ( old_format == Magma_ELLRT ) {
                 //printf( "Conversion to CSR: " );
@@ -1423,7 +1423,7 @@ magma_zmconvert(
                 B->nnz = A.nnz;
                 B->max_nnz_row = A.max_nnz_row;
                 B->diameter = A.diameter;
-    
+
                 magma_int_t threads_per_row = A.alignment;
                 magma_int_t rowlength = magma_roundup( A.max_nnz_row, threads_per_row );
                 // conversion
@@ -1438,7 +1438,7 @@ magma_zmconvert(
                 B->nnz = B->row[B->num_rows];
                 //printf( "done\n" );
             }
-            
+
             // SELLP to CSR
             else if ( old_format == Magma_SELLP ) {
                 // printf( "Conversion to CSR: " );
@@ -1456,22 +1456,22 @@ magma_zmconvert(
                 B->blocksize = A.blocksize;
                 B->numblocks = A.numblocks;
                 // conversion
-                CHECK( magma_zmalloc_cpu( &val_tmp, 
+                CHECK( magma_zmalloc_cpu( &val_tmp,
                                           A.max_nnz_row*(A.num_rows+C) ));
                 CHECK( magma_index_malloc_cpu( &row_tmp, A.num_rows+C ));
-                CHECK( magma_index_malloc_cpu( &col_tmp, 
+                CHECK( magma_index_malloc_cpu( &col_tmp,
                                                A.max_nnz_row*(A.num_rows+C) ));
                 // zero everything
                 for(magma_int_t i=0; i < A.max_nnz_row*(A.num_rows+C); i++ ) {
                     val_tmp[ i ] = MAGMA_Z_MAKE(0., 0.);
                     col_tmp[ i ] =  0;
                 }
-    
+
                 //fill the row-pointer
                 for( magma_int_t i=0; i < A.num_rows+1; i++ ) {
                     row_tmp[i] = A.max_nnz_row*i;
                 }
-    
+
                 //transform RowMajor to ColMajor
                 for( magma_int_t k=0; k < slices; k++) {
                     magma_int_t blockinfo = (A.row[k+1]-A.row[k])/A.blocksize;
@@ -1484,16 +1484,16 @@ magma_zmconvert(
                         }
                     }
                 }
-    
+
                 //now use AA_ELL, IA_ELL, row_tmp as CSR with some zeros.
                 //The CSR compressor removes these
-    
+
                 CHECK( magma_z_csr_compressor(&val_tmp, &row_tmp, &col_tmp,
                            &B->val, &B->row, &B->col, &B->num_rows, queue ));
                 B->nnz = B->row[B->num_rows];
                 //printf( "done\n" );
             }
-            
+
             // CSR5 to CSR
             else if ( old_format == Magma_CSR5 ) {
                 // printf( "Conversion to CSR: " );
@@ -1523,10 +1523,10 @@ magma_zmconvert(
                     // if this is fast track tile, do not transpose it
                     if (A.tile_ptr[par_id] == A.tile_ptr[par_id + 1])
                     {
-                         for (int idx = 0; idx < MAGMA_CSR5_OMEGA 
+                         for (int idx = 0; idx < MAGMA_CSR5_OMEGA
                                                  * A.csr5_sigma; idx++)
                          {
-                             int src_idx = par_id * MAGMA_CSR5_OMEGA 
+                             int src_idx = par_id * MAGMA_CSR5_OMEGA
                                            * A.csr5_sigma + idx;
                              B->col[src_idx] = A.col[src_idx];
                              B->val[src_idx] = A.val[src_idx];
@@ -1536,14 +1536,14 @@ magma_zmconvert(
                     if (par_id < A.csr5_p-1)
                     {
                          //#pragma simd
-                        for (int idx = 0; idx < MAGMA_CSR5_OMEGA * A.csr5_sigma; 
+                        for (int idx = 0; idx < MAGMA_CSR5_OMEGA * A.csr5_sigma;
                                 idx++)
                         {
                             int idx_y = idx % MAGMA_CSR5_OMEGA;
                             int idx_x = idx / MAGMA_CSR5_OMEGA;
-                            int src_idx = par_id * MAGMA_CSR5_OMEGA*A.csr5_sigma 
+                            int src_idx = par_id * MAGMA_CSR5_OMEGA*A.csr5_sigma
                                       + idx;
-                            int dst_idx = par_id * MAGMA_CSR5_OMEGA*A.csr5_sigma 
+                            int dst_idx = par_id * MAGMA_CSR5_OMEGA*A.csr5_sigma
                                       + idx_y * A.csr5_sigma + idx_x;
                             B->col[dst_idx] = A.col[src_idx];
                             B->val[dst_idx] = A.val[src_idx];
@@ -1551,7 +1551,7 @@ magma_zmconvert(
                     }
                     else // the last tile
                     {
-                        for (int idx = par_id * MAGMA_CSR5_OMEGA 
+                        for (int idx = par_id * MAGMA_CSR5_OMEGA
                                        * A.csr5_sigma; idx < A.nnz; idx++)
                         {
                             B->col[idx] = A.col[idx];
@@ -1575,9 +1575,9 @@ magma_zmconvert(
                 B->nnz = A.nnz;
                 B->max_nnz_row = A.max_nnz_row;
                 B->diameter = A.diameter;
-    
+
                 // conversion
-    
+
                 B->nnz=0;
                 for( magma_int_t i=0; i<(A.num_rows)*(A.num_cols); i++ ) {
                     if ( MAGMA_Z_REAL(A.val[i]) != 0.0 )
@@ -1586,11 +1586,11 @@ magma_zmconvert(
                 CHECK( magma_zmalloc_cpu( &B->val, B->nnz));
                 CHECK( magma_index_malloc_cpu( &B->row, B->num_rows+1 ));
                 CHECK( magma_index_malloc_cpu( &B->col, B->nnz ));
-                
+
                 magma_int_t i = 0;
                 magma_int_t j = 0;
                 magma_int_t k = 0;
-    
+
                 for(i=0; i<(A.num_rows)*(A.num_cols); i++)
                 {
                     if ( i%(B->num_cols) == 0 )
@@ -1606,10 +1606,10 @@ magma_zmconvert(
                     }
                 }
                 (B->row)[B->num_rows]=B->nnz;
-    
+
                 //printf( "done\n" );
             }
-            
+
             // BCSR to CSR
             else if ( old_format == Magma_BCSR ) {
                 CHECK( magma_zmtransfer(A, &A_d, Magma_CPU, Magma_DEV, queue ) );
@@ -1618,7 +1618,7 @@ magma_zmconvert(
                 CHECK( magma_zmtransfer(B_d, B, Magma_DEV, Magma_CPU, queue ) );
                 magma_zmfree( &B_d, queue );
             }
-            
+
             // COO to CSR
             else if ( old_format == Magma_COO ) {
                 CHECK( magma_zmtransfer(A, &A_d, Magma_CPU, Magma_DEV, queue ) );
@@ -1627,7 +1627,7 @@ magma_zmconvert(
                 CHECK( magma_zmtransfer(B_d, B, Magma_DEV, Magma_CPU, queue ) );
                 magma_zmfree( &B_d, queue );
             }
-            
+
             else {
                 printf("error: format not supported.\n");
                 //magmablasSetKernelStream( queue );
@@ -1663,8 +1663,8 @@ magma_zmconvert(
             // end CUSPARSE context //
 
             CHECK( magma_zmalloc( &B->dval, A.num_rows*A.num_cols ));
-            
-            
+
+
             // conversion using CUSPARSE
             cusparseZcsr2dense( cusparseHandle, A.num_rows, A.num_cols,
                                 descr, A.dval, A.drow, A.dcol,
@@ -1698,8 +1698,8 @@ magma_zmconvert(
             CHECK( magma_zmalloc( &B->dval, B->nnz ));
             CHECK( magma_index_malloc( &B->drow, B->num_rows+1 ));
             CHECK( magma_index_malloc( &B->dcol, B->nnz ));
-            
-            
+
+
             // conversion using CUSPARSE
             cusparseZdense2csr( cusparseHandle, A.num_rows, A.num_cols,
                                 descr,
@@ -1735,8 +1735,8 @@ magma_zmconvert(
                                  A.num_rows, A.num_cols, descr,
                                  A.drow, A.dcol, size_b,
                                  descr, B->drow, nnzTotalDevHostPtr );
-            
-            
+
+
             if (NULL != nnzTotalDevHostPtr) {
                 nnzb = *nnzTotalDevHostPtr;
             } else {
@@ -1748,8 +1748,8 @@ magma_zmconvert(
 
             CHECK( magma_zmalloc( &B->dval, nnzb*size_b*size_b ));
             CHECK( magma_index_malloc( &B->dcol, nnzb ));
-            
-            
+
+
             // conversion using CUSPARSE
             cusparseZcsr2bsr( cusparseHandle, CUSPARSE_DIRECTION_ROW,
                               A.num_rows, A.num_cols, descr,
@@ -1783,8 +1783,8 @@ magma_zmconvert(
             CHECK( magma_zmalloc( &B->dval, B->nnz ));
             CHECK( magma_index_malloc( &B->drow, B->num_rows+1 ));
             CHECK( magma_index_malloc( &B->dcol, B->nnz ));
-            
-            
+
+
             // conversion using CUSPARSE
             cusparseZbsr2csr( cusparseHandle, CUSPARSE_DIRECTION_ROW,
                               mb, nb, descr, A.dval, A.drow, A.dcol,
@@ -1811,8 +1811,8 @@ magma_zmconvert(
             CHECK( magma_zmalloc( &B->dval, B->nnz ));
             CHECK( magma_index_malloc( &B->drow, B->nnz ));
             CHECK( magma_index_malloc( &B->dcol, B->num_cols+1 ));
-            
-            
+
+
             // conversion using CUSPARSE
             cusparseZcsr2csc(cusparseHandle, A.num_rows, A.num_cols, A.nnz,
                              A.dval, A.drow, A.dcol,
@@ -1840,8 +1840,8 @@ magma_zmconvert(
             CHECK( magma_zmalloc( &B->dval, B->nnz ));
             CHECK( magma_index_malloc( &B->drow, B->num_rows+1 ));
             CHECK( magma_index_malloc( &B->dcol, B->nnz ));
-            
-            
+
+
             // conversion using CUSPARSE
             cusparseZcsr2csc(cusparseHandle, A.num_cols, A.num_rows, A.nnz,
                              A.dval, A.dcol, A.drow,
@@ -1869,8 +1869,8 @@ magma_zmconvert(
             CHECK( magma_zmalloc( &B->dval, B->nnz ));
             CHECK( magma_index_malloc( &B->drow, B->nnz ));
             CHECK( magma_index_malloc( &B->dcol, B->nnz ));
-            
-            
+
+
             magma_zcopyvector( A.nnz, A.dval, 1, B->dval, 1, queue );
             magma_index_copyvector( A.nnz, A.dcol, 1, B->dcol, 1, queue );
 
@@ -1881,7 +1881,6 @@ magma_zmconvert(
         }
         // COO to CSR
         else if ( old_format == Magma_COO && new_format == Magma_CSR ) {
-            
 #if CUDA_VERSION >= 7000
             // fill in information for B
             B->storage_type = Magma_CSR;
@@ -1896,7 +1895,7 @@ magma_zmconvert(
             int nnz = A.nnz;
 
             // CUSPARSE context //
-            
+
             size_t pBufferSizeInBytes = 0;
             void *pBuffer = NULL;
             int *P = NULL;
@@ -1910,7 +1909,7 @@ magma_zmconvert(
             CHECK( magma_index_malloc( &B->drowidx, B->nnz ));
             CHECK( magma_index_malloc( &B->dcol, B->nnz ));
             CHECK( magma_index_malloc( &B->drow, B->num_rows + 1 ));
-            
+
             magma_zcopyvector( A.nnz, A.dval, 1, B->dval, 1, queue );
             magma_index_copyvector( A.nnz, A.dcol, 1, B->dcol, 1, queue );
             magma_index_copyvector( A.nnz, A.drowidx, 1, B->drowidx, 1, queue );
@@ -1923,10 +1922,10 @@ magma_zmconvert(
             CHECK( magma_index_malloc( &P, nnz ));
             //magma_( &P, sizeof(int)*nnz);
             cusparseCreateIdentityPermutation(cusparseHandle, nnz, P);
-            
+
             // step 3: sort COO format by Row
             cusparseXcoosortByRow(cusparseHandle, m, n, nnz, B->drowidx, B->dcol, P, pBuffer);
-            
+
             // step 4: gather sorted cooVals
             cusparseZgthr(cusparseHandle, nnz, A.dval, B->dval, P, CUSPARSE_INDEX_BASE_ZERO);
 
@@ -1940,7 +1939,7 @@ magma_zmconvert(
             magma_free( P );
 #else
                 printf("error: conversion only supported for CUDA version > 7.0.\n");
-            
+
 #endif
         }
         else {
@@ -1951,9 +1950,9 @@ magma_zmconvert(
             CHECK( magma_zmtransfer( hB, B, Magma_CPU, A.memory_location, queue ));
         }
     }
-    
-cleanup:    
-    cusparseDestroyMatDescr(descr); 
+
+cleanup:
+    cusparseDestroyMatDescr(descr);
     cusparseDestroy(cusparseHandle);
     descr = NULL;
     cusparseHandle = NULL;
@@ -1969,7 +1968,7 @@ cleanup:
     val_tmp = NULL;
     row_tmp2 = NULL;
     col_tmp2 = NULL;
-    val_tmp2 = NULL;   
+    val_tmp2 = NULL;
     magma_free( transpose );
     magma_free_cpu( length );
     length = NULL;

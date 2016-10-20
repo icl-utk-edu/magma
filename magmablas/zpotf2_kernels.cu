@@ -35,6 +35,48 @@
 
 #include "zpotf2_devicesfunc.cuh"
 
+#define A(i_, j_)  (dA + (i_) + (j_)*ldda)
+/******************************************************************************/
+__global__ void zpotf2_smlpin_fixwidth_kernel(int m, magmaDoubleComplex *dA, int ldda, int localstep, int gbstep, magma_int_t *dinfo)
+{
+    #pragma unroll
+    for(int i = 0; i < m; i+= POTF2_NB){
+        if(threadIdx.x < m-i){
+            zpotf2_smlpout_fixwidth_device(m-i, A(localstep+i, 0), A(localstep+i, localstep+i), ldda, localstep+i, gbstep, dinfo);
+        }
+    }
+}
+/******************************************************************************/
+__global__ void zpotf2_smlpin_anywidth_kernel(int m, magmaDoubleComplex *dA, int ldda, int localstep, int gbstep, magma_int_t *dinfo)
+{
+    #pragma unroll
+    for(int i = 0; i < m; i+= POTF2_NB){
+        int ib = min(m-i, POTF2_NB);
+        if(threadIdx.x < m-i){
+            zpotf2_smlpout_anywidth_device(m-i, ib, A(localstep+i, 0), A(localstep+i, localstep+i), ldda, localstep+i, gbstep, dinfo);
+        }
+    }
+}
+
+/******************************************************************************/
+__global__ void zpotf2_smlpout_fixwidth_kernel(int m, 
+        magmaDoubleComplex *dA, int lda, 
+        int localstep, int gbstep, magma_int_t *dinfo)
+{
+    zpotf2_smlpout_fixwidth_device(m, dA+localstep, dA+localstep+localstep*lda, lda, localstep, gbstep, dinfo );
+}
+
+
+/******************************************************************************/
+__global__ void zpotf2_smlpout_anywidth_kernel(int m, int n, 
+        magmaDoubleComplex *dA, int lda, 
+        int localstep, int gbstep, magma_int_t *dinfo)
+{
+    zpotf2_smlpout_anywidth_device(m, n, dA+localstep, dA+localstep+localstep*lda, lda, localstep, gbstep, dinfo );
+}
+
+
+
 /******************************************************************************/
 __global__ void zpotf2_smlpout_fixwidth_kernel_batched(int m, 
         magmaDoubleComplex **dA_array, int lda, 
@@ -54,23 +96,6 @@ __global__ void zpotf2_smlpout_anywidth_kernel_batched(int m, int n,
     const int batchid = blockIdx.z * blockDim.y + threadIdx.y;
     if (batchid >= batchCount) return;
     zpotf2_smlpout_anywidth_device(m, n, dA_array[batchid]+localstep, dA_array[batchid]+localstep+localstep*lda, lda, localstep, gbstep, &(info_array[batchid]));
-}
-
-/******************************************************************************/
-__global__ void zpotf2_smlpout_fixwidth_kernel(int m, 
-        magmaDoubleComplex *dA, int lda, 
-        int localstep, int gbstep, magma_int_t *info)
-{
-    zpotf2_smlpout_fixwidth_device(m, dA+localstep, dA+localstep+localstep*lda, lda, localstep, gbstep, info );
-}
-
-
-/******************************************************************************/
-__global__ void zpotf2_smlpout_anywidth_kernel(int m, int n, 
-        magmaDoubleComplex *dA, int lda, 
-        int localstep, int gbstep, magma_int_t *info)
-{
-    zpotf2_smlpout_anywidth_device(m, n, dA+localstep, dA+localstep+localstep*lda, lda, localstep, gbstep, info );
 }
 
 /******************************************************************************/
@@ -159,10 +184,10 @@ magma_zpotrf_lpout_batched(
 
 /******************************************************************************/
 extern "C" magma_int_t
-magma_zpotrf_lpout(
+magma_zpotf2_lpout(
         magma_uplo_t uplo, magma_int_t n, 
         magmaDoubleComplex *dA, magma_int_t lda, magma_int_t gbstep,
-        magma_int_t *info, magma_queue_t queue)
+        magma_int_t *dinfo, magma_queue_t queue)
 {
     magma_int_t m = n;
     magma_int_t arginfo = 0;
@@ -220,17 +245,51 @@ magma_zpotrf_lpout(
         {
             zpotf2_smlpout_fixwidth_kernel
                 <<< dimGrid, threads, shared_mem_size, queue->cuda_stream() >>>
-                (rows, dA, lda, j, gbstep, info );
+                (rows, dA, lda, j, gbstep, dinfo );
         } else {
             zpotf2_smlpout_anywidth_kernel
                 <<< dimGrid, threads, shared_mem_size, queue->cuda_stream() >>>
-                (rows, ib, dA, lda, j, gbstep, info );
+                (rows, ib, dA, lda, j, gbstep, dinfo );
         }
 
 
 
     }
 
+    return arginfo;
+}
+
+/******************************************************************************/
+extern "C" magma_int_t
+magma_zpotf2_lpin(
+        magma_uplo_t uplo, magma_int_t n, 
+        magmaDoubleComplex *dA, magma_int_t ldda, magma_int_t gbstep,
+        magma_int_t *dinfo, magma_queue_t queue)
+{
+    magma_int_t arginfo = 0;
+    // Quick return if possible
+    if ( n == 0 ) {
+        return arginfo;
+    }
+    dim3 grid(1, 1, 1);
+    dim3 threads(n, 1, 1);
+    magma_int_t shared_mem_size = sizeof(magmaDoubleComplex) * (n+POTF2_NB)*POTF2_NB;
+    if (shared_mem_size > 47000) {
+        arginfo = -33;
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+    
+    if( n % POTF2_NB == 0){
+        zpotf2_smlpin_fixwidth_kernel
+            <<< grid, threads, shared_mem_size, queue->cuda_stream() >>>
+            (n, dA, ldda, 0, gbstep, dinfo);
+    }
+    else{
+        zpotf2_smlpin_anywidth_kernel
+            <<< grid, threads, shared_mem_size, queue->cuda_stream() >>>
+            (n, dA, ldda, 0, gbstep, dinfo);
+    }
     return arginfo;
 }
 

@@ -22,19 +22,19 @@
 
     Arguments
     ---------
-    
+
     @param[in,out]
     max_bs      magma_int_t*
                 Size of the largest diagonal block.
-                
+
     @param[in]
     A           magma_z_matrix
                 System matrix.
-                
+
     @param[in,out]
     S           magma_z_matrix*
                 Generated sparsity pattern matrix.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -49,22 +49,21 @@ magma_zmsupernodal(
     magma_z_matrix *S,
     magma_queue_t queue )
 {
-      
     magma_int_t info = 0;
-    
+
     magma_int_t *blocksizes=NULL, *blocksizes2=NULL, *start=NULL, *v=NULL;
     magma_int_t blockcount=0, blockcount2=0;
-    
+
     int maxblocksize = *max_bs;
     int current_size = 0;
-    
+
     CHECK( magma_imalloc_cpu( &v, A.num_rows+10 ));
     CHECK( magma_imalloc_cpu( &start, A.num_rows+10 ));
     CHECK( magma_imalloc_cpu( &blocksizes, A.num_rows+10 ));
     CHECK( magma_imalloc_cpu( &blocksizes2, A.num_rows+10 ));
 
     v[0] = 1;
-    
+
     for( magma_int_t i=1; i<A.num_rows; i++ ){
         // pattern matches the pattern of the previous row
         int match = 0; // 0 means match!
@@ -76,13 +75,13 @@ magma_zmsupernodal(
             magma_index_t start2 = A.row[i];
             for( magma_index_t j=0; j<length; j++ ){
                 if( A.col[ start1+j ] != A.col[ start2+j ] ){
-                    match = 1;    
+                    match = 1;
                 }
             }
         }
         v[ i ] = match;
     }
-    
+
     // start = find[v];
     blockcount = 0;
     for( magma_int_t i=0; i<A.num_rows; i++ ){
@@ -92,16 +91,16 @@ magma_zmsupernodal(
         }
     }
     start[blockcount] = A.num_rows;
-    
+
     for( magma_int_t i=0; i<blockcount; i++ ){
-        blocksizes[i] = start[i+1] - start[i];   
+        blocksizes[i] = start[i+1] - start[i];
         if( blocksizes[i] > maxblocksize ){
             // maxblocksize = blocksizes[i];
-            printf("%% warning: at i=%d blocksize required is %d\n", 
-                                                            i, blocksizes[i] );    
+            printf("%% warning: at i=%d blocksize required is %d\n",
+                                                            i, blocksizes[i] );
         }
     }
-    
+
     current_size = 0;
     blockcount2=0;
     for( magma_int_t i=0; i<blockcount; i++ ){
@@ -112,16 +111,16 @@ magma_zmsupernodal(
         } else {
             current_size = current_size + blocksizes[i]; // add to previous block
         }
-        blocksizes[i] = start[i+1] - start[i];    
+        blocksizes[i] = start[i+1] - start[i];
     }
     blocksizes2[ blockcount2 ] = current_size;
     blockcount2++;
-    
+
     *max_bs = maxblocksize;
-    
-    
+
+
     CHECK( magma_zmvarsizeblockstruct( A.num_rows, blocksizes2, blockcount2, MagmaLower, S, queue ) );
-    
+
 cleanup:
     magma_free_cpu( v );
     magma_free_cpu( blocksizes );
@@ -131,9 +130,9 @@ cleanup:
     blocksizes = NULL;
     blocksizes2 = NULL;
     start = NULL;
-    
+
     return info;
-    
+
 }
 
 
@@ -144,27 +143,27 @@ cleanup:
 
     Arguments
     ---------
-    
+
     @param[in]
     n           magma_int_t
                 Size of the matrix.
-                
+
     @param[in]
     bs          magma_int_t*
                 Vector containing the size of the diagonal blocks.
-                
+
     @param[in]
     bsl         magma_int_t
                 Size of the vector containing the block sizes.
-                
+
     @param[in]
     uplotype    magma_uplo_t
                 lower or upper triangular
-                
+
     @param[in,out]
     S           magma_z_matrix*
                 Generated sparsity pattern matrix.
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -182,9 +181,9 @@ magma_zmvarsizeblockstruct(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magma_int_t i, k, j, nnz = 0, col_start, row;
-    
+
     A->val = NULL;
     A->col = NULL;
     A->row = NULL;
@@ -201,15 +200,15 @@ magma_zmvarsizeblockstruct(
     A->memory_location = Magma_CPU;
     A->storage_type = Magma_CSR;
     A->nnz = 0;
-    
+
     for( i=0; i<bsl; i++ ){
         A->nnz = A->nnz + bs[i] * bs[i];
     }
-    
+
     CHECK( magma_zmalloc_cpu( &A->val, A->nnz ));
     CHECK( magma_index_malloc_cpu( &A->row, A->num_rows+1 ));
     CHECK( magma_index_malloc_cpu( &A->col, A->nnz ));
-    nnz = 0;  
+    nnz = 0;
     row = 0;
     col_start = 0;
     for( i=0; i<bsl; i++ ){
@@ -225,15 +224,14 @@ magma_zmvarsizeblockstruct(
         col_start = col_start + bs[i];
     }
     A->row[ row ] = nnz;
-    
-    
+
+
     CHECK( magma_zmcsrcompressor( A, queue ) );
 
     // magma_z_mvisu( *A, queue );
-    
+
 cleanup:
 
     return info;
-    
-}
 
+}

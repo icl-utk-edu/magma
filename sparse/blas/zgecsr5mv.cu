@@ -59,13 +59,13 @@ scan_32(
     if (local_id == 0)  { s_scan[31] = s_scan[15]; s_scan[15] = MAGMA_Z_ZERO; }
     if (local_id < 2)   { ai = 8 * baseai - 1;  bi = 8 * basebi - 1;   
                           temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; 
-                          s_scan[bi] += temp;}
+                          s_scan[bi] += temp; }
     if (local_id < 4)   { ai = 4 * baseai - 1;  bi = 4 * basebi - 1;   
                           temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; 
-                          s_scan[bi] += temp;}
+                          s_scan[bi] += temp; }
     if (local_id < 8)   { ai = 2 * baseai - 1;  bi = 2 * basebi - 1;   
                           temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; 
-                          s_scan[bi] += temp;}
+                          s_scan[bi] += temp; }
     if (local_id < 16)  { ai = baseai - 1;   bi = basebi - 1;   
                           temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; 
                           s_scan[bi] += temp; }
@@ -930,5 +930,3 @@ magma_zgecsr5mv(
 
     return info;
 }
-
-

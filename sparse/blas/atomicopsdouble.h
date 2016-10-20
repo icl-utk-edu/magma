@@ -30,7 +30,6 @@ atomicAdd(double *addr, double val)
                     atomicCAS((unsigned long long int*)addr,
                               __double_as_longlong(assumed),
                               __double_as_longlong(val+assumed)));
-
     }while(assumed != old);
 
     return old;
@@ -45,5 +44,4 @@ atomicAdddouble(double *addr, double val)
 
 
 
-#endif 
-
+#endif

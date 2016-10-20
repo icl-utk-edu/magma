@@ -20,9 +20,9 @@
     Purpose
     -------
 
-    Prepares Incomplete LU preconditioner using a sparse approximate inverse 
+    Prepares Incomplete LU preconditioner using a sparse approximate inverse
     instead of sparse triangular solves.
-    
+
 
     Arguments
     ---------
@@ -30,7 +30,7 @@
     @param[in]
     A           magma_z_matrix
                 input matrix A
-                
+
     @param[in]
     b           magma_z_matrix
                 input RHS b
@@ -38,7 +38,7 @@
     @param[in,out]
     precond     magma_z_preconditioner*
                 preconditioner parameters
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -55,44 +55,44 @@ magma_ziluisaisetup(
 {
     magma_int_t info = 0;
     // real_Double_t start, end;
-    
-    magmaDoubleComplex *trisystems_d = NULL; 
-    magmaDoubleComplex *rhs_d = NULL; 
-    magma_index_t *sizes_d = NULL, *locations_d = NULL; 
-    magma_index_t *sizes_h = NULL; 
+
+    magmaDoubleComplex *trisystems_d = NULL;
+    magmaDoubleComplex *rhs_d = NULL;
+    magma_index_t *sizes_d = NULL, *locations_d = NULL;
+    magma_index_t *sizes_h = NULL;
     magma_int_t maxsize, nnzloc, nnzL=0, nnzU=0;
     int warpsize=32;
     int offset = 0; // can be changed to better match the matrix structure
     magma_z_matrix LT={Magma_CSR}, MT={Magma_CSR}, QT={Magma_CSR};
     magma_int_t z;
     // magma_int_t timing = 1;
-    
+
 #if (CUDA_VERSION <= 6000) // this won't work, just to have something...
     printf( "%% error: ISAI preconditioner requires CUDA > 6.0.\n" );
     info = MAGMA_ERR_NOT_SUPPORTED;
     goto cleanup;
 #endif
-    
+
     CHECK( magma_index_malloc_cpu( &sizes_h, A.num_rows+1 ) );
     // only needed in case the systems are generated in GPU main memory
     // CHECK( magma_index_malloc( &sizes_d, A.num_rows ) );
     // CHECK( magma_index_malloc( &locations_d, A.num_rows*warpsize ) );
     // CHECK( magma_zmalloc( &trisystems_d, min(320000,A.num_rows) *warpsize*warpsize ) ); // fixed size - go recursive
     // CHECK( magma_zmalloc( &rhs_d, A.num_rows*warpsize ) );
-    
+
     for( magma_int_t i=0; i<A.num_rows; i++ ){
             maxsize = sizes_h[i] = 0;
     }
     // ILU setup
     // CHECK( magma_zcumilusetup( A, precond, queue ) );
-    
+
     // we need this in any case
     CHECK( magma_zmtranspose( precond->L, &MT, queue ) );
-    
-    // SPAI for L 
+
+    // SPAI for L
     if( precond->trisolver == Magma_JACOBI ){ // block diagonal structure
         if( precond->pattern == 0 ){
-            precond->pattern = 1;    
+            precond->pattern = 1;
         }
         CHECK( magma_zmisai_blockstruct( A.num_rows, precond->pattern, offset, MagmaLower, &MT, queue ) );
         CHECK( magma_z_mtransfer( MT, &QT, Magma_CPU, Magma_DEV, queue ) );
@@ -112,7 +112,6 @@ magma_ziluisaisetup(
         magma_zmfree( &MT, queue );
         CHECK( magma_zmtranspose( QT, &MT, queue ) );
         magma_zmfree( &QT, queue );
-        
     } else if( precond->trisolver == Magma_ISAI ){
         if( precond->pattern == 100 ){
             CHECK( magma_z_mtransfer( MT, &LT, Magma_DEV, Magma_DEV, queue ) );
@@ -132,7 +131,7 @@ magma_ziluisaisetup(
             }
         }
     } else{
-        printf("%% error: pattern not supported.\n" );    
+        printf("%% error: pattern not supported.\n" );
     }
     magma_index_getvector( A.num_rows+1, MT.drow, 1, sizes_h, 1, queue );
     maxsize = 0;
@@ -143,52 +142,51 @@ magma_ziluisaisetup(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %d is too large by %d\n", i, maxsize-32); 
+            printf("%%   error for ISAI: size of system %d is too large by %d\n", i, maxsize-32);
             break;
         }
     }
-    
-    printf("%% nnz in L-ISAI (total max/row): %d %d\n", nnzL, maxsize); 
+
+    printf("%% nnz in L-ISAI (total max/row): %d %d\n", nnzL, maxsize);
     // this can be modified to the thread-block-size
     if( maxsize > warpsize ){
-       info = -(maxsize - warpsize);     
+       info = -(maxsize - warpsize);
        goto cleanup;
     }
     // via main memory
     //  CHECK( magma_z_mtransfer( MT, &LT, Magma_DEV, Magma_DEV, queue ) );
     // if( maxsize <= 8 ){
-    //     CHECK( magma_zisaigenerator_8_gpu( MagmaLower, MagmaNoTrans, MagmaNonUnit, 
+    //     CHECK( magma_zisaigenerator_8_gpu( MagmaLower, MagmaNoTrans, MagmaNonUnit,
     //                 LT, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
     // } else if( maxsize <= 16 ){
-    //     CHECK( magma_zisaigenerator_16_gpu( MagmaLower, MagmaNoTrans, MagmaNonUnit, 
+    //     CHECK( magma_zisaigenerator_16_gpu( MagmaLower, MagmaNoTrans, MagmaNonUnit,
     //                 LT, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
     // } else {
-    //     CHECK( magma_zisaigenerator_32_gpu( MagmaLower, MagmaNoTrans, MagmaNonUnit, 
+    //     CHECK( magma_zisaigenerator_32_gpu( MagmaLower, MagmaNoTrans, MagmaNonUnit,
     //                 LT, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
     // }
     // via registers
-     CHECK( magma_zisai_generator_regs( MagmaLower, MagmaNoTrans, MagmaNonUnit, 
+     CHECK( magma_zisai_generator_regs( MagmaLower, MagmaNoTrans, MagmaNonUnit,
                     precond->L, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
-      
+
     CHECK( magma_zmtranspose( MT, &precond->LD, queue ) );
     magma_zmfree( &LT, queue );
     magma_zmfree( &MT, queue );
     // magma_z_mvisu(precond->LD, queue);
-   
+
    // we need this in any case
    CHECK( magma_zmtranspose( precond->U, &MT, queue ) );
-    
-    // SPAI for U 
+
+    // SPAI for U
     if( precond->trisolver == Magma_JACOBI ){ // block diagonal structure
         if( precond->pattern == 0 ){
-            precond->pattern = 1;    
+            precond->pattern = 1;
         }
         CHECK( magma_zmisai_blockstruct( A.num_rows, precond->pattern, offset, MagmaUpper, &MT, queue ) );
         CHECK( magma_z_mtransfer( MT, &QT, Magma_CPU, Magma_DEV, queue ) );
         magma_zmfree( &MT, queue );
         CHECK( magma_zmtranspose( QT, &MT, queue ) );
         magma_zmfree( &QT, queue );
-        
     } else if( precond->trisolver == Magma_VBJACOBI ){ // block diagonal structure with variable blocksize
         CHECK( magma_z_mtransfer( A, &QT, A.memory_location, Magma_CPU, queue ) );
         magma_zmfree( &MT, queue );
@@ -230,35 +228,35 @@ magma_ziluisaisetup(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %d is too large by %d\n", i, maxsize-32); 
+            printf("%%   error for ISAI: size of system %d is too large by %d\n", i, maxsize-32);
             break;
         }
     }
-    printf("%% nnz in U-ISAI (total max/row): %d %d\n", nnzU, maxsize); 
+    printf("%% nnz in U-ISAI (total max/row): %d %d\n", nnzU, maxsize);
     // this can be modified to the thread-block-size
     if( maxsize > warpsize ){
-       info = -(maxsize - warpsize);     
+       info = -(maxsize - warpsize);
        goto cleanup;
     }
     // via main memory
     // CHECK( magma_z_mtransfer( MT, &LT, Magma_DEV, Magma_DEV, queue ) );
     // if( maxsize <= 8 ){
-    //     CHECK( magma_zisaigenerator_8_gpu( MagmaUpper, MagmaNoTrans, MagmaNonUnit, 
+    //     CHECK( magma_zisaigenerator_8_gpu( MagmaUpper, MagmaNoTrans, MagmaNonUnit,
     //                 LT, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
     // } else if( maxsize <= 16 ){
-    //     CHECK( magma_zisaigenerator_16_gpu( MagmaUpper, MagmaNoTrans, MagmaNonUnit, 
+    //     CHECK( magma_zisaigenerator_16_gpu( MagmaUpper, MagmaNoTrans, MagmaNonUnit,
     //                 LT, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
     // } else {
-    //     CHECK( magma_zisaigenerator_32_gpu( MagmaUpper, MagmaNoTrans, MagmaNonUnit, 
+    //     CHECK( magma_zisaigenerator_32_gpu( MagmaUpper, MagmaNoTrans, MagmaNonUnit,
     //                 LT, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
     // }
     // via registers
-     CHECK( magma_zisai_generator_regs( MagmaUpper, MagmaNoTrans, MagmaNonUnit, 
+     CHECK( magma_zisai_generator_regs( MagmaUpper, MagmaNoTrans, MagmaNonUnit,
                     precond->U, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
-    
+
      CHECK( magma_zmtranspose( MT, &precond->UD, queue ) );
-     // magma_z_mvisu( precond->UD, queue ); 
-     
+     // magma_z_mvisu( precond->UD, queue );
+
 cleanup:
     // magma_free( sizes_d );
     magma_free_cpu( sizes_h );
@@ -268,10 +266,10 @@ cleanup:
     magma_zmfree( &LT, queue );
     magma_zmfree( &MT, queue );
     magma_zmfree( &QT, queue );
-    
+
     return info;
 }
-    
+
 
 
 
@@ -279,10 +277,10 @@ cleanup:
     Purpose
     -------
 
-    Prepares Incomplete LU preconditioner using a sparse approximate inverse 
+    Prepares Incomplete LU preconditioner using a sparse approximate inverse
     instead of sparse triangular solves. This is the transpose preconditioner
     setup needed e.g. for BiCG, QMR, LSQR...
-    
+
 
     Arguments
     ---------
@@ -290,7 +288,7 @@ cleanup:
     @param[in]
     A           magma_z_matrix
                 input matrix A
-                
+
     @param[in]
     b           magma_z_matrix
                 input RHS b
@@ -298,7 +296,7 @@ cleanup:
     @param[in,out]
     precond     magma_z_preconditioner*
                 preconditioner parameters
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -315,38 +313,38 @@ magma_ziluisaisetup_t(
 {
     magma_int_t info = 0;
     // real_Double_t start, end;
-    
-    magmaDoubleComplex *trisystems_d = NULL; 
-    magmaDoubleComplex *rhs_d = NULL; 
-    magma_index_t *sizes_d = NULL, *locations_d = NULL; 
-    magma_index_t *sizes_h = NULL; 
+
+    magmaDoubleComplex *trisystems_d = NULL;
+    magmaDoubleComplex *rhs_d = NULL;
+    magma_index_t *sizes_d = NULL, *locations_d = NULL;
+    magma_index_t *sizes_h = NULL;
     magma_int_t maxsize, nnzloc, nnzL=0, nnzU=0;
     int warpsize=32;
     int offset = 0; // can be changed to better match the matrix structure
     magma_z_matrix LT={Magma_CSR}, MT={Magma_CSR}, QT={Magma_CSR};
     magma_int_t z;
     // magma_int_t timing = 1;
-    
+
 #if (CUDA_VERSION <= 6000) // this won't work, just to have something...
     printf( "%% error: ISAI preconditioner requires CUDA > 6.0.\n" );
     info = MAGMA_ERR_NOT_SUPPORTED;
     goto cleanup;
 #endif
-    
+
     CHECK( magma_index_malloc_cpu( &sizes_h, A.num_rows+1 ) );
-    
+
     for( magma_int_t i=0; i<A.num_rows; i++ ){
             maxsize = sizes_h[i] = 0;
     }
     // ILU setup
-    
+
     // we need this in any case
     CHECK( magma_zmtranspose( precond->L, &MT, queue ) );
-    
-    // SPAI for L 
+
+    // SPAI for L
     if( precond->trisolver == Magma_JACOBI ){ // block diagonal structure
         if( precond->pattern == 0 ){
-            precond->pattern = 1;    
+            precond->pattern = 1;
         }
         CHECK( magma_zmisai_blockstruct( A.num_rows, precond->pattern, offset, MagmaLower, &MT, queue ) );
         CHECK( magma_z_mtransfer( MT, &QT, Magma_CPU, Magma_DEV, queue ) );
@@ -394,40 +392,39 @@ magma_ziluisaisetup_t(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %d is too large by %d\n", i, maxsize-32); 
+            printf("%%   error for ISAI: size of system %d is too large by %d\n", i, maxsize-32);
             break;
         }
     }
     // this can be modified to the thread-block-size
     if( maxsize > warpsize ){
-       info = -(maxsize - warpsize);     
+       info = -(maxsize - warpsize);
        goto cleanup;
     }
     // via registers
-     CHECK( magma_zisai_generator_regs( MagmaLower, MagmaNoTrans, MagmaNonUnit, 
+     CHECK( magma_zisai_generator_regs( MagmaLower, MagmaNoTrans, MagmaNonUnit,
                     precond->L, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
-      
-    
+
+
     CHECK( magma_z_mtransfer( MT, &precond->LDT, Magma_CPU, Magma_DEV, queue ) );
     //CHECK( magma_zmtranspose( MT, &precond->LDT, queue ) );
     magma_zmfree( &LT, queue );
     magma_zmfree( &MT, queue );
-   
+
    // we need this in any case
    CHECK( magma_zmtranspose( precond->U, &MT, queue ) );
-    
+
     // SPAI for U
     if( precond->trisolver == Magma_JACOBI ){ // block diagonal structure
-        
+
         if( precond->pattern == 0 ){
-            precond->pattern = 1;    
+            precond->pattern = 1;
         }
         CHECK( magma_zmisai_blockstruct( A.num_rows, precond->pattern, offset, MagmaUpper, &MT, queue ) );
         CHECK( magma_z_mtransfer( MT, &QT, Magma_CPU, Magma_DEV, queue ) );
         magma_zmfree( &MT, queue );
         CHECK( magma_zmtranspose( QT, &MT, queue ) );
         magma_zmfree( &QT, queue );
-        
     } else if( precond->trisolver == Magma_VBJACOBI ){ // block diagonal structure with variable blocksize
         CHECK( magma_z_mtransfer( A, &QT, A.memory_location, Magma_CPU, queue ) );
         magma_zmfree( &MT, queue );
@@ -469,31 +466,31 @@ magma_ziluisaisetup_t(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %d is too large by %d\n", i, maxsize-32); 
+            printf("%%   error for ISAI: size of system %d is too large by %d\n", i, maxsize-32);
             break;
         }
     }
     // this can be modified to the thread-block-size
     if( maxsize > warpsize ){
-       info = -(maxsize - warpsize);     
+       info = -(maxsize - warpsize);
        goto cleanup;
     }
     // via registers
-     CHECK( magma_zisai_generator_regs( MagmaUpper, MagmaNoTrans, MagmaNonUnit, 
+     CHECK( magma_zisai_generator_regs( MagmaUpper, MagmaNoTrans, MagmaNonUnit,
                     precond->U, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
-     
+
      CHECK( magma_z_mtransfer( MT, &precond->UDT, Magma_CPU, Magma_DEV, queue ) );
     //CHECK( magma_zmtranspose( MT, &precond->UDT, queue ) );
-     
+
 cleanup:
     magma_free_cpu( sizes_h );
     magma_zmfree( &LT, queue );
     magma_zmfree( &MT, queue );
     magma_zmfree( &QT, queue );
-    
+
     return info;
 }
-    
+
 
 
 
@@ -503,7 +500,7 @@ cleanup:
     -------
 
     Left-hand-side application of ISAI preconditioner.
-    
+
 
     Arguments
     ---------
@@ -511,7 +508,7 @@ cleanup:
     @param[in]
     b           magma_z_matrix
                 input RHS b
-                
+
     @param[in,out]
     x           magma_z_matrix
                 solution x
@@ -519,7 +516,7 @@ cleanup:
     @param[in,out]
     precond     magma_z_preconditioner*
                 preconditioner parameters
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -533,7 +530,6 @@ magma_zisai_l(
     magma_z_matrix *x,
     magma_z_preconditioner *precond,
     magma_queue_t queue ){
-
     magma_int_t info = 0;
 
     if( precond->maxiter == 0 ){
@@ -544,7 +540,7 @@ magma_zisai_l(
         for( int z=0; z<precond->maxiter; z++ ){
             magma_z_spmv( MAGMA_Z_ONE, precond->L, *x, MAGMA_Z_ZERO, precond->work1, queue ); // work1 = L * x
             magma_z_spmv( MAGMA_Z_ONE, precond->LD, precond->work1, MAGMA_Z_ZERO, precond->work2, queue ); // work2 = L_d^(-1)work1
-            magma_zaxpy( b.num_rows*b.num_cols, -MAGMA_Z_ONE, precond->work2.dval, 1 , x->dval, 1, queue );        // x = - work2   
+            magma_zaxpy( b.num_rows*b.num_cols, -MAGMA_Z_ONE, precond->work2.dval, 1 , x->dval, 1, queue );        // x = - work2
             magma_zaxpy( b.num_rows*b.num_cols, MAGMA_Z_ONE, precond->d.dval, 1 , x->dval, 1, queue );        // x = d + x = L_d^(-1)b - work2 = L_d^(-1)b - L_d^(-1) * L * x
         }
     }
@@ -558,7 +554,7 @@ magma_zisai_l(
     -------
 
     Right-hand-side application of ISAI preconditioner.
-    
+
 
     Arguments
     ---------
@@ -566,7 +562,7 @@ magma_zisai_l(
     @param[in]
     b           magma_z_matrix
                 input RHS b
-                
+
     @param[in,out]
     x           magma_z_matrix
                 solution x
@@ -574,7 +570,7 @@ magma_zisai_l(
     @param[in,out]
     precond     magma_z_preconditioner*
                 preconditioner parameters
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -588,7 +584,6 @@ magma_zisai_r(
     magma_z_matrix *x,
     magma_z_preconditioner *precond,
     magma_queue_t queue ){
-
     magma_int_t info = 0;
 
     if( precond->maxiter == 0 ){
@@ -613,7 +608,7 @@ magma_zisai_r(
     -------
 
     Left-hand-side application of ISAI preconditioner. Transpose.
-    
+
 
     Arguments
     ---------
@@ -621,7 +616,7 @@ magma_zisai_r(
     @param[in]
     b           magma_z_matrix
                 input RHS b
-                
+
     @param[in,out]
     x           magma_z_matrix
                 solution x
@@ -629,7 +624,7 @@ magma_zisai_r(
     @param[in,out]
     precond     magma_z_preconditioner*
                 preconditioner parameters
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -643,7 +638,6 @@ magma_zisai_l_t(
     magma_z_matrix *x,
     magma_z_preconditioner *precond,
     magma_queue_t queue ){
-
     magma_int_t info = 0;
 
     if( precond->maxiter == 0 ){
@@ -668,7 +662,7 @@ magma_zisai_l_t(
     -------
 
     Right-hand-side application of ISAI preconditioner. Transpose.
-    
+
 
     Arguments
     ---------
@@ -676,7 +670,7 @@ magma_zisai_l_t(
     @param[in]
     b           magma_z_matrix
                 input RHS b
-                
+
     @param[in,out]
     x           magma_z_matrix
                 solution x
@@ -684,7 +678,7 @@ magma_zisai_l_t(
     @param[in,out]
     precond     magma_z_preconditioner*
                 preconditioner parameters
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -698,7 +692,6 @@ magma_zisai_r_t(
     magma_z_matrix *x,
     magma_z_preconditioner *precond,
     magma_queue_t queue ){
-
     magma_int_t info = 0;
 
     if( precond->maxiter == 0 ){
@@ -716,4 +709,3 @@ magma_zisai_r_t(
 
     return info;
 }
-
