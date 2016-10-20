@@ -24,8 +24,8 @@
 // includes, papi
 #ifdef HAVE_PAPI
 #include "papi.h"
-#define NUM_EVENTS 1		 /* # of PAPI events */
-#define PAPI				 /* PAPI test variable */
+#define NUM_EVENTS 1         /* # of PAPI events */
+#define PAPI                 /* PAPI test variable */
 //#define NAME_TO_CODE
 #endif  // HAVE_PAPI
 
@@ -34,19 +34,19 @@
 */
 int main(  int argc, char** argv )
 {
-	
+    
 #ifdef PAPI
-	int retval, i;
-	int EventSet = PAPI_NULL;
-	long long values[NUM_EVENTS];
+    int retval, i;
+    int EventSet = PAPI_NULL;
+    long long values[NUM_EVENTS];
 #ifdef NAME_TO_CODE
-	char *EventName[] = { "PAPI_FP_OPS" };
-	int events[NUM_EVENTS];
-#else	
-	int events[NUM_EVENTS] = { PAPI_FP_OPS };
-	char event_name[PAPI_MAX_STR_LEN];
+    char *EventName[] = { "PAPI_FP_OPS" };
+    int events[NUM_EVENTS];
+#else    
+    int events[NUM_EVENTS] = { PAPI_FP_OPS };
+    char event_name[PAPI_MAX_STR_LEN];
 #endif
-#endif	
+#endif    
 
     magma_int_t info = 0;
     TESTING_CHECK( magma_init() );
@@ -85,83 +85,83 @@ int main(  int argc, char** argv )
         TESTING_CHECK( magma_zmscale( &A, zopts.scaling, queue ));
 
         /**************************** START PAPI **********************************/
-	
+    
 #ifdef PAPI
-	/* PAPI Initialization */
-	retval = PAPI_library_init( PAPI_VER_CURRENT );
-	if( retval != PAPI_VER_CURRENT )
-		fprintf( stderr, "PAPI_library_init failed\n" );
-	
-	printf( "PAPI_VERSION     : %4d %6d %7d\n",
-			PAPI_VERSION_MAJOR( PAPI_VERSION ),
-			PAPI_VERSION_MINOR( PAPI_VERSION ),
-			PAPI_VERSION_REVISION( PAPI_VERSION ) );
-	
-	
+    /* PAPI Initialization */
+    retval = PAPI_library_init( PAPI_VER_CURRENT );
+    if( retval != PAPI_VER_CURRENT )
+        fprintf( stderr, "PAPI_library_init failed\n" );
+    
+    printf( "PAPI_VERSION     : %4d %6d %7d\n",
+            PAPI_VERSION_MAJOR( PAPI_VERSION ),
+            PAPI_VERSION_MINOR( PAPI_VERSION ),
+            PAPI_VERSION_REVISION( PAPI_VERSION ) );
+    
+    
 #ifdef NAME_TO_CODE
-	/* convert PAPI native events to PAPI code */
-	for( i = 0; i < NUM_EVENTS; i++ )
-	{
-		retval = PAPI_event_name_to_code( EventName[i], &events[i] );
-		if( retval != PAPI_OK )
-			fprintf( stderr, "PAPI_event_name_to_code failed\n" );
-		else
-			printf( "Name %s --- Code: %x\n", EventName[i], events[i] );
-	}
+    /* convert PAPI native events to PAPI code */
+    for( i = 0; i < NUM_EVENTS; i++ )
+    {
+        retval = PAPI_event_name_to_code( EventName[i], &events[i] );
+        if( retval != PAPI_OK )
+            fprintf( stderr, "PAPI_event_name_to_code failed\n" );
+        else
+            printf( "Name %s --- Code: %x\n", EventName[i], events[i] );
+    }
 #endif
-	
-	retval = PAPI_create_eventset( &EventSet );
-	if( retval != PAPI_OK )
-		fprintf( stderr, "PAPI_create_eventset failed\n" );
-	
-	retval = PAPI_add_events( EventSet, events, NUM_EVENTS );
-	if( retval != PAPI_OK )
-		fprintf( stderr, "PAPI_add_events failed\n" );
-	
-	retval = PAPI_start( EventSet );
-	if( retval != PAPI_OK )
-		fprintf( stderr, "PAPI_start failed\n" );
+    
+    retval = PAPI_create_eventset( &EventSet );
+    if( retval != PAPI_OK )
+        fprintf( stderr, "PAPI_create_eventset failed\n" );
+    
+    retval = PAPI_add_events( EventSet, events, NUM_EVENTS );
+    if( retval != PAPI_OK )
+        fprintf( stderr, "PAPI_add_events failed\n" );
+    
+    retval = PAPI_start( EventSet );
+    if( retval != PAPI_OK )
+        fprintf( stderr, "PAPI_start failed\n" );
 #endif
-	
-	/**************************** END PAPI **********************************/ 
-	
+    
+    /**************************** END PAPI **********************************/ 
+    
         // preconditioner
         if ( zopts.solver_par.solver != Magma_ITERREF ) {
             TESTING_CHECK( magma_z_precondsetup( A, b, &zopts.solver_par, &zopts.precond_par, queue ) );
         }
 
     /**************************** START PAPI **********************************/
-	
+    
 #ifdef PAPI
-	retval = PAPI_stop( EventSet, values );
-	
-	printf("\n%% PAPI preconditioner info:");
-	printf("\nPAPIprecondinfo = [\n");
-	printf("%%   values		event_name\n");
-	printf("%%============================================================================%%\n");
+    retval = PAPI_stop( EventSet, values );
+    
+    printf("\n%% PAPI preconditioner info:");
+    printf("\nPAPIprecondinfo = [\n");
+    printf("%%   values        event_name\n");
+    printf("%%============================================================================%%\n");
         
-	if( retval != PAPI_OK )
-		fprintf( stderr, "PAPI_stop failed\n" );
-	
-	for( i = 0; i < NUM_EVENTS; i++ )
-	{
+    if( retval != PAPI_OK )
+        fprintf( stderr, "PAPI_stop failed\n" );
+    
+    for( i = 0; i < NUM_EVENTS; i++ )
+    {
 #ifdef NAME_TO_CODE
-		printf( "%% %s \n", EventName[i] );
-		printf( "  %12lld \n", values[i] );
+        printf( "%% %s \n", EventName[i] );
+        printf( "  %12lld \n", values[i] );
 #else
-		retval = PAPI_event_code_to_name( events[i], event_name );
-		if( retval != PAPI_OK )
-			fprintf( stderr, "PAPI_event_code_to_name failed\n" );
-		
-		printf( "%% %s \n", event_name );
-		printf( "  %12lld \n", values[i] );
+        retval = PAPI_event_code_to_name( events[i], event_name );
+        if( retval != PAPI_OK )
+            fprintf( stderr, "PAPI_event_code_to_name failed\n" );
+        
+        printf( "%% %s \n", event_name );
+        printf( "  %12lld \n", values[i] );
 #endif
-	printf("%%============================================================================%%\n");
+    printf("%%============================================================================%%\n");
     printf("];\n");
-	}
+    }
 #endif
-	
-	/**************************** END PAPI **********************************/       
+    
+    /**************************** END PAPI **********************************/       
         
         TESTING_CHECK( magma_zmconvert( A, &B, Magma_CSR, zopts.output_format, queue ));
         
@@ -186,51 +186,51 @@ int main(  int argc, char** argv )
         //magma_zmfree(&x, queue );
         TESTING_CHECK( magma_zvinit( &x, Magma_DEV, A.num_cols, 1, zero, queue ));
 
-	/**************************** START PAPI **********************************/
-	
+    /**************************** START PAPI **********************************/
+    
 #ifdef PAPI
-	
-	retval = PAPI_start( EventSet );
-	if( retval != PAPI_OK )
-		fprintf( stderr, "PAPI_start failed\n" );
+    
+    retval = PAPI_start( EventSet );
+    if( retval != PAPI_OK )
+        fprintf( stderr, "PAPI_start failed\n" );
 #endif
-	
-	/**************************** END PAPI **********************************/        
+    
+    /**************************** END PAPI **********************************/        
         
         info = magma_z_solver( B_d, b, &x, &zopts, queue );
         
     /**************************** START PAPI **********************************/
-	
+    
 #ifdef PAPI
-	retval = PAPI_stop( EventSet, values );
-	
-	printf("\n%% PAPI solver info:");
-	printf("\nPAPIsolverinfo = [\n");
-	printf("%%   values		event_name\n");
-	printf("%%============================================================================%%\n");
+    retval = PAPI_stop( EventSet, values );
+    
+    printf("\n%% PAPI solver info:");
+    printf("\nPAPIsolverinfo = [\n");
+    printf("%%   values        event_name\n");
+    printf("%%============================================================================%%\n");
         
-	if( retval != PAPI_OK )
-		fprintf( stderr, "PAPI_stop failed\n" );
-	
-	for( i = 0; i < NUM_EVENTS; i++ )
-	{
+    if( retval != PAPI_OK )
+        fprintf( stderr, "PAPI_stop failed\n" );
+    
+    for( i = 0; i < NUM_EVENTS; i++ )
+    {
 #ifdef NAME_TO_CODE
-		printf( "%% %s \n", EventName[i] );
-		printf( "  %12lld \n", values[i] );
+        printf( "%% %s \n", EventName[i] );
+        printf( "  %12lld \n", values[i] );
 #else
-		retval = PAPI_event_code_to_name( events[i], event_name );
-		if( retval != PAPI_OK )
-			fprintf( stderr, "PAPI_event_code_to_name failed\n" );
-		
-		printf( "%% %s \n", event_name );
-		printf( "  %12lld \n", values[i] );
+        retval = PAPI_event_code_to_name( events[i], event_name );
+        if( retval != PAPI_OK )
+            fprintf( stderr, "PAPI_event_code_to_name failed\n" );
+        
+        printf( "%% %s \n", event_name );
+        printf( "  %12lld \n", values[i] );
 #endif
-	printf("%%============================================================================%%\n");
+    printf("%%============================================================================%%\n");
     printf("];\n");
-	}
+    }
 #endif
-	
-	/**************************** END PAPI **********************************/        
+    
+    /**************************** END PAPI **********************************/        
         
         if( info != 0 ) {
             printf("%%error: solver returned: %s (%lld).\n",
