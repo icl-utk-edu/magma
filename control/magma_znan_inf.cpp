@@ -80,7 +80,7 @@ int magma_z_isnan_inf( magmaDoubleComplex x )
     -------
     magma_znan_inf checks a matrix that is located on the CPU host
     for NAN (not-a-number) and INF (infinity) values.
-    
+
     NAN is created by 0/0 and similar.
     INF is created by x/0 and similar, where x != 0.
 
@@ -116,7 +116,7 @@ int magma_z_isnan_inf( magmaDoubleComplex x )
     @param[out]
     cnt_inf INTEGER*
             If non-NULL, on exit contains the number of INF values in A.
-            
+
     @return
       -     >= 0:  Returns number of NAN + number of INF values.
       -     <  0:  If it returns -i, the i-th argument had an illegal value,
@@ -188,7 +188,7 @@ magma_int_t magma_znan_inf(
     -------
     magma_znan_inf checks a matrix that is located on the CPU host
     for NAN (not-a-number) and INF (infinity) values.
-    
+
     NAN is created by 0/0 and similar.
     INF is created by x/0 and similar, where x != 0.
 
@@ -224,7 +224,11 @@ magma_int_t magma_znan_inf(
     @param[out]
     cnt_inf INTEGER*
             If non-NULL, on exit contains the number of INF values in A.
-            
+
+    @param[in]
+    queue   magma_queue_t
+            Queue to execute in.
+
     @return
       -     >= 0:  Returns number of NAN + number of INF values.
       -     <  0:  If it returns -i, the i-th argument had an illegal value,
