@@ -4,6 +4,9 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
+       
+       @author Hartwig Anzt
+       @author Goran Flegar
 
        @precisions normal z -> c d s
 
