@@ -193,7 +193,7 @@ magma_zparilutsetup(
     }
 
     if (timing == 1) {
-        printf("performance_%d = \[\n%%iter\tL.nnz\tU.nnz\trm L\trm U\trowmajor\tcandidates\tresiduals\tselect\t\tinsert\t\treorder\t\tsweep\t\tthreshold\tremove\t\treorder\t\tsweeep\t\ttotal\t\t\taccum\n", (int) num_threads);
+        printf("performance_%d = [\n%%iter\tL.nnz\tU.nnz\trm L\trm U\trowmajor\tcandidates\tresiduals\tselect\t\tinsert\t\treorder\t\tsweep\t\tthreshold\tremove\t\treorder\t\tsweeep\t\ttotal\t\t\taccum\n", (int) num_threads);
     }
 
     //##########################################################################

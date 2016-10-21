@@ -764,7 +764,7 @@ magma_zmconvert(
                 while (base < MAGMA_CSR5_OMEGA)
                 { base *= 2; B->csr5_bit_scansum_offset++; }
 
-                if (B->csr5_bit_y_offset + B->csr5_bit_scansum_offset >
+                if ( (size_t) B->csr5_bit_y_offset + B->csr5_bit_scansum_offset >
                     sizeof(magma_uindex_t) * 8 - 1)
                 {
                     printf("error: csr5-omega not supported.\n");
