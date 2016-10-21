@@ -202,11 +202,11 @@ magma_zpotrf_lg_vbatched(
                             d_beta,
                             hA_array[k] + j+my_ib+(j+my_ib)*lda[k], lda[k], queues[streamid] );
                     }
-                 }
-                 if ( queue != NULL ) {
-                     for (magma_int_t s=0; s < nbstreams; s++)
-                         magma_queue_sync(queues[s]);
-                 }
+                }
+                if (queue != NULL) {
+                    for (magma_int_t s=0; s < nbstreams; s++)
+                        magma_queue_sync( queues[s] );
+                }
             }
             else{
                 // use magmablas

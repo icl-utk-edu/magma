@@ -116,7 +116,7 @@ magma_zpotrs_batched(
     magmaDoubleComplex* dwork      = NULL; // dinvA and dwork are workspace in ztrsm
     magma_zmalloc( &dinvA, invA_msize * batchCount);
     magma_zmalloc( &dwork, dwork_msize * batchCount );
-   /* check allocation */
+    /* check allocation */
     if ( dW1_displ == NULL || dW2_displ == NULL || dW3_displ   == NULL || dW4_displ   == NULL || 
          dinvA_array == NULL || dwork_array == NULL || dinvA     == NULL || dwork     == NULL ) {
         magma_free(dW1_displ);

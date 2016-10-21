@@ -53,14 +53,15 @@ magma_zbajac_csr_o_ls_kernel(int localiters, int n,
     //colD = D[ (1+blockIdx.x-1)%matrices ].dcol;
     //rowD = D[ (1+blockIdx.x-1)%matrices ].drow;
     
-        if( blockIdx.x%2==1 ){
+    if (blockIdx.x%2 == 1) {
         valR = R[0].dval;
         valD = D[0].dval;
         colR = R[0].dcol;
         rowR = R[0].drow;
         colD = D[0].dcol;
         rowD = D[0].drow;
-    }else{
+    }
+    else {
         valR = R[1].dval;
         valD = D[1].dval;
         colR = R[1].dcol;
@@ -80,38 +81,37 @@ printf("bdx:%d idx:%d  start:%d  end:%d\n", blockIdx.x, threadIdx.x, start, end)
         bl = b[index];
 #endif
 
-
-     #pragma unroll
-     for( i=start; i<end; i++ )
-          v += valR[i] * x[ colR[i] ];
-
-     start = rowD[index];
-     end   = rowD[index+1];
-
-     #pragma unroll
-     for( i=start; i<end; i++ )
-         tmp += valD[i] * x[ colD[i] ];
-
-     v =  bl - v;
-
-     // add more local iterations            
-
-     local_x[threadIdx.x] = x[index]; //+ ( v - tmp); // / (valD[start]);
-     __syncthreads();
-
-     #pragma unroll
-     for( j=0; j<localiters-1; j++ )
-     {
-         tmp = zero;
-         #pragma unroll
-         for( i=start; i<end; i++ )
-             tmp += valD[i] * local_x[ colD[i] - inddiag];
-     
-         local_x[threadIdx.x] +=  ( v - tmp) / (valD[start]);
-     }
-     if( threadIdx.x > overlap ) { // RAS
-         x[index] = local_x[threadIdx.x];
-     }
+        #pragma unroll
+        for (i = start; i < end; i++)
+             v += valR[i] * x[ colR[i] ];
+        
+        start = rowD[index];
+        end   = rowD[index+1];
+        
+        #pragma unroll
+        for (i = start; i < end; i++)
+            tmp += valD[i] * x[ colD[i] ];
+        
+        v =  bl - v;
+        
+        // add more local iterations            
+        
+        local_x[threadIdx.x] = x[index]; //+ ( v - tmp); // / (valD[start]);
+        __syncthreads();
+        
+        #pragma unroll
+        for (j = 0; j < localiters-1; j++)
+        {
+            tmp = zero;
+            #pragma unroll
+            for (i = start; i < end; i++)
+                tmp += valD[i] * local_x[ colD[i] - inddiag];
+        
+            local_x[threadIdx.x] +=  ( v - tmp) / (valD[start]);
+        }
+        if (threadIdx.x > overlap) { // RAS
+            x[index] = local_x[threadIdx.x];
+        }
     }
 }
 
@@ -213,9 +213,10 @@ magma_zbajac_csr_o_ls_kernel2(int localiters, int n,
     magmaDoubleComplex *valR, *valD;
     magma_index_t *colR, *rowR, *colD, *rowD;
     
-          if ( blockIdx.x%matrices==0 ) {
+    if (blockIdx.x%matrices == 0) {
         valR = valR1; valD = valD1; colR = colR1; rowR = rowR1; colD = colD1; rowD = rowD1;
-    }else if ( blockIdx.x%matrices==1 ) {
+    }
+    else if (blockIdx.x%matrices == 1) {
         valR = valR0; valD = valD0; colR = colR0; rowR = rowR0; colD = colD0; rowD = rowD0;
     }
     
@@ -347,8 +348,6 @@ magma_zbajac_csr_o_ls_kernel4(int localiters, int n,
 }
 
 
-
-
 __global__ void
 magma_zbajac_csr_o_ls_kernel8(int localiters, int n, 
                              int matrices, int overlap, 
@@ -470,7 +469,7 @@ magma_zbajac_csr_o_ls_kernel16(int localiters, int n,
     magmaDoubleComplex *valR, *valD;
     magma_index_t *colR, *rowR, *colD, *rowD;
     
-         if ( blockIdx.x%matrices==0  ) { valR = valR15; valD = valD15; colR = colR15; rowR = rowR15; colD = colD15; rowD = rowD15; }
+    if      ( blockIdx.x%matrices==0  ) { valR = valR15; valD = valD15; colR = colR15; rowR = rowR15; colD = colD15; rowD = rowD15; }
     else if ( blockIdx.x%matrices==1  ) { valR = valR14; valD = valD14; colR = colR14; rowR = rowR14; colD = colD14; rowD = rowD14; }
     else if ( blockIdx.x%matrices==2  ) { valR = valR13; valD = valD13; colR = colR13; rowR = rowR13; colD = colD13; rowD = rowD13; }
     else if ( blockIdx.x%matrices==3  ) { valR = valR12; valD = valD12; colR = colR12; rowR = rowR12; colD = colD12; rowD = rowD12; }
@@ -583,7 +582,7 @@ magma_zbajac_csr_o_ls_kernel32(int localiters, int n,
     magmaDoubleComplex *valR, *valD;
     magma_index_t *colR, *rowR, *colD, *rowD;
     
-         if ( blockIdx.x%matrices==0  ) { valR = valR31; valD = valD31; colR = colR31; rowR = rowR31; colD = colD31; rowD = rowD31; }
+    if      ( blockIdx.x%matrices==0  ) { valR = valR31; valD = valD31; colR = colR31; rowR = rowR31; colD = colD31; rowD = rowD31; }
     else if ( blockIdx.x%matrices==1  ) { valR = valR30; valD = valD30; colR = colR30; rowR = rowR30; colD = colD30; rowD = rowD30; }
     else if ( blockIdx.x%matrices==2  ) { valR = valR29; valD = valD29; colR = colR29; rowR = rowR29; colD = colD29; rowD = rowD29; }
     else if ( blockIdx.x%matrices==3  ) { valR = valR28; valD = valD28; colR = colR28; rowR = rowR28; colD = colD28; rowD = rowD28; }
@@ -744,7 +743,7 @@ magma_zbajac_csr_o_ls_kernel64(int localiters, int n,
     magmaDoubleComplex *valR, *valD;
     magma_index_t *colR, *rowR, *colD, *rowD;
     
-         if ( blockIdx.x%matrices==0  ) { valR = valR63; valD = valD63; colR = colR63; rowR = rowR63; colD = colD63; rowD = rowD63; }
+    if      ( blockIdx.x%matrices==0  ) { valR = valR63; valD = valD63; colR = colR63; rowR = rowR63; colD = colD63; rowD = rowD63; }
     else if ( blockIdx.x%matrices==1  ) { valR = valR62; valD = valD62; colR = colR62; rowR = rowR62; colD = colD62; rowD = rowD62; }
     else if ( blockIdx.x%matrices==2  ) { valR = valR61; valD = valD61; colR = colR61; rowR = rowR61; colD = colD61; rowD = rowD61; }
     else if ( blockIdx.x%matrices==3  ) { valR = valR60; valD = valD60; colR = colR60; rowR = rowR60; colD = colD60; rowD = rowD60; }
@@ -857,15 +856,6 @@ magma_zbajac_csr_o_ls_kernel64(int localiters, int n,
         }
     }
 }
-
-
-
-
-
-
-
-
-
 
 
 /**

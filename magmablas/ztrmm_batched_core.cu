@@ -237,7 +237,7 @@ magmablas_ztrmm_batched_core(
             }
             break;
         case 4: // rNL
-             {
+            {
                 const int n2 = magma_get_ztrmm_batched_nb(n); 
                 const int n1 = n - n2;
 

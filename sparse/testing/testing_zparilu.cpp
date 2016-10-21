@@ -239,9 +239,6 @@ cudaProfilerStop();
         magma_z_mfree( &hU, queue );
         magma_z_mfree( &hUT, queue );
         magma_z_mfree( &hAtmp, queue );
-
-
-
     }//multiple runs
 
     iluresavg = iluresavg/numavg;

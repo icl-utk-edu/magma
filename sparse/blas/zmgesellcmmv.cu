@@ -420,7 +420,7 @@ zmgesellptmv_kernel_1_3D_tex(
             dy[row+num_rows*idy*2+num_rows] = 
                                 dot2*alpha
                                 + beta*dy [row*num_vecs+idy*2+1];
-       }                
+        }
     }
 #endif
 }

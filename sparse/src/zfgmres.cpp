@@ -30,8 +30,6 @@
 #define ABS(x)   ((x)<0 ? (-(x)) : (x))
 
 
-
-
 #define RTOLERANCE     lapackf77_dlamch( "E" )
 #define ATOLERANCE     lapackf77_dlamch( "E" )
 

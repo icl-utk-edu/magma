@@ -159,8 +159,8 @@ int main( int argc, char** argv)
             h_C_tmp = h_C;
             for (int i=0; i < batchCount; i++)
             {
-               magma_zmake_symmetric( h_N[i], h_C_tmp, h_ldc[i] ); 
-               h_C_tmp += h_N[i] * h_ldc[i];
+                magma_zmake_symmetric( h_N[i], h_C_tmp, h_ldc[i] ); 
+                h_C_tmp += h_N[i] * h_ldc[i];
             }
             
             /* =====================================================================
@@ -230,11 +230,11 @@ int main( int argc, char** argv)
                 #endif
                 for (int i=0; i < batchCount; i++)
                 {
-                   blasf77_zsyrk(
-                               lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA),
-                               &h_N[i], &h_K[i],
-                               &alpha, h_A_array[i], &h_lda[i],
-                               &beta,  h_C_array[i], &h_ldc[i] );
+                    blasf77_zsyrk( lapack_uplo_const(opts.uplo),
+                                   lapack_trans_const(opts.transA),
+                                   &h_N[i], &h_K[i],
+                                   &alpha, h_A_array[i], &h_lda[i],
+                                   &beta,  h_C_array[i], &h_ldc[i] );
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);

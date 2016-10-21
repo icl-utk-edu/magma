@@ -75,9 +75,6 @@ zgeellmv_kernel_shift(
 }
 
 
-
-
-
 /**
     Purpose
     -------

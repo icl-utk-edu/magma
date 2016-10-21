@@ -103,9 +103,6 @@ magma_zbicgstab_1(
 }
 
 
-
-
-
 __global__ void
 magma_zbicgstab_2_kernel(  
     int num_rows,
@@ -182,9 +179,6 @@ magma_zbicgstab_2(
 
     return MAGMA_SUCCESS;
 }
-
-
-
 
 
 __global__ void
@@ -285,8 +279,6 @@ magma_zbicgstab_3(
 
     return MAGMA_SUCCESS;
 }
-
-
 
 
 __global__ void

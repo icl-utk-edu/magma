@@ -661,9 +661,6 @@ magma_zcgmerge_spmvellpackrt_kernel_32(
 }
 
 
-
-
-
 // additional kernel necessary to compute first reduction step
 __global__ void
 magma_zcgmerge_spmvellpackrt_kernel2(  
@@ -1774,9 +1771,6 @@ magma_zjcgmerge_xrbeta_kernel(
             vtmp[ blockIdx.x+n ] = temp[ blockDim.x ];
     }
 }
-
-
-
 
 
 /**

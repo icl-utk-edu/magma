@@ -192,9 +192,6 @@ magma_zbombard_merge(
     CHECK( magma_zvinit( &B_s, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &B_t, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
 
-    
-    
-    
     // solver setup
     CHECK(  magma_zresidualvec( A, b, *x, &r_tld, &nom0, queue));
     solver_par->init_res = nom0;
@@ -566,9 +563,6 @@ magma_zbombard_merge(
         B_x.dval,
         B_r.dval,
         queue );
-        
-        
-
         
         if( mdot == 0 ){
             Q_res = magma_dznrm2( dofs, Q_r.dval, 1, queue );

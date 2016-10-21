@@ -69,7 +69,7 @@ magma_zparictsetup(
     
     magma_z_matrix hA={Magma_CSR}, LU={Magma_CSR}, LUT={Magma_CSR}, LU_new={Magma_CSR}, 
                    LUCSR={Magma_CSR}, L={Magma_CSR}, U={Magma_CSR},
-                   hAL={Magma_CSR}, hAUt={Magma_CSR} ;
+                   hAL={Magma_CSR}, hAUt={Magma_CSR};
                    
     magma_int_t num_rm, num_rm_gl;
     magmaDoubleComplex thrs = MAGMA_Z_ZERO;
@@ -133,68 +133,67 @@ magma_zparictsetup(
     start = magma_sync_wtime( queue );
     
     
-   for( magma_int_t iters =0; iters<precond->sweeps; iters++ ) {
-                // first: candidates
-                printf("\n%%candidates..."); fflush(stdout);
-                magma_zmilu0_candidates( L, LU, LUT, &LU_new, queue );
-                
-                
-                // then residuals
-                printf("residuals..."); fflush(stdout);
-                magma_zparict_residuals( A, LU, &LU_new, queue );
-                magma_zmeliminate_duplicates( num_rm, &LU_new, queue );
-                LU.nnz = LU.nnz+num_rm;
-                LUT.nnz = LUT.nnz+num_rm;
-                //then insert the largest residuals
-                printf("insert..."); fflush(stdout);
-                magma_zparilut_insert_LU( num_rm, rm_loc, rm_locT, &LU_new, &LU, &LUT, queue );
-
-                //now do a sweep
-                printf("sweep..."); fflush(stdout);
-                magma_zparict_sweep( &L, &LU, queue );
-                magma_zparict_sweep( &L, &LU, queue );
-                printf("threshold..."); fflush(stdout);
-                info = magma_zparilut_set_thrs( num_rm, &LU, 0, &thrs, queue );
-                if( info !=0 ){
-                    printf("%% error: breakdown in iteration :%d. fallback.\n\n", iters+1);
-                    info = 0;
-                    break;
-                }
-                
-                // and remove
-                printf("remove "); fflush(stdout);
-                printf("%d elements...", num_rm);
-                magma_zparilut_rm_thrs( &thrs, &num_rm, &LU, &LU_new, rm_loc, rowlock, queue );
-                magma_zparilut_rm_thrs_U( &thrs, &num_rm, &LUT, &LU_new, rm_locT, rowlock, queue );
-
-                printf("reorder..."); fflush(stdout);
-                info = magma_zparilut_reorder( &LU, queue );
-                info = magma_zparilut_reorder( &LUT, queue );
-                if( info !=0 ){
-                    printf("%% error: breakdown in iteration :%d. fallback.\n\n", iters+1);
-                    info = 0;
-                    break;
-                }
-                
-                LU.nnz = LU.nnz-num_rm;
-                LUT.nnz = LUT.nnz-num_rm;   
-                
-                //now do a sweep
-                printf("sweep..."); fflush(stdout);
-                magma_zparict_sweep( &L, &LU, queue );
-                magma_zparict_sweep( &L, &LU, queue );
-                magma_zparilut_copy( LU, &LUCSR, queue );
-                magma_zdiagcheck_cpu( LUCSR, queue );
-                for( magma_int_t z=0; z<num_rm; z++ ){
-                    rm_loc[z] = LU.nnz+z;
-                    rm_locT[z] = LU.nnz+z;
-                    LU.val[ LU.nnz+z ] = MAGMA_Z_ZERO;
-                    LU.list[ LU.nnz+z ] = -1;
-                    LUT.val[ LU.nnz+z ] = MAGMA_Z_ZERO;
-                    LUT.list[ LU.nnz+z ] = -1;
-                }
-                printf("done.\n"); fflush(stdout);
-   }
+    for (magma_int_t iters = 0; iters < precond->sweeps; iters++) {
+        // first: candidates
+        printf("\n%%candidates..."); fflush(stdout);
+        magma_zmilu0_candidates( L, LU, LUT, &LU_new, queue );
+        
+        // then residuals
+        printf("residuals..."); fflush(stdout);
+        magma_zparict_residuals( A, LU, &LU_new, queue );
+        magma_zmeliminate_duplicates( num_rm, &LU_new, queue );
+        LU.nnz = LU.nnz+num_rm;
+        LUT.nnz = LUT.nnz+num_rm;
+        //then insert the largest residuals
+        printf("insert..."); fflush(stdout);
+        magma_zparilut_insert_LU( num_rm, rm_loc, rm_locT, &LU_new, &LU, &LUT, queue );
+        
+        //now do a sweep
+        printf("sweep..."); fflush(stdout);
+        magma_zparict_sweep( &L, &LU, queue );
+        magma_zparict_sweep( &L, &LU, queue );
+        printf("threshold..."); fflush(stdout);
+        info = magma_zparilut_set_thrs( num_rm, &LU, 0, &thrs, queue );
+        if (info != 0) {
+            printf("%% error: breakdown in iteration :%d. fallback.\n\n", iters+1);
+            info = 0;
+            break;
+        }
+        
+        // and remove
+        printf("remove "); fflush(stdout);
+        printf("%d elements...", num_rm);
+        magma_zparilut_rm_thrs( &thrs, &num_rm, &LU, &LU_new, rm_loc, rowlock, queue );
+        magma_zparilut_rm_thrs_U( &thrs, &num_rm, &LUT, &LU_new, rm_locT, rowlock, queue );
+        
+        printf("reorder..."); fflush(stdout);
+        info = magma_zparilut_reorder( &LU, queue );
+        info = magma_zparilut_reorder( &LUT, queue );
+        if (info != 0) {
+            printf("%% error: breakdown in iteration :%d. fallback.\n\n", iters+1);
+            info = 0;
+            break;
+        }
+        
+        LU.nnz = LU.nnz-num_rm;
+        LUT.nnz = LUT.nnz-num_rm;   
+        
+        //now do a sweep
+        printf("sweep..."); fflush(stdout);
+        magma_zparict_sweep( &L, &LU, queue );
+        magma_zparict_sweep( &L, &LU, queue );
+        magma_zparilut_copy( LU, &LUCSR, queue );
+        magma_zdiagcheck_cpu( LUCSR, queue );
+        for (magma_int_t z = 0; z < num_rm; z++) {
+            rm_loc[z] = LU.nnz+z;
+            rm_locT[z] = LU.nnz+z;
+            LU.val[ LU.nnz+z ] = MAGMA_Z_ZERO;
+            LU.list[ LU.nnz+z ] = -1;
+            LUT.val[ LU.nnz+z ] = MAGMA_Z_ZERO;
+            LUT.list[ LU.nnz+z ] = -1;
+        }
+        printf("done.\n"); fflush(stdout);
+    }
     /*
     
     for( magma_int_t iters =0; iters<precond->sweeps; iters++ ) {

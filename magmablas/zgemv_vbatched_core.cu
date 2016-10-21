@@ -149,6 +149,6 @@ magmablas_zgemv_vbatched_max_nocheck(
                         ( trans, m, n, alpha, dA_array, ldda, dx_array, incx, beta, dy_array, incy, max_m, max_n, batchCount, queue );
                 }
             }
-        }        
-     }                   
+        }
+    }
 }

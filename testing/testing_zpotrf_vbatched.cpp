@@ -97,8 +97,8 @@ int main( int argc, char** argv)
             lapackf77_zlarnv( &ione, ISEED, &total_size_cpu, h_A );
             h_A_tmp = h_A; 
             for (int s=0; s < batchCount; s++){
-               magma_zmake_hpd( h_N[s], h_A_tmp, h_lda[s]); // need modification
-               h_A_tmp += h_N[s] * h_lda[s]; 
+                magma_zmake_hpd( h_N[s], h_A_tmp, h_lda[s]); // need modification
+                h_A_tmp += h_N[s] * h_lda[s]; 
             }
             
             h_A_tmp = h_A; h_R_tmp = h_R; d_A_tmp = d_A;

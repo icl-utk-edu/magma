@@ -32,8 +32,6 @@ magma_zlobpcg_maxpy_kernel(
 }
 
 
-
-
 /**
     Purpose
     -------

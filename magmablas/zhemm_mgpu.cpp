@@ -547,7 +547,7 @@ void magmablas_zhemm_mgpu(
                             &dwork2[gmaster][maxgsize*masterdev], m, queues[masterdev][gmaster] );
                         magma_event_record( events[masterdev][gmaster],   queues[masterdev][gmaster] );
                         magma_event_record( events[masterdev][masterdev], queues[masterdev][gmaster] );
-                      } // end of gmaster != -1
+                    } // end of gmaster != -1
                 } // end of k != cmplxid
             } // for k = 0: ncmplx
             // ========================================
@@ -626,9 +626,9 @@ void magmablas_zhemm_mgpu(
         } // end of if masterdev != -1 meaning complex is active
     } // for cmplxid
 
-   //printf("****************************************************\n");
-   //printf("                      finish zhemm                   \n");
-   //printf("****************************************************\n");
+    //printf("****************************************************\n");
+    //printf("                      finish zhemm                   \n");
+    //printf("****************************************************\n");
 
     magma_setdevice( orig_dev );
 }

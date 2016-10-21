@@ -207,11 +207,11 @@ magma_z_spmv(
                 }
             }
             /*if ( A.storage_type == Magma_DENSE ) {
-                 //printf("using DENSE kernel for SpMV: ");
-                 magmablas_zmgemv( MagmaNoTrans, A.num_rows, A.num_cols,
-                            num_vecs, alpha, A.dval, A.num_rows, x.dval, 1,
-                            beta,  y.dval, 1 );
-                 //printf("done.\n");
+                //printf("using DENSE kernel for SpMV: ");
+                magmablas_zmgemv( MagmaNoTrans, A.num_rows, A.num_cols,
+                           num_vecs, alpha, A.dval, A.num_rows, x.dval, 1,
+                           beta,  y.dval, 1 );
+                //printf("done.\n");
             }*/
             else {
                  printf("error: format not supported.\n");
@@ -234,9 +234,6 @@ cleanup:
     
     return info;
 }
-
-
-
 
 
 /**

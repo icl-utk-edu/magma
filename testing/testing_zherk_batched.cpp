@@ -147,11 +147,11 @@ int main( int argc, char** argv)
                 cpu_time = magma_wtime();
                 for (i=0; i < batchCount; i++)
                 {
-                   blasf77_zherk(
-                               lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA),
-                               &N, &K,
-                               &alpha, h_A + i*lda*Ak, &lda,
-                               &beta,  h_C + i*ldc*N, &ldc );
+                    blasf77_zherk( lapack_uplo_const(opts.uplo),
+                                   lapack_trans_const(opts.transA),
+                                   &N, &K,
+                                   &alpha, h_A + i*lda*Ak, &lda,
+                                   &beta,  h_C + i*ldc*N, &ldc );
                 }
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;

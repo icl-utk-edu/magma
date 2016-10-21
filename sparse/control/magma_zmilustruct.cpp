@@ -26,7 +26,7 @@
 
 
 void magma_zshell_sort(
-  const magma_int_t n, magma_index_t *x)
+    const magma_int_t n, magma_index_t *x)
 {
     magma_int_t m, max, j, k, itemp;
 
@@ -59,16 +59,16 @@ void magma_zshell_sort(
 extern "C"
 magma_int_t
 magma_zsymbolic_ilu(
-  const magma_int_t levfill,                 /* level of fill */
-  const magma_int_t n,                       /* order of matrix */
-  magma_int_t *nzl,                          /* input-output */
-  magma_int_t *nzu,                          /* input-output */
-  const mwIndex *ia,
-  const mwIndex *ja,    /* input */
-  mwIndex *ial,
-  mwIndex *jal,              /* output lower factor structure */
-  mwIndex *iau,
-  mwIndex *jau)              /* output upper factor structure */
+    const magma_int_t levfill,                 /* level of fill */
+    const magma_int_t n,                       /* order of matrix */
+    magma_int_t *nzl,                          /* input-output */
+    magma_int_t *nzu,                          /* input-output */
+    const mwIndex *ia,
+    const mwIndex *ja,    /* input */
+    mwIndex *ial,
+    mwIndex *jal,              /* output lower factor structure */
+    mwIndex *iau,
+    mwIndex *jau)              /* output upper factor structure */
 {
     magma_int_t info = 0;
     
@@ -221,7 +221,7 @@ magma_zsymbolic_ilu(
     *nzl = knzl;
     *nzu = knzu;
 
-   // printf("ende\n");
+    // printf("ende\n");
 
 #if 0
     printf( "Actual nnz for ILU: %d\n", *nzl + *nzu );

@@ -27,7 +27,7 @@ magmablas_zhemm_vbatched_max_nocheck(
         magma_int_t batchCount, magma_int_t max_m, magma_int_t max_n, 
         magma_queue_t queue )
 {
-   magmablas_zhemm_vbatched_core( 
+    magmablas_zhemm_vbatched_core( 
            side, uplo, m, n, 
            alpha, dA_array, ldda,
                   dB_array, lddb, 

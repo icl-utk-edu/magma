@@ -75,9 +75,6 @@ magma_zparilu_csr_kernel(
 }// kernel 
 
 
-
-
-
 /**
     Purpose
     -------

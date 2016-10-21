@@ -55,11 +55,11 @@ int main( int argc, char** argv)
     magma_scale_t scaling = Magma_UNITDIAG;
 
     for (inp=1; inp < argc; ++inp) {
-    	if ( strcmp("--dwitermax", argv[inp]) == 0 && inp+1 < argc ) {
-        	dwitermax = atoi( argv[++inp] );
+        if (strcmp("--dwitermax", argv[inp]) == 0 && inp+1 < argc) {
+            dwitermax = atoi( argv[++inp] );
         }
-        else if ( strcmp("--dweight", argv[inp]) == 0 && inp+1 < argc ) {
-        	double dwtmp = 0.0;
+        else if (strcmp("--dweight", argv[inp]) == 0 && inp+1 < argc) {
+            double dwtmp = 0.0;
             sscanf( argv[++inp], "%lf", &dwtmp );
             diagweight = MAGMA_Z_MAKE( dwtmp, 0.0 );
         }
@@ -79,7 +79,7 @@ int main( int argc, char** argv)
             }
         }
         else {
-        	break;	
+            break;
         }
     }
     printf("dwitermax=%d dweight=%e mscale=%d\n", dwitermax, MAGMA_Z_REAL(diagweight), scaling );
@@ -100,7 +100,7 @@ int main( int argc, char** argv)
 
     // optional scaling
     if (scaling != Magma_NOSCALE) {
-    	TESTING_CHECK( magma_zmscale( &hA, scaling, queue ) );
+        TESTING_CHECK( magma_zmscale( &hA, scaling, queue ) );
     }
 
         //################################################################//
@@ -115,42 +115,42 @@ int main( int argc, char** argv)
         cusparseHandle_t cusparseHandle;
         cusparseStatus_t cusparseStatus;
         cusparseStatus = cusparseCreate(&cusparseHandle);
-         if(cusparseStatus != 0)    printf("error in Handle.\n");
+        if (cusparseStatus != 0)    printf("error in Handle.\n");
         cusparseMatDescr_t descrA;
         cusparseStatus = cusparseCreateMatDescr(&descrA);
-         if(cusparseStatus != 0)    printf("error in MatrDescr.\n");
+        if (cusparseStatus != 0)    printf("error in MatrDescr.\n");
         cusparseStatus =
         cusparseSetMatType(descrA,CUSPARSE_MATRIX_TYPE_GENERAL);
-         if(cusparseStatus != 0)    printf("error in MatrType.\n");
+        if (cusparseStatus != 0)    printf("error in MatrType.\n");
         cusparseStatus =
         cusparseSetMatDiagType (descrA, CUSPARSE_DIAG_TYPE_NON_UNIT);
-         if(cusparseStatus != 0)    printf("error in DiagType.\n");
+        if (cusparseStatus != 0)    printf("error in DiagType.\n");
         cusparseStatus =
         cusparseSetMatIndexBase(descrA,CUSPARSE_INDEX_BASE_ZERO);
-         if(cusparseStatus != 0)    printf("error in IndexBase.\n");
+        if (cusparseStatus != 0)    printf("error in IndexBase.\n");
         cusparseSolveAnalysisInfo_t info;
         cusparseStatus =
         cusparseCreateSolveAnalysisInfo(&info);
-         if(cusparseStatus != 0)    printf("error in info.\n");
+        if (cusparseStatus != 0)    printf("error in info.\n");
         start = magma_sync_wtime( queue );
         cusparseStatus =
         cusparseZcsrsv_analysis( cusparseHandle, 
                                  CUSPARSE_OPERATION_NON_TRANSPOSE, 
                                  dA.num_rows, dA.nnz, descrA,
                                  dA.val, dA.row, dA.col, info); 
-         if(cusparseStatus != 0)    printf("error in analysis.\n");
+        if (cusparseStatus != 0)    printf("error in analysis.\n");
         cusparseStatus =
         cusparseZcsrilu0( cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, 
                           dA.num_rows, descrA, 
                          (magmaDoubleComplex*) dA.val, (const int *) dA.row, 
                          (const int *) dA.col, info);
-         if(cusparseStatus != 0)    printf("error in ILU.\n");
+        if (cusparseStatus != 0)    printf("error in ILU.\n");
                   //magma_zprint_matrix(dA, queue); getchar();
         end = magma_sync_wtime( queue );
         t_cusparse = end-start;
 
         cusparseDestroySolveAnalysisInfo( info );
-         if(cusparseStatus != 0)    printf("error in info-free.\n");
+        if (cusparseStatus != 0)    printf("error in info-free.\n");
 
         // end CUSPARSE context //
         magma_z_mtransfer( dA, &hAcusparse, Magma_DEV, Magma_CPU, queue );
@@ -229,19 +229,18 @@ int main( int argc, char** argv)
     magma_zmdiagadd( &hAU, diagweight, queue);    
     // number of AILU sweeps
     for(int iters=0; iters<101; iters+=1){
-    	// reduce diagonal weight
-    	if (iters>0 && iters<dwitermax) {
-          magmaDoubleComplex dwincr = MAGMA_Z_MAKE( -MAGMA_Z_REAL(diagweight) / (double)(dwitermax) , 0.0 ) ;
-          magma_zmdiagadd( &hAU, dwincr, queue); 
-        }	
+        // reduce diagonal weight
+        if (iters > 0 && iters < dwitermax) {
+            magmaDoubleComplex dwincr = MAGMA_Z_MAKE( -MAGMA_Z_REAL(diagweight) / (double)(dwitermax), 0.0 );
+            magma_zmdiagadd( &hAU, dwincr, queue); 
+        }
     // take average results for residuals
     real_Double_t resavg = 0.0;
     real_Double_t iluresavg = 0.0;
     real_Double_t nonlinresavg = 0.0;
     int nnz, numavg = 1;
     //multiple runs
-    for(int z=0; z<numavg; z++){
-
+    for (int z = 0; z < numavg; z++) {
         real_Double_t res = 0.0;
         real_Double_t ilures = 0.0;
         real_Double_t nonlinres = 0.0;
@@ -284,10 +283,6 @@ cudaProfilerStop();
         magma_z_mfree( &hU, queue );
         magma_z_mfree( &hUT, queue );
         magma_z_mfree( &hAtmp, queue );
-
-
-
-
     }//multiple runs
 
     iluresavg = iluresavg/numavg;
@@ -315,7 +310,6 @@ cudaProfilerStop();
     magma_z_mfree( &dA, queue );
     magma_z_mfree( &dAinitguess, queue );
     magma_z_mfree( &hA, queue );
-
 
     }// multiple matrices
 

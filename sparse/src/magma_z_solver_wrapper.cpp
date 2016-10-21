@@ -12,8 +12,6 @@
 #include "magmasparse_internal.h"
 
 
-
-
 /**
     Purpose
     -------

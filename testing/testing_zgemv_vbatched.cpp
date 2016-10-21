@@ -230,12 +230,11 @@ int main( int argc, char** argv)
                 #endif
                 for (magma_int_t s=0; s < batchCount; s++)
                 {
-                   blasf77_zgemv(
-                               lapack_trans_const(opts.transA), 
-                               &h_M[s], &h_N[s], 
-                               &alpha, h_A_array[s], &h_lda[s],
-                                       h_X_array[s], &h_incx[s],
-                               &beta,  h_Y_array[s], &h_incy[s] );
+                    blasf77_zgemv( lapack_trans_const(opts.transA), 
+                                   &h_M[s], &h_N[s], 
+                                   &alpha, h_A_array[s], &h_lda[s],
+                                           h_X_array[s], &h_incx[s],
+                                   &beta,  h_Y_array[s], &h_incy[s] );
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);
@@ -255,12 +254,12 @@ int main( int argc, char** argv)
                 magmaDoubleComplex* hY_tmp = h_Y;
                 magmaDoubleComplex* h_Ymagma_tmp = h_Ymagma;
                 for (int s=0; s < batchCount; s++){
-                     blasf77_zaxpy( &Yn[s], &c_neg_one, hY_tmp, &h_incy[s], h_Ymagma_tmp, &h_incy[s] );
-                     Ynorm = lapackf77_zlange( "F", &ione, &Yn[s], hY_tmp, &h_incy[s], work );
-                     magma_err = lapackf77_zlange( "F", &ione, &Yn[s], h_Ymagma_tmp, &h_incy[s], work ) / Ynorm;
-                     
-                     hY_tmp += Yn[s] * h_incy[s];
-                     h_Ymagma_tmp += Yn[s] * h_incy[s];
+                    blasf77_zaxpy( &Yn[s], &c_neg_one, hY_tmp, &h_incy[s], h_Ymagma_tmp, &h_incy[s] );
+                    Ynorm = lapackf77_zlange( "F", &ione, &Yn[s], hY_tmp, &h_incy[s], work );
+                    magma_err = lapackf77_zlange( "F", &ione, &Yn[s], h_Ymagma_tmp, &h_incy[s], work ) / Ynorm;
+                    
+                    hY_tmp += Yn[s] * h_incy[s];
+                    h_Ymagma_tmp += Yn[s] * h_incy[s];
                      
                     if ( isnan(magma_err) || isinf(magma_err) ) {
                       magma_error = magma_err;

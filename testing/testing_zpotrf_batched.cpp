@@ -84,7 +84,7 @@ int main( int argc, char** argv)
             lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
             for (int i=0; i < batchCount; i++)
             {
-               magma_zmake_hpd( N, h_A + i * lda * N, lda ); // need modification
+                magma_zmake_hpd( N, h_A + i * lda * N, lda ); // need modification
             }
             
             magma_int_t columns = N * batchCount;

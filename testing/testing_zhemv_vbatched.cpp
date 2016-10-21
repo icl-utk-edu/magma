@@ -224,11 +224,10 @@ int main( int argc, char** argv)
                 #endif
                 for (magma_int_t s=0; s < batchCount; s++)
                 {
-                   blasf77_zhemv(
-                               lapack_uplo_const(opts.uplo), &h_N[s], 
-                               &alpha, h_A_array[s], &h_lda[s],
-                                       h_X_array[s], &h_incx[s],
-                               &beta,  h_Y_array[s], &h_incy[s] );
+                    blasf77_zhemv( lapack_uplo_const(opts.uplo), &h_N[s], 
+                                   &alpha, h_A_array[s], &h_lda[s],
+                                           h_X_array[s], &h_incx[s],
+                                   &beta,  h_Y_array[s], &h_incy[s] );
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);
@@ -248,16 +247,16 @@ int main( int argc, char** argv)
                 magmaDoubleComplex* hY_tmp = h_Y;
                 magmaDoubleComplex* h_Ymagma_tmp = h_Ymagma;
                 for (int s=0; s < batchCount; s++){
-                     blasf77_zaxpy( &h_N[s], &c_neg_one, hY_tmp, &h_incy[s], h_Ymagma_tmp, &h_incy[s] );
-                     Ynorm = lapackf77_zlange( "F", &ione, &h_N[s], hY_tmp, &h_incy[s], work );
-                     magma_err = lapackf77_zlange( "F", &ione, &h_N[s], h_Ymagma_tmp, &h_incy[s], work ) / Ynorm;
-                     
-                     hY_tmp += h_N[s] * h_incy[s];
-                     h_Ymagma_tmp += h_N[s] * h_incy[s];
+                    blasf77_zaxpy( &h_N[s], &c_neg_one, hY_tmp, &h_incy[s], h_Ymagma_tmp, &h_incy[s] );
+                    Ynorm = lapackf77_zlange( "F", &ione, &h_N[s], hY_tmp, &h_incy[s], work );
+                    magma_err = lapackf77_zlange( "F", &ione, &h_N[s], h_Ymagma_tmp, &h_incy[s], work ) / Ynorm;
+                    
+                    hY_tmp += h_N[s] * h_incy[s];
+                    h_Ymagma_tmp += h_N[s] * h_incy[s];
                      
                     if ( isnan(magma_err) || isinf(magma_err) ) {
-                      magma_error = magma_err;
-                      break;
+                        magma_error = magma_err;
+                        break;
                     }
                     magma_error = max(fabs(magma_err), magma_error);
                 }

@@ -66,11 +66,11 @@ magma_zlarft_sm32x32_batched(magma_int_t n, magma_int_t k,
         zlarft_gemv_loop_inside_kernel_batched(n, k, tau_array, v_array, ldv, T_array, ldt, batchCount, queue); 
     #endif
     #endif
-     //==================================
-     //          TRMV
-     //==================================
-     //T(1:i-1,i) := T(1:i-1,1:i-1) * W(1:i-1) i=[1:k]
-     magmablas_zlarft_ztrmv_sm32x32_batched(k, k, tau_array, T_array, ldt, T_array, ldt, batchCount, queue);
+    //==================================
+    //          TRMV
+    //==================================
+    //T(1:i-1,i) := T(1:i-1,1:i-1) * W(1:i-1) i=[1:k]
+    magmablas_zlarft_ztrmv_sm32x32_batched(k, k, tau_array, T_array, ldt, T_array, ldt, batchCount, queue);
 }
 
 

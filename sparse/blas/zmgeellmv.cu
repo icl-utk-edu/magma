@@ -49,9 +49,6 @@ int row = blockDim.x * blockIdx.x + threadIdx.x;
 }
 
 
-
-
-
 /**
     Purpose
     -------

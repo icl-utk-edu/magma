@@ -921,8 +921,8 @@ magma_zgecsr5mv(
                  tail_tile_start, p, sigma, alpha);
                 
         info = MAGMA_SUCCESS;
-    
-    } else {
+    }
+    else {
         info = MAGMA_ERR_NOT_SUPPORTED;
     }
 #endif

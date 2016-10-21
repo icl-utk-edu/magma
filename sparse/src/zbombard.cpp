@@ -620,9 +620,6 @@ magma_zbombard(
         Q_w.dval,
         queue );
         
-        
-        
-        
         Q_res = magma_dznrm2( dofs, Q_r.dval, 1, queue );
         T_res = magma_dznrm2( dofs, T_r.dval, 1, queue );
         C_res = magma_dznrm2( dofs, C_r.dval, 1, queue );

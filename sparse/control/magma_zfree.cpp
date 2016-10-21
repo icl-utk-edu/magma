@@ -37,7 +37,7 @@ magma_zmfree(
     magma_queue_t queue )
 {
     if ( A->memory_location == Magma_CPU ) {
-       if ( A->storage_type == Magma_ELL || A->storage_type == Magma_ELLPACKT ){
+        if (A->storage_type == Magma_ELL || A->storage_type == Magma_ELLPACKT) {
             magma_free_cpu( A->val );
             magma_free_cpu( A->col );
             A->num_rows = 0;
@@ -160,7 +160,7 @@ magma_zmfree(
     }
 
     if ( A->memory_location == Magma_DEV ) {
-       if ( A->storage_type == Magma_ELL || A->storage_type == Magma_ELLPACKT ){
+        if (A->storage_type == Magma_ELL || A->storage_type == Magma_ELLPACKT) {
             if ( magma_free( A->dval ) != MAGMA_SUCCESS ) {
                 printf("Memory Free Error.\n");
                 return MAGMA_ERR_INVALID_PTR; 

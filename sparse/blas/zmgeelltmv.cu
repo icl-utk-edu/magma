@@ -50,9 +50,6 @@ zmgeelltmv_kernel(
 }
 
 
-
-
-
 /**
     Purpose
     -------

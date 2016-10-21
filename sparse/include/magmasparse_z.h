@@ -1423,8 +1423,6 @@ magma_zlobpcg_maxpy(
     magma_queue_t queue );
 
 
-
-
 /*/////////////////////////////////////////////////////////////////////////////
  -- MAGMA_SPARSE eigensolvers (Data on GPU)
 */

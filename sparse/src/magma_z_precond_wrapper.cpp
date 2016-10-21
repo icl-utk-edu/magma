@@ -12,8 +12,6 @@
 #include "magmasparse_internal.h"
 
 
-
-
 /**
     Purpose
     -------
@@ -584,7 +582,7 @@ magma_z_applyprecond_right(
                     precond->trisolver == 0 ) ){
             CHECK( magma_zapplycumicc_r( b, x, precond, queue ));
         }
-      else if ( ( precond->solver == Magma_ICC ||
+        else if ( ( precond->solver == Magma_ICC ||
                     precond->solver == Magma_PARIC ) && 
                   ( precond->trisolver == Magma_ISAI ||
                     precond->trisolver == Magma_JACOBI ||

@@ -190,7 +190,7 @@ magma_int_t read_z_csr_from_mtx(
             coo_val[i] = MAGMA_Z_MAKE( 1.0, 0.);
         }
     } else if (mm_is_complex(matcode) ){
-       for(magma_int_t i = 0; i < *nnz; ++i) {
+        for (magma_int_t i = 0; i < *nnz; ++i) {
             magma_index_t ROW, COL;
             double VAL, VALC;  // always read in a double and convert later if necessary
             
@@ -1041,7 +1041,7 @@ magma_z_csr_mtx(
             coo_val[i] = MAGMA_Z_MAKE( 1.0, 0.);
         }
     } else if (mm_is_complex(matcode) ){
-       for(magma_int_t i = 0; i < A->nnz; ++i) {
+        for (magma_int_t i = 0; i < A->nnz; ++i) {
             magma_index_t ROW, COL;
             double VAL, VALC;  // always read in a double and convert later if necessary
             
@@ -1328,7 +1328,7 @@ magma_z_csr_mtxsymm(
             coo_val[i] = MAGMA_Z_MAKE( 1.0, 0.);
         }
     } else if (mm_is_complex(matcode) ){
-       for(magma_int_t i = 0; i < A->nnz; ++i) {
+        for (magma_int_t i = 0; i < A->nnz; ++i) {
             magma_index_t ROW, COL;
             double VAL, VALC;  // always read in a double and convert later if necessary
             

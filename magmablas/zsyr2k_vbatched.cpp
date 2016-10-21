@@ -114,17 +114,17 @@ magmablas_zsyr2k_vbatched_nocheck(
 /***************************************************************************//**
     Purpose
     -------
-   ZSYR2K  performs one of the symmetric rank 2k operations
+    ZSYR2K  performs one of the symmetric rank 2k operations
    
-      C := alpha*A*B**T + conjg( alpha )*B*A**T + beta*C,
+        C := alpha*A*B**T + conjg( alpha )*B*A**T + beta*C,
    
-   or
+    or
    
-      C := alpha*A**T*B + conjg( alpha )*B**T*A + beta*C,
+        C := alpha*A**T*B + conjg( alpha )*B**T*A + beta*C,
    
-   where  alpha and beta  are scalars with  beta  real,  C is an  n by n
-   symmetric matrix and  A and B  are  n by k matrices in the first case
-   and  k by n  matrices in the second case.
+    where  alpha and beta  are scalars with  beta  real,  C is an  n by n
+    symmetric matrix and  A and B  are  n by k matrices in the first case
+    and  k by n  matrices in the second case.
     
     Parameters
     ----------

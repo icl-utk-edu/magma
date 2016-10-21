@@ -61,8 +61,8 @@ void ztrsv_lower_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB
 
         #pragma unroll
         for (n = 0; n < 2; n++)
-          if (n*WARP_SIZE+idn > k)
-            rB[n] -= (top*rA[n]);
+            if (n*WARP_SIZE+idn > k)
+                rB[n] -= (top*rA[n]);
     }
     // Drop B to dev mem.
     #pragma unroll
@@ -111,8 +111,8 @@ void ztrsv_upper_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB
 
         #pragma unroll
         for (n = 0; n < 2; n++)
-          if (n*WARP_SIZE+idn < k)
-            rB[n] -= (top*rA[n]);
+            if (n*WARP_SIZE+idn < k)
+                rB[n] -= (top*rA[n]);
     }
     // Drop B to dev mem.
     #pragma unroll
@@ -1116,88 +1116,80 @@ void ztrsv_lower_32kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 }
 
 
-
-
-
-
-
-
 __global__
 void ztrsv_lower_32kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes, int num_rows )
 {
-
-
     int j = blockIdx.y * gridDim.x + blockIdx.x;
-    if( j < num_rows ){
-    int N = sizes[j];
-    switch( N ) {
-        case  1:
-            ztrsv_lower_32kernel_1( dA, dB ); break;
-        case  2:
-            ztrsv_lower_32kernel_2( dA, dB ); break;
-        case  3:
-            ztrsv_lower_32kernel_3( dA, dB ); break;
-        case  4:
-            ztrsv_lower_32kernel_4( dA, dB ); break;
-        case  5:
-            ztrsv_lower_32kernel_5( dA, dB ); break;
-        case  6:
-            ztrsv_lower_32kernel_6( dA, dB ); break;
-        case  7:
-            ztrsv_lower_32kernel_7( dA, dB ); break;
-        case  8:
-            ztrsv_lower_32kernel_8( dA, dB ); break;
-        case  9:
-            ztrsv_lower_32kernel_9( dA, dB ); break;
-        case  10:
-            ztrsv_lower_32kernel_10( dA, dB ); break;
-        case  11:
-            ztrsv_lower_32kernel_11( dA, dB ); break;
-        case  12:
-            ztrsv_lower_32kernel_12( dA, dB ); break;
-        case  13:
-            ztrsv_lower_32kernel_13( dA, dB ); break;
-        case  14:
-            ztrsv_lower_32kernel_14( dA, dB ); break;
-        case  15:
-            ztrsv_lower_32kernel_15( dA, dB ); break;
-        case  16:
-            ztrsv_lower_32kernel_16( dA, dB ); break;
-        case  17:
-            ztrsv_lower_32kernel_17( dA, dB ); break;
-        case  18:
-            ztrsv_lower_32kernel_18( dA, dB ); break;
-        case  19:
-            ztrsv_lower_32kernel_19( dA, dB ); break;
-        case  20:
-            ztrsv_lower_32kernel_20( dA, dB ); break;
-        case  21:
-            ztrsv_lower_32kernel_21( dA, dB ); break;
-        case  22:
-            ztrsv_lower_32kernel_22( dA, dB ); break;
-        case  23:
-            ztrsv_lower_32kernel_23( dA, dB ); break;
-        case  24:
-            ztrsv_lower_32kernel_24( dA, dB ); break;
-        case  25:
-            ztrsv_lower_32kernel_25( dA, dB ); break;
-        case  26:
-            ztrsv_lower_32kernel_26( dA, dB ); break;
-        case  27:
-            ztrsv_lower_32kernel_27( dA, dB ); break;
-        case  28:
-            ztrsv_lower_32kernel_28( dA, dB ); break;
-        case  29:
-            ztrsv_lower_32kernel_29( dA, dB ); break;
-        case  30:
-            ztrsv_lower_32kernel_30( dA, dB ); break;
-        case  31:
-            ztrsv_lower_32kernel_31( dA, dB ); break;
-        case  32:
-            ztrsv_lower_32kernel_32( dA, dB ); break;
-        default:
-            ztrsv_lower_32kernel_general( dA, dB, sizes ); break;
-    }
+    if (j < num_rows) {
+        int N = sizes[j];
+        switch( N ) {
+            case  1:
+                ztrsv_lower_32kernel_1( dA, dB ); break;
+            case  2:
+                ztrsv_lower_32kernel_2( dA, dB ); break;
+            case  3:
+                ztrsv_lower_32kernel_3( dA, dB ); break;
+            case  4:
+                ztrsv_lower_32kernel_4( dA, dB ); break;
+            case  5:
+                ztrsv_lower_32kernel_5( dA, dB ); break;
+            case  6:
+                ztrsv_lower_32kernel_6( dA, dB ); break;
+            case  7:
+                ztrsv_lower_32kernel_7( dA, dB ); break;
+            case  8:
+                ztrsv_lower_32kernel_8( dA, dB ); break;
+            case  9:
+                ztrsv_lower_32kernel_9( dA, dB ); break;
+            case  10:
+                ztrsv_lower_32kernel_10( dA, dB ); break;
+            case  11:
+                ztrsv_lower_32kernel_11( dA, dB ); break;
+            case  12:
+                ztrsv_lower_32kernel_12( dA, dB ); break;
+            case  13:
+                ztrsv_lower_32kernel_13( dA, dB ); break;
+            case  14:
+                ztrsv_lower_32kernel_14( dA, dB ); break;
+            case  15:
+                ztrsv_lower_32kernel_15( dA, dB ); break;
+            case  16:
+                ztrsv_lower_32kernel_16( dA, dB ); break;
+            case  17:
+                ztrsv_lower_32kernel_17( dA, dB ); break;
+            case  18:
+                ztrsv_lower_32kernel_18( dA, dB ); break;
+            case  19:
+                ztrsv_lower_32kernel_19( dA, dB ); break;
+            case  20:
+                ztrsv_lower_32kernel_20( dA, dB ); break;
+            case  21:
+                ztrsv_lower_32kernel_21( dA, dB ); break;
+            case  22:
+                ztrsv_lower_32kernel_22( dA, dB ); break;
+            case  23:
+                ztrsv_lower_32kernel_23( dA, dB ); break;
+            case  24:
+                ztrsv_lower_32kernel_24( dA, dB ); break;
+            case  25:
+                ztrsv_lower_32kernel_25( dA, dB ); break;
+            case  26:
+                ztrsv_lower_32kernel_26( dA, dB ); break;
+            case  27:
+                ztrsv_lower_32kernel_27( dA, dB ); break;
+            case  28:
+                ztrsv_lower_32kernel_28( dA, dB ); break;
+            case  29:
+                ztrsv_lower_32kernel_29( dA, dB ); break;
+            case  30:
+                ztrsv_lower_32kernel_30( dA, dB ); break;
+            case  31:
+                ztrsv_lower_32kernel_31( dA, dB ); break;
+            case  32:
+                ztrsv_lower_32kernel_32( dA, dB ); break;
+            default:
+                ztrsv_lower_32kernel_general( dA, dB, sizes ); break;
+        }
     }
 }
 __device__
@@ -2191,92 +2183,82 @@ void ztrsv_upper_32kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 }
 
 
-
-
-
-
-
-
 __global__
 void ztrsv_upper_32kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes, int num_rows )
 {
-
-
     int j = blockIdx.y * gridDim.x + blockIdx.x;
-    if( j < num_rows ){
-    int N = sizes[j];
-    switch( N ) {
-        case  1:
-            ztrsv_upper_32kernel_1( dA, dB ); break;
-        case  2:
-            ztrsv_upper_32kernel_2( dA, dB ); break;
-        case  3:
-            ztrsv_upper_32kernel_3( dA, dB ); break;
-        case  4:
-            ztrsv_upper_32kernel_4( dA, dB ); break;
-        case  5:
-            ztrsv_upper_32kernel_5( dA, dB ); break;
-        case  6:
-            ztrsv_upper_32kernel_6( dA, dB ); break;
-        case  7:
-            ztrsv_upper_32kernel_7( dA, dB ); break;
-        case  8:
-            ztrsv_upper_32kernel_8( dA, dB ); break;
-        case  9:
-            ztrsv_upper_32kernel_9( dA, dB ); break;
-        case  10:
-            ztrsv_upper_32kernel_10( dA, dB ); break;
-        case  11:
-            ztrsv_upper_32kernel_11( dA, dB ); break;
-        case  12:
-            ztrsv_upper_32kernel_12( dA, dB ); break;
-        case  13:
-            ztrsv_upper_32kernel_13( dA, dB ); break;
-        case  14:
-            ztrsv_upper_32kernel_14( dA, dB ); break;
-        case  15:
-            ztrsv_upper_32kernel_15( dA, dB ); break;
-        case  16:
-            ztrsv_upper_32kernel_16( dA, dB ); break;
-        case  17:
-            ztrsv_upper_32kernel_17( dA, dB ); break;
-        case  18:
-            ztrsv_upper_32kernel_18( dA, dB ); break;
-        case  19:
-            ztrsv_upper_32kernel_19( dA, dB ); break;
-        case  20:
-            ztrsv_upper_32kernel_20( dA, dB ); break;
-        case  21:
-            ztrsv_upper_32kernel_21( dA, dB ); break;
-        case  22:
-            ztrsv_upper_32kernel_22( dA, dB ); break;
-        case  23:
-            ztrsv_upper_32kernel_23( dA, dB ); break;
-        case  24:
-            ztrsv_upper_32kernel_24( dA, dB ); break;
-        case  25:
-            ztrsv_upper_32kernel_25( dA, dB ); break;
-        case  26:
-            ztrsv_upper_32kernel_26( dA, dB ); break;
-        case  27:
-            ztrsv_upper_32kernel_27( dA, dB ); break;
-        case  28:
-            ztrsv_upper_32kernel_28( dA, dB ); break;
-        case  29:
-            ztrsv_upper_32kernel_29( dA, dB ); break;
-        case  30:
-            ztrsv_upper_32kernel_30( dA, dB ); break;
-        case  31:
-            ztrsv_upper_32kernel_31( dA, dB ); break;
-        case  32:
-            ztrsv_upper_32kernel_32( dA, dB ); break;
-        default:
-            ztrsv_upper_32kernel_general( dA, dB, sizes ); break;
-    }
+    if (j < num_rows) {
+        int N = sizes[j];
+        switch( N ) {
+            case  1:
+                ztrsv_upper_32kernel_1( dA, dB ); break;
+            case  2:
+                ztrsv_upper_32kernel_2( dA, dB ); break;
+            case  3:
+                ztrsv_upper_32kernel_3( dA, dB ); break;
+            case  4:
+                ztrsv_upper_32kernel_4( dA, dB ); break;
+            case  5:
+                ztrsv_upper_32kernel_5( dA, dB ); break;
+            case  6:
+                ztrsv_upper_32kernel_6( dA, dB ); break;
+            case  7:
+                ztrsv_upper_32kernel_7( dA, dB ); break;
+            case  8:
+                ztrsv_upper_32kernel_8( dA, dB ); break;
+            case  9:
+                ztrsv_upper_32kernel_9( dA, dB ); break;
+            case  10:
+                ztrsv_upper_32kernel_10( dA, dB ); break;
+            case  11:
+                ztrsv_upper_32kernel_11( dA, dB ); break;
+            case  12:
+                ztrsv_upper_32kernel_12( dA, dB ); break;
+            case  13:
+                ztrsv_upper_32kernel_13( dA, dB ); break;
+            case  14:
+                ztrsv_upper_32kernel_14( dA, dB ); break;
+            case  15:
+                ztrsv_upper_32kernel_15( dA, dB ); break;
+            case  16:
+                ztrsv_upper_32kernel_16( dA, dB ); break;
+            case  17:
+                ztrsv_upper_32kernel_17( dA, dB ); break;
+            case  18:
+                ztrsv_upper_32kernel_18( dA, dB ); break;
+            case  19:
+                ztrsv_upper_32kernel_19( dA, dB ); break;
+            case  20:
+                ztrsv_upper_32kernel_20( dA, dB ); break;
+            case  21:
+                ztrsv_upper_32kernel_21( dA, dB ); break;
+            case  22:
+                ztrsv_upper_32kernel_22( dA, dB ); break;
+            case  23:
+                ztrsv_upper_32kernel_23( dA, dB ); break;
+            case  24:
+                ztrsv_upper_32kernel_24( dA, dB ); break;
+            case  25:
+                ztrsv_upper_32kernel_25( dA, dB ); break;
+            case  26:
+                ztrsv_upper_32kernel_26( dA, dB ); break;
+            case  27:
+                ztrsv_upper_32kernel_27( dA, dB ); break;
+            case  28:
+                ztrsv_upper_32kernel_28( dA, dB ); break;
+            case  29:
+                ztrsv_upper_32kernel_29( dA, dB ); break;
+            case  30:
+                ztrsv_upper_32kernel_30( dA, dB ); break;
+            case  31:
+                ztrsv_upper_32kernel_31( dA, dB ); break;
+            case  32:
+                ztrsv_upper_32kernel_32( dA, dB ); break;
+            default:
+                ztrsv_upper_32kernel_general( dA, dB, sizes ); break;
+        }
     }
 }
-
-
 
 
 // initialize arrays with zero
@@ -2362,10 +2344,12 @@ magma_zlocations_trunc_lower_32kernel(
         if ( i<count ){
             locations[ j*WARP_SIZE + i ] = col[ row[j]+i ];
         }
-    } else { // truncate in this row to the blocksize,
-             // take only the 32 elements close to the main diagonal into account
-          count = BLOCKSIZE;
-       if( i == 0 ){
+    }
+    else {
+        // truncate in this row to the blocksize,
+        // take only the 32 elements close to the main diagonal into account
+        count = BLOCKSIZE;
+        if (i == 0) {
             sizes[j] = count;
             rhs[ j*WARP_SIZE ] = MAGMA_Z_ONE;
         }
@@ -2436,10 +2420,12 @@ magma_zlocations_trunc_upper_32kernel(
         if ( i<count ){
             locations[ j*WARP_SIZE + i ] = col[ row[j]+i ];
         }
-    } else { // truncate in this row to the blocksize,
-             // take only the 32 elements close to the main diagonal into account
-          count = BLOCKSIZE;
-       if( i == 0 ){
+    }
+    else {
+        // truncate in this row to the blocksize,
+        // take only the 32 elements close to the main diagonal into account
+        count = BLOCKSIZE;
+        if (i == 0) {
             sizes[j] = count;
             rhs[ j*WARP_SIZE+count-1 ] = MAGMA_Z_ONE;
         }
@@ -2494,11 +2480,6 @@ magma_zfilltrisystems_32kernel(
 }// kernel
 
 
-
-
-
-
-
 __global__ void
 magma_zbackinsert_32kernel(
     magma_int_t n,
@@ -2521,9 +2502,6 @@ magma_zbackinsert_32kernel(
 
     val[row[j]+i] = rhs[j*WARP_SIZE+i];
 }// kernel
-
-
-
 
 
 // try to do everything in shared memory and registers!
@@ -2567,27 +2545,29 @@ magma_zlowertrisystems_32kernel_s(
     }
     /*
     // for debuggging: let thred 0 do everything
-    if(tid==0){
-    // first: generate the triangular systems
-    for( int j=0; j<size; j++ ){// no need for first
-        int k = Arow[ locations[ j+row*WARP_SIZE ] ];
-        int l = row*WARP_SIZE;
-        int idx = 0;
-        while( k < Arow[ locations[ j+row*WARP_SIZE ]+1 ] && l < (row+1)*WARP_SIZE ){ // stop once this column is done
-            if( locations[ l ] == Acol[k] ){ //match
-                // int loc = i*WARP_SIZE*WARP_SIZE + j*WARP_SIZE + idx;
-                dA[ j*32 + idx ] = Aval[ k ];
-                k++;
-                l++;
-                idx++;
-            } else if( Acol[k] < locations[ l ] ){// need to check next element
-                k++;
-            } else { // element does not exist, i.e. l < LC.col[k]
-                l++; // check next elment in the sparsity pattern
-                idx++; // leave this element equal zero
+    if (tid == 0) {
+        // first: generate the triangular systems
+        for (int j=0; j<size; j++) { // no need for first
+            int k = Arow[ locations[ j+row*WARP_SIZE ] ];
+            int l = row*WARP_SIZE;
+            int idx = 0;
+            while (k < Arow[ locations[ j+row*WARP_SIZE ]+1 ] && l < (row+1)*WARP_SIZE) { // stop once this column is done
+                if (locations[ l ] == Acol[k]) { // match
+                    // int loc = i*WARP_SIZE*WARP_SIZE + j*WARP_SIZE + idx;
+                    dA[ j*32 + idx ] = Aval[ k ];
+                    k++;
+                    l++;
+                    idx++;
+                }
+                else if (Acol[k] < locations[ l ]) { // need to check next element
+                    k++;
+                }
+                else { // element does not exist, i.e. l < LC.col[k]
+                    l++; // check next elment in the sparsity pattern
+                    idx++; // leave this element equal zero
+                }
             }
         }
-    }
     }
     __syncthreads();
     */
@@ -2630,7 +2610,6 @@ magma_zlowertrisystems_32kernel_s(
     Mval[ Mrow[row] + tid ] = rB;
 
 #endif
-
 }// kernel
 
 
@@ -2672,27 +2651,29 @@ magma_zuppertrisystems_32kernel_s(
     }
     /*
     // for debuggging: let thred 0 do everything
-    if(tid==0){
-    // first: generate the triangular systems
-    for( int j=0; j<size; j++ ){// no need for first
-        int k = Arow[ locations[ j+row*WARP_SIZE ] ];
-        int l = row*WARP_SIZE;
-        int idx = 0;
-        while( k < Arow[ locations[ j+row*WARP_SIZE ]+1 ] && l < (row+1)*WARP_SIZE ){ // stop once this column is done
-            if( locations[ l ] == Acol[k] ){ //match
-                // int loc = i*WARP_SIZE*WARP_SIZE + j*WARP_SIZE + idx;
-                dA[ j*32 + idx ] = Aval[ k ];
-                k++;
-                l++;
-                idx++;
-            } else if( Acol[k] < locations[ l ] ){// need to check next element
-                k++;
-            } else { // element does not exist, i.e. l < LC.col[k]
-                l++; // check next elment in the sparsity pattern
-                idx++; // leave this element equal zero
+    if (tid == 0) {
+        // first: generate the triangular systems
+        for (int j=0; j < size; j++) { // no need for first
+            int k = Arow[ locations[ j+row*WARP_SIZE ] ];
+            int l = row*WARP_SIZE;
+            int idx = 0;
+            while (k < Arow[ locations[ j+row*WARP_SIZE ]+1 ] && l < (row+1)*WARP_SIZE) { // stop once this column is done
+                if (locations[ l ] == Acol[k]) { // match
+                    // int loc = i*WARP_SIZE*WARP_SIZE + j*WARP_SIZE + idx;
+                    dA[ j*32 + idx ] = Aval[ k ];
+                    k++;
+                    l++;
+                    idx++;
+                }
+                else if (Acol[k] < locations[ l ]) { // need to check next element
+                    k++;
+                }
+                else { // element does not exist, i.e. l < LC.col[k]
+                    l++; // check next elment in the sparsity pattern
+                    idx++; // leave this element equal zero
+                }
             }
         }
-    }
     }
     __syncthreads();
     */
@@ -2735,10 +2716,7 @@ magma_zuppertrisystems_32kernel_s(
     Mval[ Mrow[row] + tid ] = rB;
 
 #endif
-
 }// kernel
-
-
 
 
 __global__ void
@@ -2830,7 +2808,6 @@ magma_zlowertrisystems_32kernel(
     Mval[ Mrow[row] + tid ] = rB;
 
 #endif
-
 }// kernel
 
 
@@ -2913,7 +2890,6 @@ magma_zuppertrisystems_32kernel(
     Mval[ mstart + tid ] = rB;
 
 #endif
-
 }// kernel
 
 #endif
@@ -3116,8 +3092,8 @@ magma_zisaigenerator_32_gpu(
             rhs );
 #endif
 #else
-   printf( "%% error: ISAI preconditioner requires CUDA > 6.0.\n" );
-   info = MAGMA_ERR_NOT_SUPPORTED;
+    printf( "%% error: ISAI preconditioner requires CUDA > 6.0.\n" );
+    info = MAGMA_ERR_NOT_SUPPORTED;
 #endif
 
 

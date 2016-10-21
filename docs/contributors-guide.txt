@@ -76,55 +76,55 @@ This guide is based on the PLASMA coding style guide, though slightly different.
 - **Examples:**
 
   \code
-      void func( magma_int_t n, double *A, magma_int_t lda )
-      {
-          if (m <= 0 || n <= 0 || k <= 0) return;  // Avoid
-          code_not_inside_if();
-
-          if (m <= 0 || n <= 0 || k <= 0)          // Okay
-              return;
-
-          if (m <= 0 || n <= 0 || k <= 0) {        // Better
-              return;
-          }
-
-          if (condition)      // Avoid single statement, multi-line if and loops!
-              magma_zherk( uplo, trans, n, k,
-                           alpha, dA(0,0), ldda,
-                           beta,  dB(0,0), lddb );
-
-          if (condition) {    // Better
-              magma_zherk( uplo, trans, n, k,
-                           alpha, dA(0,0), ldda,
-                           beta,  dB(0,0), lddb );
-          }
-
-          if (condition)      // Avoid single block, multi-statement if and loops!
+        void func( magma_int_t n, double *A, magma_int_t lda )
+        {
+            if (m <= 0 || n <= 0 || k <= 0) return;  // Avoid
+            code_not_inside_if();
+        
+            if (m <= 0 || n <= 0 || k <= 0)          // Okay
+                return;
+        
+            if (m <= 0 || n <= 0 || k <= 0) {        // Better
+                return;
+            }
+        
+            if (condition)      // Avoid single statement, multi-line if and loops!
+                magma_zherk( uplo, trans, n, k,
+                             alpha, dA(0,0), ldda,
+                             beta,  dB(0,0), lddb );
+        
+            if (condition) {    // Better
+                magma_zherk( uplo, trans, n, k,
+                             alpha, dA(0,0), ldda,
+                             beta,  dB(0,0), lddb );
+            }
+        
+            if (condition)      // Avoid single block, multi-statement if and loops!
+                for (i=0; i < n; ++i) {
+                    A(i,i) = 0;
+                    cnt += 1;
+                }
+        
+            if (condition) {    // Avoid inconsistent indentation! Always use 4 spaces.
               for (i=0; i < n; ++i) {
-                  A(i,i) = 0;
-                  cnt += 1;
-              }
-
-          if (condition) {    // Avoid inconsistent indentation! Always use 4 spaces.
-            for (i=0; i < n; ++i) {
-                  A(i,i) = 0;
-                   cnt += 1;
-             }
-          }
-
-          if (condition) {    // Better
-              for (i=0; i < n; ++i) {
-                  A(i,i) = 0;
-                  cnt += 1;
-              }
-          }
-
-          if (condition) {    // Avoid excessive newlines
-
-              norm = magma_dnrm2( n, dx(0), incx );
-
-          }
-      }
+                    A(i,i) = 0;
+                     cnt += 1;
+               }
+            }
+        
+            if (condition) {    // Better
+                for (i=0; i < n; ++i) {
+                    A(i,i) = 0;
+                    cnt += 1;
+                }
+            }
+        
+            if (condition) {    // Avoid excessive newlines
+        
+                norm = magma_dnrm2( n, dx(0), incx );
+        
+            }
+        }
   \endcode
 
 - **Matrix macros:**
@@ -137,26 +137,26 @@ This guide is based on the PLASMA coding style guide, though slightly different.
   readability, and porting to platforms such as OpenCL.
 
   \code
-      // host pointers are the same for clBLAS, CUDA, and Xeon Phi.
-      #define  A(i_,j_)  (A + (i_) + (j_)*lda)
-
-      // for clBLAS, return cl_mem object and offset (2 values);
-      // for others, return (pointer + offset) (1 value).
-      #ifdef HAVE_clBLAS
-          #define dA(i_,j_)  dA , (i_) + ((size_t) j_)*lda
-      #else
-          #define dA(i_,j_) (dA + (i_) + ((size_t) j_)*lda)
-      #endif
-
-      // for host pointers, A == A(0,0).
-      blasf77_zherk( lapack_uplo_const(uplo), lapack_trans_const(trans), &n, &k,
-                     &alpha, A,      &lda,
-                     &beta,  B(i,j), &ldb );
-
-      // for device pointers, use dA(0,0) instead of dA, to aid porting to OpenCL.
-      magma_zherk( uplo, trans, n, k,
-                   alpha, dA(0,0), ldda,
-                   beta,  dB(i,j), lddb );
+        // host pointers are the same for clBLAS, CUDA, and Xeon Phi.
+        #define  A(i_,j_)  (A + (i_) + (j_)*lda)
+        
+        // for clBLAS, return cl_mem object and offset (2 values);
+        // for others, return (pointer + offset) (1 value).
+        #ifdef HAVE_clBLAS
+            #define dA(i_,j_)  dA , (i_) + ((size_t) j_)*lda
+        #else
+            #define dA(i_,j_) (dA + (i_) + ((size_t) j_)*lda)
+        #endif
+        
+        // for host pointers, A == A(0,0).
+        blasf77_zherk( lapack_uplo_const(uplo), lapack_trans_const(trans), &n, &k,
+                       &alpha, A,      &lda,
+                       &beta,  B(i,j), &ldb );
+        
+        // for device pointers, use dA(0,0) instead of dA, to aid porting to OpenCL.
+        magma_zherk( uplo, trans, n, k,
+                     alpha, dA(0,0), ldda,
+                     beta,  dB(i,j), lddb );
   \endcode
 
 - **Documentation:**
@@ -213,18 +213,18 @@ This guide is based on the PLASMA coding style guide, though slightly different.
   always aligned with the first argument.
   
   \code
-      magma_zherk(                           // Okay; preferred style for prototypes
-          uplo, trans, n, k,
-          alpha, dA(0,0), ldda,
-          beta,  dB(i,j), lddb );
-
-      magma_zherk( uplo, trans, n, k,        // Okay
-                   alpha, dA(0,0), ldda,
-                   beta,  dB(i,j), lddb );
-
-      magma_zherk( uplo, trans, n, k,        // Avoid
-          alpha, dA(0,0), ldda,
-          beta,  dB(i,j), lddb );
+        magma_zherk(                           // Okay; preferred style for prototypes
+            uplo, trans, n, k,
+            alpha, dA(0,0), ldda,
+            beta,  dB(i,j), lddb );
+        
+        magma_zherk( uplo, trans, n, k,        // Okay
+                     alpha, dA(0,0), ldda,
+                     beta,  dB(i,j), lddb );
+        
+        magma_zherk( uplo, trans, n, k,        // Avoid
+            alpha, dA(0,0), ldda,
+            beta,  dB(i,j), lddb );
   \endcode
 
 - **Newlines:**
@@ -273,11 +273,11 @@ This guide is based on the PLASMA coding style guide, though slightly different.
   can be used with multiple strings:
 
   \code
-      printf( "Usage: %s\n"
-              "  --flag1  description\n"
-              "  --flag2  description\n"
-              "  --flag3  description\n",
-              argv[0] );
+        printf( "Usage: %s\n"
+                "  --flag1  description\n"
+                "  --flag2  description\n"
+                "  --flag3  description\n",
+                argv[0] );
   \endcode
 
 - **F77 Trailing Underscore:**

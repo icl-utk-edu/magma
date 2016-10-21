@@ -481,7 +481,7 @@ magma_zparse_opts(
             case  Magma_PGMRES:             opts->solver_par.solver = Magma_GMRES; break;        
             default:    break;
         }
-     }
+    }
     
     // ensure to take a symmetric preconditioner for the PCG
     if ( ( opts->solver_par.solver == Magma_PCG || opts->solver_par.solver == Magma_PCGMERGE )

@@ -180,40 +180,40 @@ double get_residual_aasen(
     TESTING_CHECK( magma_imalloc_cpu( &p, n ));
     //#define ZHESV_USE_ZGESV
     #ifdef ZHESV_USE_ZGESV
-      // using ZGESV on banded matrix
-      #define  T(i,j) ( T[(i) + (j)*n])
-      // extract T
-      TESTING_CHECK( magma_zmalloc_cpu( &T, n*n ));
-      memset( T, 0, n*n*sizeof(magmaDoubleComplex) );
-      for (i=0; i < n; i++) {
-          magma_int_t istart = max(0, i-nb);
-          for (j=istart; j <= i; j++) {
-              T(i,j) = A(i,j);
-          }
-          for (j=istart; j < i; j++) {
-              T(j,i) = MAGMA_Z_CONJ(A(i,j));
-          }
-      }
-      // solve with T
-      lapackf77_zgesv( &n, &nrhs, &T(0, 0), &n, p, x, &n, &info );
+        // using ZGESV on banded matrix
+        #define  T(i,j) ( T[(i) + (j)*n])
+        // extract T
+        TESTING_CHECK( magma_zmalloc_cpu( &T, n*n ));
+        memset( T, 0, n*n*sizeof(magmaDoubleComplex) );
+        for (i=0; i < n; i++) {
+            magma_int_t istart = max(0, i-nb);
+            for (j=istart; j <= i; j++) {
+                T(i,j) = A(i,j);
+            }
+            for (j=istart; j < i; j++) {
+                T(j,i) = MAGMA_Z_CONJ(A(i,j));
+            }
+        }
+        // solve with T
+        lapackf77_zgesv( &n, &nrhs, &T(0, 0), &n, p, x, &n, &info );
     #else
-      // using ZGBSV on banded matrix
-      magma_int_t ldtb = 3*nb+1;
-      // extract T
-      TESTING_CHECK( magma_zmalloc_cpu( &T, ldtb * n ));
-      memset( T, 0, ldtb*n*sizeof(magmaDoubleComplex) );
-      for (j=0; j<n; j++) {
-          magma_int_t i0 = max(0, j-nb);
-          magma_int_t i1 = min(n-1, j+nb);
-          for (i=i0; i<j; i++) {
-              T[nb + i-(j-nb) + j*ldtb] = MAGMA_Z_CONJ(A(j,i));
-          }
-          for (i=j; i<=i1; i++) {
-              T[nb + i-(j-nb) + j*ldtb] = A(i,j);
-          }
-      }
-      // solve with T
-      lapackf77_zgbsv(&n,&nb,&nb, &nrhs, T,&ldtb, p,x,&n, &info);
+        // using ZGBSV on banded matrix
+        magma_int_t ldtb = 3*nb+1;
+        // extract T
+        TESTING_CHECK( magma_zmalloc_cpu( &T, ldtb * n ));
+        memset( T, 0, ldtb*n*sizeof(magmaDoubleComplex) );
+        for (j=0; j<n; j++) {
+            magma_int_t i0 = max(0, j-nb);
+            magma_int_t i1 = min(n-1, j+nb);
+            for (i=i0; i<j; i++) {
+                T[nb + i-(j-nb) + j*ldtb] = MAGMA_Z_CONJ(A(j,i));
+            }
+            for (i=j; i<=i1; i++) {
+                T[nb + i-(j-nb) + j*ldtb] = A(i,j);
+            }
+        }
+        // solve with T
+        lapackf77_zgbsv(&n,&nb,&nb, &nrhs, T,&ldtb, p,x,&n, &info);
     #endif
     magma_free_cpu( p );
 

@@ -251,9 +251,6 @@ magma_zpotf2_lpout(
                 <<< dimGrid, threads, shared_mem_size, queue->cuda_stream() >>>
                 (rows, ib, dA, lda, j, gbstep, dinfo );
         }
-
-
-
     }
 
     return arginfo;
@@ -292,4 +289,3 @@ magma_zpotf2_lpin(
     }
     return arginfo;
 }
-

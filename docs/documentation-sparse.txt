@@ -397,8 +397,6 @@ All entities of this structure can be initialized from command line by calling
         magma_queue_t queue );
 
 
-
-
 Example {#sparseexample}
 =================================
 Especially when using MAGMA-sparse for the first time, the easiest way to get

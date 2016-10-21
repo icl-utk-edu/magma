@@ -472,8 +472,8 @@ magma_zhetrd_he2hb_mgpu(
                an update of the form:  A := A - V*W' - W*V'
                ==========================================================  */
             if (i + nb <= n-nb) {
-                /* There would be next iteration;
-                   do lookahead - update the next panel */
+                // There would be next iteration;
+                // do lookahead - update the next panel
                 // below a -1 was added and then a -1 was done on di because of the fortran indexing
                 iblock = ((indi-1) / distblk) / ngpu;          // local block id
                 di     = iblock*distblk + (indi-1)%distblk;     // local index in parent matrix

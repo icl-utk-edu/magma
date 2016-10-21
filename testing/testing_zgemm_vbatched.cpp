@@ -262,12 +262,12 @@ int main( int argc, char** argv)
                 #endif
                 for (magma_int_t s=0; s < batchCount; s++)
                 {
-                   blasf77_zgemm(
-                               lapack_trans_const(opts.transA), lapack_trans_const(opts.transB),
-                               &h_M[s], &h_N[s], &h_K[s],
-                               &alpha, h_A_array[s], &h_lda[s],
-                                       h_B_array[s], &h_ldb[s],
-                               &beta,  h_C_array[s], &h_ldc[s] );
+                    blasf77_zgemm( lapack_trans_const(opts.transA),
+                                   lapack_trans_const(opts.transB),
+                                   &h_M[s], &h_N[s], &h_K[s],
+                                   &alpha, h_A_array[s], &h_lda[s],
+                                           h_B_array[s], &h_ldb[s],
+                                   &beta,  h_C_array[s], &h_ldc[s] );
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);

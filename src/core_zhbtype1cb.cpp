@@ -115,13 +115,14 @@ magma_zhbtype1cb(magma_int_t n, magma_int_t nb,
      * note that in case no eigenvector required V and T are stored
      * on a vector of size n
      * */
-     if ( wantz == 0 ) {
-         vpos   = (sweep%2)*n + st;
-         taupos = (sweep%2)*n + st;
-     } else {
-         magma_bulge_findVTAUpos(n, nb, Vblksiz, sweep, st, ldv, &vpos, &taupos);
-         //findVTpos(n, nb, Vblksiz, sweep, st, &vpos, &taupos, &tpos, &blkid);
-     }
+    if (wantz == 0) {
+        vpos   = (sweep%2)*n + st;
+        taupos = (sweep%2)*n + st;
+    }
+    else {
+        magma_bulge_findVTAUpos(n, nb, Vblksiz, sweep, st, ldv, &vpos, &taupos);
+        //findVTpos(n, nb, Vblksiz, sweep, st, &vpos, &taupos, &tpos, &blkid);
+    }
 
     len = ed-st+1;
     *(V(vpos)) = c_one;

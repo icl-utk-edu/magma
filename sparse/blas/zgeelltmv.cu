@@ -82,8 +82,6 @@ zgeelltmv_kernel_shift(
 }
 
 
-
-
 /**
     Purpose
     -------

@@ -182,20 +182,17 @@ magma_zparilutsetup(
     nnzU=U.nnz;
 
     start = magma_sync_wtime( queue );
+    magma_zparilut_colmajorup( U, &UR, queue );
+    end = magma_sync_wtime( queue );
 
+    for (magma_int_t z = 0; z < A.nnz; z++) {
+        rm_locL[z] = L.nnz+z;
+        rm_locU[z] = U.nnz+z;
+    }
 
-     start = magma_sync_wtime( queue );
-     magma_zparilut_colmajorup( U, &UR, queue );
-     end = magma_sync_wtime( queue );
-
-      for( magma_int_t z=0; z<A.nnz; z++ ){
-          rm_locL[z] = L.nnz+z;
-          rm_locU[z] = U.nnz+z;
-      }
-
-     if( timing == 1 ){
-         printf("performance_%d = \[\n%%iter\tL.nnz\tU.nnz\trm L\trm U\trowmajor\tcandidates\tresiduals\tselect\t\tinsert\t\treorder\t\tsweep\t\tthreshold\tremove\t\treorder\t\tsweeep\t\ttotal\t\t\taccum\n", num_threads);
-     }
+    if (timing == 1) {
+        printf("performance_%d = \[\n%%iter\tL.nnz\tU.nnz\trm L\trm U\trowmajor\tcandidates\tresiduals\tselect\t\tinsert\t\treorder\t\tsweep\t\tthreshold\tremove\t\treorder\t\tsweeep\t\ttotal\t\t\taccum\n", num_threads);
+    }
 
     //##########################################################################
 
@@ -402,11 +399,10 @@ magma_zparilutsetup(
                     t_cand+t_res+t_select+t_insert+t_reorder1+t_sweep1+t_thres+t_rm+t_reorder2+t_rowmajor+t_sweep2, accum);
             fflush(stdout);
         }
-
     }
 
-    if( timing == 1 ){
-         printf("]; \n");
+    if (timing == 1) {
+        printf("]; \n");
     }
     //##########################################################################
 

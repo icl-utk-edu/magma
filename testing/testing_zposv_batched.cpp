@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 
             for (int i=0; i < batchCount; i++)
             {
-               magma_zmake_hpd( N, h_A + i * lda * N, lda ); // need modification
+                magma_zmake_hpd( N, h_A + i * lda * N, lda ); // need modification
             }
 
             magma_zsetmatrix( N, N*batchCount,    h_A, lda, d_A, ldda, opts.queue );

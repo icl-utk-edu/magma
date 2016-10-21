@@ -169,7 +169,7 @@ magma_zgetrf_batched(
     magma_malloc((void**)&pivinfo, batchCount * m * sizeof(magma_int_t));
     magma_malloc_cpu((void**) &cpuAarray, batchCount*sizeof(magmaDoubleComplex*));
 
-   /* check allocation */
+    /* check allocation */
     if ( dA_displ  == NULL || dW0_displ == NULL || dW1_displ   == NULL || dW2_displ   == NULL || 
          dW3_displ == NULL || dW4_displ == NULL || dinvA_array == NULL || dwork_array == NULL || 
          dinvA     == NULL || dwork     == NULL || cpuAarray   == NULL || 
@@ -326,9 +326,9 @@ magma_zgetrf_batched(
                     // finishing the update at least of the next panel
                     // if queue is NULL, no need to sync
                     if ( queue != NULL ) {
-                         for (magma_int_t s=0; s < nbstreams; s++)
-                             magma_queue_sync(queues[s]);
-                     }
+                        for (magma_int_t s=0; s < nbstreams; s++)
+                            magma_queue_sync(queues[s]);
+                    }
                 }
                 //-------------------------------------------
                 //          USE BATCHED GEMM

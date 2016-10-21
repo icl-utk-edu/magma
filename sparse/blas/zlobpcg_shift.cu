@@ -33,8 +33,6 @@ magma_zlobpcg_shift_kernel(
 }
 
 
-
-
 /**
     Purpose
     -------

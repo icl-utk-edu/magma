@@ -23,11 +23,11 @@ magma_zgpumemzero(
     int n, 
     int k )
 {
-   int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-   if( i < n ){
-    for( int j=0; j<k; j++)
-      d[ i+j*n ] = MAGMA_Z_MAKE( 0.0, 0.0 );
+    if (i < n) {
+        for (int j = 0; j < k; j++)
+            d[ i+j*n ] = MAGMA_Z_MAKE( 0.0, 0.0 );
     }
 }
 

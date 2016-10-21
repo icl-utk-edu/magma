@@ -317,8 +317,6 @@ cleanup:
 }
 
 
-
-
 /**
     Purpose
     -------

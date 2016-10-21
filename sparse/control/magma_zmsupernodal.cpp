@@ -13,8 +13,6 @@
 #include "magmasparse_internal.h"
 
 
-
-
 /***************************************************************************//**
     Purpose
     -------
@@ -132,7 +130,6 @@ cleanup:
     start = NULL;
 
     return info;
-
 }
 
 
@@ -233,5 +230,4 @@ magma_zmvarsizeblockstruct(
 cleanup:
 
     return info;
-
 }

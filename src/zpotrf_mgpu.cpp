@@ -136,7 +136,7 @@ magma_zpotrf_mgpu(
                 magma_queue_create( d, &queues[d][j] );
             }
             for( j=0; j < 5; j++ ) {
-               magma_event_create( &event[d][j]  );
+                magma_event_create( &event[d][j]  );
             }
         }
         magma_setdevice(0);

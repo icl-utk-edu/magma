@@ -102,8 +102,8 @@ magma_zdomainoverlap(
             col = colidx[j];
             int doubleitem = 0;
             for(magma_int_t k=0; k<blocksize; k++){
-              if( tmp_x[k] == col )
-                  doubleitem = 1;
+                if (tmp_x[k] == col)
+                    doubleitem = 1;
             }
             if( doubleitem == 0 ){
                 tmp_x[num_ind] = col;

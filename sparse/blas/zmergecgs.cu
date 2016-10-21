@@ -109,9 +109,6 @@ magma_zcgs_1(
 }
 
 
-
-
-
 __global__ void
 magma_zcgs_2_kernel(  
     int num_rows,
@@ -186,9 +183,6 @@ magma_zcgs_2(
 
     return MAGMA_SUCCESS;
 }
-
-
-
 
 
 __global__ void

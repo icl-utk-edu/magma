@@ -193,8 +193,6 @@ magma_zlag2c_CSR_DENSE_kernel_2(
 }
 
 
-
-
 extern "C" void
 magma_zlag2c_CSR_DENSE(
     magma_z_matrix A,

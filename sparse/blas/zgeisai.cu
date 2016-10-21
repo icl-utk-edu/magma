@@ -101,10 +101,12 @@ magma_zlocations_trunc_lower_kernel(
         if ( i<count ){
             locations[ j*WARP_SIZE + i ] = col[ row[j]+i ];
         }
-    } else { // truncate in this row to the blocksize,
-             // take only the 32 elements close to the main diagonal into account
-          count = BLOCKSIZE;
-       if( i == 0 ){
+    }
+    else {
+        // truncate in this row to the blocksize,
+        // take only the 32 elements close to the main diagonal into account
+        count = BLOCKSIZE;
+        if (i == 0) {
             sizes[j] = count;
             rhs[ j*WARP_SIZE ] = MAGMA_Z_ONE;
         }
@@ -175,10 +177,12 @@ magma_zlocations_trunc_upper_kernel(
         if ( i<count ){
             locations[ j*WARP_SIZE + i ] = col[ row[j]+i ];
         }
-    } else { // truncate in this row to the blocksize,
-             // take only the 32 elements close to the main diagonal into account
-          count = BLOCKSIZE;
-       if( i == 0 ){
+    }
+    else {
+        // truncate in this row to the blocksize,
+        // take only the 32 elements close to the main diagonal into account
+        count = BLOCKSIZE;
+        if (i == 0) {
             sizes[j] = count;
             rhs[ j*WARP_SIZE+count-1 ] = MAGMA_Z_ONE;
         }
@@ -225,15 +229,6 @@ magma_zfilltrisystems_kernel(
         }
     }
 }// kernel
-
-
-
-
-
-
-
-
-
 
 
 /**
@@ -380,13 +375,6 @@ magma_zmprepare_batched_gpu(
 
     return MAGMA_SUCCESS;
 }
-
-
-
-
-
-
-
 
 
 __global__ void

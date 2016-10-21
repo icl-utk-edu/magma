@@ -139,10 +139,6 @@ cleanup:
 }   /* magma_zjacobi */
 
 
-
-
-
-
 /**
     Purpose
     -------

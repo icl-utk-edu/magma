@@ -61,8 +61,8 @@ void ztrsv_lower_8kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB,
 
         #pragma unroll
         for (n = 0; n < 2; n++)
-          if (n*WARP_SIZE+idn > k)
-            rB[n] -= (top*rA[n]);
+            if (n*WARP_SIZE+idn > k)
+                rB[n] -= (top*rA[n]);
     }
     // Drop B to dev mem.
     #pragma unroll
@@ -111,8 +111,8 @@ void ztrsv_upper_8kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB,
 
         #pragma unroll
         for (n = 0; n < 2; n++)
-          if (n*WARP_SIZE+idn < k)
-            rB[n] -= (top*rA[n]);
+            if (n*WARP_SIZE+idn < k)
+                rB[n] -= (top*rA[n]);
     }
     // Drop B to dev mem.
     #pragma unroll
@@ -374,31 +374,29 @@ void ztrsv_lower_8kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __global__
 void ztrsv_lower_8kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes, int num_rows )
 {
-
-
     int j = blockIdx.y * gridDim.x + blockIdx.x;
-    if( j < num_rows ){
-    int N = sizes[j];
-    switch( N ) {
-        case  1:
-            ztrsv_lower_8kernel_1( dA, dB ); break;
-        case  2:
-            ztrsv_lower_8kernel_2( dA, dB ); break;
-        case  3:
-            ztrsv_lower_8kernel_3( dA, dB ); break;
-        case  4:
-            ztrsv_lower_8kernel_4( dA, dB ); break;
-        case  5:
-            ztrsv_lower_8kernel_5( dA, dB ); break;
-        case  6:
-            ztrsv_lower_8kernel_6( dA, dB ); break;
-        case  7:
-            ztrsv_lower_8kernel_7( dA, dB ); break;
-        case  8:
-            ztrsv_lower_8kernel_8( dA, dB ); break;
-        default:
-            ztrsv_lower_8kernel_general( dA, dB, sizes ); break;
-    }
+    if (j < num_rows) {
+        int N = sizes[j];
+        switch( N ) {
+            case  1:
+                ztrsv_lower_8kernel_1( dA, dB ); break;
+            case  2:
+                ztrsv_lower_8kernel_2( dA, dB ); break;
+            case  3:
+                ztrsv_lower_8kernel_3( dA, dB ); break;
+            case  4:
+                ztrsv_lower_8kernel_4( dA, dB ); break;
+            case  5:
+                ztrsv_lower_8kernel_5( dA, dB ); break;
+            case  6:
+                ztrsv_lower_8kernel_6( dA, dB ); break;
+            case  7:
+                ztrsv_lower_8kernel_7( dA, dB ); break;
+            case  8:
+                ztrsv_lower_8kernel_8( dA, dB ); break;
+            default:
+                ztrsv_lower_8kernel_general( dA, dB, sizes ); break;
+        }
     }
 }
 __device__
@@ -650,35 +648,31 @@ void ztrsv_upper_8kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __global__
 void ztrsv_upper_8kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes, int num_rows )
 {
-
-
     int j = blockIdx.y * gridDim.x + blockIdx.x;
-    if( j < num_rows ){
-    int N = sizes[j];
-    switch( N ) {
-        case  1:
-            ztrsv_upper_8kernel_1( dA, dB ); break;
-        case  2:
-            ztrsv_upper_8kernel_2( dA, dB ); break;
-        case  3:
-            ztrsv_upper_8kernel_3( dA, dB ); break;
-        case  4:
-            ztrsv_upper_8kernel_4( dA, dB ); break;
-        case  5:
-            ztrsv_upper_8kernel_5( dA, dB ); break;
-        case  6:
-            ztrsv_upper_8kernel_6( dA, dB ); break;
-        case  7:
-            ztrsv_upper_8kernel_7( dA, dB ); break;
-        case  8:
-            ztrsv_upper_8kernel_8( dA, dB ); break;
-        default:
-            ztrsv_upper_8kernel_general( dA, dB, sizes ); break;
-    }
+    if (j < num_rows) {
+        int N = sizes[j];
+        switch( N ) {
+            case  1:
+                ztrsv_upper_8kernel_1( dA, dB ); break;
+            case  2:
+                ztrsv_upper_8kernel_2( dA, dB ); break;
+            case  3:
+                ztrsv_upper_8kernel_3( dA, dB ); break;
+            case  4:
+                ztrsv_upper_8kernel_4( dA, dB ); break;
+            case  5:
+                ztrsv_upper_8kernel_5( dA, dB ); break;
+            case  6:
+                ztrsv_upper_8kernel_6( dA, dB ); break;
+            case  7:
+                ztrsv_upper_8kernel_7( dA, dB ); break;
+            case  8:
+                ztrsv_upper_8kernel_8( dA, dB ); break;
+            default:
+                ztrsv_upper_8kernel_general( dA, dB, sizes ); break;
+        }
     }
 }
-
-
 
 
 // initialize arrays with zero
@@ -764,10 +758,12 @@ magma_zlocations_trunc_lower_8kernel(
         if ( i<count ){
             locations[ j*WARP_SIZE + i ] = col[ row[j]+i ];
         }
-    } else { // truncate in this row to the blocksize,
-             // take only the 8 elements close to the main diagonal into account
-          count = BLOCKSIZE;
-       if( i == 0 ){
+    }
+    else {
+        // truncate in this row to the blocksize,
+        // take only the 8 elements close to the main diagonal into account
+        count = BLOCKSIZE;
+        if (i == 0) {
             sizes[j] = count;
             rhs[ j*WARP_SIZE ] = MAGMA_Z_ONE;
         }
@@ -838,10 +834,12 @@ magma_zlocations_trunc_upper_8kernel(
         if ( i<count ){
             locations[ j*WARP_SIZE + i ] = col[ row[j]+i ];
         }
-    } else { // truncate in this row to the blocksize,
-             // take only the 8 elements close to the main diagonal into account
-          count = BLOCKSIZE;
-       if( i == 0 ){
+    }
+    else {
+        // truncate in this row to the blocksize,
+        // take only the 8 elements close to the main diagonal into account
+        count = BLOCKSIZE;
+        if (i == 0) {
             sizes[j] = count;
             rhs[ j*WARP_SIZE+count-1 ] = MAGMA_Z_ONE;
         }
@@ -894,11 +892,6 @@ magma_zfilltrisystems_8kernel(
         }
     }
 }// kernel
-
-
-
-
-
 
 
 __global__ void
@@ -1102,8 +1095,8 @@ magma_zisaigenerator_8_gpu(
             rhs );
 #endif
 #else
-   printf( "%% error: ISAI preconditioner requires CUDA > 6.0.\n" );
-   info = MAGMA_ERR_NOT_SUPPORTED;
+    printf( "%% error: ISAI preconditioner requires CUDA > 6.0.\n" );
+    info = MAGMA_ERR_NOT_SUPPORTED;
 #endif
 
 

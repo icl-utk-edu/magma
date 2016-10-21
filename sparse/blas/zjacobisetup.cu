@@ -35,9 +35,6 @@ zvjacobisetup_gpu(  int num_rows,
 }
 
 
-
-
-
 /**
     Purpose
     -------
@@ -96,10 +93,6 @@ magma_zjacobisetup_vector_gpu(
 }
 
 
-
-
-
-
 __global__ void 
 zjacobidiagscal_kernel(  int num_rows,
                          int num_vecs, 
@@ -114,9 +107,6 @@ zjacobidiagscal_kernel(  int num_rows,
             c[row+i*num_rows] = b[row+i*num_rows] * d[row];
     }
 }
-
-
-
 
 
 /**
@@ -169,17 +159,6 @@ magma_zjacobi_diagscal(
 
     return MAGMA_SUCCESS;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 __global__ void 
@@ -249,14 +228,6 @@ magma_zjacobiupdate(
 }
 
 
-
-
-
-
-
-
-
-
 __global__ void 
 zjacobispmvupdate_kernel(  
     int num_rows,
@@ -284,9 +255,6 @@ zjacobispmvupdate_kernel(
         }
     }
 }
-
-
-
 
 
 /**
@@ -361,8 +329,6 @@ magma_zjacobispmvupdate(
 }
 
 
-
-
 __global__ void 
 zjacobispmvupdate_bw_kernel(  
     int num_rows,
@@ -391,9 +357,6 @@ zjacobispmvupdate_bw_kernel(
         }
     }
 }
-
-
-
 
 
 /**
@@ -466,9 +429,6 @@ magma_zjacobispmvupdate_bw(
 
     return MAGMA_SUCCESS;
 }
-
-
-
 
 
 __global__ void 
@@ -606,8 +566,6 @@ magma_zjacobispmvupdateselect(
 }
 
 
-
-
 __global__ void 
 zftjacobicontractions_kernel(
     int num_rows,
@@ -686,8 +644,6 @@ magma_zftjacobicontractions(
     
     return MAGMA_SUCCESS;
 }
-
-
 
 
 __global__ void 

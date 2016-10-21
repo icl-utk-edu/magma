@@ -48,9 +48,6 @@ magma_zselect_insert_kernel(
 }// kernel 
 
 
-
-
-
 __global__ void 
 magma_zselect_rowptr_kernel(    
     magma_int_t n,
@@ -69,9 +66,6 @@ magma_zselect_rowptr_kernel(
         }
     }
 }// kernel 
-
-
-
 
 
 __global__ void 

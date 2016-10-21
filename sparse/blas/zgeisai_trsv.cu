@@ -63,8 +63,8 @@ void ztrsv_lower_kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, 
 
         #pragma unroll
         for (n = 0; n < 2; n++)
-          if (n*WARP_SIZE+idn > k)
-            rB[n] -= (top*rA[n]);
+            if (n*WARP_SIZE+idn > k)
+                rB[n] -= (top*rA[n]);
     }
     // Drop B to dev mem.
     #pragma unroll
@@ -114,8 +114,8 @@ void ztrsv_upper_kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, 
 
         #pragma unroll
         for (n = 0; n < 2; n++)
-          if (n*WARP_SIZE+idn < k)
-            rB[n] -= (top*rA[n]);
+            if (n*WARP_SIZE+idn < k)
+                rB[n] -= (top*rA[n]);
     }
     // Drop B to dev mem.
     #pragma unroll
@@ -1119,88 +1119,80 @@ void ztrsv_lower_kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 }
 
 
-
-
-
-
-
-
 __global__
 void ztrsv_lower_kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes, int num_rows )
 {
-
-
     int j = blockIdx.y * gridDim.x + blockIdx.x;
-    if( j < num_rows ){
-    int N = sizes[j];
-    switch( N ) {
-        case  1:
-            ztrsv_lower_kernel_1( dA, dB ); break;
-        case  2:
-            ztrsv_lower_kernel_2( dA, dB ); break;
-        case  3:
-            ztrsv_lower_kernel_3( dA, dB ); break;
-        case  4:
-            ztrsv_lower_kernel_4( dA, dB ); break;
-        case  5:
-            ztrsv_lower_kernel_5( dA, dB ); break;
-        case  6:
-            ztrsv_lower_kernel_6( dA, dB ); break;
-        case  7:
-            ztrsv_lower_kernel_7( dA, dB ); break;
-        case  8:
-            ztrsv_lower_kernel_8( dA, dB ); break;
-        case  9:
-            ztrsv_lower_kernel_9( dA, dB ); break;
-        case  10:
-            ztrsv_lower_kernel_10( dA, dB ); break;
-        case  11:
-            ztrsv_lower_kernel_11( dA, dB ); break;
-        case  12:
-            ztrsv_lower_kernel_12( dA, dB ); break;
-        case  13:
-            ztrsv_lower_kernel_13( dA, dB ); break;
-        case  14:
-            ztrsv_lower_kernel_14( dA, dB ); break;
-        case  15:
-            ztrsv_lower_kernel_15( dA, dB ); break;
-        case  16:
-            ztrsv_lower_kernel_16( dA, dB ); break;
-        case  17:
-            ztrsv_lower_kernel_17( dA, dB ); break;
-        case  18:
-            ztrsv_lower_kernel_18( dA, dB ); break;
-        case  19:
-            ztrsv_lower_kernel_19( dA, dB ); break;
-        case  20:
-            ztrsv_lower_kernel_20( dA, dB ); break;
-        case  21:
-            ztrsv_lower_kernel_21( dA, dB ); break;
-        case  22:
-            ztrsv_lower_kernel_22( dA, dB ); break;
-        case  23:
-            ztrsv_lower_kernel_23( dA, dB ); break;
-        case  24:
-            ztrsv_lower_kernel_24( dA, dB ); break;
-        case  25:
-            ztrsv_lower_kernel_25( dA, dB ); break;
-        case  26:
-            ztrsv_lower_kernel_26( dA, dB ); break;
-        case  27:
-            ztrsv_lower_kernel_27( dA, dB ); break;
-        case  28:
-            ztrsv_lower_kernel_28( dA, dB ); break;
-        case  29:
-            ztrsv_lower_kernel_29( dA, dB ); break;
-        case  30:
-            ztrsv_lower_kernel_30( dA, dB ); break;
-        case  31:
-            ztrsv_lower_kernel_31( dA, dB ); break;
-        case  32:
-            ztrsv_lower_kernel_32( dA, dB ); break;
-        default:
-            ztrsv_lower_kernel_general( dA, dB, sizes ); break;
-    }
+    if (j < num_rows) {
+        int N = sizes[j];
+        switch( N ) {
+            case  1:
+                ztrsv_lower_kernel_1( dA, dB ); break;
+            case  2:
+                ztrsv_lower_kernel_2( dA, dB ); break;
+            case  3:
+                ztrsv_lower_kernel_3( dA, dB ); break;
+            case  4:
+                ztrsv_lower_kernel_4( dA, dB ); break;
+            case  5:
+                ztrsv_lower_kernel_5( dA, dB ); break;
+            case  6:
+                ztrsv_lower_kernel_6( dA, dB ); break;
+            case  7:
+                ztrsv_lower_kernel_7( dA, dB ); break;
+            case  8:
+                ztrsv_lower_kernel_8( dA, dB ); break;
+            case  9:
+                ztrsv_lower_kernel_9( dA, dB ); break;
+            case  10:
+                ztrsv_lower_kernel_10( dA, dB ); break;
+            case  11:
+                ztrsv_lower_kernel_11( dA, dB ); break;
+            case  12:
+                ztrsv_lower_kernel_12( dA, dB ); break;
+            case  13:
+                ztrsv_lower_kernel_13( dA, dB ); break;
+            case  14:
+                ztrsv_lower_kernel_14( dA, dB ); break;
+            case  15:
+                ztrsv_lower_kernel_15( dA, dB ); break;
+            case  16:
+                ztrsv_lower_kernel_16( dA, dB ); break;
+            case  17:
+                ztrsv_lower_kernel_17( dA, dB ); break;
+            case  18:
+                ztrsv_lower_kernel_18( dA, dB ); break;
+            case  19:
+                ztrsv_lower_kernel_19( dA, dB ); break;
+            case  20:
+                ztrsv_lower_kernel_20( dA, dB ); break;
+            case  21:
+                ztrsv_lower_kernel_21( dA, dB ); break;
+            case  22:
+                ztrsv_lower_kernel_22( dA, dB ); break;
+            case  23:
+                ztrsv_lower_kernel_23( dA, dB ); break;
+            case  24:
+                ztrsv_lower_kernel_24( dA, dB ); break;
+            case  25:
+                ztrsv_lower_kernel_25( dA, dB ); break;
+            case  26:
+                ztrsv_lower_kernel_26( dA, dB ); break;
+            case  27:
+                ztrsv_lower_kernel_27( dA, dB ); break;
+            case  28:
+                ztrsv_lower_kernel_28( dA, dB ); break;
+            case  29:
+                ztrsv_lower_kernel_29( dA, dB ); break;
+            case  30:
+                ztrsv_lower_kernel_30( dA, dB ); break;
+            case  31:
+                ztrsv_lower_kernel_31( dA, dB ); break;
+            case  32:
+                ztrsv_lower_kernel_32( dA, dB ); break;
+            default:
+                ztrsv_lower_kernel_general( dA, dB, sizes ); break;
+        }
     }
 }
 __device__
@@ -2194,88 +2186,80 @@ void ztrsv_upper_kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 }
 
 
-
-
-
-
-
-
 __global__
 void ztrsv_upper_kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes, int num_rows )
 {
-
-
     int j = blockIdx.y * gridDim.x + blockIdx.x;
-    if( j < num_rows ){
-    int N = sizes[j];
-    switch( N ) {
-        case  1:
-            ztrsv_upper_kernel_1( dA, dB ); break;
-        case  2:
-            ztrsv_upper_kernel_2( dA, dB ); break;
-        case  3:
-            ztrsv_upper_kernel_3( dA, dB ); break;
-        case  4:
-            ztrsv_upper_kernel_4( dA, dB ); break;
-        case  5:
-            ztrsv_upper_kernel_5( dA, dB ); break;
-        case  6:
-            ztrsv_upper_kernel_6( dA, dB ); break;
-        case  7:
-            ztrsv_upper_kernel_7( dA, dB ); break;
-        case  8:
-            ztrsv_upper_kernel_8( dA, dB ); break;
-        case  9:
-            ztrsv_upper_kernel_9( dA, dB ); break;
-        case  10:
-            ztrsv_upper_kernel_10( dA, dB ); break;
-        case  11:
-            ztrsv_upper_kernel_11( dA, dB ); break;
-        case  12:
-            ztrsv_upper_kernel_12( dA, dB ); break;
-        case  13:
-            ztrsv_upper_kernel_13( dA, dB ); break;
-        case  14:
-            ztrsv_upper_kernel_14( dA, dB ); break;
-        case  15:
-            ztrsv_upper_kernel_15( dA, dB ); break;
-        case  16:
-            ztrsv_upper_kernel_16( dA, dB ); break;
-        case  17:
-            ztrsv_upper_kernel_17( dA, dB ); break;
-        case  18:
-            ztrsv_upper_kernel_18( dA, dB ); break;
-        case  19:
-            ztrsv_upper_kernel_19( dA, dB ); break;
-        case  20:
-            ztrsv_upper_kernel_20( dA, dB ); break;
-        case  21:
-            ztrsv_upper_kernel_21( dA, dB ); break;
-        case  22:
-            ztrsv_upper_kernel_22( dA, dB ); break;
-        case  23:
-            ztrsv_upper_kernel_23( dA, dB ); break;
-        case  24:
-            ztrsv_upper_kernel_24( dA, dB ); break;
-        case  25:
-            ztrsv_upper_kernel_25( dA, dB ); break;
-        case  26:
-            ztrsv_upper_kernel_26( dA, dB ); break;
-        case  27:
-            ztrsv_upper_kernel_27( dA, dB ); break;
-        case  28:
-            ztrsv_upper_kernel_28( dA, dB ); break;
-        case  29:
-            ztrsv_upper_kernel_29( dA, dB ); break;
-        case  30:
-            ztrsv_upper_kernel_30( dA, dB ); break;
-        case  31:
-            ztrsv_upper_kernel_31( dA, dB ); break;
-        case  32:
-            ztrsv_upper_kernel_32( dA, dB ); break;
-        default:
-            ztrsv_upper_kernel_general( dA, dB, sizes ); break;
-    }
+    if (j < num_rows) {
+        int N = sizes[j];
+        switch( N ) {
+            case  1:
+                ztrsv_upper_kernel_1( dA, dB ); break;
+            case  2:
+                ztrsv_upper_kernel_2( dA, dB ); break;
+            case  3:
+                ztrsv_upper_kernel_3( dA, dB ); break;
+            case  4:
+                ztrsv_upper_kernel_4( dA, dB ); break;
+            case  5:
+                ztrsv_upper_kernel_5( dA, dB ); break;
+            case  6:
+                ztrsv_upper_kernel_6( dA, dB ); break;
+            case  7:
+                ztrsv_upper_kernel_7( dA, dB ); break;
+            case  8:
+                ztrsv_upper_kernel_8( dA, dB ); break;
+            case  9:
+                ztrsv_upper_kernel_9( dA, dB ); break;
+            case  10:
+                ztrsv_upper_kernel_10( dA, dB ); break;
+            case  11:
+                ztrsv_upper_kernel_11( dA, dB ); break;
+            case  12:
+                ztrsv_upper_kernel_12( dA, dB ); break;
+            case  13:
+                ztrsv_upper_kernel_13( dA, dB ); break;
+            case  14:
+                ztrsv_upper_kernel_14( dA, dB ); break;
+            case  15:
+                ztrsv_upper_kernel_15( dA, dB ); break;
+            case  16:
+                ztrsv_upper_kernel_16( dA, dB ); break;
+            case  17:
+                ztrsv_upper_kernel_17( dA, dB ); break;
+            case  18:
+                ztrsv_upper_kernel_18( dA, dB ); break;
+            case  19:
+                ztrsv_upper_kernel_19( dA, dB ); break;
+            case  20:
+                ztrsv_upper_kernel_20( dA, dB ); break;
+            case  21:
+                ztrsv_upper_kernel_21( dA, dB ); break;
+            case  22:
+                ztrsv_upper_kernel_22( dA, dB ); break;
+            case  23:
+                ztrsv_upper_kernel_23( dA, dB ); break;
+            case  24:
+                ztrsv_upper_kernel_24( dA, dB ); break;
+            case  25:
+                ztrsv_upper_kernel_25( dA, dB ); break;
+            case  26:
+                ztrsv_upper_kernel_26( dA, dB ); break;
+            case  27:
+                ztrsv_upper_kernel_27( dA, dB ); break;
+            case  28:
+                ztrsv_upper_kernel_28( dA, dB ); break;
+            case  29:
+                ztrsv_upper_kernel_29( dA, dB ); break;
+            case  30:
+                ztrsv_upper_kernel_30( dA, dB ); break;
+            case  31:
+                ztrsv_upper_kernel_31( dA, dB ); break;
+            case  32:
+                ztrsv_upper_kernel_32( dA, dB ); break;
+            default:
+                ztrsv_upper_kernel_general( dA, dB, sizes ); break;
+        }
     }
 }
 #endif
@@ -2377,6 +2361,4 @@ magma_zmtrisolve_batched_gpu(
 #endif
 
     return info;
-
-
 }

@@ -101,8 +101,6 @@ cleanup:
 }
 
 
-
-
 /**
     Purpose
     -------
@@ -198,8 +196,6 @@ magma_zvread(
 cleanup:
     return info;
 }
-
-
 
 
 /**

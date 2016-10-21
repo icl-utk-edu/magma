@@ -23,14 +23,13 @@ __forceinline__ __device__ static double
 atomicAdd(double *addr, double val)
 {
     double old = *addr, assumed;
-    do
-    {
+    do {
         assumed = old;
         old = __longlong_as_double(
                     atomicCAS((unsigned long long int*)addr,
                               __double_as_longlong(assumed),
                               __double_as_longlong(val+assumed)));
-    }while(assumed != old);
+    } while(assumed != old);
 
     return old;
 }

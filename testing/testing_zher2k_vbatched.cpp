@@ -185,9 +185,10 @@ int main( int argc, char** argv)
             h_C_tmp = h_C;
             for (int i=0; i < batchCount; i++)
             {
-               magma_zmake_hermitian( h_N[i], h_C_tmp, h_ldc[i] ); 
-               h_C_tmp += h_N[i] * h_ldc[i];
+                magma_zmake_hermitian( h_N[i], h_C_tmp, h_ldc[i] ); 
+                h_C_tmp += h_N[i] * h_ldc[i];
             }
+
             /* =====================================================================
                Performs operation using MAGMABLAS
                =================================================================== */
@@ -261,12 +262,12 @@ int main( int argc, char** argv)
                 #endif
                 for (magma_int_t s=0; s < batchCount; s++)
                 {
-                   blasf77_zher2k(
-                               lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA),
-                               &h_N[s], &h_K[s],
-                               &alpha, h_A_array[s], &h_lda[s],
-                                       h_B_array[s], &h_ldb[s],
-                               &beta,  h_C_array[s], &h_ldc[s] );
+                    blasf77_zher2k( lapack_uplo_const(opts.uplo),
+                                    lapack_trans_const(opts.transA),
+                                    &h_N[s], &h_K[s],
+                                    &alpha, h_A_array[s], &h_lda[s],
+                                            h_B_array[s], &h_ldb[s],
+                                    &beta,  h_C_array[s], &h_ldc[s] );
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);

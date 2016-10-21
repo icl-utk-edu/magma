@@ -61,8 +61,11 @@ magma_zpipelined_correction(
     
     temp[ i ] = ( i < k ) ? skp[ i ] * skp[ i ] : MAGMA_Z_MAKE( 0.0, 0.0);
     __syncthreads();
-     if (i < 64) { temp[ i ] += temp[ i + 64 ]; } __syncthreads(); 
-     if ( i < 32 ) {
+    if (i < 64) {
+        temp[ i ] += temp[ i + 64 ];
+    }
+    __syncthreads(); 
+    if (i < 32) {
         temp[ i ] += temp[ i + 32 ]; __syncthreads();    
         temp[ i ] += temp[ i + 16 ]; __syncthreads(); 
         temp[ i ] += temp[ i +  8 ]; __syncthreads(); 

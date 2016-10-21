@@ -101,8 +101,6 @@ magma_zmisai_blockstruct_fill_u_kernel(
 }// kernel 
 
 
-        
-
 /**
     Purpose
     -------

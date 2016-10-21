@@ -22,4 +22,3 @@ atomicAddfloat(float *addr, float val)
 
 
 #endif 
-

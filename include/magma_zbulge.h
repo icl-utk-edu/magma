@@ -93,9 +93,6 @@ magma_ztrdtype3cbHLsym_withQ_v2(
     magma_int_t sweep, magma_int_t Vblksiz, 
     magmaDoubleComplex *work);
 
-
-
-
 void 
 magma_zlarfy(
     magma_int_t n,

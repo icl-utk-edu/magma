@@ -554,7 +554,7 @@ magmablas_zlacpy_batched(
             Queue to execute in.
 
     @ingroup magma_zaux2
-    *******************************************************************************/
+*******************************************************************************/
 extern "C" void
 magmablas_zlacpy_vbatched(
     magma_uplo_t uplo, 

@@ -928,8 +928,6 @@ cleanup:
 }
 
 
-
-
 /**
     Checks whether a solver is among the list of Krylov solvers.
     The result is passed in info:

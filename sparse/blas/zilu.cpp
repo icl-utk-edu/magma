@@ -413,12 +413,6 @@ cleanup:
 }
 
 
-
-
-
-
-
-
 /**
     Purpose
     -------
@@ -710,8 +704,6 @@ cleanup:
     cusparseDestroy( cusparseHandle );
     return info; 
 }
-
-
 
 
 /**
@@ -1076,8 +1068,6 @@ cleanup:
     cusparseDestroy( cusparseHandle );
     return info; 
 }
-
-
 
 
 /**

@@ -167,12 +167,12 @@ int main( int argc, char** argv)
                 #endif
                 for (int i=0; i < batchCount; i++)
                 {
-                   blasf77_zher2k(
-                               lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA),
-                               &N, &K,
-                               &alpha, h_A + i*lda*Ak, &lda,
-                                       h_B + i*ldb*Bk, &ldb,
-                               &beta,  h_C + i*ldc*N, &ldc );
+                    blasf77_zher2k( lapack_uplo_const(opts.uplo),
+                                    lapack_trans_const(opts.transA),
+                                    &N, &K,
+                                    &alpha, h_A + i*lda*Ak, &lda,
+                                            h_B + i*ldb*Bk, &ldb,
+                                    &beta,  h_C + i*ldc*N, &ldc );
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);

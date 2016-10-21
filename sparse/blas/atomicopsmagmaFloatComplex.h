@@ -22,4 +22,3 @@ atomicAddmagmaFloatComplex(magmaFloatComplex *addr, magmaFloatComplex val)
 }
 
 #endif 
-

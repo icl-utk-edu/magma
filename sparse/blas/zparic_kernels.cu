@@ -78,14 +78,6 @@ magma_zparic_csr_kernel(
 }// kernel 
 
 
-
-
-
-
-
-
-
-
 /**
     Purpose
     -------

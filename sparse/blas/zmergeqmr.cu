@@ -117,9 +117,6 @@ magma_zqmr_1(
 }
 
 
-
-
-
 __global__ void
 magma_zqmr_2_kernel(  
     int num_rows,
@@ -212,9 +209,6 @@ magma_zqmr_2(
 }
 
 
-
-
-
 __global__ void
 magma_zqmr_3_kernel(  
     int num_rows,
@@ -294,8 +288,6 @@ magma_zqmr_3(
 
     return MAGMA_SUCCESS;
 }
-
-
 
 
 __global__ void

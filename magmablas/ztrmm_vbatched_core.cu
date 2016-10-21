@@ -271,7 +271,7 @@ magmablas_ztrmm_vbatched_core(
             }
             break;
         case 4: // rNL
-             {
+            {
                 const int n2 = magma_get_ztrmm_vbatched_nb(max_n); 
                 const int n1 = max_n - n2;
 

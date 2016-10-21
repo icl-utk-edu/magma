@@ -137,12 +137,11 @@ int main( int argc, char** argv)
                 #endif
                 for (int i=0; i < batchCount; i++)
                 {
-                   blasf77_zgemv(
-                               lapack_trans_const(opts.transA),
-                               &M, &N,
-                               &alpha, h_A + i*lda*N, &lda,
-                                       h_X + i*Xm*incx, &incx,
-                               &beta,  h_Y + i*Ym*incy, &incy );
+                    blasf77_zgemv( lapack_trans_const(opts.transA),
+                                   &M, &N,
+                                   &alpha, h_A + i*lda*N, &lda,
+                                           h_X + i*Xm*incx, &incx,
+                                   &beta,  h_Y + i*Ym*incy, &incy );
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);

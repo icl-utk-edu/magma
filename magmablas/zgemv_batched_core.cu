@@ -245,6 +245,6 @@ magmablas_zgemv_batched(
                         ( trans, m, n, alpha, dA_array, ldda, dx_array, incx, beta, dy_array, incy, batchCount, queue );
                 }
             }
-        }        
-     }                   
+        }
+    }
 }

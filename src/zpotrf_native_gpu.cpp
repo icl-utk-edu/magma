@@ -114,7 +114,7 @@ magma_zpotrf_native_gpu(
         return *info;
     }
     
-    nb = 1024;//magma_get_zpotrf_nb( n );
+    nb = 1024; //magma_get_zpotrf_nb( n );
 
     if (MAGMA_SUCCESS != magma_zmalloc_pinned( &work, nb*nb )) {
         *info = MAGMA_ERR_HOST_ALLOC;
@@ -204,13 +204,9 @@ magma_zpotrf_native_gpu(
                     magma_zherk( MagmaLower, MagmaNoTrans, n-nextj-nextjb, jb,
                                  d_neg_one, dA(nextj+nextjb, j),            ldda,
                                  d_one,     dA(nextj+nextjb, nextj+nextjb), ldda, queues[1] );
-
-
                 }
-
             }
         }
-        
     }
     magma_getvector( 1, sizeof(int), dinfo, 1, info, 1, queues[0]);
 

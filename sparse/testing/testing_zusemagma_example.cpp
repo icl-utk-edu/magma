@@ -26,7 +26,6 @@
 */
 int main ()
 {
-    
     // The software does e.g. discretization of a PDE,
     // ends up with a sparse linear system in CSR format and a RHS.
     // Let's assume this system is a diagonal system of size m.
@@ -116,5 +115,4 @@ int main ()
     for(int i=0; i<20; i++){
         printf("%.4f\n", sol[i]);   
     }
-    
 }

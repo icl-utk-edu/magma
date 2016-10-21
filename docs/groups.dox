@@ -54,8 +54,6 @@
 @}
 
 
-
-
 ============================================================
 @defgroup magma_internal            Internal routines
 @{
@@ -66,8 +64,6 @@
     @defgroup magma_panel2q         QR panel to q, q to panel
     @defgroup magma_kernel          GPU Kernels
 @}
-
-
 
 
 ============================================================
@@ -500,8 +496,6 @@
 @}
 
 
-
-
 ============================================================
 @defgroup batched                   Batched
 @brief    Batched functions operate on a large set of small matrices
@@ -823,8 +817,6 @@
         @}
     @}
 @}
-
-
 
 
 ============================================================

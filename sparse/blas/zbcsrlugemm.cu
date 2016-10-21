@@ -311,9 +311,6 @@ zbcsr_gemm_kernel64(
 }
 
 
-
-
-
 /**
     Purpose
     -------

@@ -157,10 +157,6 @@ magmablas_zlaswp(
 }
 
 
-
-
-
-
 /******************************************************************************/
 // Extended version has stride in both directions (ldx, ldy)
 // to handle both row-wise and column-wise storage.
@@ -294,10 +290,6 @@ magmablas_zlaswpx(
     
     #undef dA
 }
-
-
-
-
 
 
 /******************************************************************************/

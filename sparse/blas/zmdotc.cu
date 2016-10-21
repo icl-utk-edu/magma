@@ -236,11 +236,11 @@ magma_zmdotc2_gpumemzero(
     magmaDoubleComplex * d, 
     int n )
 {
-   int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-   if( i < n ){
-    for( int j=0; j<2; j++)
-      d[ i+j*n ] = MAGMA_Z_MAKE( 0.0, 0.0 );
+    if (i < n) {
+        for (int j = 0; j < 2; j++)
+            d[ i+j*n ] = MAGMA_Z_MAKE( 0.0, 0.0 );
     }
 }
 
@@ -502,8 +502,6 @@ magma_zmdotc2(
 }
 
 
-
-
 //        3 dot products     //
 
 
@@ -513,11 +511,11 @@ magma_zmdotc3_gpumemzero(
     magmaDoubleComplex * d, 
     int n )
 {
-   int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-   if( i < n ){
-    for( int j=0; j<3; j++)
-      d[ i+j*n ] = MAGMA_Z_MAKE( 0.0, 0.0 );
+    if (i < n) {
+        for (int j = 0; j < 3; j++)
+            d[ i+j*n ] = MAGMA_Z_MAKE( 0.0, 0.0 );
     }
 }
 
@@ -803,11 +801,11 @@ magma_zmdotc4_gpumemzero(
     magmaDoubleComplex * d, 
     int n )
 {
-   int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-   if( i < n ){
-    for( int j=0; j<4; j++)
-      d[ i+j*n ] = MAGMA_Z_MAKE( 0.0, 0.0 );
+    if (i < n) {
+        for (int j = 0; j < 4; j++)
+            d[ i+j*n ] = MAGMA_Z_MAKE( 0.0, 0.0 );
     }
 }
 

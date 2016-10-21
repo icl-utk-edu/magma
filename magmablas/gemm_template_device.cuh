@@ -268,11 +268,11 @@ void gemm_template_device_nt(
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-     #pragma unroll
-     for (n = 0; n < BLK_K; n += DIM_YA)
-         #pragma unroll
-         for (m = 0; m < BLK_M; m += DIM_XA)
-             sA[n+idyA][m+idxA] = fetch(A, m, n, boundA);
+    #pragma unroll
+    for (n = 0; n < BLK_K; n += DIM_YA)
+        #pragma unroll
+        for (m = 0; m < BLK_M; m += DIM_XA)
+            sA[n+idyA][m+idxA] = fetch(A, m, n, boundA);
     
     // Load B dev->shmem
     #pragma unroll

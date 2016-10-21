@@ -59,8 +59,6 @@ magma_zparict_insert(
 
     return info;
 }
-    
-
 
 
 extern "C" magma_int_t
@@ -79,8 +77,6 @@ magma_zparilut_rm_thrs(
 
     return info;
 }
-    
-
 
 
 extern "C" magma_int_t
@@ -112,10 +108,6 @@ magma_zparict_sweep(
 
     return info;
 }
-    
-
- 
-
 
 
 /**
@@ -159,9 +151,6 @@ magma_zparict_residuals(
 
     return info;
 }
-    
-
-
 
 
 /**
@@ -247,9 +236,6 @@ magma_ziluisaisetup(
 
     return info;
 }
-    
-
-
 
 
 /**

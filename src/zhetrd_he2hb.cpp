@@ -382,8 +382,8 @@ magma_zhetrd_he2hb(
                an update of the form:  A := A - V*W' - W*V'
                ==========================================================  */
             if (i + nb <= n-nb) {
-                /* There would be next iteration;
-                   do lookahead - update the next panel */
+                // There would be next iteration;
+                // do lookahead - update the next panel
                 trace_gpu_start( 0, 2, "gemm", "gemm 4 next panel left" );
                 magma_zgemm( MagmaNoTrans, MagmaConjTrans, pm, pn, pn, c_neg_one,
                             dA(indi, indj), ldda,

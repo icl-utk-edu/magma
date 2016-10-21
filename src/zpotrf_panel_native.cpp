@@ -80,16 +80,16 @@ magma_zpotrf_rectile_native(
 
         // TRSM on A21
         //if (DEBUG == 1) printf("calling trsm on A21=A(%d,%d) using A11 == A(%d,%d) with m=%d k=%d\n",p2,p1,p1,p1,n2,n1);
-       magma_ztrsm( MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit,
-                    n2, n1,
-                    c_one, dA(p1, p1), ldda,
-                           dA(p2, p1), ldda, queue );
-
+        magma_ztrsm( MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit,
+                     n2, n1,
+                     c_one, dA(p1, p1), ldda,
+                            dA(p2, p1), ldda, queue );
+        
         // update A22
         //if (DEBUG == 1) printf("calling update A22=A(%d,%d) using A21 == A(%d,%d) with m=%d n=%d k=%d\n",p2,p2,p2,p1,n2,n2,n1);
-       magma_zherk( MagmaLower, MagmaNoTrans, n2, n1,
-                    d_neg_one, dA(p2, p1), ldda,
-                    d_one,     dA(p2, p2), ldda, queue );
+        magma_zherk( MagmaLower, MagmaNoTrans, n2, n1,
+                     d_neg_one, dA(p2, p1), ldda,
+                     d_one,     dA(p2, p2), ldda, queue );
 
         // panel on A22
         //if (DEBUG == 1) printf("calling recursive panel on A22=A(%d,%d) with n=%d recnb %d\n",p2,p2,n2,recnb);

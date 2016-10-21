@@ -1014,9 +1014,6 @@ magma_zparilut_insert(
 }
 
 
-
-
-
 /***************************************************************************//**
     Purpose
     -------
@@ -1157,7 +1154,7 @@ magma_zparilut_candidates_linkedlist(
             magma_index_t start2 = UR.row[ col1 ];
             magma_index_t el2 = start2;
             // second loop first element over row - only for elements larger the intermediate
-             do{
+            do {
                 magma_index_t col2 = UR.col[ el2 ];
                 magma_index_t cand_row = row;
                 magma_index_t cand_col = col2;
@@ -1297,7 +1294,7 @@ magma_zparilut_candidates_linkedlist(
             magma_index_t start2 = UR.row[ col1 ];
             magma_index_t el2 = start2;
             // second loop first element over row - only for elements larger the intermediate
-             do{
+            do {
                 magma_index_t col2 = UR.col[ el2 ];
                 magma_index_t cand_row = row;
                 magma_index_t cand_col = col2;
@@ -1360,31 +1357,31 @@ magma_zparilut_candidates_linkedlist(
     }
 
     if( L_new->nnz > L_new->true_nnz ){
-       magma_free_cpu( L_new->val );
-       magma_free_cpu( L_new->row );
-       magma_free_cpu( L_new->rowidx );
-       magma_free_cpu( L_new->col );
-       magma_free_cpu( L_new->list );
-       magma_zmalloc_cpu( &L_new->val, L_new->nnz*2 );
-       magma_index_malloc_cpu( &L_new->rowidx, L_new->nnz*2 );
-       magma_index_malloc_cpu( &L_new->col, L_new->nnz*2 );
-       magma_index_malloc_cpu( &L_new->row, L_new->nnz*2 );
-       magma_index_malloc_cpu( &L_new->list, L_new->nnz*2 );
-       L_new->true_nnz = L_new->nnz*2;
+        magma_free_cpu( L_new->val );
+        magma_free_cpu( L_new->row );
+        magma_free_cpu( L_new->rowidx );
+        magma_free_cpu( L_new->col );
+        magma_free_cpu( L_new->list );
+        magma_zmalloc_cpu( &L_new->val, L_new->nnz*2 );
+        magma_index_malloc_cpu( &L_new->rowidx, L_new->nnz*2 );
+        magma_index_malloc_cpu( &L_new->col, L_new->nnz*2 );
+        magma_index_malloc_cpu( &L_new->row, L_new->nnz*2 );
+        magma_index_malloc_cpu( &L_new->list, L_new->nnz*2 );
+        L_new->true_nnz = L_new->nnz*2;
     }
 
     if( U_new->nnz > U_new->true_nnz ){
-       magma_free_cpu( U_new->val );
-       magma_free_cpu( U_new->row );
-       magma_free_cpu( U_new->rowidx );
-       magma_free_cpu( U_new->col );
-       magma_free_cpu( U_new->list );
-       magma_zmalloc_cpu( &U_new->val, U_new->nnz*2 );
-       magma_index_malloc_cpu( &U_new->rowidx, U_new->nnz*2 );
-       magma_index_malloc_cpu( &U_new->col, U_new->nnz*2 );
-       magma_index_malloc_cpu( &U_new->row, U_new->nnz*2 );
-       magma_index_malloc_cpu( &U_new->list, U_new->nnz*2 );
-       U_new->true_nnz = U_new->nnz*2;
+        magma_free_cpu( U_new->val );
+        magma_free_cpu( U_new->row );
+        magma_free_cpu( U_new->rowidx );
+        magma_free_cpu( U_new->col );
+        magma_free_cpu( U_new->list );
+        magma_zmalloc_cpu( &U_new->val, U_new->nnz*2 );
+        magma_index_malloc_cpu( &U_new->rowidx, U_new->nnz*2 );
+        magma_index_malloc_cpu( &U_new->col, U_new->nnz*2 );
+        magma_index_malloc_cpu( &U_new->row, U_new->nnz*2 );
+        magma_index_malloc_cpu( &U_new->list, U_new->nnz*2 );
+        U_new->true_nnz = U_new->nnz*2;
     }
     // #########################################################################
 
@@ -1475,7 +1472,7 @@ magma_zparilut_candidates_linkedlist(
             magma_index_t start2 = UR.row[ col1 ];
             magma_int_t el2 = start2;
             // second loop first element over row - only for elements larger the intermediate
-             do{
+            do {
                 magma_index_t col2 = UR.col[ el2 ];
                 magma_index_t cand_row = row;
                 magma_index_t cand_col = col2;
@@ -1704,32 +1701,32 @@ magma_zparilut_candidates_linkedlist(
                     }
                 }while( checkel != 0 );
 #ifdef AVOID_DUPLICATES
-                    for( checkel=numaddU[cand_row]; checkel<offsetU+laddU; checkel++){
-                        checkcol = U_new->col[ checkel ];
-                        if( checkcol == cand_col ){
-                            // element included in LU and nonzero
-                            exist = 1;
-                            checkel=offsetU+laddU;
-                        }
+                for (checkel=numaddU[cand_row]; checkel<offsetU+laddU; checkel++) {
+                    checkcol = U_new->col[ checkel ];
+                    if (checkcol == cand_col){
+                        // element included in LU and nonzero
+                        exist = 1;
+                        checkel=offsetU+laddU;
                     }
+                }
 #endif
-               // if it does not exist, increase counter for this location
-               // use the entry one further down to allow for parallel insertion
-               if( exist == 0 ){
-                   // U_new->val[ numaddU[row] + laddU ] =  MAGMA_Z_MAKE(1e-14,0.0);
-                   U_new->col[ offsetU + laddU ] = cand_col;
-                   U_new->rowidx[ offsetU + laddU ] = cand_row;
-                   // U_new->list[ numaddU[row] + laddU ] = -1;
-                   // U_new->row[ numaddU[row] + laddU ] = -1;
-                   laddU++;
-                   //if( cand_row == 118 && cand_col == 163 )
-                   //         printf("checked row insetion %d this element does not yet exist in U: (%d,%d) row starts with (%d,%d)\n", cand_row, cand_row, cand_col, U.col[ checkel ], cand_col );
-                   //if( cand_row > cand_col )
-                     //  printf("inserted illegal candidate in case 4: (%d,%d) coming from (%d,%d)->(%d,%d)\n", cand_row, cand_col, row, col1, U.col[U.row[ cand_col ]], UR.col[ el2 ]);
-               }
+                // if it does not exist, increase counter for this location
+                // use the entry one further down to allow for parallel insertion
+                if (exist == 0) {
+                    // U_new->val[ numaddU[row] + laddU ] =  MAGMA_Z_MAKE(1e-14,0.0);
+                    U_new->col[ offsetU + laddU ] = cand_col;
+                    U_new->rowidx[ offsetU + laddU ] = cand_row;
+                    // U_new->list[ numaddU[row] + laddU ] = -1;
+                    // U_new->row[ numaddU[row] + laddU ] = -1;
+                    laddU++;
+                    //if( cand_row == 118 && cand_col == 163 )
+                    //         printf("checked row insetion %d this element does not yet exist in U: (%d,%d) row starts with (%d,%d)\n", cand_row, cand_row, cand_col, U.col[ checkel ], cand_col );
+                    //if( cand_row > cand_col )
+                      //  printf("inserted illegal candidate in case 4: (%d,%d) coming from (%d,%d)->(%d,%d)\n", cand_row, cand_col, row, col1, U.col[U.row[ cand_col ]], UR.col[ el2 ]);
+                }
 
-               el2 = UR.list[ el2 ];
-           }while( el2 != 0 );
+                el2 = UR.list[ el2 ];
+            } while (el2 != 0);
 
             el1 = UR.list[ el1 ];
         }while( el1 != 0 );
@@ -1996,10 +1993,8 @@ magma_zparilut_count(
             (*num)++;
             i = nexti;
             nexti=L.list[nexti];
-
-        }while( i!=0 );
+        } while (i != 0);
     }
-
 
     return info;
 }

@@ -22,17 +22,17 @@
 /***************************************************************************//**
     Purpose
     -------
-   ZHER2K  performs one of the Hermitian rank 2k operations
+    ZHER2K  performs one of the Hermitian rank 2k operations
    
-      C := alpha*A*B**H + conjg( alpha )*B*A**H + beta*C,
+        C := alpha*A*B**H + conjg( alpha )*B*A**H + beta*C,
    
-   or
+    or
    
-      C := alpha*A**H*B + conjg( alpha )*B**H*A + beta*C,
+        C := alpha*A**H*B + conjg( alpha )*B**H*A + beta*C,
    
-   where  alpha and beta  are scalars with  beta  real,  C is an  n by n
-   Hermitian matrix and  A and B  are  n by k matrices in the first case
-   and  k by n  matrices in the second case.
+    where  alpha and beta  are scalars with  beta  real,  C is an  n by n
+    Hermitian matrix and  A and B  are  n by k matrices in the first case
+    and  k by n  matrices in the second case.
     
     Parameters
     ----------

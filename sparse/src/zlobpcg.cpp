@@ -65,29 +65,28 @@ magma_zlobpcg(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
+        
+    #define  residualNorms(i,iter)  ( residualNorms + (i) + (iter)*n )
+    #define SWAP(x, y)    { pointer = x; x = y; y = pointer; }
+    #define hresidualNorms(i,iter)  (hresidualNorms + (i) + (iter)*n )
     
-#define  residualNorms(i,iter)  ( residualNorms + (i) + (iter)*n )
-#define SWAP(x, y)    { pointer = x; x = y; y = pointer; }
-#define hresidualNorms(i,iter)  (hresidualNorms + (i) + (iter)*n )
-
-#define gramA(    m, n)   (gramA     + (m) + (n)*ldgram)
-#define gramB(    m, n)   (gramB     + (m) + (n)*ldgram)
-#define gevectors(m, n)   (gevectors + (m) + (n)*ldgram)
-#define h_gramB(  m, n)   (h_gramB   + (m) + (n)*ldgram)
+    #define gramA(    m, n)   (gramA     + (m) + (n)*ldgram)
+    #define gramB(    m, n)   (gramB     + (m) + (n)*ldgram)
+    #define gevectors(m, n)   (gevectors + (m) + (n)*ldgram)
+    #define h_gramB(  m, n)   (h_gramB   + (m) + (n)*ldgram)
 
 
 
-#define magma_z_bspmv_tuned(m, n, alpha, A, X, beta, AX, queue)       {        \
-            magma_z_matrix x={Magma_CSR}, ax={Magma_CSR};                                       \
-            x.memory_location = Magma_DEV;  x.num_rows = m;  x.num_cols = n;  x.major = MagmaColMajor;   x.nnz = m*n;  x.dval = X;    x.storage_type = Magma_DENSE; \
-            ax.memory_location= Magma_DEV; ax.num_rows = m; ax.num_cols = n; ax.major = MagmaColMajor;  ax.nnz = m*n; ax.dval = AX;  ax.storage_type = Magma_DENSE; \
-            CHECK( magma_z_spmv(alpha, A, x, beta, ax, queue ));                   \
-}
+    #define magma_z_bspmv_tuned(m, n, alpha, A, X, beta, AX, queue)       {        \
+                magma_z_matrix x={Magma_CSR}, ax={Magma_CSR};                                       \
+                x.memory_location = Magma_DEV;  x.num_rows = m;  x.num_cols = n;  x.major = MagmaColMajor;   x.nnz = m*n;  x.dval = X;    x.storage_type = Magma_DENSE; \
+                ax.memory_location= Magma_DEV; ax.num_rows = m; ax.num_cols = n; ax.major = MagmaColMajor;  ax.nnz = m*n; ax.dval = AX;  ax.storage_type = Magma_DENSE; \
+                CHECK( magma_z_spmv(alpha, A, x, beta, ax, queue ));                   \
+    }
 
 
 
-//**************************************************************
-
+    //**************************************************************
     // %Memory allocation for the eigenvectors, eigenvalues, and workspace
     solver_par->solver = Magma_LOBPCG;
     magma_int_t m = A.num_rows;
@@ -156,23 +155,17 @@ magma_zlobpcg(
     CHECK( magma_dmalloc_cpu(&rwork, lrwork));
 #endif
 
-    CHECK( magma_zmalloc_pinned( &hwork   ,        lwork ));
-    CHECK( magma_zmalloc(        &blockAX   ,        m*n ));
-    CHECK( magma_zmalloc(        &blockAR   ,        m*n ));
-    CHECK( magma_zmalloc(        &blockAP   ,        m*n ));
-    CHECK( magma_zmalloc(        &blockR    ,        m*n ));
-    CHECK( magma_zmalloc(        &blockP    ,        m*n ));
-    CHECK( magma_zmalloc(        &blockW    ,        m*n ));
-    CHECK( magma_zmalloc(        &dwork     ,        m*n ));
-    CHECK( magma_dmalloc(        &eval_gpu  ,        3*n ));
+    CHECK( magma_zmalloc_pinned( &hwork, lwork ));
+    CHECK( magma_zmalloc( &blockAX,  m*n ));
+    CHECK( magma_zmalloc( &blockAR,  m*n ));
+    CHECK( magma_zmalloc( &blockAP,  m*n ));
+    CHECK( magma_zmalloc( &blockR,   m*n ));
+    CHECK( magma_zmalloc( &blockP,   m*n ));
+    CHECK( magma_zmalloc( &blockW,   m*n ));
+    CHECK( magma_zmalloc( &dwork,    m*n ));
+    CHECK( magma_dmalloc( &eval_gpu, 3*n ));
 
-
-
-
-//**********************************************************+
-
-
-
+    //**********************************************************+
     // === Check some parameters for possible quick exit ===
     solver_par->info = MAGMA_SUCCESS;
     if (m < 2)
@@ -198,7 +191,7 @@ magma_zlobpcg(
 
     CHECK( magma_zmalloc_pinned(&hW, n*n));
     CHECK( magma_zmalloc_pinned(&gevectors, 9*n*n));
-    CHECK( magma_zmalloc_pinned(&h_gramB  , 9*n*n));
+    CHECK( magma_zmalloc_pinned(&h_gramB,   9*n*n));
 
     // === Allocate GPU workspace ===
     CHECK( magma_zmalloc(&gramM, n * n));
@@ -211,7 +204,7 @@ magma_zlobpcg(
     for(magma_int_t k =0; k<n; k++){
         iwork[k]=1;
     }
-    magma_setmatrix(n, 1, sizeof(magma_int_t), iwork, n , activeMask, n, queue);
+    magma_setmatrix(n, 1, sizeof(magma_int_t), iwork, n, activeMask, n, queue);
 
     #if defined(PRECISION_s)
     ikind = 3;
@@ -255,11 +248,11 @@ magma_zlobpcg(
             // === compute the residuals (R = Ax - x evalues )
             magmablas_zlacpy( MagmaFull, m, n, blockAX, m, blockR, m, queue );
 
-/*
+            /*
             for(magma_int_t i=0; i<n; i++) {
-               magma_zaxpy( m, MAGMA_Z_MAKE(-evalues[i],0), blockX+i*m, 1, blockR+i*m, 1, queue );
+                magma_zaxpy( m, MAGMA_Z_MAKE(-evalues[i],0), blockX+i*m, 1, blockR+i*m, 1, queue );
             }
-  */
+            */
             magma_dsetmatrix( 3*n, 1, evalues, 3*n, eval_gpu, 3*n, queue );
 
             CHECK( magma_zlobpcg_res( m, n, eval_gpu, blockX, blockR, eval_gpu, queue ));
@@ -272,14 +265,14 @@ magma_zlobpcg(
                            activeMask, &cBlockSize, queue ));
         
             if (cBlockSize == 0)
-               break;
+                break;
 
             // === apply a preconditioner P to the active residulas: R_new = P R_old
             // === for now set P to be identity (no preconditioner => nothing to be done )
             //magmablas_zlacpy( MagmaFull, m, cBlockSize, blockR, m, blockW, m, queue );
             //SWAP(blockW, blockR);
             
-                // preconditioner
+            // preconditioner
             magma_z_matrix bWv={Magma_CSR}, bRv={Magma_CSR};
             bWv.memory_location = Magma_DEV;  bWv.num_rows = m; bWv.num_cols = cBlockSize; bWv.major = MagmaColMajor;  bWv.nnz = m*cBlockSize;  bWv.dval = blockW;
             bRv.memory_location = Magma_DEV;  bRv.num_rows = m; bRv.num_cols = cBlockSize; bRv.major = MagmaColMajor;  bRv.nnz = m*cBlockSize;  bRv.dval = blockR;

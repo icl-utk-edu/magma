@@ -68,7 +68,7 @@ magma_zpotrf_lg_batched(
     magma_zmalloc( &dinvA, invA_msize * batchCount);
     magma_zmalloc( &dwork, dwork_msize * batchCount );
     magma_malloc_cpu((void**) &cpuAarray, batchCount*sizeof(magmaDoubleComplex*));
-   /* check allocation */
+    /* check allocation */
     if ( dA_displ  == NULL || dW0_displ == NULL || dW1_displ   == NULL || dW2_displ   == NULL || 
          dW3_displ == NULL || dW4_displ == NULL || dinvA_array == NULL || dwork_array == NULL || 
          dinvA     == NULL || dwork     == NULL || cpuAarray   == NULL ) {
@@ -168,14 +168,14 @@ magma_zpotrf_lg_batched(
                             (const magmaDoubleComplex*) cpuAarray[k] + j+ib+j*ldda, ldda, 
                             d_beta,
                             cpuAarray[k] + j+ib+(j+ib)*ldda, ldda, queues[streamid] );
-                     }
-                     // need to synchronise to be sure that panel do not start before
-                     // finishing the update at least of the next panel
-                     // if queue is NULL, no need to sync
-                     if ( queue != NULL ) {
-                         for (magma_int_t s=0; s < nbstreams; s++)
-                             magma_queue_sync(queues[s]);
-                     }
+                    }
+                    // need to synchronise to be sure that panel do not start before
+                    // finishing the update at least of the next panel
+                    // if queue is NULL, no need to sync
+                    if (queue != NULL) {
+                        for (magma_int_t s=0; s < nbstreams; s++)
+                            magma_queue_sync(queues[s]);
+                    }
                 }
                 else
                 {
@@ -219,6 +219,8 @@ fin:
 
     return arginfo;
 }
+
+
 /***************************************************************************//**
     Purpose
     -------
@@ -284,7 +286,7 @@ fin:
             Queue to execute in.
 
     @ingroup magma_potrf_batched
-    *******************************************************************************/
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_batched(
     magma_uplo_t uplo, magma_int_t n,
