@@ -32,7 +32,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -112,7 +112,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -192,7 +192,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -272,7 +272,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -352,7 +352,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -432,7 +432,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -512,7 +512,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -592,7 +592,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -672,7 +672,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -752,7 +752,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -832,7 +832,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -912,7 +912,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -992,7 +992,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1072,7 +1072,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1152,7 +1152,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1232,7 +1232,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1312,7 +1312,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1392,7 +1392,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1472,7 +1472,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1552,7 +1552,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1632,7 +1632,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1712,7 +1712,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1792,7 +1792,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1872,7 +1872,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -1952,7 +1952,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2032,7 +2032,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2112,7 +2112,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2192,7 +2192,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2272,7 +2272,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2352,7 +2352,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2432,7 +2432,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2512,7 +2512,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2592,7 +2592,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2672,7 +2672,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2752,7 +2752,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2832,7 +2832,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2912,7 +2912,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -2992,7 +2992,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3072,7 +3072,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3152,7 +3152,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3232,7 +3232,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3312,7 +3312,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3392,7 +3392,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3472,7 +3472,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3552,7 +3552,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3632,7 +3632,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3712,7 +3712,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3792,7 +3792,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3872,7 +3872,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -3952,7 +3952,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4032,7 +4032,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4112,7 +4112,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4192,7 +4192,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4272,7 +4272,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4352,7 +4352,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4432,7 +4432,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4512,7 +4512,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4592,7 +4592,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4672,7 +4672,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4752,7 +4752,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4832,7 +4832,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4912,7 +4912,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -4992,7 +4992,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -5072,7 +5072,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -5387,7 +5387,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -5467,7 +5467,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -5547,7 +5547,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -5627,7 +5627,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -5707,7 +5707,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -5787,7 +5787,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -5867,7 +5867,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -5947,7 +5947,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6027,7 +6027,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6107,7 +6107,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6187,7 +6187,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6267,7 +6267,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6347,7 +6347,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6427,7 +6427,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6507,7 +6507,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6587,7 +6587,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6667,7 +6667,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6747,7 +6747,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6827,7 +6827,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6907,7 +6907,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -6987,7 +6987,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7067,7 +7067,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7147,7 +7147,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7227,7 +7227,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7307,7 +7307,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7387,7 +7387,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7467,7 +7467,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7547,7 +7547,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7627,7 +7627,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7707,7 +7707,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7787,7 +7787,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7867,7 +7867,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -7947,7 +7947,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8027,7 +8027,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8107,7 +8107,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8187,7 +8187,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8267,7 +8267,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8347,7 +8347,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8427,7 +8427,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8507,7 +8507,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8587,7 +8587,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8667,7 +8667,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8747,7 +8747,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8827,7 +8827,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8907,7 +8907,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -8987,7 +8987,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9067,7 +9067,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9147,7 +9147,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9227,7 +9227,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9307,7 +9307,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9387,7 +9387,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9467,7 +9467,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9547,7 +9547,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9627,7 +9627,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9707,7 +9707,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9787,7 +9787,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9867,7 +9867,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -9947,7 +9947,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -10027,7 +10027,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -10107,7 +10107,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -10187,7 +10187,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -10267,7 +10267,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -10347,7 +10347,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
@@ -10427,7 +10427,7 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 350 ))
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int tid = threadIdx.x;
     int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
 
