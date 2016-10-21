@@ -190,11 +190,15 @@ magma_zpotrf_recpanel_rectangle_native(
             factorization A = U**H * U or A = L * L**H.
 
     @param[in]
-    lda     INTEGER
+    ldda    INTEGER
             The leading dimension of the array A.  LDA >= max(1,N).
 
+    @param[in]
+    queue   magma_queue_t.
+            Queue to execute in.
+
     @param[out]
-    dinfo    INTEGER on the GPU memory
+    info    INTEGER
       -     = 0:  successful exit
       -     < 0:  if INFO = -i, the i-th argument had an illegal value
                   or another error occured, such as memory allocation failed.
