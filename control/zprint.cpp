@@ -120,6 +120,10 @@ void magma_zprint(
     ldda    INTEGER
             The leading dimension of the array A.  LDDA >= max(1,M).
 
+    @param[in]
+    queue   magma_queue_t
+            Queue to execute in.
+
     @ingroup magma_print
 *******************************************************************************/
 extern "C"
