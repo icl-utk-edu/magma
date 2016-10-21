@@ -142,12 +142,12 @@ magma_ziluisaisetup(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %511d is too large by %511d\n", (int) i, (int) (maxsize-32));
+            printf("%%   error for ISAI: size of system %d is too large by %d\n", (int) i, (int) (maxsize-32));
             break;
         }
     }
 
-    printf("%% nnz in L-ISAI (total max/row): %511d %511d\n", (int) nnzL, (int) maxsize);
+    printf("%% nnz in L-ISAI (total max/row): %d %d\n", (int) nnzL, (int) maxsize);
     // this can be modified to the thread-block-size
     if( maxsize > warpsize ){
        info = -(maxsize - warpsize);
@@ -228,11 +228,11 @@ magma_ziluisaisetup(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %511d is too large by %511d\n", (int) i, (int) (maxsize-32));
+            printf("%%   error for ISAI: size of system %d is too large by %d\n", (int) i, (int) (maxsize-32));
             break;
         }
     }
-    printf("%% nnz in U-ISAI (total max/row): %511d %511d\n", (int) nnzU, (int) maxsize);
+    printf("%% nnz in U-ISAI (total max/row): %d %d\n", (int) nnzU, (int) maxsize);
     // this can be modified to the thread-block-size
     if( maxsize > warpsize ){
        info = -(maxsize - warpsize);
@@ -390,7 +390,7 @@ magma_ziluisaisetup_t(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %511d is too large by %511d\n", (int) i, (int) (maxsize-32));
+            printf("%%   error for ISAI: size of system %d is too large by %d\n", (int) i, (int) (maxsize-32));
             break;
         }
     }
@@ -464,7 +464,7 @@ magma_ziluisaisetup_t(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %511d is too large by %511d\n", (int) i, (int) (maxsize-32));
+            printf("%%   error for ISAI: size of system %d is too large by %d\n", (int) i, (int) (maxsize-32));
             break;
         }
     }
