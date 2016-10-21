@@ -121,7 +121,7 @@ magmablas_zhemv_vbatched_nocheck(
             would not be fully coalescent.
 
     @param[in]
-    dX_array    Array of pointers, dimension(batchCount). 
+    dx_array    Array of pointers, dimension(batchCount). 
             Each is a COMPLEX_16 array X of dimension at least
             ( 1 + ( n - 1 )*abs( INCX ) ).
             Before entry, the incremented array X must contain the n
@@ -138,7 +138,7 @@ magmablas_zhemv_vbatched_nocheck(
             supplied as zero then Y need not be set on input.
 
     @param[in,out]
-    dY_array    Array of pointers, dimension(batchCount). 
+    dy_array    Array of pointers, dimension(batchCount). 
             Each is a COMPLEX_16 array Y of dimension at least
             ( 1 + ( n - 1 )*abs( INCY ) ).
             Before entry, the incremented array Y must contain the n

@@ -37,6 +37,7 @@
 int main( int argc, char** argv)
 {
     TESTING_CHECK( magma_init() );
+    magma_print_environment();
 
     real_Double_t   gflops, magma_perf, magma_time, cpu_perf=0., cpu_time=0.;
     double          current_error, magma_error, Cnorm, work[1];
