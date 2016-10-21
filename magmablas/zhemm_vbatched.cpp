@@ -218,7 +218,7 @@ magmablas_zhemm_vbatched_nocheck(
             Queue to execute in.
     
 
-    @ingroup magma_hemm_vbatched
+    @ingroup magma_hemm_batched
 *******************************************************************************/
 
 extern "C" void

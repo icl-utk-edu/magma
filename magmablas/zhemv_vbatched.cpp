@@ -158,7 +158,7 @@ magmablas_zhemv_vbatched_nocheck(
     queue   magma_queue_t
             Queue to execute in.
 
-    @ingroup magma_hemv_vbatched
+    @ingroup magma_hemv_batched
 *******************************************************************************/
 extern "C" void
 magmablas_zhemv_vbatched(

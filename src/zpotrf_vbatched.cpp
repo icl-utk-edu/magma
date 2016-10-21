@@ -333,7 +333,7 @@ magma_zpotrf_vbatched_max_nocheck(
     queue   magma_queue_t
             Queue to execute in.
 
-    @ingroup magma_potrf_vbatched
+    @ingroup magma_potrf_batched
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_vbatched(

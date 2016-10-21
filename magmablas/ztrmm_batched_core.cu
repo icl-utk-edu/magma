@@ -479,6 +479,7 @@ magmablas_ztrmm_batched_core(
     queue   magma_queue_t.
             Queue to execute in.
 
+    @ingroup magma_trmm_batched
     ===================================================================== */
 extern "C" void 
 magmablas_ztrmm_batched(
