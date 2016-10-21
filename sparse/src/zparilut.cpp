@@ -66,11 +66,13 @@ magma_zparilutsetup(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
+    
+#ifdef _OPENMP
+
     real_Double_t start, end;
     real_Double_t t_rm=0.0, t_res=0.0, t_sweep1=0.0, t_sweep2=0.0, t_cand=0.0,
                     t_thres=0.0, t_reorder1=0.0, t_reorder2=0.0, t_rowmajor=0.0,
                     t_select=0.0, t_insert=0.0, accum=0.0;
-#ifdef _OPENMP
 
     cusparseHandle_t cusparseHandle=NULL;
     cusparseMatDescr_t descrL=NULL;
@@ -191,7 +193,7 @@ magma_zparilutsetup(
     }
 
     if (timing == 1) {
-        printf("performance_%d = \[\n%%iter\tL.nnz\tU.nnz\trm L\trm U\trowmajor\tcandidates\tresiduals\tselect\t\tinsert\t\treorder\t\tsweep\t\tthreshold\tremove\t\treorder\t\tsweeep\t\ttotal\t\t\taccum\n", num_threads);
+        printf("performance_%d = \[\n%%iter\tL.nnz\tU.nnz\trm L\trm U\trowmajor\tcandidates\tresiduals\tselect\t\tinsert\t\treorder\t\tsweep\t\tthreshold\tremove\t\treorder\t\tsweeep\t\ttotal\t\t\taccum\n", (int) num_threads);
     }
 
     //##########################################################################
@@ -324,13 +326,13 @@ magma_zparilutsetup(
         start = magma_sync_wtime( queue );
         info = magma_zparilut_set_approx_thrs( num_rmL, &L, 0, &thrsL, queue );
         if( info !=0 ){
-            printf("%% error: breakdown in iteration :%d. fallback.\n\n", iters+1); fflush(stdout);
+            printf("%% error: breakdown in iteration :%5lld. fallback.\n\n", (long long) (iters+1)); fflush(stdout);
             info = 0;
             break;
         }//printf("done thrs L\n"); fflush(stdout);
         info = magma_zparilut_set_approx_thrs( num_rmU, &U, 0, &thrsU, queue );
         if( info !=0 ){
-            printf("%% error: breakdown in iteration :%d. fallback.\n\n", iters+1); fflush(stdout);
+            printf("%% error: breakdown in iteration :%5lld. fallback.\n\n", (long long) (iters+1)); fflush(stdout);
             info = 0;
             break;
         }//printf("done thrs U\n"); fflush(stdout);
@@ -394,8 +396,9 @@ magma_zparilutsetup(
 
         if( timing == 1 ){
             accum = accum + t_cand+t_res+t_select+t_insert+t_reorder1+t_sweep1+t_thres+t_rm+t_reorder2+t_rowmajor+t_sweep2;
-            printf("%d\t%d\t%d\t%d\t%d\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t\t%.2e\n",
-                    iters, L.nnz, U.nnz, num_rmLt, num_rmUt, t_rowmajor, t_cand, t_res, t_select, t_insert, t_reorder1, t_sweep1, t_thres, t_rm, t_reorder2, t_sweep2,
+            printf("%5lld\t%5lld\t%5lld\t%5lld\t%5lld\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t%.2e\t\t%.2e\n",
+                    (long long) iters, (long long) L.nnz, (long long) U.nnz, (long long) num_rmLt, (long long) num_rmUt, 
+                    t_rowmajor, t_cand, t_res, t_select, t_insert, t_reorder1, t_sweep1, t_thres, t_rm, t_reorder2, t_sweep2,
                     t_cand+t_res+t_select+t_insert+t_reorder1+t_sweep1+t_thres+t_rm+t_reorder2+t_rowmajor+t_sweep2, accum);
             fflush(stdout);
         }

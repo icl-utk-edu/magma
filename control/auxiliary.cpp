@@ -59,8 +59,8 @@ magma_int_t magma_num_gpus( void )
         }
         else if ( ngpu > MagmaMaxGPUs || ngpu > ndevices ) {
             ngpu = min( ndevices, MagmaMaxGPUs );
-            fprintf( stderr, "$MAGMA_NUM_GPUS='%s' exceeds MagmaMaxGPUs=%d or available GPUs=%d; using %lld GPUs.\n",
-                     ngpu_str, MagmaMaxGPUs, ndevices, (long long) ngpu );
+            fprintf( stderr, "$MAGMA_NUM_GPUS='%s' exceeds MagmaMaxGPUs=%d or available GPUs=%lld; using %lld GPUs.\n",
+                     ngpu_str, MagmaMaxGPUs, (long long) ndevices, (long long) ngpu );
         }
         assert( 1 <= ngpu && ngpu <= ndevices );
     }

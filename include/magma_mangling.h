@@ -30,6 +30,7 @@
         #define FORTRAN_NAME(lcname, UCNAME)  UCNAME
     #else
         #error "One of ADD_, NOCHANGE, or UPCASE must be defined to set how Fortran functions are name mangled. For example, in MAGMA, add -DADD_ to CFLAGS, FFLAGS, etc. in make.inc. If using CMake, it defines MAGMA_GLOBAL instead."
+        #define FORTRAN_NAME(lcname, UCNAME)  lcname##_error
     #endif
 #endif
 

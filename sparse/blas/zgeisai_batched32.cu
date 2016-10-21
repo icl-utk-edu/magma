@@ -5254,7 +5254,7 @@ magmaDoubleComplex *Mval )
                 magma_zlowerisai_regs32_kernel (
                     num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval ); break;
             default:
-                printf("% error: size out of range: %d\n", N); break;
+                printf("%% error: size out of range: %d\n", N); break;
         }
     }
 }
@@ -5371,7 +5371,7 @@ magmaDoubleComplex *Mval )
                 magma_zupperisai_regs32_kernel (
                     num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval ); break;
             default:
-                printf("% error: size out of range: %d\n", N); break;
+                printf("%% error: size out of range: %d\n", N); break;
         }
     }
 }
@@ -10609,7 +10609,7 @@ magmaDoubleComplex *Mval )
                 magma_zlowerisai_regs32_inv_kernel (
                     num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval ); break;
             default:
-                printf("% error: size out of range: %d\n", N); break;
+                printf("%% error: size out of range: %d\n", N); break;
         }
     }
 }
@@ -10726,7 +10726,7 @@ magmaDoubleComplex *Mval )
                 magma_zupperisai_regs32_inv_kernel (
                     num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval ); break;
             default:
-                printf("% error: size out of range: %d\n", N); break;
+                printf("%% error: size out of range: %d\n", N); break;
         }
     }
 }
