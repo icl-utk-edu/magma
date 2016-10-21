@@ -14,7 +14,7 @@
 #include "magma_internal.h"
 #include "magma_templates.h"
 
-#define BLK_X	(128)
+#define BLK_X    (128)
 
 // =============================================================================
 // Auxiliary functions for vbatched routines

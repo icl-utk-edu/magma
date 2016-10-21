@@ -110,7 +110,7 @@ magmablas_zgemv_vbatched_nocheck(
 
 
     @param[in]
-    dA_array 	Array of pointers, dimension (batchCount).
+    dA_array     Array of pointers, dimension (batchCount).
              Each is a COMPLEX_16 array A of DIMENSION ( LDDA, N ) on the GPU
    
     @param[in]
@@ -118,7 +118,7 @@ magmablas_zgemv_vbatched_nocheck(
             Each INTEGER LDDA specifies the leading dimension of each matrix A.
 
     @param[in]
-    dx_array 	Array of pointers, dimension (batchCount).
+    dx_array     Array of pointers, dimension (batchCount).
             Each is a COMPLEX_16 array of dimension
             N if trans == MagmaNoTrans
             M if trans == MagmaTrans or MagmaConjTrans
@@ -135,7 +135,7 @@ magmablas_zgemv_vbatched_nocheck(
             supplied as zero then Y need not be set on input.
 
     @param[out]
-    dy_array 	Array of pointers, dimension (batchCount).
+    dy_array     Array of pointers, dimension (batchCount).
             Each is a COMPLEX_16 array of dimension
             M if trans == MagmaNoTrans
             N if trans == MagmaTrans or MagmaConjTrans
