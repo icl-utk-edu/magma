@@ -970,7 +970,7 @@ magma_zparilut_insert(
         magma_index_t new_row = U_new->col[ el ];    // situation like in the lower triangular case
         //printf("%%candidate for U: (%d,%d) tid %d\n", new_row, new_col, id);
         if( new_row < new_col ){
-        printf("%% illegal candidate %d for U: (%d,%d)'\n", el, new_row, new_col);
+            printf("%% illegal candidate %5lld for U: (%d,%d)'\n", (long long)el, new_row, new_col);
         }
         //printf("%% candidate %d for U: (%d,%d)'\n", el, new_row, new_col);
         magma_index_t old_rowstart = U->row[ new_row ];
@@ -1963,7 +1963,7 @@ magma_zparilut_count(
     (*num)=0;
     magma_int_t check = 1;
     if( 5 < L.col[L.list[L.row[5]]] &&  5 == L.rowidx[L.list[L.row[5]]] ){
-        printf("check based on: (%d,%d)\n", L.rowidx[L.list[L.row[5]]], L.col[L.list[L.row[5]]]);
+        // printf("check based on: (%d,%d)\n", L.rowidx[L.list[L.row[5]]], L.col[L.list[L.row[5]]]);
         check = -1;
     }
 
@@ -1973,19 +1973,19 @@ magma_zparilut_count(
         do{
             if(check == 1 ){
                 if( L.col[i] > r ){
-                    printf("error here: (%d,%d)\n",r, L.col[i]);
+                    // printf("error here: (%d,%d)\n",r, L.col[i]);
                     info = -1;
                     break;
                 }
             } else if(check == -1 ){
                 if( L.col[i] < r ){
-                    printf("error here: (%d,%d)\n",r, L.col[i]);
+                    // printf("error here: (%d,%d)\n",r, L.col[i]);
                     info = -1;
                     break;
                 }
             }
             if( nexti != 0 && L.col[i] >  L.col[nexti] ){
-                printf("error here: %d(%d,%d) -> %d(%d,%d) \n",i,L.rowidx[i], L.col[i], nexti,L.rowidx[nexti], L.col[nexti] );
+                // printf("error here: %d(%d,%d) -> %d(%d,%d) \n",i,L.rowidx[i], L.col[i], nexti,L.rowidx[nexti], L.col[nexti] );
                 info = -1;
                 break;
             }

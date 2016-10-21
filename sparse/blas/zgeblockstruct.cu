@@ -46,7 +46,6 @@ magma_zmisai_blockstruct_fill_l_kernel(
     int j = threadIdx.y;
     int lrow = block * bs + i;
     int lcol = j + block * bs;
-    int blockstart = block * bs;
     int offset = block * bs*bs; 
     int loc = offset + lrow*bs +lcol;
     if( lrow < n ){
@@ -78,7 +77,6 @@ magma_zmisai_blockstruct_fill_u_kernel(
 {
     int block = blockIdx.z * gridDim.y * gridDim.x + blockIdx.y * gridDim.x + blockIdx.x;
     int lrow = block * bs + threadIdx.x;
-    int blockstart = block * bs;
     int offset = block * bs*bs; 
     int j = threadIdx.y;
     int lcol = j + block * bs;
@@ -148,7 +146,6 @@ magma_zmisai_blockstruct_gpu(
     magma_int_t info = 0;
     
     offs = 0;
-    magma_int_t i, k, j, nnz_diag, nnz_offd, diagblocks;
     
     A->val = NULL;
     A->col = NULL;
@@ -172,9 +169,6 @@ magma_zmisai_blockstruct_gpu(
     magma_index_malloc( &A->dcol, A->nnz );
         
     int maxbs = 12; //max(offs, bs);
-    diagblocks = magma_ceildiv(n,maxbs);
-    
-    
     
     int blocksize1 = BLOCKSIZE;
     int blocksize2 = 1;
