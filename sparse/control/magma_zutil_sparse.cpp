@@ -195,7 +195,7 @@ magma_zparse_opts(
                 opts->solver_par.solver = Magma_PBICG;
             }
             else if ( strcmp("BICGSTAB", argv[i]) == 0 ) {
-                opts->solver_par.solver = Magma_BICGSTABMERGE;
+                opts->solver_par.solver = Magma_PBICGSTABMERGE;
             }
             else if ( strcmp("PBICGSTAB", argv[i]) == 0 ) {
                 opts->solver_par.solver = Magma_PBICGSTABMERGE;
@@ -462,7 +462,7 @@ magma_zparse_opts(
     }
     
     // make sure preconditioner is NONE for unpreconditioned systems
-    if ( opts->precond_par.solver == Magma_NONE ){
+    if ( opts->precond_par.solver == Magma_NONE || opts->precond_par.solver == 0 ){
         switch( opts->solver_par.solver ) {
             case  Magma_PBICG:              opts->solver_par.solver = Magma_BICG; break;         
             case  Magma_PBICGMERGE:         opts->solver_par.solver = Magma_BICGMERGE; break;    
