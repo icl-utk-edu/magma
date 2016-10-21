@@ -8,10 +8,10 @@
 #
 # @author Mark Gates
 
-svn st -vq \
-    | perl -pe 's/^.{13} +\S+ +\S+ +\S+ +//' | sort \
-    | egrep -v '^\.$$|obsolete|Makefile\.|deprecated|^exp|contrib|\.png|results/v' \
-    | egrep 'Makefile|\w\.\w' >! files.txt
+hg st -mac | perl -pe 's/^\w //' | sort \
+    | egrep -v '^\.$$|Makefile\.|\.png|results/v|checklist|^scripts' \
+    >! files.txt
+#    | egrep 'Makefile|\w\.\w'
 
 setenv FILES        `egrep -v checklist files.txt`
 setenv HEADERS      `egrep '\.h$' files.txt`
@@ -19,6 +19,11 @@ setenv MAKEFILES    `egrep Makefile files.txt | egrep -v sparse`
 setenv MAKEFILES_SP `egrep Makefile files.txt | egrep    sparse`
 
 echo "============================================================ required fixes"
+
+# fixed
+echo "========== don't use tabs                                                  *** required fix ***"
+grep -P "\t" `grep -v "ReleaseChecklist|Make|Doxy|\.py|\.pl|\.sh|\.F90" files.txt` -l
+echo
 
 # fixed
 echo "========== don't use MIN_CUDA_ARCH; use __CUDA_ARCH__ and magma_getdevice_arch  *** required fix ***"
@@ -149,7 +154,7 @@ echo
 
 # fixed
 echo "========== sync_wtime of NULL stream (excluding _mgpu codes)               *** required fix ***"
-egrep sync_wtime $FILES | egrep -v 'sync_wtime\( opts.queue \)' | egrep -v '_mgpu.cpp'
+egrep sync_wtime $FILES | egrep -v 'sync_wtime\( *(opts.queue|queue) *\)'
 echo
 
 # fixed
@@ -181,7 +186,7 @@ echo
 
 echo "========== cuda, cublas functions                                          *** should be fixed ***"
 egrep '(cuda|cublas)[a-zA-Z]\w+ *\('   $FILES \
-    | egrep -v '\.f:|interface_cuda|testing_blas_z.cpp|cudaFuncSetCacheConfig|cudaCreateChannelDesc|cudaCreateTextureObject|cudaDeviceSetSharedMemConfig|cudaDestroyTextureObject|cublasSetAtomicsMode|cudaGetErrorString|cudaMemcpyToSymbol|cudaMemcpyFromSymbol|cudaDeviceSetCacheConfig|cudaBindTexture|cudaUnbindTexture|cudaEventElapsedTime|cudaEventCreateWithFlags|cudaMemGetInfo|cublas\w+Batched|cublasHandle|cublasCreate|cublasDestroy|fortran2.cpp' \
+    | egrep -v '\.f:|interface_cuda|testing_blas_z.cpp|cudaProfilerStart|cudaProfilerStop|cudaFuncSetCacheConfig|cudaCreateChannelDesc|cudaCreateTextureObject|cudaDeviceSetSharedMemConfig|cudaDestroyTextureObject|cublasSetAtomicsMode|cudaGetErrorString|cudaMemcpyToSymbol|cudaMemcpyFromSymbol|cudaDeviceSetCacheConfig|cudaBindTexture|cudaUnbindTexture|cudaEventElapsedTime|cudaEventCreateWithFlags|cudaMemGetInfo|cublas\w+Batched|cublasHandle|cublasCreate|cublasDestroy|fortran2.cpp' \
     | egrep -v 'testing_z([a-z]+)(_\w+)?\.cpp:.*cublasZ\1'
 echo
 
@@ -196,9 +201,9 @@ echo
 
 # in src: dsyevdx_2stage, zhetrf_aasen, ztsqrt, ztstrf need fixing
 # lots of exceptions elsewhere
-echo "========== routine name in docs doesn't match filename                     *** should be fixed ***"
-perl -n0777 -e 'while( m|Purpose\s+-+\s+(\w+)|g ) { $a = $1; $a =~ tr/A-Z/a-z/; if ( not $ARGV =~ m/$a/ ) { print "$ARGV\n"; } }' $FILES
-echo
+#echo "========== routine name in docs doesn't match filename                     *** should be fixed ***"
+#perl -n0777 -e 'while( m|Purpose\s+-+\s+(\w+)|g ) { $a = $1; $a =~ tr/A-Z/a-z/; if ( not $ARGV =~ m/$a/ ) { print "$ARGV\n"; } }' $FILES
+#echo
 
 
 echo "============================================================ informational"
@@ -224,13 +229,18 @@ echo "========== extraneous newlines before }"
 perl -n0777e 'if ( m/\n *\n( *\}.*)/ ) { print "$ARGV: $1\n"; }' $FILES
 echo
 
+# mostly fixed; some exceptions
+echo "========== large block of newlines (recommend 2 between functions)"
+perl -n0777 -e 'print "$ARGV\n" if (m/(\n *){4,}\n/);' $FILES
+echo
+
 # fixed
 echo "========== lacking newline at EOF"
 perl -n0777e 'if ( ! m/\n$/ ) { print "$ARGV\n"; }' $FILES
 echo
 
 # fixed
-echo "========== extraneous newlines at EOF"
+echo "========== extraneous newlines (more than one) at EOF"
 perl -n0777e 'if ( m/\n\n+$/     ) { print "$ARGV\n"; }' $FILES
 echo
 
@@ -248,4 +258,14 @@ echo
 # exclude "strings;" and scripts
 echo "========== missing space after semicolons"
 egrep ';\S'                           $FILES | egrep -v '".*;.*"|\.(csh|sh|py|pl|html)|quark|Makefile'
+echo
+
+# mostly fixed; some exceptions
+echo "========== 4 space indent (hard to check; only checks some things like if, else, for)"
+grep '^(    )* {1,3}(\{|\}|if *\(|else\b|for *\(|while *\(|do\b|switch *\(|break)' $FILES | grep -v testing
+grep '^(    )* {1,3}(blasf77_|lapackf77_|magma_|magmablas_)\w+\(' $FILES
+echo
+
+echo "========== 80 character rule lines (TODO: sparse and F77)"
+egrep '/\*\*|\*{5}' $FILES | egrep -v ':(/\*{75}//\*\*|/\*{78}/|\*{79}/| \*{79}| \*{78}/)$' | egrep -v 'sparse|f77'
 echo
