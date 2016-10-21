@@ -1608,6 +1608,10 @@ magma_zpcgmerge_xrbeta1(
     @param[in]
     dr          magmaDoubleComplex_ptr 
                 input/output vector r
+                
+    @param[in]
+    dd          magmaDoubleComplex_ptr 
+                input/output vector d
 
     @param[in]
     skp         magmaDoubleComplex_ptr 
@@ -1794,14 +1798,31 @@ magma_zjcgmerge_xrbeta_kernel(
     @param[in]
     d2          magmaDoubleComplex_ptr 
                 temporary vector
+                
+    @param[in]
+    diag        magmaDoubleComplex_ptr 
+                inverse diagonal (Jacobi preconditioner)
 
     @param[in]
-    dh          magmaDoubleComplex_ptr
-                input vector x
+    dx          magmaDoubleComplex_ptr
+                iteration vector x
 
     @param[in]
     dr          magmaDoubleComplex_ptr 
                 input/output vector r
+                
+    @param[in]
+    dd          magmaDoubleComplex_ptr
+                input vector d
+
+                
+    @param[in]
+    dz          magmaDoubleComplex_ptr
+                input vector z
+                
+    @param[in]
+    dh          magmaDoubleComplex_ptr
+                input vector h
 
     @param[in]
     skp         magmaDoubleComplex_ptr 

@@ -124,7 +124,7 @@ magma_zmisai_blockstruct_fill_u_kernel(
                 lower or upper triangular
                 
     @param[in,out]
-    S           magma_z_matrix*
+    A           magma_z_matrix*
                 Generated sparsity pattern matrix.
                 
     @param[in]

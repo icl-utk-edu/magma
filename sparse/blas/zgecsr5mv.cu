@@ -602,6 +602,10 @@ zgecsr5mv_kernel_update_y(int    num_rows,
     @param[in]
     dtile_desc_offset_ptr  magmaIndex_ptr
                            tiledescriptor_offsetpointer of A in CSR5
+                           
+    @param[in]
+    dtile_desc_offset      magmaIndex_ptr
+                           tiledescriptor_offsetpointer of A in CSR5
 
     @param[in]
     dcalibrator  magmaDoubleComplex_ptr

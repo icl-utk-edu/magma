@@ -194,7 +194,7 @@ magma_zqmr_2(
     magma_int_t num_rows, 
     magma_int_t num_cols, 
     magmaDoubleComplex pde,
-    magmaDoubleComplex rde,
+    magmaDoubleComplex qde,
     magmaDoubleComplex_ptr y,
     magmaDoubleComplex_ptr z,
     magmaDoubleComplex_ptr p, 

@@ -102,39 +102,14 @@ magma_zselect_pattern_kernel(
     Arguments
     ---------
     
-
-    @param[in]
-    uplotype    magma_uplo_t
-                lower or upper triangular
-                
-    @param[in]
-    transtype   magma_trans_t
-                possibility for transposed matrix
-                
-    @param[in]
-    diagtype    magma_diag_t
-                unit diagonal or not
+    @param[in,out]
+    L           magma_z_matrix
+                Incomplete factor.
                 
     @param[in,out]
-    M           magma_z_matrix*
-                SPAI preconditioner CSR col-major
+    MT          magma_z_matrix*
+                SPAI preconditioner structure, CSR col-major.
                 
-    @param[out]
-    sizes       magma_int_t*
-                Number of Elements that are replaced.
-                
-    @param[out]
-    locations   magma_int_t*
-                Array indicating the locations.
-                
-    @param[out]
-    trisystems  magmaDoubleComplex*
-                trisystems
-                
-    @param[out]
-    rhs         magmaDoubleComplex*
-                right-hand sides
-
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.

@@ -875,20 +875,20 @@ magma_zbajac_csr_o_ls_kernel64(int localiters, int n,
                 number of local Jacobi-like updates
 
     @param[in]
-    D1          magma_z_matrix
-                input matrix with diagonal blocks
+    matrices    magma_int_t
+                number of sub-matrices
 
     @param[in]
-    R1          magma_z_matrix
-                input matrix with non-diagonal parts
+    matrices    magma_int_t
+                size of the overlap
                 
     @param[in]
-    D2          magma_z_matrix
-                input matrix with diagonal blocks
+    D           magma_z_matrix*
+                set of matrices with diagonal blocks
 
     @param[in]
-    R2          magma_z_matrix
-                input matrix with non-diagonal parts
+    R           magma_z_matrix*
+                set of matrices with non-diagonal parts
 
     @param[in]
     b           magma_z_matrix
