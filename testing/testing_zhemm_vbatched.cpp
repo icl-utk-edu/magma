@@ -58,7 +58,6 @@ int main( int argc, char** argv)
     magmaDoubleComplex **d_C_array = NULL;
     
     magmaDoubleComplex *h_A_tmp, *h_B_tmp, *h_C_tmp;
-    magmaDoubleComplex *d_A_tmp, *d_B_tmp, *d_C_tmp;
     
     magma_int_t *h_M, *h_N; // hold the sizes on cpu
     magma_int_t *d_M, *d_N; // hold the sizes on gpu

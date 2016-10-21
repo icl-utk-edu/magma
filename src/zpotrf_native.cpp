@@ -237,7 +237,7 @@ magma_zpotrf_native(
     
     double d_alpha = -1.0;
     double d_beta  = 1.0;
-    magma_int_t j, k, ib, use_stream;
+    magma_int_t j, ib;
     magma_int_t nb;
 
     // TODO: more robust tuning

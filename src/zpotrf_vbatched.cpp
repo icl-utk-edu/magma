@@ -38,7 +38,6 @@ magma_zpotrf_lg_vbatched(
     magma_int_t *dwork_lvec=NULL;
     magma_int_t *dw_aux=NULL;
     magma_int_t *jibvec=NULL;  
-    magma_int_t *dinvA_msize=NULL;  
     magma_int_t *dinvA_batch_offset = NULL;
     magma_int_t *dwork_batch_offset = NULL;
     magma_int_t *ncpu = NULL;
@@ -147,7 +146,6 @@ magma_zpotrf_lg_vbatched(
     magma_zset_pointer_var_cc( dwork_array, dwork, dw_aux, 0, 0, dwork_batch_offset, batchCount, queue);
     magma_zset_pointer_var_cc( dinvA_array, dinvA, dw_aux, 0, 0, dinvA_batch_offset, batchCount, queue);
 
-    magma_queue_t cstream;
     magma_int_t streamid;
     const magma_int_t nbstreams=32;
     magma_queue_t queues[nbstreams];

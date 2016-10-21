@@ -33,7 +33,7 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
-    real_Double_t   gflops, magma_perf, magma_time, cublas_perf, cublas_time, cpu_perf, cpu_time;
+    real_Double_t   gflops, magma_perf, magma_time, cpu_perf, cpu_time;
     double          magma_error, Cnorm, work[1];
     magma_int_t M, N;
     magma_int_t An;
@@ -42,7 +42,6 @@ int main( int argc, char** argv)
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t status = 0;
-    magma_int_t NN;
     magma_int_t batchCount;
 
     magmaDoubleComplex *h_A, *h_B, *h_C, *h_Cmagma;
@@ -59,6 +58,7 @@ int main( int argc, char** argv)
     opts.check |= opts.lapack;
     batchCount = opts.batchcount;
     
+    cpu_perf = cpu_time = 0.0;
     TESTING_CHECK( magma_malloc((void**)&dA_array, batchCount * sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc((void**)&dB_array, batchCount * sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc((void**)&dC_array, batchCount * sizeof(magmaDoubleComplex*)) );
@@ -84,8 +84,7 @@ int main( int argc, char** argv)
                 An = N;
             }
             ldb = ldc = M;
-            NN = N * batchCount;
-
+            
             ldda = magma_roundup( lda, opts.align );  // multiple of 32 by default
             lddb = magma_roundup( ldb, opts.align );  // multiple of 32 by default
             lddc = magma_roundup( ldc, opts.align );  // multiple of 32 by default
