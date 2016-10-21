@@ -480,19 +480,19 @@ magma_zparilutsetup(
         hAT.diagorder_type = Magma_VALUE;
         CHECK( magma_zmconvert( hL, &hAT , Magma_CSR, Magma_CSRU, queue ));
         #pragma omp parallel for
-		for (magma_int_t i=0; i<hAT.nnz; i++) {
-			hAT.val[i] = MAGMA_Z_ONE/hAT.val[i];
-		}
-		CHECK( magma_zmtransfer( hAT, &(precond->LD), Magma_CPU, Magma_DEV, queue ));
+        for (magma_int_t i=0; i<hAT.nnz; i++) {
+            hAT.val[i] = MAGMA_Z_ONE/hAT.val[i];
+        }
+        CHECK( magma_zmtransfer( hAT, &(precond->LD), Magma_CPU, Magma_DEV, queue ));
 
         magma_zmfree( &hAT, queue );
         hAT.diagorder_type = Magma_VALUE;
         CHECK( magma_zmconvert( hU, &hAT , Magma_CSR, Magma_CSRL, queue ));
         #pragma omp parallel for
-		for (magma_int_t i=0; i<hAT.nnz; i++) {
-			hAT.val[i] = MAGMA_Z_ONE/hAT.val[i];
-		}
-		CHECK( magma_zmtransfer( hAT, &(precond->UD), Magma_CPU, Magma_DEV, queue ));
+        for (magma_int_t i=0; i<hAT.nnz; i++) {
+            hAT.val[i] = MAGMA_Z_ONE/hAT.val[i];
+        }
+        CHECK( magma_zmtransfer( hAT, &(precond->UD), Magma_CPU, Magma_DEV, queue ));
     }
 
     cleanup:
