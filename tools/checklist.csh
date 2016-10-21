@@ -11,7 +11,6 @@
 hg st -mac | perl -pe 's/^\w //' | sort \
     | egrep -v '^\.$$|Makefile\.|\.png|results/v|checklist|^scripts' \
     >! files.txt
-#    | egrep 'Makefile|\w\.\w'
 
 setenv FILES        `egrep -v checklist files.txt`
 setenv HEADERS      `egrep '\.h$' files.txt`
@@ -129,7 +128,7 @@ echo
 # fixed
 echo "========== CUDA driver routines (cu[A-Z]*; MathWorks cannot use these)     *** required fix ***"
 egrep 'cu[A-Z]\w+ *\(' $FILES \
-    | egrep -v 'make_cuComplex|make_cuDoubleComplex|make_cuFloatComplex|cuComplexDoubleToFloat|cuComplexFloatToDouble|cuGetErrorString|cuConj|cuC(real|imag|add|sub|mul|div|addf|subf|mulf|divf|fmaf|abs|fma)'
+    | egrep -v 'make_cuComplex|make_cuDoubleComplex|make_cuFloatComplex|cuComplexDoubleToFloat|cuComplexFloatToDouble|cuGetErrorString|cuConj|cuBLAS|cuC(real|imag|add|sub|mul|div|addf|subf|mulf|divf|fmaf|abs|fma)'
 echo
 
 # fixed
