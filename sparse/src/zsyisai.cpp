@@ -146,11 +146,11 @@ magma_zicisaisetup(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %511d is too large by %511d\n", (int) i, (int) (maxsize-32) ); 
+            printf("%%   error for ISAI: size of system %d is too large by %d\n", (int) i, (int) (maxsize-32) ); 
             break;
         }
     }
-    printf("%% nnz in L-ISAI: %511d\t", (int) nnzL); 
+    printf("%% nnz in L-ISAI: %d\t", (int) nnzL); 
     // this can be modified to the thread-block-size
     if( maxsize > warpsize ){
        info = -(maxsize - warpsize);     
@@ -234,11 +234,11 @@ magma_zicisaisetup(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %511d is too large by %511d\n", (int) i, (int) (maxsize-32) ); 
+            printf("%%   error for ISAI: size of system %d is too large by %d\n", (int) i, (int) (maxsize-32) ); 
             break;
         }
     }
-    printf("%% nnz in U-ISAI: %511d\t", (int) nnzU); 
+    printf("%% nnz in U-ISAI: %d\t", (int) nnzU); 
     // this can be modified to the thread-block-size
     if( maxsize > warpsize ){
        info = -(maxsize - warpsize);     

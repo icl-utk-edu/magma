@@ -971,9 +971,5 @@
             @defgroup magma_hegv        sy/hegv:   Solves using QR iteration (driver)
             @defgroup magma_hegvrx      sy/hegvrx: Solves using MRRR (expert)
 
-    @defgroup QUARK                 QUARK
-    @defgroup QUARK_Depreciated     QUARK deprecated
-    @defgroup QUARK_Unsupported     QUARK unsupported
-
     @}
 */
