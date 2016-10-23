@@ -162,7 +162,7 @@ magma_zqmr_2_kernel(
                 scalar
 
     @param[in]
-    qde         magmaDoubleComplex
+    rde         magmaDoubleComplex
                 scalar
                 
     @param[in]
@@ -194,7 +194,7 @@ magma_zqmr_2(
     magma_int_t num_rows, 
     magma_int_t num_cols, 
     magmaDoubleComplex pde,
-    magmaDoubleComplex qde,
+    magmaDoubleComplex rde,
     magmaDoubleComplex_ptr y,
     magmaDoubleComplex_ptr z,
     magmaDoubleComplex_ptr p, 
