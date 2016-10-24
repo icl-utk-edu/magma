@@ -132,6 +132,30 @@
             max( 1, m ).
     
     @param[in]
+    roffA   INTEGER
+            Row offset for all 'A' matrices.
+    
+    @param[in]
+    coffA   INTEGER
+            Column offset for all 'A' matrices.
+    
+    @param[in]
+    roffB   INTEGER
+            Row offset for all 'B' matrices.
+    
+    @param[in]
+    coffB   INTEGER
+            Column offset for all 'B' matrices.
+    
+    @param[in]
+    roffC   INTEGER
+            Row offset for all 'C' matrices.
+    
+    @param[in]
+    coffC   INTEGER
+            Column offset for all 'C' matrices.
+    
+    @param[in]
     batchCount  INTEGER
                 The number of matrices to operate on.
 

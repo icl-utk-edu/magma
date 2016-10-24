@@ -1119,6 +1119,16 @@ batched = (
 	('testing_zgemv_batched',     batch + '-T             -c',  mn,   ''),
 	('testing_zgemv_batched',     batch + '-C             -c',  mn,   ''),
 	
+	# left/right lower/upper
+	('testing_zhemm_batched',     batch + '-SL      -L    -c',  mn,   ''),
+	('testing_zhemm_batched',     batch + '-SL      -U    -c',  mn,   ''),
+	('testing_zhemm_batched',     batch + '-SR      -L    -c',  mn,   ''),
+	('testing_zhemm_batched',     batch + '-SR      -U    -c',  mn,   ''),
+	
+	# lower/upper
+	('testing_zhemv_batched',     batch + '         -L    -c',  n,   ''),
+	('testing_zhemv_batched',     batch + '         -U    -c',  n,   ''),
+	
 	# lower/upper, no-trans/conj-trans
 	('testing_zherk_batched',     batch + '         -L    -c',  nk,   ''),
 	('testing_zherk_batched',     batch + '         -L -C -c',  nk,   ''),
@@ -1138,6 +1148,27 @@ batched = (
 	('testing_zsyr2k_batched',    batch + '         -L -C -c',  nk,   ''),
 	('testing_zsyr2k_batched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zsyr2k_batched',    batch + '         -U -C -c',  nk,   ''),
+	
+	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
+	('testing_ztrmm_batched',     batch + '-SL -L    -DN  -c',  n + wide, ''),
+	('testing_ztrmm_batched',     batch + '-SL -L    -DU  -c',  n + wide, ''),
+	('testing_ztrmm_batched',     batch + '-SL -L -C -DN  -c',  n + wide, ''),
+	('testing_ztrmm_batched',     batch + '-SL -L -C -DU  -c',  n + wide, ''),
+	
+	('testing_ztrmm_batched',     batch + '-SL -U    -DN  -c',  n + wide, ''),
+	('testing_ztrmm_batched',     batch + '-SL -U    -DU  -c',  n + wide, ''),
+	('testing_ztrmm_batched',     batch + '-SL -U -C -DN  -c',  n + wide, ''),
+	('testing_ztrmm_batched',     batch + '-SL -U -C -DU  -c',  n + wide, ''),
+	
+	('testing_ztrmm_batched',     batch + '-SR -L    -DN  -c',  n + tall, ''),
+	('testing_ztrmm_batched',     batch + '-SR -L    -DU  -c',  n + tall, ''),
+	('testing_ztrmm_batched',     batch + '-SR -L -C -DN  -c',  n + tall, ''),
+	('testing_ztrmm_batched',     batch + '-SR -L -C -DU  -c',  n + tall, ''),
+	
+	('testing_ztrmm_batched',     batch + '-SR -U    -DN  -c',  n + tall, ''),
+	('testing_ztrmm_batched',     batch + '-SR -U    -DU  -c',  n + tall, ''),
+	('testing_ztrmm_batched',     batch + '-SR -U -C -DN  -c',  n + tall, ''),
+	('testing_ztrmm_batched',     batch + '-SR -U -C -DU  -c',  n + tall, ''),
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsm_batched',     batch + '-SL -L    -DN  -c',  n + wide, ''),
@@ -1202,6 +1233,16 @@ batched = (
 	('testing_zgemv_vbatched',     batch + '-T             -c',  mn,   ''),
 	('testing_zgemv_vbatched',     batch + '-C             -c',  mn,   ''),
 	
+	# left/right lower/upper
+	('testing_zhemm_vbatched',     batch + '-SL      -L    -c',  mn,   ''),
+	('testing_zhemm_vbatched',     batch + '-SL      -U    -c',  mn,   ''),
+	('testing_zhemm_vbatched',     batch + '-SR      -L    -c',  mn,   ''),
+	('testing_zhemm_vbatched',     batch + '-SR      -U    -c',  mn,   ''),
+	
+	# lower/upper
+	('testing_zhemv_vbatched',     batch + '         -L    -c',  n,   ''),
+	('testing_zhemv_vbatched',     batch + '         -U    -c',  n,   ''),
+	
 	# lower/upper, no-trans/conj-trans
 	('testing_zherk_vbatched',     batch + '         -L    -c',  nk,   ''),
 	('testing_zherk_vbatched',     batch + '         -L -C -c',  nk,   ''),
@@ -1213,6 +1254,63 @@ batched = (
 	('testing_zher2k_vbatched',    batch + '         -L -C -c',  nk,   ''),
 	('testing_zher2k_vbatched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zher2k_vbatched',    batch + '         -U -C -c',  nk,   ''),
+	
+	# lower/upper, no-trans/conj-trans
+	('testing_zsyrk_vbatched',     batch + '         -L    -c',  nk,   ''),
+	('testing_zsyrk_vbatched',     batch + '         -L -C -c',  nk,   ''),
+	('testing_zsyrk_vbatched',     batch + '         -U    -c',  nk,   ''),
+	('testing_zsyrk_vbatched',     batch + '         -U -C -c',  nk,   ''),
+	
+	# lower/upper, no-trans/conj-trans
+	('testing_zsyr2k_vbatched',    batch + '         -L    -c',  nk,   ''),
+	('testing_zsyr2k_vbatched',    batch + '         -L -C -c',  nk,   ''),
+	('testing_zsyr2k_vbatched',    batch + '         -U    -c',  nk,   ''),
+	('testing_zsyr2k_vbatched',    batch + '         -U -C -c',  nk,   ''),
+	
+	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
+	('testing_ztrmm_vbatched',     batch + '-SL -L    -DN  -c',  n + wide, ''),
+	('testing_ztrmm_vbatched',     batch + '-SL -L    -DU  -c',  n + wide, ''),
+	('testing_ztrmm_vbatched',     batch + '-SL -L -C -DN  -c',  n + wide, ''),
+	('testing_ztrmm_vbatched',     batch + '-SL -L -C -DU  -c',  n + wide, ''),
+	
+	('testing_ztrmm_vbatched',     batch + '-SL -U    -DN  -c',  n + wide, ''),
+	('testing_ztrmm_vbatched',     batch + '-SL -U    -DU  -c',  n + wide, ''),
+	('testing_ztrmm_vbatched',     batch + '-SL -U -C -DN  -c',  n + wide, ''),
+	('testing_ztrmm_vbatched',     batch + '-SL -U -C -DU  -c',  n + wide, ''),
+	
+	('testing_ztrmm_vbatched',     batch + '-SR -L    -DN  -c',  n + tall, ''),
+	('testing_ztrmm_vbatched',     batch + '-SR -L    -DU  -c',  n + tall, ''),
+	('testing_ztrmm_vbatched',     batch + '-SR -L -C -DN  -c',  n + tall, ''),
+	('testing_ztrmm_vbatched',     batch + '-SR -L -C -DU  -c',  n + tall, ''),
+	
+	('testing_ztrmm_vbatched',     batch + '-SR -U    -DN  -c',  n + tall, ''),
+	('testing_ztrmm_vbatched',     batch + '-SR -U    -DU  -c',  n + tall, ''),
+	('testing_ztrmm_vbatched',     batch + '-SR -U -C -DN  -c',  n + tall, ''),
+	('testing_ztrmm_vbatched',     batch + '-SR -U -C -DU  -c',  n + tall, ''),
+	
+	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
+	('testing_ztrsm_vbatched',     batch + '-SL -L    -DN  -c',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L    -DU  -c',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DN  -c',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DU  -c',  n + wide, ''),
+	
+	('testing_ztrsm_vbatched',     batch + '-SL -U    -DN  -c',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U    -DU  -c',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DN  -c',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DU  -c',  n + wide, ''),
+	
+	('testing_ztrsm_vbatched',     batch + '-SR -L    -DN  -c',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L    -DU  -c',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DN  -c',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DU  -c',  n + tall, ''),
+	
+	('testing_ztrsm_vbatched',     batch + '-SR -U    -DN  -c',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U    -DU  -c',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DN  -c',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DU  -c',  n + tall, ''),
+	
+	# ----- Cholesky
+	('testing_zpotrf_vbatched',    batch + '         -L    -c2', n,    ''),	
 	
 )
 if ( opts.batched ):
