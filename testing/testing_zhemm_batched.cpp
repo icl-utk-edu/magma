@@ -55,7 +55,7 @@ int main( int argc, char** argv)
 
     magma_opts opts( MagmaOptsBatched );
     opts.parse_opts( argc, argv );
-    opts.check |= opts.lapack;
+    opts.lapack |= opts.check;
     batchCount = opts.batchcount;
     
     cpu_perf = cpu_time = 0.0;
