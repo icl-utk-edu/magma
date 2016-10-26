@@ -104,15 +104,15 @@ hemv_diag_device( magma_uplo_t uplo, int N,
     sA[ty * NB + tx] = res;
     __syncthreads();
     
-    if(ty == 0){
+    if (ty == 0) {
         res = make_FloatingPoint( 0.0, 0.0 );
-          #pragma unroll
-          for(int i = 0; i < TY; i++)
+        #pragma unroll
+        for(int i = 0; i < TY; i++)
             res += sA[i * NB + tx];
-          res *= alpha;
-          if(tx < n){
-              Y[tx * incy] = res + ry;
-          }
+        res *= alpha;
+        if(tx < n){
+            Y[tx * incy] = res + ry;
+        }
     }
 }
 
@@ -198,9 +198,9 @@ hemv_lower_device( int N, T alpha,
         __syncthreads();
         if(ty == 0)
         { 
-               rh = make_FloatingPoint(0.0, 0.0);
-               #pragma unroll
-               for(int k = 0; k < TY; k++){
+            rh = make_FloatingPoint(0.0, 0.0);
+            #pragma unroll
+            for (int k = 0; k < TY; k++) {
                 rh += sA[k * (NB+1) + tx];
             }
             rh *= alpha;
@@ -232,9 +232,9 @@ hemv_lower_device( int N, T alpha,
         __syncthreads();
         if(ty == 0)
         { 
-               rh = make_FloatingPoint(0.0, 0.0);
-               #pragma unroll
-               for(int k = 0; k < TY; k++){
+            rh = make_FloatingPoint(0.0, 0.0);
+            #pragma unroll
+            for (int k = 0; k < TY; k++) {
                 rh += sA[k * (NB+1) + tx];
             }
             rh *= alpha;
@@ -356,11 +356,11 @@ hemv_upper_device( int N, T alpha,
         __syncthreads();
         if(ty == 0)
         { 
-               rh = make_FloatingPoint(0.0, 0.0);
-               #pragma unroll
-               for(int k = 0; k < TY; k++)
+            rh = make_FloatingPoint(0.0, 0.0);
+            #pragma unroll
+            for (int k = 0; k < TY; k++)
                 rh += sA[k * (NB+1) + tx];
-
+               
             rh *= alpha;
             
             magmablas_atomic_add(&Y_[incy * tx], rh);
@@ -382,14 +382,14 @@ hemv_upper_device( int N, T alpha,
         for(int k = 0; k < NB; k++){
             rv[0] += sA[tx * (NB+1) + k];
         }
-           rv[0] *= alpha;
-           if(bx == gridx-1 && nr < NB){
-               if(tx < nr)
-                   magmablas_atomic_add(&Y[incy * tx], rv[0]);
-            }
-            else{
+        rv[0] *= alpha;
+        if (bx == gridx-1 && nr < NB) {
+            if (tx < nr)
                 magmablas_atomic_add(&Y[incy * tx], rv[0]);
-            }
+        }
+        else {
+            magmablas_atomic_add(&Y[incy * tx], rv[0]);
+        }
     }
 }
 

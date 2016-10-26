@@ -60,9 +60,9 @@ magmaDoubleComplex *Mval )
 
     // set dA to 0
     #pragma unroll
-     for( int j = 0; j < block_size; j++ ){
-         dA[ j ] = MAGMA_Z_ZERO;
-     }
+    for( int j = 0; j < block_size; j++ ){
+        dA[ j ] = MAGMA_Z_ZERO;
+    }
 
     // generate the triangular systems
     int t = Mcol[ mstart + tid ];
@@ -96,11 +96,11 @@ magmaDoubleComplex *Mval )
     for (int k = 0; k < block_size; k++)
     {
         rA = dA[ k ];
-         if (k % block_size == tid)
-             rB /= rA;
-         magmaDoubleComplex top = __shfl(rB, k % block_size);
-         if ( tid > k)
-             rB -= (top*rA);
+        if (k % block_size == tid)
+            rB /= rA;
+        magmaDoubleComplex top = __shfl(rB, k % block_size);
+        if ( tid > k)
+            rB -= (top*rA);
     }
 
     // Drop B to dev memory - in ISAI preconditioner M
@@ -248,9 +248,9 @@ magmaDoubleComplex *Mval )
 
     // set dA to 0
     #pragma unroll
-     for( int j = 0; j < block_size; j++ ){
-         dA[ j ] = MAGMA_Z_ZERO;
-     }
+    for( int j = 0; j < block_size; j++ ){
+        dA[ j ] = MAGMA_Z_ZERO;
+    }
 
     // generate the triangular systems
     int t = Mcol[ mstart + tid ];
@@ -284,11 +284,11 @@ magmaDoubleComplex *Mval )
     for (int k = block_size-1; k >-1; k--)
     {
         rA = dA[ k ];
-         if (k%block_size == tid)
-             rB /= rA;
-         magmaDoubleComplex bottom = __shfl(rB, k%block_size);
-         if ( tid < k)
-             rB -= (bottom*rA);
+        if (k%block_size == tid)
+            rB /= rA;
+        magmaDoubleComplex bottom = __shfl(rB, k%block_size);
+        if ( tid < k)
+            rB -= (bottom*rA);
     }
 
     // Drop B to dev memory - in ISAI preconditioner M
@@ -389,9 +389,9 @@ magmaDoubleComplex *Mval )
 
     // set dA to 0
     #pragma unroll
-     for( int j = 0; j < block_size; j++ ){
-         dA[ j ] = MAGMA_Z_ZERO;
-     }
+    for( int j = 0; j < block_size; j++ ){
+        dA[ j ] = MAGMA_Z_ZERO;
+    }
 
     // generate the triangular systems
     int t = Mcol[ mstart + tid ];
@@ -424,11 +424,11 @@ magmaDoubleComplex *Mval )
     for (int k = 0; k < block_size; k++)
     {
         rA = dA[ k ];
-         if (k%block_size == tid)
-             rB /= rA;
-         magmaDoubleComplex top = __shfl(rB, k%block_size);
-         if ( tid > k)
-             rB -= (top*rA);
+        if (k%block_size == tid)
+            rB /= rA;
+        magmaDoubleComplex top = __shfl(rB, k%block_size);
+        if ( tid > k)
+            rB -= (top*rA);
     }
 
     // Drop B to dev memory - in ISAI preconditioner M
@@ -529,9 +529,9 @@ magmaDoubleComplex *Mval )
 
     // set dA to 0
     #pragma unroll
-     for( int j = 0; j < block_size; j++ ){
-         dA[ j ] = MAGMA_Z_ZERO;
-     }
+    for( int j = 0; j < block_size; j++ ){
+        dA[ j ] = MAGMA_Z_ZERO;
+    }
 
     // generate the triangular systems
     int t = Mcol[ mstart + tid ];
@@ -564,11 +564,11 @@ magmaDoubleComplex *Mval )
     for (int k = block_size-1; k >-1; k--)
     {
         rA = dA[ k ];
-         if (k%block_size == tid)
-             rB /= rA;
-         magmaDoubleComplex bottom = __shfl(rB, k%block_size);
-         if ( tid < k)
-             rB -= (bottom*rA);
+        if (k%block_size == tid)
+            rB /= rA;
+        magmaDoubleComplex bottom = __shfl(rB, k%block_size);
+        if ( tid < k)
+            rB -= (bottom*rA);
     }
 
     // Drop B to dev memory - in ISAI preconditioner M
