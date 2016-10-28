@@ -76,16 +76,16 @@ magma_zbaiter(
     double residual;
     magma_int_t localiter = precond_par->maxiter;
     
-    magma_z_matrix Ah={Magma_CSR}, ACSR={Magma_CSR}, A_d={Magma_CSR}, D={Magma_CSR}, 
+    magma_z_matrix Ah={Magma_CSR}, ACSR={Magma_CSR}, dA={Magma_CSR}, D={Magma_CSR}, 
                     R={Magma_CSR}, D_d={Magma_CSR}, R_d={Magma_CSR}, r={Magma_CSR};
 
     CHECK( magma_zmtransfer( A, &Ah, A.memory_location, Magma_CPU, queue ));
     CHECK( magma_zmconvert( Ah, &ACSR, Ah.storage_type, Magma_CSR, queue ));
 
-    CHECK( magma_zmtransfer( ACSR, &A_d, Magma_CPU, Magma_DEV, queue ));
+    CHECK( magma_zmtransfer( ACSR, &dA, Magma_CPU, Magma_DEV, queue ));
     
     CHECK( magma_zvinit( &r, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
-    CHECK(  magma_zresidualvec( A_d, b, *x, &r, &residual, queue));
+    CHECK(  magma_zresidualvec( dA, b, *x, &r, &residual, queue));
     solver_par->init_res = residual;
     if ( solver_par->verbose > 0 ) {
         solver_par->res_vec[0] = (real_Double_t) residual;
@@ -115,7 +115,7 @@ magma_zbaiter(
         tempo2 = magma_sync_wtime( queue );
         runtime += tempo2-tempo1;
         if ( solver_par->verbose > 0 ) {
-        CHECK(  magma_zresidualvec( A_d, b, *x, &r, &residual, queue));
+        CHECK(  magma_zresidualvec( dA, b, *x, &r, &residual, queue));
             solver_par->res_vec[(solver_par->numiter)/solver_par->verbose]
                 = (real_Double_t) residual;
             solver_par->timing[(solver_par->numiter)/solver_par->verbose]
@@ -125,7 +125,7 @@ magma_zbaiter(
     while ( solver_par->numiter+1 <= solver_par->maxiter );
 
     solver_par->runtime = runtime;
-    CHECK(  magma_zresidual( A_d, b, *x, &residual, queue));
+    CHECK(  magma_zresidual( dA, b, *x, &residual, queue));
     solver_par->final_res = residual;
     solver_par->numiter = solver_par->maxiter;
 
@@ -142,7 +142,7 @@ cleanup:
     magma_zmfree(&R, queue );
     magma_zmfree(&D_d, queue );
     magma_zmfree(&R_d, queue );
-    magma_zmfree(&A_d, queue );
+    magma_zmfree(&dA, queue );
     magma_zmfree(&ACSR, queue );
     magma_zmfree(&Ah, queue );
 

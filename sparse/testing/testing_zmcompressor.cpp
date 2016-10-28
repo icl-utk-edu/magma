@@ -36,7 +36,7 @@ int main(  int argc, char** argv )
 
     real_Double_t res;
     magma_z_matrix A={Magma_CSR}, AT={Magma_CSR}, A2={Magma_CSR}, 
-    B={Magma_CSR}, B_d={Magma_CSR};
+    B={Magma_CSR}, dB={Magma_CSR};
     
     int i=1;
     real_Double_t start, end;
@@ -73,19 +73,19 @@ int main(  int argc, char** argv )
         // convert, copy back and forth to check everything works
         TESTING_CHECK( magma_zmconvert( AT, &B, Magma_CSR, Magma_CSR, queue ));
         magma_zmfree(&AT, queue );
-        TESTING_CHECK( magma_zmtransfer( B, &B_d, Magma_CPU, Magma_DEV, queue ));
+        TESTING_CHECK( magma_zmtransfer( B, &dB, Magma_CPU, Magma_DEV, queue ));
         magma_zmfree(&B, queue );
 
         start = magma_sync_wtime( queue );
         for (int j=0; j < 10; j++) {
-            TESTING_CHECK( magma_zmcsrcompressor_gpu( &B_d, queue ));
+            TESTING_CHECK( magma_zmcsrcompressor_gpu( &dB, queue ));
         }
         end = magma_sync_wtime( queue );
         printf( " > MAGMA GPU: %.2e seconds.\n", (end-start)/10 );
 
 
-        TESTING_CHECK( magma_zmtransfer( B_d, &B, Magma_DEV, Magma_CPU, queue ));
-        magma_zmfree(&B_d, queue );
+        TESTING_CHECK( magma_zmtransfer( dB, &B, Magma_DEV, Magma_CPU, queue ));
+        magma_zmfree(&dB, queue );
         TESTING_CHECK( magma_zmconvert( B, &AT, Magma_CSR, Magma_CSR, queue ));
         magma_zmfree(&B, queue );
 

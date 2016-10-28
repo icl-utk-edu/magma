@@ -128,17 +128,17 @@ magma_znonlinres(
         
     magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0 );
 
-    magma_z_matrix L_d={Magma_CSR}, U_d={Magma_CSR}, LU_d={Magma_CSR}, A_t={Magma_CSR};
+    magma_z_matrix dL={Magma_CSR}, dU={Magma_CSR}, dLU={Magma_CSR}, A_t={Magma_CSR};
 
-    CHECK( magma_zmtransfer( L, &L_d, Magma_CPU, Magma_DEV, queue  ));
-    CHECK( magma_zmtransfer( U, &U_d, Magma_CPU, Magma_DEV, queue  ));
+    CHECK( magma_zmtransfer( L, &dL, Magma_CPU, Magma_DEV, queue  ));
+    CHECK( magma_zmtransfer( U, &dU, Magma_CPU, Magma_DEV, queue  ));
     CHECK( magma_zmtransfer( A, &A_t, Magma_CPU, Magma_CPU, queue  ));
-    CHECK( magma_z_spmm( one, L_d, U_d, &LU_d, queue ));
+    CHECK( magma_z_spmm( one, dL, dU, &dLU, queue ));
 
-    CHECK( magma_zmtransfer(LU_d, LU, Magma_DEV, Magma_CPU, queue ));
-    magma_zmfree( &L_d, queue  );
-    magma_zmfree( &U_d, queue  );
-    magma_zmfree( &LU_d, queue  );
+    CHECK( magma_zmtransfer(dLU, LU, Magma_DEV, Magma_CPU, queue ));
+    magma_zmfree( &dL, queue  );
+    magma_zmfree( &dU, queue  );
+    magma_zmfree( &dLU, queue  );
 
     // compute Frobenius norm of A-LU
     for(i=0; i<A.num_rows; i++){
@@ -173,9 +173,9 @@ cleanup:
         magma_zmfree( LU, queue  );
     }
     magma_zmfree( &A_t, queue  );
-    magma_zmfree( &L_d, queue  );
-    magma_zmfree( &U_d, queue  );
-    magma_zmfree( &LU_d, queue  );
+    magma_zmfree( &dL, queue  );
+    magma_zmfree( &dU, queue  );
+    magma_zmfree( &dLU, queue  );
     return info;
 }
 
@@ -239,7 +239,7 @@ magma_zilures(
     
     magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0 );
 
-    magma_z_matrix LL={Magma_CSR}, L_d={Magma_CSR}, U_d={Magma_CSR}, LU_d={Magma_CSR};
+    magma_z_matrix LL={Magma_CSR}, dL={Magma_CSR}, dU={Magma_CSR}, dLU={Magma_CSR};
 
     if( L.row[1]==1 ){        // lower triangular with unit diagonal
         //printf("L lower triangular.\n");
@@ -273,17 +273,17 @@ magma_zilures(
         printf("error: L neither lower nor strictly lower triangular!\n");
     }
 
-    CHECK( magma_zmtransfer( LL, &L_d, Magma_CPU, Magma_DEV, queue  ));
-    CHECK( magma_zmtransfer( U, &U_d, Magma_CPU, Magma_DEV, queue  ));
+    CHECK( magma_zmtransfer( LL, &dL, Magma_CPU, Magma_DEV, queue  ));
+    CHECK( magma_zmtransfer( U, &dU, Magma_CPU, Magma_DEV, queue  ));
     magma_zmfree( &LL, queue );
-    CHECK( magma_z_spmm( one, L_d, U_d, &LU_d, queue ));
+    CHECK( magma_z_spmm( one, dL, dU, &dLU, queue ));
 
 
 
-    CHECK( magma_zmtransfer(LU_d, LU, Magma_DEV, Magma_CPU, queue ));
-    magma_zmfree( &L_d, queue );
-    magma_zmfree( &U_d, queue );
-    magma_zmfree( &LU_d, queue );
+    CHECK( magma_zmtransfer(dLU, LU, Magma_DEV, Magma_CPU, queue ));
+    magma_zmfree( &dL, queue );
+    magma_zmfree( &dU, queue );
+    magma_zmfree( &dLU, queue );
 
     // compute Frobenius norm of A-LU
     for(i=0; i<A.num_rows; i++){
@@ -318,9 +318,9 @@ cleanup:
         magma_zmfree( LU, queue  );
     }
     magma_zmfree( &LL, queue );
-    magma_zmfree( &L_d, queue  );
-    magma_zmfree( &U_d, queue  );
-    magma_zmfree( &LU_d, queue  );
+    magma_zmfree( &dL, queue  );
+    magma_zmfree( &dU, queue  );
+    magma_zmfree( &dLU, queue  );
     return info;
 }
 
@@ -386,17 +386,17 @@ magma_zicres(
 
     magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0 );
     
-    magma_z_matrix L_d={Magma_CSR}, U_d={Magma_CSR}, LU_d={Magma_CSR};
+    magma_z_matrix dL={Magma_CSR}, dU={Magma_CSR}, dLU={Magma_CSR};
     
     *res = 0.0;
     *nonlinres = 0.0;
 
-    CHECK( magma_zmtransfer( C, &L_d, Magma_CPU, Magma_DEV, queue ));
-    CHECK( magma_zmtransfer( CT, &U_d, Magma_CPU, Magma_DEV, queue ));
-    CHECK( magma_z_spmm( one, L_d, U_d, &LU_d, queue ));
-    CHECK( magma_zmtransfer(LU_d, LU, Magma_DEV, Magma_CPU, queue ));
+    CHECK( magma_zmtransfer( C, &dL, Magma_CPU, Magma_DEV, queue ));
+    CHECK( magma_zmtransfer( CT, &dU, Magma_CPU, Magma_DEV, queue ));
+    CHECK( magma_z_spmm( one, dL, dU, &dLU, queue ));
+    CHECK( magma_zmtransfer(dLU, LU, Magma_DEV, Magma_CPU, queue ));
 
-    magma_zmfree( &LU_d, queue );
+    magma_zmfree( &dLU, queue );
 
     // compute Frobenius norm of A-LU
     for(i=0; i<A.num_rows; i++){
@@ -431,9 +431,9 @@ cleanup:
     if( info !=0 ){
         magma_zmfree( LU, queue  );
     }
-    magma_zmfree( &L_d, queue  );
-    magma_zmfree( &U_d, queue  );
-    magma_zmfree( &LU_d, queue  );
+    magma_zmfree( &dL, queue  );
+    magma_zmfree( &dU, queue  );
+    magma_zmfree( &dLU, queue  );
     return info;
 }
 

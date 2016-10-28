@@ -56,9 +56,9 @@ int main ()
     magma_queue_t queue;
     magma_queue_create( 0, &queue );
     
-    magma_d_matrix A={Magma_CSR}, A_d={Magma_CSR};
-    magma_d_matrix b={Magma_CSR}, b_d={Magma_CSR};
-    magma_d_matrix x={Magma_CSR}, x_d={Magma_CSR}; 
+    magma_d_matrix A={Magma_CSR}, dA={Magma_CSR};
+    magma_d_matrix b={Magma_CSR}, db={Magma_CSR};
+    magma_d_matrix x={Magma_CSR}, dx={Magma_CSR}; 
     
     // We now pass the system to MAGMA.
     magma_dcsrset( m, m, row, col, val, &A, queue );
@@ -79,12 +79,12 @@ int main ()
     magma_dsolverinfo_init( &opts.solver_par, &opts.precond_par, queue );
     
     // We copy the system to the device (optional, only necessary if using the GPU)
-    magma_dmtransfer( A, &A_d, Magma_CPU, Magma_DEV, queue );
-    magma_dmtransfer( b, &b_d, Magma_CPU, Magma_DEV, queue );
-    magma_dmtransfer( x, &x_d, Magma_CPU, Magma_DEV, queue );
+    magma_dmtransfer( A, &dA, Magma_CPU, Magma_DEV, queue );
+    magma_dmtransfer( b, &db, Magma_CPU, Magma_DEV, queue );
+    magma_dmtransfer( x, &dx, Magma_CPU, Magma_DEV, queue );
     
     // We now generate the preconditioner.
-    magma_d_precondsetup( A_d, b_d, &opts.solver_par, &opts.precond_par, queue );
+    magma_d_precondsetup( dA, db, &opts.solver_par, &opts.precond_par, queue );
     
     // In case we only wanted to generate a preconditioner, we are done.
     // The preconditioner in the opts.precond_par structure - in this case an ILU.
@@ -92,19 +92,19 @@ int main ()
     // the upper ILU(0) factor is in opts.precond_par.U (in this case on the device).
     
     // If we want to solve the problem, we run:
-    magma_d_solver( A_d, b_d, &x_d, &opts, queue );
+    magma_d_solver( dA, db, &dx, &opts, queue );
 
     // Then we copy the solution back to the host...
     magma_dmfree( &x, queue );
-    magma_dmtransfer( x_d, &x, Magma_CPU, Magma_DEV, queue );
+    magma_dmtransfer( dx, &x, Magma_CPU, Magma_DEV, queue );
     
     // and back to the application code
     magma_dvget( x, &m, &n, &sol, queue );
     
     // We free the allocated memory...
-    magma_dmfree( &x_d, queue );
-    magma_dmfree( &b_d, queue );
-    magma_dmfree( &A_d, queue );
+    magma_dmfree( &dx, queue );
+    magma_dmfree( &db, queue );
+    magma_dmfree( &dA, queue );
     
     // and finalize MAGMA.
     magma_queue_destroy( queue );

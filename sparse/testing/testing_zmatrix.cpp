@@ -36,7 +36,7 @@ int main(  int argc, char** argv )
     
     real_Double_t res;
     magma_z_matrix Z={Magma_CSR}, A={Magma_CSR}, AT={Magma_CSR}, 
-    A2={Magma_CSR}, B={Magma_CSR}, B_d={Magma_CSR};
+    A2={Magma_CSR}, B={Magma_CSR}, dB={Magma_CSR};
     
     magma_index_t *comm_i=NULL;
     magmaDoubleComplex *comm_v=NULL;
@@ -113,11 +113,11 @@ int main(  int argc, char** argv )
 
         TESTING_CHECK( magma_zmconvert( AT, &B, Magma_CSR, zopts.output_format, queue ));
         magma_zmfree(&AT, queue );
-        TESTING_CHECK( magma_zmtransfer( B, &B_d, Magma_CPU, Magma_DEV, queue ));
+        TESTING_CHECK( magma_zmtransfer( B, &dB, Magma_CPU, Magma_DEV, queue ));
         magma_zmfree(&B, queue );
-        TESTING_CHECK( magma_zmcsrcompressor_gpu( &B_d, queue ));
-        TESTING_CHECK( magma_zmtransfer( B_d, &B, Magma_DEV, Magma_CPU, queue ));
-        magma_zmfree(&B_d, queue );
+        TESTING_CHECK( magma_zmcsrcompressor_gpu( &dB, queue ));
+        TESTING_CHECK( magma_zmtransfer( dB, &B, Magma_DEV, Magma_CPU, queue ));
+        magma_zmfree(&dB, queue );
         TESTING_CHECK( magma_zmconvert( B, &AT, zopts.output_format,Magma_CSR, queue ));
         magma_zmfree(&B, queue );
 

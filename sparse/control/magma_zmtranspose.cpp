@@ -248,7 +248,7 @@ magma_z_cucsrtranspose(
     
     
     magma_z_matrix ACSR={Magma_CSR}, BCSR={Magma_CSR};
-    magma_z_matrix A_d={Magma_CSR}, B_d={Magma_CSR};
+    magma_z_matrix dA={Magma_CSR}, dB={Magma_CSR};
 
     if( A.storage_type == Magma_CSR && A.memory_location == Magma_DEV ) {
         // fill in information for B
@@ -294,9 +294,9 @@ magma_z_cucsrtranspose(
                           CUSPARSE_ACTION_NUMERIC,
                           CUSPARSE_INDEX_BASE_ZERO) );
     } else if ( A.storage_type == Magma_CSR && A.memory_location == Magma_CPU ){
-        CHECK( magma_zmtransfer( A, &A_d, A.memory_location, Magma_DEV, queue ));
-        CHECK( magma_z_cucsrtranspose( A_d, &B_d, queue ));
-        CHECK( magma_zmtransfer( B_d, B, Magma_DEV, A.memory_location, queue ));
+        CHECK( magma_zmtransfer( A, &dA, A.memory_location, Magma_DEV, queue ));
+        CHECK( magma_z_cucsrtranspose( dA, &dB, queue ));
+        CHECK( magma_zmtransfer( dB, B, Magma_DEV, A.memory_location, queue ));
     } else {
         CHECK( magma_zmconvert( A, &ACSR, A.storage_type, Magma_CSR, queue ));
         CHECK( magma_z_cucsrtranspose( ACSR, &BCSR, queue ));
@@ -306,8 +306,8 @@ cleanup:
     cusparseDestroyMatDescr( descrA );
     cusparseDestroyMatDescr( descrB );
     cusparseDestroy( handle );
-    magma_zmfree( &A_d, queue );
-    magma_zmfree( &B_d, queue );
+    magma_zmfree( &dA, queue );
+    magma_zmfree( &dB, queue );
     magma_zmfree( &ACSR, queue );
     magma_zmfree( &BCSR, queue );
     if( info != 0 ){
@@ -356,7 +356,7 @@ magma_zmtransposeconjugate(
     cusparseMatDescr_t descrB=NULL;
     
     magma_z_matrix ACSR={Magma_CSR}, BCSR={Magma_CSR};
-    magma_z_matrix A_d={Magma_CSR}, B_d={Magma_CSR};
+    magma_z_matrix dA={Magma_CSR}, dB={Magma_CSR};
 
     if( A.storage_type == Magma_CSR && A.memory_location == Magma_DEV ) {
         // fill in information for B
@@ -400,9 +400,9 @@ magma_zmtransposeconjugate(
                           CUSPARSE_INDEX_BASE_ZERO) );
         CHECK( magma_zmconjugate( B, queue ));
     } else if ( A.memory_location == Magma_CPU ){
-        CHECK( magma_zmtransfer( A, &A_d, A.memory_location, Magma_DEV, queue ));
-        CHECK( magma_zmtransposeconjugate( A_d, &B_d, queue ));
-        CHECK( magma_zmtransfer( B_d, B, Magma_DEV, A.memory_location, queue ));
+        CHECK( magma_zmtransfer( A, &dA, A.memory_location, Magma_DEV, queue ));
+        CHECK( magma_zmtransposeconjugate( dA, &dB, queue ));
+        CHECK( magma_zmtransfer( dB, B, Magma_DEV, A.memory_location, queue ));
     } else {
         CHECK( magma_zmconvert( A, &ACSR, A.storage_type, Magma_CSR, queue ));
         CHECK( magma_zmtransposeconjugate( ACSR, &BCSR, queue ));
@@ -412,8 +412,8 @@ cleanup:
     cusparseDestroyMatDescr( descrA );
     cusparseDestroyMatDescr( descrB );
     cusparseDestroy( handle );
-    magma_zmfree( &A_d, queue );
-    magma_zmfree( &B_d, queue );
+    magma_zmfree( &dA, queue );
+    magma_zmfree( &dB, queue );
     magma_zmfree( &ACSR, queue );
     magma_zmfree( &BCSR, queue );
     if( info != 0 ){

@@ -35,7 +35,7 @@ int main(  int argc, char** argv )
 
     real_Double_t res;
     magma_z_matrix A={Magma_CSR}, B={Magma_CSR}, B2={Magma_CSR}, 
-    A_d={Magma_CSR}, B_d={Magma_CSR}, C_d={Magma_CSR};
+    dA={Magma_CSR}, dB={Magma_CSR}, dC={Magma_CSR};
 
     magmaDoubleComplex one = MAGMA_Z_MAKE(1.0, 0.0);
     magmaDoubleComplex mone = MAGMA_Z_MAKE(-1.0, 0.0);
@@ -64,20 +64,20 @@ int main(  int argc, char** argv )
             (long long) B.num_rows, (long long) B.num_cols, (long long) B.nnz );
 
 
-    TESTING_CHECK( magma_zmtransfer( A, &A_d, Magma_CPU, Magma_DEV, queue ));
-    TESTING_CHECK( magma_zmtransfer( B, &B_d, Magma_CPU, Magma_DEV, queue ));
+    TESTING_CHECK( magma_zmtransfer( A, &dA, Magma_CPU, Magma_DEV, queue ));
+    TESTING_CHECK( magma_zmtransfer( B, &dB, Magma_CPU, Magma_DEV, queue ));
 
-    TESTING_CHECK( magma_zcuspaxpy( &one, A_d, &one, B_d, &C_d, queue ));
+    TESTING_CHECK( magma_zcuspaxpy( &one, dA, &one, dB, &dC, queue ));
 
-    magma_zmfree(&B_d, queue );
+    magma_zmfree(&dB, queue );
 
-    TESTING_CHECK( magma_zcuspaxpy( &mone, A_d, &one, C_d, &B_d, queue ));
+    TESTING_CHECK( magma_zcuspaxpy( &mone, dA, &one, dC, &dB, queue ));
     
-    TESTING_CHECK( magma_zmtransfer( B_d, &B2, Magma_DEV, Magma_CPU, queue ));
+    TESTING_CHECK( magma_zmtransfer( dB, &B2, Magma_DEV, Magma_CPU, queue ));
 
-    magma_zmfree(&A_d, queue );
-    magma_zmfree(&B_d, queue );
-    magma_zmfree(&C_d, queue );
+    magma_zmfree(&dA, queue );
+    magma_zmfree(&dB, queue );
+    magma_zmfree(&dC, queue );
 
     // check difference
     TESTING_CHECK( magma_zmdiff( B, B2, &res, queue ));

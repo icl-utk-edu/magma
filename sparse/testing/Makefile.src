@@ -40,6 +40,8 @@ sparse_testing_src += \
 	$(cdir)/testing_zsolver.cpp           \
 	$(cdir)/testing_zsolver_rhs.cpp           \
 	$(cdir)/testing_zpreconditioner.cpp   \
+        $(cdir)/testing_zsolver_rcm.cpp   \
+	$(cdir)/testing_dsolver_RCM.cpp   \
 #	$(cdir)/testing_zsolver_ufgetone.cpp	\
 
 # ----------

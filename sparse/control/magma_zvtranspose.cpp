@@ -47,7 +47,7 @@ magma_zvtranspose(
     magma_int_t    m = x.num_rows;
     magma_int_t    n = x.num_cols;
     
-    magma_z_matrix x_d={Magma_CSR}, y_d={Magma_CSR};
+    magma_z_matrix dx={Magma_CSR}, dy={Magma_CSR};
             
     if ( x.memory_location == Magma_DEV ) {
         CHECK( magma_zvinit( y, Magma_DEV, x.num_rows,x.num_cols, MAGMA_Z_ZERO, queue ));
@@ -63,16 +63,16 @@ magma_zvtranspose(
             magmablas_ztranspose( n, m, x.val, n, y->val, m, queue );
         }
     } else {
-        CHECK( magma_zmtransfer( x, &x_d, Magma_CPU, Magma_DEV, queue ));
-        CHECK( magma_zvtranspose( x_d, &y_d, queue ));
-        CHECK( magma_zmtransfer( y_d, y, Magma_DEV, Magma_CPU, queue ));
+        CHECK( magma_zmtransfer( x, &dx, Magma_CPU, Magma_DEV, queue ));
+        CHECK( magma_zvtranspose( dx, &dy, queue ));
+        CHECK( magma_zmtransfer( dy, y, Magma_DEV, Magma_CPU, queue ));
     }
     
 cleanup:
     if( info != 0 ){
         magma_zmfree( y, queue );
     }
-    magma_zmfree( &x_d, queue );
-    magma_zmfree( &y_d, queue );
+    magma_zmfree( &dx, queue );
+    magma_zmfree( &dy, queue );
     return info;
 }

@@ -38,7 +38,7 @@ int main(  int argc, char** argv )
     
     magmaDoubleComplex one = MAGMA_Z_MAKE(1.0, 0.0);
     magmaDoubleComplex zero = MAGMA_Z_MAKE(0.0, 0.0);
-    magma_z_matrix A={Magma_CSR}, B={Magma_CSR}, B_d={Magma_CSR};
+    magma_z_matrix A={Magma_CSR}, B={Magma_CSR}, dB={Magma_CSR};
     magma_z_matrix x={Magma_CSR}, x_h={Magma_CSR}, b_h={Magma_DENSE}, b={Magma_DENSE};
     
     int i=1;
@@ -102,13 +102,13 @@ int main(  int argc, char** argv )
         B.blocksize = 256;
         TESTING_CHECK( magma_zmconvert( A, &B, Magma_CSR, zopts.output_format, queue ));
         tempo1 = magma_sync_wtime( queue );
-        TESTING_CHECK( magma_zmtransfer( B, &B_d, Magma_CPU, Magma_DEV, queue ));
+        TESTING_CHECK( magma_zmtransfer( B, &dB, Magma_CPU, Magma_DEV, queue ));
         tempo2 = magma_sync_wtime( queue );
         t_transfer += tempo2-tempo1;
         
         TESTING_CHECK( magma_zvinit( &x, Magma_DEV, A.num_cols, 1, zero, queue ));
         
-        info = magma_z_solver( B_d, b, &x, &zopts, queue );
+        info = magma_z_solver( dB, b, &x, &zopts, queue );
         if( info != 0 ) {
             printf("%%error: solver returned: %s (%lld).\n",
                 magma_strerror( info ), (long long) info );
@@ -133,12 +133,12 @@ int main(  int argc, char** argv )
         printf("transfer_time = %.6f;\n\n", t_transfer);
         magma_zmfree(&x, queue );
         magma_zmfree(&b, queue );
-        magma_zmfree(&B_d, queue );
+        magma_zmfree(&dB, queue );
         magma_zmfree(&B, queue );
         magma_zsolverinfo_free( &zopts.solver_par, &zopts.precond_par, queue );
         fflush(stdout);
         
-        magma_zmfree(&B_d, queue );
+        magma_zmfree(&dB, queue );
         magma_zmfree(&B, queue );
         magma_zmfree(&A, queue );
         magma_zmfree(&x, queue );

@@ -158,7 +158,7 @@ magma_zmconvert(
     magma_index_t *length=NULL;
 
     magma_z_matrix hA={Magma_CSR}, hB={Magma_CSR};
-    magma_z_matrix A_d={Magma_CSR}, B_d={Magma_CSR};
+    magma_z_matrix dA={Magma_CSR}, dB={Magma_CSR};
     magma_index_t *row_tmp=NULL, *col_tmp=NULL;
     magmaDoubleComplex *val_tmp = NULL;
     magma_index_t *row_tmp2=NULL, *col_tmp2=NULL;
@@ -709,10 +709,10 @@ magma_zmconvert(
 
             // CSR to BCSR
             else if ( new_format == Magma_BCSR ) {
-                CHECK( magma_zmtransfer(A, &A_d, Magma_CPU, Magma_DEV, queue ) );
-                B_d.blocksize = B->blocksize;
-                CHECK( magma_zmconvert(A_d, &B_d, Magma_CSR, Magma_BCSR, queue ) );
-                CHECK( magma_zmtransfer(B_d, B, Magma_DEV, Magma_CPU, queue ) );
+                CHECK( magma_zmtransfer(A, &dA, Magma_CPU, Magma_DEV, queue ) );
+                dB.blocksize = B->blocksize;
+                CHECK( magma_zmconvert(dA, &dB, Magma_CSR, Magma_BCSR, queue ) );
+                CHECK( magma_zmtransfer(dB, B, Magma_DEV, Magma_CPU, queue ) );
             }
 
             // CSR to CSR5
@@ -1569,20 +1569,20 @@ magma_zmconvert(
 
             // BCSR to CSR
             else if ( old_format == Magma_BCSR ) {
-                CHECK( magma_zmtransfer(A, &A_d, Magma_CPU, Magma_DEV, queue ) );
-                CHECK( magma_zmconvert(A_d, &B_d, Magma_BCSR, Magma_CSR, queue ) );
-                magma_zmfree( &A_d, queue );
-                CHECK( magma_zmtransfer(B_d, B, Magma_DEV, Magma_CPU, queue ) );
-                magma_zmfree( &B_d, queue );
+                CHECK( magma_zmtransfer(A, &dA, Magma_CPU, Magma_DEV, queue ) );
+                CHECK( magma_zmconvert(dA, &dB, Magma_BCSR, Magma_CSR, queue ) );
+                magma_zmfree( &dA, queue );
+                CHECK( magma_zmtransfer(dB, B, Magma_DEV, Magma_CPU, queue ) );
+                magma_zmfree( &dB, queue );
             }
 
             // COO to CSR
             else if ( old_format == Magma_COO ) {
-                CHECK( magma_zmtransfer(A, &A_d, Magma_CPU, Magma_DEV, queue ) );
-                CHECK( magma_zmconvert(A_d, &B_d, Magma_COO, Magma_CSR, queue ) );
-                magma_zmfree( &A_d, queue );
-                CHECK( magma_zmtransfer(B_d, B, Magma_DEV, Magma_CPU, queue ) );
-                magma_zmfree( &B_d, queue );
+                CHECK( magma_zmtransfer(A, &dA, Magma_CPU, Magma_DEV, queue ) );
+                CHECK( magma_zmconvert(dA, &dB, Magma_COO, Magma_CSR, queue ) );
+                magma_zmfree( &dA, queue );
+                CHECK( magma_zmtransfer(dB, B, Magma_DEV, Magma_CPU, queue ) );
+                magma_zmfree( &dB, queue );
             }
 
             else {
@@ -1931,8 +1931,8 @@ cleanup:
     length = NULL;
     magma_zmfree( &hA, queue );
     magma_zmfree( &hB, queue );
-    magma_zmfree( &A_d, queue );
-    magma_zmfree( &B_d, queue );
+    magma_zmfree( &dA, queue );
+    magma_zmfree( &dB, queue );
     if ( info != 0 ) {
         magma_zmfree( B, queue );
     }
