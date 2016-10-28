@@ -77,7 +77,7 @@ magma_z_csr_compressor(
         (*rown)[i] = nnz_new;
         nnz_this_row = 0;
         for( j=(*row)[i]; j<(*row)[i+1]; j++ ) {
-            if ( MAGMA_Z_REAL((*val)[j]) != 0 ) {
+            if ( (MAGMA_Z_REAL((*val)[j]) != 0) || (MAGMA_Z_IMAG((*val)[j]) != 0) ) {
                 nnz_new++;
                 nnz_this_row++;
             }
