@@ -160,6 +160,7 @@ parser.add_option(      '--control',     action='store_true', dest='control',   
 parser.add_option(      '--csr',         action='store_true', dest='csr',         help='run CSR matrix format')
 parser.add_option(      '--ell',         action='store_true', dest='ell',         help='run ELL matrix format')
 parser.add_option(      '--sellp',       action='store_true', dest='sellp',       help='run SELLP matrix format')
+parser.add_option(      '--csr5',        action='store_true', dest='csr5',        help='run CSR5 matrix format')
 
 parser.add_option(      '--cg'               , action='store_true', dest='cg'            , help='run cg'            )
 parser.add_option(      '--cg_merge'         , action='store_true', dest='cg_merge'      , help='run cg_merge'      )
@@ -221,6 +222,7 @@ if (     not opts.sparse_blas
     opts.csr         = True
     opts.ell         = True
     opts.sellp       = True
+    opts.csr5        = True
 # end
 
 # default if no solvers given is all solvers
@@ -322,6 +324,9 @@ if ( opts.ell ):
 # end
 if ( opts.sellp ):
     formats += ['--format SELLP']
+# end
+if ( opts.csr5 ):
+    formats += ['--format CSR5']
 # end
 
 # looping over solvers
@@ -602,34 +607,31 @@ if ( opts.sparse_blas):
 
 # ----------------------------------------------------------------------
 for solver in solvers:
-    for format in formats:
-        for size in sizes:
-            for precision in opts.precisions:
-                # precision generation
-                cmd = substitute( 'testing_zsolver', 'z', precision )
-                tests.append( [cmd, solver + ' ' + format, size, ''] )
+    for size in sizes:
+        for precision in opts.precisions:
+            # precision generation
+            cmd = substitute( 'testing_zsolver', 'z', precision )
+            tests.append( [cmd, solver + ' ' + format, size, ''] )
 
 
 # ----------------------------------------------------------------------
 for solver in precsolvers:
     for precond in precs:
-        for format in formats:
-            for size in sizes:
-                for precision in opts.precisions:
-                    # precision generation
-                    cmd = substitute( 'testing_zsolver', 'z', precision )
-                    tests.append( [cmd, solver + ' ' + precond + ' ' + format, size, ''] )
+        for size in sizes:
+            for precision in opts.precisions:
+                # precision generation
+                cmd = substitute( 'testing_zsolver', 'z', precision )
+                tests.append( [cmd, solver + ' ' + precond + ' ' + format, size, ''] )
 
 
 # ----------------------------------------------------------------------
 for solver in IR:
     for precond in IRprecs:
-        for format in formats:
-            for size in sizes:
-                for precision in opts.precisions:
-                    # precision generation
-                    cmd = substitute( 'testing_zsolver', 'z', precision )
-                    tests.append( [cmd, solver + ' ' + precond + ' ' + format, size, ''] )
+        for size in sizes:
+            for precision in opts.precisions:
+                # precision generation
+                cmd = substitute( 'testing_zsolver', 'z', precision )
+                tests.append( [cmd, solver + ' ' + precond + ' ' + format, size, ''] )
 
 
 
