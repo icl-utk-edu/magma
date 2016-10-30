@@ -25,7 +25,14 @@ Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
  2.2.0 - Nov 2016
- 
+    * Added variable size batched Cholesky factorization
+      magma_[sdcz]potrf_vbatched
+    * Added new fixed size batched BLAS routines
+      magmablas_[cz]{hemm, hemv, trmm}_batched
+      magmablas_[sd]{symm, symv, trmm}_batched
+    * Added new variable size batched BLAS routines
+      magmablas_[cz]{hemm, hemv, trmm, trsm}_vbatched
+      magmablas_[sd]{symm, symv, trmm, trsm}_vbatched
     MAGMA-sparse
     * Added Incomplete Sparse Approximate Inverse (ISAI) Preconditioner
       for sparse triangular solves, including batched generation.
