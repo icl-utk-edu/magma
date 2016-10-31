@@ -53,7 +53,7 @@ CFLAGS   += -std=c99
 # libraries
 
 # see MKL Link Advisor at http://software.intel.com/sites/products/mkl/
-# icc with MKL 10.3, Intel OpenMP threads
+# icc/ifort with MKL 10.3, Intel OpenMP threads
 LIB       = -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -lstdc++ -lm
 
 LIB      += -lcublas -lcusparse -lcudart -lcudadevrt

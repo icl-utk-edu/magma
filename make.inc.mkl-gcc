@@ -53,13 +53,13 @@ CFLAGS   += -std=c99
 # libraries
 
 # see MKL Link Advisor at http://software.intel.com/sites/products/mkl/
-# gcc with MKL 10.3, GNU OpenMP threads (use -fopenmp in CFLAGS, LDFLAGS)
-LIB       = -lmkl_intel_lp64 -lmkl_gnu_thread -lmkl_core -lpthread -lstdc++ -lm -lgfortran
+# gcc/gfortran with MKL 10.3, GNU OpenMP threads (use -fopenmp in CFLAGS, LDFLAGS)
+LIB       = -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core -lpthread -lstdc++ -lm -lgfortran
 
 # Supposedly, gcc can use Intel threads (libiomp5) instead, but be careful that
 # libiomp5 and libgomp are NOT BOTH linked. Above, we use gnu threads as a safer option.
-# gcc with MKL 10.3, Intel OpenMP threads (remove -fopenmp from LDFLAGS above)
-#LIB       = -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lstdc++ -lm -lgfortran
+# gcc/gfortran with MKL 10.3, Intel OpenMP threads (remove -fopenmp from LDFLAGS above)
+#LIB       = -lmkl_gf_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lstdc++ -lm -lgfortran
 
 LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 
