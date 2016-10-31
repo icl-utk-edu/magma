@@ -89,9 +89,10 @@
 *> \param[in] LWORK
 *> \verbatim
 *>          LWORK is INTEGER
-*>          The length of the array WORK.  For best performance, LWORK
-*>          should be at least N*(N+1) if ROWCOL = 'C' or M*(M+1) if
-*>          ROWCOL = 'R', but the test will be done even if LWORK is 0.
+*>          The length of the array WORK.
+*>          LWORK >= N*(N+1) if ROWCOL = 'C' or
+*>          LWORK >= M*(M+1) if ROWCOL = 'R'.
+*>          (Unlike LAPACK, here it is required.)
 *> \endverbatim
 *>
 *> \param[out] RESID
@@ -140,6 +141,7 @@
 *     .. Local Scalars ..
       CHARACTER          TRANSU
       INTEGER            I, J, K, LDWORK, MNMIN
+      INTEGER            INFO
       REAL               EPS, TMP
 *     ..
 *     .. External Functions ..
@@ -175,6 +177,12 @@
       IF( ( MNMIN+1 )*MNMIN.LE.LWORK ) THEN
          LDWORK = MNMIN
       ELSE
+*        In MAGMA, require enough lwork to avoid dot cases below.
+*        Calling zdotc crashes on some systems (MacOS).
+         INFO = -7
+         RESID = INFO
+         CALL XERBLA( 'SORT01', -INFO )
+         RETURN
          LDWORK = 0
       END IF
       IF( LDWORK.GT.0 ) THEN
