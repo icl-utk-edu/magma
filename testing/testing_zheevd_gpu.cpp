@@ -43,13 +43,13 @@ int main( int argc, char** argv)
     
     /* Local variables */
     real_Double_t   gpu_time, cpu_time;
-    magmaDoubleComplex *h_A, *h_R, *h_Z, *h_work, aux_work[1];
+    magmaDoubleComplex *h_A, *h_R, *h_Z, *h_work, aux_work[1], unused[1];
     magmaDoubleComplex_ptr d_R, d_Z;
     #ifdef COMPLEX
     double *rwork, aux_rwork[1];
     magma_int_t lrwork;
     #endif
-    double *w1, *w2, result[4]={0, 0, 0, 0}, eps, abstol;
+    double *w1, *w2, result[4]={0, 0, 0, 0}, eps, abstol, dunused[1];
     magma_int_t *iwork, *isuppz, *ifail, aux_iwork[1];
     magma_int_t N, n2, info, lwork, liwork, lda, ldda;
     magma_int_t ISEED[4] = {0,0,0,1};
@@ -284,13 +284,13 @@ int main( int argc, char** argv)
                 magmaDoubleComplex *work;
                 TESTING_CHECK( magma_zmalloc_cpu( &work, 2*N*N ));
                 
-                // e=NULL is unused since kband=0; tau=NULL is unused since itype=1
+                // e is unused since kband=0; tau is unused since itype=1
                 lapackf77_zhet21( &ione, lapack_uplo_const(opts.uplo), &N, &izero,
                                   h_A, &lda,
-                                  w1, NULL,
+                                  w1, dunused,
                                   h_R, &lda,
                                   h_R, &lda,
-                                  NULL, work,
+                                  unused, work,
                                   #ifdef COMPLEX
                                   rwork,
                                   #endif

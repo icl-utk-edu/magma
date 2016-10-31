@@ -42,7 +42,7 @@ int main( int argc, char** argv)
     /* Local variables */
     real_Double_t    gflops, gpu_perf, gpu_time, cpu_perf, cpu_time;
     double           Anorm, error, error2, diff, terr, rwork[1];
-    magmaDoubleComplex *h_A, *h_T, *h_R, *tau, *h_work, tmp[1];
+    magmaDoubleComplex *h_A, *h_T, *h_R, *tau, *h_work, tmp[1], unused[1];
     magmaDoubleComplex_ptr d_A, d_T, ddA, dtau;
     magmaDouble_ptr dwork;
 
@@ -87,7 +87,7 @@ int main( int argc, char** argv)
             gflops = (FLOPS_ZGEQRF( M, N ) + FLOPS_ZGEQRT( M, N )) / 1e9;
 
             lwork = -1;
-            lapackf77_zgeqrf( &M, &N, NULL, &M, NULL, tmp, &lwork, &info );
+            lapackf77_zgeqrf( &M, &N, unused, &M, unused, tmp, &lwork, &info );
             lwork = (magma_int_t)MAGMA_Z_REAL( tmp[0] );
             lwork = max( lwork, N*N );
         

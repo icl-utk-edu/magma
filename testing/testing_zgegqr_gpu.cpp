@@ -35,7 +35,7 @@ int main( int argc, char** argv)
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magmaDoubleComplex c_one     = MAGMA_Z_ONE;
     magmaDoubleComplex c_zero    = MAGMA_Z_ZERO;
-    magmaDoubleComplex *h_A, *h_R, *tau, *dtau, *h_work, *h_rwork, tmp[1];
+    magmaDoubleComplex *h_A, *h_R, *tau, *dtau, *h_work, *h_rwork, tmp[1], unused[1];
 
     magmaDoubleComplex_ptr d_A, dwork;
     magma_int_t M, N, n2, lda, ldda, lwork, info, min_mn;
@@ -83,7 +83,7 @@ int main( int argc, char** argv)
             
             // query for workspace size
             lwork = -1;
-            lapackf77_zgeqrf(&M, &N, NULL, &M, NULL, tmp, &lwork, &info);
+            lapackf77_zgeqrf( &M, &N, unused, &M, unused, tmp, &lwork, &info );
             lwork = (magma_int_t)MAGMA_Z_REAL( tmp[0] );
             lwork = max(lwork, 3*N*N);
             

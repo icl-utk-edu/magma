@@ -34,7 +34,7 @@ int main( int argc, char** argv )
     double           gpu_error, cpu_error, error, Anorm, work[1];
     magmaDoubleComplex  c_one     = MAGMA_Z_ONE;
     magmaDoubleComplex  c_neg_one = MAGMA_Z_NEG_ONE;
-    magmaDoubleComplex *h_A, *h_A2, *h_B, *h_X, *h_R, *tau, *h_work, tmp[1];
+    magmaDoubleComplex *h_A, *h_A2, *h_B, *h_X, *h_R, *tau, *h_work, tmp[1], unused[1];
     magmaDoubleComplex_ptr d_A, d_B;
     magma_int_t M, N, size, nrhs, lda, ldb, ldda, lddb, min_mn, max_mn, nb, info;
     magma_int_t lworkgpu, lhwork;
@@ -74,7 +74,9 @@ int main( int argc, char** argv )
             // query for workspace size
             lhwork = -1;
             lapackf77_zgels( MagmaNoTransStr, &M, &N, &nrhs,
-                             NULL, &lda, NULL, &ldb, tmp, &lhwork, &info );
+                             unused, &lda,
+                             unused, &ldb,
+                             tmp, &lhwork, &info );
             lhwork = (magma_int_t) MAGMA_Z_REAL( tmp[0] );
             lhwork = max( lhwork, lworkgpu );
             

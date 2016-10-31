@@ -31,7 +31,7 @@ int main( int argc, char** argv )
     real_Double_t    gflops, gpu_perf, gpu_time, cpu_perf=0, cpu_time=0;
     double           error, work[1];
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
-    magmaDoubleComplex *h_A, *h_R, *tau, *h_work, tmp[1];
+    magmaDoubleComplex *h_A, *h_R, *tau, *h_work, tmp[1], unused[1];
     magmaDoubleComplex_ptr d_lA[ MagmaMaxGPUs ];
     magma_int_t M, N, n2, lda, ldda, n_local, ngpu;
     magma_int_t info, min_mn, nb, lhwork;
@@ -80,7 +80,7 @@ int main( int argc, char** argv )
             
             // query for workspace size
             lhwork = -1;
-            lapackf77_zgeqrf( &M, &N, NULL, &M, NULL, tmp, &lhwork, &info );
+            lapackf77_zgeqrf( &M, &N, unused, &M, unused, tmp, &lhwork, &info );
             lhwork = (magma_int_t) MAGMA_Z_REAL( tmp[0] );
             
             // Allocate host memory for the matrix

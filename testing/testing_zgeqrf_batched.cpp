@@ -93,7 +93,7 @@ int main( int argc, char** argv)
     real_Double_t    gflops, magma_perf, magma_time, cublas_perf=0, cublas_time=0, cpu_perf, cpu_time;
     double           magma_error, cublas_error, magma_error2, cublas_error2;
 
-    magmaDoubleComplex *h_A, *h_R, *h_Amagma, *tau, *h_work, tmp[1];
+    magmaDoubleComplex *h_A, *h_R, *h_Amagma, *tau, *h_work, tmp[1], unused[1];
     magmaDoubleComplex *d_A, *dtau_magma, *dtau_cublas;
 
     magmaDoubleComplex **dA_array = NULL;
@@ -148,7 +148,7 @@ int main( int argc, char** argv)
         
             // to determine the size of lwork
             lwork = -1;
-            lapackf77_zgeqrf(&M, &N, NULL, &M, NULL, tmp, &lwork, &info);
+            lapackf77_zgeqrf( &M, &N, unused, &M, unused, tmp, &lwork, &info );
             lwork = (magma_int_t)MAGMA_Z_REAL( tmp[0] );
             lwork = max(lwork, N*N);
            

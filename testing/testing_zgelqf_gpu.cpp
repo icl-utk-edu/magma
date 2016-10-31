@@ -39,7 +39,7 @@ int main( int argc, char** argv)
     
     real_Double_t    gflops, gpu_perf, gpu_time, cpu_perf=0, cpu_time=0;
     double           Anorm, error=0, error2=0;
-    magmaDoubleComplex *h_A, *h_R, *tau, *h_work, tmp[1];
+    magmaDoubleComplex *h_A, *h_R, *tau, *h_work, tmp[1], unused[1];
     magmaDoubleComplex_ptr d_A;
     magma_int_t M, N, n2, lda, ldda, lwork, info, min_mn, nb;
     magma_int_t ISEED[4] = {0,0,0,1};
@@ -65,7 +65,7 @@ int main( int argc, char** argv)
             
             // query for workspace size
             lwork = -1;
-            lapackf77_zgelqf(&M, &N, NULL, &M, NULL, tmp, &lwork, &info);
+            lapackf77_zgelqf( &M, &N, unused, &M, unused, tmp, &lwork, &info );
             lwork = (magma_int_t)MAGMA_Z_REAL( tmp[0] );
             lwork = max( lwork, M*nb );
             

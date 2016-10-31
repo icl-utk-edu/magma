@@ -34,14 +34,14 @@ int main( int argc, char** argv )
     const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     
     real_Double_t   gflops, gpu_perf, gpu_time, cpu_perf, cpu_time;
-    magmaDoubleComplex *h_A, *h_Ainv, *h_R, *work;
+    magmaDoubleComplex *h_A, *h_Ainv, *h_R, *work, unused[1];
     magmaDoubleComplex_ptr d_A, dwork;
     magma_int_t N, n2, lda, ldda, info, lwork, ldwork;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     magmaDoubleComplex tmp;
     double error, rwork[1];
-    magma_int_t *ipiv;
+    magma_int_t *ipiv, iunused[1];
     int status = 0;
     
     magma_opts opts;
@@ -62,7 +62,7 @@ int main( int argc, char** argv )
             
             // query for workspace size
             lwork = -1;
-            lapackf77_zgetri( &N, NULL, &lda, NULL, &tmp, &lwork, &info );
+            lapackf77_zgetri( &N, unused, &lda, iunused, &tmp, &lwork, &info );
             if (info != 0) {
                 printf("lapackf77_zgetri returned error %lld: %s.\n",
                        (long long) info, magma_strerror( info ));
