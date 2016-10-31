@@ -68,13 +68,13 @@ FloatingPoint_t tex_fetch(texture<float> tex_ref, int coord)
     #define add(A, B)        cuCadd(A, B)
     #define mul(A, B)        cuCmul(A, B)
     #define fma(A, B, C) C = cuCfma(A, B, C)
-    #define make_FloatingPoint(x, y) make_cuDoubleComplex(x, y);
+    #define make_FloatingPoint(x, y) make_cuDoubleComplex(x, y)
 #elif defined(PRECISION_c)
     #define conj(A)          cuConjf(A)
     #define add(A, B)        cuCaddf(A, B)
     #define mul(A, B)        cuCmulf(A, B)
     #define fma(A, B, C) C = cuCfmaf(A, B, C)
-    #define make_FloatingPoint(x, y) make_cuFloatComplex(x, y);
+    #define make_FloatingPoint(x, y) make_cuFloatComplex(x, y)
 #else
     #define conj(A)           (A)
     #define add(A, B)         (A+B)

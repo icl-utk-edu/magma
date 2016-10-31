@@ -194,19 +194,38 @@ void gemm_template_device_nn(
     }
 
     // Store C regs->dev
-    #pragma unroll
-    for (n = 0; n < THR_N; n++) {
-        int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+    if( beta == make_FloatingPoint(0.0,0.0) ) {
         #pragma unroll
-        for (m = 0; m < THR_M; m++) {
-            int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-            if (coord_dCm < M && coord_dCn < N) {
-                int offsC = coord_dCn*LDC + coord_dCm;
+        for (n = 0; n < THR_N; n++) {
+            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+            #pragma unroll
+            for (m = 0; m < THR_M; m++) {
+                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
+                if (coord_dCm < M && coord_dCn < N) {
+                    int offsC = coord_dCn*LDC + coord_dCm;
 
-                T &regC = rC[n][m];
-                T &memC = C[offsC];
+                    T &regC = rC[n][m];
+                    T &memC = C[offsC];
 
-                memC = add(mul(alpha, regC), mul(beta, memC));
+                    memC = mul(alpha, regC);
+                }
+            }
+        }
+    } else {
+        #pragma unroll
+        for (n = 0; n < THR_N; n++) {
+            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+            #pragma unroll
+            for (m = 0; m < THR_M; m++) {
+                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
+                if (coord_dCm < M && coord_dCn < N) {
+                    int offsC = coord_dCn*LDC + coord_dCm;
+
+                    T &regC = rC[n][m];
+                    T &memC = C[offsC];
+
+                    memC = add(mul(alpha, regC), mul(beta, memC));
+                }
             }
         }
     }
@@ -381,19 +400,38 @@ void gemm_template_device_nt(
     }
 
     // Store C regs->dev
-    #pragma unroll
-    for (n = 0; n < THR_N; n++) {
-        int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+    if( beta == make_FloatingPoint(0.0,0.0) ){
         #pragma unroll
-        for (m = 0; m < THR_M; m++) {
-            int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-            if (coord_dCm < M && coord_dCn < N) {
-                int offsC = coord_dCn*LDC + coord_dCm;
+        for (n = 0; n < THR_N; n++) {
+            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+            #pragma unroll
+            for (m = 0; m < THR_M; m++) {
+                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
+                if (coord_dCm < M && coord_dCn < N) {
+                    int offsC = coord_dCn*LDC + coord_dCm;
 
-                T &regC = rC[n][m];
-                T &memC = C[offsC];
+                    T &regC = rC[n][m];
+                    T &memC = C[offsC];
 
-                memC = add(mul(alpha, regC), mul(beta, memC));
+                    memC = mul(alpha, regC);
+                }
+            }
+        }
+    }else{
+        #pragma unroll
+        for (n = 0; n < THR_N; n++) {
+            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+            #pragma unroll
+            for (m = 0; m < THR_M; m++) {
+                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
+                if (coord_dCm < M && coord_dCn < N) {
+                    int offsC = coord_dCn*LDC + coord_dCm;
+
+                    T &regC = rC[n][m];
+                    T &memC = C[offsC];
+
+                    memC = add(mul(alpha, regC), mul(beta, memC));
+                }
             }
         }
     }
@@ -571,19 +609,38 @@ void gemm_template_device_tn(
     }
 
     // Store C regs->dev
-    #pragma unroll
-    for (n = 0; n < THR_N; n++) {
-        int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+    if( beta == make_FloatingPoint(0.0,0.0) ){
         #pragma unroll
-        for (m = 0; m < THR_M; m++) {
-            int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-            if (coord_dCm < M && coord_dCn < N) {
-                int offsC = coord_dCn*LDC + coord_dCm;
+        for (n = 0; n < THR_N; n++) {
+            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+            #pragma unroll
+            for (m = 0; m < THR_M; m++) {
+                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
+                if (coord_dCm < M && coord_dCn < N) {
+                    int offsC = coord_dCn*LDC + coord_dCm;
 
-                T &regC = rC[n][m];
-                T &memC = C[offsC];
+                    T &regC = rC[n][m];
+                    T &memC = C[offsC];
 
-                memC = add(mul(alpha, regC), mul(beta, memC));
+                    memC = mul(alpha, regC);
+                }
+            }
+        }
+    }else{
+        #pragma unroll
+        for (n = 0; n < THR_N; n++) {
+            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+            #pragma unroll
+            for (m = 0; m < THR_M; m++) {
+                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
+                if (coord_dCm < M && coord_dCn < N) {
+                    int offsC = coord_dCn*LDC + coord_dCm;
+
+                    T &regC = rC[n][m];
+                    T &memC = C[offsC];
+
+                    memC = add(mul(alpha, regC), mul(beta, memC));
+                }
             }
         }
     }
@@ -762,19 +819,38 @@ void gemm_template_device_tt(
     }
 
     // Store C regs->dev
-    #pragma unroll
-    for (n = 0; n < THR_N; n++) {
-        int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+    if( beta == make_FloatingPoint(0.0,0.0) ){
         #pragma unroll
-        for (m = 0; m < THR_M; m++) {
-            int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-            if (coord_dCm < M && coord_dCn < N) {
-                int offsC = coord_dCn*LDC + coord_dCm;
+        for (n = 0; n < THR_N; n++) {
+            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+            #pragma unroll
+            for (m = 0; m < THR_M; m++) {
+                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
+                if (coord_dCm < M && coord_dCn < N) {
+                    int offsC = coord_dCn*LDC + coord_dCm;
 
-                T &regC = rC[n][m];
-                T &memC = C[offsC];
+                    T &regC = rC[n][m];
+                    T &memC = C[offsC];
 
-                memC = add(mul(alpha, regC), mul(beta, memC));
+                    memC = mul(alpha, regC);
+                }
+            }
+        }
+    } else {
+        #pragma unroll
+        for (n = 0; n < THR_N; n++) {
+            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
+            #pragma unroll
+            for (m = 0; m < THR_M; m++) {
+                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
+                if (coord_dCm < M && coord_dCn < N) {
+                    int offsC = coord_dCn*LDC + coord_dCm;
+
+                    T &regC = rC[n][m];
+                    T &memC = C[offsC];
+
+                    memC = add(mul(alpha, regC), mul(beta, memC));
+                }
             }
         }
     }
