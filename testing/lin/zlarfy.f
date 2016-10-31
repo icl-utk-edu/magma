@@ -151,7 +151,8 @@
 *
       CALL ZHEMV( UPLO, N, ONE, C, LDC, V, INCV, ZERO, WORK, 1 )
 *
-**    zdotc crashes on some systems (MKL, MacOS); just inline it. -mgates
+**    zdotc crashes on some systems (MKL with gfortran and mkl_intel_lp64, MacOS);
+**    just inline it. -mgates
       tmp = ZERO
       ix = 1
       iy = 1
