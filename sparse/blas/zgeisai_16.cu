@@ -21,12 +21,11 @@
 #include <cuda.h>  // for CUDA_VERSION
 
 #if (CUDA_VERSION >= 7000)
-#if (CUDA_ARCH >= 300)
 
 __device__
 void ztrsv_lower_16kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes)
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
 
@@ -77,7 +76,7 @@ void ztrsv_lower_16kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB
 __device__
 void ztrsv_upper_16kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes)
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
 
@@ -128,7 +127,7 @@ void ztrsv_upper_16kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB
 __device__
 void ztrsv_lower_16kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -159,7 +158,7 @@ void ztrsv_lower_16kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -190,7 +189,7 @@ void ztrsv_lower_16kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -221,7 +220,7 @@ void ztrsv_lower_16kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -252,7 +251,7 @@ void ztrsv_lower_16kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -283,7 +282,7 @@ void ztrsv_lower_16kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -314,7 +313,7 @@ void ztrsv_lower_16kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -345,7 +344,7 @@ void ztrsv_lower_16kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -376,7 +375,7 @@ void ztrsv_lower_16kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -407,7 +406,7 @@ void ztrsv_lower_16kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -438,7 +437,7 @@ void ztrsv_lower_16kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -469,7 +468,7 @@ void ztrsv_lower_16kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -500,7 +499,7 @@ void ztrsv_lower_16kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -531,7 +530,7 @@ void ztrsv_lower_16kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -562,7 +561,7 @@ void ztrsv_lower_16kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -593,7 +592,7 @@ void ztrsv_lower_16kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_lower_16kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -667,7 +666,7 @@ void ztrsv_lower_16kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB,
 __device__
 void ztrsv_upper_16kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -698,7 +697,7 @@ void ztrsv_upper_16kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -729,7 +728,7 @@ void ztrsv_upper_16kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -760,7 +759,7 @@ void ztrsv_upper_16kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -791,7 +790,7 @@ void ztrsv_upper_16kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -822,7 +821,7 @@ void ztrsv_upper_16kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -853,7 +852,7 @@ void ztrsv_upper_16kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -884,7 +883,7 @@ void ztrsv_upper_16kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -915,7 +914,7 @@ void ztrsv_upper_16kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -946,7 +945,7 @@ void ztrsv_upper_16kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -977,7 +976,7 @@ void ztrsv_upper_16kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1008,7 +1007,7 @@ void ztrsv_upper_16kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1039,7 +1038,7 @@ void ztrsv_upper_16kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1070,7 +1069,7 @@ void ztrsv_upper_16kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1101,7 +1100,7 @@ void ztrsv_upper_16kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1132,7 +1131,7 @@ void ztrsv_upper_16kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 __device__
 void ztrsv_upper_16kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#ifdef REAL
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1449,7 +1448,6 @@ magma_zbackinsert_16kernel(
 
 
 
-#endif
 #endif
 
 /**
