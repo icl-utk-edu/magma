@@ -68,7 +68,7 @@ CFLAGS   += -std=c99
 # use the lp64 library, not the ilp64 library. See make.inc.mkl-gcc or make.inc.mkl-icc.
 
 # see MKL Link Advisor at http://software.intel.com/sites/products/mkl/
-# icc with MKL 10.3, Intel OpenMP threads, 64-bit int
+# icc/ifort with MKL 10.3, Intel OpenMP threads, 64-bit int
 # note -DMAGMA_ILP64 or -DMKL_ILP64, and -integer-size 64 in FLAGS above
 LIB       = -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -lpthread -lstdc++ -lm
 

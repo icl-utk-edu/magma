@@ -68,14 +68,14 @@ CFLAGS   += -std=c99
 # use the lp64 library, not the ilp64 library. See make.inc.mkl-gcc or make.inc.mkl-icc.
 
 # see MKL Link Advisor at http://software.intel.com/sites/products/mkl/
-# gcc with MKL 10.3, GNU OpenMP threads, 64-bit int (use -fopenmp in CFLAGS, LDFLAGS)
+# gcc/gfortran with MKL 10.3, GNU OpenMP threads, 64-bit int (use -fopenmp in CFLAGS, LDFLAGS)
 # note -DMAGMA_ILP64 or -DMKL_ILP64, and -fdefault-integer-8 in FLAGS above
-LIB       = -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lpthread -lstdc++ -lm -lgfortran
+LIB       = -lmkl_gf_ilp64 -lmkl_gnu_thread -lmkl_core -lpthread -lstdc++ -lm -lgfortran
 
 # Supposedly, gcc can use Intel threads (libiomp5) instead, but be careful that
 # libiomp5 and libgomp are NOT BOTH linked. Above, we use gnu threads as a safer option.
-# gcc with MKL 10.3, Intel OpenMP threads, 64-bit int (remove -fopenmp from LDFLAGS above)
-#LIB       = -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lstdc++ -lm -lgfortran
+# gcc/gfortran with MKL 10.3, Intel OpenMP threads, 64-bit int (remove -fopenmp from LDFLAGS above)
+#LIB       = -lmkl_gf_ilp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lstdc++ -lm -lgfortran
 
 LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 
