@@ -384,7 +384,7 @@ int main( int argc, char** argv)
     real_Double_t   gpu_time=0, cpu_time=0;
     magmaDoubleComplex *hA, *hR, *U, *Umalloc, *VT, *VTmalloc, *hwork;
     magmaDoubleComplex dummy[1], unused[1];
-    double *S, *Sref, work[1], dunused[1];
+    double *S, *Sref, work[1], runused[1];
     #ifdef COMPLEX
     lwork_formula_t lrwork;
     double *rwork;
@@ -480,12 +480,12 @@ int main( int argc, char** argv)
             query_magma = (magma_int_t) MAGMA_Z_REAL( dummy[0] );
             
             lapackf77_zgesvd( lapack_vec_const(*jobu), lapack_vec_const(*jobv), &M, &N,
-                              unused, &lda, dunused,
+                              unused, &lda, runused,
                               unused, &ldu,
                               unused, &ldv,
                               dummy, &ineg_one,
                               #ifdef COMPLEX
-                              dunused,
+                              runused,
                               #endif
                               &info );
             assert( info == 0 );

@@ -156,7 +156,7 @@ magma_zcposv_gpu(
     magmaDoubleComplex_ptr dR;
     magmaFloatComplex_ptr dSA, dSX;
     magmaDoubleComplex Xnrmv, Rnrmv;
-    double          Anrm, Xnrm, Rnrm, cte, eps;
+    double          Anrm, Xnrm, Rnrm, cte, eps, work[1];
     magma_int_t     i, j, iiter, lddsa, lddsx, lddr;
 
     /* Check arguments */
@@ -243,11 +243,11 @@ magma_zcposv_gpu(
     for( j=0; j < nrhs; j++ ) {
         i = magma_izamax( n, dX(0,j), 1, queue ) - 1;
         magma_zgetmatrix( 1, 1, dX(i,j), 1, &Xnrmv, 1, queue );
-        Xnrm = lapackf77_zlange( "F", &ione, &ione, &Xnrmv, &ione, NULL );
+        Xnrm = lapackf77_zlange( "F", &ione, &ione, &Xnrmv, &ione, work );
 
         i = magma_izamax( n, dR(0,j), 1, queue ) - 1;
         magma_zgetmatrix( 1, 1, dR(i,j), 1, &Rnrmv, 1, queue );
-        Rnrm = lapackf77_zlange( "F", &ione, &ione, &Rnrmv, &ione, NULL );
+        Rnrm = lapackf77_zlange( "F", &ione, &ione, &Rnrmv, &ione, work );
 
         if ( Rnrm >  Xnrm*cte ) {
             goto refinement;
@@ -297,11 +297,11 @@ refinement:
         for( j=0; j < nrhs; j++ ) {
             i = magma_izamax( n, dX(0,j), 1, queue ) - 1;
             magma_zgetmatrix( 1, 1, dX(i,j), 1, &Xnrmv, 1, queue );
-            Xnrm = lapackf77_zlange( "F", &ione, &ione, &Xnrmv, &ione, NULL );
+            Xnrm = lapackf77_zlange( "F", &ione, &ione, &Xnrmv, &ione, work );
 
             i = magma_izamax( n, dR(0,j), 1, queue ) - 1;
             magma_zgetmatrix( 1, 1, dR(i,j), 1, &Rnrmv, 1, queue );
-            Rnrm = lapackf77_zlange( "F", &ione, &ione, &Rnrmv, &ione, NULL );
+            Rnrm = lapackf77_zlange( "F", &ione, &ione, &Rnrmv, &ione, work );
 
             if ( Rnrm >  Xnrm*cte ) {
                 goto L20;

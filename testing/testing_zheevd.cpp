@@ -46,7 +46,7 @@ int main( int argc, char** argv)
     double *rwork, aux_rwork[1];
     magma_int_t lrwork;
     #endif
-    double *w1, *w2, result[4]={0, 0, 0, 0}, eps, abstol, dunused[1];
+    double *w1, *w2, result[4]={0, 0, 0, 0}, eps, abstol, runused[1];
     magma_int_t *iwork, *isuppz, *ifail, aux_iwork[1];
     magma_int_t N, n2, info, lwork, liwork, lda;
     magma_int_t ISEED[4] = {0,0,0,1};
@@ -297,7 +297,7 @@ int main( int argc, char** argv)
                 // e is unused since kband=0; tau is unused since itype=1
                 lapackf77_zhet21( &ione, lapack_uplo_const(opts.uplo), &N, &izero,
                                   h_A, &lda,
-                                  w1, dunused,
+                                  w1, runused,
                                   h_R, &lda,
                                   h_R, &lda,
                                   unused, work,

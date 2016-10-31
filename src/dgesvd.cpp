@@ -230,7 +230,7 @@ magma_dgesvd(
     
     // Local variables
     magma_int_t i, ie, ir, iu, ib, ncu;
-    double dummy[1], eps;
+    double dummy[1], unused[1], eps;
     magma_int_t nru, iscl;
     magma_int_t ierr, itau, ncvt, nrvt;
     magma_int_t chunk, minmn, wrkbl, itaup, itauq, mnthr, iwork;
@@ -297,66 +297,66 @@ magma_dgesvd(
             // Compute space preferred for each routine
             // For MAGMA, these are all required
             #if VERSION == 1
-            lapackf77_dgebrd( &m, &n, NULL, &m, NULL, NULL, NULL, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dgebrd( &m, &n, unused, &m, unused, unused, unused, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dgebrd(      m,  n, NULL,  m, NULL, NULL, NULL, NULL, dummy,  ineg_one, &ierr );
+            magma_dgebrd(      m,  n, unused,  m, unused, unused, unused, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dgebrd_mn = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dgebrd( &n, &n, NULL, &n, NULL, NULL, NULL, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dgebrd( &n, &n, unused, &n, unused, unused, unused, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dgebrd(      n,  n, NULL,  n, NULL, NULL, NULL, NULL, dummy,  ineg_one, &ierr );
+            magma_dgebrd(      n,  n, unused,  n, unused, unused, unused, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dgebrd_nn = magma_int_t( real( dummy[0] ));
             
              #if VERSION == 1
-            lapackf77_dgeqrf( &m, &n, NULL, &m, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dgeqrf( &m, &n, unused, &m, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dgeqrf(      m,  n, NULL,  m, NULL, dummy,  ineg_one, &ierr );
+            magma_dgeqrf(      m,  n, unused,  m, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dgeqrf_mn = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dorgbr( "P", &n, &n, &n, NULL, &n, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorgbr( "P", &n, &n, &n, unused, &n, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dorgbr( MagmaP,   n,  n,  n, NULL,  n, NULL, dummy,  ineg_one, &ierr );
+            magma_dorgbr( MagmaP,   n,  n,  n, unused,  n, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dorgbr_p_nn = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dorgbr( "Q", &m, &n, &n, NULL, &m, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorgbr( "Q", &m, &n, &n, unused, &m, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dorgbr( MagmaQ,   m,  n,  n, NULL,  m, NULL, dummy,  ineg_one, &ierr );
+            magma_dorgbr( MagmaQ,   m,  n,  n, unused,  m, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dorgbr_q_mn = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dorgbr( "Q", &m, &m, &n, NULL, &m, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorgbr( "Q", &m, &m, &n, unused, &m, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dorgbr( MagmaQ,   m,  m,  n, NULL,  m, NULL, dummy,  ineg_one, &ierr );
+            magma_dorgbr( MagmaQ,   m,  m,  n, unused,  m, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dorgbr_q_mm = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dorgbr( "Q", &n, &n, &n, NULL, &n, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorgbr( "Q", &n, &n, &n, unused, &n, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dorgbr( MagmaQ,   n,  n,  n, NULL,  n, NULL, dummy,  ineg_one, &ierr );
+            magma_dorgbr( MagmaQ,   n,  n,  n, unused,  n, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dorgbr_q_nn = magma_int_t( real( dummy[0] ));
             
             // magma_dorgqr2 does not take workspace; use LAPACK's for compatability
-            lapackf77_dorgqr( &m, &m, &n, NULL, &m, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorgqr( &m, &m, &n, unused, &m, unused, dummy, &ineg_one, &ierr );
             magma_int_t lwork_dorgqr_mm = magma_int_t( real( dummy[0] ));
             
-            lapackf77_dorgqr( &m, &n, &n, NULL, &m, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorgqr( &m, &n, &n, unused, &m, unused, dummy, &ineg_one, &ierr );
             magma_int_t lwork_dorgqr_mn = magma_int_t( real( dummy[0] ));
             
             // missing from LAPACK, since it occurs only in slow paths
             #if VERSION == 1
-            lapackf77_dormbr( "Q", "R", "N",                &m, &n, &n, NULL, &m, NULL, NULL, &m, dummy, &ineg_one, &ierr );
+            lapackf77_dormbr( "Q", "R", "N",                &m, &n, &n, unused, &m, unused, unused, &m, dummy, &ineg_one, &ierr );
             #else
-            magma_dormbr( MagmaQ, MagmaRight, MagmaNoTrans,  m,  n,  n, NULL,  m, NULL, NULL,  m, dummy,  ineg_one, &ierr );
+            magma_dormbr( MagmaQ, MagmaRight, MagmaNoTrans,  m,  n,  n, unused,  m, unused, unused,  m, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dormbr_qrn_mn = magma_int_t( real( dummy[0] ));
             
@@ -580,73 +580,73 @@ magma_dgesvd(
             // Compute space preferred for each routine
             // For MAGMA, these are all required
             #if VERSION == 1
-            lapackf77_dgebrd( &m, &n, NULL, &m, NULL, NULL, NULL, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dgebrd( &m, &n, unused, &m, unused, unused, unused, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dgebrd(      m,  n, NULL,  m, NULL, NULL, NULL, NULL, dummy,  ineg_one, &ierr );
+            magma_dgebrd(      m,  n, unused,  m, unused, unused, unused, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dgebrd_mn = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dgebrd( &m, &m, NULL, &m, NULL, NULL, NULL, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dgebrd( &m, &m, unused, &m, unused, unused, unused, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dgebrd(      m,  m, NULL,  m, NULL, NULL, NULL, NULL, dummy,  ineg_one, &ierr );
+            magma_dgebrd(      m,  m, unused,  m, unused, unused, unused, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dgebrd_mm = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dgelqf( &m, &n, NULL, &m, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dgelqf( &m, &n, unused, &m, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dgelqf(      m,  n, NULL,  m, NULL, dummy,  ineg_one, &ierr );
+            magma_dgelqf(      m,  n, unused,  m, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dgelqf_mn = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dorgbr( "P", &m, &m, &m, NULL, &m, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorgbr( "P", &m, &m, &m, unused, &m, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dorgbr( MagmaP,   m,  m,  m, NULL,  m, NULL, dummy,  ineg_one, &ierr );
+            magma_dorgbr( MagmaP,   m,  m,  m, unused,  m, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dorgbr_p_mm = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dorgbr( "P", &m, &n, &m, NULL, &m, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorgbr( "P", &m, &n, &m, unused, &m, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dorgbr( MagmaP,   m,  n,  m, NULL,  m, NULL, dummy,  ineg_one, &ierr );
+            magma_dorgbr( MagmaP,   m,  n,  m, unused,  m, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dorgbr_p_mn = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dorgbr( "P", &n, &n, &m, NULL, &n, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorgbr( "P", &n, &n, &m, unused, &n, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dorgbr( MagmaP,   n,  n,  m, NULL,  n, NULL, dummy,  ineg_one, &ierr );
+            magma_dorgbr( MagmaP,   n,  n,  m, unused,  n, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dorgbr_p_nn = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dorgbr( "Q", &m, &m, &m, NULL, &m, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorgbr( "Q", &m, &m, &m, unused, &m, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dorgbr( MagmaQ,   m,  m,  m, NULL,  m, NULL, dummy,  ineg_one, &ierr );
+            magma_dorgbr( MagmaQ,   m,  m,  m, unused,  m, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dorgbr_q_mm = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dorglq( &m, &n, &m, NULL, &m, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorglq( &m, &n, &m, unused, &m, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dorglq(      m,  n,  m, NULL,  m, NULL, dummy,  ineg_one, &ierr );
+            magma_dorglq(      m,  n,  m, unused,  m, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dorglq_mn = magma_int_t( real( dummy[0] ));
             
             #if VERSION == 1
-            lapackf77_dorglq( &n, &n, &m, NULL, &n, NULL, dummy, &ineg_one, &ierr );
+            lapackf77_dorglq( &n, &n, &m, unused, &n, unused, dummy, &ineg_one, &ierr );
             #else
-            magma_dorglq(      n,  n,  m, NULL,  n, NULL, dummy,  ineg_one, &ierr );
+            magma_dorglq(      n,  n,  m, unused,  n, unused, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dorglq_nn = magma_int_t( real( dummy[0] ));
             
             // missing from LAPACK, since it occurs only in slow paths
             #if VERSION == 1
-            lapackf77_dormbr( "P", "L", "T",             &m, &n, &m, NULL, &m, NULL, NULL, &m, dummy, &ineg_one, &ierr );
+            lapackf77_dormbr( "P", "L", "T",             &m, &n, &m, unused, &m, unused, unused, &m, dummy, &ineg_one, &ierr );
             #else
-            magma_dormbr( MagmaP, MagmaLeft, MagmaTrans,  m,  n,  m, NULL,  m, NULL, NULL,  m, dummy,  ineg_one, &ierr );
+            magma_dormbr( MagmaP, MagmaLeft, MagmaTrans,  m,  n,  m, unused,  m, unused, unused,  m, dummy,  ineg_one, &ierr );
             #endif
             magma_int_t lwork_dormbr_plt_mn = magma_int_t( real( dummy[0] ));
             
