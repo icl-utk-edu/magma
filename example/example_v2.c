@@ -29,8 +29,8 @@ void zfill_matrix(
     #define A(i_, j_) A[ (i_) + (j_)*lda ]
     
     magma_int_t i, j;
-    for( j=0; j < n; ++j ) {
-        for( i=0; i < m; ++i ) {
+    for (j=0; j < n; ++j) {
+        for (i=0; i < m; ++i) {
             A(i,j) = MAGMA_Z_MAKE( rand() / ((double) RAND_MAX),    // real part
                                    rand() / ((double) RAND_MAX) );  // imag part
         }
@@ -60,7 +60,7 @@ void zfill_matrix_gpu(
     magmaDoubleComplex *A;
     magma_int_t lda = ldda;
     magma_zmalloc_cpu( &A, m*lda );
-    if ( A == NULL ) {
+    if (A == NULL) {
         fprintf( stderr, "malloc failed\n" );
         return;
     }
@@ -97,7 +97,7 @@ void cpu_interface( magma_int_t n, magma_int_t nrhs )
     magma_zmalloc_cpu( &A, lda*n );
     magma_zmalloc_cpu( &X, ldx*nrhs );
     magma_imalloc_cpu( &ipiv, n );
-    if ( A == NULL || X == NULL || ipiv == NULL ) {
+    if (A == NULL || X == NULL || ipiv == NULL) {
         fprintf( stderr, "malloc failed\n" );
         goto cleanup;
     }
@@ -107,7 +107,7 @@ void cpu_interface( magma_int_t n, magma_int_t nrhs )
     zfill_rhs( n, nrhs, X, ldx );
     
     magma_zgesv( n, 1, A, lda, ipiv, X, lda, &info );
-    if ( info != 0 ) {
+    if (info != 0) {
         fprintf( stderr, "magma_zgesv failed with info=%d\n", info );
     }
     
@@ -137,7 +137,7 @@ void gpu_interface( magma_int_t n, magma_int_t nrhs )
     magma_zmalloc( &dA, ldda*n );
     magma_zmalloc( &dX, lddx*nrhs );
     magma_imalloc_cpu( &ipiv, n );  // ipiv always on CPU
-    if ( dA == NULL || dX == NULL || ipiv == NULL ) {
+    if (dA == NULL || dX == NULL || ipiv == NULL) {
         fprintf( stderr, "malloc failed\n" );
         goto cleanup;
     }
@@ -150,7 +150,7 @@ void gpu_interface( magma_int_t n, magma_int_t nrhs )
     zfill_rhs_gpu( n, nrhs, dX, lddx, queue );
     
     magma_zgesv_gpu( n, 1, dA, ldda, ipiv, dX, ldda, &info );
-    if ( info != 0 ) {
+    if (info != 0) {
         fprintf( stderr, "magma_zgesv_gpu failed with info=%d\n", info );
     }
     

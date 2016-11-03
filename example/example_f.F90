@@ -22,28 +22,28 @@ contains
 !! Significantly better memory performance is achieved by having the outer loop
 !! over columns (j), and the inner loop over rows (i), than the reverse.
 subroutine zfill_matrix( m, n, A, lda )
-	integer :: m, n, lda
-	complex*16 :: A(:,:)
-	
-	integer :: i, j
-	real*16 :: re, im
-	
-	do j = 1, n
-		do i = 1, m
-			call random_number( re )
-			call random_number( im )
-			A(i,j) = complex( re, im )
-		end do
-	end do
+    integer :: m, n, lda
+    complex*16 :: A(:,:)
+    
+    integer :: i, j
+    real*16 :: re, im
+    
+    do j = 1, n
+        do i = 1, m
+            call random_number( re )
+            call random_number( im )
+            A(i,j) = complex( re, im )
+        end do
+    end do
 end subroutine
 
 
 !! ------------------------------------------------------------
 !! Replace with your code to initialize the X rhs.
 subroutine zfill_rhs( m, nrhs, X, ldx )
-	integer :: m, nrhs, ldx
-	complex*16 :: X(:,:)
-	call zfill_matrix( m, nrhs, X, ldx )
+    integer :: m, nrhs, ldx
+    complex*16 :: X(:,:)
+    call zfill_matrix( m, nrhs, X, ldx )
 end subroutine
 
 
@@ -52,25 +52,25 @@ end subroutine
 !! This simply leverages the CPU version above to initialize it to random values,
 !! and copies the matrix to the GPU.
 subroutine zfill_matrix_gpu( m, n, dA, lda )
-	integer :: m, n, lda
-	magma_devptr_t :: dA
-	
-	complex*16, allocatable :: A(:,:)
+    integer :: m, n, lda
+    magma_devptr_t :: dA
+    
+    complex*16, allocatable :: A(:,:)
     integer :: sizeof_complex=16
-	
-	allocate( A(lda,n) )
-	call zfill_matrix( m, n, A, lda )
-	call cublas_set_matrix( m, n, sizeof_complex, A, lda, dA, lda )
-	deallocate( A )
+    
+    allocate( A(lda,n) )
+    call zfill_matrix( m, n, A, lda )
+    call cublas_set_matrix( m, n, sizeof_complex, A, lda, dA, lda )
+    deallocate( A )
 end subroutine
 
 
 !! ------------------------------------------------------------
 !! Replace with your code to initialize the dX rhs on the GPU device.
 subroutine zfill_rhs_gpu( m, nrhs, dX, ldx )
-	integer :: m, nrhs, ldx
-	magma_devptr_t :: dX
-	call zfill_matrix_gpu( m, nrhs, dX, ldx )
+    integer :: m, nrhs, ldx
+    magma_devptr_t :: dX
+    call zfill_matrix_gpu( m, nrhs, dX, ldx )
 end subroutine
 
 
@@ -79,8 +79,8 @@ end subroutine
 !! Internally, MAGMA transfers data to the GPU device
 !! and uses a hybrid CPU + GPU algorithm.
 subroutine cpu_interface( n, nrhs )
-	integer :: n, nrhs
-	
+    integer :: n, nrhs
+    
     complex*16, allocatable :: A(:,:), X(:,:)
     integer,    allocatable :: ipiv(:)
     integer :: lda, ldx, info
@@ -101,7 +101,7 @@ subroutine cpu_interface( n, nrhs )
     
     ! Solve using LU factorization
     call magmaf_zgesv( n, 1, A, lda, ipiv, X, lda, info )
-    if ( info .ne. 0 ) then
+    if (info .ne. 0) then
         print "(a,i5)", "magma_zgesv failed with info=", info
     end if
     
@@ -110,13 +110,13 @@ subroutine cpu_interface( n, nrhs )
     
     ! Instead, if A is SPD (symmetric/Hermitian positive definite), use Cholesky
     !call magmaf_zposv( MagmaLower, n, 1, A, lda, X, lda, info )
-	
+    
     !! TODO: use result in X
     
 !! cleanup:
-	deallocate( A )
-	deallocate( X )
-	deallocate( ipiv )
+    deallocate( A )
+    deallocate( X )
+    deallocate( ipiv )
 end subroutine
 
 
@@ -124,23 +124,23 @@ end subroutine
 !! Solve dA * dX = dB, where dA and dX are stored in GPU device memory.
 !! Internally, MAGMA uses a hybrid CPU + GPU algorithm.
 subroutine gpu_interface( n, nrhs )
-	integer :: n, nrhs
-	
-	magma_devptr_t :: dA, dX
-	integer, allocatable :: ipiv(:)
-	integer :: ldda, lddx, info
+    integer :: n, nrhs
+    
+    magma_devptr_t :: dA, dX
+    integer, allocatable :: ipiv(:)
+    integer :: ldda, lddx, info
     integer :: sizeof_complex=16
 
-	ldda = ceiling(real(n)/32)*32
-	lddx = ldda
-	info = 0
-    	
+    ldda = ceiling(real(n)/32)*32
+    lddx = ldda
+    info = 0
+        
     !! allocate GPU memory
     !! no magma Fortran routines for this, so use cublas
     call cublas_alloc( ldda*n,    sizeof_complex, dA )
     call cublas_alloc( lddx*nrhs, sizeof_complex, dX )
     allocate( ipiv(n) )  !! ipiv always on CPU
-    if ( dA .eq. 0 .or. dX .eq. 0 ) then
+    if (dA == 0 .or. dX == 0) then
         print "(a)", "malloc failed"
         goto 1000
     endif
@@ -150,7 +150,7 @@ subroutine gpu_interface( n, nrhs )
     call zfill_rhs_gpu( n, nrhs, dX, lddx )
     
     call magmaf_zgesv_gpu( n, 1, dA, ldda, ipiv, dX, ldda, info )
-    if ( info .ne. 0 ) then
+    if (info .ne. 0) then
         print "(a,i5)", "magma_zgesv_gpu failed with info=", info
     endif
     
@@ -168,13 +168,13 @@ end module
 
 !! ------------------------------------------------------------
 program main
-	use magma
-	use example_f
-	implicit none
-	
-	integer :: n=1000, nrhs=1
-	
-	call magmaf_init()
+    use magma
+    use example_f
+    implicit none
+    
+    integer :: n=1000, nrhs=1
+    
+    call magmaf_init()
     
     print "(a)", "using MAGMA CPU interface"
     call cpu_interface( n, nrhs )
