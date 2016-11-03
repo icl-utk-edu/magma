@@ -48,7 +48,7 @@ prefix     ?= /usr/local/magma
 
 ifeq ($(blas_fix),1)
     # prepend -lblas_fix to LIB (it must come before LAPACK library/framework)
-    LIB := -L./lib -lblas_fix $(LIB)
+    LIB := -lblas_fix $(LIB)
 endif
 
 LIBS       = $(LIBDIR) $(LIB)
@@ -674,6 +674,7 @@ install_dirs:
 install: lib sparse-lib install_dirs
 	# MAGMA
 	cp include/*.h         $(DESTDIR)$(prefix)/include
+	cp include/*.mod       $(DESTDIR)$(prefix)/include
 	cp sparse/include/*.h  $(DESTDIR)$(prefix)/include
 	cp $(libs)             $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)
 	# pkgconfig
