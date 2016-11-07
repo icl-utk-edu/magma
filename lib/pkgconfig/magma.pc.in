@@ -7,7 +7,7 @@ Name: magma
 Description: Matrix Algebra on GPU and Multicore Architectures
 Version: 0.0.0
 Cflags: -I${includedir} @CFLAGS@
-Libs: -L${libdir} -lmagma @LIBS@
+Libs: -L${libdir} -lmagma_sparse -lmagma @LIBS@
 Libs.private:
 Requires: @MAGMA_REQUIRED@
 Requires.private:
