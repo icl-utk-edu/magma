@@ -180,7 +180,7 @@
 *        In MAGMA, require enough lwork to avoid dot cases below.
 *        Calling zdotc crashes on some systems (MacOS).
          INFO = -7
-         RESID = INFO
+         RESID = REAL( INFO )
          CALL XERBLA( 'SORT01', -INFO )
          RETURN
          LDWORK = 0
