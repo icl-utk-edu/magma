@@ -630,8 +630,8 @@ endif
 $(testers): %: %.$(o_ext)
 	$(CXX) $(LDFLAGS) $(RPATH) \
 	-o $@ $< \
-	-L./lib -lmagma \
 	-L./testing -ltest \
+	-L./lib -lmagma \
 	-L./testing/lin -llapacktest \
 	$(LIBS)
 
