@@ -611,7 +611,7 @@ for solver in solvers:
         for precision in opts.precisions:
             # precision generation
             cmd = substitute( 'testing_zsolver', 'z', precision )
-            tests.append( [cmd, solver + ' ' + size, ''] )
+            tests.append( [cmd, solver, size, ''] )
 
 
 # ----------------------------------------------------------------------
@@ -631,7 +631,7 @@ for solver in IR:
             for precision in opts.precisions:
                 # precision generation
                 cmd = substitute( 'testing_zsolver', 'z', precision )
-                tests.append( [cmd, solver + ' ' + precond + ' ' + size, ''] )
+                tests.append( [cmd, solver, precond, size, ''] )
 
 
 
