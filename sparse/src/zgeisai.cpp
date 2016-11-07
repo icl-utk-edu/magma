@@ -79,7 +79,7 @@ magma_ziluisaisetup(
     // CHECK( magma_index_malloc( &locations_d, A.num_rows*warpsize ) );
     // CHECK( magma_zmalloc( &trisystems_d, min(320000,A.num_rows) *warpsize*warpsize ) ); // fixed size - go recursive
     // CHECK( magma_zmalloc( &rhs_d, A.num_rows*warpsize ) );
-
+    #pragma omp parallel for
     for( magma_int_t i=0; i<A.num_rows; i++ ){
             maxsize = sizes_h[i] = 0;
     }

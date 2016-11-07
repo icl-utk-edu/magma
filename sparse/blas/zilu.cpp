@@ -727,7 +727,7 @@ cleanup:
                 Queue to execute in.
 
     @ingroup magmasparse_zhepr
-    ********************************************************************/
+*******************************************************************************/
 
 extern "C" magma_int_t
 magma_zcumiccsetup(

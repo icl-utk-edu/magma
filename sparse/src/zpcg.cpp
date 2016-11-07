@@ -16,7 +16,7 @@
 #define ATOLERANCE     lapackf77_dlamch( "E" )
 
 
-/**
+/*******************************************************************************
     Purpose
     -------
 
@@ -53,7 +53,7 @@
                 Queue to execute in.
 
     @ingroup magmasparse_zposv
-    ********************************************************************/
+*******************************************************************************/
 
 extern "C" magma_int_t
 magma_zpcg(
@@ -96,6 +96,7 @@ magma_zpcg(
 
     magma_zcopy( dofs, h.dval, 1, p.dval, 1, queue );                    // p = h
     CHECK( magma_z_spmv( c_one, A, p, c_zero, q, queue ));             // q = A p
+    solver_par->spmv_count++;
     den =  magma_zdotc( dofs, p.dval, 1, q.dval, 1, queue ); // den = p dot q
     solver_par->init_res = nom0;
             
@@ -149,6 +150,7 @@ magma_zpcg(
         }
 
         CHECK( magma_z_spmv( c_one, A, p, c_zero, q, queue ));   // q = A p
+        solver_par->spmv_count++;
         den = magma_zdotc( dofs, p.dval, 1, q.dval, 1, queue );
                 // den = p dot q
 

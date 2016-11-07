@@ -256,7 +256,7 @@ magma_z_precondsetup(
     }
     
     tempo2 = magma_sync_wtime( queue );
-    precond->setuptime += tempo2-tempo1;
+    precond->setuptime = tempo2-tempo1;
     
     return info;
 }
