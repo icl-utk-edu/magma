@@ -724,18 +724,20 @@ magma_zisai_generator_regs(
 
     int r2bs1 = 32;
     int r2bs2 = 4;
-    int necessary_blocks = L.num_rows/r2bs2;
+    int necessary_blocks = magma_ceildiv(L.num_rows, r2bs2);
     int r2dg1 = min( int( sqrt( double( necessary_blocks ))), 65535 );
     int r2dg2 = min(magma_ceildiv( necessary_blocks, r2dg1 ), 65535);
     int r2dg3 = magma_ceildiv( necessary_blocks, r2dg1*r2dg2 );
     dim3 r2block( r2bs1, r2bs2, 1 );
     dim3 r2grid( r2dg1, r2dg2, r2dg3 );
 
- //   int r2dg1 = min( int( sqrt( double( magma_ceildiv( M->num_rows, r2bs2 )))), 65535);
- //   int r2dg2 = min(magma_ceildiv( M->num_rows, r2dg1 ), 65535);
- //   int r2dg3 = magma_ceildiv( M->num_rows, r2dg1*r2dg2 );
- //   dim3 r2block( r2bs1, r2bs2, 1 );
- //   dim3 r2grid( r2dg1, r2dg2, r2dg3 );
+    // int r2bs1 = 32;
+    // int r2bs2 = 1;
+    // int r2dg1 = min( int( sqrt( double( magma_ceildiv( M->num_rows, r2bs2 )))), 65535);
+    // int r2dg2 = min(magma_ceildiv( M->num_rows, r2dg1 ), 65535);
+    // int r2dg3 = magma_ceildiv( M->num_rows, r2dg1*r2dg2 );
+    // dim3 r2block( r2bs1, r2bs2, 1 );
+    // dim3 r2grid( r2dg1, r2dg2, r2dg3 );
 
 #if (CUDA_VERSION >= 7000)
     if (arch >= 300) {
