@@ -118,7 +118,7 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_malloc((void**)&dinvA_array, batchCount*sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc((void**)&dwork_array, batchCount*sizeof(magmaDoubleComplex*)) );
             
-    double eps = lapackf77_dlamch("E");
+    double tol = opts.tolerance * lapackf77_dlamch("E");
     
     printf("%% side = %s, uplo = %s, transA = %s, diag = %s\n",
            lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),
@@ -373,7 +373,7 @@ int main( int argc, char** argv)
                     h_B_tmp += h_N[s] * h_ldb[s];
                     h_Bmagma_tmp += h_N[s] * h_ldb[s];
                 }
-                bool okay = (magma_error < 3*eps);
+                bool okay = (magma_error < tol);
                 status += ! okay;
     
                 // check lapack
