@@ -881,9 +881,6 @@ syev = (
 	
 	# ----------
 	# symmetric eigenvalues, 2-stage
-	#('testing_zhetrd_he2hb',       '-L -c',  n,    'NOT hetrd_he2hb -- calls heevdx_2stage'),
-	#('testing_zhetrd_he2hb',       '-U -c',  n,    'NOT hetrd_he2hb -- calls heevdx_2stage. upper not implemented'),
-	
 	# TODO test with --fraction < 1; checks don't seem to work.
 	('testing_zheevdx_2stage',  '--fraction 1.0 -L -JN -c',  n,    ''),
 	('testing_zheevdx_2stage',  '--fraction 1.0 -L -JV -c',  n,    ''),
