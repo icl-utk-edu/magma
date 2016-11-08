@@ -105,10 +105,6 @@ libmagma_src += \
 	$(cdir)/zgeqr2x_gpu-v4.cu	\
 	$(cdir)/zpotf2.cu		\
 
-# native routines, alphabetic order by base name (ignoring precision)
-libmagma_src += \
-	$(cdir)/zpotf2_native.cu		\
-
 # batched files, alphabetic order by base name (ignoring precision)
 libmagma_src += \
 	$(cdir)/zgeadd_batched.cu		\

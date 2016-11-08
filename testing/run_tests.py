@@ -652,9 +652,6 @@ chol = (
 	
 	('testing_zpotrf_gpu',       '-L   -c2',  n,    ''),
 	('testing_zpotrf_gpu',       '-U   -c2',  n,    ''),
-	('testing_zpotrf_gpu',       '-L   -c2 --version 2 --hybrid 1',  n,    ''),
-	('testing_zpotrf_gpu',       '-L   -c2 --version 2 --hybrid 0',  n,    ''),
-
 	
 	('testing_zpotf2_gpu',       '-L    -c',  n + tall,  ''),
 	('testing_zpotf2_gpu',       '-U    -c',  n + tall,  ''),
