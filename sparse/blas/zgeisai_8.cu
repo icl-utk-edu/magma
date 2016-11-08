@@ -1021,7 +1021,7 @@ magma_zisaigenerator_8_gpu(
 
     int recursive = magma_ceildiv( M->num_rows, 32000 );
 
-#if (CUDA_VERSION > 6000)
+#if (CUDA_VERSION >= 7000)
     if (arch >= 300) {
 
     magma_zgpumemzero_8kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(

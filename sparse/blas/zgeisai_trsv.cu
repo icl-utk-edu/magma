@@ -22,7 +22,7 @@
 
 #include <cuda.h>  // for CUDA_VERSION
 
-#if (CUDA_VERSION > 6000)
+#if (CUDA_VERSION >= 7000)
 #if (CUDA_ARCH >= 300)
 
 __device__
@@ -2340,7 +2340,7 @@ magma_zmtrisolve_batched_gpu(
     dim3 grid( dimgrid1, dimgrid2, dimgrid3 );
     dim3 block( blocksize1, blocksize2, 1 );
 
-#if (CUDA_VERSION > 6000)
+#if (CUDA_VERSION >= 7000)
 #if (CUDA_ARCH >= 300)
     if( uplotype == MagmaLower ){
         //cudaProfilerStart();
