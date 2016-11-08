@@ -1,5 +1,5 @@
 /*
-    -- MAGMA (version 1.1) --
+    -- MAGMA (version 2.0) --
        Univ. of Tennessee, Knoxville
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
@@ -115,7 +115,8 @@ int main( int argc, char** argv)
             if ( opts.transA == MagmaNoTrans ) {
                 h_lda = An = h_N;
                 Ak = h_K;
-            } else {
+            }
+            else {
                 h_lda = An = h_K;
                 Ak = h_N;
             }
@@ -130,8 +131,7 @@ int main( int argc, char** argv)
             total_size_A_cpu = total_size_C_cpu = 0;
             total_size_A_dev = total_size_C_dev = 0;
             
-            for(int i = 0; i < batchCount; i++)
-            {
+            for (int i = 0; i < batchCount; i++) {
                 h_N[i] = 1 + (rand() % N);
                 h_K[i] = 1 + (rand() % K);
                 max_N = max( max_N, h_N[i]);
@@ -180,7 +180,7 @@ int main( int argc, char** argv)
             
             h_A_array[0] = d_A;
             h_C_array[0] = d_C;
-            for(int i = 1; i < batchCount; i++){
+            for (int i = 1; i < batchCount; i++) {
                 h_A_array[i] = h_A_array[i-1] + Ak[i-1] * h_ldda[i-1];
                 h_C_array[i] = h_C_array[i-1] + h_N[i-1] * h_lddc[i-1];
             }
@@ -189,7 +189,7 @@ int main( int argc, char** argv)
             
             h_A_tmp = h_A;
             h_C_tmp = h_C;
-            for(int i = 0; i < batchCount; i++){
+            for (int i = 0; i < batchCount; i++) {
                 magma_zsetmatrix( An[i], Ak[i], h_A_tmp, h_lda[i], h_A_array[i], h_ldda[i], opts.queue );
                 magma_zsetmatrix( h_N[i], h_N[i], h_C_tmp, h_ldc[i], h_C_array[i], h_lddc[i], opts.queue );
                 h_A_tmp += Ak[i] * h_lda[i];
@@ -212,7 +212,7 @@ int main( int argc, char** argv)
             magma_perf = gflops / magma_time;
             
             h_C_tmp = h_Cmagma;
-            for(int i = 0; i < batchCount; i++){
+            for (int i = 0; i < batchCount; i++) {
                 magma_zgetmatrix( h_N[i], h_N[i], h_C_array[i], h_lddc[i], h_C_tmp, h_ldc[i], opts.queue );
                 h_C_tmp += h_N[i] * h_ldc[i];
             }
@@ -224,7 +224,7 @@ int main( int argc, char** argv)
                 // displace pointers for the cpu, reuse h_A_array, h_B_array, h_C_array
                 h_A_array[0] = h_A;
                 h_C_array[0] = h_C;
-                for(int i = 1; i < batchCount; i++){
+                for (int i = 1; i < batchCount; i++) {
                     h_A_array[i] = h_A_array[i-1] + Ak[i-1] * h_lda[i-1];
                     h_C_array[i] = h_C_array[i-1] + h_N[i-1] * h_ldc[i-1];
                 }
