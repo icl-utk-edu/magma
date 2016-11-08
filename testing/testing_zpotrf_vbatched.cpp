@@ -70,9 +70,9 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_malloc((void**)&d_A_array, batchCount * sizeof(magmaDoubleComplex*)) );
 
     h_lda = h_N;
-    printf("%%             max                                                                                        \n");
-    printf("%% BatchCount   N      CPU GFlop/s (ms)      MAGMA GFlop/s (ms)    ||R_magma - R_lapack||_F / ||R_lapack||_F\n");
-    printf("%%========================================================================================================\n");
+    printf("%%              max\n");
+    printf("%% BatchCount     N   CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||R_magma - R_lapack||_F / ||R_lapack||_F\n");
+    printf("%%=====================================================================================================\n");
     for( int i = 0; i < opts.ntest; ++i ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
             srand(1000); // guarantee reproducible sizes
@@ -101,7 +101,9 @@ int main( int argc, char** argv)
                 h_A_tmp += h_N[s] * h_lda[s]; 
             }
             
-            h_A_tmp = h_A; h_R_tmp = h_R; d_A_tmp = d_A;
+            h_A_tmp = h_A;
+            h_R_tmp = h_R;
+            d_A_tmp = d_A;
             for(int s = 0; s < batchCount; s++){
                 lapackf77_zlacpy( MagmaFullStr, &h_N[s], &h_N[s], h_A_tmp, &h_lda[s], h_R_tmp, &h_lda[s] );
                 magma_zsetmatrix( h_N[s], h_N[s], h_A_tmp, h_lda[s], d_A_tmp, h_ldda[s], opts.queue );
@@ -172,14 +174,16 @@ int main( int argc, char** argv)
                 /* =====================================================================
                    Check the result compared to LAPACK
                    =================================================================== */
-                h_R_tmp = h_R; d_A_tmp = d_A;
+                h_R_tmp = h_R;
+                d_A_tmp = d_A;
                 for(int s = 0; s < batchCount; s++){
                     magma_zgetmatrix(h_N[s], h_N[s], d_A_tmp, h_ldda[s], h_R_tmp, h_lda[s], opts.queue);
                     h_R_tmp += h_N[s] * h_lda[s]; 
                     d_A_tmp += h_N[s] * h_ldda[s];
                 }
                 magma_error = 0.0;
-                h_A_tmp = h_A; h_R_tmp = h_R;
+                h_A_tmp = h_A;
+                h_R_tmp = h_R;
                 for (int s=0; s < batchCount; s++)
                 {
                     magma_int_t Asize = h_lda[s] * h_N[s];
@@ -197,14 +201,14 @@ int main( int argc, char** argv)
                 bool okay = (magma_error < tol);
                 status += ! okay;
                 
-                printf("%5lld      %5lld    %7.2f ( %7.2f )     %7.2f ( %7.2f )     %8.2e   %s\n",
+                printf("  %10lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %s\n",
                        (long long)batchCount, (long long)max_N, 
                        cpu_perf, cpu_time*1000.,  
                        gpu_perf, gpu_time*1000., 
                        magma_error,  (magma_error < tol ? "ok" : "failed"));
             }            
             else {
-                printf("%5lld      %5lld    ---   (  ---  )   %7.2f ( %7.2f )     ---  \n",
+                printf("  %10lld %5lld     ---   (  ---  )   %7.2f (%7.2f)     ---\n",
                        (long long)batchCount, (long long)max_N, 
                        gpu_perf, gpu_time*1000. );
             }

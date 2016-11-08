@@ -17,7 +17,6 @@
 #include <string.h>
 #include <math.h>
 
-#define PRECISION_z
 // includes, project
 #include "flops.h"
 #include "magma_v2.h"
@@ -31,6 +30,7 @@
 #endif
 
 #define h_A_tmp(i,j) (h_A_tmp + (i) + (j)*h_lda[k])
+
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing ztrsm_vbatched
 */
@@ -40,7 +40,7 @@ int main( int argc, char** argv)
     magma_print_environment();
 
     real_Double_t   gflops, magma_perf, magma_time=0, cpu_perf=0, cpu_time=0;
-    double          magma_error, lapack_error, work[1];
+    double          error, lapack_error, magma_error, normalize, work[1];
     magma_int_t M, N, info;
     magma_int_t total_size_A_cpu, total_size_A_dev;
     magma_int_t total_size_B_cpu, total_size_B_dev;
@@ -51,9 +51,9 @@ int main( int argc, char** argv)
     magma_int_t max_M, max_N, max_Ak;
     
     magma_int_t *h_M, *h_N, *d_M, *d_N;
-    magma_int_t *h_lda, *h_ldda, *d_ldda; 
-    magma_int_t *h_ldb, *h_lddb, *d_lddb; 
-    magma_int_t *h_invA_size, *d_invA_size; 
+    magma_int_t *h_lda, *h_ldda, *d_ldda;
+    magma_int_t *h_ldb, *h_lddb, *d_lddb;
+    magma_int_t *h_invA_size, *d_invA_size;
 
     magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
     
@@ -103,6 +103,11 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_imalloc(&d_lddb, batchCount+1) );
     TESTING_CHECK( magma_imalloc(&d_invA_size, batchCount) );
     
+    double *Anorm, *Bnorm, *Cnorm;
+    TESTING_CHECK( magma_dmalloc_cpu( &Anorm, batchCount ));
+    TESTING_CHECK( magma_dmalloc_cpu( &Bnorm, batchCount ));
+    TESTING_CHECK( magma_dmalloc_cpu( &Cnorm, batchCount ));
+    
     TESTING_CHECK( magma_malloc_cpu((void**)&h_A_array, batchCount*sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc_cpu((void**)&h_B_array, batchCount*sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc_cpu((void**)&hinvA_array, batchCount*sizeof(magmaDoubleComplex*)) );
@@ -113,14 +118,15 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_malloc((void**)&dinvA_array, batchCount*sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc((void**)&dwork_array, batchCount*sizeof(magmaDoubleComplex*)) );
             
-    double tol = opts.tolerance * lapackf77_dlamch("E");
-    printf("%% side = %s, uplo = %s, transA = %s, diag = %s \n",
+    double eps = lapackf77_dlamch("E");
+    
+    printf("%% side = %s, uplo = %s, transA = %s, diag = %s\n",
            lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),
            lapack_trans_const(opts.transA), lapack_diag_const(opts.diag) );
     
-    printf("%%             Max   Max                                                                           \n");
-    printf("%% BatchCount   M     N     MAGMA Gflop/s (ms)   CPU Gflop/s (ms)      MAGMA error     LAPACK error\n");
-    printf("%%==================================================================================================\n");
+    printf("%%              max   max\n");
+    printf("%% BatchCount     M     N   MAGMA Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error   LAPACK error\n");
+    printf("%%============================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
             // guarantee reproducible sizes
@@ -128,15 +134,15 @@ int main( int argc, char** argv)
             
             M = opts.msize[itest];
             N = opts.nsize[itest];
-            total_size_A_cpu = 0; 
-            total_size_B_cpu = 0; 
+            total_size_A_cpu = 0;
+            total_size_B_cpu = 0;
             total_size_A_dev = 0;
-            total_size_B_dev = 0; 
+            total_size_B_dev = 0;
             gflops = 0;
             max_M = 0;
             max_N = 0;
-            magma_int_t dinvA_batchSize = 0; 
-            magma_int_t dwork_batchSize = 0; 
+            magma_int_t dinvA_batchSize = 0;
+            magma_int_t dwork_batchSize = 0;
             for(int k = 0; k < batchCount; k++)
             {
                 h_M[k] = 1 + (rand() % M);
@@ -147,21 +153,21 @@ int main( int argc, char** argv)
                 if ( opts.side == MagmaLeft ){
                     h_lda[k] = h_M[k];
                     Ak[k]  = h_M[k];
-                } 
+                }
                 else{
                     h_lda[k] = h_N[k];
                     Ak[k]  = h_N[k];
                 }
-                h_ldb[k] = h_M[k]; 
+                h_ldb[k] = h_M[k];
                 
                 h_ldda[k] = magma_roundup( h_lda[k], opts.align );  // multiple of 32 by default
                 h_lddb[k] = magma_roundup( h_ldb[k], opts.align );  // multiple of 32 by default
                 
-                total_size_A_cpu += Ak[k] * h_lda[k]; 
-                total_size_A_dev += Ak[k] * h_ldda[k]; 
+                total_size_A_cpu += Ak[k] * h_lda[k];
+                total_size_A_dev += Ak[k] * h_ldda[k];
                 
-                total_size_B_cpu += h_N[k] * h_ldb[k]; 
-                total_size_B_dev += h_N[k] * h_lddb[k]; 
+                total_size_B_cpu += h_N[k] * h_ldb[k];
+                total_size_B_dev += h_N[k] * h_lddb[k];
                 
                 gflops += FLOPS_ZTRSM(opts.side, h_M[k], h_N[k]) / 1e9;
                 h_invA_size[k] = magma_roundup( Ak[k], ZTRTRI_BATCHED_NB )*ZTRTRI_BATCHED_NB;
@@ -220,10 +226,10 @@ int main( int argc, char** argv)
              * (i.e., from U), while U fails when used with unit diagonal. */
             lapackf77_zlarnv( &ione, ISEED, &total_size_A_cpu, h_A );
             h_A_tmp = h_A;
-            for (int k=0; k < batchCount; k++) 
+            for (int k=0; k < batchCount; k++)
             {
                 lapackf77_zgetrf( &Ak[k], &Ak[k], h_A_tmp, &h_lda[k], ipiv, &info );
-                for( int j = 0; j < Ak[k]; ++j ) 
+                for( int j = 0; j < Ak[k]; ++j )
                 {
                     for( int i = 0; i < j; ++i ) {
                         *h_A_tmp(i,j) = *h_A_tmp(j,i);
@@ -254,7 +260,7 @@ int main( int argc, char** argv)
             //////////////////////////////////////////////////////////
             
             magma_time = magma_sync_wtime( opts.queue );
-            #if 1
+            if (opts.version == 1) {
                 magmablas_ztrsm_outofplace_vbatched(
                     opts.side, opts.uplo, opts.transA, opts.diag, 1,
                     d_M, d_N, alpha,
@@ -264,7 +270,7 @@ int main( int argc, char** argv)
                     dinvA_array,  d_invA_size,
                     dW1_displ,   dW2_displ,
                     dW3_displ,   dW4_displ,
-                    1, batchCount, 
+                    1, batchCount,
                     max_M, max_N, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
                 magma_perf = gflops / magma_time;
@@ -277,7 +283,8 @@ int main( int argc, char** argv)
                     h_B_tmp  += h_N[k] * h_ldb[k];
                     work_tmp += h_N[k] * h_lddb[k];
                 }
-            #else
+            }
+            else {
                 magmablas_ztrsm_vbatched(
                     opts.side, opts.uplo, opts.transA, opts.diag,
                     d_M, d_N, alpha,
@@ -295,19 +302,19 @@ int main( int argc, char** argv)
                     h_B_tmp  += h_N[k] * h_ldb[k];
                     d_B_tmp  += h_N[k] * h_lddb[k];
                 }
-            #endif
+            }
              
-            if ( opts.lapack ) 
+            if ( opts.lapack )
             {
                 /* =====================================================================
                    Performs operation using CPU BLAS
                    =================================================================== */
                 // displace pointers for the cpu, reuse h_A_array, h_B_array
-                h_A_array[0] = h_A; 
-                h_B_array[0] = h_Blapack; 
+                h_A_array[0] = h_A;
+                h_B_array[0] = h_Blapack;
                 for(int k = 1; k < batchCount; k++){
-                    h_A_array[k] = h_A_array[k-1] + Ak[k-1] * h_lda[k-1];  
-                    h_B_array[k] = h_B_array[k-1] + h_N[k-1] * h_ldb[k-1];  
+                    h_A_array[k] = h_A_array[k-1] + Ak[k-1] * h_lda[k-1];
+                    h_B_array[k] = h_B_array[k-1] + h_N[k-1] * h_ldb[k-1];
                 }
                 cpu_time = magma_wtime();
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
@@ -334,44 +341,39 @@ int main( int argc, char** argv)
                    Check the result
                    =================================================================== */
                 // ||b - 1/alpha*A*x|| / (||A||*||x||)
-                magmaDoubleComplex alpha2 = MAGMA_Z_DIV( c_one, alpha );
-                double normR, normX, normA=0.;
-                magma_error  = 0.0;
+                magmaDoubleComplex inv_alpha = MAGMA_Z_DIV( c_one, alpha );
+                double normR, normX, normA;
+                magma_error  = 0;
                 memcpy( h_X, h_Bmagma, total_size_B_cpu*sizeof(magmaDoubleComplex) );
                 magmaDoubleComplex *h_X_tmp = h_X;
                 magmaDoubleComplex *h_Bmagma_tmp = h_Bmagma;
                 h_B_tmp = h_B;
                 // check magma
-                for (magma_int_t s=0; s < batchCount; s++) 
+                for (magma_int_t s=0; s < batchCount; s++)
                 {
-                    magma_int_t NN = h_ldb[s]*h_N[s]; 
+                    magma_int_t NN = h_ldb[s]*h_N[s];
                     normA = lapackf77_zlange( "M", &Ak[s], &Ak[s], h_A_array[s], &h_lda[s], work );
                     blasf77_ztrmm(
                         lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),
                         lapack_trans_const(opts.transA), lapack_diag_const(opts.diag),
-                        &h_M[s], &h_N[s], &alpha2,
+                        &h_M[s], &h_N[s], &inv_alpha,
                         h_A_array[s], &h_lda[s],
-                        h_X_tmp     , &h_ldb[s] );
+                        h_X_tmp,      &h_ldb[s] );
                     blasf77_zaxpy( &NN, &c_neg_one, h_B_tmp, &ione, h_X_tmp, &ione );
     
-                    normR = lapackf77_zlange( "M", &h_M[s], &h_N[s], h_X_tmp     , &h_ldb[s], work );
+                    normR = lapackf77_zlange( "M", &h_M[s], &h_N[s], h_X_tmp,      &h_ldb[s], work );
                     normX = lapackf77_zlange( "M", &h_M[s], &h_N[s], h_Bmagma_tmp, &h_ldb[s], work );
-                    double err = normR/(normX*normA);
-    
-                    if ( isnan(err) || isinf(err) ) {
-                        printf("error for matrix %lld (%lld x %lld), magma_error = %7.2f where normR=%7.2f normX=%7.2f and normA=%7.2f\n",
-                               (long long)s, (long long)h_M[s], (long long)h_N[s], err, normR, normX, normA);
-                        magma_error = err;
-                        break;
-                    }
-                    
-                    magma_error = max( err, magma_error );
+                    normalize = normX*normA;
+                    if (normalize == 0)
+                        normalize = 1;
+                    error = normR / normalize;
+                    magma_error = magma_max_nan( error, magma_error );
                     
                     h_X_tmp += h_N[s] * h_ldb[s];
                     h_B_tmp += h_N[s] * h_ldb[s];
                     h_Bmagma_tmp += h_N[s] * h_ldb[s];
                 }
-                bool okay = (magma_error < tol);
+                bool okay = (magma_error < 3*eps);
                 status += ! okay;
     
                 // check lapack
@@ -380,39 +382,42 @@ int main( int argc, char** argv)
                 h_B_tmp = h_B;
                 h_X_tmp = h_X;
                 
-                lapack_error = 0.0;
+                lapack_error = 0;
                 memcpy( h_X, h_Blapack, total_size_B_cpu*sizeof(magmaDoubleComplex) );
-                for (magma_int_t s=0; s < batchCount; s++) 
+                for (magma_int_t s=0; s < batchCount; s++)
                 {
-                    magma_int_t NN = h_ldb[s]*h_N[s]; 
+                    magma_int_t NN = h_ldb[s]*h_N[s];
                     
                     blasf77_ztrmm(
                         lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),
                         lapack_trans_const(opts.transA), lapack_diag_const(opts.diag),
-                        &h_M[s], &h_N[s], &alpha2,
+                        &h_M[s], &h_N[s], &inv_alpha,
                         h_A_array[s], &h_lda[s],
                         h_X_tmp,  &h_ldb[s] );
     
                     blasf77_zaxpy( &NN, &c_neg_one, h_B_tmp, &ione, h_X_tmp, &ione );
                     normR = lapackf77_zlange( "M", &h_M[s], &h_N[s], h_X_tmp,       &h_ldb[s], work );
                     normX = lapackf77_zlange( "M", &h_M[s], &h_N[s], h_Blapack_tmp, &h_ldb[s], work );
-                    double err = normR/(normX*normA);
-                    lapack_error = max( err, lapack_error );
+                    normalize = normX*normA;
+                    if (normalize == 0)
+                        normalize = 1;
+                    error = normR / normalize;
+                    lapack_error = magma_max_nan( error, lapack_error );
                     
                     h_X_tmp += h_N[s] * h_ldb[s];
                     h_B_tmp += h_N[s] * h_ldb[s];
                     h_Blapack_tmp += h_N[s] * h_ldb[s];
                 }
                 
-                printf("  %-10lld  %-5lld %-5lld  %-7.2f ( %-7.2f )  %-7.2f ( %-7.2f )   %-8.2e        %-8.2e  %s\n",
+                printf("  %10lld %5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e      %8.2e   %s\n",
                         (long long)batchCount, (long long)max_M, (long long)max_N,
                         magma_perf,  1000.*magma_time,
                         cpu_perf,    1000.*cpu_time,
-                        magma_error, lapack_error, 
+                        magma_error, lapack_error,
                         (okay ? "ok" : "failed"));
             }
             else {
-                printf("  %-10lld %-5lld %-5lld  %-7.2f ( %-7.2f )    ---   (   ---   )      ---           ---  \n",
+                printf("  %10lld %5lld %5lld   %7.2f (%7.2f)     ---   (  ---  )     ---           ---\n",
                         (long long)batchCount, (long long)max_M, (long long)max_N,
                         magma_perf,  1000.*magma_time);
             }
@@ -433,8 +438,6 @@ int main( int argc, char** argv)
             magma_free( dinvA );
             magma_free( dwork );
             
-            
-            
             fflush( stdout );
         }
         if ( opts.niter > 1 ) {
@@ -449,6 +452,11 @@ int main( int argc, char** argv)
     magma_free_cpu( h_ldb );
     magma_free_cpu( h_ldda );
     magma_free_cpu( h_lddb );
+
+    magma_free_cpu( Anorm );
+    magma_free_cpu( Bnorm );
+    magma_free_cpu( Cnorm );
+
     magma_free_cpu( h_A_array);
     magma_free_cpu( h_B_array);
     magma_free_cpu( h_invA_size );

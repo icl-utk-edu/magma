@@ -45,6 +45,32 @@ extern "C" {
 
 void flops_init();
 
+
+/***************************************************************************//**
+    max that propogates nan consistently:
+    max_nan( 1,   nan ) = nan
+    max_nan( nan, 1   ) = nan
+
+    isnan and isinf are hard to call portably from both C and C++.
+    In Windows C,     include float.h, use _isnan as above (before VS 2015)
+    In Unix C or C++, include math.h,  use isnan
+    In std C++,       include cmath,   use std::isnan
+    Sometimes in C++, include cmath,   use isnan is okay (on Linux but not MacOS)
+    This makes writing a header inline function a nightmare. For now, do it
+    here in testing to avoid potential issues in the MAGMA library itself.
+*******************************************************************************/
+static inline double magma_max_nan( double x, double y )
+{
+    #ifdef isnan
+        // with include <math.h> macro
+        return (isnan(y) || x < y ? y : x);
+    #else
+        // with include <cmath> function
+        return (std::isnan(y) || x < y ? y : x);
+    #endif
+}
+
+
 /***************************************************************************//**
  *  Global utilities
  *  in both magma_internal.h and testings.h
