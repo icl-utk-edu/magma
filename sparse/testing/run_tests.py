@@ -390,28 +390,28 @@ if ( opts.bombard_merge ):
 # looping over precsolvers
 precsolvers = []
 if ( opts.pcg ):
-    precsolvers += ['--solver PCG']
+    precsolvers += ['--solver PCG ']
 # end
 if ( opts.pbicgstab ):
-    precsolvers += ['--solver PBICGSTAB']
+    precsolvers += ['--solver PBICGSTAB ']
 # end
 if ( opts.pgmres ):
-    precsolvers += ['--solver PGMRES']
+    precsolvers += ['--solver PGMRES ']
 # end
 if ( opts.pidr ):
-    precsolvers += ['--solver PIDR']
+    precsolvers += ['--solver PIDR ']
 # end
 if ( opts.pqmr ):
-    precsolvers += ['--solver PQMR']
+    precsolvers += ['--solver PQMR ']
 # end
 if ( opts.pidr ):
-    precsolvers += ['--solver PCGS']
+    precsolvers += ['--solver PCGS ']
 # end
 if ( opts.pbicg ):
-    precsolvers += ['--solver PBICG']
+    precsolvers += ['--solver PBICG ']
 # end
 if ( opts.lsqr ):
-    precsolvers += ['--solver PLSQR']
+    precsolvers += ['--solver PLSQR ']
 # end
 
 
@@ -419,18 +419,18 @@ if ( opts.lsqr ):
 # looping over eigensolvers
 IR = []
 if ( opts.iterref ):
-    IR += ['--solver LOBPCG']
+    IR += ['--solver LOBPCG ']
 # end
 
 
 
 # looping over preconditioners
-precs = ['--precond NONE']
+precs = ['--precond NONE ']
 if ( opts.jacobi_prec ):
-    precs += ['--precond JACOBI']
+    precs += ['--precond JACOBI ']
 # end
 if ( opts.ilu_exact_prec ):
-    precs += ['--precond ILU']
+    precs += ['--precond ILU ']
 # end
 if ( opts.ilut_prec ):
     precs += ['--precond PARILUT --prestart 1 --psweeps 5 --plevels 0 --prtol 0.05 --patol 0.2 ']
@@ -449,12 +449,12 @@ if ( opts.ilu_isai_prec ):
 # looping over preconditioners for Iter-Ref
 IRprecs = []
 if ( opts.iterref ):
-    IRprecs += ['--precond CG']
-    IRprecs += ['--precond CGS']
-    IRprecs += ['--precond BICGSTAB']
-    IRprecs += ['--precond BICG']
-    IRprecs += ['--precond GMRES']
-    IRprecs += ['--precond QMR']
+    IRprecs += ['--precond CG ']
+    IRprecs += ['--precond CGS ']
+    IRprecs += ['--precond BICGSTAB ']
+    IRprecs += ['--precond BICG ']
+    IRprecs += ['--precond GMRES ']
+    IRprecs += ['--precond QMR ']
 # end
 
 
@@ -621,7 +621,7 @@ for solver in precsolvers:
             for precision in opts.precisions:
                 # precision generation
                 cmd = substitute( 'testing_zsolver', 'z', precision )
-                tests.append( [cmd, solver, precond, size, ''] )
+                tests.append( [cmd, solver + ' ' + precond, size, ''] )
 
 
 # ----------------------------------------------------------------------
@@ -631,7 +631,7 @@ for solver in IR:
             for precision in opts.precisions:
                 # precision generation
                 cmd = substitute( 'testing_zsolver', 'z', precision )
-                tests.append( [cmd, solver, precond, size, ''] )
+                tests.append( [cmd, solver + ' ' + precond, size, ''] )
 
 
 
