@@ -1287,51 +1287,51 @@ batched = (
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	# out-of-place
-	('testing_ztrsm_vbatched',     batch + '-SL -L    -DN  -c --version=1',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -L    -DU  -c --version=1',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DN  -c --version=1',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DU  -c --version=1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L    -DN  -c --version 1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L    -DU  -c --version 1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DN  -c --version 1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DU  -c --version 1',  n + wide, ''),
 	
-	('testing_ztrsm_vbatched',     batch + '-SL -U    -DN  -c --version=1',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -U    -DU  -c --version=1',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DN  -c --version=1',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DU  -c --version=1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U    -DN  -c --version 1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U    -DU  -c --version 1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DN  -c --version 1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DU  -c --version 1',  n + wide, ''),
 	
-	('testing_ztrsm_vbatched',     batch + '-SR -L    -DN  -c --version=1',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -L    -DU  -c --version=1',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DN  -c --version=1',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DU  -c --version=1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L    -DN  -c --version 1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L    -DU  -c --version 1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DN  -c --version 1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DU  -c --version 1',  n + tall, ''),
 	
-	('testing_ztrsm_vbatched',     batch + '-SR -U    -DN  -c --version=1',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -U    -DU  -c --version=1',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DN  -c --version=1',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DU  -c --version=1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U    -DN  -c --version 1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U    -DU  -c --version 1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DN  -c --version 1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DU  -c --version 1',  n + tall, ''),
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	# in-place
-	('testing_ztrsm_vbatched',     batch + '-SL -L    -DN  -c --version=2',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -L    -DU  -c --version=2',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DN  -c --version=2',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DU  -c --version=2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L    -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L    -DU  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DU  -c --version 2',  n + wide, ''),
 	
-	('testing_ztrsm_vbatched',     batch + '-SL -U    -DN  -c --version=2',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -U    -DU  -c --version=2',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DN  -c --version=2',  n + wide, ''),
-	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DU  -c --version=2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U    -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U    -DU  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DU  -c --version 2',  n + wide, ''),
 	
-	('testing_ztrsm_vbatched',     batch + '-SR -L    -DN  -c --version=2',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -L    -DU  -c --version=2',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DN  -c --version=2',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DU  -c --version=2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L    -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L    -DU  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DU  -c --version 2',  n + tall, ''),
 	
-	('testing_ztrsm_vbatched',     batch + '-SR -U    -DN  -c --version=2',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -U    -DU  -c --version=2',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DN  -c --version=2',  n + tall, ''),
-	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DU  -c --version=2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U    -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U    -DU  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DU  -c --version 2',  n + tall, ''),
 	
 	# ----- Cholesky
 	('testing_zpotrf_vbatched',    batch + '         -L    -c2', n,    ''),	
-	
+	('#testing_zposv_vbatched',    batch + '         -U    -c2', n,    'upper not implemented'),
 )
 if ( opts.batched ):
 	tests += batched
