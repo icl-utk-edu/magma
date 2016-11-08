@@ -164,7 +164,7 @@ magma_zmconvert(
     magma_index_t *row_tmp2=NULL, *col_tmp2=NULL;
     magmaDoubleComplex *val_tmp2 = NULL;
     magmaDoubleComplex *transpose=NULL;
-    magma_index_t intnnz, *nnz_per_row=NULL;
+    magma_index_t *nnz_per_row=NULL;
 
     cusparseHandle_t cusparseHandle = 0;
     cusparseMatDescr_t descr = 0;
@@ -1604,64 +1604,79 @@ magma_zmconvert(
         }
         // CSR to DENSE
         if ( old_format == Magma_CSR && new_format == Magma_DENSE ) {
-            // fill in information for B
-            B->storage_type = Magma_DENSE;
-            B->memory_location = A.memory_location;
-            B->num_rows = A.num_rows; B->true_nnz = A.true_nnz;
-            B->num_cols = A.num_cols;
-            B->nnz = A.nnz;
-            B->max_nnz_row = A.max_nnz_row;
-            B->diameter = A.diameter;
-
-            // CUSPARSE context //
-            CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-            CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
-            CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
-            // end CUSPARSE context //
-
-            CHECK( magma_zmalloc( &B->dval, A.num_rows*A.num_cols ));
-
-
-            // conversion using CUSPARSE
-            cusparseZcsr2dense( cusparseHandle, A.num_rows, A.num_cols,
-                                descr, A.dval, A.drow, A.dcol,
-                                B->dval, A.num_rows );
+            // use for now the workaround of using the CPU
+            printf("%% warning: format not supported on GPU. "
+            "Conversion handled by CPU.\n");
+            CHECK( magma_zmtransfer( A, &hA, A.memory_location, Magma_CPU, queue ));
+            CHECK( magma_zmconvert( hA, &hB, old_format, new_format, queue ));
+            CHECK( magma_zmtransfer( hB, B, Magma_CPU, A.memory_location, queue ));
+            
+            // // fill in information for B
+            //B->storage_type = Magma_DENSE;
+            //B->memory_location = A.memory_location;
+            //B->num_rows = A.num_rows; B->true_nnz = A.true_nnz;
+            //B->num_cols = A.num_cols;
+            //B->nnz = A.nnz;
+            //B->max_nnz_row = A.max_nnz_row;
+            //B->diameter = A.diameter;
+            //
+            // // CUSPARSE context //
+            //CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
+            //CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
+            //CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
+            //CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
+            //CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
+            //// end CUSPARSE context //
+            //
+            //CHECK( magma_zmalloc( &B->dval, A.num_rows*A.num_cols ));
+            //
+            //
+            // // conversion using CUSPARSE
+            //cusparseZcsr2dense( cusparseHandle, A.num_rows, A.num_cols,
+            //                    descr, A.dval, A.drow, A.dcol,
+            //                    B->dval, max(A.num_rows, A.num_cols) );
         }
         // DENSE to CSR
         else if ( old_format == Magma_DENSE && new_format == Magma_CSR ) {
-            // fill in information for B
-            B->storage_type = Magma_CSR;
-            B->memory_location = A.memory_location;
-            B->num_rows = A.num_rows; B->true_nnz = A.true_nnz;
-            B->num_cols = A.num_cols;
-            B->max_nnz_row = A.max_nnz_row;
-            B->diameter = A.diameter;
-
-            // CUSPARSE context //
-            CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-            CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
-            CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
-            // end CUSPARSE context //
-
-
-            intnnz = B->nnz;
-            CHECK( magma_index_malloc( &nnz_per_row, A.num_rows ));
-            //magma_zprint_gpu( A.num_rows, 1, nnz_per_row, A.num_rows, queue )
-            cusparseZnnz( cusparseHandle, CUSPARSE_DIRECTION_COLUMN,
-                          A.num_rows, A.num_cols,
-                          descr,
-                          A.dval, A.num_rows, nnz_per_row, &intnnz );
-
-            CHECK( magma_zmalloc( &B->dval, B->nnz ));
-            CHECK( magma_index_malloc( &B->drow, B->num_rows+1 ));
-            CHECK( magma_index_malloc( &B->dcol, B->nnz ));
-
-
-            // conversion using CUSPARSE
-            cusparseZdense2csr( cusparseHandle, A.num_rows, A.num_cols,
-                                descr,
-                                A.dval, A.num_rows, nnz_per_row,
-                                B->dval, B->drow, B->dcol );
+            // use for now the workaround of using the CPU
+            printf("%% warning: format not supported on GPU. "
+            "Conversion handled by CPU.\n");
+            CHECK( magma_zmtransfer( A, &hA, A.memory_location, Magma_CPU, queue ));
+            CHECK( magma_zmconvert( hA, &hB, old_format, new_format, queue ));
+            CHECK( magma_zmtransfer( hB, B, Magma_CPU, A.memory_location, queue ));
+            
+            //  // fill in information for B
+            // B->storage_type = Magma_CSR;
+            // B->memory_location = A.memory_location;
+            // B->num_rows = A.num_rows; B->true_nnz = A.true_nnz;
+            // B->num_cols = A.num_cols;
+            // B->max_nnz_row = A.max_nnz_row;
+            // B->diameter = A.diameter;
+            // 
+            //  // CUSPARSE context //
+            // CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
+            // CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
+            // CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
+            //  // end CUSPARSE context //
+            // 
+            // 
+            // intnnz = B->nnz;
+            // CHECK( magma_index_malloc( &nnz_per_row, A.num_rows ));
+            // cusparseZnnz( cusparseHandle, CUSPARSE_DIRECTION_COLUMN,
+            //               A.num_rows, A.num_cols,
+            //               descr,
+            //               A.dval, A.num_rows, nnz_per_row, &intnnz );
+            // 
+            // CHECK( magma_zmalloc( &B->dval, B->nnz ));
+            // CHECK( magma_index_malloc( &B->drow, B->num_rows+1 ));
+            // CHECK( magma_index_malloc( &B->dcol, B->nnz ));
+            // 
+            // 
+            // // conversion using CUSPARSE
+            // cusparseZdense2csr( cusparseHandle, A.num_rows, A.num_cols,
+            //                     descr,
+            //                     A.dval, A.num_rows, nnz_per_row,
+            //                     B->dval, B->drow, B->dcol );
         }
         // CSR to BCSR
         else if ( old_format == Magma_CSR && new_format == Magma_BCSR ) {
@@ -1895,7 +1910,7 @@ magma_zmconvert(
             magma_free( pBuffer );
             magma_free( P );
 #else
-                printf("error: conversion only supported for CUDA version > 7.0.\n");
+                printf("error: conversion on GPU only supported for CUDA version >= 7.0.\n");
 
 #endif
         }
