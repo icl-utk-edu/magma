@@ -23,9 +23,9 @@
 # e.g., nearly square, 2:1, 10:1, 1:2, 1:10.
 # The -h or --help option provides a summary of the options.
 #
-# Non-interactive vs. interactive mode
+# Output to file vs. console
 # --------------------------
-# When output is redirected to a file, it runs in non-interactive mode, printing a
+# When output is redirected to a file, it prints a
 # short summary to stderr on the console and all other output to the file.
 # For example:
 #
@@ -47,12 +47,12 @@
 #       routines with failures:
 #           testing_sgetri_gpu -c
 #
-# When output is to console (tty), it runs in interactive mode, pausing after
+# When using --interactive with output to console (TTY), it pauses after
 # each test. At the pause, typing "M" re-makes and re-runs that tester,
 # while typing enter goes to the next tester.
 # For example (some output suppressed with ... for brevity):
 #
-#       ./run_tests.py --lu --precision s --small
+#       ./run_tests.py --lu --precision s --small --interactive
 #       ****************************************************************************************************
 #       ./testing_sgesv_gpu -c --range 1:20:1 ...
 #       ****************************************************************************************************
@@ -103,7 +103,7 @@
 # These may be negated with --no-blas, --no-aux, etc.
 #
 # The --start option skips all testers before the given one, then continues
-# with testers from there. This is helpful to restart a non-interactive set
+# with testers from there. This is helpful to restart a set
 # of tests. For example:
 #
 #       ./run_tests.py --start testing_spotrf > output.log
@@ -221,100 +221,103 @@ from subprocess import PIPE, STDOUT
 
 from optparse import OptionParser
 
-# on a TTY screen, stop after each test for user input
-# when redirected to file ("non-interactive mode"), don't stop
-non_interactive = not sys.stdout.isatty()
-
 parser = OptionParser()
-parser.add_option('-p', '--precisions', action='store',      dest='precisions', help='run given precisions (initials, e.g., "sd" for single and double)', default='sdcz')
-parser.add_option(      '--start',      action='store',      dest='start',      help='start with given routine; useful to restart an interupted run')
-parser.add_option(      '--memcheck',   action='store_true', dest='memcheck',   help='run with cuda-memcheck (slow)')
-parser.add_option(      '--tol',        action='store',      dest='tol',        help='set tolerance')
-parser.add_option(      '--dev',        action='store',      dest='dev',        help='set GPU device to use')
-parser.add_option(      '--batch',      action='store',      dest='batch',      help='batch count for batched tests', default='100')
-parser.add_option(      '--niter',      action='store',      dest='niter',      help='number of iterations to repeat', default='1')
-parser.add_option(      '--ngpu',       action='store',      dest='ngpu',       help='number of GPUs for multi-GPU tests; add --mgpu to run only multi-GPU tests', default='2')
-parser.add_option(      '--null-stream',action='store_true', dest='null_stream',help='use null stream (for verifying old behavior)')
+parser.add_option('-p', '--precisions', action='store',      help='run given precisions (initials, e.g., "sd" for single and double)', default='sdcz')
+parser.add_option(      '--start',      action='store',      help='start with given routine; useful to restart an interupted run')
+parser.add_option(      '--memcheck',   action='store_true', help='run with cuda-memcheck (slow)')
+parser.add_option(      '--tol',        action='store',      help='set tolerance')
+parser.add_option(      '--dev',        action='store',      help='set GPU device to use')
+parser.add_option(      '--batch',      action='store',      help='batch count for batched tests', default='100')
+parser.add_option(      '--niter',      action='store',      help='number of iterations to repeat', default='1')
+parser.add_option(      '--ngpu',       action='store',      help='number of GPUs for multi-GPU tests; add --mgpu to run only multi-GPU tests', default='2')
+parser.add_option(      '--interactive',action='store_true', help='stop between tests')
 
 # options to specify sizes
-parser.add_option(      '--xsmall',     action='store_true', dest='xsmall',     help='run very few, extra small tests, N=25:100:25, 32:128:32')
-parser.add_option('-s', '--small',      action='store_true', dest='small',      help='run small  tests, N < 300')
-parser.add_option('-m', '--medium',     action='store_true', dest='med',        help='run medium tests, N < 1000')
-parser.add_option('-l', '--large',      action='store_true', dest='large',      help='run large  tests, N > 1000')
-parser.add_option('-N',                 action='append',     dest='N',          help='run specific sizes; repeatable', default=[])
-parser.add_option(      '--range',      action='append',     dest='range',      help='run specific sizes; repeatable', default=[])
+parser.add_option(      '--xsmall',     action='store_true', help='run very few, extra small tests, N=25:100:25, 32:128:32')
+parser.add_option('-s', '--small',      action='store_true', help='run small  tests, N < 300')
+parser.add_option('-m', '--medium',     action='store_true', help='run medium tests, N < 1000')
+parser.add_option('-l', '--large',      action='store_true', help='run large  tests, N > 1000')
+parser.add_option('-N',                 action='append',     help='run specific sizes; repeatable', default=[])
+parser.add_option(      '--range',      action='append',     help='run specific sizes; repeatable', default=[])
 
 # options to specify shapes
-parser.add_option(      '--square',     action='store_true', dest='square',     help='run square tests (M == N)')
-parser.add_option(      '--tall',       action='store_true', dest='tall',       help='run tall   tests (M > N)')
-parser.add_option(      '--wide',       action='store_true', dest='wide',       help='run wide   tests (M < N)')
-parser.add_option(      '--mnk',        action='store_true', dest='mnk',        help='run mnk    tests (M, N, K not all equal)')
-
-# options to select classes of routines
-parser.add_option(      '--blas',       action='store_true', dest='blas',       help='run BLAS tests')
-parser.add_option(      '--aux',        action='store_true', dest='aux',        help='run auxiliary routine tests')
-parser.add_option(      '--chol',       action='store_true', dest='chol',       help='run Cholesky factorization & solver tests')
-parser.add_option(      '--hesv',       action='store_true', dest='hesv',       help='run Cholesky factorization & solver tests')
-parser.add_option(      '--lu',         action='store_true', dest='lu',         help='run LU factorization & solver tests')
-parser.add_option(      '--qr',         action='store_true', dest='qr',         help='run QR factorization & solver (gels) tests')
-parser.add_option(      '--syev',       action='store_true', dest='syev',       help='run symmetric eigenvalue tests')
-parser.add_option(      '--sygv',       action='store_true', dest='sygv',       help='run generalized symmetric eigenvalue tests')
-parser.add_option(      '--geev',       action='store_true', dest='geev',       help='run non-symmetric eigenvalue tests')
-parser.add_option(      '--svd',        action='store_true', dest='svd',        help='run SVD tests')
-parser.add_option(      '--batched',    action='store_true', dest='batched',    help='run batched (BLAS, LU, etc.) tests')
-
-parser.add_option(      '--no-blas',    action='store_true', dest='no_blas',    help='do not run BLAS tests')
-parser.add_option(      '--no-aux',     action='store_true', dest='no_aux',     help='do not run auxiliary routine tests')
-parser.add_option(      '--no-chol',    action='store_true', dest='no_chol',    help='do not run Cholesky factorization & solver tests')
-parser.add_option(      '--no-hesv',    action='store_true', dest='no_hesv',    help='do not run Cholesky factorization & solver tests')
-parser.add_option(      '--no-lu',      action='store_true', dest='no_lu',      help='do not run LU factorization & solver tests')
-parser.add_option(      '--no-qr',      action='store_true', dest='no_qr',      help='do not run QR factorization & solver (gels) tests')
-parser.add_option(      '--no-syev',    action='store_true', dest='no_syev',    help='do not run symmetric eigenvalue tests')
-parser.add_option(      '--no-sygv',    action='store_true', dest='no_sygv',    help='do not run generalized symmetric eigenvalue tests')
-parser.add_option(      '--no-geev',    action='store_true', dest='no_geev',    help='do not run non-symmetric eigenvalue tests')
-parser.add_option(      '--no-svd',     action='store_true', dest='no_svd',     help='do not run SVD tests')
-
-# options to select subset of commands
-parser.add_option(      '--mgpu',       action='store_true', dest='mgpu',       help='select multi-GPU tests; add --ngpu to specify number of GPUs')
-parser.add_option(      '--no-mgpu',    action='store_true', dest='no_mgpu',    help='select non multi-GPU tests')
-parser.add_option(      '--itype',      action='store',      dest='itype',      help='select tests matching itype',   default=0 )
-parser.add_option(      '--version',    action='store',      dest='version',    help='select tests matching version', default=0 )
-parser.add_option('-U', '--upper',      action='store_true', dest='upper',      help='select tests matching upper',   default=None )
-parser.add_option('-L', '--lower',      action='store_true', dest='lower',      help='select tests matching lower',   default=None )
-parser.add_option('-J', '--jobz',       action='store',      dest='jobz',       help='select tests matching jobz (-JV, -JN)', default=None )
-parser.add_option('-D', '--diag',       action='store',      dest='diag',       help='select tests matching diag (-DU, -DN)', default=None )
-parser.add_option('-C',                 action='store_true', dest='C',          help='select tests matching -C', default=None )
-parser.add_option('-T',                 action='store_true', dest='T',          help='select tests matching -T', default=None )
-parser.add_option(      '--fraction',   action='store',      dest='fraction',   help='select tests matching fraction', default=None )
-
-parser.add_option(      '--UN',         action='store_true', dest='UN',         help='select tests matching -UN', default=None )
-parser.add_option(      '--UO',         action='store_true', dest='UO',         help='select tests matching -UO', default=None )
-parser.add_option(      '--US',         action='store_true', dest='US',         help='select tests matching -US', default=None )
-parser.add_option(      '--UA',         action='store_true', dest='UA',         help='select tests matching -UA', default=None )
-parser.add_option(      '--VN',         action='store_true', dest='VN',         help='select tests matching -VN', default=None )
-parser.add_option(      '--VO',         action='store_true', dest='VO',         help='select tests matching -VO', default=None )
-parser.add_option(      '--VS',         action='store_true', dest='VS',         help='select tests matching -VS', default=None )
-parser.add_option(      '--VA',         action='store_true', dest='VA',         help='select tests matching -VA', default=None )
-
-parser.add_option(      '--NN',         action='store_true', dest='NN',         help='select tests matching -NN', default=None )
-parser.add_option(      '--NT',         action='store_true', dest='NT',         help='select tests matching -NT', default=None )
-parser.add_option(      '--TN',         action='store_true', dest='TN',         help='select tests matching -TN', default=None )
-parser.add_option(      '--TT',         action='store_true', dest='TT',         help='select tests matching -TT', default=None )
-parser.add_option(      '--NC',         action='store_true', dest='NC',         help='select tests matching -NC', default=None )
-parser.add_option(      '--CN',         action='store_true', dest='CN',         help='select tests matching -CN', default=None )
-parser.add_option(      '--CC',         action='store_true', dest='CC',         help='select tests matching -CC', default=None )
+parser.add_option(      '--square',     action='store_true', help='run square tests (M == N)')
+parser.add_option(      '--tall',       action='store_true', help='run tall   tests (M > N)')
+parser.add_option(      '--wide',       action='store_true', help='run wide   tests (M < N)')
+parser.add_option(      '--mnk',        action='store_true', help='run mnk    tests (M, N, K not all equal)')
+                                                             
+# options to select classes of routines                      
+parser.add_option(      '--blas',       action='store_true', help='run BLAS tests')
+parser.add_option(      '--aux',        action='store_true', help='run auxiliary routine tests')
+parser.add_option(      '--chol',       action='store_true', help='run Cholesky factorization & solver tests')
+parser.add_option(      '--hesv',       action='store_true', help='run Cholesky factorization & solver tests')
+parser.add_option(      '--lu',         action='store_true', help='run LU factorization & solver tests')
+parser.add_option(      '--qr',         action='store_true', help='run QR factorization & solver (gels) tests')
+parser.add_option(      '--syev',       action='store_true', help='run symmetric eigenvalue tests')
+parser.add_option(      '--sygv',       action='store_true', help='run generalized symmetric eigenvalue tests')
+parser.add_option(      '--geev',       action='store_true', help='run non-symmetric eigenvalue tests')
+parser.add_option(      '--svd',        action='store_true', help='run SVD tests')
+parser.add_option(      '--batched',    action='store_true', help='run batched (BLAS, LU, etc.) tests')
+parser.add_option(      '--vbatched',   action='store_true', help='run vbatched (BLAS, LU, etc.) tests')
+                                                             
+parser.add_option(      '--no-blas',    action='store_true', help='do not run BLAS tests')
+parser.add_option(      '--no-aux',     action='store_true', help='do not run auxiliary routine tests')
+parser.add_option(      '--no-chol',    action='store_true', help='do not run Cholesky factorization & solver tests')
+parser.add_option(      '--no-hesv',    action='store_true', help='do not run Cholesky factorization & solver tests')
+parser.add_option(      '--no-lu',      action='store_true', help='do not run LU factorization & solver tests')
+parser.add_option(      '--no-qr',      action='store_true', help='do not run QR factorization & solver (gels) tests')
+parser.add_option(      '--no-syev',    action='store_true', help='do not run symmetric eigenvalue tests')
+parser.add_option(      '--no-sygv',    action='store_true', help='do not run generalized symmetric eigenvalue tests')
+parser.add_option(      '--no-geev',    action='store_true', help='do not run non-symmetric eigenvalue tests')
+parser.add_option(      '--no-svd',     action='store_true', help='do not run SVD tests')
+                                                             
+# options to select subset of commands                       
+parser.add_option(      '--mgpu',       action='store_true', help='select multi-GPU tests; add --ngpu to specify number of GPUs')
+parser.add_option(      '--no-mgpu',    action='store_true', help='select non multi-GPU tests')
+parser.add_option(      '--itype',      action='store',      help='select tests matching itype',   default=0 )
+parser.add_option(      '--version',    action='store',      help='select tests matching version', default=0 )
+parser.add_option('-U', '--upper',      action='store_true', help='select tests matching upper')
+parser.add_option('-L', '--lower',      action='store_true', help='select tests matching lower')
+parser.add_option('-J', '--jobz',       action='store',      help='select tests matching jobz (-JV, -JN)')
+parser.add_option('-D', '--diag',       action='store',      help='select tests matching diag (-DU, -DN)')
+parser.add_option('-C',                 action='store_true', help='select tests matching -C')
+parser.add_option('-T',                 action='store_true', help='select tests matching -T')
+parser.add_option(      '--fraction',   action='store',      help='select tests matching fraction')
+                                                             
+parser.add_option(      '--UN',         action='store_true', help='select tests matching -UN')
+parser.add_option(      '--UO',         action='store_true', help='select tests matching -UO')
+parser.add_option(      '--US',         action='store_true', help='select tests matching -US')
+parser.add_option(      '--UA',         action='store_true', help='select tests matching -UA')
+parser.add_option(      '--VN',         action='store_true', help='select tests matching -VN')
+parser.add_option(      '--VO',         action='store_true', help='select tests matching -VO')
+parser.add_option(      '--VS',         action='store_true', help='select tests matching -VS')
+parser.add_option(      '--VA',         action='store_true', help='select tests matching -VA')
+                                                                                             
+parser.add_option(      '--NN',         action='store_true', help='select tests matching -NN')
+parser.add_option(      '--NT',         action='store_true', help='select tests matching -NT')
+parser.add_option(      '--TN',         action='store_true', help='select tests matching -TN')
+parser.add_option(      '--TT',         action='store_true', help='select tests matching -TT')
+parser.add_option(      '--NC',         action='store_true', help='select tests matching -NC')
+parser.add_option(      '--CN',         action='store_true', help='select tests matching -CN')
+parser.add_option(      '--CC',         action='store_true', help='select tests matching -CC')
 
 (opts, args) = parser.parse_args()
 
+# when output is redirected to file instead of TTY console,
+# print extra messages to stderr on TTY console.
+output_to_file = not sys.stdout.isatty()
+if (output_to_file):
+	opts.interactive = False
+
 # default if no sizes given is all sizes (small, medium, large)
-if ( not opts.xsmall and not opts.small and not opts.med and not opts.large ):
-	opts.small = True
-	opts.med   = True
-	opts.large = True
+if (not opts.xsmall and not opts.small and not opts.medium and not opts.large):
+	opts.small  = True
+	opts.medium = True
+	opts.large  = True
 # end
 
 # default if no shape is given is all shapes (square, tall, wide, mnk)
-if ( not opts.square and not opts.tall and not opts.wide and not opts.mnk ):
+if (not opts.square and not opts.tall and not opts.wide and not opts.mnk):
 	opts.square = True
 	opts.tall   = True
 	opts.wide   = True
@@ -327,7 +330,7 @@ if ( len(args) > 0 or (
 	 not opts.blas and not opts.aux  and
 	 not opts.chol and not opts.hesv and not opts.lu   and not opts.qr   and
 	 not opts.syev and not opts.sygv and not opts.geev and
-	 not opts.svd  and not opts.batched )):
+	 not opts.svd  and not opts.batched and not opts.vbatched )):
 	opts.blas = True
 	opts.aux  = True
 	opts.chol = True
@@ -339,6 +342,7 @@ if ( len(args) > 0 or (
 	opts.geev = True
 	opts.svd  = True
 	opts.batched = (len(args) > 0)   # batched routines must be explicitly requested, as the typical size range is different
+	opts.vbatched = (len(args) > 0)
 # end
 
 # "no" options override whatever was previously set
@@ -380,7 +384,7 @@ if opts.square and opts.small:
 	  +   ' -N 126  -N 127  -N 128  -N 129  -N 130'
 	  +   ' -N 254  -N 255  -N 256  -N 257  -N 258'
 	)
-if opts.square and opts.med:
+if opts.square and opts.medium:
 	n +=  ' -N 510  -N 511  -N 512  -N 513  -N 514 --range 100:900:100'
 if opts.square and opts.large:
 	n +=  ' --range 1000:4000:1000'
@@ -394,11 +398,18 @@ if opts.tall and opts.small:
 	     +   ' -N 20,19      -N 20,10      -N 20,2      -N 20,1'
 	     +   ' -N 200,199    -N 200,100    -N 200,20    -N 200,10    -N 200,1'
 	)
-if opts.tall and opts.med:
-	tall += (' -N 600,599       -N 600,300       -N 10000,63,63   -N 10000,64,64   -N 10000,65,65'
-         +   ' -N 10000,31,31   -N 10000,32,32   -N 10000,33,33   -N 10000,10,10   -N 10000,1,1')
+if opts.tall and opts.medium:
+	tall += (' -N 600,599        -N 600,300'
+	     +   ' -N 1000,1,1       -N 1000,10,10'
+	     +   ' -N 1000,31,31     -N 1000,32,32     -N 1000,33,33'
+	     +   ' -N 1000,63,63     -N 1000,64,64     -N 1000,65,65')
 if opts.tall and opts.large:
-	tall +=  ' -N 2000,1999  -N 2000,1000  -N 20000,200,200  -N 20000,100,100  -N 200000,10,10  -N 200000,1,1  -N 2000000,10,10  -N 2000000,1,1'
+	tall += (' -N 2000,1999      -N 2000,1000'
+	     +   ' -N 20000,1,1      -N 20000,10,10'
+	     +   ' -N 20000,31,31    -N 20000,32,32    -N 20000,33,33'
+	     +   ' -N 20000,63,63    -N 20000,64,64    -N 20000,65,65'
+	     +   ' -N 20000,200,200  -N 20000,100,100  -N 200000,10,10  -N 200000,1,1'
+	     +   ' -N 2000000,10,10  -N 2000000,1,1')
 
 
 # ----------
@@ -409,11 +420,18 @@ if opts.wide and opts.small:
 	     +   ' -N 19,20      -N 10,20      -N 2,20      -N 1,20'
 	     +   ' -N 199,200    -N 100,200    -N 20,200    -N 10,200    -N 1,200'
 	)
-if opts.wide and opts.med:
-	wide += (' -N 599,600       -N 300,600       -N 63,10000,63   -N 64,10000,64   -N 65,10000,65'
-         +   ' -N 31,10000,31   -N 32,10000,32   -N 33,10000,33   -N 10,10000,10   -N 1,10000,1')
-if opts.wide and opts.large:
-	wide +=  ' -N 1999,2000  -N 1000,2000  -N 200,20000,200  -N 100,20000,100  -N 10,200000,10  -N 1,200000,1  -N 10,2000000,10  -N 1,2000000,1'
+if opts.tall and opts.medium:
+	tall += (' -N 599,600        -N 300,600'
+	     +   ' -N 1,1000,1       -N 10,1000,10'
+	     +   ' -N 31,1000,31     -N 32,1000,32     -N 33,1000,33'
+	     +   ' -N 63,1000,63     -N 64,1000,64     -N 65,1000,65')
+if opts.tall and opts.large:
+	tall += (' -N 1999,2000      -N 1000,2000'
+	     +   ' -N 1,20000,1      -N 10,20000,10'
+	     +   ' -N 31,20000,31    -N 32,20000,32    -N 33,20000,33'
+	     +   ' -N 63,20000,63    -N 64,20000,64    -N 65,20000,65'
+	     +   ' -N 200,20000,200  -N 100,20000,100  -N 10,200000,10  -N 1,200000,1'
+	     +   ' -N 10,2000000,10  -N 1,2000000,1')
 
 
 # ----------
@@ -423,7 +441,7 @@ if opts.mnk and opts.small:
 	     +   ' -N 10,20,30        -N 20,10,30        -N 10,30,20        -N 20,30,10        -N 30,10,20        -N 30,20,10'
 	     +   ' -N 100,200,300     -N 200,100,300     -N 100,300,200     -N 200,300,100     -N 300,100,200     -N 300,200,100'
 	)
-if opts.mnk and opts.med:
+if opts.mnk and opts.medium:
 	mnk  +=  ' -N 100,300,600     -N 300,100,600     -N 100,600,300     -N 300,600,100     -N 600,100,300     -N 600,300,100'
 if opts.mnk and opts.large:
 	mnk  +=  ' -N 1000,2000,3000  -N 2000,1000,3000  -N 1000,3000,2000  -N 2000,3000,1000  -N 3000,1000,2000  -N 3000,2000,1000'
@@ -438,7 +456,7 @@ mnk    = n + tall + wide + mnk
 # specific sizes override everything else
 print 'opts.N', opts.N
 print 'opts.range', opts.range
-if ( opts.N or opts.range ):
+if (opts.N or opts.range):
 	n    = ' '.join( map( lambda x: '-N '+x, opts.N ) + map( lambda x: '--range '+x, opts.range ))
 	mn   = n
 	mnk  = n
@@ -472,6 +490,9 @@ blas = (
 	('testing_zgemm',   '-l -NC         -c',  mnk,  ''),
 	('testing_zgemm',   '-l -CN         -c',  mnk,  ''),
 	('testing_zgemm',   '-l -CC         -c',  mnk,  ''),
+	('testing_zgemm',   '-l -NT         -c',  mnk,  ''),
+	('testing_zgemm',   '-l -TN         -c',  mnk,  ''),
+	('testing_zgemm',   '-l -TT         -c',  mnk,  ''),
 	
 	# no-trans/trans/conj-trans
 	('testing_zgemv',                  '-c',  mn,   ''),
@@ -487,12 +508,18 @@ blas = (
 	('testing_zherk',   '-L -C          -c',  nk,   'cublas only'),
 	('testing_zherk',   '-U             -c',  nk,   'cublas only'),
 	('testing_zherk',   '-U -C          -c',  nk,   'cublas only'),
+	# real trans
+	('testing_dsyrk',   '-L -T          -c',  nk,   'cublas only'),
+	('testing_dsyrk',   '-U -T          -c',  nk,   'cublas only'),
 	
 	# lower/upper, no-trans/conj-trans
 	('testing_zher2k',  '-L             -c',  nk,   'cublas only'),
 	('testing_zher2k',  '-L -C          -c',  nk,   'cublas only'),
 	('testing_zher2k',  '-U             -c',  nk,   'cublas only'),
 	('testing_zher2k',  '-U -C          -c',  nk,   'cublas only'),
+	# real trans
+	('testing_dsyr2k',  '-L -T          -c',  nk,   'cublas only'),
+	('testing_dsyr2k',  '-U -T          -c',  nk,   'cublas only'),
 	
 	# lower/upper
 	('testing_zsymv',   '-L             -c',  n,    ''),
@@ -503,85 +530,117 @@ blas = (
 	('testing_ztrmm',   '-SL -L    -DU  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -L -C -DN  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -L -C -DU  -c',  n + wide,   'cublas only'),
+	('testing_ztrmm',   '-SL -L -T -DN  -c',  n + wide,   'cublas only'),
+	('testing_ztrmm',   '-SL -L -T -DU  -c',  n + wide,   'cublas only'),
 	
 	('testing_ztrmm',   '-SL -U    -DN  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -U    -DU  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -U -C -DN  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -U -C -DU  -c',  n + wide,   'cublas only'),
+	('testing_ztrmm',   '-SL -U -T -DN  -c',  n + wide,   'cublas only'),
+	('testing_ztrmm',   '-SL -U -T -DU  -c',  n + wide,   'cublas only'),
 	
 	('testing_ztrmm',   '-SR -L    -DN  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -L    -DU  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -L -C -DN  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -L -C -DU  -c',  n + tall,   'cublas only'),
+	('testing_ztrmm',   '-SR -L -T -DN  -c',  n + tall,   'cublas only'),
+	('testing_ztrmm',   '-SR -L -T -DU  -c',  n + tall,   'cublas only'),
 	
 	('testing_ztrmm',   '-SR -U    -DN  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -U    -DU  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -U -C -DN  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -U -C -DU  -c',  n + tall,   'cublas only'),
+	('testing_ztrmm',   '-SR -U -T -DN  -c',  n + tall,   'cublas only'),
+	('testing_ztrmm',   '-SR -U -T -DU  -c',  n + tall,   'cublas only'),
 	
 	# lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrmv',       '-L    -DN  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-L    -DU  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-L -C -DN  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-L -C -DU  -c',  n,    'cublas only'),
+	('testing_ztrmv',       '-L -T -DN  -c',  n,    'cublas only'),
+	('testing_ztrmv',       '-L -T -DU  -c',  n,    'cublas only'),
 	
 	('testing_ztrmv',       '-U    -DN  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-U    -DU  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-U -C -DN  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-U -C -DU  -c',  n,    'cublas only'),
+	('testing_ztrmv',       '-U -T -DN  -c',  n,    'cublas only'),
+	('testing_ztrmv',       '-U -T -DU  -c',  n,    'cublas only'),
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsm',   '-SL -L    -DN  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -L    -DU  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -L -C -DN  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -L -C -DU  -c',  n + wide,   ''),
+	('testing_ztrsm',   '-SL -L -T -DN  -c',  n + wide,   ''),
+	('testing_ztrsm',   '-SL -L -T -DU  -c',  n + wide,   ''),
 	
 	('testing_ztrsm',   '-SL -U    -DN  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -U    -DU  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -U -C -DN  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -U -C -DU  -c',  n + wide,   ''),
+	('testing_ztrsm',   '-SL -U -T -DN  -c',  n + wide,   ''),
+	('testing_ztrsm',   '-SL -U -T -DU  -c',  n + wide,   ''),
 	
 	('testing_ztrsm',   '-SR -L    -DN  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -L    -DU  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -L -C -DN  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -L -C -DU  -c',  n + tall,   ''),
+	('testing_ztrsm',   '-SR -L -T -DN  -c',  n + tall,   ''),
+	('testing_ztrsm',   '-SR -L -T -DU  -c',  n + tall,   ''),
 	
 	('testing_ztrsm',   '-SR -U    -DN  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -U    -DU  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -U -C -DN  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -U -C -DU  -c',  n + tall,   ''),
+	('testing_ztrsm',   '-SR -U -T -DN  -c',  n + tall,   ''),
+	('testing_ztrsm',   '-SR -U -T -DU  -c',  n + tall,   ''),
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsm', ngpu + '-SL -L    -DN  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -L    -DU  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -L -C -DN  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -L -C -DU  -c',  n + wide,  ''),
+	('testing_ztrsm', ngpu + '-SL -L -T -DN  -c',  n + wide,  ''),
+	('testing_ztrsm', ngpu + '-SL -L -T -DU  -c',  n + wide,  ''),
 	
 	('testing_ztrsm', ngpu + '-SL -U    -DN  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -U    -DU  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -U -C -DN  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -U -C -DU  -c',  n + wide,  ''),
+	('testing_ztrsm', ngpu + '-SL -U -T -DN  -c',  n + wide,  ''),
+	('testing_ztrsm', ngpu + '-SL -U -T -DU  -c',  n + wide,  ''),
 	
 	('testing_ztrsm', ngpu + '-SR -L    -DN  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -L    -DU  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -L -C -DN  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -L -C -DU  -c',  n + tall,  ''),
+	('testing_ztrsm', ngpu + '-SR -L -T -DN  -c',  n + tall,  ''),
+	('testing_ztrsm', ngpu + '-SR -L -T -DU  -c',  n + tall,  ''),
 	
 	('testing_ztrsm', ngpu + '-SR -U    -DN  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -U    -DU  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -U -C -DN  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -U -C -DU  -c',  n + tall,  ''),
+	('testing_ztrsm', ngpu + '-SR -U -T -DN  -c',  n + tall,  ''),
+	('testing_ztrsm', ngpu + '-SR -U -T -DU  -c',  n + tall,  ''),
 	
 	# lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsv',       '-L    -DN  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-L    -DU  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-L -C -DN  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-L -C -DU  -c',  n,    'cublas only'),
+	('testing_ztrsv',       '-L -T -DN  -c',  n,    'cublas only'),
+	('testing_ztrsv',       '-L -T -DU  -c',  n,    'cublas only'),
 	
 	('testing_ztrsv',       '-U    -DN  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-U    -DU  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-U -C -DN  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-U -C -DU  -c',  n,    'cublas only'),
+	('testing_ztrsv',       '-U -T -DN  -c',  n,    'cublas only'),
+	('testing_ztrsv',       '-U -T -DU  -c',  n,    'cublas only'),
 	
 	('testing_zhemm_mgpu',   ngpu + '-L -c',  n,    ''),
 	('testing_zhemm_mgpu',   ngpu + '-U -c',  n,    ''),
@@ -595,7 +654,7 @@ blas = (
 	('#testing_blas_z',                '-c',  mnk,  'takes long time; cublas only'),
 	('testing_cblas_z',                '-c',  n,    ''),
 )
-if ( opts.blas ):
+if (opts.blas):
 	tests += blas
 
 aux = (
@@ -638,7 +697,7 @@ aux = (
 	('testing_operators',              '-c',  '',   ''),
 	('testing_parse_opts',             '-c',  '',   ''),
 )
-if ( opts.aux ):
+if (opts.aux):
 	tests += aux
 
 chol = (
@@ -685,7 +744,7 @@ chol = (
 	('testing_ztrtri',          '-U -DU -c',  n,    ''),
 	('testing_ztrtri',          '-U -DN -c',  n,    ''),
 )
-if ( opts.chol ):
+if (opts.chol):
 	tests += chol
 
 hesv = (
@@ -716,7 +775,7 @@ hesv = (
 	('testing_zhetrf', '-L --version 6 -c2',  n,    ''),
 	('#testing_zhetrf','-U --version 6 -c2',  n,    'upper not implemented'),
 )
-if ( opts.hesv ):
+if (opts.hesv):
 	tests += hesv
 
 lu = (
@@ -738,7 +797,7 @@ lu = (
 	('testing_zgetrf',    '--version 2 -c2',  n,    ''),  # zgetrf_nopiv
 	('testing_zgetrf',    '--version 3 -c2',  n,    ''),  # zgetf2_nopiv
 )
-if ( opts.lu ):
+if (opts.lu):
 	tests += lu
 
 qr = (
@@ -791,7 +850,7 @@ qr = (
 	('testing_zunmqr',                 '-c',  mnk,  ''),
 	('testing_zunmqr',          ngpu + '-c',  mnk,  ''),
 )
-if ( opts.qr ):
+if (opts.qr):
 	tests += qr
 
 syev = (
@@ -895,7 +954,7 @@ syev = (
 	('#testing_zheevdx_2stage', ngpu + '--fraction 1.0 -U -JN -c',  n,    'upper not implemented'),
 	('#testing_zheevdx_2stage', ngpu + '--fraction 1.0 -U -JV -c',  n,    'upper not implemented'),
 )
-if ( opts.syev ):
+if (opts.syev):
 	tests += syev
 
 sygv = (
@@ -1054,7 +1113,7 @@ sygv = (
 	('#testing_zhegvdx_2stage', ngpu + '-U -JV --itype 2 -c', n,  'upper not implemented'),
 	('#testing_zhegvdx_2stage', ngpu + '-U -JV --itype 3 -c', n,  'upper not implemented'),
 )
-if ( opts.sygv ):
+if (opts.sygv):
 	tests += sygv
 
 geev = (
@@ -1071,7 +1130,7 @@ geev = (
 	('testing_zgehrd',     '--version 2 -c',  n,    ''),
 	('testing_zgehrd',          ngpu + '-c',  n,    ''),
 )
-if ( opts.geev ):
+if (opts.geev):
 	tests += geev
 
 svd = (
@@ -1094,19 +1153,22 @@ svd = (
 	('testing_zungbr',                 '-c',  mnk,  ''),
 	('testing_zunmbr',                 '-c',  mnk,  ''),
 )
-if ( opts.svd ):
+if (opts.svd):
 	tests += svd
 
 batched = (
 	# ----------
 	# batched (BLAS, LU, etc.)
-	('testing_zgeadd_batched',    batch + '               -c',  mn,   ''),
+	##('testing_zgeadd_batched',    batch + '               -c',  mn,   ''),
 	
 	# no-trans/conj-trans; there are other combinations with trans
 	('testing_zgemm_batched',     batch + '-NN            -c',  mn,   ''),
 	('testing_zgemm_batched',     batch + '-NC            -c',  mn,   ''),
 	('testing_zgemm_batched',     batch + '-CN            -c',  mn,   ''),
 	('testing_zgemm_batched',     batch + '-CC            -c',  mn,   ''),
+	('testing_zgemm_batched',     batch + '-NT            -c',  mn,   ''),
+	('testing_zgemm_batched',     batch + '-TN            -c',  mn,   ''),
+	('testing_zgemm_batched',     batch + '-TT            -c',  mn,   ''),
 	
 	# no-trans/trans/conj-trans
 	('testing_zgemv_batched',     batch + '               -c',  mn,   ''),
@@ -1128,73 +1190,102 @@ batched = (
 	('testing_zherk_batched',     batch + '         -L -C -c',  nk,   ''),
 	('testing_zherk_batched',     batch + '         -U    -c',  nk,   ''),
 	('testing_zherk_batched',     batch + '         -U -C -c',  nk,   ''),
+	# real trans
+	('testing_zherk_batched',     batch + '         -L -T -c',  nk,   ''),
+	('testing_zherk_batched',     batch + '         -U -T -c',  nk,   ''),
 	
 	# lower/upper, no-trans/conj-trans
 	('testing_zher2k_batched',    batch + '         -L    -c',  nk,   ''),
 	('testing_zher2k_batched',    batch + '         -L -C -c',  nk,   ''),
 	('testing_zher2k_batched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zher2k_batched',    batch + '         -U -C -c',  nk,   ''),
+	# real trans
+	('testing_zher2k_batched',    batch + '         -L -T -c',  nk,   ''),
+	('testing_zher2k_batched',    batch + '         -U -T -c',  nk,   ''),
 	
-	('testing_zlacpy_batched',    batch + '               -c',  mn,   ''),
+	##('testing_zlacpy_batched',    batch + '               -c',  mn,   ''),
 	
 	# lower/upper, no-trans/conj-trans
 	('testing_zsyr2k_batched',    batch + '         -L    -c',  nk,   ''),
 	('testing_zsyr2k_batched',    batch + '         -L -C -c',  nk,   ''),
 	('testing_zsyr2k_batched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zsyr2k_batched',    batch + '         -U -C -c',  nk,   ''),
+	# real trans
+	('testing_zsyr2k_batched',    batch + '         -L -T -c',  nk,   ''),
+	('testing_zsyr2k_batched',    batch + '         -U -T -c',  nk,   ''),
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrmm_batched',     batch + '-SL -L    -DN  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -L    -DU  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -L -C -DN  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -L -C -DU  -c',  n + wide, ''),
+	('testing_ztrmm_batched',     batch + '-SL -L -T -DN  -c',  n + wide, ''),
+	('testing_ztrmm_batched',     batch + '-SL -L -T -DU  -c',  n + wide, ''),
 	
 	('testing_ztrmm_batched',     batch + '-SL -U    -DN  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -U    -DU  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -U -C -DN  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -U -C -DU  -c',  n + wide, ''),
+	('testing_ztrmm_batched',     batch + '-SL -U -T -DN  -c',  n + wide, ''),
+	('testing_ztrmm_batched',     batch + '-SL -U -T -DU  -c',  n + wide, ''),
 	
 	('testing_ztrmm_batched',     batch + '-SR -L    -DN  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -L    -DU  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -L -C -DN  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -L -C -DU  -c',  n + tall, ''),
+	('testing_ztrmm_batched',     batch + '-SR -L -T -DN  -c',  n + tall, ''),
+	('testing_ztrmm_batched',     batch + '-SR -L -T -DU  -c',  n + tall, ''),
 	
 	('testing_ztrmm_batched',     batch + '-SR -U    -DN  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -U    -DU  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -U -C -DN  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -U -C -DU  -c',  n + tall, ''),
+	('testing_ztrmm_batched',     batch + '-SR -U -T -DN  -c',  n + tall, ''),
+	('testing_ztrmm_batched',     batch + '-SR -U -T -DU  -c',  n + tall, ''),
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsm_batched',     batch + '-SL -L    -DN  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -L    -DU  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -L -C -DN  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -L -C -DU  -c',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -L -T -DN  -c',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -L -T -DU  -c',  n + wide, ''),
 	
 	('testing_ztrsm_batched',     batch + '-SL -U    -DN  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -U    -DU  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -U -C -DN  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -U -C -DU  -c',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -U -T -DN  -c',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -U -T -DU  -c',  n + wide, ''),
 	
 	('testing_ztrsm_batched',     batch + '-SR -L    -DN  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -L    -DU  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -L -C -DN  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -L -C -DU  -c',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -L -T -DN  -c',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -L -T -DU  -c',  n + tall, ''),
 	
 	('testing_ztrsm_batched',     batch + '-SR -U    -DN  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -U    -DU  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -U -C -DN  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -U -C -DU  -c',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -U -T -DN  -c',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -U -T -DU  -c',  n + tall, ''),
 	
 	# lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsv_batched',     batch + '    -L    -DN  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -L    -DU  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -L -C -DN  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -L -C -DU  -c',  n,    ''),
+	('testing_ztrsv_batched',     batch + '    -L -T -DN  -c',  n,    ''),
+	('testing_ztrsv_batched',     batch + '    -L -T -DU  -c',  n,    ''),
 	
 	('testing_ztrsv_batched',     batch + '    -U    -DN  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -U    -DU  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -U -C -DN  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -U -C -DU  -c',  n,    ''),
+	('testing_ztrsv_batched',     batch + '    -U -T -DN  -c',  n,    ''),
+	('testing_ztrsv_batched',     batch + '    -U -T -DU  -c',  n,    ''),
 	
 	# ----- QR
 	('testing_zgeqrf_batched',    batch + '               -c',  mn,   ''),
@@ -1212,12 +1303,20 @@ batched = (
 	
 	('testing_zpotrf_batched',    batch + '         -L    -c2', n,    ''),
 	('#testing_zpotrf_batched',   batch + '         -U    -c2', n,    'upper not implemented'),
-	
+)
+if (opts.batched):
+	tests += batched
+
+
+vbatched = (
 	# ----------
 	# vbatched (BLAS, LU, etc.)
 	
 	# no-trans/conj-trans; there are other combinations with trans
 	('testing_zgemm_vbatched',     batch + '-NN            -c',  mn,   ''),
+	('testing_zgemm_vbatched',     batch + '-NC            -c',  mn,   ''),
+	('testing_zgemm_vbatched',     batch + '-CN            -c',  mn,   ''),
+	('testing_zgemm_vbatched',     batch + '-CC            -c',  mn,   ''),
 	('testing_zgemm_vbatched',     batch + '-NC            -c',  mn,   ''),
 	('testing_zgemm_vbatched',     batch + '-CN            -c',  mn,   ''),
 	('testing_zgemm_vbatched',     batch + '-CC            -c',  mn,   ''),
@@ -1242,45 +1341,65 @@ batched = (
 	('testing_zherk_vbatched',     batch + '         -L -C -c',  nk,   ''),
 	('testing_zherk_vbatched',     batch + '         -U    -c',  nk,   ''),
 	('testing_zherk_vbatched',     batch + '         -U -C -c',  nk,   ''),
+	# real trans
+	('testing_zherk_vbatched',     batch + '         -L -T -c',  nk,   ''),
+	('testing_zherk_vbatched',     batch + '         -U -T -c',  nk,   ''),
 	
 	# lower/upper, no-trans/conj-trans
 	('testing_zher2k_vbatched',    batch + '         -L    -c',  nk,   ''),
 	('testing_zher2k_vbatched',    batch + '         -L -C -c',  nk,   ''),
 	('testing_zher2k_vbatched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zher2k_vbatched',    batch + '         -U -C -c',  nk,   ''),
+	# real trans
+	('testing_zher2k_vbatched',    batch + '         -L -T -c',  nk,   ''),
+	('testing_zher2k_vbatched',    batch + '         -U -T -c',  nk,   ''),
 	
 	# lower/upper, no-trans/conj-trans
 	('testing_zsyrk_vbatched',     batch + '         -L    -c',  nk,   ''),
 	('testing_zsyrk_vbatched',     batch + '         -L -C -c',  nk,   ''),
 	('testing_zsyrk_vbatched',     batch + '         -U    -c',  nk,   ''),
 	('testing_zsyrk_vbatched',     batch + '         -U -C -c',  nk,   ''),
+	# real trans
+	('testing_zsyrk_vbatched',     batch + '         -L -T -c',  nk,   ''),
+	('testing_zsyrk_vbatched',     batch + '         -U -T -c',  nk,   ''),
 	
 	# lower/upper, no-trans/conj-trans
 	('testing_zsyr2k_vbatched',    batch + '         -L    -c',  nk,   ''),
 	('testing_zsyr2k_vbatched',    batch + '         -L -C -c',  nk,   ''),
 	('testing_zsyr2k_vbatched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zsyr2k_vbatched',    batch + '         -U -C -c',  nk,   ''),
+	# real trans
+	('testing_zsyr2k_vbatched',    batch + '         -L -T -c',  nk,   ''),
+	('testing_zsyr2k_vbatched',    batch + '         -U -T -c',  nk,   ''),
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrmm_vbatched',     batch + '-SL -L    -DN  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -L    -DU  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -L -C -DN  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -L -C -DU  -c',  n + wide, ''),
+	('testing_ztrmm_vbatched',     batch + '-SL -L -T -DN  -c',  n + wide, ''),
+	('testing_ztrmm_vbatched',     batch + '-SL -L -T -DU  -c',  n + wide, ''),
 	
 	('testing_ztrmm_vbatched',     batch + '-SL -U    -DN  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -U    -DU  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -U -C -DN  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -U -C -DU  -c',  n + wide, ''),
+	('testing_ztrmm_vbatched',     batch + '-SL -U -T -DN  -c',  n + wide, ''),
+	('testing_ztrmm_vbatched',     batch + '-SL -U -T -DU  -c',  n + wide, ''),
 	
 	('testing_ztrmm_vbatched',     batch + '-SR -L    -DN  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -L    -DU  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -L -C -DN  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -L -C -DU  -c',  n + tall, ''),
+	('testing_ztrmm_vbatched',     batch + '-SR -L -T -DN  -c',  n + tall, ''),
+	('testing_ztrmm_vbatched',     batch + '-SR -L -T -DU  -c',  n + tall, ''),
 	
 	('testing_ztrmm_vbatched',     batch + '-SR -U    -DN  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -U    -DU  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -U -C -DN  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -U -C -DU  -c',  n + tall, ''),
+	('testing_ztrmm_vbatched',     batch + '-SR -U -T -DN  -c',  n + tall, ''),
+	('testing_ztrmm_vbatched',     batch + '-SR -U -T -DU  -c',  n + tall, ''),
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	# out-of-place
@@ -1288,21 +1407,29 @@ batched = (
 	('testing_ztrsm_vbatched',     batch + '-SL -L    -DU  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DN  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DU  -c --version 1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -T -DN  -c --version 1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -T -DU  -c --version 1',  n + wide, ''),
 	
 	('testing_ztrsm_vbatched',     batch + '-SL -U    -DN  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U    -DU  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DN  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DU  -c --version 1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -T -DN  -c --version 1',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -T -DU  -c --version 1',  n + wide, ''),
 	
 	('testing_ztrsm_vbatched',     batch + '-SR -L    -DN  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L    -DU  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DN  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DU  -c --version 1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -T -DN  -c --version 1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -T -DU  -c --version 1',  n + tall, ''),
 	
 	('testing_ztrsm_vbatched',     batch + '-SR -U    -DN  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U    -DU  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DN  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DU  -c --version 1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -T -DN  -c --version 1',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -T -DU  -c --version 1',  n + tall, ''),
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	# in-place
@@ -1310,33 +1437,41 @@ batched = (
 	('testing_ztrsm_vbatched',     batch + '-SL -L    -DU  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DN  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DU  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -T -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -T -DU  -c --version 2',  n + wide, ''),
 	
 	('testing_ztrsm_vbatched',     batch + '-SL -U    -DN  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U    -DU  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DN  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DU  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -T -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -T -DU  -c --version 2',  n + wide, ''),
 	
 	('testing_ztrsm_vbatched',     batch + '-SR -L    -DN  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L    -DU  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DN  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DU  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -T -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -T -DU  -c --version 2',  n + tall, ''),
 	
 	('testing_ztrsm_vbatched',     batch + '-SR -U    -DN  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U    -DU  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DN  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DU  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -T -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -T -DU  -c --version 2',  n + tall, ''),
 	
 	# ----- Cholesky
-	('testing_zpotrf_vbatched',    batch + '         -L    -c2', n,    ''),	
-	('#testing_zposv_vbatched',    batch + '         -U    -c2', n,    'upper not implemented'),
+	##('testing_zpotrf_vbatched',    batch + '         -L    -c2', n,    ''),	
+	##('#testing_zposv_vbatched',    batch + '         -U    -c2', n,    'upper not implemented'),
 )
-if ( opts.batched ):
-	tests += batched
+if (opts.vbatched):
+	tests += vbatched
 
 
 # ----------------------------------------------------------------------
 # select multi-GPU tests
-if ( opts.mgpu ):
+if (opts.mgpu):
 	tests2 = []
 	for test in tests:
 		m1 = re.search( '(_m|_mgpu)$', test[0] )
@@ -1350,12 +1485,12 @@ if ( opts.mgpu ):
 
 # ----------------------------------------------------------------------
 # select non-multi-GPU tests
-if ( opts.no_mgpu ):
+if (opts.no_mgpu):
 	tests2 = []
 	for test in tests:
 		m1 = re.search( '(_m|_mgpu)$', test[0] )
 		m2 = re.search( '--ngpu',      test[1] )
-		if ( not (m1 or m2) ):
+		if (not (m1 or m2)):
 			tests2.append( test )
 	# end
 	tests = tests2
@@ -1430,7 +1565,7 @@ subs = (
 # ----------
 # simple precision generation
 def substitute( txt, pfrom, pto ):
-	if ( pfrom != pto ):
+	if (pfrom != pto):
 		ifrom = precisions.index( pfrom )
 		ito   = precisions.index( pto )
 		for sub in subs:
@@ -1483,40 +1618,34 @@ nerror = 0
 failures = {}
 
 start = None
-if ( opts.start ):
+if (opts.start):
 	start = re.compile( opts.start + r'\b' )
 
 seen  = {}
-pause = 0
 
 global_options = ''
-if ( opts.tol ):
+if (opts.tol):
 	global_options += ' --tol ' + opts.tol + ' '
 
-if ( opts.dev is not None ):
+if (opts.dev is not None):
 	global_options += ' --dev ' + opts.dev + ' '
 
-if ( opts.null_stream ):
-	global_options += ' --null-stream '
-
-if ( int(opts.niter) != 1 ):
+if (int(opts.niter) != 1):
 	global_options += ' --niter ' + opts.niter + ' '
 
 last_cmd = None
 
 for test in tests:
 	(cmd, options, sizes, comments) = test
-	
-	make = False
 	for precision in opts.precisions:
 		# precision generation
 		# in a few cases this doesn't produce a valid tester name (e.g., testing_zcposv_gpu -> posv_gpu)
 		cmdp = substitute( cmd, 'z', precision )
-		if ( not re.match( 'testing_', cmdp )):
+		if (not re.match( 'testing_', cmdp )):
 			continue
 		
 		disabled = (cmdp[0] == '#')
-		if ( disabled ):
+		if (disabled):
 			cmdp = cmdp[1:]
 		
 		# command to run
@@ -1526,9 +1655,9 @@ for test in tests:
 		# command to print on console, lacks sizes
 		cmd_opts = cmdp +' '+ options
 		cmd_opts = re.sub( '  +', ' ', cmd_opts )  # compress spaces
-				
+		
 		# skip tests before start
-		if ( start and not start.search( cmdp )):
+		if (start and not start.search( cmdp )):
 			continue
 		start = None
 		
@@ -1538,21 +1667,18 @@ for test in tests:
 		     or (seen.has_key( cmd_opts )) ):
 			continue
 		# end
-		if ( not os.path.exists( cmdp )):
+		if (not os.path.exists( cmdp )):
 			print >>sys.stderr, cmdp, "doesn't exist (original name: " + cmd + ", precision: " + precision + ")"
 			continue
 		# end
 		seen[ cmd_opts ] = True
 		
-		if ( opts.memcheck ):
+		if (opts.memcheck):
 			cmd_args = 'cuda-memcheck ' + cmd_args
 		
-		go = True
-		while( go ):
-			if pause > 0:
-				time.sleep( pause )
-				pause = 0
-			# end
+		repeat_test = True
+		while repeat_test:
+			repeat_test = False
 			
 			print
 			print '*'*100
@@ -1560,27 +1686,20 @@ for test in tests:
 			print '*'*100
 			sys.stdout.flush()
 			
-			if ( non_interactive ):
-				if ( last_cmd and cmd != last_cmd ):
-					sys.stderr.write( '\n' )
+			if (output_to_file):
+				if (last_cmd and cmd != last_cmd):
+					sys.stderr.write( '\n' )            # to console
 				last_cmd = cmd
-				sys.stderr.write( '%-40s' % cmd_opts )
+				sys.stderr.write( '%-48s' % cmd_opts )  # to console
 				sys.stderr.flush()
 			# end
 			
-			if ( disabled ):
-				if ( comments ):
+			if (disabled):
+				if (comments):
 					sys.stderr.write( '  (disabled: ' + comments + ')\n' )
 				else:
 					sys.stderr.write( '  (disabled)\n' )
-				go = False
-				continue
-			# end
-			
-			if ( make ):
-				m = 'make lib ' + cmdp
-				print m
-				run( m )
+				break
 			# end
 			
 			t = time.time()
@@ -1594,16 +1713,16 @@ for test in tests:
 			nerror += error
 			
 			errmsg = ''
-			if ( fail > 0 ):
+			if (fail > 0):
 				errmsg += '  ** %d tests failed' % (fail)
-			if ( error > 0 ):
+			if (error > 0):
 				errmsg += '  ** %d errors' % (error)
-			if ( status < 0 ):
+			if (status < 0):
 				errmsg += '  ** exit with signal %d' % (-status)
 				nerror += 1  # count crash as an error
 			
-			if ( errmsg != '' ):
-				if ( non_interactive ):
+			if (errmsg != ''):
+				if (output_to_file):
 					sys.stderr.write( errmsg + '\n' )  # to console
 				sys.stdout.write( errmsg + '\n' )  # to file
 				failures[ cmd_opts ] = True
@@ -1611,18 +1730,15 @@ for test in tests:
 				sys.stderr.write( '  ok\n' )
 			# end
 			
-			if ( non_interactive ):
-				# set to sleep a few seconds before next test,
-				# to allow processor to cool off some between tests.
-				pause = min( t, 5. )
-				go = False
-			else:
+			if (opts.interactive):
 				x = raw_input( '[enter to continue; M to make and re-run] ' )
-				if ( x in ('m','M')):
-					make = True
-				else:
-					go = False
-			# endif
+				if (x in ('m','M')):
+					make = 'make ' + cmdp
+					print make
+					run( make )
+					repeat_test = True
+				# end
+			# end
 		# end
 	# end
 # end
@@ -1634,7 +1750,7 @@ msg += '*'*100   + '\n'
 msg += 'summary' + '\n'
 msg += '*'*100   + '\n'
 
-if ( nfail == 0 and nerror == 0 ):
+if (nfail == 0 and nerror == 0):
 	msg += 'all %d tests in %d commands passed!\n' % (nokay, ntest)
 else:
 	msg += '%5d tests in %d commands passed\n' % (nokay, ntest)
@@ -1645,6 +1761,6 @@ else:
 	msg += 'routines with failures:\n    ' + '\n    '.join( f ) + '\n'
 # end
 
-if ( non_interactive ):
+if (output_to_file):
 	sys.stderr.write( msg )  # to console
 sys.stdout.write( msg )  # to file
