@@ -20,9 +20,8 @@
 #include "flops.h"
 #include "magma_v2.h"
 #include "magma_lapack.h"
-#include "testings.h"
-
 #include "magma_operators.h"
+#include "testings.h"
 
 
 // --------------------

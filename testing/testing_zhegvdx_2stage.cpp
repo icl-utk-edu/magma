@@ -23,7 +23,6 @@
 #include "magma_v2.h"
 #include "magma_lapack.h"
 #include "testings.h"
-#include "magma_zbulge.h"
 
 #include "../control/magma_threadsetting.h"  // internal header
 
