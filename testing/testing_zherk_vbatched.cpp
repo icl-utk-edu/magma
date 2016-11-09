@@ -19,10 +19,10 @@
 #include <math.h>
 
 // includes, project
-#include "testings.h"
 #include "flops.h"
 #include "magma_v2.h"
 #include "magma_lapack.h"
+#include "testings.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -57,7 +57,7 @@ int main( int argc, char** argv)
     magmaDoubleComplex **h_C_array;
     magmaDoubleComplex **d_A_array;
     magmaDoubleComplex **d_C_array;
-    magmaDoubleComplex *h_A_tmp, *h_C_tmp;
+    magmaDoubleComplex *h_A_tmp, *h_C_tmp, *h_Cmagma_tmp;
     
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     double alpha = 0.29;
@@ -90,13 +90,10 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_malloc((void**)&d_A_array, batchCount*sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc((void**)&d_C_array, batchCount*sizeof(magmaDoubleComplex*)) );
     
+    // See testing_zgemm about tolerance.
     double eps = lapackf77_dlamch("E");
+    double tol = 3*eps;
     
-    printf("%% If running lapack (option --lapack), MAGMA error is computed\n"
-           "%% relative to CPU BLAS result.\n\n");
-    printf("%% uplo = %s, transA = %s\n",
-           lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA) );
-
     #ifdef COMPLEX
     if (opts.transA == MagmaTrans) {
         opts.transA = MagmaConjTrans;
@@ -104,6 +101,11 @@ int main( int argc, char** argv)
     }
     #endif
     
+    printf("%% If running lapack (option --lapack), MAGMA error is computed\n"
+           "%% relative to CPU BLAS result.\n\n");
+    printf("%% uplo = %s, transA = %s\n",
+           lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA) );
+
     printf("%%              max   max\n");
     printf("%% BatchCount     N     K   MAGMA Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error\n");
     printf("%%=============================================================================\n");
@@ -258,9 +260,10 @@ int main( int argc, char** argv)
             if ( opts.lapack ) {
                 // compute error compared lapack
                 // error = |dC - C| / (gamma_{k+2}|A||A| + gamma_2|Cin|)
-                magma_error = MAGMA_D_ZERO;
+                magma_error = 0;
+                
                 h_C_tmp = h_C;
-                magmaDoubleComplex *h_Cmagma_tmp = h_Cmagma;
+                h_Cmagma_tmp = h_Cmagma;
                 for (int s=0; s < batchCount; s++) {
                     normalize = sqrt(double(h_K[s]+2))*Anorm[s]*Anorm[s] + 2*Cnorm[s];
                     if (normalize == 0)
@@ -275,7 +278,7 @@ int main( int argc, char** argv)
                     h_Cmagma_tmp += h_N[s] * h_ldc[s];
                 }
                 
-                bool okay = (magma_error < 3*eps);
+                bool okay = (magma_error < tol);
                 status += ! okay;
                 printf("  %10lld %5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e  %s\n",
                        (long long) batchCount, (long long) max_N, (long long) max_K,

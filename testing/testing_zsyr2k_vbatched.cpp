@@ -102,7 +102,9 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_malloc((void**)&d_B_array, batchCount*sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc((void**)&d_C_array, batchCount*sizeof(magmaDoubleComplex*)) );
     
+    // See testing_zgemm about tolerance.
     double eps = lapackf77_dlamch("E");
+    double tol = 3*eps;
     
     printf("%% If running lapack (option --lapack), MAGMA error is computed\n"
            "%% relative to CPU BLAS result.\n\n"
@@ -314,7 +316,7 @@ int main( int argc, char** argv)
                     h_Cmagma_tmp += h_N[s] * h_ldc[s];
                 }
                 
-                bool okay = (magma_error < 3*eps);
+                bool okay = (magma_error < tol);
                 status += ! okay;
                 printf("  %10lld %5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e  %s\n",
                        (long long) batchCount, (long long) max_N, (long long) max_K,

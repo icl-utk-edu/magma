@@ -96,7 +96,9 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_malloc((void**)&d_X_array, batchCount*sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc((void**)&d_Y_array, batchCount*sizeof(magmaDoubleComplex*)) );
     
+    // See testing_zgemm about tolerance.
     double eps = lapackf77_dlamch("E");
+    double tol = 3*eps;
     
     printf("%% If running lapack (option --lapack), MAGMA error is computed\n"
            "%% relative to CPU BLAS result.\n\n"
@@ -280,7 +282,7 @@ int main( int argc, char** argv)
                     h_Ymagma_tmp += h_N[s] * h_incy[s];
                 }
 
-                bool okay = (magma_error < 3*eps);
+                bool okay = (magma_error < tol);
                 status += ! okay;
                 printf("  %10lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e  %s\n",
                        (long long) batchCount, (long long) max_N,
@@ -294,10 +296,10 @@ int main( int argc, char** argv)
                        magma_perf,  1000.*magma_time);
             }
             
-            magma_free_cpu( h_A  );
-            magma_free_cpu( h_Y  );
-            magma_free_cpu( h_X  );
-            magma_free_cpu( h_Ymagma  );
+            magma_free_cpu( h_A );
+            magma_free_cpu( h_X );
+            magma_free_cpu( h_Y );
+            magma_free_cpu( h_Ymagma );
 
             magma_free( d_A );
             magma_free( d_X );
@@ -320,9 +322,9 @@ int main( int argc, char** argv)
     magma_free_cpu( Xnorm );
     magma_free_cpu( Ynorm );
 
-    magma_free_cpu( h_A_array  );
-    magma_free_cpu( h_X_array  );
-    magma_free_cpu( h_Y_array  );
+    magma_free_cpu( h_A_array );
+    magma_free_cpu( h_X_array );
+    magma_free_cpu( h_Y_array );
     
     magma_free( d_N );
     magma_free( d_ldda );

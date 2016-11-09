@@ -43,7 +43,7 @@ int main( int argc, char** argv)
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
-    double      work[1], Anorm, magma_err, magma_error;
+    double      work[1], Anorm, error, magma_error;
     magma_int_t status = 0;
     magmaDoubleComplex **h_A_array=NULL, **d_A_array = NULL;
     magma_int_t *dinfo_magma;
@@ -119,6 +119,7 @@ int main( int argc, char** argv)
             magma_setvector(batchCount, sizeof(magmaDoubleComplex*), h_A_array, 1, d_A_array, 1, opts.queue);
             magma_setvector(batchCount, sizeof(magma_int_t), h_N, 1, d_N, 1, opts.queue);
             magma_setvector(batchCount, sizeof(magma_int_t), h_ldda, 1, d_ldda, 1, opts.queue);
+
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
@@ -171,6 +172,7 @@ int main( int argc, char** argv)
                 #endif
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;
+
                 /* =====================================================================
                    Check the result compared to LAPACK
                    =================================================================== */
@@ -189,12 +191,9 @@ int main( int argc, char** argv)
                     magma_int_t Asize = h_lda[s] * h_N[s];
                     Anorm = lapackf77_zlanhe("f", lapack_uplo_const(opts.uplo), &h_N[s], h_A_tmp, &h_lda[s], work);
                     blasf77_zaxpy(&Asize, &c_neg_one, h_A_tmp, &ione, h_R_tmp, &ione);
-                    magma_err = lapackf77_zlanhe("f", lapack_uplo_const(opts.uplo), &h_N[s], h_R_tmp, &h_lda[s], work) / Anorm;
-                    if ( isnan(magma_err) || isinf(magma_err) ) {
-                        magma_error = magma_err;
-                        break;
-                    }
-                    magma_error = max( magma_error, magma_err );
+                    error = lapackf77_zlanhe("f", lapack_uplo_const(opts.uplo), &h_N[s], h_R_tmp, &h_lda[s], work) / Anorm;
+                    magma_error = magma_max_nan( magma_error, error );
+                    
                     h_A_tmp += h_N[s] * h_lda[s];
                     h_R_tmp += h_N[s] * h_lda[s];
                 }
@@ -216,9 +215,11 @@ cleanup:
             magma_free_pinned( h_R );
             magma_free_cpu( h_A );
             magma_free( d_A );
-            if(status==-1) break;
+            if (status == -1)
+                break;
         }
-        if(status==-1) break;
+        if (status == -1)
+            break;
 
         if ( opts.niter > 1 ) {
             printf( "\n" );

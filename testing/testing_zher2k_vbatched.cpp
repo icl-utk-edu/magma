@@ -102,13 +102,9 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_malloc((void**)&d_B_array, batchCount*sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc((void**)&d_C_array, batchCount*sizeof(magmaDoubleComplex*)) );
     
+    // See testing_zgemm about tolerance.
     double eps = lapackf77_dlamch("E");
-    
-    printf("%% If running lapack (option --lapack), MAGMA error is computed\n"
-           "%% relative to CPU BLAS result.\n\n"
-           "%% transA = %s, transB = %s\n",
-           lapack_trans_const(opts.transA),
-           lapack_trans_const(opts.transB));
+    double tol = 3*eps;
     
     #ifdef COMPLEX
     if (opts.transA == MagmaTrans) {
@@ -116,6 +112,12 @@ int main( int argc, char** argv)
         printf("%% WARNING: transA = MagmaTrans changed to MagmaConjTrans\n");
     }
     #endif
+    
+    printf("%% If running lapack (option --lapack), MAGMA error is computed\n"
+           "%% relative to CPU BLAS result.\n\n"
+           "%% uplo = %s, trans = %s\n",
+           lapack_uplo_const(opts.uplo),
+           lapack_trans_const(opts.transA));
     
     printf("%%              max   max\n");
     printf("%% BatchCount     N     K   MAGMA Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error\n");
@@ -235,13 +237,13 @@ int main( int argc, char** argv)
             magmablas_zher2k_vbatched_max_nocheck(opts.uplo, opts.transA, d_N, d_K,
                              alpha, d_A_array, d_ldda,
                                     d_B_array, d_lddb,
-                             beta, d_C_array, d_lddc,
+                             beta,  d_C_array, d_lddc,
                              batchCount, max_N, max_K, opts.queue );
             #else
             magmablas_zher2k_vbatched(opts.uplo, opts.transA, d_N, d_K,
                              alpha, d_A_array, d_ldda,
                                     d_B_array, d_lddb,
-                             beta, d_C_array, d_lddc,
+                             beta,  d_C_array, d_lddc,
                              batchCount, opts.queue );
             #endif
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
@@ -314,7 +316,7 @@ int main( int argc, char** argv)
                     h_Cmagma_tmp += h_N[s] * h_ldc[s];
                 }
                 
-                bool okay = (magma_error < 3*eps);
+                bool okay = (magma_error < tol);
                 status += ! okay;
                 printf("  %10lld %5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e  %s\n",
                        (long long) batchCount, (long long) max_N, (long long) max_K,
