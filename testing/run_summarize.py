@@ -118,6 +118,8 @@ error_regexp = r'exit|memory leak|memory mapping error|CUDA runtime error|illega
 known_regexp = '|'.join((
 	r'geqr2x_gpu.*--version +[24]',
 	r'gegqr_gpu.*--version +[34]',   # N=95, specifically
+	r'hemm_mgpu',                    # tester is broken
+	r'symm_mgpu',                    # tester is broken
 ))
 
 # problem size, possibly with couple words before it, e.g.:
@@ -153,7 +155,7 @@ def find_ok_failed( line ):
 			line = re.sub( r'failed', 'suspect', line )
 			g_suspect = True
 		# end
-	elif ( re.search( r'\b(ok|skipping)\b', line )):
+	elif ( re.search( r'\b(ok|skipping|error check only for)\b', line )):
 		g_okay = True
 	return line
 # end
