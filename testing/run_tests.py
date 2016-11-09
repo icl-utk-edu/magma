@@ -1159,7 +1159,7 @@ if (opts.svd):
 batched = (
 	# ----------
 	# batched (BLAS, LU, etc.)
-	##('testing_zgeadd_batched',    batch + '               -c',  mn,   ''),
+	('testing_zgeadd_batched',    batch + '               -c',  mn,   ''),
 	
 	# no-trans/conj-trans; there are other combinations with trans
 	('testing_zgemm_batched',     batch + '-NN            -c',  mn,   ''),
@@ -1203,7 +1203,7 @@ batched = (
 	('testing_zher2k_batched',    batch + '         -L -T -c',  nk,   ''),
 	('testing_zher2k_batched',    batch + '         -U -T -c',  nk,   ''),
 	
-	##('testing_zlacpy_batched',    batch + '               -c',  mn,   ''),
+	('testing_zlacpy_batched',    batch + '               -c',  mn,   ''),
 	
 	# lower/upper, no-trans/conj-trans
 	('testing_zsyr2k_batched',    batch + '         -L    -c',  nk,   ''),
@@ -1462,8 +1462,8 @@ vbatched = (
 	('testing_ztrsm_vbatched',     batch + '-SR -U -T -DU  -c --version 2',  n + tall, ''),
 	
 	# ----- Cholesky
-	##('testing_zpotrf_vbatched',    batch + '         -L    -c2', n,    ''),	
-	##('#testing_zposv_vbatched',    batch + '         -U    -c2', n,    'upper not implemented'),
+	('testing_zpotrf_vbatched',    batch + '         -L    -c2', n,    ''),	
+	('#testing_zposv_vbatched',    batch + '         -U    -c2', n,    'upper not implemented'),
 )
 if (opts.vbatched):
 	tests += vbatched
@@ -1553,6 +1553,7 @@ precisions = (
 subs = (
 	('',              'testing_dlag2s', '',              'testing_zlag2c'),
 	('',              'testing_dlat2s', '',              'testing_zlat2c'),
+	('ssy',           'dsy',            'ssy',           'dsy'           ),
 	('ssy',           'dsy',            'che',           'zhe'           ),
 	('sor',           'dor',            'cun',           'zun'           ),
 	('sy2sb',         'sy2sb',          'he2hb',         'he2hb'         ),
