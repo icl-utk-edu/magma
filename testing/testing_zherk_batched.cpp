@@ -110,9 +110,9 @@ int main( int argc, char** argv)
             sizeA = lda*Ak*batchCount;
             sizeC = ldc*N*batchCount;
             
-            TESTING_CHECK( magma_zmalloc_cpu( &h_A,  sizeA ));
-            TESTING_CHECK( magma_zmalloc_cpu( &h_C,  sizeC ));
-            TESTING_CHECK( magma_zmalloc_cpu( &h_Cmagma,  sizeC  ));
+            TESTING_CHECK( magma_zmalloc_cpu( &h_A, sizeA ));
+            TESTING_CHECK( magma_zmalloc_cpu( &h_C, sizeC ));
+            TESTING_CHECK( magma_zmalloc_cpu( &h_Cmagma, sizeC ));
             
             TESTING_CHECK( magma_zmalloc( &d_A, ldda*Ak*batchCount ));
             TESTING_CHECK( magma_zmalloc( &d_C, lddc*N*batchCount ));
@@ -127,7 +127,7 @@ int main( int argc, char** argv)
             // Compute norms for error
             for (int s = 0; s < batchCount; ++s) {
                 Anorm[s] = lapackf77_zlange( "F", &An, &Ak, &h_A[s*lda*Ak], &lda, work );
-                Cnorm[s] = safe_lapackf77_zlanhe( "F", lapack_uplo_const(opts.uplo), &N, &h_C[s*lda*N], &ldc, work );
+                Cnorm[s] = safe_lapackf77_zlanhe( "F", lapack_uplo_const(opts.uplo), &N, &h_C[s*ldc*N], &ldc, work );
             }
 
             /* =====================================================================
@@ -143,7 +143,7 @@ int main( int argc, char** argv)
             magmablas_zherk_batched(opts.uplo, opts.transA, N, K,
                              alpha, d_A_array, ldda,
                              beta,  d_C_array, lddc, batchCount, opts.queue);
-                             
+            
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
             

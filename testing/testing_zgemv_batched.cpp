@@ -114,7 +114,7 @@ int main( int argc, char** argv)
             
             // Compute norms for error
             for (int s = 0; s < batchCount; ++s) {
-                Anorm[s] = lapackf77_zlange( "F", &M, &N,     &h_A[s*lda*M],   &lda,  work );
+                Anorm[s] = lapackf77_zlange( "F", &M, &N,     &h_A[s*lda*N],   &lda,  work );
                 Xnorm[s] = lapackf77_zlange( "F", &ione, &Xm, &h_X[s*Xm*incx], &incx, work );
                 Ynorm[s] = lapackf77_zlange( "F", &ione, &Ym, &h_Y[s*Ym*incy], &incy, work );
             }
@@ -215,6 +215,10 @@ int main( int argc, char** argv)
             printf( "\n" );
         }
     }
+
+    magma_free_cpu( Anorm );
+    magma_free_cpu( Xnorm );
+    magma_free_cpu( Ynorm );
 
     opts.cleanup();
     TESTING_CHECK( magma_finalize() );
