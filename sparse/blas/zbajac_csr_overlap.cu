@@ -879,7 +879,7 @@ magma_zbajac_csr_o_ls_kernel64(int localiters, int n,
                 number of sub-matrices
 
     @param[in]
-    matrices    magma_int_t
+    overlap     magma_int_t
                 size of the overlap
                 
     @param[in]
