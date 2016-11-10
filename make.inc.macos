@@ -20,8 +20,8 @@
 # --------------------
 # programs
 
-CC        = /usr/bin/gcc
-CXX       = /usr/bin/g++
+CC        = gcc
+CXX       = g++
 NVCC      = nvcc
 FORT      = gfortran
 
