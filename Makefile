@@ -605,7 +605,7 @@ ifneq ($(have_fpic),)
 	@echo "===== shared library $@"
 	$(CXX) $(LDFLAGS) -shared -o $@ \
 		$^ \
-		$(LIBS)
+		-L./lib $(LIBS)
 	@echo
 
     # Can't add -Llib -lmagma to LIBS, because that would apply to libsparse_so's
@@ -615,7 +615,7 @@ ifneq ($(have_fpic),)
 	@echo "===== shared library $@"
 	$(CXX) $(LDFLAGS) -shared -o $@ \
 		$^ \
-		$(LIBS) -Llib -lmagma
+		-L./lib $(LIBS) -lmagma
 	@echo
 else
     # missing -fPIC: "make shared" prints warning
