@@ -206,6 +206,7 @@ magma_zgetri_outofplace_batched( magma_int_t n,
     magma_queue_sync(queue);
 
     magma_free(dA_displ);
+    magma_free(dW0_displ);
     magma_free(dW1_displ);
     magma_free(dW2_displ);
     magma_free(dW3_displ);
