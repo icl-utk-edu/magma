@@ -309,7 +309,6 @@ magma_zheevx_gpu(
     }
 
     if (MAGMA_SUCCESS != magma_dmalloc( &dwork, n )) {
-        fprintf (stderr, "!!!! device memory allocation error (magma_zheevx_gpu)\n");
         *info = MAGMA_ERR_DEVICE_ALLOC;
         return *info;
     }
@@ -470,6 +469,7 @@ magma_zheevx_gpu(
     work[1] = magma_zmake_lwork( lopt );
     
     magma_queue_destroy( queue );
-    
+    magma_free( dwork );
+
     return *info;
 } /* magma_zheevx_gpu */
