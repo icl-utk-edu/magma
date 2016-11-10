@@ -54,7 +54,7 @@
 #
 #       ./run_tests.py --lu --precision s --small --interactive
 #       ****************************************************************************************************
-#       ./testing_sgesv_gpu -c --range 1:20:1 ...
+#       ./testing_sgesv_gpu -c -n 1:20:1 ...
 #       ****************************************************************************************************
 #           N  NRHS   CPU Gflop/s (sec)   GPU Gflop/s (sec)   ||B - AX|| / N*||A||*||X||
 #       ================================================================================
@@ -66,7 +66,7 @@
 #       [enter to continue; M to make and re-run]
 #
 #       ****************************************************************************************************
-#       ./testing_sgetri_gpu -c --range 1:20:1 ...
+#       ./testing_sgetri_gpu -c -n 1:20:1 ...
 #       ****************************************************************************************************
 #       % MAGMA 1.4.0 svn compiled for CUDA capability >= 3.0
 #       % CUDA runtime 6000, driver 6000. MAGMA not compiled with OpenMP.
@@ -205,7 +205,7 @@
 # The --dev option sets which GPU device to use.
 #
 # By default, a wide range of sizes and shapes (square, tall, wide) are tested,
-# as applicable. The -N and --range options override these.
+# as applicable. The -n option overrides these.
 #
 # For multi-GPU codes, --ngpu specifies the number of GPUs, default 2. Most
 # testers accept --ngpu -1 to test the multi-GPU code on a single GPU.
@@ -237,8 +237,7 @@ parser.add_option(      '--xsmall',     action='store_true', help='run very few,
 parser.add_option('-s', '--small',      action='store_true', help='run small  tests, N < 300')
 parser.add_option('-m', '--medium',     action='store_true', help='run medium tests, N < 1000')
 parser.add_option('-l', '--large',      action='store_true', help='run large  tests, N > 1000')
-parser.add_option('-N',                 action='append',     help='run specific sizes; repeatable', default=[])
-parser.add_option(      '--range',      action='append',     help='run specific sizes; repeatable', default=[])
+parser.add_option('-n', '-N',           action='append',     help='run specific sizes; repeatable', default=[])
 
 # options to specify shapes
 parser.add_option(      '--square',     action='store_true', help='run square tests (M == N)')
@@ -357,8 +356,8 @@ if opts.no_sygv : opts.sygv = False
 if opts.no_geev : opts.geev = False
 if opts.no_svd  : opts.svd  = False
 
-print 'opts', opts
-print 'args', args
+#print 'opts', opts
+#print 'args', args
 
 ngpu  = '--ngpu '  + opts.ngpu  + ' '
 batch = '--batch ' + opts.batch + ' '
@@ -375,42 +374,42 @@ batch = '--batch ' + opts.batch + ' '
 # ----------
 n = ''
 if opts.square and opts.xsmall:
-	n +=  ' --range 32:128:32 --range 25:100:25'
+	n +=  ' -n 32:128:32 -n 25:100:25'
 if opts.square and opts.small:
-	n += (' --range 1:20:1'
-	  +   ' -N  30  -N  31  -N  32  -N  33  -N  34'
-	  +   ' -N  62  -N  63  -N  64  -N  65  -N  66'
-	  +   ' -N  94  -N  95  -N  96  -N  97  -N  98'
-	  +   ' -N 126  -N 127  -N 128  -N 129  -N 130'
-	  +   ' -N 254  -N 255  -N 256  -N 257  -N 258'
+	n += (' -n 1:20:1'
+	  +   ' -n  30  -n  31  -n  32  -n  33  -n  34'
+	  +   ' -n  62  -n  63  -n  64  -n  65  -n  66'
+	  +   ' -n  94  -n  95  -n  96  -n  97  -n  98'
+	  +   ' -n 126  -n 127  -n 128  -n 129  -n 130'
+	  +   ' -n 254  -n 255  -n 256  -n 257  -n 258'
 	)
 if opts.square and opts.medium:
-	n +=  ' -N 510  -N 511  -N 512  -N 513  -N 514 --range 100:900:100'
+	n +=  ' -n 510  -n 511  -n 512  -n 513  -n 514 -n 100:900:100'
 if opts.square and opts.large:
-	n +=  ' --range 1000:4000:1000'
+	n +=  ' -n 1000:4000:1000'
 
 
 # ----------
 # to avoid excessive runtime with large m or n in zunmql, etc., k is set to min(m,n)
 tall = ''
 if opts.tall and opts.small:
-	tall += (' -N 2,1        -N 3,1        -N 4,2'
-	     +   ' -N 20,19      -N 20,10      -N 20,2      -N 20,1'
-	     +   ' -N 200,199    -N 200,100    -N 200,20    -N 200,10    -N 200,1'
+	tall += (' -n 2,1        -n 3,1        -n 4,2'
+	     +   ' -n 20,19      -n 20,10      -n 20,2      -n 20,1'
+	     +   ' -n 200,199    -n 200,100    -n 200,20    -n 200,10    -n 200,1'
 	)
 if opts.tall and opts.medium:
-	tall += (' -N 600,599        -N 600,300'
-	     +   ' -N 600,1,1        -N 600,10,10'
-	     +   ' -N 600,31,31      -N 600,32,32      -N 600,33,33'
-	     +   ' -N 600,63,63      -N 600,64,64      -N 600,65,65'
+	tall += (' -n 600,599        -n 600,300'
+	     +   ' -n 600,1,1        -n 600,10,10'
+	     +   ' -n 600,31,31      -n 600,32,32      -n 600,33,33'
+	     +   ' -n 600,63,63      -n 600,64,64      -n 600,65,65'
 	)
 if opts.tall and opts.large:
-	tall += (' -N 2000,1999      -N 2000,1000'
-	     +   ' -N 20000,1,1      -N 20000,10,10'
-	     +   ' -N 20000,31,31    -N 20000,32,32    -N 20000,33,33'
-	     +   ' -N 20000,63,63    -N 20000,64,64    -N 20000,65,65'
-	     +   ' -N 20000,200,200  -N 20000,100,100  -N 200000,10,10  -N 200000,1,1'
-	     +   ' -N 2000000,10,10  -N 2000000,1,1'
+	tall += (' -n 2000,1999      -n 2000,1000'
+	     +   ' -n 20000,1,1      -n 20000,10,10'
+	     +   ' -n 20000,31,31    -n 20000,32,32    -n 20000,33,33'
+	     +   ' -n 20000,63,63    -n 20000,64,64    -n 20000,65,65'
+	     +   ' -n 20000,200,200  -n 20000,100,100  -n 200000,10,10  -n 200000,1,1'
+	     +   ' -n 2000000,10,10  -n 2000000,1,1'
 	)
 
 
@@ -418,37 +417,37 @@ if opts.tall and opts.large:
 # to avoid excessive runtime with large m or n in zunmql, etc., k is set to min(m,n)
 wide = ''
 if opts.wide and opts.small:
-	wide += (' -N 1,2        -N 1,3        -N 2,4'
-	     +   ' -N 19,20      -N 10,20      -N 2,20      -N 1,20'
-	     +   ' -N 199,200    -N 100,200    -N 20,200    -N 10,200    -N 1,200'
+	wide += (' -n 1,2        -n 1,3        -n 2,4'
+	     +   ' -n 19,20      -n 10,20      -n 2,20      -n 1,20'
+	     +   ' -n 199,200    -n 100,200    -n 20,200    -n 10,200    -n 1,200'
 	)
 if opts.tall and opts.medium:
-	tall += (' -N 599,600        -N 300,600'
-	     +   ' -N 1,600,1        -N 10,600,10'
-	     +   ' -N 31,600,31      -N 32,600,32      -N 33,600,33'
-	     +   ' -N 63,600,63      -N 64,600,64      -N 65,600,65'
+	tall += (' -n 599,600        -n 300,600'
+	     +   ' -n 1,600,1        -n 10,600,10'
+	     +   ' -n 31,600,31      -n 32,600,32      -n 33,600,33'
+	     +   ' -n 63,600,63      -n 64,600,64      -n 65,600,65'
 	)
 if opts.tall and opts.large:
-	tall += (' -N 1999,2000      -N 1000,2000'
-	     +   ' -N 1,20000,1      -N 10,20000,10'
-	     +   ' -N 31,20000,31    -N 32,20000,32    -N 33,20000,33'
-	     +   ' -N 63,20000,63    -N 64,20000,64    -N 65,20000,65'
-	     +   ' -N 200,20000,200  -N 100,20000,100  -N 10,200000,10  -N 1,200000,1'
-	     +   ' -N 10,2000000,10  -N 1,2000000,1'
+	tall += (' -n 1999,2000      -n 1000,2000'
+	     +   ' -n 1,20000,1      -n 10,20000,10'
+	     +   ' -n 31,20000,31    -n 32,20000,32    -n 33,20000,33'
+	     +   ' -n 63,20000,63    -n 64,20000,64    -n 65,20000,65'
+	     +   ' -n 200,20000,200  -n 100,20000,100  -n 10,200000,10  -n 1,200000,1'
+	     +   ' -n 10,2000000,10  -n 1,2000000,1'
 	)
 
 
 # ----------
 mnk = ''
 if opts.mnk and opts.small:
-	mnk  += (' -N 1,2,3           -N 2,1,3           -N 1,3,2           -N 2,3,1           -N 3,1,2           -N 3,2,1'
-	     +   ' -N 10,20,30        -N 20,10,30        -N 10,30,20        -N 20,30,10        -N 30,10,20        -N 30,20,10'
-	     +   ' -N 100,200,300     -N 200,100,300     -N 100,300,200     -N 200,300,100     -N 300,100,200     -N 300,200,100'
+	mnk  += (' -n 1,2,3           -n 2,1,3           -n 1,3,2           -n 2,3,1           -n 3,1,2           -n 3,2,1'
+	     +   ' -n 10,20,30        -n 20,10,30        -n 10,30,20        -n 20,30,10        -n 30,10,20        -n 30,20,10'
+	     +   ' -n 100,200,300     -n 200,100,300     -n 100,300,200     -n 200,300,100     -n 300,100,200     -n 300,200,100'
 	)
 if opts.mnk and opts.medium:
-	mnk  +=  ' -N 100,300,600     -N 300,100,600     -N 100,600,300     -N 300,600,100     -N 600,100,300     -N 600,300,100'
+	mnk  +=  ' -n 100,300,600     -n 300,100,600     -n 100,600,300     -n 300,600,100     -n 600,100,300     -n 600,300,100'
 if opts.mnk and opts.large:
-	mnk  +=  ' -N 1000,2000,3000  -N 2000,1000,3000  -N 1000,3000,2000  -N 2000,3000,1000  -N 3000,1000,2000  -N 3000,2000,1000'
+	mnk  +=  ' -n 1000,2000,3000  -n 2000,1000,3000  -n 1000,3000,2000  -n 2000,3000,1000  -n 3000,1000,2000  -n 3000,2000,1000'
 
 
 # ----------
@@ -458,10 +457,8 @@ mnk    = n + tall + wide + mnk
 
 # ----------
 # specific sizes override everything else
-print 'opts.N', opts.N
-print 'opts.range', opts.range
-if (opts.N or opts.range):
-	n    = ' '.join( map( lambda x: '-N '+x, opts.N ) + map( lambda x: '--range '+x, opts.range ))
+if (opts.n):
+	n    = ' '.join( map( lambda x: '-n '+x, opts.n ))
 	mn   = n
 	mnk  = n
 	tall = ''
@@ -679,7 +676,7 @@ aux = (
 	('testing_zlaset_band',            '-c',  mn,   ''),
 	('testing_zlat2c',                 '-c',  n,    ''),
 	('testing_znan_inf',               '-c',  mn,   ''),
-	('testing_zprint',                 '-c',  '-N 10 -N 5,100 -N 100,5',  ''),
+	('testing_zprint',                 '-c',  '-n 10 -n 5,100 -n 100,5',  ''),
 	
 	# lower/upper
 	('testing_zsymmetrize',  '-L        -c',  n,    ''),
