@@ -771,8 +771,8 @@ void magmablas_ztrsm_work_vbatched(
 
 
 /***************************************************************************//**
-    @see magmablas_ztrsm_work
-    @ingroup magma_zblas3
+    @see magmablas_ztrsm_work_vbatched
+    @ingroup magma_trsm_batched
 *******************************************************************************/
 extern "C"
 void magmablas_ztrsm_vbatched_max_nocheck(

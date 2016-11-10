@@ -607,6 +607,7 @@
             @defgroup magma_qr_aux_batched      Auxiliary routines
             @{
                 @defgroup magma_geqr2_batched   geqr2: QR panel factorization
+                @defgroup magma_geqrf_copy_upper_batched  copy V to R
             @}
         @}
 

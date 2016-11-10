@@ -113,7 +113,7 @@ zswapdblk_batched_kernel( int nb, int n_mod_nb,
     queue   magma_queue_t
             Queue to execute in.
 
-    @ingroup magma_zaux2
+    @ingroup magma_swapdblk
 *******************************************************************************/
 extern "C" void 
 magmablas_zswapdblk_batched(

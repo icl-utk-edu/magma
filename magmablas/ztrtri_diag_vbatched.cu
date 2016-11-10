@@ -74,7 +74,7 @@
     queue   magma_queue_t
             Queue to execute in.
 
-    @ingroup magma_zblas3
+    @ingroup magma_trtri_batched
 *******************************************************************************/
 extern "C" void
 magmablas_ztrtri_diag_vbatched(

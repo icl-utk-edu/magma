@@ -81,7 +81,7 @@ zgeqrf_copy_upper_kernel_batched(
     queue   magma_queue_t
             Queue to execute in.
 
-    @ingroup magma_zgeqrf_aux
+    @ingroup magma_geqrf_copy_upper_batched
 *******************************************************************************/
 void zgeqrf_copy_upper_batched(                
     magma_int_t n, magma_int_t nb,
@@ -90,10 +90,8 @@ void zgeqrf_copy_upper_batched(
     magma_int_t batchCount,
     magma_queue_t queue)
 {
-    /* 
-        copy some data in dV to dR
-    */
-    if ( nb >= n) return;
+    if (nb >= n)
+        return;
     
     zgeqrf_copy_upper_kernel_batched
         <<< batchCount, n, 0, queue->cuda_stream() >>>

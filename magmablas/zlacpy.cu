@@ -553,7 +553,7 @@ magmablas_zlacpy_batched(
     queue   magma_queue_t
             Queue to execute in.
 
-    @ingroup magma_zaux2
+    @ingroup magma_lacpy_batched
 *******************************************************************************/
 extern "C" void
 magmablas_zlacpy_vbatched(
