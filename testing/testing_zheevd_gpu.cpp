@@ -65,20 +65,35 @@ int main( int argc, char** argv)
     magma_range_t range = MagmaRangeAll;
     if (opts.fraction != 1)
         range = MagmaRangeI;
-    
+
+    double tol    = opts.tolerance * lapackf77_dlamch("E");
+    double tolulp = opts.tolerance * lapackf77_dlamch("P");
+
     #ifdef REAL
     if (opts.version == 3 || opts.version == 4) {
         printf("%% magma_zheevr and magma_zheevx not available for real precisions (single, double).\n");
+        status = -1;
         return status;
     }
     #endif
-    
-    double tol    = opts.tolerance * lapackf77_dlamch("E");
-    double tolulp = opts.tolerance * lapackf77_dlamch("P");
-    
-    printf("%% jobz = %s, range = %s, uplo = %s, fraction = %6.4f\n",
+
+    if (opts.version > 4) {
+        fprintf( stderr, "%% error: no version %d, only 1-4.\n", opts.version );
+        status = -1;
+        return status;
+    }
+
+    const char *versions[] = {
+        "dummy",
+        "zheevd_gpu",
+        "zheevdx_gpu",
+        "zheevr_gpu (Complex only)",
+        "zheevx_gpu (Complex only)"
+    };
+
+    printf("%% jobz = %s, range = %s, uplo = %s, fraction = %6.4f, version = %lld (%s)\n",
            lapack_vec_const(opts.jobz), lapack_range_const(range), lapack_uplo_const(opts.uplo),
-           opts.fraction );
+           opts.fraction, (long long)opts.version, versions[opts.version] );
 
     printf("%%   N   CPU Time (sec)   GPU Time (sec)   |S-S_magma|   |A-USU^H|   |I-U^H U|\n");
     printf("%%============================================================================\n");
