@@ -49,6 +49,11 @@ extern std::map< void*, size_t > g_pointers_cpu;
 extern std::map< void*, size_t > g_pointers_pin;
 #endif
 
+// -----------------------------------------------------------------------------
+// prototypes
+extern "C" void
+magma_warn_leaks( const std::map< void*, size_t >& pointers, const char* type );
+
 
 // -----------------------------------------------------------------------------
 // constants
@@ -307,8 +312,8 @@ extern "C" void
 magma_warn_leaks( const std::map< void*, size_t >& pointers, const char* type )
 {
     if ( pointers.size() > 0 ) {
-        fprintf( stderr, "Warning: MAGMA detected memory leak of %lld %s pointers:\n",
-                 pointers.size(), type );
+        fprintf( stderr, "Warning: MAGMA detected memory leak of %llu %s pointers:\n",
+                 (long long unsigned) pointers.size(), type );
         std::map< void*, size_t >::const_iterator iter;
         for( iter = pointers.begin(); iter != pointers.end(); ++iter ) {
             fprintf( stderr, "    pointer %p, size %lu\n", iter->first, iter->second );
