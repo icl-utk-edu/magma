@@ -166,7 +166,7 @@ magma_zgetrf_batched(
     magma_zmalloc( &dinvA, invA_msize * batchCount);
     magma_zmalloc( &dwork, dwork_msize * batchCount );
     magma_malloc((void**)&pivinfo_array, batchCount * sizeof(*pivinfo_array));
-    magma_malloc((void**)&pivinfo, batchCount * m * sizeof(magma_int_t));
+    magma_imalloc( &pivinfo, batchCount*m );
     magma_malloc_cpu((void**) &cpuAarray, batchCount*sizeof(magmaDoubleComplex*));
 
     /* check allocation */

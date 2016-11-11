@@ -58,8 +58,9 @@ magmablas_zhemv_vbatched_nocheck(
     // compute the max. dimensions
     magma_imax_size_1(n, batchCount, queue);
     magma_int_t max_n; 
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount], 1, &max_n, 1, queue);
-    
+    magma_igetvector_async(1, &n[batchCount], 1, &max_n, 1, queue);
+    magma_queue_sync( queue );
+
     magmablas_zhemv_vbatched_max_nocheck( 
             uplo, n, 
             alpha, dA_array, ldda, 
@@ -182,8 +183,9 @@ magmablas_zhemv_vbatched(
     // compute the max. dimensions
     magma_imax_size_1(n, batchCount, queue);
     magma_int_t max_n; 
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount], 1, &max_n, 1, queue);
-    
+    magma_igetvector_async(1, &n[batchCount], 1, &max_n, 1, queue);
+    magma_queue_sync( queue );
+
     magmablas_zhemv_vbatched_max_nocheck( 
             uplo, n, 
             alpha, dA_array, ldda, 

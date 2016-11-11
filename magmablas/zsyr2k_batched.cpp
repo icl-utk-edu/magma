@@ -154,17 +154,17 @@ magmablas_zsyr2k_batched(
     
     if ( uplo != MagmaLower && uplo != MagmaUpper) {
         info = -1; 
-    } else if ( trans != MagmaNoTrans && trans != MagmaTrans) {
+    } else if ( trans != MagmaNoTrans && trans != MagmaConjTrans) {
         info = -2;
     } else if ( n < 0 ) {
         info = -3;
     } else if ( k < 0 ) {
         info = -4;
     } else if ( ((trans == MagmaNoTrans) && ldda < max(1,n)) ||
-                ((trans == MagmaTrans)   && ldda < max(1,k)) ) {
+                ((trans != MagmaNoTrans) && ldda < max(1,k)) ) {
         info = -7;
     } else if ( ((trans == MagmaNoTrans) && lddb < max(1,n)) ||
-                ((trans == MagmaTrans)   && lddb < max(1,k)) ) {
+                ((trans != MagmaNoTrans) && lddb < max(1,k)) ) {
         info = -9;
     } else if ( lddc < max(1,n) ) {
         info = -12;
@@ -188,7 +188,7 @@ magmablas_zsyr2k_batched(
         magmablas_zsyrk_internal_batched(uplo, MagmaNoTrans, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc, batchCount, queue );
         magmablas_zsyrk_internal_batched(uplo, MagmaNoTrans, n, k, alpha, dB_array, lddb, dA_array, ldda, c_one, dC_array, lddc, batchCount, queue );    
     }else{
-        magmablas_zsyrk_internal_batched(uplo, MagmaTrans, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc, batchCount, queue );
-        magmablas_zsyrk_internal_batched(uplo, MagmaTrans, n, k, alpha, dB_array, lddb, dA_array, ldda, c_one, dC_array, lddc, batchCount, queue );
+        magmablas_zsyrk_internal_batched(uplo, MagmaConjTrans, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc, batchCount, queue );
+        magmablas_zsyrk_internal_batched(uplo, MagmaConjTrans, n, k, alpha, dB_array, lddb, dA_array, ldda, c_one, dC_array, lddc, batchCount, queue );
     }
 }

@@ -224,7 +224,7 @@ magmablas_dsyrk_batched(
     magma_int_t info = 0;
     if      ( uplo != MagmaUpper && uplo != MagmaLower )
         info = -1;
-    else if ( trans != MagmaNoTrans && trans != MagmaTrans )
+    else if ( trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans )
         info = -2;
     else if ( n < 0 )
         info = -3;

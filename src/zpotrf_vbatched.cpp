@@ -42,16 +42,16 @@ magma_zpotrf_lg_vbatched(
     magma_int_t *dwork_batch_offset = NULL;
     magma_int_t *ncpu = NULL;
     magma_int_t *lda = NULL; 
-    magma_malloc((void**)&njvec,  batchCount * sizeof(magma_int_t) );
-    magma_malloc((void**)&ibvec, batchCount * sizeof(magma_int_t) );
-    magma_malloc((void**)&dinvA_lvec, batchCount * sizeof(magma_int_t) );
-    magma_malloc((void**)&dwork_lvec, batchCount * sizeof(magma_int_t) );
-    magma_malloc((void**)&dw_aux, batchCount * sizeof(magma_int_t) );
-    magma_malloc((void**)&jibvec, batchCount * sizeof(magma_int_t) );
-    magma_malloc((void**)&dinvA_batch_offset, batchCount * sizeof(magma_int_t) );
-    magma_malloc((void**)&dwork_batch_offset, batchCount * sizeof(magma_int_t) );
-    magma_malloc_cpu((void**)&lda, batchCount * sizeof(magma_int_t) );
-    magma_malloc_cpu((void**)&ncpu,  batchCount * sizeof(magma_int_t) ); 
+    magma_imalloc( &njvec,  batchCount );
+    magma_imalloc( &ibvec, batchCount );
+    magma_imalloc( &dinvA_lvec, batchCount );
+    magma_imalloc( &dwork_lvec, batchCount );
+    magma_imalloc( &dw_aux, batchCount );
+    magma_imalloc( &jibvec, batchCount );
+    magma_imalloc( &dinvA_batch_offset, batchCount );
+    magma_imalloc( &dwork_batch_offset, batchCount );
+    magma_imalloc_cpu( &lda, batchCount );
+    magma_imalloc_cpu( &ncpu,  batchCount ); 
    
     magmaDoubleComplex **dA_displ    = NULL;
     magmaDoubleComplex **dW0_displ   = NULL;
