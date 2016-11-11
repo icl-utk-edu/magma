@@ -208,7 +208,7 @@ void magmablas_ztrsm_outofplace_vbatched(
 
     // need 4 temp buffers for dimensions, make one allocation and use offsets
     magma_int_t* tmp; 
-    magma_malloc( (void**)&tmp, 4 * batchCount * sizeof(magma_int_t) );
+    magma_imalloc( &tmp, 4 * batchCount );
     
     magma_int_t* tri_nb_vec = tmp;
     magma_int_t* jbv        = tri_nb_vec + batchCount;         
@@ -803,10 +803,10 @@ void magmablas_ztrsm_vbatched_max_nocheck(
     magma_int_t *size_dinvA_array  = NULL;
     magma_int_t *tmp = NULL;
     
-    magma_malloc((void**)&size_dinvA_array, batchCount * sizeof(magma_int_t));
+    magma_imalloc( &size_dinvA_array, batchCount );
     
     // some tmp workspaces
-    magma_malloc((void**)&tmp, 2 * batchCount * sizeof(magma_int_t));
+    magma_imalloc( &tmp, 2*batchCount );
     magma_int_t *w1 = tmp;
     magma_int_t *w2 = w1 + batchCount; 
     

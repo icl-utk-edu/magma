@@ -58,24 +58,24 @@ magma_gemm_vbatched_checker(
     magma_int_t k_err = 0, lddc_err = 0;
     
     // Assume no error
-    magma_setvector(1, sizeof(magma_int_t), &m_err   , 1, &m[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &k_err   , 1, &k[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddb_err, 1, &lddb[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddc_err, 1, &lddc[batchCount], 1, queue);
+    magma_isetvector_async(1, &m_err   , 1, &m[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &k_err   , 1, &k[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddb_err, 1, &lddb[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddc_err, 1, &lddc[batchCount], 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     gemm_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(transA, transB, m, n, k, ldda, lddb, lddc, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &m[batchCount]   , 1, &m_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &k[batchCount]   , 1, &k_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddb[batchCount], 1, &lddb_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddc[batchCount], 1, &lddc_err, 1, queue);
+    magma_igetvector_async(1, &m[batchCount]   , 1, &m_err   , 1, queue);
+    magma_igetvector_async(1, &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_igetvector_async(1, &k[batchCount]   , 1, &k_err   , 1, queue);
+    magma_igetvector_async(1, &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_igetvector_async(1, &lddb[batchCount], 1, &lddb_err, 1, queue);
+    magma_igetvector_async(1, &lddc[batchCount], 1, &lddc_err, 1, queue);
     magma_queue_sync( queue );
     
     if      ( transA != MagmaNoTrans && transA != MagmaTrans && transA != MagmaConjTrans )
@@ -143,20 +143,20 @@ magma_trsm_vbatched_checker(
     magma_int_t n_err = 0, lddb_err = 0;
     
     // Assume no error
-    magma_setvector(1, sizeof(magma_int_t), &m_err   , 1, &m[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddb_err, 1, &lddb[batchCount], 1, queue);
+    magma_isetvector_async(1, &m_err   , 1, &m[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddb_err, 1, &lddb[batchCount], 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     trsm_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(side, m, n, ldda, lddb, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &m[batchCount]   , 1, &m_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddb[batchCount], 1, &lddb_err, 1, queue);
+    magma_igetvector_async(1, &m[batchCount]   , 1, &m_err   , 1, queue);
+    magma_igetvector_async(1, &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_igetvector_async(1, &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_igetvector_async(1, &lddb[batchCount], 1, &lddb_err, 1, queue);
     magma_queue_sync( queue );
     
     if ( side != MagmaLeft && side != MagmaRight ) 
@@ -226,26 +226,26 @@ magma_syrk_vbatched_checker(
     magma_int_t k_err = 0, lddc_err = 0;
     
     // Assume no error
-    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &k_err   , 1, &k[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddc_err, 1, &lddc[batchCount], 1, queue);
+    magma_isetvector_async(1, &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &k_err   , 1, &k[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddc_err, 1, &lddc[batchCount], 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     herk_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(trans, n, k, ldda, lddc, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &k[batchCount]   , 1, &k_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddc[batchCount], 1, &lddc_err, 1, queue);
+    magma_igetvector_async(1, &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_igetvector_async(1, &k[batchCount]   , 1, &k_err   , 1, queue);
+    magma_igetvector_async(1, &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_igetvector_async(1, &lddc[batchCount], 1, &lddc_err, 1, queue);
     magma_queue_sync( queue );
     
     if      ( uplo != MagmaUpper && uplo != MagmaLower )
         info = -1;
     else if ( ( complex == 0 && (trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans) ) || 
-              ( complex == 1 && (trans != MagmaNoTrans && trans != MagmaTrans                           ) )
+              ( complex == 1 && (trans != MagmaNoTrans && trans != MagmaConjTrans) )
             )
         info = -2;
     else if ( n_err < 0 )
@@ -277,20 +277,20 @@ magma_herk_vbatched_checker(
     magma_int_t n_err = 0, ldda_err = 0;
     magma_int_t k_err = 0, lddc_err = 0;
     
-    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &k_err   , 1, &k[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddc_err, 1, &lddc[batchCount], 1, queue);
+    magma_isetvector_async(1, &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &k_err   , 1, &k[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddc_err, 1, &lddc[batchCount], 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     herk_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(trans, n, k, ldda, lddc, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &k[batchCount]   , 1, &k_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddc[batchCount], 1, &lddc_err, 1, queue);
+    magma_igetvector_async(1, &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_igetvector_async(1, &k[batchCount]   , 1, &k_err   , 1, queue);
+    magma_igetvector_async(1, &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_igetvector_async(1, &lddc[batchCount], 1, &lddc_err, 1, queue);
     magma_queue_sync( queue );
     
     if      ( uplo != MagmaUpper && uplo != MagmaLower )
@@ -358,28 +358,28 @@ magma_syr2k_vbatched_checker(
     magma_int_t ldda_err = 0, lddb_err = 0, lddc_err = 0;
     
     // Assume no error
-    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &k_err   , 1, &k[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddb_err, 1, &lddb[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddc_err, 1, &lddc[batchCount], 1, queue);
+    magma_isetvector_async(1, &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &k_err   , 1, &k[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddb_err, 1, &lddb[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddc_err, 1, &lddc[batchCount], 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     her2k_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(trans, n, k, ldda, lddb, lddc, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &k[batchCount]   , 1, &k_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddb[batchCount], 1, &lddb_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddc[batchCount], 1, &lddc_err, 1, queue);
+    magma_igetvector_async(1, &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_igetvector_async(1, &k[batchCount]   , 1, &k_err   , 1, queue);
+    magma_igetvector_async(1, &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_igetvector_async(1, &lddb[batchCount], 1, &lddb_err, 1, queue);
+    magma_igetvector_async(1, &lddc[batchCount], 1, &lddc_err, 1, queue);
     magma_queue_sync( queue );
     
     if      ( uplo != MagmaUpper && uplo != MagmaLower )
         info = -1;
     else if ( ( complex == 0 && (trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans) ) || 
-              ( complex == 1 && (trans != MagmaNoTrans && trans != MagmaTrans                           ) )
+              ( complex == 1 && (trans != MagmaNoTrans && trans != MagmaConjTrans                           ) )
             )
         info = -2;
     else if ( n_err < 0 )
@@ -414,22 +414,22 @@ magma_her2k_vbatched_checker(
     magma_int_t ldda_err = 0, lddb_err = 0, lddc_err = 0;
     
     // assume no error
-    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &k_err   , 1, &k[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddb_err, 1, &lddb[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddc_err, 1, &lddc[batchCount], 1, queue);
+    magma_isetvector_async(1, &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &k_err   , 1, &k[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddb_err, 1, &lddb[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddc_err, 1, &lddc[batchCount], 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     her2k_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(trans, n, k, ldda, lddb, lddc, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &k[batchCount]   , 1, &k_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddb[batchCount], 1, &lddb_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddc[batchCount], 1, &lddc_err, 1, queue);
+    magma_igetvector_async(1, &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_igetvector_async(1, &k[batchCount]   , 1, &k_err   , 1, queue);
+    magma_igetvector_async(1, &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_igetvector_async(1, &lddb[batchCount], 1, &lddb_err, 1, queue);
+    magma_igetvector_async(1, &lddc[batchCount], 1, &lddc_err, 1, queue);
     magma_queue_sync( queue );
     
     if      ( uplo != MagmaUpper && uplo != MagmaLower )
@@ -498,22 +498,22 @@ magma_hemm_vbatched_checker(
     magma_int_t ldda_err = 0, lddb_err = 0, lddc_err = 0;
     
     // Assume no error
-    magma_setvector(1, sizeof(magma_int_t), &m_err   , 1, &m[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddb_err, 1, &lddb[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddc_err, 1, &lddc[batchCount], 1, queue);
+    magma_isetvector_async(1, &m_err   , 1, &m[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddb_err, 1, &lddb[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddc_err, 1, &lddc[batchCount], 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     hemm_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(side, m, n, ldda, lddb, lddc, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &m[batchCount]   , 1, &m_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddb[batchCount], 1, &lddb_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddc[batchCount], 1, &lddc_err, 1, queue);
+    magma_igetvector_async(1, &m[batchCount]   , 1, &m_err   , 1, queue);
+    magma_igetvector_async(1, &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_igetvector_async(1, &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_igetvector_async(1, &lddb[batchCount], 1, &lddb_err, 1, queue);
+    magma_igetvector_async(1, &lddc[batchCount], 1, &lddc_err, 1, queue);
     magma_queue_sync( queue );
     
     if ( side != MagmaLeft && side != MagmaRight )
@@ -582,22 +582,22 @@ magma_gemv_vbatched_checker(
     magma_int_t incx_err = 0, incy_err = 0;
     
     // assume no error
-    magma_setvector(1, sizeof(magma_int_t), &m_err   , 1, &m[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &incx_err, 1, &incx[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &incy_err, 1, &incy[batchCount], 1, queue);
+    magma_isetvector_async(1, &m_err   , 1, &m[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_isetvector_async(1, &incx_err, 1, &incx[batchCount], 1, queue);
+    magma_isetvector_async(1, &incy_err, 1, &incy[batchCount], 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     gemv_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(trans , m, n, ldda, incx, incy, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &m[batchCount]   , 1, &m_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &incx[batchCount], 1, &incx_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &incy[batchCount], 1, &incy_err, 1, queue);
+    magma_igetvector_async(1, &m[batchCount]   , 1, &m_err   , 1, queue);
+    magma_igetvector_async(1, &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_igetvector_async(1, &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_igetvector_async(1, &incx[batchCount], 1, &incx_err, 1, queue);
+    magma_igetvector_async(1, &incy[batchCount], 1, &incy_err, 1, queue);
     magma_queue_sync( queue );
     
     if      ( trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans )
@@ -657,20 +657,20 @@ magma_hemv_vbatched_checker(
     magma_int_t incx_err = 0, incy_err = 0;
     
     // assume no error
-    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &incx_err, 1, &incx[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &incy_err, 1, &incy[batchCount], 1, queue);
+    magma_isetvector_async(1, &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_isetvector_async(1, &incx_err, 1, &incx[batchCount], 1, queue);
+    magma_isetvector_async(1, &incy_err, 1, &incy[batchCount], 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     hemv_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(uplo , n, ldda, incx, incy, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &incx[batchCount], 1, &incx_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &incy[batchCount], 1, &incy_err, 1, queue);
+    magma_igetvector_async(1, &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_igetvector_async(1, &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_igetvector_async(1, &incx[batchCount], 1, &incx_err, 1, queue);
+    magma_igetvector_async(1, &incy[batchCount], 1, &incy_err, 1, queue);
     magma_queue_sync( queue );
     
     if      ( uplo != MagmaLower && uplo != MagmaUpper )
@@ -725,18 +725,18 @@ magma_axpy_vbatched_checker(
     magma_int_t n_err = 0, incx_err = 0, incy_err = 0; 
         
     // assume no error
-    magma_setvector(1, sizeof(magma_int_t), &n_err    , 1, &n[batchCount]    , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &incx_err , 1, &incx[batchCount] , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &incy_err , 1, &incy[batchCount] , 1, queue);
+    magma_isetvector_async(1, &n_err    , 1, &n[batchCount]    , 1, queue);
+    magma_isetvector_async(1, &incx_err , 1, &incx[batchCount] , 1, queue);
+    magma_isetvector_async(1, &incy_err , 1, &incy[batchCount] , 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     axpy_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(n, incx, incy, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]    , 1, &n_err    , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &incx[batchCount] , 1, &incx_err , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &incy[batchCount] , 1, &incy_err , 1, queue);
+    magma_igetvector_async(1, &n[batchCount]    , 1, &n_err    , 1, queue);
+    magma_igetvector_async(1, &incx[batchCount] , 1, &incx_err , 1, queue);
+    magma_igetvector_async(1, &incy[batchCount] , 1, &incy_err , 1, queue);
     magma_queue_sync( queue );
     
     if      ( n_err < 0 )
@@ -794,20 +794,20 @@ magma_trmm_vbatched_checker(
     magma_int_t n_err = 0, lddb_err = 0;
     
     // Assume no error
-    magma_setvector(1, sizeof(magma_int_t), &m_err   , 1, &m[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &lddb_err, 1, &lddb[batchCount], 1, queue);
+    magma_isetvector_async(1, &m_err   , 1, &m[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_isetvector_async(1, &lddb_err, 1, &lddb[batchCount], 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     trmm_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(side, m, n, ldda, lddb, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &m[batchCount]   , 1, &m_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &lddb[batchCount], 1, &lddb_err, 1, queue);
+    magma_igetvector_async(1, &m[batchCount]   , 1, &m_err   , 1, queue);
+    magma_igetvector_async(1, &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_igetvector_async(1, &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_igetvector_async(1, &lddb[batchCount], 1, &lddb_err, 1, queue);
     magma_queue_sync( queue );
     
     
@@ -867,16 +867,16 @@ magma_potrf_vbatched_checker(
     magma_int_t ldda_err = 0; 
     
     // assume no error
-    magma_setvector(1, sizeof(magma_int_t), &n_err   , 1, &n[batchCount]   , 1, queue);
-    magma_setvector(1, sizeof(magma_int_t), &ldda_err, 1, &ldda[batchCount], 1, queue);
+    magma_isetvector_async(1, &n_err   , 1, &n[batchCount]   , 1, queue);
+    magma_isetvector_async(1, &ldda_err, 1, &ldda[batchCount], 1, queue);
     
     // launch the checker kernel
     dim3 grid( magma_ceildiv(batchCount, CHECKER_TX), 1, 1 );
     dim3 threads( CHECKER_TX, 1, 1 );
     potrf_vbatched_checker<<< grid, threads, 0, queue->cuda_stream() >>>(uplo , n, ldda, batchCount);
     
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount]   , 1, &n_err   , 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &ldda[batchCount], 1, &ldda_err, 1, queue);
+    magma_igetvector_async(1, &n[batchCount]   , 1, &n_err   , 1, queue);
+    magma_igetvector_async(1, &ldda[batchCount], 1, &ldda_err, 1, queue);
     magma_queue_sync( queue );
     
     if      ( uplo != MagmaLower && uplo != MagmaUpper )

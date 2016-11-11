@@ -100,8 +100,8 @@ magmablas_ztrtri_diag_vbatched(
     
     // allocate temp buffers for dimensions
     magma_int_t *mm, *nn;
-    magma_malloc( (void**)&mm, batchCount * sizeof(magma_int_t) );
-    magma_malloc( (void**)&nn, batchCount * sizeof(magma_int_t) );
+    magma_imalloc( &mm, batchCount );
+    magma_imalloc( &nn, batchCount );
     
     int nblocks = magma_ceildiv( nmax, IB );
 

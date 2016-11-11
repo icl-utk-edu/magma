@@ -31,7 +31,7 @@ magma_zpotrf_panel_vbatched(
 {
     magma_int_t arginfo = 0;
     magma_int_t *n_minus_ib;
-    magma_malloc( (void**)&n_minus_ib, batchCount * sizeof(magma_int_t) );
+    magma_imalloc( &n_minus_ib, batchCount );
     arginfo = magma_zpotf2_vbatched(
                        uplo, ibvec, nb,
                        dA_array, ldda,

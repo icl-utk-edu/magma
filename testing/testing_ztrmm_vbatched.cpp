@@ -61,15 +61,15 @@ int main( int argc, char** argv)
     opts.lapack |= opts.check;  // check (-c) implies lapack (-l)
     magma_int_t batchCount = opts.batchcount;
     
-    TESTING_CHECK( magma_malloc_cpu((void**)&h_M,    batchCount*sizeof(magma_int_t)) );
-    TESTING_CHECK( magma_malloc_cpu((void**)&h_N,    batchCount*sizeof(magma_int_t)) );
-    TESTING_CHECK( magma_malloc_cpu((void**)&h_ldda, batchCount*sizeof(magma_int_t)) );
-    TESTING_CHECK( magma_malloc_cpu((void**)&h_lddb, batchCount*sizeof(magma_int_t)) );
+    TESTING_CHECK( magma_imalloc_cpu( &h_M,    batchCount) );
+    TESTING_CHECK( magma_imalloc_cpu( &h_N,    batchCount) );
+    TESTING_CHECK( magma_imalloc_cpu( &h_ldda, batchCount) );
+    TESTING_CHECK( magma_imalloc_cpu( &h_lddb, batchCount) );
     
-    TESTING_CHECK( magma_malloc((void**)&d_M,    (batchCount+1)*sizeof(magma_int_t)) );
-    TESTING_CHECK( magma_malloc((void**)&d_N,    (batchCount+1)*sizeof(magma_int_t)) );
-    TESTING_CHECK( magma_malloc((void**)&d_ldda, (batchCount+1)*sizeof(magma_int_t)) );
-    TESTING_CHECK( magma_malloc((void**)&d_lddb, (batchCount+1)*sizeof(magma_int_t)) );
+    TESTING_CHECK( magma_imalloc( &d_M,    (batchCount+1)) );
+    TESTING_CHECK( magma_imalloc( &d_N,    (batchCount+1)) );
+    TESTING_CHECK( magma_imalloc( &d_ldda, (batchCount+1)) );
+    TESTING_CHECK( magma_imalloc( &d_lddb, (batchCount+1)) );
     
     double *Anorm, *Bnorm;
     TESTING_CHECK( magma_dmalloc_cpu( &Anorm, batchCount ));

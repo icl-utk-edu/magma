@@ -18,6 +18,7 @@
 #include "commonblas_z.h"
 
 #define PRECISION_z
+#define COMPLEX
 
 /***************************************************************************//**
     Purpose
@@ -155,17 +156,21 @@ magmablas_zher2k_batched(
     
     if ( uplo != MagmaLower && uplo != MagmaUpper) {
         info = -1; 
-    } else if ( trans != MagmaNoTrans && trans != Magma_ConjTrans) {
+    #ifdef COMPLEX
+    } else if ( trans != MagmaNoTrans && trans != MagmaConjTrans) {
+    #else
+    } else if ( trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans) {
+    #endif
         info = -2;
     } else if ( n < 0 ) {
         info = -3;
     } else if ( k < 0 ) {
         info = -4;
-    } else if ( ((trans == MagmaNoTrans)    && ldda < max(1,n)) ||
-                ((trans == Magma_ConjTrans) && ldda < max(1,k)) ) {
+    } else if ( ((trans == MagmaNoTrans) && ldda < max(1,n)) ||
+                ((trans != MagmaNoTrans) && ldda < max(1,k)) ) {
         info = -7;
-    } else if ( ((trans == MagmaNoTrans)    && lddb < max(1,n)) ||
-                ((trans == Magma_ConjTrans) && lddb < max(1,k)) ) {
+    } else if ( ((trans == MagmaNoTrans) && lddb < max(1,n)) ||
+                ((trans != MagmaNoTrans) && lddb < max(1,k)) ) {
         info = -9;
     } else if ( lddc < max(1,n) ) {
         info = -12;
