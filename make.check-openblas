@@ -3,7 +3,7 @@
 # this assumes LAPACK is part of OpenBLAS library.
 
 ifeq ($(OPENBLASDIR),)
-$(error Set $$OPENBLASDIR, preferably in your environment, e.g., run "export OPENBLASDIR=/opt/openblas" in ~/.bashrc, or "setenv OPENBLASDIR /opt/atlas" in ~/.cshrc)
+$(error Set $$OPENBLASDIR, preferably in your environment, e.g., run "export OPENBLASDIR=/opt/openblas" in ~/.bashrc, or "setenv OPENBLASDIR /opt/openblas" in ~/.cshrc)
 endif
 
 ifeq ($(wildcard $(OPENBLASDIR)),)
