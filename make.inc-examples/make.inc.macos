@@ -35,7 +35,6 @@ RANLIB    = ranlib
 
 # use -m32 to compile with 32-bit long & pointers.
 # use -m64 to compile with 64-bit long & pointers (lp64). int is still 32-bit.
-# add -DNDEBUG to disable asserts and certain error checks.
 #
 # MacOS veclib has a bug where some single precision functions return
 # a double precision result, for instance slange.
@@ -51,11 +50,11 @@ FPIC      = -fPIC
 
 # Apple's clang compiler doesn't have OpenMP
 # gcc/g++/gfortran with OpenMP is available from http://hpc.sourceforge.net/
-# Add -fopenmp to CFLAGS and LDFLAGS as in make.inc.mkl-gcc
-CFLAGS    = -m64 -O3 $(FPIC) -DADD_ -Wall -Wshadow -DMAGMA_NOAFFINITY
-FFLAGS    = -m64 -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
-F90FLAGS  = -m64 -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-NVCCFLAGS = -m64 -O3         -DADD_       -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+# Add -fopenmp to CFLAGS and LDFLAGS as in make.inc.macos-openmp
+CFLAGS    = -m64 -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wshadow -DMAGMA_NOAFFINITY
+FFLAGS    = -m64 -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
+F90FLAGS  = -m64 -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
+NVCCFLAGS = -m64 -O3         -DNDEBUG -DADD_       -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
 LDFLAGS   = -m64     $(FPIC)
 
 # Options to do extra checks for non-standard things like variable length arrays;

@@ -7,11 +7,10 @@ MAGMA README FILE
 ----------------------------------------------------------------------------
 * Configuring MAGMA
 
-    Modify the make.inc file to indicate your C/C++ compiler,
-    Fortran compiler, and where CUDA, CPU BLAS, and LAPACK are installed on your
-    system. Examples are given in make.inc.acml, make.inc.atlas, make.inc.macos,
-    make.inc.mkl-*, make.inc.openblas showing how to link to ACML, ATLAS, MacOS
-    veclib, MKL, and OpenBLAS, respectively.
+    Create a make.inc file to indicate your C/C++ compiler, Fortran compiler,
+    and where CUDA, CPU BLAS, and LAPACK are installed on your system.
+    Examples are given in the make.inc-examples directory for various
+    libraries and operating systems.
 
 ----------------------------------------------------------------------------
 * Library paths
@@ -25,10 +24,10 @@ MAGMA README FILE
 
     The MKL make.inc files assume $MKLROOT is set in your environment.
     For bash (sh), put in ~/.bashrc (with your system's path):
-        source /opt/intel/composerxe/mkl/bin/mklvars.sh intel64
+        source /opt/intel/composerxe/bin/compilervars.sh intel64
     For csh/tcsh, put in ~/.cshrc:
-        source /opt/intel/composerxe/mkl/bin/mklvars.csh intel64
-    MAGMA is tested with MKL 11.2.3 (2015), both LP64 and ILP64;
+        source /opt/intel/composerxe/bin/compilervars.csh intel64
+    MAGMA is tested with MKL 11.3.3 (2016), both LP64 and ILP64;
     other versions may work.
 
     The ACML make.inc file assumes $ACMLDIR is set in your environment.
@@ -54,6 +53,7 @@ MAGMA README FILE
         export OPENBLASDIR=/opt/openblas
     For csh/tcsh, put in ~/.cshrc:
         setenv OPENBLASDIR /opt/openblas
+    Some bugs exist with OpenBLAS 0.2.19; see BUGS.txt.
 
 ----------------------------------------------------------------------------
 * Linking to BLAS
@@ -127,7 +127,8 @@ MAGMA README FILE
     or
         make lib
         make test
-        make sparse
+        make sparse-lib
+        make sparse-test
     will create shared libraries:
         lib/libmagma.so
         lib/libmagma_sparse.so
@@ -148,7 +149,8 @@ MAGMA README FILE
     or
         make lib
         make test
-        make sparse
+        make sparse-lib
+        make sparse-test
     will create static libraries:
         lib/libmagma.a
         lib/libmagma_sparse.a

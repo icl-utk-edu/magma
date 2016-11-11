@@ -27,7 +27,7 @@ my @files2delete = qw(
     
     include/Makefile
     make.inc
-    make.inc.ig.pgi
+    make.inc-examples/make.inc.ig.pgi
     scripts
 
     sparse/python
@@ -47,10 +47,8 @@ my @files2delete = qw(
 
     tools/MakeMagmaRelease.pl
     tools/checklist.csh
-    tools/checklist_builds.sh
     tools/checklist_ceildiv.pl
     tools/compare_prototypes.pl
-    tools/find_obj_files.sh
     tools/fortran_wrappers.pl
     tools/magmasubs.pyc
     tools/parse-magma.py

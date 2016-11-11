@@ -35,12 +35,9 @@ RANLIB    = ranlib
 
 # Use -fPIC to make shared (.so) and static (.a) library;
 # can be commented out if making only static library.
-##
-## Our ATLAS installation has only static libraries, and one can't
-## build a shared library against a static library, so disable FPIC.
-##FPIC      = -fPIC
+FPIC      = -fPIC
 
-CFLAGS    = -O3 $(FPIC) -DADD_ -Wall -fopenmp 
+CFLAGS    = -O3 $(FPIC) -DADD_ -Wall -fopenmp -DDEBUG_MEMORY
 FFLAGS    = -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS  = -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
 NVCCFLAGS = -O3         -DADD_       -Xcompiler "$(FPIC)"
@@ -54,13 +51,8 @@ CFLAGS   += -std=c99
 # --------------------
 # libraries
 
-# MAGMA no longer needs -lcblas
-# Depending on how ATLAS and LAPACK were compiled, you may need one or more of:
-# -lsvml -lifcore -ldl -lf2c -lgfortran
-# SVML is Intel's short vector math library
-# ifcore is for Intel ifort Fortran
-# gfortran is for GNU gfortran Fortran
-LIB       = -llapack -lf77blas -latlas -lstdc++ -lsvml -lgfortran -lifcore -lm
+# gcc with OpenBLAS (includes LAPACK)
+LIB       = -lopenblas
 
 LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 
@@ -69,14 +61,12 @@ LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 # directories
 
 # define library directories preferably in your environment, or here.
-#LAPACKDIR ?= /opt/lapack
-#ATLASDIR  ?= /opt/atlas
-#CUDADIR   ?= /usr/local/cuda
--include make.check-atlas
+#OPENBLASDIR ?= /usr/local/openblas
+#CUDADIR ?= /usr/local/cuda
+-include make.check-openblas
 -include make.check-cuda
 
 LIBDIR    = -L$(CUDADIR)/lib64 \
-            -L$(LAPACKDIR) \
-            -L$(ATLASDIR)/lib
+            -L$(OPENBLASDIR)/lib
 
 INC       = -I$(CUDADIR)/include

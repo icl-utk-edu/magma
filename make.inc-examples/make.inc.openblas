@@ -37,11 +37,11 @@ RANLIB    = ranlib
 # can be commented out if making only static library.
 FPIC      = -fPIC
 
-CFLAGS    = -O3 $(FPIC) -DADD_ -Wall -fopenmp 
-FFLAGS    = -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
-F90FLAGS  = -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-NVCCFLAGS = -O3         -DADD_       -Xcompiler "$(FPIC)"
-LDFLAGS   =     $(FPIC)              -fopenmp
+CFLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp
+FFLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
+F90FLAGS  = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
+NVCCFLAGS = -O3         -DNDEBUG -DADD_       -Xcompiler "$(FPIC)"
+LDFLAGS   =     $(FPIC)                       -fopenmp
 
 # C++11 (gcc >= 4.7) is not required, but has benefits like atomic operations
 CXXFLAGS := $(CFLAGS) -std=c++11

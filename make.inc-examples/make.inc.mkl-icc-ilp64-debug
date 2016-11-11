@@ -1,0 +1,92 @@
+#//////////////////////////////////////////////////////////////////////////////
+#   -- MAGMA (version 2.0) --
+#      Univ. of Tennessee, Knoxville
+#      Univ. of California, Berkeley
+#      Univ. of Colorado, Denver
+#      @date
+#//////////////////////////////////////////////////////////////////////////////
+
+# GPU_TARGET contains one or more of Fermi, Kepler, or Maxwell,
+# to specify for which GPUs you want to compile MAGMA:
+#     Fermi   - NVIDIA compute capability 2.x cards
+#     Kepler  - NVIDIA compute capability 3.x cards
+#     Maxwell - NVIDIA compute capability 5.x cards
+#     Pascal  - NVIDIA compute capability 6.x cards
+# The default is "Fermi Kepler".
+# Note that NVIDIA no longer supports 1.x cards, as of CUDA 6.5.
+# See http://developer.nvidia.com/cuda-gpus
+#
+#GPU_TARGET ?= Fermi Kepler
+
+# --------------------
+# programs
+
+CC        = icc
+CXX       = icpc
+NVCC      = nvcc
+FORT      = ifort
+
+ARCH      = ar
+ARCHFLAGS = cr
+RANLIB    = ranlib
+
+
+# --------------------
+# flags
+
+# Use -fPIC to make shared (.so) and static (.a) library;
+# can be commented out if making only static library.
+FPIC      = -fPIC
+
+CFLAGS    = -O3 $(FPIC) -openmp -DADD_ -Wall -Wshadow -DMAGMA_WITH_MKL -DDEBUG_MEMORY
+FFLAGS    = -O3 $(FPIC)         -DADD_ -warn all -warn nounused -nogen-interfaces
+F90FLAGS  = -O3 $(FPIC)         -DADD_ -warn all -warn nounused
+NVCCFLAGS = -O3                 -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+LDFLAGS   =     $(FPIC) -openmp
+
+# Defining MAGMA_ILP64 or MKL_ILP64 changes magma_int_t to int64_t in include/magma_types.h
+CFLAGS    += -DMKL_ILP64
+FFLAGS    += -integer-size 64
+F90FLAGS  += -integer-size 64
+NVCCFLAGS += -DMKL_ILP64
+
+# Options to do extra checks for non-standard things like variable length arrays;
+# it is safe to disable all these
+CFLAGS   += -pedantic -Wno-long-long
+#CFLAGS   += -Werror  # uncomment to ensure all warnings are dealt with
+
+# C++11 (icc >= 13) is not required, but has benefits like atomic operations
+CXXFLAGS := $(CFLAGS) -std=c++11
+CFLAGS   += -std=c99
+
+
+# --------------------
+# libraries
+
+# IMPORTANT: these link lines are for 64-bit int !!!!
+# For regular 64-bit builds using 64-bit pointers and 32-bit int,
+# use the lp64 library, not the ilp64 library. See make.inc.mkl-gcc or make.inc.mkl-icc.
+
+# see MKL Link Advisor at http://software.intel.com/sites/products/mkl/
+# icc/ifort with MKL 10.3, Intel OpenMP threads, 64-bit int
+# note -DMAGMA_ILP64 or -DMKL_ILP64, and -integer-size 64 in FLAGS above
+LIB       = -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -lpthread -lstdc++ -lm
+
+LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
+
+
+# --------------------
+# directories
+
+# define library directories preferably in your environment, or here.
+# for MKL run, e.g.: source /opt/intel/composerxe/mkl/bin/mklvars.sh intel64
+#MKLROOT ?= /opt/intel/composerxe/mkl
+#CUDADIR ?= /usr/local/cuda
+-include make.check-mkl
+-include make.check-cuda
+
+LIBDIR    = -L$(CUDADIR)/lib64 \
+            -L$(MKLROOT)/lib/intel64
+
+INC       = -I$(CUDADIR)/include \
+            -I$(MKLROOT)/include
