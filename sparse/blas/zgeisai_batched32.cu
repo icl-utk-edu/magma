@@ -707,10 +707,10 @@ magma_zisai_generator_regs(
 {
     magma_int_t info = 0;
 
+#if (CUDA_VERSION >= 7000)
     magma_int_t arch = magma_getdevice_arch();
 
     cudaDeviceSetCacheConfig( cudaFuncCachePreferL1 );
-
 
     // routine 1
     // int r1bs1 = 32;
@@ -739,7 +739,6 @@ magma_zisai_generator_regs(
     // dim3 r2block( r2bs1, r2bs2, 1 );
     // dim3 r2grid( r2dg1, r2dg2, r2dg3 );
 
-#if (CUDA_VERSION >= 7000)
     if (arch >= 300) {
         if (uplotype == MagmaLower) { //printf("in here lower new kernel\n");
             magma_zlowerisai_regs_inv_switch<<< r2grid, r2block, 0, queue->cuda_stream() >>>(
@@ -767,10 +766,10 @@ magma_zisai_generator_regs(
        info = MAGMA_ERR_NOT_SUPPORTED;
     }
 #else
-   printf( "%% error: ISAI preconditioner requires CUDA >= 7.0.\n" );
-   info = MAGMA_ERR_NOT_SUPPORTED;
+    // CUDA < 7000
+    printf( "%% error: ISAI preconditioner requires CUDA >= 7.0.\n" );
+    info = MAGMA_ERR_NOT_SUPPORTED;
 #endif
 
     return info;
 }
-
