@@ -411,6 +411,7 @@ magma_print_environment()
         }
     }
 
+    MAGMA_UNUSED( err );
     time_t t = time( NULL );
     printf( "%% %s", ctime( &t ));
 }
@@ -486,6 +487,7 @@ magma_getdevice_arch()
     cudaError_t err;
     err = cudaGetDevice( &dev );
     check_error( err );
+    MAGMA_UNUSED( err );
     if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
         fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
         return 0;
@@ -521,6 +523,7 @@ magma_getdevices(
     int cnt;
     err = cudaGetDeviceCount( &cnt );
     check_error( err );
+    MAGMA_UNUSED( err );
 
     cnt = min( cnt, int(size) );
     for( int i = 0; i < cnt; ++i ) {
@@ -547,6 +550,7 @@ magma_getdevice( magma_device_t* device )
     err = cudaGetDevice( &dev );
     *device = dev;
     check_error( err );
+    MAGMA_UNUSED( err );
 }
 
 
@@ -565,6 +569,7 @@ magma_setdevice( magma_device_t device )
     cudaError_t err;
     err = cudaSetDevice( int(device) );
     check_error( err );
+    MAGMA_UNUSED( err );
 }
 
 
@@ -587,6 +592,7 @@ magma_mem_size( magma_queue_t queue )
     magma_setdevice( magma_queue_get_device( queue ));
     cudaError_t err = cudaMemGetInfo( &freeMem, &totalMem );
     check_error( err );
+    MAGMA_UNUSED( err );
     magma_setdevice( orig_dev );
     return freeMem;
 }
@@ -716,6 +722,10 @@ magma_queue_create_internal(
     queue->own__ |= own_cusparse;
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
+
+    MAGMA_UNUSED( err );
+    MAGMA_UNUSED( stat );
+    MAGMA_UNUSED( stat2 );
 }
 
 
@@ -795,6 +805,8 @@ magma_queue_create_from_cuda_internal(
     queue->cusparse__ = cusparse_handle;
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
+    MAGMA_UNUSED( stat );
+    MAGMA_UNUSED( stat2 );
 }
 
 
@@ -822,14 +834,17 @@ magma_queue_destroy_internal(
         if ( queue->cublas__ != NULL && (queue->own__ & own_cublas)) {
             cublasStatus_t stat = cublasDestroy( queue->cublas__ );
             check_xerror( stat, func, file, line );
+            MAGMA_UNUSED( stat );
         }
         if ( queue->cusparse__ != NULL && (queue->own__ & own_cusparse)) {
             cusparseStatus_t stat = cusparseDestroy( queue->cusparse__ );
             check_xerror( stat, func, file, line );
+            MAGMA_UNUSED( stat );
         }
         if ( queue->stream__ != NULL && (queue->own__ & own_stream)) {
             cudaError_t err = cudaStreamDestroy( queue->stream__ );
             check_xerror( err, func, file, line );
+            MAGMA_UNUSED( err );
         }
         queue->own__      = own_none;
         queue->device__   = -1;
@@ -865,6 +880,7 @@ magma_queue_sync_internal(
         err = cudaStreamSynchronize( NULL );
     }
     check_xerror( err, func, file, line );
+    MAGMA_UNUSED( err );
 }
 
 
@@ -885,6 +901,7 @@ magma_event_create( magma_event_t* event )
     cudaError_t err;
     err = cudaEventCreate( event );
     check_error( err );
+    MAGMA_UNUSED( err );
 }
 
 
@@ -903,6 +920,7 @@ magma_event_destroy( magma_event_t event )
         cudaError_t err;
         err = cudaEventDestroy( event );
         check_error( err );
+        MAGMA_UNUSED( err );
     }
 }
 
@@ -925,6 +943,7 @@ magma_event_record( magma_event_t event, magma_queue_t queue )
     cudaError_t err;
     err = cudaEventRecord( event, queue->cuda_stream() );
     check_error( err );
+    MAGMA_UNUSED( err );
 }
 
 
@@ -942,6 +961,7 @@ magma_event_sync( magma_event_t event )
     cudaError_t err;
     err = cudaEventSynchronize( event );
     check_error( err );
+    MAGMA_UNUSED( err );
 }
 
 
@@ -963,6 +983,7 @@ magma_queue_wait_event( magma_queue_t queue, magma_event_t event )
     cudaError_t err;
     err = cudaStreamWaitEvent( queue->cuda_stream(), event, 0 );
     check_error( err );
+    MAGMA_UNUSED( err );
 }
 
 #endif // HAVE_CUBLAS
