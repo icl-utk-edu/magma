@@ -2518,14 +2518,13 @@ magma_zlowertrisystems_32kernel_s(
     magma_index_t *sizes,
     magma_index_t *locations )
 {
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int row = blockIdx.y * gridDim.x + blockIdx.x;
     int tid = threadIdx.x;
     magmaDoubleComplex rB;    // registers for trsv
     magmaDoubleComplex rA;
 
     __shared__ magmaDoubleComplex dA[32*32];
-
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
 
     // only if within this chunk
     if ( row>=n ){
@@ -2624,14 +2623,13 @@ magma_zuppertrisystems_32kernel_s(
     magma_index_t *sizes,
     magma_index_t *locations )
 {
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int row = blockIdx.y * gridDim.x + blockIdx.x;
     int tid = threadIdx.x;
     magmaDoubleComplex rB;    // registers for trsv
     magmaDoubleComplex rA;
 
     __shared__ magmaDoubleComplex dA[32*32];
-
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
 
     // only if within this chunk
     if ( row>=n ){
@@ -2730,14 +2728,13 @@ magma_zlowertrisystems_32kernel(
     magma_index_t *sizes,
     magma_index_t *locations )
 {
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int row = blockIdx.y * gridDim.x + blockIdx.x;
     int tid = threadIdx.x;
     magmaDoubleComplex rB;    // registers for trsv
     magmaDoubleComplex rA;
 
     magmaDoubleComplex dA[32];
-
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
 
     // only if within this chunk
     if ( row>=n ){
@@ -2820,10 +2817,10 @@ magma_zuppertrisystems_32kernel(
     magma_index_t *Mcol,
     magmaDoubleComplex *Mval )
 {
+#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     int row = blockIdx.y * gridDim.x + blockIdx.x;
     int tid = threadIdx.x;
 
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
     magmaDoubleComplex rB;    // registers for trsv
     magmaDoubleComplex rA[32];
 
@@ -2891,7 +2888,8 @@ magma_zuppertrisystems_32kernel(
 #endif
 }// kernel
 
-#endif
+#endif  // CUDA >= 7000
+
 
 /**
     Purpose
@@ -2961,6 +2959,7 @@ magma_zisaigenerator_32_gpu(
 {
     magma_int_t info = 0;
 
+#if (CUDA_VERSION >= 7000)
     magma_int_t arch = magma_getdevice_arch();
 
     cudaDeviceSetCacheConfig( cudaFuncCachePreferL1 );
@@ -2993,108 +2992,111 @@ magma_zisaigenerator_32_gpu(
 
     int recursive = magma_ceildiv( M->num_rows, 32000 );
 
-#if (CUDA_VERSION >= 7000)
     if (arch >= 300) {
-
-    magma_zgpumemzero_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
-            rhs, L.num_rows, WARP_SIZE, 1);
-
-
-    if( uplotype == MagmaLower ){
-        magma_zlocations_lower_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
-                        M->num_rows,
-                        M->drow,
-                        M->dcol,
-                        M->dval,
-                        sizes,
-                        locations,
-                        trisystems,
-                        rhs );
-    } else {
-        magma_zlocations_upper_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
-                        M->num_rows,
-                        M->drow,
-                        M->dcol,
-                        M->dval,
-                        sizes,
-                        locations,
-                        trisystems,
-                        rhs );
-    }
-    /*
-    if( uplotype == MagmaLower ){printf("in here lower\n");
-    magma_zlowertrisystems_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
-            L.num_rows,
-            L.drow,
-            L.dcol,
-            L.dval,
-            M->drow,
-            M->dcol,
-            M->dval,
-            sizes,
-            locations );
-    } else { printf("in here upper\n");
-            magma_zuppertrisystems_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
-            L.num_rows,
-            L.drow,
-            L.dcol,
-            L.dval,
-            M->drow,
-            M->dcol,
-            M->dval );
-    }
-
-*/
-
-    // chunk it recursively into batches of 3200
-    for( int z=0; z<recursive; z++ ){
-        int limit = min(32000, L.num_rows-32000*z);
-
         magma_zgpumemzero_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
-            trisystems, limit, WARP_SIZE, WARP_SIZE );
+                rhs, L.num_rows, WARP_SIZE, 1);
 
-        magma_zfilltrisystems_32kernel<<< r3grid, r3block, 0, queue->cuda_stream() >>>(
-                            32000*z,
-                            limit,
-                            L.drow,
-                            L.dcol,
-                            L.dval,
+        if (uplotype == MagmaLower) {
+            magma_zlocations_lower_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
+                            M->num_rows,
+                            M->drow,
+                            M->dcol,
+                            M->dval,
                             sizes,
                             locations,
                             trisystems,
                             rhs );
-
-
-        // routine 2
-        if( uplotype == MagmaLower ){
-            ztrsv_lower_32kernel_switch<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
-                    trisystems,
-                    rhs+32000*32*z,
-                    sizes+32000*z,
-                    limit );
-        } else {
-            ztrsv_upper_32kernel_switch<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
-                    trisystems,
-                    rhs+32000*32*z,
-                    sizes+32000*z,
-                    limit );
         }
-    }
+        else {
+            magma_zlocations_upper_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
+                            M->num_rows,
+                            M->drow,
+                            M->dcol,
+                            M->dval,
+                            sizes,
+                            locations,
+                            trisystems,
+                            rhs );
+        }
+        /*
+        if (uplotype == MagmaLower) {
+            printf("in here lower\n");
+            magma_zlowertrisystems_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
+                L.num_rows,
+                L.drow,
+                L.dcol,
+                L.dval,
+                M->drow,
+                M->dcol,
+                M->dval,
+                sizes,
+                locations );
+        }
+        else {
+            printf("in here upper\n");
+            magma_zuppertrisystems_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
+                L.num_rows,
+                L.drow,
+                L.dcol,
+                L.dval,
+                M->drow,
+                M->dcol,
+                M->dval );
+        }
+        */
 
-    // routine 3
-    magma_zbackinsert_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
-            M->num_rows,
-            M->drow,
-            M->dcol,
-            M->dval,
-            sizes,
-            rhs );
+        // chunk it recursively into batches of 3200
+        for (int z=0; z < recursive; z++) {
+            int limit = min(32000, L.num_rows-32000*z);
+
+            magma_zgpumemzero_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
+                trisystems, limit, WARP_SIZE, WARP_SIZE );
+
+            magma_zfilltrisystems_32kernel<<< r3grid, r3block, 0, queue->cuda_stream() >>>(
+                                32000*z,
+                                limit,
+                                L.drow,
+                                L.dcol,
+                                L.dval,
+                                sizes,
+                                locations,
+                                trisystems,
+                                rhs );
+
+            // routine 2
+            if (uplotype == MagmaLower) {
+                ztrsv_lower_32kernel_switch<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
+                        trisystems,
+                        rhs+32000*32*z,
+                        sizes+32000*z,
+                        limit );
+            }
+            else {
+                ztrsv_upper_32kernel_switch<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
+                        trisystems,
+                        rhs+32000*32*z,
+                        sizes+32000*z,
+                        limit );
+            }
+        }
+
+        // routine 3
+        magma_zbackinsert_32kernel<<< r1grid, r1block, 0, queue->cuda_stream() >>>(
+                M->num_rows,
+                M->drow,
+                M->dcol,
+                M->dval,
+                sizes,
+                rhs );
+    }
+    else {
+        info = MAGMA_ERR_NOT_SUPPORTED;
     }
 #else
-    printf( "%% error: ISAI preconditioner requires CUDA > 6.0.\n" );
+    // CUDA < 7000
+    printf( "%% error: ISAI preconditioner requires CUDA > 7.0.\n" );
     info = MAGMA_ERR_NOT_SUPPORTED;
 #endif
-
 
     return info;
 }

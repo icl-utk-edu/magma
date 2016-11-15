@@ -91,31 +91,14 @@ magma_zbulge_applyQ_v2_m(
      *
     */
 
-    // Initialize streaming and events
-    magma_device_t orig_dev;
-    magma_getdevice( &orig_dev );
-
-    magma_int_t  nevents =2, nstream=2;
-    magma_queue_t queues[MagmaMaxGPUs][20];
-    magma_event_t  myevent[MagmaMaxGPUs][20];
-    for( magma_int_t dev = 0; dev < ngpu; ++dev ) {
-        magma_setdevice( dev );
-        for( magma_int_t i = 0; i < nstream; ++i ) {
-            magma_queue_create( dev, &queues[dev][i] );
-        }
-        for( magma_int_t i = 0; i < nevents; ++i ) {
-            cudaEventCreateWithFlags(&myevent[dev][i],cudaEventDisableTiming);
-            //magma_event_create(&myevent[dev][i]);
-        }
-    }
-
     // Azzam 21/11/2012
     // NOTE THAT dwork was of size 2*NE*Vblksiz+...
     // but I am thinking why not modifing it to NE*Vblksiz+...
     // BUT NO because the 2* is used because of making 2 queues working and so
     // they might be using dwork in parallel
-    magmaDoubleComplex *dE[MagmaMaxGPUs];
-    magmaDoubleComplex *dwork[MagmaMaxGPUs], *dwork0[MagmaMaxGPUs], *dwork1[MagmaMaxGPUs];
+    magmaDoubleComplex *dE[MagmaMaxGPUs]={NULL};
+    magmaDoubleComplex *dwork[MagmaMaxGPUs]={NULL};
+    magmaDoubleComplex *dwork0[MagmaMaxGPUs], *dwork1[MagmaMaxGPUs];
     //magmaDoubleComplex *dwvt[MagmaMaxGPUs];
     magmaDoubleComplex *dwvt0[MagmaMaxGPUs], *dwvt1[MagmaMaxGPUs];
     magmaDoubleComplex *dT0[MagmaMaxGPUs], *dV0[MagmaMaxGPUs], *dT1[MagmaMaxGPUs], *dV1[MagmaMaxGPUs];
@@ -128,18 +111,41 @@ magma_zbulge_applyQ_v2_m(
        ne_loc=256;
     magma_int_t dwVTsiz  = lddv*Vblksiz;  // lddv*lddv + lddv*NE; // lddv*Vblksiz;
     magma_int_t dworksiz = ne_loc*Vblksiz;  // lddv*Vblksiz;      // NE*Vblksiz;
-
     ngpu = min(ngpu, magma_ceildiv(NE,ne_loc)); // Don't use GPU that will not have data.
+    // make overlapped copy
+    magma_int_t ncpy = 0;
+    magma_int_t copyed=0, copyst=0;
+    magma_int_t blkcnt,nothing, mysiz, flip, vld,tld, locpos;
+    
+    // Initialize streaming and events
+    magma_device_t orig_dev;
+    magma_getdevice( &orig_dev );
+
+    magma_int_t  nevents =2, nstream=2;
+    magma_queue_t queues[MagmaMaxGPUs][20];
+    magma_event_t  myevent[MagmaMaxGPUs][20];
+    for( dev = 0; dev < ngpu; ++dev ) {
+        magma_setdevice( dev );
+        for( magma_int_t i = 0; i < nstream; ++i ) {
+            magma_queue_create( dev, &queues[dev][i] );
+        }
+        for( magma_int_t i = 0; i < nevents; ++i ) {
+            //cudaEventCreateWithFlags(&myevent[dev][i],cudaEventDisableTiming);
+            magma_event_create(&myevent[dev][i]);
+        }
+    }
+
+
     // copy dE to GPUs
     for (dev=0; dev < ngpu; ++dev) {
         magma_setdevice( dev );
         if (MAGMA_SUCCESS != magma_zmalloc( &dE[dev], ldde * ne_loc)) {
-            printf ("!!!!  magma_zbulge_applyQ magma_alloc failed for: dE\n" );
-            exit(-1);
+            *info = MAGMA_ERR_DEVICE_ALLOC;
+            goto cleanup;
         }
         if (MAGMA_SUCCESS != magma_zmalloc( &dwork[dev], 2*dworksiz + 2*dwVTsiz + 2*Vchunksiz* (Vblksiz* (lddv+lddt)) )) {
-            printf ("!!!!  magma_zbulge_applyQ magma_alloc failed for: dwork\n" );
-            exit(-1);
+            *info = MAGMA_ERR_DEVICE_ALLOC;
+            goto cleanup;
         }
 
         dwork0[dev] = dwork[dev];               // size = dworksiz;
@@ -157,9 +163,6 @@ magma_zbulge_applyQ_v2_m(
 
 
     // make overlapped copy
-    magma_int_t ncpy = 0;
-    magma_int_t copyed=0, copyst=0;
-    magma_int_t blkcnt,nothing, mysiz, flip, vld,tld, locpos;
     findVTsiz(N, NB, Vblksiz, &blkcnt, &nothing);
     
     flip = 0;
@@ -450,7 +453,7 @@ magma_zbulge_applyQ_v2_m(
         magma_event_record( myevent[dev][0], queues[dev][0] );
     }
 
-
+cleanup:
     for( dev = 0; dev < ngpu; ++dev ) {
         magma_setdevice( dev );
         magma_queue_wait_event( queues[dev][0], myevent[dev][0] );

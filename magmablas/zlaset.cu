@@ -390,6 +390,7 @@ void magmablas_zlaset(
             size_t size = m*n;
             cudaError_t err = cudaMemsetAsync( dA, 0, size*sizeof(magmaDoubleComplex), queue->cuda_stream() );
             assert( err == cudaSuccess );
+            MAGMA_UNUSED( err );
         }
         else {
             for( unsigned int i=0; i < super_grid.x; ++i ) {

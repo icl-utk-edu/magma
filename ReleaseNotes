@@ -33,6 +33,10 @@ single (s), double (d), single-complex (c), double-complex (z).
     * Added new variable size batched BLAS routines
       magmablas_[cz]{hemm, hemv, trmm, trsm}_vbatched
       magmablas_[sd]{symm, symv, trmm, trsm}_vbatched
+    * Fixed memory leaks in {sy,he}evdx_2stage and getri_outofplace_batched.
+    * Fixed libraries in make.inc examples for MKL with gcc.
+    * More robust error checking for Batched BLAS routines.
+
     MAGMA-sparse
     * Added Incomplete Sparse Approximate Inverse (ISAI) Preconditioner
       for sparse triangular solves, including batched generation.

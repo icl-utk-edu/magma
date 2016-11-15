@@ -18,7 +18,7 @@ libsparse_src += \
 	$(cdir)/magma_zutil_sparse.cpp        \
 	$(cdir)/magma_zfree.cpp               \
 	$(cdir)/magma_zmatrixchar.cpp         \
-	$(cdir)/magma_zmconverter.cpp         \
+	$(cdir)/magma_zmconvert.cpp           \
 	$(cdir)/magma_zmgenerator.cpp         \
 	$(cdir)/magma_zmio.cpp                \
 	$(cdir)/magma_zsolverinfo.cpp         \

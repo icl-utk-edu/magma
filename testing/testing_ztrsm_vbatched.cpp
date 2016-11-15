@@ -80,7 +80,7 @@ int main( int argc, char** argv)
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magmaDoubleComplex c_one = MAGMA_Z_ONE;
     magmaDoubleComplex alpha = MAGMA_Z_MAKE(  0.29, -0.86 );
-    magma_int_t status = 0;
+    int status = 0;
     magma_int_t batchCount;
 
     magma_opts opts( MagmaOptsBatched );
@@ -352,7 +352,10 @@ int main( int argc, char** argv)
                 for (magma_int_t s=0; s < batchCount; s++)
                 {
                     magma_int_t NN = h_ldb[s]*h_N[s];
-                    normA = lapackf77_zlange( "M", &Ak[s], &Ak[s], h_A_array[s], &h_lda[s], work );
+                    normA = lapackf77_zlantr( "M",
+                                              lapack_uplo_const(opts.uplo),
+                                              lapack_diag_const(opts.diag),
+                                              &Ak[s], &Ak[s], h_A_array[s], &h_lda[s], work );
                     blasf77_ztrmm(
                         lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),
                         lapack_trans_const(opts.transA), lapack_diag_const(opts.diag),
@@ -387,7 +390,10 @@ int main( int argc, char** argv)
                 for (magma_int_t s=0; s < batchCount; s++)
                 {
                     magma_int_t NN = h_ldb[s]*h_N[s];
-                    
+                    normA = lapackf77_zlantr( "M",
+                                              lapack_uplo_const(opts.uplo),
+                                              lapack_diag_const(opts.diag),
+                                              &Ak[s], &Ak[s], h_A_array[s], &h_lda[s], work );
                     blasf77_ztrmm(
                         lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),
                         lapack_trans_const(opts.transA), lapack_diag_const(opts.diag),

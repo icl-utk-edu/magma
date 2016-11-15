@@ -42,7 +42,7 @@ int main( int argc, char** argv)
     magma_int_t total_size_A_dev = 0, total_size_B_dev = 0, total_size_C_dev = 0;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
-    magma_int_t status = 0;
+    int status = 0;
     magma_int_t batchCount;
     magma_int_t max_M, max_N;
 

@@ -78,7 +78,7 @@ int main( int argc, char** argv)
     #endif
 
     if (opts.version > 4) {
-        fprintf( stderr, "%% error: no version %d, only 1-4.\n", opts.version );
+        fprintf( stderr, "%% error: no version %lld, only 1-4.\n", (long long) opts.version );
         status = -1;
         return status;
     }

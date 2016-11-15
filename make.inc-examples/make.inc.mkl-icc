@@ -11,6 +11,7 @@
 #     Fermi   - NVIDIA compute capability 2.x cards
 #     Kepler  - NVIDIA compute capability 3.x cards
 #     Maxwell - NVIDIA compute capability 5.x cards
+#     Pascal  - NVIDIA compute capability 6.x cards
 # The default is "Fermi Kepler".
 # Note that NVIDIA no longer supports 1.x cards, as of CUDA 6.5.
 # See http://developer.nvidia.com/cuda-gpus
@@ -20,10 +21,10 @@
 # --------------------
 # programs
 
-CC        = gcc
-CXX       = g++
+CC        = icc
+CXX       = icpc
 NVCC      = nvcc
-FORT      = gfortran
+FORT      = ifort
 
 ARCH      = ar
 ARCHFLAGS = cr
@@ -37,16 +38,13 @@ RANLIB    = ranlib
 # can be commented out if making only static library.
 FPIC      = -fPIC
 
-# This assumes ACML >= 5
-# If you have ACML <= 4, remove -DMAGMA_WITH_ACML
-# Also, with ACML 4, testing_zlat2c.cpp and testing_dlat2s.cpp will not compile.
-CFLAGS    = -O3 $(FPIC) -DADD_ -Wall -fopenmp -DMAGMA_WITH_ACML
-FFLAGS    = -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
-F90FLAGS  = -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-NVCCFLAGS = -O3         -DADD_       -Xcompiler "$(FPIC)"
-LDFLAGS   =     $(FPIC)              -fopenmp
+CFLAGS    = -O3 $(FPIC) -openmp -DNDEBUG -DADD_ -Wall -Wshadow -DMAGMA_WITH_MKL
+FFLAGS    = -O3 $(FPIC)         -DNDEBUG -DADD_ -warn all -warn nounused -nogen-interfaces
+F90FLAGS  = -O3 $(FPIC)         -DNDEBUG -DADD_ -warn all -warn nounused
+NVCCFLAGS = -O3                 -DNDEBUG -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+LDFLAGS   =     $(FPIC) -openmp
 
-# C++11 (gcc >= 4.7) is not required, but has benefits like atomic operations
+# C++11 (icc >= 13) is not required, but has benefits like atomic operations
 CXXFLAGS := $(CFLAGS) -std=c++11
 CFLAGS   += -std=c99
 
@@ -54,13 +52,9 @@ CFLAGS   += -std=c99
 # --------------------
 # libraries
 
-# MAGMA no longer needs -lcblas.
-# LIB for ACML 4. Modify CFLAGS above, too.
-#LIB      = -lacml_mp -lacml_mv -lstdc++ -lm
-
-# LIB for ACML >= 5
-# requires gcc & gfortran >= 4.6
-LIB       = -lacml_mp           -lstdc++ -lm -lgfortran
+# see MKL Link Advisor at http://software.intel.com/sites/products/mkl/
+# icc/ifort with MKL 10.3, Intel OpenMP threads
+LIB       = -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -lstdc++ -lm
 
 LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 
@@ -69,13 +63,14 @@ LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 # directories
 
 # define library directories preferably in your environment, or here.
-#ACMLDIR  ?= /opt/acml
-#CUDADIR  ?= /usr/local/cuda
--include make.check-acml
+# for MKL run, e.g.: source /opt/intel/composerxe/mkl/bin/mklvars.sh intel64
+#MKLROOT ?= /opt/intel/composerxe/mkl
+#CUDADIR ?= /usr/local/cuda
+-include make.check-mkl
 -include make.check-cuda
 
 LIBDIR    = -L$(CUDADIR)/lib64 \
-            -L$(ACMLDIR)/gfortran64_mp/lib
+            -L$(MKLROOT)/lib/intel64
 
 INC       = -I$(CUDADIR)/include \
-            -I$(ACMLDIR)/gfortran64_mp/include
+            -I$(MKLROOT)/include

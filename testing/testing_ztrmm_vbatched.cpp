@@ -42,7 +42,8 @@ int main( int argc, char** argv)
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     
-    magmaDoubleComplex **hA_array, **hB_array, **dA_array, **dB_array;
+    magmaDoubleComplex **hA_array, **hB_array;
+    magmaDoubleComplex **dA_array, **dB_array;
     magmaDoubleComplex *h_A, *h_B, *h_Bmagma;
     magmaDoubleComplex_ptr d_A, d_B;
     magmaDoubleComplex *h_A_tmp, *h_B_tmp;
@@ -53,7 +54,7 @@ int main( int argc, char** argv)
     
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magmaDoubleComplex alpha = MAGMA_Z_MAKE(  0.29, -0.86 );
-    magma_int_t status = 0;
+    int status = 0;
     
     magma_opts opts( MagmaOptsBatched );
     opts.parse_opts( argc, argv );
@@ -158,15 +159,6 @@ int main( int argc, char** argv)
             /* Initialize the matrices */
             lapackf77_zlarnv( &ione, ISEED, &total_sizeA_cpu, h_A );
             lapackf77_zlarnv( &ione, ISEED, &total_sizeB_cpu, h_B );
-            
-            // set A
-            h_A_tmp = h_A;
-            d_A_tmp = d_A;
-            for (int i = 0; i < batchCount; i++) {
-                magma_zsetmatrix( h_Ak[i], h_Ak[i], h_A_tmp, h_lda[i], d_A_tmp, h_ldda[i], opts.queue );
-                h_A_tmp += h_Ak[i] * h_lda[i];
-                d_A_tmp += h_Ak[i] * h_ldda[i];
-            }
 
             // Compute norms for error
             h_A_tmp = h_A;
@@ -178,6 +170,15 @@ int main( int argc, char** argv)
                 Bnorm[s] = lapackf77_zlange( "F", &h_M[s], &h_N[s], h_B_tmp, &h_ldb[s], work );
                 h_A_tmp += h_Ak[s] * h_lda[s];
                 h_B_tmp +=  h_N[s] * h_ldb[s];
+            }
+            
+            // set A
+            h_A_tmp = h_A;
+            d_A_tmp = d_A;
+            for (int i = 0; i < batchCount; i++) {
+                magma_zsetmatrix( h_Ak[i], h_Ak[i], h_A_tmp, h_lda[i], d_A_tmp, h_ldda[i], opts.queue );
+                h_A_tmp += h_Ak[i] * h_lda[i];
+                d_A_tmp += h_Ak[i] * h_ldda[i];
             }
             
             /* =====================================================================

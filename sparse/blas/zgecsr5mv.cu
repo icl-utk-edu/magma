@@ -677,9 +677,8 @@ magma_zgecsr5mv(
 {
     int info = MAGMA_ERR_NOT_SUPPORTED;
     
-    magma_int_t arch = magma_getdevice_arch();
-    
 #if (defined( CUDA_VERSION ) && ( CUDA_VERSION >= 8000 ))
+    magma_int_t arch = magma_getdevice_arch();    
     if ( arch >= 600 ) {
         //dim3 grid( magma_ceildiv( m, BLOCK_SIZE ) );
         //magma_int_t threads = BLOCK_SIZE;
@@ -930,7 +929,6 @@ magma_zgecsr5mv(
         info = MAGMA_ERR_NOT_SUPPORTED;
     }
 #endif
-
 
     return info;
 }
