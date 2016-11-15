@@ -245,7 +245,7 @@ magma_syrk_vbatched_checker(
     if      ( uplo != MagmaUpper && uplo != MagmaLower )
         info = -1;
     else if ( ( complex == 0 && (trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans) ) || 
-              ( complex == 1 && (trans != MagmaNoTrans && trans != MagmaConjTrans) )
+              ( complex == 1 && (trans != MagmaNoTrans && trans != MagmaTrans) )
             )
         info = -2;
     else if ( n_err < 0 )
@@ -379,7 +379,7 @@ magma_syr2k_vbatched_checker(
     if      ( uplo != MagmaUpper && uplo != MagmaLower )
         info = -1;
     else if ( ( complex == 0 && (trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans) ) || 
-              ( complex == 1 && (trans != MagmaNoTrans && trans != MagmaConjTrans                           ) )
+              ( complex == 1 && (trans != MagmaNoTrans && trans != MagmaTrans                           ) )
             )
         info = -2;
     else if ( n_err < 0 )
