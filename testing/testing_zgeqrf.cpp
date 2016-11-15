@@ -65,6 +65,7 @@ int main( int argc, char** argv)
             lwork = (magma_int_t)MAGMA_Z_REAL( tmp[0] );
             lwork = max( lwork, N*nb );
             
+            // Allocate host memory for the matrix
             TESTING_CHECK( magma_zmalloc_cpu( &tau,    min_mn ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_A,    n2     ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_work, lwork  ));

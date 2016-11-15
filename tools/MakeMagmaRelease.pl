@@ -49,6 +49,7 @@ my @files2delete = qw(
     tools/MakeMagmaRelease.pl
     tools/checklist.csh
     tools/checklist_ceildiv.pl
+    tools/checklist_run_tests.pl
     tools/compare_prototypes.pl
     tools/fortran_wrappers.pl
     tools/magmasubs.pyc
