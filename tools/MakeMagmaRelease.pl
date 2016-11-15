@@ -13,6 +13,7 @@ my $micro;
 my $rc       = 0;  # release candidate
 my $alpha    = 0;
 my $beta     = 0;
+my $revision = '';
 
 # ------------------------------------------------------------------------------
 # In alphabetic order
@@ -123,7 +124,7 @@ EOT
     chomp $dir;
 
     if ( not $rc and not $alpha and not $beta ) {
-        print "Update MAGMA version in include headers (yes/no)?"
+        print "Update MAGMA version in include headers (yes/no)?";
         $_ = <STDIN>;
         if ( m/\b(y|yes)\b/ ) {
             # If run as ./tools/MakeMagmaRelease.pl, no need to change dir;
