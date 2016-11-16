@@ -45,7 +45,7 @@ int main( int argc, char** argv)
     magma_int_t i, j, N, n2, lda, ldda;
     magma_int_t idist    = 3;  // normal distribution (otherwise max norm is always ~ 1)
     magma_int_t ISEED[4] = {0,0,0,1};
-    double      error, norm_magma, norm_lapack;
+    double      error, norm_magma, norm_lapack, normalize, tol;
     int status = 0;
     magma_int_t lapack_nan_fail = 0;
     magma_int_t lapack_inf_fail = 0;
@@ -54,8 +54,7 @@ int main( int argc, char** argv)
     magma_opts opts;
     opts.parse_opts( argc, argv );
     
-    double tol = opts.tolerance * lapackf77_dlamch("E");
-    double tol2;
+    double eps = lapackf77_dlamch("E");
     
     magma_uplo_t uplo[] = { MagmaLower, MagmaUpper };
     magma_norm_t norm[] = { MagmaInfNorm, MagmaOneNorm, MagmaMaxNorm, MagmaFrobeniusNorm };
@@ -162,19 +161,30 @@ int main( int argc, char** argv)
             
             /* =====================================================================
                Check the result compared to LAPACK
+               One, Inf, Fro errors normalized by sqrt of # terms in summation.
                =================================================================== */
-            error = fabs( norm_magma - norm_lapack ) / norm_lapack;
-            tol2 = tol;
+            normalize = 1;
+            tol = 3*eps;
             if ( norm[inorm] == MagmaMaxNorm ) {
                 // max-norm depends on only one element, so for Real precisions,
-                // MAGMA and LAPACK should exactly agree (tol2 = 0),
+                // MAGMA and LAPACK should exactly agree (tol = 0),
                 // while Complex precisions incur roundoff in cuCabs.
                 #ifdef REAL
-                tol2 = 0;
+                tol = 0;
                 #endif
             }
-            
-            bool okay; okay = (error <= tol2);
+            else if ( norm[inorm] == MagmaOneNorm ) {
+                normalize = sqrt( (double)N );
+            }
+            else if ( norm[inorm] == MagmaInfNorm ) {
+                normalize = sqrt( (double)N );
+            }
+            else if ( norm[inorm] == MagmaFrobeniusNorm ) {
+                normalize = sqrt( (double)N*N );
+            }
+            error = fabs( norm_magma - norm_lapack )
+                  / (norm_lapack * normalize);
+            bool okay; okay = (error <= tol);
             status += ! okay;
             mkl_warning |= ! okay;
             
