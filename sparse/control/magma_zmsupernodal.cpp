@@ -95,7 +95,7 @@ magma_zmsupernodal(
         if( blocksizes[i] > maxblocksize ){
             // maxblocksize = blocksizes[i];
             // printf("%% warning: at i=%5lld blocksize required is %5lld\n",
-                                                            (long long) i, (long long) blocksizes[i] );
+            //                                                (long long) i, (long long) blocksizes[i] );
         }
     }
 
