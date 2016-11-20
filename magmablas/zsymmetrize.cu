@@ -28,12 +28,13 @@ zsymmetrize_lower( int m, magmaDoubleComplex *dA, int ldda )
     if ( i < m ) {
         dA  += i;
         dAT += i*ldda;
-        magmaDoubleComplex *dAend = dA + i*ldda;
+        magmaDoubleComplex *dAend = dA + i*ldda;  // end at diagonal dA(i,i)
         while( dA < dAend ) {
             *dAT = MAGMA_Z_CONJ(*dA);  // upper := lower
             dA  += ldda;
             dAT += 1;
         }
+        *dA = MAGMA_Z_MAKE( MAGMA_Z_REAL(*dA), 0 );  // make diagonal real
     }
 }
 
@@ -48,12 +49,13 @@ zsymmetrize_upper( int m, magmaDoubleComplex *dA, int ldda )
     if ( i < m ) {
         dA  += i;
         dAT += i*ldda;
-        magmaDoubleComplex *dAend = dA + i*ldda;
+        magmaDoubleComplex *dAend = dA + i*ldda;  // end at diagonal dA(i,i)
         while( dA < dAend ) {
             *dA = MAGMA_Z_CONJ(*dAT);  // lower := upper
             dA  += ldda;
             dAT += 1;
         }
+        *dA = MAGMA_Z_MAKE( MAGMA_Z_REAL(*dA), 0 );  // make diagonal real
     }
 }
 
@@ -64,6 +66,7 @@ zsymmetrize_upper( int m, magmaDoubleComplex *dA, int ldda )
     
     ZSYMMETRIZE copies lower triangle to upper triangle, or vice-versa,
     to make dA a general representation of a symmetric matrix.
+    In Complex, it sets the diagonal to be Real.
     
     Arguments
     ---------

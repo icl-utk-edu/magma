@@ -33,12 +33,13 @@ zsymmetrize_tiles_lower( int m, magmaDoubleComplex *dA, int ldda, int mstride, i
     if ( i < m ) {
         dA  += i;
         dAT += i*ldda;
-        magmaDoubleComplex *dAend = dA + i*ldda;
+        magmaDoubleComplex *dAend = dA + i*ldda;  // end at diagonal dA(i,i)
         while( dA < dAend ) {
             *dAT = MAGMA_Z_CONJ(*dA);  // upper := lower
             dA  += ldda;
             dAT += 1;
         }
+        *dA = MAGMA_Z_MAKE( MAGMA_Z_REAL(*dA), 0 );  // make diagonal real
     }
 }
 
@@ -56,12 +57,13 @@ zsymmetrize_tiles_upper( int m, magmaDoubleComplex *dA, int ldda, int mstride, i
     if ( i < m ) {
         dA  += i;
         dAT += i*ldda;
-        magmaDoubleComplex *dAend = dA + i*ldda;
+        magmaDoubleComplex *dAend = dA + i*ldda;  // end at diagonal dA(i,i)
         while( dA < dAend ) {
             *dA  = MAGMA_Z_CONJ(*dAT);  // lower := upper
             dA  += ldda;
             dAT += 1;
         }
+        *dA = MAGMA_Z_MAKE( MAGMA_Z_REAL(*dA), 0 );  // make diagonal real
     }
 }
 
@@ -72,6 +74,8 @@ zsymmetrize_tiles_upper( int m, magmaDoubleComplex *dA, int ldda, int mstride, i
     
     ZSYMMETRIZE_TILES copies lower triangle to upper triangle, or vice-versa,
     to make some blocks of dA into general representations of a symmetric block.
+    In Complex, it sets the diagonal to be Real.
+
     This processes NTILE blocks, typically the diagonal blocks.
     Each block is offset by mstride rows and nstride columns from the previous block.
     

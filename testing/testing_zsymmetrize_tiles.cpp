@@ -103,6 +103,8 @@ int main( int argc, char** argv)
                             h_A[offset + j + i*lda] = MAGMA_Z_CONJ( h_A[offset + i + j*lda] );
                         }
                     }
+                    // real diagonal
+                    h_A[offset + j + j*lda] = MAGMA_Z_MAKE( MAGMA_Z_REAL( h_A[offset + j + j*lda] ), 0 );
                 }
             }
             cpu_time = magma_wtime() - cpu_time;
