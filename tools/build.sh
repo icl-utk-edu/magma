@@ -2,7 +2,7 @@
 #
 # Compile MAGMA with given build configurations,
 # save output to builds/<config>/*.txt, and
-# save libs and executables to builds/<config>/{lib, testing, sparse-testing},
+# save (hardlink) libs and executables to builds/<config>/{lib, testing, sparse-testing},
 # save objects to builds/<config>/obj.tar.gz.
 # Takes one or more build configurations, which are suffices on make.inc.* files
 # in the make.inc-examples directory.
@@ -17,15 +17,13 @@ j=8
 clean=1
 sparse=1
 tar=""
-save=1
 pause=""
 
 usage="Usage: $0 [options] [acml macos mkl-gcc openblas ...]
     -h  --help      help
     -j #            parallel make threads, default $j
-        --no-clean  skip 'make clean' before each build
+        --no-clean  skip 'make clean' before build; only one configuration allowed
         --no-sparse skip making sparse
-        --no-save   skip saving libs and executables in builds/<config>/{lib, testing, sparse-testing}
     -t  --tar       tar object files in builds/<config>/obj.tar.gz
     -p  --pause     pause after each build"
 
@@ -46,9 +44,6 @@ while [ $# -gt 0 ]; do
             ;;
         -t|--tar)
             tar=1
-            ;;
-        --no-save)
-            save=""
             ;;
         -p|--pause)
             pause=1
@@ -105,7 +100,6 @@ function run {
 
 # ----------------------------------------
 builds=builds/`date +%Y-%m-%d`
-echo "builds directory $builds"
 
 make="make -j$j"
 
@@ -129,16 +123,14 @@ for config in $@; do
     ln -s  make.inc-examples/make.inc.$config  make.inc
 
     if [ -d $builds/$config ]; then
-        echo "$builds/$config already exists; append or make new directory? [aN]"
-        read value
-        if [ "$value" != "a" ]; then
-            count=2
-            while [ -d $builds/$config-$count ]; do
-                count=$((count+1))
-            done
-            config=$config-$count
-        fi
+        echo "$builds/$config already exists; creating new directory"
+        count=2
+        while [ -d $builds/$config-$count ]; do
+            count=$((count+1))
+        done
+        config=$config-$count
     fi
+    echo "building in $builds/$config"
     mkdir $builds/$config
     
     if [ -n "$clean" ]; then
@@ -158,18 +150,15 @@ for config in $@; do
         echo "SKIPPING SPARSE"
     fi
     
-    if [ -n "$save" ]; then
-        echo "saving libs and executables to $builds/$config/{lib, testing, sparse-testing}"
-        mkdir $builds/$config/lib
-        mkdir $builds/$config/testing
-        mkdir $builds/$config/sparse-testing
-        mv lib/lib* $builds/$config/lib
-        mv `find testing        -maxdepth 1 -perm -u+x -type f -not -name '*.py' -not -name '*.pl' -not -name '*.sh' -not -name '*.csh'` $builds/$config/testing
-        if [ -n "$sparse" ]; then
-            mv `find sparse/testing -maxdepth 1 -perm -u+x -type f -not -name '*.py' -not -name '*.pl' -not -name '*.sh' -not -name '*.csh'` $builds/$config/sparse-testing
-        fi
-    else
-        echo "SKIPPING SAVE"
+    mkdir $builds/$config/lib
+    mkdir $builds/$config/testing
+    mkdir $builds/$config/sparse-testing
+    ln lib/lib* $builds/$config/lib
+    ln `find testing        -maxdepth 1 -perm -u+x -type f -not -name '*.py' -not -name '*.pl' -not -name '*.sh' -not -name '*.csh'` $builds/$config/testing
+    (cd $builds/$config/testing; ln -s ../../../../testing/run* .; ln -s ../../../../testing/*.ref .)
+    pwd
+    if [ -n "$sparse" ]; then
+        ln `find sparse/testing -maxdepth 1 -perm -u+x -type f -not -name '*.py' -not -name '*.pl' -not -name '*.sh' -not -name '*.csh'` $builds/$config/sparse-testing
     fi
     
     if [ -n "$tar" ]; then
