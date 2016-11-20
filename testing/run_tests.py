@@ -233,10 +233,11 @@ parser.add_option(      '--ngpu',       action='store',      help='number of GPU
 parser.add_option(      '--interactive',action='store_true', help='stop between tests')
 
 # options to specify sizes
-parser.add_option(      '--xsmall',     action='store_true', help='run very few, extra small tests, N=25:100:25, 32:128:32')
+parser.add_option(      '--xsmall',     action='store_true', help='run extra small tests, N=25:100:25, 32:128:32')
 parser.add_option('-s', '--small',      action='store_true', help='run small  tests, N < 300')
 parser.add_option('-m', '--medium',     action='store_true', help='run medium tests, N < 1000')
 parser.add_option('-l', '--large',      action='store_true', help='run large  tests, N > 1000')
+parser.add_option(      '--xlarge',     action='store_true', help='run extra large tests, N > 100000 (some testers fail)')
 parser.add_option('-n', '-N',           action='append',     help='run specific sizes; repeatable', default=[])
 
 # options to specify shapes
@@ -244,8 +245,8 @@ parser.add_option(      '--square',     action='store_true', help='run square te
 parser.add_option(      '--tall',       action='store_true', help='run tall   tests (M > N)')
 parser.add_option(      '--wide',       action='store_true', help='run wide   tests (M < N)')
 parser.add_option(      '--mnk',        action='store_true', help='run mnk    tests (M, N, K not all equal)')
-                                                             
-# options to select classes of routines                      
+
+# options to select classes of routines
 parser.add_option(      '--blas',       action='store_true', help='run BLAS tests')
 parser.add_option(      '--aux',        action='store_true', help='run auxiliary routine tests')
 parser.add_option(      '--chol',       action='store_true', help='run Cholesky factorization & solver tests')
@@ -258,7 +259,7 @@ parser.add_option(      '--geev',       action='store_true', help='run non-symme
 parser.add_option(      '--svd',        action='store_true', help='run SVD tests')
 parser.add_option(      '--batched',    action='store_true', help='run batched (BLAS, LU, etc.) tests')
 parser.add_option(      '--vbatched',   action='store_true', help='run vbatched (BLAS, LU, etc.) tests')
-                                                             
+
 parser.add_option(      '--no-blas',    action='store_true', help='do not run BLAS tests')
 parser.add_option(      '--no-aux',     action='store_true', help='do not run auxiliary routine tests')
 parser.add_option(      '--no-chol',    action='store_true', help='do not run Cholesky factorization & solver tests')
@@ -269,8 +270,10 @@ parser.add_option(      '--no-syev',    action='store_true', help='do not run sy
 parser.add_option(      '--no-sygv',    action='store_true', help='do not run generalized symmetric eigenvalue tests')
 parser.add_option(      '--no-geev',    action='store_true', help='do not run non-symmetric eigenvalue tests')
 parser.add_option(      '--no-svd',     action='store_true', help='do not run SVD tests')
-                                                             
-# options to select subset of commands                       
+parser.add_option(      '--no-batched', action='store_true', help='do not run batched tests')
+parser.add_option(      '--no-vbatched',action='store_true', help='do not run vbatched tests')
+
+# options to select subset of commands
 parser.add_option(      '--mgpu',       action='store_true', help='select multi-GPU tests; add --ngpu to specify number of GPUs')
 parser.add_option(      '--no-mgpu',    action='store_true', help='select non multi-GPU tests')
 parser.add_option(      '--itype',      action='store',      help='select tests matching itype',   default=0 )
@@ -282,7 +285,7 @@ parser.add_option('-D', '--diag',       action='store',      help='select tests 
 parser.add_option('-C',                 action='store_true', help='select tests matching -C')
 parser.add_option('-T',                 action='store_true', help='select tests matching -T')
 parser.add_option(      '--fraction',   action='store',      help='select tests matching fraction')
-                                                             
+
 parser.add_option(      '--UN',         action='store_true', help='select tests matching -UN')
 parser.add_option(      '--UO',         action='store_true', help='select tests matching -UO')
 parser.add_option(      '--US',         action='store_true', help='select tests matching -US')
@@ -291,7 +294,7 @@ parser.add_option(      '--VN',         action='store_true', help='select tests 
 parser.add_option(      '--VO',         action='store_true', help='select tests matching -VO')
 parser.add_option(      '--VS',         action='store_true', help='select tests matching -VS')
 parser.add_option(      '--VA',         action='store_true', help='select tests matching -VA')
-                                                                                             
+
 parser.add_option(      '--NN',         action='store_true', help='select tests matching -NN')
 parser.add_option(      '--NT',         action='store_true', help='select tests matching -NT')
 parser.add_option(      '--TN',         action='store_true', help='select tests matching -TN')
@@ -309,7 +312,8 @@ if (output_to_file):
 	opts.interactive = False
 
 # default if no sizes given is all sizes (small, medium, large)
-if (not opts.xsmall and not opts.small and not opts.medium and not opts.large):
+if (not opts.xsmall and not opts.small and not opts.medium and
+	not opts.large and not opts.xlarge):
 	opts.small  = True
 	opts.medium = True
 	opts.large  = True
@@ -355,6 +359,8 @@ if opts.no_syev : opts.syev = False
 if opts.no_sygv : opts.sygv = False
 if opts.no_geev : opts.geev = False
 if opts.no_svd  : opts.svd  = False
+if opts.no_batched  : opts.batched  = False
+if opts.no_vbatched : opts.vbatched = False
 
 #print 'opts', opts
 #print 'args', args
@@ -408,7 +414,10 @@ if opts.tall and opts.large:
 	     +   ' -n 20000,1,1      -n 20000,10,10'
 	     +   ' -n 20000,31,31    -n 20000,32,32    -n 20000,33,33'
 	     +   ' -n 20000,63,63    -n 20000,64,64    -n 20000,65,65'
-	     +   ' -n 20000,200,200  -n 20000,100,100  -n 200000,10,10  -n 200000,1,1'
+	     +   ' -n 20000,200,200  -n 20000,100,100'
+	)
+if opts.tall and opts.xlarge:
+	tall += (' -n 200000,10,10   -n 200000,1,1'
 	     +   ' -n 2000000,10,10  -n 2000000,1,1'
 	)
 
@@ -432,7 +441,10 @@ if opts.wide and opts.large:
 	     +   ' -n 1,20000,1      -n 10,20000,10'
 	     +   ' -n 31,20000,31    -n 32,20000,32    -n 33,20000,33'
 	     +   ' -n 63,20000,63    -n 64,20000,64    -n 65,20000,65'
-	     +   ' -n 200,20000,200  -n 100,20000,100  -n 10,200000,10  -n 1,200000,1'
+	     +   ' -n 200,20000,200  -n 100,20000,100'
+	)
+if opts.wide and opts.xlarge:
+	wide += (' -n 10,200000,10   -n 1,200000,1'
 	     +   ' -n 10,2000000,10  -n 1,2000000,1'
 	)
 
