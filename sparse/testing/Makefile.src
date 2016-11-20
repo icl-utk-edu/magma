@@ -58,8 +58,8 @@ sparse_testing_src += \
 
 # debugging
 sparse_testing_src += \
-	$(cdir)/testing_zparilu.cpp	      \
-	$(cdir)/testing_zbug.cpp              \
+#	$(cdir)/testing_zparilu.cpp	      \
+#	$(cdir)/testing_zbug.cpp              \
 #	$(cdir)/testing_zailumatrix.cpp       \
 #	$(cdir)/testing_zdynamicilu.cpp       \
 #	$(cdir)/testing_zbgmres_saak_mscale2M.cpp	\
