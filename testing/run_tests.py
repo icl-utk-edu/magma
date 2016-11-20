@@ -644,7 +644,7 @@ blas = (
 	('testing_ztrsv',       '-U -T -DU  -c',  n,    'cublas only'),
 	
 	('testing_zhemm_mgpu',   ngpu + '-L -c',  n,    ''),
-	('testing_zhemm_mgpu',   ngpu + '-U -c',  n,    ''),
+	('#testing_zhemm_mgpu',  ngpu + '-U -c',  n,    'upper not implemented'),
 	
 	('testing_zhemv_mgpu',   ngpu + '-L -c',  n,    ''),
 	('testing_zhemv_mgpu',   ngpu + '-U -c',  n,    ''),
