@@ -35,17 +35,26 @@
 #
 # This is helpful to re-parse and summarize output from run-tests.py, and
 # to apply a second tolerence to separate true failures from borderline cases.
+#
+# The --rerun [123] option is helpful to generate a shell script to re-run
+# failed cases.
 
 import re
 import sys
+import os
 import math
 from math import isnan, isinf
 
 from optparse import OptionParser
 
 parser = OptionParser()
-parser.add_option( '--tol2', action='store',      dest='tol2', help='set tolerance (tol2)', default='100' )
-parser.add_option( '--okay', action='store_true', dest='okay', help='print okay tests',     default=False )
+parser.add_option( '--tol2',  action='store',      help='set tolerance (tol2)', default='100' )
+parser.add_option( '--okay',  action='store_true', help='print okay tests',     default=False )
+parser.add_option( '--rerun', action='store',      type=int, default=0,
+	help='generate script to re-run failed tests. Values:\n'
+		+'    1 - re-run exact command;\n'
+		+'    2 - re-run using run_tests.py;\n'
+		+'    3 - re-run testers with known bugs.' )
 
 (opts, args) = parser.parse_args()
 
@@ -65,9 +74,6 @@ dtol_100 = 100.0  * deps
 stol_1k  = 1000.0 * seps
 dtol_1k  = 1000.0 * deps
 
-print 'single epsilon %.2e,  tol2 %.0f,  tol2*eps %.2e,  30*eps %.2e,  100*eps %.2e,  1000*eps %.2e' % (seps, tol2, tol2*seps, 30*seps, 100*seps, 1000*seps)
-print 'double epsilon %.2e,  tol2 %.0f,  tol2*eps %.2e,  30*eps %.2e,  100*eps %.2e,  1000*eps %.2e' % (deps, tol2, tol2*deps, 30*deps, 100*deps, 1000*deps)
-
 epsilons = {
 	's': seps,
 	'c': seps,
@@ -85,14 +91,14 @@ data = {}
 
 # --------------------
 # fields in each row
-CmdLine = 0
-Okay    = 1
-Suspect = 2
-Failed  = 3
-Error   = 4
-Ignore  = 5
-Other   = 6
-Known   = 7
+Field_CmdLine = 0
+Field_Okay    = 1
+Field_Suspect = 2
+Field_Failed  = 3
+Field_Error   = 4
+Field_Ignore  = 5
+Field_Other   = 6
+Field_Known   = 7
 
 # labels for each field
 labels = [
@@ -118,9 +124,8 @@ error_regexp = r'exit|memory leak|memory mapping error|CUDA runtime error|illega
 known_regexp = '|'.join((
 	r'geqr2x_gpu.*--version +[24]',
 	r'gegqr_gpu.*--version +[34]',   # N=95, specifically
-	r'hemm_mgpu',                    # tester is broken
-	r'symm_mgpu',                    # tester is broken
 	r'gesv_rbt',                     # RBT known to fail on some matrices
+	r'trsm',                         # needs more rigorous error bound or better conditioned matrices
 ))
 
 # problem size, possibly with couple words before it, e.g.:
@@ -174,12 +179,12 @@ def save():
 			data[ g_cmd ] = [ g_cmdline, [],   [],   [],   [],   [],   [],   known ]
 		# end
 		if ( g_context ):
-			if   ( g_ignore  ):  data[ g_cmd ][ Ignore  ].append( g_context )
-			elif ( g_error   ):  data[ g_cmd ][ Error   ].append( g_context )
-			elif ( g_failed  ):  data[ g_cmd ][ Failed  ].append( g_context )
-			elif ( g_suspect ):  data[ g_cmd ][ Suspect ].append( g_context )
-			elif ( g_okay    ):  data[ g_cmd ][ Okay    ].append( g_context )
-			else:                data[ g_cmd ][ Other   ].append( g_context )
+			if   ( g_ignore  ):  data[ g_cmd ][ Field_Ignore  ].append( g_context )
+			elif ( g_error   ):  data[ g_cmd ][ Field_Error   ].append( g_context )
+			elif ( g_failed  ):  data[ g_cmd ][ Field_Failed  ].append( g_context )
+			elif ( g_suspect ):  data[ g_cmd ][ Field_Suspect ].append( g_context )
+			elif ( g_okay    ):  data[ g_cmd ][ Field_Okay    ].append( g_context )
+			else:                data[ g_cmd ][ Field_Other   ].append( g_context )
 		# end
 	# end
 	
@@ -197,6 +202,7 @@ def save():
 # set globals
 g_cmd     = None
 g_cmdline = None
+g_size    = ''
 save()
 
 
@@ -206,20 +212,24 @@ save()
 # current problem size, as noted by # save(). States are:
 # Start: before seeing command
 # Cmd:   testing_xyz command line:       ./testing_zgetrf
-# Pre:   errors before a problem size:   
+# Pre:   errors before a problem size
 # Size:  problem size
 # Post:  checks after a problem size
-Start = 0
-Cmd   = 1
-Pre   = 2
-Size  = 3
-Post  = 4
-End   = 5
-
+State_Start = 0
+State_Cmd   = 1
+State_Pre   = 2
+State_Size  = 3
+State_Post  = 4
+State_End   = 5
 
 for filename in args:
+	(d, f) = os.path.split( filename )
+	match = re.search( '^(xs|s|m|l|xl)-', f )
+	if (match):
+		g_size = match.group(1)
+	
 	fopen = open( filename )
-	state = Start
+	state = State_Start
 	for line in fopen:
 		# ignore anything starting with % comment, ***** separators, and blank lines
 		if ( re.search( r'^%|^\*{5,}$|^\s*$', line )):
@@ -231,7 +241,7 @@ for filename in args:
 		#   '----<---'---<---'----<---'----<---'    # save()
 		if ( re.search( '^(summary|  \*\* \d+ tests failed)$', line )):
 			save()
-			state = Start
+			state = State_Start
 			g_cmd     = None
 			g_cmdline = None
 			continue
@@ -240,11 +250,13 @@ for filename in args:
 		# start --> cmd     pre     size     post
 		#            /\       |       |        |
 		#             '---<---'---<---'----<---'    # save()
-		m = re.search( r'^(?:cuda-memcheck +)?(./testing_(\w).*?) (-c|--range|-N)', line )
+		# cmd is everything except -c, -n, --range, -N problem sizes,
+		# to show options like -L, -U.
+		m = re.search( r'^(?:cuda-memcheck +)?(./testing_(\w).*)', line )
 		if ( m ):
 			save()
-			state = Cmd
-			g_cmd     = m.group(1)
+			state = State_Cmd
+			g_cmd = re.sub( ' -c|(-n|-N|--range) +\S+', '', m.group(1) )
 			g_cmdline = line
 			# select appropriate epsilon for precision
 			p = m.group(2)
@@ -261,9 +273,9 @@ for filename in args:
 		m1 = re.search( error_regexp,  line )
 		m2 = re.search( ignore_regexp, line )
 		if ( m1 or m2 ):
-			if ( state != Pre ):
+			if ( state != State_Pre ):
 				save()
-				state = Pre
+				state = State_Pre
 			g_context += line
 			g_error  = True
 			g_ignore = (m2 != None)
@@ -276,9 +288,9 @@ for filename in args:
 		#                           /\ |       |
 		#                            '-'---<---'    # save()
 		if ( re.search( size_regexp, line )):
-			if ( state == Size or state == Post ):
+			if ( state == State_Size or state == State_Post ):
 				save()
-			state = Size
+			state = State_Size
 			line = find_ok_failed( line )
 			g_context += line
 			continue
@@ -287,16 +299,16 @@ for filename in args:
 		#  ,-.              ,-.              ,-.
 		#  | v              | v              | v
 		# start     cmd --> pre     size --> post
-		if ( state == Start ):
+		if ( state == State_Start ):
 			pass
 			
-		elif ( state == Cmd or state == Pre ):
-			state = Pre
+		elif ( state == State_Cmd or state == State_Pre ):
+			state = State_Pre
 			line = find_ok_failed( line )  # shouldn't have ok or failed
 			g_context += line
 			
-		elif ( state == Size or state == Post ):
-			state = Post
+		elif ( state == State_Size or state == State_Post ):
+			state = State_Post
 			line = find_ok_failed( line )
 			g_context += line
 			
@@ -307,7 +319,7 @@ for filename in args:
 # end
 
 
-# ------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Processes commands that have tests in the given field.
 # If output is true, prints commands and tests in given field,
 # otherwise just prints count of the commands and tests.
@@ -316,36 +328,36 @@ def output( field, output ):
 	cmds  = 0
 	tests = 0
 	result = ''
-	for cmd in sorted( data.keys()):
+	for cmd in sorted( data.keys() ):
 		row = data[cmd]
-		if ( field == Known ):
-			if ( row[Known] ):
-				#result += row[CmdLine]
-				result += cmd + '\n'
-				num = len(row[Suspect]) + len(row[Failed]) + len(row[Error])
-				if ( num == 0 ):
-					result += 'no failures (has ' + cmd + ' been fixed?)\n\n'
-				elif ( output ):
-					#result += cmd + '\n'
-					if ( len(row[Okay]) > 0 and opts.okay ):
-						result += labels[Okay]    + ':\n' + ''.join( row[Okay]    )
-					if ( len(row[Error]) > 0 ):
-						result += labels[Error]   + ':\n' + ''.join( row[Error]   )
-					if ( len(row[Failed]) > 0 ):
-						result += labels[Failed]  + ':\n' + ''.join( row[Failed]  )
-					if ( len(row[Suspect]) > 0 ):
-						result += labels[Suspect] + ':\n' + ''.join( row[Suspect] )
-					if ( len(row[Ignore]) > 0 and opts.okay ):
-						result += labels[Ignore]  + ':\n' + ''.join( row[Ignore]  )
+		if ( field == Field_Known ):
+			if ( row[Field_Known] ):
+				#result += row[Field_CmdLine]
+				#result += cmd + '\n'
+				num = len(row[Field_Suspect]) + len(row[Field_Failed]) + len(row[Field_Error])
+				#if ( num == 0 ):
+				#	result += 'no failures (has ' + cmd + ' been fixed?)\n\n'
+				if (num > 0 and output):
+					result += cmd + '\n'
+					if ( len(row[Field_Okay]) > 0 and opts.okay ):
+						result += labels[Field_Okay]    + ':\n' + ''.join( row[Field_Okay]    )
+					if ( len(row[Field_Error]) > 0 ):
+						result += labels[Field_Error]   + ':\n' + ''.join( row[Field_Error]   )
+					if ( len(row[Field_Failed]) > 0 ):
+						result += labels[Field_Failed]  + ':\n' + ''.join( row[Field_Failed]  )
+					if ( len(row[Field_Suspect]) > 0 ):
+						result += labels[Field_Suspect] + ':\n' + ''.join( row[Field_Suspect] )
+					if ( len(row[Field_Ignore]) > 0 and opts.okay ):
+						result += labels[Field_Ignore]  + ':\n' + ''.join( row[Field_Ignore]  )
 					result += '\n'
-				# nd
+				# end
 				cmds  += 1
 				tests += num
 		else:
 			num = len( row[field] )
-			if ( num > 0 and not row[Known] ):
+			if ( num > 0 and not row[Field_Known] ):
 				if ( output ):
-					#result += row[CmdLine]
+					#result += row[Field_CmdLine]
 					result += cmd + '\n'
 					result += ''.join( row[field] ) + '\n'
 				# end
@@ -361,10 +373,108 @@ def output( field, output ):
 # end
 
 
-output( Okay,    opts.okay )
-output( Error,   True   )
-output( Failed,  True   )
-output( Suspect, True   )
-output( Known,   True   )
-output( Ignore,  True   )
-output( Other,   True   )  # tests that didn't have "ok" or "failed"
+# ------------------------------------------------------------------------------
+# Prints shell script to re-run failed commands exactly as in the output.
+# For example, if   ./testing_dpotrf -L -c -n 1000   failed,
+# it would re-run   ./testing_dpotrf -L -c -n 1000
+def rerun1():
+	output = 'errors.txt'
+	if (g_size):
+		output = g_size + '-' + output
+	
+	print '#!/bin/sh'
+	print
+	print 'touch', output
+	print
+	for cmd in sorted( data.keys() ):
+		row = data[cmd]
+		if ((row[Field_Error] or row[Field_Failed] or row[Field_Suspect]) and not row[Field_Known]):
+			test = row[Field_CmdLine].rstrip()
+			print 'echo    ', test, '>>', output
+			print '(set -x;', test, '>>', output, ')'
+			print
+	# end
+# end
+
+
+# ------------------------------------------------------------------------------
+# Prints shell script to re-run failed commands, using run_tests.py.
+# For example, if   ./testing_dpotrf -L -c -n 1000   failed,
+# it would re-run   ./run_tests.py testing_dpotrf
+# which would re-run both -L and -U options (unlike rerun1).
+def rerun2():
+	output = 'errors.txt'
+	size = ''
+	if (g_size):
+		output = g_size + '-' + output
+		size = '--' + g_size
+	seen = {}
+	
+	print '#!/bin/sh'
+	print
+	print 'FUNCS="',
+	for cmd in sorted( data.keys() ):
+		row = data[cmd]
+		if ((row[Field_Error] or row[Field_Failed] or row[Field_Suspect]) and not row[Field_Known]):
+			match = re.search( '^\./(testing\w+)', cmd )
+			test = match.group(1)
+			if (not seen.has_key( test )):
+				seen[test] = True
+				print test,
+			# end
+		# end
+	# end
+	print '"'
+	print
+	print './run_tests.py', size, '$FUNCS >', output
+# end
+
+
+# ------------------------------------------------------------------------------
+# Same as rerun2 but with known failures.
+def rerun_known():
+	output = 'errors.txt'
+	size = ''
+	if (g_size):
+		output = g_size + '-' + output
+		size = '--' + g_size
+	seen = {}
+	
+	print '#!/bin/sh'
+	print
+	print 'FUNCS="',
+	for cmd in sorted( data.keys() ):
+		row = data[cmd]
+		if (row[Field_Known]):
+			match = re.search( '^\./(testing\w+)', cmd )
+			test = match.group(1)
+			if (not seen.has_key( test )):
+				seen[test] = True
+				print test,
+			# end
+		# end
+	# end
+	print '"'
+	print
+	print './run_tests.py', size, '$FUNCS >', output
+# end
+
+
+# ------------------------------------------------------------------------------
+if   (opts.rerun == 1):
+	rerun1()
+elif (opts.rerun == 2):
+	rerun2()
+elif (opts.rerun == 3):
+	rerun_known()
+else:
+	print 'single epsilon %.2e,  tol2 %.0f,  tol2*eps %.2e,' % (seps, tol2, tol2*seps)
+	print 'double epsilon %.2e,  tol2 %.0f,  tol2*eps %.2e,' % (deps, tol2, tol2*deps)
+	output( Field_Okay,    opts.okay )
+	output( Field_Error,   True   )
+	output( Field_Failed,  True   )
+	output( Field_Suspect, True   )
+	output( Field_Known,   True   )
+	output( Field_Ignore,  True   )
+	output( Field_Other,   True   )  # tests that didn't have "ok" or "failed"
+# end
