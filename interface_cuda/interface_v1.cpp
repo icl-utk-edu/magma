@@ -56,6 +56,7 @@ magma_device_sync()
     cudaError_t err;
     err = cudaDeviceSynchronize();
     check_error( err );
+    MAGMA_UNUSED( err );
 }
 
 
@@ -172,6 +173,7 @@ magma_queue_create_v1_internal(
     cudaError_t err;
     err = cudaGetDevice( &device );
     check_xerror( err, func, file, line );
+    MAGMA_UNUSED( err );
 
     magma_queue_create_internal( device, queue_ptr, func, file, line );
 }

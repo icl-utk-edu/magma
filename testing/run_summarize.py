@@ -120,6 +120,7 @@ known_regexp = '|'.join((
 	r'gegqr_gpu.*--version +[34]',   # N=95, specifically
 	r'hemm_mgpu',                    # tester is broken
 	r'symm_mgpu',                    # tester is broken
+	r'gesv_rbt',                     # RBT known to fail on some matrices
 ))
 
 # problem size, possibly with couple words before it, e.g.:

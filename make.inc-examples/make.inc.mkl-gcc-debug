@@ -21,10 +21,10 @@
 # --------------------
 # programs
 
-CC        = icc
-CXX       = icpc
+CC        = gcc
+CXX       = g++
 NVCC      = nvcc
-FORT      = ifort
+FORT      = gfortran
 
 ARCH      = ar
 ARCHFLAGS = cr
@@ -38,24 +38,13 @@ RANLIB    = ranlib
 # can be commented out if making only static library.
 FPIC      = -fPIC
 
-CFLAGS    = -O3 $(FPIC) -openmp -DADD_ -Wall -Wshadow -DMAGMA_WITH_MKL
-FFLAGS    = -O3 $(FPIC)         -DADD_ -warn all -warn nounused -nogen-interfaces
-F90FLAGS  = -O3 $(FPIC)         -DADD_ -warn all -warn nounused
-NVCCFLAGS = -O3                 -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
-LDFLAGS   =     $(FPIC) -openmp
+CFLAGS    = -O3 $(FPIC) -fopenmp -DADD_ -Wall -Wshadow -DMAGMA_WITH_MKL -DDEBUG_MEMORY
+FFLAGS    = -O3 $(FPIC)          -DADD_ -Wall -Wno-unused-dummy-argument
+F90FLAGS  = -O3 $(FPIC)          -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
+NVCCFLAGS = -O3                  -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+LDFLAGS   =     $(FPIC) -fopenmp
 
-# Defining MAGMA_ILP64 or MKL_ILP64 changes magma_int_t to int64_t in include/magma_types.h
-CFLAGS    += -DMKL_ILP64
-FFLAGS    += -integer-size 64
-F90FLAGS  += -integer-size 64
-NVCCFLAGS += -DMKL_ILP64
-
-# Options to do extra checks for non-standard things like variable length arrays;
-# it is safe to disable all these
-CFLAGS   += -pedantic -Wno-long-long
-#CFLAGS   += -Werror  # uncomment to ensure all warnings are dealt with
-
-# C++11 (icc >= 13) is not required, but has benefits like atomic operations
+# C++11 (gcc >= 4.7) is not required, but has benefits like atomic operations
 CXXFLAGS := $(CFLAGS) -std=c++11
 CFLAGS   += -std=c99
 
@@ -63,14 +52,14 @@ CFLAGS   += -std=c99
 # --------------------
 # libraries
 
-# IMPORTANT: these link lines are for 64-bit int !!!!
-# For regular 64-bit builds using 64-bit pointers and 32-bit int,
-# use the lp64 library, not the ilp64 library. See make.inc.mkl-gcc or make.inc.mkl-icc.
-
 # see MKL Link Advisor at http://software.intel.com/sites/products/mkl/
-# icc/ifort with MKL 10.3, Intel OpenMP threads, 64-bit int
-# note -DMAGMA_ILP64 or -DMKL_ILP64, and -integer-size 64 in FLAGS above
-LIB       = -lmkl_intel_ilp64 -lmkl_intel_thread -lmkl_core -lpthread -lstdc++ -lm
+# gcc/gfortran with MKL 10.3, GNU OpenMP threads (use -fopenmp in CFLAGS, LDFLAGS)
+LIB       = -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core -lpthread -lstdc++ -lm -lgfortran
+
+# Supposedly, gcc can use Intel threads (libiomp5) instead, but be careful that
+# libiomp5 and libgomp are NOT BOTH linked. Above, we use gnu threads as a safer option.
+# gcc/gfortran with MKL 10.3, Intel OpenMP threads (remove -fopenmp from LDFLAGS above)
+#LIB       = -lmkl_gf_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lstdc++ -lm -lgfortran
 
 LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 

@@ -13,6 +13,7 @@ my $micro;
 my $rc       = 0;  # release candidate
 my $alpha    = 0;
 my $beta     = 0;
+my $revision = '';
 
 # ------------------------------------------------------------------------------
 # In alphabetic order
@@ -27,7 +28,7 @@ my @files2delete = qw(
     
     include/Makefile
     make.inc
-    make.inc.ig.pgi
+    make.inc-examples/make.inc.ig.pgi
     scripts
 
     sparse/python
@@ -47,10 +48,8 @@ my @files2delete = qw(
 
     tools/MakeMagmaRelease.pl
     tools/checklist.csh
-    tools/checklist_builds.sh
     tools/checklist_ceildiv.pl
     tools/compare_prototypes.pl
-    tools/find_obj_files.sh
     tools/fortran_wrappers.pl
     tools/magmasubs.pyc
     tools/parse-magma.py
@@ -125,7 +124,7 @@ EOT
     chomp $dir;
 
     if ( not $rc and not $alpha and not $beta ) {
-        print "Update MAGMA version in include headers (yes/no)?"
+        print "Update MAGMA version in include headers (yes/no)?";
         $_ = <STDIN>;
         if ( m/\b(y|yes)\b/ ) {
             # If run as ./tools/MakeMagmaRelease.pl, no need to change dir;

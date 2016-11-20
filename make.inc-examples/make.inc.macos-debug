@@ -1,0 +1,97 @@
+#//////////////////////////////////////////////////////////////////////////////
+#   -- MAGMA (version 2.0) --
+#      Univ. of Tennessee, Knoxville
+#      Univ. of California, Berkeley
+#      Univ. of Colorado, Denver
+#      @date
+#//////////////////////////////////////////////////////////////////////////////
+
+# GPU_TARGET contains one or more of Fermi, Kepler, or Maxwell,
+# to specify for which GPUs you want to compile MAGMA:
+#     Fermi   - NVIDIA compute capability 2.x cards
+#     Kepler  - NVIDIA compute capability 3.x cards
+#     Maxwell - NVIDIA compute capability 5.x cards
+# The default is "Fermi Kepler".
+# Note that NVIDIA no longer supports 1.x cards, as of CUDA 6.5.
+# See http://developer.nvidia.com/cuda-gpus
+#
+#GPU_TARGET ?= Fermi Kepler
+
+# --------------------
+# programs
+
+CC        = gcc
+CXX       = g++
+NVCC      = nvcc
+FORT      = gfortran
+
+ARCH      = ar
+ARCHFLAGS = cr
+RANLIB    = ranlib
+
+
+# --------------------
+# flags
+
+# use -m32 to compile with 32-bit long & pointers.
+# use -m64 to compile with 64-bit long & pointers (lp64). int is still 32-bit.
+#
+# MacOS veclib has a bug where some single precision functions return
+# a double precision result, for instance slange.
+# This is observed with -m64, but oddly not with -m32.
+# The easiest fix is to replace those routines with correct ones from LAPACK.
+# See BLAS_FIX below.
+# Alternatively, don't link with the veclib/accelerate framework;
+# use a different BLAS and LAPACK library.
+
+# Use -fPIC to make shared (.so) and static (.a) library;
+# can be commented out if making only static library.
+FPIC      = -fPIC
+
+# Apple's clang compiler doesn't have OpenMP
+# gcc/g++/gfortran with OpenMP is available from http://hpc.sourceforge.net/
+# Add -fopenmp to CFLAGS and LDFLAGS as in make.inc.macos-openmp
+CFLAGS    = -m64 -O3 $(FPIC) -DADD_ -Wall -Wshadow -DMAGMA_NOAFFINITY -DDEBUG_MEMORY
+FFLAGS    = -m64 -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
+F90FLAGS  = -m64 -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
+NVCCFLAGS = -m64 -O3         -DADD_       -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+LDFLAGS   = -m64     $(FPIC)
+
+# Options to do extra checks for non-standard things like variable length arrays;
+# it is safe to disable all these
+CFLAGS   += -pedantic -Wno-long-long
+#CFLAGS   += -Werror  # uncomment to ensure all warnings are dealt with
+
+# C++11 (gcc >= 4.7) is not required, but has benefits like atomic operations
+CXXFLAGS := $(CFLAGS) -std=c++11
+CFLAGS   += -std=c99
+
+# MacOS likes the library's path to be set
+INSTALL_NAME = -install_name @rpath/
+
+
+# --------------------
+# libraries
+
+LIB       = -framework Accelerate -lstdc++ -lm
+
+LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
+
+
+# --------------------
+# directories
+
+# define library directories preferably in your environment, or here.
+#CUDADIR ?= /usr/local/cuda
+-include make.check-cuda
+
+LIBDIR    = -L$(CUDADIR)/lib
+
+INC       = -I$(CUDADIR)/include
+
+
+# ========================================
+# replace single & single-complex BLAS functions with reference versions.
+# (i.e., functions that return float; subroutines do not need a fix.)
+# Prepends -lblas_fix to LIB; see Makefile.
+blas_fix = 1

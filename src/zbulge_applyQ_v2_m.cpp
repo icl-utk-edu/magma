@@ -112,7 +112,11 @@ magma_zbulge_applyQ_v2_m(
     magma_int_t dwVTsiz  = lddv*Vblksiz;  // lddv*lddv + lddv*NE; // lddv*Vblksiz;
     magma_int_t dworksiz = ne_loc*Vblksiz;  // lddv*Vblksiz;      // NE*Vblksiz;
     ngpu = min(ngpu, magma_ceildiv(NE,ne_loc)); // Don't use GPU that will not have data.
-
+    // make overlapped copy
+    magma_int_t ncpy = 0;
+    magma_int_t copyed=0, copyst=0;
+    magma_int_t blkcnt,nothing, mysiz, flip, vld,tld, locpos;
+    
     // Initialize streaming and events
     magma_device_t orig_dev;
     magma_getdevice( &orig_dev );
@@ -159,9 +163,6 @@ magma_zbulge_applyQ_v2_m(
 
 
     // make overlapped copy
-    magma_int_t ncpy = 0;
-    magma_int_t copyed=0, copyst=0;
-    magma_int_t blkcnt,nothing, mysiz, flip, vld,tld, locpos;
     findVTsiz(N, NB, Vblksiz, &blkcnt, &nothing);
     
     flip = 0;

@@ -38,7 +38,7 @@ RANLIB    = ranlib
 # can be commented out if making only static library.
 FPIC      = -fPIC
 
-CFLAGS    = -O3 $(FPIC) -fopenmp -DADD_ -Wall -Wshadow -DMAGMA_WITH_MKL
+CFLAGS    = -O3 $(FPIC) -fopenmp -DADD_ -Wall -Wshadow -DMAGMA_WITH_MKL -DDEBUG_MEMORY
 FFLAGS    = -O3 $(FPIC)          -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS  = -O3 $(FPIC)          -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
 NVCCFLAGS = -O3                  -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function"

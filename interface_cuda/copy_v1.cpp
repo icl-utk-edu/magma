@@ -89,6 +89,7 @@ magma_setmatrix_v1_internal(
         hA_src, int(lda),
         dB_dst, int(lddb) );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 
@@ -106,6 +107,7 @@ magma_getmatrix_v1_internal(
         dA_src, int(ldda),
         hB_dst, int(ldb) );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 
@@ -123,6 +125,7 @@ magma_copymatrix_v1_internal(
         dA_src, int(ldda*elemSize),
         int(m*elemSize), int(n), cudaMemcpyDeviceToDevice );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 #endif // HAVE_CUBLAS

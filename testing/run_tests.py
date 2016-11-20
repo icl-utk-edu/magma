@@ -421,14 +421,14 @@ if opts.wide and opts.small:
 	     +   ' -n 19,20      -n 10,20      -n 2,20      -n 1,20'
 	     +   ' -n 199,200    -n 100,200    -n 20,200    -n 10,200    -n 1,200'
 	)
-if opts.tall and opts.medium:
-	tall += (' -n 599,600        -n 300,600'
+if opts.wide and opts.medium:
+	wide += (' -n 599,600        -n 300,600'
 	     +   ' -n 1,600,1        -n 10,600,10'
 	     +   ' -n 31,600,31      -n 32,600,32      -n 33,600,33'
 	     +   ' -n 63,600,63      -n 64,600,64      -n 65,600,65'
 	)
-if opts.tall and opts.large:
-	tall += (' -n 1999,2000      -n 1000,2000'
+if opts.wide and opts.large:
+	wide += (' -n 1999,2000      -n 1000,2000'
 	     +   ' -n 1,20000,1      -n 10,20000,10'
 	     +   ' -n 31,20000,31    -n 32,20000,32    -n 33,20000,33'
 	     +   ' -n 63,20000,63    -n 64,20000,64    -n 65,20000,65'
@@ -1192,8 +1192,8 @@ batched = (
 	('testing_zherk_batched',     batch + '         -U    -c',  nk,   ''),
 	('testing_zherk_batched',     batch + '         -U -C -c',  nk,   ''),
 	# real trans
-	('testing_zherk_batched',     batch + '         -L -T -c',  nk,   ''),
-	('testing_zherk_batched',     batch + '         -U -T -c',  nk,   ''),
+	('testing_dsyrk_batched',     batch + '         -L -T -c',  nk,   ''),
+	('testing_dsyrk_batched',     batch + '         -U -T -c',  nk,   ''),
 	
 	# lower/upper, no-trans/conj-trans
 	('testing_zher2k_batched',    batch + '         -L    -c',  nk,   ''),
@@ -1201,18 +1201,15 @@ batched = (
 	('testing_zher2k_batched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zher2k_batched',    batch + '         -U -C -c',  nk,   ''),
 	# real trans
-	('testing_zher2k_batched',    batch + '         -L -T -c',  nk,   ''),
-	('testing_zher2k_batched',    batch + '         -U -T -c',  nk,   ''),
+	('testing_dsyr2k_batched',    batch + '         -L -T -c',  nk,   ''),
+	('testing_dsyr2k_batched',    batch + '         -U -T -c',  nk,   ''),
 	
 	('testing_zlacpy_batched',    batch + '               -c',  mn,   ''),
 	
-	# lower/upper, no-trans/conj-trans
+	# lower/upper, no-trans/trans
 	('testing_zsyr2k_batched',    batch + '         -L    -c',  nk,   ''),
-	('testing_zsyr2k_batched',    batch + '         -L -C -c',  nk,   ''),
-	('testing_zsyr2k_batched',    batch + '         -U    -c',  nk,   ''),
-	('testing_zsyr2k_batched',    batch + '         -U -C -c',  nk,   ''),
-	# real trans
 	('testing_zsyr2k_batched',    batch + '         -L -T -c',  nk,   ''),
+	('testing_zsyr2k_batched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zsyr2k_batched',    batch + '         -U -T -c',  nk,   ''),
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
@@ -1343,8 +1340,8 @@ vbatched = (
 	('testing_zherk_vbatched',     batch + '         -U    -c',  nk,   ''),
 	('testing_zherk_vbatched',     batch + '         -U -C -c',  nk,   ''),
 	# real trans
-	('testing_zherk_vbatched',     batch + '         -L -T -c',  nk,   ''),
-	('testing_zherk_vbatched',     batch + '         -U -T -c',  nk,   ''),
+	('testing_dsyrk_vbatched',     batch + '         -L -T -c',  nk,   ''),
+	('testing_dsyrk_vbatched',     batch + '         -U -T -c',  nk,   ''),
 	
 	# lower/upper, no-trans/conj-trans
 	('testing_zher2k_vbatched',    batch + '         -L    -c',  nk,   ''),
@@ -1352,25 +1349,19 @@ vbatched = (
 	('testing_zher2k_vbatched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zher2k_vbatched',    batch + '         -U -C -c',  nk,   ''),
 	# real trans
-	('testing_zher2k_vbatched',    batch + '         -L -T -c',  nk,   ''),
-	('testing_zher2k_vbatched',    batch + '         -U -T -c',  nk,   ''),
+	('testing_dsyr2k_vbatched',    batch + '         -L -T -c',  nk,   ''),
+	('testing_dsyr2k_vbatched',    batch + '         -U -T -c',  nk,   ''),
 	
-	# lower/upper, no-trans/conj-trans
+	# lower/upper, no-trans/trans
 	('testing_zsyrk_vbatched',     batch + '         -L    -c',  nk,   ''),
-	('testing_zsyrk_vbatched',     batch + '         -L -C -c',  nk,   ''),
-	('testing_zsyrk_vbatched',     batch + '         -U    -c',  nk,   ''),
-	('testing_zsyrk_vbatched',     batch + '         -U -C -c',  nk,   ''),
-	# real trans
 	('testing_zsyrk_vbatched',     batch + '         -L -T -c',  nk,   ''),
+	('testing_zsyrk_vbatched',     batch + '         -U    -c',  nk,   ''),
 	('testing_zsyrk_vbatched',     batch + '         -U -T -c',  nk,   ''),
 	
-	# lower/upper, no-trans/conj-trans
+	# lower/upper, no-trans/trans
 	('testing_zsyr2k_vbatched',    batch + '         -L    -c',  nk,   ''),
-	('testing_zsyr2k_vbatched',    batch + '         -L -C -c',  nk,   ''),
-	('testing_zsyr2k_vbatched',    batch + '         -U    -c',  nk,   ''),
-	('testing_zsyr2k_vbatched',    batch + '         -U -C -c',  nk,   ''),
-	# real trans
 	('testing_zsyr2k_vbatched',    batch + '         -L -T -c',  nk,   ''),
+	('testing_zsyr2k_vbatched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zsyr2k_vbatched',    batch + '         -U -T -c',  nk,   ''),
 	
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
@@ -1556,6 +1547,7 @@ subs = (
 	('',              'testing_dlat2s', '',              'testing_zlat2c'),
 	('ssy',           'dsy',            'ssy',           'dsy'           ),
 	('ssy',           'dsy',            'che',           'zhe'           ),
+	('ssy',           'dsy',            'csy',           'zsy'           ),
 	('sor',           'dor',            'cun',           'zun'           ),
 	('sy2sb',         'sy2sb',          'he2hb',         'he2hb'         ),
 	('',              'testing_ds',     '',              'testing_zc'    ),

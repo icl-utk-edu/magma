@@ -67,6 +67,7 @@ magma_setvector_internal(
         dy_dst, int(incy), queue->cuda_stream() );
     cudaStreamSynchronize( queue->cuda_stream() );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 
@@ -126,6 +127,7 @@ magma_setvector_async_internal(
         hx_src, int(incx),
         dy_dst, int(incy), stream );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 
@@ -177,6 +179,7 @@ magma_getvector_internal(
         hy_dst, int(incy), queue->cuda_stream() );
     cudaStreamSynchronize( queue->cuda_stream() );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 
@@ -236,6 +239,7 @@ magma_getvector_async_internal(
         dx_src, int(incx),
         hy_dst, int(incy), stream );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 
@@ -292,6 +296,7 @@ magma_copyvector_internal(
             int(n*elemSize), cudaMemcpyDeviceToDevice, queue->cuda_stream() );
         cudaStreamSynchronize( queue->cuda_stream() );
         check_xerror( status, func, file, line );
+        MAGMA_UNUSED( status );
     }
     else {
         magma_copymatrix_internal(
@@ -357,6 +362,7 @@ magma_copyvector_async_internal(
             dx_src,
             int(n*elemSize), cudaMemcpyDeviceToDevice, stream );
         check_xerror( status, func, file, line );
+        MAGMA_UNUSED( status );
     }
     else {
         magma_copymatrix_async_internal(
@@ -417,6 +423,7 @@ magma_setmatrix_internal(
         dB_dst, int(lddb), queue->cuda_stream() );
     cudaStreamSynchronize( queue->cuda_stream() );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 
@@ -479,6 +486,7 @@ magma_setmatrix_async_internal(
         hA_src, int(lda),
         dB_dst, int(lddb), stream );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 
@@ -534,6 +542,7 @@ magma_getmatrix_internal(
         hB_dst, int(ldb), queue->cuda_stream() );
     cudaStreamSynchronize( queue->cuda_stream() );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 
@@ -595,6 +604,7 @@ magma_getmatrix_async_internal(
         dA_src, int(ldda),
         hB_dst, int(ldb), stream );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 
@@ -651,6 +661,7 @@ magma_copymatrix_internal(
         int(m*elemSize), int(n), cudaMemcpyDeviceToDevice, queue->cuda_stream() );
     cudaStreamSynchronize( queue->cuda_stream() );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 
@@ -713,6 +724,7 @@ magma_copymatrix_async_internal(
         dA_src, int(ldda*elemSize),
         int(m*elemSize), int(n), cudaMemcpyDeviceToDevice, stream );
     check_xerror( status, func, file, line );
+    MAGMA_UNUSED( status );
 }
 
 #endif // HAVE_CUBLAS
