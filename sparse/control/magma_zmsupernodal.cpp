@@ -54,6 +54,7 @@ magma_zmsupernodal(
 
     int maxblocksize = *max_bs;
     int current_size = 0;
+    int prev_matches = 0;
 
     CHECK( magma_imalloc_cpu( &v, A.num_rows+10 ));
     CHECK( magma_imalloc_cpu( &start, A.num_rows+10 ));
@@ -65,8 +66,12 @@ magma_zmsupernodal(
     for( magma_int_t i=1; i<A.num_rows; i++ ){
         // pattern matches the pattern of the previous row
         int match = 0; // 0 means match!
-        if( ((A.row[i+1]-A.row[i])-(A.row[i]-A.row[i-1])) != 0 ){
+        if( prev_matches == maxblocksize ){ // bounded by maxblocksize
             match = 1; // no match
+            prev_matches = 0;
+        } else if( ((A.row[i+1]-A.row[i])-(A.row[i]-A.row[i-1])) != 0 ){
+            match = 1; // no match
+            prev_matches = 0;
         } else {
             magma_index_t length = (A.row[i+1]-A.row[i]);
             magma_index_t start1 = A.row[i-1];
@@ -74,7 +79,11 @@ magma_zmsupernodal(
             for( magma_index_t j=0; j<length; j++ ){
                 if( A.col[ start1+j ] != A.col[ start2+j ] ){
                     match = 1;
+                    prev_matches = 0;
                 }
+            }
+            if( match == 0 ){
+                prev_matches++; // add one match to the block
             }
         }
         v[ i ] = match;
@@ -94,8 +103,8 @@ magma_zmsupernodal(
         blocksizes[i] = start[i+1] - start[i];
         if( blocksizes[i] > maxblocksize ){
             // maxblocksize = blocksizes[i];
-            printf("%% warning: at i=%5lld blocksize required is %5lld\n",
-                                                            (long long) i, (long long) blocksizes[i] );
+            // printf("%% warning: at i=%5lld blocksize required is %5lld\n",
+            //                                                (long long) i, (long long) blocksizes[i] );
         }
     }
 
