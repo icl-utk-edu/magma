@@ -2762,6 +2762,17 @@ magma_int_t
 magma_ztestasync( 
     magma_z_matrix A,
     magma_queue_t queue );
+
+//##################   stencil operators
+
+
+magma_int_t
+magma_zge3pt(
+    magma_int_t m, 
+    magma_int_t n,
+    magmaDoubleComplex_ptr dx,
+    magmaDoubleComplex_ptr dy,
+    magma_queue_t queue );
  
 #ifdef __cplusplus
 }

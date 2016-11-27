@@ -56,6 +56,7 @@ magma_zcustomspmv(
     magma_int_t info = 0;
     // vector access via x.dval, y.dval
     // sizes are x.num_rows, x.num_cols
+    magma_zge3pt( x.num_rows, x.num_cols, x.dval, y.dval, queue );
     
     return info;
 }

@@ -584,7 +584,9 @@ subs = {
     ('ssyisai',        'dsyisai',        'csyisai',        'zsyisai'         ),
     ('silu',           'dilu',           'cilu',           'zilu'            ),
     ('sgeblock',       'dgeblock',       'cilugeblock',    'zgeblock'        ),
-    
+    ('sge3pt',         'dge3pt',         'cge3pt',         'zge3pt'          ),    
+
+
     # ----- SPARSE Iterative Solvers
     ('scg',            'dcg',            'ccg',            'zcg'             ),
     ('slsqr',          'dlsqr',          'clsqr',          'zlsqr'           ),

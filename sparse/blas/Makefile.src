@@ -78,6 +78,11 @@ libsparse_src += \
 	$(cdir)/zgeisai_maxblock.cu	\
 	$(cdir)/zgeisai_batched32.cu      \
 
+# Stencil operators
+libsparse_src += \
+	$(cdir)/zge3pt.cu                   \
+	
+	
 # Tester routines
 libsparse_src += \
 	$(cdir)/zmergeblockkrylov.cu          \
