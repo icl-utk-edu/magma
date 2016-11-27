@@ -146,8 +146,9 @@ magma_z_spmv(
             }
             else if ( A.storage_type == Magma_SPMVFUNCTION ) {
                 //printf("using DENSE kernel for SpMV: ");
-                CHECK( magma_zcustomspmv( alpha, x, beta, y, queue ));
-                //printf("done.\n");
+                CHECK( magma_zcustomspmv( x.num_rows, x.num_cols, alpha, beta, x.dval, y.dval, queue ));
+                // magma_zge3pt(  x.num_rows, x.num_cols, &alpha, &beta, x.dval, y.dval, queue );
+                // printf("done.\n");
             }
             else if ( A.storage_type == Magma_BCSR ) {
                 //printf("using CUSPARSE BCSR kernel for SpMV: ");

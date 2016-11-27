@@ -1687,10 +1687,12 @@ magma_z_spmv(
 
 magma_int_t
 magma_zcustomspmv(
+    magma_int_t m,
+    magma_int_t n,
     magmaDoubleComplex alpha, 
-    magma_z_matrix x, 
     magmaDoubleComplex beta, 
-    magma_z_matrix y,
+    magmaDoubleComplex_ptr x, 
+    magmaDoubleComplex_ptr y, 
     magma_queue_t queue );
 
 magma_int_t
@@ -2770,6 +2772,8 @@ magma_int_t
 magma_zge3pt(
     magma_int_t m, 
     magma_int_t n,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex beta,
     magmaDoubleComplex_ptr dx,
     magmaDoubleComplex_ptr dy,
     magma_queue_t queue );

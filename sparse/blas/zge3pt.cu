@@ -18,6 +18,8 @@ __global__ void
 zge3pt_kernel( 
     int num_rows, 
     int num_cols,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex beta,
     magmaDoubleComplex * dx,
     magmaDoubleComplex * dy)
 {
@@ -26,16 +28,20 @@ zge3pt_kernel(
     if( row >= num_rows ){
         return;
     } else {
+        
         for( int i=0; i<num_cols; i++ ){
             if (row == num_rows-1) {
-                dy[ row+i*num_rows ] =  - 2 * dx[ row+i*num_rows ] 
-                                    + dx[ row+i*num_rows-1 ];
+                dy[ row+i*num_rows ] = alpha * (- 2 * dx[ row+i*num_rows ] 
+                                        + dx[ row+i*num_rows-1 ])
+                                        + beta * dy[ row+i*num_rows ] ;
             } else if(row == 0) {
-                dy[ row+i*num_rows ] =  - 2 * dx[ row ] 
-                                    + dx[ row+i*num_rows+1 ];
+                dy[ row+i*num_rows ] = alpha * (- 2 * dx[ row+i*num_rows ] 
+                                        + dx[ row+i*num_rows+1 ])
+                                        + beta * dy[ row+i*num_rows ] ;
             } else {
-                dy[ row+i*num_rows ] =  - 2 * dx[ row+i*num_rows ] 
-                                    + dx[ row+i*num_rows-1 ] + dx[ row+i*num_rows+1 ];
+                dy[ row+i*num_rows ] = alpha * (- 2 * dx[ row+i*num_rows ] 
+                                        + dx[ row+i*num_rows-1 ] + dx[ row+i*num_rows+1 ])
+                                        + beta * dy[ row+i*num_rows ] ;
             }
         }
     }
@@ -61,6 +67,14 @@ zge3pt_kernel(
                 number of columns in x and y
                 
     @param[in]
+    alpha       magmaDoubleComplex
+                scalar multiplier
+                
+    @param[in]
+    beta        magmaDoubleComplex
+                scalar multiplier
+                
+    @param[in]
     dx          magmaDoubleComplex_ptr
                 input vector x
 
@@ -79,6 +93,8 @@ extern "C" magma_int_t
 magma_zge3pt(
     magma_int_t m, 
     magma_int_t n,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex beta,
     magmaDoubleComplex_ptr dx,
     magmaDoubleComplex_ptr dy,
     magma_queue_t queue )
@@ -86,8 +102,6 @@ magma_zge3pt(
     dim3 grid( magma_ceildiv( m, BLOCK_SIZE ) );
     magma_int_t threads = BLOCK_SIZE;
     zge3pt_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
-                  ( m, n, dx, dy );
-
-
+                  ( m, n, alpha, beta, dx, dy );
     return MAGMA_SUCCESS;
 }
