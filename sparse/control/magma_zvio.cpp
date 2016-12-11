@@ -148,7 +148,6 @@ magma_zvread(
     x->num_rows = length;
     x->num_cols = 1;
     x->major = MagmaColMajor;
-    CHECK( magma_zmalloc_cpu( &x->val, length ));
     
     fid = fopen(filename, "r");
 
@@ -157,8 +156,49 @@ magma_zvread(
     rewind(fid);
     for( p=buff; NULL != strtok(p, " \t\n"); p=NULL)
         count++;
+    while( !feof(fid) )
+    {
+        double VAL1;
+
+        magmaDoubleComplex VAL;
+        
+        #if defined(PRECISION_z) || defined(PRECISION_d)
+            double VAL2;
+            if( count == 2 ){
+                fscanf(fid, "%lg %lg\n", &VAL1, &VAL2);
+                VAL = MAGMA_Z_MAKE(VAL1, VAL2);
+            }else{
+                fscanf(fid, "%lg\n", &VAL1);
+                VAL = MAGMA_Z_MAKE(VAL1, 0.0);  
+            }
+        #else // single-complex or single
+            double VAL2;
+            if( count == 2 ){
+                fscanf(fid, "%g %g\n", &VAL1, &VAL2);
+                VAL = MAGMA_Z_MAKE(VAL1, VAL2);
+            }else{
+                fscanf(fid, "%g\n", &VAL1);
+                VAL = MAGMA_Z_MAKE(VAL1, 0.0);  
+            }
+        #endif
+        
+        if ( VAL != MAGMA_Z_ZERO )
+            nnz++;
+        i++;
+    }
     
-    while( i<length )  // eof() is 'true' at the end of data
+    x->num_rows = i;
+    x->nnz = i;
+    i=0; nnz=0; count=0;
+    // printf("n:%d\n");
+    
+    CHECK( magma_zmalloc_cpu( &x->val, length ));
+    
+    rewind(fid);
+    for( p=buff; NULL != strtok(p, " \t\n"); p=NULL)
+        count++;
+    //while( i<length )  // eof() is 'true' at the end of data
+    while( !feof(fid) )
     {
         double VAL1;
 
@@ -191,7 +231,8 @@ magma_zvread(
     }
     fclose(fid);
     
-    x->nnz = nnz;
+    // magma_zprint_vector( *x, 0, x->num_rows, queue );
+    
     
 cleanup:
     return info;
