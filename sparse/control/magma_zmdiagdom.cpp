@@ -64,6 +64,7 @@ magma_zmdiagdom(
     CHECK( magma_zmtransfer( M, &A, M.memory_location, Magma_CPU, queue ));
     CHECK( magma_dvinit( &x, Magma_CPU, A.num_rows, 1, 0.0, queue ) );
     
+    #pragma omp parallel for
     for( magma_int_t i=0; i<A.num_rows; i++ ){
         double diag = 0.0;
         double offdiag = 0.0;
