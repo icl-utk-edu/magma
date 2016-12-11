@@ -245,6 +245,14 @@ magma_zmslice(
     magma_int_t *end,
     magma_queue_t queue );
 
+magma_int_t
+magma_zmdiagdom(
+    magma_z_matrix M,
+    double *min_dd,
+    double *max_dd,
+    double *avg_dd,
+    magma_queue_t queue );
+
 magma_int_t 
 magma_zmdiff( 
     magma_z_matrix A, 

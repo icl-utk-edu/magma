@@ -30,6 +30,7 @@ libsparse_src += \
 	$(cdir)/magma_zmscale.cpp             \
 	$(cdir)/magma_zmshrink.cpp            \
 	$(cdir)/magma_zmslice.cpp             \
+	$(cdir)/magma_zmdiagdom.cpp	      \
 	$(cdir)/magma_zmdiff.cpp              \
 	$(cdir)/magma_zmlumerge.cpp           \
 	$(cdir)/magma_zmtranspose.cpp         \
