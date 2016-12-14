@@ -71,18 +71,22 @@ magma_zmdiagdom(
         for( magma_int_t j=A.row[i]; j<A.row[i+1]; j++ ){
             double val = MAGMA_Z_ABS( A.val[j] );
             if( A.col[j] == i ){
-                diag = val;
+                diag += val;
             } else {
                 offdiag += val;    
             }
         }
-        x.val[i] = diag / offdiag;
+        if( offdiag > 1e-15 ){
+            x.val[i] = diag / offdiag;
+        } else {
+            x.val[i] = -1.;
+        }
     }
     *min_dd = 1e10;
     *max_dd = 0.0;
     *avg_dd =0.0;
-    for( magma_int_t i=0; i<A.num_rows; i++ ){
-        if( magma_d_isnan_inf( x.val[i] ) ){
+    for(magma_int_t i=0; i<A.num_rows; i++ ){
+        if( x.val[i] <= 0.0 ){
             ;
         } else {
             *min_dd = ( x.val[i] < *min_dd ) ? x.val[i] : *min_dd; 
@@ -152,7 +156,7 @@ magma_zmbdiagdom(
     magma_int_t info = 0;
     
     magma_int_t *end=NULL, *start=NULL;
-    magma_int_t i=0;
+    magma_int_t ii=0;
     
     magma_int_t rowbsz = 0; //blocksize for this row
     
@@ -172,31 +176,36 @@ magma_zmbdiagdom(
     for( magma_int_t rowb=0; rowb<bsz.num_rows; rowb++ ){ // block of rows
         rowbsz = (magma_int_t) MAGMA_Z_REAL((bsz.val[rowb]));  
         for( magma_int_t j =0; j<rowbsz; j++){
-            start[i] = i-j;
-            end[i] = i+rowbsz-j;
-            i++;
+            start[ii] = ii-j;
+            end[ii] = ii+rowbsz-j;
+            //printf("%d: %d -- %d\n", ii, start[ii], end[ii]);
+            ii++;
         }
     }
-    i=0;
     #pragma omp parallel for
-    for( i=0; i<A.num_rows; i++ ){
+    for(magma_int_t i=0; i<A.num_rows; i++ ){
         double diag = 0.0;
         double offdiag = 0.0;
         for( magma_int_t j=A.row[i]; j<A.row[i+1]; j++ ){
             double val = MAGMA_Z_ABS( A.val[j] );
-            if( A.col[j] >= start[i] && A.col[j]<end[i] ){
+            if( ((A.col[j] >= start[i]) && (A.col[j]<end[i])) ){
                 diag += val;
             } else {
                 offdiag += val;    
             }
         }
-        x.val[i] = diag / offdiag;
+        if( offdiag > 1e-15 ){
+            //printf("%d: %f\n", i, diag / offdiag);
+            x.val[i] = diag / offdiag;
+        } else {
+            x.val[i] = -1.;
+        }
     }
     *min_dd = 1e10;
     *max_dd = 0.0;
     *avg_dd =0.0;
-    for( i=0; i<A.num_rows; i++ ){
-        if( magma_d_isnan_inf( x.val[i] ) ){
+    for(magma_int_t i=0; i<A.num_rows; i++ ){
+        if( x.val[i] <= 0.0 ){
             ;
         } else {
             *min_dd = ( x.val[i] < *min_dd ) ? x.val[i] : *min_dd; 
