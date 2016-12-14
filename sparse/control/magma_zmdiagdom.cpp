@@ -58,6 +58,7 @@ magma_zmdiagdom(
     *min_dd = 0.0;
     *max_dd = 0.0;
     *avg_dd = 0.0;
+    magma_int_t count = 0;
     
     magma_d_matrix x={Magma_CSR};
     magma_z_matrix A={Magma_CSR};
@@ -92,10 +93,11 @@ magma_zmdiagdom(
             *min_dd = ( x.val[i] < *min_dd ) ? x.val[i] : *min_dd; 
             *max_dd = ( x.val[i] > *max_dd ) ? x.val[i] : *max_dd; 
             *avg_dd += x.val[i];
+            count++;
         }
     }
     
-    *avg_dd = *avg_dd / ( (double) A.num_rows );
+    *avg_dd = *avg_dd / ( (double) count );
     
 cleanup:
     magma_dmfree(&x, queue );
@@ -157,6 +159,7 @@ magma_zmbdiagdom(
     
     magma_int_t *end=NULL, *start=NULL;
     magma_int_t ii=0;
+    magma_int_t count = 0;
     
     magma_int_t rowbsz = 0; //blocksize for this row
     
@@ -204,6 +207,7 @@ magma_zmbdiagdom(
     *min_dd = 1e10;
     *max_dd = 0.0;
     *avg_dd =0.0;
+    count = 0;
     for(magma_int_t i=0; i<A.num_rows; i++ ){
         if( x.val[i] <= 0.0 ){
             ;
@@ -211,10 +215,11 @@ magma_zmbdiagdom(
             *min_dd = ( x.val[i] < *min_dd ) ? x.val[i] : *min_dd; 
             *max_dd = ( x.val[i] > *max_dd ) ? x.val[i] : *max_dd; 
             *avg_dd += x.val[i];
+            count++;
         }
     }
     
-    *avg_dd = *avg_dd / ( (double) A.num_rows );
+    *avg_dd = *avg_dd / ( (double) count );
     
 cleanup:
     magma_dmfree(&x, queue );
