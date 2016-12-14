@@ -253,6 +253,15 @@ magma_zmdiagdom(
     double *avg_dd,
     magma_queue_t queue );
 
+magma_int_t
+magma_zmbdiagdom(
+    magma_z_matrix M,
+    magma_z_matrix blocksizes,
+    double *min_dd,
+    double *max_dd,
+    double *avg_dd,
+    magma_queue_t queue );
+
 magma_int_t 
 magma_zmdiff( 
     magma_z_matrix A, 
