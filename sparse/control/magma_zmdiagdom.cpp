@@ -77,17 +77,13 @@ magma_zmdiagdom(
                 offdiag += val;    
             }
         }
-        if( offdiag > 1e-15 ){
-            x.val[i] = diag / offdiag;
-        } else {
-            x.val[i] = -1.;
-        }
+        x.val[i] = offdiag / diag;
     }
     *min_dd = 1e10;
     *max_dd = 0.0;
     *avg_dd =0.0;
     for(magma_int_t i=0; i<A.num_rows; i++ ){
-        if( x.val[i] <= 0.0 ){
+        if( x.val[i] < 0.0 ){
             ;
         } else {
             *min_dd = ( x.val[i] < *min_dd ) ? x.val[i] : *min_dd; 
@@ -197,19 +193,14 @@ magma_zmbdiagdom(
                 offdiag += val;    
             }
         }
-        if( offdiag > 1e-15 ){
-            //printf("%d: %f\n", i, diag / offdiag);
-            x.val[i] = diag / offdiag;
-        } else {
-            x.val[i] = -1.;
-        }
+        x.val[i] = offdiag / diag;
     }
     *min_dd = 1e10;
     *max_dd = 0.0;
     *avg_dd =0.0;
     count = 0;
     for(magma_int_t i=0; i<A.num_rows; i++ ){
-        if( x.val[i] <= 0.0 ){
+        if( x.val[i] < 0.0 ){
             ;
         } else {
             *min_dd = ( x.val[i] < *min_dd ) ? x.val[i] : *min_dd; 
