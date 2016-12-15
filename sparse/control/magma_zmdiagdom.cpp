@@ -171,7 +171,6 @@ magma_zmbdiagdom(
     CHECK( magma_dvinit( &x, Magma_CPU, A.num_rows, 1, 0.0, queue ) );
     CHECK( magma_imalloc_cpu( &start, A.num_rows ));
     CHECK( magma_imalloc_cpu( &end,   A.num_rows ));
-    #pragma omp parallel for
     for( magma_int_t rowb=0; rowb<bsz.num_rows; rowb++ ){ // block of rows
         rowbsz = (magma_int_t) MAGMA_Z_REAL((bsz.val[rowb]));  
         for( magma_int_t j =0; j<rowbsz; j++){
