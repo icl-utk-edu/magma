@@ -602,6 +602,14 @@ magma_zfrobenius(
     real_Double_t *res,
     magma_queue_t queue );
 
+magma_int_t
+magma_zmfrobenius(
+    magma_z_matrix A,
+    magma_z_matrix B,
+    magma_z_matrix S,
+    double *norm,
+    magma_queue_t queue );
+
 magma_int_t 
 magma_znonlinres(   
     magma_z_matrix A, 
