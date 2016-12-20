@@ -129,20 +129,30 @@ magma_zmsupernodal(
     }
     blocksizes2[ blockcount2 ] = current_size;
     blockcount2++;
-
+    
     *max_bs = maxblocksize;
     
-    magma_zvread( &x, nlength, filename, queue );
-for( int z=0; z< nlength; z++){
-    blocksizes2[z] = (magma_int_t) MAGMA_Z_REAL((x.val[z]));  
-}
-blockcount2 = nlength;
+//     magma_zvread( &x, nlength, filename, queue );
+// for( int z=0; z< nlength; z++){
+//     blocksizes2[z] = (magma_int_t) MAGMA_Z_REAL((x.val[z]));  
+// }
+// blockcount2 = nlength;
 
     CHECK( magma_zmvarsizeblockstruct( A.num_rows, blocksizes2, blockcount2, MagmaLower, S, queue ) );
+    
+    CHECK( magma_imalloc_cpu( &S->tile_desc_offset_ptr, blockcount2+1 ));
+    S->tile_desc_offset_ptr[ 0 ] = 0;
+    blockcount = 0;
+    for( magma_int_t i=0; i<blockcount2; i++ ){
+	blockcount = blockcount + blocksizes2[ i ];
+        S->tile_desc_offset_ptr[ i+1 ] = blockcount ;        
+    }
+    
+    S->numblocks = blockcount2;
 
 cleanup:
-    magma_zmfree(&x, queue );
     magma_free_cpu( v );
+    magma_zmfree(&x, queue );
     magma_free_cpu( blocksizes );
     magma_free_cpu( blocksizes2 );
     magma_free_cpu( start );

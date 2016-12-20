@@ -7,6 +7,7 @@
 
        @precisions normal z -> s d c
        @author Hartwig Anzt
+       @author Goran Flegar
 */
 #include "magmasparse_internal.h"
 
@@ -347,3 +348,150 @@ cleanup:
     magma_zmfree( &hA, queue );
     return info;
 }
+
+
+namespace {
+
+inline void
+matrix_clear(
+        magma_z_matrix *A)
+{
+    A->storage_type = Magma_CSR;
+    A->memory_location = Magma_CPU;
+    A->sym = Magma_GENERAL;
+    A->diagorder_type = Magma_ORDERED;
+    A->fill_mode = MagmaFull;
+    A->num_rows = 0;
+    A->num_cols = 0;
+    A->nnz = 0;
+    A->max_nnz_row = 0;
+    A->diameter = 0;
+    A->true_nnz = 0;
+    A->val = nullptr;
+    A->dval = nullptr;
+    A->diag = nullptr;
+    A->ddiag = nullptr;
+    A->rowidx = nullptr;
+    A->row = nullptr;
+    A->drow = nullptr;
+    A->drowidx = nullptr;
+    A->col = nullptr;
+    A->dcol = nullptr;
+    A->list = nullptr;
+    A->dlist = nullptr;
+    A->tile_ptr = nullptr;
+    A->dtile_ptr = nullptr;
+    A->tile_desc = nullptr;
+    A->dtile_desc = nullptr;
+    A->tile_desc_offset_ptr = nullptr;
+    A->dtile_desc_offset_ptr = nullptr;
+    A->tile_desc_offset = nullptr;
+    A->dtile_desc_offset = nullptr;
+    A->calibrator = nullptr;
+    A->dcalibrator = nullptr;
+    A->blockinfo = nullptr;
+    A->blocksize = 0;
+    A->numblocks = 0;
+    A->alignment = 0;
+    A->csr5_sigma = 0;
+    A->csr5_bit_y_offset = 0;
+    A->csr5_bit_scansum_offset = 0;
+    A->csr5_num_packets = 0;
+    A->csr5_p = 0;
+    A->csr5_num_offsets = 0;
+    A->csr5_tail_tile_start = 0;
+    A->major = MagmaColMajor;
+    A->ld = 0;
+}
+
+
+void
+matrix_create_csr_info(
+        magma_z_matrix *A,
+        magma_int_t num_rows,
+        magma_int_t num_cols,
+        magma_int_t num_nzeros)
+{
+    matrix_clear(A);
+    A->storage_type = Magma_CSR;
+    A->fill_mode = MagmaFull;
+    A->num_rows = num_rows;
+    A->num_cols = num_cols;
+    A->nnz = num_nzeros;
+}
+
+
+}  // namespace
+
+
+/**
+    Purpose
+    -------
+
+    TODO(Goran): Write docs!
+
+ */
+extern "C" magma_int_t
+magma_zmatrix_create_csr_cpu(
+        magma_z_matrix *A,
+        magma_int_t num_rows,
+        magma_int_t num_cols,
+        magma_int_t num_nzeros)
+{
+    matrix_create_csr_info(A, num_rows, num_cols, num_nzeros);
+    A->memory_location = Magma_CPU;
+    try {
+        magma::massert(magma_zmalloc_cpu(&(A->val), A->nnz));
+        magma::massert(magma_index_malloc_cpu(&(A->row), A->num_rows + 1));
+        magma::massert(magma_index_malloc_cpu(&(A->col), A->nnz));
+    } catch (const magma::runtime_error &err) {
+        magma_free_cpu(A->val);
+        magma_free_cpu(A->row);
+        magma_free_cpu(A->col);
+        return err.info();
+    }
+    for (magma_int_t i = 0; i <= A->num_rows; ++i) {
+        A->row[i] = 0;
+    }
+    return MAGMA_SUCCESS;
+}
+
+
+/**
+    Purpose
+    -------
+
+    TODO(Goran): Write docs!
+
+ */
+extern "C" magma_int_t
+magma_zmatrix_create_csr(
+        magma_z_matrix *A,
+        magma_int_t num_rows,
+        magma_int_t num_cols,
+        magma_int_t num_nzeros,
+        magma_queue_t queue)
+{
+    matrix_create_csr_info(A, num_rows, num_cols, num_nzeros);
+    magma_index_t *tmp = nullptr;
+    A->memory_location = Magma_DEV;
+    try {
+        magma::massert(magma_zmalloc(&(A->val), A->nnz));
+        magma::massert(magma_index_malloc(&(A->row), A->num_rows + 1));
+        magma::massert(magma_index_malloc(&(A->col), A->nnz));
+        magma::massert(magma_index_malloc_cpu(&tmp, A->num_rows + 1));
+    } catch (const magma::runtime_error &err) {
+        magma_free(A->val);
+        magma_free(A->row);
+        magma_free(A->col);
+        magma_free_cpu(tmp);
+        return err.info();
+    }
+    for (magma_int_t i = 0; i <= A->num_rows; ++i) {
+        tmp[i] = 0;
+    }
+    magma_index_setvector(A->num_rows + 1, tmp, 1, A->row, 1, queue);
+    magma_free_cpu(tmp);
+    return MAGMA_SUCCESS;
+}
+
