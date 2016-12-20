@@ -168,6 +168,9 @@ magma_zmconvert(
 
     cusparseHandle_t cusparseHandle = 0;
     cusparseMatDescr_t descr = 0;
+    
+    // make sure the target structure is empty
+    magma_zmfree( B, queue );
 
     B->val = NULL;
     B->col = NULL;
@@ -237,8 +240,9 @@ magma_zmconvert(
                 B->storage_type = Magma_CSR;
                 B->memory_location = A.memory_location;
                 B->fill_mode = MagmaLower;
-                B->num_rows = A.num_rows; B->true_nnz = A.true_nnz;
+                B->num_rows = A.num_rows;
                 B->num_cols = A.num_cols;
+                B->true_nnz = A.true_nnz;
                 B->diameter = A.diameter;
 
                 magma_int_t numzeros=0;

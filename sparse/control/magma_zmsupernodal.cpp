@@ -51,10 +51,17 @@ magma_zmsupernodal(
 
     magma_int_t *blocksizes=NULL, *blocksizes2=NULL, *start=NULL, *v=NULL;
     magma_int_t blockcount=0, blockcount2=0;
+    
+    magma_z_matrix x={Magma_CSR};
+    char *filename = "blocksizes";
+    int nlength = 6752;
 
     int maxblocksize = *max_bs;
     int current_size = 0;
     int prev_matches = 0;
+    
+    // make sure the target structure is empty
+    magma_zmfree( S, queue );
 
     CHECK( magma_imalloc_cpu( &v, A.num_rows+10 ));
     CHECK( magma_imalloc_cpu( &start, A.num_rows+10 ));
@@ -124,11 +131,17 @@ magma_zmsupernodal(
     blockcount2++;
 
     *max_bs = maxblocksize;
-
+    
+    magma_zvread( &x, nlength, filename, queue );
+for( int z=0; z< nlength; z++){
+    blocksizes2[z] = (magma_int_t) MAGMA_Z_REAL((x.val[z]));  
+}
+blockcount2 = nlength;
 
     CHECK( magma_zmvarsizeblockstruct( A.num_rows, blocksizes2, blockcount2, MagmaLower, S, queue ) );
 
 cleanup:
+    magma_zmfree(&x, queue );
     magma_free_cpu( v );
     magma_free_cpu( blocksizes );
     magma_free_cpu( blocksizes2 );

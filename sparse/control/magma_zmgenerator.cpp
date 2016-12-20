@@ -62,6 +62,9 @@ magma_zmgenerator(
     
     magma_z_matrix B={Magma_CSR};
     
+    // make sure the target structure is empty
+    magma_zmfree( A, queue );
+    
     B.val = NULL;
     B.col = NULL;
     B.row = NULL;
@@ -176,6 +179,9 @@ magma_zm_27stencil(
     magmaDoubleComplex *diag_vals=NULL;
     CHECK( magma_zmalloc_cpu( &diag_vals, offdiags+1 ));
     CHECK( magma_index_malloc_cpu( &diag_offset, offdiags+1 ));
+    
+    // make sure the target structure is empty
+    magma_zmfree( A, queue );
 
     diag_offset[0] = 0;
     diag_offset[1] = 1;
@@ -285,6 +291,9 @@ magma_zm_5stencil(
     
     magma_int_t i,j,k;
     magma_z_matrix hA={Magma_CSR};
+    
+    // make sure the target structure is empty
+    magma_zmfree( A, queue );
     
     // generate matrix of desired structure and size (2d 5-point stencil)
     magma_int_t nn = n*n;

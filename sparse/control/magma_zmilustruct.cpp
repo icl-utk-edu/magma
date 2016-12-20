@@ -320,6 +320,10 @@ magma_zsymbilu(
     magma_z_matrix A_copy={Magma_CSR}, B={Magma_CSR};
     magma_z_matrix hA={Magma_CSR}, CSRCOOA={Magma_CSR};
     
+    // make sure the target structure is empty
+    magma_zmfree( L, queue );
+    magma_zmfree( U, queue );
+    
     if( A->memory_location == Magma_CPU && A->storage_type == Magma_CSR ){
         CHECK( magma_zmtransfer( *A, &A_copy, Magma_CPU, Magma_CPU, queue ));
         CHECK( magma_zmtransfer( *A, &B, Magma_CPU, Magma_CPU, queue ));

@@ -53,6 +53,9 @@ magma_zmlumerge(
     magma_queue_t queue )
 {
     magma_int_t info = 0;    
+    
+    // make sure the target structure is empty
+    magma_zmfree( A, queue );
 
     if( L.storage_type == Magma_CSR && U.storage_type == Magma_CSR ){
         if( L.memory_location == Magma_CPU && U.memory_location == Magma_CPU ){

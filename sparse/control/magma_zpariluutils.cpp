@@ -129,6 +129,9 @@ magma_znonlinres(
     magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0 );
 
     magma_z_matrix dL={Magma_CSR}, dU={Magma_CSR}, dLU={Magma_CSR}, A_t={Magma_CSR};
+    
+    // make sure the target structure is empty
+    magma_zmfree( LU, queue );
 
     CHECK( magma_zmtransfer( L, &dL, Magma_CPU, Magma_DEV, queue  ));
     CHECK( magma_zmtransfer( U, &dU, Magma_CPU, Magma_DEV, queue  ));
@@ -240,6 +243,9 @@ magma_zilures(
     magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0 );
 
     magma_z_matrix LL={Magma_CSR}, dL={Magma_CSR}, dU={Magma_CSR}, dLU={Magma_CSR};
+    
+    // make sure the target structure is empty
+    magma_zmfree( LU, queue );
 
     if( L.row[1]==1 ){        // lower triangular with unit diagonal
         //printf("L lower triangular.\n");
@@ -388,6 +394,9 @@ magma_zicres(
     
     magma_z_matrix dL={Magma_CSR}, dU={Magma_CSR}, dLU={Magma_CSR};
     
+    // make sure the target structure is empty
+    magma_zmfree( LU, queue );
+    
     *res = 0.0;
     *nonlinres = 0.0;
 
@@ -488,6 +497,10 @@ magma_zinitguess(
     magma_int_t offdiags = 0;
     magma_index_t *diag_offset;
     magmaDoubleComplex *diag_vals=NULL;
+    
+    // make sure the target structure is empty
+    magma_zmfree( L, queue );
+    magma_zmfree( U, queue );
 
     // need only lower triangular
     hAL.diagorder_type = Magma_VALUE;
@@ -611,6 +624,9 @@ magma_zinitrecursiveLU(
     magma_queue_t queue )
 {
     magma_int_t i,j,k;
+    
+    // make sure the target structure is empty
+    magma_zmfree( B, queue );
 
     for(i=0; i<A.num_rows; i++){
         for(j=B->row[i]; j<B->row[i+1]; j++){

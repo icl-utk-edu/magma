@@ -54,6 +54,9 @@ magma_zmtransfer(
 {
     magma_int_t info = 0;
     
+    // make sure the target structure is empty
+    magma_zmfree( B, queue );
+    
     B->val = NULL;
     B->diag = NULL;
     B->row = NULL;

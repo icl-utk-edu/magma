@@ -95,6 +95,9 @@ magma_zmslice(
 {
     magma_int_t info = 0;
     
+    // make sure the target structure is empty
+    magma_zmfree( B, queue );
+    
     if( A.num_rows != A.num_cols ){
         printf("%%  error: only supported for square matrices.\n");
         info = MAGMA_ERR_NOT_SUPPORTED;

@@ -65,6 +65,9 @@ magma_zcsrset_gpu(
     magma_z_matrix *A,
     magma_queue_t queue )
 {   
+    // make sure the target structure is empty
+    magma_zmfree( A, queue );
+    
     A->num_rows = m;
     A->num_cols = n;
     magma_index_t nnz;

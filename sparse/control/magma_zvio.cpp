@@ -143,6 +143,9 @@ magma_zvread(
     int count=0;
     char *p;
     
+    // make sure the target structure is empty
+    magma_zmfree( x, queue );
+    
     x->memory_location = Magma_CPU;
     x->storage_type = Magma_DENSE;
     x->num_rows = length;

@@ -65,6 +65,10 @@ magma_zcsrset(
     magma_z_matrix *A,
     magma_queue_t queue )
 {
+    
+    // make sure the target structure is empty
+    magma_zmfree( A, queue );
+    
     A->num_rows = m;
     A->num_cols = n;
     A->nnz = row[m];
