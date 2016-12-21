@@ -380,8 +380,8 @@ magma_zparse_opts(
             else if ( strcmp("CUSOLVE", argv[i]) == 0 ) {
                 opts->precond_par.trisolver = Magma_CUSOLVE;
             }
-            else if ( strcmp("SPTRSV", argv[i]) == 0 ) {
-                opts->precond_par.trisolver = Magma_SPTRSV;
+            else if ( strcmp("SYNCFREESOLVE", argv[i]) == 0 ) {
+                opts->precond_par.trisolver = Magma_SYNCFREESOLVE;
             }
             else if ( strcmp("ISAI", argv[i]) == 0 ) {
                 opts->precond_par.trisolver = Magma_ISAI;
