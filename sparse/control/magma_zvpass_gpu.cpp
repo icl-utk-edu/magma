@@ -54,6 +54,10 @@ magma_zvset_dev(
     magma_z_matrix *v,
     magma_queue_t queue )
 {
+    
+    // make sure the target structure is empty
+    magma_zmfree( v, queue );
+    
     v->num_rows = m;
     v->num_cols = n;
     v->nnz = m*n;

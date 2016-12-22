@@ -25,18 +25,26 @@
     ---------
 
     @param[in]
+    m           magma_int_t
+                number of rows
+                
+    @param[in]
+    n           magma_int_t
+                number of columns
+                
+    @param[in]
     alpha       magmaDoubleComplex
                 scalar alpha
-
+                
     @param[in]
-    x           magma_z_matrix
+    x           magmaDoubleComplex *
                 input vector x
                 
     @param[in]
     beta        magmaDoubleComplex
                 scalar beta
     @param[out]
-    y           magma_z_matrix
+    y           magmaDoubleComplex *
                 output vector y
     @param[in]
     queue       magma_queue_t
@@ -47,15 +55,19 @@
 
 extern "C" magma_int_t
 magma_zcustomspmv(
+    magma_int_t m,
+    magma_int_t n,
     magmaDoubleComplex alpha,
-    magma_z_matrix x,
     magmaDoubleComplex beta,
-    magma_z_matrix y,
+    magmaDoubleComplex *x,
+    magmaDoubleComplex *y,
     magma_queue_t queue )
 {
     magma_int_t info = 0;
     // vector access via x.dval, y.dval
     // sizes are x.num_rows, x.num_cols
+    
+    magma_zge3pt( m, n, alpha, beta, x, y, queue );
     
     return info;
 }

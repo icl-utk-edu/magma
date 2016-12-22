@@ -7,6 +7,7 @@
 
        @author Hartwig Anzt
        @author Eduardo Ponce
+       @author Stephen Wood
 
        @precisions normal z -> s d c
 */
@@ -17,7 +18,7 @@
 #define ATOLERANCE     lapackf77_dlamch( "E" )
 
 
-/**
+/*******************************************************************************
     Purpose
     -------
 
@@ -50,7 +51,7 @@
                 Queue to execute in.
 
     @ingroup magmasparse_zposv
-    ********************************************************************/
+*******************************************************************************/
 
 
 extern "C" magma_int_t
@@ -111,6 +112,7 @@ magma_zidr(
     magma_z_matrix dt = {Magma_CSR};
     magma_z_matrix dc = {Magma_CSR};
     magma_z_matrix dv = {Magma_CSR};
+    magma_z_matrix dvtmp = {Magma_CSR};
     magma_z_matrix dbeta = {Magma_CSR}, hbeta = {Magma_CSR};
 
     // chronometry
@@ -233,6 +235,7 @@ magma_zidr(
 
     // v = 0
     CHECK( magma_zvinit( &dv, Magma_DEV, dr.num_rows, 1, c_zero, queue ));
+    CHECK( magma_zvinit( &dvtmp, Magma_DEV, dr.num_rows, 1, c_zero, queue ));
 
     //--------------START TIME---------------
     // chronometry
@@ -268,9 +271,10 @@ magma_zidr(
             // U(:,k) = om * v + U(:,k:s) c(k:s)
             magmablas_zgemv( MagmaNoTrans, dU.num_rows, sk, c_one, &dU.dval[k*dU.ld], dU.ld, &dc.dval[k], 1, om, dv.dval, 1, queue );
             magma_zcopyvector( dU.num_rows, dv.dval, 1, &dU.dval[k*dU.ld], 1, queue );
+            magma_zcopyvector( dU.num_rows, dv.dval, 1, dvtmp.dval, 1, queue );
 
             // G(:,k) = A U(:,k)
-            CHECK( magma_z_spmv( c_one, A, dv, c_zero, dv, queue ));
+            CHECK( magma_z_spmv( c_one, A, dvtmp, c_zero, dv, queue ));
             solver_par->spmv_count++;
             magma_zcopyvector( dG.num_rows, dv.dval, 1, &dG.dval[k*dG.ld], 1, queue );
 
@@ -527,6 +531,7 @@ cleanup:
     magma_zmfree( &dt, queue );
     magma_zmfree( &dc, queue );
     magma_zmfree( &dv, queue );
+    magma_zmfree( &dvtmp, queue );
     magma_zmfree( &dbeta, queue );
     magma_zmfree( &hbeta, queue );
 

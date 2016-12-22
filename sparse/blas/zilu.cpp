@@ -161,7 +161,7 @@ magma_zcumilusetup(
             CUSPARSE_OPERATION_NON_TRANSPOSE, precond->U.num_rows,
             precond->U.nnz, descrU,
             precond->U.dval, precond->U.drow, precond->U.dcol, precond->cuinfoU ));
-    } else if( precond->trisolver == Magma_SPTRSV ){
+    } else if( precond->trisolver == Magma_SYNCFREESOLVE ){
             magma_zmfree(&hL, queue );
             magma_zmfree(&hU, queue );
             magma_zmtransfer( precond->L, &hL, Magma_DEV, Magma_DEV, queue );

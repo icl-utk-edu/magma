@@ -570,7 +570,7 @@ typedef enum {
     Magma_CUSOLVE      = 507,
     Magma_VBJACOBI     = 508,
     Magma_PARDISO      = 509,
-    Magma_SPTRSV       = 510
+    Magma_SYNCFREESOLVE= 510
 } magma_solver_type;
 
 typedef enum {

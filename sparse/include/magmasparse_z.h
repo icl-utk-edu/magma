@@ -245,6 +245,23 @@ magma_zmslice(
     magma_int_t *end,
     magma_queue_t queue );
 
+magma_int_t
+magma_zmdiagdom(
+    magma_z_matrix M,
+    double *min_dd,
+    double *max_dd,
+    double *avg_dd,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zmbdiagdom(
+    magma_z_matrix M,
+    magma_z_matrix blocksizes,
+    double *min_dd,
+    double *max_dd,
+    double *avg_dd,
+    magma_queue_t queue );
+
 magma_int_t 
 magma_zmdiff( 
     magma_z_matrix A, 
@@ -583,6 +600,14 @@ magma_zfrobenius(
     magma_z_matrix A, 
     magma_z_matrix B, 
     real_Double_t *res,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zmfrobenius(
+    magma_z_matrix A,
+    magma_z_matrix B,
+    magma_z_matrix S,
+    double *norm,
     magma_queue_t queue );
 
 magma_int_t 
@@ -1687,10 +1712,12 @@ magma_z_spmv(
 
 magma_int_t
 magma_zcustomspmv(
+    magma_int_t m,
+    magma_int_t n,
     magmaDoubleComplex alpha, 
-    magma_z_matrix x, 
     magmaDoubleComplex beta, 
-    magma_z_matrix y,
+    magmaDoubleComplex_ptr x, 
+    magmaDoubleComplex_ptr y, 
     magma_queue_t queue );
 
 magma_int_t
@@ -2761,6 +2788,19 @@ magma_zbcsrblockinfo5(
 magma_int_t
 magma_ztestasync( 
     magma_z_matrix A,
+    magma_queue_t queue );
+
+//##################   stencil operators
+
+
+magma_int_t
+magma_zge3pt(
+    magma_int_t m, 
+    magma_int_t n,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex beta,
+    magmaDoubleComplex_ptr dx,
+    magmaDoubleComplex_ptr dy,
     magma_queue_t queue );
  
 #ifdef __cplusplus

@@ -960,6 +960,9 @@ magma_z_csr_mtx(
     magma_index_t* new_col = NULL;
     magma_int_t hermitian = 0;
     
+    // make sure the target structure is empty
+    magma_zmfree( A, queue );
+    
     std::vector< std::pair< magma_index_t, magmaDoubleComplex > > rowval;
     
     FILE *fid = NULL;

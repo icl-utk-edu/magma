@@ -35,7 +35,7 @@ INC        ?= -I$(CUDADIR)/include
 LIBDIR     ?= -L$(CUDADIR)/lib
 LIB        ?= -lcudart -lcublas -lcusparse -llapack -lblas
 
-GPU_TARGET ?= Fermi Kepler
+GPU_TARGET ?= Fermi Kepler Maxwell Pascal
 
 # Extension for object files: o for unix, obj for Windows?
 o_ext      ?= o

@@ -30,6 +30,7 @@ libsparse_src += \
 	$(cdir)/magma_zmscale.cpp             \
 	$(cdir)/magma_zmshrink.cpp            \
 	$(cdir)/magma_zmslice.cpp             \
+	$(cdir)/magma_zmdiagdom.cpp	      \
 	$(cdir)/magma_zmdiff.cpp              \
 	$(cdir)/magma_zmlumerge.cpp           \
 	$(cdir)/magma_zmtranspose.cpp         \
@@ -45,6 +46,7 @@ libsparse_src += \
 	$(cdir)/magma_zgeisai_tools.cpp	      \
 	$(cdir)/magma_zparilut_tools.cpp      \
 	$(cdir)/magma_zmsupernodal.cpp        \
+	$(cdir)/magma_zmfrobenius.cpp	      \
 
 
 # dummy to compensate for routines not included in release

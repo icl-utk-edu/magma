@@ -413,7 +413,7 @@ magma_z_applyprecond_left(
         }
         else if ( ( precond->solver == Magma_ILU ||
                     precond->solver == Magma_PARILU ) && 
-                  ( precond->trisolver == Magma_SPTRSV ) ){
+                  ( precond->trisolver == Magma_SYNCFREESOLVE ) ){
             // CHECK( magma_zsptrsv( b, x, precond, queue ));
         }
         else if ( ( precond->solver == Magma_ICC ||

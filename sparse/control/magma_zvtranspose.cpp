@@ -47,6 +47,9 @@ magma_zvtranspose(
     magma_int_t    m = x.num_rows;
     magma_int_t    n = x.num_cols;
     
+    // make sure the target structure is empty
+    magma_zmfree( y, queue );
+    
     magma_z_matrix dx={Magma_CSR}, dy={Magma_CSR};
             
     if ( x.memory_location == Magma_DEV ) {

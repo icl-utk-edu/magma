@@ -201,6 +201,9 @@ magma_zmtranspose(
 {
     magma_int_t info = 0;
     
+    // make sure the target structure is empty
+    magma_zmfree( B, queue );
+    
     CHECK( magma_z_cucsrtranspose( A, B, queue ));
     
 cleanup:
@@ -249,6 +252,9 @@ magma_z_cucsrtranspose(
     
     magma_z_matrix ACSR={Magma_CSR}, BCSR={Magma_CSR};
     magma_z_matrix dA={Magma_CSR}, dB={Magma_CSR};
+    
+    // make sure the target structure is empty
+    magma_zmfree( B, queue );
 
     if( A.storage_type == Magma_CSR && A.memory_location == Magma_DEV ) {
         // fill in information for B
@@ -357,6 +363,9 @@ magma_zmtransposeconjugate(
     
     magma_z_matrix ACSR={Magma_CSR}, BCSR={Magma_CSR};
     magma_z_matrix dA={Magma_CSR}, dB={Magma_CSR};
+    
+    // make sure the target structure is empty
+    magma_zmfree( B, queue );
 
     if( A.storage_type == Magma_CSR && A.memory_location == Magma_DEV ) {
         // fill in information for B

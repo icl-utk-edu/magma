@@ -60,6 +60,9 @@ magma_zvinit(
 {
     magma_int_t info = 0;
     
+    // make sure the target structure is empty
+    magma_zmfree( x, queue );
+    
     x->val = NULL;
     x->diag = NULL;
     x->row = NULL;

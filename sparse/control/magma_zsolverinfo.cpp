@@ -291,7 +291,7 @@ magma_zsolverinfo(
                            (long long)(j*k),
                            solver_par->res_vec[j],
                            solver_par->timing[j],
-                           (long long)(solver_par->spmv_count/solver_par->numiter*(j*k)),
+                           (long long) (magma_ceildiv(solver_par->spmv_count, solver_par->numiter)*(j*k)),
                            (long long) solver_par->info );
                 }
                 printf("%%=================================================================================%%\n");
