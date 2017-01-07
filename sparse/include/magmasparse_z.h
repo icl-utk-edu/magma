@@ -525,6 +525,11 @@ magma_zeigensolverinfo_init(
 
 
 magma_int_t
+magma_zprecondfree(
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zsolverinfo_free(
     magma_z_solver_par *solver_par, 
     magma_z_preconditioner *precond,
