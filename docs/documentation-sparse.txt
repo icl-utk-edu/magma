@@ -165,6 +165,7 @@ can be initialized inside MAGMA via
         magma_z_matrix *x,
         magma_location_t memory_location,
         magma_int_t num_rows,
+        magma_int_t num_cols,
         magmaDoubleComplex values,
         magma_queue_t queue );
 
@@ -424,7 +425,7 @@ the vector valx.
     magma_d_vtransfer( b, &b_d, Magma_CPU, Magma_DEV, queue );    
     magma_d_mtransfer( A, &A_d, Magma_CPU, Magma_DEV, queue );    
     // allocate solution vector - on device
-    magma_d_vinit( &x_d, Magma_DEV, A.num_cols, one, queue );
+    magma_d_vinit( &x_d, Magma_DEV, A.num_cols, 1, one, queue );
     
     // configure solver
     dopts.solver_par.solver = Magma_PGMRES; dopts.solver_par.restart = 30; 
@@ -437,7 +438,7 @@ the vector valx.
     magma_d_precondsetup( A, b, &dopts.solver_par, &dopts.precond_par, queue );
 
     // solve the linear system
-    magma_d_solver( B_d, b_d, &x_d, &dopts, queue );
+    magma_d_solver( A_d, b_d, &x_d, &dopts, queue );
 
     // copy the solution vector back to the host and pass it back to the application
     magma_d_mtransfer( x_d, &x, Magma_DEV, Magma_CPU, queue );
