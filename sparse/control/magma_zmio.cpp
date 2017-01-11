@@ -1190,6 +1190,7 @@ magma_z_csr_mtx(
         magma_free_cpu( A->val );
         magma_free_cpu( A->row );
         magma_free_cpu( A->col );
+        *A = {Magma_CSR};
         CHECK( magma_zmtransfer( B, A, Magma_CPU, Magma_CPU, queue ));
         //printf("done.\n");
     }
@@ -1433,6 +1434,7 @@ magma_z_csr_mtxsymm(
         magma_free_cpu( A->val );
         magma_free_cpu( A->row );
         magma_free_cpu( A->col );
+        *A = {Magma_CSR};
         CHECK( magma_zmtransfer( B, A, Magma_CPU, Magma_CPU, queue ));
 
         //printf("done.\n");
