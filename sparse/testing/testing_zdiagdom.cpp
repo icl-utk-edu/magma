@@ -37,6 +37,8 @@ int main(  int argc, char** argv )
     magma_z_matrix A={Magma_CSR};
     magma_z_matrix x={Magma_CSR}, b={Magma_CSR};
     double min_dd, max_dd, avg_dd;
+    char *filename = "blocksizes";
+    int nlength = 675200000;
     
     int i=1;
     TESTING_CHECK( magma_zparse_opts( argc, argv, &zopts, &i, queue ));
@@ -75,9 +77,101 @@ int main(  int argc, char** argv )
                (long long) (A.true_nnz/A.num_rows), (long long) A.nnz );
         printf("%%============================================================================%%\n");
         printf("];\n");
-        
-        TESTING_CHECK( magma_zmdiagdom( zopts.precond_par.L, &min_dd, &max_dd, &avg_dd, queue ) );
+        //TESTING_CHECK( magma_zvread( &x, nlength, filename, queue ) );
+        TESTING_CHECK( magma_zmdiagdom( zopts.precond_par.M, &min_dd, &max_dd, &avg_dd, queue ) );
         printf("diagonaldominance = [\n");
+        printf("%%   min     ||   max   ||   avg\n");
+        printf("%%============================================================================%%\n");
+        printf("  %4.4f      %4.4f      %4.4f\n",
+                  min_dd, max_dd, avg_dd );
+        printf("%%============================================================================%%\n");
+        printf("];\n");
+    // begin ugly workaround
+    magma_int_t *blocksizes=NULL, *blocksizes2=NULL, *start=NULL, *v=NULL;
+    magma_int_t blockcount=0, blockcount2=0;
+    
+    int maxblocksize = 12;
+    int current_size = 0;
+    int prev_matches = 0;
+
+    TESTING_CHECK( magma_imalloc_cpu( &v, A.num_rows+10 ));
+    TESTING_CHECK( magma_imalloc_cpu( &start, A.num_rows+10 ));
+    TESTING_CHECK( magma_imalloc_cpu( &blocksizes, A.num_rows+10 ));
+    TESTING_CHECK( magma_imalloc_cpu( &blocksizes2, A.num_rows+10 ));
+// begin ugly workaround
+    maxblocksize = maxblocksize - 1;
+    v[0] = 1;
+
+    for( magma_int_t i=1; i<A.num_rows; i++ ){
+        // pattern matches the pattern of the previous row
+        int match = 0; // 0 means match!
+        if( prev_matches == maxblocksize ){ // bounded by maxblocksize
+            match = 1; // no match
+            prev_matches = 0;
+        } else if( ((A.row[i+1]-A.row[i])-(A.row[i]-A.row[i-1])) != 0 ){
+            match = 1; // no match
+            prev_matches = 0;
+        } else {
+            magma_index_t length = (A.row[i+1]-A.row[i]);
+            magma_index_t start1 = A.row[i-1];
+            magma_index_t start2 = A.row[i];
+            for( magma_index_t j=0; j<length; j++ ){
+                if( A.col[ start1+j ] != A.col[ start2+j ] ){
+                    match = 1;
+                    prev_matches = 0;
+                }
+            }
+            if( match == 0 ){
+                prev_matches++; // add one match to the block
+            }
+        }
+        v[ i ] = match;
+    }
+
+    // start = find[v];
+    blockcount = 0;
+    for( magma_int_t i=0; i<A.num_rows; i++ ){
+        if( v[i] == 1 ){
+            start[blockcount] = i;
+            blockcount++;
+        }
+    }
+    start[blockcount] = A.num_rows;
+
+    for( magma_int_t i=0; i<blockcount; i++ ){
+        blocksizes[i] = start[i+1] - start[i];
+        if( blocksizes[i] > maxblocksize ){
+            // maxblocksize = blocksizes[i];
+            // printf("%% warning: at i=%5lld blocksize required is %5lld\n",
+            //                                                (long long) i, (long long) blocksizes[i] );
+        }
+    }
+
+    current_size = 0;
+    blockcount2=0;
+    for( magma_int_t i=0; i<blockcount; i++ ){
+        if( current_size + blocksizes[i] > maxblocksize ){
+            blocksizes2[ blockcount2 ] = current_size;
+            blockcount2++;
+            current_size = blocksizes[i]; // form new block
+        } else {
+            current_size = current_size + blocksizes[i]; // add to previous block
+        }
+        blocksizes[i] = start[i+1] - start[i];
+    }
+    blocksizes2[ blockcount2 ] = current_size;
+    blockcount2++;
+    
+    TESTING_CHECK( magma_zvinit( &x, Magma_CPU, blockcount2, 1, MAGMA_Z_ZERO, queue ));
+    for( magma_int_t i=0; i<blockcount2; i++ ){
+        x.val[i] = MAGMA_Z_MAKE(blocksizes2[i], 0.0 );
+       // printf("bsz=%d\n", blocksizes2[i]);
+    }
+// end ugly workaround
+        
+        
+        TESTING_CHECK( magma_zmbdiagdom( zopts.precond_par.M, x, &min_dd, &max_dd, &avg_dd, queue ) );
+        printf("blockdiagonaldominance = [\n");
         printf("%%   min     ||   max   ||   avg\n");
         printf("%%============================================================================%%\n");
         printf("  %4.4f      %4.4f      %4.4f\n",

@@ -140,7 +140,7 @@ magma_z_precondsetup(
 {
     magma_int_t info = 0;
     
-    magma_zprecondfree( precond, queue );
+    // magma_zprecondfree( precond, queue );
     
     //Chronometry
     real_Double_t tempo1, tempo2;
