@@ -6,9 +6,9 @@
 # Paths where MAGMA, CUDA, and OpenBLAS are installed.
 # MAGMADIR can be .. to test without installing.
 #MAGMADIR     ?= ..
-MAGMADIR     = /Users/hanzt0114cl306/work/magma/
-CUDADIR      = /usr/local/cuda/
-OPENBLASDIR  = /opt/intel/compilers_and_libraries/mac/
+MAGMADIR     ?= /usr/local/magma
+CUDADIR      ?= /usr/local/cuda
+OPENBLASDIR  ?= /usr/local/openblas
 
 CC            = gcc
 FORT          = gfortran
@@ -30,7 +30,8 @@ MAGMA_F90FLAGS   := -Dmagma_devptr_t="integer(kind=8)" \
 
 # may be lib instead of lib64 on some systems
 MAGMA_LIBS       := -L$(MAGMADIR)/lib -lmagma_sparse -lmagma \
-                    -L$(CUDADIR)/lib -lcublas -lcudart -lcusparse \
+                    -L$(CUDADIR)/lib64 -lcublas -lcudart -lcusparse \
+                    -L$(OPENBLASDIR)/lib -lopenblas
 
 
 # ----------------------------------------
