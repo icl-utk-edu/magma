@@ -398,7 +398,7 @@ typedef struct magma_z_solver_par
 {
     magma_solver_type  solver;                  // solver type
     magma_int_t        version;                 // sometimes there are different versions
-    double             atol;                     // absolute residual stopping criterion
+    double             atol;                    // absolute residual stopping criterion
     double             rtol;                    // relative residual stopping criterion
     magma_int_t        maxiter;                 // upper iteration limit
     magma_int_t        restart;                 // for GMRES
@@ -411,7 +411,7 @@ typedef struct magma_z_solver_par
     real_Double_t      runtime;                 // feedback: runtime needed
     real_Double_t      *res_vec;                // feedback: array containing residuals
     real_Double_t      *timing;                 // feedback: detailed timing
-    magma_int_t        verbose;                 // print residual ever 'verbose' iterations
+    magma_int_t        verbose;                 // print residual every 'verbose' iterations
     magma_int_t        num_eigenvalues;         // number of EV for eigensolvers
     magma_int_t        ev_length;               // needed for framework
     double             *eigenvalues;            // feedback: array containing eigenvalues
