@@ -51,6 +51,13 @@ extern "C" {
  -- MAGMA_SPARSE Auxiliary functions
 */
 
+magma_int_t
+magma_zwrapper(
+    magma_zopts *zopts,
+    magma_z_matrix A, 
+    magma_z_matrix *x, 
+    magma_z_matrix b,
+    magma_queue_t queue );
 
 magma_int_t
 magma_zparse_opts( 

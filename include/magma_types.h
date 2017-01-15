@@ -609,6 +609,17 @@ typedef enum {
     Magma_UNITDIAG     = 513
 } magma_scale_t;
 
+typedef enum {
+    Magma_SOLVE        = 801,
+    Magma_SETUPSOLVE   = 802,
+    Magma_APPLYSOLVE   = 803,
+    Magma_DESTROYSOLVE = 804,
+    Magma_GENERATEPREC = 806,
+    Magma_PRECONDLEFT  = 807,
+    Magma_PRECONDRIGHT = 808,
+    Magma_SPMV         = 809
+} magma_operation_t;
+
 
 // When adding constants, remember to do these steps as appropriate:
 // 1)  add magma_xxxx_const()  converter below and in control/constants.cpp
