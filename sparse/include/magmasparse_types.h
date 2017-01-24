@@ -753,9 +753,12 @@ typedef struct magma_s_preconditioner
 
 typedef struct magma_zopts
 {
+    magma_operation_t       operation;
+    magma_location_t        compute_location;
     magma_z_solver_par      solver_par;
     magma_z_preconditioner  precond_par;
     magma_storage_t         input_format;
+    magma_trans_t           trans;
     magma_int_t             blocksize;
     magma_int_t             alignment;
     magma_storage_t         output_format;
@@ -766,9 +769,12 @@ typedef struct magma_zopts
 
 typedef struct magma_copts
 {
+    magma_operation_t       operation;
+    magma_location_t        compute_location;
     magma_c_solver_par      solver_par;
     magma_c_preconditioner  precond_par;
     magma_storage_t         input_format;
+    magma_trans_t           trans;
     magma_int_t             blocksize;
     magma_int_t             alignment;
     magma_storage_t         output_format;
@@ -779,9 +785,12 @@ typedef struct magma_copts
 
 typedef struct magma_dopts
 {
+    magma_operation_t       operation;
+    magma_location_t        compute_location;
     magma_d_solver_par      solver_par;
     magma_d_preconditioner  precond_par;
     magma_storage_t         input_format;
+    magma_trans_t           trans;
     magma_int_t             blocksize;
     magma_int_t             alignment;
     magma_storage_t         output_format;
@@ -792,9 +801,12 @@ typedef struct magma_dopts
 
 typedef struct magma_sopts
 {
+    magma_operation_t       operation;
+    magma_location_t        compute_location;
     magma_s_solver_par      solver_par;
     magma_s_preconditioner  precond_par;
     magma_storage_t         input_format;
+    magma_trans_t           trans;
     magma_int_t             blocksize;
     magma_int_t             alignment;
     magma_storage_t         output_format;

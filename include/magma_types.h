@@ -610,14 +610,21 @@ typedef enum {
 } magma_scale_t;
 
 typedef enum {
+    Magma_TRUE         = 521,
+    Magma_FALSE        = 522
+} magma_enum_t;
+
+typedef enum {
     Magma_SOLVE        = 801,
     Magma_SETUPSOLVE   = 802,
     Magma_APPLYSOLVE   = 803,
     Magma_DESTROYSOLVE = 804,
+    Magma_INFOSOLVE    = 805,
     Magma_GENERATEPREC = 806,
     Magma_PRECONDLEFT  = 807,
     Magma_PRECONDRIGHT = 808,
-    Magma_SPMV         = 809
+    Magma_TRANSPOSE    = 809,
+    Magma_SPMV         = 810
 } magma_operation_t;
 
 
