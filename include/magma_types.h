@@ -612,7 +612,7 @@ typedef enum {
 typedef enum {
     Magma_TRUE         = 521,
     Magma_FALSE        = 522
-} magma_enum_t;
+} magma_bool_t;
 
 typedef enum {
     Magma_SOLVE        = 801,
