@@ -609,10 +609,6 @@ typedef enum {
     Magma_UNITDIAG     = 513
 } magma_scale_t;
 
-typedef enum {
-    Magma_TRUE         = 521,
-    Magma_FALSE        = 522
-} magma_bool_t;
 
 typedef enum {
     Magma_SOLVE        = 801,
