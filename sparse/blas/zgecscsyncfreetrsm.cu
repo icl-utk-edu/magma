@@ -21,7 +21,7 @@
 
 #include <cuda.h>  // for CUDA_VERSION
 
-#define MAGMA_CSC_SYNCFREE_WARP_PER_BLOCK 16
+//#define MAGMA_CSC_SYNCFREE_WARP_PER_BLOCK 16
 #define MAGMA_CSC_SYNCFREE_WARP_SIZE 32
 
 #define MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD  0
@@ -44,7 +44,7 @@ void sptrsv_syncfree_analyser(magmaIndex_ptr  d_cscRowIdx,
     }
 }
 
-__global__
+/*__global__
 void sptrsv_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
                               magmaIndex_ptr         d_cscRowIdx,
                               magmaDoubleComplex_ptr d_cscVal,
@@ -85,7 +85,7 @@ void sptrsv_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
     if (threadIdx.x < MAGMA_CSC_SYNCFREE_WARP_PER_BLOCK) 
     { 
         s_graphInDegree[threadIdx.x] = 1; 
-        s_left_sum[threadIdx.x] = 0; 
+        s_left_sum[threadIdx.x] = MAGMA_Z_ZERO; 
     }
     __syncthreads();
 
@@ -136,8 +136,7 @@ void sptrsv_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
 
     //finish
     if (!lane_id) d_x[global_x_id] = xi;
-}
-
+}*/
 
 __global__
 void sptrsm_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
@@ -262,7 +261,7 @@ void sptrsm_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
 
 
 extern "C" magma_int_t
-int magma_zgecscsyncfreetrsm_analysis(
+magma_zgecscsyncfreetrsm_analysis(
     magma_int_t             m, 
     magma_int_t             nnz,
     magmaIndex_ptr          drowind, 
@@ -286,7 +285,7 @@ int magma_zgecscsyncfreetrsm_analysis(
 }
 
 extern "C" magma_int_t
-int magma_zgecscsyncfreetrsm_solve(
+magma_zgecscsyncfreetrsm_solve(
     magma_int_t             m, 
     magma_int_t             nnz,
     magmaDoubleComplex      alpha,
@@ -308,29 +307,29 @@ int magma_zgecscsyncfreetrsm_solve(
                m * sizeof(magma_index_t), cudaMemcpyDeviceToDevice);
         
     // clear d_x for atomic operations
-    cudaMemset(d_x, 0, sizeof(magmaDoubleComplex) * m * rhs);
+    cudaMemset(dx, 0, sizeof(magmaDoubleComplex) * m * rhs);
 
     int num_threads, num_blocks;
-    if (rhs == 1)
-    {
-        num_threads = MAGMA_CSC_SYNCFREE_WARP_PER_BLOCK 
-                      * MAGMA_CSC_SYNCFREE_WARP_SIZE;
-        num_blocks = ceil ((double)m / 
-                         (double)(num_threads/MAGMA_CSC_SYNCFREE_WARP_SIZE));
-        sptrsv_syncfree_executor<<< num_blocks, num_threads >>>
-                      (dcolptr, drowind, dval, dgraphindegree.
-                       m, substitution, d_b, d_x);
-    }
-    else
-    {
+    //if (rhs == 1)
+    //{
+    //    num_threads = MAGMA_CSC_SYNCFREE_WARP_PER_BLOCK 
+    //                  * MAGMA_CSC_SYNCFREE_WARP_SIZE;
+    //    num_blocks = ceil ((double)m / 
+    //                     (double)(num_threads/MAGMA_CSC_SYNCFREE_WARP_SIZE));
+    //    sptrsv_syncfree_executor<<< num_blocks, num_threads >>>
+    //                  (dcolptr, drowind, dval, dgraphindegree.
+    //                   m, substitution, db, dx);
+    //}
+    //else
+    //{
         num_threads = 4 * MAGMA_CSC_SYNCFREE_WARP_SIZE;
         num_blocks = ceil ((double)m / 
                          (double)(num_threads/MAGMA_CSC_SYNCFREE_WARP_SIZE));
         sptrsm_syncfree_executor<<< num_blocks, num_threads >>>
                       (dcolptr, drowind, dval, dgraphindegree,
                        m, substitution, rhs, MAGMA_CSC_SYNCFREE_OPT_WARP_AUTO,
-                       d_b, d_x);
-    }
+                       db, dx);
+    //}
 
     return info;
 }

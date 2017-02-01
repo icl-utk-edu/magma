@@ -2140,6 +2140,31 @@ magma_zgecsr5mv(
     magma_queue_t           queue );
 
 magma_int_t
+magma_zgecscsyncfreetrsm_analysis(
+    magma_int_t             m, 
+    magma_int_t             nnz,
+    magmaIndex_ptr          drowind, 
+    magmaIndex_ptr          dgraphindegree, 
+    magmaIndex_ptr          dgraphindegree_bak, 
+    magma_queue_t           queue );
+
+magma_int_t
+magma_zgecscsyncfreetrsm_solve(
+    magma_int_t             m, 
+    magma_int_t             nnz,
+    magmaDoubleComplex      alpha,
+    magmaDoubleComplex_ptr  dval,
+    magmaIndex_ptr          dcolptr,
+    magmaIndex_ptr          drowind,
+    magmaIndex_ptr          dgraphindegree, 
+    magmaIndex_ptr          dgraphindegree_bak, 
+    magmaDoubleComplex_ptr  dx,
+    magmaDoubleComplex_ptr  db,
+    magma_int_t             substitution, 
+    magma_int_t             rhs, 
+    magma_queue_t           queue );
+
+magma_int_t
 magma_zmergedgs(
     magma_int_t n, 
     magma_int_t ldh,
