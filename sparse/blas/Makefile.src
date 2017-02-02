@@ -18,6 +18,7 @@ libsparse_src += \
 	$(cdir)/zbajac_csr.cu                 \
 	$(cdir)/zbajac_csr_overlap.cu         \
 	$(cdir)/zgeaxpy.cu                    \
+	$(cdir)/zgecscsyncfreetrsm.cu         \
 	$(cdir)/zgecsr5mv.cu                  \
 	$(cdir)/zgecsrmv.cu                   \
 	$(cdir)/zgeellmv.cu                   \

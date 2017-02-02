@@ -54,6 +54,11 @@ magma_zcumilusetup(
     csrilu02Info_t info_M=NULL;
     void *pBuffer = NULL;
 #endif
+
+    magma_index_t *L_dgraphindegree;
+    magma_index_t *L_dgraphindegree_bak;
+    magma_index_t *U_dgraphindegree;
+    magma_index_t *U_dgraphindegree_bak;
     
     //magma_zprint_matrix(A, queue );
     // copy matrix into preconditioner parameter
@@ -138,11 +143,12 @@ magma_zcumilusetup(
     CHECK( magma_zmconvert( hA, &hU , Magma_CSR, Magma_CSRU, queue ));
     CHECK( magma_zmtransfer( hL, &(precond->L), Magma_CPU, Magma_DEV, queue ));
     CHECK( magma_zmtransfer( hU, &(precond->U), Magma_CPU, Magma_DEV, queue ));
-
-    CHECK( magma_malloc((void**)&precond->L_dgraphindegree, precond->M.num_rows) );
-    CHECK( magma_malloc((void**)&precond->L_dgraphindegree_bak, precond->M.num_rows) );
-    CHECK( magma_malloc((void**)&precond->U_dgraphindegree, precond->M.num_rows) );
-    CHECK( magma_malloc((void**)&precond->U_dgraphindegree_bak, precond->M.num_rows) );
+    
+    // malloc space for sync-free sptrsv 
+    CHECK( magma_malloc((void**)&L_dgraphindegree, precond->M.num_rows) );
+    CHECK( magma_malloc((void**)&L_dgraphindegree_bak, precond->M.num_rows) );
+    CHECK( magma_malloc((void**)&U_dgraphindegree, precond->M.num_rows) );
+    CHECK( magma_malloc((void**)&U_dgraphindegree_bak, precond->M.num_rows) );
 
     if( precond->trisolver == Magma_CUSOLVE || precond->trisolver == 0 ){
         printf("preprocessing for cusparse trisolve\n");
@@ -192,11 +198,11 @@ magma_zcumilusetup(
             // analysis sparsity structures of L and U
             //magma_zgecscsyncfreetrsm_analysis(precond->L.num_rows, 
             //    precond->L.nnz, precond->L.dcol, 
-            //    precond->L_dgraphindegree, precond->L_dgraphindegree_bak, 
+            //    L_dgraphindegree, L_dgraphindegree_bak, 
             //    queue);
             //magma_zgecscsyncfreetrsm_analysis(precond->U.num_rows, 
             //    precond->U.nnz, precond->U.dcol, 
-            //    precond->U_dgraphindegree, precond->U_dgraphindegree_bak, 
+            //    U_dgraphindegree, U_dgraphindegree_bak, 
             //    queue);
     } else {
         //prepare for iterative solves
@@ -223,10 +229,10 @@ cleanup:
     cusparseDestroyMatDescr( descrL );
     cusparseDestroyMatDescr( descrU );
     cusparseDestroy( cusparseHandle );
-    magma_free( precond->L_dgraphindegree );
-    magma_free( precond->L_dgraphindegree_bak );
-    magma_free( precond->U_dgraphindegree );
-    magma_free( precond->U_dgraphindegree_bak );
+    magma_free( L_dgraphindegree );
+    magma_free( L_dgraphindegree_bak );
+    magma_free( U_dgraphindegree );
+    magma_free( U_dgraphindegree_bak );
     magma_zmfree( &hA, queue );
     magma_zmfree( &hACSR, queue );
     magma_zmfree(&hA, queue );

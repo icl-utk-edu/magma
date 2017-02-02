@@ -14,7 +14,7 @@
 
 #include "magmasparse_internal.h"
 
-extern __device__ void 
+extern __forceinline__ __device__ void 
 atomicAddmagmaFloatComplex(magmaFloatComplex *addr, magmaFloatComplex val)
 {
     atomicAdd(&(addr[0].x), val.x);

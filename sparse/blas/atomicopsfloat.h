@@ -14,7 +14,7 @@
 
 #include "magmasparse_internal.h"
 
-extern __device__ void 
+extern __forceinline__ __device__ void 
 atomicAddfloat(float *addr, float val)
 {
     atomicAdd(addr, val);

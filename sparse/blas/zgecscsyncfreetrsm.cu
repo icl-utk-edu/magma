@@ -270,6 +270,7 @@ magma_zgecscsyncfreetrsm_analysis(
     magma_queue_t           queue )
 {
     int info = MAGMA_SUCCESS;
+    printf("magma_zgecscsyncfreetrsm_analysis is called\n");
 
     int num_threads = 128;
     int num_blocks = ceil ((double)nnz / (double)num_threads);
