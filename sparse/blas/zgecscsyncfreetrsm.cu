@@ -32,10 +32,11 @@
 #define MAGMA_CSC_SYNCFREE_OPT_WARP_AUTO  3
 
 __global__
-void sptrsv_syncfree_analyser(magmaIndex_ptr  d_cscRowIdx,
-                              magma_int_t     m,
-                              magma_int_t     nnz,
-                              magmaIndex_ptr  d_graphInDegree)
+void sptrsv_syncfree_analyser(magmaIndex_ptr         d_cscRowIdx,
+                              magmaDoubleComplex_ptr d_cscVal,
+                              magma_int_t            m,
+                              magma_int_t            nnz,
+                              magmaIndex_ptr         d_graphInDegree)
 {
     const int global_id = blockIdx.x * blockDim.x + threadIdx.x; 
     if (global_id < nnz)
@@ -264,24 +265,26 @@ extern "C" magma_int_t
 magma_zgecscsyncfreetrsm_analysis(
     magma_int_t             m, 
     magma_int_t             nnz,
+    magmaDoubleComplex_ptr  dval,
+    magmaIndex_ptr          dcolptr,
     magmaIndex_ptr          drowind, 
     magmaIndex_ptr          dgraphindegree, 
     magmaIndex_ptr          dgraphindegree_bak, 
     magma_queue_t           queue )
 {
     int info = MAGMA_SUCCESS;
-    printf("magma_zgecscsyncfreetrsm_analysis is called\n");
+    printf("magma_zgecscsyncfreetrsm_analysis is called1\n");
 
     int num_threads = 128;
     int num_blocks = ceil ((double)nnz / (double)num_threads);
     cudaMemset(dgraphindegree, 0, m * sizeof(magma_index_t));
     sptrsv_syncfree_analyser<<< num_blocks, num_threads >>>
-                            (drowind, m, nnz, dgraphindegree);
-
+                            (drowind, dval, m, nnz, dgraphindegree);
+    printf("magma_zgecscsyncfreetrsm_analysis is called2\n");
     // backup in-degree array
     cudaMemcpy(dgraphindegree_bak, dgraphindegree, 
                m * sizeof(int), cudaMemcpyDeviceToDevice);
-
+    printf("magma_zgecscsyncfreetrsm_analysis is called3\n");
     return info;
 }
 
@@ -302,6 +305,7 @@ magma_zgecscsyncfreetrsm_solve(
     magma_queue_t           queue )
 {
     int info = MAGMA_SUCCESS;
+    printf("magma_zgecscsyncfreetrsm_solve is called\n");
 
     // get an unmodified in-degree array, only for benchmarking use
     cudaMemcpy(dgraphindegree, dgraphindegree_bak, 

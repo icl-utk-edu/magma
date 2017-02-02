@@ -682,6 +682,22 @@ magma_zprecondfree(
         magma_free_cpu( precond_par->UDT.blockinfo );
         precond_par->UDT.blockinfo = NULL;
     }
+    if ( precond_par->L_dgraphindegree != NULL ) {
+        magma_free( precond_par->L_dgraphindegree );
+        precond_par->L_dgraphindegree = NULL;
+    }
+    if ( precond_par->L_dgraphindegree_bak != NULL ) {
+        magma_free( precond_par->L_dgraphindegree_bak );
+        precond_par->L_dgraphindegree_bak = NULL;
+    }
+    if ( precond_par->U_dgraphindegree != NULL ) {
+        magma_free( precond_par->U_dgraphindegree );
+        precond_par->U_dgraphindegree = NULL;
+    }
+    if ( precond_par->U_dgraphindegree_bak != NULL ) {
+        magma_free( precond_par->U_dgraphindegree_bak );
+        precond_par->U_dgraphindegree_bak = NULL;
+    }
 
     precond_par->solver = Magma_NONE;
     

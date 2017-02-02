@@ -585,6 +585,7 @@ subs = {
     ('silu',           'dilu',           'cilu',           'zilu'            ),
     ('sgeblock',       'dgeblock',       'cilugeblock',    'zgeblock'        ),
     ('sge3pt',         'dge3pt',         'cge3pt',         'zge3pt'          ),    
+    ('sgecscsyncfreetrsm',  'dgecscsyncfreetrsm',  'cgecscsyncfreetrsm',  'zgecscsyncfreetrsm'),   
 
 
     # ----- SPARSE Iterative Solvers

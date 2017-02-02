@@ -2143,6 +2143,8 @@ magma_int_t
 magma_zgecscsyncfreetrsm_analysis(
     magma_int_t             m, 
     magma_int_t             nnz,
+    magmaDoubleComplex_ptr  dval,
+    magmaIndex_ptr          dcolptr,
     magmaIndex_ptr          drowind, 
     magmaIndex_ptr          dgraphindegree, 
     magmaIndex_ptr          dgraphindegree_bak, 
