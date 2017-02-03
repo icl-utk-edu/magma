@@ -11,7 +11,6 @@
 */
 #include "magmasparse_internal.h"
 #include <cuda.h>  // for CUDA_VERSION
-#include <cuda_runtime.h>
 
 #define PRECISION_z
 
@@ -139,10 +138,6 @@ magma_zcumilusetup(
     CHECK( magma_zmconvert( hA, &hU , Magma_CSR, Magma_CSRU, queue ));
     CHECK( magma_zmtransfer( hL, &(precond->L), Magma_CPU, Magma_DEV, queue ));
     CHECK( magma_zmtransfer( hU, &(precond->U), Magma_CPU, Magma_DEV, queue ));
-
-    /*magma_index_t* Lcolptr = (magma_index_t *)malloc((precond->L.num_rows+1) * sizeof(magma_index_t));
-    for (int i = 0; i < precond->L.num_rows+1; i++) printf("Lcolptr[%i] = %i\n", i, hL.drow[i]);
-    free( Lcolptr );*/
     
     // malloc aux space for sync-free sptrsv 
     CHECK( magma_index_malloc( &(precond->L_dgraphindegree), precond->M.num_rows ));
@@ -151,7 +146,6 @@ magma_zcumilusetup(
     CHECK( magma_index_malloc( &(precond->U_dgraphindegree_bak), precond->M.num_rows ));
 
     if( precond->trisolver == Magma_CUSOLVE || precond->trisolver == 0 ){
-        printf("preprocessing for cusparse trisolve\n");
         CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
         CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
         CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_UNIT ));
@@ -174,7 +168,6 @@ magma_zcumilusetup(
             precond->U.nnz, descrU,
             precond->U.dval, precond->U.drow, precond->U.dcol, precond->cuinfoU ));
     } else if( precond->trisolver == Magma_SYNCFREESOLVE ){
-            printf("preprocessing for sync-free trisolve (under construction)\n");
             magma_zmfree(&hL, queue );
             magma_zmfree(&hU, queue );
             magma_zmtransfer( precond->L, &hL, Magma_DEV, Magma_DEV, queue );
@@ -208,21 +201,6 @@ magma_zcumilusetup(
                 precond->U.drow, precond->U.dcol, 
                 precond->U_dgraphindegree, precond->U_dgraphindegree_bak, 
                 queue);
-
-    /*magma_index_t* Lrowidx = (magma_index_t *)malloc(precond->L.nnz * sizeof(magma_index_t));
-    CHECK(cudaMemcpy(Lrowidx, precond->L.dcol, sizeof(magma_index_t) * precond->L.nnz, cudaMemcpyDeviceToHost));
-    for (int i = 0; i < precond->L.nnz; i++) printf("Lrowidx[%i] = %i\n", i, Lrowidx[i]);
-    free( Lrowidx );*/
-
-    /*magma_index_t* hL_dgraphindegree = (magma_index_t *)malloc(precond->L.num_rows * sizeof(magma_index_t));
-    cudaMemcpy(hL_dgraphindegree, precond->L_dgraphindegree, sizeof(magma_index_t) * precond->L.num_rows, cudaMemcpyDeviceToHost);
-    for (int i = 0; i < precond->L.num_rows; i++) printf("hL_dgraphindegree[%i] = %i\n", i, hL_dgraphindegree[i]);
-    free( hL_dgraphindegree );*/
-
-    /*magma_index_t* Lcolptr = (magma_index_t *)malloc((precond->L.num_rows+1) * sizeof(magma_index_t));
-    CHECK(cudaMemcpy(Lcolptr, precond->L.drow, sizeof(magma_index_t) * (precond->L.num_rows+1), cudaMemcpyDeviceToHost));
-    for (int i = 0; i < precond->L.num_rows+1; i++) printf("Lcolptr[%i] = %i\n", i, Lcolptr[i]);
-    free( Lcolptr );*/
 
             magma_zmfree(&hL, queue );
             magma_zmfree(&hU, queue );
@@ -502,10 +480,6 @@ magma_zapplycumilu_l(
 
     // CUSPARSE context //
     if( precond->trisolver == Magma_CUSOLVE || precond->trisolver == 0 ){
-    // magmaDoubleComplex* hx = (magmaDoubleComplex *)malloc(precond->L.num_rows * sizeof(magmaDoubleComplex));
-    // CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
-    // for (int i = 0; i < precond->L.num_rows; i++) printf("(cusparse trisolve) before solve hx[%i] = %f\n", i, hx[i]);
-
         CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
         CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
         CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
@@ -527,23 +501,7 @@ magma_zapplycumilu_l(
                             precond->L.num_rows,
                             x->dval,
                             precond->L.num_rows ));
-
-    // CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
-    // for (int i = 0; i < precond->L.num_rows; i++) printf("(cusparse trisolve) after solve hx[%i] = %f\n", i, hx[i]);
-    // free( hx );
-
     } else if( precond->trisolver == Magma_SYNCFREESOLVE ){
-        // printf("sync-free trisolve (under construction)\n");
-
-    /*magma_index_t* hL_dgraphindegree = (magma_index_t *)malloc(precond->L.num_rows * sizeof(magma_index_t));
-    cudaMemcpy(hL_dgraphindegree, precond->L_dgraphindegree, sizeof(magma_index_t) * precond->L.num_rows, cudaMemcpyDeviceToHost);
-    for (int i = 0; i < precond->L.num_rows; i++) printf("hL_dgraphindegree[%i] = %i\n", i, hL_dgraphindegree[i]);
-    free( hL_dgraphindegree );*/
-
-   //  magmaDoubleComplex* hx = (magmaDoubleComplex *)malloc(precond->L.num_rows * sizeof(magmaDoubleComplex));
-    // CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
-    // for (int i = 0; i < precond->L.num_rows; i++) printf("(sync-free trisolve) before solve hx[%i] = %f\n", i, hx[i]);
-
         magma_zgecscsyncfreetrsm_solve( precond->L.num_rows,
             precond->L.nnz, one,
             precond->L.dval, precond->L.drow, precond->L.dcol, 
@@ -551,10 +509,6 @@ magma_zapplycumilu_l(
             x->dval, b.dval, 0, //MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD
             1, // rhs
             queue );
-
-    // CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
-    // for (int i = 0; i < precond->L.num_rows; i++) printf("(sync-free trisolve) after solve hx[%i] = %f\n", i, hx[i]);
-    // free( hx );
     }
     
     
@@ -705,7 +659,6 @@ magma_zapplycumilu_r(
                             x->dval,
                             precond->U.num_rows ));
     } else if( precond->trisolver == Magma_SYNCFREESOLVE ){
-        // printf("sync-free trisolve (under construction)\n");
         magma_zgecscsyncfreetrsm_solve( precond->U.num_rows,
             precond->U.nnz, one,
             precond->U.dval, precond->U.drow, precond->U.dcol, 

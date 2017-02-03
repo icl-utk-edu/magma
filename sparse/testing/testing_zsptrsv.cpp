@@ -15,11 +15,12 @@
 #include <string.h>
 #include <math.h>
 
+#include <cuda_runtime.h>
+
 // includes, project
 #include "magma_v2.h"
 #include "magmasparse.h"
 #include "testings.h"
-
 
 /* ////////////////////////////////////////////////////////////////////////////
    -- testing any solver
@@ -95,6 +96,7 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
+        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -110,6 +112,7 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
+        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -141,6 +144,7 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
+        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -156,6 +160,7 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
+        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
