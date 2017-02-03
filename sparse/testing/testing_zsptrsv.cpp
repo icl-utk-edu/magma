@@ -109,13 +109,12 @@ int main(  int argc, char** argv )
         // d = a-c
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
-        TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
+        TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
         tempo2 = magma_sync_wtime( queue );
-        TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
+        TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
         magma_zaxpy( dofs, mone, c.dval, 1 , d.dval, 1, queue );
         res = magma_dznrm2( dofs, d.dval, 1, queue );
-        
         printf("residual_U = %.6e\n", res );
         printf("time_U = %.6e\n",tempo2-tempo1 );
 
@@ -156,13 +155,12 @@ int main(  int argc, char** argv )
         // d = a-c
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
-        TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
+        TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
         tempo2 = magma_sync_wtime( queue );
-        TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
+        TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
         magma_zaxpy( dofs, mone, c.dval, 1 , d.dval, 1, queue );
         res = magma_dznrm2( dofs, d.dval, 1, queue );
-        
         printf("residual_U = %.6e\n", res );
         printf("time_U = %.6e\n",tempo2-tempo1 );
         
