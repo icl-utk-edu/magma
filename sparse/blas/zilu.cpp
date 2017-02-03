@@ -193,8 +193,9 @@ magma_zcumilusetup(
                              precond->U.dval, precond->U.dcol, precond->U.drow,
                              CUSPARSE_ACTION_NUMERIC,
                              CUSPARSE_INDEX_BASE_ZERO));
-
-
+            // set this to be CSC
+            precond->U.storage_type = Magma_CSC;
+            precond->L.storage_type = Magma_CSC;
             
             // analysis sparsity structures of L and U
             magma_zgecscsyncfreetrsm_analysis(precond->L.num_rows, 
