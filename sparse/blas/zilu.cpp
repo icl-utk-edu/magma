@@ -502,9 +502,9 @@ magma_zapplycumilu_l(
 
     // CUSPARSE context //
     if( precond->trisolver == Magma_CUSOLVE || precond->trisolver == 0 ){
-    magmaDoubleComplex* hx = (magmaDoubleComplex *)malloc(precond->L.num_rows * sizeof(magmaDoubleComplex));
-    CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
-    for (int i = 0; i < precond->L.num_rows; i++) printf("(cusparse trisolve) before solve hx[%i] = %f\n", i, hx[i]);
+    // magmaDoubleComplex* hx = (magmaDoubleComplex *)malloc(precond->L.num_rows * sizeof(magmaDoubleComplex));
+    // CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
+    // for (int i = 0; i < precond->L.num_rows; i++) printf("(cusparse trisolve) before solve hx[%i] = %f\n", i, hx[i]);
 
         CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
         CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
@@ -528,21 +528,21 @@ magma_zapplycumilu_l(
                             x->dval,
                             precond->L.num_rows ));
 
-    CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
-    for (int i = 0; i < precond->L.num_rows; i++) printf("(cusparse trisolve) after solve hx[%i] = %f\n", i, hx[i]);
-    free( hx );
+    // CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
+    // for (int i = 0; i < precond->L.num_rows; i++) printf("(cusparse trisolve) after solve hx[%i] = %f\n", i, hx[i]);
+    // free( hx );
 
     } else if( precond->trisolver == Magma_SYNCFREESOLVE ){
-        printf("sync-free trisolve (under construction)\n");
+        // printf("sync-free trisolve (under construction)\n");
 
     /*magma_index_t* hL_dgraphindegree = (magma_index_t *)malloc(precond->L.num_rows * sizeof(magma_index_t));
     cudaMemcpy(hL_dgraphindegree, precond->L_dgraphindegree, sizeof(magma_index_t) * precond->L.num_rows, cudaMemcpyDeviceToHost);
     for (int i = 0; i < precond->L.num_rows; i++) printf("hL_dgraphindegree[%i] = %i\n", i, hL_dgraphindegree[i]);
     free( hL_dgraphindegree );*/
 
-    magmaDoubleComplex* hx = (magmaDoubleComplex *)malloc(precond->L.num_rows * sizeof(magmaDoubleComplex));
-    CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
-    for (int i = 0; i < precond->L.num_rows; i++) printf("(sync-free trisolve) before solve hx[%i] = %f\n", i, hx[i]);
+   //  magmaDoubleComplex* hx = (magmaDoubleComplex *)malloc(precond->L.num_rows * sizeof(magmaDoubleComplex));
+    // CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
+    // for (int i = 0; i < precond->L.num_rows; i++) printf("(sync-free trisolve) before solve hx[%i] = %f\n", i, hx[i]);
 
         magma_zgecscsyncfreetrsm_solve( precond->L.num_rows,
             precond->L.nnz, one,
@@ -552,9 +552,9 @@ magma_zapplycumilu_l(
             1, // rhs
             queue );
 
-    CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
-    for (int i = 0; i < precond->L.num_rows; i++) printf("(sync-free trisolve) after solve hx[%i] = %f\n", i, hx[i]);
-    free( hx );
+    // CHECK(cudaMemcpy(hx, x->dval, sizeof(magmaDoubleComplex) * precond->L.num_rows, cudaMemcpyDeviceToHost));
+    // for (int i = 0; i < precond->L.num_rows; i++) printf("(sync-free trisolve) after solve hx[%i] = %f\n", i, hx[i]);
+    // free( hx );
     }
     
     
@@ -705,7 +705,7 @@ magma_zapplycumilu_r(
                             x->dval,
                             precond->U.num_rows ));
     } else if( precond->trisolver == Magma_SYNCFREESOLVE ){
-        printf("sync-free trisolve (under construction)\n");
+        // printf("sync-free trisolve (under construction)\n");
         magma_zgecscsyncfreetrsm_solve( precond->U.num_rows,
             precond->U.nnz, one,
             precond->U.dval, precond->U.drow, precond->U.dcol, 
