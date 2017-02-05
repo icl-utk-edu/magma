@@ -170,6 +170,106 @@ int main(  int argc, char** argv )
         printf("time_U = %.6e\n",tempo2-tempo1 );
         
         
+                // preconditioner with sync-free trisolve
+        printf("\n--- Now use block-Jacobi trisolve ---\n");
+        zopts.precond_par.solver = Magma_ILU;
+        zopts.precond_par.trisolver = Magma_JACOBI;
+        zopts.precond_par.pattern = 32;
+        zopts.precond_par.maxiter = 3;
+        tempo1 = magma_sync_wtime( queue );
+        TESTING_CHECK( magma_z_precondsetup( A, b, &zopts.solver_par, &zopts.precond_par, queue ) );
+        tempo2 = magma_sync_wtime( queue );
+        printf("time_magma_z_precondsetup = %.6e\n",tempo2-tempo1 );
+
+        // vectors and initial guess
+        TESTING_CHECK( magma_zvinit( &a, Magma_DEV, A.num_rows, 1, one, queue ));
+        TESTING_CHECK( magma_zvinit( &b, Magma_DEV, A.num_rows, 1, zero, queue ));
+        TESTING_CHECK( magma_zvinit( &c, Magma_DEV, A.num_rows, 1, zero, queue ));
+        TESTING_CHECK( magma_zvinit( &d, Magma_DEV, A.num_rows, 1, zero, queue ));
+        
+        
+        // b = sptrsv(L,a)
+        // c = L*b
+        // d = a-c
+        // res = norm(d)
+        tempo1 = magma_sync_wtime( queue );
+        TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
+        cudaDeviceSynchronize();
+        tempo2 = magma_sync_wtime( queue );
+        TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
+        magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
+        magma_zaxpy( dofs, mone, c.dval, 1 , d.dval, 1, queue );
+        res = magma_dznrm2( dofs, d.dval, 1, queue );
+        
+        printf("residual_L = %.6e\n", res );
+        printf("time_L = %.6e\n",tempo2-tempo1 );
+        
+        // b = sptrsv(U,a)
+        // c = L*b
+        // d = a-c
+        // res = norm(d)
+        tempo1 = magma_sync_wtime( queue );
+        TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
+        cudaDeviceSynchronize();
+        tempo2 = magma_sync_wtime( queue );
+        TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
+        magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
+        magma_zaxpy( dofs, mone, c.dval, 1 , d.dval, 1, queue );
+        res = magma_dznrm2( dofs, d.dval, 1, queue );
+        printf("residual_U = %.6e\n", res );
+        printf("time_U = %.6e\n",tempo2-tempo1 );
+        
+        
+                // preconditioner with sync-free trisolve
+        printf("\n--- Now use ISAI trisolve ---\n");
+        zopts.precond_par.solver = Magma_ILU;
+        zopts.precond_par.trisolver = Magma_ISAI;
+        zopts.precond_par.pattern = 3;
+        zopts.precond_par.maxiter = 10;
+        tempo1 = magma_sync_wtime( queue );
+        TESTING_CHECK( magma_z_precondsetup( A, b, &zopts.solver_par, &zopts.precond_par, queue ) );
+        tempo2 = magma_sync_wtime( queue );
+        printf("time_magma_z_precondsetup = %.6e\n",tempo2-tempo1 );
+
+        // vectors and initial guess
+        TESTING_CHECK( magma_zvinit( &a, Magma_DEV, A.num_rows, 1, one, queue ));
+        TESTING_CHECK( magma_zvinit( &b, Magma_DEV, A.num_rows, 1, zero, queue ));
+        TESTING_CHECK( magma_zvinit( &c, Magma_DEV, A.num_rows, 1, zero, queue ));
+        TESTING_CHECK( magma_zvinit( &d, Magma_DEV, A.num_rows, 1, zero, queue ));
+        
+        
+        // b = sptrsv(L,a)
+        // c = L*b
+        // d = a-c
+        // res = norm(d)
+        tempo1 = magma_sync_wtime( queue );
+        TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
+        cudaDeviceSynchronize();
+        tempo2 = magma_sync_wtime( queue );
+        TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
+        magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
+        magma_zaxpy( dofs, mone, c.dval, 1 , d.dval, 1, queue );
+        res = magma_dznrm2( dofs, d.dval, 1, queue );
+        
+        printf("residual_L = %.6e\n", res );
+        printf("time_L = %.6e\n",tempo2-tempo1 );
+        
+        // b = sptrsv(U,a)
+        // c = L*b
+        // d = a-c
+        // res = norm(d)
+        tempo1 = magma_sync_wtime( queue );
+        TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
+        cudaDeviceSynchronize();
+        tempo2 = magma_sync_wtime( queue );
+        TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
+        magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
+        magma_zaxpy( dofs, mone, c.dval, 1 , d.dval, 1, queue );
+        res = magma_dznrm2( dofs, d.dval, 1, queue );
+        printf("residual_U = %.6e\n", res );
+        printf("time_U = %.6e\n",tempo2-tempo1 );
+        
+        
         magma_zmfree(&A, queue );
         magma_zmfree(&b, queue );
         magma_zmfree(&c, queue );
