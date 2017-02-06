@@ -142,17 +142,15 @@ magma_ziluisaisetup(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %d is too large by %d\n", (int) i, (int) (maxsize-32));
-            break;
+            printf("%%   error for ISAI L: size of system %d is too large by %d\n", (int) i, (int) (maxsize-32));
+            printf("%% fallback: use exact triangular solve (cuSOLVE)\n");
+            precond->trisolver = Magma_CUSOLVE;
+            goto cleanup;
         }
     }
 
     printf("%% nnz in L-ISAI (total max/row): %d %d\n", (int) nnzL, (int) maxsize);
     // this can be modified to the thread-block-size
-    if( maxsize > warpsize ){
-       info = -(maxsize - warpsize);
-       goto cleanup;
-    }
     // via main memory
     //  CHECK( magma_z_mtransfer( MT, &LT, Magma_DEV, Magma_DEV, queue ) );
     // if( maxsize <= 8 ){
@@ -228,16 +226,14 @@ magma_ziluisaisetup(
             maxsize = sizes_h[i+1]-sizes_h[i];
         }
         if( maxsize > warpsize ){
-            printf("%%   error for ISAI: size of system %d is too large by %d\n", (int) i, (int) (maxsize-32));
-            break;
+            printf("%%   error for ISAI U: size of system %d is too large by %d\n", (int) i, (int) (maxsize-32));
+            printf("%% fallback: use exact triangular solve (cuSOLVE)\n");
+            precond->trisolver = Magma_CUSOLVE;
+            goto cleanup;
         }
     }
     printf("%% nnz in U-ISAI (total max/row): %d %d\n", (int) nnzU, (int) maxsize);
     // this can be modified to the thread-block-size
-    if( maxsize > warpsize ){
-       info = -(maxsize - warpsize);
-       goto cleanup;
-    }
     // via main memory
     // CHECK( magma_z_mtransfer( MT, &LT, Magma_DEV, Magma_DEV, queue ) );
     // if( maxsize <= 8 ){
