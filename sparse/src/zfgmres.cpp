@@ -186,10 +186,10 @@ magma_zfgmres(
     tempo1 = magma_sync_wtime( queue );
     do
     {
-        solver_par->numiter++;
         // compute initial residual and its norm
         // A.mult(n, 1, x, n, V(0), n);                        // V(0) = A*x
         CHECK( magma_z_spmv( MAGMA_Z_ONE, A, *x, MAGMA_Z_ZERO, t, queue ));
+        solver_par->numiter++;
         solver_par->spmv_count++;
         magma_zcopy( dofs, t.dval, 1, V(0), 1, queue );
         
@@ -243,6 +243,7 @@ magma_zfgmres(
             // A.mult(n, 1, W(i), n, V(i+1), n);
             w_t.dval = W(i);
             CHECK( magma_z_spmv( MAGMA_Z_ONE, A, w_t, MAGMA_Z_ZERO, t, queue ));
+            solver_par->numiter++;
             solver_par->spmv_count++;
             magma_zcopy( dofs, t.dval, 1, V(i+1), 1, queue );
             
