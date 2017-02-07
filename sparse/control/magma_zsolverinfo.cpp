@@ -14,6 +14,8 @@
 #define RTOLERANCE     lapackf77_dlamch( "E" )
 #define ATOLERANCE     lapackf77_dlamch( "E" )
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+
 /**
     Purpose
     -------
@@ -254,8 +256,6 @@ magma_zsolverinfo(
             case Magma_PBICGSTAB:
             case Magma_BICGSTABMERGE:
             case Magma_BICGSTABMERGE2:
-            case Magma_GMRES:
-            case Magma_PGMRES:
             case Magma_IDR:
             case Magma_IDRMERGE:
             case Magma_PIDR:
@@ -292,6 +292,24 @@ magma_zsolverinfo(
                            solver_par->res_vec[j],
                            solver_par->timing[j],
                            (long long) (magma_ceildiv(solver_par->spmv_count, solver_par->numiter)*(j*k)),
+                           // (long long) (MIN((solver_par->numiter-1)*solver_par->restart, k*j*solver_par->restart)),
+                           // (long long) (k*j*solver_par->restart),
+                           (long long) solver_par->info );
+                }
+                printf("%%=================================================================================%%\n");
+                break;
+            case Magma_GMRES:
+            case Magma_PGMRES:
+                printf("%%   iter   ||   residual-nrm2    ||   runtime    ||   SpMV-count*  ||   info\n");
+                printf("%%=================================================================================%%\n");
+                for( int j=0; j<(solver_par->numiter)/k+1; j++ ) {
+                    printf(" %8lld       %e          %f         %8lld          %3lld\n",
+                           (long long)(j*k),
+                           solver_par->res_vec[j],
+                           solver_par->timing[j],
+                           //(long long) (magma_ceildiv(solver_par->spmv_count,solver_par->numiter)*(j*k)),
+                           // (long long) (MIN((solver_par->numiter-1)*solver_par->restart, k*j*solver_par->restart)),
+                           (long long) (k*j*solver_par->restart),
                            (long long) solver_par->info );
                 }
                 printf("%%=================================================================================%%\n");
