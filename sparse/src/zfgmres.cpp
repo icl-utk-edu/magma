@@ -139,7 +139,7 @@ magma_zfgmres(
     magma_int_t i, j, k;
     magmaDoubleComplex beta;
     
-    double rel_resid, resid0=1, r0=0.0, betanom = 0.0, nom;
+    double rel_resid, resid0=1, r0=0.0, betanom = 0.0, nom, nomb;
     
     magma_z_matrix v_t={Magma_CSR}, w_t={Magma_CSR}, t={Magma_CSR}, t2={Magma_CSR}, V={Magma_CSR}, W={Magma_CSR};
     v_t.memory_location = Magma_DEV;
@@ -171,11 +171,13 @@ magma_zfgmres(
     CHECK( magma_zvinit( &W, Magma_DEV, dofs*dim, 1, MAGMA_Z_ZERO, queue ));
     
     CHECK(  magma_zresidual( A, b, *x, &nom, queue));
+    nomb = magma_dznrm2( dofs, b.dval, 1, queue );
 
     solver_par->init_res = nom;
     
-    if ( ( nom * solver_par->rtol) < ATOLERANCE )
+    if ( (r0 = nomb * solver_par->rtol) < ATOLERANCE ){
         r0 = ATOLERANCE;
+    }
     
     solver_par->numiter = 0;
     solver_par->spmv_count = 0;
@@ -203,9 +205,9 @@ magma_zfgmres(
             solver_par->init_res = MAGMA_Z_REAL( beta );
             resid0 = MAGMA_Z_REAL( beta );
         
-            r0 = resid0 * solver_par->rtol;
-            if ( r0 < ATOLERANCE )
+            if ( (r0 = nomb * solver_par->rtol) < ATOLERANCE ){
                 r0 = ATOLERANCE;
+            }
             if ( resid0 < r0 ) {
                 solver_par->final_res = solver_par->init_res;
                 solver_par->iter_res = solver_par->init_res;
@@ -265,7 +267,7 @@ magma_zfgmres(
             ApplyPlaneRotation(&s[i], &s[i+1], cs[i], sn[i]);
             
             betanom = MAGMA_Z_ABS( s[i+1] );
-            rel_resid = betanom / resid0;
+            rel_resid = betanom / nomb;
             if ( solver_par->verbose > 0 ) {
                 tempo2 = magma_sync_wtime( queue );
                 if ( (solver_par->numiter)%solver_par->verbose==0 ) {
@@ -319,7 +321,7 @@ magma_zfgmres(
             }
         }
         info = MAGMA_SLOW_CONVERGENCE;
-        if( solver_par->iter_res < solver_par->rtol*solver_par->init_res ||
+        if( solver_par->iter_res < solver_par->rtol*nomb ||
             solver_par->iter_res < solver_par->atol ) {
             info = MAGMA_SUCCESS;
         }

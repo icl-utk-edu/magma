@@ -228,7 +228,7 @@ magma_ztfqmr_unrolled(
             }
         }
         info = MAGMA_SLOW_CONVERGENCE;
-        if( solver_par->iter_res < solver_par->rtol*solver_par->init_res ||
+        if( solver_par->iter_res < solver_par->rtol*nomb ||
             solver_par->iter_res < solver_par->atol ) {
             info = MAGMA_SUCCESS;
         }

@@ -94,7 +94,7 @@ magma_zbpcg(
     beta = NULL;
 
 
-    double *nom={0}, *nom0={0}, *r0={0}, *gammaold={0}, *gammanew={0}, *den={0}, *res={0}, *residual={0};
+    double *nom={0}, *nom0={0}, *r0={0}, *gammaold={0}, *gammanew={0}, *den={0}, *res={0}, *residual={0}, *nomb={0};
     nom        = NULL;
     nom0       = NULL;
     r0         = NULL;
@@ -103,6 +103,7 @@ magma_zbpcg(
     den        = NULL;
     res        = NULL;
     residual   = NULL;
+    nomb       = NULL;
     
     CHECK( magma_zmalloc_cpu(&alpha, num_vecs));
     CHECK( magma_zmalloc_cpu(&beta, num_vecs));
@@ -115,6 +116,7 @@ magma_zbpcg(
     CHECK( magma_dmalloc_cpu(&den, num_vecs));
     CHECK( magma_dmalloc_cpu(&res, num_vecs));
     CHECK( magma_dmalloc_cpu(&residual, num_vecs));
+    CHECK( magma_dmalloc_cpu(&nomb, num_vecs));
     
     CHECK( magma_zvinit( &r, Magma_DEV, dofs*num_vecs, 1, c_zero, queue ));
     CHECK( magma_zvinit( &rt, Magma_DEV, dofs*num_vecs, 1, c_zero, queue ));
@@ -134,6 +136,7 @@ magma_zbpcg(
     for( i=0; i<num_vecs; i++) {
         nom[i] = MAGMA_Z_REAL( magma_zdotc( dofs, r(i), 1, h(i), 1, queue ) );
         nom0[i] = magma_dznrm2( dofs, r(i), 1, queue );
+        nomb[i] = magma_dznrm2( dofs, b(i), 1, queue );
     }
                                           
     CHECK( magma_z_spmv( c_one, A, p, c_zero, q, queue ));             // q = A p
@@ -242,7 +245,7 @@ magma_zbpcg(
             }
         }
         info = MAGMA_SLOW_CONVERGENCE;
-        if( solver_par->iter_res < solver_par->rtol*solver_par->init_res ){
+        if( solver_par->iter_res < solver_par->rtol*nomb[0] ){
             info = MAGMA_SUCCESS;
         }
     }
@@ -282,6 +285,7 @@ cleanup:
     magma_free_cpu(gammanew);
     magma_free_cpu(den);
     magma_free_cpu(res);
+    magma_free_cpu(nomb);
 
     solver_par->info = info;
     return info;

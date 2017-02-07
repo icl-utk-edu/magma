@@ -170,7 +170,7 @@ magma_zcg(
             }
         }
         info = MAGMA_SLOW_CONVERGENCE;
-        if( solver_par->iter_res < solver_par->rtol*solver_par->init_res ){
+        if( solver_par->iter_res < solver_par->rtol*nomb ){
             info = MAGMA_SUCCESS;
         }
     }
