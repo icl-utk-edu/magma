@@ -130,7 +130,7 @@ magma_zpcgs_merge(
     {
         solver_par->numiter++;
         
-        rho = magma_zdotc( dofs, r.dval, 1, r_tld.dval, 1, queue );
+        rho = magma_zdotc( dofs, r_tld.dval, 1, r.dval, 1, queue );
                                                             // rho = < r,r_tld>    
         if ( MAGMA_Z_ABS(rho) == 0.0 ) {
             goto cleanup;
