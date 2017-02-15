@@ -96,7 +96,7 @@ int main ()
 
     // Then we copy the solution back to the host...
     magma_dmfree( &x, queue );
-    magma_dmtransfer( dx, &x, Magma_CPU, Magma_DEV, queue );
+    magma_dmtransfer( dx, &x, Magma_DEV, Magma_CPU, queue );
     
     // and back to the application code
     magma_dvget( x, &m, &n, &sol, queue );
