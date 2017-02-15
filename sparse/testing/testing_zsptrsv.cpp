@@ -132,7 +132,11 @@ int main(  int argc, char** argv )
         else printf("%.6e\t", res );
         if(debug)printf("%% time_U = %.6e\n",tempo2-tempo1 );
         else printf("%.6e\n",tempo2-tempo1 );
-
+        magma_zmfree(&a, queue );
+        magma_zmfree(&b, queue );
+        magma_zmfree(&c, queue );
+        magma_zmfree(&d, queue );
+	magma_zprecondfree( &zopts.precond_par , queue );
 
         // preconditioner with sync-free trisolve
         printf("\n%% --- Now use sync-free trisolve (under construction) ---\n");
@@ -184,7 +188,13 @@ int main(  int argc, char** argv )
         else printf("%.6e\t", res );
         if(debug)printf("%% time_U = %.6e\n",tempo2-tempo1 );
         else printf("%.6e\n",tempo2-tempo1 );
-        
+        magma_zmfree(&a, queue );
+        magma_zmfree(&b, queue );
+        magma_zmfree(&c, queue );
+        magma_zmfree(&d, queue );
+        magma_zprecondfree( &zopts.precond_par , queue );
+
+
         
                 // preconditioner with blcok-Jacobi trisolve
         printf("\n%% --- Now use block-Jacobi trisolve ---\n");
@@ -238,6 +248,12 @@ int main(  int argc, char** argv )
         else printf("%.6e\t", res );
         if(debug)printf("%% time_U = %.6e\n",tempo2-tempo1 );
         else printf("%.6e\n",tempo2-tempo1 );
+        magma_zmfree(&a, queue );
+        magma_zmfree(&b, queue );
+        magma_zmfree(&c, queue );
+        magma_zmfree(&d, queue );
+        magma_zprecondfree( &zopts.precond_par , queue );
+
         
         
         
@@ -293,6 +309,12 @@ int main(  int argc, char** argv )
         else printf("%.6e\t", res );
         if(debug)printf("%% time_U = %.6e\n",tempo2-tempo1 );
         else printf("%.6e\n",tempo2-tempo1 );
+        magma_zmfree(&a, queue );
+        magma_zmfree(&b, queue );
+        magma_zmfree(&c, queue );
+        magma_zmfree(&d, queue );
+        magma_zprecondfree( &zopts.precond_par , queue );
+
         
         
         
@@ -348,6 +370,12 @@ int main(  int argc, char** argv )
         else printf("%.6e\t", res );
         if(debug)printf("%% time_U = %.6e\n",tempo2-tempo1 );
         else printf("%.6e\n",tempo2-tempo1 );
+        magma_zmfree(&a, queue );
+        magma_zmfree(&b, queue );
+        magma_zmfree(&c, queue );
+        magma_zmfree(&d, queue );
+        magma_zprecondfree( &zopts.precond_par , queue );
+
         
         
         
@@ -403,6 +431,12 @@ int main(  int argc, char** argv )
         else printf("%.6e\t", res );
         if(debug)printf("%% time_U = %.6e\n",tempo2-tempo1 );
         else printf("%.6e\n",tempo2-tempo1 );
+        magma_zmfree(&a, queue );
+        magma_zmfree(&b, queue );
+        magma_zmfree(&c, queue );
+        magma_zmfree(&d, queue );
+        magma_zprecondfree( &zopts.precond_par , queue );
+
         
         
         
@@ -458,6 +492,12 @@ int main(  int argc, char** argv )
         else printf("%.6e\t", res );
         if(debug)printf("%% time_U = %.6e\n",tempo2-tempo1 );
         else printf("%.6e\n",tempo2-tempo1 );
+        magma_zmfree(&a, queue );
+        magma_zmfree(&b, queue );
+        magma_zmfree(&c, queue );
+        magma_zmfree(&d, queue );
+        magma_zprecondfree( &zopts.precond_par , queue );
+
         
         
         
@@ -513,6 +553,12 @@ int main(  int argc, char** argv )
         else printf("%.6e\t", res );
         if(debug)printf("%% time_U = %.6e\n",tempo2-tempo1 );
         else printf("%.6e\n",tempo2-tempo1 );
+        magma_zmfree(&a, queue );
+        magma_zmfree(&b, queue );
+        magma_zmfree(&c, queue );
+        magma_zmfree(&d, queue );
+        magma_zprecondfree( &zopts.precond_par , queue );
+
         
         
                 // preconditioner with sync-free trisolve
@@ -572,6 +618,12 @@ int main(  int argc, char** argv )
         } else {
             printf("NaN\tNaN\tNaN\tNaN\tNaN\n",tempo2-tempo1 );
         }
+        magma_zmfree(&a, queue );
+        magma_zmfree(&b, queue );
+        magma_zmfree(&c, queue );
+        magma_zmfree(&d, queue );
+        magma_zprecondfree( &zopts.precond_par , queue );
+
         
         
         
@@ -632,6 +684,12 @@ int main(  int argc, char** argv )
         } else {
             printf("NaN\tNaN\tNaN\tNaN\tNaN\n",tempo2-tempo1 );
         }
+        magma_zmfree(&a, queue );
+        magma_zmfree(&b, queue );
+        magma_zmfree(&c, queue );
+        magma_zmfree(&d, queue );
+        magma_zprecondfree( &zopts.precond_par , queue );
+
         
         
         
@@ -692,6 +750,12 @@ int main(  int argc, char** argv )
         } else {
             printf("NaN\tNaN\tNaN\tNaN\tNaN\n",tempo2-tempo1 );
         }
+        magma_zmfree(&a, queue );
+        magma_zmfree(&b, queue );
+        magma_zmfree(&c, queue );
+        magma_zmfree(&d, queue );
+        magma_zprecondfree( &zopts.precond_par , queue );
+
         
         if(debug)printf("%% --- completed ---");
         else printf("];\n");
