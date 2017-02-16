@@ -18,7 +18,6 @@ libsparse_src += \
 	$(cdir)/zbajac_csr.cu                 \
 	$(cdir)/zbajac_csr_overlap.cu         \
 	$(cdir)/zgeaxpy.cu                    \
-	$(cdir)/zgecscsyncfreetrsm.cu         \
 	$(cdir)/zgecsr5mv.cu                  \
 	$(cdir)/zgecsrmv.cu                   \
 	$(cdir)/zgeellmv.cu                   \
@@ -87,6 +86,18 @@ libsparse_src += \
 # Tester routines
 libsparse_src += \
 	$(cdir)/zmergeblockkrylov.cu          \
+
+
+libsparse_src += \
+	$(cdir)/zgecscsyncfreetrsm.cu         \
+# add some additional compiler flags for those
+custom_nvccflags_obj = \
+	$(cdir)/sgecscsyncfreetrsm.o \
+	$(cdir)/dgecscsyncfreetrsm.o \
+	$(cdir)/cgecscsyncfreetrsm.o \
+	$(cdir)/zgecscsyncfreetrsm.o \
+
+$(custom_nvccflags_obj): NVCCFLAGS += -Xptxas -dlcm=cg
 
 
 # ----------------------------------------------------------------------
