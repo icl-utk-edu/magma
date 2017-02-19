@@ -1068,6 +1068,10 @@ magma_zparilut_candidates_linkedlist(
     magma_index_t *rowidxLt, *rowidxUt, *colLt, *colUt;
 
     magma_int_t unsym = 1;
+    
+    // for now: also some part commented out. If it turns out
+    // this being correct, I need to clean up the code.
+    unsym = 0;
 
     CHECK( magma_index_malloc_cpu( &numaddL, L.num_rows+1 ));
     CHECK( magma_index_malloc_cpu( &numaddU, U.num_rows+1 ));
@@ -1092,6 +1096,7 @@ magma_zparilut_candidates_linkedlist(
     // already nonzero
 // start = magma_sync_wtime( queue );
     // parallel loop
+    /*
     #pragma omp parallel for
     for( magma_index_t row=0; row<L.num_rows; row++){
         magma_index_t start1 = L.row[ row ];
@@ -1140,7 +1145,7 @@ magma_zparilut_candidates_linkedlist(
         numaddU[ row+1 ] = numaddrowU;
         numaddL[ row+1 ] = numaddrowL;
     }
-
+*/
     #pragma omp parallel for
     for( magma_index_t row=0; row<L.num_rows; row++){
         magma_index_t start1 = L.row[ row ];
@@ -1330,7 +1335,6 @@ magma_zparilut_candidates_linkedlist(
     }
 
     //end = magma_sync_wtime( queue ); printf("llop 1.2 : %.2e\n", end-start);
-
     // #########################################################################
 
     // get the total candidate count
@@ -1388,6 +1392,7 @@ magma_zparilut_candidates_linkedlist(
     //start = magma_sync_wtime( queue );
     // insertion here
     // parallel loop
+    /*
     #pragma omp parallel for
     for( magma_index_t row=0; row<L.num_rows; row++){
         magma_index_t start1 = L.row[ row ];
@@ -1454,7 +1459,7 @@ magma_zparilut_candidates_linkedlist(
         L_new->row[row+1] = L_new->row[row+1]+laddL;
         U_new->row[row+1] = U_new->row[row+1]+laddU;
     }
-
+*/
     #pragma omp parallel for
     for( magma_index_t row=0; row<L.num_rows; row++){
         magma_index_t start1 = L.row[ row ];
@@ -1520,7 +1525,7 @@ magma_zparilut_candidates_linkedlist(
                     magma_index_t checkel=U.row[cand_col];
                     do{
                         checkcol = U.col[ checkel ];
-                        if( checkcol == cand_col ){
+                        if( checkcol == cand_row ){
                             // element included in LU and nonzero
                             exist = 1;
                             checkel=0;
@@ -1767,8 +1772,6 @@ magma_zparilut_candidates_linkedlist(
                 rowidxU[ j ] =  U_new->rowidx[ k ];
             }
         }
-
-
 
         rowidxLt = L_new->rowidx;
         colLt = L_new->col;
