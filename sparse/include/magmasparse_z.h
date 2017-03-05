@@ -738,6 +738,14 @@ magma_zparilut_set_approx_thrs(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilut_set_thrs_randomselect(
+    magma_int_t num_rm,
+    magma_z_matrix *LU,
+    magma_int_t order,
+    magmaDoubleComplex *thrs,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparilut_set_exact_thrs(
     magma_int_t num_rm,
     magma_z_matrix *LU,

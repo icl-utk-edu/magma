@@ -2383,10 +2383,13 @@ magma_zparilut_set_approx_thrs(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
+    
+    magma_int_t sample_size =  8192;
+    
     magmaDoubleComplex element;
     magmaDoubleComplex *val=NULL;
     const magma_int_t incy = 1;
-    const magma_int_t incx = (int) (LU->nnz)/(1024);
+    const magma_int_t incx = (int) (LU->nnz)/(sample_size);
     magma_int_t loc_nnz;
     double ratio;
     magma_int_t loc_num_rm;
@@ -2397,10 +2400,10 @@ magma_zparilut_set_approx_thrs(
     {
         num_threads = omp_get_max_threads();
     }
-    num_threads = 1;
+    // num_threads = 1;
 
     //printf("largest element considered: %d\n", LU->nnz);
-    if( LU->nnz < 1024 ){
+    if( LU->nnz < sample_size ){
         loc_nnz = LU->nnz;
         ratio = ((double)num_rm)/((double)LU->nnz);
         loc_num_rm = (int) ((double)ratio*(double)loc_nnz);
@@ -2459,6 +2462,259 @@ cleanup:
     magma_free_cpu( elements );
     return info;
 }
+
+
+
+/***************************************************************************//**
+    Purpose
+    -------
+    This routine approximates the threshold for removing num_rm elements.
+
+    Arguments
+    ---------
+
+    @param[in]
+    num_rm      magma_int_t
+                Number of Elements that are replaced.
+
+    @param[in]
+    LU          magma_z_matrix*
+                Current ILU approximation.
+
+    @param[in]
+    order       magma_int_t
+                Sort goal function: 0 = smallest, 1 = largest.
+
+    @param[out]
+    thrs        magmaDoubleComplex*
+                Size of the num_rm-th smallest element.
+
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+extern "C" magma_int_t
+magma_zparilut_set_thrs_randomselect(
+    magma_int_t num_rm,
+    magma_z_matrix *LU,
+    magma_int_t order,
+    magmaDoubleComplex *thrs,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    
+    magma_int_t size =  LU->nnz;
+    const magma_int_t incx = 1;
+    // copy as we may change the elements
+    magmaDoubleComplex *val=NULL;
+    CHECK( magma_zmalloc_cpu( &val, size ));
+    assert( size > num_rm );
+    blasf77_zcopy(&size, LU->val, &incx, val, &incx );
+    if( order == 0 ){
+        magma_zselectrandom( val, size, num_rm, queue );
+        *thrs = val[num_rm];
+    } else {
+         magma_zselectrandom( val, size, size-num_rm, queue );
+        *thrs = val[size-num_rm];  
+    }
+
+cleanup:
+    magma_free_cpu( val );
+    return info;
+}
+
+
+/***************************************************************************//**
+    Purpose
+    -------
+    This routine provides the exact threshold for removing num_rm elements.
+
+    Arguments
+    ---------
+
+    @param[in]
+    num_rm      magma_int_t
+                Number of Elements that are replaced.
+
+    @param[in]
+    LU          magma_z_matrix*
+                Current ILU approximation.
+
+    @param[in]
+    order       magma_int_t
+                Sort goal function: 0 = smallest, 1 = largest.
+
+    @param[out]
+    thrs        magmaDoubleComplex*
+                Size of the num_rm-th smallest element.
+
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+extern "C" magma_int_t
+magma_zparilut_set_exact_thrs(
+    magma_int_t num_rm,
+    magma_z_matrix *LU,
+    magma_int_t order,
+    magmaDoubleComplex *thrs,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    magmaDoubleComplex element;
+    magmaDoubleComplex *val=NULL;
+    const magma_int_t incy = 1;
+    const magma_int_t incx = 1;
+    magma_int_t loc_nnz;
+    double ratio;
+    magma_int_t loc_num_rm;
+    magma_int_t num_threads=1;
+    magmaDoubleComplex *elements = NULL;
+
+    #pragma omp parallel
+    {
+        num_threads = omp_get_max_threads();
+    }
+    // two options: either there are enough candidates such that we can use
+    // a parallel first step of order-statistics, or not...
+    
+    ratio = ((double)num_rm)/((double)LU->nnz);
+    loc_num_rm = (int) ((double)ratio*(double)loc_nnz);
+    loc_num_rm = num_rm;
+    CHECK( magma_zmalloc_cpu( &val, loc_nnz ));
+    CHECK( magma_zmalloc_cpu( &elements, num_threads ));
+    
+    blasf77_zcopy(&loc_nnz, LU->val, &incx, val, &incy );
+    // first step: every thread sorts a chunk of the array
+    // extract the num_rm elements in this chunk
+    // this only works if num_rm > loc_nnz / num_threads
+    if( loc_nnz / num_threads > loc_num_rm ){
+        #pragma omp parallel
+        {
+            magma_int_t id = omp_get_thread_num();
+            if(id<num_threads){
+                magma_zorderstatistics(
+                    val + id*loc_nnz/num_threads, loc_nnz/num_threads, loc_num_rm, order, &elements[id], queue );
+            }
+        }
+        // Now copy the num_rm left-most elements of every chunk to the beginning of the array.
+        for( magma_int_t i=1; i<num_threads; i++){
+            blasf77_zcopy(&loc_num_rm, val+i*loc_nnz/num_threads, &incy, val+i*loc_num_rm, &incy );
+        }
+        // now we only look at the left num_threads*num_rm elements and use order stats
+        magma_zorderstatistics(
+                    val, num_threads*loc_num_rm, loc_num_rm, order, &element, queue );
+    } else {
+        magma_zorderstatistics(
+                    val, loc_nnz, loc_num_rm, order, &element, queue );
+    }
+
+    *thrs = element;
+
+cleanup:
+    magma_free_cpu( val );
+    magma_free_cpu( elements );
+    return info;
+}
+
+
+
+
+/***************************************************************************//**
+    Purpose
+    -------
+    This routine provides the exact threshold for removing num_rm elements.
+
+    Arguments
+    ---------
+
+    @param[in]
+    num_rm      magma_int_t
+                Number of Elements that are replaced.
+
+    @param[in]
+    LU          magma_z_matrix*
+                Current ILU approximation.
+
+    @param[in]
+    order       magma_int_t
+                Sort goal function: 0 = smallest, 1 = largest.
+
+    @param[out]
+    thrs        magmaDoubleComplex*
+                Size of the num_rm-th smallest element.
+
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+extern "C" magma_int_t
+magma_zparilut_set_approx_thrs_inc(
+    magma_int_t num_rm,
+    magma_z_matrix *LU,
+    magma_int_t order,
+    magmaDoubleComplex *thrs,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    magmaDoubleComplex element;
+    magmaDoubleComplex *val=NULL;
+    const magma_int_t incy = 1;
+    const magma_int_t incx = (int) (LU->nnz)/(1024);
+    magma_int_t loc_nnz;
+    magma_int_t inc = 100;
+    magma_int_t offset = 10;
+    double ratio;
+    magma_int_t loc_num_rm = num_rm;
+    magma_int_t num_threads=1;
+    magmaDoubleComplex *elements = NULL;
+    magma_int_t avg_count = 100;
+    loc_nnz = (int) LU->nnz/incx;
+    ratio = ((double)num_rm)/((double)LU->nnz);
+    loc_num_rm = (int) ((double)ratio*(double)loc_nnz);
+    
+printf("start:%d", loc_nnz);
+    #pragma omp parallel
+    {
+        num_threads = omp_get_max_threads();
+    }
+    // two options: either there are enough candidates such that we can use
+    // a parallel first step of order-statistics, or not...
+    
+    
+    CHECK( magma_zmalloc_cpu( &elements, avg_count ));
+    
+    CHECK( magma_zmalloc_cpu( &val, loc_nnz ));
+    blasf77_zcopy(&loc_nnz, LU->val, &incx, val, &incy );
+    for( magma_int_t i=1; i<avg_count; i++){
+        magma_zorderstatistics_inc(
+                    val + offset*i, loc_nnz - offset*i, loc_num_rm/inc, inc, order, &elements[i], queue );
+    }
+    
+    
+    element = MAGMA_Z_ZERO;
+    for( int z=0; z < avg_count; z++){
+        element = element+MAGMA_Z_MAKE(MAGMA_Z_ABS(elements[z]), 0.0);
+    }
+    element = element/MAGMA_Z_MAKE((double)avg_count, 0.0);
+    
+    *thrs = element;
+printf("done: %.4e\n", element);
+cleanup:
+    magma_free_cpu( val );
+    magma_free_cpu( elements );
+    return info;
+}
+
 
 
 #endif  // _OPENMP
