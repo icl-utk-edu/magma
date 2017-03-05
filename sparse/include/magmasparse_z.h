@@ -54,9 +54,9 @@ extern "C" {
 magma_int_t
 magma_zwrapper(
     magma_zopts *zopts,
-    magma_z_matrix A, 
+    magma_z_matrix *A, 
     magma_z_matrix *x, 
-    magma_z_matrix b,
+    magma_z_matrix *b,
     magma_queue_t queue );
 
 magma_int_t
@@ -323,6 +323,16 @@ magma_zorderstatistics(
     magma_queue_t queue );
 
 magma_int_t
+magma_zorderstatistics_inc(
+    magmaDoubleComplex *val,
+    magma_int_t length,
+    magma_int_t k,
+    magma_int_t inc,
+    magma_int_t r,
+    magmaDoubleComplex *element,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zmorderstatistics(
     magmaDoubleComplex *val,
     magma_index_t *col,
@@ -331,6 +341,32 @@ magma_zmorderstatistics(
     magma_int_t k,
     magma_int_t r,
     magmaDoubleComplex *element,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zpartition( 
+    magmaDoubleComplex *a, 
+    magma_int_t size, 
+    magma_int_t pivot,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zmedian5( 
+    magmaDoubleComplex *a, 
+    magma_queue_t queue );
+
+magma_int_t
+magma_zselect( 
+    magmaDoubleComplex *a, 
+    magma_int_t size, 
+    magma_int_t k,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zselectrandom( 
+    magmaDoubleComplex *a, 
+    magma_int_t size, 
+    magma_int_t k,
     magma_queue_t queue );
 
 magma_int_t
@@ -695,6 +731,22 @@ magma_zparilut_set_thrs(
 
 magma_int_t
 magma_zparilut_set_approx_thrs(
+    magma_int_t num_rm,
+    magma_z_matrix *LU,
+    magma_int_t order,
+    magmaDoubleComplex *thrs,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilut_set_exact_thrs(
+    magma_int_t num_rm,
+    magma_z_matrix *LU,
+    magma_int_t order,
+    magmaDoubleComplex *thrs,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilut_set_approx_thrs_inc(
     magma_int_t num_rm,
     magma_z_matrix *LU,
     magma_int_t order,
