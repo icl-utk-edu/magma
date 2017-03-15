@@ -18,6 +18,9 @@
 #if defined(VERSION31)
     #define ENABLE_COND1
     #define ENABLE_COND2
+    #define ENABLE_COND4
+    #define ENABLE_COND5
+    #define ENABLE_COND6
 #endif
 
 #define MAX_NTCOL 8
@@ -41,9 +44,9 @@ __global__ void zpotf2_smlpin_fixwidth_kernel(int m, magmaDoubleComplex *dA, int
 {
     #pragma unroll
     for(int i = 0; i < m; i+= POTF2_NB){
-        if(threadIdx.x < m-i){
+        //if(threadIdx.x < m-i){
             zpotf2_smlpout_fixwidth_device(m-i, A(localstep+i, 0), A(localstep+i, localstep+i), ldda, localstep+i, gbstep, dinfo);
-        }
+        //}
     }
 }
 /******************************************************************************/
@@ -52,12 +55,42 @@ __global__ void zpotf2_smlpin_anywidth_kernel(int m, magmaDoubleComplex *dA, int
     #pragma unroll
     for(int i = 0; i < m; i+= POTF2_NB){
         int ib = min(m-i, POTF2_NB);
-        if(threadIdx.x < m-i){
+        //if(threadIdx.x < m-i){
             zpotf2_smlpout_anywidth_device(m-i, ib, A(localstep+i, 0), A(localstep+i, localstep+i), ldda, localstep+i, gbstep, dinfo);
-        }
+        //}
+    }
+}
+/******************************************************************************/
+__global__ void zpotf2_smlpin_fixwidth_kernel_batched(int m,
+        magmaDoubleComplex **dA_array, int lda,
+        int localstep, int gbstep, magma_int_t *info_array, const int batchCount)
+{
+    const int batchid = blockIdx.z * blockDim.y + threadIdx.y;
+    if (batchid >= batchCount) return;
+    #pragma unroll
+    for(int i = 0; i < m; i+= POTF2_NB){
+        //if(threadIdx.x < m-i){
+            zpotf2_smlpout_fixwidth_device(m-i, dA_array[batchid]+localstep+i, dA_array[batchid]+localstep+i+(localstep+i)*lda, lda, localstep+i, gbstep, &(info_array[batchid]));
+        //}
     }
 }
 
+
+/******************************************************************************/
+__global__ void zpotf2_smlpin_anywidth_kernel_batched(int m,
+        magmaDoubleComplex **dA_array, int lda,
+        int localstep, int gbstep, magma_int_t *info_array, const int batchCount)
+{
+    const int batchid = blockIdx.z * blockDim.y + threadIdx.y;
+    if (batchid >= batchCount) return;
+    #pragma unroll
+    for(int i = 0; i < m; i+= POTF2_NB){
+        int ib = min(m-i, POTF2_NB);
+        //if(threadIdx.x < m-i){
+            zpotf2_smlpout_anywidth_device(m-i, ib, dA_array[batchid]+localstep+i, dA_array[batchid]+localstep+i+(localstep+i)*lda, lda, localstep+i, gbstep, &(info_array[batchid]));
+        //}
+    }
+}
 /******************************************************************************/
 __global__ void zpotf2_smlpout_fixwidth_kernel(int m, 
         magmaDoubleComplex *dA, int lda, 
@@ -179,7 +212,63 @@ magma_zpotrf_lpout_batched(
 
     return arginfo;
 }
+/******************************************************************************/
+extern "C" magma_int_t
+magma_zpotrf_lpin_batched(
+        magma_uplo_t uplo, magma_int_t n,
+        magmaDoubleComplex **dA_array, magma_int_t lda, magma_int_t gbstep,
+        magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue)
+{
+    magma_int_t m = n;
+    magma_int_t arginfo = 0;
 
+    if ( uplo != MagmaUpper && uplo != MagmaLower) {
+        arginfo = -1;
+    } else if (m < 0 || n < 0 ) {
+        arginfo = -2;
+    } else if (lda < max(1,m)) {
+        arginfo = -4;
+    } else if (m < n) {
+        arginfo = -10;
+    }
+    if (uplo == MagmaUpper) {
+        fprintf( stderr, "%s: uplo=upper is not yet implemented\n", __func__ );
+        arginfo = -1;
+    }
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    // Quick return if possible
+    if (m == 0 || n == 0) {
+        return arginfo;
+    }
+    dim3 grid(1, 1, batchCount);
+    dim3 threads(n, 1, 1);
+    magma_int_t shared_mem_size = sizeof(magmaDoubleComplex) * (n+POTF2_NB)*POTF2_NB;
+    if (shared_mem_size > 47000) {
+        arginfo = -33;
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+
+
+    if( n % POTF2_NB == 0){
+        zpotf2_smlpin_fixwidth_kernel_batched
+            <<< grid, threads, shared_mem_size, queue->cuda_stream() >>>
+            (n, dA_array, lda, 0, gbstep, info_array, batchCount);
+    }
+    else{
+        zpotf2_smlpin_anywidth_kernel_batched
+            <<< grid, threads, shared_mem_size, queue->cuda_stream() >>>
+            (n, dA_array, lda, 0, gbstep, info_array, batchCount);
+    }
+
+    return arginfo;
+}
 
 
 /******************************************************************************/
