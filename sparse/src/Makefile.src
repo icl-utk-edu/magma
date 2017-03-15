@@ -122,7 +122,6 @@ libsparse_src += \
 libsparse_src += \
 	$(cdir)/magma_z_precond_wrapper.cpp   \
 	$(cdir)/magma_z_solver_wrapper.cpp    \
-	$(cdir)/magma_zwrapper.cpp            \
 	$(cdir)/zresidual.cpp                 \
 	$(cdir)/zresidualvec.cpp              \
 
