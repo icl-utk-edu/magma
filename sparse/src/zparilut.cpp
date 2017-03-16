@@ -9,7 +9,6 @@
 
        @precisions normal z -> s d c
 */
-#include "magmasparse_internal.h"
 
 #include "magmasparse_internal.h"
 #ifdef _OPENMP

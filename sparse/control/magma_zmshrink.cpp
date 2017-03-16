@@ -41,6 +41,9 @@ magma_zmshrink(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
+    
+    // make sure the target structure is empty
+    magma_zmfree( B, queue );
 
     magma_z_matrix hA={Magma_CSR}, hACSR={Magma_CSR}, hB={Magma_CSR}, hBCSR={Magma_CSR};
      

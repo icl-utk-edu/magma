@@ -549,3 +549,117 @@ magma_zorderstatistics(
 cleanup:
     return info;
 }
+
+
+
+/**
+    Purpose
+    -------
+
+    Approximates the k-th smallest element in an array by
+    using order-statistics with step-size inc.
+
+    Arguments
+    ---------
+    
+    @param[in,out]
+    val         magmaDoubleComplex*
+                Target array, will be modified during operation.
+
+    @param[in]
+    length      magma_int_t
+                Length of the target array.
+
+    @param[in]
+    k           magma_int_t
+                Element to be identified (largest/smallest).
+                
+    @param[in]
+    inc         magma_int_t
+                Stepsize in the approximation.
+                
+    @param[in]
+    r           magma_int_t
+                rule how to sort: '1' -> largest, '0' -> smallest
+                
+    @param[out]
+    element     magmaDoubleComplex*
+                location of the respective element
+                
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+    ********************************************************************/
+
+extern "C"
+magma_int_t
+magma_zorderstatistics_inc(
+    magmaDoubleComplex *val,
+    magma_int_t length,
+    magma_int_t k,
+    magma_int_t inc,
+    magma_int_t r,
+    magmaDoubleComplex *element,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+
+    magma_int_t i, st;
+    magmaDoubleComplex tmp;
+    if( r == 0 ){
+        for ( st = i = 0; i < length - inc; i=i+inc ) {
+            if ( magma_z_isnan_inf( val[i]) ) {
+                printf("%%error: array contains %f + %fi.\n", MAGMA_Z_REAL(val[i]), MAGMA_Z_IMAG(val[i]) );
+                info = MAGMA_ERR_NAN;
+                goto cleanup;
+            }
+            if ( MAGMA_Z_ABS(val[i]) > MAGMA_Z_ABS(val[length-inc]) ){
+                continue;
+            }
+            SWAP(i, st);
+            st=st+inc;
+        }
+     
+        SWAP(length-inc, st);
+     
+        if ( k == st ){
+            *element = val[st];    
+        }
+        else if ( st > k ) {
+            CHECK( magma_zorderstatistics( val, st, k, r, element, queue ));
+        }
+        else {
+             CHECK( magma_zorderstatistics( val+st, length-st, k-st, r, element, queue ));
+        }
+    } else {
+        for ( st = i = 0; i < length - inc; i=i+inc ) {
+            if ( magma_z_isnan_inf( val[i]) ) {
+                printf("%%error: array contains %f + %fi.\n", MAGMA_Z_REAL(val[i]), MAGMA_Z_IMAG(val[i]) );
+                info = MAGMA_ERR_NAN;
+                goto cleanup;
+            }
+            if ( MAGMA_Z_ABS(val[i]) < MAGMA_Z_ABS(val[length-1]) ){
+                continue;
+            }
+            SWAP(i, st);
+            st=st+inc;
+        }
+     
+        SWAP(length-inc, st);
+     
+        if ( k == st ){
+            *element = val[st];    
+        }
+        else if ( st > k ) {
+            CHECK( magma_zorderstatistics( val, st, k, r, element, queue ));
+        }
+        else {
+             CHECK( magma_zorderstatistics( val+st, length-st, k-st, r, element, queue ));
+        }
+    }
+    
+cleanup:
+    return info;
+}

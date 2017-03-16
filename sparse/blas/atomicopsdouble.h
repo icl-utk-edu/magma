@@ -35,7 +35,7 @@ atomicAdd(double *addr, double val)
 }
 #endif
 
-extern __device__ void 
+extern __forceinline__ __device__ void 
 atomicAdddouble(double *addr, double val)
 {
     atomicAdd(addr, val);

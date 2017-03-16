@@ -960,6 +960,9 @@ magma_z_csr_mtx(
     magma_index_t* new_col = NULL;
     magma_int_t hermitian = 0;
     
+    // make sure the target structure is empty
+    magma_zmfree( A, queue );
+    
     std::vector< std::pair< magma_index_t, magmaDoubleComplex > > rowval;
     
     FILE *fid = NULL;
@@ -1187,6 +1190,7 @@ magma_z_csr_mtx(
         magma_free_cpu( A->val );
         magma_free_cpu( A->row );
         magma_free_cpu( A->col );
+        *A = {Magma_CSR};
         CHECK( magma_zmtransfer( B, A, Magma_CPU, Magma_CPU, queue ));
         //printf("done.\n");
     }
@@ -1430,6 +1434,7 @@ magma_z_csr_mtxsymm(
         magma_free_cpu( A->val );
         magma_free_cpu( A->row );
         magma_free_cpu( A->col );
+        *A = {Magma_CSR};
         CHECK( magma_zmtransfer( B, A, Magma_CPU, Magma_CPU, queue ));
 
         //printf("done.\n");

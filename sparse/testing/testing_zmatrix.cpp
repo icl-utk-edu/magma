@@ -35,6 +35,7 @@ int main(  int argc, char** argv )
     magma_queue_create( 0, &queue );
     
     real_Double_t res;
+    double resd;
     magma_z_matrix Z={Magma_CSR}, A={Magma_CSR}, AT={Magma_CSR}, 
     A2={Magma_CSR}, B={Magma_CSR}, dB={Magma_CSR};
     
@@ -120,6 +121,9 @@ int main(  int argc, char** argv )
         magma_zmfree(&dB, queue );
         TESTING_CHECK( magma_zmconvert( B, &AT, zopts.output_format,Magma_CSR, queue ));
         magma_zmfree(&B, queue );
+        
+        TESTING_CHECK( magma_zmfrobenius( A, A, A, &resd, queue));
+        printf("%% Frobenius on pattern: ||A-B||_S = %8.2e\n", resd);
 
         // transpose back
         TESTING_CHECK( magma_zmtranspose( AT, &A2, queue ));

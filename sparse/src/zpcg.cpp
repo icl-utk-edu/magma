@@ -113,7 +113,7 @@ magma_zpcg(
         solver_par->res_vec[0] = (real_Double_t)nom0;
         solver_par->timing[0] = 0.0;
     }
-    if ( nomb < r0 ) {
+    if ( nom0 < r0 ) {
         info = MAGMA_SUCCESS;
         goto cleanup;
     }
@@ -195,7 +195,7 @@ magma_zpcg(
             }
         }
         info = MAGMA_SLOW_CONVERGENCE;
-        if( solver_par->iter_res < solver_par->rtol*solver_par->init_res ||
+        if( solver_par->iter_res < solver_par->rtol*nomb ||
             solver_par->iter_res < solver_par->atol ) {
             info = MAGMA_SUCCESS;
         }

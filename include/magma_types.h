@@ -570,7 +570,7 @@ typedef enum {
     Magma_CUSOLVE      = 507,
     Magma_VBJACOBI     = 508,
     Magma_PARDISO      = 509,
-    Magma_SPTRSV       = 510
+    Magma_SYNCFREESOLVE= 510
 } magma_solver_type;
 
 typedef enum {
@@ -608,6 +608,20 @@ typedef enum {
     Magma_UNITROW      = 512,
     Magma_UNITDIAG     = 513
 } magma_scale_t;
+
+
+typedef enum {
+    Magma_SOLVE        = 801,
+    Magma_SETUPSOLVE   = 802,
+    Magma_APPLYSOLVE   = 803,
+    Magma_DESTROYSOLVE = 804,
+    Magma_INFOSOLVE    = 805,
+    Magma_GENERATEPREC = 806,
+    Magma_PRECONDLEFT  = 807,
+    Magma_PRECONDRIGHT = 808,
+    Magma_TRANSPOSE    = 809,
+    Magma_SPMV         = 810
+} magma_operation_t;
 
 
 // When adding constants, remember to do these steps as appropriate:

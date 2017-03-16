@@ -140,6 +140,7 @@ magma_z_precondsetup(
 {
     magma_int_t info = 0;
     
+    // magma_zprecondfree( precond, queue );
     
     //Chronometry
     real_Double_t tempo1, tempo2;
@@ -413,8 +414,8 @@ magma_z_applyprecond_left(
         }
         else if ( ( precond->solver == Magma_ILU ||
                     precond->solver == Magma_PARILU ) && 
-                  ( precond->trisolver == Magma_SPTRSV ) ){
-            // CHECK( magma_zsptrsv( b, x, precond, queue ));
+                  ( precond->trisolver == Magma_SYNCFREESOLVE ) ){
+            CHECK( magma_zapplycumilu_l( b, x, precond, queue ));
         }
         else if ( ( precond->solver == Magma_ICC ||
                     precond->solver == Magma_PARIC ) && 
@@ -574,6 +575,11 @@ magma_z_applyprecond_right(
                     precond->solver == Magma_PARILU ) && 
                   ( precond->trisolver == Magma_CUSOLVE ||
                     precond->trisolver == 0 ) ) {
+            CHECK( magma_zapplycumilu_r( b, x, precond, queue ));
+        }
+        else if ( ( precond->solver == Magma_ILU ||
+                    precond->solver == Magma_PARILU ) && 
+                  ( precond->trisolver == Magma_SYNCFREESOLVE ) ){
             CHECK( magma_zapplycumilu_r( b, x, precond, queue ));
         }
         else if ( ( precond->solver == Magma_ICC ||

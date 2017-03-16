@@ -46,6 +46,7 @@ typedef struct magma_z_matrix
     magma_int_t        max_nnz_row;             // opt: max number of nonzeros in one row
     magma_int_t        diameter;                // opt: max distance of entry from main diagonal
     magma_int_t        true_nnz;              // opt: true nnz
+    magma_bool_t       ownership;               // does MAGMA own the arrays of this matrix structure
     union {
         magmaDoubleComplex      *val;           // array containing values in CPU case
         magmaDoubleComplex_ptr  dval;           // array containing values in DEV case
@@ -118,6 +119,7 @@ typedef struct magma_c_matrix
     magma_int_t        max_nnz_row;             // opt: max number of nonzeros in one row
     magma_int_t        diameter;                // opt: max distance of entry from main diagonal
     magma_int_t        true_nnz;              // opt: true nnz
+    magma_bool_t       ownership;               // does MAGMA own the arrays of this matrix structure
     union {
         magmaFloatComplex       *val;           // array containing values in CPU case
         magmaFloatComplex_ptr   dval;           // array containing values in DEV case
@@ -191,6 +193,7 @@ typedef struct magma_d_matrix
     magma_int_t        max_nnz_row;             // opt: max number of nonzeros in one row
     magma_int_t        diameter;                // opt: max distance of entry from main diagonal
     magma_int_t        true_nnz;              // opt: true nnz
+    magma_bool_t       ownership;               // does MAGMA own the arrays of this matrix structure
     union {
         double                  *val;           // array containing values in CPU case
         magmaDouble_ptr         dval;           // array containing values in DEV case
@@ -264,6 +267,7 @@ typedef struct magma_s_matrix
     magma_int_t        max_nnz_row;             // opt: max number of nonzeros in one row
     magma_int_t        diameter;                // opt: max distance of entry from main diagonal
     magma_int_t        true_nnz;              // opt: true nnz
+    magma_bool_t       ownership;               // does MAGMA own the arrays of this matrix structure
     union {
         float                   *val;           // array containing values in CPU case
         magmaFloat_ptr          dval;           // array containing values in DEV case
@@ -398,7 +402,7 @@ typedef struct magma_z_solver_par
 {
     magma_solver_type  solver;                  // solver type
     magma_int_t        version;                 // sometimes there are different versions
-    double             atol;                     // absolute residual stopping criterion
+    double             atol;                    // absolute residual stopping criterion
     double             rtol;                    // relative residual stopping criterion
     magma_int_t        maxiter;                 // upper iteration limit
     magma_int_t        restart;                 // for GMRES
@@ -411,7 +415,7 @@ typedef struct magma_z_solver_par
     real_Double_t      runtime;                 // feedback: runtime needed
     real_Double_t      *res_vec;                // feedback: array containing residuals
     real_Double_t      *timing;                 // feedback: detailed timing
-    magma_int_t        verbose;                 // print residual ever 'verbose' iterations
+    magma_int_t        verbose;                 // print residual every 'verbose' iterations
     magma_int_t        num_eigenvalues;         // number of EV for eigensolvers
     magma_int_t        ev_length;               // needed for framework
     double             *eigenvalues;            // feedback: array containing eigenvalues
@@ -589,6 +593,10 @@ typedef struct magma_z_preconditioner
     magma_z_matrix          work2;
     magma_int_t*            int_array_1;
     magma_int_t*            int_array_2;
+    magma_int_t*            L_dgraphindegree;     // for sync-free trisolve
+    magma_int_t*            L_dgraphindegree_bak; // for sync-free trisolve
+    magma_int_t*            U_dgraphindegree;     // for sync-free trisolve
+    magma_int_t*            U_dgraphindegree_bak; // for sync-free trisolve
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;
@@ -636,6 +644,10 @@ typedef struct magma_c_preconditioner
     magma_c_matrix          work2;
     magma_int_t*            int_array_1;
     magma_int_t*            int_array_2;
+    magma_int_t*            L_dgraphindegree;     // for sync-free trisolve
+    magma_int_t*            L_dgraphindegree_bak; // for sync-free trisolve
+    magma_int_t*            U_dgraphindegree;     // for sync-free trisolve
+    magma_int_t*            U_dgraphindegree_bak; // for sync-free trisolve
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;
@@ -684,6 +696,10 @@ typedef struct magma_d_preconditioner
     magma_d_matrix          work2;
     magma_int_t*            int_array_1;
     magma_int_t*            int_array_2;
+    magma_int_t*            L_dgraphindegree;     // for sync-free trisolve
+    magma_int_t*            L_dgraphindegree_bak; // for sync-free trisolve
+    magma_int_t*            U_dgraphindegree;     // for sync-free trisolve
+    magma_int_t*            U_dgraphindegree_bak; // for sync-free trisolve
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;
@@ -732,6 +748,10 @@ typedef struct magma_s_preconditioner
     magma_s_matrix          work2;
     magma_int_t*            int_array_1;
     magma_int_t*            int_array_2;
+    magma_int_t*            L_dgraphindegree;     // for sync-free trisolve
+    magma_int_t*            L_dgraphindegree_bak; // for sync-free trisolve
+    magma_int_t*            U_dgraphindegree;     // for sync-free trisolve
+    magma_int_t*            U_dgraphindegree_bak; // for sync-free trisolve
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;
@@ -753,9 +773,12 @@ typedef struct magma_s_preconditioner
 
 typedef struct magma_zopts
 {
+    magma_operation_t       operation;
+    magma_location_t        compute_location;
     magma_z_solver_par      solver_par;
     magma_z_preconditioner  precond_par;
     magma_storage_t         input_format;
+    magma_trans_t           trans;
     magma_int_t             blocksize;
     magma_int_t             alignment;
     magma_storage_t         output_format;
@@ -766,9 +789,12 @@ typedef struct magma_zopts
 
 typedef struct magma_copts
 {
+    magma_operation_t       operation;
+    magma_location_t        compute_location;
     magma_c_solver_par      solver_par;
     magma_c_preconditioner  precond_par;
     magma_storage_t         input_format;
+    magma_trans_t           trans;
     magma_int_t             blocksize;
     magma_int_t             alignment;
     magma_storage_t         output_format;
@@ -779,9 +805,12 @@ typedef struct magma_copts
 
 typedef struct magma_dopts
 {
+    magma_operation_t       operation;
+    magma_location_t        compute_location;
     magma_d_solver_par      solver_par;
     magma_d_preconditioner  precond_par;
     magma_storage_t         input_format;
+    magma_trans_t           trans;
     magma_int_t             blocksize;
     magma_int_t             alignment;
     magma_storage_t         output_format;
@@ -792,9 +821,12 @@ typedef struct magma_dopts
 
 typedef struct magma_sopts
 {
+    magma_operation_t       operation;
+    magma_location_t        compute_location;
     magma_s_solver_par      solver_par;
     magma_s_preconditioner  precond_par;
     magma_storage_t         input_format;
+    magma_trans_t           trans;
     magma_int_t             blocksize;
     magma_int_t             alignment;
     magma_storage_t         output_format;

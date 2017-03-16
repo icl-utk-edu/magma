@@ -77,7 +77,11 @@ magma_zjacobi(
     solver_par->solver = Magma_JACOBI;
     solver_par->info = MAGMA_SUCCESS;
 
+    // Jacobi setup
+    CHECK( magma_zjacobisetup_diagscal( ACSR, &d, queue ));
+    
     // solver setup
+    
     CHECK( magma_zvinit( &r, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
     CHECK(  magma_zresidualvec( ACSR, b, *x, &r, &residual, queue));
     solver_par->init_res = residual;
@@ -85,9 +89,14 @@ magma_zjacobi(
         solver_par->res_vec[0] = (real_Double_t) residual;
     }
     //nom0 = residual;
-    
-    // Jacobi setup
-    CHECK( magma_zjacobisetup_diagscal( ACSR, &d, queue ));
+    // set the initial guess to D^{-1}b
+    CHECK( magma_zmfree( x, queue ) );
+    CHECK( magma_zmtransfer(d, x, Magma_DEV, Magma_DEV, queue ) );
+    CHECK(  magma_zresidualvec( ACSR, b, *x, &r, &residual, queue));
+    if ( solver_par->verbose > 0 ) {
+        solver_par->res_vec[0] = (real_Double_t) residual;
+    }
+
     magma_z_solver_par jacobiiter_par;
     if ( solver_par->verbose > 0 ) {
         jacobiiter_par.maxiter = solver_par->verbose;
@@ -95,7 +104,6 @@ magma_zjacobi(
     else {
         jacobiiter_par.maxiter = solver_par->maxiter;
     }
-
 
     solver_par->numiter = 0;
     solver_par->spmv_count = 0;

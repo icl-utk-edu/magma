@@ -35,7 +35,7 @@ atomicAdd(double *addr, double val)
 }
 #endif
 
-extern __device__ void 
+extern __forceinline__ __device__ void 
 atomicAddmagmaDoubleComplex(magmaDoubleComplex *addr, magmaDoubleComplex val)
 {
     atomicAdd(&(addr[0].x), val.x);

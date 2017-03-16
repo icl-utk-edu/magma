@@ -93,7 +93,20 @@ magma_z_spmv(
                 CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
                 CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
                 
-                cusparseZcsrmv( cusparseHandle,CUSPARSE_OPERATION_NON_TRANSPOSE,
+                cusparseZcsrmv_mp( cusparseHandle,CUSPARSE_OPERATION_NON_TRANSPOSE,
+                              A.num_rows, A.num_cols, A.nnz, &alpha, descr,
+                              A.dval, A.drow, A.dcol, x.dval, &beta, y.dval );
+            }
+            else if ( A.storage_type == Magma_CSC )
+            {
+                CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
+                CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
+                CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
+                
+                CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
+                CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
+                
+                cusparseZcsrmv( cusparseHandle,CUSPARSE_OPERATION_TRANSPOSE,
                               A.num_rows, A.num_cols, A.nnz, &alpha, descr,
                               A.dval, A.drow, A.dcol, x.dval, &beta, y.dval );
             }
@@ -193,6 +206,20 @@ magma_z_spmv(
                     x.dval, A.num_cols, &beta, y.dval, A.num_cols);
                     */
                 }
+            else if ( A.storage_type == Magma_CSC )
+            {
+                CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
+                CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
+                CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
+                
+                CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
+                CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
+                
+                cusparseZcsrmm( cusparseHandle,CUSPARSE_OPERATION_TRANSPOSE,
+                                A.num_rows,   num_vecs, A.num_cols, A.nnz,
+                                &alpha, descr, A.dval, A.drow, A.dcol,
+                                x.dval, A.num_cols, &beta, y.dval, A.num_cols);
+            }
             } else if ( A.storage_type == Magma_SELLP ) {
                 if ( x.major == MagmaRowMajor) {
                  CHECK( magma_zmgesellpmv( MagmaNoTrans, A.num_rows, A.num_cols,

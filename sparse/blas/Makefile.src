@@ -88,6 +88,18 @@ libsparse_src += \
 	$(cdir)/zmergeblockkrylov.cu          \
 
 
+libsparse_src += \
+	$(cdir)/zgecscsyncfreetrsm.cu         \
+# add some additional compiler flags for those
+custom_nvccflags_obj = \
+	$(cdir)/sgecscsyncfreetrsm.o \
+	$(cdir)/dgecscsyncfreetrsm.o \
+	$(cdir)/cgecscsyncfreetrsm.o \
+	$(cdir)/zgecscsyncfreetrsm.o \
+
+$(custom_nvccflags_obj): NVCCFLAGS += -Xptxas -dlcm=cg
+
+
 # ----------------------------------------------------------------------
 # pop first directory
 cdir      := $(firstword $(dir_stack))

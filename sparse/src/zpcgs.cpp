@@ -133,7 +133,7 @@ magma_zpcgs(
     {
         solver_par->numiter++;
         
-        rho = magma_zdotc( dofs, r.dval, 1, r_tld.dval, 1, queue );
+        rho = magma_zdotc( dofs, r_tld.dval, 1, r.dval, 1, queue );
                                                             // rho = < r,r_tld>    
         if( magma_z_isnan_inf( rho ) ){
             info = MAGMA_DIVERGENCE;
@@ -213,7 +213,7 @@ magma_zpcgs(
             }
         }
         info = MAGMA_SLOW_CONVERGENCE;
-        if( solver_par->iter_res < solver_par->rtol*solver_par->init_res ||
+        if( solver_par->iter_res < solver_par->rtol*nomb ||
             solver_par->iter_res < solver_par->atol ) {
             info = MAGMA_SUCCESS;
         }

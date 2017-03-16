@@ -40,6 +40,7 @@ sparse_testing_src += \
 	$(cdir)/testing_zsolver.cpp           \
 	$(cdir)/testing_zsolver_rhs.cpp           \
 	$(cdir)/testing_zpreconditioner.cpp   \
+	$(cdir)/testing_zoperation.cpp   \
 
 # ----------
 # Mixed-precision solvers
@@ -58,7 +59,9 @@ sparse_testing_src += \
 
 # debugging
 sparse_testing_src += \
-#	$(cdir)/testing_zparilu.cpp	      \
+	$(cdir)/testing_zdiagdom.cpp	      \
+	$(cdir)/testing_zsptrsv.cpp           \
+    $(cdir)/testing_zselect.cpp           \
 #	$(cdir)/testing_zbug.cpp              \
 #	$(cdir)/testing_zailumatrix.cpp       \
 #	$(cdir)/testing_zdynamicilu.cpp       \

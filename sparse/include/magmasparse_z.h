@@ -51,6 +51,13 @@ extern "C" {
  -- MAGMA_SPARSE Auxiliary functions
 */
 
+magma_int_t
+magma_zwrapper(
+    magma_zopts *zopts,
+    magma_z_matrix *A, 
+    magma_z_matrix *x, 
+    magma_z_matrix *b,
+    magma_queue_t queue );
 
 magma_int_t
 magma_zparse_opts( 
@@ -245,6 +252,23 @@ magma_zmslice(
     magma_int_t *end,
     magma_queue_t queue );
 
+magma_int_t
+magma_zmdiagdom(
+    magma_z_matrix M,
+    double *min_dd,
+    double *max_dd,
+    double *avg_dd,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zmbdiagdom(
+    magma_z_matrix M,
+    magma_z_matrix blocksizes,
+    double *min_dd,
+    double *max_dd,
+    double *avg_dd,
+    magma_queue_t queue );
+
 magma_int_t 
 magma_zmdiff( 
     magma_z_matrix A, 
@@ -299,6 +323,16 @@ magma_zorderstatistics(
     magma_queue_t queue );
 
 magma_int_t
+magma_zorderstatistics_inc(
+    magmaDoubleComplex *val,
+    magma_int_t length,
+    magma_int_t k,
+    magma_int_t inc,
+    magma_int_t r,
+    magmaDoubleComplex *element,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zmorderstatistics(
     magmaDoubleComplex *val,
     magma_index_t *col,
@@ -307,6 +341,32 @@ magma_zmorderstatistics(
     magma_int_t k,
     magma_int_t r,
     magmaDoubleComplex *element,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zpartition( 
+    magmaDoubleComplex *a, 
+    magma_int_t size, 
+    magma_int_t pivot,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zmedian5( 
+    magmaDoubleComplex *a, 
+    magma_queue_t queue );
+
+magma_int_t
+magma_zselect( 
+    magmaDoubleComplex *a, 
+    magma_int_t size, 
+    magma_int_t k,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zselectrandom( 
+    magmaDoubleComplex *a, 
+    magma_int_t size, 
+    magma_int_t k,
     magma_queue_t queue );
 
 magma_int_t
@@ -508,6 +568,11 @@ magma_zeigensolverinfo_init(
 
 
 magma_int_t
+magma_zprecondfree(
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zsolverinfo_free(
     magma_z_solver_par *solver_par, 
     magma_z_preconditioner *precond,
@@ -585,6 +650,14 @@ magma_zfrobenius(
     real_Double_t *res,
     magma_queue_t queue );
 
+magma_int_t
+magma_zmfrobenius(
+    magma_z_matrix A,
+    magma_z_matrix B,
+    magma_z_matrix S,
+    double *norm,
+    magma_queue_t queue );
+
 magma_int_t 
 magma_znonlinres(   
     magma_z_matrix A, 
@@ -658,6 +731,30 @@ magma_zparilut_set_thrs(
 
 magma_int_t
 magma_zparilut_set_approx_thrs(
+    magma_int_t num_rm,
+    magma_z_matrix *LU,
+    magma_int_t order,
+    magmaDoubleComplex *thrs,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilut_set_thrs_randomselect(
+    magma_int_t num_rm,
+    magma_z_matrix *LU,
+    magma_int_t order,
+    magmaDoubleComplex *thrs,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilut_set_exact_thrs(
+    magma_int_t num_rm,
+    magma_z_matrix *LU,
+    magma_int_t order,
+    magmaDoubleComplex *thrs,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilut_set_approx_thrs_inc(
     magma_int_t num_rm,
     magma_z_matrix *LU,
     magma_int_t order,
@@ -2100,6 +2197,33 @@ magma_zgecsr5mv(
     magmaDoubleComplex_ptr  dx,
     magmaDoubleComplex      beta,
     magmaDoubleComplex_ptr  dy,
+    magma_queue_t           queue );
+
+magma_int_t
+magma_zgecscsyncfreetrsm_analysis(
+    magma_int_t             m, 
+    magma_int_t             nnz,
+    magmaDoubleComplex_ptr  dval,
+    magmaIndex_ptr          dcolptr,
+    magmaIndex_ptr          drowind, 
+    magmaIndex_ptr          dgraphindegree, 
+    magmaIndex_ptr          dgraphindegree_bak, 
+    magma_queue_t           queue );
+
+magma_int_t
+magma_zgecscsyncfreetrsm_solve(
+    magma_int_t             m, 
+    magma_int_t             nnz,
+    magmaDoubleComplex      alpha,
+    magmaDoubleComplex_ptr  dval,
+    magmaIndex_ptr          dcolptr,
+    magmaIndex_ptr          drowind,
+    magmaIndex_ptr          dgraphindegree, 
+    magmaIndex_ptr          dgraphindegree_bak, 
+    magmaDoubleComplex_ptr  dx,
+    magmaDoubleComplex_ptr  db,
+    magma_int_t             substitution, 
+    magma_int_t             rhs, 
     magma_queue_t           queue );
 
 magma_int_t

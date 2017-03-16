@@ -62,6 +62,10 @@ magma_zcsrsplit(
     
     magma_int_t i, k, j, nnz_diag, nnz_offd;
     
+    // make sure the target structure is empty
+    magma_zmfree( D, queue );
+    magma_zmfree( R, queue );
+    
     D->val = NULL;
     D->col = NULL;
     D->row = NULL;
