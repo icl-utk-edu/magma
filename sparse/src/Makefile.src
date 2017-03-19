@@ -96,7 +96,6 @@ libsparse_src += \
 libsparse_src += \
 	$(cdir)/zcustomic.cpp                 \
 	$(cdir)/zcustomilu.cpp                \
-	$(cdir)/zparilut.cpp                  \
 	$(cdir)/zparilut2.cpp                 \
         $(cdir)/zparilut3.cpp                 \
 
