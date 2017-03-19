@@ -82,9 +82,10 @@ magma_zparilutsetup(
     magma_z_matrix hA={Magma_CSR}, hAT={Magma_CSR}, hL={Magma_CSR}, hU={Magma_CSR},
                     L={Magma_CSR}, U={Magma_CSR}, L_new={Magma_CSR}, U_new={Magma_CSR},
                     UR={Magma_CSR};
+    magma_z_matrix L0={Magma_CSR}, U0={Magma_CSR};  
     magma_int_t num_rmL, num_rmU, num_rm_glL, num_rm_glU;
-    magmaDoubleComplex thrsL = MAGMA_Z_ZERO;
-    magmaDoubleComplex thrsU = MAGMA_Z_ZERO;
+    double thrsL = 0.0;
+    double thrsU = 0.0;
 
     magma_int_t num_threads, timing = 1; // print timing
     magma_int_t nnzL, nnzU;
@@ -110,6 +111,10 @@ magma_zparilutsetup(
         CHECK( magma_zsymbilu( &hA, precond->levels, &hL, &hU , queue ));
     }
     // need only lower triangular
+    // copy into safe location
+    magma_zmconvert( hL, &L0, Magma_CSR, Magma_CSR, queue );
+    magma_zmconvert( hU, &U0, Magma_CSR, Magma_CSR, queue );
+    
     magma_zmfree(&hU, queue );
     magma_zmfree(&hL, queue );
 
@@ -208,14 +213,16 @@ magma_zparilutsetup(
         start = magma_sync_wtime( queue );
         if( reorder == 0 ){
             magma_zparilut_candidates_linkedlist(
-            L,
-            U,
+            L0, U0,
+            L, U,
             UR,
             &L_new,
             &U_new,
             queue );
         } else {
             magma_zparilut_candidates_linkedlist(
+            L0,
+            U0,    
             L,
             U,
             UR,
@@ -224,7 +231,14 @@ magma_zparilutsetup(
             queue );
         }
         end = magma_sync_wtime( queue ); t_cand=end-start;
-
+// printf(" candidates for U (%d %d):\n", U.num_rows, U.nnz);
+// for(int i=0; i<U_new.nnz; i++){
+//     printf("( %d , %d )\n", U_new.rowidx[i], U_new.col[i]);
+// }
+// for(int i=0; i<L_new.num_rows; i++){
+//     printf("%d -> %d\n", i, L_new.row[i]);
+// }
+// printf("done\n");
         if( reorder == 1 ){
             // start = magma_sync_wtime( queue );
             // magma_zparilut_residuals_linkedlist( hA, L, U, &L_new, queue );
@@ -259,6 +273,13 @@ magma_zparilutsetup(
         num_rmUt = num_rmU;
 
         start = magma_sync_wtime( queue );
+        
+
+
+        L_new.storage_type = Magma_CSR;
+        U_new.storage_type = Magma_CSR;
+        magma_zparilut_selectoneperrow( &L_new, queue );
+        magma_zparilut_selectoneperrow( &U_new, queue ); 
         magma_zparilut_select_candidates_L( &num_rmL, rm_locL, &L_new, queue );
         magma_zparilut_select_candidates_U( &num_rmU, rm_locU, &U_new, queue );
         end = magma_sync_wtime( queue ); t_select=end-start;
@@ -512,6 +533,8 @@ magma_zparilutsetup(
     descrL=NULL;
     descrU=NULL;
     magma_zmfree( &hA, queue );
+    magma_zmfree( &L0, queue );
+    magma_zmfree( &U0, queue );
     magma_zmfree( &hAT, queue );
     magma_zmfree( &hL, queue );
     magma_zmfree( &L, queue );

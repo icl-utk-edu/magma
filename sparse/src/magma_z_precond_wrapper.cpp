@@ -181,7 +181,7 @@ magma_z_precondsetup(
     }
     else if ( precond->solver == Magma_PARILUT ) {
         #ifdef _OPENMP
-            info = magma_zparilutsetup( A, b, precond, queue );
+            info = magma_zparilut3setup( A, b, precond, queue );
             if ( precond->trisolver == Magma_ISAI  ||
                  precond->trisolver == Magma_JACOBI ||
                  precond->trisolver == Magma_VBJACOBI ){
@@ -213,7 +213,7 @@ magma_z_precondsetup(
     }
     else if ( precond->solver == Magma_PARICT ) {
         #ifdef _OPENMP
-            info = magma_zparilutsetup( A, b, precond, queue );
+            info = magma_zparilut2setup( A, b, precond, queue );
             precond->solver = Magma_PARILU; // handle as PARIC
             precond->trisolver = Magma_CUSOLVE; // for now only allow cusolve
             printf( "%% warning: only PARILUT supported.\n" );

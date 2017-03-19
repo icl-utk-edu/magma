@@ -43,7 +43,7 @@ int main(  int argc, char** argv )
     magma_queue_t queue=NULL;
     magma_queue_create( 0, &queue );
     // using std::swap;
-    real_Double_t start, end, t_select, t_selectrandom;
+    real_Double_t start, end, t_select, t_selectrandom, t_selectbitonic;
     
     int size = atoi(argv[1]);
     int selectset = atoi(argv[2]);
@@ -73,7 +73,7 @@ int main(  int argc, char** argv )
     t_selectrandom = end-start;
     magmaDoubleComplex selectRandomResult = a[selectset];
 //#if defined(DEBUG)
-    printf("\n selected by random select: %.2f\n\n", MAGMA_Z_ABS(selectResult) );
+    printf("\n selected by ranomized select: %.2f\n\n", MAGMA_Z_ABS(selectResult) );
 //#endif
 /*
     makeRandomArray(a, size);
@@ -88,9 +88,35 @@ int main(  int argc, char** argv )
     if (!(selectResult == selectRandomResult) ){
         printf(" Inconsistent result.\n");
     }
+    
+    makeRandomArray(a, size);
+    start = magma_sync_wtime( queue );
+    magma_int_t flag =0;
+    magma_zbitonic_sort(0, size, a, flag, queue);
+    end = magma_sync_wtime( queue );
+    t_selectbitonic = end-start;
+    magmaDoubleComplex BitonicResult = a[selectset];
+//#if defined(DEBUG)
+    printf("\n selected by bitonic sort: %.2f\n\n", MAGMA_Z_ABS(selectResult) );
+//#endif
+/*
+    makeRandomArray(a, size);
+    clock_t sortBegin = clock();
+    std::sort(a, a+size);
+    clock_t sortEnd = clock();
+    double sortResult = a[selectset];
+#if defined(DEBUG)
+    printf("\n selected: %.2f\n\n", sortResult );
+#endif
+*/
+    if (!(BitonicResult == selectRandomResult) ){
+        printf(" Inconsistent result.\n");
+    }
+    
+    
     printf(" Select time (ms): %.4f\n", double(t_select)*1000 );
     printf(" Randomized select time (ms): %.4f\n", double(t_selectrandom)*1000 );
-    //printf(" Sort time (ms): %.4f\n", double(sortEnd-sortBegin)*1000/CLOCKS_PER_SEC );
+    printf(" Bitonicsort time (ms): %.4f\n", double(t_selectbitonic)*1000 );
 
     // magma_free_cpu( &a );
     
