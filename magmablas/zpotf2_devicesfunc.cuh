@@ -421,6 +421,7 @@ static inline __device__ void zpotf2_smlpout_fixwidth_device(const int m,
         }
     #ifdef ENABLE_COND6
     }
+    __syncthreads();
     #endif
 }
 
@@ -493,7 +494,8 @@ static inline __device__ void zpotf2_smlpout_anywidth_device(const int m, const 
         }
     #ifdef ENABLE_COND6
     }
-    #endif        
+    __syncthreads();
+    #endif
 }
 
 #endif // MAGMABLAS_ZPOTF2_DEVICES_Z_H
