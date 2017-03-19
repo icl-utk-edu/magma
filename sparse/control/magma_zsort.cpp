@@ -19,6 +19,9 @@
 #define SWAPM(a, b) { tmpv = val[a]; val[a] = val[b]; val[b] = tmpv;  \
                       tmpc = col[a]; col[a] = col[b]; col[b] = tmpc;  \
                       tmpr = row[a]; row[a] = row[b]; row[b] = tmpr; }
+                      
+#define UP 0
+#define DOWN 1
 
 /**
     Purpose
@@ -662,4 +665,116 @@ magma_zorderstatistics_inc(
     
 cleanup:
     return info;
+}
+
+
+
+
+void swap(magmaDoubleComplex *a, magmaDoubleComplex *b)
+{
+    magmaDoubleComplex t;
+    t = *a;
+    *a = *b;
+    *b = t;
+}
+
+
+/**
+    Purpose
+    -------
+
+    Approximates the k-th smallest element in an array by
+    using order-statistics with step-size inc.
+
+    Arguments
+    ---------
+    
+    @param[in,out]
+    val         magmaDoubleComplex*
+                Target array, will be modified during operation.
+
+    @param[in]
+    length      magma_int_t
+                Length of the target array.
+
+    @param[in]
+    k           magma_int_t
+                Element to be identified (largest/smallest).
+                
+    @param[in]
+    inc         magma_int_t
+                Stepsize in the approximation.
+                
+    @param[in]
+    r           magma_int_t
+                rule how to sort: '1' -> largest, '0' -> smallest
+                
+    @param[out]
+    element     magmaDoubleComplex*
+                location of the respective element
+                
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+    ********************************************************************/
+
+extern "C"
+magma_int_t
+magma_zbitonic_sort(
+    magma_int_t start, 
+    magma_int_t length, 
+    magmaDoubleComplex *seq, 
+    magma_int_t flag,
+    magma_queue_t queue )
+{
+    magma_int_t m, i, num_threads=1;
+    magma_int_t split_length;
+    
+#ifdef _OPENMP
+    #pragma omp parallel
+    {
+        num_threads = omp_get_max_threads();
+    }
+#endif
+
+    m = length/num_threads;
+
+
+    if (length == 1)
+        return 0;
+
+    if (length % 2 !=0 )
+    {
+        printf("The length of a (sub)sequence is not divided by 2.\n");
+        exit(0);
+    }
+
+    split_length = length / 2;
+
+    // bitonic split
+    #pragma omp parallel for shared(seq, flag, start, split_length) private(i)
+    for (i = start; i < start + split_length; i++)
+    {
+        if (flag == UP)
+        {
+            if (MAGMA_Z_ABS(seq[i]) > MAGMA_Z_ABS(seq[i + split_length]))
+                swap(&seq[i], &seq[i + split_length]);
+        }
+        else
+        {
+            if (MAGMA_Z_ABS(seq[i]) < MAGMA_Z_ABS(seq[i + split_length]))
+                swap(&seq[i], &seq[i + split_length]);
+        }
+    }
+
+    if (split_length > m)
+    {
+        // m is the size of sub part-> n/numThreads
+        magma_zbitonic_sort(start, split_length, seq, flag, queue);
+        magma_zbitonic_sort(start + split_length, split_length, seq, flag, queue);
+    }
+
+    return 0;
 }
