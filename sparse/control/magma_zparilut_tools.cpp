@@ -5695,8 +5695,8 @@ magma_zparilut_set_thrs_randomselect_approx(
     magma_int_t num_threads = 1;
     magma_int_t el_per_block;
     magma_int_t num_rm_loc;
-    magmaDoubleComplex *dthrs;
-    magmaDoubleComplex *val;
+    magmaDoubleComplex *dthrs=NULL;
+    magmaDoubleComplex *val=NULL;
     
 
     if( LU->nnz <= 680){
