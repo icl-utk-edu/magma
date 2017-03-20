@@ -73,6 +73,10 @@ magma_zparilut3setup(
                     t_transpose1=0.0, t_transpose2=0.0, t_selectrm=0.0,
                     t_selectadd=0.0, t_nrm=0.0, t_total = 0.0, accum=0.0;
                     
+    char filenameL[sizeof "LT_rm2_step1.m"];
+    char filenameU[sizeof "UT_rm2_step1.m"];
+
+                    
     double sum, sumL, sumU;
 
     cusparseHandle_t cusparseHandle=NULL;
@@ -104,7 +108,7 @@ magma_zparilut3setup(
     }
     magma_zmfree(&hU, queue );
     magma_zmfree(&hL, queue );
-    
+    L.diagorder_type = Magma_UNITY;
     magma_zmatrix_tril( hA, &L, queue );
     magma_zmtranspose(hA, &hAT, queue );
     magma_zmatrix_tril( hA, &UT, queue );
@@ -116,11 +120,11 @@ magma_zparilut3setup(
     UT.rowidx = NULL;
     magma_zmatrix_addrowindex( &L, queue ); 
     magma_zmatrix_addrowindex( &UT, queue ); 
-    CHECK( magma_zparilut_sweep( &A0, &L, &UT, queue ) );
-    CHECK( magma_zparilut_sweep( &A0, &L, &UT, queue ) );
-    CHECK( magma_zparilut_sweep( &A0, &L, &UT, queue ) );
-    CHECK( magma_zparilut_sweep( &A0, &L, &UT, queue ) );
-    CHECK( magma_zparilut_sweep( &A0, &L, &UT, queue ) );
+    //CHECK( magma_zparilut_sweep( &A0, &L, &UT, queue ) );
+    //CHECK( magma_zparilut_sweep( &A0, &L, &UT, queue ) );
+    //CHECK( magma_zparilut_sweep( &A0, &L, &UT, queue ) );
+    //CHECK( magma_zparilut_sweep( &A0, &L, &UT, queue ) );
+    //CHECK( magma_zparilut_sweep( &A0, &L, &UT, queue ) );
     L0nnz=L.nnz;
     U0nnz=U.nnz;
         
@@ -190,19 +194,20 @@ magma_zparilut3setup(
         magma_zmfree( &oneU, queue );
         num_rmL = max(hL.nnz * ( precond->rtol ),0);
         num_rmU = max(hU.nnz * ( precond->rtol ),0); 
+        printf("hL:%d  hU:%d\n", num_rmL, num_rmU);
         //#pragma omp parallel
         {
           //  magma_int_t id = omp_get_thread_num();
             //if( id == 0 ){
                 if( num_rmL>0 ){
-                    magma_zparilut_set_thrs_randomselect_approx( num_rmL, &hL, 1, &thrsL, queue );
+                    magma_zparilut_set_thrs_randomselect( num_rmL, &hL, 1, &thrsL, queue );
                 } else {
                     thrsL = 0.0;
                 }
             //} 
             //if( id == num_threads-1 ){
                 if( num_rmU>0 ){
-                    magma_zparilut_set_thrs_randomselect_approx( num_rmU, &hU, 1, &thrsU, queue );
+                    magma_zparilut_set_thrs_randomselect( num_rmU, &hU, 1, &thrsU, queue );
                 } else {
                     thrsU = 0.0;
                 }
@@ -240,14 +245,14 @@ magma_zparilut3setup(
           //  magma_int_t id = omp_get_thread_num();
             //if( id == 0 ){
                 if( num_rmL>0 ){
-                    magma_zparilut_set_thrs_randomselect_approx( num_rmL, &oneL, 0, &thrsL, queue );
+                    magma_zparilut_set_thrs_randomselect( num_rmL, &oneL, 0, &thrsL, queue );
                 } else {
                     thrsL = 0.0;
                 }
             //} 
             //if( id == num_threads-1 ){
                 if( num_rmU>0 ){
-                    magma_zparilut_set_thrs_randomselect_approx( num_rmU, &oneU, 0, &thrsU, queue );
+                    magma_zparilut_set_thrs_randomselect( num_rmU, &oneU, 0, &thrsU, queue );
                 } else {
                     thrsU = 0.0;
                 }
@@ -291,6 +296,15 @@ magma_zparilut3setup(
                     t_cand, t_res, t_nrm, t_selectadd, t_add, t_transpose1, t_sweep1, t_selectrm, t_rm, t_sweep2, t_transpose2, t_total, accum );
             fflush(stdout);
         }
+        
+
+        sprintf(filenameL, "LT_rm%d_step%d.m", (int)(precond->rtol*100), iters+1);
+        sprintf(filenameU, "UT_rm%d_step%d.m", (int)(precond->rtol*100), iters+1);
+
+        // write to file
+        // CHECK( magma_zwrite_csrtomtx( L, filenameL, queue ));
+        // CHECK( magma_zwrite_csrtomtx( U, filenameU, queue ));
+        
       
     }
 
