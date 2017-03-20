@@ -470,6 +470,14 @@ magma_zvinit(
     magma_queue_t queue );
 
 magma_int_t
+magma_zvinit_rand(
+    magma_z_matrix *x, 
+    magma_location_t memory_location,
+    magma_int_t num_rows, 
+    magma_int_t num_cols,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zprint_vector(
     magma_z_matrix x, 
     magma_int_t offset, 

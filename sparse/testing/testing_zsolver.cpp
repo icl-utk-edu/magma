@@ -84,7 +84,7 @@ int main(  int argc, char** argv )
         TESTING_CHECK( magma_zmtransfer( B, &dB, Magma_CPU, Magma_DEV, queue ));
 
         // vectors and initial guess
-        TESTING_CHECK( magma_zvinit( &b, Magma_DEV, A.num_rows, 1, one, queue ));
+        TESTING_CHECK( magma_zvinit_rand( &b, Magma_DEV, A.num_rows, 1, queue ));
         //magma_zvinit( &x, Magma_DEV, A.num_cols, 1, one, queue );
         //magma_z_spmv( one, dB, x, zero, b, queue );                 //  b = A x
         //magma_zmfree(&x, queue );
