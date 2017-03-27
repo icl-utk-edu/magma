@@ -676,6 +676,137 @@ cleanup:
 }
 
 
+/***************************************************************************//**
+    Purpose
+    -------
+    This function takes a list of candidates with residuals, 
+    and selects the largest in every row. The output matrix only contains these
+    largest elements (respectively a zero element if there is no candidate for
+    a certain row).
+
+    Arguments
+    ---------
+
+    @param[in]
+    order       magma_int_t
+                order==1 -> largest
+                order==0 -> smallest
+                
+    @param[in]
+    A           magma_z_matrix*
+                Matrix where elements are removed.
+                
+    @param[out]
+    oneA        magma_z_matrix*
+                Matrix where elements are removed.
+                
+                
+
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+extern "C" magma_int_t
+magma_zparilut_selectonepercol(
+    magma_int_t order,
+    magma_z_matrix *AT,
+    magma_z_matrix *oneA,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    
+    magma_index_t nnz_count;
+    magma_z_matrix B={Magma_CSR};
+    magma_z_matrix BT={Magma_CSR};
+    magma_z_matrix A={Magma_CSR};
+    double thrs = 1e-8;
+    B.num_rows = AT->num_rows;
+    B.num_cols = AT->num_cols;
+    B.nnz = AT->num_rows;
+    B.storage_type = Magma_CSR;
+    B.memory_location = Magma_CPU;
+    oneA->num_rows = AT->num_rows;
+    oneA->num_cols = AT->num_cols;
+    oneA->nnz = AT->num_rows;
+    oneA->storage_type = Magma_CSR;
+    oneA->memory_location = Magma_CPU;
+    
+    CHECK( magma_zmtranspose( *AT, &A, queue) );
+    
+    CHECK( magma_index_malloc_cpu( &B.row, A.num_rows+1 ) );
+    CHECK( magma_index_malloc_cpu( &B.rowidx, A.num_rows) );
+    CHECK( magma_index_malloc_cpu( &B.col, A.num_rows ) );
+    CHECK( magma_zmalloc_cpu( &B.val, A.num_rows ) );
+    if( order == 1 ){
+        #pragma omp parallel for
+        for( magma_int_t row=0; row<A.num_rows; row++){
+            double max = 0.0;
+            magma_int_t el = -1;
+            for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
+                if( MAGMA_Z_ABS(A.val[i]) > max ){
+                    el = i;
+                    max = MAGMA_Z_ABS(A.val[i]);
+                }
+            }
+            if( el > -1 ){
+                B.col[row] = A.col[el];
+                B.val[row] = A.val[el];
+                B.rowidx[row] = row;
+                B.row[row] = row;
+            } else { 
+                B.col[row] = -1;
+                B.val[row] = MAGMA_Z_ZERO;
+                B.rowidx[row] = row;
+                B.row[row] = row;
+            }
+            
+        }
+        B.row[B.num_rows] = B.num_rows;
+        CHECK( magma_zparilut_thrsrm( 1, &B, &thrs, queue ) );
+    } else {
+        #pragma omp parallel for
+        for( magma_int_t row=0; row<A.num_rows; row++){
+            double min = 1e18;
+            magma_int_t el = -1;
+            for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
+                if( MAGMA_Z_ABS(A.val[i]) < min && A.col[i]!=row ){
+                        el = i;
+                        min = MAGMA_Z_ABS(A.val[i]);
+                }
+            }
+            if( el > -1 ){
+                B.col[row] = A.col[el];
+                B.val[row] = A.val[el];
+                B.rowidx[row] = row;
+                B.row[row] = row;
+            } else { 
+                B.col[row] = -1;
+                B.val[row] = MAGMA_Z_ZERO;
+                B.rowidx[row] = row;
+                B.row[row] = row;
+            }
+            
+        } 
+        B.row[B.num_rows] = B.num_rows;
+        CHECK( magma_zparilut_thrsrm( 1, &B, &thrs, queue ) );
+    }
+    
+    CHECK( magma_zmtranspose( B, &BT, queue) );
+    
+    // finally, swap the matrices
+    // keep the copy!
+   CHECK( magma_zmatrix_swap( &BT, oneA, queue) );
+    
+cleanup:
+    magma_zmfree( &B, queue );
+    magma_zmfree( &A, queue );
+    return info;
+}
+
+
 
 
 /***************************************************************************//**

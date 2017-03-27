@@ -813,6 +813,13 @@ magma_zparilut_selectoneperrow(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilut_selectonepercol(
+    magma_int_t order,
+    magma_z_matrix *A,
+    magma_z_matrix *oneA,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zmatrix_swap(
     magma_z_matrix *A,
     magma_z_matrix *B,

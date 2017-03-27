@@ -73,8 +73,8 @@ magma_zparilut3setup(
                     t_transpose1=0.0, t_transpose2=0.0, t_selectrm=0.0,
                     t_selectadd=0.0, t_nrm=0.0, t_total = 0.0, accum=0.0;
                     
-    char filenameL[sizeof "LT_rm2_step1.m"];
-    char filenameU[sizeof "UT_rm2_step1.m"];
+    char filenameL[sizeof "LT_rm20_step10.m"];
+    char filenameU[sizeof "UT_rm20_step10.m"];
 
                     
     double sum, sumL, sumU;
@@ -135,8 +135,8 @@ magma_zparilut3setup(
     CHECK( magma_zmtransfer( U, &U0, A.memory_location, Magma_CPU, queue ));
     magma_zmatrix_addrowindex( &U, queue );
     magma_zmfree(&UT, queue );
-    magma_free_cpu( UT.row );
-    magma_free_cpu( UT.list );
+    magma_free_cpu( UT.row ); UT.row = NULL;
+    magma_free_cpu( UT.list ); UT.list = NULL;
     CHECK( magma_zparilut_create_collinkedlist( U, &UT, queue) );
    
 
@@ -187,14 +187,16 @@ magma_zparilut3setup(
         end = magma_sync_wtime( queue ); t_nrm+=end-start;
         start = magma_sync_wtime( queue );
         magma_zparilut_selectoneperrow( 1, &hL, &oneL, queue );
-        magma_zparilut_selectoneperrow( 1, &hU, &oneU, queue );
+        magma_zparilut_selectonepercol( 1, &hU, &oneU, queue );
         CHECK( magma_zmatrix_swap( &oneL, &hL, queue) );
         CHECK( magma_zmatrix_swap( &oneU, &hU, queue) );
         magma_zmfree( &oneL, queue );
         magma_zmfree( &oneU, queue );
         num_rmL = max(hL.nnz * ( precond->rtol ),0);
-        num_rmU = max(hU.nnz * ( precond->rtol ),0); 
-        printf("hL:%d  hU:%d\n", num_rmL, num_rmU);
+        num_rmU = max(hU.nnz * ( precond->rtol ),0);
+        // num_rmL = max(hL.nnz * ( precond->rtol-0.15*iters ),0);
+        // num_rmU = max(hU.nnz * ( precond->rtol-0.15*iters ),0);
+        //printf("hL:%d  hU:%d\n", num_rmL, num_rmU);
         //#pragma omp parallel
         {
           //  magma_int_t id = omp_get_thread_num();
@@ -226,8 +228,8 @@ magma_zparilut3setup(
        
         // using linked list
         start = magma_sync_wtime( queue );
-        magma_free_cpu( UT.row );
-        magma_free_cpu( UT.list );
+        magma_free_cpu( UT.row ); UT.row = NULL;
+        magma_free_cpu( UT.list ); UT.list = NULL;
         CHECK( magma_zparilut_create_collinkedlist( U_new, &UT, queue) );
         end = magma_sync_wtime( queue ); t_transpose2+=end-start;
         start = magma_sync_wtime( queue );
@@ -275,8 +277,8 @@ magma_zparilut3setup(
 
         
         start = magma_sync_wtime( queue );
-        magma_free_cpu( UT.row );
-        magma_free_cpu( UT.list );
+        magma_free_cpu( UT.row ); UT.row = NULL;
+        magma_free_cpu( UT.list ); UT.list = NULL;
         CHECK( magma_zparilut_create_collinkedlist( U, &UT, queue) );
         end = magma_sync_wtime( queue ); t_transpose1+=end-start;
         start = magma_sync_wtime( queue );
