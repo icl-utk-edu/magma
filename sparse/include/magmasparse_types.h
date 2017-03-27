@@ -602,6 +602,7 @@ typedef struct magma_z_preconditioner
     cusparseSolveAnalysisInfo_t cuinfoLT;
     cusparseSolveAnalysisInfo_t cuinfoU;
     cusparseSolveAnalysisInfo_t cuinfoUT;
+    magma_bool_t            transpose;                 // need the transpose for the solver?
 #if defined(HAVE_PASTIX)
     pastix_data_t*          pastix_data;
     magma_int_t*            iparm;
@@ -653,6 +654,7 @@ typedef struct magma_c_preconditioner
     cusparseSolveAnalysisInfo_t cuinfoLT;
     cusparseSolveAnalysisInfo_t cuinfoU;
     cusparseSolveAnalysisInfo_t cuinfoUT;
+    magma_bool_t            transpose;                 // need the transpose for the solver?
 #if defined(HAVE_PASTIX)
     pastix_data_t*          pastix_data;
     magma_int_t*            iparm;
@@ -705,6 +707,7 @@ typedef struct magma_d_preconditioner
     cusparseSolveAnalysisInfo_t cuinfoLT;
     cusparseSolveAnalysisInfo_t cuinfoU;
     cusparseSolveAnalysisInfo_t cuinfoUT;
+    magma_bool_t            transpose;                 // need the transpose for the solver?
 #if defined(HAVE_PASTIX)
     pastix_data_t*          pastix_data;
     magma_int_t*            iparm;
@@ -757,6 +760,7 @@ typedef struct magma_s_preconditioner
     cusparseSolveAnalysisInfo_t cuinfoLT;
     cusparseSolveAnalysisInfo_t cuinfoU;
     cusparseSolveAnalysisInfo_t cuinfoUT;
+    magma_bool_t            transpose;                 // need the transpose for the solver?
 #if defined(HAVE_PASTIX)
     pastix_data_t*          pastix_data;
     magma_int_t*            iparm;
