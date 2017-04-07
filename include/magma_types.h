@@ -606,7 +606,9 @@ typedef enum {
 typedef enum {
     Magma_NOSCALE      = 511,
     Magma_UNITROW      = 512,
-    Magma_UNITDIAG     = 513
+    Magma_UNITDIAG     = 513,
+    Magma_UNITROWCOL   = 514,
+    Magma_UNITDIAGCOL  = 515
 } magma_scale_t;
 
 

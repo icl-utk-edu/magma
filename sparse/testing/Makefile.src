@@ -39,6 +39,7 @@ sparse_testing_src += \
 sparse_testing_src += \
 	$(cdir)/testing_zsolver.cpp           \
 	$(cdir)/testing_zsolver_rhs.cpp           \
+	$(cdir)/testing_zsolver_rhs_scaling.cpp   \
 	$(cdir)/testing_zpreconditioner.cpp   \
 
 # ----------

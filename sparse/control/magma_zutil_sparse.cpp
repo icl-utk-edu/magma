@@ -177,6 +177,12 @@ magma_zparse_opts(
             else if ( strcmp("UNITROW", argv[i]) == 0 ) {
                 opts->scaling = Magma_UNITROW;
             }
+            else if ( strcmp("UNITDIAGCOL", argv[i]) == 0 ) {
+                opts->scaling = Magma_UNITDIAGCOL;
+            }
+            else if ( strcmp("UNITROWCOL", argv[i]) == 0 ) {
+                opts->scaling = Magma_UNITROWCOL;
+            }
             else {
                 printf( "%%error: invalid scaling, use default.\n" );
             }

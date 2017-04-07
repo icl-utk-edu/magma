@@ -239,6 +239,14 @@ magma_zmscale(
     magma_queue_t queue );
 
 magma_int_t
+magma_zmscale_matrix_rhs(
+    magma_z_matrix *A,
+    magma_z_matrix *b,
+    magma_z_matrix *scaling_factors,
+    magma_scale_t scaling,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zmslice(
     magma_int_t num_slices,
     magma_int_t slice,
