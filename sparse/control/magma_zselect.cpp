@@ -94,7 +94,7 @@ magma_zmedian5(
     -------
 
     An efficient implementation of Blum, Floyd,
-    Pratt, Rivest, and Tarjan’s worst-case linear
+    Pratt, Rivest, and Tarjan's worst-case linear
     selection algorithm
     
     Derrick Coetzee, webmaster@moonflare.com
@@ -171,7 +171,7 @@ magma_zselect(
     -------
 
     An efficient implementation of Blum, Floyd,
-    Pratt, Rivest, and Tarjan’s worst-case linear
+    Pratt, Rivest, and Tarjan's worst-case linear
     selection algorithm
     
     Derrick Coetzee, webmaster@moonflare.com
