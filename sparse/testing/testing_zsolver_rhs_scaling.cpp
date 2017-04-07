@@ -42,7 +42,7 @@ int main(  int argc, char** argv )
     magmaDoubleComplex negone = MAGMA_Z_MAKE(-1.0, 0.0);
     magma_z_matrix A={Magma_CSR}, B={Magma_CSR}, B_d={Magma_CSR};
     magma_z_matrix x={Magma_CSR}, x_h={Magma_CSR}, b_h={Magma_DENSE}, b={Magma_DENSE};
-    magma_z_matrix scaling_factors={Magma_DENSE};
+    magma_z_matrix scaling_factors={Magma_DENSE}, scaling_factors_d={Magma_DENSE};
     magma_z_matrix y_check={Magma_DENSE};
     //magmaDoubleComplex residual = MAGMA_Z_MAKE(0.0, 0.0);
     double residual = 0.0;
@@ -109,14 +109,14 @@ int main(  int argc, char** argv )
         zopts.precond_par.runtime = 0.0;
         //TESTING_CHECK( magma_zvinit( &b_h, Magma_CPU, A.num_cols, 1, MAGMA_Z_ONE, queue ));
 
+        // scale matrix
+        TESTING_CHECK( magma_zmscale_matrix_rhs( &A, &b_h, &scaling_factors, zopts.scaling, queue ));
+        
         i++;
         tempo1 = magma_sync_wtime( queue );
         magma_z_vtransfer(b_h, &b, Magma_CPU, Magma_DEV, queue);
         tempo2 = magma_sync_wtime( queue );
         t_transfer += tempo2-tempo1;
-        
-        // scale matrix
-        TESTING_CHECK( magma_zmscale_matrix_rhs( &A, &b, &scaling_factors, zopts.scaling, queue ));
         
         // preconditioner
         if ( zopts.solver_par.solver != Magma_ITERREF ) {
@@ -139,29 +139,40 @@ int main(  int argc, char** argv )
                 magma_strerror( info ), (long long) info );
         }
         
+        TESTING_CHECK( magma_zvinit( &y_check, Magma_DEV, A.num_rows, 1, zero, queue ));
+        TESTING_CHECK( magma_z_spmv( one, B_d, x, zero, y_check, queue ) );
+        magma_zaxpy( A.num_rows, negone, b.val, 1, y_check.val, 1, queue );
+        residual = magma_dznrm2( A.num_rows, y_check.val, 1, queue ); 
+        printf("%% residual check = %e\n", residual);
+        
+        if ( ( zopts.scaling == Magma_UNITROWCOL ) 
+              || ( zopts.scaling == Magma_UNITDIAGCOL ) ) {
+          printf("%% rescaling computed solution %d\n", zopts.scaling);
+          //magma_z_vtransfer(scaling_factors, &scaling_factors_d, Magma_CPU, Magma_DEV, queue);
+          
+          magma_zmfree(&x_h, queue );
+          magma_z_vtransfer(x, &x_h, Magma_DEV, Magma_CPU, queue);
+          printf("x_h transfered\n");
+          for ( int row=0; row<A.num_rows; row++ ) {
+            //x_h.val[row] = x_h.val[row] * scaling_factors.val[row];
+            x_h.val[row] = MAGMA_Z_MUL(x_h.val[row], scaling_factors.val[row]);
+          }
+          printf("%% rescaled computed solution %d\n", zopts.scaling);
+          magma_zmfree(&x, queue );
+          magma_z_vtransfer(x_h, &x, Magma_CPU, Magma_DEV, queue);
+          
+          TESTING_CHECK( magma_zvinit( &y_check, Magma_DEV, A.num_rows, 1, zero, queue ));
+          TESTING_CHECK( magma_z_spmv( one, B_d, x, zero, y_check, queue ) );
+          magma_zaxpy( A.num_rows, negone, b_h.val, 1, y_check.val, 1, queue );
+          residual = magma_dznrm2( A.num_rows, y_check.val, 1, queue ); 
+          printf("%% residual check = %e\n", residual);
+        }
+        
         magma_zmfree(&x_h, queue );
         tempo1 = magma_sync_wtime( queue );
         magma_z_vtransfer(x, &x_h, Magma_DEV, Magma_CPU, queue);
         tempo2 = magma_sync_wtime( queue );
         t_transfer += tempo2-tempo1;  
-        
-        TESTING_CHECK( magma_z_spmv( one, A, x_h, zero, y_check, queue ) );
-        magma_zaxpy( A.num_rows, negone, b_h.val, 1, y_check.val, 1, queue );
-        residual = magma_dznrm2( A.num_rows, y_check.val, 1, queue ); 
-        printf("%%residual check = %e\n", residual);
-        
-        if ( ( zopts.scaling == Magma_UNITROWCOL ) 
-              || ( zopts.scaling == Magma_UNITDIAGCOL ) ){
-          printf("%%rescaling computed solution %d\n", zopts.scaling);
-          for ( int row=0; row<A.num_rows; row++ ) {
-            //x_h.val[row] = x_h.val[row] * scaling_factors.val[row];
-            x_h.val[row] = MAGMA_Z_MUL(x_h.val[row], scaling_factors.val[row]);
-          }
-          TESTING_CHECK( magma_z_spmv( one, A, x_h, zero, y_check, queue ) );
-          magma_zaxpy( A.num_rows, negone, b_h.val, 1, y_check.val, 1, queue );
-          residual = magma_dznrm2( A.num_rows, y_check.val, 1, queue ); 
-          printf("%%residual check = %e\n", residual);
-        }
         
         printf("data = [\n");
         magma_zsolverinfo( &zopts.solver_par, &zopts.precond_par, queue );
