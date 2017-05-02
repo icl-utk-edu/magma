@@ -85,16 +85,17 @@ magma_zlsqr(
     magma_z_matrix r={Magma_CSR},
                     v={Magma_CSR}, z={Magma_CSR}, zt={Magma_CSR},
                     d={Magma_CSR}, vt={Magma_CSR}, q={Magma_CSR}, 
-                    w={Magma_CSR}, u={Magma_CSR};
+                    w={Magma_CSR}, u={Magma_CSR}, ut={Magma_CSR};
     CHECK( magma_zvinit( &r, Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &v, Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &z, Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
+    CHECK( magma_zvinit( &zt,Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &d, Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &vt,Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &q, Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &w, Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &u, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
-    CHECK( magma_zvinit( &zt,Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
+    CHECK( magma_zvinit( &ut,Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
 
     
     // transpose the matrix
@@ -161,16 +162,16 @@ magma_zlsqr(
     do
     {
         solver_par->numiter++;
-        if( precond_par->solver == Magma_NONE || A.num_rows != A.num_cols ) {
+        if( precond_par->solver == Magma_NONE ) {
             magma_zcopy( n, v.dval, 1 , z.dval, 1, queue );    
         } else {
             CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, v, &zt, precond_par, queue ));
             CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, zt, &z, precond_par, queue ));
         }
         //CHECK( magma_z_spmv( c_one, A, z, MAGMA_Z_MAKE(-alpha,0.0), u, queue ));
-        CHECK( magma_z_spmv( c_one, A, z, c_zero, zt, queue ));
+        CHECK( magma_z_spmv( c_one, A, z, c_zero, ut, queue ));
         magma_zscal( m, MAGMA_Z_MAKE(-alpha, 0.0 ), u.dval, 1, queue ); 
-        magma_zaxpy( m, c_one, zt.dval, 1, u.dval, 1, queue );
+        magma_zaxpy( m, c_one, ut.dval, 1, u.dval, 1, queue );
         
         solver_par->spmv_count++;
         beta = magma_dznrm2( m, u.dval, 1, queue );
@@ -197,15 +198,6 @@ magma_zlsqr(
         
         // convergence check
         res = normr;        
-        if ( solver_par->verbose > 0 ) {
-            tempo2 = magma_sync_wtime( queue );
-            if ( (solver_par->numiter)%solver_par->verbose == c_zero ) {
-                solver_par->res_vec[(solver_par->numiter)/solver_par->verbose]
-                        = (real_Double_t) res;
-                solver_par->timing[(solver_par->numiter)/solver_par->verbose]
-                        = (real_Double_t) tempo2-tempo1;
-            }
-        }
         // check for convergence in A*x=b
         if ( res/nomb <= solver_par->rtol || res <= solver_par->atol ){
             info = MAGMA_SUCCESS;
@@ -214,13 +206,22 @@ magma_zlsqr(
         // check for convergence in min{|b-A*x|}
         if ( A.num_rows != A.num_cols &&
                ( normar/(norma*normr) <= solver_par->rtol || normar <= solver_par->atol ) ){
-            printf("%% warning: quit from minimization convergence check.\n");
+            //printf("%% warning: quit from minimization convergence check.\n");
             info = MAGMA_SUCCESS;
             break;
         }
         
         magma_zaxpy( n, MAGMA_Z_MAKE( phi, 0.0 ), d.dval, 1, x->dval, 1, queue );
         normr = fabs(s) * normr;
+        if ( solver_par->verbose > 0 ) {
+            tempo2 = magma_sync_wtime( queue );
+            if ( (solver_par->numiter)%solver_par->verbose == c_zero ) {
+                solver_par->res_vec[(solver_par->numiter)/solver_par->verbose]
+                        = (real_Double_t) normr;
+                solver_par->timing[(solver_par->numiter)/solver_par->verbose]
+                        = (real_Double_t) tempo2-tempo1;
+            }
+        }
         CHECK( magma_z_spmv( c_one, AT, u, c_zero, vt, queue ));
         solver_par->spmv_count++;
         if( precond_par->solver == Magma_NONE ){
@@ -242,20 +243,13 @@ magma_zlsqr(
     solver_par->runtime = (real_Double_t) tempo2-tempo1;
     double residual;
     CHECK(  magma_zresidualvec( A, b, *x, &r, &residual, queue));
-    solver_par->iter_res = res;
+    solver_par->iter_res = normr;
     solver_par->final_res = residual;
 
-    if ( solver_par->numiter < solver_par->maxiter && info == MAGMA_SUCCESS ) {
-        info = MAGMA_SUCCESS;
+    if ( info == MAGMA_SUCCESS ) {
+    	// MW  If MAGMA detected convergence inside the loop, it did one extra iteration
+        solver_par->numiter--;
     } else if ( solver_par->init_res > solver_par->final_res ) {
-        if ( solver_par->verbose > 0 ) {
-            if ( (solver_par->numiter)%solver_par->verbose == c_zero ) {
-                solver_par->res_vec[(solver_par->numiter)/solver_par->verbose]
-                        = (real_Double_t) res;
-                solver_par->timing[(solver_par->numiter)/solver_par->verbose]
-                        = (real_Double_t) tempo2-tempo1;
-            }
-        }
         info = MAGMA_SLOW_CONVERGENCE;
         if( solver_par->iter_res < solver_par->rtol*nomb ||
             solver_par->iter_res < solver_par->atol ) {
@@ -263,14 +257,6 @@ magma_zlsqr(
         }
     }
     else {
-        if ( solver_par->verbose > 0 ) {
-            if ( (solver_par->numiter)%solver_par->verbose == c_zero ) {
-                solver_par->res_vec[(solver_par->numiter)/solver_par->verbose]
-                        = (real_Double_t) res;
-                solver_par->timing[(solver_par->numiter)/solver_par->verbose]
-                        = (real_Double_t) tempo2-tempo1;
-            }
-        }
         info = MAGMA_DIVERGENCE;
     }
     
@@ -283,6 +269,7 @@ cleanup:
     magma_zmfree(&vt,  queue );
     magma_zmfree(&q,  queue );
     magma_zmfree(&u,  queue );
+    magma_zmfree(&ut,  queue );
     magma_zmfree(&w,  queue );
     magma_zmfree(&AT, queue );
     magma_zmfree(&Ah1, queue );

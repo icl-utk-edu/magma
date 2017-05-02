@@ -314,6 +314,10 @@ magma_zcumilusetup_transpose(
         CUSPARSE_OPERATION_NON_TRANSPOSE, precond->LT.num_rows,
         precond->LT.nnz, descrLT,
         precond->LT.dval, precond->LT.drow, precond->LT.dcol, precond->cuinfoLT ));
+    CHECK_CUSPARSE( cusparseZcsrsm_analysis( cusparseHandle,
+        CUSPARSE_OPERATION_NON_TRANSPOSE, precond->LT.num_rows,
+        precond->LT.nnz, descrLT,
+        precond->LT.dval, precond->LT.drow, precond->LT.dcol, precond->cuinfoLT ));
     
     CHECK_CUSPARSE( cusparseCreateMatDescr( &descrUT ));
     CHECK_CUSPARSE( cusparseSetMatType( descrUT, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
@@ -321,6 +325,10 @@ magma_zcumilusetup_transpose(
     CHECK_CUSPARSE( cusparseSetMatIndexBase( descrUT, CUSPARSE_INDEX_BASE_ZERO ));
     CHECK_CUSPARSE( cusparseSetMatFillMode( descrUT, CUSPARSE_FILL_MODE_LOWER ));
     CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( &precond->cuinfoUT ));
+    CHECK_CUSPARSE( cusparseZcsrsm_analysis( cusparseHandle,
+        CUSPARSE_OPERATION_NON_TRANSPOSE, precond->UT.num_rows,
+        precond->UT.nnz, descrUT,
+        precond->UT.dval, precond->UT.drow, precond->UT.dcol, precond->cuinfoUT ));
     CHECK_CUSPARSE( cusparseZcsrsm_analysis( cusparseHandle,
         CUSPARSE_OPERATION_NON_TRANSPOSE, precond->UT.num_rows,
         precond->UT.nnz, descrUT,
