@@ -429,6 +429,9 @@ magma_z_spmm(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
+    magma_z_matrix dA = {Magma_CSR};
+    magma_z_matrix dB = {Magma_CSR};
+    magma_z_matrix dC = {Magma_CSR};
     
     if ( A.memory_location != B.memory_location ) {
         printf("error: linear algebra objects are not located in same memory!\n");
@@ -455,10 +458,17 @@ magma_z_spmm(
     }
     // CPU case missing!
     else {
-        printf("error: CPU not yet supported.\n");
-        info = MAGMA_ERR_NOT_SUPPORTED; // TODO change to goto cleanup?
+        A.storage_type = Magma_CSR;
+        B.storage_type = Magma_CSR;
+        CHECK( magma_zmtransfer( A, &dA, Magma_CPU, Magma_DEV, queue ) );
+        CHECK( magma_zmtransfer( B, &dB, Magma_CPU, Magma_DEV, queue ) );
+        CHECK(  magma_zcuspmm( dA, dB, &dC, queue ) );
+        CHECK( magma_zmtransfer( dC, C, Magma_DEV, Magma_CPU, queue ) );
     }
     
 cleanup:
+    magma_zmfree( &dA, queue );
+    magma_zmfree( &dB, queue );
+    magma_zmfree( &dC, queue );
     return info;
 }
