@@ -39,8 +39,9 @@ zgeaxpy_kernel(
     -------
     
     This routine computes Y = alpha *  X + beta * Y on the GPU.
-    The input format is a dense matrix (vector block) stored in 
-    magma_z_matrix format.
+    The input format is magma_z_matrix. It can handle both,
+    dense matrix (vector block) and CSR matrices. For the latter,
+    it interfaces the cuSPARSE library.
     
     Arguments
     ---------
@@ -78,10 +79,24 @@ magma_zgeaxpy(
 {
     int m = X.num_rows;
     int n = X.num_cols;
-    dim3 grid( magma_ceildiv( m, BLOCK_SIZE ) );
-    magma_int_t threads = BLOCK_SIZE;
-    zgeaxpy_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
-                    ( m, n, alpha, X.dval, beta, Y->dval );
+    magma_z_matrix C={Magma_CSR};
+    
+    if( X.storage_type == Magma_DENSE && Y->storage_type == Magma_DENSE ){
+        
+        dim3 grid( magma_ceildiv( m, BLOCK_SIZE ) );
+        magma_int_t threads = BLOCK_SIZE;
+        zgeaxpy_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
+                        ( m, n, alpha, X.dval, beta, Y->dval );
+                        
+    } else if( X.storage_type == Magma_CSR && Y->storage_type == Magma_CSR ) {
+        
+        magma_zcuspaxpy( &alpha, X, &beta, *Y, &C, queue );
+        magma_zmfree( Y, queue );
+        magma_zmtransfer( C, Y, Magma_DEV, Magma_DEV, queue );
+        magma_zmfree( &C, queue );
+    } else {
+        printf("%% error: matrix addition only supported for DENSE and CSR format.\n");   
+    }
                     
     return MAGMA_SUCCESS;
 }
