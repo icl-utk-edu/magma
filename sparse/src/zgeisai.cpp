@@ -634,13 +634,13 @@ magma_zisai_l_t(
     if( precond->maxiter == 0 ){
         magma_z_spmv( MAGMA_Z_ONE, precond->LDT, b, MAGMA_Z_ZERO, *x, queue ); // SPAI
     } else if( precond->maxiter > 0 ){
-        magma_z_spmv( MAGMA_Z_ONE, precond->LDT, b, MAGMA_Z_ZERO, precond->d, queue ); // d=L^(-1)b
-        magma_z_spmv( MAGMA_Z_ONE, precond->LDT, b, MAGMA_Z_ZERO, *x, queue ); // SPAI
+        magma_z_spmv( MAGMA_Z_ONE, precond->LDT, b, MAGMA_Z_ZERO, precond->d, queue ); // d=M_L*b
+        magma_z_spmv( MAGMA_Z_ONE, precond->LDT, b, MAGMA_Z_ZERO, *x, queue ); // x = M_L*b
         for( int z=0; z<precond->maxiter; z++ ){
-            magma_z_spmv( MAGMA_Z_ONE, precond->LT, *x, MAGMA_Z_ZERO, precond->work1, queue ); // work1=b+Lb
-            magma_z_spmv( MAGMA_Z_ONE, precond->LDT, precond->work1, MAGMA_Z_ZERO, precond->work2, queue ); // x=x+L^(-1)work1
-            magma_zaxpy( b.num_rows*b.num_cols, -MAGMA_Z_ONE, precond->work2.dval, 1 , x->dval, 1, queue );        // t = t + c
-            magma_zaxpy( b.num_rows*b.num_cols, MAGMA_Z_ONE, precond->d.dval, 1 , x->dval, 1, queue );        // t = t + c
+            magma_z_spmv( MAGMA_Z_ONE, precond->LT, *x, MAGMA_Z_ZERO, precond->work1, queue ); // work1=L*M_L*b
+            magma_z_spmv( MAGMA_Z_ONE, precond->LDT, precond->work1, MAGMA_Z_ZERO, precond->work2, queue ); // work2 = M_L*L*M_L*b
+            magma_zaxpy( b.num_rows*b.num_cols, -MAGMA_Z_ONE, precond->work2.dval, 1 , x->dval, 1, queue );        // x = M_L*x -M_L*L*M_L*b
+            magma_zaxpy( b.num_rows*b.num_cols, MAGMA_Z_ONE, precond->d.dval, 1 , x->dval, 1, queue );        // x = M_L*x + M_L*b - M_L *L*M_L *b 
         }
     }
 
