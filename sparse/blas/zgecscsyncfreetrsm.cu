@@ -79,6 +79,15 @@ void sptrsm_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
         start = clock();
     }
     while (1 != d_graphInDegree[global_x_id]);
+    /*
+    // Consumer
+    int graphInDegree;
+    do {
+        //bypass Tex cache and avoid other mem optimization by nvcc/ptxas
+        asm("ld.global.u32 %0, [%1];" : "=r"(graphInDegree),"=r"(d_graphInDegree[global_x_id]) :: "memory"); 
+    }
+    while (1 != graphInDegree );
+    */
 
     for (int k = lane_id; k < rhs; k += MAGMA_CSC_SYNCFREE_WARP_SIZE)
     {
