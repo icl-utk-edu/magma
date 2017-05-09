@@ -59,6 +59,9 @@ magma_z_spmv(
     magma_int_t info = 0;
 
     magma_z_matrix x2={Magma_CSR};
+    magma_z_matrix dA={Magma_CSR};
+    magma_z_matrix dx={Magma_CSR};
+    magma_z_matrix dy={Magma_CSR};
 
     cusparseHandle_t cusparseHandle = 0;
     cusparseMatDescr_t descr = 0;
@@ -249,8 +252,17 @@ magma_z_spmv(
     }
     // CPU case missing!
     else {
-        printf("error: CPU not yet supported.\n");
-        info = MAGMA_ERR_NOT_SUPPORTED;
+        CHECK( magma_zmtransfer( x, &dx, x.memory_location, Magma_DEV, queue ));
+        CHECK( magma_zmtransfer( y, &dy, y.memory_location, Magma_DEV, queue ));
+        CHECK( magma_zmtransfer( A, &dA, A.memory_location, Magma_DEV, queue ));
+        CHECK( magma_z_spmv( alpha, dA, dx, beta, dy, queue ) );
+        magma_zmfree(&x, queue );
+        magma_zmfree(&y, queue );
+        magma_zmfree(&A, queue );
+        CHECK( magma_zmtransfer( dx, &x, dx.memory_location, Magma_CPU, queue ));
+        CHECK( magma_zmtransfer( dy, &y, dy.memory_location, Magma_CPU, queue ));
+        CHECK( magma_zmtransfer( dA, &A, dA.memory_location, Magma_CPU, queue ));
+
     }
 
 cleanup:
@@ -259,6 +271,9 @@ cleanup:
     cusparseHandle = 0;
     descr = 0;
     magma_zmfree(&x2, queue );
+    magma_zmfree(&dx, queue );
+    magma_zmfree(&dy, queue );
+    magma_zmfree(&dA, queue );
     
     return info;
 }
