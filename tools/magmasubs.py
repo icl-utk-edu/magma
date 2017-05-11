@@ -754,6 +754,8 @@ subs = {
     ('REAL',           'DOUBLE PRECISION', 'REAL',         'DOUBLE PRECISION'),
     ('REAL',           'DOUBLE PRECISION', 'COMPLEX',      'COMPLEX\*16'     ),
     ('real',           'double',           'complex',      'complex16'       ),
+    ('c_float',        'c_double',         'c_float_complex', 'c_double_complex'),
+    ('real',           'real',             'complex',      'complex'         ),
     
     # ----- constants                        
     ('\.0E',           '\.0D',             '\.0E',         '\.0D'            ),
@@ -766,6 +768,9 @@ subs = {
     + upper( lapack )  # e.g., DGETRF
     + [
     
+    # ----- Prefixes
+    ('magma_s',        'magma_d',        'magma_c',        'magma_z'         ),
+    ('magma2_s',       'magma2_d',       'magma2_c',       'magma2_z'        ),
   ], # end fortran
   
   # ------------------------------------------------------------
