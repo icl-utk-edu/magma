@@ -232,6 +232,7 @@ lapack = [
     ('slarnv',         'dlarnv',         'clarnv',         'zlarnv'          ),
     ('slarnv',         'dlarnv',         'slarnv',         'dlarnv'          ),
     ('slartg',         'dlartg',         'clartg',         'zlartg'          ),
+    ('slascl',         'dlascl',         'slascl',         'dlascl'          ),
     ('slascl',         'dlascl',         'clascl',         'zlascl'          ),
     ('slaset',         'dlaset',         'claset',         'zlaset'          ),
     ('slasrt',         'dlasrt',         'slasrt',         'dlasrt'          ),
@@ -764,8 +765,6 @@ subs = {
     + lower( lapack )  # e.g., dgetrf
     + upper( lapack )  # e.g., DGETRF
     + [
-    
-    ('SLASCL',         'DLASCL',           'SLASCL',       'DLASCL'          ),
     
   ], # end fortran
   
