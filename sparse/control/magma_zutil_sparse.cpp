@@ -177,6 +177,9 @@ magma_zparse_opts(
             else if ( strcmp("UNITROW", argv[i]) == 0 ) {
                 opts->scaling = Magma_UNITROW;
             }
+            else if ( strcmp("UNITCOL", argv[i]) == 0 ) {
+                opts->scaling = Magma_UNITCOL;
+            }
             else if ( strcmp("UNITDIAGCOL", argv[i]) == 0 ) {
                 opts->scaling = Magma_UNITDIAGCOL;
             }

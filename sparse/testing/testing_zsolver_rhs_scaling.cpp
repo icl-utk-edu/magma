@@ -50,6 +50,13 @@ int main(  int argc, char** argv )
     
     int i=1;
     TESTING_CHECK( magma_zparse_opts( argc, argv, &zopts, &i, queue ));
+    // TODO: integrate option to specify which sides diagonal matrices 
+    // of scaling factors are applied to the orginal matrix into the 
+    // command line options
+    //magma_side_t side = MagmaLeft;
+    //magma_side_t side = MagmaRight;
+    magma_side_t side = MagmaBothSides;
+    
     B.blocksize = zopts.blocksize;
     B.alignment = zopts.alignment;
 
@@ -115,8 +122,18 @@ int main(  int argc, char** argv )
         TESTING_CHECK( magma_zmtransfer( b_h, &b_org, Magma_CPU, Magma_DEV, queue ));
         
         // scale matrix
-        TESTING_CHECK( magma_zvinit( &scaling_factors, Magma_CPU, A.num_rows, 1, zero, queue ));
-        TESTING_CHECK( magma_zmscale_matrix_rhs( &A, &b_h, &scaling_factors, zopts.scaling, queue ));
+        if ( zopts.scaling != Magma_NOSCALE ) {
+            TESTING_CHECK( magma_zvinit( &scaling_factors, Magma_CPU, A.num_rows, 1, zero, queue ));
+            
+            // magma_zmscale_matrix_rhs to be deprecated
+            //TESTING_CHECK( magma_zmscale_matrix_rhs( &A, &b_h, &scaling_factors, zopts.scaling, queue ));
+            
+            TESTING_CHECK( magma_zmscale_generate( 1, &zopts.scaling, &side,
+              &A, &scaling_factors, queue ) );
+            TESTING_CHECK( magma_zmscale_apply( 1, &side,
+              &scaling_factors, &A, queue ) );
+            TESTING_CHECK( magma_zdimv( &scaling_factors, &b_h, queue ) );
+        }
         
         i++;
         tempo1 = magma_sync_wtime( queue );
@@ -141,7 +158,7 @@ int main(  int argc, char** argv )
         
         info = magma_z_solver( B_d, b, &x, &zopts, queue );
         if( info != 0 ) {
-            printf("%%error: solver returned: %s (%lld).\n",
+            printf("%% error: solver returned: %s (%lld).\n",
                 magma_strerror( info ), (long long) info );
         }
         
@@ -157,34 +174,27 @@ int main(  int argc, char** argv )
         residual = magma_dznrm2( A_org.num_rows, y_check.val, 1, queue ); 
         printf("%% original system residual check = %e\n", residual);
         
-        if ( ( zopts.scaling == Magma_UNITROWCOL ) 
-              || ( zopts.scaling == Magma_UNITDIAGCOL ) ) {
-          printf("%% rescaling computed solution for scaling %d\n", zopts.scaling);
-          //magma_z_vtransfer(scaling_factors, &scaling_factors_d, Magma_CPU, Magma_DEV, queue);
-          
-          magma_zmfree(&x_h, queue );
-          magma_z_vtransfer(x, &x_h, Magma_DEV, Magma_CPU, queue);
-          //for ( int row=0; row<A.num_rows; row++ ) {
-          //  printf("x_scaled(%d) = %.16e;\n", row+1, x_h.val[row] );
-          //}
-          
-          // look for element-wise multiplication routine in MAGMA
-          // for now perform rescaling on CPU
-          for ( int row=0; row<A.num_rows; row++ ) {
-            //printf("scaling_factors(%d) = %.16e;\n", row+1, scaling_factors.val[row] );
-            x_h.val[row] = MAGMA_Z_MUL(x_h.val[row], scaling_factors.val[row]);
-          }
-          //for ( int row=0; row<A.num_rows; row++ ) {
-          //  printf("x_rescaled(%d) = %.16e;\n", row+1, x_h.val[row] );
-          //}
-          magma_zmfree(&x, queue );
-          magma_z_vtransfer(x_h, &x, Magma_CPU, Magma_DEV, queue);
-          
-          TESTING_CHECK( magma_zvinit( &y_check, Magma_DEV, A.num_rows, 1, zero, queue ));
-          TESTING_CHECK( magma_z_spmv( one, A_org, x, zero, y_check, queue ) );
-          magma_zaxpy( A_org.num_rows, negone, b_org.val, 1, y_check.val, 1, queue );
-          residual = magma_dznrm2( A_org.num_rows, y_check.val, 1, queue ); 
-          printf("%% original system residual check = %e\n", residual);
+        if ( ( zopts.scaling != Magma_NOSCALE ) && 
+            ( ( side == MagmaRight ) // Magma_UNITROWCOL and Magma_UNITDIAGCOL to be deprecated 
+            || ( side == MagmaBothSides )
+            || ( zopts.scaling == Magma_UNITROWCOL ) 
+            || ( zopts.scaling == Magma_UNITDIAGCOL ) ) ) {
+            printf("%% rescaling computed solution for scaling %d\n", zopts.scaling);
+            
+            //magma_zmfree(&x_h, queue );
+            //magma_z_vtransfer(x, &x_h, Magma_DEV, Magma_CPU, queue);
+            
+            //TESTING_CHECK( magma_zdimv( &scaling_factors, &x_h, queue ) );
+            TESTING_CHECK( magma_zdimv( &scaling_factors, &x, queue ) );
+            
+            //magma_zmfree(&x, queue );
+            //magma_z_vtransfer(x_h, &x, Magma_CPU, Magma_DEV, queue);
+            
+            TESTING_CHECK( magma_zvinit( &y_check, Magma_DEV, A.num_rows, 1, zero, queue ));
+            TESTING_CHECK( magma_z_spmv( one, A_org, x, zero, y_check, queue ) );
+            magma_zaxpy( A_org.num_rows, negone, b_org.val, 1, y_check.val, 1, queue );
+            residual = magma_dznrm2( A_org.num_rows, y_check.val, 1, queue ); 
+            printf("%% original system residual check = %e\n", residual);
         }
         
         magma_zmfree(&x_h, queue );
