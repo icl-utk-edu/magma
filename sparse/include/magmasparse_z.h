@@ -2443,7 +2443,6 @@ magma_int_t
 magma_zgecscsyncfreetrsm_solve(
     magma_int_t             m, 
     magma_int_t             nnz,
-    magmaDoubleComplex      alpha,
     magmaDoubleComplex_ptr  dval,
     magmaIndex_ptr          dcolptr,
     magmaIndex_ptr          drowind,
