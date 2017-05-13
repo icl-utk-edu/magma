@@ -607,8 +607,9 @@ typedef enum {
     Magma_NOSCALE      = 511,
     Magma_UNITROW      = 512,
     Magma_UNITDIAG     = 513,
-    Magma_UNITROWCOL   = 514,
-    Magma_UNITDIAGCOL  = 515
+    Magma_UNITCOL      = 514,
+    Magma_UNITROWCOL   = 515, // to be deprecated
+    Magma_UNITDIAGCOL  = 516, // to be deprecated
 } magma_scale_t;
 
 
