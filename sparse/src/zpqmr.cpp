@@ -228,18 +228,22 @@ magma_zpqmr(
         magma_zaxpy( dofs, c_one, pt.dval, 1, vt.dval, 1, queue ); 
             // no precond: y = v
         //magma_zcopy( dofs, v.dval, 1, y.dval, 1, queue );
+
+            // wt = A' * q - beta' * w;
+        CHECK( magma_z_spmv( c_one, AT, q, c_zero, wt, queue ));
+        solver_par->spmv_count++;
+        
+        
+        magma_zaxpy( dofs, - MAGMA_Z_CONJ( beta ), w.dval, 1, wt.dval, 1, queue );  
+            // no precond: z = wt
+        // magma_zcopy( dofs, wt.dval, 1, z.dval, 1, queue );
+        CHECK( magma_z_applyprecond_right( MagmaTrans, A, wt, &z, precond_par, queue ));
+        
         CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, vt, &y, precond_par, queue ));
 
         rho1 = rho;      
             // rho = norm(y);
         rho = magma_zsqrt( magma_zdotc( dofs, y.dval, 1, y.dval, 1, queue ));
-            // wt = A' * q - beta' * w;
-        CHECK( magma_z_spmv( c_one, AT, q, c_zero, wt, queue ));
-        solver_par->spmv_count++;
-        magma_zaxpy( dofs, - MAGMA_Z_CONJ( beta ), w.dval, 1, wt.dval, 1, queue );  
-            // no precond: z = wt
-        // magma_zcopy( dofs, wt.dval, 1, z.dval, 1, queue );
-        CHECK( magma_z_applyprecond_right( MagmaTrans, A, wt, &z, precond_par, queue ));
 
         thet1 = thet;        
         thet = rho / (gamm * MAGMA_Z_MAKE( MAGMA_Z_ABS(beta), 0.0 ));
