@@ -1354,10 +1354,6 @@ magma_zisai_generator_regs(
     magma_diag_t diagtype,
     magma_z_matrix L,
     magma_z_matrix *M,
-    magma_index_t *sizes,
-    magma_index_t *locations,
-    magmaDoubleComplex *trisystems,
-    magmaDoubleComplex *rhs,    
     magma_queue_t queue );
 
 // #endif

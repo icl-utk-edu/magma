@@ -699,13 +699,15 @@ magma_zisai_generator_regs(
     magma_diag_t diagtype,
     magma_z_matrix L,
     magma_z_matrix *M,
-    magma_index_t *sizes,
-    magma_index_t *locations,
-    magmaDoubleComplex *trisystems,
-    magmaDoubleComplex *rhs,
     magma_queue_t queue )
 {
     magma_int_t info = 0;
+    
+//#if (CUDA_VERSION <= 6000) // this won't work, just to have something...
+//    printf( "%% error: ISAI preconditioner requires CUDA > 6.0.\n" );
+//    info = MAGMA_ERR_NOT_SUPPORTED;
+//    goto cleanup;
+//#endif
 
 #if (CUDA_VERSION >= 7000)
     magma_int_t arch = magma_getdevice_arch();
