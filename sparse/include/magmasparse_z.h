@@ -844,6 +844,22 @@ magma_zparilut_selectoneperrow(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilut_selectoneperrowthrs_lower(
+    magma_z_matrix L,
+    magma_z_matrix *A,
+    double  rtol,
+    magma_z_matrix *oneA,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilut_selectoneperrowthrs_upper(
+    magma_z_matrix L,
+    magma_z_matrix *A,
+    double  rtol,
+    magma_z_matrix *oneA,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparilut_selectonepercol(
     magma_int_t order,
     magma_z_matrix *A,

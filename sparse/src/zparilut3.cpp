@@ -186,6 +186,17 @@ magma_zparilut3setup(
         sum = sumL + sumU;
         end = magma_sync_wtime( queue ); t_nrm+=end-start;
         start = magma_sync_wtime( queue );
+        
+        
+        // alternative: select one per row ad check with the value larger the rtol*abs(diag)
+        magma_zparilut_selectoneperrowthrs_lower( L, &hL, precond->rtol, &oneL, queue );
+        magma_zparilut_selectoneperrowthrs_upper( U, &hU, precond->rtol, &oneU, queue );        
+        CHECK( magma_zmatrix_swap( &oneL, &hL, queue) );
+        CHECK( magma_zmatrix_swap( &oneU, &hU, queue) );
+        magma_zmfree( &oneL, queue );
+        magma_zmfree( &oneU, queue );
+        // end alternative
+        /*
         magma_zparilut_selectoneperrow( 1, &hL, &oneL, queue );
         magma_zparilut_selectonepercol( 1, &hU, &oneU, queue );
         CHECK( magma_zmatrix_swap( &oneL, &hL, queue) );
@@ -217,6 +228,8 @@ magma_zparilut3setup(
         }
         magma_zparilut_thrsrm( 1, &hL, &thrsL, queue );
         magma_zparilut_thrsrm( 1, &hU, &thrsU, queue );
+        
+        */
         end = magma_sync_wtime( queue ); t_selectadd+=end-start;
 
         start = magma_sync_wtime( queue );

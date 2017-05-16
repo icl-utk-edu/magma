@@ -688,17 +688,20 @@ cleanup:
     ---------
 
     @param[in]
-    order       magma_int_t
-                order==1 -> largest
-                order==0 -> smallest
+    L           magma_z_matrix
+                Current lower triangular factor.
                 
     @param[in]
     A           magma_z_matrix*
-                Matrix where elements are removed.
+                All residuals in L.
                 
+    @param[in]
+    rtol        threshold rtol
+    
+    
     @param[out]
     oneA        magma_z_matrix*
-                Matrix where elements are removed.
+                at most one per row, if larger thrs.
                 
                 
 
@@ -710,9 +713,10 @@ cleanup:
 *******************************************************************************/
 
 extern "C" magma_int_t
-magma_zparilut_selectonepercol(
-    magma_int_t order,
-    magma_z_matrix *AT,
+magma_zparilut_selectoneperrowthrs_lower(
+    magma_z_matrix L,
+    magma_z_matrix *A,
+    double  rtol,
     magma_z_matrix *oneA,
     magma_queue_t queue )
 {
@@ -720,91 +724,165 @@ magma_zparilut_selectonepercol(
     
     magma_index_t nnz_count;
     magma_z_matrix B={Magma_CSR};
-    magma_z_matrix BT={Magma_CSR};
-    magma_z_matrix A={Magma_CSR};
     double thrs = 1e-8;
-    B.num_rows = AT->num_rows;
-    B.num_cols = AT->num_cols;
-    B.nnz = AT->num_rows;
+    B.num_rows = A->num_rows;
+    B.num_cols = A->num_cols;
+    B.nnz = A->num_rows;
     B.storage_type = Magma_CSR;
     B.memory_location = Magma_CPU;
-    oneA->num_rows = AT->num_rows;
-    oneA->num_cols = AT->num_cols;
-    oneA->nnz = AT->num_rows;
+    oneA->num_rows = A->num_rows;
+    oneA->num_cols = A->num_cols;
+    oneA->nnz = A->num_rows;
     oneA->storage_type = Magma_CSR;
     oneA->memory_location = Magma_CPU;
     
-    CHECK( magma_zmtranspose( *AT, &A, queue) );
-    
-    CHECK( magma_index_malloc_cpu( &B.row, A.num_rows+1 ) );
-    CHECK( magma_index_malloc_cpu( &B.rowidx, A.num_rows) );
-    CHECK( magma_index_malloc_cpu( &B.col, A.num_rows ) );
-    CHECK( magma_zmalloc_cpu( &B.val, A.num_rows ) );
-    if( order == 1 ){
-        #pragma omp parallel for
-        for( magma_int_t row=0; row<A.num_rows; row++){
-            double max = 0.0;
-            magma_int_t el = -1;
-            for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
-                if( MAGMA_Z_ABS(A.val[i]) > max ){
-                    el = i;
-                    max = MAGMA_Z_ABS(A.val[i]);
-                }
+    CHECK( magma_index_malloc_cpu( &B.row, A->num_rows+1 ) );
+    CHECK( magma_index_malloc_cpu( &B.rowidx, A->num_rows) );
+    CHECK( magma_index_malloc_cpu( &B.col, A->num_rows ) );
+    CHECK( magma_zmalloc_cpu( &B.val, A->num_rows ) );
+ 
+    #pragma omp parallel for
+    for( magma_int_t row=0; row<A->num_rows; row++){
+        double diag_el = MAGMA_Z_ABS(L.val[L.row[row+1]-1]); 
+        // last element in this row
+        double max = 0.0;
+        magma_int_t el = -1;
+        for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
+            if( (MAGMA_Z_ABS(A->val[i]) > max) 
+                && (MAGMA_Z_ABS(A->val[i]) > diag_el*rtol) ){
+                el = i;
+                max = MAGMA_Z_ABS(A->val[i]);
             }
-            if( el > -1 ){
-                B.col[row] = A.col[el];
-                B.val[row] = A.val[el];
-                B.rowidx[row] = row;
-                B.row[row] = row;
-            } else { 
-                B.col[row] = -1;
-                B.val[row] = MAGMA_Z_ZERO;
-                B.rowidx[row] = row;
-                B.row[row] = row;
-            }
-            
         }
-        B.row[B.num_rows] = B.num_rows;
-        CHECK( magma_zparilut_thrsrm( 1, &B, &thrs, queue ) );
-    } else {
-        #pragma omp parallel for
-        for( magma_int_t row=0; row<A.num_rows; row++){
-            double min = 1e18;
-            magma_int_t el = -1;
-            for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
-                if( MAGMA_Z_ABS(A.val[i]) < min && A.col[i]!=row ){
-                        el = i;
-                        min = MAGMA_Z_ABS(A.val[i]);
-                }
-            }
-            if( el > -1 ){
-                B.col[row] = A.col[el];
-                B.val[row] = A.val[el];
-                B.rowidx[row] = row;
-                B.row[row] = row;
-            } else { 
-                B.col[row] = -1;
-                B.val[row] = MAGMA_Z_ZERO;
-                B.rowidx[row] = row;
-                B.row[row] = row;
-            }
-            
-        } 
-        B.row[B.num_rows] = B.num_rows;
-        CHECK( magma_zparilut_thrsrm( 1, &B, &thrs, queue ) );
+        if( el > -1 ){
+            B.col[row] = A->col[el];
+            B.val[row] = A->val[el];
+            B.rowidx[row] = row;
+            B.row[row] = row;
+        } else { 
+            B.col[row] = -1;
+            B.val[row] = MAGMA_Z_ZERO;
+            B.rowidx[row] = row;
+            B.row[row] = row;
+        }
+        
     }
-    
-    CHECK( magma_zmtranspose( B, &BT, queue) );
+    B.row[B.num_rows] = B.num_rows;
+    CHECK( magma_zparilut_thrsrm( 1, &B, &thrs, queue ) );
     
     // finally, swap the matrices
     // keep the copy!
-   CHECK( magma_zmatrix_swap( &BT, oneA, queue) );
+   CHECK( magma_zmatrix_swap( &B, oneA, queue) );
     
 cleanup:
-    magma_zmfree( &B, queue );
-    magma_zmfree( &A, queue );
+    // magma_zmfree( &B, queue );
     return info;
 }
+
+
+/***************************************************************************//**
+    Purpose
+    -------
+    This function takes a list of candidates with residuals, 
+    and selects the largest in every row. The output matrix only contains these
+    largest elements (respectively a zero element if there is no candidate for
+    a certain row).
+
+    Arguments
+    ---------
+
+    @param[in]
+    L           magma_z_matrix
+                Current lower triangular factor.
+                
+    @param[in]
+    A           magma_z_matrix*
+                All residuals in L.
+                
+    @param[in]
+    rtol        threshold rtol
+    
+    
+    @param[out]
+    oneA        magma_z_matrix*
+                at most one per row, if larger thrs.
+                
+                
+
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+extern "C" magma_int_t
+magma_zparilut_selectoneperrowthrs_upper(
+    magma_z_matrix U,
+    magma_z_matrix *A,
+    double  rtol,
+    magma_z_matrix *oneA,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    
+    magma_index_t nnz_count;
+    magma_z_matrix B={Magma_CSR};
+    double thrs = 1e-8;
+    B.num_rows = A->num_rows;
+    B.num_cols = A->num_cols;
+    B.nnz = A->num_rows;
+    B.storage_type = Magma_CSR;
+    B.memory_location = Magma_CPU;
+    oneA->num_rows = A->num_rows;
+    oneA->num_cols = A->num_cols;
+    oneA->nnz = A->num_rows;
+    oneA->storage_type = Magma_CSR;
+    oneA->memory_location = Magma_CPU;
+    
+    CHECK( magma_index_malloc_cpu( &B.row, A->num_rows+1 ) );
+    CHECK( magma_index_malloc_cpu( &B.rowidx, A->num_rows) );
+    CHECK( magma_index_malloc_cpu( &B.col, A->num_rows ) );
+    CHECK( magma_zmalloc_cpu( &B.val, A->num_rows ) );
+ 
+    #pragma omp parallel for
+    for( magma_int_t row=0; row<A->num_rows; row++){
+        double diag_el = MAGMA_Z_ABS(U.val[U.row[row]]); 
+        // first element in this row
+        double max = 0.0;
+        magma_int_t el = -1;
+        for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
+            if( (MAGMA_Z_ABS(A->val[i]) > max) 
+                && (MAGMA_Z_ABS(A->val[i]) > diag_el*rtol) ){
+                el = i;
+                max = MAGMA_Z_ABS(A->val[i]);
+            }
+        }
+        if( el > -1 ){
+            B.col[row] = A->col[el];
+            B.val[row] = A->val[el];
+            B.rowidx[row] = row;
+            B.row[row] = row;
+        } else { 
+            B.col[row] = -1;
+            B.val[row] = MAGMA_Z_ZERO;
+            B.rowidx[row] = row;
+            B.row[row] = row;
+        }
+    }
+    B.row[B.num_rows] = B.num_rows;
+    CHECK( magma_zparilut_thrsrm( 1, &B, &thrs, queue ) );
+    
+    // finally, swap the matrices
+    // keep the copy!
+   CHECK( magma_zmatrix_swap( &B, oneA, queue) );
+cleanup:
+    // magma_zmfree( &B, queue );
+    return info;
+}
+
+
+
 
 
 
@@ -5826,8 +5904,8 @@ magma_zparilut_set_thrs_randomselect_approx(
     magma_int_t num_threads = 1;
     magma_int_t el_per_block;
     magma_int_t num_rm_loc;
-    magmaDoubleComplex *dthrs=NULL;
-    magmaDoubleComplex *val=NULL;
+    magmaDoubleComplex *dthrs;
+    magmaDoubleComplex *val;
     
 
     if( LU->nnz <= 680){
@@ -5845,7 +5923,7 @@ magma_zparilut_set_thrs_randomselect_approx(
         {
             num_threads = omp_get_max_threads();
         }
-        num_threads = 680;
+        num_threads = 272;
         CHECK( magma_zmalloc_cpu( &dthrs, num_threads ));
         
         
@@ -5853,7 +5931,7 @@ magma_zparilut_set_thrs_randomselect_approx(
         
         #pragma omp parallel for
         for( magma_int_t i=0; i<num_threads; i++ ){
-            magma_int_t start = min((i)*el_per_block,LU->nnz);
+            magma_int_t start = min(i*el_per_block, size);
             magma_int_t end = min((i+1)*el_per_block,LU->nnz);
             magma_int_t loc_nz = end-start;
             magma_int_t loc_rm = (int) (num_rm)/num_threads;
@@ -5861,16 +5939,14 @@ magma_zparilut_set_thrs_randomselect_approx(
                 loc_rm = (int) (loc_nz * num_rm)/size;
             }
             if( loc_nz > loc_rm ){
-                //printf(" problem %i: %d < %dL: start:%d end:%d\n", i, loc_nz, loc_rm, start, end );
-                // assert( loc_nz > loc_rm );
-                if( order == 0 ){
-                    magma_zselectrandom( val+start, loc_nz, loc_rm, queue );
-                    dthrs[i] = val[start+loc_rm];
-                } else {
-                     magma_zselectrandom( val+start, loc_nz, loc_nz-loc_rm, queue );
-                     dthrs[i] = val[start+loc_nz-loc_rm];  
-                }
+            if( order == 0 ){
+                magma_zselectrandom( val+start, loc_nz, loc_rm, queue );
+                dthrs[i] = val[start+loc_rm];
+            } else {
+                 magma_zselectrandom( val+start, loc_nz, loc_nz-loc_rm, queue );
+                dthrs[i] = val[start+loc_nz-loc_rm];  
             }
+	    }
             
         }
         

@@ -87,7 +87,7 @@ int main(  int argc, char** argv )
         //magma_zvinit( &x, Magma_DEV, A.num_cols, 1, one, queue );
         //magma_z_spmv( one, dB, x, zero, b, queue );                 //  b = A x
         //magma_zmfree(&x, queue );
-        TESTING_CHECK( magma_zvinit( &x, Magma_DEV, A.num_cols, 1, zero, queue ));
+        TESTING_CHECK( magma_zvinit_rand( &x, Magma_DEV, A.num_cols, 1, queue ));
         
         info = magma_z_solver( dB, b, &x, &zopts, queue );
         if( info != 0 ) {
