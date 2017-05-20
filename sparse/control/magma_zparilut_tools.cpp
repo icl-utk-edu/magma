@@ -692,6 +692,10 @@ cleanup:
                 Current lower triangular factor.
                 
     @param[in]
+    U           magma_z_matrix
+                Current upper triangular factor.
+                
+    @param[in]
     A           magma_z_matrix*
                 All residuals in L.
                 
@@ -715,6 +719,7 @@ cleanup:
 extern "C" magma_int_t
 magma_zparilut_selectoneperrowthrs_lower(
     magma_z_matrix L,
+    magma_z_matrix U,
     magma_z_matrix *A,
     double  rtol,
     magma_z_matrix *oneA,
@@ -743,7 +748,7 @@ magma_zparilut_selectoneperrowthrs_lower(
  
     #pragma omp parallel for
     for( magma_int_t row=0; row<A->num_rows; row++){
-        double diag_el = MAGMA_Z_ABS(L.val[L.row[row+1]-1]); 
+        double diag_el = MAGMA_Z_ABS(U.val[U.row[row]]); 
         // last element in this row
         double max = 0.0;
         magma_int_t el = -1;
@@ -796,6 +801,10 @@ cleanup:
                 Current lower triangular factor.
                 
     @param[in]
+    U           magma_z_matrix
+                Current upper triangular factor.
+                
+    @param[in]
     A           magma_z_matrix*
                 All residuals in L.
                 
@@ -818,6 +827,7 @@ cleanup:
 
 extern "C" magma_int_t
 magma_zparilut_selectoneperrowthrs_upper(
+    magma_z_matrix L,
     magma_z_matrix U,
     magma_z_matrix *A,
     double  rtol,

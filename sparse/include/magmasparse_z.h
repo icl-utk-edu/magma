@@ -846,6 +846,7 @@ magma_zparilut_selectoneperrow(
 magma_int_t
 magma_zparilut_selectoneperrowthrs_lower(
     magma_z_matrix L,
+    magma_z_matrix U,
     magma_z_matrix *A,
     double  rtol,
     magma_z_matrix *oneA,
@@ -854,6 +855,7 @@ magma_zparilut_selectoneperrowthrs_lower(
 magma_int_t
 magma_zparilut_selectoneperrowthrs_upper(
     magma_z_matrix L,
+    magma_z_matrix U,
     magma_z_matrix *A,
     double  rtol,
     magma_z_matrix *oneA,

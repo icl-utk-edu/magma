@@ -189,8 +189,8 @@ magma_zparilut3setup(
         
         
         // alternative: select one per row ad check with the value larger the rtol*abs(diag)
-        magma_zparilut_selectoneperrowthrs_lower( L, &hL, precond->rtol, &oneL, queue );
-        magma_zparilut_selectoneperrowthrs_upper( U, &hU, precond->rtol, &oneU, queue );        
+        magma_zparilut_selectoneperrowthrs_lower( L, U, &hL, precond->rtol, &oneL, queue );
+        magma_zparilut_selectoneperrowthrs_upper( U, U, &hU, precond->rtol, &oneU, queue );        
         CHECK( magma_zmatrix_swap( &oneL, &hL, queue) );
         CHECK( magma_zmatrix_swap( &oneU, &hU, queue) );
         magma_zmfree( &oneL, queue );
@@ -313,8 +313,8 @@ magma_zparilut3setup(
         }
         
 
-        sprintf(filenameL, "LT_rm%d_step%d.m", (int)(precond->rtol*100), iters+1);
-        sprintf(filenameU, "UT_rm%d_step%d.m", (int)(precond->rtol*100), iters+1);
+        sprintf(filenameL, "LT_rm%03d_step%d.m", (int)(precond->rtol*1000), iters+1);
+        sprintf(filenameU, "UT_rm%03d_step%d.m", (int)(precond->rtol*1000), iters+1);
 
         // write to file
         // CHECK( magma_zwrite_csrtomtx( L, filenameL, queue ));
