@@ -749,7 +749,7 @@ magma_zparilut_selectoneperrowthrs_lower(
         magma_int_t el = -1;
         for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
             if( (MAGMA_Z_ABS(A->val[i]) > max) 
-                && (MAGMA_Z_ABS(A->val[i]) > diag_el*rtol) ){
+                && (MAGMA_Z_ABS(A->val[i]) > rtol / diag_el) ){
                 el = i;
                 max = MAGMA_Z_ABS(A->val[i]);
             }
@@ -853,7 +853,7 @@ magma_zparilut_selectoneperrowthrs_upper(
         magma_int_t el = -1;
         for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
             if( (MAGMA_Z_ABS(A->val[i]) > max) 
-                && (MAGMA_Z_ABS(A->val[i]) > diag_el*rtol) ){
+                && (MAGMA_Z_ABS(A->val[i]) > rtol / diag_el) ){
                 el = i;
                 max = MAGMA_Z_ABS(A->val[i]);
             }
