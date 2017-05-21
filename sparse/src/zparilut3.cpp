@@ -202,7 +202,7 @@ magma_zparilut3setup(
         magma_zparilut_selectoneperrow( 1, &hU, &oneU, queue );
         CHECK( magma_zmatrix_swap( &oneL, &hL, queue) );
         CHECK( magma_zmatrix_swap( &oneU, &hU, queue) );
-        /*
+        
         // use only a subset of the candidates
         magma_zmfree( &oneL, queue );
         magma_zmfree( &oneU, queue );
@@ -232,7 +232,7 @@ magma_zparilut3setup(
         magma_zparilut_thrsrm( 1, &hL, &thrsL, queue );
         magma_zparilut_thrsrm( 1, &hU, &thrsU, queue );
         
-        */
+        
         end = magma_sync_wtime( queue ); t_selectadd+=end-start;
 
         start = magma_sync_wtime( queue );
