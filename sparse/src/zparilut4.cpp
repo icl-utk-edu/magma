@@ -150,7 +150,6 @@ magma_zparilut3setup(
     t_rm=0.0; t_add=0.0; t_res=0.0; t_sweep1=0.0; t_sweep2=0.0; t_cand=0.0;
                         t_transpose1=0.0; t_transpose2=0.0; t_selectrm=0.0;
                         t_selectadd=0.0; t_nrm=0.0; t_total = 0.0;
-printf("check1\n");
      
         num_rmL = max( (L_new.nnz-L0nnz*(1+precond->atol*(iters+1)/precond->sweeps)), 0 );
         num_rmU = max( (U_new.nnz-U0nnz*(1+precond->atol*(iters+1)/precond->sweeps)), 0 );
@@ -159,7 +158,6 @@ printf("check1\n");
         // magma_free_cpu( UT.list ); UT.list = NULL;
         // CHECK( magma_zparilut_create_collinkedlist( U, &UT, queue) );
         end = magma_sync_wtime( queue ); t_transpose1+=end-start;
-           printf("check2\n");
         start = magma_sync_wtime( queue );
         magma_zmfree(&UT, queue );
         magma_zmtranspose(U, &UT, queue );
@@ -172,12 +170,9 @@ printf("check1\n");
         magma_zmatrix_addrowindex( &hU, queue );
         end = magma_sync_wtime( queue ); t_cand=+end-start;
         start = magma_sync_wtime( queue );
-           printf("check3\n");
-           magma_z_mvisu(hL, queue);
-            magma_z_mvisu(hU, queue);
         end = magma_sync_wtime( queue ); t_transpose1+=end-start;
         start = magma_sync_wtime( queue );
-        magma_zparilut_residuals( hA, L, U, &hL, queue );printf("check3\n");
+        magma_zparilut_residuals( hA, L, U, &hL, queue );
         magma_zparilut_residuals_transpose( hA, L, U, &hU, queue );
         end = magma_sync_wtime( queue ); t_res=+end-start;
         start = magma_sync_wtime( queue );
@@ -186,7 +181,6 @@ printf("check1\n");
         sum = sumL + sumU;
         end = magma_sync_wtime( queue ); t_nrm+=end-start;
         start = magma_sync_wtime( queue );
-           printf("check4\n");
         
         // alternative: select one per row ad check with the value larger the rtol*abs(diag)
         /*
@@ -234,7 +228,6 @@ printf("check1\n");
         
         */
         end = magma_sync_wtime( queue ); t_selectadd+=end-start;
-   printf("check5\n");
         start = magma_sync_wtime( queue );
         CHECK( magma_zmatrix_cup(  L, hL, &L_new, queue ) );
         CHECK( magma_zmatrix_cup(  U, hU, &U_new, queue ) );
@@ -257,7 +250,6 @@ printf("check1\n");
         // pre-select: ignore the diagonal entries
         magma_zparilut_preselect( 0, &L_new, &oneL, queue );
         magma_zparilut_preselect( 1, &U_new, &oneU, queue );
-           printf("check6\n");
         //#pragma omp parallel
         {
           //  magma_int_t id = omp_get_thread_num();
@@ -290,7 +282,6 @@ printf("check1\n");
         magma_zmfree( &L_new, queue );
         magma_zmfree( &U_new, queue );
         end = magma_sync_wtime( queue ); t_rm=end-start;
-   printf("check7\n");
         
         start = magma_sync_wtime( queue );
         // magma_free_cpu( UT.row ); UT.row = NULL;
