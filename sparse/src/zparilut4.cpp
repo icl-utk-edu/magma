@@ -138,7 +138,6 @@ magma_zparilut3setup(
     //magma_free_cpu( UT.row ); UT.row = NULL;
     //magma_free_cpu( UT.list ); UT.list = NULL;
     //CHECK( magma_zparilut_create_collinkedlist( U, &UT, queue) );
-   printf("check1\n");
 
     if (timing == 1) {
         printf("performance_%d = [\n%%iter L.nnz U.nnz    ILU-Norm     candidat  resid     ILU-norm  selectad  add       transp1   sweep1    selectrm  remove    sweep2    transp2   total       accum\n", (int) num_threads);
@@ -191,8 +190,8 @@ magma_zparilut3setup(
         magma_zmfree( &oneU, queue );
         // end alternative
         */
-        // magma_zparilut_selecttwoperrow( 1, &hL, &oneL, queue );
-        // magma_zparilut_selecttwoperrow( 1, &hU, &oneU, queue );
+         magma_zparilut_selecttwoperrow( 1, &hL, &oneL, queue );
+         magma_zparilut_selecttwoperrow( 1, &hU, &oneU, queue );
         // CHECK( magma_zmatrix_swap( &oneL, &hL, queue) );
         // CHECK( magma_zmatrix_swap( &oneU, &hU, queue) );
         /*
