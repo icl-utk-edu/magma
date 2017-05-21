@@ -162,7 +162,6 @@ magma_zparilut3setup(
         magma_zmfree(&UT, queue );
         magma_zmtranspose(U, &UT, queue );
         magma_zparilut_candidates( L0, U0, L, UT, &hL, &hU, queue );
-        magma_z_mvisu(hU, queue);
         magma_zmtranspose(hU, &oneU, queue);
         magma_zmfree(&hU, queue );
         CHECK( magma_zmatrix_swap( &oneU, &hU, queue) );
