@@ -844,6 +844,13 @@ magma_zparilut_selectoneperrow(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilut_selecttwoperrow(
+    magma_int_t order,
+    magma_z_matrix *A,
+    magma_z_matrix *oneA,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparilut_selectoneperrowthrs_lower(
     magma_z_matrix L,
     magma_z_matrix U,
@@ -994,6 +1001,14 @@ magma_zparilut_residuals(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilut_residuals_transpose(
+    magma_z_matrix A,
+    magma_z_matrix L,
+    magma_z_matrix U,
+    magma_z_matrix *L_new,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparilut_residuals_semilinked(
     magma_z_matrix A,
     magma_z_matrix L,
@@ -1098,6 +1113,17 @@ magma_zparilut_candidates(
     magma_z_matrix U0,
     magma_z_matrix L,
     magma_z_matrix U,
+    magma_z_matrix *L_new,
+    magma_z_matrix *U_new,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilut_candidates_semilinked(
+    magma_z_matrix L0,
+    magma_z_matrix U0,
+    magma_z_matrix L,
+    magma_z_matrix U,
+    magma_z_matrix UT,
     magma_z_matrix *L_new,
     magma_z_matrix *U_new,
     magma_queue_t queue );
