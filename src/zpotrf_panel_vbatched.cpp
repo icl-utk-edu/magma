@@ -11,7 +11,6 @@
        @precisions normal z -> s d c
 */
 #include "magma_internal.h"
-#include <cublas_v2.h>
 #define PRECISION_z
 
 #include "batched_kernel_param.h"

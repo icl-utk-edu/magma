@@ -291,7 +291,8 @@ extern "C" magma_int_t
 magma_zpotrf_batched(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex **dA_array, magma_int_t ldda,
-    magma_int_t *info_array,  magma_int_t batchCount, magma_queue_t queue)
+    magma_int_t *info_array,  magma_int_t batchCount, 
+    magma_queue_t queue)
 {
     cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
     magma_int_t arginfo = 0;

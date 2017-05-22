@@ -28,9 +28,6 @@ magma_zpotrf_lg_vbatched(
     magma_int_t j, k;
     magma_int_t nb = POTRF_NB;
     
-    cublasHandle_t myhandle;
-    cublasCreate_v2(&myhandle);
-
     // aux integer vector 
     magma_int_t *njvec=NULL; 
     magma_int_t *ibvec=NULL;
@@ -225,7 +222,6 @@ fin:
         magma_queue_destroy( queues[k] );
     }
 
-    cublasDestroy_v2(myhandle);
     magma_free(dA_displ);
     magma_free(dW0_displ);
     magma_free(dW1_displ);
