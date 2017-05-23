@@ -12,13 +12,15 @@ complex(c_double_complex), parameter :: zdummy = 0
 integer(c_int),            parameter :: idummy = 0
 type(c_ptr),               parameter :: ptr_dummy = c_null_ptr
 
+!! Intel ifort chokes on c_sizeof here, so use extension sizeof
+!! see https://software.intel.com/en-us/forums/intel-visual-fortran-compiler-for-windows/topic/495001
 integer(c_size_t), parameter :: &
-    sizeof_real      = c_sizeof(sdummy), &
-    sizeof_double    = c_sizeof(ddummy), &
-    sizeof_complex   = c_sizeof(cdummy), &
-    sizeof_complex16 = c_sizeof(zdummy), &
-    sizeof_int       = c_sizeof(idummy), &
-    sizeof_ptr       = c_sizeof(ptr_dummy)
+    sizeof_real      = sizeof(sdummy), &
+    sizeof_double    = sizeof(ddummy), &
+    sizeof_complex   = sizeof(cdummy), &
+    sizeof_complex16 = sizeof(zdummy), &
+    sizeof_int       = sizeof(idummy), &
+    sizeof_ptr       = sizeof(ptr_dummy)
 
 
 !! =============================================================================
@@ -249,6 +251,7 @@ contains
 
     !! -------------------------------------------------------------------------
     !! set/get wrappers
+    !! matrices & vectors of integers
     subroutine magma_isetmatrix( &
         m, n, hA_src, lda, dB_dst, ldb, queue )
         use iso_c_binding
@@ -283,7 +286,7 @@ contains
         n, hx_src, incx, dy_dst, incy, queue )
         use iso_c_binding
         integer(c_int), value  :: n, incx, incy
-        integer(c_int), target :: hx_src(incx,*)
+        integer(c_int), target :: hx_src(*)
         type(c_ptr),    value  :: dy_dst
         type(c_ptr),    value  :: queue
         
@@ -299,12 +302,75 @@ contains
         use iso_c_binding
         integer(c_int), value  :: n, incx, incy
         type(c_ptr),    value  :: dx_src
-        integer(c_int), target :: hy_dst(incy,*)
+        integer(c_int), target :: hy_dst(*)
         type(c_ptr),    value  :: queue
         
         call magma_getvector_internal( &
                 n, int(sizeof_int), dx_src, incx, c_loc(hy_dst), incy, queue, &
                 "magma_igetvector" // c_null_char, &
+                __FILE__ // c_null_char, &
+                __LINE__ )
+    end subroutine
+
+    !! -------------------------------------------------------------------------
+    !! set/get wrappers
+    !! matrices & vectors of c_ptr pointers
+    subroutine magma_psetmatrix( &
+        m, n, hA_src, lda, dB_dst, ldb, queue )
+        use iso_c_binding
+        integer(c_int), value  :: m, n, lda, ldb
+        type(c_ptr),    target :: hA_src(lda,*)
+        type(c_ptr),    value  :: dB_dst
+        type(c_ptr),    value  :: queue
+        
+        call magma_setmatrix_internal( &
+                m, n, int(sizeof_ptr), c_loc(hA_src), lda, dB_dst, ldb, queue, &
+                "magma_psetmatrix" // c_null_char, &
+                __FILE__ // c_null_char, &
+                __LINE__ )
+    end subroutine
+
+    subroutine magma_pgetmatrix( &
+        m, n, dA_src, lda, hB_dst, ldb, queue )
+        use iso_c_binding
+        integer(c_int), value  :: m, n, lda, ldb
+        type(c_ptr),    value  :: dA_src
+        type(c_ptr),    target :: hB_dst(ldb,*)
+        type(c_ptr),    value  :: queue
+        
+        call magma_getmatrix_internal( &
+                m, n, int(sizeof_ptr), dA_src, lda, c_loc(hB_dst), ldb, queue, &
+                "magma_pgetmatrix" // c_null_char, &
+                __FILE__ // c_null_char, &
+                __LINE__ )
+    end subroutine
+    
+    subroutine magma_psetvector( &
+        n, hx_src, incx, dy_dst, incy, queue )
+        use iso_c_binding
+        integer(c_int), value  :: n, incx, incy
+        type(c_ptr),    target :: hx_src(*)
+        type(c_ptr),    value  :: dy_dst
+        type(c_ptr),    value  :: queue
+        
+        call magma_setvector_internal( &
+                n, int(sizeof_ptr), c_loc(hx_src), incx, dy_dst, incy, queue, &
+                "magma_psetvector" // c_null_char, &
+                __FILE__ // c_null_char, &
+                __LINE__ )
+    end subroutine
+
+    subroutine magma_pgetvector( &
+        n, dx_src, incx, hy_dst, incy, queue )
+        use iso_c_binding
+        integer(c_int), value  :: n, incx, incy
+        type(c_ptr),    value  :: dx_src
+        type(c_ptr),    target :: hy_dst(*)
+        type(c_ptr),    value  :: queue
+        
+        call magma_getvector_internal( &
+                n, int(sizeof_ptr), dx_src, incx, c_loc(hy_dst), incy, queue, &
+                "magma_pgetvector" // c_null_char, &
                 __FILE__ // c_null_char, &
                 __LINE__ )
     end subroutine

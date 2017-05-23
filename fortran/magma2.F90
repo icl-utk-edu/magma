@@ -111,9 +111,10 @@ interface
         integer(c_int), value :: dev
     end subroutine
 
-    integer(c_size_t) function magma_mem_size() &
+    integer(c_size_t) function magma_mem_size( queue ) &
     bind(C, name="magma_mem_size")
         use iso_c_binding
+        type(c_ptr), value :: queue
     end function
 
     !! -------------------------------------------------------------------------

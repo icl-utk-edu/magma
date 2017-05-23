@@ -85,7 +85,7 @@ subroutine test_aux( queue )
     call magma_get_device( dev )
     print "(a,i2)", "get_device", dev
     
-    mem = magma_mem_size()
+    mem = magma_mem_size( queue )
     print "(a,i16,a,i16,a)", "mem_size", mem, " bytes", mem/1024/1024, " MiB"
     print *
     
@@ -140,9 +140,9 @@ subroutine test_blas_lapack( queue )
     print "(a)", "C ="
     call print_matrix( C )
     
-    info = magma_dmalloc( dA, int(lda*k, c_size_t) )
-    info = magma_dmalloc( dB, int(ldb*n, c_size_t) )
-    info = magma_dmalloc( dC, int(ldc*n, c_size_t) )
+    info = magma_dmalloc( dA, int(lda, c_size_t)*k )
+    info = magma_dmalloc( dB, int(ldb, c_size_t)*n )
+    info = magma_dmalloc( dC, int(ldc, c_size_t)*n )
     print "(a,z16)", "malloc(dA)", dA
     print "(a,z16)", "malloc(dB)", dB
     print "(a,z16)", "malloc(dC)", dC
@@ -314,7 +314,8 @@ subroutine test_batched( queue )
     do b = 1, batchcount
         do j = 1, n
             do i = 1, n
-                A(i,j,b) = rand() + b
+                call random_number( A(i,j,b) )
+                A(i,j,b) = A(i,j,b) + b
             enddo
         enddo
     enddo
@@ -331,8 +332,8 @@ subroutine test_batched( queue )
         A_array(b)    = magma_doffset_2d( dA, n, 1, (b-1)*n + 1 )  !! = dA + (b-1)*n*n*sizeof_double
         ipiv_array(b) = magma_ioffset_1d( dipiv, 1, (b-1)*n + 1 )  !! = dipiv + (b-1)*n*sizeof_int
     enddo
-    call magma_setvector( batchcount, int(sizeof_ptr),    A_array, 1,    dA_array, 1, queue )
-    call magma_setvector( batchcount, int(sizeof_ptr), ipiv_array, 1, dipiv_array, 1, queue )
+    call magma_psetvector( batchcount,    A_array, 1,    dA_array, 1, queue )
+    call magma_psetvector( batchcount, ipiv_array, 1, dipiv_array, 1, queue )
     
     print "(a,i20)", "dA", dA
     print "(a,i4,a)", "A_array (first should match dA, rest should be n * n * sizeof(double) = ", &
