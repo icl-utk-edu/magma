@@ -111,6 +111,8 @@ void magma_assert( bool condition, const char* msg, ... );
 
 void magma_assert_warn( bool condition, const char* msg, ... );
 
+void magma_flush_cache( size_t cache_size );
+
 #define MAX_NTEST 1050
 
 typedef enum {
@@ -160,6 +162,7 @@ public:
     
     // scalars
     magma_int_t device;
+    magma_int_t cache;
     magma_int_t align;
     magma_int_t nb;
     magma_int_t nrhs;

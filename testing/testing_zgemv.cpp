@@ -101,8 +101,8 @@ int main(int argc, char **argv)
             TESTING_CHECK( magma_zmalloc_cpu( &Ymagma,  sizeY ));
             
             TESTING_CHECK( magma_zmalloc( &dA, ldda*N ));
-            TESTING_CHECK( magma_zmalloc( &dX, sizeX ));
-            TESTING_CHECK( magma_zmalloc( &dY, sizeY ));
+            TESTING_CHECK( magma_zmalloc( &dX, sizeX  ));
+            TESTING_CHECK( magma_zmalloc( &dY, sizeY  ));
             
             /* Initialize the matrix */
             lapackf77_zlarnv( &ione, ISEED, &sizeA, A );
@@ -121,6 +121,7 @@ int main(int argc, char **argv)
             magma_zsetvector( Xm, X, incx, dX(0), incx, opts.queue );
             magma_zsetvector( Ym, Y, incy, dY(0), incy, opts.queue );
             
+            magma_flush_cache( opts.cache );
             dev_time = magma_sync_wtime( opts.queue );
             magma_zgemv( opts.transA, M, N,
                          alpha, dA(0,0), ldda,
@@ -137,6 +138,7 @@ int main(int argc, char **argv)
             #ifdef HAVE_CUBLAS
                 magma_zsetvector( Ym, Y, incy, dY(0), incy, opts.queue );
                 
+                magma_flush_cache( opts.cache );
                 magma_time = magma_sync_wtime( opts.queue );
                 magmablas_zgemv( opts.transA, M, N,
                                  alpha, dA(0,0), ldda,
@@ -151,6 +153,7 @@ int main(int argc, char **argv)
             /* =====================================================================
                Performs operation using CPU BLAS
                =================================================================== */
+            magma_flush_cache( opts.cache );
             cpu_time = magma_wtime();
             blasf77_zgemv( lapack_trans_const(opts.transA), &M, &N,
                            &alpha, A, &lda,

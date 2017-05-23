@@ -19,6 +19,7 @@ hdr += \
 # ----------
 # BLAS and auxiliary
 testing_src += \
+	$(cdir)/testing_zaxpy.cpp	\
 	$(cdir)/testing_zgemm.cpp	\
 	$(cdir)/testing_zgemv.cpp	\
 	$(cdir)/testing_zhemv.cpp	\

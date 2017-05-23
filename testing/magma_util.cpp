@@ -20,8 +20,14 @@
 #include <sys/stat.h>  // fchmod
 #endif
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "magma_v2.h"
 #include "testings.h"
+
+#include "../control/magma_threadsetting.h"  // internal header
 
 // --------------------
 // global variable
@@ -153,6 +159,7 @@ const char *usage =
 "\n"
 "The following options apply to only some routines.\n"
 "  --batch x        number of matrices for the batched routines, default 1000.\n"
+"  --cache x        cache size to flush, in MiB, default 2 MiB * NUM_THREADS.\n"
 "  --nb x           Block size, default set automatically.\n"
 "  --nrhs x         Number of right hand sides, default 1.\n"
 "  --nqueue x       Number of device queues, default 1.\n"
@@ -201,9 +208,12 @@ const char *usage =
 // constructor fills in default values
 magma_opts::magma_opts( magma_opts_t flag )
 {
+    int nt = magma_get_lapack_numthreads();
+    
     // fill in default values
     this->batchcount = 300;
     this->device   = 0;
+    this->cache    = 2*1024*1024 * nt;  // assume 2 MiB per core
     this->align    = 32;
     this->nb       = 0;  // auto
     this->nrhs     = 1;
@@ -384,6 +394,12 @@ void magma_opts::parse_opts( int argc, char** argv )
             this->align = atoi( argv[++i] );
             magma_assert( this->align >= 1 && this->align <= 4096,
                           "error: --align %s is invalid; ensure align in [1,4096].\n", argv[i] );
+        }
+        else if ( strcmp("--cache", argv[i]) == 0 && i+1 < argc ) {
+            double tmp = atof( argv[++i] );
+            magma_assert( tmp >= 1 && tmp <= 1024,
+                          "error: --cache %s is invalid; ensure cache in [1,1024].\n", argv[i] );
+            this->cache = magma_int_t( tmp * 1024 * 1024 );
         }
         else if ( strcmp("--nrhs",    argv[i]) == 0 && i+1 < argc ) {
             this->nrhs = atoi( argv[++i] );
@@ -715,4 +731,36 @@ void flops_init()
                  PAPI_strerror(err), err );
     }
     #endif  // HAVE_PAPI
+}
+
+
+// -----------------------------------------------------------------------------
+// Flushes cache by allocating buffer of 2*cache size, and writing it in parallel.
+void magma_flush_cache( size_t cache_size )
+{
+    unsigned char* buf = (unsigned char*) malloc( 2 * cache_size );
+    
+    int nthread = 1;
+    #pragma omp parallel
+    #pragma omp master
+    {
+        #ifdef _OPENMP
+        nthread = omp_get_num_threads();
+        #endif
+    }
+    
+    size_t per_core = 2 * cache_size / nthread;
+    
+    #pragma omp parallel
+    {
+        int tid = 0;
+        #ifdef _OPENMP
+        tid = omp_get_thread_num();
+        #endif
+        for (size_t i = tid * per_core; i < (tid + 1) * per_core; ++i) {
+            buf[i] = i % 256;
+        }
+    }
+    
+    free( buf );
 }

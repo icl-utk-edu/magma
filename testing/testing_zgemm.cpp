@@ -148,6 +148,7 @@ int main( int argc, char** argv)
             #ifdef HAVE_CUBLAS
                 magma_zsetmatrix( M, N, hC, ldc, dC, lddc, opts.queue );
                 
+                magma_flush_cache( opts.cache );
                 magma_time = magma_sync_wtime( opts.queue );
                 magmablas_zgemm( opts.transA, opts.transB, M, N, K,
                                  alpha, dA, ldda,
@@ -165,6 +166,7 @@ int main( int argc, char** argv)
                =================================================================== */
             magma_zsetmatrix( M, N, hC, ldc, dC(0,0), lddc, opts.queue );
             
+            magma_flush_cache( opts.cache );
             dev_time = magma_sync_wtime( opts.queue );
             magma_zgemm( opts.transA, opts.transB, M, N, K,
                          alpha, dA(0,0), ldda,
@@ -179,6 +181,7 @@ int main( int argc, char** argv)
                Performs operation using CPU BLAS
                =================================================================== */
             if ( opts.lapack ) {
+                magma_flush_cache( opts.cache );
                 cpu_time = magma_wtime();
                 blasf77_zgemm( lapack_trans_const(opts.transA), lapack_trans_const(opts.transB), &M, &N, &K,
                                &alpha, hA, &lda,
