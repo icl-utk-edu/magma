@@ -96,9 +96,9 @@ magma_z_spmv(
                 CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
                 CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
                 
-                cusparseZcsrmv_mp( cusparseHandle,CUSPARSE_OPERATION_NON_TRANSPOSE,
+                CHECK_CUSPARSE( cusparseZcsrmv( cusparseHandle,CUSPARSE_OPERATION_NON_TRANSPOSE,
                               A.num_rows, A.num_cols, A.nnz, &alpha, descr,
-                              A.dval, A.drow, A.dcol, x.dval, &beta, y.dval );
+                              A.dval, A.drow, A.dcol, x.dval, &beta, y.dval ) );
             }
             else if ( A.storage_type == Magma_CSC )
             {
