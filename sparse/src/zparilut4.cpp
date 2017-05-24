@@ -155,18 +155,21 @@ magma_zparilut3setup(
         // magma_free_cpu( UT.row ); UT.row = NULL;
         // magma_free_cpu( UT.list ); UT.list = NULL;
         // CHECK( magma_zparilut_create_collinkedlist( U, &UT, queue) );
-        end = magma_sync_wtime( queue ); t_transpose1+=end-start;
         start = magma_sync_wtime( queue );
         magma_zmfree(&UT, queue );
-        magma_zmtranspose(U, &UT, queue );
+        magma_zparilut_transpose( U, &UT, queue );
+        end = magma_sync_wtime( queue ); t_transpose1+=end-start;
+        start = magma_sync_wtime( queue );
         magma_zparilut_candidates( L0, U0, L, UT, &hL, &hU, queue );
-        magma_zmtranspose(hU, &oneU, queue);
+        end = magma_sync_wtime( queue ); t_cand=+end-start;
+        start = magma_sync_wtime( queue );
+        magma_zparilut_transpose( hU, &oneU, queue );
         magma_zmfree(&hU, queue );
         magma_zmfree(&UT, queue );
         CHECK( magma_zmatrix_swap( &oneU, &hU, queue) );
         magma_zmfree(&oneU, queue );
         magma_zmatrix_addrowindex( &hU, queue );
-        end = magma_sync_wtime( queue ); t_cand=+end-start;
+        end = magma_sync_wtime( queue ); t_transpose2+=end-start;
         
         
         start = magma_sync_wtime( queue );
