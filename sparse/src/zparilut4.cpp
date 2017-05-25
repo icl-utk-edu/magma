@@ -157,6 +157,7 @@ magma_zparilut3setup(
         // CHECK( magma_zparilut_create_collinkedlist( U, &UT, queue) );
         start = magma_sync_wtime( queue );
         magma_zmfree(&UT, queue );
+        //magma_zmtransposestruct_cpu( U, &UT, queue );
         magma_zparilut_transpose( U, &UT, queue );
         end = magma_sync_wtime( queue ); t_transpose1+=end-start;
         start = magma_sync_wtime( queue );
