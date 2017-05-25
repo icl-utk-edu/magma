@@ -473,6 +473,29 @@ magma_zmtranspose(
     magma_z_matrix *B,
     magma_queue_t queue );
 
+magma_int_t 
+magma_zmtranspose_cpu(
+    magma_z_matrix A, 
+    magma_z_matrix *B,
+    magma_queue_t queue );
+
+magma_int_t 
+magma_zmtransposeabs_cpu(
+    magma_z_matrix A, 
+    magma_z_matrix *B,
+    magma_queue_t queue );
+
+magma_int_t 
+magma_zmtransposestruct_cpu(
+    magma_z_matrix A, 
+    magma_z_matrix *B,
+    magma_queue_t queue );
+
+magma_int_t 
+magma_zmtransposeconj_cpu(
+    magma_z_matrix A, 
+    magma_z_matrix *B,
+    magma_queue_t queue );
 
 magma_int_t 
 magma_zmtransfer(
