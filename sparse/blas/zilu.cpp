@@ -511,7 +511,7 @@ magma_zapplycumilu_l(
                             precond->L.num_rows ));
     } else if( precond->trisolver == Magma_SYNCFREESOLVE ){
         magma_zgecscsyncfreetrsm_solve( precond->L.num_rows,
-            precond->L.nnz, one,
+            precond->L.nnz, 
             precond->L.dval, precond->L.drow, precond->L.dcol, 
             precond->L_dgraphindegree, precond->L_dgraphindegree_bak, 
             x->dval, b.dval, 0, //MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD
@@ -668,7 +668,7 @@ magma_zapplycumilu_r(
                             precond->U.num_rows ));
     } else if( precond->trisolver == Magma_SYNCFREESOLVE ){
         magma_zgecscsyncfreetrsm_solve( precond->U.num_rows,
-            precond->U.nnz, one,
+            precond->U.nnz,
             precond->U.dval, precond->U.drow, precond->U.dcol, 
             precond->U_dgraphindegree, precond->U_dgraphindegree_bak, 
             x->dval, b.dval, 1, //MAGMA_CSC_SYNCFREE_SUBSTITUTION_BACKWARD
