@@ -236,14 +236,14 @@ magma_zparilut3setup(
                         if( num_rmL>0 ){
                             magma_zparilut_set_thrs_randomselect( num_rmL, &hL, 1, &thrsL, queue );
                         } else {
-                            thrsL = 0.0;
+                            thrsL = 1e6;
                         }
                     //} 
                     //if( id == num_threads-1 ){
                         if( num_rmU>0 ){
                             magma_zparilut_set_thrs_randomselect( num_rmU, &hU, 1, &thrsU, queue );
                         } else {
-                            thrsU = 0.0;
+                            thrsU = 1e6;
                         }
                     //}
                 }
