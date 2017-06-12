@@ -78,7 +78,14 @@ magma_zmatrix_cup(
             do{
                 acol = A.col[ a ];
                 bcol = B.col[ b ];
-                if( acol == bcol ){
+                
+                if( acol == -1 ) { // stop in case acol = -1
+                    a++;
+                } 
+                else if( bcol == -1 ) { // stop in case bcol = -1
+                    b++;
+                }
+                else if( acol == bcol ){
                     add++;
                     a++;
                     b++;
@@ -135,7 +142,13 @@ magma_zmatrix_cup(
             do{
                 acol = A.col[ a ];
                 bcol = B.col[ b ];
-                if( acol == bcol ){
+                if( acol == -1 ) { // stop in case acol = -1
+                    a++;
+                } 
+                else if( bcol == -1 ) { // stop in case bcol = -1
+                    b++;
+                }
+                else if( acol == bcol ){
                     U->col[ offset + add ] = acol;
                     U->rowidx[ offset + add ] = row;
                     U->val[ offset + add ] = A.val[ a ];
@@ -782,7 +795,7 @@ magma_zparilut_selecttwoperrow(
             
         }
         B.row[B.num_rows] = B.num_rows;
-        CHECK( magma_zparilut_thrsrm( 1, &B, &thrs, queue ) );
+        // CHECK( magma_zparilut_thrsrm( 1, &B, &thrs, queue ) );
     } 
     
     // finally, swap the matrices
@@ -1245,6 +1258,105 @@ cleanup:
     magma_free_cpu( row_ptr );
     magma_free_cpu( last_rowel );
     magma_free_cpu( linked_list );
+    return info;
+}
+
+
+
+/***************************************************************************//**
+    Purpose
+    -------
+    This is a special routine with very limited scope. For a set of fill-in
+    candidates in row-major format, it transposes the a submatrix, i.e. the
+    submatrix consisting of the largest element in every column. 
+    This function is only useful for delta<=1.
+
+    Arguments
+    ---------
+
+    @param[in]
+    A           magma_z_matrix
+                Matrix to transpose.
+                
+    @param[out]
+    B           magma_z_matrix*
+                Transposed matrix containing only largest elements in each col.
+
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+extern "C" magma_int_t
+magma_zparilut_transpose_select_one(
+    magma_z_matrix A,
+    magma_z_matrix *B,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    magma_index_t *linked_list;
+    magma_index_t *row_ptr;
+    magma_index_t *last_rowel;
+    
+    magma_int_t el_per_block, num_threads;
+    double thrs = 1e-6;
+    
+    B->storage_type = A.storage_type;
+    B->memory_location = A.memory_location;
+    
+    B->num_rows = A.num_rows;
+    B->num_cols = A.num_cols;
+    B->nnz      = A.num_rows;
+    
+    //CHECK( magma_index_malloc_cpu( &linked_list, A.nnz ));
+    //CHECK( magma_index_malloc_cpu( &row_ptr, A.num_rows ));
+    //CHECK( magma_index_malloc_cpu( &last_rowel, A.num_rows ));
+    CHECK( magma_index_malloc_cpu( &B->row, B->num_rows+1 ));
+    CHECK( magma_index_malloc_cpu( &B->rowidx, B->nnz ));
+    CHECK( magma_index_malloc_cpu( &B->col, B->nnz ));
+    CHECK( magma_zmalloc_cpu( &B->val, B->nnz ) );
+    
+    #pragma omp parallel
+    {
+        num_threads = omp_get_max_threads();
+    }
+    
+    #pragma omp parallel for
+    for( magma_int_t i=0; i<B->num_rows; i++ ){
+        B->val[i] = MAGMA_Z_ZERO;
+    }
+    #pragma omp parallel for
+    for( magma_int_t i=0; i<B->num_rows; i++ ){
+        B->row[i] = i;
+        B->rowidx[i] = i;
+        B->col[i] = -1;
+    }
+    B->row[B->num_rows] = B->nnz;
+    
+    el_per_block = magma_ceildiv( A.num_rows, num_threads );
+
+    #pragma omp parallel
+    {
+        magma_int_t id = omp_get_thread_num();
+        for(magma_int_t i=0; i<A.nnz; i++ ){
+            magma_index_t row = A.col[ i ];
+            if( (row < (id+1)*el_per_block) && (row >=(id)*el_per_block)  ){
+                magmaDoubleComplex tmp_val;
+                tmp_val = A.val[i];
+                if( MAGMA_Z_ABS(tmp_val) > MAGMA_Z_ABS(B->val[row]) ){
+                    B->val[row] = tmp_val;
+                    B->col[ row ] = A.rowidx[i];
+                } 
+            }
+        }
+    }
+    
+    // no need if col==-1 is ignored
+    // magma_zparilut_thrsrm( 1, B, &thrs, queue );
+    
+cleanup:
     return info;
 }
 

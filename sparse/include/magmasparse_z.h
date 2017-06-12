@@ -911,6 +911,12 @@ magma_zparilut_transpose(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilut_transpose_select_one(
+    magma_z_matrix A,
+    magma_z_matrix *B,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zmatrix_createrowptr(
     magma_int_t n,
     magma_index_t *row,
