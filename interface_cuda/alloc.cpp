@@ -245,7 +245,7 @@ magma_malloc_pinned( void** ptrPtr, size_t size )
     // (for pinned memory, the error is detected in free)
     if ( size == 0 )
         size = sizeof(magmaDoubleComplex);
-    if ( cudaSuccess != cudaMallocHost( ptrPtr, size )) {
+    if ( cudaSuccess != cudaHostAlloc( ptrPtr, size, cudaHostAllocPortable )) {
         return MAGMA_ERR_HOST_ALLOC;
     }
 
