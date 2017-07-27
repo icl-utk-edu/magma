@@ -42,7 +42,6 @@
 // To use int64_t, link with mkl_intel_ilp64 or similar (instead of mkl_intel_lp64).
 // Similar to magma_int_t we declare magma_index_t used for row/column indices in sparse
 #if defined(MAGMA_ILP64) || defined(MKL_ILP64)
-//typedef int64_t magma_int_t;
 typedef long long int magma_int_t;  // MKL uses long long int, not int64_t
 #else
 typedef int magma_int_t;

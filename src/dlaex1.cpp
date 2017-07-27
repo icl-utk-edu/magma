@@ -145,8 +145,8 @@ magma_dlaex1(
     magma_int_t indx, indxc, indxp;
     magma_int_t iq2, is, iw, iz, k, tmp;
     magma_int_t ione = 1;
-    //  Test the input parameters.
 
+    //  Test the input parameters.
     *info = 0;
 
     if ( n < 0 )
@@ -161,14 +161,12 @@ magma_dlaex1(
     }
 
     //  Quick return if possible
-
     if ( n == 0 )
         return *info;
 
     //  The following values are integer pointers which indicate
     //  the portion of the workspace
     //  used by a particular array in DLAED2 and DLAED3.
-
     iz = 0;
     idlmda = iz + n;
     iw = idlmda + n;
@@ -181,13 +179,11 @@ magma_dlaex1(
 
     //  Form the z-vector which consists of the last row of Q_1 and the
     //  first row of Q_2.
-
     blasf77_dcopy( &cutpnt, Q(cutpnt-1, 0), &ldq, &work[iz], &ione);
     tmp = n-cutpnt;
     blasf77_dcopy( &tmp, Q(cutpnt, cutpnt), &ldq, &work[iz+cutpnt], &ione);
 
     //  Deflate eigenvalues.
-
     lapackf77_dlaed2(&k, &n, &cutpnt, d, Q, &ldq, indxq, &rho, &work[iz],
                      &work[idlmda], &work[iw], &work[iq2],
                      &iwork[indx], &iwork[indxc], &iwork[indxp],
@@ -197,7 +193,6 @@ magma_dlaex1(
         return *info;
 
     //  Solve Secular Equation.
-
     if ( k != 0 ) {
         is = (iwork[coltyp]+iwork[coltyp+1])*cutpnt + (iwork[coltyp+1]+iwork[coltyp+2])*(n-cutpnt) + iq2;
         magma_dlaex3(k, n, cutpnt, d, Q, ldq, rho,
