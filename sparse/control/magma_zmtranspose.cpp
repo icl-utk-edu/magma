@@ -203,8 +203,11 @@ magma_zmtranspose(
     
     // make sure the target structure is empty
     magma_zmfree( B, queue );
-    
-    CHECK( magma_z_cucsrtranspose( A, B, queue ));
+    if( A.memory_location == Magma_DEV ){
+        CHECK( magma_z_cucsrtranspose( A, B, queue ));
+    } else {
+        CHECK( magma_zmtranspose_cpu(A, B, queue) );
+    }
     
 cleanup:
     return info;

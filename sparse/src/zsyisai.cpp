@@ -170,7 +170,7 @@ magma_zicisaisetup(
     //  }
     // via registers
     CHECK( magma_zisai_generator_regs( MagmaLower, MagmaNoTrans, MagmaNonUnit, 
-                    precond->L, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
+                    precond->L, &MT, queue ) );
       
     CHECK( magma_zmtranspose( MT, &precond->LD, queue ) );
     magma_zmfree( &LT, queue );
@@ -258,7 +258,7 @@ magma_zicisaisetup(
     //   }
     // via registers
     CHECK( magma_zisai_generator_regs( MagmaUpper, MagmaNoTrans, MagmaNonUnit, 
-                    precond->U, &MT, sizes_d, locations_d, trisystems_d, rhs_d, queue ) );
+                    precond->U, &MT, queue ) );
 
     CHECK( magma_zmtranspose( MT, &precond->UD, queue ) );
     // magma_z_mvisu( precond->UD, queue ); 

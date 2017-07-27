@@ -133,52 +133,6 @@ magmaDoubleComplex *Mval )
 }
 
 
-/*
-template <int block_size, template <int> class func>
-class Switcher {
-public:
-    static __device__ void
-    switch_func(
-            int N,
-            magma_int_t num_rows,
-            const magma_index_t * __restrict__ Arow,
-            const magma_index_t * __restrict__ Acol,
-            const magmaDoubleComplex * __restrict__ Aval,
-            magma_index_t *Mrow,
-            magma_index_t *Mcol,
-            magmaDoubleComplex *Mval )
-    {
-        if (N == block_size) {
-            func<block_size>(num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
-        } else {
-            Switcher<block_size-1,func>::switch_func(
-                    N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
-        }
-    }
-
-};
-
-template<template <int> class func>
-class Switcher<0, func> {
-public:
-    static __device__ void
-    switch_func(
-            int N,
-            magma_int_t num_rows,
-            const magma_index_t * __restrict__ Arow,
-            const magma_index_t * __restrict__ Acol,
-            const magmaDoubleComplex * __restrict__ Aval,
-            magma_index_t *Mrow,
-            magma_index_t *Mcol,
-            magmaDoubleComplex *Mval )
-    {
-        // TODO(Hartwig): Are you soure we want to have printfs called from the
-        //                device?
-        printf("%% error: size out of range: %d\n", N);
-    }
-};
-*/
-
 template <>
 __device__ __forceinline__ void
 magma_zlowerisai_regs_select<0>(
@@ -703,26 +657,12 @@ magma_zisai_generator_regs(
 {
     magma_int_t info = 0;
     
-//#if (CUDA_VERSION <= 6000) // this won't work, just to have something...
-//    printf( "%% error: ISAI preconditioner requires CUDA > 6.0.\n" );
-//    info = MAGMA_ERR_NOT_SUPPORTED;
-//    goto cleanup;
-//#endif
 
 #if (CUDA_VERSION >= 7000)
     magma_int_t arch = magma_getdevice_arch();
 
     cudaDeviceSetCacheConfig( cudaFuncCachePreferL1 );
 
-    // routine 1
-    // int r1bs1 = 32;
-    // int r1bs2 = 1;
-    // int r1dg1 = min( int( sqrt( double( M->num_rows ))), 65535 );
-    // int r1dg2 = min(magma_ceildiv( M->num_rows, r1dg1 ), 65535);
-    // int r1dg3 = magma_ceildiv( M->num_rows, r1dg1*r1dg2 );
-    // //printf(" grid: %d x %d x %d\n", r1dg1, r1dg2, r1dg3 );
-    // dim3 r1block( r1bs1, r1bs2, 1 );
-    // dim3 r1grid( r1dg1, r1dg2, r1dg3 );
 
     int r2bs1 = 32;
     int r2bs2 = 4;
@@ -733,13 +673,6 @@ magma_zisai_generator_regs(
     dim3 r2block( r2bs1, r2bs2, 1 );
     dim3 r2grid( r2dg1, r2dg2, r2dg3 );
 
-    // int r2bs1 = 32;
-    // int r2bs2 = 1;
-    // int r2dg1 = min( int( sqrt( double( magma_ceildiv( M->num_rows, r2bs2 )))), 65535);
-    // int r2dg2 = min(magma_ceildiv( M->num_rows, r2dg1 ), 65535);
-    // int r2dg3 = magma_ceildiv( M->num_rows, r2dg1*r2dg2 );
-    // dim3 r2block( r2bs1, r2bs2, 1 );
-    // dim3 r2grid( r2dg1, r2dg2, r2dg3 );
 
     if (arch >= 300) {
         if (uplotype == MagmaLower) { //printf("in here lower new kernel\n");
