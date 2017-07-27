@@ -178,6 +178,7 @@ lapack = [
     ('sgegqr',         'dgegqr',         'cgegqr',         'zgegqr'          ),
     ('sgehd2',         'dgehd2',         'cgehd2',         'zgehd2'          ),
     ('sgehrd',         'dgehrd',         'cgehrd',         'zgehrd'          ),
+    ('sgejsv',         'dgejsv',         'cgejsv',         'zgejsv'          ),
     ('sgelq2',         'dgelq2',         'cgelq2',         'zgelq2'          ),
     ('sgelqf',         'dgelqf',         'cgelqf',         'zgelqf'          ),
     ('sgelqs',         'dgelqs',         'cgelqs',         'zgelqs'          ),
@@ -191,7 +192,7 @@ lapack = [
     ('sgerfs',         'dgerfs',         'cgerfs',         'zgerfs'          ),
     ('sgesdd',         'dgesdd',         'cgesdd',         'zgesdd'          ),
     ('sgessm',         'dgessm',         'cgessm',         'zgessm'          ),
-    ('sgesv',          'dgesv',          'cgesv',          'zgesv'           ),  # also does zgesvd
+    ('sgesv',          'dgesv',          'cgesv',          'zgesv'           ),  # also does zgesvd, zgesvj
     ('sget22',         'dget22',         'cget22',         'zget22'          ),
     ('sgetf2',         'dgetf2',         'cgetf2',         'zgetf2'          ),
     ('sgetmi',         'dgetmi',         'cgetmi',         'zgetmi'          ),
@@ -473,6 +474,7 @@ subs = {
     + [
 
     # ----- PLASMA / MAGMA data types
+    ('float',                'double',               'std::complex<float>',  'std::complex<double>'),
     ('REAL',                 'DOUBLE PRECISION',     'REAL',                 'DOUBLE PRECISION'    ),
     ('real',                 'double precision',     'real',                 'double precision'    ),  # before double
     ('float',                'double',               'float _Complex',       'double _Complex'     ),
@@ -671,8 +673,6 @@ subs = {
     ('blas_s',         'blas_d',         'blas_c',         'blas_z'          ),
     ('cl_ps',          'cl_pd',          'cl_pc',          'cl_pz'           ),
     ('cl_s',           'cl_d',           'cl_c',           'cl_z'            ),
-    ('CODELETS_S',     'CODELETS_D',     'CODELETS_C',     'CODELETS_Z'      ),
-    ('codelet_s',      'codelet_d',      'codelet_c',      'codelet_z'       ),
     ('compute_s',      'compute_d',      'compute_c',      'compute_z'       ),
     ('control_s',      'control_d',      'control_c',      'control_z'       ),
     ('coreblas_s',     'coreblas_d',     'coreblas_c',     'coreblas_z'      ),
@@ -707,9 +707,6 @@ subs = {
     ('magma_s',        'magma_d',        'magma_sc',       'magma_dz'        ),
     ('magma_s',        'magma_d',        'magma_s',        'magma_d'         ),
     ('magmasparse_s',  'magmasparse_d',  'magmasparse_c',  'magmasparse_z'   ),
-    ('morse_ps',       'morse_pd',       'morse_pc',       'morse_pz'        ),
-    ('MORSE_S',        'MORSE_D',        'MORSE_C',        'MORSE_Z'         ),
-    ('morse_s',        'morse_d',        'morse_c',        'morse_z'         ),
     ('plasma_ps',      'plasma_pd',      'plasma_pc',      'plasma_pz'       ),
     ('PLASMA_S',       'PLASMA_D',       'PLASMA_C',       'PLASMA_Z'        ),
     ('PLASMA_sor',     'PLASMA_dor',     'PLASMA_cun',     'PLASMA_zun'      ),
@@ -726,7 +723,6 @@ subs = {
     ('wrapper_s',      'wrapper_d',      'wrapper_c',      'wrapper_z'       ),
     ('Workspace_s',    'Workspace_d',    'Workspace_c',    'Workspace_z'     ),
     ('workspace_s',    'workspace_d',    'workspace_c',    'workspace_z'     ),
-    ('QUARK_Insert_Task_s', 'QUARK_Insert_Task_d', 'QUARK_Insert_Task_c', 'QUARK_Insert_Task_z' ),
 
     # magma_[get_]d -> magma_[get_]s, so revert _sevice to _device, etc.
     ('_device',        '_sevice',        '_device',        '_sevice'         ),
