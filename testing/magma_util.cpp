@@ -186,6 +186,7 @@ const char *usage =
 "         max       is maximum that will be used\n"
 "\n"
 "  --version x      version of routine, e.g., during development, default 1.\n"
+"  --matrix x       test matrix type, default 0 = uniform random on (0,1).\n"
 "  --fraction x     fraction of eigenvectors to compute, default 1.\n"
 "                   If fraction == 0, computes eigenvalues il=0.1*N to iu=0.3*N.\n"
 "  --tolerance x    accuracy tolerance, multiplied by machine epsilon, default 30.\n"
@@ -226,6 +227,7 @@ magma_opts::magma_opts( magma_opts_t flag )
     this->itype    = 1;
     this->version  = 1;
     this->verbose  = 0;
+    this->matrix   = 0;
     this->fraction = 1.;
     this->tolerance = 30.;
     this->check     = (getenv("MAGMA_TESTINGS_CHECK") != NULL);
@@ -464,6 +466,11 @@ void magma_opts::parse_opts( int argc, char** argv )
             this->version = atoi( argv[++i] );
             magma_assert( this->version >= 1,
                           "error: --version %s is invalid; ensure version > 0.\n", argv[i] );
+        }
+        else if ( strcmp("--matrix", argv[i]) == 0 && i+1 < argc ) {
+            this->matrix = atoi( argv[++i] );
+            magma_assert( this->matrix >= 0,
+                          "error: --matrix %s is invalid; ensure matrix >= 0.\n", argv[i] );
         }
         else if ( strcmp("--fraction", argv[i]) == 0 && i+1 < argc ) {
             this->fraction = atof( argv[++i] );

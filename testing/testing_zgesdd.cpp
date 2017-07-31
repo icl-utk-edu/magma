@@ -395,7 +395,7 @@ int main( int argc, char** argv)
     double *rwork;
     #endif
     magma_int_t *iwork, iunused[1];
-    magma_int_t M, N, N_U, M_VT, lda, ldu, ldv, n2, min_mn, info;
+    magma_int_t M, N, N_U, M_VT, lda, ldu, ldv, min_mn, info;
     magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
     
@@ -463,7 +463,6 @@ int main( int argc, char** argv)
             lda = M;
             ldu = M;
             ldv = M_VT;
-            n2 = lda*N;
             
             /* =====================================================================
                query for workspace size
@@ -601,7 +600,7 @@ int main( int argc, char** argv)
             double result_lapack[5] = { nan, nan, nan, nan, nan };
             
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, hA );
+            magma_zgenerate_matrix( opts.matrix, M, N, ISEED, Sref, hA, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, hA, &lda, hR, &lda );
             
             if ( opts.magma ) {

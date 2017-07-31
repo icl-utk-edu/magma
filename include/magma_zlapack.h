@@ -1219,11 +1219,13 @@ void   lapackf77_zqrt02( const magma_int_t *m, const magma_int_t *n, const magma
                          double *rwork,
                          double *result );
 
-void   lapackf77_zlatms( magma_int_t *m, magma_int_t *n,
-                         const char *dist, magma_int_t *iseed, const char *sym, double *d,
-                         magma_int_t *mode, const double *cond, const double *dmax,
-                         magma_int_t *kl, magma_int_t *ku, const char *pack,
-                         magmaDoubleComplex *A, magma_int_t *lda,
+void   lapackf77_zlatms( const magma_int_t *m, const magma_int_t *n,
+                         const char *dist, magma_int_t *iseed, const char *sym,
+                         double *d,
+                         const magma_int_t *mode, const double *cond,
+                         const double *dmax,
+                         const magma_int_t *kl, const magma_int_t *ku, const char *pack,
+                         magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *work,
                          magma_int_t *info );
 

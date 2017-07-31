@@ -176,6 +176,7 @@ public:
     magma_int_t version;   // hemm_mgpu, hetrd
     magma_int_t check;
     magma_int_t verbose;
+    magma_int_t matrix;    // LAPACK test matrix generation
     double      fraction;  // hegvdx
     double      tolerance;
     
