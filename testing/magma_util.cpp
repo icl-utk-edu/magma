@@ -186,7 +186,6 @@ const char *usage =
 "         max       is maximum that will be used\n"
 "\n"
 "  --version x      version of routine, e.g., during development, default 1.\n"
-"  --matrix x       test matrix type, default 0 = uniform random on (0,1).\n"
 "  --fraction x     fraction of eigenvectors to compute, default 1.\n"
 "                   If fraction == 0, computes eigenvalues il=0.1*N to iu=0.3*N.\n"
 "  --tolerance x    accuracy tolerance, multiplied by machine epsilon, default 30.\n"
@@ -202,6 +201,10 @@ const char *usage =
 "  -J[NV]           jobz   = No* or Vectors; compute eigenvectors (symmetric).\n"
 "  -L[NV]           jobvl  = No* or Vectors; compute left  eigenvectors (non-symmetric).\n"
 "  -R[NV]           jobvr  = No* or Vectors; compute right eigenvectors (non-symmetric).\n"
+"\n"
+"  --matrix name    name of test matrix type from magma_generate, default 'rand'.\n"
+"  --cond   kA      condition number for test matrix (not applicable to all types), default 1/eps.\n"
+"  --condD  kD      condition number for scaling test matrix, default 1.\n"
 "\n"
 "                   * default values\n";
 
@@ -227,7 +230,6 @@ magma_opts::magma_opts( magma_opts_t flag )
     this->itype    = 1;
     this->version  = 1;
     this->verbose  = 0;
-    this->matrix   = 0;
     this->fraction = 1.;
     this->tolerance = 30.;
     this->check     = (getenv("MAGMA_TESTINGS_CHECK") != NULL);
@@ -243,6 +245,10 @@ magma_opts::magma_opts( magma_opts_t flag )
     this->jobz      = MagmaNoVec;  // heev:  no eigen vectors
     this->jobvr     = MagmaNoVec;  // geev:  no right eigen vectors
     this->jobvl     = MagmaNoVec;  // geev:  no left  eigen vectors
+
+    this->matrix    = "rand";
+    this->cond      = 0;  // flag for cond = 1/eps, which varies by precision
+    this->condD     = 1;
     
     #ifdef USE_FLOCK
     this->flock_op = LOCK_SH;  // default shared lock
@@ -467,11 +473,6 @@ void magma_opts::parse_opts( int argc, char** argv )
             magma_assert( this->version >= 1,
                           "error: --version %s is invalid; ensure version > 0.\n", argv[i] );
         }
-        else if ( strcmp("--matrix", argv[i]) == 0 && i+1 < argc ) {
-            this->matrix = atoi( argv[++i] );
-            magma_assert( this->matrix >= 0,
-                          "error: --matrix %s is invalid; ensure matrix >= 0.\n", argv[i] );
-        }
         else if ( strcmp("--fraction", argv[i]) == 0 && i+1 < argc ) {
             this->fraction = atof( argv[++i] );
             magma_assert( this->fraction >= 0 && this->fraction <= 1,
@@ -597,6 +598,24 @@ void magma_opts::parse_opts( int argc, char** argv )
             }
         }
         
+        // ----- test matrix
+        else if ( strcmp("--matrix", argv[i]) == 0 && i+1 < argc) {
+            i += 1;
+            this->matrix = argv[i];
+        }
+        else if ( strcmp("--cond", argv[i]) == 0 && i+1 < argc) {
+            i += 1;
+            this->cond = atof( argv[i] );
+            magma_assert( this->cond >= 1,
+                          "error: --cond %s is invalid; ensure cond >= 1.\n", argv[i] );
+        }
+        else if ( strcmp("--condD", argv[i]) == 0 && i+1 < argc) {
+            i += 1;
+            this->condD = atof( argv[i] );
+            magma_assert( this->condD >= 1,
+                          "error: --condD %s is invalid; ensure condD >= 1.\n", argv[i] );
+        }
+
         // ----- misc
         else if ( strcmp("-x",          argv[i]) == 0 ||
                   strcmp("--exclusive", argv[i]) == 0 ) {

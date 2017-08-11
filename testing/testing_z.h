@@ -83,4 +83,16 @@ void magma_zgenerate_matrix(
 }
 #endif
 
+/******************************************************************************/
+// C++ utility functions
+
+class magma_opts;
+
+void magma_generate_matrix(
+    magma_opts& opts,
+    magma_int_t iseed[4],
+    magma_int_t m, magma_int_t n,
+    double* sigma_ptr,
+    magmaDoubleComplex* A_ptr, magma_int_t lda );
+
 #endif        //  #ifndef TESTING_MAGMA_Z_H

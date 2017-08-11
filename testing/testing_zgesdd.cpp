@@ -600,7 +600,7 @@ int main( int argc, char** argv)
             double result_lapack[5] = { nan, nan, nan, nan, nan };
             
             /* Initialize the matrix */
-            magma_zgenerate_matrix( opts.matrix, M, N, ISEED, Sref, hA, lda );
+            magma_generate_matrix( opts, ISEED, M, N, Sref, hA, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, hA, &lda, hR, &lda );
             
             if ( opts.magma ) {

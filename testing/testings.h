@@ -9,6 +9,7 @@
 #endif
 
 #include <vector>
+#include <string>
 
 #include "magma_lapack.h"
 #include "testing_s.h"
@@ -86,7 +87,6 @@ static inline double magma_max_nan( double x, double y )
 // suppress "warning: unused variable" in a portable fashion
 #define MAGMA_UNUSED(var)  ((void)var)
 
-
 /***************************************************************************//**
  * Macros to handle error checking.
  */
@@ -112,6 +112,21 @@ void magma_assert( bool condition, const char* msg, ... );
 void magma_assert_warn( bool condition, const char* msg, ... );
 
 void magma_flush_cache( size_t cache_size );
+
+#ifdef __cplusplus
+}
+#endif
+
+/***************************************************************************//**
+ * C++ Functions and data structures used for testing.
+ */
+
+// for sorting in descending order (e.g., singular values)
+template< typename T >
+bool greater( T a, T b )
+{
+    return (a > b);
+}
 
 #define MAX_NTEST 1050
 
@@ -176,7 +191,6 @@ public:
     magma_int_t version;   // hemm_mgpu, hetrd
     magma_int_t check;
     magma_int_t verbose;
-    magma_int_t matrix;    // LAPACK test matrix generation
     double      fraction;  // hegvdx
     double      tolerance;
     
@@ -199,7 +213,12 @@ public:
     std::vector< magma_svd_work_t > svd_work;
     std::vector< magma_vec_t > jobu;
     std::vector< magma_vec_t > jobv;
-    
+
+    // LAPACK test matrix generation
+    std::string matrix;
+    double      cond;
+    double      condD;
+
     // queue for default device
     magma_queue_t   queue;
     magma_queue_t   queues2[3];  // 2 queues + 1 extra NULL entry to catch errors
@@ -215,9 +234,5 @@ public:
 };
 
 extern const char* g_platform_str;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* TESTINGS_H */

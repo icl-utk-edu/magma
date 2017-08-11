@@ -59,6 +59,7 @@ testing_src += \
 	$(cdir)/testing_constants.cpp	\
 	$(cdir)/testing_operators.cpp	\
 	$(cdir)/testing_parse_opts.cpp	\
+	$(cdir)/testing_zgenerate.cpp	\
 
 	#$(cdir)/testing_veclib.cpp	\
 
@@ -253,6 +254,7 @@ libtest_src := \
 	$(cdir)/magma_util.cpp		\
 	$(cdir)/magma_zutil.cpp		\
 	$(cdir)/magma_zgesvd_check.cpp	\
+	$(cdir)/magma_zgenerate.cpp		\
 
 
 # ----------------------------------------------------------------------
