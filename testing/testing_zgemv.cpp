@@ -165,10 +165,10 @@ int main(int argc, char **argv)
             /* =====================================================================
                Check the result
                =================================================================== */
-            // See testing_zgemm for formula. Here K = N.
+            // See testing_zgemm for formula. Here K = Xm.
             blasf77_zaxpy( &Ym, &c_neg_one, Y, &incy, Ydev, &incy );
             dev_error = lapackf77_zlange( "F", &Ym, &ione, Ydev, &Ym, work )
-                            / (sqrt(double(N+2))*fabs(alpha)*Anorm*Xnorm + 2*fabs(beta)*Ynorm);
+                            / (sqrt(double(Xm+2))*fabs(alpha)*Anorm*Xnorm + 2*fabs(beta)*Ynorm);
             
             // Really tall or wide (e.g., 200000 x 10) matrices need looser bound.
             // TODO: investigate why.
