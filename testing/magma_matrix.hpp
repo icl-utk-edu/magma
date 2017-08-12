@@ -102,13 +102,8 @@ template< typename FloatType >
 class Matrix
 {
 public:
-    Matrix( FloatType* data, magma_int_t in_m, magma_int_t in_n, magma_int_t in_ld=0 ):
-        m( in_m ),
-        n( in_n ),
-        ld( in_ld == 0 ? m : in_ld ),
-        data_( data, ld*n )
-    {}
-
+    // constructor allocates new memory
+    // ld = m by default
     Matrix( magma_int_t in_m, magma_int_t in_n, magma_int_t in_ld=0 ):
         m( in_m ),
         n( in_n ),
@@ -116,9 +111,20 @@ public:
         data_( ld*n )
     {}
 
+    // constructor wraps existing memory; caller maintains ownership
+    // ld = m by default
+    Matrix( FloatType* data, magma_int_t in_m, magma_int_t in_n, magma_int_t in_ld=0 ):
+        m( in_m ),
+        n( in_n ),
+        ld( in_ld == 0 ? m : in_ld ),
+        data_( data, ld*n )
+    {}
+
     magma_int_t size() const { return data_.size(); }
     bool        own()  const { return data_.own(); }
 
+    // returns pointer to element (i,j), because that's what we normally need to
+    // call BLAS / LAPACK, which avoids littering the code with &.
     FloatType* operator () ( int i, int j )
         { return &data_[ i + j*ld ]; }
 
