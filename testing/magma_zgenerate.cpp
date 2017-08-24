@@ -17,7 +17,7 @@
 #include <vector>
 #include <limits>
 
-#include "magma.h"
+#include "magma_v2.h"
 #include "magma_lapack.h"
 #include "magma_operators.h"
 
