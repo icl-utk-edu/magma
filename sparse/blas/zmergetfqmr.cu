@@ -326,7 +326,7 @@ magma_ztfqmr_4_kernel(
     Purpose
     -------
 
-    Mergels multiple operations into one kernel:
+    Merges multiple operations into one kernel:
 
     v = Au_new + beta*(Au+beta*v);
     Au = Au_new
