@@ -203,7 +203,7 @@ const char *usage =
 "  -R[NV]           jobvr  = No* or Vectors; compute right eigenvectors (non-symmetric).\n"
 "\n"
 "  --matrix name    name of test matrix type from magma_generate, default 'rand'.\n"
-"  --cond   kA      condition number for test matrix (not applicable to all types), default 1/eps.\n"
+"  --cond   kA      condition number for test matrix (not applicable to all types), default sqrt( 1/eps ).\n"
 "  --condD  kD      condition number for scaling test matrix, default 1.\n"
 "\n"
 "                   * default values\n";
@@ -247,9 +247,15 @@ magma_opts::magma_opts( magma_opts_t flag )
     this->jobvl     = MagmaNoVec;  // geev:  no left  eigen vectors
 
     this->matrix    = "rand";
-    this->cond      = 0;  // flag for cond = 1/eps, which varies by precision
+    this->cond      = 0;  // zero means cond = sqrt( 1/eps ), which varies by precision
     this->condD     = 1;
+    this->spd       = false;  // flag to force SPD for Cholesky, etc.
     
+    this->iseed[0]  = 0;
+    this->iseed[1]  = 0;
+    this->iseed[2]  = 0;
+    this->iseed[3]  = 1;
+
     #ifdef USE_FLOCK
     this->flock_op = LOCK_SH;  // default shared lock
     #endif

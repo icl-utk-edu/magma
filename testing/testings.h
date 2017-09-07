@@ -12,6 +12,8 @@
 #include <string>
 
 #include "magma_lapack.h"
+#include "magma_lapack.hpp"  // C++ bindings; need traits
+#include "magma_matrix.hpp"  // experimental Matrix and Vector classes
 #include "testing_s.h"
 #include "testing_d.h"
 #include "testing_c.h"
@@ -218,6 +220,8 @@ public:
     std::string matrix;
     double      cond;
     double      condD;
+    bool        spd;
+    magma_int_t iseed[4];
 
     // queue for default device
     magma_queue_t   queue;
@@ -234,5 +238,19 @@ public:
 };
 
 extern const char* g_platform_str;
+
+// -----------------------------------------------------------------------------
+template< typename FloatT >
+void magma_generate_matrix(
+    magma_opts& opts,
+    Vector< typename blas::traits<FloatT>::real_t >& sigma,
+    Matrix< FloatT >& A );
+
+template< typename FloatT >
+void magma_generate_matrix(
+    magma_opts& opts,
+    magma_int_t m, magma_int_t n,
+    typename blas::traits<FloatT>::real_t* sigma,
+    FloatT* A, magma_int_t lda );
 
 #endif /* TESTINGS_H */

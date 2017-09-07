@@ -1,3 +1,4 @@
+
 #ifndef MAGMA_MATRIX_HPP
 #define MAGMA_MATRIX_HPP
 
@@ -18,14 +19,18 @@ public:
         n    ( in_n ),
         data_( n > 0 ? new FloatType[n] : nullptr ),
         own_ ( true )
-    {}
+    {
+        if (n < 0) { throw std::exception(); }
+    }
 
     // constructor wraps existing memory; caller maintains ownership
     Vector( FloatType* data, magma_int_t in_n ):
         n    ( in_n ),
         data_( data ),
         own_ ( false )
-    {}
+    {
+        if (n < 0) { throw std::exception(); }
+    }
 
     // copy constructor
     Vector( Vector const &other ):
@@ -109,7 +114,11 @@ public:
         n( in_n ),
         ld( in_ld == 0 ? m : in_ld ),
         data_( ld*n )
-    {}
+    {
+        if (m  < 0) { throw std::exception(); }
+        if (n  < 0) { throw std::exception(); }
+        if (ld < m) { throw std::exception(); }
+    }
 
     // constructor wraps existing memory; caller maintains ownership
     // ld = m by default
@@ -118,7 +127,11 @@ public:
         n( in_n ),
         ld( in_ld == 0 ? m : in_ld ),
         data_( data, ld*n )
-    {}
+    {
+        if (m  < 0) { throw std::exception(); }
+        if (n  < 0) { throw std::exception(); }
+        if (ld < m) { throw std::exception(); }
+    }
 
     magma_int_t size() const { return data_.size(); }
     bool        own()  const { return data_.own(); }
