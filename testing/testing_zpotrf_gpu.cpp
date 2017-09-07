@@ -27,14 +27,16 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
+    // constants
+    const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
+    const magma_int_t ione = 1;
+    
+    // locals
     real_Double_t   gflops, gpu_perf, gpu_time, cpu_perf, cpu_time;
     magmaDoubleComplex *h_A, *h_R;
     magmaDoubleComplex_ptr d_A;
     magma_int_t N, n2, lda, ldda, info;
-    magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
-    magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
-    double      Anorm, error, work[1];
+    double      Anorm, error, work[1], *sigma;
     int status = 0;
 
     magma_opts opts;
@@ -54,13 +56,13 @@ int main( int argc, char** argv)
             ldda = magma_roundup( N, opts.align );  // multiple of 32 by default
             gflops = FLOPS_ZPOTRF( N ) / 1e9;
             
-            TESTING_CHECK( magma_zmalloc_cpu( &h_A, n2     ));
-            TESTING_CHECK( magma_zmalloc_pinned( &h_R, n2     ));
+            TESTING_CHECK( magma_zmalloc_cpu( &h_A, n2 ));
+            TESTING_CHECK( magma_dmalloc_cpu( &sigma, N ));
+            TESTING_CHECK( magma_zmalloc_pinned( &h_R, n2 ));
             TESTING_CHECK( magma_zmalloc( &d_A, ldda*N ));
             
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
-            magma_zmake_hpd( N, h_A, lda );
+            magma_generate_matrix( opts, N, N, sigma, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_R, &lda );
             magma_zsetmatrix( N, N, h_A, lda, d_A, ldda, opts.queue );
             
@@ -107,6 +109,7 @@ int main( int argc, char** argv)
                        (long long) N, gpu_perf, gpu_time );
             }
             magma_free_cpu( h_A );
+            magma_free_cpu( sigma );
             magma_free_pinned( h_R );
             magma_free( d_A );
             fflush( stdout );
