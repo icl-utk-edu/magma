@@ -181,6 +181,10 @@ magma_z_precondsetup(
             info = magma_ziluisaisetup( A, b, precond, queue );
         }
     }
+    else if ( precond->solver == Magma_ILUT ) {
+        info = magma_zilut_saad( A, b, precond, queue );
+    }
+    
     else if ( precond->solver == Magma_PARILUT ) {
         #ifdef _OPENMP
             info = magma_zparilut3setup( A, b, precond, queue );
@@ -419,6 +423,9 @@ magma_z_applyprecond_left(
                   ( precond->trisolver == Magma_SYNCFREESOLVE ) ){
             CHECK( magma_zapplycumilu_l( b, x, precond, queue ));
         }
+        else if ( ( precond->solver == Magma_ILUT ) ){
+            CHECK( magma_zilut_saad_apply( b, x, precond, queue ));
+        }
         else if ( ( precond->solver == Magma_ICC ||
                     precond->solver == Magma_PARIC ) && 
                   ( precond->trisolver == Magma_CUSOLVE ||
@@ -583,6 +590,9 @@ magma_z_applyprecond_right(
                     precond->solver == Magma_PARILU ) && 
                   ( precond->trisolver == Magma_SYNCFREESOLVE ) ){
             CHECK( magma_zapplycumilu_r( b, x, precond, queue ));
+        }
+        else if ( ( precond->solver == Magma_ILUT ) ){
+            magma_zcopy( b.num_rows*b.num_cols, b.dval, 1, x->dval, 1, queue );
         }
         else if ( ( precond->solver == Magma_ICC ||
                     precond->solver == Magma_PARIC ) && 

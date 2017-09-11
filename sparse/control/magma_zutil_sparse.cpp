@@ -327,6 +327,9 @@ magma_zparse_opts(
             else if ( strcmp("ILU", argv[i]) == 0 || strcmp("IC", argv[i]) == 0 )  {
                 opts->precond_par.solver = Magma_ILU;
             }
+            else if ( strcmp("ILUT", argv[i]) == 0 || strcmp("ICT", argv[i]) == 0 )  {
+                opts->precond_par.solver = Magma_ILUT;
+            }
             else if ( strcmp("PARILU", argv[i]) == 0 || strcmp("AIC", argv[i]) == 0 ) {
                 opts->precond_par.solver = Magma_PARILU;
             }

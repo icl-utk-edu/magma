@@ -1943,6 +1943,21 @@ magma_zcuilusetup(
     magma_queue_t queue );
 
 magma_int_t
+magma_zilut_saad( 
+    magma_z_matrix A,
+    magma_z_matrix b,
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zilut_saad_apply( 
+    magma_z_matrix b,
+    magma_z_matrix *x,
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+
+magma_int_t
 magma_zcumilusetup_transpose(
     magma_z_matrix A, magma_z_preconditioner *precond,
     magma_queue_t queue );
