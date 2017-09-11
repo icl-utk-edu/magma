@@ -132,6 +132,7 @@ magma_zparilut3setup(
     magma_zmfree(&U, queue );
     CHECK( magma_zmtranspose( UT, &U, queue) );
     CHECK( magma_zmtransfer( L, &L0, A.memory_location, Magma_CPU, queue ));
+    CHECK( magma_zmtransfer( L, &oneL, A.memory_location, Magma_CPU, queue ));
     CHECK( magma_zmtransfer( UT, &U0, A.memory_location, Magma_CPU, queue ));
     magma_zmatrix_addrowindex( &U, queue );
     magma_zmfree(&UT, queue );
@@ -183,8 +184,25 @@ magma_zparilut3setup(
             magma_zmfree(&hL, queue );
             magma_zmfree(&hU, queue );
             end = magma_sync_wtime( queue ); t_selectadd+=end-start;
-        } else {
             
+        } else if( precond->rtol > 1.0 ) {
+            start = magma_sync_wtime( queue );
+            magma_zparilut_residuals( hA, L, U, &hL, queue );
+            magma_zparilut_residuals( hA, L, U, &hU, queue );
+            end = magma_sync_wtime( queue ); t_res=+end-start;
+            start = magma_sync_wtime( queue );
+            magma_zparilut_elementsum( hL, &sumL, queue );
+            magma_zparilut_elementsum( hU, &sumU, queue );
+            sum = sumL + sumU;
+            end = magma_sync_wtime( queue ); t_nrm+=end-start;
+            CHECK( magma_zmatrix_swap(  &hL, &oneL, queue) );
+            magma_zmfree(&hL, queue );
+            start = magma_sync_wtime( queue );
+            magma_zparilut_transpose( hU, &oneU, queue );
+            magma_zmfree(&hU, queue );
+            magma_zmfree(&UT, queue );
+                
+        } else {
             
             start = magma_sync_wtime( queue );
             magma_zparilut_residuals( hA, L, U, &hL, queue );
@@ -199,64 +217,57 @@ magma_zparilut3setup(
             
             start = magma_sync_wtime( queue );
             // magma_zmatrix_addrowindex( &hU, queue );
-            magma_zparilut_transpose( hU, &oneU, queue );
+            magma_zparilut_transpose_select_one( hU, &oneU, queue );
+            
             magma_zmfree(&hU, queue );
             magma_zmfree(&UT, queue );
-            CHECK( magma_zmatrix_swap( &oneU, &hU, queue) );
-            magma_zmfree(&oneU, queue );
+            // magma_zmatrix_addrowindex( &hU, queue );
+            // CHECK( magma_zmatrix_swap( &oneU, &hU, queue) );
+            // magma_zmfree(&oneU, queue );
             // magma_zmatrix_addrowindex( &hU, queue );
             
             
             end = magma_sync_wtime( queue ); t_transpose2+=end-start;
             
         
-            if( precond->rtol > 1.0 ){
-                magma_zparilut_selecttwoperrow( 1, &hL, &oneL, queue );
-                magma_zparilut_selecttwoperrow( 1, &hU, &oneU, queue );
-                // magma_zmatrix_addrowindex( &oneL, queue );
-                // magma_zmatrix_addrowindex( &oneU, queue );
-            } else {
-                magma_zparilut_selectoneperrow( 1, &hL, &oneL, queue );
-                magma_zparilut_selectoneperrow( 1, &hU, &oneU, queue );
-                //CHECK( magma_zmatrix_swap( &oneL, &hL, queue) );
-                //CHECK( magma_zmatrix_swap( &oneU, &hU, queue) );  
-            
-                // use only a subset of the candidates
-                //magma_zmfree( &oneL, queue );
-                //magma_zmfree( &oneU, queue );
-                num_rmL = max(oneL.nnz * ( precond->rtol ),0);
-                num_rmU = max(oneU.nnz * ( precond->rtol ),0);
-                // num_rmL = max(hL.nnz * ( precond->rtol-0.15*iters ),0);
-                // num_rmU = max(hU.nnz * ( precond->rtol-0.15*iters ),0);
-                //printf("hL:%d  hU:%d\n", num_rmL, num_rmU);
-                //#pragma omp parallel
-                {
-                  //  magma_int_t id = omp_get_thread_num();
-                    //if( id == 0 ){
-                        if( num_rmL>0 ){
-                            magma_zparilut_set_thrs_randomselect( num_rmL, &hL, 1, &thrsL, queue );
-                        } else {
-                            thrsL = 1e6;
-                        }
-                    //} 
-                    //if( id == num_threads-1 ){
-                        if( num_rmU>0 ){
-                            magma_zparilut_set_thrs_randomselect( num_rmU, &hU, 1, &thrsU, queue );
-                        } else {
-                            thrsU = 1e6;
-                        }
-                    //}
-                }
-                magma_zparilut_thrsrm( 1, &oneL, &thrsL, queue );
-                magma_zparilut_thrsrm( 1, &oneU, &thrsU, queue );
+            magma_zparilut_selectoneperrow( 1, &hL, &oneL, queue );
+            //CHECK( magma_zmatrix_swap( &oneL, &hL, queue) );
+            //CHECK( magma_zmatrix_swap( &oneU, &hU, queue) );  
+        
+            // use only a subset of the candidates
+            //magma_zmfree( &oneL, queue );
+            //magma_zmfree( &oneU, queue );
+            num_rmL = max(oneL.nnz * ( precond->rtol ),0);
+            num_rmU = max(oneU.nnz * ( precond->rtol ),0);
+            // num_rmL = max(hL.nnz * ( precond->rtol-0.15*iters ),0);
+            // num_rmU = max(hU.nnz * ( precond->rtol-0.15*iters ),0);
+            //printf("hL:%d  hU:%d\n", num_rmL, num_rmU);
+            //#pragma omp parallel
+            {
+              //  magma_int_t id = omp_get_thread_num();
+                //if( id == 0 ){
+                    if( num_rmL>0 ){
+                        magma_zparilut_set_thrs_randomselect( num_rmL, &hL, 1, &thrsL, queue );
+                    } else {
+                        thrsL = 1e6;
+                    }
+                //} 
+                //if( id == num_threads-1 ){
+                    if( num_rmU>0 ){
+                        magma_zparilut_set_thrs_randomselect( num_rmU, &hU, 1, &thrsU, queue );
+                    } else {
+                        thrsU = 1e6;
+                    }
+                //}
             }
+            magma_zparilut_thrsrm( 1, &oneL, &thrsL, queue );
+            magma_zparilut_thrsrm( 1, &oneU, &thrsU, queue );
         }
         
         end = magma_sync_wtime( queue ); t_selectadd+=end-start;
         
         start = magma_sync_wtime( queue );
-        
-        CHECK( magma_zmatrix_cup(  L, oneL, &L_new, queue ) );
+        CHECK( magma_zmatrix_cup(  L, oneL, &L_new, queue ) );           
         CHECK( magma_zmatrix_cup(  U, oneU, &U_new, queue ) );
         //magma_zmatrix_addrowindex( &U, queue );
         end = magma_sync_wtime( queue ); t_add=+end-start;
@@ -270,7 +281,10 @@ magma_zparilut3setup(
        // CHECK( magma_zparilut_create_collinkedlist( U_new, &UT, queue) );
        // end = magma_sync_wtime( queue ); t_transpose2+=end-start;
         start = magma_sync_wtime( queue );
-        CHECK( magma_zparilut_sweep( &A0, &L_new, &U_new, queue ) );
+        // CHECK( magma_zparilut_sweep( &A0, &L_new, &U_new, queue ) );
+        
+         CHECK( magma_zparilut_sweep_sync( &A0, &L_new, &U_new, queue ) );
+        
         end = magma_sync_wtime( queue ); t_sweep1+=end-start;
         num_rmL = max( (L_new.nnz-L0nnz*(1+precond->atol*(iters+1)/precond->sweeps)), 0 );
         num_rmU = max( (U_new.nnz-U0nnz*(1+precond->atol*(iters+1)/precond->sweeps)), 0 );
@@ -319,7 +333,10 @@ magma_zparilut3setup(
         start = magma_sync_wtime( queue );
         
         //magma_free_cpu( U.rowidx ); U.rowidx = NULL;
-        CHECK( magma_zparilut_sweep( &A0, &L, &U, queue ) );
+        
+        // CHECK( magma_zparilut_sweep( &A0, &L, &U, queue ) );
+         CHECK( magma_zparilut_sweep_sync( &A0, &L, &U, queue ) );
+        
         end = magma_sync_wtime( queue ); t_sweep2+=end-start;
 
         start = magma_sync_wtime( queue );
