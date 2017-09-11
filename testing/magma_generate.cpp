@@ -32,9 +32,9 @@ using std::min;
 // constants
 
 enum class MatrixType {
-    uniform01 = 1,  // maps to larnv idist
-    uniform11 = 2,  // maps to larnv idist
-    normal    = 3,  // maps to larnv idist
+    rand      = 1,  // maps to larnv idist
+    randu     = 2,  // maps to larnv idist
+    randn     = 3,  // maps to larnv idist
     zero,
     identity,
     jordan,
@@ -47,9 +47,9 @@ enum class MatrixType {
 };
 
 enum class Dist {
-    uniform01 = 1,  // maps to larnv idist
-    uniform11 = 2,  // maps to larnv idist
-    normal    = 3,  // maps to larnv idist
+    rand      = 1,  // maps to larnv idist
+    randu     = 2,  // maps to larnv idist
+    randn     = 3,  // maps to larnv idist
     arith,
     geo,
     cluster,
@@ -61,6 +61,13 @@ enum class Dist {
     logrand,
     specified,
 };
+
+/******************************************************************************/
+// ANSI color codes
+const char *ansi_esc    = "\x1b[";
+const char *ansi_red    = "\x1b[31m";
+const char *ansi_bold   = "\x1b[1m";
+const char *ansi_normal = "\x1b[0m";
 
 /******************************************************************************/
 // random number in (0, max_]
@@ -98,7 +105,7 @@ void magma_generate_sigma(
     typedef typename blas::traits<FloatT>::real_t real_t;
 
     // constants
-    const magma_int_t idist_uniform01 = 1;
+    const magma_int_t idist_rand = 1;
     const FloatT c_zero = blas::traits<FloatT>::make( 0, 0 );
 
     // locals
@@ -160,16 +167,16 @@ void magma_generate_sigma(
 
         case Dist::logrand: {
             real_t range = log( 1/cond );
-            lapack::larnv( idist_uniform01, opts.iseed, sigma.n, sigma(0) );
+            lapack::larnv( idist_rand, opts.iseed, sigma.n, sigma(0) );
             for (magma_int_t i = 0; i < minmn; ++i) {
                 sigma[i] = exp( sigma[i] * range );
             }
             break;
         }
 
-        case Dist::normal:
-        case Dist::uniform11:
-        case Dist::uniform01: {
+        case Dist::randn:
+        case Dist::randu:
+        case Dist::rand: {
             // randn, randu, or rand already specifies sign; don't change it
             rand_sign = false;
             magma_int_t idist = (magma_int_t) dist;
@@ -217,7 +224,7 @@ void magma_generate_svd(
     Matrix<FloatT>& A )
 {
     // constants
-    const magma_int_t idist_normal = 3;
+    const magma_int_t idist_randn = 3;
 
     // locals
     FloatT tmp;
@@ -253,7 +260,7 @@ void magma_generate_svd(
     // just make each random column into a Householder vector;
     // no need to update subsequent columns (as in geqrf).
     sizeU = U.size();
-    lapack::larnv( idist_normal, opts.iseed, sizeU, U(0,0) );
+    lapack::larnv( idist_randn, opts.iseed, sizeU, U(0,0) );
     for (magma_int_t j = 0; j < minmn; ++j) {
         magma_int_t mj = m - j;
         lapack::larfg( mj, U(j,j), U(j+1,j), 1, tau(j) );
@@ -266,7 +273,7 @@ void magma_generate_svd(
     assert( info == 0 );
 
     // random V, n-by-minmn (stored column-wise in U)
-    lapack::larnv( idist_normal, opts.iseed, sizeU, U(0,0) );
+    lapack::larnv( idist_randn, opts.iseed, sizeU, U(0,0) );
     for (magma_int_t j = 0; j < minmn; ++j) {
         magma_int_t nj = n - j;
         lapack::larfg( nj, U(j,j), U(j+1,j), 1, tau(j) );
@@ -294,7 +301,7 @@ void magma_generate_heev(
     assert( A.m == A.n );
 
     // constants
-    const magma_int_t idist_normal = 3;
+    const magma_int_t idist_randn = 3;
 
     // locals
     FloatT tmp;
@@ -327,7 +334,7 @@ void magma_generate_heev(
     // just make each random column into a Householder vector;
     // no need to update subsequent columns (as in geqrf).
     sizeU = U.size();
-    lapack::larnv( idist_normal, opts.iseed, sizeU, U(0,0) );
+    lapack::larnv( idist_randn, opts.iseed, sizeU, U(0,0) );
     for (magma_int_t j = 0; j < n; ++j) {
         magma_int_t nj = n - j;
         lapack::larfg( nj, U(j,j), U(j+1,j), 1, tau(j) );
@@ -435,7 +442,8 @@ void magma_generate_geevx(
 
     diag#*      A = Sigma
     svd#*       A = U Sigma V^H
-    poev#*      A = V Sigma V^H  (eigenvalues positive)
+    poev#*      A = V Sigma V^H  (eigenvalues positive, i.e., matrix SPD)
+    spd#*       alias for poev
     heev#*      A = V Lambda V^H (eigenvalues mixed signs)
     syev#*      alias for heev
     geev#*      A = V T V^H, Schur-form T                       [not yet implemented]
@@ -519,14 +527,15 @@ void magma_generate_matrix(
     if      (name == "zero")          { type = MatrixType::zero;      }
     else if (name == "identity")      { type = MatrixType::identity;  }
     else if (name == "jordan")        { type = MatrixType::jordan;    }
-    else if (begins( name, "randn" )) { type = MatrixType::normal;    }
-    else if (begins( name, "randu" )) { type = MatrixType::uniform11; }
-    else if (begins( name, "rand"  )) { type = MatrixType::uniform01; }
+    else if (begins( name, "randn" )) { type = MatrixType::randn;     }
+    else if (begins( name, "randu" )) { type = MatrixType::randu;     }
+    else if (begins( name, "rand"  )) { type = MatrixType::rand;      }
     else if (begins( name, "diag"  )) { type = MatrixType::diag;      }
     else if (begins( name, "svd"   )) { type = MatrixType::svd;       }
-    else if (begins( name, "poev"  )) { type = MatrixType::poev;      }
-    else if (begins( name, "heev"  )) { type = MatrixType::heev;      }
-    else if (begins( name, "syev"  )) { type = MatrixType::heev;      }
+    else if (begins( name, "poev"  ) ||
+             begins( name, "spd"   )) { type = MatrixType::poev;      }
+    else if (begins( name, "heev"  ) ||
+             begins( name, "syev"  )) { type = MatrixType::heev;      }
     else if (begins( name, "geevx" )) { type = MatrixType::geevx;     }
     else if (begins( name, "geev"  )) { type = MatrixType::geev;      }
     else {
@@ -545,11 +554,23 @@ void magma_generate_matrix(
         throw std::exception();
     }
 
+    if (opts.cond != 0 &&
+        (type == MatrixType::zero      ||
+         type == MatrixType::identity  ||
+         type == MatrixType::jordan    ||
+         type == MatrixType::randn     ||
+         type == MatrixType::randu     ||
+         type == MatrixType::rand))
+    {
+        fprintf( stderr, "%sWarning: --matrix %s ignores --cond %.2e.%s\n",
+                 ansi_red, name.c_str(), opts.cond, ansi_normal );
+    }
+
     // ----- decode distribution
-    Dist dist = Dist::uniform01;
-    if      (contains( name, "_randn"     )) { dist = Dist::normal;    }
-    else if (contains( name, "_randu"     )) { dist = Dist::uniform11; }
-    else if (contains( name, "_rand"      )) { dist = Dist::uniform01; } // after randn, randu
+    Dist dist = Dist::rand;
+    if      (contains( name, "_randn"     )) { dist = Dist::randn;     }
+    else if (contains( name, "_randu"     )) { dist = Dist::randu;     }
+    else if (contains( name, "_rand"      )) { dist = Dist::rand;      } // after randn, randu
     else if (contains( name, "_logrand"   )) { dist = Dist::logrand;   }
     else if (contains( name, "_arith"     )) { dist = Dist::arith;     }
     else if (contains( name, "_geo"       )) { dist = Dist::geo;       }
@@ -560,6 +581,15 @@ void magma_generate_matrix(
     else if (contains( name, "_rcluster2" )) { dist = Dist::rcluster2; }
     else if (contains( name, "_rcluster"  )) { dist = Dist::rcluster;  } // after rcluster2
     else if (contains( name, "_specified" )) { dist = Dist::specified; }
+
+    if (type == MatrixType::poev &&
+        (dist == Dist::randu ||
+         dist == Dist::randn))
+    {
+        fprintf( stderr, "%sWarning: --matrix '%s' using randu or randn "
+                 "will not generate SPD matrix; use rand instead.%s\n",
+                 ansi_red, name.c_str(), ansi_normal );
+    }
 
     // ----- decode scaling
     if      (contains( name, "_small"  )) { sigma_max = sqrt( ufl ); }
@@ -586,9 +616,9 @@ void magma_generate_matrix(
             break;
         }
 
-        case MatrixType::uniform01:
-        case MatrixType::uniform11:
-        case MatrixType::normal: {
+        case MatrixType::rand:
+        case MatrixType::randu:
+        case MatrixType::randn: {
             magma_int_t idist = (magma_int_t) type;
             magma_int_t sizeA = A.ld * A.n;
             lapack::larnv( idist, opts.iseed, sizeA, A(0,0) );
