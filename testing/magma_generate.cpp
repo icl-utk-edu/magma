@@ -31,6 +31,10 @@ using std::min;
 /******************************************************************************/
 // constants
 
+const magma_int_t idist_rand  = 1;
+const magma_int_t idist_randu = 2;
+const magma_int_t idist_randn = 3;
+
 enum class MatrixType {
     rand      = 1,  // maps to larnv idist
     randu     = 2,  // maps to larnv idist
@@ -105,7 +109,6 @@ void magma_generate_sigma(
     typedef typename blas::traits<FloatT>::real_t real_t;
 
     // constants
-    const magma_int_t idist_rand = 1;
     const FloatT c_zero = blas::traits<FloatT>::make( 0, 0 );
 
     // locals
@@ -221,8 +224,7 @@ void magma_generate_svd(
     Vector< typename blas::traits<FloatT>::real_t >& sigma,
     Matrix<FloatT>& A )
 {
-    // constants
-    const magma_int_t idist_randn = 3;
+    typedef typename blas::traits<FloatT>::real_t real_t;
 
     // locals
     FloatT tmp;
@@ -282,6 +284,29 @@ void magma_generate_svd(
                    U(0,0), U.ld, tau(0), A(0,0), A.ld,
                    work(0), lwork, &info );
     assert( info == 0 );
+
+    if (condD != 1) {
+        // A = A*D col scaling
+        Vector<real_t> D( A.n );
+        real_t range = log( condD );
+        lapack::larnv( idist_rand, opts.iseed, D.n, D(0) );
+        for (magma_int_t i = 0; i < D.n; ++i) {
+            D[i] = exp( D[i] * range );
+        }
+        // TODO: add argument to return D to caller?
+        if (opts.verbose) {
+            printf( "D = [" );
+            for (magma_int_t i = 0; i < D.n; ++i) {
+                printf( " %11.8g", D[i] );
+            }
+            printf( " ];\n" );
+        }
+        for (magma_int_t j = 0; j < A.n; ++j) {
+            for (magma_int_t i = 0; i < A.m; ++i) {
+                *A(i,j) *= D[j];
+            }
+        }
+    }
 }
 
 /******************************************************************************/
@@ -295,11 +320,10 @@ void magma_generate_heev(
     Vector< typename blas::traits<FloatT>::real_t >& sigma,
     Matrix<FloatT>& A )
 {
+    typedef typename blas::traits<FloatT>::real_t real_t;
+
     // check inputs
     assert( A.m == A.n );
-
-    // constants
-    const magma_int_t idist_randn = 3;
 
     // locals
     FloatT tmp;
@@ -354,6 +378,21 @@ void magma_generate_heev(
     // usually LAPACK ignores imaginary part anyway, but Matlab doesn't
     for (int i = 0; i < n; ++i) {
         *A(i,i) = blas::traits<FloatT>::make( real( *A(i,i) ), 0 );
+    }
+
+    if (condD != 1) {
+        // A = D*A*D row & column scaling
+        Vector<real_t> D( n );
+        real_t range = log( condD );
+        lapack::larnv( idist_rand, opts.iseed, n, D(0) );
+        for (magma_int_t i = 0; i < n; ++i) {
+            D[i] = exp( D[i] * range );
+        }
+        for (magma_int_t j = 0; j < n; ++j) {
+            for (magma_int_t i = 0; i < n; ++i) {
+                *A(i,j) *= D[i] * D[j];
+            }
+        }
     }
 }
 
@@ -473,17 +512,18 @@ void magma_generate_geevx(
     _dominant   diagonally dominant: set A_ii = ± max( sum_j |A_ij|, sum_j |A_ji| )
                 Note _dominant changes the singular or eigenvalues.
 
-    [below not yet implemented]
+    [below scaling by D implemented, scaling by K not yet implemented]
     If condD != 1, then:
     For SVD, A = (U Sigma V^H) K D, where
     K is diagonal such that columns of (U Sigma V^H K) have unit norm,
+    hence (A^T A) has unit diagonal,
     and D has log-random entries in ( log(1/condD), log(1) ).
 
     For heev, A0 = U Lambda U^H, A = D K A0 K D, where
-    K is diagonal such that K A0 K) has unit diagonal,
-    and D as above.
+    K is diagonal such that (K A0 K) has unit diagonal, and D is as above.
 
-    Note using condD changes the singular or eigenvalues.
+    Note using condD changes the singular or eigenvalues; on output, sigma
+    contains the singular or eigenvalues of A0, not of A.
     See: Demmel and Veselic, Jacobi's method is more accurate than QR, 1992.
 
     @ingroup testing
