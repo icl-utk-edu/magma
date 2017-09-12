@@ -177,8 +177,6 @@ void magma_generate_sigma(
         case Dist::randn:
         case Dist::randu:
         case Dist::rand: {
-            // randn, randu, or rand already specifies sign; don't change it
-            rand_sign = false;
             magma_int_t idist = (magma_int_t) dist;
             lapack::larnv( idist, opts.iseed, sigma.n, sigma(0) );
             break;
@@ -442,7 +440,7 @@ void magma_generate_geevx(
 
     diag#*      A = Sigma
     svd#*       A = U Sigma V^H
-    poev#*      A = V Sigma V^H  (eigenvalues positive, i.e., matrix SPD)
+    poev#*      A = V Sigma V^H  (eigenvalues positive [1], i.e., matrix SPD)
     spd#*       alias for poev
     heev#*      A = V Lambda V^H (eigenvalues mixed signs)
     syev#*      alias for heev
@@ -453,7 +451,7 @@ void magma_generate_geevx(
     _rand       sigma_i random uniform on (0, 1) [default]
     _randu      sigma_i random uniform on (-1, 1)
     _randn      sigma_i random normal with mean 0, std 1
-                Note for _randu and _randn, Sigma contains negative values.
+                [1] Note for _randu and _randn, Sigma contains negative values.
                 _rand* do not use cond, so the condition number is arbitrary.
 
     _logrand    log(sigma_i) uniform on (log(1/cond), log(1))
@@ -510,11 +508,11 @@ void magma_generate_matrix(
 
     // locals
     std::string name = opts.matrix;
-    real_t cond  = opts.cond;
+    real_t cond = opts.cond;
     if (cond == 0) {
-        cond = 1/eps;
+        cond = 1 / sqrt( eps );
     }
-    real_t condD = opts.cond;
+    real_t condD = opts.condD;
     real_t sigma_max = 1;
     magma_int_t minmn = min( A.m, A.n );
 
@@ -654,12 +652,7 @@ void magma_generate_matrix(
             break;
     }
 
-    if (contains( name, "_dominant" ) ||
-        (opts.spd &&
-         type != MatrixType::zero     &&
-         type != MatrixType::identity &&
-         type != MatrixType::poev))
-    {
+    if (contains( name, "_dominant" )) {
         // make diagonally dominant; strict unless diagonal has zeros
         for (int i = 0; i < minmn; ++i) {
             real_t sum = max( blas::asum( A.m, A(0,i), 1    ),    // i-th col

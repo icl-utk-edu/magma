@@ -220,7 +220,6 @@ public:
     std::string matrix;
     double      cond;
     double      condD;
-    bool        spd;
     magma_int_t iseed[4];
 
     // queue for default device

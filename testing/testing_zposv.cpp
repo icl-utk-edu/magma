@@ -40,6 +40,7 @@ int main( int argc, char** argv)
     int status = 0;
     
     magma_opts opts;
+    opts.matrix = "rand_dominant";
     opts.parse_opts( argc, argv );
     
     double tol = opts.tolerance * lapackf77_dlamch("E");
