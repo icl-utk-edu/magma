@@ -141,6 +141,8 @@ magma_zparilut3setup(
     //CHECK( magma_zparilut_create_collinkedlist( U, &UT, queue) );
 
     if (timing == 1) {
+        printf("ilut_fill_ratio = %.6f;\n\n", precond->atol ); 
+        
         printf("performance_%d = [\n%%iter L.nnz U.nnz    ILU-Norm     candidat  resid     ILU-norm  selectad  add       transp1   sweep1    selectrm  remove    sweep2    transp2   total       accum\n", (int) num_threads);
     }
 

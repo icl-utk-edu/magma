@@ -548,7 +548,7 @@ magma_zilut_saad(
   for(int z=0; z<n; z++){
     nzcounts = nzcounts +   L->nzcount[z] + U->nzcount[z]; 
   }
-  printf("fill_ratio = %.6f;\n", (double)nzcounts/(double)(A.nnz+A.num_rows)); 
+  printf("ilut_fill_ratio = %.6f;\n", (double)nzcounts/(double)(A.nnz+A.num_rows)); 
 
   free( iw );
   free( jbuf );
