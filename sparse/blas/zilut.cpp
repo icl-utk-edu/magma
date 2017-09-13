@@ -333,14 +333,20 @@ magma_zilut_saad(
 
  
   magma_int_t info = 0;
+  
+  real_Double_t start, end;
+
+  
 #ifdef PRECISION_d
   csptr csmat = NULL;
   csmat = (csptr)Malloc( sizeof(SparMat), "main:csmat"); 
   CSRcs( A.num_rows, A.val, A.col, A.row, csmat, 0 );
+  start = magma_sync_wtime( queue );
+  
   
   iluptr lu = NULL;      /* a temporary lu matrix           */
   lu = (iluptr)Malloc( sizeof(ILUSpar), "main" );
-  int lfil = (int)(A.nnz + A.num_rows )/(2*A.num_rows)*4/3;
+  int lfil = (int)(A.nnz + A.num_rows )/(2*A.num_rows)*precond->atol;
   double tol = 0.0;
   int n = csmat->n; 
   int len, lenu, lenl;
@@ -567,7 +573,10 @@ magma_zilut_saad(
   precond->d.memory_location = Magma_CPU;
   precond->d.storage_type = Magma_CSR;
   
+  end = magma_sync_wtime( queue );
+  printf(" ilut_runtime = %.4e;\n", end-start);
 #endif
+
   
   return info;
 }

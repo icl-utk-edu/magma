@@ -132,7 +132,7 @@ magma_zparse_opts(
         opts->precond_par.atol = 1e-16;
         opts->precond_par.rtol = 1e-10;
     #else
-        opts->precond_par.atol = 0;
+        opts->precond_par.atol = 1.0;
         opts->precond_par.rtol = 1e-5;
     #endif
     opts->precond_par.maxiter = 100;

@@ -286,8 +286,8 @@ magma_zparilut3setup(
          CHECK( magma_zparilut_sweep_sync( &A0, &L_new, &U_new, queue ) );
         
         end = magma_sync_wtime( queue ); t_sweep1+=end-start;
-        num_rmL = max( (L_new.nnz-L0nnz*(1+precond->atol*(iters+1)/precond->sweeps)), 0 );
-        num_rmU = max( (U_new.nnz-U0nnz*(1+precond->atol*(iters+1)/precond->sweeps)), 0 );
+        num_rmL = max( (L_new.nnz-L0nnz*(1+(precond->atol-1.)*(iters+1)/precond->sweeps)), 0 );
+        num_rmU = max( (U_new.nnz-U0nnz*(1+(precond->atol-1.)*(iters+1)/precond->sweeps)), 0 );
         start = magma_sync_wtime( queue );
         // pre-select: ignore the diagonal entries
         magma_zparilut_preselect( 0, &L_new, &oneL, queue );
