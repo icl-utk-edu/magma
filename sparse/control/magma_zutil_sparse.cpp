@@ -132,7 +132,7 @@ magma_zparse_opts(
         opts->precond_par.atol = 1e-16;
         opts->precond_par.rtol = 1e-10;
     #else
-        opts->precond_par.atol = 0;
+        opts->precond_par.atol = 1.0;
         opts->precond_par.rtol = 1e-5;
     #endif
     opts->precond_par.maxiter = 100;
@@ -326,6 +326,9 @@ magma_zparse_opts(
             }
             else if ( strcmp("ILU", argv[i]) == 0 || strcmp("IC", argv[i]) == 0 )  {
                 opts->precond_par.solver = Magma_ILU;
+            }
+            else if ( strcmp("ILUT", argv[i]) == 0 || strcmp("ICT", argv[i]) == 0 )  {
+                opts->precond_par.solver = Magma_ILUT;
             }
             else if ( strcmp("PARILU", argv[i]) == 0 || strcmp("AIC", argv[i]) == 0 ) {
                 opts->precond_par.solver = Magma_PARILU;
