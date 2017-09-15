@@ -1029,6 +1029,30 @@ magma_zparilut_sweep_sync(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilut_align_residuals(
+    magma_z_matrix L,
+    magma_z_matrix U,
+    magma_z_matrix *Lnew,
+    magma_z_matrix *Unew,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilut_preselect_scale(
+    magma_z_matrix *L,
+    magma_z_matrix *oneL,
+    magma_z_matrix *U,
+    magma_z_matrix *oneU,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilut_thrsrm_U(
+    magma_int_t order,
+    magma_z_matrix L,
+    magma_z_matrix *A,
+    double *thrs,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparilut_residuals(
     magma_z_matrix A,
     magma_z_matrix L,

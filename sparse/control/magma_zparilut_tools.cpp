@@ -333,6 +333,139 @@ cleanup:
 /***************************************************************************//**
     Purpose
     -------
+    Removes any element with absolute value smaller equal or larger equal
+    thrs from the matrix and compacts the whole thing.
+
+    Arguments
+    ---------
+    
+    @param[in]
+    order       magma_int_t
+                order == 1: all elements smaller are discarded
+                order == 0: all elements larger are discarded
+
+    @param[in,out]
+    A           magma_z_matrix*
+                Matrix where elements are removed.
+
+
+    @param[in]
+    thrs        double*
+                Threshold: all elements smaller are discarded
+
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+extern "C" magma_int_t
+magma_zparilut_thrsrm_U(
+    magma_int_t order,
+    magma_z_matrix L,
+    magma_z_matrix *A,
+    double *thrs,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    
+    magma_index_t nnz_count;
+    magma_z_matrix B={Magma_CSR};
+    B.num_rows = A->num_rows;
+    B.num_cols = A->num_cols;
+    B.storage_type = Magma_CSR;
+    B.memory_location = Magma_CPU;
+    
+    CHECK( magma_index_malloc_cpu( &B.row, A->num_rows+1 ) );
+    
+    
+    if( order == 1 ){
+    // set col for values smaller threshold to -1
+        #pragma omp parallel for
+        for( magma_int_t row=0; row<A->num_rows; row++){
+            magma_int_t rm = 0;
+            magma_int_t el = 0;
+            #pragma unroll
+            for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
+                magmaDoubleComplex Lscal = L.val[L.row[A->col[i]+1]-1];
+                if( MAGMA_Z_ABS(A->val[i]*Lscal) <= *thrs ){
+                    if( A->col[i]!=row ){
+                        //printf("remove (%d %d) >> %.4e\n", row, A->col[i], A->val[i]);
+                        magma_int_t col = A->col[i];
+                        A->col[i] = -1; // cheaper than val  
+                        rm++;
+                    } else {
+                        ;
+                    }
+                } else {
+                    el++;    
+                }
+            }
+            B.row[row+1] = el;
+        }
+    } else {
+        #pragma omp parallel for
+        for( magma_int_t row=0; row<A->num_rows; row++){
+            magma_int_t rm = 0;
+            magma_int_t el = 0;
+            #pragma unroll
+            for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
+                magmaDoubleComplex Lscal = L.val[L.row[A->col[i]+1]-1];
+                if( MAGMA_Z_ABS(A->val[i]*Lscal) >= *thrs ){
+                    if( A->col[i]!=row ){
+                        //printf("remove (%d %d) >> %.4e\n", row, A->col[i], A->val[i]);
+                        magma_int_t col = A->col[i];
+                        A->col[i] = -1; // cheaper than val  
+                        rm++;
+                    } else {
+                        ;
+                    }
+                } else {
+                    el++;    
+                }
+            }
+            B.row[row+1] = el;
+        }
+    }
+    
+    // new row pointer
+    B.row[ 0 ] = 0;
+    CHECK( magma_zmatrix_createrowptr( B.num_rows, B.row, queue ) );
+    B.nnz = B.row[ B.num_rows ];
+    
+    // allocate new arrays
+    CHECK( magma_zmalloc_cpu( &B.val, B.nnz ) );
+    CHECK( magma_index_malloc_cpu( &B.rowidx, B.nnz ) );
+    CHECK( magma_index_malloc_cpu( &B.col, B.nnz ) );
+    
+    #pragma omp parallel for
+    for( magma_int_t row=0; row<A->num_rows; row++){
+        magma_index_t offset_old = A->row[row];
+        magma_index_t offset_new = B.row[row];
+        magma_index_t end_old = A->row[row+1];
+        magma_int_t count = 0;
+        for(magma_int_t i=offset_old; i<end_old; i++){
+            if( A->col[i] > -1 ){ // copy this element
+                B.col[ offset_new + count ] = A->col[i];
+                B.val[ offset_new + count ] = A->val[i];
+                B.rowidx[ offset_new + count ] = row;
+                count++;
+            }
+        }
+    }
+    // finally, swap the matrices
+    CHECK( magma_zmatrix_swap( &B, A, queue) );
+    
+cleanup:
+    magma_zmfree( &B, queue );
+    return info;
+}
+
+
+/***************************************************************************//**
+    Purpose
+    -------
     Removes any element with absolute value smaller thrs from the matrix.
     It only uses the linked list and skips the ``removed'' elements
 
@@ -1080,14 +1213,14 @@ magma_zparilut_preselect(
     
     CHECK( magma_zmalloc_cpu( &oneA->val, A->nnz ) );
     
-    if( order == 1 ){ // don't copy the last
+    if( order == 1 ){ // don't copy the first
         #pragma omp parallel for
         for( magma_int_t row=0; row<A->num_rows; row++){
             for( magma_int_t i=A->row[row]+1; i<A->row[row+1]; i++ ){
                 oneA->val[ i-row ] = A->val[i];
             }
         }
-    } else { // don't copy the fist
+    } else { // don't copy the last
         #pragma omp parallel for
         for( magma_int_t row=0; row<A->num_rows; row++){
             for( magma_int_t i=A->row[row]; i<A->row[row+1]-1; i++ ){
@@ -1099,6 +1232,94 @@ magma_zparilut_preselect(
 cleanup:
     return info;
 }
+
+
+/***************************************************************************//**
+    Purpose
+    -------
+    This function takes a list of candidates with residuals, 
+    and selects the largest in every row. The output matrix only contains these
+    largest elements (respectively a zero element if there is no candidate for
+    a certain row).
+
+    Arguments
+    ---------
+
+    @param[in]
+    L           magma_z_matrix*
+                Matrix where elements are removed.
+                
+    @param[in]
+    U           magma_z_matrix*
+                Matrix where elements are removed.
+                
+    @param[out]
+    oneL        magma_z_matrix*
+                Matrix where elements are removed.
+                
+    @param[out]
+    oneU        magma_z_matrix*
+                Matrix where elements are removed.
+                
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+extern "C" magma_int_t
+magma_zparilut_preselect_scale(
+    magma_z_matrix *L,
+    magma_z_matrix *oneL,
+    magma_z_matrix *U,
+    magma_z_matrix *oneU,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    
+    oneL->num_rows = L->num_rows;
+    oneL->num_cols = L->num_cols;
+    oneL->nnz = L->nnz - L->num_rows;
+    oneL->storage_type = Magma_CSR;
+    oneL->memory_location = Magma_CPU;
+    oneL->nnz = L->nnz-L->num_rows;
+    
+    oneU->num_rows = U->num_rows;
+    oneU->num_cols = U->num_cols;
+    oneU->nnz = L->nnz - U->num_rows;
+    oneU->storage_type = Magma_CSR;
+    oneU->memory_location = Magma_CPU;
+    oneU->nnz = U->nnz-U->num_rows;
+    
+    CHECK( magma_zmalloc_cpu( &oneL->val, L->nnz-L->num_rows ) );
+    CHECK( magma_zmalloc_cpu( &oneU->val, U->nnz-U->num_rows ) );
+    
+    { // don't copy the last
+        #pragma omp parallel for
+        for( magma_int_t row=0; row<L->num_rows; row++){
+            for( magma_int_t i=L->row[row]; i<L->row[row+1]-1; i++ ){
+                oneL->val[ i-row ] = L->val[i];
+            }
+        }     
+        
+    }
+    { // don't copy the last
+      // for U, we need to scale by the diagonal of L
+      // unfortunatley, U is in CSC, so the factor is different for every element.
+        #pragma omp parallel for
+        for( magma_int_t row=0; row<U->num_rows; row++){
+            for( magma_int_t i=U->row[row]; i<U->row[row+1]-1; i++ ){
+                oneU->val[ i-row ] = U->val[i] * L->val[L->row[U->col[i]+1]-1];
+            }
+        }     
+        
+    }
+    
+cleanup:
+    return info;
+}
+
 
 
 
@@ -3100,54 +3321,48 @@ magma_zparilut_residuals(
     // parallel for using openmp
     #pragma omp parallel for
     for( magma_int_t e=0; e<L_new->nnz; e++){
-        // as we look at the lower triangular,
-        // col<row, i.e. disregard last element in row
         {
             magma_int_t i,j,icol,jcol;
 
             magma_index_t row = L_new->rowidx[ e ];
             magma_index_t col = L_new->col[ e ];
-            if( row != 0 || col != 0 ){
-                // printf("(%d,%d) ", row, col); fflush(stdout);
-                magmaDoubleComplex A_e = MAGMA_Z_ZERO;
-                // check whether A contains element in this location
-                for( i = A.row[row]; i<A.row[row+1]; i++){
-                    if( A.col[i] == col ){
-                        A_e = A.val[i];
-                        i = A.row[row+1];
-                    }
+            // printf("(%d,%d) ", row, col); fflush(stdout);
+            magmaDoubleComplex A_e = MAGMA_Z_ZERO;
+            // check whether A contains element in this location
+            for( i = A.row[row]; i<A.row[row+1]; i++){
+                if( A.col[i] == col ){
+                    A_e = A.val[i];
+                    i = A.row[row+1];
                 }
-
-                //now do the actual iteration
-                i = L.row[ row ];
-                j = U.row[ col ];
-                magma_int_t endi = L.row[ row+1 ];
-                magma_int_t endj = U.row[ col+1 ];
-                magmaDoubleComplex sum = MAGMA_Z_ZERO;
-                magmaDoubleComplex lsum = MAGMA_Z_ZERO;
-                do{
-                    lsum = MAGMA_Z_ZERO;
-                    icol = L.col[i];
-                    jcol = U.col[j];
-                    if( icol == jcol ){
-                        lsum = L.val[i] * U.val[j];
-                        sum = sum + lsum;
-                        i++;
-                    }
-                    else if( icol<jcol ){
-                        i++;
-                    }
-                    else {
-                        j++;
-                    }
-                }while( i<endi && j<endj );
-                sum = sum - lsum;
-
-                // write back to location e
-                L_new->val[ e ] =  ( A_e - sum );
-            } else {
-                L_new->val[ e ] = MAGMA_Z_ZERO;
             }
+
+            //now do the actual iteration
+            i = L.row[ row ];
+            j = U.row[ col ];
+            magma_int_t endi = L.row[ row+1 ];
+            magma_int_t endj = U.row[ col+1 ];
+            magmaDoubleComplex sum = MAGMA_Z_ZERO;
+            magmaDoubleComplex lsum = MAGMA_Z_ZERO;
+            do{
+                lsum = MAGMA_Z_ZERO;
+                icol = L.col[i];
+                jcol = U.col[j];
+                if( icol == jcol ){
+                    lsum = L.val[i] * U.val[j];
+                    sum = sum + lsum;
+                    i++;
+                }
+                else if( icol<jcol ){
+                    i++;
+                }
+                else {
+                    j++;
+                }
+            }while( i<endi && j<endj );
+            sum = sum - lsum;
+
+            // write back to location e
+            L_new->val[ e ] =  ( A_e - sum );
         }
     }// end omp parallel section
 
@@ -6713,6 +6928,75 @@ cleanup:
     magma_free_cpu( val );
     return info;
 }
+
+
+/***************************************************************************//**
+    Purpose
+    -------
+    This routine approximates the threshold for removing num_rm elements.
+    It takes into account the scaling with the diagonal.
+
+    Arguments
+    ---------
+
+    @param[in]
+    num_rm      magma_int_t
+                Number of Elements that are replaced.
+
+    @param[in]
+    L           magma_z_matrix*
+                Current L approximation.
+             
+    @param[in]
+    U           magma_z_matrix*
+                Current U approximation.
+
+    @param[in]
+    order       magma_int_t
+                Sort goal function: 0 = smallest, 1 = largest.
+
+    @param[out]
+    thrs        double*
+                Size of the num_rm-th smallest element.
+
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+extern "C" magma_int_t
+magma_zparilut_set_thrs_L_scaled(
+    magma_int_t num_rm,
+    magma_z_matrix *L,
+    magma_z_matrix *U,
+    magma_int_t order,
+    double *thrs,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    
+    magma_int_t size =  L->nnz;
+    const magma_int_t incx = 1;
+    // copy as we may change the elements
+    magmaDoubleComplex *val=NULL;
+    CHECK( magma_zmalloc_cpu( &val, size ));
+    assert( size > num_rm );
+    blasf77_zcopy(&size, L->val, &incx, val, &incx );
+    if( order == 0 ){
+        magma_zselectrandom( val, size, num_rm, queue );
+        *thrs = MAGMA_Z_ABS(val[num_rm]);
+    } else {
+         magma_zselectrandom( val, size, size-num_rm, queue );
+        *thrs = MAGMA_Z_ABS(val[size-num_rm]);  
+    }
+
+cleanup:
+    magma_free_cpu( val );
+    return info;
+}
+
 
 
 

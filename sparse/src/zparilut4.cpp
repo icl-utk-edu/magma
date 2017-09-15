@@ -108,10 +108,16 @@ magma_zparilut3setup(
     }
     magma_zmfree(&hU, queue );
     magma_zmfree(&hL, queue );
-    L.diagorder_type = Magma_UNITY;
+    L.diagorder_type = Magma_VALUE;
     magma_zmatrix_tril( hA, &L, queue );
     magma_zmtranspose(hA, &hAT, queue );
-    magma_zmatrix_tril( hA, &U, queue );
+    U.diagorder_type = Magma_UNITY;
+    magma_zmatrix_tril( hAT, &U, queue );
+    for ( magma_int_t z=0; z<U.num_rows; z++ ){
+        U.val[U.row[z+1]-1] = MAGMA_Z_ONE;        
+    }
+
+    
     magma_zmtranspose(U, &UT, queue );
     // magma_zmfree(&UT, queue );
     
@@ -200,7 +206,9 @@ magma_zparilut3setup(
             CHECK( magma_zmatrix_swap(  &hL, &oneL, queue) );
             magma_zmfree(&hL, queue );
             start = magma_sync_wtime( queue );
+            // magma_zparilut_align_residuals( L, U, &hL, &hU, queue );
             magma_zparilut_transpose( hU, &oneU, queue );
+            end = magma_sync_wtime( queue ); t_transpose2+=end-start;
             magma_zmfree(&hU, queue );
             magma_zmfree(&UT, queue );
                 
@@ -218,7 +226,6 @@ magma_zparilut3setup(
             
             
             start = magma_sync_wtime( queue );
-            // magma_zmatrix_addrowindex( &hU, queue );
             magma_zparilut_transpose_select_one( hU, &oneU, queue );
             
             magma_zmfree(&hU, queue );
@@ -264,6 +271,7 @@ magma_zparilut3setup(
             }
             magma_zparilut_thrsrm( 1, &oneL, &thrsL, queue );
             magma_zparilut_thrsrm( 1, &oneU, &thrsU, queue );
+            
         }
         
         end = magma_sync_wtime( queue ); t_selectadd+=end-start;
@@ -286,14 +294,16 @@ magma_zparilut3setup(
         // CHECK( magma_zparilut_sweep( &A0, &L_new, &U_new, queue ) );
         
          CHECK( magma_zparilut_sweep_sync( &A0, &L_new, &U_new, queue ) );
-        
         end = magma_sync_wtime( queue ); t_sweep1+=end-start;
         num_rmL = max( (L_new.nnz-L0nnz*(1+(precond->atol-1.)*(iters+1)/precond->sweeps)), 0 );
         num_rmU = max( (U_new.nnz-U0nnz*(1+(precond->atol-1.)*(iters+1)/precond->sweeps)), 0 );
         start = magma_sync_wtime( queue );
         // pre-select: ignore the diagonal entries
-        magma_zparilut_preselect( 0, &L_new, &oneL, queue );
-        magma_zparilut_preselect( 0, &U_new, &oneU, queue );
+         magma_zparilut_preselect( 0, &L_new, &oneL, queue );
+         magma_zparilut_preselect( 0, &U_new, &oneU, queue );
+        // magma_zparilut_preselect_scale( &L_new, &oneL, &U_new, &oneU, queue );
+        
+        // need to do this differently: I will have to insert the scaling into the preselect!
         //#pragma omp parallel
         {
           //  magma_int_t id = omp_get_thread_num();
@@ -320,6 +330,9 @@ magma_zparilut3setup(
         start = magma_sync_wtime( queue );
         magma_zparilut_thrsrm( 1, &L_new, &thrsL, queue );//printf("done...");fflush(stdout);
         magma_zparilut_thrsrm( 1, &U_new, &thrsU, queue );//printf("done...");fflush(stdout);
+        // magma_zparilut_thrsrm_U( 1, L_new, &U_new, &thrsU, queue );
+        
+        
         // magma_zparilut_thrsrm_semilinked( &U_new, &UT, &thrsU, queue );//printf("done.\n");fflush(stdout);
         CHECK( magma_zmatrix_swap( &L_new, &L, queue) );
         CHECK( magma_zmatrix_swap( &U_new, &U, queue) );
@@ -387,7 +400,7 @@ magma_zparilut3setup(
     CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
     CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
     CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_UNIT ));
+    CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_NON_UNIT ));
     CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
     CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
     CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( &precond->cuinfoL ));

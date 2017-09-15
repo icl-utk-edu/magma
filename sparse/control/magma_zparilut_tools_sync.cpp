@@ -83,65 +83,63 @@ magma_zparilut_sweep_sync(
     #pragma omp parallel for
     for( magma_int_t e=0; e<L->nnz; e++){
 
-        magma_int_t i,j,icol,jcol,jold;
+        magma_int_t i,j,icol,jcol;
 
         magma_index_t row = L->rowidx[ e ];
         magma_index_t col = L->col[ e ];
-        // as we look at the lower triangular,
-        // col<row, i.e. disregard last element in row
-        if( col < row ){
-            //printf("(%d,%d) ", row, col); fflush(stdout);
-            magmaDoubleComplex A_e = MAGMA_Z_ZERO;
-            // check whether A contains element in this location
-            for( i = A->row[row]; i<A->row[row+1]; i++){
-                if( A->col[i] == col ){
-                    A_e = A->val[i];
-                    break;
-                }
+
+        //printf("(%d,%d) ", row, col); fflush(stdout);
+        magmaDoubleComplex A_e = MAGMA_Z_ZERO;
+        // check whether A contains element in this location
+        for( i = A->row[row]; i<A->row[row+1]; i++){
+            if( A->col[i] == col ){
+                A_e = A->val[i];
+                break;
             }
-
-            //now do the actual iteration
-            i = L->row[ row ];
-            j = U->row[ col ];
-            magma_int_t endi = L->row[ row+1 ];
-            magma_int_t endj = U->row[ col+1 ]; 
-            magmaDoubleComplex sum = MAGMA_Z_ZERO;
-            magmaDoubleComplex lsum = MAGMA_Z_ZERO;
-            do{
-                lsum = MAGMA_Z_ZERO;
-                jold = j;
-                icol = L->col[i];
-                jcol = U->col[j];
-                if( icol == jcol ){
-                    lsum = L->val[i] * U->val[j];
-                    sum = sum + lsum;
-                    i++;
-                    j++;
-                }
-                else if( icol<jcol ){
-                    i++;
-                }
-                else {
-                    j++;
-                }
-            }while( i<endi && j<endj );
-            sum = sum - lsum;
-
-            // write back to location e
-            L_new_val[ e ] =  ( A_e - sum ) / U->val[jold];
-        } else if( row == col ){ // end check whether part of L
-            L_new_val[ e ] = MAGMA_Z_ONE; // lower triangular has diagonal equal 1
         }
+
+        //now do the actual iteration
+        i = L->row[ row ];
+        j = U->row[ col ];
+        magma_int_t endi = L->row[ row+1 ];
+        magma_int_t endj = U->row[ col+1 ]; 
+        magmaDoubleComplex sum = MAGMA_Z_ZERO;
+        magmaDoubleComplex lsum = MAGMA_Z_ZERO;
+        do{
+            lsum = MAGMA_Z_ZERO;
+            icol = L->col[i];
+            jcol = U->col[j];
+            if( icol == jcol ){
+                lsum = L->val[i] * U->val[j];
+                sum = sum + lsum;
+                i++;
+                j++;
+            }
+            else if( icol<jcol ){
+                i++;
+            }
+            else {
+                j++;
+            }
+        }while( i<endi && j<endj );
+        sum = sum - lsum;
+
+        // write back to location e
+        L_new_val[ e ] =  ( A_e - sum );
+
     }// end omp parallel section
 
    #pragma omp parallel for
     for( magma_int_t e=0; e<U->nnz; e++){
-        {
-            magma_int_t i,j,icol,jcol;
+        magma_int_t i,j,icol,jcol,iold;
 
-            magma_index_t row = U->col[ e ];
-            magma_index_t col = U->rowidx[ e ];
-
+        magma_index_t row = U->col[ e ];
+        magma_index_t col = U->rowidx[ e ];
+        // as we look at the lower triangular,
+        // col<row, i.e. disregard last element in row
+        if( row == col ){ 
+            U_new_val[ e ] = MAGMA_Z_ONE; // upper triangular has diagonal equal 1
+        } else {
             //printf("(%d,%d) ", row, col); fflush(stdout);
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
@@ -161,6 +159,7 @@ magma_zparilut_sweep_sync(
             magmaDoubleComplex lsum = MAGMA_Z_ZERO;
             do{
                 lsum = MAGMA_Z_ZERO;
+                iold = i;
                 icol = L->col[i];
                 jcol = U->col[j];
                 if( icol == jcol ){
@@ -179,7 +178,7 @@ magma_zparilut_sweep_sync(
             sum = sum - lsum;
 
             // write back to location e
-            U_new_val[ e ] =  ( A_e - sum );
+            U_new_val[ e ] =  ( A_e - sum ) / L->val[iold];
         }
     }// end omp parallel section
 
@@ -199,7 +198,65 @@ cleanup:
     return info;
 }
 
+/***************************************************************************//**
+    Purpose
+    -------
+    This function scales the residuals of a lower triangular factor L with the 
+    diagonal of U. The intention is to generate a good initial guess for 
+    inserting the elements.
 
+    Arguments
+    ---------
+
+    @param[in]
+    L           magma_z_matrix
+                Current approximation for the lower triangular factor
+                The format is sorted CSR.
+
+    @param[in]
+    U           magma_z_matrix
+                Current approximation for the upper triangular factor
+                The format is sorted CSC.
+
+    @param[in]
+    hL          magma_z_matrix*
+                Current approximation for the lower triangular factor
+                The format is sorted CSR.
+
+    @param[in]
+    hU          magma_z_matrix*
+                Current approximation for the upper triangular factor
+                The format is sorted CSC.
+
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+
+extern "C" magma_int_t
+magma_zparilut_align_residuals(
+    magma_z_matrix L,
+    magma_z_matrix U,
+    magma_z_matrix *Lnew,
+    magma_z_matrix *Unew,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    
+    #pragma omp parallel for
+    for( magma_int_t row=0; row<L.num_rows; row++){
+        magmaDoubleComplex Lscal = L.val[L.row[row+1]-1]; // last element in row
+        for( magma_int_t el=Unew->row[row]; el<Unew->row[row+1]; el++){
+            Unew->val[el] = Unew->val[el] / Lscal;           
+        }
+    }
+    
+cleanup:
+    return info;
+}
 
 
 

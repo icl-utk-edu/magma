@@ -130,13 +130,23 @@ int main(  int argc, char** argv )
            zopts.precond_par.setuptime, zopts.precond_par.runtime );
         printf("];\n\n");
         
-        printf("transfer_time = %.6f;\n\n", t_transfer);
+        //printf("transfer_time = %.6f;\n\n", t_transfer);
+        
+
         magma_zmfree(&x, queue );
         magma_zmfree(&b, queue );
         magma_zmfree(&dB, queue );
         magma_zmfree(&B, queue );
-        magma_zsolverinfo_free( &zopts.solver_par, &zopts.precond_par, queue );
+        //magma_zsolverinfo_free( &zopts.solver_par, &zopts.precond_par, queue );
         fflush(stdout);
+        
+                // filename for temporary matrix storage
+        const char *filename = "solution.mtx";
+        magma_zmfree(&b_h, queue );
+        magma_zmconvert(x_h, &b_h, Magma_DENSE, Magma_CSR, queue );
+        // write to file
+        TESTING_CHECK( magma_zwrite_csrtomtx( b_h, filename, queue ));
+        
         
         magma_zmfree(&dB, queue );
         magma_zmfree(&B, queue );
