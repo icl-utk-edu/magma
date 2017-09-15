@@ -107,7 +107,7 @@ int magma_z_isnan_inf( magmaDoubleComplex x )
 
     @param[in]
     lda     INTEGER
-            The leading dimension of the array A.  LDA >= max(1,M).
+            The leading dimension of the array A. lda >= m.
 
     @param[out]
     cnt_nan INTEGER*
@@ -140,7 +140,7 @@ magma_int_t magma_znan_inf(
         info = -2;
     else if ( n < 0 )
         info = -3;
-    else if ( lda < max(1,m) )
+    else if (lda < m)
         info = -5;
     
     if (info != 0) {
@@ -215,7 +215,7 @@ magma_int_t magma_znan_inf(
 
     @param[in]
     ldda    INTEGER
-            The leading dimension of the array A.  LDDA >= max(1,M).
+            The leading dimension of the array A. ldda >= m.
 
     @param[out]
     cnt_nan INTEGER*
@@ -251,7 +251,7 @@ magma_int_t magma_znan_inf_gpu(
         info = -2;
     else if ( n < 0 )
         info = -3;
-    else if ( ldda < max(1,m) )
+    else if (ldda < m)
         info = -5;
     
     if (info != 0) {
