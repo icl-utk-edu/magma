@@ -70,12 +70,12 @@ void check_zgeev(
     #endif
     double result[4] );
 
-void magma_zgenerate_matrix(
-    magma_int_t matrix,
-    magma_int_t m, magma_int_t n,
-    magma_int_t iseed[4],
-    double* sigma,
-    magmaDoubleComplex* A, magma_int_t lda );
+//void magma_zgenerate_matrix(
+//    magma_int_t matrix,
+//    magma_int_t m, magma_int_t n,
+//    magma_int_t iseed[4],
+//    double* sigma,
+//    magmaDoubleComplex* A, magma_int_t lda );
 
 #undef COMPLEX
 
@@ -86,13 +86,13 @@ void magma_zgenerate_matrix(
 /******************************************************************************/
 // C++ utility functions
 
-class magma_opts;
+//class magma_opts;
 
-void magma_generate_matrix(
-    magma_opts& opts,
-    magma_int_t iseed[4],
-    magma_int_t m, magma_int_t n,
-    double* sigma_ptr,
-    magmaDoubleComplex* A_ptr, magma_int_t lda );
+//void magma_generate_matrix(
+//    magma_opts& opts,
+//    magma_int_t iseed[4],
+//    magma_int_t m, magma_int_t n,
+//    double* sigma_ptr,
+//    magmaDoubleComplex* A_ptr, magma_int_t lda );
 
 #endif        //  #ifndef TESTING_MAGMA_Z_H

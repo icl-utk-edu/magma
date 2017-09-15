@@ -254,7 +254,7 @@ libtest_src := \
 	$(cdir)/magma_util.cpp		\
 	$(cdir)/magma_zutil.cpp		\
 	$(cdir)/magma_zgesvd_check.cpp	\
-	$(cdir)/magma_zgenerate.cpp		\
+	$(cdir)/magma_generate.cpp		\
 
 
 # ----------------------------------------------------------------------

@@ -27,18 +27,21 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
+    // constants
+    const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
+    const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
+    const magma_int_t ione = 1;
+    
+    // locals
     real_Double_t   gflops, cpu_perf, cpu_time, gpu_perf, gpu_time;
-    double          error, Rnorm, Anorm, Xnorm, *work;
-    magmaDoubleComplex c_one     = MAGMA_Z_ONE;
-    magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
+    double          error, Rnorm, Anorm, Xnorm, *work, *sigma;
     magmaDoubleComplex *h_A, *h_B, *h_X;
     magmaDoubleComplex_ptr d_A, d_B;
-    magma_int_t N, lda, ldb, ldda, lddb, info, sizeA, sizeB;
-    magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
+    magma_int_t N, lda, ldb, ldda, lddb, info, sizeB;
     int status = 0;
     
     magma_opts opts;
+    opts.matrix = "rand_dominant";
     opts.parse_opts( argc, argv );
     
     double tol = opts.tolerance * lapackf77_dlamch("E");
@@ -58,6 +61,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc_cpu( &h_B, ldb*opts.nrhs ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_X, ldb*opts.nrhs ));
             TESTING_CHECK( magma_dmalloc_cpu( &work, N ));
+            TESTING_CHECK( magma_dmalloc_cpu( &sigma, N ));
             
             TESTING_CHECK( magma_zmalloc( &d_A, ldda*N         ));
             TESTING_CHECK( magma_zmalloc( &d_B, lddb*opts.nrhs ));
@@ -65,10 +69,9 @@ int main( int argc, char** argv)
             /* ====================================================================
                Initialize the matrix
                =================================================================== */
-            sizeA = lda*N;
             sizeB = ldb*opts.nrhs;
-            lapackf77_zlarnv( &ione, ISEED, &sizeA, h_A );
-            lapackf77_zlarnv( &ione, ISEED, &sizeB, h_B );
+            magma_generate_matrix( opts, N, N, sigma, h_A, lda );
+            lapackf77_zlarnv( &ione, opts.iseed, &sizeB, h_B );
             magma_zmake_hpd( N, h_A, lda );
             
             magma_zsetmatrix( N, N,         h_A, lda, d_A, ldda, opts.queue );
@@ -130,6 +133,7 @@ int main( int argc, char** argv)
             magma_free_cpu( h_B  );
             magma_free_cpu( h_X  );
             magma_free_cpu( work );
+            magma_free_cpu( sigma );
             
             magma_free( d_A  );
             magma_free( d_B  );

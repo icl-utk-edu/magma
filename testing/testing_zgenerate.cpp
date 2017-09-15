@@ -20,17 +20,14 @@ int main( int argc, char** argv )
     const double eps = lapackf77_dlamch( "precision" ); // 1.2e-7 or 2.2e-16
 
     // locals
-    real_Double_t time;
+    real_Double_t time, time2;
     magma_int_t m, n, minmn, lda;
-    double *sigma;
-    magmaDoubleComplex *A;
-    magma_int_t iseed[4] = { 0, 1, 2, 3 };
 
     magma_opts opts;
     opts.parse_opts( argc, argv );
 
     printf( "%% * cond and condD are not applicable to all matrix types.\n" );
-    printf( "%%     M     N       cond*      condD*   CPU time (sec)   Matrix\n" );
+    printf( "%%     M     N       cond*      condD*   CPU time (sec)   time2 (sec)   Matrix\n" );
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
             double cond = opts.cond;
@@ -41,24 +38,25 @@ int main( int argc, char** argv )
             n = opts.nsize[itest];
             lda = m;
             minmn = min( m, n );
-            sigma = new double[ minmn ];
-            A = new magmaDoubleComplex[ lda*n ];
+            Matrix<magmaDoubleComplex> A( m, n, lda );
+            Vector<double> sigma( minmn );
+
+            time2 = magma_wtime();
+            magma_generate_matrix( opts, sigma, A );
+            time2 = magma_wtime() - time2;
 
             time = magma_wtime();
-            magma_generate_matrix( opts, iseed, m, n, sigma, A, lda );
+            magma_generate_matrix( opts, A.m, A.n, sigma(0), A(0,0), A.ld );
             time = magma_wtime() - time;
 
-            printf( "%% %5lld %5lld   %9.2e   %9.2e   %9.4f        %s\n",
+            printf( "%% %5lld %5lld   %9.2e   %9.2e   %9.4f     %9.4f        %s\n",
                     (long long) m, (long long) n,
-                    cond, opts.condD, time, opts.matrix.c_str() );
+                    cond, opts.condD, time, time2, opts.matrix.c_str() );
 
             if (opts.verbose) {
-                printf( "sigma = " ); magma_dprint( 1, minmn, sigma, 1 );
-                printf( "A = "     ); magma_zprint( m, n, A, lda );
+                printf( "sigma = " ); magma_dprint( 1, minmn, sigma(0), 1 );
+                printf( "A = "     ); magma_zprint( m, n, A(0,0), lda );
             }
-
-            delete[] sigma;
-            delete[] A;
         }
     }
 

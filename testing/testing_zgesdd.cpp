@@ -396,7 +396,6 @@ int main( int argc, char** argv)
     #endif
     magma_int_t *iwork, iunused[1];
     magma_int_t M, N, N_U, M_VT, lda, ldu, ldv, min_mn, info;
-    magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
     
     magma_opts opts;
@@ -600,7 +599,7 @@ int main( int argc, char** argv)
             double result_lapack[5] = { nan, nan, nan, nan, nan };
             
             /* Initialize the matrix */
-            magma_generate_matrix( opts, ISEED, M, N, Sref, hA, lda );
+            magma_generate_matrix( opts, M, N, Sref, hA, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, hA, &lda, hR, &lda );
             
             if ( opts.magma ) {
