@@ -95,15 +95,15 @@ int magma_z_isnan_inf( magmaDoubleComplex x )
 
     @param[in]
     m       INTEGER
-            The number of rows of the matrix A.  M >= 0.
+            The number of rows of the matrix A. m >= 0.
 
     @param[in]
     n       INTEGER
-            The number of columns of the matrix A.  N >= 0.
+            The number of columns of the matrix A. n >= 0.
 
     @param[in]
-    A       COMPLEX_16 array, dimension (LDA,N), on the CPU host.
-            The M-by-N matrix to be printed.
+    A       COMPLEX_16 array, dimension (lda,n), on the CPU host.
+            The m-by-n matrix to be printed.
 
     @param[in]
     lda     INTEGER
@@ -131,14 +131,14 @@ magma_int_t magma_znan_inf(
     magma_int_t *cnt_nan,
     magma_int_t *cnt_inf )
 {
-    #define A(i,j) (A + (i) + (j)*lda)
+    #define A(i_, j_) (A + (i_) + (j_)*lda)
     
     magma_int_t info = 0;
-    if ( uplo != MagmaLower && uplo != MagmaUpper && uplo != MagmaFull )
+    if (uplo != MagmaLower && uplo != MagmaUpper && uplo != MagmaFull)
         info = -1;
-    else if ( m < 0 )
+    else if (m < 0)
         info = -2;
-    else if ( n < 0 )
+    else if (n < 0)
         info = -3;
     else if (lda < m)
         info = -5;
@@ -151,33 +151,33 @@ magma_int_t magma_znan_inf(
     int c_nan = 0;
     int c_inf = 0;
     
-    if ( uplo == MagmaLower ) {
-        for( int j = 0; j < n; ++j ) {
-            for( int i = j; i < m; ++i ) {  // i >= j
-                if      ( magma_z_isnan( *A(i,j) )) { c_nan++; }
-                else if ( magma_z_isinf( *A(i,j) )) { c_inf++; }
+    if (uplo == MagmaLower) {
+        for (int j = 0; j < n; ++j) {
+            for (int i = j; i < m; ++i) {  // i >= j
+                if      (magma_z_isnan( *A(i,j) )) { c_nan++; }
+                else if (magma_z_isinf( *A(i,j) )) { c_inf++; }
             }
         }
     }
-    else if ( uplo == MagmaUpper ) {
-        for( int j = 0; j < n; ++j ) {
-            for( int i = 0; i < m && i <= j; ++i ) {  // i <= j
-                if      ( magma_z_isnan( *A(i,j) )) { c_nan++; }
-                else if ( magma_z_isinf( *A(i,j) )) { c_inf++; }
+    else if (uplo == MagmaUpper) {
+        for (int j = 0; j < n; ++j) {
+            for (int i = 0; i < m && i <= j; ++i) {  // i <= j
+                if      (magma_z_isnan( *A(i,j) )) { c_nan++; }
+                else if (magma_z_isinf( *A(i,j) )) { c_inf++; }
             }
         }
     }
-    else if ( uplo == MagmaFull ) {
-        for( int j = 0; j < n; ++j ) {
-            for( int i = 0; i < m; ++i ) {
-                if      ( magma_z_isnan( *A(i,j) )) { c_nan++; }
-                else if ( magma_z_isinf( *A(i,j) )) { c_inf++; }
+    else if (uplo == MagmaFull) {
+        for (int j = 0; j < n; ++j) {
+            for (int i = 0; i < m; ++i) {
+                if      (magma_z_isnan( *A(i,j) )) { c_nan++; }
+                else if (magma_z_isinf( *A(i,j) )) { c_inf++; }
             }
         }
     }
     
-    if ( cnt_nan != NULL ) { *cnt_nan = c_nan; }
-    if ( cnt_inf != NULL ) { *cnt_inf = c_inf; }
+    if (cnt_nan != NULL) { *cnt_nan = c_nan; }
+    if (cnt_inf != NULL) { *cnt_inf = c_inf; }
     
     return (c_nan + c_inf);
 }
@@ -203,15 +203,15 @@ magma_int_t magma_znan_inf(
 
     @param[in]
     m       INTEGER
-            The number of rows of the matrix A.  M >= 0.
+            The number of rows of the matrix A. m >= 0.
 
     @param[in]
     n       INTEGER
-            The number of columns of the matrix A.  N >= 0.
+            The number of columns of the matrix A. n >= 0.
 
     @param[in]
-    dA      COMPLEX_16 array, dimension (LDDA,N), on the GPU device.
-            The M-by-N matrix to be printed.
+    dA      COMPLEX_16 array, dimension (ldda,n), on the GPU device.
+            The m-by-n matrix to be printed.
 
     @param[in]
     ldda    INTEGER
@@ -245,11 +245,11 @@ magma_int_t magma_znan_inf_gpu(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    if ( uplo != MagmaLower && uplo != MagmaUpper && uplo != MagmaFull )
+    if (uplo != MagmaLower && uplo != MagmaUpper && uplo != MagmaFull)
         info = -1;
-    else if ( m < 0 )
+    else if (m < 0)
         info = -2;
-    else if ( n < 0 )
+    else if (n < 0)
         info = -3;
     else if (ldda < m)
         info = -5;
