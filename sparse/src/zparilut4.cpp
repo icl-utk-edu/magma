@@ -206,7 +206,10 @@ magma_zparilut3setup(
             CHECK( magma_zmatrix_swap(  &hL, &oneL, queue) );
             magma_zmfree(&hL, queue );
             start = magma_sync_wtime( queue );
-            // magma_zparilut_align_residuals( L, U, &hL, &hU, queue );
+            if( precond->pattern == 2 ){
+                // align residuals in U
+                magma_zparilut_align_residuals( L, U, &hL, &hU, queue );
+            }
             magma_zparilut_transpose( hU, &oneU, queue );
             end = magma_sync_wtime( queue ); t_transpose2+=end-start;
             magma_zmfree(&hU, queue );
