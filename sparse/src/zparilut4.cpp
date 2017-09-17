@@ -209,6 +209,11 @@ magma_zparilut3setup(
             if( precond->pattern == 2 ){
                 // align residuals in U
                 magma_zparilut_align_residuals( L, U, &hL, &hU, queue );
+            } else if(precond->pattern == 0){
+                for(magma_int_t z=0; z<hL.nnz; z++)
+                    hL.val[z] = MAGMA_Z_ZERO;
+                for(magma_int_t z=0; z<hU.nnz; z++)
+                    hU.val[z] = MAGMA_Z_ZERO;
             }
             magma_zparilut_transpose( hU, &oneU, queue );
             end = magma_sync_wtime( queue ); t_transpose2+=end-start;
