@@ -346,7 +346,7 @@ magma_zilut_saad(
   
   iluptr lu = NULL;      /* a temporary lu matrix           */
   lu = (iluptr)Malloc( sizeof(ILUSpar), "main" );
-  int lfil = (int)(A.nnz + A.num_rows )/(2*A.num_rows)*precond->atol;
+  int lfil = magma_ceildiv((A.nnz + A.num_rows )*precond->atol,(2*A.num_rows));
   double tol = 0.0;
   int n = csmat->n; 
   int len, lenu, lenl;

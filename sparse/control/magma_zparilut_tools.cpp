@@ -1211,7 +1211,7 @@ magma_zparilut_preselect(
     oneA->storage_type = Magma_CSR;
     oneA->memory_location = Magma_CPU;
     
-    CHECK( magma_zmalloc_cpu( &oneA->val, A->nnz ) );
+    CHECK( magma_zmalloc_cpu( &oneA->val, oneA->nnz ) );
     
     if( order == 1 ){ // don't copy the first
         #pragma omp parallel for
