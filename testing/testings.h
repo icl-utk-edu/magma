@@ -163,6 +163,15 @@ public:
     // parse command line
     void parse_opts( int argc, char** argv );
     
+    // set range, vl, vu, il, iu for eigen/singular value problems (gesvdx, syevdx, ...)
+    void get_range( magma_int_t n, magma_range_t* range,
+                    double* vl, double* vu,
+                    magma_int_t* il, magma_int_t* iu );
+    
+    void get_range( magma_int_t n, magma_range_t* range,
+                    float* vl, float* vu,
+                    magma_int_t* il, magma_int_t* iu );
+    
     // deallocate queues, etc.
     void cleanup();
     
@@ -190,10 +199,18 @@ public:
     magma_int_t nthread;
     magma_int_t offset;
     magma_int_t itype;     // hegvd: problem type
-    magma_int_t version;   // hemm_mgpu, hetrd
+    magma_int_t version;
     magma_int_t check;
     magma_int_t verbose;
-    double      fraction;  // hegvdx
+    
+    // ranges for eigen/singular values (gesvdx, heevdx, ...)
+    double      fraction_lo;
+    double      fraction_up;
+    magma_int_t irange_lo;
+    magma_int_t irange_up;
+    double      vrange_lo;
+    double      vrange_up;
+    
     double      tolerance;
     
     // boolean arguments

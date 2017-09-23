@@ -54,7 +54,7 @@ int main( int argc, char** argv)
 
     double *w1, *w2, result[2]={0,0};
     magma_int_t *iwork;
-    magma_int_t N, n2, info, lda, lwork, liwork;
+    magma_int_t N, Nfound, n2, info, lda, lwork, liwork;
     magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
 
@@ -64,25 +64,21 @@ int main( int argc, char** argv)
     double tol    = opts.tolerance * lapackf77_dlamch("E");
     double tolulp = opts.tolerance * lapackf77_dlamch("P");
 
-    magma_range_t range = MagmaRangeAll;
-    if (opts.fraction != 1)
-        range = MagmaRangeI;
-
     // pass ngpu = -1 to test multi-GPU code using 1 gpu
     magma_int_t abs_ngpu = abs( opts.ngpu );
     
-    printf("%% itype = %lld, jobz = %s, range = %s, uplo = %s, fraction = %6.4f, ngpu = %lld\n",
-           (long long) opts.itype, lapack_vec_const(opts.jobz), lapack_range_const(range), lapack_uplo_const(opts.uplo),
-           opts.fraction, (long long) abs_ngpu);
+    printf("%% itype = %lld, jobz = %s, uplo = %s, ngpu = %lld\n",
+           (long long) opts.itype, lapack_vec_const(opts.jobz), lapack_uplo_const(opts.uplo),
+           (long long) abs_ngpu);
 
     if (opts.itype == 1) {
-        printf("%%   N     M   GPU Time (sec)   |AZ-BZD|   |D - D_magma|\n");
+        printf("%%   N Nfound  GPU Time (sec)   |AZ-BZD|   |D - D_magma|\n");
     }                                                   
     else if (opts.itype == 2) {                      
-        printf("%%   N     M   GPU Time (sec)   |ABZ-ZD|   |D - D_magma|\n");
+        printf("%%   N Nfound  GPU Time (sec)   |ABZ-ZD|   |D - D_magma|\n");
     }                                                   
     else if (opts.itype == 3) {                      
-        printf("%%   N     M   GPU Time (sec)   |BAZ-ZD|   |D - D_magma|\n");
+        printf("%%   N Nfound  GPU Time (sec)   |BAZ-ZD|   |D - D_magma|\n");
     }                                     
         printf("%%======================================================\n");
     magma_int_t threads = magma_get_parallel_numthreads();
@@ -92,21 +88,11 @@ int main( int argc, char** argv)
             lda = N;
             n2  = lda*N;
             
-            // TODO: test vl-vu range
-            magma_int_t m1 = 0;
-            double vl = 0;
-            double vu = 0;
-            magma_int_t il = 0;
-            magma_int_t iu = 0;
-            if (opts.fraction == 0) {
-                il = max( 1, magma_int_t(0.1*N) );
-                iu = max( 1, magma_int_t(0.3*N) );
-            }
-            else {
-                il = 1;
-                iu = max( 1, magma_int_t(opts.fraction*N) );
-            }
-
+            magma_range_t range;
+            magma_int_t il, iu;
+            double vl, vu;
+            opts.get_range( N, &range, &vl, &vu, &il, &iu );
+            
             magma_zheevdx_getworksize(N, threads, (opts.jobz == MagmaVec),
                                      &lwork,
                                      #ifdef COMPLEX
@@ -142,7 +128,7 @@ int main( int argc, char** argv)
             gpu_time = magma_wtime();
             if (opts.ngpu == 1) {
                 magma_zhegvdx_2stage( opts.itype, opts.jobz, range, opts.uplo,
-                                      N, h_R, lda, h_S, lda, vl, vu, il, iu, &m1, w1,
+                                      N, h_R, lda, h_S, lda, vl, vu, il, iu, &Nfound, w1,
                                       h_work, lwork,
                                       #ifdef COMPLEX
                                       rwork, lrwork,
@@ -152,7 +138,7 @@ int main( int argc, char** argv)
             }
             else {
                 magma_zhegvdx_2stage_m( abs_ngpu, opts.itype, opts.jobz, range, opts.uplo,
-                                        N, h_R, lda, h_S, lda, vl, vu, il, iu, &m1, w1,
+                                        N, h_R, lda, h_S, lda, vl, vu, il, iu, &Nfound, w1,
                                         h_work, lwork,
                                         #ifdef COMPLEX
                                         rwork, lrwork,
@@ -183,28 +169,28 @@ int main( int argc, char** argv)
                 if ( opts.jobz != MagmaNoVec ) {
                     result[0] = 1.;
                     result[0] /= safe_lapackf77_zlanhe("1", lapack_uplo_const(opts.uplo), &N, h_A, &lda, rwork);
-                    result[0] /= lapackf77_zlange("1", &N, &m1, h_R, &lda, rwork);
+                    result[0] /= lapackf77_zlange("1", &N, &Nfound, h_R, &lda, rwork);
                     
                     if (opts.itype == 1) {
-                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &m1, &c_one, h_A, &lda, h_R, &lda, &c_zero, h_work, &N);
-                        for (int i=0; i < m1; ++i)
+                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &Nfound, &c_one, h_A, &lda, h_R, &lda, &c_zero, h_work, &N);
+                        for (int i=0; i < Nfound; ++i)
                             blasf77_zdscal(&N, &w1[i], &h_R[i*N], &ione);
-                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &m1, &c_neg_one, h_B, &lda, h_R, &lda, &c_one, h_work, &N);
-                        result[0] *= lapackf77_zlange("1", &N, &m1, h_work, &N, rwork)/N;
+                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &Nfound, &c_neg_one, h_B, &lda, h_R, &lda, &c_one, h_work, &N);
+                        result[0] *= lapackf77_zlange("1", &N, &Nfound, h_work, &N, rwork)/N;
                     }
                     else if (opts.itype == 2) {
-                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &m1, &c_one, h_B, &lda, h_R, &lda, &c_zero, h_work, &N);
-                        for (int i=0; i < m1; ++i)
+                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &Nfound, &c_one, h_B, &lda, h_R, &lda, &c_zero, h_work, &N);
+                        for (int i=0; i < Nfound; ++i)
                             blasf77_zdscal(&N, &w1[i], &h_R[i*N], &ione);
-                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &m1, &c_one, h_A, &lda, h_work, &N, &c_neg_one, h_R, &lda);
-                        result[0] *= lapackf77_zlange("1", &N, &m1, h_R, &lda, rwork)/N;
+                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &Nfound, &c_one, h_A, &lda, h_work, &N, &c_neg_one, h_R, &lda);
+                        result[0] *= lapackf77_zlange("1", &N, &Nfound, h_R, &lda, rwork)/N;
                     }
                     else if (opts.itype == 3) {
-                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &m1, &c_one, h_A, &lda, h_R, &lda, &c_zero, h_work, &N);
-                        for (int i=0; i < m1; ++i)
+                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &Nfound, &c_one, h_A, &lda, h_R, &lda, &c_zero, h_work, &N);
+                        for (int i=0; i < Nfound; ++i)
                             blasf77_zdscal(&N, &w1[i], &h_R[i*N], &ione);
-                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &m1, &c_one, h_B, &lda, h_work, &N, &c_neg_one, h_R, &lda);
-                        result[0] *= lapackf77_zlange("1", &N, &m1, h_R, &lda, rwork)/N;
+                        blasf77_zhemm("L", lapack_uplo_const(opts.uplo), &N, &Nfound, &c_one, h_B, &lda, h_work, &N, &c_neg_one, h_R, &lda);
+                        result[0] *= lapackf77_zlange("1", &N, &Nfound, h_R, &lda, rwork)/N;
                     }
                 }
                 
@@ -225,19 +211,19 @@ int main( int argc, char** argv)
                 }
                 
                 double maxw=0, diff=0;
-                for (int j=0; j < m1; j++) {
+                for (int j=0; j < Nfound; j++) {
                     maxw = max(maxw, fabs(w1[j]));
                     maxw = max(maxw, fabs(w2[j]));
                     diff = max(diff, fabs(w1[j] - w2[j]));
                 }
-                result[1] = diff / (m1*maxw);
+                result[1] = diff / (Nfound*maxw);
             }
             
             /* =====================================================================
                Print execution time
                =================================================================== */
             printf("%5lld %5lld   %9.4f     ",
-                   (long long) N, (long long) m1, gpu_time);
+                   (long long) N, (long long) Nfound, gpu_time);
             if ( opts.check ) {
                 bool okay = (result[1] < tolulp);
                 if ( opts.jobz != MagmaNoVec ) {

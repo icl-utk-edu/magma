@@ -48,7 +48,7 @@ int main( int argc, char** argv)
     #endif
     double *w1, *w2, result[4]={0, 0, 0, 0}, eps, abstol, runused[1];
     magma_int_t *iwork, *isuppz, *ifail, aux_iwork[1];
-    magma_int_t N, n2, info, lwork, liwork, lda;
+    magma_int_t N, Nfound, n2, info, lwork, liwork, lda;
     magma_int_t ISEED[4] = {0,0,0,1};
     eps = lapackf77_dlamch( "E" );
     int status = 0;
@@ -58,10 +58,6 @@ int main( int argc, char** argv)
 
     // checking NoVec requires LAPACK
     opts.lapack |= (opts.check && opts.jobz == MagmaNoVec);
-    
-    magma_range_t range = MagmaRangeAll;
-    if (opts.fraction != 1)
-        range = MagmaRangeI;
     
     #ifdef REAL
     if (opts.version == 3 || opts.version == 4) {
@@ -76,9 +72,9 @@ int main( int argc, char** argv)
     // pass ngpu = -1 to test multi-GPU code using 1 gpu
     magma_int_t abs_ngpu = abs( opts.ngpu );
     
-    printf("%% jobz = %s, range = %s, uplo = %s, fraction = %6.4f, ngpu = %lld\n",
-           lapack_vec_const(opts.jobz), lapack_range_const(range), lapack_uplo_const(opts.uplo),
-           opts.fraction, (long long) abs_ngpu);
+    printf("%% jobz = %s, uplo = %s, ngpu = %lld\n",
+           lapack_vec_const(opts.jobz), lapack_uplo_const(opts.uplo),
+           (long long) abs_ngpu);
 
     printf("%%   N   CPU Time (sec)   GPU Time (sec)   |S-S_magma|   |A-USU^H|   |I-U^H U|\n");
     printf("%%============================================================================\n");
@@ -89,20 +85,10 @@ int main( int argc, char** argv)
             lda = N;
             abstol = 0;  // auto, in zheevr
             
-            // TODO: test vl-vu range
-            magma_int_t m1 = 0;
-            double vl = 0;
-            double vu = 0;
-            magma_int_t il = 0;
-            magma_int_t iu = 0;
-            if (opts.fraction == 0) {
-                il = max( 1, magma_int_t(0.1*N) );
-                iu = max( 1, magma_int_t(0.3*N) );
-            }
-            else {
-                il = 1;
-                iu = max( 1, magma_int_t(opts.fraction*N) );
-            }
+            magma_range_t range;
+            magma_int_t il, iu;
+            double vl, vu;
+            opts.get_range( N, &range, &vl, &vu, &il, &iu );
 
             // query for workspace sizes
             if ( opts.version == 1 || opts.version == 2 ) {
@@ -120,7 +106,7 @@ int main( int argc, char** argv)
                 magma_zheevr( opts.jobz, range, opts.uplo,
                               N, NULL, lda,      // A
                               vl, vu, il, iu, abstol,
-                              &m1, NULL,         // w
+                              &Nfound, NULL,         // w
                               NULL, lda, NULL,   // Z, isuppz
                               aux_work,  -1,
                               #ifdef COMPLEX
@@ -135,7 +121,7 @@ int main( int argc, char** argv)
                 magma_zheevx( opts.jobz, range, opts.uplo,
                               N, NULL, lda,      // A
                               vl, vu, il, iu, abstol,
-                              &m1, NULL,         // w
+                              &Nfound, NULL,         // w
                               NULL, lda,         // Z
                               aux_work,  -1,
                               #ifdef COMPLEX
@@ -218,7 +204,7 @@ int main( int argc, char** argv)
                     magma_zheevdx( opts.jobz, range, opts.uplo,
                                    N, h_R, lda,
                                    vl, vu, il, iu,
-                                   &m1, w1,
+                                   &Nfound, w1,
                                    h_work, lwork,
                                    #ifdef COMPLEX
                                    rwork, lrwork,
@@ -231,7 +217,7 @@ int main( int argc, char** argv)
                     magma_zheevdx_m( abs_ngpu, opts.jobz, range, opts.uplo,
                                      N, h_R, lda,
                                      vl, vu, il, iu,
-                                     &m1, w1,
+                                     &Nfound, w1,
                                      h_work, lwork,
                                      #ifdef COMPLEX
                                      rwork, lrwork,
@@ -239,7 +225,7 @@ int main( int argc, char** argv)
                                      iwork, liwork,
                                      &info );
                 }
-                //printf( "il %lld, iu %lld, m1 %lld\n", (long long) il, (long long) iu, (long long) m1 );
+                //printf( "il %lld, iu %lld, Nfound %lld\n", (long long) il, (long long) iu, (long long) Nfound );
             }
             else if ( opts.version == 3 ) {  // version 3: MRRR, computes selected eigenvalues/vectors
                 // only complex version available
@@ -247,7 +233,7 @@ int main( int argc, char** argv)
                 magma_zheevr( opts.jobz, range, opts.uplo,
                               N, h_R, lda,
                               vl, vu, il, iu, abstol,
-                              &m1, w1,
+                              &Nfound, w1,
                               h_Z, lda, isuppz,
                               h_work, lwork,
                               #ifdef COMPLEX
@@ -264,7 +250,7 @@ int main( int argc, char** argv)
                 magma_zheevx( opts.jobz, range, opts.uplo,
                               N, h_R, lda,
                               vl, vu, il, iu, abstol,
-                              &m1, w1,
+                              &Nfound, w1,
                               h_Z, lda,
                               h_work, lwork,
                               #ifdef COMPLEX
@@ -358,7 +344,7 @@ int main( int argc, char** argv)
                                       lapack_uplo_const(opts.uplo),
                                       &N, h_A, &lda,
                                       &vl, &vu, &il, &iu, &abstol,
-                                      &m1, w2,
+                                      &Nfound, w2,
                                       h_Z, &lda, isuppz,
                                       h_work, &lwork,
                                       #ifdef COMPLEX
@@ -374,7 +360,7 @@ int main( int argc, char** argv)
                                       lapack_uplo_const(opts.uplo),
                                       &N, h_A, &lda,
                                       &vl, &vu, &il, &iu, &abstol,
-                                      &m1, w2,
+                                      &Nfound, w2,
                                       h_Z, &lda,
                                       h_work, &lwork,
                                       #ifdef COMPLEX

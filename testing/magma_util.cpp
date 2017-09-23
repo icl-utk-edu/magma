@@ -186,8 +186,9 @@ const char *usage =
 "         max       is maximum that will be used\n"
 "\n"
 "  --version x      version of routine, e.g., during development, default 1.\n"
-"  --fraction x     fraction of eigenvectors to compute, default 1.\n"
-"                   If fraction == 0, computes eigenvalues il=0.1*N to iu=0.3*N.\n"
+"  --fraction [lower,]upper  computes eigen/singular values and vectors indexed in range [lower*N + 1, upper*N]. Default lower=0, upper=1.\n"
+"  --irange   [lower,]upper  computes eigen/singular values and vectors indexed in range [lower, upper]. Default lower=1, upper=min(m,n).\n"
+"  --vrange   lower,upper    computes eigen/singular values and vectors in range [lower, upper].\n"
 "  --tolerance x    accuracy tolerance, multiplied by machine epsilon, default 30.\n"
 "  --tol x          same.\n"
 "  -L -U -F         uplo   = Lower*, Upper, or Full.\n"
@@ -231,7 +232,14 @@ magma_opts::magma_opts( magma_opts_t flag )
     this->itype    = 1;
     this->version  = 1;
     this->verbose  = 0;
-    this->fraction = 1.;
+    
+    this->fraction_lo = 0.;
+    this->fraction_up = 1.;
+    this->irange_lo = 0;
+    this->irange_up = 0;
+    this->vrange_lo = 0;
+    this->vrange_up = 0;
+    
     this->tolerance = 30.;
     this->check     = (getenv("MAGMA_TESTINGS_CHECK") != NULL);
     this->magma     = true;
@@ -480,9 +488,37 @@ void magma_opts::parse_opts( int argc, char** argv )
                           "error: --version %s is invalid; ensure version > 0.\n", argv[i] );
         }
         else if ( strcmp("--fraction", argv[i]) == 0 && i+1 < argc ) {
-            this->fraction = atof( argv[++i] );
-            magma_assert( this->fraction >= 0 && this->fraction <= 1,
-                          "error: --fraction %s is invalid; ensure fraction in [0,1].\n", argv[i] );
+            int cnt = sscanf( argv[++i], "%lf,%lf", &this->fraction_lo, &this->fraction_up );
+            printf( "fraction cnt %d, lo %.2e, up %.2e\n", cnt, this->fraction_lo, this->fraction_up );
+            if (cnt == 1) {
+                this->fraction_up = this->fraction_lo;
+                this->fraction_lo = 0;
+            }
+            magma_assert( (cnt == 1 || cnt == 2) &&
+                          this->fraction_lo >= 0 &&
+                          this->fraction_lo <= this->fraction_up &&
+                          this->fraction_up <= 1,
+                          "error: --fraction %s is invalid; ensure 0 <= lower <= upper <= 1.\n", argv[i] );
+        }
+        else if ( strcmp("--irange", argv[i]) == 0 && i+1 < argc ) {
+            int lo, hi;
+            int cnt = sscanf( argv[++i], "%d,%d", &lo, &hi );
+            this->irange_lo = lo;
+            this->irange_up = hi;
+            if (cnt == 1) {
+                this->irange_up = this->irange_lo;
+                this->irange_lo = 0;
+            }
+            magma_assert( (cnt == 1 || cnt == 2) &&
+                          this->irange_lo >= 1 &&
+                          this->irange_lo <= this->irange_up,
+                          "error: --irange %s is invalid; ensure 1 <= lower <= upper.\n", argv[i] );
+        }
+        else if ( strcmp("--vrange", argv[i]) == 0 && i+1 < argc ) {
+            int cnt = sscanf( argv[++i], "%lf,%lf", &this->vrange_lo, &this->vrange_up );
+            magma_assert( cnt == 2 &&
+                          this->vrange_lo <= this->vrange_up,
+                          "error: --vrange %s is invalid; ensure lower <= upper.\n", argv[i] );
         }
         else if ( (strcmp("--tol",       argv[i]) == 0 ||
                    strcmp("--tolerance", argv[i]) == 0) && i+1 < argc ) {
@@ -693,7 +729,53 @@ void magma_opts::parse_opts( int argc, char** argv )
 // end parse_opts
 
 
-// ------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void magma_opts::get_range(
+    magma_int_t n, magma_range_t* range,
+    double* vl, double* vu,
+    magma_int_t* il, magma_int_t* iu )
+{
+    *range = MagmaRangeAll;
+    *il = -1;
+    *iu = -1;
+    *vl = MAGMA_D_NAN;
+    *vu = MAGMA_D_NAN;
+    if (this->fraction_lo != 0 || this->fraction_up != 1) {
+        *range = MagmaRangeI;
+        *il = this->fraction_lo * n;
+        *iu = this->fraction_up * n;
+        printf( "fraction (%.2f, %.2f) => irange (%d, %d)\n",
+                this->fraction_lo, this->fraction_up, *il, *iu );
+    }
+    else if (this->irange_lo != 0 || this->irange_up != 0) {
+        *range = MagmaRangeI;
+        *il = min( this->irange_lo, n );
+        *iu = min( this->irange_up, n );
+        printf( "irange (%d, %d)\n", *il, *iu );
+    }
+    else if (this->vrange_lo != 0 || this->vrange_up != 0) {
+        *range = MagmaRangeV;
+        *vl = this->vrange_lo;
+        *vu = this->vrange_up;
+        printf( "vrange (%.2e, %.2e)\n", *vl, *vu );
+    }
+}
+
+
+// -----------------------------------------------------------------------------
+void magma_opts::get_range(
+    magma_int_t n, magma_range_t* range,
+    float* vl, float* vu,
+    magma_int_t* il, magma_int_t* iu )
+{
+    double dvl, dvu;
+    this->get_range( n, range, &dvl, &dvu, il, iu );
+    *vl = float(dvl);
+    *vu = float(dvu);
+}
+
+
+// -----------------------------------------------------------------------------
 void magma_opts::cleanup()
 {
     this->queue = NULL;

@@ -51,7 +51,7 @@ int main( int argc, char** argv)
 
     double *w1, *w2;
     magma_int_t *iwork;
-    magma_int_t N, n2, info, lda, lwork, liwork;
+    magma_int_t N, Nfound, n2, info, lda, lwork, liwork;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t info_ortho     = 0;
@@ -62,16 +62,12 @@ int main( int argc, char** argv)
     magma_opts opts;
     opts.parse_opts( argc, argv );
 
-    magma_range_t range = MagmaRangeAll;
-    if (opts.fraction != 1)
-        range = MagmaRangeI;
-
     // pass ngpu = -1 to test multi-GPU code using 1 gpu
     magma_int_t abs_ngpu = abs( opts.ngpu );
     
-    printf("%% jobz = %s, range = %s, uplo = %s, fraction = %6.4f, ngpu %lld\n",
-           lapack_vec_const(opts.jobz), lapack_range_const(range), lapack_uplo_const(opts.uplo),
-           opts.fraction, (long long) abs_ngpu);
+    printf("%% jobz = %s, uplo = %s, ngpu %lld\n",
+           lapack_vec_const(opts.jobz), lapack_uplo_const(opts.uplo),
+           (long long) abs_ngpu);
 
     printf("%%   N     M  GPU Time (sec)   ||I-Q^H Q||/N   ||A-QDQ^H||/(||A||N)   |D-D_magma|/(|D| * N)\n");
     printf("%%=========================================================================================\n");
@@ -82,20 +78,10 @@ int main( int argc, char** argv)
             lda = N;
             n2  = lda*N;
 
-            // TODO: test vl-vu range
-            magma_int_t m1 = 0;
-            double vl = 0;
-            double vu = 0;
-            magma_int_t il = 0;
-            magma_int_t iu = 0;
-            if (opts.fraction == 0) {
-                il = max( 1, magma_int_t(0.1*N) );
-                iu = max( 1, magma_int_t(0.3*N) );
-            }
-            else {
-                il = 1;
-                iu = max( 1, magma_int_t(opts.fraction*N) );
-            }
+            magma_range_t range;
+            magma_int_t il, iu;
+            double vl, vu;
+            opts.get_range( N, &range, &vl, &vu, &il, &iu );
 
             magma_zheevdx_getworksize(N, threads, (opts.jobz == MagmaVec), 
                                      &lwork, 
@@ -130,7 +116,7 @@ int main( int argc, char** argv)
                     magma_zheevdx_2stage( opts.jobz, range, opts.uplo, N, 
                                           h_R, lda, 
                                           vl, vu, il, iu, 
-                                          &m1, w1, 
+                                          &Nfound, w1, 
                                           h_work, lwork, 
                                           #ifdef COMPLEX
                                           rwork, lrwork, 
@@ -142,7 +128,7 @@ int main( int argc, char** argv)
                     magma_zheevdx_2stage_m( abs_ngpu, opts.jobz, range, opts.uplo, N, 
                                             h_R, lda, 
                                             vl, vu, il, iu, 
-                                            &m1, w1, 
+                                            &Nfound, w1, 
                                             h_work, lwork, 
                                             #ifdef COMPLEX
                                             rwork, lrwork, 
@@ -162,7 +148,7 @@ int main( int argc, char** argv)
                 magma_zheevdx_2stage( opts.jobz, range, opts.uplo, N, 
                                       h_R, lda, 
                                       vl, vu, il, iu, 
-                                      &m1, w1, 
+                                      &Nfound, w1, 
                                       h_work, lwork, 
                                       #ifdef COMPLEX
                                       rwork, lrwork, 
@@ -174,7 +160,7 @@ int main( int argc, char** argv)
                 magma_zheevdx_2stage_m( abs_ngpu, opts.jobz, range, opts.uplo, N, 
                                         h_R, lda, 
                                         vl, vu, il, iu, 
-                                        &m1, w1, 
+                                        &Nfound, w1, 
                                         h_work, lwork, 
                                         #ifdef COMPLEX
                                         rwork, lrwork, 
@@ -189,7 +175,7 @@ int main( int argc, char** argv)
             }
             
             printf("%5lld %5lld  %7.2f      ",
-                   (long long) N, (long long) m1, gpu_time );
+                   (long long) N, (long long) Nfound, gpu_time );
 
             if ( opts.check ) {
                 info_solution  = 0;
