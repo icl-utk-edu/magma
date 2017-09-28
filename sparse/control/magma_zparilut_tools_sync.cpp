@@ -81,55 +81,6 @@ magma_zparilut_sweep_sync(
     CHECK( magma_zmalloc_cpu( &U_new_val, U->nnz ));
     
     #pragma omp parallel for
-    for( magma_int_t e=0; e<L->nnz; e++){
-
-        magma_int_t i,j,icol,jcol;
-
-        magma_index_t row = L->rowidx[ e ];
-        magma_index_t col = L->col[ e ];
-
-        //printf("(%d,%d) ", row, col); fflush(stdout);
-        magmaDoubleComplex A_e = MAGMA_Z_ZERO;
-        // check whether A contains element in this location
-        for( i = A->row[row]; i<A->row[row+1]; i++){
-            if( A->col[i] == col ){
-                A_e = A->val[i];
-                break;
-            }
-        }
-
-        //now do the actual iteration
-        i = L->row[ row ];
-        j = U->row[ col ];
-        magma_int_t endi = L->row[ row+1 ];
-        magma_int_t endj = U->row[ col+1 ]; 
-        magmaDoubleComplex sum = MAGMA_Z_ZERO;
-        magmaDoubleComplex lsum = MAGMA_Z_ZERO;
-        do{
-            lsum = MAGMA_Z_ZERO;
-            icol = L->col[i];
-            jcol = U->col[j];
-            if( icol == jcol ){
-                lsum = L->val[i] * U->val[j];
-                sum = sum + lsum;
-                i++;
-                j++;
-            }
-            else if( icol<jcol ){
-                i++;
-            }
-            else {
-                j++;
-            }
-        }while( i<endi && j<endj );
-        sum = sum - lsum;
-
-        // write back to location e
-        L_new_val[ e ] =  ( A_e - sum );
-
-    }// end omp parallel section
-
-   #pragma omp parallel for
     for( magma_int_t e=0; e<U->nnz; e++){
         magma_int_t i,j,icol,jcol,iold;
 
@@ -146,7 +97,7 @@ magma_zparilut_sweep_sync(
             for( i = A->row[row]; i<A->row[row+1]; i++){
                 if( A->col[i] == col ){
                     A_e = A->val[i];
-                    i = A->row[row+1];
+                    break;
                 }
             }
 
@@ -181,6 +132,58 @@ magma_zparilut_sweep_sync(
             U_new_val[ e ] =  ( A_e - sum ) / L->val[iold];
         }
     }// end omp parallel section
+    
+    
+    #pragma omp parallel for
+    for( magma_int_t e=0; e<L->nnz; e++){
+
+        magma_int_t i,j,icol,jcol;
+
+        magma_index_t row = L->rowidx[ e ];
+        magma_index_t col = L->col[ e ];
+        magmaDoubleComplex A_e = MAGMA_Z_ZERO;
+        // check whether A contains element in this location
+        for( i = A->row[row]; i<A->row[row+1]; i++){
+            if( A->col[i] == col ){
+                A_e = A->val[i];
+                break;
+            }
+        }
+        //now do the actual iteration
+        i = L->row[ row ];
+        j = U->row[ col ];
+        magma_int_t endi = L->row[ row+1 ];
+        magma_int_t endj = U->row[ col+1 ]; 
+        magmaDoubleComplex sum = MAGMA_Z_ZERO;
+        magmaDoubleComplex lsum = MAGMA_Z_ZERO;
+        do{
+            lsum = MAGMA_Z_ZERO;
+            icol = L->col[i];
+            jcol = U->col[j];
+            
+            if( icol == jcol ){
+                lsum = L->val[i] * U_new_val[j];
+                sum = sum + lsum;
+                i++;
+                j++;
+            }
+            else if( icol<jcol ){
+                i++;
+            }
+            else {
+                j++;
+            }
+        }while( i<endi && j<endj );
+        sum = sum - lsum;
+        // write back to location e
+        L_new_val[ e ] =  ( A_e - sum );
+
+    }// end omp parallel section
+
+
+    
+
+
 
     
     val_swap = L_new_val;

@@ -77,7 +77,7 @@ magma_zparilut3setup(
     char filenameU[sizeof "UT_rm20_step10.m"];
 
                     
-    double sum, sumL, sumU;
+    double sum, sumL, sumU, thrsL_old=1e9, thrsU_old=1e9;
 
     cusparseHandle_t cusparseHandle=NULL;
     cusparseMatDescr_t descrL=NULL;
@@ -117,10 +117,6 @@ magma_zparilut3setup(
         U.val[U.row[z+1]-1] = MAGMA_Z_ONE;        
     }
 
-    
-    magma_zmtranspose(U, &UT, queue );
-    // magma_zmfree(&UT, queue );
-    
     CHECK( magma_zmtranspose( U, &UT, queue) );
     L.rowidx = NULL;
     UT.rowidx = NULL;
@@ -171,6 +167,16 @@ magma_zparilut3setup(
         end = magma_sync_wtime( queue ); t_transpose1+=end-start;
         start = magma_sync_wtime( queue );
         magma_zparilut_candidates( L0, U0, L, UT, &hL, &hU, queue );
+
+                
+        for(int row=0; row<hL.num_rows; row++){
+            magma_zindexsortval( &hL.col[hL.row[row]], &hL.val[hL.row[row]], 0, hL.row[row+1]-hL.row[row]-1, queue );
+        }
+
+        
+        for(int row=0; row<hL.num_rows; row++){
+            magma_zindexsortval( &hU.col[hU.row[row]], &hU.val[hL.row[row]], 0, hU.row[row+1]-hU.row[row]-1, queue );
+        }
         end = magma_sync_wtime( queue ); t_cand=+end-start;
         
         if( precond->rtol == 1.0 ){
@@ -197,6 +203,7 @@ magma_zparilut3setup(
             start = magma_sync_wtime( queue );
             magma_zparilut_residuals( hA, L, U, &hL, queue );
             magma_zparilut_residuals( hA, L, U, &hU, queue );
+            printf("\n####candidates:%d\n",hL.nnz + hU.nnz); 
             end = magma_sync_wtime( queue ); t_res=+end-start;
             start = magma_sync_wtime( queue );
             magma_zparilut_elementsum( hL, &sumL, queue );
@@ -285,7 +292,7 @@ magma_zparilut3setup(
         end = magma_sync_wtime( queue ); t_selectadd+=end-start;
         
         start = magma_sync_wtime( queue );
-        CHECK( magma_zmatrix_cup(  L, oneL, &L_new, queue ) );           
+        CHECK( magma_zmatrix_cup(  L, oneL, &L_new, queue ) );   
         CHECK( magma_zmatrix_cup(  U, oneU, &U_new, queue ) );
         //magma_zmatrix_addrowindex( &U, queue );
         end = magma_sync_wtime( queue ); t_add=+end-start;
@@ -330,16 +337,56 @@ magma_zparilut3setup(
                 }
             //}
         }
+        
+        // if(thrsL > thrsL_old){
+        //     thrsL=thrsL*2;
+        // } else {
+        //     thrsL_old=thrsL;
+        // }
+        // if(thrsU > thrsU_old){
+        //     thrsU=thrsU*2;
+        // } else {
+        //     thrsU_old=thrsU;
+        // }
+        
         // magma_zparilut_set_thrs_randomselect( num_rmL, &L_new, 0, &thrsL, queue );
         // magma_zparilut_set_thrs_randomselect( num_rmU, &UT, 0, &thrsU, queue );
         end = magma_sync_wtime( queue ); t_selectrm=end-start;
         magma_zmfree( &oneL, queue );
         magma_zmfree( &oneU, queue );
         start = magma_sync_wtime( queue );
+        printf("thresholds:\n L:%.4e\n U: %.4e\n", thrsL, thrsU);
+        
+        sprintf(filenameL, "LT_rm%03d_step%d_before_rm.m", (int)(precond->rtol*1000), iters+1);
+        sprintf(filenameU, "UT_rm%03d_step%d_before_rm.m", (int)(precond->rtol*1000), iters+1);
+
+        // write to file
+        //CHECK( magma_zwrite_csrtomtx( L_new, filenameL, queue ));
+        //CHECK( magma_zwrite_csrtomtx( U_new, filenameU, queue ));
+        
+        
         magma_zparilut_thrsrm( 1, &L_new, &thrsL, queue );//printf("done...");fflush(stdout);
         magma_zparilut_thrsrm( 1, &U_new, &thrsU, queue );//printf("done...");fflush(stdout);
-        // magma_zparilut_thrsrm_U( 1, L_new, &U_new, &thrsU, queue );
+        sprintf(filenameL, "LT_rm%03d_step%d_int_rm.m", (int)(precond->rtol*1000), iters+1);
+        sprintf(filenameU, "UT_rm%03d_step%d_int_rm.m", (int)(precond->rtol*1000), iters+1);
+
+        // write to file
+        //CHECK( magma_zwrite_csrtomtx( L_new, filenameL, queue ));
+        //CHECK( magma_zwrite_csrtomtx( U_new, filenameU, queue ));
         
+        
+        // magma_zparilut_thrsrm_U( 1, L_new, &U_new, &thrsU, queue );
+        for(int z=0; z<L_new.nnz; z++){
+            if(MAGMA_Z_ABS(L_new.val[z])<thrsL){
+             printf("invalid element here:%.4e  < %.4e  <%.4e> \n",MAGMA_Z_ABS(L_new.val[z]),thrsL, MAGMA_Z_REAL(L_new.val[z]));    
+            }
+        }
+        
+        for(int z=0; z<U_new.nnz; z++){
+            if(MAGMA_Z_ABS(U_new.val[z])<thrsU){
+             printf("invalid element here:%.4e  < %.4e  <%.4e> \n",MAGMA_Z_ABS(U_new.val[z]),thrsU, MAGMA_Z_REAL(U_new.val[z]));    
+            }
+        }
         
         // magma_zparilut_thrsrm_semilinked( &U_new, &UT, &thrsU, queue );//printf("done.\n");fflush(stdout);
         CHECK( magma_zmatrix_swap( &L_new, &L, queue) );
@@ -353,13 +400,23 @@ magma_zparilut3setup(
         // magma_free_cpu( UT.list ); UT.list = NULL;
         // CHECK( magma_zparilut_create_collinkedlist( U, &UT, queue) );
         // end = magma_sync_wtime( queue ); t_transpose1+=end-start;
+        
+
+  
+        sprintf(filenameL, "LT_rm%03d_step%d_int2_rm.m", (int)(precond->rtol*1000), iters+1);
+        sprintf(filenameU, "UT_rm%03d_step%d_int2_rm.m", (int)(precond->rtol*1000), iters+1);
+
+        // write to file
+        //CHECK( magma_zwrite_csrtomtx( L, filenameL, queue ));
+        //CHECK( magma_zwrite_csrtomtx( U, filenameU, queue ));
+
+        
         start = magma_sync_wtime( queue );
         
         //magma_free_cpu( U.rowidx ); U.rowidx = NULL;
         
         // CHECK( magma_zparilut_sweep( &A0, &L, &U, queue ) );
-         CHECK( magma_zparilut_sweep_sync( &A0, &L, &U, queue ) );
-        
+        CHECK( magma_zparilut_sweep_sync( &A0, &L, &U, queue ) );
         end = magma_sync_wtime( queue ); t_sweep2+=end-start;
 
         start = magma_sync_wtime( queue );
@@ -376,13 +433,13 @@ magma_zparilut3setup(
             fflush(stdout);
         }
         
-
-        sprintf(filenameL, "LT_rm%03d_step%d.m", (int)(precond->rtol*1000), iters+1);
-        sprintf(filenameU, "UT_rm%03d_step%d.m", (int)(precond->rtol*1000), iters+1);
+        
+        sprintf(filenameL, "LT_rm%03d_step%d_after_rm.m", (int)(precond->rtol*1000), iters+1);
+        sprintf(filenameU, "UT_rm%03d_step%d_after_rm.m", (int)(precond->rtol*1000), iters+1);
 
         // write to file
-        // CHECK( magma_zwrite_csrtomtx( L, filenameL, queue ));
-        // CHECK( magma_zwrite_csrtomtx( U, filenameU, queue ));
+        //CHECK( magma_zwrite_csrtomtx( L, filenameL, queue ));
+        //CHECK( magma_zwrite_csrtomtx( U, filenameU, queue ));
         
       
     }
@@ -401,7 +458,8 @@ magma_zparilut3setup(
 
     // for CUSPARSE
     CHECK( magma_zmtransfer( L, &precond->L, Magma_CPU, Magma_DEV , queue ));
-    magma_zmtranspose(U, &UT, queue );
+    magma_zparilut_transpose( U, &UT, queue );
+    //magma_zmtranspose(U, &UT, queue );
     CHECK( magma_zmtransfer( UT, &precond->U, Magma_CPU, Magma_DEV , queue ));
 
     // CUSPARSE context //

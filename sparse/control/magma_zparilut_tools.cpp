@@ -318,11 +318,15 @@ magma_zparilut_thrsrm(
                 B.val[ offset_new + count ] = A->val[i];
                 B.rowidx[ offset_new + count ] = row;
                 count++;
+
             }
         }
     }
+    
+
     // finally, swap the matrices
     CHECK( magma_zmatrix_swap( &B, A, queue) );
+
     
 cleanup:
     magma_zmfree( &B, queue );
@@ -2743,7 +2747,7 @@ magma_zparilut_sweep(
             for( i = A->row[row]; i<A->row[row+1]; i++){
                 if( A->col[i] == col ){
                     A_e = A->val[i];
-                    i = A->row[row+1];
+                    break;
                 }
             }
 
@@ -5275,6 +5279,13 @@ magma_zparilut_candidates(
                     ilu0++;
                 }
             }while( ilut<endilut && ilu0<endilu0 );
+            // do the rest if existing
+            if( ilu0<endilu0 ){
+                do{
+                    numaddrowL++;
+                    ilu0++;
+                }while( ilu0<endilu0 ); 
+            }
             L_new->row[ row+1 ] = L_new->row[ row+1 ]+numaddrowL;
         }
         
@@ -5309,6 +5320,12 @@ magma_zparilut_candidates(
                     ilu0++;
                 }
             }while( ilut<endilut && ilu0<endilu0 );
+            if( ilu0<endilu0 ){
+                do{
+                    numaddrowU++;
+                    ilu0++;
+                }while( ilu0<endilu0 ); 
+            }
             U_new->row[ row+1 ] = U_new->row[ row+1 ]+numaddrowU;
         }
     } // end original
@@ -5477,6 +5494,16 @@ magma_zparilut_candidates(
                     ilu0++;
                 }
             }while( ilut<endilut && ilu0<endilu0 );
+            if( ilu0<endilu0 ){
+                do{
+                    ilu0col = L0.col[ ilu0 ];
+                    L_new->col[ offsetL + laddL ] = ilu0col;
+                    L_new->rowidx[ offsetL + laddL ] = row;
+                    L_new->val[ offsetL + laddL ] = MAGMA_Z_ONE + MAGMA_Z_ONE + MAGMA_Z_ONE;
+                    laddL++;
+                    ilu0++;
+                }while( ilu0<endilu0 ); 
+            }
             insertedL[row] = laddL;
         }
         
@@ -5523,6 +5550,16 @@ magma_zparilut_candidates(
                     ilu0++;
                 }
             }while( ilut<endilut && ilu0<endilu0 );
+            if( ilu0<endilu0 ){
+                do{
+                    ilu0col = U0.col[ ilu0 ];
+                    U_new->col[ offsetU + laddU ] = ilu0col;
+                    U_new->rowidx[ offsetU + laddU ] = row;
+                    U_new->val[ offsetU + laddU ] = MAGMA_Z_ONE + MAGMA_Z_ONE + MAGMA_Z_ONE;
+                    laddU++;
+                    ilu0++;
+                }while( ilu0<endilu0 ); 
+            }
             insertedU[row] = laddU;
         }
     } // end original
