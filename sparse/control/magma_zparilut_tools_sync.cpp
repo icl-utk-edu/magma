@@ -196,10 +196,16 @@ magma_zparilut_sweep_sync(
     
     magma_zmfree( &L_new, queue );
     magma_zmfree( &U_new, queue );
+    magma_free_cpu( L_new_val );
+    magma_free_cpu( U_new_val );
     
 cleanup:
     return info;
 }
+
+
+
+
 
 /***************************************************************************//**
     Purpose

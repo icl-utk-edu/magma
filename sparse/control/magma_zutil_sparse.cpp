@@ -129,7 +129,7 @@ magma_zparse_opts(
     opts->precond_par.solver = Magma_NONE;
     opts->precond_par.trisolver = Magma_CUSOLVE;
     #if defined(PRECISION_z) | defined(PRECISION_d)
-        opts->precond_par.atol = 1e-16;
+        opts->precond_par.atol = 1.0;
         opts->precond_par.rtol = 1e-10;
     #else
         opts->precond_par.atol = 1.0;

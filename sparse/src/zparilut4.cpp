@@ -203,7 +203,6 @@ magma_zparilut3setup(
             start = magma_sync_wtime( queue );
             magma_zparilut_residuals( hA, L, U, &hL, queue );
             magma_zparilut_residuals( hA, L, U, &hU, queue );
-            printf("\n####candidates:%d\n",hL.nnz + hU.nnz); 
             end = magma_sync_wtime( queue ); t_res=+end-start;
             start = magma_sync_wtime( queue );
             magma_zparilut_elementsum( hL, &sumL, queue );
@@ -355,7 +354,6 @@ magma_zparilut3setup(
         magma_zmfree( &oneL, queue );
         magma_zmfree( &oneU, queue );
         start = magma_sync_wtime( queue );
-        printf("thresholds:\n L:%.4e\n U: %.4e\n", thrsL, thrsU);
         
         sprintf(filenameL, "LT_rm%03d_step%d_before_rm.m", (int)(precond->rtol*1000), iters+1);
         sprintf(filenameU, "UT_rm%03d_step%d_before_rm.m", (int)(precond->rtol*1000), iters+1);
@@ -376,17 +374,17 @@ magma_zparilut3setup(
         
         
         // magma_zparilut_thrsrm_U( 1, L_new, &U_new, &thrsU, queue );
-        for(int z=0; z<L_new.nnz; z++){
-            if(MAGMA_Z_ABS(L_new.val[z])<thrsL){
-             printf("invalid element here:%.4e  < %.4e  <%.4e> \n",MAGMA_Z_ABS(L_new.val[z]),thrsL, MAGMA_Z_REAL(L_new.val[z]));    
-            }
-        }
-        
-        for(int z=0; z<U_new.nnz; z++){
-            if(MAGMA_Z_ABS(U_new.val[z])<thrsU){
-             printf("invalid element here:%.4e  < %.4e  <%.4e> \n",MAGMA_Z_ABS(U_new.val[z]),thrsU, MAGMA_Z_REAL(U_new.val[z]));    
-            }
-        }
+        // for(int z=0; z<L_new.nnz; z++){
+        //     if(MAGMA_Z_ABS(L_new.val[z])<thrsL){
+        //      printf("invalid element here:%.4e  < %.4e  <%.4e> \n",MAGMA_Z_ABS(L_new.val[z]),thrsL, MAGMA_Z_REAL(L_new.val[z]));    
+        //     }
+        // }
+        // 
+        // for(int z=0; z<U_new.nnz; z++){
+        //     if(MAGMA_Z_ABS(U_new.val[z])<thrsU){
+        //      printf("invalid element here:%.4e  < %.4e  <%.4e> \n",MAGMA_Z_ABS(U_new.val[z]),thrsU, MAGMA_Z_REAL(U_new.val[z]));    
+        //     }
+        // }
         
         // magma_zparilut_thrsrm_semilinked( &U_new, &UT, &thrsU, queue );//printf("done.\n");fflush(stdout);
         CHECK( magma_zmatrix_swap( &L_new, &L, queue) );

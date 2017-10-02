@@ -219,10 +219,8 @@ magma_z_precondsetup(
     }
     else if ( precond->solver == Magma_PARICT ) {
         #ifdef _OPENMP
-            info = magma_zparilut3setup( A, b, precond, queue );
-            precond->solver = Magma_PARILU; // handle as PARIC
-            precond->trisolver = Magma_CUSOLVE; // for now only allow cusolve
-            printf( "%% warning: only PARILUT supported.\n" );
+            info = magma_zparict( A, b, precond, queue );
+            precond->solver = Magma_ICC; // handle as PARIC
         #else
             printf( "error: preconditioner requires OpenMP.\n" );
             info = MAGMA_ERR_NOT_SUPPORTED;

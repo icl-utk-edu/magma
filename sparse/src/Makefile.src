@@ -98,6 +98,7 @@ libsparse_src += \
 	$(cdir)/zcustomilu.cpp                \
 	$(cdir)/zparilut2.cpp                 \
         $(cdir)/zparilut4.cpp                 \
+	$(cdir)/zparict.cpp   		      \
 
 # incomplete sparse approximate inverse
 libsparse_src += \

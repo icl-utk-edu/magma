@@ -1029,6 +1029,12 @@ magma_zparilut_sweep_sync(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparic_sweep_sync(
+    magma_z_matrix *A,
+    magma_z_matrix *L,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparilut_align_residuals(
     magma_z_matrix L,
     magma_z_matrix U,
@@ -1133,6 +1139,13 @@ magma_zparilutsetup(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparict(
+    magma_z_matrix A,
+    magma_z_matrix b,
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparilut2setup(
     magma_z_matrix A,
     magma_z_matrix b,
@@ -1175,6 +1188,14 @@ magma_zparilut_candidates(
     magma_z_matrix U,
     magma_z_matrix *L_new,
     magma_z_matrix *U_new,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparict_candidates(
+    magma_z_matrix L0,
+    magma_z_matrix L,
+    magma_z_matrix LT,
+    magma_z_matrix *L_new,
     magma_queue_t queue );
 
 magma_int_t

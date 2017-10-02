@@ -47,6 +47,7 @@ libsparse_src += \
 	$(cdir)/mmio.cpp                      \
 	$(cdir)/magma_zgeisai_tools.cpp	      \
 	$(cdir)/magma_zparilut_tools.cpp      \
+	$(cdir)/magma_zparict_tools.cpp       \
     $(cdir)/magma_zparilut_tools_sync.cpp \
 	$(cdir)/magma_zmsupernodal.cpp        \
 	$(cdir)/magma_zmfrobenius.cpp	      \
