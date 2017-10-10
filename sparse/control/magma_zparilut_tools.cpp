@@ -1414,8 +1414,8 @@ magma_zparilut_transpose(
     B->nnz      = A.nnz;
     
     CHECK( magma_index_malloc_cpu( &linked_list, A.nnz ));
-    CHECK( magma_index_malloc_cpu( &row_ptr, A.num_rows ));
-    CHECK( magma_index_malloc_cpu( &last_rowel, A.num_rows ));
+    CHECK( magma_index_malloc_cpu( &row_ptr, A.num_rows+1 ));
+    CHECK( magma_index_malloc_cpu( &last_rowel, A.num_rows+1 ));
     CHECK( magma_index_malloc_cpu( &B->row, A.num_rows+1 ));
     CHECK( magma_index_malloc_cpu( &B->rowidx, A.nnz ));
     CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));

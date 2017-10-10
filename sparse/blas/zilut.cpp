@@ -346,7 +346,7 @@ magma_zilut_saad(
   
   iluptr lu = NULL;      /* a temporary lu matrix           */
   lu = (iluptr)Malloc( sizeof(ILUSpar), "main" );
-  int lfil = magma_ceildiv((A.nnz + A.num_rows )*precond->atol,(2*A.num_rows));
+  int lfil = magma_ceildiv((A.nnz - A.num_rows )*precond->atol,(2*A.num_rows));
   double tol = 0.0;
   int n = csmat->n; 
   int len, lenu, lenl;
@@ -545,10 +545,14 @@ magma_zilut_saad(
     }
   }
   int nzcounts = 0;
+  int nzcountL=0, nzcountU=0;
   for(int z=0; z<n; z++){
     nzcounts = nzcounts +   L->nzcount[z] + U->nzcount[z]; 
+    nzcountL = nzcountL +   L->nzcount[z];
+    nzcountU = nzcountU +   U->nzcount[z];
   }
-  printf("ilut_fill_ratio = %.6f;\n", (double)nzcounts/(double)(A.nnz+A.num_rows)); 
+  printf("ilut_fill_ratio = %.6f;\n", (double)(nzcounts+n)/(double)(A.nnz)); 
+  printf("%% L:%d U:%d D:%d = %d vs. %d\n", nzcountL, nzcountU, n, nzcountL + nzcountU + n, A.nnz); 
 
   free( iw );
   free( jbuf );
@@ -575,9 +579,77 @@ magma_zilut_saad(
   
   end = magma_sync_wtime( queue );
   printf(" ilut_runtime = %.4e;\n", end-start);
-#endif
 
+
+
+
+// debugging
+/*
+    magma_z_matrix L_new={Magma_CSR};
+    magma_z_matrix U_new={Magma_CSR};
+    printf("here%d\n", __LINE__);
+    magma_zmalloc_cpu( &L_new.val, nzcountL );
+    magma_zmalloc_cpu( &U_new.val, nzcountU );
+    
+    magma_index_malloc_cpu( &L_new.col, nzcountL );
+    magma_index_malloc_cpu( &U_new.col, nzcountU );
+    
+    magma_index_malloc_cpu( &L_new.row, n+1 );
+    magma_index_malloc_cpu( &U_new.row, n+1 );
+    printf("here%d\n", __LINE__);
+  nzcountL=0;
+  nzcountU=0;
+  for(int z=0; z<n; z++){
+      L_new.row[z]=nzcountL;
+      U_new.row[z]=nzcountU;
+    nzcountL = nzcountL +   L->nzcount[z];
+    nzcountU = nzcountU +   U->nzcount[z];
+  }
+  L_new.row[n]=nzcountL;
+  U_new.row[n]=nzcountU;
+  L_new.nnz = nzcountL;
+  U_new.nnz = nzcountU;
+  L_new.num_rows = n;
+  L_new.num_cols = n;
+  L_new.memory_location=Magma_CPU;
+  L_new.storage_type=Magma_CSR;
+  U_new.num_rows = n;
+  U_new.num_cols = n;
+  U_new.memory_location=Magma_CPU;
+  U_new.storage_type=Magma_CSR;
+  printf("here%d\n", __LINE__);
+  int nzL=0;
+  int nzU=0;
+  for(int z=0; z<n; z++){
+      for(int zz=0;zz<L->nzcount[z]; zz++){
+          L_new.col[nzL]=L->ja[z][zz];
+          L_new.val[nzL]=L->ma[z][zz];
+          nzL++;
+          printf("%d %d %d %d %d (%d,%d)\n",n, nzcountL, z, zz, nzL, z, L->ja[z][zz]);
+      }
+  }
+  for(int z=0; z<n; z++){
+      for(int zz=0;zz<U->nzcount[z]; zz++){
+          U_new.col[nzU]=L->ja[z][zz];
+          U_new.val[nzU]=L->ma[z][zz];
+          nzU++;
+      }
+  }
+  printf("here%d\n", __LINE__);
   
+    char filenameL[sizeof "LT_rm20_step10.m"];
+    char filenameU[sizeof "UT_rm20_step10.m"];
+    sprintf(filenameL, "saad_LT.m");
+    sprintf(filenameU, "saad_UT.m");
+    
+    // write to file
+    magma_zwrite_csrtomtx( L_new, filenameL, queue );
+    magma_zwrite_csrtomtx( U_new, filenameU, queue );
+    */
+    // end debugging
+    
+    
+#endif
   return info;
 }
 

@@ -134,6 +134,10 @@ magma_zparict(
         end = magma_sync_wtime( queue ); t_transpose1+=end-start;
         start = magma_sync_wtime( queue );
         magma_zparict_candidates( L0, L, LT, &hL, queue );
+        #pragma omp parallel        
+        for(int row=0; row<hL.num_rows; row++){
+            magma_zindexsort( &hL.col[hL.row[row]], 0, hL.row[row+1]-hL.row[row]-1, queue );
+        }
         end = magma_sync_wtime( queue ); t_cand=+end-start;
         
         start = magma_sync_wtime( queue );
@@ -141,7 +145,7 @@ magma_zparict(
         end = magma_sync_wtime( queue ); t_res=+end-start;
         start = magma_sync_wtime( queue );
         magma_zparilut_elementsum( hL, &sumL, queue );
-        sum = sumL;
+        sum = sumL*2;
         end = magma_sync_wtime( queue ); t_nrm+=end-start;
         
         start = magma_sync_wtime( queue );

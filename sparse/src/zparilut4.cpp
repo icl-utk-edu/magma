@@ -167,16 +167,6 @@ magma_zparilut3setup(
         end = magma_sync_wtime( queue ); t_transpose1+=end-start;
         start = magma_sync_wtime( queue );
         magma_zparilut_candidates( L0, U0, L, UT, &hL, &hU, queue );
-
-                
-        for(int row=0; row<hL.num_rows; row++){
-            magma_zindexsortval( &hL.col[hL.row[row]], &hL.val[hL.row[row]], 0, hL.row[row+1]-hL.row[row]-1, queue );
-        }
-
-        
-        for(int row=0; row<hL.num_rows; row++){
-            magma_zindexsortval( &hU.col[hU.row[row]], &hU.val[hL.row[row]], 0, hU.row[row+1]-hU.row[row]-1, queue );
-        }
         end = magma_sync_wtime( queue ); t_cand=+end-start;
         
         if( precond->rtol == 1.0 ){
@@ -291,6 +281,15 @@ magma_zparilut3setup(
         end = magma_sync_wtime( queue ); t_selectadd+=end-start;
         
         start = magma_sync_wtime( queue );
+        #pragma omp parallel        
+        for(int row=0; row<hL.num_rows; row++){
+            magma_zindexsort( &hL.col[hL.row[row]], 0, hL.row[row+1]-hL.row[row]-1, queue );
+        }
+
+        #pragma omp parallel  
+        for(int row=0; row<hL.num_rows; row++){
+            magma_zindexsort( &hU.col[hU.row[row]], 0, hU.row[row+1]-hU.row[row]-1, queue );
+        }
         CHECK( magma_zmatrix_cup(  L, oneL, &L_new, queue ) );   
         CHECK( magma_zmatrix_cup(  U, oneU, &U_new, queue ) );
         //magma_zmatrix_addrowindex( &U, queue );
@@ -313,11 +312,8 @@ magma_zparilut3setup(
         num_rmU = max( (U_new.nnz-U0nnz*(1+(precond->atol-1.)*(iters+1)/precond->sweeps)), 0 );
         start = magma_sync_wtime( queue );
         // pre-select: ignore the diagonal entries
-         magma_zparilut_preselect( 0, &L_new, &oneL, queue );
-         magma_zparilut_preselect( 0, &U_new, &oneU, queue );
-        // magma_zparilut_preselect_scale( &L_new, &oneL, &U_new, &oneU, queue );
-        
-        // need to do this differently: I will have to insert the scaling into the preselect!
+        magma_zparilut_preselect( 0, &L_new, &oneL, queue );
+        magma_zparilut_preselect( 0, &U_new, &oneU, queue );
         //#pragma omp parallel
         {
           //  magma_int_t id = omp_get_thread_num();
@@ -361,7 +357,7 @@ magma_zparilut3setup(
         // write to file
         //CHECK( magma_zwrite_csrtomtx( L_new, filenameL, queue ));
         //CHECK( magma_zwrite_csrtomtx( U_new, filenameU, queue ));
-        
+       
         
         magma_zparilut_thrsrm( 1, &L_new, &thrsL, queue );//printf("done...");fflush(stdout);
         magma_zparilut_thrsrm( 1, &U_new, &thrsU, queue );//printf("done...");fflush(stdout);
@@ -401,8 +397,8 @@ magma_zparilut3setup(
         
 
   
-        sprintf(filenameL, "LT_rm%03d_step%d_int2_rm.m", (int)(precond->rtol*1000), iters+1);
-        sprintf(filenameU, "UT_rm%03d_step%d_int2_rm.m", (int)(precond->rtol*1000), iters+1);
+        //sprintf(filenameL, "LT_rm%03d_step%d_int2_rm.m", (int)(precond->rtol*1000), iters+1);
+        // sprintf(filenameU, "UT_rm%03d_step%d_int2_rm.m", (int)(precond->rtol*1000), iters+1);
 
         // write to file
         //CHECK( magma_zwrite_csrtomtx( L, filenameL, queue ));
@@ -471,7 +467,7 @@ magma_zparilut3setup(
     CHECK_CUSPARSE( cusparseZcsrsv_analysis( cusparseHandle,
         CUSPARSE_OPERATION_NON_TRANSPOSE, precond->L.num_rows,
         precond->L.nnz, descrL,
-        precond->L.val, precond->L.row, precond->L.col, precond->cuinfoL ));
+        precond->L.dval, precond->L.drow, precond->L.dcol, precond->cuinfoL ));
     CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
     CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
     CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
@@ -481,7 +477,7 @@ magma_zparilut3setup(
     CHECK_CUSPARSE( cusparseZcsrsv_analysis( cusparseHandle,
         CUSPARSE_OPERATION_NON_TRANSPOSE, precond->U.num_rows,
         precond->U.nnz, descrU,
-        precond->U.val, precond->U.row, precond->U.col, precond->cuinfoU ));
+        precond->U.dval, precond->U.drow, precond->U.dcol, precond->cuinfoU ));
 
     if( precond->trisolver != 0 && precond->trisolver != Magma_CUSOLVE ){
         //prepare for iterative solves
