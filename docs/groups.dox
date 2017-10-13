@@ -935,7 +935,7 @@
 
 */
 
-/**
+/*
     @defgroup group_unused Unused
     @brief Functions that LAPACK (or another package) have, which MAGMA does not have.
     @{
