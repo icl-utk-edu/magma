@@ -268,6 +268,7 @@ $(sparse_testing_obj): | $(header_all)
 
 # changes to testings.h require re-compiling, e.g., if magma_opts changes
 $(testing_obj):        testing/testings.h
+$(libtest_obj):        testing/testings.h
 $(sparse_testing_obj): testing/testings.h
 
 # this allows "make force=force" to force re-compiling
