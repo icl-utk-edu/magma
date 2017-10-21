@@ -211,6 +211,112 @@ inline double asum(
 
 
 // -----------------------------------------------------------------------------
+inline float  dot(
+    magma_int_t n,
+    float* x, magma_int_t incx,
+    float* y, magma_int_t incy )
+{
+    return magma_cblas_sdot( n, x, incx, y, incy );
+}
+
+inline double dot(
+    magma_int_t n,
+    double* x, magma_int_t incx,
+    double* y, magma_int_t incy )
+{
+    return magma_cblas_ddot( n, x, incx, y, incy );
+}
+
+inline magmaFloatComplex  dot(
+    magma_int_t n,
+    magmaFloatComplex* x, magma_int_t incx,
+    magmaFloatComplex* y, magma_int_t incy )
+{
+    return magma_cblas_cdotc( n, x, incx, y, incy );
+}
+
+inline magmaDoubleComplex dot(
+    magma_int_t n,
+    magmaDoubleComplex* x, magma_int_t incx,
+    magmaDoubleComplex* y, magma_int_t incy )
+{
+    return magma_cblas_zdotc( n, x, incx, y, incy );
+}
+
+
+// -----------------------------------------------------------------------------
+inline void copy(
+    magma_int_t n,
+    float* x, magma_int_t incx,
+    float* y, magma_int_t incy )
+{
+    return blasf77_scopy( &n, x, &incx, y, &incy );
+}
+
+inline void copy(
+    magma_int_t n,
+    double* x, magma_int_t incx,
+    double* y, magma_int_t incy )
+{
+    return blasf77_dcopy( &n, x, &incx, y, &incy );
+}
+
+inline void copy(
+    magma_int_t n,
+    magmaFloatComplex* x, magma_int_t incx,
+    magmaFloatComplex* y, magma_int_t incy )
+{
+    return blasf77_ccopy( &n, x, &incx, y, &incy );
+}
+
+inline void copy(
+    magma_int_t n,
+    magmaDoubleComplex* x, magma_int_t incx,
+    magmaDoubleComplex* y, magma_int_t incy )
+{
+    return blasf77_zcopy( &n, x, &incx, y, &incy );
+}
+
+
+// -----------------------------------------------------------------------------
+inline void rot(
+    magma_int_t n,
+    float* x, magma_int_t incx,
+    float* y, magma_int_t incy,
+    float c, float s )
+{
+    blasf77_srot( &n, x, &incx, y, &incy, &c, &s );
+}
+
+inline void rot(
+    magma_int_t n,
+    double* x, magma_int_t incx,
+    double* y, magma_int_t incy,
+    double c, double s )
+{
+    blasf77_drot( &n, x, &incx, y, &incy, &c, &s );
+}
+
+inline void rot(
+    magma_int_t n,
+    magmaFloatComplex* x, magma_int_t incx,
+    magmaFloatComplex* y, magma_int_t incy,
+    float c, float s )
+{
+    blasf77_csrot( &n, x, &incx, y, &incy, &c, &s );
+}
+
+inline void rot(
+    magma_int_t n,
+    magmaDoubleComplex* x, magma_int_t incx,
+    magmaDoubleComplex* y, magma_int_t incy,
+    double c, double s )
+{
+    blasf77_zdrot( &n, x, &incx, y, &incy, &c, &s );
+}
+
+
+// -----------------------------------------------------------------------------
 inline void scal(
     magma_int_t n, float alpha,
     float *x, magma_int_t incx )
@@ -239,7 +345,7 @@ inline void scal(
     blasf77_zscal( &n, &alpha, x, &incx );
 }
 
-}
+}  // end namespace blas
 
 
 // =============================================================================
@@ -407,6 +513,6 @@ inline void unmqr(
                       A, &lda, tau, C, &ldc, work, &lwork, info );
 }
 
-}
+}  // end namespace lapack
 
 #endif        //  #ifndef LAPACK_HPP

@@ -213,6 +213,62 @@ void magma_generate_sigma(
 }
 
 
+/***************************************************************************//**
+    Given A with singular values such that sum(sigma_i^2) = n,
+    returns A with columns of unit norm, with the same condition number.
+    see: Davies and Higham, 2000, Numerically stable generation of correlation
+    matrices and their factors.
+*******************************************************************************/
+template< typename FloatT >
+void magma_generate_correlation_factor( Matrix<FloatT>& A )
+{
+    const FloatT eps = std::numeric_limits<FloatT>::epsilon();
+
+    Vector<FloatT> x( A.n );
+    for (magma_int_t j = 0; j < A.n; ++j) {
+        x[j] = blas::dot( A.m, A(0,j), 1, A(0,j), 1 );
+    }
+
+    for (magma_int_t i = 0; i < A.n; ++i) {
+        for (magma_int_t j = 0; j < A.n; ++j) {
+            if ((x[i] < 1 && 1 < x[j]) || (x[i] > 1 && 1 > x[j])) {
+                FloatT xij, d, t, c, s;
+                xij = blas::dot( A.m, A(0,i), 1, A(0,j), 1 );
+                d = sqrt( xij*xij - (x[i] - 1)*(x[j] - 1) );
+                t = (xij + copysign( d, xij )) / (x[j] - 1);
+                c = 1 / sqrt(1 + t*t);
+                s = c*t;
+                blas::rot( A.m, A(0,i), 1, A(0,j), 1, c, -s );
+                x[i] = blas::dot( A.m, A(0,i), 1, A(0,i), 1 );
+                if (x[i] - 1 > 30*eps) {
+                    printf( "i %d, x[i] %.6f, x[i] - 1 %.6e, 30*eps %.6e\n", i, x[i], x[i] - 1, 30*eps );
+                }
+                assert( x[i] - 1 < 30*eps );
+                x[i] = 1;
+                x[j] = blas::dot( A.m, A(0,j), 1, A(0,j), 1 );
+                break;
+            }
+        }
+    }
+}
+
+
+/******************************************************************************/
+// specialization to complex
+// can't use Higham's algorithm in complex
+template<>
+void magma_generate_correlation_factor( Matrix<magmaFloatComplex>& A )
+{
+    assert( false );
+}
+
+template<>
+void magma_generate_correlation_factor( Matrix<magmaDoubleComplex>& A )
+{
+    assert( false );
+}
+
+
 /******************************************************************************/
 template< typename FloatT >
 void magma_generate_svd(
@@ -256,6 +312,18 @@ void magma_generate_svd(
     // ----------
     magma_generate_sigma( opts, dist, false, cond, sigma_max, sigma, A );
 
+    // for generate correlation factor, need sum sigma_i^2 = n
+    // scaling doesn't change cond
+    if (condD != 1) {
+        real_t sum_sq = blas::dot( sigma.n, sigma(0), 1, sigma(0), 1 );
+        real_t scale = sqrt( sigma.n / sum_sq );
+        blas::scal( sigma.n, scale, sigma(0), 1 );
+        // copy sigma to diag(A)
+        for (magma_int_t i = 0; i < sigma.n; ++i) {
+            *A(i,i) = blas::traits<FloatT>::make( *sigma(i), 0 );
+        }
+    }
+
     // random U, m-by-minmn
     // just make each random column into a Householder vector;
     // no need to update subsequent columns (as in geqrf).
@@ -286,6 +354,10 @@ void magma_generate_svd(
     assert( info == 0 );
 
     if (condD != 1) {
+        // A = A*W, W orthogonal, such that A has unit column norms
+        // i.e., A'*A is a correlation matrix with unit diagonal
+        magma_generate_correlation_factor( A );
+
         // A = A*D col scaling
         Vector<real_t> D( A.n );
         real_t range = log( condD );
