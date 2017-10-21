@@ -27,9 +27,9 @@
 
 #define COMPLEX
 
-extern const char* zgesvd_path;
-
 #define max3( x, y, z ) max( max( (x), (y) ), (z) )
+
+extern const char* zgesvd_path;
 
 
 // ----------------------------------------
@@ -389,8 +389,7 @@ int main( int argc, char** argv)
     lwork_formula_t lrwork;
     double *rwork;
     #endif
-    magma_int_t M, N, N_U, M_VT, lda, ldu, ldv, n2, min_mn, info;
-    magma_int_t ISEED[4] = {0,0,0,1};
+    magma_int_t M, N, N_U, M_VT, lda, ldu, ldv, min_mn, info;
     int status = 0;
     
     magma_opts opts;
@@ -464,7 +463,6 @@ int main( int argc, char** argv)
             lda = M;
             ldu = M;
             ldv = M_VT;
-            n2 = lda*N;
             
             /* =====================================================================
                query for workspace size
@@ -566,13 +564,20 @@ int main( int argc, char** argv)
             double result_lapack[5] = { nan, nan, nan, nan, nan };
             
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, hA );
+            magma_generate_matrix( opts, M, N, Sref, hA, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, hA, &lda, hR, &lda );
+            
+            // ----------
+            if (opts.verbose) {
+                printf( "A = " );  magma_zprint( M, N, hA, lda );
+                printf( "S = " );  magma_dprint( 1, min_mn, Sref, 1 );
+            }
             
             if ( opts.magma ) {
                 /* ====================================================================
                    Performs operation using MAGMA
                    =================================================================== */
+                magma_flush_cache( opts.cache );
                 gpu_time = magma_wtime();
                 magma_zgesvd( *jobu, *jobv, M, N,
                               hR, lda, S, U, ldu, VT, ldv, hwork, lwork_magma.value,
@@ -606,6 +611,9 @@ int main( int argc, char** argv)
                 if ( info == 0 ) {
                     check_zgesvd( opts.check, *jobu, *jobv, M, N, hA, lda, S, U, ldu, VT, ldv, result );
                 }
+                if (opts.verbose) {
+                    printf( "Smagma = " );  magma_dprint( 1, min_mn, S, 1 );
+                }
             }
             
             if ( opts.lapack ) {
@@ -613,6 +621,7 @@ int main( int argc, char** argv)
                    Performs operation using LAPACK
                    =================================================================== */
                 lapackf77_zlacpy( MagmaFullStr, &M, &N, hA, &lda, hR, &lda );
+                magma_flush_cache( opts.cache );
                 cpu_time = magma_wtime();
                 lapackf77_zgesvd( lapack_vec_const(*jobu), lapack_vec_const(*jobv), &M, &N,
                                   hR, &lda, Sref, U, &ldu, VT, &ldv, hwork, &lwork_lapack.value,
@@ -645,6 +654,9 @@ int main( int argc, char** argv)
                    =================================================================== */
                 if ( info == 0 && opts.check == 2 ) {
                     check_zgesvd( opts.check, *jobu, *jobv, M, N, hA, lda, Sref, U, ldu, VT, ldv, result_lapack );
+                }
+                if (opts.verbose) {
+                    printf( "Slapack = " );  magma_dprint( 1, min_mn, Sref, 1 );
                 }
                 
                 /* =====================================================================

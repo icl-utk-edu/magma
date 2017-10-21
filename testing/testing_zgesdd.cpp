@@ -602,10 +602,17 @@ int main( int argc, char** argv)
             magma_generate_matrix( opts, M, N, Sref, hA, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, hA, &lda, hR, &lda );
             
+            // ----------
+            if (opts.verbose) {
+                printf( "A = " );  magma_zprint( M, N, hA, lda );
+                printf( "S = " );  magma_dprint( 1, min_mn, Sref, 1 );
+            }
+            
             if ( opts.magma ) {
                 /* ====================================================================
                    Performs operation using MAGMA
                    =================================================================== */
+                magma_flush_cache( opts.cache );
                 gpu_time = magma_wtime();
                 magma_zgesdd( *jobz, M, N,
                               hR, lda, S, U, ldu, VT, ldv, hwork, lwork_magma.value,
@@ -639,6 +646,9 @@ int main( int argc, char** argv)
                 if ( info == 0 ) {
                     check_zgesvd( opts.check, jobu, jobv, M, N, hA, lda, S, U, ldu, VT, ldv, result );
                 }
+                if (opts.verbose) {
+                    printf( "Smagma = " );  magma_dprint( 1, min_mn, S, 1 );
+                }
             }
             
             if ( opts.lapack ) {
@@ -646,6 +656,7 @@ int main( int argc, char** argv)
                    Performs operation using LAPACK
                    =================================================================== */
                 lapackf77_zlacpy( MagmaFullStr, &M, &N, hA, &lda, hR, &lda );
+                magma_flush_cache( opts.cache );
                 cpu_time = magma_wtime();
                 lapackf77_zgesdd( lapack_vec_const(*jobz), &M, &N,
                                   hR, &lda, Sref, U, &ldu, VT, &ldv, hwork, &lwork_lapack.value,
@@ -678,6 +689,9 @@ int main( int argc, char** argv)
                    =================================================================== */
                 if ( info == 0 && opts.check == 2 ) {
                     check_zgesvd( opts.check, jobu, jobv, M, N, hA, lda, Sref, U, ldu, VT, ldv, result_lapack );
+                }
+                if (opts.verbose) {
+                    printf( "Slapack = " );  magma_dprint( 1, min_mn, Sref, 1 );
                 }
                 
                 /* =====================================================================
