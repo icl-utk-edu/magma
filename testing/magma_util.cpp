@@ -507,7 +507,7 @@ void magma_opts::parse_opts( int argc, char** argv )
             this->irange_up = hi;
             if (cnt == 1) {
                 this->irange_up = this->irange_lo;
-                this->irange_lo = 0;
+                this->irange_lo = 1;
             }
             magma_assert( (cnt == 1 || cnt == 2) &&
                           this->irange_lo >= 1 &&
