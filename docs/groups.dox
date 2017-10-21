@@ -339,13 +339,13 @@
             @defgroup magma_nrm2        nrm2:  Vector 2 norm
             @brief    \f$ ||x||_2 \f$
 
-            @defgroup magma_rot         rot:   Apply Given's rotation
+            @defgroup magma_rot         rot:   Apply Givens rotation
 
-            @defgroup magma_rotg        rotg:  Generate Given's rotation
+            @defgroup magma_rotg        rotg:  Generate Givens rotation
 
-            @defgroup magma_rotm        rotm:  Apply modified Given's rotation
+            @defgroup magma_rotm        rotm:  Apply modified Givens rotation
 
-            @defgroup magma_rotmg       rotmg: Generate modified Given's rotation
+            @defgroup magma_rotmg       rotmg: Generate modified Givens rotation
 
             @defgroup magma_scal        scal:  Scale vector
             @brief    \f$ x = \alpha x \f$
@@ -665,13 +665,13 @@
             @defgroup magma_nrm2_batched        nrm2:  Vector 2 norm
             @brief    \f$ ||x||_2 \f$
 
-            @defgroup magma_rot_batched         rot:   Apply Given's rotation
+            @defgroup magma_rot_batched         rot:   Apply Givens rotation
 
-            @defgroup magma_rotg_batched        rotg:  Generate Given's rotation
+            @defgroup magma_rotg_batched        rotg:  Generate Givens rotation
 
-            @defgroup magma_rotm_batched        rotm:  Apply modified Given's rotation
+            @defgroup magma_rotm_batched        rotm:  Apply modified Givens rotation
 
-            @defgroup magma_rotmg_batched       rotmg: Generate modified Given's rotation
+            @defgroup magma_rotmg_batched       rotmg: Generate modified Givens rotation
 
             @defgroup magma_scal_batched        scal:  Scale vector
             @brief    \f$ x = \alpha x \f$
