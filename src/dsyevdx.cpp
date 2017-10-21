@@ -88,7 +88,8 @@
     iu      INTEGER
             If RANGE=MagmaRangeI, the indices (in ascending order) of the
             smallest and largest eigenvalues to be returned.
-            1 <= IL <= IU <= N, if N > 0; IL = 1 and IU = 0 if N = 0.
+            If N > 0:  1 <= IL <= IU <= N.
+            Otherwise: IL = 1 and IU = 0.
             Not referenced if RANGE = MagmaRangeAll or MagmaRangeV.
 
     @param[out]
