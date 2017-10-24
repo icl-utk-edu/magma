@@ -187,7 +187,7 @@ magma_z_precondsetup(
     
     else if ( precond->solver == Magma_PARILUT ) {
         #ifdef _OPENMP
-            info = magma_zparilut3setup( A, b, precond, queue );
+            info = magma_zparilut( A, b, precond, queue );
             if ( precond->trisolver == Magma_ISAI  ||
                  precond->trisolver == Magma_JACOBI ||
                  precond->trisolver == Magma_VBJACOBI ){

@@ -72,7 +72,7 @@ magma_zparilut_sweep_sync(
     // magma_index_t *tmpi;
     
     magma_z_matrix L_new={Magma_CSR}, U_new={Magma_CSR};
-    magma_index_t *index_swap;
+    // magma_index_t *index_swap;
     magmaDoubleComplex *L_new_val = NULL, *U_new_val = NULL, *val_swap = NULL;
     
     // CHECK( magma_zmtransfer( *L, &L_new, Magma_CPU, Magma_CPU, queue ) );
@@ -263,7 +263,7 @@ magma_zparilut_align_residuals(
         }
     }
     
-cleanup:
+// cleanup:
     return info;
 }
 

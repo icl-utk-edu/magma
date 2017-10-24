@@ -53,8 +53,8 @@ magma_zmsupernodal(
     magma_int_t blockcount=0, blockcount2=0;
     
     magma_z_matrix x={Magma_CSR};
-    char *filename = "blocksizes";
-    int nlength = 6752;
+    //char *filename = "blocksizes";
+    //int nlength = 6752;
 
     int maxblocksize = *max_bs;
     int current_size = 0;

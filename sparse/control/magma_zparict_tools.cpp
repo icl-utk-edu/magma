@@ -72,12 +72,12 @@ magma_zparict_candidates(
     magma_int_t existing = 0; // existing elements are also considered
     magma_int_t ilufill = 1;
     
-    magma_int_t id, num_threads;
-    
-    #pragma omp parallel
-    {
-        num_threads = omp_get_max_threads();
-    }
+    // magma_int_t num_threads;
+    // 
+    // #pragma omp parallel
+    // {
+    //     num_threads = omp_get_max_threads();
+    // }
     
     // for now: also some part commented out. If it turns out
     // this being correct, I need to clean up the code.
@@ -426,7 +426,7 @@ magma_zparic_sweep_sync(
     
     #pragma omp parallel for
     for( magma_int_t e=0; e<L->nnz; e++){
-        magma_int_t i,j,icol,jcol,jold;
+        magma_int_t i,j,icol,jcol;//,jold;
 
         magma_index_t row = L->rowidx[ e ];
         magma_index_t col = L->col[ e ];
@@ -449,7 +449,7 @@ magma_zparic_sweep_sync(
         magmaDoubleComplex lsum = MAGMA_Z_ZERO;
         while( i<endi && j<endj ){
             lsum = MAGMA_Z_ZERO;
-            jold = j;
+            //jold = j;
             icol = L->col[i];
             jcol = L->col[j];
             if( icol == jcol ){

@@ -239,7 +239,6 @@ magma_zparilut_thrsrm(
 {
     magma_int_t info = 0;
     
-    magma_index_t nnz_count;
     magma_z_matrix B={Magma_CSR};
     B.num_rows = A->num_rows;
     B.num_cols = A->num_cols;
@@ -255,12 +254,12 @@ magma_zparilut_thrsrm(
         for( magma_int_t row=0; row<A->num_rows; row++){
             magma_int_t rm = 0;
             magma_int_t el = 0;
-            #pragma unroll
+            
             for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
                 if( MAGMA_Z_ABS(A->val[i]) <= *thrs ){
                     if( A->col[i]!=row ){
                         //printf("remove (%d %d) >> %.4e\n", row, A->col[i], A->val[i]);
-                        magma_int_t col = A->col[i];
+                        // magma_int_t col = A->col[i];
                         A->col[i] = -1; // cheaper than val  
                         rm++;
                     } else {
@@ -277,12 +276,12 @@ magma_zparilut_thrsrm(
         for( magma_int_t row=0; row<A->num_rows; row++){
             magma_int_t rm = 0;
             magma_int_t el = 0;
-            #pragma unroll
+            
             for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
                 if( MAGMA_Z_ABS(A->val[i]) >= *thrs ){
                     if( A->col[i]!=row ){
                         //printf("remove (%d %d) >> %.4e\n", row, A->col[i], A->val[i]);
-                        magma_int_t col = A->col[i];
+                        // magma_int_t col = A->col[i];
                         A->col[i] = -1; // cheaper than val  
                         rm++;
                     } else {
@@ -374,7 +373,6 @@ magma_zparilut_thrsrm_U(
 {
     magma_int_t info = 0;
     
-    magma_index_t nnz_count;
     magma_z_matrix B={Magma_CSR};
     B.num_rows = A->num_rows;
     B.num_cols = A->num_cols;
@@ -390,13 +388,13 @@ magma_zparilut_thrsrm_U(
         for( magma_int_t row=0; row<A->num_rows; row++){
             magma_int_t rm = 0;
             magma_int_t el = 0;
-            #pragma unroll
+            
             for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
                 magmaDoubleComplex Lscal = L.val[L.row[A->col[i]+1]-1];
                 if( MAGMA_Z_ABS(A->val[i]*Lscal) <= *thrs ){
                     if( A->col[i]!=row ){
                         //printf("remove (%d %d) >> %.4e\n", row, A->col[i], A->val[i]);
-                        magma_int_t col = A->col[i];
+                        // magma_int_t col = A->col[i];
                         A->col[i] = -1; // cheaper than val  
                         rm++;
                     } else {
@@ -413,13 +411,13 @@ magma_zparilut_thrsrm_U(
         for( magma_int_t row=0; row<A->num_rows; row++){
             magma_int_t rm = 0;
             magma_int_t el = 0;
-            #pragma unroll
+            
             for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
                 magmaDoubleComplex Lscal = L.val[L.row[A->col[i]+1]-1];
                 if( MAGMA_Z_ABS(A->val[i]*Lscal) >= *thrs ){
                     if( A->col[i]!=row ){
                         //printf("remove (%d %d) >> %.4e\n", row, A->col[i], A->val[i]);
-                        magma_int_t col = A->col[i];
+                        // magma_int_t col = A->col[i];
                         A->col[i] = -1; // cheaper than val  
                         rm++;
                     } else {
@@ -501,7 +499,6 @@ magma_zparilut_thrsrm_semilinked(
 {
     magma_int_t info = 0;
     
-    magma_index_t nnz_count;
     magma_z_matrix B={Magma_CSR};
     B.num_rows = U->num_rows;
     B.num_cols = U->num_cols;
@@ -631,7 +628,6 @@ magma_zparilut_rmselected(
     magma_int_t info = 0;
         printf("before:%d\n", A->nnz);
     
-    magma_index_t nnz_count;
     magma_z_matrix B={Magma_CSR};
     B.num_rows = A->num_rows;
     B.num_cols = A->num_cols;
@@ -745,7 +741,6 @@ magma_zparilut_selectoneperrow(
 {
     magma_int_t info = 0;
     
-    magma_index_t nnz_count;
     magma_z_matrix B={Magma_CSR};
     double thrs = 1e-8;
     B.num_rows = A->num_rows;
@@ -869,9 +864,8 @@ magma_zparilut_selecttwoperrow(
 {
     magma_int_t info = 0;
     
-    magma_index_t nnz_count;
     magma_z_matrix B={Magma_CSR};
-    double thrs = 1e-8;
+    //double thrs = 1e-8;
     B.num_rows = A->num_rows;
     B.num_cols = A->num_cols;
     B.nnz = A->num_rows;
@@ -996,7 +990,6 @@ magma_zparilut_selectoneperrowthrs_lower(
 {
     magma_int_t info = 0;
     
-    magma_index_t nnz_count;
     magma_z_matrix B={Magma_CSR};
     double thrs = 1e-8;
     B.num_rows = A->num_rows;
@@ -1105,7 +1098,6 @@ magma_zparilut_selectoneperrowthrs_upper(
 {
     magma_int_t info = 0;
     
-    magma_index_t nnz_count;
     magma_z_matrix B={Magma_CSR};
     double thrs = 1e-8;
     B.num_rows = A->num_rows;
@@ -1208,7 +1200,6 @@ magma_zparilut_preselect(
 {
     magma_int_t info = 0;
     
-    magma_index_t nnz_count;
     oneA->num_rows = A->num_rows;
     oneA->num_cols = A->num_cols;
     oneA->nnz = A->nnz - A->num_rows;
@@ -1358,7 +1349,7 @@ magma_zmatrix_addrowindex(
     
     #pragma omp parallel for
     for( magma_int_t row=0; row<A->num_rows; row++){
-        #pragma unroll
+        
         for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
             A->rowidx[i] = row;
         }
@@ -1468,7 +1459,7 @@ magma_zparilut_transpose(
     for( magma_int_t row=0; row<A.num_rows; row++){
         magma_int_t el = row_ptr[row];
         if( el>-1 ) {
-            #pragma unroll
+            
             for( magma_int_t i=B->row[row]; i<B->row[row+1]; i++ ){
                 // assert(A.col[el] == row);
                 B->val[i] = A.val[el];
@@ -1521,12 +1512,12 @@ magma_zparilut_transpose_select_one(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    magma_index_t *linked_list;
-    magma_index_t *row_ptr;
-    magma_index_t *last_rowel;
+    //magma_index_t *linked_list;
+    //magma_index_t *row_ptr;
+    //magma_index_t *last_rowel;
     
     magma_int_t el_per_block, num_threads;
-    double thrs = 1e-6;
+    //double thrs = 1e-6;
     
     B->storage_type = A.storage_type;
     B->memory_location = A.memory_location;
@@ -1622,9 +1613,8 @@ magma_zmatrix_createrowptr(
     magma_int_t info = 0;
     magma_index_t *offset=NULL;//, *new_row;
     
-    magma_int_t id, el_per_block, num_threads;
+    magma_int_t el_per_block, num_threads;
     magma_int_t loc_offset = 0;
-    magma_int_t nnz = 0;
     
   //  CHECK( magma_index_malloc_cpu( &new_row, n+1 ));
   //  for( magma_int_t i = 0; i<n+1; i++ ){
@@ -2282,7 +2272,7 @@ magma_zmatrix_tril(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    magma_int_t nnz = 0;
+    
     U->num_rows = A.num_rows;
     U->num_cols = A.num_cols;
     U->storage_type = Magma_CSR;
@@ -2292,7 +2282,7 @@ magma_zmatrix_tril(
     #pragma omp parallel for
     for( magma_int_t row=0; row<A.num_rows; row++){
         magma_int_t nz = 0;
-        #pragma unroll
+        
         for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
             magma_index_t col = A.col[i];
             if( col <= row ){
@@ -2318,7 +2308,7 @@ magma_zmatrix_tril(
     for( magma_int_t row=0; row<A.num_rows; row++){
         magma_int_t nz = 0;
         magma_int_t offset = U->row[row];
-        #pragma unroll
+        
         for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
             magma_index_t col = A.col[i];
             if( col <= row ){
@@ -2375,7 +2365,7 @@ magma_zmatrix_triu(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    magma_int_t nnz = 0;
+    
     U->num_rows = A.num_rows;
     U->num_cols = A.num_cols;
     U->storage_type = Magma_CSR;
@@ -2385,7 +2375,7 @@ magma_zmatrix_triu(
     #pragma omp parallel for
     for( magma_int_t row=0; row<A.num_rows; row++){
         magma_int_t nz = 0;
-        #pragma unroll
+        
         for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
             magma_index_t col = A.col[i];
             if( col >= row ){
@@ -2412,7 +2402,7 @@ magma_zmatrix_triu(
     for( magma_int_t row=0; row<A.num_rows; row++){
         magma_int_t nz = 0;
         magma_int_t offset = U->row[row];
-        #pragma unroll
+        
         for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
             magma_index_t col = A.col[i];
             if( col >= row ){
@@ -3418,7 +3408,7 @@ magma_zparilut_residuals_list(
         // as we look at the lower triangular,
         // col<row, i.e. disregard last element in row
         {
-            magma_int_t i,j,icol,jcol,jold;
+            magma_int_t i,j,icol,jcol;//,jold;
 
             magma_index_t row = L_new->rowidx[ e ];
             magma_index_t col = L_new->col[ e ];
@@ -3442,7 +3432,7 @@ magma_zparilut_residuals_list(
                 magmaDoubleComplex lsum = MAGMA_Z_ZERO;
                 do{
                     lsum = MAGMA_Z_ZERO;
-                    jold = j;
+                    //jold = j;
                     icol = L.col[i];
                     jcol = U.col[j];
                     if( icol == jcol ){
@@ -5215,7 +5205,7 @@ magma_zparilut_candidates(
     magma_int_t existing = 0; // existing elements are also considered
     magma_int_t ilufill = 1;
     
-    magma_int_t id, num_threads;
+    magma_int_t num_threads;
     
     #pragma omp parallel
     {
@@ -5744,7 +5734,7 @@ magma_zparilut_candidates_semilinked( // new
     magma_int_t existing = 0; // existing elements are also considered
     magma_int_t ilufill = 1;
     
-    magma_int_t id, num_threads;
+    magma_int_t num_threads;
     
     #pragma omp parallel
     {
@@ -7081,7 +7071,7 @@ magma_zparilut_set_thrs_randomselect_approx2(
     magma_int_t size =  LU->nnz;
     const magma_int_t incx = 1;
     magma_int_t incy = 1;
-    magma_int_t nz_copy = LU->nnz;
+    // magma_int_t nz_copy = LU->nnz;
     // copy as we may change the elements
     magmaDoubleComplex *val=NULL;
     magma_int_t subset = num_rm *10;
@@ -7160,11 +7150,11 @@ magma_zparilut_set_thrs_randomselect_approx(
     
     magma_int_t size =  LU->nnz;
     const magma_int_t incx = 1;
-    magma_int_t incy = 1;
-    magma_int_t nz_copy = LU->nnz;
+    //magma_int_t incy = 1;
+    //magma_int_t nz_copy = LU->nnz;
     magma_int_t num_threads = 1;
     magma_int_t el_per_block;
-    magma_int_t num_rm_loc;
+    //magma_int_t num_rm_loc;
     magmaDoubleComplex *dthrs;
     magmaDoubleComplex *val;
     
@@ -7436,18 +7426,17 @@ magma_zparilut_set_approx_thrs_inc(
     magma_int_t offset = 10;
     double ratio;
     magma_int_t loc_num_rm = num_rm;
-    magma_int_t num_threads=1;
+    // magma_int_t num_threads=1;
     magmaDoubleComplex *elements = NULL;
     magma_int_t avg_count = 100;
     loc_nnz = (int) LU->nnz/incx;
     ratio = ((double)num_rm)/((double)LU->nnz);
     loc_num_rm = (int) ((double)ratio*(double)loc_nnz);
     
-printf("start:%d", loc_nnz);
-    #pragma omp parallel
-    {
-        num_threads = omp_get_max_threads();
-    }
+    // #pragma omp parallel
+    // {
+    //     num_threads = omp_get_max_threads();
+    // }
     // two options: either there are enough candidates such that we can use
     // a parallel first step of order-statistics, or not...
     
@@ -7469,7 +7458,6 @@ printf("start:%d", loc_nnz);
     element = element/MAGMA_Z_MAKE((double)avg_count, 0.0);
     
     *thrs = element;
-printf("done: %.4e\n", element);
 cleanup:
     magma_free_cpu( val );
     magma_free_cpu( elements );

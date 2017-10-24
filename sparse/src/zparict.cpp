@@ -76,7 +76,7 @@ magma_zparict(
     char filenameL[sizeof "LT_rm20_step10.m"];
 
                     
-    double sum, sumL, sumU, thrsL_old=1e9, thrsU_old=1e9;
+    double sum, sumL;//, sumU, thrsL_old=1e9, thrsU_old=1e9;
 
     cusparseHandle_t cusparseHandle=NULL;
     cusparseMatDescr_t descrL=NULL;
