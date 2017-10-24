@@ -70,4 +70,12 @@
 #define DSYMV_BATCHED_UPPER    16, 4
 #define SSYMV_BATCHED_UPPER    32, 4
 
+// compile-time round up to power of 2 (up to 32 only)
+// used for batched kernels on tiny sizes
+#define magma_ceilpow2(N)    ( (N >  16)? 32 : \
+                               (N >   8)? 16 : \
+                               (N >   4)?  8 : \
+                               (N >   2)?  4 : \
+                               (N >   0)?  2 : 0 )    
+
 #endif        //  #ifndef BATCHED_KERNEL_PARAM_H
