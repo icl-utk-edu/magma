@@ -33,8 +33,6 @@ my @files2delete = qw(
 
     sparse/python
     
-    sparse/src/ziterict.cpp
-    
     sparse/testing/test_matrices
     sparse/testing/testing_zpardiso.cpp
     sparse/testing/testing_zparilu_weight.cpp
