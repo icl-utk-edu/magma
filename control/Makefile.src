@@ -32,6 +32,7 @@ libmagma_src += \
 	$(cdir)/get_batched_crossover.cpp	\
 	$(cdir)/get_batched_gemm_decision.cpp	\
 	$(cdir)/get_nb.cpp		\
+	$(cdir)/get_ntcol.cpp		\
 	$(cdir)/magma_bulge.cpp		\
 	$(cdir)/magma_threadsetting.cpp	\
 	$(cdir)/magma_timer.cpp		\
