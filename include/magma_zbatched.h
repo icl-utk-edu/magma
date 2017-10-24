@@ -55,8 +55,10 @@ void magma_get_zpotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
 magma_int_t magma_get_zpotrf_batched_crossover();
 
 void magma_get_zgetrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_t *recnb);
+magma_int_t magma_get_zgetrf_batched_ntcol(magma_int_t m, magma_int_t n);
 
 magma_int_t magma_get_zgeqrf_batched_nb(magma_int_t m);
+magma_int_t magma_get_zgeqrf_batched_ntcol(magma_int_t m, magma_int_t n);
 
 void
 magmablas_zswapdblk_batched(
@@ -446,6 +448,20 @@ magma_zgetf2_batched(
     magma_int_t *info_array, 
     magma_int_t gbstep,            
     magma_int_t batchCount, magma_queue_t queue);
+
+magma_int_t 
+magma_zgetrf_batched_smallsq_noshfl( 
+    magma_int_t n, 
+    magmaDoubleComplex** dA_array, magma_int_t ldda, 
+    magma_int_t** ipiv_array, magma_int_t* info_array, 
+    magma_int_t batchCount, magma_queue_t queue );
+
+magma_int_t 
+magma_zgetrf_batched_smallsq_shfl( 
+    magma_int_t n, 
+    magmaDoubleComplex** dA_array, magma_int_t ldda, 
+    magma_int_t** ipiv_array, magma_int_t* info_array, 
+    magma_int_t batchCount, magma_queue_t queue );
 
 magma_int_t 
 magma_zgetrf_recpanel_batched(
