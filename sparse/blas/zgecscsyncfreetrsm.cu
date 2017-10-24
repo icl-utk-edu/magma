@@ -73,13 +73,14 @@ void sptrsm_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
     const magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0);
     const magmaDoubleComplex coef = one / d_cscVal[pos];
 
-    clock_t start;
+    /*
+    // clock_t start;
     // Consumer
     do {
         start = clock();
     }
     while (1 != d_graphInDegree[global_x_id]);
-    /*
+    
     // Consumer
     int graphInDegree;
     do {

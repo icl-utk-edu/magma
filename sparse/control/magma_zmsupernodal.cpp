@@ -140,7 +140,7 @@ magma_zmsupernodal(
 
     CHECK( magma_zmvarsizeblockstruct( A.num_rows, blocksizes2, blockcount2, MagmaLower, S, queue ) );
     
-    CHECK( magma_imalloc_cpu( &S->tile_desc_offset_ptr, blockcount2+1 ));
+    CHECK( magma_index_malloc_cpu( &S->tile_desc_offset_ptr, blockcount2+1 ));
     S->tile_desc_offset_ptr[ 0 ] = 0;
     blockcount = 0;
     for( magma_int_t i=0; i<blockcount2; i++ ){

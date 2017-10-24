@@ -626,7 +626,6 @@ magma_zparilut_rmselected(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-        printf("before:%d\n", A->nnz);
     
     magma_z_matrix B={Magma_CSR};
     B.num_rows = A->num_rows;
@@ -689,7 +688,6 @@ magma_zparilut_rmselected(
     }
     // finally, swap the matrices
     CHECK( magma_zmatrix_swap( &B, A, queue) );
-                printf("after:%d\n", A->nnz);
     
 cleanup:
     magma_zmfree( &B, queue );
