@@ -91,7 +91,6 @@ magma_zgetrf_batched(
 #define A(i_, j_)  (A + (i_) + (j_)*ldda)   
 
     magma_int_t min_mn = min(m, n);
-    cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
 
     /* Check arguments */
     magma_int_t arginfo = 0;
@@ -110,7 +109,19 @@ magma_zgetrf_batched(
     /* Quick return if possible */
     if (m == 0 || n == 0)
         if (min_mn == 0 ) return arginfo;
+    
+    /* Special case for tiny square matrices */
+    if( m == n && m <= 32 ){
+        magma_int_t arch = magma_getdevice_arch();
+        if(arch >= 700){
+            return magma_zgetrf_batched_smallsq_noshfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );
+        }
+        else{
+            return magma_zgetrf_batched_smallsq_shfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );
+        }
+    }
 
+    cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
     if ( m >  2048 || n > 2048 ) {
         #ifndef MAGMA_NOWARNING
         printf("=========================================================================================\n"
