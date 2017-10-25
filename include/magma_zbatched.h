@@ -728,6 +728,13 @@ magmablas_zgemv_batched(
     magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t 
+magma_zgeqrf_batched_smallsq( 
+    magma_int_t n,  
+    magmaDoubleComplex** dA_array, magma_int_t ldda, 
+    magmaDoubleComplex **dtau_array, magma_int_t* info_array, 
+    magma_int_t batchCount, magma_queue_t queue );
+
+magma_int_t 
 magma_zgeqrf_batched(
     magma_int_t m, magma_int_t n, 
     magmaDoubleComplex **dA_array,
