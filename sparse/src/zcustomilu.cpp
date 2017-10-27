@@ -60,7 +60,7 @@ magma_zcustomilusetup(
     
     // first L
     snprintf( preconditionermatrix, sizeof(preconditionermatrix),
-                "precondL.mtx" );
+                "/Users/hanzt0114cl306/work/matrices/matrices/ILUT_L.mtx" );
     
     CHECK( magma_z_csr_mtx( &hA, preconditionermatrix , queue) );
     CHECK( magma_zmtransfer( hA, &precond->L, Magma_CPU, Magma_DEV , queue ));
@@ -72,7 +72,7 @@ magma_zcustomilusetup(
     
     // now U
     snprintf( preconditionermatrix, sizeof(preconditionermatrix),
-                "precondU.mtx" );
+                "/Users/hanzt0114cl306/work/matrices/matrices/ILUT_U.mtx" );
 
     CHECK( magma_z_csr_mtx( &hA, preconditionermatrix , queue) );
     CHECK( magma_zmtransfer( hA, &precond->U, Magma_CPU, Magma_DEV , queue ));

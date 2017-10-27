@@ -59,7 +59,7 @@ magma_zcustomicsetup(
     char preconditionermatrix[255];
     
     snprintf( preconditionermatrix, sizeof(preconditionermatrix),
-                "/Users/hanzt0114cl306/work/matrices/ani/ani7_crop_ichol.mtx" );
+                "/Users/hanzt0114cl306/work/matrices/matrices/ICT.mtx" );
     
     CHECK( magma_z_csr_mtx( &hA, preconditionermatrix , queue) );
     

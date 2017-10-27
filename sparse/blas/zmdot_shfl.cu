@@ -36,11 +36,19 @@ __inline__ __device__
 T warpReduceSum(T val)
 {
 #if __CUDA_ARCH__ >= 300
+#if __CUDACC_VER_MAJOR__ < 9
     val += __shfl_down(val, 16);
     val += __shfl_down(val, 8);
     val += __shfl_down(val, 4);
     val += __shfl_down(val, 2);
     val += __shfl_down(val, 1);
+#else
+    val += __shfl_down_sync(val, 16);
+    val += __shfl_down_sync(val, 8);
+    val += __shfl_down_sync(val, 4);
+    val += __shfl_down_sync(val, 2);
+    val += __shfl_down_sync(val, 1);
+#endif
 #endif
     return val;
 }
@@ -53,6 +61,7 @@ magmaDoubleComplex warpReduceSum<magmaDoubleComplex>(magmaDoubleComplex val)
 {
 #if __CUDA_ARCH__ >= 300
     int4 a = *reinterpret_cast<int4*>(&val);
+#if __CUDACC_VER_MAJOR__ < 9
     a.x += __shfl_down(a.x, 16);
     a.y += __shfl_down(a.y, 16);
     a.z += __shfl_down(a.z, 16);
@@ -73,6 +82,28 @@ magmaDoubleComplex warpReduceSum<magmaDoubleComplex>(magmaDoubleComplex val)
     a.y += __shfl_down(a.y, 1);
     a.z += __shfl_down(a.z, 1);
     a.w += __shfl_down(a.w, 1);
+#else
+    a.x += __shfl_down_sync(a.x, 16);
+    a.y += __shfl_down_sync(a.y, 16);
+    a.z += __shfl_down_sync(a.z, 16);
+    a.w += __shfl_down_sync(a.w, 16);
+    a.x += __shfl_down_sync(a.x, 8);
+    a.y += __shfl_down_sync(a.y, 8);
+    a.z += __shfl_down_sync(a.z, 8);
+    a.w += __shfl_down_sync(a.w, 8);
+    a.x += __shfl_down_sync(a.x, 4);
+    a.y += __shfl_down_sync(a.y, 4);
+    a.z += __shfl_down_sync(a.z, 4);
+    a.w += __shfl_down_sync(a.w, 4);
+    a.x += __shfl_down_sync(a.x, 2);
+    a.y += __shfl_down_sync(a.y, 2);
+    a.z += __shfl_down_sync(a.z, 2);
+    a.w += __shfl_down_sync(a.w, 2);
+    a.x += __shfl_down_sync(a.x, 1);
+    a.y += __shfl_down_sync(a.y, 1);
+    a.z += __shfl_down_sync(a.z, 1);
+    a.w += __shfl_down_sync(a.w, 1);
+#endif
 #endif
     return val;
 }
@@ -86,6 +117,7 @@ magmaFloatComplex warpReduceSum<magmaFloatComplex>(magmaFloatComplex val)
 {
 #if __CUDA_ARCH__ >= 300
     float2 a = *reinterpret_cast<float2*>(&val);
+#if __CUDACC_VER_MAJOR__ < 9
     a.x += __shfl_down(a.x, 16);
     a.y += __shfl_down(a.y, 16);
     a.x += __shfl_down(a.x, 8);
@@ -96,6 +128,18 @@ magmaFloatComplex warpReduceSum<magmaFloatComplex>(magmaFloatComplex val)
     a.y += __shfl_down(a.y, 2);
     a.x += __shfl_down(a.x, 1);
     a.y += __shfl_down(a.y, 1);
+#else
+    a.x += __shfl_down_sync(a.x, 16);
+    a.y += __shfl_down_sync(a.y, 16);
+    a.x += __shfl_down_sync(a.x, 8);
+    a.y += __shfl_down_sync(a.y, 8);
+    a.x += __shfl_down_sync(a.x, 4);
+    a.y += __shfl_down_sync(a.y, 4);
+    a.x += __shfl_down_sync(a.x, 2);
+    a.y += __shfl_down_sync(a.y, 2);
+    a.x += __shfl_down_sync(a.x, 1);
+    a.y += __shfl_down_sync(a.y, 1);
+#endif
 #endif
     return val;
 }

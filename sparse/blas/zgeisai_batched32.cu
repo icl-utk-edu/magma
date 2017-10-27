@@ -12,7 +12,9 @@
 
 */
 #include "magmasparse_internal.h"
+#include "shuffle.cuh"
 #include <cuda_profiler_api.h>
+
 
 #define PRECISION_z
 #define COMPLEX
@@ -98,7 +100,7 @@ magmaDoubleComplex *Mval )
         rA = dA[ k ];
         if (k % block_size == tid)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k % block_size);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k % block_size);
         if ( tid > k)
             rB -= (top*rA);
     }
@@ -240,7 +242,7 @@ magmaDoubleComplex *Mval )
         rA = dA[ k ];
         if (k%block_size == tid)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%block_size);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%block_size);
         if ( tid < k)
             rB -= (bottom*rA);
     }
@@ -380,7 +382,7 @@ magmaDoubleComplex *Mval )
         rA = dA[ k ];
         if (k%block_size == tid)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%block_size);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%block_size);
         if ( tid > k)
             rB -= (top*rA);
     }
@@ -520,7 +522,7 @@ magmaDoubleComplex *Mval )
         rA = dA[ k ];
         if (k%block_size == tid)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%block_size);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%block_size);
         if ( tid < k)
             rB -= (bottom*rA);
     }

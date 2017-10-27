@@ -9,6 +9,7 @@
 
 */
 #include "magmasparse_internal.h"
+#include "shuffle.cuh"
 //#include <cuda_profiler_api.h>
 
 #define PRECISION_z
@@ -59,7 +60,7 @@ void ztrsv_lower_kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, 
         if (k%WARP_SIZE == idn)
             rB[k/WARP_SIZE] /= rA[k/WARP_SIZE];
 
-        magmaDoubleComplex top = __shfl(rB[k/WARP_SIZE], k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB[k/WARP_SIZE], k%WARP_SIZE);
 
         #pragma unroll
         for (n = 0; n < 2; n++)
@@ -110,7 +111,7 @@ void ztrsv_upper_kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, 
         if (k%WARP_SIZE == idn)
             rB[k/WARP_SIZE] /= rA[k/WARP_SIZE];
 
-        magmaDoubleComplex top = __shfl(rB[k/WARP_SIZE], k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB[k/WARP_SIZE], k%WARP_SIZE);
 
         #pragma unroll
         for (n = 0; n < 2; n++)
@@ -148,7 +149,7 @@ void ztrsv_lower_kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -179,7 +180,7 @@ void ztrsv_lower_kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -210,7 +211,7 @@ void ztrsv_lower_kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -241,7 +242,7 @@ void ztrsv_lower_kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -272,7 +273,7 @@ void ztrsv_lower_kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -303,7 +304,7 @@ void ztrsv_lower_kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -334,7 +335,7 @@ void ztrsv_lower_kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -365,7 +366,7 @@ void ztrsv_lower_kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -396,7 +397,7 @@ void ztrsv_lower_kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -427,7 +428,7 @@ void ztrsv_lower_kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -458,7 +459,7 @@ void ztrsv_lower_kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -489,7 +490,7 @@ void ztrsv_lower_kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -520,7 +521,7 @@ void ztrsv_lower_kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -551,7 +552,7 @@ void ztrsv_lower_kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -582,7 +583,7 @@ void ztrsv_lower_kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -613,7 +614,7 @@ void ztrsv_lower_kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -644,7 +645,7 @@ void ztrsv_lower_kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -675,7 +676,7 @@ void ztrsv_lower_kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -706,7 +707,7 @@ void ztrsv_lower_kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -737,7 +738,7 @@ void ztrsv_lower_kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -768,7 +769,7 @@ void ztrsv_lower_kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -799,7 +800,7 @@ void ztrsv_lower_kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -830,7 +831,7 @@ void ztrsv_lower_kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -861,7 +862,7 @@ void ztrsv_lower_kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -892,7 +893,7 @@ void ztrsv_lower_kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -923,7 +924,7 @@ void ztrsv_lower_kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -954,7 +955,7 @@ void ztrsv_lower_kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -985,7 +986,7 @@ void ztrsv_lower_kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -1016,7 +1017,7 @@ void ztrsv_lower_kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -1047,7 +1048,7 @@ void ztrsv_lower_kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -1078,7 +1079,7 @@ void ztrsv_lower_kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -1109,7 +1110,7 @@ void ztrsv_lower_kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -1215,7 +1216,7 @@ void ztrsv_upper_kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1246,7 +1247,7 @@ void ztrsv_upper_kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1277,7 +1278,7 @@ void ztrsv_upper_kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1308,7 +1309,7 @@ void ztrsv_upper_kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1339,7 +1340,7 @@ void ztrsv_upper_kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1370,7 +1371,7 @@ void ztrsv_upper_kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1401,7 +1402,7 @@ void ztrsv_upper_kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1432,7 +1433,7 @@ void ztrsv_upper_kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1463,7 +1464,7 @@ void ztrsv_upper_kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1494,7 +1495,7 @@ void ztrsv_upper_kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1525,7 +1526,7 @@ void ztrsv_upper_kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1556,7 +1557,7 @@ void ztrsv_upper_kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1587,7 +1588,7 @@ void ztrsv_upper_kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1618,7 +1619,7 @@ void ztrsv_upper_kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1649,7 +1650,7 @@ void ztrsv_upper_kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1680,7 +1681,7 @@ void ztrsv_upper_kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1711,7 +1712,7 @@ void ztrsv_upper_kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1742,7 +1743,7 @@ void ztrsv_upper_kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1773,7 +1774,7 @@ void ztrsv_upper_kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1804,7 +1805,7 @@ void ztrsv_upper_kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1835,7 +1836,7 @@ void ztrsv_upper_kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1866,7 +1867,7 @@ void ztrsv_upper_kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1897,7 +1898,7 @@ void ztrsv_upper_kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1928,7 +1929,7 @@ void ztrsv_upper_kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1959,7 +1960,7 @@ void ztrsv_upper_kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1990,7 +1991,7 @@ void ztrsv_upper_kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2021,7 +2022,7 @@ void ztrsv_upper_kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2052,7 +2053,7 @@ void ztrsv_upper_kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2083,7 +2084,7 @@ void ztrsv_upper_kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2114,7 +2115,7 @@ void ztrsv_upper_kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2145,7 +2146,7 @@ void ztrsv_upper_kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2176,7 +2177,7 @@ void ztrsv_upper_kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = __shfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
         if ( idn < k)
             rB -= (bottom*rA);
     }
