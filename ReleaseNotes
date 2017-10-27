@@ -24,6 +24,12 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+ 2.3.0 - Nov ??, 2017
+    MAGMA-sparse
+    * Added support for CUDA 9.0
+    * Improved the ParILUT algorithm w.r.t. stability and scalability
+    * Added ParICT, a symmetry-exploiting version of the ParILUT algorithm
+
  2.2.0 - Nov 20, 2016
     * Added variable size batched Cholesky factorization
       magma_[sdcz]potrf_vbatched

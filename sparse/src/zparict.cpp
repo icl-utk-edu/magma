@@ -22,12 +22,12 @@
     Purpose
     -------
 
-    Prepares the iterative threshold Incomplete LU preconditioner. The strategy
-    is interleaving a parallel fixed-point iteration that approximates an
-    incomplete factorization for a given nonzero pattern with a procedure that
-    adaptively changes the pattern. Much of this new algorithm has fine-grained
-    parallelism, and we show that it can efficiently exploit the compute power
-    of shared memory architectures.
+    Prepares the iterative threshold Incomplete Cholesky preconditioner. 
+    The strategy is interleaving a parallel fixed-point iteration that 
+    approximates an incomplete factorization for a given nonzero pattern with a 
+    procedure that adaptively changes the pattern. Much of this new algorithm 
+    has fine-grained parallelism, and we show that it can efficiently exploit 
+    the compute power of shared memory architectures.
 
     This is the routine used in the publication by Anzt, Chow, Dongarra:
     ''ParILUT - A new parallel threshold ILU factorization''
