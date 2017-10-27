@@ -25,6 +25,9 @@ Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
  2.3.0 - Nov ??, 2017
+    * Added support for Volta GPUs
+    * Improved performance for LU and QR factorizations on small square sizes up to 32
+
     MAGMA-sparse
     * Added support for CUDA 9.0
     * Improved the ParILUT algorithm w.r.t. stability and scalability
