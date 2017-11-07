@@ -48,7 +48,6 @@ int main( int argc, char** argv)
 
     magma_int_t M, N, lda, ldda, lwork, size, info, min_mn;
     magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
 
     #define BLOCK_SIZE 64
@@ -110,8 +109,7 @@ int main( int argc, char** argv)
             magmablas_zlaset( MagmaFull, N, N, c_zero, c_zero, d_T, N, opts.queue );
             
             /* Initialize the matrix */
-            size = lda*N;
-            lapackf77_zlarnv( &ione, ISEED, &size, h_A );
+            magma_generate_matrix( opts, M, N, nullptr, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, h_A, &lda, h_R, &lda );
             magma_zsetmatrix( M, N, h_R, lda, d_A, ldda, opts.queue );
     

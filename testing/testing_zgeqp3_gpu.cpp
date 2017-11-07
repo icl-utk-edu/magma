@@ -36,8 +36,6 @@ int main( int argc, char** argv)
     magmaDoubleComplex_ptr d_A, dtau, d_work;
     magma_int_t *jpvt;
     magma_int_t M, N, K, n2, lda, lwork, j, info, min_mn, nb;
-    magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
     
     magma_opts opts;
@@ -89,7 +87,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc( &d_work, lwork  ));
             
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_R );
+            magma_generate_matrix( opts, M, N, nullptr, h_R, lda );
 
             /* Make h_A of rank K */
             magmaDoubleComplex alpha = MAGMA_Z_MAKE(  1., 0. );
