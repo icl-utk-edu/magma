@@ -44,6 +44,7 @@ int main(int argc, char **argv)
     int status = 0;
     
     magma_opts opts;
+    opts.matrix = "rand_dominant";  // default
     opts.parse_opts( argc, argv );
 
     double tol = opts.tolerance * lapackf77_dlamch("E");
@@ -74,9 +75,7 @@ int main(int argc, char **argv)
             TESTING_CHECK( magma_zmalloc( &d_workd, N*nrhs       ));
             
             /* Initialize the matrix */
-            size = lda * N;
-            lapackf77_zlarnv( &ione, ISEED, &size, h_A );
-            magma_zmake_hpd( N, h_A, lda );
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
             
             size = ldb * nrhs;
             lapackf77_zlarnv( &ione, ISEED, &size, h_B );
