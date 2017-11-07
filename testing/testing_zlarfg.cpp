@@ -32,7 +32,8 @@ int main( int argc, char** argv)
     double      error, error2, work[1];
     magma_int_t N, nb, lda, ldda, size;
     magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};    int status = 0;
+    magma_int_t ISEED[4] = {0,0,0,1};
+    int status = 0;
 
     magma_opts opts;
     opts.parse_opts( argc, argv );
