@@ -85,8 +85,7 @@ int main( int argc, char** argv )
             TESTING_CHECK( magma_zmalloc_cpu( &h_work, lhwork    ));
             
             /* Initialize the matrices */
-            size = lda*N;
-            lapackf77_zlarnv( &ione, ISEED, &size, h_A );
+            magma_generate_matrix( opts, M, N, nullptr, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, h_A, &lda, h_A2, &lda );
             
             // make random RHS
