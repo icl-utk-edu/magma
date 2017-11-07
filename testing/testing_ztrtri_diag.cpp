@@ -55,9 +55,7 @@ int main( int argc, char** argv )
     real_Double_t   gflops, magma_perf, magma_time=0;  //, cpu_perf=0, cpu_time=0;
     double          magma_error, norm_invA, work[1];
     magma_int_t i, j, N, lda, ldda, info;
-    magma_int_t jb, nb, nblock, sizeA, size_inv;
-    magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
+    magma_int_t jb, nb, nblock, size_inv;
     magma_int_t *ipiv;
 
     magmaDoubleComplex *h_A, *h_dinvA;
@@ -99,8 +97,8 @@ int main( int argc, char** argv )
             /* Factor A into LU to get well-conditioned triangular matrix.
              * Copy L to U, since L seems okay when used with non-unit diagonal
              * (i.e., from U), while U fails when used with unit diagonal. */
-            sizeA = lda*N;
-            lapackf77_zlarnv( &ione, ISEED, &sizeA, h_A );
+            //sizeA = lda*N;
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
             lapackf77_zgetrf( &N, &N, h_A, &lda, ipiv, &info );
             for( j = 0; j < N; ++j ) {
                 for( i = 0; i < j; ++i ) {
