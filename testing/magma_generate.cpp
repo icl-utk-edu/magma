@@ -692,6 +692,15 @@ void magma_generate_matrix(
     else if (contains( name, "_rcluster"  )) { dist = Dist::rcluster;  } // after rcluster2
     else if (contains( name, "_specified" )) { dist = Dist::specified; }
 
+    if (opts.cond != 0 &&
+        (dist == Dist::randn ||
+         dist == Dist::randu ||
+         dist == Dist::rand))
+    {
+        fprintf( stderr, "%sWarning: --matrix '%s' ignores --cond %.2e; use a different distribution.%s\n",
+                 ansi_red, name.c_str(), opts.cond, ansi_normal );
+    }
+
     if (type == MatrixType::poev &&
         (dist == Dist::randu ||
          dist == Dist::randn))
@@ -789,7 +798,11 @@ void magma_generate_matrix(
     typedef typename blas::traits<FloatT>::real_t real_t;
 
     // vector & matrix wrappers
+    // if sigma is null, create new vector; data is discarded later
     Vector<real_t> sigma( sigma_ptr, min(m,n) );
+    if (sigma_ptr == nullptr) {
+        sigma = Vector<real_t>( min(m,n) );
+    }
     Matrix<FloatT> A( A_ptr, m, n, lda );
     magma_generate_matrix( opts, sigma, A );
 }
