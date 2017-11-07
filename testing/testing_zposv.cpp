@@ -72,6 +72,12 @@ int main( int argc, char** argv)
             lapackf77_zlacpy( MagmaFullStr, &N, &N,         h_A, &lda, h_R, &lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &opts.nrhs, h_B, &ldb, h_X, &ldb );
             
+            if (opts.verbose) {
+                printf( "A = " ); magma_zprint( N, N, h_A, lda );
+                printf( "B = " ); magma_zprint( N, opts.nrhs, h_B, ldb );
+                printf( "S = " ); magma_dprint( N, 1, sigma, N );
+            }
+            
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
@@ -80,8 +86,13 @@ int main( int argc, char** argv)
             gpu_time = magma_wtime() - gpu_time;
             gpu_perf = gflops / gpu_time;
             if (info != 0) {
-                printf("magma_zpotrf returned error %lld: %s.\n",
+                printf("magma_zposv returned error %lld: %s.\n",
                        (long long) info, magma_strerror( info ));
+            }
+            
+            if (opts.verbose) {
+                printf( "L = " ); magma_zprint( N, N, h_R, lda );
+                printf( "X = " ); magma_zprint( N, opts.nrhs, h_X, ldb );
             }
             
             /* =====================================================================
@@ -90,7 +101,7 @@ int main( int argc, char** argv)
             Anorm = lapackf77_zlange("I", &N, &N,         h_A, &lda, work);
             Xnorm = lapackf77_zlange("I", &N, &opts.nrhs, h_X, &ldb, work);
             
-            blasf77_zgemm( MagmaNoTransStr, MagmaNoTransStr, &N, &opts.nrhs, &N,
+            blasf77_zhemm( MagmaLeftStr, lapack_uplo_const(opts.uplo), &N, &opts.nrhs,
                            &c_one,     h_A, &lda,
                                        h_X, &ldb,
                            &c_neg_one, h_B, &ldb );
@@ -110,6 +121,11 @@ int main( int argc, char** argv)
                 if (info != 0) {
                     printf("lapackf77_zposv returned error %lld: %s.\n",
                            (long long) info, magma_strerror( info ));
+                }
+                
+                if (opts.verbose) {
+                    printf( "Lref = " ); magma_zprint( N, N, h_A, lda );
+                    printf( "Xref = " ); magma_zprint( N, opts.nrhs, h_B, ldb );
                 }
                 
                 printf( "%5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %s\n",
