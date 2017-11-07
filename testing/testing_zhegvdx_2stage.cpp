@@ -55,7 +55,6 @@ int main( int argc, char** argv)
     double *w1, *w2, result[2]={0,0};
     magma_int_t *iwork;
     magma_int_t N, Nfound, n2, info, lda, lwork, liwork;
-    magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
 
     magma_opts opts;
@@ -114,8 +113,8 @@ int main( int argc, char** argv)
             #endif
 
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_B );
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
+            magma_generate_matrix( opts, N, N, nullptr, h_B, lda );
             magma_zmake_hpd( N, h_B, lda );
             magma_zmake_hermitian( N, h_A, lda );
 

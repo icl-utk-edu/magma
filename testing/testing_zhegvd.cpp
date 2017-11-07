@@ -53,10 +53,10 @@ int main( int argc, char** argv)
     double *rwork;
     magma_int_t lrwork;
     #endif
-    magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
 
     magma_opts opts;
+    opts.matrix = "rand_dominant";  // default
     opts.parse_opts( argc, argv );
 
     double tol    = opts.tolerance * lapackf77_dlamch("E");
@@ -110,12 +110,8 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc_pinned( &h_work, lwork  ));
             
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
-            //lapackf77_zlatms( &N, &N, "U", ISEED, "P", w1, &five, &d_ten,
-            //                 &d_one, &N, &N, lapack_uplo_const(opts.uplo), h_B, &lda, h_work, &info);
-            //lapackf77_zlaset( "A", &N, &N, &c_zero, &c_one, h_B, &lda);
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_B );
-            magma_zmake_hpd( N, h_B, lda );
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
+            magma_generate_matrix( opts, N, N, nullptr, h_B, lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_R, &lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_B, &lda, h_S, &lda );
             

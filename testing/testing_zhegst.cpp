@@ -42,10 +42,10 @@ int main( int argc, char** argv)
     magmaDoubleComplex *h_A, *h_B, *h_R;
     double      Anorm, error, work[1];
     magma_int_t N, n2, lda, info;
-    magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
     
     magma_opts opts;
+    opts.matrix = "rand_dominant";  // default
     opts.parse_opts( argc, argv );
     opts.lapack |= opts.check;  // check (-c) implies lapack (-l)
     
@@ -68,10 +68,9 @@ int main( int argc, char** argv)
             /* ====================================================================
                Initialize the matrix
                =================================================================== */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_B );
-            magma_zmake_hermitian( N, h_A, lda );
-            magma_zmake_hpd(       N, h_B, lda );
+            // todo: have different options for A and B
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
+            magma_generate_matrix( opts, N, N, nullptr, h_B, lda );
             magma_zpotrf( opts.uplo, N, h_B, lda, &info );
             if (info != 0) {
                 printf("magma_zpotrf returned error %lld: %s.\n",
