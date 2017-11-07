@@ -43,11 +43,10 @@ int main( int argc, char** argv)
     double *rwork = NULL;
     #endif
     double result[2] = {0., 0.};
-    magma_int_t N, n2, lda, lwork, info, nb;
+    magma_int_t N, lda, lwork, info, nb;
     magma_int_t ione     = 1;
     magma_int_t itwo     = 2;
     magma_int_t ithree   = 3;
-    magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
     magma_int_t k = 1;  // TODO: UNKNOWN, UNDOCUMENTED VARIABLE (number of streams?)
 
@@ -69,7 +68,6 @@ int main( int argc, char** argv)
         for( int iter = 0; iter < opts.niter; ++iter ) {
             N      = opts.nsize[itest];
             lda    = N;
-            n2     = lda*N;
             nb     = magma_get_zhetrd_nb(N);
             /* We suppose the magma nb is bigger than lapack nb */
             lwork  = N*nb;
@@ -87,9 +85,7 @@ int main( int argc, char** argv)
             /* ====================================================================
                Initialize the matrix
                =================================================================== */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
-            magma_zmake_hermitian( N, h_A, lda );
-            
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_R, &lda );
             
             /* ====================================================================

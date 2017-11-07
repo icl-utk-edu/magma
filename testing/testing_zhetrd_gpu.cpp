@@ -43,11 +43,10 @@ int main( int argc, char** argv)
     magmaDoubleComplex *tau;
     double          *diag, *offdiag;
     double           result[2] = {0., 0.};
-    magma_int_t N, n2, lda, ldda, lwork, info, nb, ldwork;
+    magma_int_t N, lda, ldda, lwork, info, nb, ldwork;
     magma_int_t ione     = 1;
     magma_int_t itwo     = 2;
     magma_int_t ithree   = 3;
-    magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
     
     #ifdef COMPLEX
@@ -73,7 +72,6 @@ int main( int argc, char** argv)
             N = opts.nsize[itest];
             lda    = N;
             ldda   = magma_roundup( N, opts.align );  // multiple of 32 by default
-            n2     = lda*N;
             nb     = magma_get_zhetrd_nb(N);
             lwork  = N*nb;  /* We suppose the magma nb is bigger than lapack nb */
             gflops = FLOPS_ZHETRD( N ) / 1e9;
@@ -93,8 +91,7 @@ int main( int argc, char** argv)
             /* ====================================================================
                Initialize the matrix
                =================================================================== */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
-            magma_zmake_hermitian( N, h_A, lda );
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
             magma_zsetmatrix( N, N, h_A, lda, d_R, ldda, opts.queue );
             
             /* ====================================================================

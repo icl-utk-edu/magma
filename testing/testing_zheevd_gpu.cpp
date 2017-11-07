@@ -52,7 +52,6 @@ int main( int argc, char** argv)
     double *w1, *w2, result[4]={0, 0, 0, 0}, eps, abstol, runused[1];
     magma_int_t *iwork, *isuppz, *ifail, aux_iwork[1];
     magma_int_t N, Nfound, n2, info, lwork, liwork, lda, ldda;
-    magma_int_t ISEED[4] = {0,0,0,1};
     eps = lapackf77_dlamch( "E" );
     int status = 0;
 
@@ -192,9 +191,7 @@ int main( int argc, char** argv)
             lapackf77_dlaset( "Full", &N, &ione, &d_zero, &d_zero, w2, &N );
             
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
-            magma_zmake_hermitian( N, h_A, lda );
-            
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
             magma_zsetmatrix( N, N, h_A, lda, d_R, ldda, opts.queue );
             
             /* ====================================================================

@@ -52,8 +52,6 @@ int main( int argc, char** argv)
     double *w1, *w2;
     magma_int_t *iwork;
     magma_int_t N, Nfound, n2, info, lda, lwork, liwork;
-    magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t info_ortho     = 0;
     magma_int_t info_solution  = 0;
     magma_int_t info_reduction = 0;
@@ -103,8 +101,7 @@ int main( int argc, char** argv)
             #endif
 
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
-            magma_zmake_hermitian( N, h_A, lda );
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
 
             if (opts.warmup) {
                 // ==================================================================
