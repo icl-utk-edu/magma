@@ -1132,13 +1132,6 @@ magma_zparilut_colmajorup(
     magma_queue_t queue );
 
 magma_int_t
-magma_zparilutsetup(
-    magma_z_matrix A,
-    magma_z_matrix b,
-    magma_z_preconditioner *precond,
-    magma_queue_t queue );
-
-magma_int_t
 magma_zparict(
     magma_z_matrix A,
     magma_z_matrix b,
@@ -1146,14 +1139,7 @@ magma_zparict(
     magma_queue_t queue );
 
 magma_int_t
-magma_zparilut2setup(
-    magma_z_matrix A,
-    magma_z_matrix b,
-    magma_z_preconditioner *precond,
-    magma_queue_t queue );
-
-magma_int_t
-magma_zparilut3setup(
+magma_zparilut(
     magma_z_matrix A,
     magma_z_matrix b,
     magma_z_preconditioner *precond,

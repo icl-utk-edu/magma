@@ -177,7 +177,7 @@ magma_zmscale_matrix_rhs(
     
     magma_z_matrix hA={Magma_CSR}, CSRA={Magma_CSR};
     
-    printf("%% scaling = %d\n", scaling);
+    // printf("%% scaling = %d\n", scaling);
     
     if( A->num_rows != A->num_cols && scaling != Magma_NOSCALE ){
         printf("%% warning: non-square matrix.\n");
@@ -442,7 +442,7 @@ magma_zmscale_generate(
    
     if ( A->memory_location == Magma_CPU && A->storage_type == Magma_CSRCOO ) {
       for ( magma_int_t j=0; j<n; j++ ) {
-        printf("%% scaling[%d] = %d\n", j, scaling[j]);
+        // printf("%% scaling[%d] = %d\n", j, scaling[j]);
         if ( scaling[j] == Magma_NOSCALE ) {
             // no scale
             

@@ -330,14 +330,15 @@ magma_zilut_saad(
  * will give the usual threshold strategy (however, fill-in is then
  * impredictible).
  *--------------------------------------------------------------------------*/
-
  
-  magma_int_t info = 0;
+ magma_int_t info = 0;
+ 
+#ifdef PRECISION_d
+
+  magma_int_t timing = 1;
   
   real_Double_t start, end;
 
-  
-#ifdef PRECISION_d
   csptr csmat = NULL;
   csmat = (csptr)Malloc( sizeof(SparMat), "main:csmat"); 
   CSRcs( A.num_rows, A.val, A.col, A.row, csmat, 0 );
@@ -578,75 +579,9 @@ magma_zilut_saad(
   precond->d.storage_type = Magma_CSR;
   
   end = magma_sync_wtime( queue );
-  printf(" ilut_runtime = %.4e;\n", end-start);
-
-
-
-
-// debugging
-/*
-    magma_z_matrix L_new={Magma_CSR};
-    magma_z_matrix U_new={Magma_CSR};
-    printf("here%d\n", __LINE__);
-    magma_zmalloc_cpu( &L_new.val, nzcountL );
-    magma_zmalloc_cpu( &U_new.val, nzcountU );
-    
-    magma_index_malloc_cpu( &L_new.col, nzcountL );
-    magma_index_malloc_cpu( &U_new.col, nzcountU );
-    
-    magma_index_malloc_cpu( &L_new.row, n+1 );
-    magma_index_malloc_cpu( &U_new.row, n+1 );
-    printf("here%d\n", __LINE__);
-  nzcountL=0;
-  nzcountU=0;
-  for(int z=0; z<n; z++){
-      L_new.row[z]=nzcountL;
-      U_new.row[z]=nzcountU;
-    nzcountL = nzcountL +   L->nzcount[z];
-    nzcountU = nzcountU +   U->nzcount[z];
+  if( timing == 1 ){
+      printf(" ilut_runtime = %.4e;\n", end-start);
   }
-  L_new.row[n]=nzcountL;
-  U_new.row[n]=nzcountU;
-  L_new.nnz = nzcountL;
-  U_new.nnz = nzcountU;
-  L_new.num_rows = n;
-  L_new.num_cols = n;
-  L_new.memory_location=Magma_CPU;
-  L_new.storage_type=Magma_CSR;
-  U_new.num_rows = n;
-  U_new.num_cols = n;
-  U_new.memory_location=Magma_CPU;
-  U_new.storage_type=Magma_CSR;
-  printf("here%d\n", __LINE__);
-  int nzL=0;
-  int nzU=0;
-  for(int z=0; z<n; z++){
-      for(int zz=0;zz<L->nzcount[z]; zz++){
-          L_new.col[nzL]=L->ja[z][zz];
-          L_new.val[nzL]=L->ma[z][zz];
-          nzL++;
-          printf("%d %d %d %d %d (%d,%d)\n",n, nzcountL, z, zz, nzL, z, L->ja[z][zz]);
-      }
-  }
-  for(int z=0; z<n; z++){
-      for(int zz=0;zz<U->nzcount[z]; zz++){
-          U_new.col[nzU]=L->ja[z][zz];
-          U_new.val[nzU]=L->ma[z][zz];
-          nzU++;
-      }
-  }
-  printf("here%d\n", __LINE__);
-  
-    char filenameL[sizeof "LT_rm20_step10.m"];
-    char filenameU[sizeof "UT_rm20_step10.m"];
-    sprintf(filenameL, "saad_LT.m");
-    sprintf(filenameU, "saad_UT.m");
-    
-    // write to file
-    magma_zwrite_csrtomtx( L_new, filenameL, queue );
-    magma_zwrite_csrtomtx( U_new, filenameU, queue );
-    */
-    // end debugging
     
     
 #endif

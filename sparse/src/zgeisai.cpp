@@ -56,9 +56,9 @@ magma_ziluisaisetup(
     magma_int_t info = 0;
     // real_Double_t start, end;
 
-    magmaDoubleComplex *trisystems_d = NULL;
-    magmaDoubleComplex *rhs_d = NULL;
-    magma_index_t *sizes_d = NULL, *locations_d = NULL;
+    // magmaDoubleComplex *trisystems_d = NULL;
+    // magmaDoubleComplex *rhs_d = NULL;
+    // magma_index_t *sizes_d = NULL, *locations_d = NULL;
     magma_index_t *sizes_h = NULL;
     magma_int_t maxsize, nnzloc, nnzL=0, nnzU=0;
     int warpsize=32;

@@ -9,6 +9,7 @@
 
 */
 #include "magmasparse_internal.h"
+#include "shuffle.cuh"
 
 #define PRECISION_z
 #define COMPLEX

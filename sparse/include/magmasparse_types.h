@@ -587,10 +587,10 @@ typedef struct magma_z_preconditioner
     magma_z_matrix   UD;
     magma_z_matrix   LDT;
     magma_z_matrix   UDT;
-    magma_int_t **Lnz;
-    magma_int_t **Unz;
-    magma_int_t **Lja;
-    magma_int_t **Uja;
+    magma_index_t *Lnz;
+    magma_index_t *Unz;
+    magma_index_t **Lja;
+    magma_index_t **Uja;
     magmaDoubleComplex **Lma;
     magmaDoubleComplex **Uma;
     magma_z_matrix          d;
@@ -599,10 +599,10 @@ typedef struct magma_z_preconditioner
     magma_z_matrix          work2;
     magma_int_t*            int_array_1;
     magma_int_t*            int_array_2;
-    magma_int_t*            L_dgraphindegree;     // for sync-free trisolve
-    magma_int_t*            L_dgraphindegree_bak; // for sync-free trisolve
-    magma_int_t*            U_dgraphindegree;     // for sync-free trisolve
-    magma_int_t*            U_dgraphindegree_bak; // for sync-free trisolve
+    magma_index_t*            L_dgraphindegree;     // for sync-free trisolve
+    magma_index_t*            L_dgraphindegree_bak; // for sync-free trisolve
+    magma_index_t*            U_dgraphindegree;     // for sync-free trisolve
+    magma_index_t*            U_dgraphindegree_bak; // for sync-free trisolve
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;
@@ -645,10 +645,10 @@ typedef struct magma_c_preconditioner
     magma_c_matrix   UD;
     magma_c_matrix   LDT;
     magma_c_matrix   UDT;
-    magma_int_t *Lnz;
-    magma_int_t *Unz;
-    magma_int_t **Lja;
-    magma_int_t **Uja;
+    magma_index_t *Lnz;
+    magma_index_t *Unz;
+    magma_index_t **Lja;
+    magma_index_t **Uja;
     magmaFloatComplex **Lma;
     magmaFloatComplex **Uma;
     magma_c_matrix          d;
@@ -657,10 +657,10 @@ typedef struct magma_c_preconditioner
     magma_c_matrix          work2;
     magma_int_t*            int_array_1;
     magma_int_t*            int_array_2;
-    magma_int_t*            L_dgraphindegree;     // for sync-free trisolve
-    magma_int_t*            L_dgraphindegree_bak; // for sync-free trisolve
-    magma_int_t*            U_dgraphindegree;     // for sync-free trisolve
-    magma_int_t*            U_dgraphindegree_bak; // for sync-free trisolve
+    magma_index_t*            L_dgraphindegree;     // for sync-free trisolve
+    magma_index_t*            L_dgraphindegree_bak; // for sync-free trisolve
+    magma_index_t*            U_dgraphindegree;     // for sync-free trisolve
+    magma_index_t*            U_dgraphindegree_bak; // for sync-free trisolve
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;
@@ -704,10 +704,10 @@ typedef struct magma_d_preconditioner
     magma_d_matrix   UD;
     magma_d_matrix   LDT;
     magma_d_matrix   UDT;
-    magma_int_t *Lnz;
-    magma_int_t *Unz;
-    magma_int_t **Lja;
-    magma_int_t **Uja;
+    magma_index_t *Lnz;
+    magma_index_t *Unz;
+    magma_index_t **Lja;
+    magma_index_t **Uja;
     double **Lma;
     double **Uma;
     magma_d_matrix          d;
@@ -716,10 +716,10 @@ typedef struct magma_d_preconditioner
     magma_d_matrix          work2;
     magma_int_t*            int_array_1;
     magma_int_t*            int_array_2;
-    magma_int_t*            L_dgraphindegree;     // for sync-free trisolve
-    magma_int_t*            L_dgraphindegree_bak; // for sync-free trisolve
-    magma_int_t*            U_dgraphindegree;     // for sync-free trisolve
-    magma_int_t*            U_dgraphindegree_bak; // for sync-free trisolve
+    magma_index_t*            L_dgraphindegree;     // for sync-free trisolve
+    magma_index_t*            L_dgraphindegree_bak; // for sync-free trisolve
+    magma_index_t*            U_dgraphindegree;     // for sync-free trisolve
+    magma_index_t*            U_dgraphindegree_bak; // for sync-free trisolve
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;
@@ -763,10 +763,10 @@ typedef struct magma_s_preconditioner
     magma_s_matrix   UD;
     magma_s_matrix   LDT;
     magma_s_matrix   UDT;
-    magma_int_t *Lnz;
-    magma_int_t *Unz;
-    magma_int_t **Lja;
-    magma_int_t **Uja;
+    magma_index_t *Lnz;
+    magma_index_t *Unz;
+    magma_index_t **Lja;
+    magma_index_t **Uja;
     float **Lma;
     float **Uma;
     magma_s_matrix          d;
@@ -775,10 +775,10 @@ typedef struct magma_s_preconditioner
     magma_s_matrix          work2;
     magma_int_t*            int_array_1;
     magma_int_t*            int_array_2;
-    magma_int_t*            L_dgraphindegree;     // for sync-free trisolve
-    magma_int_t*            L_dgraphindegree_bak; // for sync-free trisolve
-    magma_int_t*            U_dgraphindegree;     // for sync-free trisolve
-    magma_int_t*            U_dgraphindegree_bak; // for sync-free trisolve
+    magma_index_t*            L_dgraphindegree;     // for sync-free trisolve
+    magma_index_t*            L_dgraphindegree_bak; // for sync-free trisolve
+    magma_index_t*            U_dgraphindegree;     // for sync-free trisolve
+    magma_index_t*            U_dgraphindegree_bak; // for sync-free trisolve
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;

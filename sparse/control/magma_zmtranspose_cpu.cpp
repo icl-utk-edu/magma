@@ -31,7 +31,8 @@ magma_z_mtrans_template(
     magma_index_t *row_ptr;
     magma_index_t *last_rowel;
     
-    magma_int_t el_per_block, num_threads;
+    // magma_int_t num_threads;
+    // magma_int_t el_per_block;
     
     B->storage_type = A.storage_type;
     B->memory_location = A.memory_location;
@@ -53,9 +54,9 @@ magma_z_mtrans_template(
     CHECK( magma_zmatrix_addrowindex(&A, queue) );
     
     //#pragma omp parallel
-    {
-        num_threads = omp_get_max_threads();
-    }
+    // {
+    //     num_threads = omp_get_max_threads();
+    // }
     
     //#pragma omp parallel for
     for( magma_int_t i=0; i<A.num_rows; i++ ){
@@ -66,11 +67,11 @@ magma_z_mtrans_template(
         B->row[i] = 0;
     }
     
-    el_per_block = magma_ceildiv( A.num_rows, num_threads );
+    //el_per_block = magma_ceildiv( A.num_rows, num_threads );
 
     //#pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+        // magma_int_t id = omp_get_thread_num();
         for(magma_int_t i=0; i<A.nnz; i++ ){
             magma_index_t row = A.col[ i ];
             //if( (row < (id+1)*el_per_block) && (row >=(id)*el_per_block)  ){

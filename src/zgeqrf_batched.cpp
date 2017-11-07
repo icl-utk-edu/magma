@@ -100,7 +100,6 @@ magma_zgeqrf_batched(
     magma_int_t min_mn = min(m, n);
 
     /* Check arguments */
-    cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
     magma_int_t arginfo = 0;
     if (m < 0)
         arginfo = -1;
@@ -117,6 +116,13 @@ magma_zgeqrf_batched(
     /* Quick return if possible */
     if (m == 0 || n == 0)
         return arginfo;
+
+    /* Special case for tiny square matrices */
+    if( m == n && m <= 32 ){
+        return magma_zgeqrf_batched_smallsq( m, dA_array, ldda, dtau_array, info_array, batchCount, queue );
+    }
+
+    cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
 
     magmaDoubleComplex *dT        = NULL;
     magmaDoubleComplex *dR        = NULL;

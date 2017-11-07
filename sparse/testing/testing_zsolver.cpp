@@ -34,7 +34,7 @@ int main(  int argc, char** argv )
     magma_queue_t queue;
     magma_queue_create( 0, &queue );
     
-    magmaDoubleComplex zero = MAGMA_Z_MAKE(0.0, 0.0);
+    // magmaDoubleComplex zero = MAGMA_Z_MAKE(0.0, 0.0);
     magma_z_matrix A={Magma_CSR}, B={Magma_CSR}, dB={Magma_CSR};
     magma_z_matrix x={Magma_CSR}, b={Magma_CSR};
     

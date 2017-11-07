@@ -53,8 +53,8 @@ magma_zmsupernodal(
     magma_int_t blockcount=0, blockcount2=0;
     
     magma_z_matrix x={Magma_CSR};
-    char *filename = "blocksizes";
-    int nlength = 6752;
+    //char *filename = "blocksizes";
+    //int nlength = 6752;
 
     int maxblocksize = *max_bs;
     int current_size = 0;
@@ -140,7 +140,7 @@ magma_zmsupernodal(
 
     CHECK( magma_zmvarsizeblockstruct( A.num_rows, blocksizes2, blockcount2, MagmaLower, S, queue ) );
     
-    CHECK( magma_imalloc_cpu( &S->tile_desc_offset_ptr, blockcount2+1 ));
+    CHECK( magma_index_malloc_cpu( &S->tile_desc_offset_ptr, blockcount2+1 ));
     S->tile_desc_offset_ptr[ 0 ] = 0;
     blockcount = 0;
     for( magma_int_t i=0; i<blockcount2; i++ ){

@@ -119,8 +119,11 @@ libmagma_src += \
 	$(cdir)/zgemv_batched_core.cu		\
 	$(cdir)/zhemv_batched_core.cu		\
 	$(cdir)/zgeqr2_batched.cu		\
+	$(cdir)/zgeqrf_batched_smallsq.cu		\
 	$(cdir)/zgerbt_func_batched.cu		\
 	$(cdir)/zgetf2_kernels.cu		\
+	$(cdir)/zgetrf_batched_smallsq_noshfl.cu		\
+	$(cdir)/zgetrf_batched_smallsq_shfl.cu		\
 	$(cdir)/getrf_setup_pivinfo.cu		\
 	$(cdir)/zhemm_batched_core.cu		\
 	$(cdir)/zher2k_batched.cpp		\
