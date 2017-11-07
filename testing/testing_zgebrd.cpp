@@ -36,9 +36,8 @@ int main( int argc, char** argv)
     magmaDoubleComplex *taup, *tauq;
     double      *diag, *offdiag;
     double      result[3] = {0., 0., 0.};
-    magma_int_t M, N, n2, lda, lhwork, info, minmn, nb;
+    magma_int_t M, N, lda, lhwork, info, minmn, nb;
     magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
 
     magma_opts opts;
@@ -56,7 +55,6 @@ int main( int argc, char** argv)
             minmn  = min(M, N);
             nb     = magma_get_zgebrd_nb( M, N );
             lda    = M;
-            n2     = lda*N;
             lhwork = (M + N)*nb;
             gflops = FLOPS_ZGEBRD( M, N ) / 1e9;
 
@@ -70,7 +68,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc_pinned( &h_work,  lhwork ));
             
             /* Initialize the matrices */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
+            magma_generate_matrix( opts, M, N, nullptr, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, h_A, &lda, h_Q, &lda );
             
             /* ====================================================================
