@@ -22,17 +22,25 @@
 
 /* ================================================================================================== */
 
-// Initialize matrix to random & symmetrize.
-// Having this in separate function ensures the same ISEED is always used,
+// Initialize matrix to random.
+// This ensures the same ISEED is always used,
 // so we can re-generate the identical matrix.
-void init_matrix( magma_int_t m, magma_int_t n, magmaDoubleComplex *h_A, magma_int_t lda )
+void init_matrix(
+    magma_opts &opts,
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex *A, magma_int_t lda )
 {
-    assert( m == n );
-    magma_int_t ione = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
-    magma_int_t n2 = lda*n;
-    lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
-    magma_zmake_hermitian( n, h_A, lda );
+    magma_int_t iseed_save[4];
+    for (magma_int_t i = 0; i < 4; ++i) {
+        iseed_save[i] = opts.iseed[i];
+    }
+
+    magma_generate_matrix( opts, m, n, nullptr, A, lda );
+
+    // restore iseed
+    for (magma_int_t i = 0; i < 4; ++i) {
+        opts.iseed[i] = iseed_save[i];
+    }
 }
 
 
@@ -42,6 +50,7 @@ void init_matrix( magma_int_t m, magma_int_t n, magmaDoubleComplex *h_A, magma_i
 // Generates random RHS b and solves Ax=b.
 // Returns residual, |Ax - b| / (n |A| |x|).
 double get_residual(
+    magma_opts &opts,
     magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
     magmaDoubleComplex *A, magma_int_t lda, magma_int_t *ipiv,
     magmaDoubleComplex *x, magma_int_t ldx,
@@ -52,7 +61,7 @@ double get_residual(
     const magma_int_t ione = 1;
     
     // reset to original A
-    init_matrix( n, n, A, lda );
+    init_matrix( opts, n, n, A, lda );
     
     // compute r = Ax - b, saved in b
     blasf77_zgemv( "Notrans", &n, &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
@@ -117,7 +126,7 @@ int main( int argc, char** argv)
                 lwork = (magma_int_t)MAGMA_Z_REAL(temp);
                 TESTING_CHECK( magma_zmalloc_cpu( &work, lwork ));
 
-                init_matrix( N, N, h_A, lda );
+                init_matrix( opts, N, N, h_A, lda );
                 lapackf77_zlarnv( &ione, ISEED, &sizeB, h_B );
                 lapackf77_zlacpy( MagmaFullStr, &N, &opts.nrhs, h_B, &ldb, h_X, &ldb );
 
@@ -130,7 +139,7 @@ int main( int argc, char** argv)
                     printf("lapackf77_zhesv returned error %lld: %s.\n",
                            (long long) info, magma_strerror( info ));
                 }
-                error_lapack = get_residual( opts.uplo, N, opts.nrhs, h_A, lda, ipiv, h_X, ldb, h_B, ldb );
+                error_lapack = get_residual( opts, opts.uplo, N, opts.nrhs, h_A, lda, ipiv, h_X, ldb, h_B, ldb );
 
                 magma_free_cpu( work );
             }
@@ -138,7 +147,7 @@ int main( int argc, char** argv)
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
-            init_matrix( N, N, h_A, lda );
+            init_matrix( opts, N, N, h_A, lda );
             lapackf77_zlarnv( &ione, ISEED, &sizeB, h_B );
             lapackf77_zlacpy( MagmaFullStr, &N, &opts.nrhs, h_B, &ldb, h_X, &ldb );
 
@@ -166,7 +175,7 @@ int main( int argc, char** argv)
             if ( opts.check == 0 ) {
                 printf("     ---   \n");
             } else {
-                error = get_residual( opts.uplo, N, opts.nrhs, h_A, lda, ipiv, h_X, ldb, h_B, ldb );
+                error = get_residual( opts, opts.uplo, N, opts.nrhs, h_A, lda, ipiv, h_X, ldb, h_B, ldb );
                 printf("   %8.2e   %s", error, (error < tol ? "ok" : "failed"));
                 if (opts.lapack)
                     printf(" (lapack rel.res. = %8.2e)", error_lapack);

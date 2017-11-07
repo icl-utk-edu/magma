@@ -23,22 +23,24 @@
 
 /* ================================================================================================== */
 
-// Initialize matrix to random & symmetrize. If nopiv, make positive definite.
-// Having this in separate function ensures the same ISEED is always used,
+// Initialize matrix to random.
+// This ensures the same ISEED is always used,
 // so we can re-generate the identical matrix.
 void init_matrix(
-    bool nopiv,
-    magma_int_t n, magmaDoubleComplex *h_A, magma_int_t lda )
+    magma_opts &opts,
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex *A, magma_int_t lda )
 {
-    magma_int_t ione = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
-    magma_int_t n2 = lda*n;
-    lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
-    if (nopiv) {
-        magma_zmake_hpd( n, h_A, lda );
+    magma_int_t iseed_save[4];
+    for (magma_int_t i = 0; i < 4; ++i) {
+        iseed_save[i] = opts.iseed[i];
     }
-    else {
-        magma_zmake_hermitian( n, h_A, lda );
+
+    magma_generate_matrix( opts, m, n, nullptr, A, lda );
+
+    // restore iseed
+    for (magma_int_t i = 0; i < 4; ++i) {
+        opts.iseed[i] = iseed_save[i];
     }
 }
 
@@ -49,6 +51,7 @@ void init_matrix(
 // Generates random RHS b and solves Ax=b.
 // Returns residual, |Ax - b| / (n |A| |x|).
 double get_residual(
+    magma_opts &opts,
     bool nopiv, magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex *A, magma_int_t lda,
     magma_int_t *ipiv )
@@ -61,7 +64,7 @@ double get_residual(
     
     // this seed should be DIFFERENT than used in init_matrix
     // (else x is column of A, so residual can be exactly zero)
-    magma_int_t ISEED[4] = {0,0,0,2};
+    magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t info = 0;
     magma_int_t i;
     magmaDoubleComplex *x, *b;
@@ -108,7 +111,7 @@ double get_residual(
                (long long) info, magma_strerror( info ));
     }
     // reset to original A
-    init_matrix( nopiv, n, A, lda );
+    init_matrix( opts, nopiv, n, A, lda );
     
     // compute r = Ax - b, saved in b
     blasf77_zgemv( "Notrans", &n, &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
@@ -129,6 +132,7 @@ double get_residual(
 }
 
 double get_residual_aasen(
+    magma_opts &opts,
     bool nopiv, magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex *A, magma_int_t lda,
     magma_int_t *ipiv )
@@ -157,7 +161,7 @@ double get_residual_aasen(
     }
 
     // solve
-    magma_int_t ISEED[4] = {0,0,0,2};
+    magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t info = 0;
     magmaDoubleComplex *x, *b;
     
@@ -228,7 +232,7 @@ double get_residual_aasen(
     }
 
     // reset to original A
-    init_matrix( nopiv, n, A, lda );
+    init_matrix( opts, nopiv, n, A, lda );
 
     // compute r = Ax - b, saved in b
     blasf77_zgemv( "Notrans", &n, &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
@@ -259,6 +263,7 @@ double get_residual_aasen(
 // Returns error in factorization, |PA - LU| / (n |A|)
 // This allocates 3 more matrices to store A, L, and U.
 double get_LDLt_error(
+    magma_opts &opts,
     bool nopiv, magma_uplo_t uplo, magma_int_t N,
     magmaDoubleComplex *LD, magma_int_t lda,
     magma_int_t *ipiv)
@@ -282,7 +287,7 @@ double get_LDLt_error(
     memset( D, 0, N*N*sizeof(magmaDoubleComplex) );
 
     // set to original A, and apply pivoting
-    init_matrix( nopiv, N, A, N );
+    init_matrix( opts, nopiv, N, A, N );
     if (uplo == MagmaUpper) {
         for (j=N-1; j >= 0; j--) {
             piv = (nopiv ? j+1 : ipiv[j]);
@@ -466,6 +471,7 @@ double get_LDLt_error(
 
 
 double get_LTLt_error(
+    magma_opts &opts,
     bool nopiv, magma_uplo_t uplo, magma_int_t N,
     magmaDoubleComplex *LT, magma_int_t lda,
     magma_int_t *ipiv)
@@ -543,7 +549,7 @@ double get_LTLt_error(
                   &c_one, LT, &lda, L, &N, &c_zero, T, &N);
 
     // compute norm of A
-    init_matrix( nopiv, N, A, N );
+    init_matrix( opts, nopiv, N, A, N );
     matnorm = lapackf77_zlange(MagmaFullStr, &N, &N, A, &lda, work);
     //printf( "A0=" );
     //magma_zprint(N,N, &A(0,0),N);
@@ -669,7 +675,7 @@ int main( int argc, char** argv)
                 lwork = (magma_int_t)MAGMA_Z_REAL( temp );
                 TESTING_CHECK( magma_zmalloc_cpu( &work, lwork ));
 
-                init_matrix( nopiv, N, h_A, lda );
+                init_matrix( opts, nopiv, N, h_A, lda );
                 cpu_time = magma_wtime();
                 lapackf77_zhetrf( lapack_uplo_const(opts.uplo), &N, h_A, &lda, ipiv, work, &lwork, &info);
                 cpu_time = magma_wtime() - cpu_time;
@@ -678,7 +684,7 @@ int main( int argc, char** argv)
                     printf("lapackf77_zhetrf returned error %lld: %s.\n",
                            (long long) info, magma_strerror( info ));
                 }
-                error_lapack = get_residual( nopiv, opts.uplo, N, h_A, lda, ipiv );
+                error_lapack = get_residual( opts, nopiv, opts.uplo, N, h_A, lda, ipiv );
 
                 magma_free_cpu( work );
             }
@@ -686,7 +692,7 @@ int main( int argc, char** argv)
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
-            init_matrix( (nopiv | nopiv_gpu), N, h_A, lda );
+            init_matrix( opts, (nopiv | nopiv_gpu), N, h_A, lda );
 
             //printf( "A0=" );
             //magma_zprlong( N, N, h_A, lda );
@@ -740,9 +746,9 @@ int main( int argc, char** argv)
             }
             if ( opts.check == 2 && info == 0) {
                 if (aasen) {
-                    error = get_residual_aasen( (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
+                    error = get_residual_aasen( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
                 } else {
-                    error = get_residual( (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
+                    error = get_residual( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
                 }
                 printf("   %8.2e   %s", error, (error < tol ? "ok" : "failed"));
                 if (opts.lapack)
@@ -752,9 +758,9 @@ int main( int argc, char** argv)
             }
             else if ( opts.check && info == 0 ) {
                 if (aasen) {
-                    error = get_LTLt_error( (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
+                    error = get_LTLt_error( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
                 } else {
-                    error = get_LDLt_error( (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
+                    error = get_LDLt_error( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
                 }
                 printf("   %8.2e   %s\n", error, (error < tol ? "ok" : "failed"));
                 status += ! (error < tol);

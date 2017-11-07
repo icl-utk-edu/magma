@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     magmaDoubleComplex *h_A, *h_B, *h_X, temp, *hwork;
     magmaDoubleComplex_ptr d_A, d_B;
     magma_int_t *ipiv;
-    magma_int_t N, nrhs, lda, ldb, ldda, lddb, info, sizeA, sizeB, lwork;
+    magma_int_t N, nrhs, lda, ldb, ldda, lddb, info, sizeB, lwork;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
@@ -71,9 +71,9 @@ int main(int argc, char **argv)
             TESTING_CHECK( magma_zmalloc( &d_B, lddb*nrhs ));
             
             /* Initialize the matrices */
-            sizeA = lda*N;
+            //sizeA = lda*N;
             sizeB = ldb*nrhs;
-            lapackf77_zlarnv( &ione, ISEED, &sizeA, h_A );
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
             lapackf77_zlarnv( &ione, ISEED, &sizeB, h_B );
             
             bool nopiv = true;
