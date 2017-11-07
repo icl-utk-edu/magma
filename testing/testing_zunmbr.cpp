@@ -65,7 +65,7 @@ int main( int argc, char** argv )
             k = opts.ksize[itest];
             nb  = magma_get_zgebrd_nb( m, n );
             ldc = m;
-            // A is nq x k (vect=Q) or k x nq (vect=P)
+            // A is mm x nn == nq x k (vect=Q) or k x nq (vect=P)
             // where nq=m (left) or nq=n (right)
             nq  = (side[iside] == MagmaLeft ? m  : n );
             mm  = (vect[ivect] == MagmaQ    ? nq : k );
@@ -126,8 +126,8 @@ int main( int argc, char** argv )
             lapackf77_zlarnv( &ione, ISEED, &size, C );
             lapackf77_zlacpy( "Full", &m, &n, C, &ldc, R, &ldc );
             
-            size = lda*nn;
-            lapackf77_zlarnv( &ione, ISEED, &size, A );
+            // A is mm x nn
+            magma_generate_matrix( opts, mm, nn, nullptr, A, lda );
             
             // compute BRD factorization to get Householder vectors in A, tauq, taup
             //lapackf77_zgebrd( &mm, &nn, A, &lda, d, e, tauq, taup, work, &lwork_max, &info );

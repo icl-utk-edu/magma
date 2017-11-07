@@ -34,7 +34,7 @@ int main( int argc, char** argv )
     double Cnorm, error, work[1];
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magma_int_t ione = 1;
-    magma_int_t mm, m, n, k, size, info;
+    magma_int_t nn, m, n, k, size, info;
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t nb, ldc, lda, lwork, lwork_max;
     magmaDoubleComplex *C, *R, *A, *W, *tau;
@@ -62,8 +62,8 @@ int main( int argc, char** argv )
             k = opts.ksize[itest];
             nb  = magma_get_zgelqf_nb( m, n );
             ldc = m;
-            // A is k x m (left) or k x n (right)
-            mm = (side[iside] == MagmaLeft ? m : n);
+            // A is k x nn == k x m (left) or k x n (right)
+            nn = (side[iside] == MagmaLeft ? m : n);
             lda = k;
             gflops = FLOPS_ZUNMLQ( m, n, k, side[iside] ) / 1e9;
             
@@ -89,7 +89,7 @@ int main( int argc, char** argv )
             
             TESTING_CHECK( magma_zmalloc_cpu( &C,   ldc*n ));
             TESTING_CHECK( magma_zmalloc_cpu( &R,   ldc*n ));
-            TESTING_CHECK( magma_zmalloc_cpu( &A,   lda*mm ));
+            TESTING_CHECK( magma_zmalloc_cpu( &A,   lda*nn ));
             TESTING_CHECK( magma_zmalloc_cpu( &W,   lwork_max ));
             TESTING_CHECK( magma_zmalloc_cpu( &tau, k ));
             
@@ -98,11 +98,11 @@ int main( int argc, char** argv )
             lapackf77_zlarnv( &ione, ISEED, &size, C );
             lapackf77_zlacpy( "Full", &m, &n, C, &ldc, R, &ldc );
             
-            size = lda*mm;
-            lapackf77_zlarnv( &ione, ISEED, &size, A );
+            // A is k x nn
+            magma_generate_matrix( opts, k, nn, nullptr, A, lda );
             
             // compute LQ factorization to get Householder vectors in A, tau
-            magma_zgelqf( k, mm, A, lda, tau, W, lwork_max, &info );
+            magma_zgelqf( k, nn, A, lda, tau, W, lwork_max, &info );
             if (info != 0) {
                 printf("magma_zgelqf returned error %lld: %s.\n",
                        (long long) info, magma_strerror( info ));

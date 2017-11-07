@@ -62,7 +62,7 @@ int main( int argc, char** argv )
             n = opts.nsize[itest];
             k = opts.ksize[itest];
             ldc = magma_roundup( m, opts.align );  // multiple of 32 by default
-            // A is m x k (left) or n x k (right)
+            // A is mm x k == m x k (left) or n x k (right)
             mm = (side[iside] == MagmaLeft ? m : n);
             nb  = magma_get_zgeqrf_nb( mm, k );
             lda = magma_roundup( mm, opts.align );  // multiple of 32 by default
@@ -111,9 +111,8 @@ int main( int argc, char** argv )
             lapackf77_zlarnv( &ione, ISEED, &size, C );
             magma_zsetmatrix( m, n, C, ldc, dC, ldc, opts.queue );
             
-            // A is m x k (left) or n x k (right)
-            size = lda*k;
-            lapackf77_zlarnv( &ione, ISEED, &size, A );
+            // A is mm x k
+            magma_generate_matrix( opts, mm, k, nullptr, A, lda );
             
             // compute QR factorization to get Householder vectors in dA, tau, dT
             magma_zsetmatrix( mm, k, A,  lda, dA, lda, opts.queue );

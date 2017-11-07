@@ -65,7 +65,7 @@ int main( int argc, char** argv )
             k = opts.ksize[itest];
             nb  = magma_get_zgeqrf_nb( m, n );
             ldc = m;
-            // A is m x k (left) or n x k (right)
+            // A is mm x k == m x k (left) or n x k (right)
             mm = (side[iside] == MagmaLeft ? m : n);
             lda = mm;
             gflops = FLOPS_ZUNMQR( m, n, k, side[iside] ) / 1e9;
@@ -101,8 +101,8 @@ int main( int argc, char** argv )
             lapackf77_zlarnv( &ione, ISEED, &size, C );
             lapackf77_zlacpy( "Full", &m, &n, C, &ldc, R, &ldc );
             
-            size = lda*k;
-            lapackf77_zlarnv( &ione, ISEED, &size, A );
+            // A is mm x k
+            magma_generate_matrix( opts, mm, k, nullptr, A, lda );
             
             // compute QR factorization to get Householder vectors in A, tau
             magma_zgeqrf( mm, k, A, lda, tau, W, lwork_max, &info );

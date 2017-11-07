@@ -41,7 +41,6 @@ int main( int argc, char** argv)
     magma_int_t m, n, k;
     magma_int_t n2, lda, ldda, lwork, min_mn, nb, info;
     magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
     
     magma_opts opts;
@@ -78,7 +77,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc( &dA,     ldda*n ));
             TESTING_CHECK( magma_zmalloc( &dT,     ( 2*min_mn + magma_roundup( n, 32 ) )*nb ));
             
-            lapackf77_zlarnv( &ione, ISEED, &n2, hA );
+            magma_generate_matrix( opts, m, n, nullptr, hA, lda );
             lapackf77_zlacpy( MagmaFullStr, &m, &n, hA, &lda, hR, &lda );
             
             Anorm = lapackf77_zlange("f", &m, &n, hA, &lda, work );

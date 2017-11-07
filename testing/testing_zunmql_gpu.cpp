@@ -63,7 +63,7 @@ int main( int argc, char** argv )
             k = opts.ksize[itest];
             nb  = magma_get_zgeqlf_nb( m, n );
             ldc = magma_roundup( m, opts.align );  // multiple of 32 by default
-            // A is m x k (left) or n x k (right)
+            // A is mm x k == m x k (left) or n x k (right)
             mm = (side[iside] == MagmaLeft ? m : n);
             lda = magma_roundup( mm, opts.align );  // multiple of 32 by default
             gflops = FLOPS_ZUNMQL( m, n, k, side[iside] ) / 1e9;
@@ -102,9 +102,8 @@ int main( int argc, char** argv )
             lapackf77_zlarnv( &ione, ISEED, &size, C );
             magma_zsetmatrix( m, n, C, ldc, dC, ldc, opts.queue );
             
-            // A is m x k (left) or n x k (right)
-            size = lda*k;
-            lapackf77_zlarnv( &ione, ISEED, &size, A );
+            // A is mm x k
+            magma_generate_matrix( opts, mm, k, nullptr, A, lda );
             
             // compute QL factorization to get Householder vectors in A, tau
             magma_zgeqlf( mm, k, A, lda, tau, hwork, lwork_max, &info );
