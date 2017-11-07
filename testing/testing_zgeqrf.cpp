@@ -32,13 +32,11 @@ int main( int argc, char** argv)
     const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
     const magmaDoubleComplex c_zero    = MAGMA_Z_ZERO;
-    const magma_int_t        ione      = 1;
     
     real_Double_t    gflops, gpu_perf, gpu_time, cpu_perf=0, cpu_time=0;
     double           Anorm, error=0, error2=0;
     magmaDoubleComplex *h_A, *h_R, *tau, *h_work, tmp[1], unused[1];
     magma_int_t M, N, n2, lda, lwork, info, min_mn, nb;
-    magma_int_t ISEED[4] = {0,0,0,1};
     
     magma_opts opts;
     opts.parse_opts( argc, argv );
@@ -73,7 +71,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc_pinned( &h_R,    n2     ));
             
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
+            magma_generate_matrix( opts, M, N, nullptr, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, h_A, &lda, h_R, &lda );
             
             if ( opts.warmup ) {

@@ -97,7 +97,7 @@ int main( int argc, char** argv)
             }
             
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
+            magma_generate_matrix( opts, M, N, nullptr, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, h_A, &lda, h_R, &lda );
             magma_zsetmatrix( M, N, h_R, lda, d_A, ldda, opts.queue );
             
