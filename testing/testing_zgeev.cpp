@@ -78,7 +78,6 @@ int main( int argc, char** argv)
     double tnrm, result[9];
     magma_int_t N, n2, lda, nb, lwork, lwork2, info;
     magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
     double ulp, ulpinv, error;
     int status = 0;
     
@@ -136,7 +135,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc_pinned( &h_work, lwork2 ));
             
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_R, &lda );
             
             /* ====================================================================
@@ -287,7 +286,7 @@ int main( int argc, char** argv)
                 magmaDoubleComplex *LRE, DUM;
                 TESTING_CHECK( magma_zmalloc_pinned( &LRE, n2 ));
                 
-                lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
+                magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
                 lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_R, &lda );
                 
                 // ----------

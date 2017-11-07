@@ -41,7 +41,6 @@ int main( int argc, char** argv)
     double      result[2];
     magma_int_t N, n2, lda, nb, lwork, ltwork, info;
     magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
         
     magma_opts opts;
@@ -80,7 +79,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc( &dT,     nb*N  ));  // for single GPU
             
             /* Initialize the matrices */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_R, &lda );
             
             /* ====================================================================
