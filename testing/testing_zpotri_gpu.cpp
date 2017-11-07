@@ -33,12 +33,11 @@ int main( int argc, char** argv)
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magma_int_t N, n2, lda, ldda, info;
     magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
     double      Anorm, error, work[1];
     int status = 0;
 
     magma_opts opts;
-    opts.matrix = "rand_dominant";
+    opts.matrix = "rand_dominant";  // default
     opts.parse_opts( argc, argv );
     opts.lapack |= opts.check;  // check (-c) implies lapack (-l)
     
@@ -60,8 +59,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc( &d_A, ldda*N ));
             
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
-            magma_zmake_hpd( N, h_A, lda );
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_R, &lda );
             
             /* ====================================================================
