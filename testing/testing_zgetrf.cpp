@@ -22,21 +22,23 @@
 
 
 // Initialize matrix to random.
-// Having this in separate function ensures the same ISEED is always used,
+// This ensures the same ISEED is always used,
 // so we can re-generate the identical matrix.
 void init_matrix(
     magma_opts &opts,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex *A, magma_int_t lda )
 {
-    magma_int_t ione = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
-    magma_int_t n2 = lda*n;
-    lapackf77_zlarnv( &ione, ISEED, &n2, A );
-    if ( opts.version == 2 || opts.version == 3 ) {
-        for (magma_int_t i=0; i < min(m,n); ++i ) {
-            A[ i + i*lda ] = MAGMA_Z_MAKE( MAGMA_Z_REAL( A[ i + i*lda ] ) + max(m,n), 0 );
-        }
+    magma_int_t iseed_save[4];
+    for (magma_int_t i = 0; i < 4; ++i) {
+        iseed_save[i] = opts.iseed[i];
+    }
+
+    magma_generate_matrix( opts, m, n, nullptr, A, lda );
+
+    // restore iseed
+    for (magma_int_t i = 0; i < 4; ++i) {
+        opts.iseed[i] = iseed_save[i];
     }
 }
 
@@ -63,7 +65,7 @@ double get_residual(
     
     // this seed should be DIFFERENT than used in init_matrix
     // (else x is column of A, so residual can be exactly zero)
-    magma_int_t ISEED[4] = {0,0,0,2};
+    magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t info = 0;
     magmaDoubleComplex *x, *b;
     

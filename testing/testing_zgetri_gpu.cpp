@@ -37,8 +37,6 @@ int main( int argc, char** argv )
     magmaDoubleComplex *h_A, *h_Ainv, *h_R, *work, unused[1];
     magmaDoubleComplex_ptr d_A, dwork;
     magma_int_t N, n2, lda, ldda, info, lwork, ldwork;
-    magma_int_t ione     = 1;
-    magma_int_t ISEED[4] = {0,0,0,1};
     magmaDoubleComplex tmp;
     double error, rwork[1];
     magma_int_t *ipiv, iunused[1];
@@ -79,7 +77,7 @@ int main( int argc, char** argv )
             TESTING_CHECK( magma_zmalloc( &dwork,  ldwork ));
             
             /* Initialize the matrix */
-            lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
+            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
             
             /* Factor the matrix. Both MAGMA and LAPACK will use this factor. */
             magma_zsetmatrix( N, N, h_A, lda, d_A, ldda, opts.queue );
