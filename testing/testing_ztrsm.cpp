@@ -43,7 +43,7 @@ int main( int argc, char** argv)
     double          magma_error=0, dev_error, lapack_error, work[1];
     magma_int_t M, N, info;
     magma_int_t Ak;
-    magma_int_t sizeA, sizeB;
+    magma_int_t sizeB;
     magma_int_t lda, ldb, ldda, lddb;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
@@ -89,7 +89,7 @@ int main( int argc, char** argv)
             ldda = magma_roundup( lda, opts.align );  // multiple of 32 by default
             lddb = magma_roundup( ldb, opts.align );  // multiple of 32 by default
             
-            sizeA = lda*Ak;
+            //sizeA = lda*Ak;
             sizeB = ldb*N;
             
             TESTING_CHECK( magma_zmalloc_cpu( &hA,       lda*Ak  ));
@@ -107,7 +107,7 @@ int main( int argc, char** argv)
             /* Factor A into LU to get well-conditioned triangular matrix.
              * Copy L to U, since L seems okay when used with non-unit diagonal
              * (i.e., from U), while U fails when used with unit diagonal. */
-            lapackf77_zlarnv( &ione, ISEED, &sizeA, hA );
+            magma_generate_matrix( opts, Ak, Ak, nullptr, hA, lda );
             lapackf77_zgetrf( &Ak, &Ak, hA, &lda, ipiv, &info );
             for( int j = 0; j < Ak; ++j ) {
                 for( int i = 0; i < j; ++i ) {

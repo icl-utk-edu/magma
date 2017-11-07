@@ -41,7 +41,6 @@ int main( int argc, char** argv)
     real_Double_t   gflops, cublas_perf, cublas_time, cpu_perf=0, cpu_time=0;
     double          cublas_error, normA, normx, normr, work[1];
     magma_int_t i, j, N, info;
-    magma_int_t sizeA;
     magma_int_t lda, ldda;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
@@ -67,7 +66,6 @@ int main( int argc, char** argv)
             gflops = FLOPS_ZTRSM(opts.side, N, 1) / 1e9;
             lda    = N;
             ldda   = magma_roundup( lda, opts.align );  // multiple of 32 by default
-            sizeA  = lda*N;
             
             TESTING_CHECK( magma_imalloc_cpu( &ipiv,      N     ));
             TESTING_CHECK( magma_zmalloc_cpu( &hA,       lda*N ));
@@ -82,7 +80,7 @@ int main( int argc, char** argv)
             /* Factor A into LU to get well-conditioned triangular matrix.
              * Copy L to U, since L seems okay when used with non-unit diagonal
              * (i.e., from U), while U fails when used with unit diagonal. */
-            lapackf77_zlarnv( &ione, ISEED, &sizeA, hA );
+            magma_generate_matrix( opts, N, N, nullptr, hA, lda );
             lapackf77_zgetrf( &N, &N, hA, &lda, ipiv, &info );
             for( j = 0; j < N; ++j ) {
                 for( i = 0; i < j; ++i ) {
