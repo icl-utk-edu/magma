@@ -118,7 +118,7 @@ magma_free_internal( magma_ptr ptr,
     The purpose of using this instead of malloc is to properly align arrays
     for vector (SSE, AVX) instructions. The default implementation uses
     posix_memalign (on Linux, MacOS, etc.) or _aligned_malloc (on Windows)
-    to align memory to a 32 byte boundary.
+    to align memory to a 64 byte boundary (typical cache line size).
     Use magma_free_cpu() to free this memory.
 
     @param[out]
@@ -149,12 +149,12 @@ magma_malloc_cpu( void** ptrPtr, size_t size )
         size = sizeof(magmaDoubleComplex);
 #if 1
 #if defined( _WIN32 ) || defined( _WIN64 )
-    *ptrPtr = _aligned_malloc( size, 32 );
+    *ptrPtr = _aligned_malloc( size, 64 );
     if ( *ptrPtr == NULL ) {
         return MAGMA_ERR_HOST_ALLOC;
     }
 #else
-    int err = posix_memalign( ptrPtr, 32, size );
+    int err = posix_memalign( ptrPtr, 64, size );
     if ( err != 0 ) {
         *ptrPtr = NULL;
         return MAGMA_ERR_HOST_ALLOC;
