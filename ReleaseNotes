@@ -26,7 +26,9 @@ single (s), double (d), single-complex (c), double-complex (z).
 
  2.3.0 - Nov ??, 2017
     * Added support for Volta GPUs
-    * Improved performance for LU and QR factorizations on small square sizes up to 32
+    * Improved performance for batched LU and QR factorizations
+      on small square sizes up to 32
+    * Added test matrix generator to many testers
 
     MAGMA-sparse
     * Added support for CUDA 9.0
@@ -90,7 +92,7 @@ single (s), double (d), single-complex (c), double-complex (z).
     * Added zunglq, zungbr, zgeadd2 (which takes both alpha and beta).
     * Merged single & multi-GPU CPU interface testers (e.g., merged testing_dgeev_m into testing_dgeev).
     * Deprecated magma_device_sync; use magma_queue_sync instead.
-    
+
     MAGMA-sparse
     * Added QMR, TFQMR, preconditioned TFQMR
     * Added CGS, preconditioned CGS
