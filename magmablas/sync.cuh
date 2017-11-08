@@ -1,5 +1,5 @@
-#ifndef SYNC_CUH
-#define SYNC_CUH
+#ifndef ICL_MAGMA_SYNC_CUH
+#define ICL_MAGMA_SYNC_CUH
 
 #include "magma_internal.h"
 
@@ -18,5 +18,5 @@ __device__ static inline void magmablas_syncwarp()
 }
 
 
-#endif    // SYNC_CUH
+#endif    // ICL_MAGMA_SYNC_CUH
 
