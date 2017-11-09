@@ -26,6 +26,8 @@
 */
 int main( int argc, char** argv)
 {
+    #define h_A(i_, j_) (h_A + (i_) + (j_)*lda)
+
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
@@ -34,11 +36,13 @@ int main( int argc, char** argv)
     magmaDoubleComplex_ptr d_A;
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magma_int_t N, n2, lda, ldda, info;
+    magma_int_t *ipiv;
     magma_int_t ione     = 1;
     double      work[1], error, norm;
     int status = 0;
 
     magma_opts opts;
+    opts.matrix = "rand_dominant";  // default; makes triangles nicely conditioned
     opts.parse_opts( argc, argv );
     opts.lapack |= opts.check;  // check (-c) implies lapack (-l)
     
@@ -56,20 +60,27 @@ int main( int argc, char** argv)
             gflops = FLOPS_ZTRTRI( N ) / 1e9;
             
             TESTING_CHECK( magma_zmalloc_cpu( &h_A, n2 ));
+            TESTING_CHECK( magma_imalloc_cpu( &ipiv, N ));
             TESTING_CHECK( magma_zmalloc_pinned( &h_R, n2 ));
             TESTING_CHECK( magma_zmalloc( &d_A, ldda*N ));
             
-            /* Initialize the matrix */
+            /* Initialize the matrices */
+            /* Factor A into LU to get well-conditioned triangular matrix.
+             * Copy L to U, since L seems okay when used with non-unit diagonal
+             * (i.e., from U), while U fails when used with unit diagonal. */
             magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
+            lapackf77_zgetrf( &N, &N, h_A, &lda, ipiv, &info );
+            for (int j = 0; j < N; ++j) {
+                for (int i = 0; i < j; ++i) {
+                    *h_A(i,j) = *h_A(j,i);
+                }
+            }
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_R, &lda );
             
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
-            /* factorize matrix */
-            lapackf77_zpotrf( lapack_uplo_const(opts.uplo), &N, h_A, &lda, &info );
             magma_zsetmatrix( N, N, h_A, lda, d_A, ldda, opts.queue );
-            //magma_zpotrf_gpu( opts.uplo, N, d_A, ldda, &info );
             
             // check for exact singularity
             //magma_zgetmatrix( N, N, d_A, ldda, h_R, lda, opts.queue );
@@ -89,9 +100,6 @@ int main( int argc, char** argv)
                Performs operation using LAPACK
                =================================================================== */
             if ( opts.lapack ) {
-                // done above
-                //lapackf77_zpotrf( lapack_uplo_const(opts.uplo), &N, h_A, &lda, &info );
-                
                 cpu_time = magma_wtime();
                 lapackf77_ztrtri( lapack_uplo_const(opts.uplo), lapack_diag_const(opts.diag), &N, h_A, &lda, &info );
                 cpu_time = magma_wtime() - cpu_time;
@@ -127,6 +135,7 @@ int main( int argc, char** argv)
             }
             
             magma_free_cpu( h_A );
+            magma_free_cpu( ipiv );
             magma_free_pinned( h_R );
             magma_free( d_A );
             fflush( stdout );

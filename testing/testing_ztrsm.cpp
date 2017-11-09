@@ -57,8 +57,10 @@ int main( int argc, char** argv)
     int status = 0;
     
     magma_opts opts;
+    opts.matrix = "rand_dominant";  // default
+    opts.tolerance = 100;           // default
     opts.parse_opts( argc, argv );
-    
+
     double tol = opts.tolerance * lapackf77_dlamch("E");
 
     // pass ngpu = -1 to test multi-GPU code using 1 gpu
@@ -109,14 +111,14 @@ int main( int argc, char** argv)
              * (i.e., from U), while U fails when used with unit diagonal. */
             magma_generate_matrix( opts, Ak, Ak, nullptr, hA, lda );
             lapackf77_zgetrf( &Ak, &Ak, hA, &lda, ipiv, &info );
-            for( int j = 0; j < Ak; ++j ) {
-                for( int i = 0; i < j; ++i ) {
+            for (int j = 0; j < Ak; ++j) {
+                for (int i = 0; i < j; ++i) {
                     *hA(i,j) = *hA(j,i);
                 }
             }
             
             lapackf77_zlarnv( &ione, ISEED, &sizeB, hB );
-            memcpy( hBlapack, hB, sizeB*sizeof(magmaDoubleComplex) );
+            lapackf77_zlacpy( MagmaFullStr, &M, &N, hB, &ldb, hBlapack, &lda );
             magma_zsetmatrix( Ak, Ak, hA, lda, dA(0,0), ldda, opts.queue );
             
             /* =====================================================================

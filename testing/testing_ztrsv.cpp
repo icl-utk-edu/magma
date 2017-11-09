@@ -40,7 +40,7 @@ int main( int argc, char** argv)
 
     real_Double_t   gflops, cublas_perf, cublas_time, cpu_perf=0, cpu_time=0;
     double          cublas_error, normA, normx, normr, work[1];
-    magma_int_t i, j, N, info;
+    magma_int_t N, info;
     magma_int_t lda, ldda;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
@@ -52,6 +52,7 @@ int main( int argc, char** argv)
     int status = 0;
     
     magma_opts opts;
+    opts.matrix = "rand_dominant";  // default; makes triangles nicely conditioned
     opts.parse_opts( argc, argv );
     
     double tol = opts.tolerance * lapackf77_dlamch("E");
@@ -82,8 +83,8 @@ int main( int argc, char** argv)
              * (i.e., from U), while U fails when used with unit diagonal. */
             magma_generate_matrix( opts, N, N, nullptr, hA, lda );
             lapackf77_zgetrf( &N, &N, hA, &lda, ipiv, &info );
-            for( j = 0; j < N; ++j ) {
-                for( i = 0; i < j; ++i ) {
+            for (int j = 0; j < N; ++j) {
+                for (int i = 0; i < j; ++i) {
                     *hA(i,j) = *hA(j,i);
                 }
             }
