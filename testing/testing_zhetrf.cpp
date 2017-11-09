@@ -643,7 +643,7 @@ int main( int argc, char** argv)
     real_Double_t   gflops, gpu_perf, gpu_time = 0.0, cpu_perf=0, cpu_time=0;
     double          error, error_lapack = 0.0;
     magma_int_t     *ipiv;
-    magma_int_t     i, cpu_panel = 1, N, n2, lda, lwork, info;
+    magma_int_t     cpu_panel = 1, N, n2, lda, lwork, info;
     magma_int_t     cpu = 0, nopiv = 0, nopiv_gpu = 0, row = 0, aasen = 0;
     int status = 0;
     
@@ -657,7 +657,7 @@ int main( int argc, char** argv)
     }
 
     // TODO: this doesn't work. Options need to be added to parse_opts()
-    //for( i = 1; i < argc; ++i ) {
+    //for (int i = 1; i < argc; ++i) {
     //    if ( strcmp("--cpu-panel", argv[i]) == 0) cpu_panel = 1;
     //    if ( strcmp("--gpu-panel", argv[i]) == 0) cpu_panel = 0;
     //}
