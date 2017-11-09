@@ -21,8 +21,7 @@
 #include "magma_operators.h"  // for MAGMA_Z_DIV
 #include "testings.h"
 
-/* ================================================================================================== */
-
+/******************************************************************************/
 // Initialize matrix to random.
 // This ensures the same ISEED is always used,
 // so we can re-generate the identical matrix.
@@ -44,7 +43,7 @@ void init_matrix(
     }
 }
 
-
+/******************************************************************************/
 // On input, A and ipiv is LU factorization of A. On output, A is overwritten.
 // Requires m == n.
 // Uses init_matrix() to re-generate original A as needed.
@@ -89,7 +88,8 @@ double get_residual(
                            MagmaNoTransStr, MagmaUnitStr,
                            &n, &ione, &c_one,
                            A, &lda, x, &n );
-        } else {
+        }
+        else {
             blasf77_ztrsm( MagmaLeftStr, MagmaLowerStr,
                            MagmaNoTransStr, MagmaUnitStr,
                            &n, &ione, &c_one,
@@ -111,7 +111,7 @@ double get_residual(
                (long long) info, magma_strerror( info ));
     }
     // reset to original A
-    init_matrix( opts, nopiv, n, A, lda );
+    init_matrix( opts, n, n, A, lda );
     
     // compute r = Ax - b, saved in b
     blasf77_zhemv( lapack_uplo_const(uplo), &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
@@ -131,6 +131,7 @@ double get_residual(
     return norm_r / (n * norm_A * norm_x);
 }
 
+/******************************************************************************/
 double get_residual_aasen(
     magma_opts &opts,
     bool nopiv, magma_uplo_t uplo, magma_int_t n,
@@ -232,7 +233,7 @@ double get_residual_aasen(
     }
 
     // reset to original A
-    init_matrix( opts, nopiv, n, A, lda );
+    init_matrix( opts, n, n, A, lda );
 
     // compute r = Ax - b, saved in b
     blasf77_zhemv( lapack_uplo_const(uplo), &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
@@ -257,6 +258,7 @@ double get_residual_aasen(
     return norm_r / (n * norm_A * norm_x);
 }
 
+/******************************************************************************/
 // On input, LU and ipiv is LU factorization of A. On output, LU is overwritten.
 // Works for any m, n.
 // Uses init_matrix() to re-generate original A as needed.
@@ -287,7 +289,26 @@ double get_LDLt_error(
     memset( D, 0, N*N*sizeof(magmaDoubleComplex) );
 
     // set to original A, and apply pivoting
-    init_matrix( opts, nopiv, N, A, N );
+    init_matrix( opts, N, N, A, N );
+
+    // symmetrize; the pivoting code below assumes a full matrix
+    if (opts.uplo == MagmaLower) {
+        // copy L to U
+        for (j = 0; j < N; ++j) {
+            for (i = 0; i < j; ++i) {
+                A(i,j) = A(j,i);
+            }
+        }
+    }
+    else {
+        // copy U to L
+        for (j = 0; j < N; ++j) {
+            for (i = 0; i < j; ++i) {
+                A(j,i) = A(i,j);
+            }
+        }
+    }
+
     if (uplo == MagmaUpper) {
         for (j=N-1; j >= 0; j--) {
             piv = (nopiv ? j+1 : ipiv[j]);
@@ -328,7 +349,8 @@ double get_LDLt_error(
                         A(i,piv) = val;
                     }
                 }
-            } else {
+            }
+            else {
                 piv = piv-1;
                 // extract 1-by-1 pivot
                 D(j,j) = LD(j,j);
@@ -366,7 +388,8 @@ double get_LDLt_error(
             // compute D = U^H*W
             blasf77_zgemm(MagmaConjTransStr, MagmaNoTransStr, &N, &N, &N,
                           &c_one, L, &N, LD, &lda, &c_zero, D, &N);
-        } else {
+        }
+        else {
             // compute W = U*D
             blasf77_zgemm(MagmaNoTransStr, MagmaNoTransStr, &N, &N, &N,
                           &c_one, L, &N, D, &N, &c_zero, LD, &lda);
@@ -374,7 +397,8 @@ double get_LDLt_error(
             blasf77_zgemm(MagmaNoTransStr, MagmaConjTransStr, &N, &N, &N,
                           &c_one, LD, &lda, L, &N, &c_zero, D, &N);
         }
-    } else {
+    }
+    else {
         for (j=0; j < N; j++) {
             piv = (nopiv ? j+1 : ipiv[j]);
             if (piv < 0) {
@@ -414,7 +438,8 @@ double get_LDLt_error(
                         A(i,piv) = val;
                     }
                 }
-            } else {
+            }
+            else {
                 piv = piv-1;
                 // extract 1-by-1 pivot
                 D(j,j) = LD(j,j);
@@ -469,7 +494,7 @@ double get_LDLt_error(
     return residual / (matnorm * N);
 }
 
-
+/******************************************************************************/
 double get_LTLt_error(
     magma_opts &opts,
     bool nopiv, magma_uplo_t uplo, magma_int_t N,
@@ -549,10 +574,28 @@ double get_LTLt_error(
                   &c_one, LT, &lda, L, &N, &c_zero, T, &N);
 
     // compute norm of A
-    init_matrix( opts, nopiv, N, A, N );
+    init_matrix( opts, N, N, A, N );
     matnorm = lapackf77_zlanhe( "Fro", lapack_uplo_const(uplo), &N, A, &lda, work);
     //printf( "A0=" );
     //magma_zprint(N,N, &A(0,0),N);
+
+    // symmetrize; the pivoting code below assumes a full matrix
+    if (opts.uplo == MagmaLower) {
+        // copy L to U
+        for (j = 0; j < N; ++j) {
+            for (i = 0; i < j; ++i) {
+                A(i,j) = A(j,i);
+            }
+        }
+    }
+    else {
+        // copy U to L
+        for (j = 0; j < N; ++j) {
+            for (i = 0; i < j; ++i) {
+                A(j,i) = A(i,j);
+            }
+        }
+    }
 
     // apply symmetric pivoting
     for (j=0; j < N; j++) {
@@ -606,47 +649,59 @@ int main( int argc, char** argv)
     
     magma_opts opts;
     opts.parse_opts( argc, argv );
-    
-    // TODO: this doesn't work. Options need to be added to parse_opts()
-    for( i = 1; i < argc; ++i ) {
-        if ( strcmp("--cpu-panel", argv[i]) == 0) cpu_panel = 1;
-        if ( strcmp("--gpu-panel", argv[i]) == 0) cpu_panel = 0;
+    if (opts.version == 3 || opts.version == 4) {
+        // default in these cases; re-parse args
+        opts.matrix = "rand_dominant";
+        opts.parse_opts( argc, argv );
+        //printf( "matrix %s\n", opts.matrix.c_str() );
     }
-    
+
+    // TODO: this doesn't work. Options need to be added to parse_opts()
+    //for( i = 1; i < argc; ++i ) {
+    //    if ( strcmp("--cpu-panel", argv[i]) == 0) cpu_panel = 1;
+    //    if ( strcmp("--gpu-panel", argv[i]) == 0) cpu_panel = 0;
+    //}
+
+    printf( "%% --version 1 = Bunch-Kauffman (CPU)\n"
+            "%%           2 = Bunch-Kauffman (GPU) -- not yet available\n"
+            "%%           3 = No-piv (CPU) -- uses random, diagonally dominant matrix by default\n"
+            "%%           4 = No-piv (GPU) -- uses random, diagonally dominant matrix by default\n"
+            "%%           6 = Aasen's\n"
+            "\n" );
+    printf( "%% version %lld: ", (long long) opts.version );
     switch (opts.version) {
         case 1:
             cpu = 1;
-            printf( "\n%% CPU-Interface to Bunch-Kauffman on GPU" );
+            printf( "CPU-interface to Bunch-Kauffman on GPU" );
             break;
         case 2:
             //gpu = 1;
-            printf( "\n%% GPU-Interface to Bunch-Kauffman on GPU" );
-            printf( "\n not yet..\n\n" );
+            printf( "GPU-interface to Bunch-Kauffman on GPU" );
+            printf( "\n%% not yet available.\n" );
             return 0;
             break;
         case 3:
             nopiv = 1;
-            printf( "\n%% CPU-Interface to hybrid Non-pivoted LDLt (A is SPD)" );
+            printf( "CPU-interface to hybrid non-pivoted LDLt (A is SPD)" );
             break;
         case 4:
             nopiv_gpu = 1;
-            printf( "\n%% GPU-Interface to hybrid Non-pivoted LDLt (A is SPD)" );
+            printf( "GPU-interface to hybrid non-pivoted LDLt (A is SPD)" );
             break;
         //case 5:
         //    row = 1;
-        //    printf( "\n Bunch-Kauffman: GPU-only version (row-major)" );
+        //    printf( "%% Bunch-Kauffman: GPU-only version (row-major)" );
         //    break;
         case 6:
             aasen = 1;
-            printf( "\n%% CPU-Interface to Aasen's (%s)",(cpu_panel ? "CPU panel" : "GPU panel") );
+            printf( "CPU-Interface to Aasen's, %s", (cpu_panel ? "CPU panel" : "GPU panel") );
             break;
         default:
-            printf( "\nversion = %lld not supported\n\n", (long long) opts.version );
+            printf( "unknown version\n" );
             return 0;
     }
-    printf( " (%s)\n", lapack_uplo_const(opts.uplo) );
-    printf( " (--version: 1 = Bunch-Kauffman (CPU), 2 = Bunch-Kauffman (GPU), 3 = No-piv (CPU), 4 = No-piv (GPU))\n\n" );
-    
+    printf( ", %s\n", lapack_uplo_const(opts.uplo) );
+
     double tol = opts.tolerance * lapackf77_dlamch("E");
 
     if ( opts.check == 2 ) {
@@ -675,7 +730,7 @@ int main( int argc, char** argv)
                 lwork = (magma_int_t)MAGMA_Z_REAL( temp );
                 TESTING_CHECK( magma_zmalloc_cpu( &work, lwork ));
 
-                init_matrix( opts, nopiv, N, h_A, lda );
+                init_matrix( opts, N, N, h_A, lda );
                 cpu_time = magma_wtime();
                 lapackf77_zhetrf( lapack_uplo_const(opts.uplo), &N, h_A, &lda, ipiv, work, &lwork, &info);
                 cpu_time = magma_wtime() - cpu_time;
@@ -692,7 +747,7 @@ int main( int argc, char** argv)
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
-            init_matrix( opts, (nopiv | nopiv_gpu), N, h_A, lda );
+            init_matrix( opts, N, N, h_A, lda );
 
             //printf( "A0=" );
             //magma_zprlong( N, N, h_A, lda );
@@ -701,12 +756,14 @@ int main( int argc, char** argv)
                 gpu_time = magma_wtime();
                 magma_zhetrf_nopiv( opts.uplo, N, h_A, lda, &info);
                 gpu_time = magma_wtime() - gpu_time;
-            } else if (cpu) {
+            }
+            else if (cpu) {
                 // CPU-interface to Bunch-Kauffman LDLt
                 gpu_time = magma_wtime();
                 magma_zhetrf( opts.uplo, N, h_A, lda, ipiv, &info);
                 gpu_time = magma_wtime() - gpu_time;
-            } else if (nopiv_gpu) {
+            }
+            else if (nopiv_gpu) {
                 // GPU-interface to non-piv LDLt
                 magma_int_t ldda = magma_roundup( N, opts.align );
                 magmaDoubleComplex_ptr d_A;
@@ -717,14 +774,17 @@ int main( int argc, char** argv)
                 gpu_time = magma_wtime() - gpu_time;
                 magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
                 magma_free( d_A );
-            } else if (aasen) {
+            }
+            else if (aasen) {
                 // CPU-interface to Aasen's LTLt
                 gpu_time = magma_wtime();
                 magma_zhetrf_aasen( opts.uplo, cpu_panel, N, h_A, lda, ipiv, &info);
                 gpu_time = magma_wtime() - gpu_time;
-            } else if (row) {
+            }
+            else if (row) {
                 //magma_zhetrf_gpu_row( opts.uplo, N, h_A, lda, ipiv, work, lwork, &info);
-            } else {
+            }
+            else {
                 //magma_zhetrf_hybrid( opts.uplo, N, h_A, lda, ipiv, work, lwork, &info);
             }
             gpu_perf = gflops / gpu_time;
@@ -747,7 +807,8 @@ int main( int argc, char** argv)
             if ( opts.check == 2 && info == 0) {
                 if (aasen) {
                     error = get_residual_aasen( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
-                } else {
+                }
+                else {
                     error = get_residual( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
                 }
                 printf("   %8.2e   %s", error, (error < tol ? "ok" : "failed"));
@@ -759,7 +820,8 @@ int main( int argc, char** argv)
             else if ( opts.check && info == 0 ) {
                 if (aasen) {
                     error = get_LTLt_error( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
-                } else {
+                }
+                else {
                     error = get_LDLt_error( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
                 }
                 printf("   %8.2e   %s\n", error, (error < tol ? "ok" : "failed"));
