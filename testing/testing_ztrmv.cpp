@@ -38,7 +38,7 @@ int main( int argc, char** argv)
     magma_print_environment();
 
     real_Double_t   gflops, dev_perf, dev_time, cpu_perf, cpu_time;
-    double          dev_error, Cnorm, work[1];
+    double          dev_error, work[1];
     magma_int_t N;
     magma_int_t Ak;
     magma_int_t sizeA;
@@ -55,7 +55,9 @@ int main( int argc, char** argv)
     opts.parse_opts( argc, argv );
     opts.lapack |= opts.check;  // check (-c) implies lapack (-l)
     
-    double tol = opts.tolerance * lapackf77_dlamch("E");
+    // Allow 3*eps; complex needs 2*sqrt(2) factor; see Higham, 2002, sec. 3.6.
+    double eps = lapackf77_dlamch("E");
+    double tol = 3 * eps;
     
     printf("%% If running lapack (option --lapack), CUBLAS error is computed\n"
            "%% relative to CPU BLAS result.\n\n");
@@ -87,6 +89,10 @@ int main( int argc, char** argv)
             lapackf77_zlarnv( &ione, ISEED, &sizeA, hA );
             lapackf77_zlarnv( &ione, ISEED, &N, hx );
             
+            // for error checks
+            double Anorm = lapackf77_zlange( "F", &N, &N,    hA, &lda, work );
+            double Xnorm = lapackf77_zlange( "F", &N, &ione, hx, &N,   work );
+
             /* =====================================================================
                Performs operation using cuBLAS / clBLAS
                =================================================================== */
@@ -120,12 +126,11 @@ int main( int argc, char** argv)
                Check the result
                =================================================================== */
             if ( opts.lapack ) {
-                // compute relative error for both magma & cuBLAS/clBLAS, relative to lapack,
-                // |C_magma - C_lapack| / |C_lapack|
-                Cnorm = lapackf77_zlange( "M", &N, &ione, hx, &N, work );
-                
+                // See testing_zgemm for formula. Here K = N.
+                // initial C = 0, alpha = 1
                 blasf77_zaxpy( &N, &c_neg_one, hx, &ione, hxdev, &ione );
-                dev_error = lapackf77_zlange( "M", &N, &ione, hxdev, &N, work ) / Cnorm;
+                dev_error = lapackf77_zlange( "F", &N, &ione, hxdev, &N, work )
+                            / (sqrt(double(N+2))*Anorm*Xnorm);
                 
                 bool okay = (dev_error < tol);
                 status += ! okay;
