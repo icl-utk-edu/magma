@@ -256,7 +256,7 @@ for filename in args:
 		if ( m ):
 			save()
 			state = State_Cmd
-			g_cmd = re.sub( ' -c|(-n|-N|--range) +\S+', '', m.group(1) )
+			g_cmd = re.sub( ' -c\d*|(-n|-N|--range) +\S+', '', m.group(1) )
 			g_cmdline = line
 			# select appropriate epsilon for precision
 			p = m.group(2)
