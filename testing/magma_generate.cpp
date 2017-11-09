@@ -222,7 +222,7 @@ void magma_generate_sigma(
 template< typename FloatT >
 void magma_generate_correlation_factor( Matrix<FloatT>& A )
 {
-    const FloatT eps = std::numeric_limits<FloatT>::epsilon();
+    //const FloatT eps = std::numeric_limits<FloatT>::epsilon();
 
     Vector<FloatT> x( A.n );
     for (magma_int_t j = 0; j < A.n; ++j) {
@@ -240,10 +240,11 @@ void magma_generate_correlation_factor( Matrix<FloatT>& A )
                 s = c*t;
                 blas::rot( A.m, A(0,i), 1, A(0,j), 1, c, -s );
                 x[i] = blas::dot( A.m, A(0,i), 1, A(0,i), 1 );
-                if (x[i] - 1 > 30*eps) {
-                    printf( "i %d, x[i] %.6f, x[i] - 1 %.6e, 30*eps %.6e\n", i, x[i], x[i] - 1, 30*eps );
-                }
-                assert( x[i] - 1 < 30*eps );
+                //if (x[i] - 1 > 30*eps) {
+                //    printf( "i %d, x[i] %.6f, x[i] - 1 %.6e, 30*eps %.6e\n",
+                //            i, x[i], x[i] - 1, 30*eps );
+                //}
+                //assert( x[i] - 1 < 30*eps );
                 x[i] = 1;
                 x[j] = blas::dot( A.m, A(0,j), 1, A(0,j), 1 );
                 break;

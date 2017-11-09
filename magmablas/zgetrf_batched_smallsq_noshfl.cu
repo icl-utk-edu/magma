@@ -232,7 +232,7 @@ magma_zgetrf_batched_smallsq_noshfl(
         case 30: zgetrf_batched_smallsq_noshfl_kernel<30, magma_ceilpow2(30)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 31: zgetrf_batched_smallsq_noshfl_kernel<31, magma_ceilpow2(31)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 32: zgetrf_batched_smallsq_noshfl_kernel<32, magma_ceilpow2(32)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        default: printf("error: size %d is not supported\n", m);
+        default: printf("error: size %lld is not supported\n", (long long) m);
     }
     return arginfo;
 }

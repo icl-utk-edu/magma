@@ -351,8 +351,8 @@ magma_zparilut(
         magma_zmfree( &oneU, queue );
         start = magma_sync_wtime( queue );
         
-        sprintf(filenameL, "LT_rm%03d_step%d_before_rm.m", (int)(precond->rtol*1000), iters+1);
-        sprintf(filenameU, "UT_rm%03d_step%d_before_rm.m", (int)(precond->rtol*1000), iters+1);
+        sprintf(filenameL, "LT_rm%03d_step%lld_before_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
+        sprintf(filenameU, "UT_rm%03d_step%lld_before_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
 
         // write to file
         //CHECK( magma_zwrite_csrtomtx( L_new, filenameL, queue ));
@@ -361,8 +361,8 @@ magma_zparilut(
         
         magma_zparilut_thrsrm( 1, &L_new, &thrsL, queue );//printf("done...");fflush(stdout);
         magma_zparilut_thrsrm( 1, &U_new, &thrsU, queue );//printf("done...");fflush(stdout);
-        sprintf(filenameL, "LT_rm%03d_step%d_int_rm.m", (int)(precond->rtol*1000), iters+1);
-        sprintf(filenameU, "UT_rm%03d_step%d_int_rm.m", (int)(precond->rtol*1000), iters+1);
+        sprintf(filenameL, "LT_rm%03d_step%lld_int_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
+        sprintf(filenameU, "UT_rm%03d_step%lld_int_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
 
         // write to file
         //CHECK( magma_zwrite_csrtomtx( L_new, filenameL, queue ));
@@ -428,8 +428,8 @@ magma_zparilut(
         }
         
         
-        sprintf(filenameL, "LT_rm%03d_step%d_after_rm.m", (int)(precond->rtol*1000), iters+1);
-        sprintf(filenameU, "UT_rm%03d_step%d_after_rm.m", (int)(precond->rtol*1000), iters+1);
+        sprintf(filenameL, "LT_rm%03d_step%lld_after_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
+        sprintf(filenameU, "UT_rm%03d_step%lld_after_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
 
         // write to file
         //CHECK( magma_zwrite_csrtomtx( L, filenameL, queue ));

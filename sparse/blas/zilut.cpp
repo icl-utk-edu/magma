@@ -553,7 +553,8 @@ magma_zilut_saad(
     nzcountU = nzcountU +   U->nzcount[z];
   }
   printf("ilut_fill_ratio = %.6f;\n", (double)(nzcounts+n)/(double)(A.nnz)); 
-  printf("%% L:%d U:%d D:%d = %d vs. %d\n", nzcountL, nzcountU, n, nzcountL + nzcountU + n, A.nnz); 
+  printf("%% L:%d U:%d D:%d = %d vs. %lld\n",
+         nzcountL, nzcountU, n, nzcountL + nzcountU + n, (long long) A.nnz);
 
   free( iw );
   free( jbuf );
