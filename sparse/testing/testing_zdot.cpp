@@ -180,7 +180,7 @@ int main(  int argc, char** argv )
     }
     
     // use alpha to silence compiler warnings
-    if ( isnan( real( alpha ))) {
+    if ( magma_d_isnan( (double) real( alpha ))) {
         info = -1;
     }
 

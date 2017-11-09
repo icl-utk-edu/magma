@@ -31,9 +31,18 @@
 
     This is the routine used in the publication by Anzt, Chow, Dongarra:
     ''ParILUT - A new parallel threshold ILU factorization''
-    submitted to SIAM SISC in 2016.
+    submitted to SIAM SISC in 2017.
 
     This function requires OpenMP, and is only available if OpenMP is activated.
+    
+    The parameter list is:
+    
+    precond.sweeps : number of ParILUT steps
+    precond.atol   : absolute fill ratio (1.0 keeps nnz constant)
+    precond.rtol   : how many candidates are added to the sparsity pattern
+                        * 1.0 one per row
+                        * < 1.0 a fraction of those
+                        * > 1.0 all candidates
 
     Arguments
     ---------
@@ -72,10 +81,6 @@ magma_zparilut(
     real_Double_t t_rm=0.0, t_add=0.0, t_res=0.0, t_sweep1=0.0, t_sweep2=0.0, t_cand=0.0,
                     t_transpose1=0.0, t_transpose2=0.0, t_selectrm=0.0,
                     t_selectadd=0.0, t_nrm=0.0, t_total = 0.0, accum=0.0;
-                    
-    char filenameL[sizeof "LT_rm20_step10.m"];
-    char filenameU[sizeof "UT_rm20_step10.m"];
-
                     
     double sum, sumL, sumU;
 
@@ -351,23 +356,9 @@ magma_zparilut(
         magma_zmfree( &oneU, queue );
         start = magma_sync_wtime( queue );
         
-        sprintf(filenameL, "LT_rm%03d_step%lld_before_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
-        sprintf(filenameU, "UT_rm%03d_step%lld_before_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
-
-        // write to file
-        //CHECK( magma_zwrite_csrtomtx( L_new, filenameL, queue ));
-        //CHECK( magma_zwrite_csrtomtx( U_new, filenameU, queue ));
-       
-        
         magma_zparilut_thrsrm( 1, &L_new, &thrsL, queue );//printf("done...");fflush(stdout);
         magma_zparilut_thrsrm( 1, &U_new, &thrsU, queue );//printf("done...");fflush(stdout);
-        sprintf(filenameL, "LT_rm%03d_step%lld_int_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
-        sprintf(filenameU, "UT_rm%03d_step%lld_int_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
 
-        // write to file
-        //CHECK( magma_zwrite_csrtomtx( L_new, filenameL, queue ));
-        //CHECK( magma_zwrite_csrtomtx( U_new, filenameU, queue ));
-        
         
         // magma_zparilut_thrsrm_U( 1, L_new, &U_new, &thrsU, queue );
         // for(int z=0; z<L_new.nnz; z++){
@@ -395,16 +386,6 @@ magma_zparilut(
         // CHECK( magma_zparilut_create_collinkedlist( U, &UT, queue) );
         // end = magma_sync_wtime( queue ); t_transpose1+=end-start;
         
-
-  
-        //sprintf(filenameL, "LT_rm%03d_step%d_int2_rm.m", (int)(precond->rtol*1000), iters+1);
-        // sprintf(filenameU, "UT_rm%03d_step%d_int2_rm.m", (int)(precond->rtol*1000), iters+1);
-
-        // write to file
-        //CHECK( magma_zwrite_csrtomtx( L, filenameL, queue ));
-        //CHECK( magma_zwrite_csrtomtx( U, filenameU, queue ));
-
-        
         start = magma_sync_wtime( queue );
         
         //magma_free_cpu( U.rowidx ); U.rowidx = NULL;
@@ -426,16 +407,6 @@ magma_zparilut(
                     t_cand, t_res, t_nrm, t_selectadd, t_add, t_transpose1, t_sweep1, t_selectrm, t_rm, t_sweep2, t_transpose2, t_total, accum );
             fflush(stdout);
         }
-        
-        
-        sprintf(filenameL, "LT_rm%03d_step%lld_after_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
-        sprintf(filenameU, "UT_rm%03d_step%lld_after_rm.m", (int)(precond->rtol*1000), (long long) iters+1);
-
-        // write to file
-        //CHECK( magma_zwrite_csrtomtx( L, filenameL, queue ));
-        //CHECK( magma_zwrite_csrtomtx( U, filenameU, queue ));
-        
-      
     }
 
     if (timing == 1) {

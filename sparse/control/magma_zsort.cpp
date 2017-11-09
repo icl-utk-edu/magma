@@ -729,6 +729,9 @@ magma_zbitonic_sort(
     magma_int_t flag,
     magma_queue_t queue )
 {
+    
+    magma_int_t info =0;
+    
     magma_int_t m, i, num_threads=1;
     magma_int_t split_length;
     
@@ -747,8 +750,9 @@ magma_zbitonic_sort(
 
     if (length % 2 !=0 )
     {
-        printf("The length of a (sub)sequence is not divided by 2.\n");
-        exit(0);
+        printf("The length of a (sub)sequence can not be divided by 2.\n");
+        info = MAGMA_ERR;
+        goto cleanup;
     }
 
     split_length = length / 2;
@@ -776,5 +780,6 @@ magma_zbitonic_sort(
         magma_zbitonic_sort(start + split_length, split_length, seq, flag, queue);
     }
 
-    return 0;
+cleanup:
+    return info;
 }

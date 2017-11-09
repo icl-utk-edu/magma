@@ -182,7 +182,9 @@ magma_z_precondsetup(
         }
     }
     else if ( precond->solver == Magma_ILUT ) {
-        info = magma_zilut_saad( A, b, precond, queue );
+        printf( "error: preconditioner requires OpenMP.\n" );
+        info = MAGMA_ERR_NOT_SUPPORTED;
+        //info = magma_zilut_saad( A, b, precond, queue );
     }
     
     else if ( precond->solver == Magma_PARILUT ) {
@@ -422,7 +424,9 @@ magma_z_applyprecond_left(
             CHECK( magma_zapplycumilu_l( b, x, precond, queue ));
         }
         else if ( ( precond->solver == Magma_ILUT ) ){
-            CHECK( magma_zilut_saad_apply( b, x, precond, queue ));
+            printf( "error: preconditioner requires OpenMP.\n" );
+            info = MAGMA_ERR_NOT_SUPPORTED;
+            //CHECK( magma_zilut_saad_apply( b, x, precond, queue ));
         }
         else if ( ( precond->solver == Magma_ICC ||
                     precond->solver == Magma_PARIC ) && 
@@ -590,7 +594,9 @@ magma_z_applyprecond_right(
             CHECK( magma_zapplycumilu_r( b, x, precond, queue ));
         }
         else if ( ( precond->solver == Magma_ILUT ) ){
-            magma_zcopy( b.num_rows*b.num_cols, b.dval, 1, x->dval, 1, queue );
+            printf( "error: preconditioner requires OpenMP.\n" );
+            info = MAGMA_ERR_NOT_SUPPORTED;
+            //magma_zcopy( b.num_rows*b.num_cols, b.dval, 1, x->dval, 1, queue );
         }
         else if ( ( precond->solver == Magma_ICC ||
                     precond->solver == Magma_PARIC ) && 

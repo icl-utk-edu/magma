@@ -44,8 +44,7 @@ extern "C" magma_int_t
 magma_zmscale(
     magma_z_matrix *A,
     magma_scale_t scaling,
-    magma_queue_t queue )
-{
+    magma_queue_t queue ){
     magma_int_t info = 0;
     
     magmaDoubleComplex *tmp=NULL;
@@ -169,8 +168,7 @@ magma_zmscale_matrix_rhs(
     magma_z_matrix *b,
     magma_z_matrix *scaling_factors,
     magma_scale_t scaling,
-    magma_queue_t queue )
-{
+    magma_queue_t queue ) {
     magma_int_t info = 0;
     
     magmaDoubleComplex *tmp=NULL;
@@ -344,8 +342,7 @@ extern "C" magma_int_t
 magma_zmdiagadd(
     magma_z_matrix *A,
     magmaDoubleComplex add,
-    magma_queue_t queue )
-{
+    magma_queue_t queue ){
     magma_int_t info = 0;
     
     magma_z_matrix hA={Magma_CSR}, CSRA={Magma_CSR};
@@ -419,13 +416,12 @@ cleanup:
     
 extern "C" magma_int_t
 magma_zmscale_generate( 
-	  magma_int_t n, 
-	  magma_scale_t* scaling, 
-	  magma_side_t* side, 
-	  magma_z_matrix* A, 
-	  magma_z_matrix* scaling_factors,
-    magma_queue_t queue  )
-{
+      magma_int_t n, 
+      magma_scale_t* scaling, 
+      magma_side_t* side, 
+      magma_z_matrix* A, 
+      magma_z_matrix* scaling_factors,
+    magma_queue_t queue  ){
     magma_int_t info = 0;
     
     magmaDoubleComplex *tmp=NULL;
@@ -441,89 +437,89 @@ magma_zmscale_generate(
         
    
     if ( A->memory_location == Magma_CPU && A->storage_type == Magma_CSRCOO ) {
-      for ( magma_int_t j=0; j<n; j++ ) {
+        for ( magma_int_t j=0; j<n; j++ ) {
         // printf("%% scaling[%d] = %d\n", j, scaling[j]);
-        if ( scaling[j] == Magma_NOSCALE ) {
-            // no scale
+            if ( scaling[j] == Magma_NOSCALE ) {
+                // no scale
             
-        }
-        else if( A->num_rows == A->num_cols ) {
-            if ( scaling[j] == Magma_UNITROW && side[j] != MagmaBothSides ) {
+            }
+            else if( A->num_rows == A->num_cols ) {
+                if ( scaling[j] == Magma_UNITROW && side[j] != MagmaBothSides ) {
                 // scale to unit rownorm
-                for( magma_int_t z=0; z<A->num_rows; z++ ) {
-                    magmaDoubleComplex s = MAGMA_Z_MAKE( 0.0, 0.0 );
-                    for( magma_int_t f=A->row[z]; f<A->row[z+1]; f++ )
-                        s+= MAGMA_Z_MAKE( MAGMA_Z_REAL(A->val[f])*MAGMA_Z_REAL(A->val[f]), 0.0 );
-                    scaling_factors[j].val[z] = MAGMA_Z_MAKE( 1.0/sqrt(  MAGMA_Z_REAL( s )  ), 0.0 );
-                }        
-            }
-            else if (scaling[j] == Magma_UNITDIAG && side[j] != MagmaBothSides ) {
+                    for( magma_int_t z=0; z<A->num_rows; z++ ) {
+                        magmaDoubleComplex s = MAGMA_Z_MAKE( 0.0, 0.0 );
+                        for( magma_int_t f=A->row[z]; f<A->row[z+1]; f++ )
+                            s+= MAGMA_Z_MAKE( MAGMA_Z_REAL(A->val[f])*MAGMA_Z_REAL(A->val[f]), 0.0 );
+                        scaling_factors[j].val[z] = MAGMA_Z_MAKE( 1.0/sqrt(  MAGMA_Z_REAL( s )  ), 0.0 );
+                    }        
+                }
+                else if (scaling[j] == Magma_UNITDIAG && side[j] != MagmaBothSides ) {
                 // scale to unit diagonal
-                for( magma_int_t z=0; z<A->num_rows; z++ ) {
-                    magmaDoubleComplex s = MAGMA_Z_MAKE( 0.0, 0.0 );
-                    for( magma_int_t f=A->row[z]; f<A->row[z+1]; f++ ) {
-                        if ( A->col[f]== z ) {
-                            s = A->val[f];
+                    for( magma_int_t z=0; z<A->num_rows; z++ ) {
+                        magmaDoubleComplex s = MAGMA_Z_MAKE( 0.0, 0.0 );
+                        for( magma_int_t f=A->row[z]; f<A->row[z+1]; f++ ) {
+                            if ( A->col[f]== z ) {
+                                s = A->val[f];
+                            }
                         }
-                    }
-                    if ( s == MAGMA_Z_MAKE( 0.0, 0.0 ) ){
-                        printf("%%error: zero diagonal element.\n");
-                        info = MAGMA_ERR;
-                    }
-                    scaling_factors[j].val[z] = MAGMA_Z_MAKE( 1.0/MAGMA_Z_REAL( s ), 0.0 );
-                }
-            }
-            else if ( scaling[j] == Magma_UNITCOL && side[j] != MagmaBothSides ) {
-                // scale to unit column norm
-                CHECK( magma_zmtranspose( *A, &CSRA, queue ) );
-                magma_scale_t tscale = Magma_UNITROW;
-                magma_zmscale_generate( 1, &tscale, &side[j], &CSRA, 
-                  &scaling_factors[j], queue );
-            }
-            else if ( scaling[j] == Magma_UNITROW && side[j] == MagmaBothSides ) {
-                // scale to unit rownorm by rows and columns
-                for( magma_int_t z=0; z<A->num_rows; z++ ) {
-                    magmaDoubleComplex s = MAGMA_Z_MAKE( 0.0, 0.0 );
-                    for( magma_int_t f=A->row[z]; f<A->row[z+1]; f++ )
-                        s+= MAGMA_Z_MAKE( MAGMA_Z_REAL(A->val[f])*MAGMA_Z_REAL(A->val[f]), 0.0 );
-                    scaling_factors[j].val[z] = MAGMA_Z_MAKE( 1.0/sqrt(  MAGMA_Z_REAL( s )  ), 0.0 );
-                } 
-            }
-            else if (scaling[j] == Magma_UNITDIAG && side[j] == MagmaBothSides ) {
-                // scale to unit diagonal by rows and columns
-                for( magma_int_t z=0; z<A->num_rows; z++ ) {
-                    magmaDoubleComplex s = MAGMA_Z_MAKE( 0.0, 0.0 );
-                    for( magma_int_t f=A->row[z]; f<A->row[z+1]; f++ ) {
-                        if ( A->col[f]== z ) {
-                            s = A->val[f];
+                        if ( s == MAGMA_Z_MAKE( 0.0, 0.0 ) ){
+                            printf("%%error: zero diagonal element.\n");
+                            info = MAGMA_ERR;
                         }
+                        scaling_factors[j].val[z] = MAGMA_Z_MAKE( 1.0/MAGMA_Z_REAL( s ), 0.0 );
                     }
-                    if ( s == MAGMA_Z_MAKE( 0.0, 0.0 ) ){
-                        printf("%%error: zero diagonal element.\n");
-                        info = MAGMA_ERR;
-                    }
-                    scaling_factors[j].val[z] = MAGMA_Z_MAKE( 1.0/sqrt(  MAGMA_Z_REAL( s )  ), 0.0 );
                 }
-            }
-            else if ( scaling[j] == Magma_UNITCOL && side[j] == MagmaBothSides ) {
+                else if ( scaling[j] == Magma_UNITCOL && side[j] != MagmaBothSides ) {
                 // scale to unit column norm
-                CHECK( magma_zmtranspose( *A, &CSRA, queue ) );
-                magma_scale_t tscale = Magma_UNITROW;
-                magma_zmscale_generate( 1, &tscale, &side[j], &CSRA, 
-                  &scaling_factors[j], queue );
+                    CHECK( magma_zmtranspose( *A, &CSRA, queue ) );
+                    magma_scale_t tscale = Magma_UNITROW;
+                    magma_zmscale_generate( 1, &tscale, &side[j], &CSRA, 
+                            &scaling_factors[j], queue );
+                }
+                else if ( scaling[j] == Magma_UNITROW && side[j] == MagmaBothSides ) {
+                    // scale to unit rownorm by rows and columns
+                    for( magma_int_t z=0; z<A->num_rows; z++ ) {
+                        magmaDoubleComplex s = MAGMA_Z_MAKE( 0.0, 0.0 );
+                        for( magma_int_t f=A->row[z]; f<A->row[z+1]; f++ )
+                            s+= MAGMA_Z_MAKE( MAGMA_Z_REAL(A->val[f])*MAGMA_Z_REAL(A->val[f]), 0.0 );
+                        scaling_factors[j].val[z] = MAGMA_Z_MAKE( 1.0/sqrt(  MAGMA_Z_REAL( s )  ), 0.0 );
+                    } 
+                }
+                else if (scaling[j] == Magma_UNITDIAG && side[j] == MagmaBothSides ) {
+                    // scale to unit diagonal by rows and columns
+                    for( magma_int_t z=0; z<A->num_rows; z++ ) {
+                        magmaDoubleComplex s = MAGMA_Z_MAKE( 0.0, 0.0 );
+                        for( magma_int_t f=A->row[z]; f<A->row[z+1]; f++ ) {
+                            if ( A->col[f]== z ) {
+                                s = A->val[f];
+                            }
+                        }
+                        if ( s == MAGMA_Z_MAKE( 0.0, 0.0 ) ){
+                            printf("%%error: zero diagonal element.\n");
+                            info = MAGMA_ERR;
+                        }
+                        scaling_factors[j].val[z] = MAGMA_Z_MAKE( 1.0/sqrt(  MAGMA_Z_REAL( s )  ), 0.0 );
+                    }
+                }
+                else if ( scaling[j] == Magma_UNITCOL && side[j] == MagmaBothSides ) {
+                    // scale to unit column norm
+                    CHECK( magma_zmtranspose( *A, &CSRA, queue ) );
+                    magma_scale_t tscale = Magma_UNITROW;
+                    magma_zmscale_generate( 1, &tscale, &side[j], &CSRA, 
+                      &scaling_factors[j], queue );
+                }
+                else {
+                    printf( "%%error: scaling %d not supported line = %d.\n", 
+                      scaling[j], __LINE__ );
+                    info = MAGMA_ERR_NOT_SUPPORTED;
+                }
             }
             else {
-                printf( "%%error: scaling %d not supported line = %d.\n", 
-                  scaling[j], __LINE__ );
+                printf( "%%error: scaling of non-square matrices %d not supported line = %d.\n", 
+                      scaling[0], __LINE__ );
                 info = MAGMA_ERR_NOT_SUPPORTED;
             }
         }
-        else {
-            printf( "%%error: scaling of non-square matrices %d not supported line = %d.\n", 
-                  scaling[0], __LINE__ );
-            info = MAGMA_ERR_NOT_SUPPORTED;
-        }
-      }
     }
     else {
         magma_storage_t A_storage = A->storage_type;
@@ -583,12 +579,11 @@ cleanup:
     
 extern "C" magma_int_t
 magma_zmscale_apply( 
-	  magma_int_t n,  
-	  magma_side_t* side, 
-	  magma_z_matrix* scaling_factors, 
-	  magma_z_matrix* A,
-    magma_queue_t queue )
-{
+      magma_int_t n,  
+      magma_side_t* side, 
+      magma_z_matrix* scaling_factors, 
+      magma_z_matrix* A,
+      magma_queue_t queue ){
     magma_int_t info = 0;
       
     magmaDoubleComplex *tmp=NULL;
@@ -596,32 +591,32 @@ magma_zmscale_apply(
     magma_z_matrix hA={Magma_CSR}, CSRA={Magma_CSR};
     
     if ( A->memory_location == Magma_CPU && A->storage_type == Magma_CSRCOO ) {
-      for ( magma_int_t j=0; j<n; j++ ) {
-        
-        if( A->num_rows == A->num_cols ) {
-            if ( side[j] == MagmaLeft ) {
-                // scale by rows       
-                for( magma_int_t z=0; z<A->nnz; z++ ) {
-                    A->val[z] = A->val[z] * scaling_factors[j].val[A->rowidx[z]];
+        for ( magma_int_t j=0; j<n; j++ ) {
+            
+            if( A->num_rows == A->num_cols ) {
+                if ( side[j] == MagmaLeft ) {
+                    // scale by rows       
+                    for( magma_int_t z=0; z<A->nnz; z++ ) {
+                        A->val[z] = A->val[z] * scaling_factors[j].val[A->rowidx[z]];
+                    }
                 }
-            }
-            else if ( side[j] == MagmaBothSides ) {
-                // scale by rows and columns       
-                for( magma_int_t z=0; z<A->nnz; z++ ) {
-                    A->val[z] = A->val[z] 
-                        * scaling_factors[j].val[A->col[z]] 
-                        * scaling_factors[j].val[A->rowidx[z]];
+                else if ( side[j] == MagmaBothSides ) {
+                    // scale by rows and columns       
+                    for( magma_int_t z=0; z<A->nnz; z++ ) {
+                        A->val[z] = A->val[z] 
+                            * scaling_factors[j].val[A->col[z]] 
+                            * scaling_factors[j].val[A->rowidx[z]];
+                    }
                 }
-            }
-            else if ( side[j] == MagmaRight ) {
-                // scale by columns
-                for( magma_int_t z=0; z<A->nnz; z++ ) {
-                    A->val[z] = A->val[z] * scaling_factors[j].val[A->rowidx[z]];
+                else if ( side[j] == MagmaRight ) {
+                    // scale by columns
+                    for( magma_int_t z=0; z<A->nnz; z++ ) {
+                        A->val[z] = A->val[z] * scaling_factors[j].val[A->rowidx[z]];
+                    }
+                    
                 }
-                
             }
         }
-      }
     }
     else {
         magma_storage_t A_storage = A->storage_type;

@@ -247,7 +247,7 @@ magma_zlsqr(
     solver_par->final_res = residual;
 
     if ( info == MAGMA_SUCCESS ) {
-    	// MW  If MAGMA detected convergence inside the loop, it did one extra iteration
+        // MW  If MAGMA detected convergence inside the loop, it did one extra iteration
         solver_par->numiter--;
     } else if ( solver_par->init_res > solver_par->final_res ) {
         info = MAGMA_SLOW_CONVERGENCE;

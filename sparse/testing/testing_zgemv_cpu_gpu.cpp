@@ -130,9 +130,9 @@ magmablas_zgemv_cpu(
       A.num_rows, A.num_cols, A.ld);
     
     if (flip==0) {
-      blasf77_zgemv( lapack_trans_const(transA), 
-        &m, &n, &alpha, &A.val[aoff], &ldda, &x.val[xoff], 
-      	&incx, &beta, &y.val[yoff], &incy); 
+        blasf77_zgemv( lapack_trans_const(transA), 
+            &m, &n, &alpha, &A.val[aoff], &ldda, &x.val[xoff], 
+            &incx, &beta, &y.val[yoff], &incy); 
     }
     else if (flip==1) {
       magma_trans_t transtmp;
@@ -146,8 +146,8 @@ magmablas_zgemv_cpu(
       }
       
       blasf77_zgemv( lapack_trans_const(transtmp), 
-        &m, &n, &alpha, &A.val[aoff], &ldda, &x.val[xoff], 
-      	&incx, &beta, &y.val[yoff], &incy); 
+          &m, &n, &alpha, &A.val[aoff], &ldda, &x.val[xoff], 
+          &incx, &beta, &y.val[yoff], &incy); 
       
     }
     

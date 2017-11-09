@@ -13,8 +13,6 @@
 //  the IO functions provided by MatrixMarket
 
 #include "magmasparse_internal.h"
-// #include <algorithm>
-// #include <iostream>
 #define SWAP(a, b)  { tmp = a; a = b; b = tmp; }
 
 

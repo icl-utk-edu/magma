@@ -144,7 +144,7 @@ magma_zmsupernodal(
     S->tile_desc_offset_ptr[ 0 ] = 0;
     blockcount = 0;
     for( magma_int_t i=0; i<blockcount2; i++ ){
-	blockcount = blockcount + blocksizes2[ i ];
+    blockcount = blockcount + blocksizes2[ i ];
         S->tile_desc_offset_ptr[ i+1 ] = blockcount ;        
     }
     

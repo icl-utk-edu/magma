@@ -105,7 +105,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -122,7 +121,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -136,7 +134,7 @@ int main(  int argc, char** argv )
         magma_zmfree(&b, queue );
         magma_zmfree(&c, queue );
         magma_zmfree(&d, queue );
-	magma_zprecondfree( &zopts.precond_par , queue );
+        magma_zprecondfree( &zopts.precond_par , queue );
 
         // preconditioner with sync-free trisolve
         printf("\n%% --- Now use sync-free trisolve (under construction) ---\n");
@@ -161,7 +159,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -178,7 +175,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -221,7 +217,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -238,7 +233,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -282,7 +276,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -299,7 +292,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -343,7 +335,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -360,7 +351,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -404,7 +394,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -421,7 +410,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -465,7 +453,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -482,7 +469,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -526,7 +512,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -543,7 +528,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -588,7 +572,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -605,7 +588,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -616,7 +598,7 @@ int main(  int argc, char** argv )
         if(debug)printf("%% time_U = %.6e\n",tempo2-tempo1 );
         else printf("%.6e\n",tempo2-tempo1 );
         } else {
-            printf("NaN\tNaN\tNaN\tNaN\tNaN\n",tempo2-tempo1 );
+            printf("NaN\tNaN\tNaN\tNaN\tNaN\n" );
         }
         magma_zmfree(&a, queue );
         magma_zmfree(&b, queue );
@@ -654,7 +636,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -671,7 +652,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -682,7 +662,7 @@ int main(  int argc, char** argv )
         if(debug)printf("%% time_U = %.6e\n",tempo2-tempo1 );
         else printf("%.6e\n",tempo2-tempo1 );
         } else {
-            printf("NaN\tNaN\tNaN\tNaN\tNaN\n",tempo2-tempo1 );
+            printf("NaN\tNaN\tNaN\tNaN\tNaN\n" );
         }
         magma_zmfree(&a, queue );
         magma_zmfree(&b, queue );
@@ -720,7 +700,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_left( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.L, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -737,7 +716,6 @@ int main(  int argc, char** argv )
         // res = norm(d)
         tempo1 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_applyprecond_right( MagmaNoTrans, A, a, &b, &zopts.precond_par, queue ));
-        cudaDeviceSynchronize();
         tempo2 = magma_sync_wtime( queue );
         TESTING_CHECK( magma_z_spmv( one, zopts.precond_par.U, b, zero, c, queue ));   
         magma_zcopy( dofs, a.dval, 1 , d.dval, 1, queue );
@@ -748,7 +726,7 @@ int main(  int argc, char** argv )
         if(debug)printf("%% time_U = %.6e\n",tempo2-tempo1 );
         else printf("%.6e\n",tempo2-tempo1 );
         } else {
-            printf("NaN\tNaN\tNaN\tNaN\tNaN\n",tempo2-tempo1 );
+            printf("NaN\tNaN\tNaN\tNaN\tNaN\n" );
         }
         magma_zmfree(&a, queue );
         magma_zmfree(&b, queue );

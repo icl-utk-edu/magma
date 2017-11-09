@@ -240,12 +240,12 @@ do{
   for (j=first+1; j<=last; j++) {
      if (fabs(a[j]) > abskey) {
         mid = mid+1;
-	 tmp = a[mid];
-	 itmp = ind[mid];
-	 a[mid] = a[j];
-	 ind[mid] = ind[j];
-	 a[j]  = tmp;
-	 ind[j] = itmp;
+     tmp = a[mid];
+     itmp = ind[mid];
+     a[mid] = a[j];
+     ind[mid] = ind[j];
+     a[j]  = tmp;
+     ind[j] = itmp;
       }
    }
 /*-------------------- interchange */
@@ -469,7 +469,7 @@ magma_zilut_saad(
         } else {
           /* dealing with upper part */
 //          if( jpos == -1 ) {
-	  if( jpos == -1 && fabs(lxu) > tolnorm) {
+      if( jpos == -1 && fabs(lxu) > tolnorm) {
             /* this is a fill-in element */
             lenu++;
             upos = i + lenu;

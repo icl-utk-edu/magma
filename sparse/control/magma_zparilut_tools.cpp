@@ -6769,119 +6769,34 @@ magma_zparilut_set_approx_thrs(
     magma_int_t loc_num_rm;
     magma_int_t num_threads=1;
     magmaDoubleComplex *elements = NULL;
+    magma_int_t lsize;
+    magma_int_t lnum_rm;
+    magmaDoubleComplex *lval;
 
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
      num_threads = 1;
-/*
-    //printf("largest element considered: %d\n", LU->nnz);
-    if( LU->nnz < sample_size ){
-        loc_nnz = LU->nnz;
-        ratio = ((double)num_rm)/((double)LU->nnz);
-        loc_num_rm = (int) ((double)ratio*(double)loc_nnz);
-        CHECK( magma_zmalloc_cpu( &val, loc_nnz ));
-        CHECK( magma_zmalloc_cpu( &elements, num_threads ));
-        blasf77_zcopy(&loc_nnz, LU->val, &incy, val, &incy );
-        {
-            #pragma omp parallel
-            {
-                magma_int_t id = omp_get_thread_num();
-                if(id<num_threads){
-                   // magma_zorderstatistics(
-                   //     val + id*loc_nnz/num_threads, loc_nnz/num_threads, loc_num_rm/num_threads, order, &elements[id], queue );
-//printf("\n%% >>> trying random select instead <<<  %%\n");
-    {
-        magma_int_t lsize = loc_nnz/num_threads;
-        magma_int_t lnum_rm = loc_num_rm/num_threads;
-        magmaDoubleComplex *lval;
-        lval = val + id*loc_nnz/num_threads;
-                    // compare with random select
-                    if( order == 0 ){
-                        magma_zselectrandom( lval, lsize, lnum_rm, queue );
-                        elements[id] = (lval[lnum_rm]);
-                    } else {
-                         magma_zselectrandom( lval, lsize, lsize-lnum_rm, queue );
-                        elements[id] = (lval[lsize-lnum_rm]);  
-                    }
-    }
-                }
-            }
-            element = MAGMA_Z_ZERO;
-            for( int z=0; z < num_threads; z++){
-                element = element+MAGMA_Z_MAKE(MAGMA_Z_ABS(elements[z]), 0.0);
-            }
-            element = element/MAGMA_Z_MAKE((double)num_threads, 0.0);
-        }
-    } 
-    else
-    */
-    {
-        loc_nnz = (int) LU->nnz/incx;
-        ratio = ((double)num_rm)/((double)LU->nnz);
-        loc_num_rm = (int) ((double)ratio*(double)loc_nnz);
-     //   printf("loc_nnz:%d ratio:%d/%d = %.2e loc_num_rm:%d\n", loc_nnz, num_rm, LU->nnz, ratio, loc_num_rm);
-        CHECK( magma_zmalloc_cpu( &val, loc_nnz ));
-        blasf77_zcopy(&loc_nnz, LU->val, &incx, val, &incy );
-        {
-            /*
-            if(num_threads > 1 ){
-                CHECK( magma_zmalloc_cpu( &elements, num_threads ));
-                #pragma omp parallel
-                {
-                    magma_int_t id = omp_get_thread_num();
-                    if(id<num_threads){
-                        //printf("\n%% >>> trying random select instead <<<  %%\n");
-    {
-        magma_int_t lsize = loc_nnz/num_threads;
-        magma_int_t lnum_rm = loc_num_rm/num_threads;
-        magmaDoubleComplex *lval;
-        lval = val + id*loc_nnz/num_threads;
-                    // compare with random select
-                    if( order == 0 ){
-                        magma_zselectrandom( lval, lsize, lnum_rm, queue );
-                        elements[id] = (lval[lnum_rm]);
-                    } else {
-                         magma_zselectrandom( lval, lsize, lsize-lnum_rm, queue );
-                        elements[id] = (lval[lsize-lnum_rm]);  
-                    }
-    }
-                        
-                    //    magma_zorderstatistics(
-                      //      val + id*loc_nnz/num_threads, loc_nnz/num_threads, loc_num_rm/num_threads, order, &elements[id], queue );
-                    }
-                }
-                element = MAGMA_Z_ZERO;
-                for( int z=0; z < num_threads; z++){
-                    element = element+MAGMA_Z_MAKE(MAGMA_Z_ABS(elements[z]), 0.0);
-                }
-                element = element/MAGMA_Z_MAKE((double)num_threads, 0.0);
-            } 
-            else 
-            */
-            {
-               // magma_zorderstatistics(
-               //     val, loc_nnz, loc_num_rm, order, &element, queue );
-// printf("\n >>> trying random select instead <<<\n");
-    {
-        magma_int_t lsize = loc_nnz/num_threads;
-        magma_int_t lnum_rm = loc_num_rm/num_threads;
-        magmaDoubleComplex *lval;
-        lval = val;
-                    // compare with random select
-                    if( order == 0 ){
-                        magma_zselectrandom( lval, lsize, lnum_rm, queue );
-                        element = (lval[lnum_rm]);
-                    } else {
-                         magma_zselectrandom( lval, lsize, lsize-lnum_rm, queue );
-                        element = (lval[lsize-lnum_rm]);  
-                    }
+    loc_nnz = (int) LU->nnz/incx;
+    ratio = ((double)num_rm)/((double)LU->nnz);
+    loc_num_rm = (int) ((double)ratio*(double)loc_nnz);
+    CHECK( magma_zmalloc_cpu( &val, loc_nnz ));
+    blasf77_zcopy(&loc_nnz, LU->val, &incx, val, &incy );
+       
+    lsize = loc_nnz/num_threads;
+    lnum_rm = loc_num_rm/num_threads;
+
+    lval = val;
+    // compare with random select
+    if( order == 0 ){
+        magma_zselectrandom( lval, lsize, lnum_rm, queue );
+        element = (lval[lnum_rm]);
+    } else {
+         magma_zselectrandom( lval, lsize, lsize-lnum_rm, queue );
+        element = (lval[lsize-lnum_rm]);  
     }
                
-            }
-        }
-    }
 
     *thrs = MAGMA_Z_ABS(element);
 
@@ -7195,7 +7110,7 @@ magma_zparilut_set_thrs_randomselect_approx(
                  magma_zselectrandom( val+start, loc_nz, loc_nz-loc_rm, queue );
                 dthrs[i] = val[start+loc_nz-loc_rm];  
             }
-	    }
+        }
             
         }
         

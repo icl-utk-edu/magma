@@ -73,9 +73,6 @@ magma_zparict(
                     t_transpose1=0.0, t_transpose2=0.0, t_selectrm=0.0,
                     t_selectadd=0.0, t_nrm=0.0, t_total = 0.0, accum=0.0;
                     
-    char filenameL[sizeof "LT_rm20_step10.m"];
-
-                    
     double sum, sumL;//, sumU, thrsL_old=1e9, thrsU_old=1e9;
 
     cusparseHandle_t cusparseHandle=NULL;
@@ -187,14 +184,6 @@ magma_zparict(
                     t_cand, t_res, t_nrm, t_selectadd, t_add, t_transpose1, t_sweep1, t_selectrm, t_rm, t_sweep2, t_transpose2, t_total, accum );
             fflush(stdout);
         }
-        
-
-        sprintf(filenameL, "LT_rm%03d_step%lld.m", (int)(precond->rtol*1000), (long long) iters+1);
-
-        // write to file
-        // CHECK( magma_zwrite_csrtomtx( L, filenameL, queue ));
-        
-      
     }
 
     if (timing == 1) {

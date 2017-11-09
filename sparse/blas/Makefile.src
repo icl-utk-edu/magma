@@ -51,7 +51,6 @@ libsparse_src += \
 	$(cdir)/zilu.cpp                      \
 	$(cdir)/magma_zcuspmm.cpp             \
 	$(cdir)/magma_zcuspaxpy.cpp           \
-	$(cdir)/zilut.cpp	\
 
 
 # Iterative factorizations

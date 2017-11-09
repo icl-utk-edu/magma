@@ -93,7 +93,7 @@ int main(  int argc, char** argv )
     printf("%% tester BLAS:  ok\n");
     
     // use res to silence compiler warnings
-    if ( isnan( real( res ))) {
+    if ( magma_d_isnan( (double) real( res ))) {
         info = -1;
     }
 

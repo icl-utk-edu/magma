@@ -248,19 +248,19 @@ magma_zmscale_matrix_rhs(
 
 magma_int_t
 magma_zmscale_generate( 
-	  magma_int_t n, 
-	  magma_scale_t* scaling, 
-	  magma_side_t* side, 
-	  magma_z_matrix* A, 
-	  magma_z_matrix* scaling_factors,
-    magma_queue_t queue  );
+      magma_int_t n, 
+      magma_scale_t* scaling, 
+      magma_side_t* side, 
+      magma_z_matrix* A, 
+      magma_z_matrix* scaling_factors,
+      magma_queue_t queue  );
 
 magma_int_t
 magma_zmscale_apply( 
-	  magma_int_t n,  
-	  magma_side_t* side, 
-	  magma_z_matrix* scaling_factors, 
-	  magma_z_matrix* A,
+      magma_int_t n,  
+      magma_side_t* side, 
+      magma_z_matrix* scaling_factors, 
+      magma_z_matrix* A,
     magma_queue_t queue );
 
 magma_int_t

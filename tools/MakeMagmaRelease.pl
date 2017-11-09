@@ -38,6 +38,8 @@ my @files2delete = qw(
     sparse/testing/testing_zparilu_weight.cpp
     sparse/testing/testing_zsolver_allufmc.cpp
     sparse/testing/testing_zsolver_energy.cpp
+    
+    sparse/blas/zilut.cpp
 
     testing/*.txt
     testing/fortran2.cpp
