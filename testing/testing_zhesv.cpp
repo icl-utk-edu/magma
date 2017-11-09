@@ -64,13 +64,13 @@ double get_residual(
     init_matrix( opts, n, n, A, lda );
     
     // compute r = Ax - b, saved in b
-    blasf77_zgemv( "Notrans", &n, &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
+    blasf77_zhemv( lapack_uplo_const(uplo), &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
     
     // compute residual |Ax - b| / (n*|A|*|x|)
     double norm_x, norm_A, norm_r, work[1];
-    norm_A = lapackf77_zlange( MagmaFullStr, &n, &n, A, &lda, work );
-    norm_r = lapackf77_zlange( MagmaFullStr, &n, &ione, b, &n, work );
-    norm_x = lapackf77_zlange( MagmaFullStr, &n, &ione, x, &n, work );
+    norm_A = lapackf77_zlanhe( "Fro", lapack_uplo_const(uplo), &n, A, &lda, work );
+    norm_r = lapackf77_zlange( "Fro", &n, &ione, b, &n, work );
+    norm_x = lapackf77_zlange( "Fro", &n, &ione, x, &n, work );
     
     //printf( "r=\n" ); magma_zprint( 1, n, b, 1 );
     //printf( "r=%.2e, A=%.2e, x=%.2e, n=%lld\n", norm_r, norm_A, norm_x, (long long) n );

@@ -114,13 +114,13 @@ double get_residual(
     init_matrix( opts, nopiv, n, A, lda );
     
     // compute r = Ax - b, saved in b
-    blasf77_zgemv( "Notrans", &n, &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
+    blasf77_zhemv( lapack_uplo_const(uplo), &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
     
     // compute residual |Ax - b| / (n*|A|*|x|)
     double norm_x, norm_A, norm_r, work[1];
-    norm_A = lapackf77_zlange( MagmaFullStr, &n, &n, A, &lda, work );
-    norm_r = lapackf77_zlange( MagmaFullStr, &n, &ione, b, &n, work );
-    norm_x = lapackf77_zlange( MagmaFullStr, &n, &ione, x, &n, work );
+    norm_A = lapackf77_zlanhe( "Fro", lapack_uplo_const(uplo), &n, A, &lda, work );
+    norm_r = lapackf77_zlange( "Fro", &n, &ione, b, &n, work );
+    norm_x = lapackf77_zlange( "Fro", &n, &ione, x, &n, work );
     
     //printf( "r=\n" ); magma_zprint( 1, n, b, 1 );
     
@@ -235,13 +235,13 @@ double get_residual_aasen(
     init_matrix( opts, nopiv, n, A, lda );
 
     // compute r = Ax - b, saved in b
-    blasf77_zgemv( "Notrans", &n, &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
+    blasf77_zhemv( lapack_uplo_const(uplo), &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
     
     // compute residual |Ax - b| / (n*|A|*|x|)
     double norm_x, norm_A, norm_r, work[1];
-    norm_A = lapackf77_zlange( MagmaFullStr, &n, &n, A, &lda, work );
-    norm_r = lapackf77_zlange( MagmaFullStr, &n, &ione, b, &n, work );
-    norm_x = lapackf77_zlange( MagmaFullStr, &n, &ione, x, &n, work );
+    norm_A = lapackf77_zlanhe( "Fro", lapack_uplo_const(uplo), &n, A, &lda, work );
+    norm_r = lapackf77_zlange( "Fro", &n, &ione, b, &n, work );
+    norm_x = lapackf77_zlange( "Fro", &n, &ione, x, &n, work );
     
     //printf( "r=\n" ); magma_zprint( 1, n, b, 1 );
     magma_free_cpu( L );
@@ -453,14 +453,14 @@ double get_LDLt_error(
                       &c_one, LD, &lda, L, &N, &c_zero, D, &N);
     }
     // compute norm of A
-    matnorm = lapackf77_zlange(MagmaFullStr, &N, &N, A, &lda, work);
+    matnorm = lapackf77_zlanhe( "Fro", lapack_uplo_const(uplo), &N, A, &lda, work);
 
     for( j = 0; j < N; j++ ) {
         for( i = 0; i < N; i++ ) {
             D(i,j) = MAGMA_Z_SUB( D(i,j), A(i,j) );
         }
     }
-    residual = lapackf77_zlange(MagmaFullStr, &N, &N, D, &N, work);
+    residual = lapackf77_zlange( "Fro", &N, &N, D, &N, work);
 
     magma_free_cpu( A );
     magma_free_cpu( L );
@@ -550,7 +550,7 @@ double get_LTLt_error(
 
     // compute norm of A
     init_matrix( opts, nopiv, N, A, N );
-    matnorm = lapackf77_zlange(MagmaFullStr, &N, &N, A, &lda, work);
+    matnorm = lapackf77_zlanhe( "Fro", lapack_uplo_const(uplo), &N, A, &lda, work);
     //printf( "A0=" );
     //magma_zprint(N,N, &A(0,0),N);
 
@@ -579,7 +579,7 @@ double get_LTLt_error(
             T(i,j) = MAGMA_Z_SUB( T(i,j), A(i,j) );
         }
     }
-    residual = lapackf77_zlange(MagmaFullStr, &N, &N, T, &N, work);
+    residual = lapackf77_zlange( "Fro", &N, &N, T, &N, work);
 
     magma_free_cpu( A );
     magma_free_cpu( L );
