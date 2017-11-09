@@ -177,6 +177,7 @@ for config in $@; do
         mkdir $builds/$config/src
         mkdir $builds/$config/control
         mkdir $builds/$config/magmablas
+        mkdir $builds/$config/interface_cuda
 
         mkdir $builds/$config/sparse/src
         mkdir $builds/$config/sparse/control
@@ -185,6 +186,7 @@ for config in $@; do
         ln src/*.o            $builds/$config/src
         ln control/*.o        $builds/$config/control
         ln magmablas/*.o      $builds/$config/magmablas
+        ln interface_cuda/*.o $builds/$config/interface_cuda
 
         ln sparse/src/*.o     $builds/$config/sparse/src
         ln sparse/control/*.o $builds/$config/sparse/control
