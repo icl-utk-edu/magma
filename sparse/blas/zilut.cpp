@@ -40,7 +40,7 @@ typedef struct ILUfac {
 } ILUSpar, LDUmat, *iluptr;
 
 
-void *Malloc( int nbytes, char *msg )
+void *Malloc( int nbytes, const char *msg )
 {
   void *ptr;
 
