@@ -76,7 +76,6 @@ extern "C" {
 *******************************************************************************/
 magma_int_t magma_get_zgetrf_batched_ntcol(magma_int_t m, magma_int_t n)
 {
-    magma_int_t ntcol = 1;
     magma_int_t* ntcol_array; 
 
     if(m != n || m < 0 || m > 32) return 1;
@@ -93,7 +92,6 @@ magma_int_t magma_get_zgetrf_batched_ntcol(magma_int_t m, magma_int_t n)
 /// @see magma_get_zgetrf_batched_ntcol
 magma_int_t magma_get_cgetrf_batched_ntcol(magma_int_t m, magma_int_t n)
 {
-    magma_int_t ntcol = 1;
     magma_int_t* ntcol_array; 
 
     if(m != n || m < 0 || m > 32) return 1;
@@ -110,7 +108,6 @@ magma_int_t magma_get_cgetrf_batched_ntcol(magma_int_t m, magma_int_t n)
 /// @see magma_get_zgetrf_batched_ntcol
 magma_int_t magma_get_dgetrf_batched_ntcol(magma_int_t m, magma_int_t n)
 {
-    magma_int_t ntcol = 1;
     magma_int_t* ntcol_array; 
 
     if(m != n || m < 0 || m > 32) return 1;
@@ -127,7 +124,6 @@ magma_int_t magma_get_dgetrf_batched_ntcol(magma_int_t m, magma_int_t n)
 /// @see magma_get_zgetrf_batched_ntcol
 magma_int_t magma_get_sgetrf_batched_ntcol(magma_int_t m, magma_int_t n)
 {
-    magma_int_t ntcol = 1;
     magma_int_t* ntcol_array; 
 
     if(m != n || m < 0 || m > 32) return 1;
@@ -146,7 +142,6 @@ magma_int_t magma_get_sgetrf_batched_ntcol(magma_int_t m, magma_int_t n)
 *******************************************************************************/
 magma_int_t magma_get_zgeqrf_batched_ntcol(magma_int_t m, magma_int_t n)
 {
-    magma_int_t ntcol = 1;
     magma_int_t* ntcol_array; 
 
     if(m != n || m < 0 || m > 32) return 1;
@@ -163,7 +158,6 @@ magma_int_t magma_get_zgeqrf_batched_ntcol(magma_int_t m, magma_int_t n)
 /// @see magma_get_zgeqrf_batched_ntcol
 magma_int_t magma_get_cgeqrf_batched_ntcol(magma_int_t m, magma_int_t n)
 {
-    magma_int_t ntcol = 1;
     magma_int_t* ntcol_array; 
 
     if(m != n || m < 0 || m > 32) return 1;
@@ -180,7 +174,6 @@ magma_int_t magma_get_cgeqrf_batched_ntcol(magma_int_t m, magma_int_t n)
 /// @see magma_get_zgeqrf_batched_ntcol
 magma_int_t magma_get_dgeqrf_batched_ntcol(magma_int_t m, magma_int_t n)
 {
-    magma_int_t ntcol = 1;
     magma_int_t* ntcol_array; 
 
     if(m != n || m < 0 || m > 32) return 1;
@@ -197,7 +190,6 @@ magma_int_t magma_get_dgeqrf_batched_ntcol(magma_int_t m, magma_int_t n)
 /// @see magma_get_zgeqrf_batched_ntcol
 magma_int_t magma_get_sgeqrf_batched_ntcol(magma_int_t m, magma_int_t n)
 {
-    magma_int_t ntcol = 1;
     magma_int_t* ntcol_array; 
 
     if(m != n || m < 0 || m > 32) return 1;

@@ -16,6 +16,7 @@ set -u
 j=8
 clean=1
 sparse=1
+link=""
 tar=""
 pause=""
 
@@ -24,6 +25,7 @@ usage="Usage: $0 [options] [acml macos mkl-gcc openblas ...]
     -j #            parallel make threads, default $j
         --no-clean  skip 'make clean' before build; only one configuration allowed
         --no-sparse skip making sparse
+    -l  --link      link object files
     -t  --tar       tar object files in builds/<config>/obj.tar.gz
     -p  --pause     pause after each build"
 
@@ -41,6 +43,9 @@ while [ $# -gt 0 ]; do
             ;;
         --no-sparse)
             sparse=""
+            ;;
+        -l|--link)
+            link=1
             ;;
         -t|--tar)
             tar=1
@@ -132,7 +137,7 @@ for config in $@; do
     fi
     echo "building in $builds/$config"
     mkdir $builds/$config
-    
+
     if [ -n "$clean" ]; then
         echo "$make clean"
         touch make.inc
@@ -140,7 +145,7 @@ for config in $@; do
     else
         echo "SKIPPING CLEAN"
     fi
-    
+
     run "$make lib"             $builds/$config/out-lib.txt          $builds/$config/err-lib.txt
     run "$make test -k"         $builds/$config/out-test.txt         $builds/$config/err-test.txt
     if [ -n "$sparse" ]; then
@@ -149,18 +154,44 @@ for config in $@; do
     else
         echo "SKIPPING SPARSE"
     fi
-    
+
     mkdir $builds/$config/lib
     mkdir $builds/$config/testing
-    mkdir $builds/$config/sparse-testing
-    ln lib/lib* $builds/$config/lib
+
+    mkdir $builds/$config/sparse
+    mkdir $builds/$config/sparse/testing
+
+    # link libraries
+    ln lib/lib*       $builds/$config/lib
+
+    # link testers
     ln `find testing        -maxdepth 1 -perm -u+x -type f -not -name '*.py' -not -name '*.pl' -not -name '*.sh' -not -name '*.csh'` $builds/$config/testing
     (cd $builds/$config/testing; ln -s ../../../../testing/run* .; ln -s ../../../../testing/*.ref .)
     pwd
     if [ -n "$sparse" ]; then
-        ln `find sparse/testing -maxdepth 1 -perm -u+x -type f -not -name '*.py' -not -name '*.pl' -not -name '*.sh' -not -name '*.csh'` $builds/$config/sparse-testing
+        ln `find sparse/testing -maxdepth 1 -perm -u+x -type f -not -name '*.py' -not -name '*.pl' -not -name '*.sh' -not -name '*.csh'` $builds/$config/sparse/testing
     fi
-    
+
+    # link objects
+    if [ -n "$link" ]; then
+        mkdir $builds/$config/src
+        mkdir $builds/$config/control
+        mkdir $builds/$config/magmablas
+
+        mkdir $builds/$config/sparse/src
+        mkdir $builds/$config/sparse/control
+        mkdir $builds/$config/sparse/blas
+
+        ln src/*.o            $builds/$config/src
+        ln control/*.o        $builds/$config/control
+        ln magmablas/*.o      $builds/$config/magmablas
+
+        ln sparse/src/*.o     $builds/$config/sparse/src
+        ln sparse/control/*.o $builds/$config/sparse/control
+        ln sparse/blas/*.o    $builds/$config/sparse/blas
+    fi
+
+    # tar objects
     if [ -n "$tar" ]; then
         echo "tar objs " `date`
         ./tools/find_obj_files.sh > obj-files.txt
@@ -169,7 +200,7 @@ for config in $@; do
     else
         echo "SKIPPING TAR"
     fi
-    
+
     if [ -n "$pause" ]; then
         echo "[return to continue]"
         read

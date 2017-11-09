@@ -242,7 +242,7 @@ magma_zgeqrf_batched_smallsq(
         case 30: zgeqrf_batched_sq1d_reg_kernel<30><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dtau_array, info_array, batchCount); break;
         case 31: zgeqrf_batched_sq1d_reg_kernel<31><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dtau_array, info_array, batchCount); break;
         case 32: zgeqrf_batched_sq1d_reg_kernel<32><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dtau_array, info_array, batchCount); break;
-        default: printf("error: size %d is not supported\n", m);
+        default: printf("error: size %lld is not supported\n", (long long) m);
     }
     return arginfo;
 }

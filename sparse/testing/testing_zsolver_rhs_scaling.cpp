@@ -44,7 +44,7 @@ int main(  int argc, char** argv )
     magma_z_matrix x={Magma_CSR}, x_h={Magma_CSR}, b_h={Magma_DENSE}, b={Magma_DENSE};
     magma_z_matrix A_org={Magma_CSR};
     magma_z_matrix b_org={Magma_DENSE};
-    magma_z_matrix scaling_factors={Magma_DENSE}, scaling_factors_d={Magma_DENSE};
+    magma_z_matrix scaling_factors={Magma_DENSE};
     magma_z_matrix y_check={Magma_DENSE};
     double residual = 0.0;
     

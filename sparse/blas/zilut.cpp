@@ -40,7 +40,7 @@ typedef struct ILUfac {
 } ILUSpar, LDUmat, *iluptr;
 
 
-void *Malloc( int nbytes, char *msg )
+void *Malloc( int nbytes, const char *msg )
 {
   void *ptr;
 
@@ -553,7 +553,8 @@ magma_zilut_saad(
     nzcountU = nzcountU +   U->nzcount[z];
   }
   printf("ilut_fill_ratio = %.6f;\n", (double)(nzcounts+n)/(double)(A.nnz)); 
-  printf("%% L:%d U:%d D:%d = %d vs. %d\n", nzcountL, nzcountU, n, nzcountL + nzcountU + n, A.nnz); 
+  printf("%% L:%d U:%d D:%d = %d vs. %lld\n",
+         nzcountL, nzcountU, n, nzcountL + nzcountU + n, (long long) A.nnz);
 
   free( iw );
   free( jbuf );
@@ -607,7 +608,7 @@ magma_zilut_saad_apply(
      magma_int_t info = 0;
      
  #ifdef PRECISION_d
-     magma_z_matrix x_h, b_h, d_h;
+     magma_z_matrix x_h, b_h;
      magma_zmtransfer( *x, &x_h, Magma_DEV, Magma_CPU, queue );
      magma_zmtransfer( b, &b_h, Magma_DEV, Magma_CPU, queue );
      magma_zmfree( x, queue );

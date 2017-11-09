@@ -189,7 +189,7 @@ magma_zparict(
         }
         
 
-        sprintf(filenameL, "LT_rm%03d_step%d.m", (int)(precond->rtol*1000), iters+1);
+        sprintf(filenameL, "LT_rm%03d_step%lld.m", (int)(precond->rtol*1000), (long long) iters+1);
 
         // write to file
         // CHECK( magma_zwrite_csrtomtx( L, filenameL, queue ));

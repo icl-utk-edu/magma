@@ -744,14 +744,15 @@ void magma_opts::get_range(
         *range = MagmaRangeI;
         *il = this->fraction_lo * n;
         *iu = this->fraction_up * n;
-        printf( "fraction (%.2f, %.2f) => irange (%d, %d)\n",
-                this->fraction_lo, this->fraction_up, *il, *iu );
+        printf( "fraction (%.2f, %.2f) => irange (%lld, %lld)\n",
+                this->fraction_lo, this->fraction_up,
+                (long long) *il, (long long) *iu );
     }
     else if (this->irange_lo != 0 || this->irange_up != 0) {
         *range = MagmaRangeI;
         *il = min( this->irange_lo, n );
         *iu = min( this->irange_up, n );
-        printf( "irange (%d, %d)\n", *il, *iu );
+        printf( "irange (%lld, %lld)\n", (long long) *il, (long long) *iu );
     }
     else if (this->vrange_lo != 0 || this->vrange_up != 0) {
         *range = MagmaRangeV;

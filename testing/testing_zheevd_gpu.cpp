@@ -51,7 +51,7 @@ int main( int argc, char** argv)
     #endif
     double *w1, *w2, result[4]={0, 0, 0, 0}, eps, abstol, runused[1];
     magma_int_t *iwork, *isuppz, *ifail, aux_iwork[1];
-    magma_int_t N, Nfound, n2, info, lwork, liwork, lda, ldda;
+    magma_int_t N, Nfound, info, lwork, liwork, lda, ldda;
     eps = lapackf77_dlamch( "E" );
     int status = 0;
 
@@ -95,7 +95,6 @@ int main( int argc, char** argv)
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
             N = opts.nsize[itest];
-            n2   = N*N;
             lda  = N;
             ldda = magma_roundup( N, opts.align );  // multiple of 32 by default
             abstol = 0;  // auto, in zheevr
