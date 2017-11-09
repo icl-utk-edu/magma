@@ -607,7 +607,7 @@ magma_zilut_saad_apply(
      magma_int_t info = 0;
      
  #ifdef PRECISION_d
-     magma_z_matrix x_h, b_h, d_h;
+     magma_z_matrix x_h, b_h;
      magma_zmtransfer( *x, &x_h, Magma_DEV, Magma_CPU, queue );
      magma_zmtransfer( b, &b_h, Magma_DEV, Magma_CPU, queue );
      magma_zmfree( x, queue );
