@@ -423,7 +423,7 @@ magma_z_applyprecond_left(
                   ( precond->trisolver == Magma_SYNCFREESOLVE ) ){
             CHECK( magma_zapplycumilu_l( b, x, precond, queue ));
         }
-        else if ( ( precond->solver == Magma_ILUT ) ){
+        else if (precond->solver == Magma_ILUT) {
             printf( "error: preconditioner requires OpenMP.\n" );
             info = MAGMA_ERR_NOT_SUPPORTED;
             //CHECK( magma_zilut_saad_apply( b, x, precond, queue ));
@@ -593,7 +593,7 @@ magma_z_applyprecond_right(
                   ( precond->trisolver == Magma_SYNCFREESOLVE ) ){
             CHECK( magma_zapplycumilu_r( b, x, precond, queue ));
         }
-        else if ( ( precond->solver == Magma_ILUT ) ){
+        else if (precond->solver == Magma_ILUT) {
             printf( "error: preconditioner requires OpenMP.\n" );
             info = MAGMA_ERR_NOT_SUPPORTED;
             //magma_zcopy( b.num_rows*b.num_cols, b.dval, 1, x->dval, 1, queue );
