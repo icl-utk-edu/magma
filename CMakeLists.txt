@@ -346,6 +346,7 @@ endif()
 
 include_directories( include )
 include_directories( control )
+include_directories( magmablas )  # e.g., shuffle.cuh
 
 # Need to check sizeof(void*) after setting flags above;
 # CMAKE_SIZEOF_VOID_P can be wrong.
