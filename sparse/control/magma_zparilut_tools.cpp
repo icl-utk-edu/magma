@@ -6504,7 +6504,7 @@ magma_zparilut_select_candidates_L(
 {
     magma_int_t info = 0;
     magma_int_t num_threads=1;
-    double element1;
+    double element1 = 0;
     magma_int_t count = 0;
     double thrs1 = 1.00; //25;
     magma_int_t el_per_block;
@@ -6679,7 +6679,7 @@ magma_zparilut_select_candidates_U(
 {
     magma_int_t info = 0;
     magma_int_t num_threads=1;
-    double element1;
+    double element1 = 0;
     magma_int_t count = 0;
     double thrs1 = 1.00; //25;
     magma_int_t el_per_block;
