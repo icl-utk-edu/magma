@@ -130,7 +130,7 @@ if ( CUDA_FOUND )
 		set( GPU_TARGET "${GPU_TARGET} sm_50" )
 	endif()
 	
-	if ( ${GPU_TARGET} MATCHES Maxwell )
+	if ( ${GPU_TARGET} MATCHES Pascal )
 		set( GPU_TARGET "${GPU_TARGET} sm_60" )
 	endif()
 	
