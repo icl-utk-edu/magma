@@ -4,7 +4,7 @@
 -----------------------------------------------------
 
 MAGMA is intended for CUDA enabled NVIDIA GPUs.
-It supports Fermi and Kepler GPUs.
+It supports Fermi, Kepler, Maxwell, Pascal, and Volta GPUs.
 
 Included are routines for the following algorithms:
 
