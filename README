@@ -2,223 +2,41 @@
 MAGMA README FILE
 ===================
 
-* Further documentation is provided in docs/html/index.html.
-
-----------------------------------------------------------------------------
-* Configuring MAGMA
+--------------------------------------------------------------------------------
+* Quick start
 
     Create a make.inc file to indicate your C/C++ compiler, Fortran compiler,
     and where CUDA, CPU BLAS, and LAPACK are installed on your system.
     Examples are given in the make.inc-examples directory for various
-    libraries and operating systems.
+    libraries and operating systems. The examples rely on paths such as $CUDADIR
+    and $MKLROOT being set in your environment.
 
-----------------------------------------------------------------------------
-* Library paths
+    To compile shared and static libraries in lib, and testers in testing and
+    sparse/testing:
+    	make
+	or:
+		make lib
+		make test
+		make sparse-lib
+		make sparse-test
 
-    All the make.inc files assume $CUDADIR is set in your environment.
-    For bash (sh), put in ~/.bashrc (with your system's path):
-        export CUDADIR=/usr/loca/cuda
-    For csh/tcsh, put in ~/.cshrc:
-        setenv CUDADIR /usr/local/cuda
-    MAGMA is tested with CUDA >= 5.5. Some functionality requires a newer version.
+	To install libraries and headers:
+		make install prefix=/usr/local/magma
 
-    The MKL make.inc files assume $MKLROOT is set in your environment.
-    For bash (sh), put in ~/.bashrc (with your system's path):
-        source /opt/intel/composerxe/bin/compilervars.sh intel64
-    For csh/tcsh, put in ~/.cshrc:
-        source /opt/intel/composerxe/bin/compilervars.csh intel64
-    MAGMA is tested with MKL 11.3.3 (2016), both LP64 and ILP64;
-    other versions may work.
+* Detailed installation instructions and further documentation is provided in
+  	docs/html/index.html or
+  	http://icl.utk.edu/projectsfiles/magma/doxygen/
 
-    The ACML make.inc file assumes $ACMLDIR is set in your environment.
-    For bash (sh), put in ~/.bashrc (with your system's path):
-        export ACMLDIR=/opt/acml-5.3.1
-    For csh/tcsh, put in ~/.cshrc:
-        setenv ACMLDIR  /opt/acml-5.3.1
-    MAGMA is tested with ACML 5.3.1; other versions may work.
-    See comments in make.inc.acml regarding ACML 4;
-    a couple testers fail to compile with ACML 4.
+* There is also a CMake option, especially useful for building on Windows.
+  See README-Windows.
 
-    The ATLAS make.inc file assumes $ATLASDIR and $LAPACKDIR are set in your environment.
-    If not installed, install LAPACK from http://www.netlib.org/lapack/
-    For bash (sh), put in ~/.bashrc (with your system's path):
-        export ATLASDIR=/opt/atlas
-        export LAPACKDIR=/opt/LAPACK
-    For csh/tcsh, put in ~/.cshrc:
-        setenv ATLASDIR  /opt/atlas
-        setenv LAPACKDIR /opt/LAPACK
-
-    The OpenBLAS make.inc file assumes $OPENBLASDIR is set in your environment.
-    For bash (sh), put in ~/.bashrc (with your system's path):
-        export OPENBLASDIR=/opt/openblas
-    For csh/tcsh, put in ~/.cshrc:
-        setenv OPENBLASDIR /opt/openblas
-    Some bugs exist with OpenBLAS 0.2.19; see BUGS.txt.
-
-----------------------------------------------------------------------------
-* Linking to BLAS
-
-    Depending on the Fortran compiler used for your BLAS and LAPACK libraries,
-    the linking convention is one of:
-        * Add underscore, so gemm() in Fortran becomes gemm_() in C.
-        * Uppercase,      so gemm() in Fortran becomes GEMM()  in C.
-        * No change,      so gemm() in Fortran stays   gemm()  in C.
-    Set -DADD_, -DUPCASE, or -DNOCHANGE, respectively, in all FLAGS in your
-    make.inc file to select the appropriate one. Use nm to examine your BLAS
-    library:
-
-        acml-5.3.1/gfortran64_mp/lib> nm libacml_mp.a | grep -i 'T.*dgemm'
-        0000000000000000 T dgemm
-        00000000000004e0 T dgemm_
-
-    Which shows that either -DADD_ (dgemm_) or -DNOCHANGE (dgemm) should work.
-    The default in all make.inc files is -DADD_.
-
-----------------------------------------------------------------------------
-* Compile-time options
-
-    Several compiler defines, below, affect how MAGMA is compiled and
-    might have a large performance impact. These are set in make.inc files
-    using the -D compiler flag, e.g., -DMAGMA_WITH_MKL in CFLAGS.
-
-    MAGMA_WITH_MKL
-        If linked with MKL, allows MAGMA to get MKL's version and
-        set MKL's number of threads.
-
-    MAGMA_WITH_ACML
-        If linked with ACML 5 or later, allows MAGMA to get ACML's version.
-        ACML's number of threads are set via OpenMP.
-
-    MAGMA_NO_V1
-        Disables MAGMA v1.x compatability. Skips compiling non-queue versions
-        of MAGMA BLAS routines, and simplifies magma_init().
-
-    MAGMA_NOAFFINITY
-        Disables thread affinity, available in glibc 2.6 and later.
-
-    BATCH_DISABLE_CHECKING
-        For batched routines, disables the info_array that contains errors.
-        For example, for Cholesky factorization if you are sure your matrix is
-        SPD and want better performance, you can compile with this flag.
-
-    BATCH_DISABLE_CLEANUP
-        For batched routines, disables the cleanup code.
-        For example the {sy|he}rk called with "lower" will write data on
-        the upper triangular portion of the matrix.
-
-    BATCHED_DISABLE_PARCPU
-        In the testing directory, disables the parallel implementation of the
-        batched computation on CPU. Can be used to compare a naive versus a
-        parallelized CPU batched computation.
-
-----------------------------------------------------------------------------
-* Building without Fortran
-
-    MAGMA can be built without Fortran by commenting out FORT in the make.inc file.
-    However, some testers will not be able to check their results.
-
-----------------------------------------------------------------------------
-* Building Shared Libraries
-
-    By default now, all make.inc files add the -fPIC option to CFLAGS, FFLAGS,
-    F90FLAGS, and NVCCFLAGS, required for building a shared library. Note in
-    NVCCFLAGS that -fPIC is passed via the -Xcompiler option. Running:
-        make
-    or
-        make lib
-        make test
-        make sparse-lib
-        make sparse-test
-    will create shared libraries:
-        lib/libmagma.so
-        lib/libmagma_sparse.so
-    and static libraries:
-        lib/libmagma.a
-        lib/libmagma_sparse.a
-    and testing drivers in 'testing' and 'sparse-iter/testing'.
-
-    (The current exception is for ATLAS, in make.inc.atlas, which in our
-    install is a static library, thus requiring MAGMA to be a static library.)
-
-----------------------------------------------------------------------------
-* Building Static Libraries
-
-    Alternatively, comment out FPIC in the make.inc file to compile only a static
-    library. Then, running:
-        make
-    or
-        make lib
-        make test
-        make sparse-lib
-        make sparse-test
-    will create static libraries:
-        lib/libmagma.a
-        lib/libmagma_sparse.a
-    and testing drivers in 'testing' and 'sparse-iter/testing'.
-
-----------------------------------------------------------------------------
-* Installation
-
-    To install libraries and include files in a given prefix, run:
-
-        make install prefix=/usr/local/magma
-
-    The default prefix is /usr/local/magma. You can also set prefix in make.inc.
-
-----------------------------------------------------------------------------
-* Environment variables
-
-    These variables control MAGMA, BLAS, and LAPACK runtime behavior.
-
-    $MAGMA_NUM_GPUS
-        For multi-GPU functions, set $MAGMA_NUM_GPUS to the number of GPUs to use.
-
-    $OMP_NUM_THREADS
-    $MKL_NUM_THREADS
-    $VECLIB_MAXIMUM_THREADS
-        For multi-core BLAS libraries, set $OMP_NUM_THREADS or $MKL_NUM_THREADS or
-        $VECLIB_MAXIMUM_THREADS to the number of CPU threads, depending on your
-        BLAS library.
-
-----------------------------------------------------------------------------
-* Example
-
-    A short standalone EXAMPLE is provided in directory 'example'. This is
-    intended to show the minimum needed to start using MAGMA, without all the
-    extra Makefiles, headers, and libraries used in testing. You must edit
-    example/Makefile to reflect your make.inc, or use pkg-config, as described in
-    example/README.txt.
-
-----------------------------------------------------------------------------
-* Testing
-
-    To TEST MAGMA, go to directory 'testing'. Drivers testing different routines
-    are provided. These drivers are also useful as examples on how to use MAGMA,
-    as well as to benchmark the performance.
-
-    The testers print "ok" or "failed" for whether the error passes the tolerance.
-    In some cases, the tolerance may be too strict, so a test may "fail" even
-    though it is only slightly above the tolerance. Error values around 1e-15 for
-    double and double-complex, and 1e-7 for single and single-complex, are
-    generally acceptable. Values larger than 1e-4 are very suspicious.
-
-----------------------------------------------------------------------------
-* Tuning
-
-    You can modify the blocking factors for the algorithms of
-    interest in file 'control/get_nb.cpp'. The default values are tuned for
-    general Fermi (2.x) and Kepler (3.x) GPUs.
-
-    Performance results are included in results/vA.B.C/cudaX.Y-zzz/*.txt
-    for MAGMA version A.B.C, CUDA version X.Y, and GPU zzz.
-
-----------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 * Forum
 
-    For more INFORMATION, please refer to the MAGMA homepage and user forum:
+    For more information, please refer to the MAGMA homepage and user forum:
 
-        http://icl.cs.utk.edu/magma/
-        http://icl.cs.utk.edu/magma/forum/
+        http://icl.utk.edu/magma/
+        http://icl.utk.edu/magma/forum/
 
     The MAGMA project supports the package in the sense that reports of
     errors or poor performance will gain immediate attention from the

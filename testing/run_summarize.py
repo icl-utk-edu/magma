@@ -33,11 +33,67 @@
 # tests. Also adds the ratio {error/eps} in braces after each error.
 # Tests that passed are not output by default.
 #
-# This is helpful to re-parse and summarize output from run-tests.py, and
+# This is helpful to re-parse and summarize output from \ref run_tests.py, and
 # to apply a second tolerence to separate true failures from borderline cases.
 #
 # The --rerun [123] option is helpful to generate a shell script to re-run
 # failed cases.
+#
+# Example usage. First run tests, directing output to a file:
+#
+#     magma/testing> python ./run_tests.py --tol 30 --medium testing_sgeqr2x_gpu > sgeqr2x.txt
+#     testing_sgeqr2x_gpu --version 1 -c                ok
+#     testing_sgeqr2x_gpu --version 2 -c                ** 1 tests failed
+#     testing_sgeqr2x_gpu --version 3 -c                ok
+#     testing_sgeqr2x_gpu --version 4 -c                ** 1 tests failed
+#     ----------------------------------------------------------------------------------------------------
+#     summary
+#     ----------------------------------------------------------------------------------------------------
+#        34 tests in 4 commands passed
+#         2 tests failed accuracy test
+#         0 errors detected (crashes, CUDA errors, etc.)
+#     routines with failures:
+#         testing_sgeqr2x_gpu --version 2 -c
+#         testing_sgeqr2x_gpu --version 4 -c
+#
+# Then post-process the output:
+#
+#     magma/testing> ./run_summarize.py sgeqr2x.txt
+#     single epsilon 5.96e-08,  tol2 100,  tol2*eps 5.96e-06,
+#     double epsilon 1.11e-16,  tol2 100,  tol2*eps 1.11e-14,
+#     ------------------------------------------------------------------------------------------------------------------------
+#     okay tests:                                          2 commands,     68 tests
+#
+#
+#     ------------------------------------------------------------------------------------------------------------------------
+#     errors (segfault, etc.):                             0 commands,      0 tests
+#
+#
+#     ------------------------------------------------------------------------------------------------------------------------
+#     failed tests (error > tol2*eps):                     0 commands,      0 tests
+#
+#
+#     ------------------------------------------------------------------------------------------------------------------------
+#     suspicious tests (tol2*eps > error > tol*eps):       0 commands,      0 tests
+#
+#
+#     ------------------------------------------------------------------------------------------------------------------------
+#     known failures:                                      2 commands,      2 tests
+#     ./testing_sgeqr2x_gpu --version 2 --tol 30
+#     failed tests (error > tol2*eps):
+#       100   100      4.01 (   0.34)      0.07 (  20.73)  5.23e-06 {   87.8}     2.08e-03 {34899.3}     2.29e-07 {    3.8}       9.05e-05 { 1518.5}   failed
+#
+#     ./testing_sgeqr2x_gpu --version 4 --tol 30
+#     failed tests (error > tol2*eps):
+#       100   100      3.99 (   0.34)      0.09 (  15.68)  5.58e-06 {   93.6}     2.21e-03 {37080.5}     2.19e-07 {    3.7}       9.65e-05 { 1619.1}   failed
+#
+#     ------------------------------------------------------------------------------------------------------------------------
+#     ignored errors (e.g., malloc failed):                0 commands,      0 tests
+#
+#
+#     ------------------------------------------------------------------------------------------------------------------------
+#     other (lines that did not get matched):              0 commands,      0 tests
+#
 
 import re
 import sys

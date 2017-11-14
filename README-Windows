@@ -58,12 +58,14 @@ the setup some.
 *  If using Intel MKL, also set MKLROOT. In our case, we used:
    C:\Program Files (x86)\Intel\Composer XE\mkl
 
-*  GPU_TARGET contains one or more of Fermi, Kepler, or Maxwell,
+*  GPU_TARGET contains one or more of Fermi, Kepler, Maxwell, Pascal, Volta
    to specify for which GPUs you want to compile MAGMA:
        Fermi   - NVIDIA compute capability 2.x cards
        Kepler  - NVIDIA compute capability 3.x cards
        Maxwell - NVIDIA compute capability 5.x cards
-   The default is "Fermi Kepler".
+       Pascal  - NVIDIA compute capability 6.x cards
+       Volta   - NVIDIA compute capability 7.x cards
+   The default is "Kepler Maxwell Pascal".
    See http://developer.nvidia.com/cuda-gpus
 
 Click Configure again.

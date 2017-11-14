@@ -98,6 +98,3 @@ Steps to take to update code that uses MAGMA:
 
     magma_zgetrf    ( m, n,  A, lda,  ipiv, &info );    ==>    no change
     magma_zgetrf_gpu( m, n, dA, ldda, ipiv, &info );    ==>    no change
-
-The MAGMA testers have NOT YET been updated to v2. This is intentional, to test
-the backwards compatibility of code.

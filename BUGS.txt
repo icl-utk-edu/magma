@@ -3,6 +3,18 @@ Known bugs & issues
 These show up when using testing run_tests.py --tol 100.
 
 
+Nov 2017
+When compiling MAGMA with CUDA 9.0RC, the compiler issues numerous warnings:
+    dereferencing type-punned pointer will break strict-aliasing rules.
+This appears to be an issue with CUDA, not with MAGMA.
+
+
+Nov 2017
+When using make.inc.mkl-gcc-ilp64 and OMP_NUM_THREADS > 1, the LAPACK matrix
+norm function lange returns wrong results, causing some MAGMA testers to fail.
+Bug reported to Intel.
+
+
 Nov 2016
 zheevd and zhetrd (all versions, uplo=lower) -- segfault
 Using OpenBLAS 0.2.19; appears to be in zhemv_l function.

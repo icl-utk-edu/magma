@@ -65,45 +65,252 @@ algorithm is used. Also included is MAGMA BLAS, a complementary to CUBLAS routin
 ********************************************************************************
 @page installing    Installing MAGMA
 
-First, create a file make.inc, using one of the examples as a template.
+First, create a `make.inc` file, using one of the examples as a template.
 Set environment variables for where external packages are installed,
-either in your .cshrc/.bashrc file, or in the make.inc file itself.
-For instance, to specify where CUDA and Intel MKL are installed, using csh:
+either in your `.cshrc/.bashrc` file, or in the `make.inc` file itself.
+
+#### CUDA
+
+All the `make.inc` files assume `$CUDADIR` is set in your environment.
+For bash (sh), put in `~/.bashrc` (with your system's path):
+
+    export CUDADIR=/usr/loca/cuda
+
+For csh/tcsh, put in `~/.cshrc`:
 
     setenv CUDADIR /usr/local/cuda
-    # sourcing this script sets MKLROOT
-    source /opt/intel/composer/bin/compilervars.csh intel64
 
-using sh/bash:
+MAGMA is tested with CUDA >= 7.5. Some functionality requires a newer version.
 
-    CUDADIR=/usr/local/cuda
-    source /opt/intel/composer/bin/compilervars.sh intel64
+#### Intel MKL
 
-If you do not have a Fortran compiler, comment out FORT. MAGMA's Fortran 90
-interface and Fortran testers will not be built. Also, many testers will not
-be able to check their results -- they will print an error message, e.g.:
+The MKL `make.inc` files assume `$MKLROOT` is set in your environment. To set it,
+for bash (sh), put in ~/.bashrc (with your system's path):
+
+    source /opt/intel/bin/compilervars.sh intel64
+
+For csh/tcsh, put in ~/.cshrc:
+
+    source /opt/intel/bin/compilervars.csh intel64
+
+MAGMA is tested with MKL 11.3.3 (2016), both LP64 and ILP64;
+other versions may work.
+
+#### AMD ACML
+
+The ACML `make.inc` file assumes `$ACMLDIR` is set in your environment.
+For bash (sh), put in ~/.bashrc (with your system's path):
+
+    export ACMLDIR=/opt/acml-5.3.1
+
+For csh/tcsh, put in ~/.cshrc:
+
+    setenv ACMLDIR  /opt/acml-5.3.1
+
+MAGMA is tested with ACML 5.3.1; other versions may work.
+See comments in `make.inc.acml` regarding ACML 4;
+a couple testers fail to compile with ACML 4.
+
+#### ATLAS
+
+The ATLAS `make.inc` file assumes `$ATLASDIR` and `$LAPACKDIR` are set in your environment.
+If not installed, install LAPACK from http://www.netlib.org/lapack/
+For bash (sh), put in ~/.bashrc (with your system's path):
+
+    export ATLASDIR=/opt/atlas
+    export LAPACKDIR=/opt/LAPACK
+
+For csh/tcsh, put in ~/.cshrc:
+
+    setenv ATLASDIR  /opt/atlas
+    setenv LAPACKDIR /opt/LAPACK
+
+#### OpenBLAS
+
+The OpenBLAS `make.inc` file assumes `$OPENBLASDIR` is set in your environment.
+For bash (sh), put in ~/.bashrc (with your system's path):
+
+    export OPENBLASDIR=/opt/openblas
+
+For csh/tcsh, put in ~/.cshrc:
+
+    setenv OPENBLASDIR /opt/openblas
+
+Some bugs exist with OpenBLAS 0.2.19; see BUGS.txt.
+
+#### MacOS Accelerate (previously Veclib)
+
+Unfortunately, the MacOS Accelerate framework uses an old ABI for BLAS and
+LAPACK, where single precision functions -- such as `sdot`, `cdot`, `slange`,
+and `clange` -- return a double precision result. This makes them incompatibile
+with our C/C++ headers and with the Fortran code used in our testers. The fix is
+to substitute reference implementations of these functions, found in
+`magma/blas_fix`. Setting `blas_fix = 1` in `make.inc` will compile these into
+`magma/lib/libblas_fix.a`, with which your application should link.
+
+
+Linking to BLAS
+--------------------------------------------------------------------------------
+Depending on the Fortran compiler used for your BLAS and LAPACK libraries,
+the linking convention is one of:
+
+- Add underscore, so `gemm()` in Fortran becomes `gemm_()` in C.
+- Uppercase,      so `gemm()` in Fortran becomes `GEMM() ` in C.
+- No change,      so `gemm()` in Fortran stays   `gemm() ` in C.
+
+Set `-DADD_`, `-DUPCASE`, or `-DNOCHANGE`, respectively, in all FLAGS in your
+`make.inc` file to select the appropriate one. Use `nm` to examine your BLAS
+library:
+
+    acml-5.3.1/gfortran64_mp/lib> nm libacml_mp.a | grep -i 'T.*dgemm'
+    0000000000000000 T dgemm
+    00000000000004e0 T dgemm_
+
+In this case, it shows that either `-DADD_ (dgemm_)` or `-DNOCHANGE (dgemm)`
+should work. The default in all make.inc files is `-DADD_`.
+
+
+Compile-time options
+--------------------------------------------------------------------------------
+Several compiler defines, below, affect how MAGMA is compiled and
+might have a large performance impact. These are set in `make.inc` files
+using the `-D` compiler flag, e.g., `-DMAGMA_WITH_MKL` in CFLAGS.
+
+- `MAGMA_WITH_MKL`
+
+    If linked with MKL, allows MAGMA to get MKL's version and
+    set MKL's number of threads.
+
+- `MAGMA_WITH_ACML`
+
+    If linked with ACML 5 or later, allows MAGMA to get ACML's version.
+    ACML's number of threads are set via OpenMP.
+
+- `MAGMA_NO_V1`
+
+    Disables MAGMA v1.x compatability. Skips compiling non-queue versions
+    of MAGMA BLAS routines, and simplifies magma_init().
+
+- `MAGMA_NOAFFINITY`
+
+    Disables thread affinity, available in glibc 2.6 and later.
+
+- `BATCH_DISABLE_CHECKING`
+
+    For batched routines, disables the info_array that contains errors.
+    For example, for Cholesky factorization if you are sure your matrix is
+    SPD and want better performance, you can compile with this flag.
+
+- `BATCH_DISABLE_CLEANUP`
+
+    For batched routines, disables the cleanup code.
+    For example, the {sy|he}rk called with "lower" will write data on
+    the upper triangular portion of the matrix.
+
+- `BATCHED_DISABLE_PARCPU`
+
+    In the testing directory, disables the parallel implementation of the
+    batched computation on CPU. Can be used to compare a naive versus a
+    parallelized CPU batched computation.
+
+
+Run-time options
+--------------------------------------------------------------------------------
+These variables control MAGMA, BLAS, and LAPACK run-time behavior.
+
+- `$MAGMA_NUM_GPUS`
+
+For multi-GPU functions, set `$MAGMA_NUM_GPUS` to the number of GPUs to use.
+
+- `$OMP_NUM_THREADS`
+- `$MKL_NUM_THREADS`
+- `$VECLIB_MAXIMUM_THREADS`
+
+    For multi-core BLAS libraries, set `$OMP_NUM_THREADS` or `$MKL_NUM_THREADS`
+    or `$VECLIB_MAXIMUM_THREADS` to the number of CPU threads, depending on your
+    BLAS library. See the documentation for your BLAS and LAPACK libraries.
+
+
+Building without Fortran
+--------------------------------------------------------------------------------
+If you do not have a Fortran compiler, comment out `FORT` in `make.inc`.
+MAGMA's Fortran 90 interface and Fortran testers will not be built. Also, many
+testers will not be able to check their results -- they will print an error
+message, e.g.:
 
     magma/testing> ./testing_dgehrd -N 100 -c
     ...
     Cannot check results: dhst01_ unavailable, since there was no Fortran compiler.
       100     ---   (  ---  )      0.70 (   0.00)   0.00e+00        0.00e+00   ok
 
-To compile shared library, first add -fPIC to CFLAGS, FFLAGS, etc. in make.inc;
-see example in make.inc.mkl-shared. Then:
 
-    make shared
-    make test
-    make install prefix=/usr/local/magma
+Building shared libraries
+--------------------------------------------------------------------------------
+By default, all `make.inc` files (except ATLAS) add the `-fPIC` option to CFLAGS,
+FFLAGS, F90FLAGS, and NVCCFLAGS, required for building a shared library. Note in
+NVCCFLAGS that `-fPIC` is passed via the `-Xcompiler` option. Running:
 
-To compile static library:
+    make
+
+or
 
     make lib
     make test
+    make sparse-lib
+    make sparse-test
+
+will create shared libraries:
+
+    lib/libmagma.so
+    lib/libmagma_sparse.so
+
+and static libraries:
+
+    lib/libmagma.a
+    lib/libmagma_sparse.a
+
+and testing drivers in `testing` and `sparse-iter/testing`.
+
+The current exception is for ATLAS, in `make.inc.atlas`, which in our
+install is a static library, thus requiring MAGMA to be a static library.
+
+
+Building static libraries
+--------------------------------------------------------------------------------
+Static libraries are always built along with the shared libraries above.
+Alternatively, comment out `FPIC` in your `make.inc` file to compile only a
+static library. Then, running:
+
+    make
+
+will create static libraries:
+
+    lib/libmagma.a
+    lib/libmagma_sparse.a
+
+and testing drivers in `testing` and `sparse-iter/testing`.
+
+
+Installation
+--------------------------------------------------------------------------------
+To install libraries and include files in a given prefix, run:
+
     make install prefix=/usr/local/magma
 
-This installs libmagma.a and libmagma.so (if compiled) in \$(prefix)/lib, and
-the MAGMA header files in \$(prefix)/include. It also installs
-\$(prefix)/lib/pkgconfig/magma.pc for pkg-config.
+The default prefix is `/usr/local/magma`. You can also set `prefix` in `make.inc`.
+This installs
+MAGMA libraries in `${prefix}/lib`,
+MAGMA header files in `${prefix}/include`, and
+`${prefix}/lib/pkgconfig/magma.pc` for `pkg-config`.
+
+
+Tuning
+--------------------------------------------------------------------------------
+You can modify the blocking factors for the algorithms of
+interest in `control/get_nb.cpp`.
+
+Performance results are included in `results/vA.B.C/cudaX.Y-zzz/*.txt`
+for MAGMA version A.B.C, CUDA version X.Y, and GPU zzz.
 
 
 ********************************************************************************
@@ -114,18 +321,25 @@ useful as examples, though they contain additional testing features that
 your application does not need, or would do differently. The \ref example "example"
 directory has a simple example without all this additional framework.
 
-See the testing/run_tests.py file to run a standard set of test sizes and options.
-Currentyl, nearly all the tests pass with --tol 100. With the default tolerance,
-usually 30, some tests will signal false negatives, where the test is okay but
-just slightly above the accuracy tolerance check.
+The \ref run_tests.py script runs a standard set of test sizes and
+options. If output is to a file, a summary is printed to stderr.
+Currently, nearly all the tests pass with `--tol 100`. With the default
+tolerance, usually 30, some tests will signal false negatives, where the test is
+okay but just slightly above the accuracy tolerance check.
+
+The \ref run_summarize.py script post-processes tester output to find
+errors, failed tests, suspicious tests that were just a little above the
+accuracy threshold, and known failures (see BUGS.txt). For example:
 
 
 ********************************************************************************
 @page example       Example
 
-The example directory shows a simple, standalone example. This shows how to
+The `example` directory shows a simple, standalone example. This shows how to
 use MAGMA, apart from the MAGMA Makefiles and other special framework that
 we've developed for the tests.
+You must edit `example/Makefile` to reflect your `make.inc`,
+or use `pkg-config`, as described in `example/README.txt`.
 
 
 ********************************************************************************
@@ -216,7 +430,7 @@ Computational routines solve one piece of a problem. Typically, driver
 routines call several computational routines to solve the entire problem.
 Here, curly braces { } group similar routines.
 Starred * routines are not yet implemented in MAGMA.
-                                                                                     
+
 Name                                                                                |  Description
 -----------                                                                         |  -----------
 : **Triangular factorizations** :                                                   |  **Description**

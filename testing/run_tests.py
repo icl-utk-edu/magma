@@ -13,8 +13,7 @@
 #
 # See also the run_summarize.py script, which post-processes the output,
 # sorting it into errors (segfaults, etc.), accuracy failures, and known failures.
-# run_summarize.py can apply a different (larger) tolerance without re-running
-# the tests.
+# run_summarize.py can apply a larger tolerance without re-running the tests.
 #
 # Small sizes are chosen around block sizes (e.g., 30...34 around 32) to
 # detect bugs that occur at the block size, and the switch over from
