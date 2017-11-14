@@ -43,11 +43,11 @@ T warpReduceSum(T val)
     val += __shfl_down(val, 2);
     val += __shfl_down(val, 1);
 #else
-    val += __shfl_down_sync(SHFL_FULL_MASK,val, 16);
-    val += __shfl_down_sync(SHFL_FULL_MASK,val, 8);
-    val += __shfl_down_sync(SHFL_FULL_MASK,val, 4);
-    val += __shfl_down_sync(SHFL_FULL_MASK,val, 2);
-    val += __shfl_down_sync(SHFL_FULL_MASK,val, 1);
+    val += __shfl_down_sync(0xffffffff,val, 16);
+    val += __shfl_down_sync(0xffffffff,val, 8);
+    val += __shfl_down_sync(0xffffffff,val, 4);
+    val += __shfl_down_sync(0xffffffff,val, 2);
+    val += __shfl_down_sync(0xffffffff,val, 1);
 #endif
 #endif
     return val;
@@ -83,26 +83,26 @@ magmaDoubleComplex warpReduceSum<magmaDoubleComplex>(magmaDoubleComplex val)
     a.z += __shfl_down(a.z, 1);
     a.w += __shfl_down(a.w, 1);
 #else
-    a.x += __shfl_down_sync(SHFL_FULL_MASK,a.x, 16);
-    a.y += __shfl_down_sync(SHFL_FULL_MASK,a.y, 16);
-    a.z += __shfl_down_sync(SHFL_FULL_MASK,a.z, 16);
-    a.w += __shfl_down_sync(SHFL_FULL_MASK,a.w, 16);
-    a.x += __shfl_down_sync(SHFL_FULL_MASK,a.x, 8);
-    a.y += __shfl_down_sync(SHFL_FULL_MASK,a.y, 8);
-    a.z += __shfl_down_sync(SHFL_FULL_MASK,a.z, 8);
-    a.w += __shfl_down_sync(SHFL_FULL_MASK,a.w, 8);
-    a.x += __shfl_down_sync(SHFL_FULL_MASK,a.x, 4);
-    a.y += __shfl_down_sync(SHFL_FULL_MASK,a.y, 4);
-    a.z += __shfl_down_sync(SHFL_FULL_MASK,a.z, 4);
-    a.w += __shfl_down_sync(SHFL_FULL_MASK,a.w, 4);
-    a.x += __shfl_down_sync(SHFL_FULL_MASK,a.x, 2);
-    a.y += __shfl_down_sync(SHFL_FULL_MASK,a.y, 2);
-    a.z += __shfl_down_sync(SHFL_FULL_MASK,a.z, 2);
-    a.w += __shfl_down_sync(SHFL_FULL_MASK,a.w, 2);
-    a.x += __shfl_down_sync(SHFL_FULL_MASK,a.x, 1);
-    a.y += __shfl_down_sync(SHFL_FULL_MASK,a.y, 1);
-    a.z += __shfl_down_sync(SHFL_FULL_MASK,a.z, 1);
-    a.w += __shfl_down_sync(SHFL_FULL_MASK,a.w, 1);
+    a.x += __shfl_down_sync(0xffffffff,a.x, 16);
+    a.y += __shfl_down_sync(0xffffffff,a.y, 16);
+    a.z += __shfl_down_sync(0xffffffff,a.z, 16);
+    a.w += __shfl_down_sync(0xffffffff,a.w, 16);
+    a.x += __shfl_down_sync(0xffffffff,a.x, 8);
+    a.y += __shfl_down_sync(0xffffffff,a.y, 8);
+    a.z += __shfl_down_sync(0xffffffff,a.z, 8);
+    a.w += __shfl_down_sync(0xffffffff,a.w, 8);
+    a.x += __shfl_down_sync(0xffffffff,a.x, 4);
+    a.y += __shfl_down_sync(0xffffffff,a.y, 4);
+    a.z += __shfl_down_sync(0xffffffff,a.z, 4);
+    a.w += __shfl_down_sync(0xffffffff,a.w, 4);
+    a.x += __shfl_down_sync(0xffffffff,a.x, 2);
+    a.y += __shfl_down_sync(0xffffffff,a.y, 2);
+    a.z += __shfl_down_sync(0xffffffff,a.z, 2);
+    a.w += __shfl_down_sync(0xffffffff,a.w, 2);
+    a.x += __shfl_down_sync(0xffffffff,a.x, 1);
+    a.y += __shfl_down_sync(0xffffffff,a.y, 1);
+    a.z += __shfl_down_sync(0xffffffff,a.z, 1);
+    a.w += __shfl_down_sync(0xffffffff,a.w, 1);
 #endif
 #endif
     return val;
@@ -129,16 +129,16 @@ magmaFloatComplex warpReduceSum<magmaFloatComplex>(magmaFloatComplex val)
     a.x += __shfl_down(a.x, 1);
     a.y += __shfl_down(a.y, 1);
 #else
-    a.x += __shfl_down_sync(SHFL_FULL_MASK,a.x, 16);
-    a.y += __shfl_down_sync(SHFL_FULL_MASK,a.y, 16);
-    a.x += __shfl_down_sync(SHFL_FULL_MASK,a.x, 8);
-    a.y += __shfl_down_sync(SHFL_FULL_MASK,a.y, 8);
-    a.x += __shfl_down_sync(SHFL_FULL_MASK,a.x, 4);
-    a.y += __shfl_down_sync(SHFL_FULL_MASK,a.y, 4);
-    a.x += __shfl_down_sync(SHFL_FULL_MASK,a.x, 2);
-    a.y += __shfl_down_sync(SHFL_FULL_MASK,a.y, 2);
-    a.x += __shfl_down_sync(SHFL_FULL_MASK,a.x, 1);
-    a.y += __shfl_down_sync(SHFL_FULL_MASK,a.y, 1);
+    a.x += __shfl_down_sync(0xffffffff,a.x, 16);
+    a.y += __shfl_down_sync(0xffffffff,a.y, 16);
+    a.x += __shfl_down_sync(0xffffffff,a.x, 8);
+    a.y += __shfl_down_sync(0xffffffff,a.y, 8);
+    a.x += __shfl_down_sync(0xffffffff,a.x, 4);
+    a.y += __shfl_down_sync(0xffffffff,a.y, 4);
+    a.x += __shfl_down_sync(0xffffffff,a.x, 2);
+    a.y += __shfl_down_sync(0xffffffff,a.y, 2);
+    a.x += __shfl_down_sync(0xffffffff,a.x, 1);
+    a.y += __shfl_down_sync(0xffffffff,a.y, 1);
 #endif
 #endif
     return val;
