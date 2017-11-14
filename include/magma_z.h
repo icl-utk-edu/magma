@@ -1323,12 +1323,6 @@ magma_zpotf2_gpu(
     magma_int_t *info);
 
 magma_int_t
-magma_zpotf2_native(
-        magma_uplo_t uplo, magma_int_t n, 
-        magmaDoubleComplex *dA, magma_int_t ldda, magma_int_t gbstep,
-        magma_int_t *dinfo, magma_queue_t queue);
-
-magma_int_t
 magma_zpotrf(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex *A, magma_int_t lda,
@@ -1339,25 +1333,6 @@ magma_zpotrf_gpu(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *info);
-
-magma_int_t
-magma_zpotrf_native_gpu(
-    magma_int_t hybrid,
-    magma_uplo_t uplo, magma_int_t n,
-    magmaDoubleComplex_ptr dA, magma_int_t ldda,
-    magma_int_t *info);
-
-magma_int_t
-magma_zpotrf_native(
-    magma_uplo_t uplo, magma_int_t n,
-    magmaDoubleComplex_ptr dA, magma_int_t ldda,
-    magma_queue_t queue, magma_int_t *info);
-
-magma_int_t
-magma_zpotrf_rectile_native(
-    magma_uplo_t uplo, magma_int_t n, magma_int_t recnb,    
-    magmaDoubleComplex* dA,    magma_int_t ldda, magma_int_t gbstep, 
-    magma_int_t *dinfo,  magma_int_t *info, magma_queue_t queue);
 
 // CUDA MAGMA only
 magma_int_t
