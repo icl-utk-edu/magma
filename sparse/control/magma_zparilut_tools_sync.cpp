@@ -13,6 +13,7 @@
 #include "magmasparse_internal.h"
 #ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #define SWAP(a, b)  { tmp = a; a = b; b = tmp; }
 
@@ -266,7 +267,3 @@ magma_zparilut_align_residuals(
 // cleanup:
     return info;
 }
-
-
-
-#endif  // _OPENMP

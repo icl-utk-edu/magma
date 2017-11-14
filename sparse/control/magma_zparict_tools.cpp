@@ -13,6 +13,7 @@
 #include "magmasparse_internal.h"
 #ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #define SWAP(a, b)  { tmp = a; a = b; b = tmp; }
 #define SWAP_INT(a, b)  { tmpi = a; a = b; b = tmpi; }
@@ -485,8 +486,3 @@ cleanup:
     return info;
 }
 
-
-
-
-
-#endif  // _OPENMP

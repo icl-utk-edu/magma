@@ -13,6 +13,7 @@
 #include "magmasparse_internal.h"
 #ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #define SWAP(a, b)  { tmp = a; a = b; b = tmp; }
 #define SWAP_INT(a, b)  { tmpi = a; a = b; b = tmpi; }
@@ -1393,7 +1394,7 @@ magma_zparilut_transpose(
     magma_index_t *row_ptr;
     magma_index_t *last_rowel;
     
-    magma_int_t el_per_block, num_threads;
+    magma_int_t el_per_block, num_threads=1;
     
     B->storage_type = A.storage_type;
     B->memory_location = A.memory_location;
@@ -1409,11 +1410,14 @@ magma_zparilut_transpose(
     CHECK( magma_index_malloc_cpu( &B->rowidx, A.nnz ));
     CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
     CHECK( magma_zmalloc_cpu( &B->val, A.nnz ) );
-    
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
     
     #pragma omp parallel for
     for( magma_int_t i=0; i<A.num_rows; i++ ){
@@ -1428,7 +1432,11 @@ magma_zparilut_transpose(
 
     #pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+#ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
         for(magma_int_t i=0; i<A.nnz; i++ ){
             magma_index_t row = A.col[ i ];
             if( (row < (id+1)*el_per_block) && (row >=(id)*el_per_block)  ){
@@ -1532,10 +1540,14 @@ magma_zparilut_transpose_select_one(
     CHECK( magma_index_malloc_cpu( &B->col, B->nnz ));
     CHECK( magma_zmalloc_cpu( &B->val, B->nnz ) );
     
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
     
     #pragma omp parallel for
     for( magma_int_t i=0; i<B->num_rows; i++ ){
@@ -1553,7 +1565,11 @@ magma_zparilut_transpose_select_one(
 
     #pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+#ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
         for(magma_int_t i=0; i<A.nnz; i++ ){
             magma_index_t row = A.col[ i ];
             if( (row < (id+1)*el_per_block) && (row >=(id)*el_per_block)  ){
@@ -1619,16 +1635,24 @@ magma_zmatrix_createrowptr(
   //      new_row[ i ] = row[ i ];
   //  }
     
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
     CHECK( magma_index_malloc_cpu( &offset, num_threads+1 ));
     el_per_block = magma_ceildiv( n, num_threads );
     
     #pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+#ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
         magma_int_t start = (id)*el_per_block;
         magma_int_t end = min((id+1)*el_per_block, n);
         
@@ -1718,10 +1742,14 @@ magma_zparilut_create_collinkedlist(
     CHECK( magma_index_malloc_cpu( &last_rowel, A.num_rows ));
     CHECK( magma_index_malloc_cpu( &B->row, A.num_rows+1 ));
     
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
     
     #pragma omp parallel for
     for( magma_int_t i=0; i<A.num_rows; i++ ){
@@ -1732,7 +1760,11 @@ magma_zparilut_create_collinkedlist(
 
     #pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+#ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
         for(magma_int_t i=0; i<A.nnz; i++ ){
             magma_index_t row = A.col[ i ];
             if( (row < (id+1)*el_per_block) && (row >=(id)*el_per_block)  ){
@@ -3766,10 +3798,14 @@ magma_zparilut_colmajor(
     CHECK( magma_index_malloc_cpu( &AC->row, A.num_rows+1 ));
     CHECK( magma_index_malloc_cpu( &AC->list, A.true_nnz ));
 
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
 
     #pragma omp parallel for
     for( magma_int_t i=0; i<A.num_rows; i++ ){
@@ -3783,7 +3819,11 @@ magma_zparilut_colmajor(
 
     #pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+#ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
         for(magma_int_t i=0; i<A.true_nnz; i++ ){
             magma_index_t row = A.col[ i ];
             if( (row < (id+1)*el_per_block) && (row >=(id)*el_per_block)  ){
@@ -3979,10 +4019,14 @@ magma_zparilut_colmajorup(
 
     CHECK( magma_index_malloc_cpu( &checkrow, A.num_rows ));
 
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
 
     #pragma omp parallel for
     for( magma_int_t i=0; i<A.num_rows; i++ ){
@@ -3997,7 +4041,11 @@ magma_zparilut_colmajorup(
 
     #pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+#ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
         for(magma_int_t i=0; i<A.nnz; i++ ){
             if( A.list[ i ]!= -1 ){
                 magma_index_t row = A.col[ i ];
@@ -4098,7 +4146,11 @@ magma_zparilut_insert(
     // first part L
     #pragma omp parallel
     {
+    #ifdef _OPENMP
     magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
     magma_int_t el = L_new->row[id];
     magma_int_t loc_lr = rm_locL[id];
 
@@ -4149,7 +4201,11 @@ magma_zparilut_insert(
     // second part U
     #pragma omp parallel
     {
+    #ifdef _OPENMP
     magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
     magma_int_t el = U_new->row[id];
     magma_int_t loc_ur = rm_locU[id];
 
@@ -5205,10 +5261,14 @@ magma_zparilut_candidates(
     
     magma_int_t num_threads;
     
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
     
     // for now: also some part commented out. If it turns out
     // this being correct, I need to clean up the code.
@@ -5392,7 +5452,11 @@ magma_zparilut_candidates(
 
     #pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+#ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
         if( id == 0 ){
             for( magma_int_t i = 0; i<L.num_rows; i++ ){
                 L_new->nnz = L_new->nnz + L_new->row[ i+1 ];
@@ -5734,10 +5798,14 @@ magma_zparilut_candidates_semilinked( // new
     
     magma_int_t num_threads;
     
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
     
     // for now: also some part commented out. If it turns out
     // this being correct, I need to clean up the code.
@@ -5917,7 +5985,11 @@ magma_zparilut_candidates_semilinked( // new
 
     #pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+#ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
         if( id == 0 ){
             for( magma_int_t i = 0; i<L.num_rows; i++ ){
                 L_new->nnz = L_new->nnz + L_new->row[ i+1 ];
@@ -6239,10 +6311,14 @@ magma_zparilut_rm_thrs(
 
     double bound = *thrs;
 
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
     el_per_block = magma_ceildiv( LU->num_rows, num_threads );
 
     #pragma omp parallel for
@@ -6252,7 +6328,11 @@ magma_zparilut_rm_thrs(
 
     #pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+#ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
         magma_int_t lbound = (id+1)*el_per_block;
         if( id == num_threads-1 ){
             lbound = LU->num_rows;
@@ -6433,10 +6513,14 @@ magma_zparilut_select_candidates_L(
 
     magma_index_t *bound=NULL;
     magma_index_t *firstelement=NULL, *lastelement=NULL;
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
 
     el_per_block = magma_ceildiv( L_new->num_rows, num_threads );
     cand_per_block = magma_ceildiv( L_new->nnz, num_threads );
@@ -6461,7 +6545,11 @@ magma_zparilut_select_candidates_L(
 
     #pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+#ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
         magma_index_t* first_loc;
         magma_index_t* last_loc;
         magma_index_t* count_loc;
@@ -6600,10 +6688,14 @@ magma_zparilut_select_candidates_U(
 
     magma_index_t *bound=NULL;
     magma_index_t *firstelement=NULL, *lastelement=NULL;
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
 
     el_per_block = magma_ceildiv( L_new->num_rows, num_threads );
     cand_per_block = magma_ceildiv( L_new->nnz, num_threads );
@@ -6629,7 +6721,11 @@ magma_zparilut_select_candidates_U(
 
     #pragma omp parallel
     {
-        magma_int_t id = omp_get_thread_num();
+#ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
         magma_index_t* first_loc;
         magma_index_t* last_loc;
         magma_index_t* count_loc;
@@ -6773,10 +6869,14 @@ magma_zparilut_set_approx_thrs(
     magma_int_t lnum_rm;
     magmaDoubleComplex *lval;
 
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
      num_threads = 1;
     loc_nnz = (int) LU->nnz/incx;
     ratio = ((double)num_rm)/((double)LU->nnz);
@@ -7083,10 +7183,14 @@ magma_zparilut_set_thrs_randomselect_approx(
         CHECK( magma_zmalloc_cpu( &val, size ));
         blasf77_zcopy(&size, LU->val, &incx, val, &incx );
         assert( size > num_rm );
-        #pragma omp parallel
-        {
-            num_threads = omp_get_max_threads();
-        }
+#ifdef _OPENMP
+    #pragma omp parallel
+    {
+        num_threads = omp_get_max_threads();
+    }
+#else
+    num_threads = 1;
+#endif
         num_threads = 272;
         CHECK( magma_zmalloc_cpu( &dthrs, num_threads ));
         
@@ -7241,10 +7345,14 @@ magma_zparilut_set_exact_thrs(
     magma_int_t num_threads=1;
     magmaDoubleComplex *elements = NULL;
 
+#ifdef _OPENMP
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
+#else
+    num_threads = 1;
+#endif
     // two options: either there are enough candidates such that we can use
     // a parallel first step of order-statistics, or not...
     
@@ -7261,7 +7369,11 @@ magma_zparilut_set_exact_thrs(
     if( loc_nnz / num_threads > loc_num_rm ){
         #pragma omp parallel
         {
-            magma_int_t id = omp_get_thread_num();
+    #ifdef _OPENMP
+    magma_int_t id = omp_get_thread_num();
+#else
+    magma_int_t id = 0;
+#endif
             if(id<num_threads){
                 magma_zorderstatistics(
                     val + id*loc_nnz/num_threads, loc_nnz/num_threads, loc_num_rm, order, &elements[id], queue );
@@ -7346,13 +7458,6 @@ magma_zparilut_set_approx_thrs_inc(
     ratio = ((double)num_rm)/((double)LU->nnz);
     loc_num_rm = (int) ((double)ratio*(double)loc_nnz);
     
-    // #pragma omp parallel
-    // {
-    //     num_threads = omp_get_max_threads();
-    // }
-    // two options: either there are enough candidates such that we can use
-    // a parallel first step of order-statistics, or not...
-    
     
     CHECK( magma_zmalloc_cpu( &elements, avg_count ));
     
@@ -7376,7 +7481,3 @@ cleanup:
     magma_free_cpu( elements );
     return info;
 }
-
-
-
-#endif  // _OPENMP
