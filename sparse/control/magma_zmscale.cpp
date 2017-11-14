@@ -656,7 +656,7 @@ cleanup:
     vecA        magma_z_matrix*
                 input matrix
                 
-    @param[in/out]
+    @param[in,out]
     vecB        magma_z_matrix*
                 input/output matrix
                 
