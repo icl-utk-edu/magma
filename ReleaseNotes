@@ -24,7 +24,8 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
- 2.3.0 - Nov ??, 2017
+ 2.3.0 - Nov 15, 2017
+    * Moved MAGMA's repository to Bitbucket: https://bitbucket.org/icl/magma
     * Added support for Volta GPUs
     * Improved performance for batched LU and QR factorizations
       on small square sizes up to 32
