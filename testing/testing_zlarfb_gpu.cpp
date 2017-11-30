@@ -53,22 +53,26 @@ int main( int argc, char** argv )
     
     double tol = opts.tolerance * lapackf77_dlamch("E");
     
-    printf("%%   M     N     K   storev   side   direct   trans    ||R||_F / ||HC||_F\n");
+    printf("%%   M     N     K   side   trans   direct   storev   ||R||_F / ||HC||_F\n");
     printf("%%=======================================================================\n");
-    for( int itest = 0; itest < opts.ntest; ++itest ) {
+    for (int itest = 0; itest < opts.ntest; ++itest) {
       M = opts.msize[itest];
       N = opts.nsize[itest];
       K = opts.ksize[itest];
-      if ( M < K || N < K || K <= 0 ) {
-          printf( "%5lld %5lld %5lld   skipping because zlarfb requires M >= K, N >= K, K >= 0\n",
-                  (long long) M, (long long) N, (long long) K );
-          continue;
-      }
-      for( int istor = 0; istor < 2; ++istor ) {
-      for( int iside = 0; iside < 2; ++iside ) {
-      for( int idir  = 0; idir  < 2; ++idir  ) {
-      for( int itran = 0; itran < 2; ++itran ) {
-        for( int iter = 0; iter < opts.niter; ++iter ) {
+      for (int iside = 0; iside < 2; ++iside) {
+      for (int itran = 0; itran < 2; ++itran) {
+      for (int idir  = 0; idir  < 2; ++idir ) {
+      for (int istor = 0; istor < 2; ++istor) {
+        for (int iter = 0; iter < opts.niter; ++iter) {
+            if ((side[iside] == MagmaLeft  && M < K) ||
+                (side[iside] == MagmaRight && N < K))
+            {
+                printf( "%5lld %5lld %5lld   %4c   skipping because zlarfb requires M >= K (left) or N >= K (right)\n",
+                        (long long) M, (long long) N, (long long) K,
+                        lapacke_side_const(side[iside]) );
+                continue;
+            }
+
             ldc = magma_roundup( M, opts.align );  // multiple of 32 by default
             ldt = magma_roundup( K, opts.align );  // multiple of 32 by default
             ldw = (side[iside] == MagmaLeft ? N : M);
@@ -166,10 +170,12 @@ int main( int argc, char** argv )
             Cnorm = lapackf77_zlange( "Fro", &M, &N, C, &ldc, work );
             error = lapackf77_zlange( "Fro", &M, &N, R, &ldc, work ) / Cnorm;
             
-            printf( "%5lld %5lld %5lld      %c       %c       %c       %c      %8.2e   %s\n",
+            printf( "%5lld %5lld %5lld   %4c   %5c   %6c   %6c   %8.2e   %s\n",
                     (long long) M, (long long) N, (long long) K,
-                    lapacke_storev_const(storev[istor]), lapacke_side_const(side[iside]),
-                    lapacke_direct_const(direct[idir]), lapacke_trans_const(trans[itran]),
+                    lapacke_side_const(side[iside]),
+                    lapacke_trans_const(trans[itran]),
+                    lapacke_direct_const(direct[idir]),
+                    lapacke_storev_const(storev[istor]),
                    error, (error < tol ? "ok" : "failed") );
             status += ! (error < tol);
             
