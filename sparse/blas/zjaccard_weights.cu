@@ -26,7 +26,8 @@ magma_zjaccardweights_kernel(
     magma_index_t *colidxA, 
     magmaDoubleComplex *valA ) {
     int i, j;
-    int k = blockDim.x * blockIdx.x + threadIdx.x;
+    int k = blockDim.x * gridDim.x * blockIdx.y
+            + blockDim.x * blockIdx.x + threadIdx.x;
 
 
     magmaDoubleComplex zero = MAGMA_Z_MAKE(0.0, 0.0);
@@ -46,6 +47,9 @@ magma_zjaccardweights_kernel(
             sum_i = zero;
             sum_j = zero;
             intersect = zero;
+            
+            sum_i = MAGMA_Z_MAKE((double)rowptrA[i+1] - rowptrA[i], 0.0);
+            sum_j = MAGMA_Z_MAKE((double)rowptrA[j+1] - rowptrA[j], 0.0);
     
             while (il < rowptrA[i+1] && iu < rowptrA[j+1])
             {
@@ -62,8 +66,7 @@ magma_zjaccardweights_kernel(
                 iu = ( ju <= jl ) ? iu+1 : iu;
             }
             
-            sum_i = MAGMA_Z_MAKE((double)rowptrA[i+1] - rowptrA[i], 0.0);
-            sum_j = MAGMA_Z_MAKE((double)rowptrA[j+1] - rowptrA[j], 0.0);
+
             
             valJ[k] = MAGMA_Z_MAKE(MAGMA_Z_REAL(intersect) / MAGMA_Z_REAL( sum_i + sum_j ), 0.0 );
         } else {
@@ -109,13 +112,13 @@ magma_zjaccard_weights(
     magma_int_t n = J->num_rows;
     magma_int_t nnz = J->nnz;
     
-    int blocksize1 = 128;
+    int blocksize1 = 32;
     int blocksize2 = 1;
 
-    int dimgrid1 = magma_ceildiv( nnz, blocksize1 );
-    int dimgrid2 = 1;
+    int dimgrid1 = sqrt( magma_ceildiv( nnz, blocksize1 ) );
+    int dimgrid2 = magma_ceildiv(nnz, blocksize1*dimgrid1);
     int dimgrid3 = 1;
-    printf("thread block: ( %d x %d  ) x %d\n", blocksize1, blocksize2, dimgrid1);
+    printf("thread block: ( %d x %d  ) x [%d x %d]\n", blocksize1, blocksize2, dimgrid1, dimgrid2);
 
     // Runtime API
     // cudaFuncCachePreferShared: shared memory is 48 KB
