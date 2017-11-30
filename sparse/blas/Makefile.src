@@ -52,7 +52,6 @@ libsparse_src += \
 	$(cdir)/magma_zcuspmm.cpp             \
 	$(cdir)/magma_zcuspaxpy.cpp           \
 
-
 # Iterative factorizations
 libsparse_src += \
 	$(cdir)/zparilu.cpp		      \
@@ -67,6 +66,10 @@ libsparse_src += \
 	$(cdir)/zgecsrreimsplit.cu            \
 	$(cdir)/zgedensereimsplit.cu          \
 	$(cdir)/magma_zmconjugate.cu          \
+	
+# Big data analytics
+libsparse_src += \
+	$(cdir)/zjaccard_weights.cu    \
 	
 # ISAI
 libsparse_src += \
@@ -83,7 +86,7 @@ libsparse_src += \
 libsparse_src += \
 	$(cdir)/zge3pt.cu                   \
 	
-	
+
 # Tester routines
 libsparse_src += \
 	$(cdir)/zmergeblockkrylov.cu          \

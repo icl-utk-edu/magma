@@ -629,6 +629,9 @@ subs = {
     # ----- SPARSE Iterative Eigensolvers
     ('slobpcg',        'dlobpcg',        'clobpcg',        'zlobpcg'         ),
 
+    # ----- SPARSE Big data analytics
+    ('sjaccard',       'djaccard',       'cjaccard',       'zjaccard'        ),
+
     # ----- SPARSE direct solver interface (PARDISO)
     ('spardiso',       'dpardiso',       'cpardiso',       'zpardiso'        ),
 

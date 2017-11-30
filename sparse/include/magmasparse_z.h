@@ -3255,6 +3255,14 @@ magma_zge3pt(
     magmaDoubleComplex_ptr dx,
     magmaDoubleComplex_ptr dy,
     magma_queue_t queue );
+
+//#############  Big data analytics
+magma_int_t
+magma_zjaccard_weights(
+    magma_z_matrix A,
+    magma_z_matrix *J,
+    magma_queue_t queue );
+
  
 #ifdef __cplusplus
 }

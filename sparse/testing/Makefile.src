@@ -57,6 +57,10 @@ sparse_testing_src += \
 #	$(cdir)/testing_z_mpk_4.cpp           \
 #	$(cdir)/testing_z_mpk_5.cpp           \
 
+# Big Data Analytics
+#sparse_testing_src += \
+       $(cdir)/testing_zjaccard.cpp              \
+
 # debugging
 sparse_testing_src += \
 	$(cdir)/testing_zsptrsv.cpp           \
