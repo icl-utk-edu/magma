@@ -200,6 +200,7 @@ lapack = [
     ('sgetrf',         'dgetrf',         'cgetrf',         'zgetrf'          ),
     ('sgetri',         'dgetri',         'cgetri',         'zgetri'          ),
     ('sgetrs',         'dgetrs',         'cgetrs',         'zgetrs'          ),
+    ('sgglse',         'dgglse',         'cgglse',         'zgglse'          ),
     ('sggrqf',         'dggrqf',         'cggrqf',         'zggrqf'          ),
     ('shseqr',         'dhseqr',         'chseqr',         'zhseqr'          ),
     ('shst01',         'dhst01',         'chst01',         'zhst01'          ),
