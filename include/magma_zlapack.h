@@ -80,6 +80,7 @@ extern "C" {
 #define lapackf77_zgetrf   FORTRAN_NAME( zgetrf, ZGETRF )
 #define lapackf77_zgetri   FORTRAN_NAME( zgetri, ZGETRI )
 #define lapackf77_zgetrs   FORTRAN_NAME( zgetrs, ZGETRS )
+#define lapackf77_zggrqf   FORTRAN_NAME( zggrqf, ZGGRQF )
 #define lapackf77_zhetf2   FORTRAN_NAME( zhetf2, ZHETF2 )
 #define lapackf77_zhetrs   FORTRAN_NAME( zhetrs, ZHETRS )
 #define lapackf77_zhbtrd   FORTRAN_NAME( zhbtrd, ZHBTRD )
@@ -150,6 +151,7 @@ extern "C" {
 #define lapackf77_zunmlq   FORTRAN_NAME( zunmlq, ZUNMLQ )
 #define lapackf77_zunmql   FORTRAN_NAME( zunmql, ZUNMQL )
 #define lapackf77_zunmqr   FORTRAN_NAME( zunmqr, ZUNMQR )
+#define lapackf77_zunmrq   FORTRAN_NAME( zunmrq, ZUNMRQ )
 #define lapackf77_zunmtr   FORTRAN_NAME( zunmtr, ZUNMTR )
 
 /* testing functions (alphabetical order) */
@@ -536,6 +538,13 @@ void   lapackf77_zgetrs( const char *trans,
                          const magma_int_t *ipiv,
                          magmaDoubleComplex *B, const magma_int_t *ldb,
                          magma_int_t *info );
+
+void   lapackf77_zggrqf( magma_int_t *m, magma_int_t *p, magma_int_t *n,
+                         magmaDoubleComplex *A, magma_int_t *lda,
+                         magmaDoubleComplex *tauA, magmaDoubleComplex *B,
+                         magma_int_t *ldb, magmaDoubleComplex *tauB,
+                         magmaDoubleComplex *work, magma_int_t *lwork, 
+                         magma_int_t *info);
 
 void   lapackf77_zhetf2( const char *uplo, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
@@ -1058,6 +1067,14 @@ void   lapackf77_zunmqr( const char *side, const char *trans,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
+                         magma_int_t *info );
+
+void   lapackf77_zunmrq( const char *side, const char *trans, 
+                         magma_int_t *m, magma_int_t *n, magma_int_t *k, 
+                         magmaDoubleComplex *A, magma_int_t *lda,
+                         magmaDoubleComplex *tau, 
+                         magmaDoubleComplex *C, magma_int_t *ldc,
+                         magmaDoubleComplex *work, magma_int_t *lwork, 
                          magma_int_t *info );
 
 void   lapackf77_zunmtr( const char *side, const char *uplo, const char *trans,
