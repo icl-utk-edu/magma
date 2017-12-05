@@ -546,7 +546,7 @@ void   lapackf77_zgglse( magma_int_t *m, magma_int_t *n, magma_int_t *p,
                          magmaDoubleComplex *c, magmaDoubleComplex *d, 
                          magmaDoubleComplex *x,
                          magmaDoubleComplex *work, magma_int_t *lwork,
-                         magma_int_t *info)
+                         magma_int_t *info);
 
 void   lapackf77_zggrqf( magma_int_t *m, magma_int_t *p, magma_int_t *n,
                          magmaDoubleComplex *A, magma_int_t *lda,
