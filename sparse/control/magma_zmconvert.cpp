@@ -1559,7 +1559,7 @@ magma_zmconvert(
                         (B->row)[k] = j;
                         k++;
                     }
-                    if ( MAGMA_Z_REAL(A.val[i]) != 0 )
+                    if ( MAGMA_Z_REAL(A.val[i]) != 0 || MAGMA_Z_IMAG(A.val[i]) != 0)
                     {
                         (B->val)[j] = A.val[i];
                         (B->col)[j] = i%(B->num_cols);
