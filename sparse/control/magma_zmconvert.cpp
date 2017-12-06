@@ -1541,7 +1541,7 @@ magma_zmconvert(
 
                 B->nnz=0;
                 for( magma_int_t i=0; i<(A.num_rows)*(A.num_cols); i++ ) {
-                    if ( MAGMA_Z_REAL(A.val[i]) != 0.0 )
+                    if ( MAGMA_Z_REAL(A.val[i]) != 0.0 || MAGMA_Z_IMAG(A.val[i]) != 0.0 )
                         (B->nnz)++;
                 }
                 CHECK( magma_zmalloc_cpu( &B->val, B->nnz));
@@ -1559,7 +1559,7 @@ magma_zmconvert(
                         (B->row)[k] = j;
                         k++;
                     }
-                    if ( MAGMA_Z_REAL(A.val[i]) != 0 )
+                    if ( MAGMA_Z_REAL(A.val[i]) != 0 || MAGMA_Z_IMAG(A.val[i]) != 0)
                     {
                         (B->val)[j] = A.val[i];
                         (B->col)[j] = i%(B->num_cols);
