@@ -41,7 +41,7 @@ int main(  int argc, char** argv )
     
     magma_index_t *comm_i=NULL;
     magmaDoubleComplex *comm_v=NULL;
-    magma_int_t start, end;
+    real_Double_t start, end;
     
     int i=1;
     TESTING_CHECK( magma_zparse_opts( argc, argv, &zopts, &i, queue ));
