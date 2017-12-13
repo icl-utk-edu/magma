@@ -68,7 +68,7 @@ magma_zjaccardweights_kernel(
             
 
             
-            valJ[k] = MAGMA_Z_MAKE(MAGMA_Z_REAL(intersect) / MAGMA_Z_REAL( sum_i + sum_j ), 0.0 );
+            valJ[k] = MAGMA_Z_MAKE(MAGMA_Z_REAL(intersect) / MAGMA_Z_REAL( sum_i + sum_j - intersect), 0.0 );
         } else {
             valJ[k] = MAGMA_Z_ZERO;
         }

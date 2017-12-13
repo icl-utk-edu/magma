@@ -42,7 +42,7 @@ sparse_testing_src += \
 	$(cdir)/testing_zsolver_rhs.cpp           \
 	$(cdir)/testing_zsolver_rhs_scaling.cpp   \
 	$(cdir)/testing_zpreconditioner.cpp   \
-	$(cdir)/testing_dusemagma_example.cpp	\
+#	$(cdir)/testing_dusemagma_example.cpp	\
 
 # ----------
 # Mixed-precision solvers
