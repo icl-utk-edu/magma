@@ -3263,6 +3263,13 @@ magma_zjaccard_weights(
     magma_z_matrix *J,
     magma_queue_t queue );
 
+magma_int_t
+magma_zthrsholdselect(
+    magma_int_t total_size,
+    magma_int_t subset_size,
+    magmaDoubleComplex *val,
+    double *thrs,
+    magma_queue_t queue );
  
 #ifdef __cplusplus
 }

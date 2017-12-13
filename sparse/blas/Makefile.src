@@ -69,6 +69,7 @@ libsparse_src += \
 	
 # Big data analytics
 libsparse_src += \
+	$(cdir)/magma_zthrsselect.cu	\
 	$(cdir)/zjaccard_weights.cu    \
 	
 # ISAI

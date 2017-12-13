@@ -15,6 +15,7 @@ cdir      := sparse/testing
 # ----------
 # utility functions
 sparse_testing_src += \
+	$(cdir)/testing_zthresselect.cpp	\
 	$(cdir)/testing_zblas.cpp             \
 	$(cdir)/testing_zmatrix.cpp           \
 	$(cdir)/testing_zio.cpp               \
@@ -41,6 +42,7 @@ sparse_testing_src += \
 	$(cdir)/testing_zsolver_rhs.cpp           \
 	$(cdir)/testing_zsolver_rhs_scaling.cpp   \
 	$(cdir)/testing_zpreconditioner.cpp   \
+	$(cdir)/testing_dusemagma_example.cpp	\
 
 # ----------
 # Mixed-precision solvers
@@ -59,7 +61,8 @@ sparse_testing_src += \
 
 # Big Data Analytics
 #sparse_testing_src += \
-       $(cdir)/testing_zjaccard.cpp              \
+	$(cdir)/testing_zjaccard.cpp              \
+	$(cdir)/testing_zthresselect.cpp          \
 
 # debugging
 sparse_testing_src += \
