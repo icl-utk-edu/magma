@@ -187,6 +187,7 @@ lapack = [
     ('sgeqp3',         'dgeqp3',         'cgeqp3',         'zgeqp3'          ),
     ('sgeqr2',         'dgeqr2',         'cgeqr2',         'zgeqr2'          ),
     ('sgeqrf',         'dgeqrf',         'cgeqrf',         'zgeqrf'          ),
+    ('sgerqf',         'dgerqf',         'cgerqf',         'zgerqf'          ),
     ('sgeqrs',         'dgeqrs',         'cgeqrs',         'zgeqrs'          ),
     ('sgeqrt',         'dgeqrt',         'cgeqrt',         'zgeqrt'          ),
     ('sgerfs',         'dgerfs',         'cgerfs',         'zgerfs'          ),
