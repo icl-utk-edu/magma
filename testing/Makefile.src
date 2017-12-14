@@ -136,6 +136,7 @@ testing_src += \
 	$(cdir)/testing_zgeqlf.cpp	\
 	$(cdir)/testing_zgeqp3.cpp	\
 	$(cdir)/testing_zgeqrf.cpp	\
+        $(cdir)/testing_zgglse.cpp      \
 	$(cdir)/testing_zunglq.cpp	\
 	$(cdir)/testing_zungqr.cpp	\
 	$(cdir)/testing_zunmlq.cpp	\
