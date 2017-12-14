@@ -113,12 +113,15 @@ libmagma_src += \
 	$(cdir)/zgeqlf.cpp		\
 	$(cdir)/zgeqrf.cpp		\
 	$(cdir)/zgeqrf_ooc.cpp		\
+        $(cdir)/zgglse.cpp              \
+        $(cdir)/zggrqf.cpp              \
 	$(cdir)/zunglq.cpp		\
 	$(cdir)/zungqr.cpp		\
 	$(cdir)/zungqr2.cpp		\
 	$(cdir)/zunmlq.cpp		\
 	$(cdir)/zunmql.cpp		\
 	$(cdir)/zunmqr.cpp		\
+        $(cdir)/zunmrq.cpp              \
 	\
 	$(cdir)/zgeqp3.cpp		\
 	$(cdir)/zlaqps.cpp		\
