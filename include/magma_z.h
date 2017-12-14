@@ -196,6 +196,16 @@ magma_zgels(
 
 // CUDA MAGMA only
 magma_int_t
+magma_zggrqf(
+    magma_int_t m, magma_int_t p, magma_int_t n,
+    magmaDoubleComplex *A, magma_int_t lda,
+    magmaDoubleComplex *taua,
+    magmaDoubleComplex *B, magma_int_t ldb,
+    magmaDoubleComplex *taub,
+    magmaDoubleComplex *work, magma_int_t lwork,
+    magma_int_t *info);
+
+magma_int_t
 magma_zgglse(
     magma_int_t m, magma_int_t n, magma_int_t p,
     magmaDoubleComplex *A, magma_int_t lda,
@@ -1594,16 +1604,15 @@ magma_zunmlq(
     magmaDoubleComplex *work, magma_int_t lwork,
     magma_int_t *info);
 
-// not yet implemented
-//magma_int_t
-//magma_zunmrq(
-//    magma_side_t side, magma_trans_t trans,
-//    magma_int_t m, magma_int_t n, magma_int_t k,
-//    magmaDoubleComplex *A, magma_int_t lda,
-//    magmaDoubleComplex *tau,
-//    magmaDoubleComplex *C, magma_int_t ldc,
-//    magmaDoubleComplex *work, magma_int_t lwork,
-//    magma_int_t *info);
+magma_int_t
+magma_zunmrq(
+    magma_side_t side, magma_trans_t trans,
+    magma_int_t m, magma_int_t n, magma_int_t k,
+    magmaDoubleComplex *A, magma_int_t lda,
+    magmaDoubleComplex *tau,
+    magmaDoubleComplex *C, magma_int_t ldc,
+    magmaDoubleComplex *work, magma_int_t lwork,
+    magma_int_t *info);
 
 magma_int_t
 magma_zunmql(
