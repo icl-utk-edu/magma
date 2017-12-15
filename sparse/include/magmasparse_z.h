@@ -665,6 +665,20 @@ magma_zparilusetup(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilu_gpu( 
+    magma_z_matrix A, 
+    magma_z_matrix b,                                 
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilu_cpu( 
+    magma_z_matrix A, 
+    magma_z_matrix b,                                 
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparicsetup( 
     magma_z_matrix A, 
     magma_z_matrix b, 
@@ -1012,6 +1026,13 @@ magma_zparict_sweep(
 magma_int_t
 magma_zparilut_zero(
     magma_z_matrix *A,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilu_sweep_sync(
+    magma_z_matrix A,
+    magma_z_matrix *L,
+    magma_z_matrix *U,
     magma_queue_t queue );
 
 magma_int_t
