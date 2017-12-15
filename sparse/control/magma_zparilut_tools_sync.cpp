@@ -40,16 +40,6 @@
                 Current approximation for the upper triangular factor
                 The format is sorted CSC.
                 
-    @param[out]
-    L_new       magma_z_matrix*
-                Current approximation for the lower triangular factor
-                The format is unsorted CSR.
-
-    @param[out]
-    U_new       magma_z_matrix*
-                Current approximation for the upper triangular factor
-                The format is unsorted CSC.
-
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -201,6 +191,88 @@ magma_zparilut_sweep_sync(
     magma_free_cpu( U_new_val );
     
 cleanup:
+    return info;
+}
+
+
+/***************************************************************************//**
+    Purpose
+    -------
+    This function does one synchronized ParILU sweep. Input and output are 
+    different arrays.
+
+    Arguments
+    ---------
+
+    @param[in]
+    A           magma_z_matrix
+                System matrix in COO.
+
+    @param[in]
+    L           magma_z_matrix*
+                Current approximation for the lower triangular factor
+                The format is sorted CSR.
+
+    @param[in]
+    U           magma_z_matrix*
+                Current approximation for the upper triangular factor
+                The format is sorted CSC.
+                
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+
+extern "C" magma_int_t
+magma_zparilu_sweep_sync(
+    magma_z_matrix A,
+    magma_z_matrix *L,
+    magma_z_matrix *U,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    int i, j;
+
+
+    magmaDoubleComplex zero = MAGMA_Z_MAKE(0.0, 0.0);
+    magmaDoubleComplex s, sp;
+    int il, iu, jl, ju;
+    
+    #pragma omp parallel for
+    for (int k=0; k < A.nnz; k++) {
+        i = A.rowidx[k];
+        j = A.col[k];
+
+        s =  A.val[k];
+
+        il = L->row[i];
+        iu = U->row[j];
+
+        while (il < L->row[i+1] && iu < U->row[j+1])
+        {
+            sp = zero;
+            jl = L->col[il];
+            ju = U->col[iu];
+
+            // avoid branching
+            sp = ( jl == ju ) ? L->val[il] * U->val[iu] : sp;
+            s = ( jl == ju ) ? s-sp : s;
+            il = ( jl <= ju ) ? il+1 : il;
+            iu = ( jl >= ju ) ? iu+1 : iu;
+        }
+        // undo the last operation (it must be the last)
+        s += sp;
+        
+        if ( i > j )      // modify l entry
+            L->val[il-1] =  s / U->val[U->row[j+1]-1];
+        else {            // modify u entry
+            U->val[iu-1] = s;
+        }
+    }
+    
     return info;
 }
 

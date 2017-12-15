@@ -92,10 +92,15 @@ libsparse_src += \
 #	$(cdir)/zungqr_chol.cpp               \
 #	$(cdir)/zungqr_iter.cpp               \
 
-# iterative ILU
+# custom ILU
 libsparse_src += \
 	$(cdir)/zcustomic.cpp                 \
 	$(cdir)/zcustomilu.cpp                \
+
+# ParILU / ParILUT
+libsparse_src += \
+	$(cdir)/zparilu_gpu.cpp		\
+	$(cdir)/zparilu_cpu.cpp         \
         $(cdir)/zparilut.cpp                  \
 	$(cdir)/zparict.cpp   		      \
 
