@@ -1029,6 +1029,13 @@ magma_zparilut_zero(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilu_sweep(
+    magma_z_matrix A,
+    magma_z_matrix *L,
+    magma_z_matrix *U,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparilu_sweep_sync(
     magma_z_matrix A,
     magma_z_matrix *L,

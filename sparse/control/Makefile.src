@@ -46,11 +46,15 @@ libsparse_src += \
 	$(cdir)/magma_zvpass_gpu.cpp          \
 	$(cdir)/mmio.cpp                      \
 	$(cdir)/magma_zgeisai_tools.cpp	      \
-	$(cdir)/magma_zparilut_tools.cpp      \
-	$(cdir)/magma_zparict_tools.cpp       \
-    $(cdir)/magma_zparilut_tools_sync.cpp \
 	$(cdir)/magma_zmsupernodal.cpp        \
 	$(cdir)/magma_zmfrobenius.cpp	      \
+
+libsparse_src += \
+	$(cdir)/magma_zparilu_kernels.cpp	\
+	$(cdir)/magma_zparilut_tools.cpp      \
+	$(cdir)/magma_zparict_tools.cpp       \
+	$(cdir)/magma_zparilut_tools_sync.cpp \
+
 
 
 # dummy to compensate for routines not included in release

@@ -15,16 +15,16 @@
 
 __global__ void 
 magma_zparilu_csr_kernel(   
-    magma_int_t num_rows, 
-    magma_int_t nnz,  
-    magma_index_t *rowidxA, 
-    magma_index_t *colidxA,
+    const magma_int_t num_rows, 
+    const magma_int_t nnz,  
+    const magma_index_t *rowidxA, 
+    const magma_index_t *colidxA,
     const magmaDoubleComplex * __restrict__ A, 
-    magma_index_t *rowptrL, 
-    magma_index_t *colidxL, 
+    const magma_index_t *rowptrL, 
+    const magma_index_t *colidxL, 
     magmaDoubleComplex *valL, 
-    magma_index_t *rowptrU, 
-    magma_index_t *rowidxU, 
+    const magma_index_t *rowptrU, 
+    const magma_index_t *colidxU, 
     magmaDoubleComplex *valU )
 {
     int i, j;
@@ -54,7 +54,7 @@ magma_zparilu_csr_kernel(
         {
             sp = zero;
             jl = colidxL[il];
-            ju = rowidxU[iu];
+            ju = colidxU[iu];
 
             // avoid branching
             sp = ( jl == ju ) ? valL[il] * valU[iu] : sp;
@@ -80,14 +80,16 @@ magma_zparilu_csr_kernel(
     -------
     
     This routine iteratively computes an incomplete LU factorization.
-    The idea is according to Edmond Chow's presentation at SIAM 2014.
+    For reference, see:
+    E. Chow and A. Patel: "Fine-grained Parallel Incomplete LU Factorization", 
+    SIAM Journal on Scientific Computing, 37, C169-C193 (2015). 
     This routine was used in the ISC 2015 paper:
     E. Chow et al.: 'Study of an Asynchronous Iterative Algorithm
                      for Computing Incomplete Factorizations on GPUs'
  
-    The input format of the matrix is Magma_CSRCOO for the upper and lower 
-    triangular parts. Note however, that we flip col and rowidx for the 
-    U-part.
+    The input format of the system matrix is COO, the lower triangular factor L 
+    is stored in CSR, the upper triangular factor U is transposed, then also 
+    stored in CSR (equivalent to CSC format for the non-transposed U).
     Every component of L and U is handled by one thread. 
 
     Arguments
@@ -99,11 +101,11 @@ magma_zparilu_csr_kernel(
 
     @param[in,out]
     L           magma_z_matrix
-                input/output matrix L containing the ILU approximation
+                input/output matrix L containing the lower triangular factor 
 
     @param[in,out]
     U           magma_z_matrix
-                input/output matrix U containing the ILU approximation
+                input/output matrix U containing the upper triangular factor
                               
     @param[in]
     queue       magma_queue_t
