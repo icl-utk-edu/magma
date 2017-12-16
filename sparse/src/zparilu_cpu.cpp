@@ -64,10 +64,6 @@ magma_zparilu_cpu(
 #ifdef _OPENMP
     info = 0;
 
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrL=NULL;
-    cusparseMatDescr_t descrU=NULL;
-
     magma_z_matrix hAT={Magma_CSR}, hA={Magma_CSR}, hAL={Magma_CSR}, 
     hAU={Magma_CSR}, hAUT={Magma_CSR}, hAtmp={Magma_CSR}, hACOO={Magma_CSR};
 
@@ -130,38 +126,10 @@ magma_zparilu_cpu(
 
     magma_zmfree(&hAL, queue);
     magma_zmfree(&hAU, queue);
-    
-    // CUSPARSE context for cuSPARSE triangular solves//
-    CHECK_CUSPARSE(cusparseCreate(&cusparseHandle));
-    CHECK_CUSPARSE(cusparseCreateMatDescr(&descrL));
-    CHECK_CUSPARSE(cusparseSetMatType(descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR));
-    CHECK_CUSPARSE(cusparseSetMatDiagType(descrL, CUSPARSE_DIAG_TYPE_NON_UNIT));
-    CHECK_CUSPARSE(cusparseSetMatIndexBase(descrL, CUSPARSE_INDEX_BASE_ZERO));
-    CHECK_CUSPARSE(cusparseSetMatFillMode(descrL, CUSPARSE_FILL_MODE_LOWER));
-    CHECK_CUSPARSE(cusparseCreateSolveAnalysisInfo(&precond->cuinfoL));
-    CHECK_CUSPARSE(cusparseZcsrsv_analysis(cusparseHandle,
-        CUSPARSE_OPERATION_NON_TRANSPOSE, precond->L.num_rows,
-        precond->L.nnz, descrL,
-        precond->L.val, precond->L.row, precond->L.col, precond->cuinfoL));
-    CHECK_CUSPARSE(cusparseCreateMatDescr(&descrU));
-    CHECK_CUSPARSE(cusparseSetMatType(descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR));
-    CHECK_CUSPARSE(cusparseSetMatDiagType(descrU, CUSPARSE_DIAG_TYPE_NON_UNIT));
-    CHECK_CUSPARSE(cusparseSetMatIndexBase(descrU, CUSPARSE_INDEX_BASE_ZERO));
-    CHECK_CUSPARSE(cusparseSetMatFillMode(descrU, CUSPARSE_FILL_MODE_UPPER));
-    CHECK_CUSPARSE(cusparseCreateSolveAnalysisInfo(&precond->cuinfoU));
-    CHECK_CUSPARSE(cusparseZcsrsv_analysis(cusparseHandle,
-        CUSPARSE_OPERATION_NON_TRANSPOSE, precond->U.num_rows,
-        precond->U.nnz, descrU,
-        precond->U.val, precond->U.row, precond->U.col, precond->cuinfoU));
-    
+
+    CHECK(magma_zcumilugeneratesolverinfo(precond, queue));
     
 cleanup:
-    cusparseDestroy(cusparseHandle);
-    cusparseDestroyMatDescr(descrL);
-    cusparseDestroyMatDescr(descrU);
-    cusparseHandle=NULL;
-    descrL=NULL;
-    descrU=NULL;
     magma_zmfree(&hAT, queue);
     magma_zmfree(&hA, queue);
     magma_zmfree(&hAL, queue);

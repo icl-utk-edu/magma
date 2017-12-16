@@ -653,7 +653,7 @@ magma_zKrylov_check( magma_solver_type solver );
 
 
 /* ////////////////////////////////////////////////////////////////////////////
- -- MAGMA_SPARSE iterative incomplete factorizations
+ -- MAGMA_SPARSE parallel incomplete factorizations (ParILU / ParILUT)
 */
 
 
@@ -673,6 +673,20 @@ magma_zparilu_gpu(
 
 magma_int_t
 magma_zparilu_cpu( 
+    magma_z_matrix A, 
+    magma_z_matrix b,                                 
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparic_gpu( 
+    magma_z_matrix A, 
+    magma_z_matrix b,                                 
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparic_cpu( 
     magma_z_matrix A, 
     magma_z_matrix b,                                 
     magma_z_preconditioner *precond,
@@ -1043,10 +1057,21 @@ magma_zparilu_sweep_sync(
     magma_queue_t queue );
 
 magma_int_t
-magma_zparilut_sweep(
+magma_zparic_sweep(
+    magma_z_matrix A,
+    magma_z_matrix *L,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparic_sweep_sync(
+    magma_z_matrix A,
+    magma_z_matrix *L,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparict_sweep_sync(
     magma_z_matrix *A,
     magma_z_matrix *L,
-    magma_z_matrix *U,
     magma_queue_t queue );
 
 magma_int_t
@@ -1054,12 +1079,6 @@ magma_zparilut_sweep_sync(
     magma_z_matrix *A,
     magma_z_matrix *L,
     magma_z_matrix *U,
-    magma_queue_t queue );
-
-magma_int_t
-magma_zparic_sweep_sync(
-    magma_z_matrix *A,
-    magma_z_matrix *L,
     magma_queue_t queue );
 
 magma_int_t

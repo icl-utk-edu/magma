@@ -51,6 +51,7 @@ libsparse_src += \
 
 libsparse_src += \
 	$(cdir)/magma_zparilu_kernels.cpp	\
+	$(cdir)/magma_zparic_kernels.cpp       \
 	$(cdir)/magma_zparilut_tools.cpp      \
 	$(cdir)/magma_zparict_tools.cpp       \
 	$(cdir)/magma_zparilut_tools_sync.cpp \

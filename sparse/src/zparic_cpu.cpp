@@ -11,6 +11,9 @@
 */
 
 #include "magmasparse_internal.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #define PRECISION_z
 
@@ -19,12 +22,12 @@
     Purpose
     -------
 
-    Generates an ILU(0) preconditer via fixed-point iterations. 
+    Generates an IC(0) preconditer via fixed-point iterations. 
     For reference, see:
     E. Chow and A. Patel: "Fine-grained Parallel Incomplete LU Factorization", 
     SIAM Journal on Scientific Computing, 37, C169-C193 (2015). 
     
-    This is the GPU implementation of the ParILU
+    This is the CPU implementation of the ParIC
 
     Arguments
     ---------
@@ -49,17 +52,19 @@
 *******************************************************************************/
 extern "C"
 magma_int_t
-magma_zparilu_gpu(
+magma_zparic_cpu(
     magma_z_matrix A,
     magma_z_matrix b,
     magma_z_preconditioner *precond,
-    magma_queue_t queue)
+    magma_queue_t queue )
 {
-    magma_int_t info = 0;
+    magma_int_t info = MAGMA_ERR_NOT_SUPPORTED;
+    
+#ifdef _OPENMP
+    info = 0;
 
     magma_z_matrix hAT={Magma_CSR}, hA={Magma_CSR}, hAL={Magma_CSR}, 
-    hAU={Magma_CSR}, hAUT={Magma_CSR}, hAtmp={Magma_CSR}, hACOO={Magma_CSR},
-    dAL={Magma_CSR}, dAU={Magma_CSR}, dAUT={Magma_CSR}, dACOO={Magma_CSR};
+    hAU={Magma_CSR}, hAUT={Magma_CSR}, hAtmp={Magma_CSR}, hACOO={Magma_CSR};
 
     // copy original matrix as COO to device
     if (A.memory_location != Magma_CPU || A.storage_type != Magma_CSR) {
@@ -79,36 +84,25 @@ magma_zparilu_gpu(
     CHECK(magma_zmconvert(hA, &hACOO, hA.storage_type, Magma_CSRCOO, queue));
     
     //get L
-    magma_zmatrix_tril(hA, &hAL, queue);
-    // we need 1 on the main diagonal of L
-    #pragma omp parallel for
-    for (int k=0; k < hAL.num_rows; k++) {
-        hAL.val[hAL.row[k+1]-1] = MAGMA_Z_ONE;
-    }
+    magma_zmatrix_tril( hA, &hAL, queue );
     
-    // get U
-    magma_zmtranspose(hA, &hAT, queue);
-    magma_zmatrix_tril(hAT, &hAU, queue);
-    magma_zmfree(&hAT, queue);
+    CHECK(magma_zmconvert(hAL, &hACOO, hA.storage_type, Magma_CSRCOO, queue));
     
-    CHECK(magma_zmtransfer(hAL, &dAL, Magma_CPU, Magma_DEV, queue));
-    CHECK(magma_zmtransfer(hAU, &dAU, Magma_CPU, Magma_DEV, queue));
-    CHECK(magma_zmtransfer(hACOO, &dACOO, Magma_CPU, Magma_DEV, queue));
     
-    // This is the actual ParILU kernel. 
+    // This is the actual ParIC kernel. 
     // It can be called directly if
-    // - the system matrix hACOO is available in COO format on the CPU 
+    // - the system matrix hALCOO is available in COO format on the CPU 
     // - hAL is the lower triangular in CSR on the CPU
-    // - hAU is the upper triangular in CSC on the CPU (U transpose in CSR)
-    // The kernel is located in sparse/blas/zparilu_kernels.cu
+    // The kernel is located in sparse/control/magma_zparic_kernels.cpp
     //
     for (int i=0; i<precond->sweeps; i++) {
-        CHECK(magma_zparilu_csr(dACOO, dAL, dAU, queue));
+        CHECK(magma_zparic_sweep(hACOO, &hAL, queue));
     }
-    CHECK(magma_z_cucsrtranspose(dAU, &dAUT, queue));
+    
 
-    CHECK(magma_zmtransfer(dAL, &precond->L, Magma_DEV, Magma_DEV, queue));
-    CHECK(magma_zmtransfer(dAUT, &precond->U, Magma_DEV, Magma_DEV, queue));
+    CHECK(magma_zmtransfer(hAL, &precond->L, Magma_CPU, Magma_DEV, queue));
+    CHECK(magma_z_cucsrtranspose(precond->L, &precond->U, queue));
+    CHECK(magma_zmtransfer(precond->L, &precond->M, Magma_DEV, Magma_DEV, queue));
     
     // For Jacobi-type triangular solves
     // extract the diagonal of L into precond->d
@@ -124,15 +118,10 @@ magma_zparilu_gpu(
 
     magma_zmfree(&hAL, queue);
     magma_zmfree(&hAU, queue);
-    
-    CHECK(magma_zcumilugeneratesolverinfo(precond, queue));
-    
-    
+
+    CHECK(magma_zcumicgeneratesolverinfo(precond, queue));
+
 cleanup:
-    magma_zmfree(&dAL, queue);
-    magma_zmfree(&dAU, queue);
-    magma_zmfree(&dAUT, queue);
-    magma_zmfree(&dACOO, queue);
     magma_zmfree(&hAT, queue);
     magma_zmfree(&hA, queue);
     magma_zmfree(&hAL, queue);
@@ -141,7 +130,6 @@ cleanup:
     magma_zmfree(&hAtmp, queue);
     magma_zmfree(&hACOO, queue);
 
-    
+#endif
     return info;
 }
-

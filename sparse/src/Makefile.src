@@ -101,7 +101,9 @@ libsparse_src += \
 libsparse_src += \
 	$(cdir)/zparilu_gpu.cpp		\
 	$(cdir)/zparilu_cpu.cpp         \
-        $(cdir)/zparilut.cpp                  \
+	$(cdir)/zparic_gpu.cpp          \
+        $(cdir)/zparic_cpu.cpp          \
+	$(cdir)/zparilut.cpp                  \
 	$(cdir)/zparict.cpp   		      \
 
 # incomplete sparse approximate inverse

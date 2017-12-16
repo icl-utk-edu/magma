@@ -151,7 +151,7 @@ magma_zparict(
         magma_zmfree( &hL, queue );
        
         start = magma_sync_wtime( queue );
-         CHECK( magma_zparic_sweep_sync( &A0, &L_new, queue ) );
+         CHECK( magma_zparict_sweep_sync( &A0, &L_new, queue ) );
         end = magma_sync_wtime( queue ); t_sweep1+=end-start;
         num_rmL = max( (L_new.nnz-L0nnz*(1+(precond->atol-1.)*(iters+1)/precond->sweeps)), 0 );
         start = magma_sync_wtime( queue );
@@ -173,7 +173,7 @@ magma_zparict(
         end = magma_sync_wtime( queue ); t_rm=end-start;
         
         start = magma_sync_wtime( queue );
-        CHECK( magma_zparic_sweep_sync( &A0, &L, queue ) );
+        CHECK( magma_zparict_sweep_sync( &A0, &L, queue ) );
         end = magma_sync_wtime( queue ); t_sweep2+=end-start;
 
         if( timing == 1 ){

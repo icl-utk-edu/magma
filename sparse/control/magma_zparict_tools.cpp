@@ -409,7 +409,7 @@ cleanup:
 
 
 extern "C" magma_int_t
-magma_zparic_sweep_sync(
+magma_zparict_sweep_sync(
     magma_z_matrix *A,
     magma_z_matrix *L,
     magma_queue_t queue )

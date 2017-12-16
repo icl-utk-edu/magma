@@ -217,7 +217,7 @@ magma_z_precondsetup(
         }
     }
     else if ( precond->solver == Magma_PARIC ) {
-        info = magma_zparicsetup( A, b, precond, queue );
+        info = magma_zparic_gpu( A, b, precond, queue );
     }
     else if ( precond->solver == Magma_PARICT ) {
         #ifdef _OPENMP

@@ -333,6 +333,9 @@ magma_zparse_opts(
             else if ( strcmp("PARILU", argv[i]) == 0 || strcmp("AIC", argv[i]) == 0 ) {
                 opts->precond_par.solver = Magma_PARILU;
             }
+            else if ( strcmp("PARIC", argv[i]) == 0 ) {
+                opts->precond_par.solver = Magma_PARILU;
+            }
             else if ( strcmp("PARICT", argv[i]) == 0 ) {
                 opts->precond_par.solver = Magma_PARICT;
             }
