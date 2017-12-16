@@ -52,7 +52,7 @@ magma_izamax(
 
 /***************************************************************************//**
     @return Index of element of vector x having min. absolute value;
-            \f$ \text{argmax}_i\; | real(x_i) | + | imag(x_i) | \f$.
+            \f$ \text{argmin}_i\; | real(x_i) | + | imag(x_i) | \f$.
 
     @param[in]
     n       Number of elements in vector x. n >= 0.
