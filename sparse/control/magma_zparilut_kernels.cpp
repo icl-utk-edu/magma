@@ -62,11 +62,11 @@ magma_zparilut_sweep(
     magma_z_matrix *A,
     magma_z_matrix *L,
     magma_z_matrix *U,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     #pragma omp parallel for
-    for( magma_int_t e=0; e<L->nnz; e++){
+    for (magma_int_t e=0; e<L->nnz; e++) {
 
         magma_int_t i,j,icol,jcol,jold;
 
@@ -74,11 +74,11 @@ magma_zparilut_sweep(
         magma_index_t col = L->col[ e ];
         // as we look at the lower triangular,
         // col<row, i.e. disregard last element in row
-        if( col < row ){
+        if(col < row) {
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
-            for( i = A->row[row]; i<A->row[row+1]; i++){
-                if( A->col[i] == col ){
+            for (i = A->row[row]; i<A->row[row+1]; i++) {
+                if(A->col[i] == col) {
                     A_e = A->val[i];
                     break;
                 }
@@ -95,38 +95,38 @@ magma_zparilut_sweep(
                 jold = j;
                 icol = L->col[i];
                 jcol = U->col[j];
-                if( icol == jcol ){
+                if(icol == jcol) {
                     lsum = L->val[i] * U->val[j];
                     sum = sum + lsum;
                     i++;
                     j++;
                 }
-                else if( icol<jcol ){
+                else if(icol<jcol) {
                     i++;
                 }
                 else {
                     j++;
                 }
-            }while( i<endi && j<endj );
+            }while(i<endi && j<endj);
             sum = sum - lsum;
 
             // write back to location e
-            L->val[ e ] =  ( A_e - sum ) / U->val[jold];
-        } else if( row == col ){ // end check whether part of L
+            L->val[ e ] =  (A_e - sum)/ U->val[jold];
+        } else if(row == col) { // end check whether part of L
             L->val[ e ] = MAGMA_Z_ONE; // lower triangular has diagonal equal 1
         }
     }// end omp parallel section
 
    #pragma omp parallel for
-    for( magma_int_t e=0; e<U->nnz; e++){
+    for (magma_int_t e=0; e<U->nnz; e++) {
         {
             magma_int_t i,j,icol,jcol;
             magma_index_t row = U->col[ e ];
             magma_index_t col = U->rowidx[ e ];
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
-            for( i = A->row[row]; i<A->row[row+1]; i++){
-                if( A->col[i] == col ){
+            for (i = A->row[row]; i<A->row[row+1]; i++) {
+                if(A->col[i] == col) {
                     A_e = A->val[i];
                     break;
                 }
@@ -142,22 +142,22 @@ magma_zparilut_sweep(
                 lsum = MAGMA_Z_ZERO;
                 icol = L->col[i];
                 jcol = U->col[j];
-                if( icol == jcol ){
+                if(icol == jcol) {
                     lsum = L->val[i] * U->val[j];
                     sum = sum + lsum;
                     i++;
                     j++;
                 }
-                else if( icol<jcol ){
+                else if(icol<jcol) {
                     i++;
                 }
                 else {
                     j++;
                 }
-            }while( i<endi && j<endj );
+            }while(i<endi && j<endj);
             sum = sum - lsum;
             // write back to location e
-            U->val[ e ] =  ( A_e - sum );
+            U->val[ e ] =  (A_e - sum);
         }
     }// end omp parallel section
 
@@ -208,28 +208,28 @@ magma_zparilut_sweep_sync(
     magma_z_matrix *A,
     magma_z_matrix *L,
     magma_z_matrix *U,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     magmaDoubleComplex *L_new_val = NULL, *U_new_val = NULL, *val_swap = NULL;
-    CHECK( magma_zmalloc_cpu( &L_new_val, L->nnz ));
-    CHECK( magma_zmalloc_cpu( &U_new_val, U->nnz ));
+    CHECK(magma_zmalloc_cpu(&L_new_val, L->nnz));
+    CHECK(magma_zmalloc_cpu(&U_new_val, U->nnz));
     
     #pragma omp parallel for
-    for( magma_int_t e=0; e<U->nnz; e++){
+    for (magma_int_t e=0; e<U->nnz; e++) {
         magma_int_t i,j,icol,jcol,iold;
 
         magma_index_t row = U->col[ e ];
         magma_index_t col = U->rowidx[ e ];
         // as we look at the lower triangular,
         // col<row, i.e. disregard last element in row
-        if( row == col ){ 
+        if(row == col) { 
             U_new_val[ e ] = MAGMA_Z_ONE; // upper triangular has 1-diagonal
         } else {
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
             // check whether A contains element in this location
-            for( i = A->row[row]; i<A->row[row+1]; i++){
-                if( A->col[i] == col ){
+            for (i = A->row[row]; i<A->row[row+1]; i++) {
+                if(A->col[i] == col) {
                     A_e = A->val[i];
                     break;
                 }
@@ -246,36 +246,36 @@ magma_zparilut_sweep_sync(
                 iold = i;
                 icol = L->col[i];
                 jcol = U->col[j];
-                if( icol == jcol ){
+                if(icol == jcol) {
                     lsum = L->val[i] * U->val[j];
                     sum = sum + lsum;
                     i++;
                     j++;
                 }
-                else if( icol<jcol ){
+                else if(icol<jcol) {
                     i++;
                 }
                 else {
                     j++;
                 }
-            }while( i<endi && j<endj );
+            }while(i<endi && j<endj);
             sum = sum - lsum;
 
             // write back to location e
-            U_new_val[ e ] =  ( A_e - sum ) / L->val[iold];
+            U_new_val[ e ] =  (A_e - sum)/ L->val[iold];
         }
     }// end omp parallel section
     
     
     #pragma omp parallel for
-    for( magma_int_t e=0; e<L->nnz; e++){
+    for (magma_int_t e=0; e<L->nnz; e++) {
         magma_int_t i,j,icol,jcol;
         magma_index_t row = L->rowidx[ e ];
         magma_index_t col = L->col[ e ];
         magmaDoubleComplex A_e = MAGMA_Z_ZERO;
         // check whether A contains element in this location
-        for( i = A->row[row]; i<A->row[row+1]; i++){
-            if( A->col[i] == col ){
+        for (i = A->row[row]; i<A->row[row+1]; i++) {
+            if(A->col[i] == col) {
                 A_e = A->val[i];
                 break;
             }
@@ -292,32 +292,32 @@ magma_zparilut_sweep_sync(
             icol = L->col[i];
             jcol = U->col[j];
             
-            if( icol == jcol ){
+            if(icol == jcol) {
                 lsum = L->val[i] * U_new_val[j];
                 sum = sum + lsum;
                 i++;
                 j++;
             }
-            else if( icol<jcol ){
+            else if(icol<jcol) {
                 i++;
             }
             else {
                 j++;
             }
-        }while( i<endi && j<endj );
+        }while(i<endi && j<endj);
         sum = sum - lsum;
         // write back to location e
-        L_new_val[ e ] =  ( A_e - sum );
+        L_new_val[ e ] =  (A_e - sum);
 
     }// end omp parallel section
 
     // swap old and new values
-    SWAP( L_new_val, L->val );
-    SWAP( U_new_val, U->val );
+    SWAP(L_new_val, L->val);
+    SWAP(U_new_val, U->val);
     
 cleanup:
-    magma_free_cpu( L_new_val );
-    magma_free_cpu( U_new_val );
+    magma_free_cpu(L_new_val);
+    magma_free_cpu(U_new_val);
     return info;
 }
 
@@ -365,18 +365,18 @@ magma_zparilut_residuals(
     magma_z_matrix L,
     magma_z_matrix U,
     magma_z_matrix *R,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     #pragma omp parallel for
-    for( magma_int_t e=0; e<R->nnz; e++){
+    for (magma_int_t e=0; e<R->nnz; e++) {
         {
             magma_int_t i,j,icol,jcol;
             magma_index_t row = R->rowidx[ e ];
             magma_index_t col = R->col[ e ];
             magmaDoubleComplex A_e = MAGMA_Z_ZERO;
-            for( i = A.row[row]; i<A.row[row+1]; i++){
-                if( A.col[i] == col ){
+            for (i = A.row[row]; i<A.row[row+1]; i++) {
+                if(A.col[i] == col) {
                     A_e = A.val[i];
                     i = A.row[row+1];
                 }
@@ -392,21 +392,21 @@ magma_zparilut_residuals(
                 lsum = MAGMA_Z_ZERO;
                 icol = L.col[i];
                 jcol = U.col[j];
-                if( icol == jcol ){
+                if(icol == jcol) {
                     lsum = L.val[i] * U.val[j];
                     sum = sum + lsum;
                     i++;
                 }
-                else if( icol<jcol ){
+                else if(icol<jcol) {
                     i++;
                 }
                 else {
                     j++;
                 }
-            }while( i<endi && j<endj );
+            }while(i<endi && j<endj);
             sum = sum - lsum;
             // write back to location e
-            R->val[ e ] =  ( A_e - sum );
+            R->val[ e ] =  (A_e - sum);
         }
     }// end omp parallel section
 

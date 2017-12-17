@@ -55,18 +55,18 @@ magma_zmatrix_cup(
     magma_z_matrix A,
     magma_z_matrix B,
     magma_z_matrix *U,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
-    assert( A.num_rows == B.num_rows );
+    assert(A.num_rows == B.num_rows);
     U->num_rows = A.num_rows;
     U->num_cols = A.num_cols;
     U->storage_type = Magma_CSR;
     U->memory_location = Magma_CPU;
     
-    CHECK( magma_index_malloc_cpu( &U->row, U->num_rows+1 ) );
+    CHECK(magma_index_malloc_cpu(&U->row, U->num_rows+1));
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t add = 0;
         magma_int_t a = A.row[row];
         magma_int_t b = B.row[row];
@@ -74,23 +74,23 @@ magma_zmatrix_cup(
         magma_int_t endb = B.row[ row+1 ]; 
         magma_int_t acol;
         magma_int_t bcol;
-        if( a<enda && b<endb ){
+        if(a<enda && b<endb) {
             do{
                 acol = A.col[ a ];
                 bcol = B.col[ b ];
                 
-                if( acol == -1 ) { // stop in case acol = -1
+                if(acol == -1) { // stop in case acol = -1
                     a++;
                 } 
-                else if( bcol == -1 ) { // stop in case bcol = -1
+                else if(bcol == -1) { // stop in case bcol = -1
                     b++;
                 }
-                else if( acol == bcol ){
+                else if(acol == bcol) {
                     add++;
                     a++;
                     b++;
                 }
-                else if( acol<bcol ){
+                else if(acol<bcol) {
                     add++;
                     a++;
                 }
@@ -98,38 +98,38 @@ magma_zmatrix_cup(
                     add++;
                     b++;
                 }
-            }while( a<enda && b<endb );
+            }while(a<enda && b<endb);
         }
         // now th rest - if existing
-        if( a<enda ){
+        if(a<enda) {
             do{
                 add++;
                 a++;
-            }while( a<enda );            
+            }while(a<enda);            
         }
-        if( b<endb ){
+        if(b<endb) {
             do{
                 add++;
                 b++;
-            }while( b<endb );            
+            }while(b<endb);            
         }
         U->row[ row+1 ] = add; 
     }
     
     // get the total element count
     U->row[ 0 ] = 0;
-    CHECK( magma_zmatrix_createrowptr( U->num_rows, U->row, queue ) );
+    CHECK(magma_zmatrix_createrowptr(U->num_rows, U->row, queue));
     U->nnz = U->row[ U->num_rows ];
         
-    CHECK( magma_zmalloc_cpu( &U->val, U->nnz ) );
-    CHECK( magma_index_malloc_cpu( &U->rowidx, U->nnz ) );
-    CHECK( magma_index_malloc_cpu( &U->col, U->nnz ) );
+    CHECK(magma_zmalloc_cpu(&U->val, U->nnz));
+    CHECK(magma_index_malloc_cpu(&U->rowidx, U->nnz));
+    CHECK(magma_index_malloc_cpu(&U->col, U->nnz));
     #pragma omp parallel for
-    for( magma_int_t i=0; i<U->nnz; i++){
+    for (magma_int_t i=0; i<U->nnz; i++) {
         U->val[i] = MAGMA_Z_ONE;
     }
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t add = 0;
         magma_int_t offset = U->row[row];
         magma_int_t a = A.row[row];
@@ -138,17 +138,17 @@ magma_zmatrix_cup(
         magma_int_t endb = B.row[ row+1 ]; 
         magma_int_t acol;
         magma_int_t bcol;
-        if( a<enda && b<endb ){
+        if(a<enda && b<endb) {
             do{
                 acol = A.col[ a ];
                 bcol = B.col[ b ];
-                if( acol == -1 ) { // stop in case acol = -1
+                if(acol == -1) { // stop in case acol = -1
                     a++;
                 } 
-                else if( bcol == -1 ) { // stop in case bcol = -1
+                else if(bcol == -1) { // stop in case bcol = -1
                     b++;
                 }
-                else if( acol == bcol ){
+                else if(acol == bcol) {
                     U->col[ offset + add ] = acol;
                     U->rowidx[ offset + add ] = row;
                     U->val[ offset + add ] = A.val[ a ];
@@ -156,7 +156,7 @@ magma_zmatrix_cup(
                     a++;
                     b++;
                 }
-                else if( acol<bcol ){
+                else if(acol<bcol) {
                     U->col[ offset + add ] = acol;
                     U->rowidx[ offset + add ] = row;
                     U->val[ offset + add ] = A.val[ a ];
@@ -170,10 +170,10 @@ magma_zmatrix_cup(
                     add++;
                     b++;
                 }
-            }while( a<enda && b<endb );
+            }while(a<enda && b<endb);
         }
         // now th rest - if existing
-        if( a<enda ){
+        if(a<enda) {
             do{
                 acol = A.col[ a ];
                 U->col[ offset + add ] = acol;
@@ -181,9 +181,9 @@ magma_zmatrix_cup(
                 U->val[ offset + add ] = A.val[ a ];
                 add++;
                 a++;
-            }while( a<enda );            
+            }while(a<enda);            
         }
-        if( b<endb ){
+        if(b<endb) {
             do{
                 bcol = B.col[ b ];
                 U->col[ offset + add ] = bcol;
@@ -191,7 +191,7 @@ magma_zmatrix_cup(
                 U->val[ offset + add ] = B.val[ b ];
                 add++;
                 b++;
-            }while( b<endb );            
+            }while(b<endb);            
         }
     }
 cleanup:
@@ -233,20 +233,20 @@ magma_zmatrix_cap(
     magma_z_matrix A,
     magma_z_matrix B,
     magma_z_matrix *U,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     //printf("\n"); fflush(stdout);
     // parallel for using openmp
-    assert( A.num_rows == B.num_rows );
+    assert(A.num_rows == B.num_rows);
     U->num_rows = A.num_rows;
     U->num_cols = A.num_cols;
     U->storage_type = Magma_CSR;
     U->memory_location = Magma_CPU;
     
-    CHECK( magma_index_malloc_cpu( &U->row, A.num_rows+1 ) );
+    CHECK(magma_index_malloc_cpu(&U->row, A.num_rows+1));
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t add = 0;
         magma_int_t a = A.row[row];
         magma_int_t b = B.row[row];
@@ -257,36 +257,36 @@ magma_zmatrix_cap(
         do{
             acol = A.col[ a ];
             bcol = B.col[ b ];
-            if( acol == bcol ){
+            if(acol == bcol) {
                 add++;
                 a++;
                 b++;
             }
-            else if( acol<bcol ){
+            else if(acol<bcol) {
                 a++;
             }
             else {
                 b++;
             }
-        }while( a<enda && b<endb );
+        }while(a<enda && b<endb);
         U->row[ row+1 ] = add; 
     }
      
         // new row pointer
     U->row[ 0 ] = 0;
-    CHECK( magma_zmatrix_createrowptr( U->num_rows, U->row, queue ) );
+    CHECK(magma_zmatrix_createrowptr(U->num_rows, U->row, queue));
     U->nnz = U->row[ U->num_rows ];
     
-    CHECK( magma_zmalloc_cpu( &U->val, U->nnz ) );
-    CHECK( magma_index_malloc_cpu( &U->rowidx, U->nnz ) );
-    CHECK( magma_index_malloc_cpu( &U->col, U->nnz ) );
+    CHECK(magma_zmalloc_cpu(&U->val, U->nnz));
+    CHECK(magma_index_malloc_cpu(&U->rowidx, U->nnz));
+    CHECK(magma_index_malloc_cpu(&U->col, U->nnz));
     #pragma omp parallel for
-    for( magma_int_t i=0; i<U->nnz; i++){
+    for (magma_int_t i=0; i<U->nnz; i++) {
         U->val[i] = MAGMA_Z_ONE;
     }
     
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t add = 0;
         magma_int_t offset = U->row[row];
         magma_int_t a = A.row[row];
@@ -298,20 +298,20 @@ magma_zmatrix_cap(
         do{
             acol = A.col[ a ];
             bcol = B.col[ b ];
-            if( acol == bcol ){
+            if(acol == bcol) {
                 U->col[ offset + add ] = acol;
                 U->rowidx[ offset + add ] = row;
                 add++;
                 a++;
                 b++;
             }
-            else if( acol<bcol ){
+            else if(acol<bcol) {
                 a++;
             }
             else {
                 b++;
             }
-        }while( a<enda && b<endb );
+        }while(a<enda && b<endb);
     }
 cleanup:
     return info;
@@ -353,20 +353,20 @@ magma_zmatrix_negcap(
     magma_z_matrix A,
     magma_z_matrix B,
     magma_z_matrix *U,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     //printf("\n"); fflush(stdout);
     // parallel for using openmp
-    assert( A.num_rows == B.num_rows );
+    assert(A.num_rows == B.num_rows);
     U->num_rows = A.num_rows;
     U->num_cols = A.num_cols;
     U->storage_type = Magma_CSR;
     U->memory_location = Magma_CPU;
     
-    CHECK( magma_index_malloc_cpu( &U->row, A.num_rows+1 ) );
+    CHECK(magma_index_malloc_cpu(&U->row, A.num_rows+1));
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t add = 0;
         magma_int_t a = A.row[row];
         magma_int_t b = B.row[row];
@@ -377,39 +377,39 @@ magma_zmatrix_negcap(
         do{
             acol = A.col[ a ];
             bcol = B.col[ b ];
-            if( acol == bcol ){
+            if(acol == bcol) {
                 a++;
                 b++;
             }
-            else if( acol<bcol ){
+            else if(acol<bcol) {
                 add++;
                 a++;
             }
             else {
                 b++;
             }
-        }while( a<enda && b<endb );
+        }while(a<enda && b<endb);
         // now th rest - if existing
-        if( a<enda ){
+        if(a<enda) {
             do{
                 add++;
                 a++;
-            }while( a<enda );            
+            }while(a<enda);            
         }
         U->row[ row+1 ] = add; 
     }
         
     // new row pointer
     U->row[ 0 ] = 0;
-    CHECK( magma_zmatrix_createrowptr( U->num_rows, U->row, queue ) );
+    CHECK(magma_zmatrix_createrowptr(U->num_rows, U->row, queue));
     U->nnz = U->row[ U->num_rows ];
     
-    CHECK( magma_zmalloc_cpu( &U->val, U->nnz ) );
-    CHECK( magma_index_malloc_cpu( &U->rowidx, U->nnz ) );
-    CHECK( magma_index_malloc_cpu( &U->col, U->nnz ) );
+    CHECK(magma_zmalloc_cpu(&U->val, U->nnz));
+    CHECK(magma_index_malloc_cpu(&U->rowidx, U->nnz));
+    CHECK(magma_index_malloc_cpu(&U->col, U->nnz));
     
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t add = 0;
         magma_int_t offset = U->row[row];
         magma_int_t a = A.row[row];
@@ -421,11 +421,11 @@ magma_zmatrix_negcap(
         do{
             acol = A.col[ a ];
             bcol = B.col[ b ];
-            if( acol == bcol ){
+            if(acol == bcol) {
                 a++;
                 b++;
             }
-            else if( acol<bcol ){
+            else if(acol<bcol) {
                 U->col[ offset + add ] = acol;
                 U->rowidx[ offset + add ] = row;
                 U->val[ offset + add ] = A.val[a];
@@ -435,9 +435,9 @@ magma_zmatrix_negcap(
             else {
                 b++;
             }
-        }while( a<enda && b<endb );
+        }while(a<enda && b<endb);
         // now th rest - if existing
-        if( a<enda ){
+        if(a<enda) {
             do{
                 acol = A.col[ a ];
                 U->col[ offset + add ] = acol;
@@ -445,7 +445,7 @@ magma_zmatrix_negcap(
                 U->val[ offset + add ] = A.val[a];
                 add++;
                 a++;
-            }while( a<enda );            
+            }while(a<enda);            
         }
     }
 
@@ -489,20 +489,20 @@ magma_zmatrix_tril_negcap(
     magma_z_matrix A,
     magma_z_matrix B,
     magma_z_matrix *U,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     //printf("\n"); fflush(stdout);
     // parallel for using openmp
-    assert( A.num_rows == B.num_rows );
+    assert(A.num_rows == B.num_rows);
     U->num_rows = A.num_rows;
     U->num_cols = A.num_cols;
     U->storage_type = Magma_CSR;
     U->memory_location = Magma_CPU;
     
-    CHECK( magma_index_malloc_cpu( &U->row, A.num_rows+1 ) );
+    CHECK(magma_index_malloc_cpu(&U->row, A.num_rows+1));
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t add = 0;
         magma_int_t a = A.row[row];
         magma_int_t b = B.row[row];
@@ -510,54 +510,54 @@ magma_zmatrix_tril_negcap(
         magma_int_t endb = B.row[ row+1 ]; 
         magma_int_t acol;
         magma_int_t bcol;
-        if( a<enda && b<endb ){
+        if(a<enda && b<endb) {
             do{
                 acol = A.col[ a ];
                 bcol = B.col[ b ];
-                if( acol > row ){
+                if(acol > row) {
                     a = enda;
                     break;    
                 }
-                if( acol == bcol ){
+                if(acol == bcol) {
                     a++;
                     b++;
                 }
-                else if( acol<bcol ){
+                else if(acol<bcol) {
                     add++;
                     a++;
                 }
                 else {
                     b++;
                 }
-            }while( a<enda && b<endb );
+            }while(a<enda && b<endb);
         }
         // now th rest - if existing
-        if( a<enda ){
+        if(a<enda) {
             do{
                 acol = A.col[ a ];
-                if( acol > row ){
+                if(acol > row) {
                     a = enda;
                     break;    
                 } else {
                     add++;
                     a++;
                 }
-            }while( a<enda );            
+            }while(a<enda);            
         }
         U->row[ row+1 ] = add; 
     }
         
     // new row pointer
     U->row[ 0 ] = 0;
-    CHECK( magma_zmatrix_createrowptr( U->num_rows, U->row, queue ) );
+    CHECK(magma_zmatrix_createrowptr(U->num_rows, U->row, queue));
     U->nnz = U->row[ U->num_rows ];
     
-    CHECK( magma_zmalloc_cpu( &U->val, U->nnz ) );
-    CHECK( magma_index_malloc_cpu( &U->rowidx, U->nnz ) );
-    CHECK( magma_index_malloc_cpu( &U->col, U->nnz ) );
+    CHECK(magma_zmalloc_cpu(&U->val, U->nnz));
+    CHECK(magma_index_malloc_cpu(&U->rowidx, U->nnz));
+    CHECK(magma_index_malloc_cpu(&U->col, U->nnz));
     
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t add = 0;
         magma_int_t offset = U->row[row];
         magma_int_t a = A.row[row];
@@ -566,19 +566,19 @@ magma_zmatrix_tril_negcap(
         magma_int_t endb = B.row[ row+1 ]; 
         magma_int_t acol;
         magma_int_t bcol;
-        if( a<enda && b<endb ){
+        if(a<enda && b<endb) {
             do{
                 acol = A.col[ a ];
                 bcol = B.col[ b ];
-                if( acol > row ){
+                if(acol > row) {
                     a = enda;
                     break;    
                 }
-                if( acol == bcol ){
+                if(acol == bcol) {
                     a++;
                     b++;
                 }
-                else if( acol<bcol ){
+                else if(acol<bcol) {
                     U->col[ offset + add ] = acol;
                     U->rowidx[ offset + add ] = row;
                     U->val[ offset + add ] = A.val[a];
@@ -588,13 +588,13 @@ magma_zmatrix_tril_negcap(
                 else {
                     b++;
                 }
-            }while( a<enda && b<endb );
+            }while(a<enda && b<endb);
         }
         // now th rest - if existing
-        if( a<enda ){
+        if(a<enda) {
             do{
                 acol = A.col[ a ];
-                if( acol > row ){
+                if(acol > row) {
                     a = enda;
                     break;    
                 } else {
@@ -604,7 +604,7 @@ magma_zmatrix_tril_negcap(
                     add++;
                     a++;
                 }
-            }while( a<enda );            
+            }while(a<enda);            
         }
     }
 cleanup:
@@ -646,18 +646,18 @@ magma_zmatrix_triu_negcap(
     magma_z_matrix A,
     magma_z_matrix B,
     magma_z_matrix *U,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
-    assert( A.num_rows == B.num_rows );
+    assert(A.num_rows == B.num_rows);
     U->num_rows = A.num_rows;
     U->num_cols = A.num_cols;
     U->storage_type = Magma_CSR;
     U->memory_location = Magma_CPU;
     
-    CHECK( magma_index_malloc_cpu( &U->row, A.num_rows+1 ) );
+    CHECK(magma_index_malloc_cpu(&U->row, A.num_rows+1));
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t add = 0;
         magma_int_t a = A.row[row];
         magma_int_t b = B.row[row];
@@ -665,16 +665,16 @@ magma_zmatrix_triu_negcap(
         magma_int_t endb = B.row[ row+1 ]; 
         magma_int_t acol;
         magma_int_t bcol;
-        if( a<enda && b<endb ){
+        if(a<enda && b<endb) {
             do{
                 acol = A.col[ a ];
                 bcol = B.col[ b ];
-                if( acol == bcol ){
+                if(acol == bcol) {
                     a++;
                     b++;
                 }
-                else if( acol<bcol ){
-                    if( acol >= row ){
+                else if(acol<bcol) {
+                    if(acol >= row) {
                         add++;
                         a++;
                     } else {
@@ -684,34 +684,34 @@ magma_zmatrix_triu_negcap(
                 else {
                     b++;
                 }
-            }while( a<enda && b<endb );
+            }while(a<enda && b<endb);
         }
         // now th rest - if existing
-        if( a<enda ){
+        if(a<enda) {
             do{
                 acol = A.col[ a ];
-                if( acol >= row ){
+                if(acol >= row) {
                     add++;
                     a++;
                 } else {
                     a++;
                 }
-            }while( a<enda );            
+            }while(a<enda);            
         }
         U->row[ row+1 ] = add; 
     }
         
     // new row pointer
     U->row[ 0 ] = 0;
-    CHECK( magma_zmatrix_createrowptr( U->num_rows, U->row, queue ) );
+    CHECK(magma_zmatrix_createrowptr(U->num_rows, U->row, queue));
     U->nnz = U->row[ U->num_rows ];
     
-    CHECK( magma_zmalloc_cpu( &U->val, U->nnz ) );
-    CHECK( magma_index_malloc_cpu( &U->rowidx, U->nnz ) );
-    CHECK( magma_index_malloc_cpu( &U->col, U->nnz ) );
+    CHECK(magma_zmalloc_cpu(&U->val, U->nnz));
+    CHECK(magma_index_malloc_cpu(&U->rowidx, U->nnz));
+    CHECK(magma_index_malloc_cpu(&U->col, U->nnz));
     
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t add = 0;
         magma_int_t offset = U->row[row];
         magma_int_t a = A.row[row];
@@ -720,16 +720,16 @@ magma_zmatrix_triu_negcap(
         magma_int_t endb = B.row[ row+1 ]; 
         magma_int_t acol;
         magma_int_t bcol;
-        if( a<enda && b<endb ){
+        if(a<enda && b<endb) {
             do{
                 acol = A.col[ a ];
                 bcol = B.col[ b ];
-                if( acol == bcol ){
+                if(acol == bcol) {
                     a++;
                     b++;
                 }
-                else if( acol<bcol ){
-                    if( acol >= row ){
+                else if(acol<bcol) {
+                    if(acol >= row) {
                         U->col[ offset + add ] = acol;
                         U->rowidx[ offset + add ] = row;
                         U->val[ offset + add ] = A.val[a];
@@ -742,13 +742,13 @@ magma_zmatrix_triu_negcap(
                 else {
                     b++;
                 }
-            }while( a<enda && b<endb );
+            }while(a<enda && b<endb);
         }
         // now th rest - if existing
-        if( a<enda ){
+        if(a<enda) {
             do{
                 acol = A.col[ a ];
-                if( acol >= row ){
+                if(acol >= row) {
                     U->col[ offset + add ] = acol;
                     U->rowidx[ offset + add ] = row;
                     U->val[ offset + add ] = A.val[a];
@@ -757,7 +757,7 @@ magma_zmatrix_triu_negcap(
                 } else {
                     a++;
                 }
-            }while( a<enda );            
+            }while(a<enda);            
         }
     }
 
@@ -788,16 +788,16 @@ cleanup:
 extern "C" magma_int_t
 magma_zmatrix_addrowindex(
     magma_z_matrix *A,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     
-    CHECK( magma_index_malloc_cpu( &A->rowidx, A->nnz) );
+    CHECK(magma_index_malloc_cpu(&A->rowidx, A->nnz));
     
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A->num_rows; row++){
+    for (magma_int_t row=0; row<A->num_rows; row++) {
         
-        for( magma_int_t i=A->row[row]; i<A->row[row+1]; i++ ){
+        for (magma_int_t i=A->row[row]; i<A->row[row+1]; i++) {
             A->rowidx[i] = row;
         }
     }
@@ -835,7 +835,7 @@ extern "C" magma_int_t
 magma_zcsrcoo_transpose(
     magma_z_matrix A,
     magma_z_matrix *B,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     magma_index_t *linked_list;
@@ -851,13 +851,13 @@ magma_zcsrcoo_transpose(
     B->num_cols = A.num_cols;
     B->nnz      = A.nnz;
     
-    CHECK( magma_index_malloc_cpu( &linked_list, A.nnz ));
-    CHECK( magma_index_malloc_cpu( &row_ptr, A.num_rows+1 ));
-    CHECK( magma_index_malloc_cpu( &last_rowel, A.num_rows+1 ));
-    CHECK( magma_index_malloc_cpu( &B->row, A.num_rows+1 ));
-    CHECK( magma_index_malloc_cpu( &B->rowidx, A.nnz ));
-    CHECK( magma_index_malloc_cpu( &B->col, A.nnz ));
-    CHECK( magma_zmalloc_cpu( &B->val, A.nnz ) );
+    CHECK(magma_index_malloc_cpu(&linked_list, A.nnz));
+    CHECK(magma_index_malloc_cpu(&row_ptr, A.num_rows+1));
+    CHECK(magma_index_malloc_cpu(&last_rowel, A.num_rows+1));
+    CHECK(magma_index_malloc_cpu(&B->row, A.num_rows+1));
+    CHECK(magma_index_malloc_cpu(&B->rowidx, A.nnz));
+    CHECK(magma_index_malloc_cpu(&B->col, A.nnz));
+    CHECK(magma_zmalloc_cpu(&B->val, A.nnz));
 #ifdef _OPENMP
     #pragma omp parallel
     {
@@ -868,15 +868,15 @@ magma_zcsrcoo_transpose(
 #endif
     
     #pragma omp parallel for
-    for( magma_int_t i=0; i<A.num_rows; i++ ){
+    for (magma_int_t i=0; i<A.num_rows; i++) {
         row_ptr[i] = -1;
     }
     #pragma omp parallel for
-    for( magma_int_t i=0; i<A.num_rows+1; i++ ){
+    for (magma_int_t i=0; i<A.num_rows+1; i++) {
         B->row[i] = 0;
     }
     
-    el_per_block = magma_ceildiv( A.num_rows, num_threads );
+    el_per_block = magma_ceildiv(A.num_rows, num_threads);
 
     #pragma omp parallel
     {
@@ -885,10 +885,10 @@ magma_zcsrcoo_transpose(
 #else
     magma_int_t id = 0;
 #endif
-        for(magma_int_t i=0; i<A.nnz; i++ ){
+        for (magma_int_t i=0; i<A.nnz; i++) {
             magma_index_t row = A.col[ i ];
-            if( (row < (id+1)*el_per_block) && (row >=(id)*el_per_block)  ){
-                if( row_ptr[row] == -1 ){
+            if((row < (id+1)*el_per_block) && (row >=(id)*el_per_block)) {
+                if(row_ptr[row] == -1) {
                     row_ptr[ row ] = i;
                     linked_list[ i ] = 0;
                     last_rowel[ row ] = i;
@@ -904,17 +904,17 @@ magma_zcsrcoo_transpose(
     
     // new rowptr
     B->row[0]=0;   
-    magma_zmatrix_createrowptr( B->num_rows, B->row, queue );
+    magma_zmatrix_createrowptr(B->num_rows, B->row, queue);
     
 
-    assert( B->row[B->num_rows] == A.nnz );
+    assert(B->row[B->num_rows] == A.nnz);
     
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t el = row_ptr[row];
-        if( el>-1 ) {
+        if(el>-1) {
             
-            for( magma_int_t i=B->row[row]; i<B->row[row+1]; i++ ){
+            for (magma_int_t i=B->row[row]; i<B->row[row+1]; i++) {
                 // assert(A.col[el] == row);
                 B->val[i] = A.val[el];
                 B->col[i] = A.rowidx[el];
@@ -925,9 +925,9 @@ magma_zcsrcoo_transpose(
     }
     
 cleanup:
-    magma_free_cpu( row_ptr );
-    magma_free_cpu( last_rowel );
-    magma_free_cpu( linked_list );
+    magma_free_cpu(row_ptr);
+    magma_free_cpu(last_rowel);
+    magma_free_cpu(linked_list);
     return info;
 }
 
@@ -963,7 +963,7 @@ extern "C" magma_int_t
 magma_zmatrix_createrowptr(
     magma_int_t n,
     magma_index_t *row,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     magma_index_t *offset=NULL;
@@ -979,8 +979,8 @@ magma_zmatrix_createrowptr(
 #else
     num_threads = 1;
 #endif
-    CHECK( magma_index_malloc_cpu( &offset, num_threads+1 ));
-    el_per_block = magma_ceildiv( n, num_threads );
+    CHECK(magma_index_malloc_cpu(&offset, num_threads+1));
+    el_per_block = magma_ceildiv(n, num_threads);
     
     #pragma omp parallel
     {
@@ -993,25 +993,25 @@ magma_zmatrix_createrowptr(
         magma_int_t end = min((id+1)*el_per_block, n);
         
         magma_int_t loc_nz = 0;
-        for(magma_int_t i=start; i<end; i++ ){
+        for (magma_int_t i=start; i<end; i++) {
             loc_nz = loc_nz + row[i+1];
             row[i+1] = loc_nz;
         }
         offset[id+1] = loc_nz;
     }
     
-    for( magma_int_t i=1; i<num_threads; i++ ){
+    for (magma_int_t i=1; i<num_threads; i++) {
         magma_int_t start = (i)*el_per_block;
         magma_int_t end = min((i+1)*el_per_block, n);
         loc_offset = loc_offset + offset[i];
         #pragma omp parallel for
-        for(magma_int_t j=start; j<end; j++ ){
+        for (magma_int_t j=start; j<end; j++) {
             row[j+1] = row[j+1]+loc_offset;        
         }
     }
     
 cleanup:
-    magma_free_cpu( offset );
+    magma_free_cpu(offset);
     return info;
 }
 
@@ -1043,19 +1043,19 @@ extern "C" magma_int_t
 magma_zmatrix_swap(
     magma_z_matrix *A,
     magma_z_matrix *B,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     magma_int_t tmp;
     magma_index_t *index_swap;
     magmaDoubleComplex *val_swap;
     
-    assert( A->storage_type == B->storage_type );
-    assert( A->memory_location == B->memory_location );
+    assert(A->storage_type == B->storage_type);
+    assert(A->memory_location == B->memory_location);
     
-    SWAP( A->num_rows, B->num_rows );
-    SWAP( A->num_cols, B->num_cols );
-    SWAP( A->nnz, B->nnz );
+    SWAP(A->num_rows, B->num_rows);
+    SWAP(A->num_cols, B->num_cols);
+    SWAP(A->nnz, B->nnz);
     
     index_swap = A->row;
     A->row = B->row;
@@ -1105,7 +1105,7 @@ extern "C" magma_int_t
 magma_zmatrix_tril(
     magma_z_matrix A,
     magma_z_matrix *L,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     
@@ -1114,14 +1114,14 @@ magma_zmatrix_tril(
     L->storage_type = Magma_CSR;
     L->memory_location = Magma_CPU;
     
-    CHECK( magma_index_malloc_cpu( &L->row, A.num_rows+1 ) );
+    CHECK(magma_index_malloc_cpu(&L->row, A.num_rows+1));
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t nz = 0;
         
-        for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
+        for (magma_int_t i=A.row[row]; i<A.row[row+1]; i++) {
             magma_index_t col = A.col[i];
-            if( col <= row ){
+            if(col <= row) {
                 nz++;    
             } else {
                 i=A.row[row+1];   
@@ -1132,22 +1132,22 @@ magma_zmatrix_tril(
     
     // new row pointer
     L->row[ 0 ] = 0;
-    CHECK( magma_zmatrix_createrowptr( L->num_rows, L->row, queue ) );
+    CHECK(magma_zmatrix_createrowptr(L->num_rows, L->row, queue));
     L->nnz = L->row[ L->num_rows ];
     
     // allocate memory
-    CHECK( magma_zmalloc_cpu( &L->val, L->nnz ) );
-    CHECK( magma_index_malloc_cpu( &L->col, L->nnz ) );
+    CHECK(magma_zmalloc_cpu(&L->val, L->nnz));
+    CHECK(magma_index_malloc_cpu(&L->col, L->nnz));
     
     // copy
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t nz = 0;
         magma_int_t offset = L->row[row];
         
-        for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
+        for (magma_int_t i=A.row[row]; i<A.row[row+1]; i++) {
             magma_index_t col = A.col[i];
-            if( col <= row ){
+            if(col <= row) {
                 L->col[offset+nz] = col;
                 L->val[offset+nz] = A.val[i];
                 nz++;    
@@ -1191,7 +1191,7 @@ extern "C" magma_int_t
 magma_zmatrix_triu(
     magma_z_matrix A,
     magma_z_matrix *U,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     
@@ -1200,14 +1200,14 @@ magma_zmatrix_triu(
     U->storage_type = Magma_CSR;
     U->memory_location = Magma_CPU;
     
-    CHECK( magma_index_malloc_cpu( &U->row, A.num_rows+1 ) );
+    CHECK(magma_index_malloc_cpu(&U->row, A.num_rows+1));
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t nz = 0;
         
-        for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
+        for (magma_int_t i=A.row[row]; i<A.row[row+1]; i++) {
             magma_index_t col = A.col[i];
-            if( col >= row ){
+            if(col >= row) {
                 nz++;    
             } else {
                 ;    
@@ -1218,23 +1218,23 @@ magma_zmatrix_triu(
     
     // new row pointer
     U->row[ 0 ] = 0;
-    CHECK( magma_zmatrix_createrowptr( U->num_rows, U->row, queue ) );
+    CHECK(magma_zmatrix_createrowptr(U->num_rows, U->row, queue));
     U->nnz = U->row[ U->num_rows ];
     
     
     // allocate memory
-    CHECK( magma_zmalloc_cpu( &U->val, U->nnz ) );
-    CHECK( magma_index_malloc_cpu( &U->col, U->nnz ) );
+    CHECK(magma_zmalloc_cpu(&U->val, U->nnz));
+    CHECK(magma_index_malloc_cpu(&U->col, U->nnz));
     
     // copy
     #pragma omp parallel for
-    for( magma_int_t row=0; row<A.num_rows; row++){
+    for (magma_int_t row=0; row<A.num_rows; row++) {
         magma_int_t nz = 0;
         magma_int_t offset = U->row[row];
         
-        for( magma_int_t i=A.row[row]; i<A.row[row+1]; i++ ){
+        for (magma_int_t i=A.row[row]; i<A.row[row+1]; i++) {
             magma_index_t col = A.col[i];
-            if( col >= row ){
+            if(col >= row) {
                 U->col[offset+nz] = col;
                 U->val[offset+nz] = A.val[i];
                 nz++;    
@@ -1276,18 +1276,18 @@ extern "C" magma_int_t
 magma_zmatrix_abssum(
     magma_z_matrix A,
     double *sum,
-    magma_queue_t queue )
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     
     double locsum = .0;
     
     #pragma omp parallel for reduction(+:locsum)
-    for(magma_int_t i=0; i < A.nnz; i++ ){
+    for (magma_int_t i=0; i < A.nnz; i++) {
         locsum = locsum + (MAGMA_Z_ABS(A.val[i]) * MAGMA_Z_ABS(A.val[i]));
     }
     
-    *sum = sqrt( locsum );
+    *sum = sqrt(locsum);
     
     return info;
 }
