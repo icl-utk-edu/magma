@@ -862,7 +862,7 @@ magma_zmatrix_addrowindex(
     magma_queue_t queue );
 
 magma_int_t
-magma_zparilut_elementsum(
+magma_zmatrix_abssum(
     magma_z_matrix A,
     double *sum,
     magma_queue_t queue );
@@ -933,7 +933,7 @@ magma_zmatrix_swap(
     magma_queue_t queue );
 
 magma_int_t
-magma_zparilut_transpose(
+magma_zcsrcoo_transpose(
     magma_z_matrix A,
     magma_z_matrix *B,
     magma_queue_t queue );

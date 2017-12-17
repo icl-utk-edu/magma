@@ -181,8 +181,8 @@ magma_zparilut(
             magma_zparilut_residuals( hA, L, U, &hU, queue );
             end = magma_sync_wtime( queue ); t_res=+end-start;
             start = magma_sync_wtime( queue );
-            magma_zparilut_elementsum( hL, &sumL, queue );
-            magma_zparilut_elementsum( hU, &sumU, queue );
+            magma_zmatrix_abssum( hL, &sumL, queue );
+            magma_zmatrix_abssum( hU, &sumU, queue );
             sum = sumL + sumU;
             end = magma_sync_wtime( queue ); t_nrm+=end-start;
             
@@ -200,8 +200,8 @@ magma_zparilut(
             magma_zparilut_residuals( hA, L, U, &hU, queue );
             end = magma_sync_wtime( queue ); t_res=+end-start;
             start = magma_sync_wtime( queue );
-            magma_zparilut_elementsum( hL, &sumL, queue );
-            magma_zparilut_elementsum( hU, &sumU, queue );
+            magma_zmatrix_abssum( hL, &sumL, queue );
+            magma_zmatrix_abssum( hU, &sumU, queue );
             sum = sumL + sumU;
             end = magma_sync_wtime( queue ); t_nrm+=end-start;
             CHECK( magma_zmatrix_swap(  &hL, &oneL, queue) );
@@ -228,8 +228,8 @@ magma_zparilut(
             magma_zparilut_residuals( hA, L, U, &hU, queue );
             end = magma_sync_wtime( queue ); t_res=+end-start;
             start = magma_sync_wtime( queue );
-            magma_zparilut_elementsum( hL, &sumL, queue );
-            magma_zparilut_elementsum( hU, &sumU, queue );
+            magma_zmatrix_abssum( hL, &sumL, queue );
+            magma_zmatrix_abssum( hU, &sumU, queue );
             sum = sumL + sumU;
             end = magma_sync_wtime( queue ); t_nrm+=end-start;
             
