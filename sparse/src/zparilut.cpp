@@ -168,7 +168,7 @@ magma_zparilut(
         start = magma_sync_wtime( queue );
         magma_zmfree(&UT, queue );
         //magma_zmtransposestruct_cpu( U, &UT, queue );
-        magma_zparilut_transpose( U, &UT, queue );
+        magma_zcsrcoo_transpose( U, &UT, queue );
         end = magma_sync_wtime( queue ); t_transpose1+=end-start;
         start = magma_sync_wtime( queue );
         magma_zparilut_candidates( L0, U0, L, UT, &hL, &hU, queue );
@@ -216,7 +216,7 @@ magma_zparilut(
                 for(magma_int_t z=0; z<hU.nnz; z++)
                     hU.val[z] = MAGMA_Z_ZERO;
             }
-            magma_zparilut_transpose( hU, &oneU, queue );
+            magma_zcsrcoo_transpose( hU, &oneU, queue );
             end = magma_sync_wtime( queue ); t_transpose2+=end-start;
             magma_zmfree(&hU, queue );
             magma_zmfree(&UT, queue );
@@ -423,7 +423,7 @@ magma_zparilut(
 
     // for CUSPARSE
     CHECK( magma_zmtransfer( L, &precond->L, Magma_CPU, Magma_DEV , queue ));
-    magma_zparilut_transpose( U, &UT, queue );
+    magma_zcsrcoo_transpose( U, &UT, queue );
     //magma_zmtranspose(U, &UT, queue );
     CHECK( magma_zmtransfer( UT, &precond->U, Magma_CPU, Magma_DEV , queue ));
 
