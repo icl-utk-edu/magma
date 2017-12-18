@@ -112,23 +112,22 @@ magma_zparilu_cpu(
     CHECK(magma_zmtransfer(hAL, &precond->L, Magma_CPU, Magma_DEV, queue));
     CHECK(magma_zmtransfer(hAUT, &precond->U, Magma_CPU, Magma_DEV, queue));
     
-    // For Jacobi-type triangular solves
-    // extract the diagonal of L into precond->d
-    CHECK(magma_zjacobisetup_diagscal(precond->L, &precond->d, queue));
-    CHECK(magma_zvinit(&precond->work1, Magma_DEV, hA.num_rows, 1, MAGMA_Z_ZERO, 
-        queue));
-    
-    // For Jacobi-type triangular solves
-    // extract the diagonal of U into precond->d2
-    CHECK(magma_zjacobisetup_diagscal(precond->U, &precond->d2, queue));
-    CHECK(magma_zvinit(&precond->work2, Magma_DEV, hA.num_rows, 1, MAGMA_Z_ZERO, 
-        queue));
+    if (precond->trisolver == 0 || precond->trisolver == Magma_CUSOLVE) {
+        CHECK(magma_zcumilugeneratesolverinfo(precond, queue));
+    } else {
+        //prepare for iterative solves
 
-    magma_zmfree(&hAL, queue);
-    magma_zmfree(&hAU, queue);
+        // extract the diagonal of L into precond->d
+        CHECK(magma_zjacobisetup_diagscal(precond->L, &precond->d, queue));
+        CHECK(magma_zvinit(&precond->work1, Magma_DEV, hA.num_rows, 1, 
+            MAGMA_Z_ZERO, queue));
 
-    CHECK(magma_zcumilugeneratesolverinfo(precond, queue));
-    
+        // extract the diagonal of U into precond->d2
+        CHECK(magma_zjacobisetup_diagscal(precond->U, &precond->d2, queue));
+        CHECK(magma_zvinit(&precond->work2, Magma_DEV, hA.num_rows, 1, 
+            MAGMA_Z_ZERO, queue));
+    }
+
 cleanup:
     magma_zmfree(&hAT, queue);
     magma_zmfree(&hA, queue);

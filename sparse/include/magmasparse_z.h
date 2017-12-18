@@ -1193,6 +1193,13 @@ magma_zparilut(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilut_cpu(
+    magma_z_matrix A,
+    magma_z_matrix b,
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparilut_insert(
     magma_int_t *num_rmL,
     magma_int_t *num_rmU,
@@ -1513,6 +1520,11 @@ magma_zisai_generator_regs(
     magma_z_matrix L,
     magma_z_matrix *M,
     magma_queue_t queue );
+
+magma_int_t
+magma_zcsr_sort(
+    magma_z_matrix *A,
+    magma_queue_t queue);
 
 // #endif
 /* ////////////////////////////////////////////////////////////////////////////

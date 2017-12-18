@@ -1291,3 +1291,43 @@ magma_zmatrix_abssum(
     
     return info;
 }
+
+
+/***************************************************************************//**
+    Purpose
+    -------
+    SOrts the elements in a CSR matrix for increasing column index.
+
+    Arguments
+    ---------
+
+    @param[in,out]
+    A           magma_z_matrix*
+                CSR matrix, sorted on output.
+
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+*******************************************************************************/
+
+extern "C" magma_int_t
+magma_zcsr_sort(
+    magma_z_matrix *A,
+    magma_queue_t queue)
+{
+    magma_int_t info = 0;
+    
+    if (A->memory_location == Magma_CPU && A->storage_type == Magma_CSR){
+        #pragma omp parallel  
+        for (int row=0; row<A->num_rows; row++) {
+            magma_zindexsort(&A->col[A->row[row]], 0, 
+                A->row[row+1]-A->row[row]-1, queue);
+        }
+    } else {
+        info = MAGMA_ERR_NOT_SUPPORTED;
+    }
+    
+    return info;
+}
