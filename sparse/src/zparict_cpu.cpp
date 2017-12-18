@@ -22,27 +22,18 @@
     Purpose
     -------
 
-    Generates an incomplete threshold LU preconditioner via the ParILUT 
-    algorithm. The strategy is to interleave a parallel fixed-point 
-    iteration that approximates an incomplete factorization for a given nonzero 
-    pattern with a procedure that adaptively changes the pattern. 
-    Much of this algorithm has fine-grained parallelism, and can efficiently 
-    exploit the compute power of shared memory architectures.
+    Prepares the iterative threshold Incomplete Cholesky preconditioner. 
+    The strategy is interleaving a parallel fixed-point iteration that 
+    approximates an incomplete factorization for a given nonzero pattern with a 
+    procedure that adaptively changes the pattern. Much of this new algorithm 
+    has fine-grained parallelism, and we show that it can efficiently exploit 
+    the compute power of shared memory architectures.
 
     This is the routine used in the publication by Anzt, Chow, Dongarra:
     ''ParILUT - A new parallel threshold ILU factorization''
-    submitted to SIAM SISC in 2017.
-    
-    This version uses the default setting which adds all candidates to the
-    sparsity pattern.
+    submitted to SIAM SISC in 2016.
 
     This function requires OpenMP, and is only available if OpenMP is activated.
-    
-    The parameter list is:
-    
-    precond.sweeps : number of ParILUT steps
-    precond.atol   : absolute fill ratio (1.0 keeps nnz count constant)
-
 
     Arguments
     ---------
@@ -67,7 +58,7 @@
 *******************************************************************************/
 extern "C"
 magma_int_t
-magma_zparilut_cpu(
+magma_zparict_cpu(
     magma_z_matrix A,
     magma_z_matrix b,
     magma_z_preconditioner *precond,
@@ -82,50 +73,38 @@ magma_zparilut_cpu(
         t_cand=0.0, t_transpose1=0.0, t_transpose2=0.0, t_selectrm=0.0,
         t_selectadd=0.0, t_nrm=0.0, t_total = 0.0, accum=0.0;
                     
-    double sum, sumL, sumU;
+    double sum, sumL;
 
-    magma_z_matrix hA={Magma_CSR}, hAT={Magma_CSR}, hL={Magma_CSR}, 
-        hU={Magma_CSR}, oneL={Magma_CSR}, oneU={Magma_CSR},
-        L={Magma_CSR}, U={Magma_CSR}, L_new={Magma_CSR}, U_new={Magma_CSR}, 
-        UT={Magma_CSR}, L0={Magma_CSR}, U0={Magma_CSR};
-    magma_int_t num_rmL, num_rmU;
+    magma_z_matrix hA={Magma_CSR},
+        hL={Magma_CSR}, oneL={Magma_CSR}, LT={Magma_CSR},
+        L={Magma_CSR}, L_new={Magma_CSR}, L0={Magma_CSR};  
+    magma_int_t num_rmL;
     double thrsL = 0.0;
-    double thrsU = 0.0;
 
-    magma_int_t num_threads = 1, timing = 1; // print timing
-    magma_int_t L0nnz, U0nnz;
+    magma_int_t num_threads = 1, timing = 1; // 1 = print timing
+    magma_int_t L0nnz;
 
     #pragma omp parallel
     {
         num_threads = omp_get_max_threads();
     }
-    
     CHECK(magma_zmtransfer(A, &hA, A.memory_location, Magma_CPU, queue));
-    
+
     // in case using fill-in
     if (precond->levels > 0) {
-        CHECK(magma_zsymbilu(&hA, precond->levels, &hL, &hU , queue));
-        magma_zmfree(&hU, queue);
-        magma_zmfree(&hL, queue);
+        CHECK(magma_zsymbilu(&hA, precond->levels, &hL, &LT , queue));
+        magma_zmfree(&LT, queue);
     }
-    CHECK(magma_zmatrix_tril(hA, &L0, queue));
-    CHECK(magma_zmatrix_triu(hA, &U0, queue));
-    magma_zmfree(&hU, queue);
-    magma_zmfree(&hL, queue);
+    
     CHECK(magma_zmatrix_tril(hA, &L, queue));
-    CHECK(magma_zmtranspose(hA, &hAT, queue));
-    CHECK(magma_zmatrix_tril(hAT, &U, queue));
+    CHECK(magma_zmtransfer(L, &L0, A.memory_location, Magma_CPU, queue));
     CHECK(magma_zmatrix_addrowindex(&L, queue)); 
-    CHECK(magma_zmatrix_addrowindex(&U, queue)); 
     L0nnz=L.nnz;
-    U0nnz=U.nnz;
-    oneL.memory_location = Magma_CPU;
-    oneU.memory_location = Magma_CPU;
-        
+    
     if (timing == 1) {
         printf("ilut_fill_ratio = %.6f;\n\n", precond->atol); 
-        printf("performance_%d = [\n%%iter L.nnz U.nnz    ILU-Norm    candidat  resid     ILU-norm  selectad  add       transp1   sweep1  selectrm  remove    sweep2    transp2   total       accum\n", 
-            (int) num_threads);
+
+        printf("performance_%d = [\n%%iter L.nnz U.nnz    ILU-Norm     candidat  resid     ILU-norm  selectad  add       transp1   sweep1    selectrm  remove    sweep2    transp2   total       accum\n", (int) num_threads);
     }
 
     //##########################################################################
@@ -134,101 +113,75 @@ magma_zparilut_cpu(
         t_rm=0.0; t_add=0.0; t_res=0.0; t_sweep1=0.0; t_sweep2=0.0; t_cand=0.0;
         t_transpose1=0.0; t_transpose2=0.0; t_selectrm=0.0;
         t_selectadd=0.0; t_nrm=0.0; t_total = 0.0;
-     
+
         // step 1: find candidates
         start = magma_sync_wtime(queue);
-        magma_zmfree(&UT, queue);
-        CHECK(magma_zcsrcoo_transpose(U, &UT, queue));
+        magma_zmfree(&LT, queue);
+        magma_zcsrcoo_transpose(L, &LT, queue);
         end = magma_sync_wtime(queue); t_transpose1+=end-start;
-        start = magma_sync_wtime(queue);
-        CHECK(magma_zparilut_candidates(L0, U0, L, UT, &hL, &hU, queue));
+        start = magma_sync_wtime(queue); 
+        magma_zparict_candidates(L0, L, LT, &hL, queue);
         end = magma_sync_wtime(queue); t_cand=+end-start;
-        
+
         // step 2: compute residuals (optional when adding all candidates)
         start = magma_sync_wtime(queue);
-        CHECK(magma_zparilut_residuals(hA, L, U, &hL, queue));
-        CHECK(magma_zparilut_residuals(hA, L, U, &hU, queue));
+        magma_zparilut_residuals(hA, L, L, &hL, queue);
         end = magma_sync_wtime(queue); t_res=+end-start;
         start = magma_sync_wtime(queue);
-        CHECK(magma_zmatrix_abssum(hL, &sumL, queue));
-        CHECK(magma_zmatrix_abssum(hU, &sumU, queue));
-        sum = sumL + sumU;
+        magma_zmatrix_abssum(hL, &sumL, queue);
+        sum = sumL*2;
         end = magma_sync_wtime(queue); t_nrm+=end-start;
-        CHECK(magma_zmatrix_swap(&hL, &oneL, queue));
-        magma_zmfree(&hL, queue);
-        
+
         // step 3: add candidates
         start = magma_sync_wtime(queue);
-        magma_zcsrcoo_transpose(hU, &oneU, queue);
-        end = magma_sync_wtime(queue); t_transpose2+=end-start;
-        start = magma_sync_wtime(queue);
-        magma_zmfree(&hU, queue);
-        magma_zmfree(&UT, queue);
         CHECK(magma_zcsr_sort(&hL, queue));
-        CHECK(magma_zcsr_sort(&hU, queue));
         end = magma_sync_wtime(queue); t_selectadd+=end-start;
         start = magma_sync_wtime(queue);
-        CHECK(magma_zmatrix_cup(L, oneL, &L_new, queue));   
-        CHECK(magma_zmatrix_cup(U, oneU, &U_new, queue));
+        CHECK(magma_zmatrix_cup( L, hL, &L_new, queue));  
         end = magma_sync_wtime(queue); t_add=+end-start;
-        magma_zmfree(&oneL, queue);
-        magma_zmfree(&oneU, queue);
-       
+        magma_zmfree(&hL, queue);
+
         // step 4: sweep
         start = magma_sync_wtime(queue);
-        CHECK(magma_zparilut_sweep_sync(&hA, &L_new, &U_new, queue));
+        CHECK(magma_zparict_sweep_sync(&hA, &L_new, queue));
         end = magma_sync_wtime(queue); t_sweep1+=end-start;
-        
+
         // step 5: select threshold to remove elements
         start = magma_sync_wtime(queue);
         num_rmL = max((L_new.nnz-L0nnz*(1+(precond->atol-1.)
             *(iters+1)/precond->sweeps)), 0);
-        num_rmU = max((U_new.nnz-U0nnz*(1+(precond->atol-1.)
-            *(iters+1)/precond->sweeps)), 0);
         // pre-select: ignore the diagonal entries
         CHECK(magma_zparilut_preselect(0, &L_new, &oneL, queue));
-        CHECK(magma_zparilut_preselect(0, &U_new, &oneU, queue));
         if (num_rmL>0) {
             CHECK(magma_zparilut_set_thrs_randomselect(num_rmL, 
                 &oneL, 0, &thrsL, queue));
         } else {
             thrsL = 0.0;
         }
-        if (num_rmU>0) {
-            CHECK(magma_zparilut_set_thrs_randomselect(num_rmU, 
-                &oneU, 0, &thrsU, queue));
-        } else {
-            thrsU = 0.0;
-        }
         magma_zmfree(&oneL, queue);
-        magma_zmfree(&oneU, queue);
         end = magma_sync_wtime(queue); t_selectrm=end-start;
-
+        
         // step 6: remove elements
         start = magma_sync_wtime(queue);
         CHECK(magma_zparilut_thrsrm(1, &L_new, &thrsL, queue));
-        CHECK(magma_zparilut_thrsrm(1, &U_new, &thrsU, queue));
         CHECK(magma_zmatrix_swap(&L_new, &L, queue));
-        CHECK(magma_zmatrix_swap(&U_new, &U, queue));
         magma_zmfree(&L_new, queue);
-        magma_zmfree(&U_new, queue);
         end = magma_sync_wtime(queue); t_rm=end-start;
         
         // step 7: sweep
         start = magma_sync_wtime(queue);
-        CHECK(magma_zparilut_sweep_sync(&hA, &L, &U, queue));
+        CHECK(magma_zparict_sweep_sync(&hA, &L, queue));
         end = magma_sync_wtime(queue); t_sweep2+=end-start;
-        
+
         if (timing == 1) {
             t_total = t_cand+t_res+t_nrm+t_selectadd+t_add+t_transpose1
-                +t_sweep1+t_selectrm+t_rm+t_sweep2+t_transpose2;
+            +t_sweep1+t_selectrm+t_rm+t_sweep2+t_transpose2;
             accum = accum + t_total;
             printf("%5lld %5lld %5lld  %.4e   %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e    %.2e\n",
-                (long long) iters, (long long) L.nnz, (long long) U.nnz, 
-                (double) sum, 
-                t_cand, t_res, t_nrm, t_selectadd, t_add, t_transpose1, 
-                t_sweep1, t_selectrm, t_rm, t_sweep2, t_transpose2, t_total, 
-                accum);
+                    (long long) iters, (long long) L.nnz, (long long) L.nnz, 
+                    (double) sum, t_cand, t_res, t_nrm, t_selectadd, t_add, 
+                    t_transpose1, t_sweep1, t_selectrm, t_rm, t_sweep2, 
+                    t_transpose2, t_total, accum);
             fflush(stdout);
         }
     }
@@ -239,20 +192,21 @@ magma_zparilut_cpu(
     }
     //##########################################################################
 
-    // for CUSPARSE
     CHECK(magma_zmtransfer(L, &precond->L, Magma_CPU, Magma_DEV , queue));
-    CHECK(magma_zcsrcoo_transpose(U, &UT, queue));
-    //magma_zmtranspose(U, &UT, queue);
-    CHECK(magma_zmtransfer(UT, &precond->U, Magma_CPU, Magma_DEV , queue));
+    CHECK(magma_z_cucsrtranspose(precond->L, &precond->U, queue));
+    CHECK(magma_zmtransfer(precond->L, &precond->M, Magma_DEV, Magma_DEV, 
+        queue));
     
     if (precond->trisolver == 0 || precond->trisolver == Magma_CUSOLVE) {
-        CHECK(magma_zcumilugeneratesolverinfo(precond, queue));
+        CHECK(magma_zcumicgeneratesolverinfo(precond, queue));
     } else {
         //prepare for iterative solves
+
         // extract the diagonal of L into precond->d
         CHECK(magma_zjacobisetup_diagscal(precond->L, &precond->d, queue));
         CHECK(magma_zvinit(&precond->work1, Magma_DEV, hA.num_rows, 1, 
             MAGMA_Z_ZERO, queue));
+
         // extract the diagonal of U into precond->d2
         CHECK(magma_zjacobisetup_diagscal(precond->U, &precond->d2, queue));
         CHECK(magma_zvinit(&precond->work2, Magma_DEV, hA.num_rows, 1, 
@@ -261,16 +215,12 @@ magma_zparilut_cpu(
 
 cleanup:
     magma_zmfree(&hA, queue);
-    magma_zmfree(&hAT, queue);
-    magma_zmfree(&L, queue);
-    magma_zmfree(&U, queue);
-    magma_zmfree(&UT, queue);
     magma_zmfree(&L0, queue);
-    magma_zmfree(&U0, queue);
-    magma_zmfree(&L_new, queue);
-    magma_zmfree(&U_new, queue);
     magma_zmfree(&hL, queue);
-    magma_zmfree(&hU, queue);
+    magma_zmfree(&oneL, queue);
+    magma_zmfree(&L, queue);
+    magma_zmfree(&LT, queue);
+    magma_zmfree(&L_new, queue);
 #endif
     return info;
 }

@@ -1186,6 +1186,13 @@ magma_zparict(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparict_cpu(
+    magma_z_matrix A,
+    magma_z_matrix b,
+    magma_z_preconditioner *precond,
+    magma_queue_t queue);
+
+magma_int_t
 magma_zparilut(
     magma_z_matrix A,
     magma_z_matrix b,

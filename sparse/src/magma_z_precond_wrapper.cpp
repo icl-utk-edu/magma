@@ -221,7 +221,7 @@ magma_z_precondsetup(
     }
     else if ( precond->solver == Magma_PARICT ) {
         #ifdef _OPENMP
-            info = magma_zparict( A, b, precond, queue );
+            info = magma_zparict_cpu( A, b, precond, queue );
             precond->solver = Magma_ICC; // handle as PARIC
         #else
             printf( "error: preconditioner requires OpenMP.\n" );

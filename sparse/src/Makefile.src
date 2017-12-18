@@ -104,6 +104,7 @@ libsparse_src += \
 	$(cdir)/zparic_gpu.cpp          \
         $(cdir)/zparic_cpu.cpp          \
 	$(cdir)/zparilut_cpu.cpp        \
+	$(cdir)/zparict_cpu.cpp         \
 	$(cdir)/zparilut.cpp                  \
 	$(cdir)/zparict.cpp   		      \
 

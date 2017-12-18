@@ -822,7 +822,7 @@ magma_zcumiccsetup(
     CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( &(precond->cuinfo) ));
     // use kernel to manually check for zeros n the diagonal
     CHECK( magma_zdiagcheck( precond->M, queue ) );
-        
+ /*      
 #if CUDA_VERSION >= 7000
     // this version has the bug fixed where a zero on the diagonal causes a crash
     CHECK_CUSPARSE( cusparseCreateCsric02Info(&info_M) );
@@ -854,7 +854,7 @@ magma_zcumiccsetup(
                          precond->M.dval, precond->M.drow, precond->M.dcol,
                          info_M, CUSPARSE_SOLVE_POLICY_NO_LEVEL, pBuffer) );    
 
-#else
+#else*/
     // this version contains the bug but is needed for backward compability
     CHECK_CUSPARSE( cusparseSetMatType( descrA, CUSPARSE_MATRIX_TYPE_SYMMETRIC ));
     CHECK_CUSPARSE( cusparseSetMatDiagType( descrA, CUSPARSE_DIAG_TYPE_NON_UNIT ));
@@ -872,43 +872,26 @@ magma_zcumiccsetup(
                       precond->M.drow,
                       precond->M.dcol,
                       precond->cuinfo ));
-#endif
+//#endif
 
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
-    CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( &precond->cuinfoL ));
-    CHECK_CUSPARSE( cusparseZcsrsm_analysis( cusparseHandle,
-        CUSPARSE_OPERATION_NON_TRANSPOSE, precond->M.num_rows,
-        precond->M.nnz, descrL,
-        precond->M.dval, precond->M.drow, precond->M.dcol, precond->cuinfoL ));
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_LOWER ));
-    CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( &precond->cuinfoU ));
-    CHECK_CUSPARSE( cusparseZcsrsm_analysis( cusparseHandle,
-        CUSPARSE_OPERATION_TRANSPOSE, precond->M.num_rows,
-        precond->M.nnz, descrU,
-        precond->M.dval, precond->M.drow, precond->M.dcol, precond->cuinfoU ));
+    CHECK( magma_zmtransfer( precond->M, &precond->L, 
+        Magma_DEV, Magma_DEV, queue ));
+    CHECK( magma_zmtranspose(precond->M, &precond->U, queue ));
 
-    if( precond->trisolver != 0 && precond->trisolver != Magma_CUSOLVE ){
+    if (precond->trisolver == 0 || precond->trisolver == Magma_CUSOLVE) {
+        CHECK(magma_zcumicgeneratesolverinfo(precond, queue));
+    } else {
         //prepare for iterative solves
-        
-        // copy the matrix to precond->L and (transposed) to precond->U
-        CHECK( magma_zmtransfer(precond->M, &(precond->L), Magma_DEV, Magma_DEV, queue ));
-        CHECK( magma_zmtranspose( precond->L, &(precond->U), queue ));
-        
+
         // extract the diagonal of L into precond->d
-        CHECK( magma_zjacobisetup_diagscal( precond->L, &precond->d, queue ));
-        CHECK( magma_zvinit( &precond->work1, Magma_DEV, hA.num_rows, 1, MAGMA_Z_ZERO, queue ));
-        
+        CHECK(magma_zjacobisetup_diagscal(precond->L, &precond->d, queue));
+        CHECK(magma_zvinit(&precond->work1, Magma_DEV, hA.num_rows, 1, 
+            MAGMA_Z_ZERO, queue));
+
         // extract the diagonal of U into precond->d2
-        CHECK( magma_zjacobisetup_diagscal( precond->U, &precond->d2, queue ));
-        CHECK( magma_zvinit( &precond->work2, Magma_DEV, hA.num_rows, 1, MAGMA_Z_ZERO, queue ));
+        CHECK(magma_zjacobisetup_diagscal(precond->U, &precond->d2, queue));
+        CHECK(magma_zvinit(&precond->work2, Magma_DEV, hA.num_rows, 1, 
+            MAGMA_Z_ZERO, queue));
     }
 
 
