@@ -22,18 +22,26 @@
     Purpose
     -------
 
-    Prepares the iterative threshold Incomplete Cholesky preconditioner. 
-    The strategy is interleaving a parallel fixed-point iteration that 
-    approximates an incomplete factorization for a given nonzero pattern with a 
-    procedure that adaptively changes the pattern. Much of this new algorithm 
-    has fine-grained parallelism, and we show that it can efficiently exploit 
-    the compute power of shared memory architectures.
+    Generates an incomplete threshold Cholesky preconditioner via the ParILUT 
+    algorithm. The strategy is to interleave a parallel fixed-point 
+    iteration that approximates an incomplete factorization for a given nonzero 
+    pattern with a procedure that adaptively changes the pattern. 
+    Much of this algorithm has fine-grained parallelism, and can efficiently 
+    exploit the compute power of shared memory architectures.
 
     This is the routine used in the publication by Anzt, Chow, Dongarra:
     ''ParILUT - A new parallel threshold ILU factorization''
-    submitted to SIAM SISC in 2016.
+    submitted to SIAM SISC in 2017.
+    
+    This version uses the default setting which adds all candidates to the
+    sparsity pattern. It is the variant for SPD systems.
 
     This function requires OpenMP, and is only available if OpenMP is activated.
+    
+    The parameter list is:
+    
+    precond.sweeps : number of ParILUT steps
+    precond.atol   : absolute fill ratio (1.0 keeps nnz count constant)
 
     Arguments
     ---------

@@ -23,7 +23,7 @@ sparse_testing_src += \
 	$(cdir)/testing_zmconverter.cpp       \
 	$(cdir)/testing_zsort.cpp             \
 	$(cdir)/testing_zmatrixinfo.cpp       \
-
+	$(cdir)/testing_zgetrowptr.cpp	      \
 
 # ----------
 # low level LA operations

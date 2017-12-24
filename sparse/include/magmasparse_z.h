@@ -829,6 +829,13 @@ magma_zmatrix_cup(
     magma_queue_t queue );
 
 magma_int_t
+magma_zmatrix_cup_gpu(
+    magma_z_matrix A,
+    magma_z_matrix B,
+    magma_z_matrix *U,
+    magma_queue_t queue);
+
+magma_int_t
 magma_zmatrix_cap(
     magma_z_matrix A,
     magma_z_matrix B,
@@ -1082,6 +1089,48 @@ magma_zparilut_sweep_sync(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilut_sweep_gpu( 
+    magma_z_matrix *A,
+    magma_z_matrix *L,
+    magma_z_matrix *U,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilut_residuals_gpu( 
+    magma_z_matrix A,
+    magma_z_matrix L,
+    magma_z_matrix U,
+    magma_z_matrix *R,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zthrsholdrm_gpu(
+    magma_int_t order,
+    magma_z_matrix* A,
+    double* thrs,
+    magma_queue_t queue);
+
+magma_int_t
+magma_zget_row_ptr(
+    const magma_int_t num_rows,
+    magma_int_t* nnz,
+    const magma_index_t* rowidx,
+    magma_index_t* rowptr,
+    magma_queue_t queue);
+
+magma_int_t
+magma_zvalinit_gpu(
+    magma_int_t num_el,
+    magmaDoubleComplex_ptr dval,
+    magma_queue_t queue);
+
+magma_int_t
+magma_zindexinit_gpu(
+    magma_int_t num_el,
+    magmaIndex_ptr dind,
+    magma_queue_t queue);
+
+magma_int_t
 magma_zparilut_align_residuals(
     magma_z_matrix L,
     magma_z_matrix U,
@@ -1207,6 +1256,13 @@ magma_zparilut_cpu(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilut_gpu(
+    magma_z_matrix A,
+    magma_z_matrix b,
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparilut_insert(
     magma_int_t *num_rmL,
     magma_int_t *num_rmU,
@@ -1219,16 +1275,24 @@ magma_zparilut_insert(
     magma_z_matrix *UR,
     magma_queue_t queue );
 
-
 magma_int_t
 magma_zparilut_create_collinkedlist(
     magma_z_matrix A,
     magma_z_matrix *B,
     magma_queue_t queue );
 
-
 magma_int_t
 magma_zparilut_candidates(
+    magma_z_matrix L0,
+    magma_z_matrix U0,
+    magma_z_matrix L,
+    magma_z_matrix U,
+    magma_z_matrix *L_new,
+    magma_z_matrix *U_new,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zparilut_candidates_gpu(
     magma_z_matrix L0,
     magma_z_matrix U0,
     magma_z_matrix L,
@@ -1530,6 +1594,11 @@ magma_zisai_generator_regs(
 
 magma_int_t
 magma_zcsr_sort(
+    magma_z_matrix *A,
+    magma_queue_t queue);
+
+magma_int_t
+magma_zcsr_sort_gpu(
     magma_z_matrix *A,
     magma_queue_t queue);
 

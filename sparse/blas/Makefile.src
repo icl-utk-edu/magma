@@ -57,7 +57,10 @@ libsparse_src += \
 	$(cdir)/zparilu.cpp		      \
 	$(cdir)/zparilu_kernels.cu            \
 	$(cdir)/zparic_kernels.cu             \
-	
+	$(cdir)/zparilut_kernels.cu           \
+	$(cdir)/zparilut_candidates.cu        \
+	$(cdir)/magma_zthrsrm.cu	      \
+
 # Auxiliary routines
 libsparse_src += \
 	$(cdir)/zcompact.cu                   \
@@ -66,10 +69,12 @@ libsparse_src += \
 	$(cdir)/zgecsrreimsplit.cu            \
 	$(cdir)/zgedensereimsplit.cu          \
 	$(cdir)/magma_zmconjugate.cu          \
-	
+	$(cdir)/magma_zget_rowptr.cu          \
+	$(cdir)/magma_zmatrixtools_gpu.cu     \
+
 # Big data analytics
 libsparse_src += \
-	$(cdir)/magma_zthrsselect.cu	\
+	$(cdir)/magma_zthrsselect.cu          \
 	$(cdir)/zjaccard_weights.cu    \
 	
 # ISAI
