@@ -82,7 +82,7 @@ int main(  int argc, char** argv )
 
     magma_index_setvector(num_rows,rowidx,1,d_rowidx,1,queue);
 
-    TESTING_CHECK(magma_zget_row_ptr(num_rows,nnz,d_rowidx,d_rowptr,queue));
+    TESTING_CHECK(magma_zget_row_ptr(num_rows,&nnz,d_rowidx,d_rowptr,queue));
     
     magma_index_getvector(num_rows+1,d_rowptr,1,rowptr,1,queue);
     int j =0;
