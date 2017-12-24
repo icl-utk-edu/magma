@@ -70,7 +70,7 @@ magma_zget_row_ptr(
     magma_index_t* rowptr,
     magma_queue_t queue)
 {
-
+    /*
     int blocksize = 128;
     int gridsize = magma_ceildiv(num_rows, blocksize);
     magma_int_t *nnz_dev, *tnnz;
@@ -84,9 +84,28 @@ magma_zget_row_ptr(
         
     magma_igetvector(1,nnz_dev,1,tnnz,1,queue);
     *nnz = tnnz[0];
+
     
     magma_free(nnz_dev);
     magma_free_cpu(tnnz);
+    */
+    
+    magma_index_t *hrowidx, *hrowptr;
+    magma_imalloc_cpu(&hrowidx, num_rows);
+    magma_imalloc_cpu(&hrowptr, num_rows+1);
+    magma_index_getvector(num_rows,rowidx,1,hrowidx,1,queue);
+
+    hrowptr[0] = 0;
+    for(int iter=1;iter<=num_rows;++iter){
+        hrowptr[iter] = hrowptr[iter-1]+hrowidx[iter-1];
+    }
+    
+    *nnz = hrowptr[num_rows];
+    
+    magma_index_setvector(num_rows+1,hrowptr,1,rowptr,1,queue);
+    
+    magma_free_cpu(hrowidx);
+    magma_free_cpu(hrowptr);
     
     return MAGMA_SUCCESS;
 }
