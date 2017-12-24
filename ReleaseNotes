@@ -24,6 +24,12 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+ 2.x.x - xxx xx, xxxx
+    * Added constrained least squares routines (magma_[sdcz]gglse)
+      and dependencies:
+      magma_zggrqf - generalized RQ factorization
+      magma_zunmrq - multiply by orthogonal Q as returned by zgerqf
+
  2.3.0 - Nov 15, 2017
     * Moved MAGMA's repository to Bitbucket: https://bitbucket.org/icl/magma
     * Added support for Volta GPUs
