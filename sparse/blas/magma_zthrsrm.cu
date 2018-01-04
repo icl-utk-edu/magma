@@ -32,7 +32,7 @@ zcompute_newval_kernel(
     magma_index_t offset_new, offset_old, end_old;
     
     if (tidx < num_rows) {
-    magma_int_t count = 0;
+        magma_int_t count = 0;
     
         offset_old = Arow[tidx];
         offset_new = Brow[tidx];
@@ -43,7 +43,7 @@ zcompute_newval_kernel(
                 Bcol[offset_new+count] = Acol[i];
                 Bval[offset_new+count] = Aval[i];
                 Browidx[offset_new + count] = tidx;
-            count++;
+                count++;
             }
         }
     }
