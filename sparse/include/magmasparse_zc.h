@@ -117,6 +117,20 @@ magma_zcir(
     magma_z_preconditioner *precond_par,
     magma_queue_t queue );
 
+magma_int_t
+magma_zcgecsrmv_mixed_prec(
+    magma_trans_t transA,
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex_ptr ddiagval,
+    magmaFloatComplex_ptr doffdiagval,
+    magmaIndex_ptr drowptr,
+    magmaIndex_ptr dcolind,
+    magmaDoubleComplex_ptr dx,
+    magmaDoubleComplex beta,
+    magmaDoubleComplex_ptr dy,
+    magma_queue_t queue );
+
 
 
 /* ////////////////////////////////////////////////////////////////////////////

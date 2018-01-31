@@ -34,6 +34,8 @@ sparse_testing_src += \
 	$(cdir)/testing_zspmv_check.cpp       \
 	$(cdir)/testing_zspmm.cpp             \
 	$(cdir)/testing_zmadd.cpp             \
+	$(cdir)/testing_zcspmv_mixed.cpp       \
+
 
 # ----------
 # iterative solvers and preconditioners

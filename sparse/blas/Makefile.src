@@ -52,6 +52,10 @@ libsparse_src += \
 	$(cdir)/magma_zcuspmm.cpp             \
 	$(cdir)/magma_zcuspaxpy.cpp           \
 
+# Mixed precision SpMV
+libsparse_src += \
+        $(cdir)/zcgecsrmv_mixed_prec.cu        \
+
 # Iterative factorizations
 libsparse_src += \
 	$(cdir)/zparilu.cpp		      \
