@@ -31,7 +31,6 @@ zthreshselect_kernel(
     
     // now define the threshold
     float thrs_loc = ((float)(gtidx)) / ((float) ( blockDim.x*gridDim.x ) );
-    float lval;
     
     // local counter
     magma_int_t count = 0;
@@ -39,7 +38,7 @@ zthreshselect_kernel(
 
     //printf("threshold[%d] = %.8e\n", gtidx, thrs_loc);
     for (magma_int_t z=0; z<total_size; z+=32) {
-        lval = MAGMA_Z_ABS(val[z+tidx]);
+        float lval = MAGMA_Z_ABS(val[z+tidx]);
         count = (lval < thrs_loc) ? count+1 : count;
         #if __CUDA_ARCH__ >= 300
         #if __CUDACC_VER_MAJOR__ < 9
