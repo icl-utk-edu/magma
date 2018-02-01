@@ -38,7 +38,7 @@ int main(  int argc, char** argv )
     real_Double_t start, end;
     
     double thrs;
-    int m = 100000;
+    int m = 10000;
     int n = 100;
     int count = 0;
     magmaDoubleComplex *val, *d_val;
@@ -63,7 +63,7 @@ int main(  int argc, char** argv )
             count++;    
         }
     }
-    printf("threshold exact to %d elements.\n", count);
+    printf("selecting threshold for %d of %d elements: threshold selected: %.8e -> exact to %d elements.\n", n, m, thrs, count);
     
     magma_free(d_val);
     magma_free_cpu(val);
