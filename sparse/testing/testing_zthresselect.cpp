@@ -38,7 +38,7 @@ int main(  int argc, char** argv )
     real_Double_t start, end;
     
     double thrs;
-    for( int m = 1000; m<10000001; m=m*10) {
+    for( int m = 1000; m<1001; m=m*10) {
         int n = 100;
         int count = 0;
         magmaDoubleComplex *val, *d_val;
