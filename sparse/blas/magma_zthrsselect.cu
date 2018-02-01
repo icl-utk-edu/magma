@@ -184,22 +184,22 @@ magma_zthrsholdselect(
     float *thrs1, *thrs2, *thrstmp; 
     
     CHECK(magma_smalloc_cpu(&thrstmp, 1));
-    CHECK(magma_smalloc(&thrs1, GRID_SIZE2));
-    CHECK(magma_smalloc(&thrs2, GRID_SIZE3));
+    CHECK(magma_smalloc(&thrs1, GRID_SIZE1));
+    CHECK(magma_smalloc(&thrs2, GRID_SIZE2));
     
     // first kernel checks how many elements are smaller than the threshold
-    zthreshselect_kernel<<<grid2, block, 0, queue->cuda_stream()>>>
+    zthreshselect_kernel<<<grid1, block, 0, queue->cuda_stream()>>>
         (total_size, subset_size, val, thrs1);
         
     // second kernel identifies the largest of these thresholds
-    magma_zreduce_thrs<<<grid3, block, 0, queue->cuda_stream()>>>
+    magma_zreduce_thrs<<<grid2, block, 0, queue->cuda_stream()>>>
         ( thrs1, thrs2 );
-    magma_zreduce_thrs<<<grid4, block, 0, queue->cuda_stream()>>>
+    magma_zreduce_thrs<<<grid3, block, 0, queue->cuda_stream()>>>
         ( thrs2, thrs1 );
-    // magma_zreduce_thrs<<<grid4, block, 0, queue->cuda_stream()>>>
-    //     ( thrs1, thrs2 );
+    magma_zreduce_thrs<<<grid4, block, 0, queue->cuda_stream()>>>
+         ( thrs1, thrs2 );
         
-    magma_sgetvector(1, thrs1, 1, thrstmp, 1, queue );
+    magma_sgetvector(1, thrs2, 1, thrstmp, 1, queue );
     
     thrs[0] = (double)thrstmp[0];
     
