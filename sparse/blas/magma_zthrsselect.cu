@@ -206,7 +206,7 @@ magma_zthrsholdselect(
     CHECK(magma_smalloc(&thrs1, GRID_SIZE2));
     CHECK(magma_smalloc(&thrs2, GRID_SIZE3));
     
-    __global__ __launch_bounds__(32)
+    __global__ __launch_bounds__(32);
     
     // first kernel checks how many elements are smaller than the threshold
     zthreshselect_kernel<<<grid2, block, 0, queue->cuda_stream()>>>
