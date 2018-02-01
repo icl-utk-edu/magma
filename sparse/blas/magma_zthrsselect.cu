@@ -51,7 +51,7 @@ zthreshselect_kernel(
         #else
             #pragma unroll
             for (int z=0; z<32; z++) {
-                lvsl = __shfl_down_sync(0xffffffff,lval, 1, 32);
+                lval = __shfl_down_sync(0xffffffff,lval, 1, 32);
                 count = (lval < thrs_loc) ? count+1 : count;
             }
         #endif
