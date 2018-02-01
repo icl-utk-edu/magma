@@ -38,7 +38,7 @@ int main(  int argc, char** argv )
     real_Double_t start, end;
     
     double thrs;
-    for( int m = 1000; m<10000001; m++) {
+    for( int m = 1000; m<10000001; m=m*10) {
         int n = 100;
         int count = 0;
         magmaDoubleComplex *val, *d_val;
@@ -68,7 +68,7 @@ int main(  int argc, char** argv )
         magma_free_cpu(val);
         printf("%% m n thrs count sec\n");
 
-        printf( " %10d  %10d  %.8e  %10d %.4e\n", n, m, thrs, count, (end-start)/10 );
+        printf( " %10d  %10d  %.8e  %10d %.4e\n", m, n, thrs, count, (end-start)/10 );
     }
     
     magma_queue_destroy( queue );
