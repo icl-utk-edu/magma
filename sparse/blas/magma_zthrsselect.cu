@@ -44,13 +44,13 @@ zthreshselect_kernel(
         #if __CUDA_ARCH__ >= 300
         #if __CUDACC_VER_MAJOR__ < 9
             #pragma unroll
-            for (int z=0; z<32; z++) {
+            for (int z=0; z<31; z++) {
                 lval = __shfl_down(lval, 1);
                 count = (lval < thrs_loc) ? count+1 : count;
             }
         #else
             #pragma unroll
-            for (int z=0; z<32; z++) {
+            for (int z=0; z<31; z++) {
                 lval = __shfl_down_sync(0xffffffff,lval, 1, 32);
                 count = (lval < thrs_loc) ? count+1 : count;
             }
@@ -67,13 +67,13 @@ zthreshselect_kernel(
     #if __CUDA_ARCH__ >= 300
     #if __CUDACC_VER_MAJOR__ < 9
         #pragma unroll
-        for (int z=0; z<32; z++) {
+        for (int z=0; z<31; z++) {
             thrs_loc = __shfl_down(thrs_loc, 1);
             maxval = thrs_loc > maxval ? thrs_loc : maxval ;
         }
     #else
         #pragma unroll
-        for (int z=0; z<32; z++) {
+        for (int z=0; z<31; z++) {
             thrs_loc = __shfl_down_sync(0xffffffff,thrs_loc, 1, 32);
             maxval = thrs_loc > maxval ? thrs_loc : maxval ;
         }
@@ -102,13 +102,13 @@ magma_zreduce_thrs(
 #if __CUDA_ARCH__ >= 300
 #if __CUDACC_VER_MAJOR__ < 9
     #pragma unroll
-    for (int z=0; z<32; z++) {
+    for (int z=0; z<31; z++) {
         val = __shfl_down(val, 1);
         maxval = val > maxval ? val : maxval ;
     }
 #else
     #pragma unroll
-    for (int z=0; z<32; z++) {
+    for (int z=0; z<31; z++) {
         val = __shfl_down_sync(0xffffffff,val, 1, 32);
         maxval = val > maxval ? val : maxval ;
     }
