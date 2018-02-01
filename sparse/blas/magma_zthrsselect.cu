@@ -40,17 +40,10 @@ zthreshselect_kernel(
     for (magma_int_t z=0; z<total_size; z+=32) {
         float lval = (float)MAGMA_Z_ABS(val[(z+tidx)%total_size]);
         count = (lval < thrs_loc) ? count+1 : count;
-        // for(int k=1; k<32; k++){
-        //     lval = (float)MAGMA_Z_ABS(val[(z+k)%total_size]);
-        //     count = (lval < thrs_loc) ? count+1 : count;    
-        // }
-        //float lval = (float)MAGMA_Z_ABS(val[(z+tidx)%total_size]);
-        // float lval = (float)MAGMA_Z_ABS(val[(z)%total_size]);
-        // count = (lval < thrs_loc) ? count+1 : count;
         #if __CUDA_ARCH__ >= 300
         #if __CUDACC_VER_MAJOR__ < 9
             #pragma unroll
-            for (int k=1; k<32; k++) {
+            for (int k=0; k<31; k++) {
                 lval = __shfl( lval,(tidx+1)%32);
                 count = (lval < thrs_loc) ? count+1 : count;
             }
