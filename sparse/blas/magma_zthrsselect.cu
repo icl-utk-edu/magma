@@ -23,20 +23,20 @@ __global__ void
 zthreshselect_kernel( 
     magma_int_t total_size,
     magma_int_t subset_size,
-    magmaDoubleComplex *val,
-    float *thrs )
+    const magmaDoubleComplex * __restrict__ val,
+    float * __restrict__ thrs )
 {
-    int tidx = threadIdx.x;   
-    int bidx = blockIdx.x;
-    int gtidx = bidx * blockDim.x + tidx;
-    int total_thrs_count = blockDim.x*gridDim.x * THRS_PER_THREAD;
+    magma_int_t tidx = threadIdx.x;   
+    magma_int_t bidx = blockIdx.x;
+    magma_int_t gtidx = bidx * blockDim.x + tidx;
+    magma_int_t total_thrs_count = blockDim.x*gridDim.x * THRS_PER_THREAD;
     // now define the threshold
     
     float thrs_inc = (float) 1 / (float) total_thrs_count;
     
     
     // local counters
-    int count[THRS_PER_THREAD];
+    magma_int_t count[THRS_PER_THREAD];
     #pragma unroll
     for (int t=0; t<THRS_PER_THREAD; t++) {
         count[t] = 0;
@@ -205,6 +205,8 @@ magma_zthrsholdselect(
     CHECK(magma_smalloc_cpu(&thrstmp, 1));
     CHECK(magma_smalloc(&thrs1, GRID_SIZE2));
     CHECK(magma_smalloc(&thrs2, GRID_SIZE3));
+    
+    __global__ __launch_bounds__(32)
     
     // first kernel checks how many elements are smaller than the threshold
     zthreshselect_kernel<<<grid2, block, 0, queue->cuda_stream()>>>
