@@ -23,14 +23,14 @@ zthreshselect_kernel(
     magma_int_t total_size,
     magma_int_t subset_size,
     magmaDoubleComplex *val,
-    double *thrs )
+    float *thrs )
 {
     int tidx = threadIdx.x;   
     int bidx = blockIdx.x;
     int gtidx = bidx * blockDim.x + tidx;
     
     // now define the threshold
-    double thrs_loc = ((double)(gtidx)) / ((double) ( blockDim.x*gridDim.x ) );
+    float thrs_loc = ((float)(gtidx)) / ((float) ( blockDim.x*gridDim.x ) );
     
     // local counter
     magma_int_t count = 0;
@@ -45,7 +45,7 @@ zthreshselect_kernel(
     thrs_loc = (count < subset_size) ?  thrs_loc : 0.0;
     
     // check for the largest threshold in warp and write out
-    double maxval = thrs_loc;
+    float maxval = thrs_loc;
     
     #if __CUDA_ARCH__ >= 300
     #if __CUDACC_VER_MAJOR__ < 9
@@ -57,7 +57,7 @@ zthreshselect_kernel(
     #else
         #pragma unroll
         for (int z=0; z<32; z++) {
-            thrs_loc = __shfl_down_sync(0xffffffff,thrs_loc, 1);
+            thrs_loc = __shfl_down_sync(0xffffffff,thrs_loc, 1, 32);
             maxval = thrs_loc > maxval ? thrs_loc : maxval ;
         }
     #endif
@@ -72,15 +72,15 @@ zthreshselect_kernel(
 // kernel identifying the best threshold
 __global__ void
 magma_zreduce_thrs( 
-    double *thrs,
-    double *thrs2)
+    float *thrs,
+    float *thrs2)
 {
     int tidx = threadIdx.x;   
     int bidx = blockIdx.x;
     int gtidx = bidx * blockDim.x + tidx;
     
-    double val = thrs[gtidx];
-    double maxval = val;
+    float val = thrs[gtidx];
+    float maxval = val;
     
 #if __CUDA_ARCH__ >= 300
 #if __CUDACC_VER_MAJOR__ < 9
@@ -92,7 +92,7 @@ magma_zreduce_thrs(
 #else
     #pragma unroll
     for (int z=0; z<32; z++) {
-        val = __shfl_down_sync(0xffffffff,val, 1);
+        val = __shfl_down_sync(0xffffffff,val, 1, 32);
         maxval = val > maxval ? val : maxval ;
     }
 #endif
@@ -138,7 +138,7 @@ magma_zreduce_thrs(
                 array containing the values
                 
     @param[out]
-    thrs        double*  
+    thrs        float*  
                 computed threshold
 
     @param[in]
@@ -165,10 +165,11 @@ magma_zthrsholdselect(
     dim3 grid3(GRID_SIZE3, 1, 1 );
     dim3 grid4(GRID_SIZE4, 1, 1 );
     
-    double *thrs1, *thrs2; 
+    float *thrs1, *thrs2, *thrstmp; 
     
-    CHECK(magma_dmalloc(&thrs1, GRID_SIZE1));
-    CHECK(magma_dmalloc(&thrs2, GRID_SIZE2));
+    CHECK(magma_smalloc_cpu(&thrstmp, 1));
+    CHECK(magma_smalloc(&thrs1, GRID_SIZE1));
+    CHECK(magma_smalloc(&thrs2, GRID_SIZE2));
     
     // first kernel checks how many elements are smaller than the threshold
     zthreshselect_kernel<<<grid1, block, 0, queue->cuda_stream()>>>
@@ -182,11 +183,14 @@ magma_zthrsholdselect(
     magma_zreduce_thrs<<<grid4, block, 0, queue->cuda_stream()>>>
         ( thrs1, thrs2 );
         
-    magma_dgetvector(1, thrs2, 1, thrs, 1, queue );
+    magma_sgetvector(1, thrs2, 1, thrstmp, 1, queue );
+    
+    thrs[0] = (double)thrstmp[0];
     
 cleanup:
     magma_free(thrs1);
     magma_free(thrs2);
+    magma_free_cpu(thrstmp);
 
     return info;
 }
