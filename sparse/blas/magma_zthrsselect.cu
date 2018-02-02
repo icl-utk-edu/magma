@@ -24,7 +24,7 @@ zthreshselect_kernel(
     magma_int_t total_size,
     magma_int_t subset_size,
     const magmaDoubleComplex * __restrict__ val,
-    float * __restrict__ thrs )
+    float * thrs )
 {
     magma_int_t tidx = threadIdx.x;   
     magma_int_t bidx = blockIdx.x;
@@ -68,6 +68,15 @@ zthreshselect_kernel(
             }
         #endif
         #endif
+        // if all threads have their lowest count above the subset size
+        // exit kernel
+        // thread - will have smallest thresholds / count
+        if (tidx == 0) {
+            if (count[0]>subset_size) { 
+                thrs[bidx] = 0.0;
+                return;
+            }
+        }
     }
     
     // check for the largest threshold of the thread
@@ -206,7 +215,7 @@ magma_zthrsholdselect(
     CHECK(magma_smalloc(&thrs1, GRID_SIZE2));
     CHECK(magma_smalloc(&thrs2, GRID_SIZE3));
     
-    __global__ __launch_bounds__(32);
+    //__global__ __launch_bounds__(32);
     
     // first kernel checks how many elements are smaller than the threshold
     zthreshselect_kernel<<<grid2, block, 0, queue->cuda_stream()>>>
