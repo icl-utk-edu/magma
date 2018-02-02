@@ -15,7 +15,7 @@
 #define GRID_SIZE2 1024
 #define GRID_SIZE3 32
 #define GRID_SIZE4 1
-#define THRS_PER_THREAD 32
+#define THRS_PER_THREAD 8
 
 
 // kernel for counting elements for different thresholds
@@ -72,9 +72,11 @@ zthreshselect_kernel(
         #endif
         #endif
         // threads that have their lowest count above the subset size return
-        if (count[0]>subset_size) { 
-            return;
-        }
+        //if (tidx == 0) {
+            if (__all(count[0]>subset_size)) { 
+                return;
+            }
+        //}
     }
     
     // check for the largest threshold of the thread
@@ -216,16 +218,16 @@ magma_zthrsholdselect(
     
     //__global__ __launch_bounds__(32);
     
-    printf("scan:... ");
-    start = magma_sync_wtime( queue );
+    //printf("scan:... ");
+    //start = magma_sync_wtime( queue );
     // first kernel checks how many elements are smaller than the threshold
     zthreshselect_kernel<<<grid2, block, 0, queue->cuda_stream()>>>
         (total_size, subset_size, val, thrs1);
-    end = magma_sync_wtime( queue );
-    printf( "done in %.4e sec\n",(end-start) );
+    //end = magma_sync_wtime( queue );
+    //printf( "done in %.4e sec\n",(end-start) );
     
-    printf("reduction:...");
-    start = magma_sync_wtime( queue );
+    //printf("reduction:...");
+    //start = magma_sync_wtime( queue );
     // second kernel identifies the largest of these thresholds
     magma_zreduce_thrs<<<grid3, block, 0, queue->cuda_stream()>>>
         ( thrs1, thrs2 );
@@ -233,8 +235,8 @@ magma_zthrsholdselect(
         ( thrs2, thrs1 );
     //magma_zreduce_thrs<<<grid4, block, 0, queue->cuda_stream()>>>
     //     ( thrs1, thrs2 );
-    end = magma_sync_wtime( queue );
-    printf( "done in %.4e sec\n",(end-start) );
+    //end = magma_sync_wtime( queue );
+    //printf( "done in %.4e sec\n",(end-start) );
     
     magma_sgetvector(1, thrs1, 1, thrstmp, 1, queue );
     thrs[0] = (double)thrstmp[0];
