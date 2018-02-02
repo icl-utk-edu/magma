@@ -34,6 +34,9 @@ zthreshselect_kernel(
     
     float thrs_inc = (float) 1 / (float) total_thrs_count;
     
+    if ( tidx == 0 ){
+            thrs[bidx] = 0.0;
+    }
     
     // local counters
     magma_int_t count[THRS_PER_THREAD];
@@ -68,15 +71,10 @@ zthreshselect_kernel(
             }
         #endif
         #endif
-        // if all threads have their lowest count above the subset size
-        // exit kernel
-        // thread - will have smallest thresholds / count
-        // if (tidx == 0) {
-        //     if (count[0]>subset_size) { 
-        //         thrs[bidx] = 0.0;
-        //         return;
-        //     }
-        // }
+        // threads that have their lowest count above the subset size return
+        if (count[0]>subset_size) { 
+            return;
+        }
     }
     
     // check for the largest threshold of the thread
