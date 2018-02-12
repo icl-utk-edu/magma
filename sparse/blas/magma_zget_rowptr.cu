@@ -91,8 +91,8 @@ magma_zget_row_ptr(
     */
     
     magma_index_t *hrowidx, *hrowptr;
-    magma_imalloc_cpu(&hrowidx, num_rows);
-    magma_imalloc_cpu(&hrowptr, num_rows+1);
+    magma_index_malloc_cpu(&hrowidx, num_rows);
+    magma_index_malloc_cpu(&hrowptr, num_rows+1);
     magma_index_getvector(num_rows,rowidx,1,hrowidx,1,queue);
 
     hrowptr[0] = 0;
