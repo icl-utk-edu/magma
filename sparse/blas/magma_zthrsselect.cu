@@ -23,7 +23,7 @@ __global__ void
 zthreshselect_kernel( 
     magma_int_t total_size,
     magma_int_t subset_size,
-    const magmaDoubleComplex * __restrict__ val,
+    magmaDoubleComplex *val,
     float * thrs )
 {
     magma_int_t tidx = threadIdx.x;   
@@ -34,9 +34,9 @@ zthreshselect_kernel(
     
     float thrs_inc = (float) 1 / (float) total_thrs_count;
     
-    if ( tidx == 0 ){
-            thrs[bidx] = 0.0;
-    }
+    //if ( tidx == 0 ){
+      //      thrs[bidx] = 0.0;
+    //}
     
     // local counters
     magma_int_t count[THRS_PER_THREAD];
@@ -44,10 +44,10 @@ zthreshselect_kernel(
     for (int t=0; t<THRS_PER_THREAD; t++) {
         count[t] = 0;
     }
-    
+    float lval;
     //#pragma unroll
     for (magma_int_t z=0; z<total_size; z+=32) {
-        float lval = (float)MAGMA_Z_ABS(val[(z+tidx)%total_size]);
+        lval = (float)MAGMA_Z_ABS(val[(z+tidx)%total_size]);
         
         #if __CUDA_ARCH__ >= 300
         #if __CUDACC_VER_MAJOR__ < 9
@@ -75,9 +75,14 @@ zthreshselect_kernel(
         // threads that have their lowest count above the subset size return
         //if (tidx == 0) {
             if (__all(count[0]>subset_size)) { 
-                return;
+                if ( tidx == 0 ){
+                    thrs[bidx] = 0.0;
+                }
+	        return;
             }
         //}
+    
+      //val[(z+tidx)%total_size] = MAGMA_Z_MAKE((double) lval, 0.0);
     }
     
     // check for the largest threshold of the thread
