@@ -9,7 +9,10 @@
        @author Hartwig Anzt
 
 */
+#include <string>
 #include "magmasparse_internal.h"
+#include "papi_sde_interface.h"
+#include "papi_sde_magma.h"
 
 #define RTOLERANCE     lapackf77_dlamch( "E" )
 #define ATOLERANCE     lapackf77_dlamch( "E" )
@@ -513,6 +516,8 @@ magma_zsolverinfo_init(
     magma_z_preconditioner *precond_par,
     magma_queue_t queue )
 {
+    papi_handle_t sde_handle;
+
     magma_int_t info = 0;
     solver_par->runtime         = 0.;
     solver_par->numiter = 0;
@@ -600,6 +605,17 @@ magma_zsolverinfo_init(
     precond_par->cuinfoLT = NULL;
     precond_par->cuinfoUT = NULL;
 
+
+    // Experimental addition of PAPI SDE (Software-Defined Events)
+
+    sde_handle = papi_sde_init("MAGMA", 5);
+    papi_sde_register_counter( sde_handle, "MAGMA::numiter", MAGMA_INTEGER, SDE_RO|SDE_IMMEDIATE, &(solver_par->numiter) );
+    papi_sde_register_counter( sde_handle, "MAGMA::InitialResidual", PAPI_SDE_double, SDE_RO|SDE_IMMEDIATE, &(solver_par->init_res) );
+    papi_sde_register_counter( sde_handle, "MAGMA::FinalResidual", PAPI_SDE_double, SDE_RO|SDE_IMMEDIATE, &(solver_par->final_res) );
+    papi_sde_register_counter( sde_handle, "MAGMA::IterativeResidual", PAPI_SDE_double, SDE_RO|SDE_IMMEDIATE, &(solver_par->iter_res) );
+    papi_sde_register_counter( sde_handle, "MAGMA::SolverRuntime", MAGMA_REAL_DOUBLE, SDE_RO|SDE_IMMEDIATE, &(solver_par->runtime) );
+
+
 cleanup:
     if( info != 0 ){
         magma_free( solver_par->timing );
@@ -607,7 +623,6 @@ cleanup:
     }
     return info;
 }
-
 
 /**
     Purpose

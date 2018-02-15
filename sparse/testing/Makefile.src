@@ -46,6 +46,12 @@ sparse_testing_src += \
 	$(cdir)/testing_zpreconditioner.cpp   \
 #	$(cdir)/testing_dusemagma_example.cpp	\
 
+ifeq ($(USE_PAPI),y)
+sparse_testing_src += \
+	$(cdir)/testing_zsolver_PAPI.cpp \
+
+endif
+
 # ----------
 # Mixed-precision solvers
 #sparse_testing_src += \

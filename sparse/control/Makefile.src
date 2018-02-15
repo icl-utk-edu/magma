@@ -57,6 +57,9 @@ libsparse_src += \
 	$(cdir)/magma_zparilut_tools.cpp      \
 	$(cdir)/magma_zparict_tools.cpp       \
 
+libsparse_src += \
+	$(cdir)/papi_sde_interface.cpp \
+
 
 
 # dummy to compensate for routines not included in release

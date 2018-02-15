@@ -290,7 +290,7 @@ $(libmagma_obj):       MAGMA_INC += -I./control
 $(libtest_obj):        MAGMA_INC += -I./testing
 $(testing_obj):        MAGMA_INC += -I./testing
 $(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas -I./sparse/include -I./sparse/control
-$(sparse_testing_obj): MAGMA_INC += -I./sparse/include -I./sparse/control -I./testing
+$(sparse_testing_obj): MAGMA_INC += -I./sparse/include -I./sparse/control -I./testing -I/home/adanalis/usr/papi_w_sde_wip/include
 
 
 # ----- headers
@@ -661,12 +661,13 @@ $(testers_f): %: %.$(o_ext) testing/fortran.o
 	-L./lib -lmagma \
 	$(LIBS)
 
+PAPI_SDE_PATH=/home/adanalis/usr/papi_w_sde_wip/lib
 # link sparse testing_foo from testing_foo.o
 $(sparse_testers): %: %.$(o_ext)
 	$(CXX) $(LDFLAGS) $(RPATH2) \
 	-o $@ $< \
 	-L./testing -ltest \
-	-L./lib -lmagma_sparse -lmagma \
+	-L./lib -L$(PAPI_SDE_PATH) -lpapi -lmagma_sparse -lmagma \
 	$(LIBS)
 
 
