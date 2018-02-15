@@ -71,31 +71,31 @@ int main(  int argc, char** argv )
             exit(-1);
         } 
 
-        retval = PAPI_event_name_to_code( sde_event_name[0], &event_codes[0] );
+        retval = PAPI_event_name_to_code( (char *)sde_event_name[0], &event_codes[0] );
         if( retval != PAPI_OK ) {
             fprintf( stderr, "PAPI_event_name_to_code(%s) failed.\n",sde_event_name[0]);
             exit(-1);
         }
 
-        retval = PAPI_event_name_to_code( sde_event_name[1], &event_codes[1] );
+        retval = PAPI_event_name_to_code( (char *)sde_event_name[1], &event_codes[1] );
         if( retval != PAPI_OK ) {
             fprintf( stderr, "PAPI_event_name_to_code(%s) failed.\n",sde_event_name[1]);
             exit(-1);
         }
 
-        retval = PAPI_event_name_to_code( sde_event_name[2], &event_codes[2] );
+        retval = PAPI_event_name_to_code( (char *)sde_event_name[2], &event_codes[2] );
         if( retval != PAPI_OK ) {
             fprintf( stderr, "PAPI_event_name_to_code(%s) failed.\n",sde_event_name[2]);
             exit(-1);
         }
 
-        retval = PAPI_event_name_to_code( sde_event_name[3], &event_codes[3] );
+        retval = PAPI_event_name_to_code( (char *)sde_event_name[3], &event_codes[3] );
         if( retval != PAPI_OK ) {
             fprintf( stderr, "PAPI_event_name_to_code(%s) failed.\n",sde_event_name[3]);
             exit(-1);
         }
 
-        retval = PAPI_event_name_to_code( sde_event_name[4], &event_codes[4] );
+        retval = PAPI_event_name_to_code( (char *)sde_event_name[4], &event_codes[4] );
         if( retval != PAPI_OK ) {
             fprintf( stderr, "PAPI_event_name_to_code(%s) failed.\n",sde_event_name[4]);
             exit(-1);
