@@ -3400,6 +3400,7 @@ magma_zjaccard_weights(
 
 magma_int_t
 magma_zthrsholdselect(
+    magma_int_t sampling,
     magma_int_t total_size,
     magma_int_t subset_size,
     magmaDoubleComplex *val,

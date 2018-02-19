@@ -36,11 +36,12 @@ int main(  int argc, char** argv )
     
     
     real_Double_t start, end;
-    
+    magma_int_t sampling = 16;
     double thrs;
-    for( int m = 320; m<10001; m=m*2) {
-        int n = 100;
+    for( int m = 1000; m<10000001; m=m*2) {
+        for( int n = 320; n<m; n=n*2){
         int count = 0;
+        sampling = m/327680+1;
         magmaDoubleComplex *val, *d_val;
         TESTING_CHECK(magma_zmalloc_cpu(&val, m));
         TESTING_CHECK(magma_zmalloc(&d_val, m));
@@ -54,7 +55,7 @@ int main(  int argc, char** argv )
         
         start = magma_sync_wtime( queue );
         for(int i=0; i<10; i++)
-            TESTING_CHECK(magma_zthrsholdselect(m, n, d_val, &thrs, queue));
+            TESTING_CHECK(magma_zthrsholdselect(sampling, m, n, d_val, &thrs, queue));
         end = magma_sync_wtime( queue );
         
         
@@ -66,9 +67,10 @@ int main(  int argc, char** argv )
                 
         magma_free(d_val);
         magma_free_cpu(val);
-        printf("%% m n thrs count sec\n");
+        printf("%% m n thrs count acc sec\n");
 
-        printf( " %10d  %10d  %.8e  %10d %.4e\n", m, n, thrs, count, (end-start)/10 );
+        printf( " %10d  %10d  %.8e  %10d %.4e %.4e %.4e\n", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), (end-start)/10 );
+	}
     }
     
     magma_queue_destroy( queue );
