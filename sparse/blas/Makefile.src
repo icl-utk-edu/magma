@@ -64,6 +64,7 @@ libsparse_src += \
 	$(cdir)/zparilut_kernels.cu           \
 	$(cdir)/zparilut_candidates.cu        \
 	$(cdir)/magma_zthrsrm.cu	      \
+	$(cdir)/magma_zpreselect.cu           \
 
 # Auxiliary routines
 libsparse_src += \

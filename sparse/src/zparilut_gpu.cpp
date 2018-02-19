@@ -216,32 +216,36 @@ magma_zparilut_gpu(
         end = magma_sync_wtime(queue); t_sweep1+=end-start;
         
         // step 5: select threshold to remove elements
-        CHECK(magma_zmtransfer(dL, &L_new, Magma_DEV, Magma_CPU, queue));
-        CHECK(magma_zmtransfer(dU, &U_new, Magma_DEV, Magma_CPU, queue));
+        // CHECK(magma_zmtransfer(dL, &L_new, Magma_DEV, Magma_CPU, queue));
+        // CHECK(magma_zmtransfer(dU, &U_new, Magma_DEV, Magma_CPU, queue));
         start = magma_sync_wtime(queue);
-        num_rmL = max((L_new.nnz-L0nnz*(1+(precond->atol-1.)
+        num_rmL = max((dL.nnz-L0nnz*(1+(precond->atol-1.)
             *(iters+1)/precond->sweeps)), 0);
-        num_rmU = max((U_new.nnz-U0nnz*(1+(precond->atol-1.)
+        num_rmU = max((dU.nnz-U0nnz*(1+(precond->atol-1.)
             *(iters+1)/precond->sweeps)), 0);
         // pre-select: ignore the diagonal entries
-        CHECK(magma_zparilut_preselect(0, &L_new, &oneL, queue));
-        CHECK(magma_zparilut_preselect(0, &U_new, &oneU, queue));
+        CHECK(magma_zpreselect_gpu(0, &dL, &oneL, queue));
+        CHECK(magma_zpreselect_gpu(0, &dU, &oneU, queue));
         if (num_rmL>0) {
-            CHECK(magma_zparilut_set_thrs_randomselect(num_rmL, 
-                &oneL, 0, &thrsL, queue));
+            //CHECK(magma_zparilut_set_thrs_randomselect(num_rmL, 
+            //    &oneL, 0, &thrsL, queue));
+            CHECK(magma_zthrsholdselect(1, oneL.nnz, num_rmL, 
+                oneL.dval, &thrsL, queue));
         } else {
             thrsL = 0.0;
         }
         if (num_rmU>0) {
-            CHECK(magma_zparilut_set_thrs_randomselect(num_rmU, 
-                &oneU, 0, &thrsU, queue));
+            // CHECK(magma_zparilut_set_thrs_randomselect(num_rmU, 
+            //     &oneU, 0, &thrsU, queue));
+            CHECK(magma_zthrsholdselect(1, oneU.nnz, num_rmU, 
+                oneU.dval, &thrsU, queue));
         } else {
             thrsU = 0.0;
         }
         magma_zmfree(&oneL, queue);
         magma_zmfree(&oneU, queue);
-        magma_zmfree(&L_new, queue);
-        magma_zmfree(&U_new, queue);
+        // magma_zmfree(&L_new, queue);
+        // magma_zmfree(&U_new, queue);
         end = magma_sync_wtime(queue); t_selectrm=end-start;
         
         // step 6: remove elements

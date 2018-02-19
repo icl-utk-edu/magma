@@ -1372,6 +1372,13 @@ magma_zparilut_preselect(
     magma_z_matrix *oneA,
     magma_queue_t queue );
 
+magma_int_t
+magma_zpreselect_gpu(
+    magma_int_t order,
+    magma_z_matrix *A,
+    magma_z_matrix *oneA,
+    magma_queue_t queue );
+
 // ISAI preconditioner
 
 magma_int_t

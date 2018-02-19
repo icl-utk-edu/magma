@@ -253,6 +253,7 @@ magma_zthrsholdselect(
     
     magma_sgetvector(1, thrs2, 1, thrstmp, 1, queue );
     thrs[0] = (double)thrstmp[0];
+    printf(" threshold: %.4e\n", thrs[0]);
     
 cleanup:
     magma_free(thrs1);
