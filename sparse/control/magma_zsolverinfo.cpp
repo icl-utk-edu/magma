@@ -609,11 +609,11 @@ magma_zsolverinfo_init(
     // Experimental addition of PAPI SDE (Software-Defined Events)
 
     sde_handle = papi_sde_init("MAGMA", 5);
-    papi_sde_register_counter( sde_handle, "MAGMA::numiter", MAGMA_INTEGER, SDE_RO|SDE_INSTANT, &(solver_par->numiter) );
-    papi_sde_register_counter( sde_handle, "MAGMA::InitialResidual", PAPI_SDE_double, SDE_RO|SDE_INSTANT, &(solver_par->init_res) );
-    papi_sde_register_counter( sde_handle, "MAGMA::FinalResidual", PAPI_SDE_double, SDE_RO|SDE_INSTANT, &(solver_par->final_res) );
-    papi_sde_register_counter( sde_handle, "MAGMA::IterativeResidual", PAPI_SDE_double, SDE_RO|SDE_INSTANT, &(solver_par->iter_res) );
-    papi_sde_register_counter( sde_handle, "MAGMA::SolverRuntime", MAGMA_REAL_DOUBLE, SDE_RO|SDE_INSTANT, &(solver_par->runtime) );
+    papi_sde_register_counter( sde_handle, "MAGMA::numiter", SDE_RO|SDE_INSTANT, MAGMA_INTEGER, &(solver_par->numiter) );
+    papi_sde_register_counter( sde_handle, "MAGMA::InitialResidual", SDE_RO|SDE_INSTANT, PAPI_SDE_double, &(solver_par->init_res) );
+    papi_sde_register_counter( sde_handle, "MAGMA::FinalResidual", SDE_RO|SDE_INSTANT, PAPI_SDE_double, &(solver_par->final_res) );
+    papi_sde_register_counter( sde_handle, "MAGMA::IterativeResidual", SDE_RO|SDE_INSTANT, PAPI_SDE_double, &(solver_par->iter_res) );
+    papi_sde_register_counter( sde_handle, "MAGMA::SolverRuntime", SDE_RO|SDE_INSTANT, MAGMA_REAL_DOUBLE, &(solver_par->runtime) );
 
 
 cleanup:
