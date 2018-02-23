@@ -27,7 +27,7 @@ zparilut_candidates_count_1(
     magma_index_t* U_new_row)    
 {
     int row = blockDim.x * blockIdx.x + threadIdx.x;
-    
+    //for(int row=0; row<num_rows; row++){
     if (row < num_rows) {
         int numaddrowL = 0;
         int ilu0 = L0_row[row];
@@ -111,7 +111,7 @@ zparilut_candidates_count_2(
     magma_index_t* U_new_row)    
 {
     int row = blockDim.x * blockIdx.x + threadIdx.x;
-    
+    //for(int row=0; row<num_rows; row++){
     if (row < num_rows) {
         // how to determine candidates:
         // for each node i, look at any "intermediate" neighbor nodes numbered
@@ -124,7 +124,7 @@ zparilut_candidates_count_2(
             int col1 = L_col[ el1 ];
             // now check the upper triangular
             // second loop first element over row - only for elements larger the intermediate
-            for(int el2 = U_row[ col1 ]; el2 < U_row[ col1+1 ]; el2++ ){
+            for(int el2 = U_row[ col1 ]+1; el2 < U_row[ col1+1 ]; el2++ ){
                 int col2 = U_col[ el2 ];
                 int cand_row = row;
                 int cand_col = col2;
@@ -132,33 +132,31 @@ zparilut_candidates_count_2(
                 // first case: part of L
                 if(cand_col < row ){
                     // check whether this element already exists in L
-                    int exist = 0;
-                    for(int k=L_row[cand_row]; k<L_row[cand_row+1]; k++ ){
-                        if(L_col[ k ] == cand_col ){
-                                exist = 1;
-                                break;
-                        }
-                    }
+                    // int exist = 0;
+                    // for(int k=L_row[cand_row]; k<L_row[cand_row+1]; k++ ){
+                    //     if(L_col[ k ] == cand_col ){
+                    //             exist = 1;
+                    //             //break;
+                    //     }
+                    // }
                     // if it does not exist, increase counter for this location
                     // use the entry one further down to allow for parallel insertion
-                    if(exist == 0 ){
-                        numaddrowL++;
-                    }
+                    // if(exist == 0 ){
+                    numaddrowL++;
+                    // }
                 } else {
                     // check whether this element already exists in U
-                    int exist = 0;
-                    for(int k=U_row[cand_row]; k<U_row[cand_row+1]; k++ ){
-                        if(U_col[ k ] == cand_col ){
-                                exist = 1;
-                                break;
-                        }
-                    }
-                    // if it does not exist, increase counter for this location
-                    // use the entry one further down to allow for parallel insertion
-                    if(exist == 0 ){
+                    // int exist = 0;
+                    // for(int k=U_row[cand_row]; k<U_row[cand_row+1]; k++ ){
+                    //     if(U_col[ k ] == cand_col ){
+                    //             exist = 1;
+                    //             //break;
+                    //     }
+                    // }
+                    // if(exist == 0 ){
                         //printf("checked row: %d this element does not yet exist in L: (%d,%d)\n", cand_row, cand_col);
-                        numaddrowU++;
-                    }
+                    numaddrowU++;
+                    // }
                 }
             }
 
@@ -192,7 +190,7 @@ zparilut_candidates_insert_1(
     magma_index_t* insertedU)    
 {
     int row = blockDim.x * blockIdx.x + threadIdx.x;
-    
+    //for(int row=0; row<num_rows; row++){
     if (row < num_rows) {
         int laddL = 0;
         int offsetL = L_new_row[row];
@@ -299,7 +297,7 @@ zparilut_candidates_insert_2(
     magma_index_t* insertedU)    
 {
     int row = blockDim.x * blockIdx.x + threadIdx.x;
-    
+    //for(int row=0; row<num_rows; row++){
     if (row < num_rows) {
         int cand_row = row;
         int laddL = 0;
@@ -311,7 +309,7 @@ zparilut_candidates_insert_2(
             int col1 = L_col[ el1 ];
             // now check the upper triangular
             // second loop first element over row - only for elements larger the intermediate
-            for(int el2 = U_row[ col1 ]; el2 < U_row[ col1+1 ]; el2++ ){
+            for(int el2 = U_row[ col1 ]+1; el2 < U_row[ col1+1 ]; el2++ ){
                 int col2 = U_col[ el2 ];
                 int cand_col = col2;
                 // check whether this element already exists
@@ -320,50 +318,45 @@ zparilut_candidates_insert_2(
                     int exist = 0;
                     for(int k=L_row[cand_row]; k<L_row[cand_row+1]; k++ ){
                         if(L_col[ k ] == cand_col ){
-                                exist = 1;
-                                //printf("already exists:(%d,%d\n", row, cand_col);
-                                break;
+                                exist = -1;
+                                // printf("already exists:(%d,%d\n", row, cand_col);
+                                //break;
                         }
                     }
                     for(int k=L_new_row[cand_row]; k<L_new_row[cand_row+1]; k++){
                         if(L_new_col[ k ] == cand_col ){
                             // element included in LU and nonzero
-                            exist = 1;
-                            break;
+                            // printf("already inserted:(%d,%d\n", row, cand_col);
+                            exist = -2;
+                            //break;
                         }
                     }
-                    // if it does not exist, increase counter for this location
-                    // use the entry one further down to allow for parallel insertion
-                    if(exist == 0 ){
-                        L_new_rowidx[ offsetL + laddL ] = cand_row;
-                        L_new_col[ offsetL + laddL ] = cand_col;
-                        L_new_val[ offsetL + laddL ] = MAGMA_Z_ONE;
-                        laddL++;
-                    }
+                    L_new_rowidx[ offsetL + laddL ] = cand_row;
+                    L_new_col[ offsetL + laddL ] = (exist == 0) ? cand_col : exist;
+                    L_new_val[ offsetL + laddL ] = (exist == 0) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
+                    laddL++;
                 } else {
                     // check whether this element already exists in U
                     int exist = 0;
                     for(int k=U_row[cand_row]; k<U_row[cand_row+1]; k++ ){
                         if(U_col[ k ] == cand_col ){
-                                exist = 1;
-                                break;
+                                // printf("already exists:(%d,%d\n", row, cand_col);
+                                exist = -1;
+                                //break;
                         }
                     }
                     for(int k=U_new_row[cand_row]; k<U_new_row[cand_row+1]; k++){
                         if(U_new_col[ k ] == cand_col ){
                             // element included in LU and nonzero
-                            exist = 1;
-                            break;
+                            // printf("already inserted:(%d,%d==%d)  k:%d -> %d -> %d\n", row, cand_col , U_new_col[ k ], U_new_row[cand_row], k, U_new_row[cand_row+1] );
+                            exist = -2;
+                            //break;
                         }
                     }
-                    // if it does not exist, increase counter for this location
-                    // use the entry one further down to allow for parallel insertion
-                    if(exist == 0 ){
-                        U_new_rowidx[ offsetU + laddU ] = cand_row;
-                        U_new_col[ offsetU + laddU ] = cand_col;
-                        U_new_val[ offsetU + laddU ] = MAGMA_Z_ONE;
-                        laddU++;
-                    }
+                    U_new_rowidx[ offsetU + laddU ] = cand_row;
+                    U_new_col[ offsetU + laddU ] = (exist == 0) ? cand_col : exist;
+                    U_new_val[ offsetU + laddU ] = (exist == 0) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
+                    laddU++;
                 }
             }
         }
@@ -483,6 +476,7 @@ magma_zparilut_candidates_gpu(
         L_new->drow, queue));
     CHECK(magma_zget_row_ptr(num_rows, &U_new->nnz, insertedU, 
         U_new->drow, queue));
+    
     CHECK(magma_zindexinit_gpu(num_rows, insertedL, queue));
     CHECK(magma_zindexinit_gpu(num_rows, insertedU, queue));
     
@@ -510,10 +504,10 @@ magma_zparilut_candidates_gpu(
         L.drow, L.dcol, U.drow, U.dcol,
         L_new->drow, L_new->drowidx, L_new->dcol, L_new->dval, insertedL,
         U_new->drow, U_new->drowidx, U_new->dcol, U_new->dval, insertedU);
-    
+        
     CHECK(magma_zthrsholdrm_gpu(1, L_new, &thrs, queue));
     CHECK(magma_zthrsholdrm_gpu(1, U_new, &thrs, queue));
-
+    
 cleanup:
     magma_free(insertedL);
     magma_free(insertedU);
