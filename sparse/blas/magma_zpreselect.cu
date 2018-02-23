@@ -117,7 +117,6 @@ magma_zpreselect_gpu(
         //     }
         // }
     } else { // don't copy the last
-        printf("in here...");
         magma_zpreselect_gpu0<<<grid, block, 0, queue->cuda_stream()>>>
         ( A->num_rows, A->drow,  A->dval, oneA->dval );
         // #pragma omp parallel for
