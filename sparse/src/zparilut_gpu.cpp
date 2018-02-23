@@ -375,7 +375,10 @@ magma_zparilut_gpu(
         printf("%d\n\n",__LINE__);
         if (num_rmL>0) {
             magma_z_matrix hLr={Magma_CSR};
-            magma_zmtransfer(oneL, &hLr, Magma_DEV, Magma_CPU, queue);
+            hLr.nnz = oneL.nnz;
+            magma_zmalloc_cpu( &hLr.val, hLr.nnz );
+            magma_zgetvector( oneL.nnz , oneL.dval, 1, hLr.val, 1, queue );
+            
             CHECK(magma_zparilut_set_thrs_randomselect(num_rmL, 
                 &hLr, 0, &thrsL, queue));
             magma_zmfree(&hLr, queue);
@@ -386,7 +389,10 @@ magma_zparilut_gpu(
         }
         if (num_rmU>0) {
             magma_z_matrix hUr={Magma_CSR};
-            magma_zmtransfer(oneU, &hUr, Magma_DEV, Magma_CPU, queue);
+            hUr.nnz = oneU.nnz;
+            magma_zmalloc_cpu( &hUr.val, hUr.nnz );
+            magma_zgetvector( oneU.nnz , oneU.dval, 1, hUr.val, 1, queue );
+            
             CHECK(magma_zparilut_set_thrs_randomselect(num_rmL, 
                 &hUr, 0, &thrsU, queue));
             magma_zmfree(&hUr, queue);
