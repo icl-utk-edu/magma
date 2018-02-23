@@ -307,7 +307,6 @@ magma_zparilut_gpu(
      //     
      //     printf("\n\n");
      // }
-     printf("%d\n\n",__LINE__);
         CHECK(magma_zmatrix_cup_gpu(dL, dLt, &dhL, queue));   
         CHECK(magma_zmatrix_cup_gpu(dU, dUt, &dhU, queue));
         dhL.storage_type = Magma_CSRCOO;
@@ -372,14 +371,13 @@ magma_zparilut_gpu(
         // pre-select: ignore the diagonal entries
         CHECK(magma_zpreselect_gpu(0, &dL, &oneL, queue));
         CHECK(magma_zpreselect_gpu(0, &dU, &oneU, queue));
-        printf("%d\n\n",__LINE__);
         if (num_rmL>0) {
             magma_z_matrix hLr={Magma_CSR};
             hLr.nnz = oneL.nnz;
             magma_zmalloc_cpu( &hLr.val, hLr.nnz );
             magma_zgetvector( oneL.nnz , oneL.dval, 1, hLr.val, 1, queue );
             
-            CHECK(magma_zparilut_set_thrs_randomselect(num_rmL, 
+            CHECK(magma_zparilut_set_thrs_randomselect_approx(num_rmL, 
                 &hLr, 0, &thrsL, queue));
             magma_zmfree(&hLr, queue);
             //CHECK(magma_zthrsholdselect(1, oneL.nnz, num_rmL, 
@@ -393,7 +391,7 @@ magma_zparilut_gpu(
             magma_zmalloc_cpu( &hUr.val, hUr.nnz );
             magma_zgetvector( oneU.nnz , oneU.dval, 1, hUr.val, 1, queue );
             
-            CHECK(magma_zparilut_set_thrs_randomselect(num_rmL, 
+            CHECK(magma_zparilut_set_thrs_randomselect_approx(num_rmL, 
                 &hUr, 0, &thrsU, queue));
             magma_zmfree(&hUr, queue);
             //CHECK(magma_zthrsholdselect(1, oneU.nnz, num_rmU, 
@@ -401,7 +399,6 @@ magma_zparilut_gpu(
         } else {
             thrsU = 0.0;
         }
-        printf("%d\n\n",__LINE__);
         magma_zmfree(&oneL, queue);
         magma_zmfree(&oneU, queue);
         // magma_zmfree(&L_new, queue);
@@ -413,7 +410,6 @@ magma_zparilut_gpu(
         // GPU kernel
         CHECK(magma_zthrsholdrm_gpu(1, &dL, &thrsL, queue));
         CHECK(magma_zthrsholdrm_gpu(1, &dU, &thrsU, queue));
-        printf("%d\n\n",__LINE__);
         // GPU kernel
         end = magma_sync_wtime(queue); t_rm=end-start;
         
