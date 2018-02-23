@@ -151,6 +151,57 @@ magma_zparilut_gpu(
         end = magma_sync_wtime(queue); t_transpose1+=end-start;
         start = magma_sync_wtime(queue);
         CHECK(magma_zparilut_candidates_gpu(dL0, dU0, dL, dUT, &dhL, &dhU, queue));
+        
+        
+     //  {
+     //      magma_z_matrix hLr={Magma_CSR}, hUr={Magma_CSR};
+     //      magma_zmtransfer(dhL, &hLr, Magma_DEV, Magma_CPU, queue);
+     //      magma_zmtransfer(dhU, &hUr, Magma_DEV, Magma_CPU, queue);
+     //      const char *filename1 = "gpu_dL1.mtx";
+     //      magma_zwrite_csrtomtx( hLr, filename1, queue );
+     //      const char *filename2 = "gpu_dU1.mtx";
+     //      magma_zwrite_csrtomtx( hUr, filename2, queue );
+     //      
+     //      printf("candU\n\n");
+     //      {
+     //        for(int tt=0; tt<10; tt++){
+     //         printf("rowptr[%d] = %d\n", tt, hUr.row[tt]);
+     //         for(int ttt=hUr.row[tt]; ttt<hUr.row[tt+1]; ttt++) {
+     //             printf("\t%2d", hUr.col[ttt]);
+     //         }
+     //         printf("\n");
+     //        for(int ttt=hUr.row[tt]; ttt<hUr.row[tt+1]; ttt++) {
+     //             printf("\t%.2f", hUr.val[ttt]);
+     //         }
+     //         printf("\n");
+     //        }
+     //        
+     //      }
+     //      
+     //      printf("\n\n");
+     //      
+     //  }
+
+        
+        // {
+        //     printf(" debug: %d\n", __LINE__);
+        //     magma_z_matrix hLr={Magma_CSR}, hUr={Magma_CSR};
+        //     magma_z_matrix hLt={Magma_CSR}, hUt={Magma_CSR};
+        //     magma_zmtransfer(dL, &hLr, Magma_DEV, Magma_CPU, queue);
+        //     magma_zmtransfer(dUT, &hUr, Magma_DEV, Magma_CPU, queue);
+        //     printf(" debug: %d\n", __LINE__);
+        //     CHECK(magma_zparilut_candidates(L0, U0, hLr, hUr, &hLt, &hUt, queue));
+        //     printf(" debug: %d\n", __LINE__);
+        //     hLt.storage_type = Magma_CSRCOO;
+        //     hUt.storage_type = Magma_CSRCOO;
+        //     magma_zmtransfer(hLt, &dhL, Magma_CPU, Magma_DEV, queue);
+        //     magma_zmtransfer(hUt, &dhU, Magma_CPU, Magma_DEV, queue);
+        //     printf(" debug: %d\n", __LINE__);
+        //     magma_zmfree( &hLt, queue );
+        //     magma_zmfree( &hUt, queue );
+        //     printf(" debug: %d\n", __LINE__);
+        // }
+
         dhL.storage_type = Magma_CSRCOO;
         dhU.storage_type = Magma_CSRCOO;
         end = magma_sync_wtime(queue); t_cand=+end-start;
@@ -170,10 +221,40 @@ magma_zparilut_gpu(
         sum = sumL + sumU;
         end = magma_sync_wtime(queue); t_nrm+=end-start;
         
+
+        
+        
         // step 3: add candidates
         start = magma_sync_wtime(queue);
         CHECK(magma_zcsr_sort_gpu( &dhL, queue));
         CHECK(magma_zcsr_sort_gpu( &dhU, queue));
+      //  {
+      //      magma_z_matrix hLr={Magma_CSR}, hUr={Magma_CSR};
+      //      magma_zmtransfer(dhL, &hLr, Magma_DEV, Magma_CPU, queue);
+      //      magma_zmtransfer(dhU, &hUr, Magma_DEV, Magma_CPU, queue);
+      //      const char *filename1 = "gpu_dL3.mtx";
+      //      magma_zwrite_csrtomtx( hLr, filename1, queue );
+      //      const char *filename2 = "gpu_dU3.mtx";
+      //      magma_zwrite_csrtomtx( hUr, filename2, queue );
+      //      printf("cand sorted\n\n");
+      //      {
+      //        for(int tt=0; tt<10; tt++){
+      //         printf("rowptr[%d] = %d\n", tt, hUr.row[tt]);
+      //         for(int ttt=hUr.row[tt]; ttt<hUr.row[tt+1]; ttt++) {
+      //             printf("\t%4d", hUr.col[ttt]);
+      //         }
+      //         printf("\n");
+      //        for(int ttt=hUr.row[tt]; ttt<hUr.row[tt+1]; ttt++) {
+      //             printf("\t%.2f", hUr.val[ttt]);
+      //         }
+      //         printf("\n");
+      //        }
+      //        
+      //      }
+      //      
+      //      printf("\n\n");
+      //  }
+        
         magma_zmfree(&dLt, queue);
         magma_zmfree(&dUt, queue);
         dhU.storage_type = Magma_CSR;
@@ -187,16 +268,46 @@ magma_zparilut_gpu(
         dL.storage_type = Magma_CSRCOO;
         dU.storage_type = Magma_CSRCOO;
         dLt.storage_type = Magma_CSRCOO;
-        dUt.storage_type = Magma_CSRCOO;
+        //dUt.storage_type = Magma_CSRCOO;
         CHECK(magma_zmatrix_swap(&dhL, &dLt, queue));
+        
         magma_zmfree(&dhL, queue);
         magma_zmfree(&dhU, queue);
         end = magma_sync_wtime(queue); t_selectadd+=end-start;
         start = magma_sync_wtime(queue);
-        dL.storage_type = Magma_CSRCOO;
-        dU.storage_type = Magma_CSRCOO;
-        dLt.storage_type = Magma_CSRCOO;
-        dUt.storage_type = Magma_CSRCOO;
+        //dL.storage_type = Magma_CSRCOO;
+        //dU.storage_type = Magma_CSRCOO;
+        //dLt.storage_type = Magma_CSRCOO;
+        //dUt.storage_type = Magma_CSRCOO;
+     // {
+     //     magma_z_matrix hLr={Magma_CSR}, hUr={Magma_CSR};
+     //     magma_zmtransfer(dLt, &hLr, Magma_DEV, Magma_CPU, queue);
+     //     const char *filename1 = "gpu_dL4.mtx";
+     //     magma_zwrite_csrtomtx( hLr, filename1, queue );
+     //     
+     //     magma_zmtransfer(dUt, &hUr, Magma_DEV, Magma_CPU, queue);
+     //     const char *filename2 = "gpu_dU4.mtx";
+     //     magma_zwrite_csrtomtx( hUr, filename2, queue );
+     //     
+     //     printf("cand sorted transpose\n\n");
+     //     {
+     //       for(int tt=0; tt<10; tt++){
+     //        printf("rowptr[%d] = %d\n", tt, hUr.row[tt]);
+     //        for(int ttt=hUr.row[tt]; ttt<hUr.row[tt+1]; ttt++) {
+     //            printf("\t%4d", hUr.col[ttt]);
+     //        }
+     //        printf("\n");
+     //       for(int ttt=hUr.row[tt]; ttt<hUr.row[tt+1]; ttt++) {
+     //            printf("\t%.2f", hUr.val[ttt]);
+     //        }
+     //        printf("\n");
+     //       }
+     //       
+     //     }
+     //     
+     //     printf("\n\n");
+     // }
+     printf("%d\n\n",__LINE__);
         CHECK(magma_zmatrix_cup_gpu(dL, dLt, &dhL, queue));   
         CHECK(magma_zmatrix_cup_gpu(dU, dUt, &dhU, queue));
         dhL.storage_type = Magma_CSRCOO;
@@ -208,12 +319,47 @@ magma_zparilut_gpu(
         magma_zmfree(&dLt, queue);
         magma_zmfree(&dUt, queue);
         end = magma_sync_wtime(queue); t_add=+end-start;
+      //         {
+      //     magma_z_matrix hLr={Magma_CSR}, hUr={Magma_CSR};
+      //     magma_zmtransfer(dL, &hLr, Magma_DEV, Magma_CPU, queue);
+      //     printf("\n\n");
+      //     {
+      //       for(int tt=0; tt<10; tt++){
+      //        printf("rowptr[%d] = %d\n", tt, hLr.row[tt]);
+      //        for(int ttt=hLr.row[tt]; ttt<hLr.row[tt+1]; ttt++) {
+      //            printf("\t%4d", hLr.col[ttt]);
+      //        }
+      //        printf("\n");
+      //       for(int ttt=hLr.row[tt]; ttt<hLr.row[tt+1]; ttt++) {
+      //            printf("\t%.2f", hLr.val[ttt]);
+      //        }
+      //        printf("\n");
+      //       }
+      //       
+      //     }
+      //     printf("\n\n");
+      //     
+      //     const char *filename1 = "gpu_dL5.mtx";
+      //     magma_zwrite_csrtomtx( hLr, filename1, queue );
+      // }
         
         // step 4: sweep
         start = magma_sync_wtime(queue);
         // // GPU kernel
         CHECK(magma_zparilut_sweep_gpu(&dA, &dL, &dU, queue));
         end = magma_sync_wtime(queue); t_sweep1+=end-start;
+        
+     //   {
+     //       magma_z_matrix hLr={Magma_CSR}, hUr={Magma_CSR};
+     //       magma_zmtransfer(dL, &hLr, Magma_DEV, Magma_CPU, queue);
+     //       magma_zmtransfer(dU, &hUr, Magma_DEV, Magma_CPU, queue);
+     //       const char *filename1 = "gpu_dL2.mtx";
+     //       magma_zwrite_csrtomtx( hLr, filename1, queue );
+     //       const char *filename2 = "gpu_dU2.mtx";
+     //       magma_zwrite_csrtomtx( hUr, filename2, queue );
+     //       
+     //       printf("after sweep nnz: %d %d\n", dL.nnz, dU.nnz);
+     //   }
         
         // step 5: select threshold to remove elements
         // CHECK(magma_zmtransfer(dL, &L_new, Magma_DEV, Magma_CPU, queue));
@@ -226,22 +372,30 @@ magma_zparilut_gpu(
         // pre-select: ignore the diagonal entries
         CHECK(magma_zpreselect_gpu(0, &dL, &oneL, queue));
         CHECK(magma_zpreselect_gpu(0, &dU, &oneU, queue));
+        printf("%d\n\n",__LINE__);
         if (num_rmL>0) {
-            //CHECK(magma_zparilut_set_thrs_randomselect(num_rmL, 
-            //    &oneL, 0, &thrsL, queue));
-            CHECK(magma_zthrsholdselect(1, oneL.nnz, num_rmL, 
-                oneL.dval, &thrsL, queue));
+            magma_z_matrix hLr={Magma_CSR};
+            magma_zmtransfer(oneL, &hLr, Magma_DEV, Magma_CPU, queue);
+            CHECK(magma_zparilut_set_thrs_randomselect(num_rmL, 
+                &hLr, 0, &thrsL, queue));
+            magma_zmfree(&hLr, queue);
+            //CHECK(magma_zthrsholdselect(1, oneL.nnz, num_rmL, 
+              //  oneL.dval, &thrsL, queue));
         } else {
             thrsL = 0.0;
         }
         if (num_rmU>0) {
-            // CHECK(magma_zparilut_set_thrs_randomselect(num_rmU, 
-            //     &oneU, 0, &thrsU, queue));
-            CHECK(magma_zthrsholdselect(1, oneU.nnz, num_rmU, 
-                oneU.dval, &thrsU, queue));
+            magma_z_matrix hUr={Magma_CSR};
+            magma_zmtransfer(oneU, &hUr, Magma_DEV, Magma_CPU, queue);
+            CHECK(magma_zparilut_set_thrs_randomselect(num_rmL, 
+                &hUr, 0, &thrsU, queue));
+            magma_zmfree(&hUr, queue);
+            //CHECK(magma_zthrsholdselect(1, oneU.nnz, num_rmU, 
+            //    oneU.dval, &thrsU, queue));
         } else {
             thrsU = 0.0;
         }
+        printf("%d\n\n",__LINE__);
         magma_zmfree(&oneL, queue);
         magma_zmfree(&oneU, queue);
         // magma_zmfree(&L_new, queue);
@@ -253,6 +407,7 @@ magma_zparilut_gpu(
         // GPU kernel
         CHECK(magma_zthrsholdrm_gpu(1, &dL, &thrsL, queue));
         CHECK(magma_zthrsholdrm_gpu(1, &dU, &thrsU, queue));
+        printf("%d\n\n",__LINE__);
         // GPU kernel
         end = magma_sync_wtime(queue); t_rm=end-start;
         
@@ -268,13 +423,25 @@ magma_zparilut_gpu(
                 +t_sweep1+t_selectrm+t_rm+t_sweep2+t_transpose2;
             accum = accum + t_total;
             printf("%5lld %5lld %5lld  %.4e   %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e    %.2e\n",
-                (long long) iters, (long long) L.nnz, (long long) U.nnz, 
+                (long long) iters, (long long) dL.nnz, (long long) dU.nnz, 
                 (double) sum, 
                 t_cand, t_res, t_nrm, t_selectadd, t_add, t_transpose1, 
                 t_sweep1, t_selectrm, t_rm, t_sweep2, t_transpose2, t_total, 
                 accum);
             fflush(stdout);
         }
+        
+   //   {
+   //       magma_z_matrix hLr={Magma_CSR}, hUr={Magma_CSR};
+   //       magma_zmtransfer(dL, &hLr, Magma_DEV, Magma_CPU, queue);
+   //       magma_zmtransfer(dU, &hUr, Magma_DEV, Magma_CPU, queue);
+   //       const char *filename1 = "gpu_dL6.mtx";
+   //       magma_zwrite_csrtomtx( hLr, filename1, queue );
+   //       const char *filename2 = "gpu_dU6.mtx";
+   //       magma_zwrite_csrtomtx( hUr, filename2, queue );
+   //       
+   //       printf("after sweep nnz: %d %d\n", dL.nnz, dU.nnz);
+   //   }
     }
     if (timing == 1) {
         printf("]; \n");
