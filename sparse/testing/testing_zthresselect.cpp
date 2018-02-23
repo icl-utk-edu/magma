@@ -47,7 +47,7 @@ int main(  int argc, char** argv )
         TESTING_CHECK(magma_zmalloc(&d_val, m));
         // fill the values with random numbers
         for (int z=0; z<m; z++){
-            val[z] = MAGMA_Z_MAKE((double)(rand()%m)/(double)m, 0.0);        
+            val[z] = MAGMA_Z_MAKE(55.0*(double)(rand()%m)/(double)m, 0.0);        
         }
         
         // copy over
