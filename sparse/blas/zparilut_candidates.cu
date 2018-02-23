@@ -126,7 +126,6 @@ zparilut_candidates_count_2(
             // second loop first element over row - only for elements larger the intermediate
             for(int el2 = U_row[ col1 ]+1; el2 < U_row[ col1+1 ]; el2++ ){
                 int col2 = U_col[ el2 ];
-                int cand_row = row;
                 int cand_col = col2;
                 // check whether this element already exists
                 // first case: part of L
