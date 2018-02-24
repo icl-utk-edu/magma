@@ -287,7 +287,7 @@ magma_zthrsholdselect(
     // add an initial setp that finds the largest element
     // go over value array, each threads finds a first "largest" element 
     // and writes to thrs1. Then do reduction to find the largest value overall.
-    
+    // start = magma_sync_wtime( queue );
     magma_zfindlargest_kernel<<<grid1, block1, 0, queue->cuda_stream()>>>
             (total_size, val, thrs1);
     magma_zreduce_thrs<<<grid2, block1, 0, queue->cuda_stream()>>>
@@ -299,11 +299,12 @@ magma_zthrsholdselect(
          
     magma_sgetvector(1, thrs2, 1, thrstmp, 1, queue );
     thrs[0] = (double)thrstmp[0];
-    
+    // printf("largest element: %.2e\n", thrs[0]);
     // set array to 0
     CHECK(magma_svalinit_gpu(GRID_SIZE1, thrs1, queue));
     CHECK(magma_svalinit_gpu(GRID_SIZE2, thrs2, queue));
-    
+    // end = magma_sync_wtime( queue );
+    // printf( "part I in %.4e sec\n",(end-start) );
     
     // now start the thresholding
     
@@ -311,15 +312,15 @@ magma_zthrsholdselect(
     //__global__ __launch_bounds__(32);
     
     //printf("scan:... ");
-    //start = magma_sync_wtime( queue );
+    // start = magma_sync_wtime( queue );
     // first kernel checks how many elements are smaller than the threshold
     zthreshselect_kernel<<<grid22, block, 0, queue->cuda_stream()>>>
         (sampling, total_size, subset_size, val, thrs[0], thrs1);
-    //end = magma_sync_wtime( queue );
-    //printf( "done in %.4e sec\n",(end-start) );
+    // end = magma_sync_wtime( queue );
+    // printf( "part II in %.4e sec\n",(end-start) );
     
     //printf("reduction:...");
-    //start = magma_sync_wtime( queue );
+    // start = magma_sync_wtime( queue );
     // second kernel identifies the largest of these thresholds
     magma_zreduce_thrs<<<grid2, block1, 0, queue->cuda_stream()>>>
         ( thrs1, thrs2 );
@@ -327,12 +328,12 @@ magma_zthrsholdselect(
         ( thrs2, thrs1 );
     magma_zreduce_thrs<<<grid4, block1, 0, queue->cuda_stream()>>>
          ( thrs1, thrs2 );
-    //end = magma_sync_wtime( queue );
-    //printf( "done in %.4e sec\n",(end-start) );
+    // end = magma_sync_wtime( queue );
+    // printf( "part III in %.4e sec\n",(end-start) );
     
     magma_sgetvector(1, thrs2, 1, thrstmp, 1, queue );
     thrs[0] = (double)thrstmp[0];
-    
+    // printf("threshold: %.2e\n", thrs[0]);
 cleanup:
     magma_free(thrs1);
     magma_free(thrs2);
