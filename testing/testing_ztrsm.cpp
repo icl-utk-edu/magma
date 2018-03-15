@@ -33,7 +33,7 @@ int main( int argc, char** argv)
     #define dA(i_, j_) (dA + (i_) + (j_)*ldda)
     #define dB(i_, j_) (dB + (i_) + (j_)*lddb)
     #endif
-    
+
     #define hA(i_, j_) (hA + (i_) + (j_)*lda)
 
     TESTING_CHECK( magma_init() );
@@ -47,15 +47,14 @@ int main( int argc, char** argv)
     magma_int_t lda, ldb, ldda, lddb;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
-    magma_int_t *ipiv;
-    
+
     magmaDoubleComplex *hA, *hB, *hBdev, *hBmagma, *hBlapack, *hX;
     magmaDoubleComplex_ptr dA, dB;
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magmaDoubleComplex c_one = MAGMA_Z_ONE;
     magmaDoubleComplex alpha = MAGMA_Z_MAKE(  0.29, -0.86 );
     int status = 0;
-    
+
     magma_opts opts;
     opts.matrix = "rand_dominant";  // default
     opts.tolerance = 100;           // default
@@ -65,11 +64,11 @@ int main( int argc, char** argv)
 
     // pass ngpu = -1 to test multi-GPU code using 1 gpu
     magma_int_t abs_ngpu = abs( opts.ngpu );
-    
+
     printf("%% side = %s, uplo = %s, transA = %s, diag = %s, ngpu = %lld\n",
            lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),
            lapack_trans_const(opts.transA), lapack_diag_const(opts.diag), (long long) abs_ngpu);
-    
+
     printf("%%   M     N  MAGMA Gflop/s (ms)  CUBLAS Gflop/s (ms)   CPU Gflop/s (ms)      MAGMA     CUBLAS   LAPACK error\n");
     printf("%%============================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
@@ -85,48 +84,54 @@ int main( int argc, char** argv)
                 lda = N;
                 Ak  = N;
             }
-            
+
             ldb = M;
-            
+
             ldda = magma_roundup( lda, opts.align );  // multiple of 32 by default
             lddb = magma_roundup( ldb, opts.align );  // multiple of 32 by default
-            
+
             //sizeA = lda*Ak;
             sizeB = ldb*N;
-            
+
             TESTING_CHECK( magma_zmalloc_cpu( &hA,       lda*Ak  ));
             TESTING_CHECK( magma_zmalloc_cpu( &hB,       ldb*N   ));
             TESTING_CHECK( magma_zmalloc_cpu( &hX,       ldb*N   ));
             TESTING_CHECK( magma_zmalloc_cpu( &hBlapack, ldb*N   ));
             TESTING_CHECK( magma_zmalloc_cpu( &hBdev,    ldb*N   ));
             TESTING_CHECK( magma_zmalloc_cpu( &hBmagma,  ldb*N   ));
-            TESTING_CHECK( magma_imalloc_cpu( &ipiv,      Ak      ));
-            
+
             TESTING_CHECK( magma_zmalloc( &dA,       ldda*Ak ));
             TESTING_CHECK( magma_zmalloc( &dB,       lddb*N  ));
-            
+
             /* Initialize the matrices */
-            /* Factor A into LU to get well-conditioned triangular matrix.
-             * Copy L to U, since L seems okay when used with non-unit diagonal
-             * (i.e., from U), while U fails when used with unit diagonal. */
             magma_generate_matrix( opts, Ak, Ak, nullptr, hA, lda );
-            lapackf77_zgetrf( &Ak, &Ak, hA, &lda, ipiv, &info );
-            for (int j = 0; j < Ak; ++j) {
-                for (int i = 0; i < j; ++i) {
-                    *hA(i,j) = *hA(j,i);
-                }
+
+            // set unused data to nan
+            magma_int_t Ak_1 = Ak - 1;
+            if (opts.uplo == MagmaLower)
+                lapackf77_zlaset( "upper", &Ak_1, &Ak_1, &MAGMA_Z_NAN, &MAGMA_Z_NAN, &hA[ 1*lda ], &lda );
+            else
+                lapackf77_zlaset( "lower", &Ak_1, &Ak_1, &MAGMA_Z_NAN, &MAGMA_Z_NAN, &hA[ 1     ], &lda );
+
+            // Factor A into L L^H or U U^H to get a well-conditioned triangular matrix.
+            // If diag == Unit, the diagonal is replaced; this is still well-conditioned.
+            // First, brute force positive definiteness.
+            for (int i = 0; i < Ak; ++i) {
+                hA[ i + i*lda ] += Ak;
             }
-            
+            lapackf77_zpotrf( lapack_uplo_const(opts.uplo), &Ak, hA, &lda, &info );
+            assert( info == 0 );
+
             lapackf77_zlarnv( &ione, ISEED, &sizeB, hB );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, hB, &ldb, hBlapack, &lda );
             magma_zsetmatrix( Ak, Ak, hA, lda, dA(0,0), ldda, opts.queue );
-            
+
             /* =====================================================================
                Performs operation using MAGMABLAS (only with CUDA)
                =================================================================== */
             #if defined(HAVE_CUBLAS)
                 magma_zsetmatrix( M, N, hB, ldb, dB(0,0), lddb, opts.queue );
-                
+
                 magma_time = magma_sync_wtime( opts.queue );
                 if (opts.ngpu == 1) {
                     magmablas_ztrsm( opts.side, opts.uplo, opts.transA, opts.diag,
@@ -139,18 +144,18 @@ int main( int argc, char** argv)
                                    M, N,
                                    alpha, dA(0,0), ldda,
                                           dB(0,0), lddb );
-                }                            
+                }
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
                 magma_perf = gflops / magma_time;
-                
+
                 magma_zgetmatrix( M, N, dB(0,0), lddb, hBmagma, ldb, opts.queue );
             #endif
-            
+
             /* =====================================================================
                Performs operation using cuBLAS / clBLAS
                =================================================================== */
             magma_zsetmatrix( M, N, hB, ldb, dB(0,0), lddb, opts.queue );
-            
+
             dev_time = magma_sync_wtime( opts.queue );
             magma_ztrsm( opts.side, opts.uplo, opts.transA, opts.diag,
                          M, N,
@@ -158,9 +163,9 @@ int main( int argc, char** argv)
                                 dB(0,0), lddb, opts.queue );
             dev_time = magma_sync_wtime( opts.queue ) - dev_time;
             dev_perf = gflops / dev_time;
-            
+
             magma_zgetmatrix( M, N, dB(0,0), lddb, hBdev, ldb, opts.queue );
-            
+
             /* =====================================================================
                Performs operation using CPU BLAS
                =================================================================== */
@@ -174,7 +179,7 @@ int main( int argc, char** argv)
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;
             }
-            
+
             /* =====================================================================
                Check the result
                =================================================================== */
@@ -185,7 +190,7 @@ int main( int argc, char** argv)
                                       lapack_uplo_const(opts.uplo),
                                       lapack_diag_const(opts.diag),
                                       &Ak, &Ak, hA, &lda, work );
-            
+
             #if defined(HAVE_CUBLAS)
                 // check magma
                 memcpy( hX, hBmagma, sizeB*sizeof(magmaDoubleComplex) );
@@ -194,7 +199,7 @@ int main( int argc, char** argv)
                                &M, &N,
                                &inv_alpha, hA, &lda,
                                            hX, &ldb );
-                
+
                 blasf77_zaxpy( &sizeB, &c_neg_one, hB, &ione, hX, &ione );
                 normR = lapackf77_zlange( "M", &M, &N, hX,      &ldb, work );
                 normX = lapackf77_zlange( "M", &M, &N, hBmagma, &ldb, work );
@@ -225,12 +230,12 @@ int main( int argc, char** argv)
                                &M, &N,
                                &inv_alpha, hA, &lda,
                                            hX, &ldb );
-    
+
                 blasf77_zaxpy( &sizeB, &c_neg_one, hB, &ione, hX, &ione );
                 normR = lapackf77_zlange( "M", &M, &N, hX,       &ldb, work );
                 normX = lapackf77_zlange( "M", &M, &N, hBlapack, &ldb, work );
                 lapack_error = normR/(normX*normA);
-                
+
                 printf("%5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %8.2e   %8.2e   %s\n",
                         (long long) M, (long long) N,
                         magma_perf,  1000.*magma_time,
@@ -247,15 +252,14 @@ int main( int argc, char** argv)
                         magma_error, dev_error,
                         (okay ? "ok" : "failed"));
             }
-            
+
             magma_free_cpu( hA );
             magma_free_cpu( hB );
             magma_free_cpu( hX );
             magma_free_cpu( hBlapack );
             magma_free_cpu( hBdev    );
             magma_free_cpu( hBmagma  );
-            magma_free_cpu( ipiv );
-            
+
             magma_free( dA );
             magma_free( dB );
             fflush( stdout );

@@ -18,6 +18,7 @@
 #include "flops.h"
 #include "magma_v2.h"
 #include "magma_lapack.h"
+#include "magma_operators.h"
 #include "testings.h"
 
 /* ////////////////////////////////////////////////////////////////////////////
@@ -32,7 +33,7 @@ int main( int argc, char** argv)
     #define dA(i_, j_) (dA + (i_) + (j_)*ldda)
     #define dx(i_)     (dx + (i_))
     #endif
-    
+
     #define hA(i_, j_) (hA + (i_) + (j_)*lda)
 
     TESTING_CHECK( magma_init() );
@@ -44,19 +45,18 @@ int main( int argc, char** argv)
     magma_int_t lda, ldda;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
-    magma_int_t *ipiv;
 
     magmaDoubleComplex *hA, *hb, *hx, *hxcublas;
     magmaDoubleComplex_ptr dA, dx;
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     int status = 0;
-    
+
     magma_opts opts;
     opts.matrix = "rand_dominant";  // default; makes triangles nicely conditioned
     opts.parse_opts( argc, argv );
-    
+
     double tol = opts.tolerance * lapackf77_dlamch("E");
-    
+
     printf("%% uplo = %s, transA = %s, diag = %s\n",
            lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA), lapack_diag_const(opts.diag) );
     printf("%%   N  CUBLAS Gflop/s (ms)   CPU Gflop/s (ms)   CUBLAS error\n");
@@ -67,37 +67,44 @@ int main( int argc, char** argv)
             gflops = FLOPS_ZTRSM(opts.side, N, 1) / 1e9;
             lda    = N;
             ldda   = magma_roundup( lda, opts.align );  // multiple of 32 by default
-            
-            TESTING_CHECK( magma_imalloc_cpu( &ipiv,      N     ));
+
             TESTING_CHECK( magma_zmalloc_cpu( &hA,       lda*N ));
             TESTING_CHECK( magma_zmalloc_cpu( &hb,       N     ));
             TESTING_CHECK( magma_zmalloc_cpu( &hx,       N     ));
             TESTING_CHECK( magma_zmalloc_cpu( &hxcublas, N     ));
-            
+
             TESTING_CHECK( magma_zmalloc( &dA, ldda*N ));
             TESTING_CHECK( magma_zmalloc( &dx, N      ));
-            
+
             /* Initialize the matrices */
-            /* Factor A into LU to get well-conditioned triangular matrix.
-             * Copy L to U, since L seems okay when used with non-unit diagonal
-             * (i.e., from U), while U fails when used with unit diagonal. */
             magma_generate_matrix( opts, N, N, nullptr, hA, lda );
-            lapackf77_zgetrf( &N, &N, hA, &lda, ipiv, &info );
-            for (int j = 0; j < N; ++j) {
-                for (int i = 0; i < j; ++i) {
-                    *hA(i,j) = *hA(j,i);
-                }
+
+            // todo: setting to nan causes trsv to fail -- seems like a bug in cuBLAS?
+            // set unused data to nan
+            magma_int_t N_1 = N - 1;
+            if (opts.uplo == MagmaLower)
+                lapackf77_zlaset( "upper", &N_1, &N_1, &MAGMA_Z_NAN, &MAGMA_Z_NAN, &hA[ 1*lda ], &lda );
+            else
+                lapackf77_zlaset( "lower", &N_1, &N_1, &MAGMA_Z_NAN, &MAGMA_Z_NAN, &hA[ 1     ], &lda );
+
+            // Factor A into L L^H or U U^H to get a well-conditioned triangular matrix.
+            // If diag == Unit, the diagonal is replaced; this is still well-conditioned.
+            // First, brute force positive definiteness.
+            for (int i = 0; i < N; ++i) {
+                hA[ i + i*lda ] += N;
             }
-            
+            lapackf77_zpotrf( lapack_uplo_const(opts.uplo), &N, hA, &lda, &info );
+            assert( info == 0 );
+
             lapackf77_zlarnv( &ione, ISEED, &N, hb );
             blasf77_zcopy( &N, hb, &ione, hx, &ione );
-            
+
             /* =====================================================================
                Performs operation using CUBLAS
                =================================================================== */
             magma_zsetmatrix( N, N, hA, lda, dA(0,0), ldda, opts.queue );
             magma_zsetvector( N, hx, 1, dx(0), 1, opts.queue );
-            
+
             cublas_time = magma_sync_wtime( opts.queue );
             magma_ztrsv( opts.uplo, opts.transA, opts.diag,
                          N,
@@ -105,9 +112,9 @@ int main( int argc, char** argv)
                          dx(0), 1, opts.queue );
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
             cublas_perf = gflops / cublas_time;
-            
+
             magma_zgetvector( N, dx(0), 1, hxcublas, 1, opts.queue );
-            
+
             /* =====================================================================
                Performs operation using CPU BLAS
                =================================================================== */
@@ -120,14 +127,17 @@ int main( int argc, char** argv)
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;
             }
-            
+
             /* =====================================================================
                Check the result
                =================================================================== */
             // ||b - Ax|| / (||A||*||x||)
             // error for CUBLAS
-            normA = lapackf77_zlange( "F", &N, &N, hA, &lda, work );
-            
+            normA = lapackf77_zlantr( "F",
+                                      lapack_uplo_const(opts.uplo),
+                                      lapack_diag_const(opts.diag),
+                                      &N, &N, hA, &lda, work );
+
             normx = lapackf77_zlange( "F", &N, &ione, hxcublas, &ione, work );
             blasf77_ztrmv( lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA), lapack_diag_const(opts.diag),
                            &N,
@@ -152,13 +162,12 @@ int main( int argc, char** argv)
                         cublas_perf, 1000.*cublas_time,
                         cublas_error, (okay ? "ok" : "failed"));
             }
-            
-            magma_free_cpu( ipiv );
+
             magma_free_cpu( hA  );
             magma_free_cpu( hb  );
             magma_free_cpu( hx  );
             magma_free_cpu( hxcublas );
-            
+
             magma_free( dA );
             magma_free( dx );
             fflush( stdout );
