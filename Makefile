@@ -60,8 +60,7 @@ CFLAGS    += -DHAVE_CUBLAS
 CXXFLAGS  += -DHAVE_CUBLAS
 
 # where testers look for MAGMA libraries
-RPATH      = -Wl,-rpath,../lib
-RPATH2     = -Wl,-rpath,../../lib
+RPATH      = -Wl,-rpath,${abspath ./lib}
 
 codegen    = python tools/codegen.py
 
@@ -531,6 +530,9 @@ magmablas/clean:
 src/clean:
 	-rm -f $(src_obj)
 
+testing/cleanexe:
+	-rm -f $(testers) $(testers_f)
+
 testing/clean: testing/lin/clean
 	-rm -f $(testers) $(testers_f) $(testing_obj) \
 		$(libtest_a) $(libtest_obj)
@@ -663,7 +665,7 @@ $(testers_f): %: %.$(o_ext) testing/fortran.o
 
 # link sparse testing_foo from testing_foo.o
 $(sparse_testers): %: %.$(o_ext)
-	$(CXX) $(LDFLAGS) $(RPATH2) \
+	$(CXX) $(LDFLAGS) $(RPATH) \
 	-o $@ $< \
 	-L./testing -ltest \
 	-L./lib -lmagma_sparse -lmagma \
