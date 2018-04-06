@@ -166,7 +166,6 @@ magma_z_precondsetup(
              precond->trisolver == Magma_JACOBI ||
              precond->trisolver == Magma_VBJACOBI ){
             info = magma_zcumilusetup( A, precond, queue );
-            //info = magma_ziluisaisetup( A, b, precond, queue );
             info = magma_ziluisaisetup_lower( A, precond->L, precond, queue );
             info = magma_ziluisaisetup_upper( A, precond->U, precond, queue );
         } else {
@@ -178,7 +177,8 @@ magma_z_precondsetup(
         if ( precond->trisolver == Magma_ISAI ||
              precond->trisolver == Magma_JACOBI ||
              precond->trisolver == Magma_VBJACOBI ){
-            info = magma_ziluisaisetup( A, b, precond, queue );
+             info = magma_ziluisaisetup_lower( A, precond->L, precond, queue );
+             info = magma_ziluisaisetup_upper( A, precond->U, precond, queue );
         }
     }
     else if ( precond->solver == Magma_ILUT ) {
@@ -193,7 +193,8 @@ magma_z_precondsetup(
             if ( precond->trisolver == Magma_ISAI  ||
                  precond->trisolver == Magma_JACOBI ||
                  precond->trisolver == Magma_VBJACOBI ){
-                info = magma_ziluisaisetup( A, b, precond, queue );
+                 info = magma_ziluisaisetup_lower( A, precond->L, precond, queue );
+                 info = magma_ziluisaisetup_upper( A, precond->U, precond, queue );
             }
             precond->solver = Magma_PARILU; // handle as PARILU
         #else

@@ -1458,13 +1458,6 @@ magma_zmbackinsert_batched_gpu(
     magma_queue_t queue );
 
 magma_int_t
-magma_ziluisaisetup(
-    magma_z_matrix A,
-    magma_z_matrix b,
-    magma_z_preconditioner *precond,
-    magma_queue_t queue );
-
-magma_int_t
 magma_ziluisaisetup_lower(
     magma_z_matrix A,
     magma_z_matrix S,
@@ -1475,13 +1468,6 @@ magma_int_t
 magma_ziluisaisetup_upper(
     magma_z_matrix A,
     magma_z_matrix S,
-    magma_z_preconditioner *precond,
-    magma_queue_t queue );
-
-magma_int_t
-magma_ziluisaisetup_t(
-    magma_z_matrix A,
-    magma_z_matrix b,
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 

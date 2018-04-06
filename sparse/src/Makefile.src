@@ -111,7 +111,7 @@ libsparse_src += \
 
 # incomplete sparse approximate inverse
 libsparse_src += \
-    $(cdir)/zgeisai.cpp                   \
+    $(cdir)/zgeisai_apply.cpp             \
     $(cdir)/zgeisai_lower.cpp             \
     $(cdir)/zgeisai_upper.cpp             \
     $(cdir)/zsyisai.cpp                   \
