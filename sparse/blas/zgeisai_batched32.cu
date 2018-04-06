@@ -33,289 +33,6 @@ const int MaxBlockSize = 32;
 
 template <int block_size>
 __device__ void
-magma_zlowerisai_regs_kernel(
-magma_int_t num_rows,
-const magma_index_t * __restrict__ Arow,
-const magma_index_t * __restrict__ Acol,
-const magmaDoubleComplex * __restrict__ Aval,
-magma_index_t *Mrow,
-magma_index_t *Mcol,
-magmaDoubleComplex *Mval )
-{
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
-    int tid = threadIdx.x;
-    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
-
-    if( tid >= block_size )
-        return;
-
-    if( row >= num_rows )
-        return;
-
-    // only if within the size
-    int mstart = Mrow[ row ];
-    int mlim = Mrow[ row+1 ];
-
-    magmaDoubleComplex rB;      // registers for trsv
-    magmaDoubleComplex dA[ block_size ];  // registers for trisystem
-    magmaDoubleComplex rA;
-
-    // set dA to 0
-    #pragma unroll
-    for( int j = 0; j < block_size; j++ ){
-        dA[ j ] = MAGMA_Z_ZERO;
-    }
-
-    // generate the triangular systems
-    int t = Mcol[ mstart + tid ];
-    int k = Arow[ t ];
-    int alim = Arow[ t+1 ];
-    int l = mstart;
-    int idx = 0;
-    while( k < alim && l < mlim ){ // stop once this column is done
-        int mcol =  Mcol[ l ];
-        int acol = Acol[k];
-        if( mcol == acol ){ //match
-            dA[ idx ] = Aval[ k ];
-            k++;
-            l++;
-            idx++;
-        } else if( acol < mcol ){// need to check next element
-            k++;
-        } else { // element does not exist, i.e. l < LC.col[k]
-            l++; // check next elment in the sparsity pattern
-            idx++; // leave this element equal zero
-        }
-    }
-
-    // second: solve the triangular systems - in registers
-    // we know how RHS looks like
-    rB = ( tid == 0 ) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
-
-
-        // Triangular solve in regs.
-    #pragma unroll
-    for (int k = 0; k < block_size; k++)
-    {
-        rA = dA[ k ];
-        if (k % block_size == tid)
-            rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k % block_size);
-        if ( tid > k)
-            rB -= (top*rA);
-    }
-
-    // Drop B to dev memory - in ISAI preconditioner M
-    Mval[ mstart + tid ] = rB;
-
-#endif
-
-}
-
-
-template <int block_size>
-__device__ __forceinline__ void
-magma_zlowerisai_regs_select(
-int N,
-magma_int_t num_rows,
-const magma_index_t * __restrict__ Arow,
-const magma_index_t * __restrict__ Acol,
-const magmaDoubleComplex * __restrict__ Aval,
-magma_index_t *Mrow,
-magma_index_t *Mcol,
-magmaDoubleComplex *Mval )
-{
-    if (N == block_size) {
-        magma_zlowerisai_regs_kernel<block_size>(
-                num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
-    } else {
-        magma_zlowerisai_regs_select<block_size-1>(
-                N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
-    }
-}
-
-
-template <>
-__device__ __forceinline__ void
-magma_zlowerisai_regs_select<0>(
-int N,
-magma_int_t num_rows,
-const magma_index_t * __restrict__ Arow,
-const magma_index_t * __restrict__ Acol,
-const magmaDoubleComplex * __restrict__ Aval,
-magma_index_t *Mrow,
-magma_index_t *Mcol,
-magmaDoubleComplex *Mval )
-{
-    // TODO(Hartwig): Are you soure we want to have printfs called from the
-    //                device?
-    printf("%% error: size out of range: %d\n", N);
-}
-
-
-__global__ void
-magma_zlowerisai_regs_switch(
-magma_int_t num_rows,
-const magma_index_t * __restrict__ Arow,
-const magma_index_t * __restrict__ Acol,
-const magmaDoubleComplex * __restrict__ Aval,
-magma_index_t *Mrow,
-magma_index_t *Mcol,
-magmaDoubleComplex *Mval )
-{
-    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
-    if( row < num_rows ){
-        int N = Mrow[ row+1 ] - Mrow[ row ];
-        //Switcher<MaxBlockSize, magma_zlowerisai_regs_kernel>::switch_func(
-        magma_zlowerisai_regs_select<MaxBlockSize>(
-                N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
-    }
-}
-
-
-template <int block_size>
-__device__ void
-magma_zupperisai_regs_kernel(
-magma_int_t num_rows,
-const magma_index_t * __restrict__ Arow,
-const magma_index_t * __restrict__ Acol,
-const magmaDoubleComplex * __restrict__ Aval,
-magma_index_t *Mrow,
-magma_index_t *Mcol,
-magmaDoubleComplex *Mval )
-{
-#if (defined( REAL ) && ( __CUDA_ARCH__ >= 300 ))
-    int tid = threadIdx.x;
-    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
-
-    if( tid >= block_size )
-        return;
-
-    if( row >= num_rows )
-        return;
-
-    // only if within the size
-    int mstart = Mrow[ row ];
-    int mlim = Mrow[ row+1 ];
-
-    magmaDoubleComplex rB;      // registers for trsv
-    magmaDoubleComplex dA[ block_size ];  // registers for trisystem
-    magmaDoubleComplex rA;
-
-    // set dA to 0
-    #pragma unroll
-    for( int j = 0; j < block_size; j++ ){
-        dA[ j ] = MAGMA_Z_ZERO;
-    }
-
-    // generate the triangular systems
-    int t = Mcol[ mstart + tid ];
-    int k = Arow[ t ];
-    int alim = Arow[ t+1 ];
-    int l = mstart;
-    int idx = 0;
-    while( k < alim && l < mlim ){ // stop once this column is done
-        int mcol =  Mcol[ l ];
-        int acol = Acol[k];
-        if( mcol == acol ){ //match
-            dA[ idx ] = Aval[ k ];
-            k++;
-            l++;
-            idx++;
-        } else if( acol < mcol ){// need to check next element
-            k++;
-        } else { // element does not exist, i.e. l < LC.col[k]
-            l++; // check next elment in the sparsity pattern
-            idx++; // leave this element equal zero
-        }
-    }
-
-    // second: solve the triangular systems - in registers
-    // we know how RHS looks like
-    rB = ( tid == block_size-1 ) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
-
-
-        // Triangular solve in regs.
-    #pragma unroll
-    for (int k = block_size-1; k >-1; k--)
-    {
-        rA = dA[ k ];
-        if (k%block_size == tid)
-            rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%block_size);
-        if ( tid < k)
-            rB -= (bottom*rA);
-    }
-
-    // Drop B to dev memory - in ISAI preconditioner M
-    Mval[ mstart + tid ] = rB;
-
-#endif
-
-}
-
-
-template <int block_size>
-__device__ __forceinline__ void
-magma_zupperisai_regs_select(
-int N,
-magma_int_t num_rows,
-const magma_index_t * __restrict__ Arow,
-const magma_index_t * __restrict__ Acol,
-const magmaDoubleComplex * __restrict__ Aval,
-magma_index_t *Mrow,
-magma_index_t *Mcol,
-magmaDoubleComplex *Mval )
-{
-    if (N == block_size) {
-        magma_zupperisai_regs_kernel<block_size>(
-                num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
-    } else {
-        magma_zupperisai_regs_select<block_size-1>(
-                N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
-    }
-}
-
-
-template <>
-__device__ __forceinline__ void
-magma_zupperisai_regs_select<0>(
-int N,
-magma_int_t num_rows,
-const magma_index_t * __restrict__ Arow,
-const magma_index_t * __restrict__ Acol,
-const magmaDoubleComplex * __restrict__ Aval,
-magma_index_t *Mrow,
-magma_index_t *Mcol,
-magmaDoubleComplex *Mval )
-{
-    // TODO(Hartwig): Are you soure we want to have printfs called from the
-    //                device?
-    printf("%% error: size out of range: %d\n", N);
-}
-
-
-__global__ void
-magma_zupperisai_regs_switch(
-magma_int_t num_rows,
-const magma_index_t * __restrict__ Arow,
-const magma_index_t * __restrict__ Acol,
-const magmaDoubleComplex * __restrict__ Aval,
-magma_index_t *Mrow,
-magma_index_t *Mcol,
-magmaDoubleComplex *Mval )
-{
-    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
-    if( row < num_rows ){
-        int N = Mrow[ row+1 ] - Mrow[ row ];
-        magma_zupperisai_regs_select<MaxBlockSize>(
-                N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
-    }
-}
-
-
-template <int block_size>
-__device__ void
 magma_zlowerisai_regs_inv_kernel(
 magma_int_t num_rows,
 const magma_index_t * __restrict__ Arow,
@@ -339,7 +56,7 @@ magmaDoubleComplex *Mval )
     int mstart = Mrow[ row ];
     int mlim = Mrow[ row ]-1;
 
-    magmaDoubleComplex rB;      // registers for trsv
+    magmaDoubleComplex rB;                // registers for trsv
     magmaDoubleComplex dA[ block_size ];  // registers for trisystem
     magmaDoubleComplex rA;
 
@@ -429,9 +146,9 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-    // TODO(Hartwig): Are you soure we want to have printfs called from the
-    //                device?
-    printf("%% error: size out of range: %d\n", N);
+    ;
+    // out of range - do nothing.
+    // printf("%% error: size out of range: %d\n", N);
 }
 
 
@@ -479,7 +196,7 @@ magmaDoubleComplex *Mval )
     int mstart = Mrow[ row ];
     int mlim = Mrow[ row ]-1;
 
-    magmaDoubleComplex rB;      // registers for trsv
+    magmaDoubleComplex rB;                // registers for trsv
     magmaDoubleComplex dA[ block_size ];  // registers for trisystem
     magmaDoubleComplex rA;
 
@@ -568,9 +285,9 @@ magma_index_t *Mrow,
 magma_index_t *Mcol,
 magmaDoubleComplex *Mval )
 {
-    // TODO(Hartwig): Are you soure we want to have printfs called from the
-    //                device?
-    printf("%% error: size out of range: %d\n", N);
+    ;
+    // out of range - do nothing.
+    // printf("%% error: size out of range: %d\n", N);
 }
 
 

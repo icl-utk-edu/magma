@@ -163,11 +163,15 @@ magma_z_precondsetup(
     // ILU and related
     else if ( precond->solver == Magma_ILU ) {
         if ( precond->trisolver == Magma_ISAI ||
-             precond->trisolver == Magma_JACOBI ||
-             precond->trisolver == Magma_VBJACOBI ){
+            precond->trisolver == Magma_JACOBI ||
+            precond->trisolver == Magma_VBJACOBI ){
             info = magma_zcumilusetup( A, precond, queue );
-            info = magma_ziluisaisetup_lower( A, precond->L, precond, queue );
-            info = magma_ziluisaisetup_upper( A, precond->U, precond, queue );
+            info = magma_ziluisaisetup_lower( precond->L, precond->L, &precond->LD, queue );
+            info = magma_ziluisaisetup_upper( precond->U, precond->U, &precond->UD, queue );
+            if (info == Magma_CUSOLVE) {
+                precond->trisolver = Magma_CUSOLVE;
+                info = 0;
+            }
         } else {
             info = magma_zcumilusetup( A, precond, queue );
         }
@@ -177,8 +181,12 @@ magma_z_precondsetup(
         if ( precond->trisolver == Magma_ISAI ||
              precond->trisolver == Magma_JACOBI ||
              precond->trisolver == Magma_VBJACOBI ){
-             info = magma_ziluisaisetup_lower( A, precond->L, precond, queue );
-             info = magma_ziluisaisetup_upper( A, precond->U, precond, queue );
+             info = magma_ziluisaisetup_lower( precond->L, precond->L, &precond->LD, queue );
+             info = magma_ziluisaisetup_upper( precond->U, precond->U, &precond->UD, queue );
+             if (info == Magma_CUSOLVE) {
+                precond->trisolver = Magma_CUSOLVE;
+                info = 0;
+             }
         }
     }
     else if ( precond->solver == Magma_ILUT ) {
@@ -191,11 +199,15 @@ magma_z_precondsetup(
         #ifdef _OPENMP
             info = magma_zparilut_cpu( A, b, precond, queue );
             if ( precond->trisolver == Magma_ISAI  ||
-                 precond->trisolver == Magma_JACOBI ||
-                 precond->trisolver == Magma_VBJACOBI ){
-                 info = magma_ziluisaisetup_lower( A, precond->L, precond, queue );
-                 info = magma_ziluisaisetup_upper( A, precond->U, precond, queue );
-            }
+                precond->trisolver == Magma_JACOBI ||
+                precond->trisolver == Magma_VBJACOBI ){
+                info = magma_ziluisaisetup_lower( precond->L, precond->L, &precond->LD, queue );
+                info = magma_ziluisaisetup_upper( precond->U, precond->U, &precond->UD, queue );
+                if (info == Magma_CUSOLVE) {
+                    precond->trisolver = Magma_CUSOLVE;
+                    info = 0;
+                }
+             }
             precond->solver = Magma_PARILU; // handle as PARILU
         #else
             printf( "error: preconditioner requires OpenMP.\n" );

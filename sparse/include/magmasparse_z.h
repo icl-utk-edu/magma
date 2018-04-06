@@ -1459,16 +1459,16 @@ magma_zmbackinsert_batched_gpu(
 
 magma_int_t
 magma_ziluisaisetup_lower(
-    magma_z_matrix A,
+    magma_z_matrix L,
     magma_z_matrix S,
-    magma_z_preconditioner *precond,
+    magma_z_matrix *ISAIL,
     magma_queue_t queue );
 
 magma_int_t
 magma_ziluisaisetup_upper(
-    magma_z_matrix A,
+    magma_z_matrix U,
     magma_z_matrix S,
-    magma_z_preconditioner *precond,
+    magma_z_matrix *ISAIU,
     magma_queue_t queue );
 
 magma_int_t
@@ -1514,66 +1514,9 @@ magma_zmiluisai_sizecheck(
     magma_queue_t queue );
 
 magma_int_t
-magma_zmisai_blockstruct(
-    magma_int_t n,
-    magma_int_t bs,
-    magma_int_t offs,
-    magma_uplo_t uplotype,
-    magma_z_matrix *S,
-    magma_queue_t queue );
-
-magma_int_t
-magma_zmisai_blockstruct_gpu(
-    magma_int_t n,
-    magma_int_t bs,
-    magma_int_t offs,
-    magma_uplo_t uplotype,
-    magma_z_matrix *A,
-    magma_queue_t queue );
-
-magma_int_t
 magma_zgeisai_maxblock(
     magma_z_matrix L,
     magma_z_matrix *MT,
-    magma_queue_t queue );
-
-magma_int_t
-magma_zisaigenerator_32_gpu(
-    magma_uplo_t uplotype,
-    magma_trans_t transtype,
-    magma_diag_t diagtype,
-    magma_z_matrix L,
-    magma_z_matrix *M,
-    magma_index_t *sizes,
-    magma_index_t *locations,
-    magmaDoubleComplex *trisystems,
-    magmaDoubleComplex *rhs,    
-    magma_queue_t queue );
-
-magma_int_t
-magma_zisaigenerator_16_gpu(
-    magma_uplo_t uplotype,
-    magma_trans_t transtype,
-    magma_diag_t diagtype,
-    magma_z_matrix L,
-    magma_z_matrix *M,
-    magma_index_t *sizes,
-    magma_index_t *locations,
-    magmaDoubleComplex *trisystems,
-    magmaDoubleComplex *rhs,    
-    magma_queue_t queue );
-
-magma_int_t
-magma_zisaigenerator_8_gpu(
-    magma_uplo_t uplotype,
-    magma_trans_t transtype,
-    magma_diag_t diagtype,
-    magma_z_matrix L,
-    magma_z_matrix *M,
-    magma_index_t *sizes,
-    magma_index_t *locations,
-    magmaDoubleComplex *trisystems,
-    magmaDoubleComplex *rhs,    
     magma_queue_t queue );
 
 magma_int_t
