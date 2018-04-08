@@ -86,7 +86,7 @@ int main(  int argc, char** argv )
         magma_free(d_val);
         magma_free_cpu(val);
 
-        printf( "%.4e\n", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), t_gpu );
+        printf( "%.4e\n", t_cpu );
 	}
     }
     
