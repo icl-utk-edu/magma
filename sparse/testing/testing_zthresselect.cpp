@@ -64,7 +64,7 @@ int main(  int argc, char** argv )
                 count++;    
             }
         }
-        printf("%% m n thrs count absolute-acc relative-acc time-gpu time-cpu\n");
+        printf("%% m n thrs count absolute-acc relative-acc time-gpu m n thrs count absolute-acc relative-acc time-cpu\n");
 
         printf( " %10d  %10d  %.8e  %10d %.4e %.4e\t\t %.3e", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), t_gpu );
         
@@ -86,7 +86,7 @@ int main(  int argc, char** argv )
         magma_free(d_val);
         magma_free_cpu(val);
 
-        printf( "  %.3e\n", t_cpu );
+        printf( " %10d  %10d  %.8e  %10d %.4e %.4e\t\t %.3e\n", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), t_cpu );
 	}
     }
     
