@@ -82,9 +82,9 @@ int main(  int argc, char** argv )
                 
         magma_free(d_val);
         magma_free_cpu(val);
-        printf("%% m n thrs count absolute-acc relative-acc sec\n");
+        printf("%% m n thrs count absolute-acc relative-acc time-gpu time-cpu\n");
 
-        printf( " %10d  %10d  %.8e  %10d %.4e %.4e %.4e\n", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), t_gpu, t_cpu );
+        printf( " %10d  %10d  %.8e  %10d %.4e %.4e %.4e %.4e\n", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), t_gpu, t_cpu );
 	}
     }
     
