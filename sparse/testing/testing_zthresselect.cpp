@@ -34,8 +34,8 @@ int main(  int argc, char** argv )
     magma_queue_t queue=NULL;
     magma_queue_create( 0, &queue );
     
-    
-    real_Double_t start, end;
+    magma_z_matrix A={Magma_CSR}, B={Magma_CSR};
+    real_Double_t start, end, t_gpu, t_cpu;
     magma_int_t sampling = 16;
     double thrs;
     for( int m = 1000; m<10000001; m=m*2) {
@@ -57,7 +57,22 @@ int main(  int argc, char** argv )
         for(int i=0; i<10; i++)
             TESTING_CHECK(magma_zthrsholdselect(sampling, m, n, d_val, &thrs, queue));
         end = magma_sync_wtime( queue );
+        t_gpu = end-start / 10.0;
         
+        for(int z=0; z<m; z++) {
+            if (MAGMA_Z_ABS(val[z])<thrs) {
+                count++;    
+            }
+        }
+        
+        // cpu reference for comparison
+        A.nnz = m;
+        A.val = val;
+        start = magma_sync_wtime( queue );
+        for(int i=0; i<10; i++)
+            magma_zparilut_set_thrs_randomselect( n, &A, 1, &thrs, queue );
+        end = magma_sync_wtime( queue );
+        t_cpu = end-start / 10.0;
         
         for(int z=0; z<m; z++) {
             if (MAGMA_Z_ABS(val[z])<thrs) {
@@ -67,9 +82,9 @@ int main(  int argc, char** argv )
                 
         magma_free(d_val);
         magma_free_cpu(val);
-        printf("%% m n thrs count acc sec\n");
+        printf("%% m n thrs count absolute-acc relative-acc sec\n");
 
-        printf( " %10d  %10d  %.8e  %10d %.4e %.4e %.4e\n", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), (end-start)/10 );
+        printf( " %10d  %10d  %.8e  %10d %.4e %.4e %.4e\n", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), t_gpu, t_cpu );
 	}
     }
     
