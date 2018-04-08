@@ -114,7 +114,6 @@ libsparse_src += \
     $(cdir)/zgeisai_apply.cpp             \
     $(cdir)/zgeisai_lower.cpp             \
     $(cdir)/zgeisai_upper.cpp             \
-    $(cdir)/zsyisai.cpp                   \
 
 # dummy to compensate for routines not included in release
 libsparse_src += \
