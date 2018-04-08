@@ -241,7 +241,6 @@ magma_zthrsholdselect(
     dim3 grid(magma_ceildiv( total_size, BLOCK_SIZE ), 1, 1 );
 
     float *thrs1, *thrs2, *thrstmp, *float_val; 
-    double *ddouble_val;
     real_Double_t start, end;
     magmaDoubleComplex *dummy;
     
@@ -250,7 +249,6 @@ magma_zthrsholdselect(
     CHECK(magma_smalloc(&thrs2, GRID_SIZE2));
     
     CHECK(magma_smalloc(&float_val, total_size));
-    CHECK(magma_dmalloc(&ddouble_val, total_size));
     
     // add an initial setp that finds the largest element
     // go over value array, each threads finds a first "largest" element 
