@@ -224,7 +224,8 @@ magma_z_precondsetup(
              precond->trisolver == Magma_JACOBI ||
              precond->trisolver == Magma_VBJACOBI ){
             info = magma_zcumiccsetup( A, precond, queue );
-            info = magma_zicisaisetup( A, b, precond, queue );
+            info = magma_ziluisaisetup_lower( precond->L, precond->L, &precond->LD, queue );
+            info = magma_ziluisaisetup_upper( precond->U, precond->U, &precond->UD, queue );
         } else {
             info = magma_zcumiccsetup( A, precond, queue );
         }
