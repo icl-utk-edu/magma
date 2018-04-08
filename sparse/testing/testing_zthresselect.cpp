@@ -35,7 +35,7 @@ int main(  int argc, char** argv )
     magma_queue_create( 0, &queue );
     
     magma_z_matrix A={Magma_CSR}, B={Magma_CSR};
-    real_Double_t start, end, t_gpu, t_cpu;
+    real_Double_t start, end, t_gpu=0.0, t_cpu=0.0;
     magma_int_t sampling = 16;
     double thrs;
     for( int m = 1000; m<10000001; m=m*2) {
@@ -66,7 +66,7 @@ int main(  int argc, char** argv )
         }
         printf("%% m n thrs count absolute-acc relative-acc time-gpu time-cpu\n");
 
-        printf( " %10d  %10d  %.8e  %10d %.4e %.4e %.4e", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), t_gpu );
+        printf( " %10d  %10d  %.8e  %10d %.4e %.4e\t\t %.3e", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), t_gpu );
         
         // cpu reference for comparison
         A.nnz = m;
@@ -86,7 +86,7 @@ int main(  int argc, char** argv )
         magma_free(d_val);
         magma_free_cpu(val);
 
-        printf( "%.4e\n", t_cpu );
+        printf( "%.3e\n", t_cpu );
 	}
     }
     
