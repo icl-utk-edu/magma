@@ -57,7 +57,7 @@ int main(  int argc, char** argv )
         for(int i=0; i<10; i++)
             TESTING_CHECK(magma_zthrsholdselect(sampling, m, n, d_val, &thrs, queue));
         end = magma_sync_wtime( queue );
-        t_gpu = end-start / 10.0;
+        t_gpu = (end-start) / 10.0;
         
         for(int z=0; z<m; z++) {
             if (MAGMA_Z_ABS(val[z])<thrs) {
@@ -75,7 +75,7 @@ int main(  int argc, char** argv )
         for(int i=0; i<10; i++)
             magma_zparilut_set_thrs_randomselect( n, &A, 1, &thrs, queue );
         end = magma_sync_wtime( queue );
-        t_cpu = end-start / 10.0;
+        t_cpu = (end-start) / 10.0;
         
         for(int z=0; z<m; z++) {
             if (MAGMA_Z_ABS(val[z])<thrs) {
@@ -86,7 +86,7 @@ int main(  int argc, char** argv )
         magma_free(d_val);
         magma_free_cpu(val);
 
-        printf( "%.3e\n", t_cpu );
+        printf( "  %.3e\n", t_cpu );
 	}
     }
     
