@@ -35,17 +35,16 @@ magma_zfindlargest_kernel(
     
     magma_int_t dim_grid = 32768*32;
     
+    
     magma_int_t steps = magma_ceildiv( total_size, dim_grid );
    
     float sval = 0.0;
     float lval = 0.0;
     for (magma_int_t z=0; z<steps; z++) {
         magma_int_t el = z*dim_grid + gtidx;
-        if ( el < total_size ){
-            sval = (float)MAGMA_Z_ABS(val[(z+tidx)%total_size]);
-            float_val[(z+tidx)%total_size] = sval;
-            lval = (sval > lval) ? sval : lval;
-        }
+        sval = (float)MAGMA_Z_ABS(val[(el)%total_size]);
+        float_val[(el)%total_size] = sval;
+        lval = (sval > lval) ? sval : lval;
     }
     float maxval=0.0;
     
@@ -239,8 +238,10 @@ magma_zthrsholdselect(
     dim3 grid4(GRID_SIZE4, 1, 1 );
     dim3 grid22(GRID_SIZE22, 1, 1 );
     
+    dim3 grid(magma_ceildiv( total_size, BLOCK_SIZE ), 1, 1 );
 
     float *thrs1, *thrs2, *thrstmp, *float_val; 
+    double *ddouble_val;
     real_Double_t start, end;
     magmaDoubleComplex *dummy;
     
@@ -249,6 +250,7 @@ magma_zthrsholdselect(
     CHECK(magma_smalloc(&thrs2, GRID_SIZE2));
     
     CHECK(magma_smalloc(&float_val, total_size));
+    CHECK(magma_dmalloc(&ddouble_val, total_size));
     
     // add an initial setp that finds the largest element
     // go over value array, each threads finds a first "largest" element 
@@ -262,6 +264,10 @@ magma_zthrsholdselect(
         ( thrs2, thrs1 );
     magma_zreduce_thrs<<<grid4, block1, 0, queue->cuda_stream()>>>
          ( thrs1, thrs2 );
+         
+// magma_zprint_gpu( total_size, 1, val, total_size, queue );
+ // magma_dprint_gpu( total_size, 1, ddouble_val, total_size, queue );
+
          
     magma_sgetvector(1, thrs2, 1, thrstmp, 1, queue );
     thrs[0] = (double)thrstmp[0];
