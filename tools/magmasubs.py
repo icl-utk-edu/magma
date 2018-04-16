@@ -335,10 +335,12 @@ subs = {
     # ----- Preprocessor
     ('#define PRECISION_d',       '#define PRECISION_z'     ),
     ('#define PRECISION_s',       '#define PRECISION_c'     ),
-    ('#define REAL',              '#define COMPLEX'         ),
     ('#undef PRECISION_d',        '#undef PRECISION_z'      ),
     ('#undef PRECISION_s',        '#undef PRECISION_c'      ),
-    ('#undef REAL',               '#undef COMPLEX'          ),
+    ('#define REAL',              '#define COMPLEX'         ),  # deprecated
+    ('#undef REAL',               '#undef COMPLEX'          ),  # deprecated
+    ('#define MAGMA_REAL',        '#define MAGMA_COMPLEX'   ),
+    ('#undef MAGMA_REAL',         '#undef MAGMA_COMPLEX'    ),
 
     # ----- Text
     ('symmetric',                 'hermitian'               ),
@@ -431,12 +433,16 @@ subs = {
     ('s',              'd',              'c',              'z'               ),
 
     # ----- Preprocessor
-    ('#define PRECISION_s', '#define PRECISION_d', '#define PRECISION_c', '#define PRECISION_z' ),
-    ('#undef PRECISION_s',  '#undef PRECISION_d',  '#undef PRECISION_c',  '#undef PRECISION_z'  ),
-    ('#define REAL',        '#define REAL',        '#define COMPLEX',     '#define COMPLEX'     ),
-    ('#undef REAL',         '#undef REAL',         '#undef COMPLEX',      '#undef COMPLEX'      ),
-    ('#define SINGLE',      '#define DOUBLE',      '#define SINGLE',      '#define DOUBLE'      ),
-    ('#undef SINGLE',       '#undef DOUBLE',       '#undef SINGLE',       '#undef DOUBLE'       ),
+    ('#define PRECISION_s',  '#define PRECISION_d',  '#define PRECISION_c',   '#define PRECISION_z'  ),
+    ('#undef PRECISION_s',   '#undef PRECISION_d',   '#undef PRECISION_c',    '#undef PRECISION_z'   ),
+    ('#define REAL',         '#define REAL',         '#define COMPLEX',       '#define COMPLEX'      ),  # deprecated
+    ('#undef REAL',          '#undef REAL',          '#undef COMPLEX',        '#undef COMPLEX'       ),  # deprecated
+    ('#define MAGMA_REAL',   '#define MAGMA_REAL',   '#define MAGMA_COMPLEX', '#define MAGMA_COMPLEX'),
+    ('#undef MAGMA_REAL',    '#undef MAGMA_REAL',    '#undef MAGMA_COMPLEX',  '#undef MAGMA_COMPLEX' ),
+    ('#define SINGLE',       '#define DOUBLE',       '#define SINGLE',        '#define DOUBLE'       ),  # deprecated
+    ('#undef SINGLE',        '#undef DOUBLE',        '#undef SINGLE',         '#undef DOUBLE'        ),  # deprecated
+    ('#define MAGMA_SINGLE', '#define MAGMA_DOUBLE', '#define MAGMA_SINGLE',  '#define MAGMA_DOUBLE' ),
+    ('#undef MAGMA_SINGLE',  '#undef MAGMA_DOUBLE',  '#undef MAGMA_SINGLE',   '#undef MAGMA_DOUBLE'  ),
 
     # ----- Text
     ('symmetric',      'symmetric',      'hermitian',      'hermitian'       ),

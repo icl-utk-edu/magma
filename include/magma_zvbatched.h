@@ -17,7 +17,7 @@
 
 #include "magma_types.h"
 
-#define COMPLEX
+#define MAGMA_COMPLEX
 
 #ifdef __cplusplus
 extern "C" {
@@ -654,6 +654,6 @@ magma_int_t magma_get_zpotrf_vbatched_crossover();
 }
 #endif
 
-#undef COMPLEX
+#undef MAGMA_COMPLEX
 
 #endif  /* MAGMA_ZVBATCHED_H */

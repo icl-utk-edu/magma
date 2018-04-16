@@ -18,7 +18,7 @@
 #include "magma_types.h"
 #include "magma_copy_v1.h"
 
-#define COMPLEX
+#define MAGMA_COMPLEX
 
 #ifdef __cplusplus
 extern "C" {
@@ -738,7 +738,7 @@ magma_zdrot_v1(
     magmaDoubleComplex_ptr dy, magma_int_t incy,
     double dc, double ds );
 
-#ifdef REAL
+#ifdef MAGMA_REAL
 void
 magma_zrotm_v1(
     magma_int_t n,
@@ -751,7 +751,7 @@ magma_zrotmg_v1(
     magmaDouble_ptr d1, magmaDouble_ptr       d2,
     magmaDouble_ptr x1, magmaDouble_const_ptr y1,
     magmaDouble_ptr param );
-#endif
+#endif  // MAGMA_REAL
 
 void
 magma_zscal_v1(
@@ -933,6 +933,6 @@ magma_ztrsm_v1(
 }
 #endif
 
-#undef COMPLEX
+#undef MAGMA_COMPLEX
 
 #endif // MAGMABLAS_Z_H

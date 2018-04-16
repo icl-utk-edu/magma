@@ -16,7 +16,7 @@
 
 #include "magma_types.h"
 
-#define COMPLEX
+#define MAGMA_COMPLEX
 
 #ifdef __cplusplus
 extern "C" {
@@ -979,6 +979,6 @@ zset_stepinit_ipiv(
 }
 #endif
 
-#undef COMPLEX
+#undef MAGMA_COMPLEX
 
 #endif  /* MAGMA_ZBATCHED_H */

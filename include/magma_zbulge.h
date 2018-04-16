@@ -12,7 +12,7 @@
 #define MAGMA_ZBULGE_H
 
 #include "magma_types.h"
-#define COMPLEX
+#define MAGMA_COMPLEX
 
 #ifdef __cplusplus
 extern "C" {
@@ -159,7 +159,7 @@ void
 magma_zheevdx_getworksize(magma_int_t n, magma_int_t threads,
         magma_int_t wantz, 
         magma_int_t *lwmin, 
-        #ifdef COMPLEX
+        #ifdef MAGMA_COMPLEX
         magma_int_t *lrwmin, 
         #endif
         magma_int_t *liwmin);
@@ -187,5 +187,5 @@ magma_zungqr_2stage_gpu(
 #ifdef __cplusplus
 }
 #endif
-#undef COMPLEX
+#undef MAGMA_COMPLEX
 #endif /* MAGMA_ZBULGE_H */
