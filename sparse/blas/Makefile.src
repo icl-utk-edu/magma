@@ -84,12 +84,7 @@ libsparse_src += \
 	
 # ISAI
 libsparse_src += \
-	$(cdir)/zgeisai.cu	\
-	$(cdir)/zgeisai_8.cu      \
-	$(cdir)/zgeisai_16.cu      \
-	$(cdir)/zgeisai_32.cu      \
 	$(cdir)/zgeisai_trsv.cu           \
-	$(cdir)/zgeblockstruct.cu	\
 	$(cdir)/zgeisai_maxblock.cu	\
 	$(cdir)/zgeisai_batched32.cu      \
 

@@ -21,12 +21,13 @@
 #define INC 4
 
 
-// kernel for counting elements for different thresholds
+// kernel for finding the largest element
 __global__ void 
 magma_zfindlargest_kernel( 
     magma_int_t total_size,
     magmaDoubleComplex *val,
-    float * thrs )
+    float *float_val,
+    float * max )
 {
     magma_int_t tidx = threadIdx.x;   
     magma_int_t bidx = blockIdx.x;
@@ -34,18 +35,16 @@ magma_zfindlargest_kernel(
     
     magma_int_t dim_grid = 32768*32;
     
+    
     magma_int_t steps = magma_ceildiv( total_size, dim_grid );
    
-
-    
     float sval = 0.0;
     float lval = 0.0;
     for (magma_int_t z=0; z<steps; z++) {
         magma_int_t el = z*dim_grid + gtidx;
-        if ( el < total_size ){
-            sval = (float)MAGMA_Z_ABS(val[(z+tidx)%total_size]);
-            lval = (sval > lval) ? sval : lval;
-        }
+        sval = (float)MAGMA_Z_ABS(val[(el)%total_size]);
+        float_val[(el)%total_size] = sval;
+        lval = (sval > lval) ? sval : lval;
     }
     float maxval=0.0;
     
@@ -66,10 +65,8 @@ magma_zfindlargest_kernel(
     #endif
     #endif
     
-    thrs[bidx] = maxval;
+    max[bidx] = maxval;
 }
-
-
 
 
 // kernel for counting elements for different thresholds
@@ -78,9 +75,10 @@ zthreshselect_kernel(
     magma_int_t sampling,
     magma_int_t total_size,
     magma_int_t subset_size_g,
-    magmaDoubleComplex *val,
+    float *val,
     float scaling,
-    float * thrs )
+    float * thrs,
+    magmaDoubleComplex *dummy) // dummy argument to avoid symbol duplication for z c d s
 {
     magma_int_t tidx = threadIdx.x;   
     magma_int_t bidx = blockIdx.x;
@@ -92,9 +90,6 @@ zthreshselect_kernel(
    // now define the threshold
     float thrs_inc = (float) 1 / (float) total_thrs_count;
     __shared__ float sval[BLOCK_SIZE];
-    //if ( tidx == 0 ){
-      //      thrs[bidx] = 0.0;
-    //}
     
     // local counters
     magma_int_t count[THRS_PER_THREAD];
@@ -102,11 +97,8 @@ zthreshselect_kernel(
     for (int t=0; t<THRS_PER_THREAD; t++) {
         count[t] = 0;
     }
-    //float lval;
-    //#pragma unroll
     for (magma_int_t z=0; z<total_size-BLOCK_SIZE; z+=BLOCK_SIZE*sampling) {
-        // lval = (float)MAGMA_Z_ABS(val[(z+tidx)%total_size]);
-        sval[tidx] = (float)MAGMA_Z_ABS(val[(z+tidx)%total_size]);
+        sval[tidx] = val[ (z+tidx)%total_size ];
         #if __CUDA_ARCH__ >= 300
         #if __CUDACC_VER_MAJOR__ < 9
             for (int k=0; k<BLOCK_SIZE; k++) {
@@ -126,15 +118,12 @@ zthreshselect_kernel(
         #endif
         #endif
         // threads that have their lowest count above the subset size return
-            if (__all(count[0]>subset_size)) { 
-                if ( tidx == 0 ){
-                    thrs[bidx] = 0.0;
-                }
-	        return;
+        if (__all(count[0]>subset_size)) { 
+            if ( tidx == 0 ){
+                thrs[bidx] = 0.0;
             }
-        
-    
-      //val[(z+tidx)%total_size] = MAGMA_Z_MAKE((double) lval, 0.0);
+        return;
+        }
     }
     
     // check for the largest threshold of the thread
@@ -147,30 +136,6 @@ zthreshselect_kernel(
             (gtidx*THRS_PER_THREAD+t)*thrs_inc*scaling : maxval ;
     }
     thrs[gtidx]=maxval;
-/*
-    float thrs_loc = maxval;
-    
-    // now reduce among threads of the warp
-    #if __CUDA_ARCH__ >= 300
-    #if __CUDACC_VER_MAJOR__ < 9
-        #pragma unroll
-        for (int z=0; z<31; z++) {
-            thrs_loc = __shfl( thrs_loc,(tidx+1)%32);
-            maxval = thrs_loc > maxval ? thrs_loc : maxval ;
-        }
-    #else
-        #pragma unroll
-        for (int z=0; z<31; z++) {
-            thrs_loc = __shfl_sync(0xffffffff,thrs_loc, (tidx+1)%32);
-            maxval = thrs_loc > maxval ? thrs_loc : maxval ;
-        }
-    #endif
-    #endif
-    
-    if ( tidx == 0 ){
-            thrs[bidx] = maxval;
-    }
-    */
 }
 
 
@@ -273,23 +238,24 @@ magma_zthrsholdselect(
     dim3 grid4(GRID_SIZE4, 1, 1 );
     dim3 grid22(GRID_SIZE22, 1, 1 );
     
+    dim3 grid(magma_ceildiv( total_size, BLOCK_SIZE ), 1, 1 );
 
-    float *thrs1, *thrs2, *thrstmp; 
+    float *thrs1, *thrs2, *thrstmp, *float_val; 
     real_Double_t start, end;
+    magmaDoubleComplex *dummy;
     
     CHECK(magma_smalloc_cpu(&thrstmp, 1));
     CHECK(magma_smalloc(&thrs1, GRID_SIZE1));
     CHECK(magma_smalloc(&thrs2, GRID_SIZE2));
     
-    
-    
+    CHECK(magma_smalloc(&float_val, total_size));
     
     // add an initial setp that finds the largest element
     // go over value array, each threads finds a first "largest" element 
     // and writes to thrs1. Then do reduction to find the largest value overall.
     // start = magma_sync_wtime( queue );
     magma_zfindlargest_kernel<<<grid1, block1, 0, queue->cuda_stream()>>>
-            (total_size, val, thrs1);
+            (total_size, val, float_val, thrs1);
     magma_zreduce_thrs<<<grid2, block1, 0, queue->cuda_stream()>>>
         ( thrs1, thrs2 );
     magma_zreduce_thrs<<<grid3, block1, 0, queue->cuda_stream()>>>
@@ -297,30 +263,19 @@ magma_zthrsholdselect(
     magma_zreduce_thrs<<<grid4, block1, 0, queue->cuda_stream()>>>
          ( thrs1, thrs2 );
          
+// magma_zprint_gpu( total_size, 1, val, total_size, queue );
+ // magma_dprint_gpu( total_size, 1, ddouble_val, total_size, queue );
+
+         
     magma_sgetvector(1, thrs2, 1, thrstmp, 1, queue );
     thrs[0] = (double)thrstmp[0];
-    // printf("largest element: %.2e\n", thrs[0]);
     // set array to 0
     CHECK(magma_svalinit_gpu(GRID_SIZE1, thrs1, queue));
     CHECK(magma_svalinit_gpu(GRID_SIZE2, thrs2, queue));
-    // end = magma_sync_wtime( queue );
-    // printf( "part I in %.4e sec\n",(end-start) );
-    
     // now start the thresholding
-    
-    
-    //__global__ __launch_bounds__(32);
-    
-    //printf("scan:... ");
-    // start = magma_sync_wtime( queue );
     // first kernel checks how many elements are smaller than the threshold
     zthreshselect_kernel<<<grid22, block, 0, queue->cuda_stream()>>>
-        (sampling, total_size, subset_size, val, thrs[0], thrs1);
-    // end = magma_sync_wtime( queue );
-    // printf( "part II in %.4e sec\n",(end-start) );
-    
-    //printf("reduction:...");
-    // start = magma_sync_wtime( queue );
+        (sampling, total_size, subset_size, float_val, thrs[0], thrs1, dummy);
     // second kernel identifies the largest of these thresholds
     magma_zreduce_thrs<<<grid2, block1, 0, queue->cuda_stream()>>>
         ( thrs1, thrs2 );
@@ -328,13 +283,12 @@ magma_zthrsholdselect(
         ( thrs2, thrs1 );
     magma_zreduce_thrs<<<grid4, block1, 0, queue->cuda_stream()>>>
          ( thrs1, thrs2 );
-    // end = magma_sync_wtime( queue );
-    // printf( "part III in %.4e sec\n",(end-start) );
     
     magma_sgetvector(1, thrs2, 1, thrstmp, 1, queue );
     thrs[0] = (double)thrstmp[0];
-    // printf("threshold: %.2e\n", thrs[0]);
+    
 cleanup:
+    magma_free(float_val);
     magma_free(thrs1);
     magma_free(thrs2);
     magma_free_cpu(thrstmp);
