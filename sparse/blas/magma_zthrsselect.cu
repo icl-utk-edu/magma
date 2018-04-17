@@ -18,7 +18,11 @@
 #define GRID_SIZE3 32
 #define GRID_SIZE4 1
 #define THRS_PER_THREAD 8
-#define INC 4
+
+#define GRID_FOR_VOLTA 160
+#define REDUCE_FOR_VOLTA 5
+#define BLOCK_FOR_VOLTA 32
+
 
 
 // kernel for finding the largest element
@@ -238,18 +242,26 @@ magma_zthrsholdselect(
     dim3 grid4(GRID_SIZE4, 1, 1 );
     dim3 grid22(GRID_SIZE22, 1, 1 );
     
+    dim3 gridvolta(GRID_FOR_VOLTA, 1, 1 );
+    dim3 gridvolta2(REDUCE_FOR_VOLTA, 1, 1 );
+    
     dim3 grid(magma_ceildiv( total_size, BLOCK_SIZE ), 1, 1 );
 
-    float *thrs1, *thrs2, *thrstmp, *float_val; 
+    float *thrs1 = NULL, *thrs2 = NULL, *thrstmp = NULL, *float_val = NULL; 
     real_Double_t start, end;
-    magmaDoubleComplex *dummy;
+    magmaDoubleComplex *dummy = NULL;
     
+    start = magma_sync_wtime( queue );
     CHECK(magma_smalloc_cpu(&thrstmp, 1));
     CHECK(magma_smalloc(&thrs1, GRID_SIZE1));
     CHECK(magma_smalloc(&thrs2, GRID_SIZE2));
     
     CHECK(magma_smalloc(&float_val, total_size));
+    end = magma_sync_wtime( queue );
+    printf("\n%%allocate1: %.4e\n", end-start);
     
+    
+    start = magma_sync_wtime( queue );
     // add an initial setp that finds the largest element
     // go over value array, each threads finds a first "largest" element 
     // and writes to thrs1. Then do reduction to find the largest value overall.
@@ -265,15 +277,21 @@ magma_zthrsholdselect(
          
 // magma_zprint_gpu( total_size, 1, val, total_size, queue );
  // magma_dprint_gpu( total_size, 1, ddouble_val, total_size, queue );
-
+    end = magma_sync_wtime( queue );
+    printf("%%find largest: %.4e\n", end-start);
          
+    
+    start = magma_sync_wtime( queue );
     magma_sgetvector(1, thrs2, 1, thrstmp, 1, queue );
     thrs[0] = (double)thrstmp[0];
     // set array to 0
     CHECK(magma_svalinit_gpu(GRID_SIZE1, thrs1, queue));
     CHECK(magma_svalinit_gpu(GRID_SIZE2, thrs2, queue));
+    end = magma_sync_wtime( queue );
+    printf("%%allocate2: %.4e\n", end-start);
     // now start the thresholding
     // first kernel checks how many elements are smaller than the threshold
+    start = magma_sync_wtime( queue );
     zthreshselect_kernel<<<grid22, block, 0, queue->cuda_stream()>>>
         (sampling, total_size, subset_size, float_val, thrs[0], thrs1, dummy);
     // second kernel identifies the largest of these thresholds
@@ -283,6 +301,22 @@ magma_zthrsholdselect(
         ( thrs2, thrs1 );
     magma_zreduce_thrs<<<grid4, block1, 0, queue->cuda_stream()>>>
          ( thrs1, thrs2 );
+         
+    end = magma_sync_wtime( queue );
+    printf("%%threshold seletion using standard grid: %.4e\n", end-start);
+    
+    
+    // start = magma_sync_wtime( queue );
+    // zthreshselect_kernel<<<gridvolta, block, 0, queue->cuda_stream()>>>
+    //     (sampling, total_size, subset_size, float_val, thrs[0], thrs1, dummy);
+    // // second kernel identifies the largest of these thresholds
+    // magma_zreduce_thrs<<<gridvolta2, block1, 0, queue->cuda_stream()>>>
+    //     ( thrs1, thrs2 );
+    // magma_zreduce_thrs<<<grid4, block1, 0, queue->cuda_stream()>>>
+    //      ( thrs2, thrs1 );
+    //      
+    // end = magma_sync_wtime( queue );
+    // printf("threshold seletion using VOLTA grid: %.4e\n", end-start);
     
     magma_sgetvector(1, thrs2, 1, thrstmp, 1, queue );
     thrs[0] = (double)thrstmp[0];

@@ -30,11 +30,10 @@ int main(  int argc, char** argv )
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
-    magma_zopts zopts;
     magma_queue_t queue=NULL;
     magma_queue_create( 0, &queue );
     
-    magma_z_matrix A={Magma_CSR}, B={Magma_CSR};
+    magma_z_matrix A={Magma_CSR};
     real_Double_t start, end, t_gpu=0.0, t_cpu=0.0;
     magma_int_t sampling = 16;
     double thrs;
@@ -42,6 +41,7 @@ int main(  int argc, char** argv )
         for( int n = 320; n<m; n=n*2){
         int count = 0;
         sampling = m/327680+1;
+        sampling = 1;
         magmaDoubleComplex *val, *d_val;
         TESTING_CHECK(magma_zmalloc_cpu(&val, m));
         TESTING_CHECK(magma_zmalloc(&d_val, m));
@@ -58,7 +58,7 @@ int main(  int argc, char** argv )
             TESTING_CHECK(magma_zthrsholdselect(sampling, m, n, d_val, &thrs, queue));
         end = magma_sync_wtime( queue );
         t_gpu = (end-start) / 10.0;
-        
+        count = 0;
         for(int z=0; z<m; z++) {
             if (MAGMA_Z_ABS(val[z])<thrs) {
                 count++;    
@@ -73,10 +73,11 @@ int main(  int argc, char** argv )
         A.val = val;
         start = magma_sync_wtime( queue );
         for(int i=0; i<10; i++)
-            magma_zparilut_set_thrs_randomselect( n, &A, 1, &thrs, queue );
+            magma_zselectrandom( A.val, m, n, queue );
         end = magma_sync_wtime( queue );
         t_cpu = (end-start) / 10.0;
-        
+        thrs = MAGMA_Z_ABS(A.val[n]);
+        count = 0;
         for(int z=0; z<m; z++) {
             if (MAGMA_Z_ABS(val[z])<thrs) {
                 count++;    
