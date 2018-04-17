@@ -13,19 +13,20 @@ MAGMA README FILE
 
     To compile shared and static libraries in lib, and testers in testing and
     sparse/testing:
-    	make
-	or:
-		make lib
-		make test
-		make sparse-lib
-		make sparse-test
+        make
+    or:
+        make lib
+        make test
+        make sparse-lib
+        make sparse-test
 
-	To install libraries and headers:
-		make install prefix=/usr/local/magma
+    To install libraries and headers:
+        make install prefix=/usr/local/magma
 
 * Detailed installation instructions and further documentation is provided in
-  	docs/html/index.html or
-  	http://icl.utk.edu/projectsfiles/magma/doxygen/
+    docs/html/index.html
+    or
+    http://icl.utk.edu/projectsfiles/magma/doxygen/
 
 * There is also a CMake option, especially useful for building on Windows.
   See README-Windows.
