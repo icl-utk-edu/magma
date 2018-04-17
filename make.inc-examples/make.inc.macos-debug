@@ -68,9 +68,6 @@ CFLAGS   += -pedantic -Wno-long-long
 CXXFLAGS := $(CFLAGS) -std=c++11
 CFLAGS   += -std=c99
 
-# MacOS likes the library's path to be set
-INSTALL_NAME = -install_name @rpath/
-
 
 # --------------------
 # libraries

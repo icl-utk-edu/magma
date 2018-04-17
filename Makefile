@@ -364,11 +364,12 @@ endif
 
 
 # ------------------------------------------------------------------------------
-# MacOS likes shared library's path to be set; see make.inc.macos
-
-ifneq ($(INSTALL_NAME),)
-    $(libmagma_so):  LDFLAGS += $(INSTALL_NAME)$(notdir $(libmagma_so))
-    $(libsparse_so): LDFLAGS += $(INSTALL_NAME)$(notdir $(libsparse_so))
+# MacOS (darwin) needs shared library's path set
+# $OSTYPE may not be exported from the shell, so echo it
+ostype = ${shell echo $${OSTYPE}}
+ifneq ($(findstring darwin, ${ostype}),)
+    $(libmagma_so):  LDFLAGS += -install_name @rpath/$(notdir $(libmagma_so))
+    $(libsparse_so): LDFLAGS += -install_name @rpath/$(notdir $(libsparse_so))
 endif
 
 
