@@ -11,6 +11,13 @@
 #include <vector>
 #include <string>
 
+// including any C++ std header may include cmath, which wipes out math.h functions.
+// cmath may but isn't guaranteed to put names in global namespace, so do that here.
+#include <cmath>
+using std::isnan;
+using std::isinf;
+using std::copysign;
+
 #include "magma_lapack.h"
 #include "magma_lapack.hpp"  // C++ bindings; need traits
 #include "magma_matrix.hpp"  // experimental Matrix and Vector classes
@@ -18,7 +25,6 @@
 #include "testing_d.h"
 #include "testing_c.h"
 #include "testing_z.h"
-
 
 /***************************************************************************//**
  *  For portability to Windows
@@ -28,16 +34,9 @@
     // (only with Microsoft, not with nvcc on Windows)
     // in both magma_internal.h and testings.h
     #ifndef __NVCC__
-    
-        #include <float.h>
-        #define copysign(x,y) _copysign(x,y)
-        #define isnan(x)      _isnan(x)
-        #define isinf(x)      ( ! _finite(x) && ! _isnan(x) )
-        #define isfinite(x)   _finite(x)
         // note _snprintf has slightly different semantics than snprintf
         #define snprintf      _snprintf
         #define unlink        _unlink
-        
     #endif
 #endif
 
