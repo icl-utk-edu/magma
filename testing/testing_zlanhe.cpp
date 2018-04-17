@@ -214,8 +214,8 @@ int main( int argc, char** argv)
             norm_lapack = lapackf77_zlanhe( lapack_norm_const( norm[inorm] ),
                                             lapack_uplo_const( uplo[iuplo] ),
                                             &N, h_A, &lda, h_work );
-            bool nan_okay;    nan_okay    = isnan(norm_magma);
-            bool la_nan_okay; la_nan_okay = isnan(norm_lapack);
+            bool nan_okay;    nan_okay    = std::isnan(norm_magma);
+            bool la_nan_okay; la_nan_okay = std::isnan(norm_lapack);
             lapack_nan_fail += ! la_nan_okay;
             status          += !    nan_okay;
             
@@ -225,8 +225,8 @@ int main( int argc, char** argv)
             norm_lapack = lapackf77_zlanhe( lapack_norm_const( norm[inorm] ),
                                             lapack_uplo_const( uplo[iuplo] ),
                                             &N, h_A, &lda, h_work );
-            bool inf_okay;    inf_okay    = isinf(norm_magma);
-            bool la_inf_okay; la_inf_okay = isinf(norm_lapack);
+            bool inf_okay;    inf_okay    = std::isinf(norm_magma);
+            bool la_inf_okay; la_inf_okay = std::isinf(norm_lapack);
             lapack_inf_fail += ! la_inf_okay;
             status          += !    inf_okay;
             

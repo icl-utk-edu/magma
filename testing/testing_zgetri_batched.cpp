@@ -214,7 +214,7 @@ int main( int argc, char** argv)
                         err = lapackf77_zlange( "1", &N, &N, h_R + i*lda*N, &lda, rwork );
                         err = err * rcond / N;
                     }
-                    if ( isnan(err) || isinf(err) ) {
+                    if (std::isnan(err) || std::isinf(err)) {
                         error = err;
                         break;
                     }

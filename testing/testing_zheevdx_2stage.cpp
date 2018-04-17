@@ -260,7 +260,7 @@ static magma_int_t check_orthogonality(magma_int_t M, magma_int_t N, magmaDouble
     printf( "      %8.2e", normQ / minMN );
 
     // TODO: use opts.tolerance instead of hard coding 60
-    if ( isnan(result) || isinf(result) || (result > 60.0) ) {
+    if (std::isnan(result) || isinf(result) || (result > 60.0)) {
         info_ortho = 1;
     }
     else {
@@ -315,7 +315,7 @@ static magma_int_t check_reduction(magma_uplo_t uplo, magma_int_t N, magma_int_t
     printf("           %8.2e",  Rnorm / ( Anorm * N));
 
     // TODO: use opts.tolerance instead of hard coding 60
-    if ( isnan(result) || isinf(result) || (result > 60.0) ) {
+    if (std::isnan(result) || std::isinf(result) || (result > 60.0)) {
         info_reduction = 1;
     }
     else {
@@ -354,7 +354,7 @@ static magma_int_t check_solution(magma_int_t N, double *E1, double *E2, double 
     printf("              %8.2e", maxdif / (max(maxeig, maxdif)) );
 
     // TODO: use opts.tolerance instead of hard coding 100
-    if ( isnan(maxtmp) || isinf(maxtmp) || (maxtmp > 100) ) {
+    if (std::isnan(maxtmp) || std::isinf(maxtmp) || (maxtmp > 100)) {
         info_solution = 1;
     }
     else {

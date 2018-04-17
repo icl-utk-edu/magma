@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 
                 Rnorm = lapackf77_zlange("I", &N, &nrhs, h_B+s*ldb*nrhs, &ldb, work);
                 double err = Rnorm/(N*Anorm*Xnorm);
-                if ( isnan(err) || isinf(err) ) {
+                if (std::isnan(err) || std::isinf(err)) {
                     error = err;
                     break;
                 }

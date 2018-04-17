@@ -65,15 +65,15 @@ int main( int argc, char** argv)
     magmaDoubleComplex inf_inf = MAGMA_Z_MAKE( MAGMA_D_INF, MAGMA_D_INF );
     magmaDoubleComplex inf_nan = MAGMA_Z_MAKE( MAGMA_D_INF, MAGMA_D_NAN );
     
-    // ----- isnan
-    magma_assert_warn( ! isnan( MAGMA_Z_REAL(a_a)   ), "! isnan( real(a_a)   )" );
-    magma_assert_warn(   isnan( MAGMA_Z_REAL(nan_a) ), "  isnan( real(nan_a) )" );
-    magma_assert_warn( ! isnan( MAGMA_Z_REAL(inf_a) ), "! isnan( real(inf_a) )" );
+    // ----- std::isnan
+    magma_assert_warn( ! std::isnan( MAGMA_Z_REAL(a_a)   ), "! std::isnan( real(a_a)   )" );
+    magma_assert_warn(   std::isnan( MAGMA_Z_REAL(nan_a) ), "  std::isnan( real(nan_a) )" );
+    magma_assert_warn( ! std::isnan( MAGMA_Z_REAL(inf_a) ), "! std::isnan( real(inf_a) )" );
     
-    // ----- isinf
-    magma_assert_warn( ! isinf( MAGMA_Z_REAL(a_a)   ), "! isinf( real(a_a)   )" );
-    magma_assert_warn( ! isinf( MAGMA_Z_REAL(nan_a) ), "! isinf( real(nan_a) )" );
-    magma_assert_warn(   isinf( MAGMA_Z_REAL(inf_a) ), "  isinf( real(inf_a) )" );
+    // ----- std::isinf
+    magma_assert_warn( ! std::isinf( MAGMA_Z_REAL(a_a)   ), "! std::isinf( real(a_a)   )" );
+    magma_assert_warn( ! std::isinf( MAGMA_Z_REAL(nan_a) ), "! std::isinf( real(nan_a) )" );
+    magma_assert_warn(   std::isinf( MAGMA_Z_REAL(inf_a) ), "  std::isinf( real(inf_a) )" );
     
     // ----- magma_isnan
     magma_assert_warn( ! magma_z_isnan( a_a     ), "! magma_z_isnan( a_a     )" );

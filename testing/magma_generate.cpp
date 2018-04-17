@@ -235,7 +235,7 @@ void magma_generate_correlation_factor( Matrix<FloatT>& A )
                 FloatT xij, d, t, c, s;
                 xij = blas::dot( A.m, A(0,i), 1, A(0,j), 1 );
                 d = sqrt( xij*xij - (x[i] - 1)*(x[j] - 1) );
-                t = (xij + copysign( d, xij )) / (x[j] - 1);
+                t = (xij + std::copysign( d, xij )) / (x[j] - 1);
                 c = 1 / sqrt(1 + t*t);
                 s = c*t;
                 blas::rot( A.m, A(0,i), 1, A(0,j), 1, c, -s );

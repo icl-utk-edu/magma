@@ -10,13 +10,7 @@
 
 #include <vector>
 #include <string>
-
-// including any C++ std header may include cmath, which wipes out math.h functions.
-// cmath may but isn't guaranteed to put names in global namespace, so do that here.
 #include <cmath>
-using std::isnan;
-using std::isinf;
-using std::copysign;
 
 #include "magma_lapack.h"
 #include "magma_lapack.hpp"  // C++ bindings; need traits

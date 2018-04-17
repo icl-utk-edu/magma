@@ -244,7 +244,7 @@ int main( int argc, char** argv)
                     }
                     
                     double err = get_LU_error( M, N, h_R + i * lda*N, lda, h_Amagma + i * lda*N, ipiv + i * min_mn);
-                    if ( isnan(err) || isinf(err) ) {
+                    if (std::isnan(err) || std::isinf(err)) {
                         error = err;
                         break;
                     }
