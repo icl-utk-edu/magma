@@ -180,7 +180,7 @@ int main( int argc, char** argv )
                    cpu_perf, cpu_time, gpu_perf, gpu_time, cpu_err1, cpu_err2, gpu_err1, gpu_err2);
             
             printf( "  %s\n", (0.9*gpu_err1 < cpu_err1 && 0.5*gpu_err2 < cpu_err2 ? "ok" : "failed"));
-            status += ! (0.9*gpu_err1 < cpu_err2 && 0.9*gpu_err2);
+            status += ! (0.9*gpu_err1 < cpu_err1 && 0.9*gpu_err2 < cpu_err2);
 
             magma_free_cpu( h_A    );
             magma_free_pinned( h_A2   );
