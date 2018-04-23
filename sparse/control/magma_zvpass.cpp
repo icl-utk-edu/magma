@@ -74,7 +74,8 @@ magma_zvset(
     Purpose
     -------
 
-    Passes a MAGMA vector back.
+    Passes a MAGMA vector back. This function requires the array val to be 
+    already allocated (of size m x n).
 
     Arguments
     ---------
@@ -93,7 +94,7 @@ magma_zvset(
 
     @param[out]
     val         magmaDoubleComplex*
-                array containing vector entries
+                array of size m x n the vector entries are copied into
 
     @param[in]
     queue       magma_queue_t

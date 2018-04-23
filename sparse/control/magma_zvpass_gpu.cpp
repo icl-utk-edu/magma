@@ -33,7 +33,7 @@
                 number of columns
 
     @param[in]
-    val         magmaDoubleComplex_ptr
+    val         magmaDoubleComplex*
                 array containing vector entries
 
     @param[out]
@@ -76,6 +76,8 @@ magma_zvset_dev(
     -------
 
     Passes a MAGMA vector back (located on DEV).
+    This function requires the array val to be 
+    already allocated (of size m x n).
 
     Arguments
     ---------
@@ -93,9 +95,9 @@ magma_zvset_dev(
                 number of columns
 
     @param[out]
-    val         magmaDoubleComplex_ptr
-                array containing vector entries
-
+    val         magmaDoubleComplex*
+                array of size m x n on the device the vector entries 
+                are copied into
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
