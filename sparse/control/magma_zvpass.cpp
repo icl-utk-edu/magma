@@ -107,7 +107,7 @@ magma_int_t
 magma_zvget(
     magma_z_matrix v,
     magma_int_t *m, magma_int_t *n,
-    magmaDoubleComplex **val,
+    magmaDoubleComplex *val,
     magma_queue_t queue )
 {
     magma_z_matrix v_CPU={Magma_CSR};
@@ -117,7 +117,8 @@ magma_zvget(
         *m = v.num_rows;
         *n = v.num_cols;
         for (magma_int_t i=0; i<v.num_rows*v.num_cols; i++) {
-            *val[i] = v.val[i];
+            printf("v[%d] = %.2f\n", i, MAGMA_Z_REAL(v.val[i]));
+            val[i] = v.val[i];
         }
     } else {
         CHECK( magma_zmtransfer( v, &v_CPU, v.memory_location, Magma_CPU, queue ));

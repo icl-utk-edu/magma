@@ -108,7 +108,7 @@ magma_int_t
 magma_zvget_dev(
     magma_z_matrix v,
     magma_int_t *m, magma_int_t *n,
-    magmaDoubleComplex_ptr *val,
+    magmaDoubleComplex_ptr val,
     magma_queue_t queue )
 {
     magma_int_t info =0;
@@ -118,8 +118,7 @@ magma_zvget_dev(
     if ( v.memory_location == Magma_DEV ) {
         *m = v.num_rows;
         *n = v.num_cols;
-        magma_zcopyvector( v.num_rows * v.num_cols, v.dval, 1, *val, 1, queue );
-        *val = v.dval;
+        magma_zcopyvector( v.num_rows * v.num_cols, v.dval, 1, val, 1, queue );
     } else {
         CHECK( magma_zmtransfer( v, &v_DEV, v.memory_location, Magma_DEV, queue ));
         CHECK( magma_zvget_dev( v_DEV, m, n, val, queue ));

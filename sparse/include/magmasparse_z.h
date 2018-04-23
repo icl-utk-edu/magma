@@ -131,7 +131,7 @@ magma_zvget(
     magma_z_matrix v,
     magma_int_t *m, 
     magma_int_t *n, 
-    magmaDoubleComplex **val,
+    magmaDoubleComplex *val,
     magma_queue_t queue );
 
 magma_int_t 
@@ -147,7 +147,7 @@ magma_zvget_dev(
     magma_z_matrix v,
     magma_int_t *m, 
     magma_int_t *n, 
-    magmaDoubleComplex_ptr *val,
+    magmaDoubleComplex_ptr val,
     magma_queue_t queue );
 
 
