@@ -118,8 +118,8 @@ magma_zvget_dev(
     if ( v.memory_location == Magma_DEV ) {
         *m = v.num_rows;
         *n = v.num_cols;
+        magma_zcopyvector( v.num_rows * v.num_cols, v.dval, 1, *val, 1, queue );
         *val = v.dval;
-        v.ownership = MagmaFalse;
     } else {
         CHECK( magma_zmtransfer( v, &v_DEV, v.memory_location, Magma_DEV, queue ));
         CHECK( magma_zvget_dev( v_DEV, m, n, val, queue ));

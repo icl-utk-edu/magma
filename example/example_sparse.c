@@ -50,7 +50,6 @@ int main( int argc, char** argv )
     // Pass the system to MAGMA.
     magma_dcsrset( m, m, row, col, val, &A, queue );
     magma_dvset( m, 1, rhs, &b, queue );
-    magma_dvset( m, 1, sol, &x, queue );
     
     // Choose a solver, preconditioner, etc. - see documentation for options.
     opts.solver_par.solver     = Magma_PIDRMERGE;
@@ -83,15 +82,18 @@ int main( int argc, char** argv )
 
     // Then copy the solution back to the host...
     magma_dmfree( &x, queue );
-    magma_dmtransfer( dx, &x, Magma_CPU, Magma_DEV, queue );
+    magma_dmtransfer( dx, &x, Magma_DEV, Magma_CPU, queue );
     
     // and back to the application code
     magma_dvget( x, &m, &n, &sol, queue );
     
     // Free the allocated memory...
     magma_dmfree( &dx, queue );
-    magma_dmfree( &db, queue );
+    magma_dmfree( &db, queue ); 
     magma_dmfree( &dA, queue );
+    
+    magma_dmfree( &b, queue );  // won't do anything as MAGMA does not own the data. 
+    magma_dmfree( &A, queue );  // won't do anything as MAGMA does not own the data. 
     
     // and finalize MAGMA.
     magma_queue_destroy( queue );
@@ -101,6 +103,11 @@ int main( int argc, char** argv )
     for (i = 0; i < 20; ++i) {
         printf("%.4f\n", sol[i]);
     }
+    free(val);
+    free(col);
+    free(row);
+    free(sol);
+    free(rhs);
     
     return 0;
 }

@@ -116,8 +116,9 @@ magma_zvget(
     if ( v.memory_location == Magma_CPU ) {
         *m = v.num_rows;
         *n = v.num_cols;
-        *val = v.val;
-        v.ownership = MagmaFalse;
+        for (magma_int_t i=0; i<v.num_rows*v.num_cols; i++) {
+            *val[i] = v.val[i];
+        }
     } else {
         CHECK( magma_zmtransfer( v, &v_CPU, v.memory_location, Magma_CPU, queue ));
         CHECK( magma_zvget( v_CPU, m, n, val, queue ));
