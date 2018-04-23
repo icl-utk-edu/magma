@@ -62,7 +62,7 @@ magma_zvinit(
     
     // make sure the target structure is empty
     magma_zmfree( x, queue );
-    
+    x->ownership = MagmaTrue;
     x->val = NULL;
     x->diag = NULL;
     x->row = NULL;
@@ -154,6 +154,7 @@ magma_zvinit_rand(
     
     // make sure the target structure is empty
     magma_zmfree( x, queue );
+    x->ownership = MagmaTrue;
     magma_z_matrix x_h = {Magma_CSR};
     
     x->val = NULL;

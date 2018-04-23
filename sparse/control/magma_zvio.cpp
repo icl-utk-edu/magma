@@ -145,6 +145,7 @@ magma_zvread(
     
     // make sure the target structure is empty
     magma_zmfree( x, queue );
+    x->ownership = MagmaTrue;
     
     x->memory_location = Magma_CPU;
     x->storage_type = Magma_DENSE;
@@ -276,6 +277,8 @@ magma_zvspread(
     
     magma_z_matrix A={Magma_CSR}, B={Magma_CSR};
     magma_int_t entry=0;
+    magma_zmfree( x, queue );
+    x->ownership = MagmaTrue;
      //   char *vfilename[] = {"/mnt/sparse_matrices/mtx/rail_79841_B.mtx"};
     CHECK( magma_z_csr_mtx( &A,  filename, queue  ));
     CHECK( magma_zmconvert( A, &B, Magma_CSR, Magma_DENSE, queue ));

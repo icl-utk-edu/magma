@@ -78,6 +78,7 @@ magma_zcsrset(
     A->col = col;
     A->row = row;
     A->fill_mode = MagmaFull;
+    A->ownership = MagmaFalse;
 
     return MAGMA_SUCCESS;
 }
@@ -144,6 +145,7 @@ magma_zcsrget(
         *val = A.val;
         *col = A.col;
         *row = A.row;
+        A.ownership = MagmaFalse;
     } else {
         CHECK( magma_zmtransfer( A, &A_CPU, A.memory_location, Magma_CPU, queue ));
         CHECK( magma_zmconvert( A_CPU, &A_CSR, A_CPU.storage_type, Magma_CSR, queue ));

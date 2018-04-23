@@ -962,7 +962,7 @@ magma_z_csr_mtx(
     
     // make sure the target structure is empty
     magma_zmfree( A, queue );
-    
+    A->ownership = MagmaTrue;
     std::vector< std::pair< magma_index_t, magmaDoubleComplex > > rowval;
     
     FILE *fid = NULL;
@@ -1257,6 +1257,8 @@ magma_z_csr_mtxsymm(
     MM_typecode matcode;
     fid = fopen(filename, "r");
     
+    magma_zmfree( A, queue );
+    A->ownership = MagmaTrue;
     if (fid == NULL) {
         printf("%% Unable to open file %s\n", filename);
         info = MAGMA_ERR_NOT_FOUND;

@@ -65,7 +65,8 @@ magma_zvset_dev(
     v->storage_type = Magma_DENSE;
     v->dval = val;
     v->major = MagmaColMajor;
-
+    v->ownership = MagmaFalse;
+    
     return MAGMA_SUCCESS;
 }
 
@@ -118,6 +119,7 @@ magma_zvget_dev(
         *m = v.num_rows;
         *n = v.num_cols;
         *val = v.dval;
+        v.ownership = MagmaFalse;
     } else {
         CHECK( magma_zmtransfer( v, &v_DEV, v.memory_location, Magma_DEV, queue ));
         CHECK( magma_zvget_dev( v_DEV, m, n, val, queue ));

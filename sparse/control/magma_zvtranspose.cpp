@@ -49,6 +49,7 @@ magma_zvtranspose(
     
     // make sure the target structure is empty
     magma_zmfree( y, queue );
+    y->ownership = MagmaTrue;
     
     magma_z_matrix dx={Magma_CSR}, dy={Magma_CSR};
             

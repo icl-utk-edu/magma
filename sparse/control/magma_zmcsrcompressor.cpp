@@ -41,30 +41,32 @@ magma_zmcsrcompressor(
     magma_z_matrix B={Magma_CSR};
     magma_z_matrix hA={Magma_CSR}, CSRA={Magma_CSR};
         
-    if ( A->memory_location == Magma_CPU && A->storage_type == Magma_CSR ) {
-        CHECK( magma_zmconvert( *A, &B, Magma_CSR, Magma_CSR, queue ));
-
-        magma_free_cpu( A->row );
-        magma_free_cpu( A->col );
-        magma_free_cpu( A->val );
-        CHECK( magma_z_csr_compressor(&B.val, &B.row, &B.col,
-                       &A->val, &A->row, &A->col, &A->num_rows, queue ));
-        A->nnz = A->row[A->num_rows];
-    }
-    else {
-        magma_storage_t A_storage = A->storage_type;
-        magma_location_t A_location = A->memory_location;
-        CHECK( magma_zmtransfer( *A, &hA, A->memory_location, Magma_CPU, queue ));
-        CHECK( magma_zmconvert( hA, &CSRA, hA.storage_type, Magma_CSR, queue ));
-
-        CHECK( magma_zmcsrcompressor( &CSRA, queue ));
-
-        magma_zmfree( &hA, queue );
-        magma_zmfree( A, queue );
-        CHECK( magma_zmconvert( CSRA, &hA, Magma_CSR, A_storage, queue ));
-        CHECK( magma_zmtransfer( hA, A, Magma_CPU, A_location, queue ));
-        magma_zmfree( &hA, queue );
-        magma_zmfree( &CSRA, queue );
+    if (A->ownership) {
+        if ( A->memory_location == Magma_CPU && A->storage_type == Magma_CSR ) {
+            CHECK( magma_zmconvert( *A, &B, Magma_CSR, Magma_CSR, queue ));
+    
+            magma_free_cpu( A->row );
+            magma_free_cpu( A->col );
+            magma_free_cpu( A->val );
+            CHECK( magma_z_csr_compressor(&B.val, &B.row, &B.col,
+                           &A->val, &A->row, &A->col, &A->num_rows, queue ));
+            A->nnz = A->row[A->num_rows];
+        }
+        else {
+            magma_storage_t A_storage = A->storage_type;
+            magma_location_t A_location = A->memory_location;
+            CHECK( magma_zmtransfer( *A, &hA, A->memory_location, Magma_CPU, queue ));
+            CHECK( magma_zmconvert( hA, &CSRA, hA.storage_type, Magma_CSR, queue ));
+    
+            CHECK( magma_zmcsrcompressor( &CSRA, queue ));
+    
+            magma_zmfree( &hA, queue );
+            magma_zmfree( A, queue );
+            CHECK( magma_zmconvert( CSRA, &hA, Magma_CSR, A_storage, queue ));
+            CHECK( magma_zmtransfer( hA, A, Magma_CPU, A_location, queue ));
+            magma_zmfree( &hA, queue );
+            magma_zmfree( &CSRA, queue );
+        }
     }
     
 cleanup:
