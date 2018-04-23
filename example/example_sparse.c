@@ -84,7 +84,7 @@ int main( int argc, char** argv )
     // Then copy the solution back to the host...
     magma_dmtransfer( dx, &x, Magma_DEV, Magma_CPU, queue );
     // and back to the application code
-    magma_dvget( x, &m, &n, sol, queue );
+    magma_dvcopy( x, &m, &n, sol, queue );
     
     // Free the allocated memory...
     magma_dmfree( &dx, queue );

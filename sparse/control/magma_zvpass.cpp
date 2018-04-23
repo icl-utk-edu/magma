@@ -105,7 +105,7 @@ magma_zvset(
 
 extern "C"
 magma_int_t
-magma_zvget(
+magma_zvcopy(
     magma_z_matrix v,
     magma_int_t *m, magma_int_t *n,
     magmaDoubleComplex *val,
@@ -122,7 +122,7 @@ magma_zvget(
         }
     } else {
         CHECK( magma_zmtransfer( v, &v_CPU, v.memory_location, Magma_CPU, queue ));
-        CHECK( magma_zvget( v_CPU, m, n, val, queue ));
+        CHECK( magma_zvcopy( v_CPU, m, n, val, queue ));
     }
     
 cleanup:
