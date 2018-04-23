@@ -83,7 +83,10 @@ int main( int argc, char** argv )
     // Then copy the solution back to the host...
     magma_dmfree( &x, queue );
     magma_dmtransfer( dx, &x, Magma_DEV, Magma_CPU, queue );
-    
+            for (magma_int_t i=0; i<x.num_rows*x.num_cols; i++) {
+            printf("x[%d] = %.2f\n", i, MAGMA_Z_REAL(x.val[i]));
+            //val[i] = v.val[i];
+        }
     // and back to the application code
     magma_dvget( x, &m, &n, &sol, queue );
     

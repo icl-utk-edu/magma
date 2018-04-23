@@ -118,7 +118,7 @@ magma_zvget(
         *n = v.num_cols;
         for (magma_int_t i=0; i<v.num_rows*v.num_cols; i++) {
             printf("v[%d] = %.2f\n", i, MAGMA_Z_REAL(v.val[i]));
-            val[i] = v.val[i];
+            //val[i] = v.val[i];
         }
     } else {
         CHECK( magma_zmtransfer( v, &v_CPU, v.memory_location, Magma_CPU, queue ));
