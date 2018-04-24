@@ -260,7 +260,7 @@ static magma_int_t check_orthogonality(magma_int_t M, magma_int_t N, magmaDouble
     printf( "      %8.2e", normQ / minMN );
 
     // TODO: use opts.tolerance instead of hard coding 60
-    if (std::isnan(result) || isinf(result) || (result > 60.0)) {
+    if (std::isnan(result) || std::isinf(result) || (result > 60.0)) {
         info_ortho = 1;
     }
     else {
