@@ -33,6 +33,8 @@ magma_z_mtrans_template(
     
     // magma_int_t num_threads;
     // magma_int_t el_per_block;
+    magma_zmfree( B, queue );
+    B->ownership = MagmaTrue;
     
     B->storage_type = A.storage_type;
     B->memory_location = A.memory_location;
@@ -41,8 +43,6 @@ magma_z_mtrans_template(
     B->num_cols = A.num_cols;
     B->nnz      = A.nnz;
     
-    magma_zmfree( B, queue );
-    B->ownership = MagmaTrue;
     CHECK( magma_index_malloc_cpu( &linked_list, A.nnz ));
     CHECK( magma_index_malloc_cpu( &row_ptr, A.num_rows ));
     CHECK( magma_index_malloc_cpu( &last_rowel, A.num_rows ));
