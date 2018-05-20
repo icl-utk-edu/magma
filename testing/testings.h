@@ -240,10 +240,6 @@ public:
     // handle for directly calling cublas
     cublasHandle_t  handle;
     #endif
-    
-    // misc
-    int flock_op;   // shared or exclusive lock
-    int flock_fd;   // lock file
 };
 
 extern const char* g_platform_str;

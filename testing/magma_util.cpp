@@ -14,12 +14,6 @@
 #include <assert.h>
 #include <errno.h>
 
-// flock exists only on Unix
-#ifdef USE_FLOCK
-#include <sys/file.h>  // flock
-#include <sys/stat.h>  // fchmod
-#endif
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -78,60 +72,6 @@ void magma_assert_warn( bool condition, const char* msg, ... )
 
 
 // --------------------
-// Acquire lock file.
-// operation should be LOCK_SH (for shared access) or LOCK_EX (for exclusive access).
-// Returns open file descriptor.
-// Exits program on error.
-// Lock is released by simply closing the file descriptor with close(),
-// or when program exits or crashes.
-
-int open_lockfile( const char* file, int operation )
-{
-    int fd = -1;
-#ifdef USE_FLOCK
-    int err;
-
-    if ( file == NULL )
-        return -1;
-    else if ( operation != LOCK_SH && operation != LOCK_EX )
-        return -2;
-    
-    fd = open( file, O_RDONLY|O_CREAT, 0666 );
-    if ( fd < 0 ) {
-        fprintf( stderr, "Error: Can't read file %s: %s (%d)\n",
-                 file, strerror(errno), errno );
-        exit(1);
-    }
-
-    // make it world-writable so anyone can rm the lockfile later on if needed
-    // Ignore error -- occurs when someone else created the file.
-    err = fchmod( fd, 0666 );
-    //if ( err < 0 ) {
-    //    fprintf( stderr, "Warning: Can't chmod file %s 0666: %s (%d)\n",
-    //             file, strerror(errno), errno );
-    //}
-    
-    // first try nonblocking lock;
-    // if that fails (e.g., someone has exclusive lock) let user know and try blocking lock.
-    err = flock( fd, operation|LOCK_NB );
-    if ( err < 0 ) {
-        fprintf( stderr, "Waiting for lock on %s...\n", file );
-        err = flock( fd, operation );
-        if ( err < 0 ) {
-            fprintf( stderr, "Error: Can't lock file %s (operation %d): %s (%d)\n",
-                     file, operation, strerror(errno), errno );
-            exit(1);
-        }
-    }
-#endif
-    return fd;
-}
-
-// filename to use for lock file
-const char* lockfile = "/tmp/icl-lock";
-
-
-// --------------------
 const char *usage_short =
 "%% Usage: %s [options] [-h|--help]\n\n";
 
@@ -155,7 +95,6 @@ const char *usage =
 "  --dev x          GPU device to use, default 0.\n"
 "  --align n        Round up LDDA on GPU to multiple of align, default 32.\n"
 "  --verbose        Verbose output.\n"
-"  -x  --exclusive  Lock file for exclusive use (internal ICL functionality).\n"
 "\n"
 "The following options apply to only some routines.\n"
 "  --batch x        number of matrices for the batched routines, default 1000.\n"
@@ -264,10 +203,6 @@ magma_opts::magma_opts( magma_opts_t flag )
     this->iseed[2]  = 0;
     this->iseed[3]  = 1;
 
-    #ifdef USE_FLOCK
-    this->flock_op = LOCK_SH;  // default shared lock
-    #endif
-    
     if ( flag == MagmaOptsBatched ) {
         // 32, 64, ..., 512
         this->default_nstart = 32;
@@ -658,16 +593,6 @@ void magma_opts::parse_opts( int argc, char** argv )
                           "error: --condD %s is invalid; ensure condD >= 1.\n", argv[i] );
         }
 
-        // ----- misc
-        else if ( strcmp("-x",          argv[i]) == 0 ||
-                  strcmp("--exclusive", argv[i]) == 0 ) {
-            #ifdef USE_FLOCK
-            this->flock_op = LOCK_EX;
-            #else
-            fprintf( stderr, "ignoring %s: USE_FLOCK not defined; flock not supported.\n", argv[i] );
-            #endif
-        }
-        
         // ----- usage
         else if ( strcmp("-h",     argv[i]) == 0 ||
                   strcmp("--help", argv[i]) == 0 ) {
@@ -704,11 +629,6 @@ void magma_opts::parse_opts( int argc, char** argv )
     }
     assert( this->ntest <= MAX_NTEST );
     
-    // lock file
-    #ifdef USE_FLOCK
-    this->flock_fd = open_lockfile( lockfile, this->flock_op );
-    #endif
-
     #ifdef HAVE_CUBLAS
     magma_setdevice( this->device );
     #endif
