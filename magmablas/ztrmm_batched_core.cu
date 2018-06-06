@@ -37,9 +37,8 @@ magmablas_ztrmm_small_batched(
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
         magma_int_t m, magma_int_t n, 
         magmaDoubleComplex alpha, 
-        magmaDoubleComplex **dA_array, magma_int_t ldda,
-        magmaDoubleComplex **dB_array, magma_int_t lddb, 
-        magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, 
+        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+        magmaDoubleComplex **dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t lddb, 
         magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t shape = 0;
@@ -54,27 +53,27 @@ magmablas_ztrmm_small_batched(
     {
         case 0: // lNx
             trmm_template_batched_lNx<magmaDoubleComplex, ZTRMM_BATCHED_NB>
-            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
+            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, Ai, Aj, Bi, Bj, batchCount, queue);
             break;
         case 1: // lTx
             trmm_template_batched_lTx<magmaDoubleComplex, ZTRMM_BATCHED_NB, 0>
-            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
+            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, Ai, Aj, Bi, Bj, batchCount, queue);
             break;
         case 2: // lCx
             trmm_template_batched_lTx<magmaDoubleComplex, ZTRMM_BATCHED_NB, 1>
-            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
+            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, Ai, Aj, Bi, Bj, batchCount, queue);
             break;
         case 3: // rNx
             trmm_template_batched_rNx<magmaDoubleComplex, ZTRMM_BATCHED_NB>
-            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
+            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, Ai, Aj, Bi, Bj, batchCount, queue);
             break;
         case 4: // rTx
             trmm_template_batched_rTx<magmaDoubleComplex, ZTRMM_BATCHED_NB, 0>
-            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
+            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, Ai, Aj, Bi, Bj, batchCount, queue);
             break;
         case 5: // rCx
             trmm_template_batched_rTx<magmaDoubleComplex, ZTRMM_BATCHED_NB, 1>
-            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
+            (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, Ai, Aj, Bi, Bj, batchCount, queue);
             break;
         default:; // propose something
     }
@@ -85,17 +84,24 @@ magmablas_ztrmm_batched_core(
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
         magma_int_t m, magma_int_t n, 
         magmaDoubleComplex alpha, 
-        magmaDoubleComplex **dA_array, magma_int_t ldda,
-        magmaDoubleComplex **dB_array, magma_int_t lddb, 
-        magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, 
+        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+        magmaDoubleComplex **dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t lddb, 
         magma_int_t batchCount, magma_queue_t queue )
 {
+#define dA_array(i,j) dA_array, i, j
+#define dB_array(i,j) dB_array, i, j
+
     const magmaDoubleComplex c_one = MAGMA_Z_ONE; 
     
     magma_int_t nrowA = (side == MagmaLeft ? m : n);
     // stopping condition
     if(nrowA <= ZTRMM_BATCHED_NB){
-        magmablas_ztrmm_small_batched( side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue );
+        magmablas_ztrmm_small_batched( 
+            side, uplo, transA, diag, 
+            m, n, alpha, 
+            dA_array(Ai, Aj), ldda, 
+            dB_array(Bi, Bj), lddb, 
+            batchCount, queue );
         return;
     }
     
@@ -120,26 +126,23 @@ magmablas_ztrmm_batched_core(
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m2, n, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA+m1, coffA+m1, roffB+m1, coffB, 
+                        dA_array(Ai+m1, Aj+m1), ldda, 
+                        dB_array(Bi+m1,    Bj), lddb, 
                         batchCount, queue );
 
                 magmablas_zgemm_batched_core( 
                         MagmaNoTrans, MagmaNoTrans, 
                         m2, n, m1, 
-                        alpha, dA_array, ldda, 
-                               dB_array, lddb, 
-                        c_one, dB_array, lddb, 
-                        roffA+m1, coffA, roffB, coffB, roffB+m1, coffB, 
+                        alpha, dA_array(Ai+m1, Aj), ldda, 
+                               dB_array(Bi   , Bj), lddb, 
+                        c_one, dB_array(Bi+m1, Bj), lddb, 
                         batchCount, queue );
 
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m1, n, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA, coffA, roffB, coffB, 
+                        dA_array(Ai, Aj), ldda, 
+                        dB_array(Bi, Bj), lddb, 
                         batchCount, queue );
             }
             break;
@@ -151,26 +154,23 @@ magmablas_ztrmm_batched_core(
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m1, n, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA, coffA, roffB, coffB, 
+                        dA_array(Ai, Aj), ldda, 
+                        dB_array(Bi, Bj), lddb, 
                         batchCount, queue );
                         
                 magmablas_zgemm_batched_core( 
                         MagmaNoTrans, MagmaNoTrans, 
                         m1, n, m2, 
-                        alpha, dA_array, ldda, 
-                               dB_array, lddb, 
-                        c_one, dB_array, lddb, 
-                        roffA, coffA+m1, roffB+m1, coffB, roffB, coffB, 
+                        alpha, dA_array(Ai   , Aj+m1), ldda, 
+                               dB_array(Bi+m1,    Bj), lddb, 
+                        c_one, dB_array(Bi   ,    Bj), lddb, 
                         batchCount, queue );
                         
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m2, n, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA+m1, coffA+m1, roffB+m1, coffB, 
+                        dA_array(Ai+m1, Aj+m1), ldda, 
+                        dB_array(Bi+m1,    Bj), lddb, 
                         batchCount, queue );
             }
             break;  
@@ -182,26 +182,23 @@ magmablas_ztrmm_batched_core(
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m1, n, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA, coffA, roffB, coffB, 
+                        dA_array(Ai, Aj), ldda, 
+                        dB_array(Bi, Bj), lddb, 
                         batchCount, queue );
 
                 magmablas_zgemm_batched_core( 
                         transA, MagmaNoTrans, 
                         m1, n, m2, 
-                        alpha, dA_array, ldda, 
-                               dB_array, lddb, 
-                        c_one, dB_array, lddb, 
-                        roffA+m1, coffA, roffB+m1, coffB, roffB, coffB, 
+                        alpha, dA_array(Ai+m1, Aj), ldda, 
+                               dB_array(Bi+m1, Bj), lddb, 
+                        c_one, dB_array(Bi   , Bj), lddb, 
                         batchCount, queue );
 
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m2, n, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA+m1, coffA+m1, roffB+m1, coffB, 
+                        dA_array(Ai+m1, Aj+m1), ldda, 
+                        dB_array(Bi+m1,    Bj), lddb, 
                         batchCount, queue );
             }
             break;
@@ -213,26 +210,23 @@ magmablas_ztrmm_batched_core(
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m2, n, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA+m1, coffA+m1, roffB+m1, coffB, 
+                        dA_array(Ai+m1, Aj+m1), ldda, 
+                        dB_array(Bi+m1,    Bj), lddb, 
                         batchCount, queue );
 
                 magmablas_zgemm_batched_core( 
                         transA, MagmaNoTrans, 
                         m2, n, m1, 
-                        alpha, dA_array, ldda, 
-                               dB_array, lddb, 
-                        c_one, dB_array, lddb, 
-                        roffA, coffA+m1, roffB, coffB, roffB+m1, coffB, 
+                        alpha, dA_array(Ai   , Aj+m1), ldda, 
+                               dB_array(Bi   ,    Bj), lddb, 
+                        c_one, dB_array(Bi+m1,    Bj), lddb, 
                         batchCount, queue );
 
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m1, n, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA, coffA, roffB, coffB, 
+                        dA_array(Ai, Aj), ldda, 
+                        dB_array(Bi, Bj), lddb, 
                         batchCount, queue );
             }
             break;
@@ -244,26 +238,23 @@ magmablas_ztrmm_batched_core(
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m, n1, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA, coffA, roffB, coffB, 
+                        dA_array(Ai, Aj), ldda, 
+                        dB_array(Bi, Bj), lddb, 
                         batchCount, queue );
 
                 magmablas_zgemm_batched_core( 
                         MagmaNoTrans, transA, 
                         m, n1, n2, 
-                        alpha, dB_array, lddb, 
-                               dA_array, ldda, 
-                        c_one, dB_array, lddb, 
-                        roffB, coffB+n1, roffA+n1, coffA, roffB, coffB, 
+                        alpha, dB_array(Bi   , Bj+n1), lddb, 
+                               dA_array(Ai+n1,    Aj), ldda, 
+                        c_one, dB_array(Bi   ,    Bj), lddb, 
                         batchCount, queue );
 
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m, n2, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA+n1, coffA+n1, roffB, coffB+n1, 
+                        dA_array(Ai+n1, Aj+n1), ldda, 
+                        dB_array(Bi   , Bj+n1), lddb, 
                         batchCount, queue );
             }
             break;
@@ -275,26 +266,23 @@ magmablas_ztrmm_batched_core(
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m, n2, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA+n1, coffA+n1, roffB, coffB+n1, 
+                        dA_array(Ai+n1, Aj+n1), ldda, 
+                        dB_array(Bi   , Bj+n1), lddb, 
                         batchCount, queue );
 
                 magmablas_zgemm_batched_core( 
                         MagmaNoTrans, transA, 
                         m, n2, n1, 
-                        alpha, dB_array, lddb, 
-                               dA_array, ldda, 
-                        c_one, dB_array, lddb, 
-                        roffB, coffB, roffA, coffA+n1, roffB, coffB+n1, 
+                        alpha, dB_array(Bi,    Bj), lddb, 
+                               dA_array(Ai, Aj+n1), ldda, 
+                        c_one, dB_array(Bi, Bj+n1), lddb, 
                         batchCount, queue );
 
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m, n1, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA, coffA, roffB, coffB, 
+                        dA_array(Ai, Aj), ldda, 
+                        dB_array(Bi, Bj), lddb, 
                         batchCount, queue );
             }
             break;
@@ -306,26 +294,23 @@ magmablas_ztrmm_batched_core(
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m, n2, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA+n1, coffA+n1, roffB, coffB+n1, 
+                        dA_array(Ai+n1, Aj+n1), ldda, 
+                        dB_array(Bi   , Bj+n1), lddb, 
                         batchCount, queue );
 
                 magmablas_zgemm_batched_core( 
                         MagmaNoTrans, transA, 
                         m, n2, n1, 
-                        alpha, dB_array, lddb, 
-                               dA_array, ldda, 
-                        c_one, dB_array, lddb, 
-                        roffB, coffB, roffA+n1, coffA, roffB, coffB+n1, 
+                        alpha, dB_array(Bi   ,    Bj), lddb, 
+                               dA_array(Ai+n1,    Aj), ldda, 
+                        c_one, dB_array(Bi   , Bj+n1), lddb, 
                         batchCount, queue );
 
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m, n1, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA, coffA, roffB, coffB, 
+                        dA_array(Ai, Aj), ldda, 
+                        dB_array(Bi, Bj), lddb, 
                         batchCount, queue );
             }
             break;
@@ -337,31 +322,30 @@ magmablas_ztrmm_batched_core(
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m, n1, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA, coffA, roffB, coffB, 
+                        dA_array(Ai, Aj), ldda, 
+                        dB_array(Bi, Bj), lddb, 
                         batchCount, queue );
 
                 magmablas_zgemm_batched_core( 
                         MagmaNoTrans, transA, 
                         m, n1, n2, 
-                        alpha, dB_array, lddb, 
-                               dA_array, ldda, 
-                        c_one, dB_array, lddb, 
-                        roffB, coffB+n1, roffA, coffA+n1, roffB, coffB, 
+                        alpha, dB_array(Bi, Bj+n1), lddb, 
+                               dA_array(Ai, Aj+n1), ldda, 
+                        c_one, dB_array(Bi,    Bj), lddb, 
                         batchCount, queue );
 
                 magmablas_ztrmm_batched_core( 
                         side, uplo, transA, diag, 
                         m, n2, alpha, 
-                        dA_array, ldda, 
-                        dB_array, lddb, 
-                        roffA+n1, coffA+n1, roffB, coffB+n1, 
+                        dA_array(Ai+n1, Aj+n1), ldda, 
+                        dB_array(Bi   , Bj+n1), lddb, 
                         batchCount, queue );
             }
             break;
         default:; // propose something
     }
+#undef dA_array
+#undef dB_array
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -523,9 +507,8 @@ magmablas_ztrmm_batched(
     magmablas_ztrmm_batched_core( 
             side, uplo, transA, diag, 
             m, n, 
-            alpha, dA_array, ldda, 
-                   dB_array, lddb, 
-            0, 0, 0, 0, 
+            alpha, dA_array, 0, 0, ldda, 
+                   dB_array, 0, 0, lddb, 
             batchCount, queue );
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
