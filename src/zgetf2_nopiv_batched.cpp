@@ -13,7 +13,7 @@
 
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
-
+#define PRECISION_z
 /***************************************************************************//**
     Purpose
     -------
@@ -87,23 +87,23 @@
 extern "C" magma_int_t
 magma_zgetf2_nopiv_batched(
     magma_int_t m, magma_int_t n,
-    magmaDoubleComplex **dA_array, magma_int_t ldda,
-    magmaDoubleComplex **dW0_displ,
-    magmaDoubleComplex **dW1_displ,
-    magmaDoubleComplex **dW2_displ,
-    magma_int_t *info_array,            
-    magma_int_t gbstep, 
+    magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magma_int_t *info_array, magma_int_t gbstep, 
     magma_int_t batchCount, magma_queue_t queue)
 {
-    #define A(i, j)  (A + (i) + (j)*ldda)
-    
+    #define dAarray(i,j) dA_array, i, j
+
     magma_int_t arginfo = 0;
     if (m < 0) {
         arginfo = -1;
     } else if (n < 0 ) {
         arginfo = -2;
-    } else if (ldda < max(1,m)) {
+    } else if (ai < 0 ) {
         arginfo = -4;
+    } else if (aj < 0 ) {
+        arginfo = -5;
+    } else if (ldda < max(1,m)) {
+        arginfo = -6;
     }
 
     if (arginfo != 0) {
@@ -118,54 +118,45 @@ magma_zgetf2_nopiv_batched(
 
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magmaDoubleComplex c_one     = MAGMA_Z_ONE;
-    magma_int_t nb = BATF2_NB;
-
     
-    magma_int_t min_mn = min(m, n);
-    magma_int_t gbj, panelj, step, ib;
-
-    for( panelj=0; panelj < min_mn; panelj += nb) 
-    {
-        ib = min(nb, min_mn-panelj);
-
-        for (step=0; step < ib; step++) {
-            gbj = panelj+step;
-#if 0
-            size_t required_shmem_size = ((m-panelj)*ib)*sizeof(magmaDoubleComplex);
-            if ( required_shmem_size >  (MAX_SHARED_ALLOWED*1024))
-#else
-            if ( (m-panelj) > 0)
-#endif
-            {
-                // Compute elements J+1:M of J-th column.
-                if (gbj < m) {
-                    arginfo = magma_zscal_zgeru_batched( m-gbj, ib-step, gbj, dA_array, ldda, info_array, gbstep, batchCount, queue );
-                    if (arginfo != 0 ) return arginfo;
-                }
-            }
-            else {
-                // TODO
-            }
-        }
-
-
-        if ( (n-panelj-ib) > 0) {
-            // continue the update of the selected ib row column panelj+ib:n(TRSM)
-            magma_zgetf2trsm_batched(ib, n-panelj-ib, dA_array, panelj, ldda, batchCount, queue);
-            // do the blocked DGER = DGEMM for the remaining panelj+ib:n columns
-            magma_zdisplace_pointers(dW0_displ, dA_array, ldda, ib+panelj, panelj, batchCount, queue);
-            magma_zdisplace_pointers(dW1_displ, dA_array, ldda, panelj, ib+panelj, batchCount, queue);            
-            magma_zdisplace_pointers(dW2_displ, dA_array, ldda, ib+panelj, ib+panelj, batchCount, queue);
-
-            magma_zgemm_batched( MagmaNoTrans, MagmaNoTrans, m-(panelj+ib), n-(panelj+ib), ib, 
-                                 c_neg_one, dW0_displ, ldda, 
-                                            dW1_displ, ldda, 
-                                 c_one,     dW2_displ, ldda, 
-                                 batchCount, queue );
+    #ifdef PRECISION_z
+    // reduce the register pressure in the z precision by reducing the panel width
+    magma_int_t nb = (m > 512) ? 4 : 8;
+    #else
+    magma_int_t nb = (m > 512) ? 16 : 32;
+    #endif
+    if(n <= nb){
+        //panel
+        magma_zgetf2_nopiv_internal_batched(m, n, dAarray(ai, aj), ldda, info_array, gbstep, batchCount, queue);
+    }
+    else{
+        magma_int_t n1 = n / 2;
+        magma_int_t n2 = n-n1;
+        magma_int_t min_mn1 = min(m, n1);
+        // recpanel
+        magma_zgetf2_nopiv_batched(m, n1, dAarray(ai, aj), ldda, info_array, gbstep, batchCount, queue);
+        // trsm
+        magmablas_ztrsm_recursive_batched( 
+            MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit, 
+            min_mn1, n2, c_one, 
+            dAarray(ai,aj   ), ldda, 
+            dAarray(ai,aj+n1), ldda, batchCount, queue );
+        if(m-min_mn1 > 0){
+            // gemm
+            magma_zgemm_batched_core(
+                MagmaNoTrans, MagmaNoTrans, 
+                m-min_mn1, n2, n1, 
+                c_neg_one, dAarray(ai+n1,aj   ), ldda, 
+                           dAarray(ai   ,aj+n1), ldda, 
+                c_one,     dAarray(ai+n1,aj+n1), ldda, 
+                batchCount, queue );
+            // recpanel
+            magma_zgetf2_nopiv_batched(m-min_mn1, n2, dAarray(ai+n1, aj+n1), ldda, info_array, gbstep+n1, batchCount, queue);
         }
     }
-
-    //magma_free_cpu(cpuAarray);
-
     return 0;
+
+    #undef dAarray
 }
+
+
