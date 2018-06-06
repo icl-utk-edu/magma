@@ -132,27 +132,27 @@
             max( 1, m ).
     
     @param[in]
-    roffA   INTEGER
+    Ai   INTEGER
             Row offset for all 'A' matrices.
     
     @param[in]
-    coffA   INTEGER
+    Aj   INTEGER
             Column offset for all 'A' matrices.
     
     @param[in]
-    roffB   INTEGER
+    Bi   INTEGER
             Row offset for all 'B' matrices.
     
     @param[in]
-    coffB   INTEGER
+    Bj   INTEGER
             Column offset for all 'B' matrices.
     
     @param[in]
-    roffC   INTEGER
+    Ci   INTEGER
             Row offset for all 'C' matrices.
     
     @param[in]
-    coffC   INTEGER
+    Cj   INTEGER
             Column offset for all 'C' matrices.
     
     @param[in]
@@ -170,13 +170,10 @@ magmablas_zgemm_batched_core(
     magma_trans_t transA, magma_trans_t transB,
     magma_int_t m, magma_int_t n, magma_int_t k,
     magmaDoubleComplex alpha,
-    magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
-    magmaDoubleComplex const * const * dB_array, magma_int_t lddb,
+    magmaDoubleComplex const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+    magmaDoubleComplex const * const * dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t lddb,
     magmaDoubleComplex beta,
-    magmaDoubleComplex **dC_array, magma_int_t lddc,
-    magma_int_t roffA, magma_int_t coffA,
-    magma_int_t roffB, magma_int_t coffB,
-    magma_int_t roffC, magma_int_t coffC,
+    magmaDoubleComplex **dC_array, magma_int_t Ci, magma_int_t Cj, magma_int_t lddc,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t info = 0;
@@ -227,7 +224,7 @@ magmablas_zgemm_batched_core(
         case 0: // nn
             {
                 gemm_template_batched_nn<magmaDoubleComplex, version(NN,18), 0, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
             }
             break;
         case 1: // nt
@@ -236,13 +233,13 @@ magmablas_zgemm_batched_core(
                 {
                     // version 58
                     gemm_template_batched_nt<magmaDoubleComplex, version(NT,58), 0, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
+                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
                 else
                 {
                     // version 29
                     gemm_template_batched_nt<magmaDoubleComplex, version(NT,29), 0, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
+                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
             }
             break;
@@ -252,13 +249,13 @@ magmablas_zgemm_batched_core(
                 {
                     // version 58
                     gemm_template_batched_nt<magmaDoubleComplex, version(NT,58), 0, 1>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
+                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
                 else
                 {
                     // version 29
                     gemm_template_batched_nt<magmaDoubleComplex, version(NT,29), 0, 1>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
+                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
             }
             break;
@@ -266,42 +263,42 @@ magmablas_zgemm_batched_core(
             {
                 // version 72
                 gemm_template_batched_tn<magmaDoubleComplex, version(TN,72), 0, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
             }
             break;
         case 6: // cn
             {
                 // version 72
                 gemm_template_batched_tn<magmaDoubleComplex, version(TN,72), 1, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
             }
             break;
         case 4: // tt
             {
                 // version 13
                 gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 0, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
             }
             break;
         case 5: // tc
             {
                 // version 13
                 gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 0, 1>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
             }
             break;
         case 7: // ct
             {
                 // version 13
                 gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 1, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
             }
             break;
         case 8: // cc
             {
                 // version 13
                 gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 1, 1>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
+                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
             }
             break;
         default:; // propose something
