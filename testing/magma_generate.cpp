@@ -174,6 +174,11 @@ void magma_generate_sigma(
             for (magma_int_t i = 0; i < minmn; ++i) {
                 sigma[i] = exp( sigma[i] * range );
             }
+            // make cond exact
+            if (minmn >= 2) {
+                sigma[0] = 1;
+                sigma[1] = 1/cond;
+            }
             break;
         }
 
