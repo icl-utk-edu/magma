@@ -181,25 +181,61 @@ magma_int_t magma_get_sgeqrf_batched_nb(magma_int_t m)
 *******************************************************************************/
 magma_int_t magma_get_zpotrf_batched_crossover()
 {
-    return ZPOTRF_SWITCH;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 700){
+        return 352;
+    }
+    else if(arch >= 600){
+        return 352;
+    }
+    else{
+        return 160;
+    }
 }
 
 /// @see magma_get_zpotrf_batched_crossover
 magma_int_t magma_get_cpotrf_batched_crossover()
 {
-    return CPOTRF_SWITCH;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 700){
+        return 576;
+    }
+    else if(arch >= 600){
+        return 544;
+    }
+    else{
+        return 224;
+    }
 }
 
 /// @see magma_get_zpotrf_batched_crossover
 magma_int_t magma_get_dpotrf_batched_crossover()
 {
-    return DPOTRF_SWITCH;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 700){
+        return 640;
+    }
+    else if(arch >= 600){
+        return 576;
+    }
+    else{
+        return 384;
+    }
 }
 
 /// @see magma_get_zpotrf_batched_crossover
 magma_int_t magma_get_spotrf_batched_crossover()
 {
-    return SPOTRF_SWITCH;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 700){
+        return 608;
+    }
+    else if(arch >= 600){
+        return 544;
+    }
+    else{
+        return 432;
+    }
 }
 /***************************************************************************//**
     @return the crossover point between the _lg or the kernel directly
@@ -227,6 +263,187 @@ magma_int_t magma_get_spotrf_vbatched_crossover()
     return SPOTRF_VBATCHED_SWITCH;
 }
 
+
+/***************************************************************************//**
+    @return the ntcol value for very small xgetri_batched ( m = n )
+*******************************************************************************/
+magma_int_t magma_get_zgetri_batched_ntcol(magma_int_t m, magma_int_t n)
+{
+    magma_int_t ntcol = 1;
+    
+    // TODO: conduct tuning experiment for ntcol in z precision
+    if(m == n){
+        if( m < 16) 
+            ntcol =  2;
+        else
+            ntcol = 1;
+    }
+    return ntcol;
+}
+
+/// @see magma_get_zgetri_batched_ntcol
+magma_int_t magma_get_cgetri_batched_ntcol(magma_int_t m, magma_int_t n)
+{
+    magma_int_t ntcol = 1;
+    
+    // TODO: conduct tuning experiment for ntcol in z precision
+    if(m == n){
+        if( m < 16) 
+            ntcol =  2;
+        else
+            ntcol = 1;
+    }
+    return ntcol;
+}
+
+/// @see magma_get_zgetri_batched_ntcol
+magma_int_t magma_get_dgetri_batched_ntcol(magma_int_t m, magma_int_t n)
+{
+    
+    // TODO: conduct tuning experiment for ntcol on Kepler
+    magma_int_t arch = magma_getdevice_arch();
+    magma_int_t ntcol = 1;
+    if(m == n ){
+        switch(m){
+            case  1: ntcol = (arch >= 600) ?  8: 32 ; break;
+            case  2: ntcol = (arch >= 600) ?  4: 16 ; break;
+            case  3: ntcol = (arch >= 600) ?  3:  8 ; break;
+            case  4: ntcol = (arch >= 600) ?  3: 16 ; break;
+            case  5: ntcol = (arch >= 600) ?  2:  8 ; break;
+            case  6: ntcol = (arch >= 600) ?  2:  4 ; break;
+            case  7: ntcol = (arch >= 600) ?  2:  4 ; break;
+            case  8: ntcol = (arch >= 600) ? 32: 32 ; break;
+            case  9: ntcol = (arch >= 600) ? 16:  4 ; break;
+            case 10: ntcol = (arch >= 600) ? 14:  4 ; break;
+            case 11: ntcol = (arch >= 600) ? 10:  8 ; break;
+            case 12: ntcol = (arch >= 600) ? 12:  8 ; break;
+            case 13: ntcol = (arch >= 600) ? 12:  8 ; break;
+            case 14: ntcol = (arch >= 600) ? 14:  8 ; break;
+            case 15: ntcol = (arch >= 600) ?  8:  8 ; break;
+            case 16: ntcol = (arch >= 600) ? 10:  8 ; break;
+            case 17: ntcol = (arch >= 600) ?  5:  4 ; break;
+            case 18: ntcol = (arch >= 600) ?  4:  4 ; break;
+            case 19: ntcol = (arch >= 600) ?  4: 16 ; break;
+            case 20: ntcol = (arch >= 600) ?  4: 16 ; break;
+            case 21: ntcol = (arch >= 600) ?  4: 16 ; break;
+            case 22: ntcol = (arch >= 600) ?  4:  4 ; break;
+            case 23: ntcol = (arch >= 600) ?  4:  4 ; break;
+            case 24: ntcol = (arch >= 600) ?  4:  4 ; break;
+            case 25: ntcol = (arch >= 600) ?  4:  4 ; break;
+            case 26: ntcol = (arch >= 600) ?  4:  4 ; break;
+            case 27: ntcol = (arch >= 600) ?  4:  4 ; break;
+            case 28: ntcol = (arch >= 600) ?  4:  4 ; break;
+            case 29: ntcol = (arch >= 600) ?  4:  4 ; break;
+            case 30: ntcol = (arch >= 600) ?  4:  4 ; break;
+            case 31: ntcol = (arch >= 600) ?  2:  4 ; break;
+            case 32: ntcol = (arch >= 600) ?  2:  4 ; break;
+            default: ntcol = 1;
+        }
+    }
+    return ntcol;
+}
+
+/// @see magma_get_zgetri_batched_ntcol
+magma_int_t magma_get_sgetri_batched_ntcol(magma_int_t m, magma_int_t n)
+{
+    // TODO: conduct tuning experiment for ntcol on Kepler
+    magma_int_t arch = magma_getdevice_arch();
+    magma_int_t ntcol = 1;
+    if(m == n ){
+        switch(m){
+            case  1: ntcol = (arch >= 600) ?  9 : 32 ; break;
+            case  2: ntcol = (arch >= 600) ?  4 : 16 ; break;
+            case  3: ntcol = (arch >= 600) ?  3 :  8 ; break;
+            case  4: ntcol = (arch >= 600) ?  4 :  8 ; break;
+            case  5: ntcol = (arch >= 600) ?  4 :  8 ; break;
+            case  6: ntcol = (arch >= 600) ?  3 :  8 ; break;
+            case  7: ntcol = (arch >= 600) ?  3 :  8 ; break;
+            case  8: ntcol = (arch >= 600) ? 14 : 32 ; break;
+            case  9: ntcol = (arch >= 600) ? 16 :  8 ; break;
+            case 10: ntcol = (arch >= 600) ? 16 : 16 ; break;
+            case 11: ntcol = (arch >= 600) ? 32 :  8 ; break;
+            case 12: ntcol = (arch >= 600) ? 32 :  8 ; break;
+            case 13: ntcol = (arch >= 600) ? 32 :  8 ; break;
+            case 14: ntcol = (arch >= 600) ? 16 :  8 ; break;
+            case 15: ntcol = (arch >= 600) ? 14 :  8 ; break;
+            case 16: ntcol = (arch >= 600) ? 16 :  8 ; break;
+            case 17: ntcol = (arch >= 600) ?  9 :  4 ; break;
+            case 18: ntcol = (arch >= 600) ?  9 :  4 ; break;
+            case 19: ntcol = (arch >= 600) ?  9 :  4 ; break;
+            case 20: ntcol = (arch >= 600) ?  8 :  8 ; break;
+            case 21: ntcol = (arch >= 600) ?  4 :  4 ; break;
+            case 22: ntcol = (arch >= 600) ?  4 :  4 ; break;
+            case 23: ntcol = (arch >= 600) ?  8 :  4 ; break;
+            case 24: ntcol = (arch >= 600) ?  8 :  4 ; break;
+            case 25: ntcol = (arch >= 600) ?  4 :  4 ; break;
+            case 26: ntcol = (arch >= 600) ?  4 :  8 ; break;
+            case 27: ntcol = (arch >= 600) ?  4 :  8 ; break;
+            case 28: ntcol = (arch >= 600) ?  4 :  8 ; break;
+            case 29: ntcol = (arch >= 600) ?  4 :  4 ; break;
+            case 30: ntcol = (arch >= 600) ?  4 :  4 ; break;
+            case 31: ntcol = (arch >= 600) ?  4 :  4 ; break;
+            case 32: ntcol = (arch >= 600) ?  4 :  4 ; break;
+            default: ntcol = 1;
+        }
+    }
+    return ntcol;
+}
+
+/***************************************************************************//**
+    @return the stop nb value for recursive batched trsm
+*******************************************************************************/
+magma_int_t magma_get_ztrsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n)
+{
+    if(side == MagmaLeft){
+         if     (m <= 2) return 2; 
+         else if(m <= 4) return 4;
+         else if(m <= 8) return 8;
+         else{
+             if(n <= 32) return 16;
+             else return 8; 
+         }
+    }else{    // side = MagmaRight
+        if(n <= 2) return 2;
+        else return 8;
+    }
+} 
+
+/// @see magma_get_ztrsm_batched_stop_nb
+magma_int_t magma_get_ctrsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n)
+{
+    if(side == MagmaLeft){
+        if(m <= 8) return 8;
+        else return 16;
+    }else{    // side = MagmaRight
+        if(n <= 4) return 4;
+        else return 16;
+    }
+} 
+
+/// @see magma_get_ztrsm_batched_stop_nb
+magma_int_t magma_get_dtrsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n)
+{
+    if(side == MagmaLeft){
+        if     (m <= 2) return 8;
+        else if(m <= 4) return 16;
+        else return 32;
+    }else{    // side = MagmaRight
+        if(n <= 4) return 4;
+        else return 32;
+    }
+} 
+
+/// @see magma_get_ztrsm_batched_stop_nb
+magma_int_t magma_get_strsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n)
+{
+    if(side == MagmaLeft){
+        return 16;
+    }else{    // side = MagmaRight
+        if     (n <= 4) return 4;
+        else if(n <= 8) return 8;
+        else return 32;
+    }
+} 
 
 // =============================================================================
 /// @}
