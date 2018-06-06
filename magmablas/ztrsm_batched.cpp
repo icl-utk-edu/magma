@@ -166,7 +166,7 @@
     @ingroup magma_trsm_batched
 *******************************************************************************/
 extern "C"
-void magmablas_ztrsm_outofplace_batched(
+void magmablas_ztrsm_inv_outofplace_batched(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t flag, magma_int_t m, magma_int_t n, 
     magmaDoubleComplex alpha, 
@@ -633,7 +633,7 @@ void magmablas_ztrsm_outofplace_batched(
     @ingroup magma_trsm_batched
 *******************************************************************************/
 extern "C"
-void magmablas_ztrsm_work_batched(
+void magmablas_ztrsm_inv_work_batched(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t flag, magma_int_t m, magma_int_t n, 
     magmaDoubleComplex alpha, 
@@ -672,7 +672,7 @@ void magmablas_ztrsm_work_batched(
         return;
     }
 
-    magmablas_ztrsm_outofplace_batched( 
+    magmablas_ztrsm_inv_outofplace_batched( 
                     side, uplo, transA, diag, flag,
                     m, n, alpha,
                     dA_array,    ldda,
@@ -798,7 +798,7 @@ void magmablas_ztrsm_work_batched(
     @ingroup magma_trsm_batched
 *******************************************************************************/
 extern "C"
-void magmablas_ztrsm_batched(
+void magmablas_ztrsm_inv_batched(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
@@ -871,7 +871,7 @@ void magmablas_ztrsm_batched(
     magma_zset_pointer( dX_array, dX, lddx, 0, 0, size_x, batchCount, queue );
     magma_zset_pointer( dinvA_array, dinvA, ZTRTRI_BATCHED_NB, 0, 0, size_dinvA, batchCount, queue );
 
-    magmablas_ztrsm_work_batched( 
+    magmablas_ztrsm_inv_work_batched( 
                     side, uplo, transA, diag, 1, 
                     m, n, alpha,
                     dA_array,    ldda,
