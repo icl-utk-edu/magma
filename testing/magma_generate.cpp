@@ -103,8 +103,8 @@ void magma_generate_sigma(
     Dist dist, bool rand_sign,
     typename blas::traits<FloatT>::real_t cond,
     typename blas::traits<FloatT>::real_t sigma_max,
-    Vector< typename blas::traits<FloatT>::real_t >& sigma,
-    Matrix<FloatT>& A )
+    Matrix<FloatT>& A,
+    Vector< typename blas::traits<FloatT>::real_t >& sigma )
 {
     typedef typename blas::traits<FloatT>::real_t real_t;
 
@@ -283,8 +283,8 @@ void magma_generate_svd(
     typename blas::traits<FloatT>::real_t cond,
     typename blas::traits<FloatT>::real_t condD,
     typename blas::traits<FloatT>::real_t sigma_max,
-    Vector< typename blas::traits<FloatT>::real_t >& sigma,
-    Matrix<FloatT>& A )
+    Matrix<FloatT>& A,
+    Vector< typename blas::traits<FloatT>::real_t >& sigma )
 {
     typedef typename blas::traits<FloatT>::real_t real_t;
 
@@ -316,7 +316,7 @@ void magma_generate_svd(
     Vector<FloatT> work( lwork );
 
     // ----------
-    magma_generate_sigma( opts, dist, false, cond, sigma_max, sigma, A );
+    magma_generate_sigma( opts, dist, false, cond, sigma_max, A, sigma );
 
     // for generate correlation factor, need sum sigma_i^2 = n
     // scaling doesn't change cond
@@ -395,8 +395,8 @@ void magma_generate_heev(
     typename blas::traits<FloatT>::real_t cond,
     typename blas::traits<FloatT>::real_t condD,
     typename blas::traits<FloatT>::real_t sigma_max,
-    Vector< typename blas::traits<FloatT>::real_t >& sigma,
-    Matrix<FloatT>& A )
+    Matrix<FloatT>& A,
+    Vector< typename blas::traits<FloatT>::real_t >& sigma )
 {
     typedef typename blas::traits<FloatT>::real_t real_t;
 
@@ -428,7 +428,7 @@ void magma_generate_heev(
     Vector<FloatT> work( lwork );
 
     // ----------
-    magma_generate_sigma( opts, dist, rand_sign, cond, sigma_max, sigma, A );
+    magma_generate_sigma( opts, dist, rand_sign, cond, sigma_max, A, sigma );
 
     // random U, n-by-n
     // just make each random column into a Householder vector;
@@ -482,8 +482,8 @@ void magma_generate_geev(
     typename blas::traits<FloatT>::real_t cond,
     typename blas::traits<FloatT>::real_t condD,
     typename blas::traits<FloatT>::real_t sigma_max,
-    Vector< typename blas::traits<FloatT>::real_t >& sigma,
-    Matrix<FloatT>& A )
+    Matrix<FloatT>& A,
+    Vector< typename blas::traits<FloatT>::real_t >& sigma )
 {
     throw std::exception();  // not implemented
 }
@@ -496,8 +496,8 @@ void magma_generate_geevx(
     typename blas::traits<FloatT>::real_t cond,
     typename blas::traits<FloatT>::real_t condD,
     typename blas::traits<FloatT>::real_t sigma_max,
-    Vector< typename blas::traits<FloatT>::real_t >& sigma,
-    Matrix<FloatT>& A )
+    Matrix<FloatT>& A,
+    Vector< typename blas::traits<FloatT>::real_t >& sigma )
 {
     throw std::exception();  // not implemented
 }
@@ -513,16 +513,16 @@ void magma_generate_geevx(
     @param[in]
     opts    MAGMA options. Uses matrix, cond, condD; see further details.
 
+    @param[out]
+    A       Complex array, dimension (lda, n).
+            On output, the m-by-n test matrix A in an lda-by-n array.
+
     @param[in,out]
     sigma   Real array, dimension (min(m,n))
             For matrix with "_specified", on input contains user-specified
             singular or eigenvalues.
             On output, contains singular or eigenvalues, if known,
             else set to NaN. sigma is not necesarily sorted.
-
-    @param[out]
-    A       Complex array, dimension (lda, n).
-            On output, the m-by-n test matrix A in an lda-by-n array.
 
     Further Details
     ---------------
@@ -609,8 +609,8 @@ void magma_generate_geevx(
 template< typename FloatT >
 void magma_generate_matrix(
     magma_opts& opts,
-    Vector< typename blas::traits<FloatT>::real_t >& sigma,
-    Matrix<FloatT>& A )
+    Matrix<FloatT>& A,
+    Vector< typename blas::traits<FloatT>::real_t >& sigma )
 {
     typedef typename blas::traits<FloatT>::real_t real_t;
 
@@ -755,27 +755,27 @@ void magma_generate_matrix(
         }
 
         case MatrixType::diag:
-            magma_generate_sigma( opts, dist, false, cond, sigma_max, sigma, A );
+            magma_generate_sigma( opts, dist, false, cond, sigma_max, A, sigma );
             break;
 
         case MatrixType::svd:
-            magma_generate_svd( opts, dist, cond, condD, sigma_max, sigma, A );
+            magma_generate_svd( opts, dist, cond, condD, sigma_max, A, sigma );
             break;
 
         case MatrixType::poev:
-            magma_generate_heev( opts, dist, false, cond, condD, sigma_max, sigma, A );
+            magma_generate_heev( opts, dist, false, cond, condD, sigma_max, A, sigma );
             break;
 
         case MatrixType::heev:
-            magma_generate_heev( opts, dist, true, cond, condD, sigma_max, sigma, A );
+            magma_generate_heev( opts, dist, true, cond, condD, sigma_max, A, sigma );
             break;
 
         case MatrixType::geev:
-            magma_generate_geev( opts, dist, cond, condD, sigma_max, sigma, A );
+            magma_generate_geev( opts, dist, cond, condD, sigma_max, A, sigma );
             break;
 
         case MatrixType::geevx:
-            magma_generate_geevx( opts, dist, cond, condD, sigma_max, sigma, A );
+            magma_generate_geevx( opts, dist, cond, condD, sigma_max, A, sigma );
             break;
     }
 
@@ -798,8 +798,8 @@ template< typename FloatT >
 void magma_generate_matrix(
     magma_opts& opts,
     magma_int_t m, magma_int_t n,
-    typename blas::traits<FloatT>::real_t* sigma_ptr,
-    FloatT* A_ptr, magma_int_t lda )
+    FloatT* A_ptr, magma_int_t lda,
+    typename blas::traits<FloatT>::real_t* sigma_ptr /* =nullptr */ )
 {
     typedef typename blas::traits<FloatT>::real_t real_t;
 
@@ -810,7 +810,7 @@ void magma_generate_matrix(
         sigma = Vector<real_t>( min(m,n) );
     }
     Matrix<FloatT> A( A_ptr, m, n, lda );
-    magma_generate_matrix( opts, sigma, A );
+    magma_generate_matrix( opts, A, sigma );
 }
 
 
@@ -820,26 +820,26 @@ template
 void magma_generate_matrix(
     magma_opts& opts,
     magma_int_t m, magma_int_t n,
-    float* sigma_ptr,
-    float* A_ptr, magma_int_t lda );
+    float* A_ptr, magma_int_t lda,
+    float* sigma_ptr );
 
 template
 void magma_generate_matrix(
     magma_opts& opts,
     magma_int_t m, magma_int_t n,
-    double* sigma_ptr,
-    double* A_ptr, magma_int_t lda );
+    double* A_ptr, magma_int_t lda,
+    double* sigma_ptr );
 
 template
 void magma_generate_matrix(
     magma_opts& opts,
     magma_int_t m, magma_int_t n,
-    float* sigma_ptr,
-    magmaFloatComplex* A_ptr, magma_int_t lda );
+    magmaFloatComplex* A_ptr, magma_int_t lda,
+    float* sigma_ptr );
 
 template
 void magma_generate_matrix(
     magma_opts& opts,
     magma_int_t m, magma_int_t n,
-    double* sigma_ptr,
-    magmaDoubleComplex* A_ptr, magma_int_t lda );
+    magmaDoubleComplex* A_ptr, magma_int_t lda,
+    double* sigma_ptr );

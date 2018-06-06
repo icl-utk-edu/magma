@@ -77,7 +77,7 @@ int main( int argc, char** argv )
             TESTING_CHECK( magma_zmalloc( &dwork,  ldwork ));
             
             /* Initialize the matrix */
-            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
+            magma_generate_matrix( opts, N, N, h_A, lda );
             
             /* Factor the matrix. Both MAGMA and LAPACK will use this factor. */
             magma_zsetmatrix( N, N, h_A, lda, d_A, ldda, opts.queue );

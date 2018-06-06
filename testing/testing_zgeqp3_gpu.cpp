@@ -87,7 +87,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc( &d_work, lwork  ));
             
             /* Initialize the matrix */
-            magma_generate_matrix( opts, M, N, nullptr, h_R, lda );
+            magma_generate_matrix( opts, M, N, h_R, lda );
 
             /* Make h_A of rank K */
             magmaDoubleComplex alpha = MAGMA_Z_MAKE(  1., 0. );

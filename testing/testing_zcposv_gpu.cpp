@@ -75,7 +75,7 @@ int main(int argc, char **argv)
             TESTING_CHECK( magma_zmalloc( &d_workd, N*nrhs       ));
             
             /* Initialize the matrix */
-            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
+            magma_generate_matrix( opts, N, N, h_A, lda );
             
             size = ldb * nrhs;
             lapackf77_zlarnv( &ione, ISEED, &size, h_B );

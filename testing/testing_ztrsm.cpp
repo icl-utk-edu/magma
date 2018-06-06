@@ -104,7 +104,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc( &dB,       lddb*N  ));
 
             /* Initialize the matrices */
-            magma_generate_matrix( opts, Ak, Ak, nullptr, hA, lda );
+            magma_generate_matrix( opts, Ak, Ak, hA, lda );
 
             // set unused data to nan
             magma_int_t Ak_1 = Ak - 1;

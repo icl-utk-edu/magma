@@ -102,7 +102,7 @@ int main( int argc, char** argv )
             TESTING_CHECK( magma_dmalloc_cpu( &d,      min_mn   ));
             TESTING_CHECK( magma_dmalloc_cpu( &e,      min_mn-1 ));
             
-            magma_generate_matrix( opts, m, n, nullptr, hA, lda );
+            magma_generate_matrix( opts, m, n, hA, lda );
             lapackf77_zlacpy( MagmaFullStr, &m, &n, hA, &lda, hR, &lda );
             
             Anorm = lapackf77_zlange("f", &m, &n, hA, &lda, work );

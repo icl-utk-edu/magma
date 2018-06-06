@@ -110,8 +110,8 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc_pinned( &h_work, lwork  ));
             
             /* Initialize the matrix */
-            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
-            magma_generate_matrix( opts, N, N, nullptr, h_B, lda );
+            magma_generate_matrix( opts, N, N, h_A, lda );
+            magma_generate_matrix( opts, N, N, h_B, lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_R, &lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_B, &lda, h_S, &lda );
             

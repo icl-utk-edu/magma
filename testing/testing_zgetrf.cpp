@@ -34,7 +34,7 @@ void init_matrix(
         iseed_save[i] = opts.iseed[i];
     }
 
-    magma_generate_matrix( opts, m, n, nullptr, A, lda );
+    magma_generate_matrix( opts, m, n, A, lda );
 
     // restore iseed
     for (magma_int_t i = 0; i < 4; ++i) {

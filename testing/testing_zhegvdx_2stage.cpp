@@ -113,8 +113,8 @@ int main( int argc, char** argv)
             #endif
 
             /* Initialize the matrix */
-            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
-            magma_generate_matrix( opts, N, N, nullptr, h_B, lda );
+            magma_generate_matrix( opts, N, N, h_A, lda );
+            magma_generate_matrix( opts, N, N, h_B, lda );
             magma_zmake_hpd( N, h_B, lda );
             magma_zmake_hermitian( N, h_A, lda );
 

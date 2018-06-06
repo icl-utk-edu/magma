@@ -77,7 +77,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc( &dx, N      ));
 
             /* Initialize the matrices */
-            magma_generate_matrix( opts, N, N, nullptr, hA, lda );
+            magma_generate_matrix( opts, N, N, hA, lda );
 
             // todo: setting to nan causes trsv to fail -- seems like a bug in cuBLAS?
             // set unused data to nan
