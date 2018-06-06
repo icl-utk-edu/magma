@@ -40,6 +40,8 @@
 #include "magma_internal.h"
 #include "error.h"
 
+#define MAX_BATCHCOUNT    (65534)
+
 #ifdef HAVE_CUBLAS
 
 #ifdef DEBUG_MEMORY
@@ -701,6 +703,7 @@ magma_queue_create_internal(
     queue->stream__   = NULL;
     queue->cublas__   = NULL;
     queue->cusparse__ = NULL;
+    queue->maxbatch__ = MAX_BATCHCOUNT;
 
     magma_setdevice( device );
 
@@ -722,6 +725,13 @@ magma_queue_create_internal(
     queue->own__ |= own_cusparse;
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
+
+    magma_malloc((void**)&(queue->dAarray__), queue->maxbatch__ * sizeof(void*));
+    assert( queue->dAarray__ != NULL);
+    magma_malloc((void**)&(queue->dBarray__), queue->maxbatch__ * sizeof(void*));
+    assert( queue->dBarray__ != NULL);
+    magma_malloc((void**)&(queue->dCarray__), queue->maxbatch__ * sizeof(void*));
+    assert( queue->dCarray__ != NULL);
 
     MAGMA_UNUSED( err );
     MAGMA_UNUSED( stat );
@@ -778,6 +788,7 @@ magma_queue_create_from_cuda_internal(
     queue->stream__   = NULL;
     queue->cublas__   = NULL;
     queue->cusparse__ = NULL;
+    queue->maxbatch__ = MAX_BATCHCOUNT;
 
     magma_setdevice( device );
 
@@ -805,6 +816,14 @@ magma_queue_create_from_cuda_internal(
     queue->cusparse__ = cusparse_handle;
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
+
+    magma_malloc((void**)&queue->dAarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dAarray__ != NULL);
+    magma_malloc((void**)&queue->dBarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dBarray__ != NULL);
+    magma_malloc((void**)&queue->dCarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dCarray__ != NULL);
+
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
 }
@@ -846,6 +865,10 @@ magma_queue_destroy_internal(
             check_xerror( err, func, file, line );
             MAGMA_UNUSED( err );
         }
+        magma_free( queue->dAarray__ );
+        magma_free( queue->dBarray__ );
+        magma_free( queue->dCarray__ );
+
         queue->own__      = own_none;
         queue->device__   = -1;
         queue->stream__   = NULL;
