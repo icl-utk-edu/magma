@@ -170,7 +170,7 @@ int main( int argc, char** argv)
 
             magma_time = magma_sync_wtime( opts.queue );
             if (opts.version == 1) {
-                magmablas_ztrsm_outofplace_batched(
+                magmablas_ztrsm_inv_outofplace_batched(
                     opts.side, opts.uplo, opts.transA, opts.diag, 1,
                     M, N, alpha,
                     d_A_array,    ldda, // dA
