@@ -35,7 +35,8 @@ magma_int_t magma_get_spotrf_nb( magma_int_t n )
     magma_int_t arch = magma_getdevice_arch();
     if ( arch >= 300 ) {       // 3.x Kepler
         if      (n <  1500) nb = 256;
-        else                nb = 512;
+        else if (n < 10240) nb = 512;
+        else                nb = 1024;
     }
     else if ( arch >= 200 ) {  // 2.x Fermi
         if      (n <  2048) nb = 256;
@@ -56,7 +57,8 @@ magma_int_t magma_get_dpotrf_nb( magma_int_t n )
     magma_int_t arch = magma_getdevice_arch();
     if ( arch >= 300 ) {       // 3.x Kepler
         if      (n <  3072) nb = 256;
-        else                nb = 512;
+        else if (n < 10240) nb = 512;
+        else                nb = 1024;
     }
     else if ( arch >= 200 ) {  // 2.x Fermi
         nb = 256;
@@ -353,7 +355,11 @@ magma_int_t magma_get_sgetrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 600 ) {       // 6.x Pascal
+        if      (minmn <  4096) nb = 128;
+        else                    nb = 512;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <  4096) nb = 256;
         else if (minmn < 18432) nb = 512;
         else                    nb = 1024;
@@ -425,6 +431,101 @@ magma_int_t magma_get_zgetrf_nb( magma_int_t m, magma_int_t n )
         if      (minmn < 4096) nb = 64;
         else if (minmn < 8192) nb = 256;
         else                   nb = 512;
+    }
+    else if ( arch >= 200 ) {  // 2.x Fermi
+        if      (minmn < 4096) nb = 64;
+        else                   nb = 128;
+    }
+    else {                     // 1.x
+        nb = 128;
+    }
+    return nb;
+}
+
+
+/******************************************************************************/
+/// @return nb for native sgetrf based on m, n
+magma_int_t magma_get_sgetrf_native_nb( magma_int_t m, magma_int_t n )
+{
+    magma_int_t nb;
+    magma_int_t minmn = min( m, n );
+    magma_int_t arch = magma_getdevice_arch();
+    if ( arch >= 300 ) {       // 3.x Kepler
+        if      (minmn <=  4096) nb = 64;
+        else if (minmn <= 10240) nb = 128;
+        else if (minmn <= 20480) nb = 512;
+        else                     nb = 1024;
+    }
+    else if ( arch >= 200 ) {  // 2.x Fermi
+        if      (minmn <  3072) nb = 128;
+        else if (minmn < 10240) nb = 256;
+        else                    nb = 512;
+    }
+    else {                     // 1.x
+        if      (minmn <  2048) nb = 64;
+        else                    nb = 128;
+    }
+    return nb;
+}
+
+/// @return nb for native dgetrf based on m, n
+magma_int_t magma_get_dgetrf_native_nb( magma_int_t m, magma_int_t n )
+{
+    magma_int_t nb;
+    magma_int_t minmn = min( m, n );
+    magma_int_t arch = magma_getdevice_arch();
+    if ( arch >= 300 ) {       // 3.x Kepler
+        if      (minmn <=  4096)  nb = 64;
+        else if (minmn <=  10240) nb = 128;
+        else if (minmn <=  20480) nb = 512;
+        else                      nb = 1024;
+    }
+    else if ( arch >= 200 ) {  // 2.x Fermi
+        if      (minmn <  3072) nb = 128;
+        else if (minmn < 10240) nb = 256;
+        else                    nb = 512;
+    }
+    else {                     // 1.x
+        if      (minmn <  2048) nb = 64;
+        else                    nb = 128;
+    }
+    return nb;
+}
+
+/// @return nb for native cgetrf based on m, n
+magma_int_t magma_get_cgetrf_native_nb( magma_int_t m, magma_int_t n )
+{
+    magma_int_t nb;
+    magma_int_t minmn = min( m, n );
+    magma_int_t arch = magma_getdevice_arch();
+    // TODO: try all nb's (128,256,512, ... etc)
+    if ( arch >= 300 ) {       // 3.x Kepler
+        if      (minmn <=  2048)  nb = 128;
+        else                      nb = 256;
+    }
+    else if ( arch >= 200 ) {  // 2.x Fermi
+        if      (minmn <  2048) nb = 64;
+        else                    nb = 128;
+    }
+    else {                     // 1.x
+        if      (minmn <  2048) nb = 64;
+        else                    nb = 128;
+    }
+    return nb;
+}
+
+/// @return nb for native zgetrf based on m, n
+magma_int_t magma_get_zgetrf_native_nb( magma_int_t m, magma_int_t n )
+{
+    magma_int_t nb;
+    magma_int_t minmn = min( m, n );
+    magma_int_t arch = magma_getdevice_arch();
+    // TODO: try all nb's (128,256,512, ... etc)
+    if ( arch >= 300 ) {       // 3.x Kepler
+        if      (minmn <=  4096)  nb = 32;
+        else if (minmn <=  10240) nb = 64;
+        else if (minmn <=  20480) nb = 256;
+        else                      nb = 512;
     }
     else if ( arch >= 200 ) {  // 2.x Fermi
         if      (minmn < 4096) nb = 64;
