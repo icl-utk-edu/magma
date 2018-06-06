@@ -5,19 +5,20 @@
        Univ. of Colorado, Denver
        @date
 */
-
 #ifndef BATCHED_KERNEL_PARAM_H
 #define BATCHED_KERNEL_PARAM_H
 
 #define MAX_NTHREADS        1024     // 1024 is max threads for 2.x cards
-#define MAX_SHARED_ALLOWED    44
+#define MAX_SHARED_ALLOWED    47
 
 #define zamax            256
+#define zamax_shuffle    256
 #define DOTC_MAX_BS      512     // 512 is max threads for 1.x cards
 
 
 #define POTRF_NB         128     // blocking in main algorithm 128 if using recursive panel or 32 if using standard panel
 #define POTF2_NB           8     // blocking size in panel factorization
+#define POTF2_NNB          8  // blocking size in panel factorization
 #define POTF2_TILE_SIZE   32
 #define MAX_POTF2_SM     128
 #define VERSION20
@@ -33,6 +34,25 @@
 #define BATRI_NB         128        // ztrsm_nb should be >= BATRF_NB
 #define TRI_NB           128        // ztrsm_nb should match the NB in BATRF_NB
 #define TRI_BLOCK_SIZE    16
+
+// tuning for zgetf2_panel
+#define ZGETF2_PANEL_NB    (8)
+#define CGETF2_PANEL_NB    (8)
+#define DGETF2_PANEL_NB    (16)
+#define SGETF2_PANEL_NB    (16)
+
+// tuning zgetf2_panel_chain
+#define ZGETF2_CHAIN_NTH    (512)
+#define CGETF2_CHAIN_NTH    (512)
+#define DGETF2_CHAIN_NTH    (512)
+#define SGETF2_CHAIN_NTH    (512)
+//
+#define ZGETF2_CHAIN_MAX_M    (10240)
+#define CGETF2_CHAIN_MAX_M    (10240)
+#define DGETF2_CHAIN_MAX_M    (25600)
+#define SGETF2_CHAIN_MAX_M    (40960)
+
+
 
 // TRSM tuning parameters 
 #define STRTRI_BATCHED_NB         (64)
@@ -70,8 +90,12 @@
 #define DSYMV_BATCHED_UPPER    16, 4
 #define SSYMV_BATCHED_UPPER    32, 4
 
-// compile-time round up to power of 2 (up to 32 only)
-// used for batched kernels on tiny sizes
+// GETF2_FUSED_BATCHED maximum rows
+#define ZGETF2_FUSED_BATCHED_MAX_ROWS    (256)
+#define CGETF2_FUSED_BATCHED_MAX_ROWS    (384)
+#define DGETF2_FUSED_BATCHED_MAX_ROWS    (512)
+#define SGETF2_FUSED_BATCHED_MAX_ROWS    (512)
+
 #define magma_ceilpow2(N)    ( (N >  16)? 32 : \
                                (N >   8)? 16 : \
                                (N >   4)?  8 : \
