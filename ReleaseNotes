@@ -24,11 +24,13 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
- 2.x.x - xxx xx, xxxx
+ 2.4.0 - Jun xx, 2018
     * Added constrained least squares routines (magma_[sdcz]gglse)
       and dependencies:
       magma_zggrqf - generalized RQ factorization
       magma_zunmrq - multiply by orthogonal Q as returned by zgerqf
+    * Performance improvements across many batch routines, including 
+      batched TRSM, batched LU, batched LU-nopiv, and batched Cholesky
 
  2.3.0 - Nov 15, 2017
     * Moved MAGMA's repository to Bitbucket: https://bitbucket.org/icl/magma
