@@ -128,9 +128,9 @@ magma_zunmrq(
     magma_int_t left, notran, lquery;
     magmaDoubleComplex *T, *T2;
     magma_int_t iinfo, i1, i2, step, ib, nb, mi, ni, nq, nw, nq_i;
-    static magma_int_t ldwork;
+    magma_int_t ldwork;
     magma_trans_t transt;
-    static magma_int_t lwkopt;
+    magma_int_t lwkopt;
 
     *info = 0;
     left   = (side == MagmaLeft);

@@ -61,10 +61,10 @@ magma_zlarfy(
     work (workspace) double complex array, dimension n
     */
 
-    static magma_int_t ione = 1;
-    static magmaDoubleComplex c_zero   =  MAGMA_Z_ZERO;
-    static magmaDoubleComplex c_neg_one=  MAGMA_Z_NEG_ONE;
-    static magmaDoubleComplex c_half   =  MAGMA_Z_HALF;
+    const magma_int_t ione = 1;
+    const magmaDoubleComplex c_zero   =  MAGMA_Z_ZERO;
+    const magmaDoubleComplex c_neg_one=  MAGMA_Z_NEG_ONE;
+    const magmaDoubleComplex c_half   =  MAGMA_Z_HALF;
     magmaDoubleComplex dtmp;
 
     /* X = AVtau */
