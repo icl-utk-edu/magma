@@ -131,7 +131,7 @@ magma_zgglse(magma_int_t m, magma_int_t n, magma_int_t p,
     mn = min(m,n);
     magma_int_t nb = magma_get_zgeqrf_nb( m, n );
     lwkopt = p + mn + max(m,n) * nb;
-    work[0] = MAGMA_Z_MAKE(lwkopt, 0.);
+    work[0] = magma_zmake_lwork( lwkopt );
     bool lquery = (lwork == -1);
     if (m < 0) {
         *info = -1;
@@ -234,7 +234,7 @@ magma_zgglse(magma_int_t m, magma_int_t n, magma_int_t p,
 
     /* Computing MAX */
     i__1 = p + mn + max(lopt, (magma_int_t) MAGMA_Z_REAL( work[p+mn] ) );
-    work[0] = MAGMA_Z_MAKE(i__1, 0.);
+    work[0] = magma_zmake_lwork( i__1 );
 
     return *info;
 } /* magma_zgglse */
