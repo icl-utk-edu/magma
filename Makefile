@@ -605,10 +605,10 @@ sparse/testing/clean:
 	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 $(libmagma_dynamic_obj): %.$(o_ext): %.cu
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dc -o $@ $<
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -I./sparse/include -dc -o $@ $<
 
 $(libmagma_dlink_obj): $(libmagma_dynamic_obj)
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -o $@ $^
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
 
 
 # ------------------------------------------------------------------------------

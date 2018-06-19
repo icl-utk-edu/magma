@@ -31,6 +31,15 @@ single (s), double (d), single-complex (c), double-complex (z).
       magma_zunmrq - multiply by orthogonal Q as returned by zgerqf
     * Performance improvements across many batch routines, including 
       batched TRSM, batched LU, batched LU-nopiv, and batched Cholesky
+      
+    MAGMA-sparse
+    * Changed the way how data from an external application is handled: 
+      There is now a clear distinction between memory allocated/used/freed from 
+      MAGMA and the user application.  
+      We added a functions magma_zvcopy and magma_zvpass that do not allocate 
+      memory, instead they copy values from/to application-allocated memory.
+    * The ecamples ( example/example_sparse.c ) gives a demonstration on how 
+      these routines should be used.
 
  2.3.0 - Nov 15, 2017
     * Moved MAGMA's repository to Bitbucket: https://bitbucket.org/icl/magma

@@ -15,7 +15,6 @@ cdir      := sparse/testing
 # ----------
 # utility functions
 sparse_testing_src += \
-	$(cdir)/testing_zthresselect.cpp	\
 	$(cdir)/testing_zblas.cpp             \
 	$(cdir)/testing_zmatrix.cpp           \
 	$(cdir)/testing_zio.cpp               \
@@ -64,7 +63,6 @@ sparse_testing_src += \
 # Big Data Analytics
 #sparse_testing_src += \
 	$(cdir)/testing_zjaccard.cpp              \
-	$(cdir)/testing_zthresselect.cpp          \
 
 # debugging
 sparse_testing_src += \
