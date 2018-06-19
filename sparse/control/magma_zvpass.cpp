@@ -9,9 +9,6 @@
        @author Hartwig Anzt
 */
 
-//  in this file, many routines are taken from
-//  the IO functions provided by MatrixMarket
-
 #include "magmasparse_internal.h"
 
 
