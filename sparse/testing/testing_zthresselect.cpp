@@ -88,7 +88,7 @@ int main(  int argc, char** argv )
         magma_free_cpu(val);
 
         printf( " %10d  %10d  %.8e  %10d %.4e %.4e\t\t %.3e\n", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), t_cpu );
-	}
+    }
     }
     
     magma_queue_destroy( queue );
