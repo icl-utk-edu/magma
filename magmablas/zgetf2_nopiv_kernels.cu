@@ -225,7 +225,7 @@ magma_zgetf2_nopiv_internal_batched(
         case 30: zgetf2_nopiv_batched_kernel<30, magma_ceilpow2(30)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
         case 31: zgetf2_nopiv_batched_kernel<31, magma_ceilpow2(31)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
         case 32: zgetf2_nopiv_batched_kernel<32, magma_ceilpow2(32)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        default: printf("error: panel width %d is not supported\n", n);
+        default: printf("error: panel width %lld is not supported\n", (long long) n);
     }
 
     if(m2 > 0){

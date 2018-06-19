@@ -1128,11 +1128,13 @@ magma_zgetf2_fused_batched(
     magma_queue_t queue)
 {
     if(m < 0 || m > ZGETF2_FUSED_BATCHED_MAX_ROWS) {
-        fprintf( stderr, "%s: m = %4d not supported, must be between 0 and %4d \n", __func__, m, ZGETF2_FUSED_BATCHED_MAX_ROWS);
+        fprintf( stderr, "%s: m = %4lld not supported, must be between 0 and %4lld\n",
+                 __func__, (long long) m, (long long) ZGETF2_FUSED_BATCHED_MAX_ROWS);
         return -1;
     }
     else if(n < 0 || n > 32){
-        fprintf( stderr, "%s: n = %4d not supported, must be between 0 and %4d \n", __func__, m, 32);
+        fprintf( stderr, "%s: n = %4lld not supported, must be between 0 and %4lld\n",
+                 __func__, (long long) m, (long long) 32);
         return -2;
     }
     magma_int_t ntcol = (m > 32)? 1 : (2 * (32/m));
@@ -1181,7 +1183,7 @@ magma_zgetf2_fused_batched(
         case 30: zgetf2_fused_batched_kernel<30><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
         case 31: zgetf2_fused_batched_kernel<31><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
         case 32: zgetf2_fused_batched_kernel<32><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        default: fprintf( stderr, "%s: n = %4d is not supported \n", __func__, n);
+        default: fprintf( stderr, "%s: n = %4lld is not supported \n", __func__, (long long) n);
     }
     return 0;
 }

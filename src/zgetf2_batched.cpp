@@ -200,7 +200,7 @@ magma_zgetf2_batched_v2(
         
         magmaDoubleComplex* aa;
         if(pprint){
-        printf("Panel(%d,%d):\n", ai, aj);
+        printf("Panel(%lld,%lld):\n", (long long) ai, (long long) aj);
         magma_getvector(1, sizeof(magmaDoubleComplex*), dA_array, 1, &aa, 1, queue);
         magma_zprint_gpu(4, 4, aa, ldda, queue);
         }
@@ -215,7 +215,7 @@ magma_zgetf2_batched_v2(
                 batchCount, queue);
 
         if(pprint){
-        printf("Swap Right(%d,%d):\n", ai, aj+n1);
+        printf("Swap Right(%lld,%lld):\n", (long long) ai, (long long) aj+n1);
         magma_zprint_gpu(4, 4, aa, ldda, queue);
         }
 
@@ -228,7 +228,9 @@ magma_zgetf2_batched_v2(
                 batchCount, queue );
 
         if(pprint){
-        printf("TRSM (%d,%d) with (%d,%d):\n", ai, aj, ai, aj+n1);
+        printf("TRSM (%lld,%lld) with (%lld,%lld):\n",
+               (long long) ai, (long long) aj,
+               (long long) ai, (long long) aj+n1);
         magma_zprint_gpu(4, 4, aa, ldda, queue);
         }
         
@@ -242,7 +244,10 @@ magma_zgetf2_batched_v2(
                 batchCount, queue );
 
         if(pprint){
-        printf("GEMM (%d,%d) - (%d,%d)x(%d,%d):\n", ai+n1, aj+n1, ai+n1, aj, ai, aj+n1);
+        printf("GEMM (%lld,%lld) - (%lld,%lld)x(%lld,%lld):\n",
+               (long long) ai+n1, (long long) aj+n1,
+               (long long) ai+n1, (long long) aj,
+               (long long) ai, (long long) aj+n1);
         magma_zprint_gpu(4, 4, aa, ldda, queue);
         }
 
@@ -254,7 +259,8 @@ magma_zgetf2_batched_v2(
                 batchCount, queue);
 
         if(pprint){
-        printf("Panel 2(%d,%d) size %d :\n", ai+n1, aj+n1, n1);
+        printf("Panel 2(%lld,%lld) size %lld:\n",
+               (long long) ai+n1, (long long) aj+n1, (long long) n1);
         magma_zprint_gpu(4, 4, aa, ldda, queue);
         }
 
@@ -269,7 +275,8 @@ magma_zgetf2_batched_v2(
                 batchCount, queue);
 
         if(pprint){
-        printf("Swap Left(%d,%d):\n", ai+n1, aj);
+        printf("Swap Left(%lld,%lld):\n",
+               (long long) ai+n1, (long long) aj);
         magma_zprint_gpu(4, 4, aa, ldda, queue);
         }
     }
