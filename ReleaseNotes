@@ -31,6 +31,7 @@ single (s), double (d), single-complex (c), double-complex (z).
       magma_zunmrq - multiply by orthogonal Q as returned by zgerqf
     * Performance improvements across many batch routines, including 
       batched TRSM, batched LU, batched LU-nopiv, and batched Cholesky
+    * Fixed some compilation issues with inf, nan, and nullptr.
       
     MAGMA-sparse
     * Changed the way how data from an external application is handled: 
