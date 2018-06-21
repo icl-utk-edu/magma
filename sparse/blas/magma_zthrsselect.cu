@@ -114,7 +114,7 @@ zthreshselect_kernel(
         #else
             //#pragma unroll
             for (int k=0; k<BLOCK_SIZE; k++) {
-        for (int t=0; t<THRS_PER_THREAD; t++) {
+                for (int t=0; t<THRS_PER_THREAD; t++) {
                     count[t] = (sval[k] < (gtidx*THRS_PER_THREAD+t)*thrs_inc*scaling) ? 
                                                     count[t]+1 : count[t];
                 }
@@ -126,7 +126,7 @@ zthreshselect_kernel(
             if ( tidx == 0 ){
                 thrs[bidx] = 0.0;
             }
-        return;
+            return;
         }
     }
     
@@ -173,7 +173,7 @@ magma_zreduce_thrs(
 #endif
 
     if ( tidx == 0 ){
-            thrs2[bidx] = maxval;
+        thrs2[bidx] = maxval;
     }
 }
 
