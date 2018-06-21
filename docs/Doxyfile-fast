@@ -976,6 +976,12 @@ INPUT                  = \
 	../magmablas/trmm_template_device.cuh                       \
 	../magmablas/trmm_template_kernel_batched.cuh               \
 	../magmablas/trmm_template_kernel_vbatched.cuh              \
+	../magmablas/trsm_config/ctrsm_param.h                      \
+	../magmablas/trsm_config/dtrsm_param.h                      \
+	../magmablas/trsm_config/strsm_param.h                      \
+	../magmablas/trsm_config/ztrsm_param.h                      \
+	../magmablas/trsm_template_device.cuh                       \
+	../magmablas/trsm_template_kernel_batched.cuh               \
 	../magmablas/vbatched_aux.cu                                \
 	../magmablas/vbatched_check.cu                              \
 	../magmablas/zaxpycp.cu                                     \
@@ -1008,6 +1014,7 @@ INPUT                  = \
 	../magmablas/zgerbt_kernels.cu                              \
 	../magmablas/zgetf2.cu                                      \
 	../magmablas/zgetf2_kernels.cu                              \
+	../magmablas/zgetf2_nopiv_kernels.cu                        \
 	../magmablas/zgetmatrix_transpose.cpp                       \
 	../magmablas/zgetmatrix_transpose_mgpu.cpp                  \
 	../magmablas/zgetrf_batched_smallsq_noshfl.cu               \
@@ -1086,6 +1093,8 @@ INPUT                  = \
 	../magmablas/ztrmm_vbatched_core.cu                         \
 	../magmablas/ztrsm.cu                                       \
 	../magmablas/ztrsm_batched.cpp                              \
+	../magmablas/ztrsm_batched_core.cpp                         \
+	../magmablas/ztrsm_small_batched.cu                         \
 	../magmablas/ztrsm_vbatched.cpp                             \
 	../magmablas/ztrsm_vbatched_core.cu                         \
 	../magmablas/ztrsv.cu                                       \
@@ -1111,9 +1120,13 @@ INPUT                  = \
 	../sparse/blas/magma_zcuspaxpy.cpp                          \
 	../sparse/blas/magma_zcuspmm.cpp                            \
 	../sparse/blas/magma_zdiagcheck.cu                          \
+	../sparse/blas/magma_zget_rowptr.cu                         \
 	../sparse/blas/magma_zlag2c.cpp                             \
 	../sparse/blas/magma_zmconjugate.cu                         \
 	../sparse/blas/magma_zmcsrcompressor_gpu.cu                 \
+	../sparse/blas/magma_zpreselect.cu                          \
+	../sparse/blas/magma_zthrsrm.cu                             \
+	../sparse/blas/magma_zthrsselect.cu                         \
 	../sparse/blas/zbajac_csr.cu                                \
 	../sparse/blas/zbajac_csr_overlap.cu                        \
 	../sparse/blas/zbcsrblockinfo.cu                            \
@@ -1122,6 +1135,7 @@ INPUT                  = \
 	../sparse/blas/zbcsrlupivloc.cu                             \
 	../sparse/blas/zbcsrswp.cu                                  \
 	../sparse/blas/zbcsrtrsv.cu                                 \
+	../sparse/blas/zcgecsrmv_mixed_prec.cu                      \
 	../sparse/blas/zcompact.cu                                  \
 	../sparse/blas/zge3pt.cu                                    \
 	../sparse/blas/zgeaxpy.cu                                   \
@@ -1146,6 +1160,7 @@ INPUT                  = \
 	../sparse/blas/zgesellcmv.cu                                \
 	../sparse/blas/zilu.cpp                                     \
 	../sparse/blas/zilut.cpp                                    \
+	../sparse/blas/zjaccard_weights.cu                          \
 	../sparse/blas/zjacobisetup.cu                              \
 	../sparse/blas/zlag2c_sparse.cu                             \
 	../sparse/blas/zlobpcg_maxpy.cu                             \
@@ -1169,6 +1184,8 @@ INPUT                  = \
 	../sparse/blas/zparic_kernels.cu                            \
 	../sparse/blas/zparilu.cpp                                  \
 	../sparse/blas/zparilu_kernels.cu                           \
+	../sparse/blas/zparilut_candidates.cu                       \
+	../sparse/blas/zparilut_kernels.cu                          \
 	../sparse/blas/zpipelinedgmres.cu                           \
 	../sparse/control/error.cpp                                 \
 	../sparse/control/magma_zcsrsplit.cpp                       \
@@ -1194,6 +1211,9 @@ INPUT                  = \
 	../sparse/control/magma_zmtransfer.cpp                      \
 	../sparse/control/magma_zmtranspose.cpp                     \
 	../sparse/control/magma_zmtranspose_cpu.cpp                 \
+	../sparse/control/magma_zparic_kernels.cpp                  \
+	../sparse/control/magma_zparilu_kernels.cpp                 \
+	../sparse/control/magma_zparilut_kernels.cpp                \
 	../sparse/control/magma_zpariluutils.cpp                    \
 	../sparse/control/magma_zselect.cpp                         \
 	../sparse/control/magma_zsolverinfo.cpp                     \
@@ -1241,6 +1261,7 @@ INPUT                  = \
 	../sparse/src/zfgmres.cpp                                   \
 	../sparse/src/zftjacobi.cpp                                 \
 	../sparse/src/zgeisai.cpp                                   \
+	../sparse/src/zgeisai_apply.cpp                             \
 	../sparse/src/zgeisai_lower.cpp                             \
 	../sparse/src/zgeisai_upper.cpp                             \
 	../sparse/src/zidr.cpp                                      \
@@ -1252,8 +1273,15 @@ INPUT                  = \
 	../sparse/src/zjacobidomainoverlap.cpp                      \
 	../sparse/src/zlobpcg.cpp                                   \
 	../sparse/src/zlsqr.cpp                                     \
+	../sparse/src/zparic_cpu.cpp                                \
+	../sparse/src/zparic_gpu.cpp                                \
 	../sparse/src/zparict.cpp                                   \
+	../sparse/src/zparict_cpu.cpp                               \
+	../sparse/src/zparilu_cpu.cpp                               \
+	../sparse/src/zparilu_gpu.cpp                               \
 	../sparse/src/zparilut.cpp                                  \
+	../sparse/src/zparilut_cpu.cpp                              \
+	../sparse/src/zparilut_gpu.cpp                              \
 	../sparse/src/zpbicg.cpp                                    \
 	../sparse/src/zpbicgstab.cpp                                \
 	../sparse/src/zpbicgstab_merge.cpp                          \
@@ -1384,6 +1412,8 @@ INPUT                  = \
 	../src/zgetrs_gpu.cpp                                       \
 	../src/zgetrs_nopiv_batched.cpp                             \
 	../src/zgetrs_nopiv_gpu.cpp                                 \
+	../src/zgglse.cpp                                           \
+	../src/zggrqf.cpp                                           \
 	../src/zheevd.cpp                                           \
 	../src/zheevd_gpu.cpp                                       \
 	../src/zheevd_m.cpp                                         \
@@ -1489,6 +1519,7 @@ INPUT                  = \
 	../src/zunmqr_2stage_gpu.cpp                                \
 	../src/zunmqr_gpu.cpp                                       \
 	../src/zunmqr_m.cpp                                         \
+	../src/zunmrq.cpp                                           \
 	../src/zunmtr.cpp                                           \
 	../src/zunmtr_gpu.cpp                                       \
 	../src/zunmtr_m.cpp                                         \
