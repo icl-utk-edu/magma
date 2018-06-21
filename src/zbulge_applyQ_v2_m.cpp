@@ -318,7 +318,7 @@ magma_zbulge_applyQ_v2_m(
          */
         else {
             printf("versionL 114 not implemented in zbulge_applyQ_v2_m\n");
-            exit(-1);
+            return MAGMA_ERR_NOT_IMPLEMENTED;
             mt    = magma_ceildiv((N-1),NB);
             for (blki = mt; blki > 0; blki--) {
                 /* nbcolinvolvd = number of column corresponding to this block_row (blki) */
@@ -364,7 +364,7 @@ magma_zbulge_applyQ_v2_m(
      */
     else {
         printf("Side 'R' not implemented in zbulge_applyQ_v2_m\n");
-        exit(-1);
+        return MAGMA_ERR_NOT_IMPLEMENTED;
         /*
          * Version 91:
          */

@@ -289,7 +289,7 @@ magma_zhetrd_he2hb_mgpu(
 
     if (upper) {
         printf("ZHETRD_HE2HB is not yet implemented for upper matrix storage. Exit.\n");
-        exit(1);
+        return MAGMA_ERR_NOT_IMPLEMENTED;
     } else {
         /* Reduce the lower triangle of A */
         for (i = 1; i <= n-nb; i += nb) {

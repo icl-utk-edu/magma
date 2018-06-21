@@ -38,7 +38,7 @@ extern "C" void  magma_dstedc_withZ(magma_vec_t JOBZ, magma_int_t N, double *D, 
         LIWORK = 256*N;
     } else {
         printf("ERROR JOBZ %c\n", JOBZ);
-        exit(-1);
+        return MAGMA_ERR_ILLEGAL_VALUE; 
     }
     
     magma_dmalloc_cpu( &WORK,  LWORK  );

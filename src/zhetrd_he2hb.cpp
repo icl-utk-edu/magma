@@ -243,7 +243,7 @@ magma_zhetrd_he2hb(
 
     if (upper) {
         printf("ZHETRD_HE2HB is not yet implemented for upper matrix storage. Exit.\n");
-        exit(1);
+        return MAGMA_ERR_NOT_IMPLEMENTED;
     } else {
         /* Copy the matrix to the GPU */
         if (1 <= n-nb) {
