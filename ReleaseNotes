@@ -24,7 +24,7 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
- 2.4.0 - Jun xx, 2018
+ 2.4.0 - Jun 25, 2018
     * Added constrained least squares routines (magma_[sdcz]gglse)
       and dependencies:
       magma_zggrqf - generalized RQ factorization
@@ -39,7 +39,7 @@ single (s), double (d), single-complex (c), double-complex (z).
       MAGMA and the user application.  
       We added a functions magma_zvcopy and magma_zvpass that do not allocate 
       memory, instead they copy values from/to application-allocated memory.
-    * The ecamples ( example/example_sparse.c ) gives a demonstration on how 
+    * The examples ( in example/example_sparse.c ) give a demonstration on how 
       these routines should be used.
 
  2.3.0 - Nov 15, 2017
