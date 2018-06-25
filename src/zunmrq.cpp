@@ -89,7 +89,7 @@
             On exit, if INFO = 0, WORK(1) returns the optimal LWORK.   
 
     @param[in]
-    LWORK   INTEGER   
+    lwork   INTEGER   
             The dimension of the array WORK.   
             If SIDE = 'L', LWORK >= max(1,N);   
             if SIDE = 'R', LWORK >= max(1,M).   
