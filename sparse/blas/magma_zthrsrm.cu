@@ -92,18 +92,6 @@ zcompute_nnz_kernel(
     Arguments
     ---------
                 
-    @param[in]
-    total_size  magma_int_t
-                size of array val
-                
-    @param[in]
-    subset_size magma_int_t
-                number of smallest elements to separate
-                
-    @param[in]
-    val         magmaDoubleComplex
-                array containing the values
-                
     @param[out]
     thrs        double*  
                 computed threshold

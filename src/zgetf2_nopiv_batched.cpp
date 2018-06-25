@@ -51,15 +51,6 @@
     ldda    INTEGER
             The leading dimension of each array A.  LDDA >= max(1,M).
 
-    @param
-    dW0_displ (workspace) Array of pointers, dimension (batchCount).
-    
-    @param
-    dW1_displ (workspace) Array of pointers, dimension (batchCount).
-
-    @param
-    dW2_displ (workspace) Array of pointers, dimension (batchCount).
-
     @param[out]
     info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
       -     = 0:  successful exit

@@ -689,29 +689,21 @@ void swap(magmaDoubleComplex *a, magmaDoubleComplex *b)
     Arguments
     ---------
     
-    @param[in,out]
-    val         magmaDoubleComplex*
-                Target array, will be modified during operation.
+    @param[in]                                                                                                                                                         
+    start       magma_int_t
+                Start position of the target array.
 
     @param[in]
     length      magma_int_t
                 Length of the target array.
 
+    @param[in,out]
+    seq         magmaDoubleComplex*
+                Target array, will be modified during operation.
+
     @param[in]
-    k           magma_int_t
-                Element to be identified (largest/smallest).
-                
-    @param[in]
-    inc         magma_int_t
-                Stepsize in the approximation.
-                
-    @param[in]
-    r           magma_int_t
-                rule how to sort: '1' -> largest, '0' -> smallest
-                
-    @param[out]
-    element     magmaDoubleComplex*
-                location of the respective element
+    flag        magma_int_t
+                ???
                 
     @param[in]
     queue       magma_queue_t

@@ -101,11 +101,11 @@ cleanup:
     Arguments
     ---------
 
-    @param[in]          
+    @param[in]
     start       magma_int_t
                 start of slice (row-index)
                 
-    @param[in]          
+    @param[in]
     end         magma_int_t
                 end of slice (row-index)
                 

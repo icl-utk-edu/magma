@@ -174,7 +174,7 @@ magma_zpipelinedscale(
     v           magmaDoubleComplex_ptr 
                 vector of length n
                 
-    @param[in]  
+    @param[in]
     skp         magmaDoubleComplex_ptr 
                 array of parameters
 

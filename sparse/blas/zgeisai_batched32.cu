@@ -342,22 +342,6 @@ magmaDoubleComplex *Mval )
     M           magma_z_matrix*
                 SPAI preconditioner CSR col-major
 
-    @param[out]
-    sizes       magma_int_t*
-                Number of Elements that are replaced.
-
-    @param[out]
-    locations   magma_int_t*
-                Array indicating the locations.
-
-    @param[out]
-    trisystems  magmaDoubleComplex*
-                trisystems
-
-    @param[out]
-    rhs         magmaDoubleComplex*
-                right-hand sides
-
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.

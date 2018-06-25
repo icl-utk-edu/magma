@@ -90,7 +90,7 @@ magma_zjaccardweights_kernel(
                 input matrix
 
     @param[out]
-    W           magma_z_matrix*
+    J           magma_z_matrix*
                 Jaccard weights
                 
     @param[in]

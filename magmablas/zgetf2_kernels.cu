@@ -288,7 +288,7 @@ void zswap_kernel_native( magma_int_t n,
 
 
     @param[in]
-    x_array     Array of pointers, dimension (batchCount).
+    dA_array  Array of pointers, dimension (batchCount).
             Each is a COMPLEX_16 array of dimension
 
 

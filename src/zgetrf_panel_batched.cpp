@@ -66,40 +66,6 @@
     @param[out]
     dpivinfo_array  Array of pointers, dimension (batchCount), for internal use.
 
-    @param[in,out]
-    dX_array       Array of pointers, dimension (batchCount).
-             Each is a COMPLEX_16 array X of dimension ( lddx, n ).
-             On entry, should be set to 0
-             On exit, the solution matrix X
-
-    @param[in]
-    dX_length    INTEGER.
-                 The size of each workspace matrix dX
-
-    @param[in,out]
-    dinvA_array    Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array dinvA, a workspace on device.
-            If side == MagmaLeft,  dinvA must be of size >= ceil(m/ZTRTRI_BATCHED_NB)*ZTRTRI_BATCHED_NB*ZTRTRI_BATCHED_NB,
-            If side == MagmaRight, dinvA must be of size >= ceil(n/ZTRTRI_BATCHED_NB)*ZTRTRI_BATCHED_NB*ZTRTRI_BATCHED_NB,
-
-    @param[in]
-    dinvA_length    INTEGER
-                   The size of each workspace matrix dinvA
-    @param[in]
-    dW1_displ  Workspace array of pointers, for internal use.
-
-    @param[in]
-    dW2_displ  Workspace array of pointers, for internal use.
-
-    @param[in]
-    dW3_displ  Workspace array of pointers, for internal use.
-
-    @param[in]
-    dW4_displ  Workspace array of pointers, for internal use.
-
-    @param[in]
-    dW5_displ  Workspace array of pointers, for internal use.
-
     @param[out]
     info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
       -     = 0:  successful exit
