@@ -200,6 +200,10 @@ magma_zreduce_thrs(
     ---------
                 
     @param[in]
+    sampling    magma_int_t
+                determines how many elements are considered (approximate method)
+                
+    @param[in]
     total_size  magma_int_t
                 size of array val
                 
