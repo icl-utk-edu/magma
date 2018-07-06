@@ -12,6 +12,10 @@
 // gcc -DTRACING -c trace.cpp
 #ifdef TRACING
 
+#include <cuda_runtime.h>
+#include "magma_internal.h"
+#include "magmablas_v1.h"
+
 // set TRACE_METHOD = 2 to record start time as
 // later of CPU time and previous event's end time.
 // set TRACE_METHOD = 1 to record start time using CUDA event.
