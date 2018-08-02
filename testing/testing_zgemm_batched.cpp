@@ -149,10 +149,18 @@ int main( int argc, char** argv)
             magma_zset_pointer( d_C_array, d_C, lddc, 0, 0, lddc*N,  batchCount, opts.queue );
 
             magma_time = magma_sync_wtime( opts.queue );
-            magmablas_zgemm_batched(opts.transA, opts.transB, M, N, K,
-                             alpha, d_A_array, ldda,
-                                    d_B_array, lddb,
-                             beta,  d_C_array, lddc, batchCount, opts.queue);
+            if(opts.version == 1){
+                magmablas_zgemm_batched(opts.transA, opts.transB, M, N, K,
+                                 alpha, d_A_array, ldda,
+                                        d_B_array, lddb,
+                                 beta,  d_C_array, lddc, batchCount, opts.queue);
+            }
+            else{
+                magmablas_zgemm_batched_strided(opts.transA, opts.transB, M, N, K,
+                                 alpha, d_A, ldda, ldda*An, 
+                                        d_B, lddb, lddb*Bn, 
+                                 beta,  d_C, lddc, lddc*N, batchCount, opts.queue);                
+            }
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
             magma_zgetmatrix( M, N*batchCount, d_C, lddc, h_Cmagma, ldc, opts.queue );
@@ -164,11 +172,20 @@ int main( int argc, char** argv)
 
             cublas_time = magma_sync_wtime( opts.queue );
 
-            cublasZgemmBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
-                               int(M), int(N), int(K),
-                               &alpha, (const magmaDoubleComplex**) d_A_array, int(ldda),
-                                       (const magmaDoubleComplex**) d_B_array, int(lddb),
-                               &beta,  d_C_array, int(lddc), int(batchCount) );
+            if(opts.version == 1){
+                cublasZgemmBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
+                                   int(M), int(N), int(K),
+                                   &alpha, (const magmaDoubleComplex**) d_A_array, int(ldda),
+                                           (const magmaDoubleComplex**) d_B_array, int(lddb),
+                                   &beta,  d_C_array, int(lddc), int(batchCount) );
+            }
+            else{
+                cublasZgemmStridedBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
+                                   int(M), int(N), int(K),
+                                   &alpha, (const magmaDoubleComplex*) d_A, int(ldda), ldda * An, 
+                                           (const magmaDoubleComplex*) d_B, int(lddb), lddb * Bn, 
+                                   &beta,  d_C, int(lddc), lddc*N, int(batchCount) );
+            }
 
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
             cublas_perf = gflops / cublas_time;
