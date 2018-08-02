@@ -120,6 +120,17 @@ magmablas_zgemm_batched(
     magmaDoubleComplex **dC_array, magma_int_t lddc, 
     magma_int_t batchCount, magma_queue_t queue );
 
+void
+magmablas_zgemm_batched_strided( 
+    magma_trans_t transA, magma_trans_t transB, 
+    magma_int_t m, magma_int_t n, magma_int_t k,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex const * dA, magma_int_t ldda, magma_int_t strideA, 
+    magmaDoubleComplex const * dB, magma_int_t lddb, magma_int_t strideB, 
+    magmaDoubleComplex beta,
+    magmaDoubleComplex       * dC, magma_int_t lddc, magma_int_t strideC,  
+    magma_int_t batchCount, magma_queue_t queue );
+
 void 
 magmablas_zsyrk_batched_core(
     magma_uplo_t uplo, magma_trans_t trans, 
