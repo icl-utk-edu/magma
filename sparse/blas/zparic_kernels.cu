@@ -76,7 +76,7 @@ magma_zparic_csr_kernel(
     This routine was used in the ISC 2015 paper:
     E. Chow et al.: "Asynchronous Iterative Algorithm for Computing Incomplete
                      Factorizations on GPUs", 
-                     ISC High Performance 2015, LNCS 9137, pp. 1Ð16, 2015.
+                     ISC High Performance 2015, LNCS 9137, pp. 1-16, 2015.
                      
     The input format of the initial guess matrix A is Magma_CSRCOO,
     A_CSR is CSR or CSRCOO format. 
