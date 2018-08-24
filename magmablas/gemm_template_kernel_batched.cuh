@@ -147,12 +147,20 @@ void gemm_template_batched_nn(
     magma_int_t roffC, magma_int_t coffC, 
     magma_int_t batchCount, magma_queue_t queue)
 {
-    dim3 dimBlock(DIM_X, DIM_Y);
-    dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), batchCount );
-    gemm_template_batched_nn_kernel
-        <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-        <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
-        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
+    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
+    magma_int_t batchCount_percall = batchCount/ncalls;
+
+    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
+    {
+        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
+
+        dim3 dimBlock(DIM_X, DIM_Y);
+        dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), this_batchCount );
+        gemm_template_batched_nn_kernel
+            <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
+            <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
+            (m, n, k, dA_array+batch_starting_id, ldda, dB_array+batch_starting_id, lddb, dC_array+batch_starting_id, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
+    }
 }
 
 
@@ -173,12 +181,20 @@ void gemm_template_batched_nt(
     magma_int_t roffC, magma_int_t coffC, 
     magma_int_t batchCount, magma_queue_t queue)
 {
-    dim3 dimBlock(DIM_X, DIM_Y);
-    dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), batchCount );
-    gemm_template_batched_nt_kernel
-        <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-        <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
-        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
+    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
+    magma_int_t batchCount_percall = batchCount/ncalls;
+
+    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
+    {
+        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
+
+        dim3 dimBlock(DIM_X, DIM_Y);
+        dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), this_batchCount );
+        gemm_template_batched_nt_kernel
+            <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
+            <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
+            (m, n, k, dA_array+batch_starting_id, ldda, dB_array+batch_starting_id, lddb, dC_array+batch_starting_id, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
+    }
 }
 
 
@@ -199,12 +215,20 @@ void gemm_template_batched_tn(
     magma_int_t roffC, magma_int_t coffC, 
     magma_int_t batchCount, magma_queue_t queue)
 {
-    dim3 dimBlock(DIM_X, DIM_Y);
-    dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), batchCount );
-    gemm_template_batched_tn_kernel
-        <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-        <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
-        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
+    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
+    magma_int_t batchCount_percall = batchCount/ncalls;
+
+    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
+    {
+        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
+
+        dim3 dimBlock(DIM_X, DIM_Y);
+        dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), this_batchCount );
+        gemm_template_batched_tn_kernel
+            <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
+            <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
+            (m, n, k, dA_array+batch_starting_id, ldda, dB_array+batch_starting_id, lddb, dC_array+batch_starting_id, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
+    }
 }
 
 
@@ -225,12 +249,21 @@ void gemm_template_batched_tt(
     magma_int_t roffC, magma_int_t coffC, 
     magma_int_t batchCount, magma_queue_t queue)
 {
-    dim3 dimBlock(DIM_X, DIM_Y);
-    dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), batchCount );
-    gemm_template_batched_tt_kernel
-        <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-        <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
-        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
+    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
+    magma_int_t batchCount_percall = batchCount/ncalls;
+
+    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
+    {
+        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
+
+        dim3 dimBlock(DIM_X, DIM_Y);
+        dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), this_batchCount );
+
+        gemm_template_batched_tt_kernel
+            <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
+            <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
+            (m, n, k, dA_array+batch_starting_id, ldda, dB_array+batch_starting_id, lddb, dC_array+batch_starting_id, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
+    }
 }
 
 #endif //GEMM_TEMPLATE_KERNEL_BATCHED_CUH

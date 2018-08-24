@@ -44,12 +44,20 @@ void gemvn_template_vbatched(
     magma_int_t max_m, magma_int_t max_n, 
     magma_int_t batchCount, magma_queue_t queue)
 {
-    dim3 grid    ( magma_ceildiv(max_m, TILE_SIZE), 1, batchCount );                                                
-    dim3 threads ( DIM_X, DIM_Y);
-    
-    gemvn_kernel_vbatched<T, DIM_X, DIM_Y, TILE_SIZE>
-        <<< grid, threads, 0, queue->cuda_stream() >>>                    
-        ( m, n, alpha, dA_array, ldda, dx_array, incx, beta, dy_array, incy );
+    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
+    magma_int_t batchCount_percall = batchCount/ncalls;
+
+    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
+    {
+        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
+
+        dim3 grid    ( magma_ceildiv(max_m, TILE_SIZE), 1, this_batchCount );                                                
+        dim3 threads ( DIM_X, DIM_Y);
+
+        gemvn_kernel_vbatched<T, DIM_X, DIM_Y, TILE_SIZE>
+            <<< grid, threads, 0, queue->cuda_stream() >>>                    
+            ( m, n, alpha, dA_array+batch_starting_id, ldda, dx_array+batch_starting_id, incx, beta, dy_array+batch_starting_id, incy );
+    }
 }
 
 
@@ -82,20 +90,28 @@ void gemvc_template_vbatched(
     magma_int_t max_m, magma_int_t max_n, 
     magma_int_t batchCount, magma_queue_t queue)
 {
-    dim3 grid    ( magma_ceildiv(max_n, TILE_SIZE), 1, batchCount );                                                
-    dim3 threads ( DIM_X, DIM_Y );
-    
-    if (trans == MagmaConjTrans)
-    {                         
-        gemvc_kernel_vbatched<T, DIM_X, DIM_Y, TILE_SIZE, MagmaConjTrans>
-            <<< grid, threads, 0, queue->cuda_stream() >>>                    
-            ( m, n, alpha, dA_array, ldda, dx_array, incx, beta, dy_array, incy );        
-    }
-    else if (trans == MagmaTrans)
+    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
+    magma_int_t batchCount_percall = batchCount/ncalls;
+
+    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
     {
-        gemvc_kernel_vbatched<T, DIM_X, DIM_Y, TILE_SIZE, MagmaTrans>
-            <<< grid, threads, 0, queue->cuda_stream() >>>                    
-            ( m, n, alpha, dA_array, ldda, dx_array, incx, beta, dy_array, incy );       
+        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
+
+        dim3 grid    ( magma_ceildiv(max_n, TILE_SIZE), 1, this_batchCount );                                                
+        dim3 threads ( DIM_X, DIM_Y );
+
+        if (trans == MagmaConjTrans)
+        {                         
+            gemvc_kernel_vbatched<T, DIM_X, DIM_Y, TILE_SIZE, MagmaConjTrans>
+                <<< grid, threads, 0, queue->cuda_stream() >>>                    
+                ( m, n, alpha, dA_array+batch_starting_id, ldda, dx_array+batch_starting_id, incx, beta, dy_array+batch_starting_id, incy );        
+        }
+        else if (trans == MagmaTrans)
+        {
+            gemvc_kernel_vbatched<T, DIM_X, DIM_Y, TILE_SIZE, MagmaTrans>
+                <<< grid, threads, 0, queue->cuda_stream() >>>                    
+                ( m, n, alpha, dA_array+batch_starting_id, ldda, dx_array+batch_starting_id, incx, beta, dy_array+batch_starting_id, incy );       
+        }
     }
 }
 
