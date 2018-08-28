@@ -113,6 +113,7 @@ libmagma_src += \
 	$(cdir)/dgemm_batched_core.cu		\
 	$(cdir)/sgemm_batched_core.cu		\
 	$(cdir)/zgemm_batched_core.cu		\
+	$(cdir)/zgemm_batched_smallsq.cu		\
 	$(cdir)/cgemv_batched_core.cu		\
 	$(cdir)/dgemv_batched_core.cu		\
 	$(cdir)/sgemv_batched_core.cu		\
@@ -186,6 +187,10 @@ libmagma_src += \
 	$(cdir)/prefix_sum.cu		\
 	$(cdir)/vbatched_aux.cu		\
 	$(cdir)/vbatched_check.cu		\
+
+# batch files ( host )
+libmagma_src += \
+	$(cdir)/blasf77_zbatched.cpp	\
 
 # ----------------------------------------------------------------------
 # extra include dependencies
