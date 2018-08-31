@@ -215,7 +215,7 @@ magmablas_dgemm_batched_core(
                 m, n, k, 
                 alpha, dA_array, Ai, Aj, ldda, 
                        dB_array, Bi, Bj, lddb, 
-                beta,  dC_array, Ci, Cj, lddc, 1, batchCount, queue );
+                beta,  dC_array, Ci, Cj, lddc, batchCount, queue );
         return;
     }
 
