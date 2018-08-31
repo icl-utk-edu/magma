@@ -22,6 +22,59 @@ extern "C" {
 /// @addtogroup magma_tuning
 /// @{
 
+// auxiliary function to determine the limit of use for the specialized batch gemm 
+// kernel on small square sizes (transpositions do not matter for this kernel)
+// helper function - intended for internal use only
+magma_int_t magma_get_zgemm_batched_smallsq_limit(magma_int_t n)
+{
+    magma_int_t arch = magma_getdevice_arch();
+    if      (arch <= 300) return 22; 
+    else if (arch <= 600) return 28;
+    else if (arch <= 700) return 27;
+    else                  return 16; 
+    
+}
+
+/******************************************************************************/
+/// @see magma_get_zgemm_batched_smallsq_limit
+magma_int_t magma_get_cgemm_batched_smallsq_limit(magma_int_t n)
+{
+    magma_int_t arch = magma_getdevice_arch();
+    if      (arch <= 300) return 22; 
+    else if (arch <= 600) return 20;
+    else if (arch <= 700) return 20;
+    else                  return 16; 
+    
+}
+
+/******************************************************************************/
+/// @see magma_get_zgemm_batched_smallsq_limit
+magma_int_t magma_get_dgemm_batched_smallsq_limit(magma_int_t n)
+{
+    magma_int_t arch = magma_getdevice_arch();
+    if      (arch <= 300) return 23; 
+    else if (arch <= 600) return 23;
+    else if (arch <= 700) return 22;
+    else                  return 16; 
+    
+}
+
+/******************************************************************************/
+/// @see magma_get_zgemm_batched_smallsq_limit
+magma_int_t magma_get_sgemm_batched_smallsq_limit(magma_int_t n)
+{
+    magma_int_t arch = magma_getdevice_arch();
+    if      (arch <= 300) return 29; 
+    else if (arch <= 600) return 31;
+    else if (arch <= 700) return 27;
+    else                  return 16; 
+    
+}
+
+// =============================================================================
+/// @addtogroup magma_tuning
+/// @{
+
 // Advisory functions used to determine if cuBLAS should be used for batched gemm
 // Decision is based on the dimensions and the shape
 // Two cuBLAS-based alternatives are used (batched vs streamed)
