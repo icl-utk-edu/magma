@@ -92,7 +92,6 @@ magmablas_zgemm_batched_smallsq(
     magmaDoubleComplex const * const * dB_array, magma_int_t bi, magma_int_t bj, magma_int_t lddb,
     magmaDoubleComplex beta,
     magmaDoubleComplex **dC_array, magma_int_t ci, magma_int_t cj, magma_int_t lddc, 
-    magma_int_t ntcol, 
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t info = 0;
@@ -128,7 +127,8 @@ magmablas_zgemm_batched_smallsq(
     }
 
     if ( m <= 0 || n <= 0 || k <= 0 ) return;
-
+    
+    magma_int_t ntcol  = magma_get_zgemm_batched_ntcol( m );
     magma_int_t shmem  = ( SLDA(m)*m + SLDA(n)*n ) * sizeof(magmaDoubleComplex);
                 shmem *= ntcol;
 
