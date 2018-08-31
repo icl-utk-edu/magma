@@ -210,7 +210,7 @@ magmablas_cgemm_batched_core(
         return;
 
     // special case for small square matrices 
-    if( m == n && n == k && m <= 32){
+    if( m == n && n == k && m <= magma_get_cgemm_batched_smallsq_limit(m)){
         magmablas_cgemm_batched_smallsq(
                 transA, transB, 
                 m, n, k, 
