@@ -56,7 +56,8 @@ magma_int_t magma_get_zpotrf_batched_crossover();
 
 void magma_get_zgetrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_t *recnb);
 magma_int_t magma_get_zgetrf_batched_ntcol(magma_int_t m, magma_int_t n);
-
+magma_int_t magma_get_zgemm_batched_ntcol(magma_int_t n);
+magma_int_t magma_get_zgemm_batched_smallsq_limit(magma_int_t n);
 magma_int_t magma_get_zgeqrf_batched_nb(magma_int_t m);
 magma_int_t magma_get_zgeqrf_batched_ntcol(magma_int_t m, magma_int_t n);
 magma_int_t magma_get_zgetri_batched_ntcol(magma_int_t m, magma_int_t n);
