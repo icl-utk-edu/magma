@@ -95,11 +95,11 @@ extern "C" {
 /***************************************************************************//**
     @return the ntcol value for very small xgemm_batched ( m = n = k)
 *******************************************************************************/
-magma_int_t magma_get_zgemm_batched_ntcol(magma_int_t n)
+magma_int_t magma_get_zgemm_batched_ntcol(magma_int_t m)
 {
     magma_int_t* ntcol_array; 
 
-    if(n < 0 || n > 32) return 1;
+    if(m < 0 || m > 32) return 1;
     
     magma_int_t arch = magma_getdevice_arch();
     if      (arch <= 300) ntcol_array = (magma_int_t*)zgemm_batched_ntcol_300; 
@@ -111,11 +111,11 @@ magma_int_t magma_get_zgemm_batched_ntcol(magma_int_t n)
 }
 
 /// @see magma_get_zgemm_batched_ntcol
-magma_int_t magma_get_cgemm_batched_ntcol(magma_int_t n)
+magma_int_t magma_get_cgemm_batched_ntcol(magma_int_t m)
 {
     magma_int_t* ntcol_array; 
 
-    if(n < 0 || n > 32) return 1;
+    if(m < 0 || m > 32) return 1;
     
     magma_int_t arch = magma_getdevice_arch();
     if      (arch <= 300) ntcol_array = (magma_int_t*)cgemm_batched_ntcol_300; 
@@ -127,11 +127,11 @@ magma_int_t magma_get_cgemm_batched_ntcol(magma_int_t n)
 }
 
 /// @see magma_get_zgemm_batched_ntcol
-magma_int_t magma_get_dgemm_batched_ntcol(magma_int_t n)
+magma_int_t magma_get_dgemm_batched_ntcol(magma_int_t m)
 {
     magma_int_t* ntcol_array; 
 
-    if(n < 0 || n > 32) return 1;
+    if(m < 0 || m > 32) return 1;
     
     magma_int_t arch = magma_getdevice_arch();
     if      (arch <= 300) ntcol_array = (magma_int_t*)dgemm_batched_ntcol_300; 
@@ -143,11 +143,11 @@ magma_int_t magma_get_dgemm_batched_ntcol(magma_int_t n)
 }
 
 /// @see magma_get_zgemm_batched_ntcol
-magma_int_t magma_get_sgemm_batched_ntcol(magma_int_t n)
+magma_int_t magma_get_sgemm_batched_ntcol(magma_int_t m)
 {
     magma_int_t* ntcol_array; 
 
-    if(n < 0 || n > 32) return 1;
+    if(m < 0 || m > 32) return 1;
     
     magma_int_t arch = magma_getdevice_arch();
     if      (arch <= 300) ntcol_array = (magma_int_t*)sgemm_batched_ntcol_300; 
