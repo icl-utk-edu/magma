@@ -599,6 +599,11 @@ magma_zsolverinfo_init(
     precond_par->cuinfoU = NULL;
     precond_par->cuinfoLT = NULL;
     precond_par->cuinfoUT = NULL;
+    
+    precond_par->L_dgraphindegree = NULL;
+    precond_par->U_dgraphindegree = NULL;
+    precond_par->L_dgraphindegree_bak = NULL;
+    precond_par->U_dgraphindegree_bak = NULL;
 
 cleanup:
     if( info != 0 ){
