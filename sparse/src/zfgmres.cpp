@@ -201,7 +201,7 @@ magma_zfgmres(
             break;
         }
         
-        if (solver_par->numiter == 0){
+        if (solver_par->numiter == 1){
             solver_par->init_res = MAGMA_Z_REAL( beta );
             resid0 = MAGMA_Z_REAL( beta );
         

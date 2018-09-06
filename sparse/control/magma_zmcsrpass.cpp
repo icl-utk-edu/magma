@@ -72,6 +72,7 @@ magma_zcsrset(
     A->num_rows = m;
     A->num_cols = n;
     A->nnz = row[m];
+    A->true_nnz = row[m];
     A->storage_type = Magma_CSR;
     A->memory_location = Magma_CPU;
     A->val = val;
