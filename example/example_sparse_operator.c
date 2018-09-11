@@ -72,7 +72,6 @@ int main( int argc, char** argv )
     magma_dmfree( &db, queue );
     magma_dmfree( &dA, queue );
     magma_dmfree( &b, queue );  // won't do anything as MAGMA does not own the data. 
-    magma_dmfree( &A, queue );  // won't do anything as MAGMA does not own the data. 
     
     // and finalize MAGMA.
     magma_queue_destroy( queue );
