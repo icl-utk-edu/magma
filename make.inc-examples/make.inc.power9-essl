@@ -1,0 +1,87 @@
+#//////////////////////////////////////////////////////////////////////////////
+#   -- MAGMA (version 2.2.0) --
+#      Univ. of Tennessee, Knoxville
+#      Univ. of California, Berkeley
+#      Univ. of Colorado, Denver
+#      @date November 2016
+#//////////////////////////////////////////////////////////////////////////////
+
+# GPU_TARGET contains one or more of Fermi, Kepler, or Maxwell,
+# to specify for which GPUs you want to compile MAGMA:
+#     Fermi   - NVIDIA compute capability 2.x cards
+#     Kepler  - NVIDIA compute capability 3.x cards
+#     Maxwell - NVIDIA compute capability 5.x cards
+#     Pascal  - NVIDIA compute capability 6.x cards
+# The default is "Fermi Kepler".
+# Note that NVIDIA no longer supports 1.x cards, as of CUDA 6.5.
+# See http://developer.nvidia.com/cuda-gpus
+#
+#GPU_TARGET ?= Fermi Kepler Volta
+
+# --------------------
+# programs
+
+CC        = gcc
+CXX       = g++
+NVCC      = nvcc
+FORT      = gfortran
+
+ARCH      = ar
+ARCHFLAGS = cr
+RANLIB    = ranlib
+
+
+# --------------------
+# flags
+
+# Use -fPIC to make shared (.so) and static (.a) library;
+# can be commented out if making only static library.
+FPIC      = -fPIC
+
+CFLAGS    = -O3 -ffast-math $(FPIC) -fopenmp -DNDEBUG -DNOCHANGE -Wall -Wshadow 
+FFLAGS    = -O3 -ffast-math $(FPIC)          -DNDEBUG -DNOCHANGE -Wall -Wno-unused-dummy-argument
+F90FLAGS  = -O3 -ffast-math $(FPIC)          -DNDEBUG -DNOCHANGE -Wall -Wno-unused-dummy-argument -x f95-cpp-input
+NVCCFLAGS = -O3                   -DNDEBUG -DNOCHANGE -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+LDFLAGS   =     -ffast-math $(FPIC) -fopenmp
+
+# C++11 (gcc >= 4.7) is not required, but has benefits like atomic operations
+CXXFLAGS := $(CFLAGS) -std=c++11
+CFLAGS   += -std=c99
+
+
+# --------------------
+# libraries
+
+# see MKL Link Advisor at http://software.intel.com/sites/products/mkl/
+# gcc/gfortran with MKL 10.3, GNU OpenMP threads (use -fopenmp in CFLAGS, LDFLAGS)
+LIB       = -lesslsmp -lpthread -lstdc++ -lm -lgfortran -llapack 
+#LIB       = -llapack -lblas -lpthread -lstdc++ -lm -lgfortran
+
+# Supposedly, gcc can use Intel threads (libiomp5) instead, but be careful that
+# libiomp5 and libgomp are NOT BOTH linked. Above, we use gnu threads as a safer option.
+# gcc/gfortran with MKL 10.3, Intel OpenMP threads (remove -fopenmp from LDFLAGS above)
+#LIB       = -lmkl_gf_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lstdc++ -lm -lgfortran
+
+LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
+
+
+# --------------------
+# directories
+
+# define library directories preferably in your environment, or here.
+# for MKL run, e.g.: source /opt/intel/composerxe/mkl/bin/mklvars.sh intel64
+#MKLROOT ?= /opt/intel/composerxe/mkl
+#CUDADIR ?= /usr/local/cuda
+#-include make.check-mkl
+#-include make.check-cuda
+
+#OLCF_NETLIB_LAPACK_ROOT
+#OLCF_ESSL_ROOT
+
+LIBDIR    = -L$(OLCF_CUDA_ROOT)/lib64 \
+            -L$(OLCF_ESSL_ROOT)/lib64 -L$(OLCF_NETLIB_LAPACK_ROOT)
+
+INC       = -I$(OLCF_CUDA_ROOT)/include \
+            -I$(OLCF_ESSL_ROOT)/include -I$(OLCF_NETLIB_LAPACK_ROOT)
+
+
