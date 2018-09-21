@@ -52,31 +52,19 @@ CFLAGS   += -std=c99
 # --------------------
 # libraries
 
-# see MKL Link Advisor at http://software.intel.com/sites/products/mkl/
-# gcc/gfortran with MKL 10.3, GNU OpenMP threads (use -fopenmp in CFLAGS, LDFLAGS)
+# ESSL is not LAPACK complete, so reference LAPACK must be added
 LIB       = -lesslsmp -lpthread -lstdc++ -lm -lgfortran -llapack 
-#LIB       = -llapack -lblas -lpthread -lstdc++ -lm -lgfortran
-
-# Supposedly, gcc can use Intel threads (libiomp5) instead, but be careful that
-# libiomp5 and libgomp are NOT BOTH linked. Above, we use gnu threads as a safer option.
-# gcc/gfortran with MKL 10.3, Intel OpenMP threads (remove -fopenmp from LDFLAGS above)
-#LIB       = -lmkl_gf_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lstdc++ -lm -lgfortran
 
 LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
-
 
 # --------------------
 # directories
 
 # define library directories preferably in your environment, or here.
-# for MKL run, e.g.: source /opt/intel/composerxe/mkl/bin/mklvars.sh intel64
-#MKLROOT ?= /opt/intel/composerxe/mkl
-#CUDADIR ?= /usr/local/cuda
-#-include make.check-mkl
+#OLCF_ESSL_ROOT ?= /opt/essl
+#OLCF_CUDA_ROOT ?= /usr/local/cuda
 #-include make.check-cuda
-
-#OLCF_NETLIB_LAPACK_ROOT
-#OLCF_ESSL_ROOT
+#OLCF_NETLIB_LAPACK_ROOT ?= /opt/netlib-lapack
 
 LIBDIR    = -L$(OLCF_CUDA_ROOT)/lib64 \
             -L$(OLCF_ESSL_ROOT)/lib64 -L$(OLCF_NETLIB_LAPACK_ROOT)
