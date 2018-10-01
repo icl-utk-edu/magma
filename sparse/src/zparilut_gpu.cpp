@@ -11,9 +11,6 @@
 */
 
 #include "magmasparse_internal.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 #define PRECISION_z
 
@@ -74,8 +71,6 @@ magma_zparilut_gpu(
     magma_queue_t queue)
 {
     magma_int_t info = 0;
-    
-#ifdef _OPENMP
 
     real_Double_t start, end;
     real_Double_t t_rm=0.0, t_add=0.0, t_res=0.0, t_sweep1=0.0, t_sweep2=0.0, 
@@ -84,8 +79,7 @@ magma_zparilut_gpu(
                     
     double sum, sumL, sumU;
 
-    magma_z_matrix hA={Magma_CSR}, hAT={Magma_CSR}, hL={Magma_CSR}, 
-        hU={Magma_CSR}, oneL={Magma_CSR}, oneU={Magma_CSR},
+    magma_z_matrix hA={Magma_CSR}, hAT={Magma_CSR}, hL={Magma_CSR}, hU={Magma_CSR},
         L={Magma_CSR}, U={Magma_CSR}, L_new={Magma_CSR}, U_new={Magma_CSR}, 
         UT={Magma_CSR}, L0={Magma_CSR}, U0={Magma_CSR};
     magma_z_matrix dA={Magma_CSR}, dL={Magma_CSR}, dhL={Magma_CSR}, dU={Magma_CSR}, dUT={Magma_CSR}, dhU={Magma_CSR}, dL0={Magma_CSR}, dU0={Magma_CSR}, dLt={Magma_CSR}, dUt={Magma_CSR} ; 
@@ -95,11 +89,6 @@ magma_zparilut_gpu(
 
     magma_int_t num_threads = 1, timing = 1; // print timing
     magma_int_t L0nnz, U0nnz;
-
-    #pragma omp parallel
-    {
-        num_threads = omp_get_max_threads();
-    }
     
     CHECK(magma_zmtransfer(A, &hA, A.memory_location, Magma_CPU, queue));
     
@@ -127,8 +116,6 @@ magma_zparilut_gpu(
     CHECK(magma_zmtransfer(U, &dU, Magma_CPU, Magma_DEV, queue));
     L0nnz=L.nnz;
     U0nnz=U.nnz;
-    oneL.memory_location = Magma_CPU;
-    oneU.memory_location = Magma_CPU;
         
     if (timing == 1) {
         printf("ilut_fill_ratio = %.6f;\n\n", precond->atol);  
@@ -232,39 +219,16 @@ magma_zparilut_gpu(
         num_rmU = max((dU.nnz-U0nnz*(1+(precond->atol-1.)
             *(iters+1)/precond->sweeps)), 0);
         // pre-select: ignore the diagonal entries
-        CHECK(magma_zpreselect_gpu(0, &dL, &oneL, queue));
-        CHECK(magma_zpreselect_gpu(0, &dU, &oneU, queue));
         if (num_rmL>0) {
-            magma_z_matrix hLr={Magma_CSR};
-            hLr.nnz = oneL.nnz;
-            magma_zmalloc_cpu( &hLr.val, hLr.nnz );
-            magma_zgetvector( oneL.nnz , oneL.dval, 1, hLr.val, 1, queue );
-            
-            CHECK(magma_zparilut_set_thrs_randomselect_approx(num_rmL, 
-                &hLr, 0, &thrsL, queue));
-            magma_zmfree(&hLr, queue);
-            
-            //CHECK(magma_zthrsholdselect(10, oneL.nnz, num_rmL, 
-            //    oneL.dval, &thrsL, queue));
+            CHECK(magma_zsampleselect(dL.nnz, num_rmL, dL.dval, &thrsL, queue));
         } else {
             thrsL = 0.0;
         }
         if (num_rmU>0) {
-             magma_z_matrix hUr={Magma_CSR};
-             hUr.nnz = oneU.nnz;
-             magma_zmalloc_cpu( &hUr.val, hUr.nnz );
-             magma_zgetvector( oneU.nnz , oneU.dval, 1, hUr.val, 1, queue );
-             
-             CHECK(magma_zparilut_set_thrs_randomselect_approx(num_rmL, 
-                 &hUr, 0, &thrsU, queue));
-             magma_zmfree(&hUr, queue);
-            //CHECK(magma_zthrsholdselect(10, oneU.nnz, num_rmU, 
-            //    oneU.dval, &thrsU, queue));
+            CHECK(magma_zsampleselect(dU.nnz, num_rmU, dU.dval, &thrsU, queue));
         } else {
             thrsU = 0.0;
         }
-        magma_zmfree(&oneL, queue);
-        magma_zmfree(&oneU, queue);
         end = magma_sync_wtime(queue); t_selectrm=end-start;
         
         // step 9: remove elements
@@ -340,6 +304,5 @@ cleanup:
     magma_zmfree(&U_new, queue);
     magma_zmfree(&hL, queue);
     magma_zmfree(&hU, queue);
-#endif
     return info;
 }

@@ -24,7 +24,7 @@ RANLIB     ?= ranlib
 
 # may want -std=c99 for CFLAGS, -std=c++11 for CXXFLAGS
 CFLAGS     ?= -O3 $(FPIC) -DADD_ -Wall -MMD
-CXXFLAGS   ?= $(CFLAGS)
+CXXFLAGS   ?= $(CFLAGS) -std=c++11
 NVCCFLAGS  ?= -O3         -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
 FFLAGS     ?= -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS   ?= -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
@@ -32,8 +32,8 @@ LDFLAGS    ?= -O3 $(FPIC)
 
 INC        ?= -I$(CUDADIR)/include
 
-LIBDIR     ?= -L$(CUDADIR)/lib
-LIB        ?= -lcudart -lcublas -lcusparse -llapack -lblas
+LIBDIR     ?= -L$(CUDADIR)/lib64
+LIB        ?= -lcudart -lcublas -lcusparse -llapack -lblas -lpthread -lm
 
 GPU_TARGET ?= Kepler Maxwell Pascal
 
@@ -68,11 +68,8 @@ codegen    = python tools/codegen.py
 # ------------------------------------------------------------------------------
 # NVCC options for the different cards
 # First, add smXX for architecture names
-ifneq ($(findstring Fermi, $(GPU_TARGET)),)
-    GPU_TARGET += sm_20
-endif
 ifneq ($(findstring Kepler, $(GPU_TARGET)),)
-    GPU_TARGET += sm_30 sm_35
+    GPU_TARGET += sm_35
 endif
 ifneq ($(findstring Maxwell, $(GPU_TARGET)),)
     GPU_TARGET += sm_50

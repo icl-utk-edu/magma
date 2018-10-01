@@ -64,6 +64,7 @@ libsparse_src += \
 	$(cdir)/zparilut_kernels.cu           \
 	$(cdir)/zparilut_candidates.cu        \
 	$(cdir)/magma_zthrsrm.cu	      \
+	$(cdir)/magma_zsampleselect.cu        \
 	$(cdir)/magma_zpreselect.cu           \
 
 # Auxiliary routines
@@ -100,6 +101,14 @@ libsparse_src += \
 libsparse_src += \
 	$(cdir)/zgecscsyncfreetrsm.cu         \
 # add some additional compiler flags for those
+custom_nvccflags_obj = \
+	$(cdir)/magma_zsampleselect.o \
+	$(cdir)/magma_csampleselect.o \
+	$(cdir)/magma_dsampleselect.o \
+	$(cdir)/magma_ssampleselect.o \
+
+$(custom_nvccflags_obj): NVCCFLAGS += -std=c++11 -rdc=true
+
 custom_nvccflags_obj = \
 	$(cdir)/sgecscsyncfreetrsm.o \
 	$(cdir)/dgecscsyncfreetrsm.o \
