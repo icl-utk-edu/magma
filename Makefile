@@ -189,6 +189,7 @@ libmagma_src         :=
 libmagma_dynamic_src :=
 testing_src          :=
 libsparse_src        :=
+libsparse_dynamic_src:=
 sparse_testing_src   :=
 
 subdirs := \
@@ -242,6 +243,12 @@ ifneq ($(libmagma_dynamic_src),)
 libmagma_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libmagma_dynamic_all)))
 libmagma_dlink_obj   := magmablas/dynamic.link.o
 libmagma_obj         += $(libmagma_dynamic_obj) $(libmagma_dlink_obj)
+endif
+
+ifneq ($(libsparse_dynamic_src),)
+libsparse_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libsparse_dynamic_all)))
+libsparse_dlink_obj   := sparse/blas/dynamic.link.o
+libsparse_obj         += $(libsparse_dynamic_obj) $(libsparse_dlink_obj)
 endif
 
 deps :=
@@ -607,6 +614,11 @@ $(libmagma_dynamic_obj): %.$(o_ext): %.cu
 $(libmagma_dlink_obj): $(libmagma_dynamic_obj)
 	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
 
+$(libsparse_dynamic_obj): %.$(o_ext): %.cu
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -I./sparse/include -dc -o $@ $<
+
+$(libsparse_dlink_obj): $(libsparse_dynamic_obj)
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
 
 # ------------------------------------------------------------------------------
 # library rules
