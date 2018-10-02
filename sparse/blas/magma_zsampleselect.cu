@@ -12,6 +12,7 @@
 
 #include <limits>
 #include <type_traits>
+#include <iostream>
 #include "magmasparse_internal.h"
 #undef max
 
@@ -423,6 +424,19 @@ __global__ void count_buckets(const T* __restrict__ in,
     }
 }
 
+__global__ void reduce_counts(const int* __restrict__ in,
+                              int* __restrict__ out,
+                              int num_blocks) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < searchtree_width) {
+        int sum{};
+        for (int i = 0; i < num_blocks; ++i) {
+            sum += in[idx + i * searchtree_width];
+        }
+        out[idx] = sum;
+    }
+}
+
 __global__ void prefix_sum_counts(magma_int_t* __restrict__ in,
                                   magma_int_t* __restrict__ out,
                                   magma_int_t num_blocks) {
@@ -595,6 +609,23 @@ __global__ typename std::enable_if<!std::is_arithmetic<T>::value>::type compute_
     out[idx] = v.x * v.x + v.y * v.y;
 }
 
+magma_int_t realloc_if_necessary(magma_ptr *ptr, magma_int_t *size, magma_int_t required_size) {
+    magma_int_t info = 0;
+    std::cout << "realloc " << *ptr << " " << *size << " " << required_size;
+    if (*size < required_size) {
+        auto newsize = required_size * 5 / 4;
+        std::cout << ", reallocating to " << newsize;
+        CHECK(magma_free(*ptr));
+        CHECK(magma_malloc(ptr, newsize));
+        std::cout << ", resulting ptr " << *ptr;
+        *size = newsize;
+    }
+
+cleanup:
+    std::cout << std::endl;
+    return info;
+}
+
 } // anonymous namespace
 
 /**
@@ -623,6 +654,16 @@ __global__ typename std::enable_if<!std::is_arithmetic<T>::value>::type compute_
     thrs        double*
                 computed threshold
 
+    @param[inout]
+    tmp_ptr     magma_ptr*
+                pointer to pointer to temporary storage.
+                May be reallocated during execution.
+
+    @param[inout]
+    tmp_size    magma_int_t*
+                pointer to size of temporary storage.
+                May be increased during execution.
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -636,22 +677,24 @@ magma_zsampleselect(
     magma_int_t subset_size,
     magmaDoubleComplex *val,
     double *thrs,
+    magma_ptr *tmp_ptr,
+    magma_int_t *tmp_size,
     magma_queue_t queue )
 {    
     magma_int_t info = 0;
 
     magma_int_t num_blocks = magma_ceildiv(total_size, block_size);
+    magma_int_t required_size = sizeof(double) * (total_size * 2 + searchtree_size)
+                                + sizeof(int) * sampleselect_alloc_size(total_size);
+    auto realloc_result = realloc_if_necessary(tmp_ptr, tmp_size, required_size);
 
-    double* gputmp1{};
-    double* gputmp2{};
-    double* gputree{};
-    double* gpuresult{};
-    magma_int_t* gpuints{};
-    CHECK(magma_dmalloc(&gputmp1, total_size));
-    CHECK(magma_dmalloc(&gputmp2, total_size));
-    CHECK(magma_dmalloc(&gputree, searchtree_size));
-    CHECK(magma_imalloc(&gpuints, sampleselect_alloc_size(total_size)));
-    CHECK(magma_dmalloc(&gpuresult, 1));
+    double* gputmp1 = (double*)*tmp_ptr;
+    double* gputmp2 = gputmp1 + total_size;
+    double* gputree = gputmp2 + total_size;
+    double* gpuresult = gputree + searchtree_size;
+    magma_int_t* gpuints = (int*)(gpuresult + 1);
+
+    CHECK(realloc_result);
 
     compute_abs<<<num_blocks, block_size, 0, queue->cuda_stream()>>>
         (val, gputmp1, total_size);
@@ -661,11 +704,94 @@ magma_zsampleselect(
     *thrs = std::sqrt(*thrs);
 
 cleanup:
-    magma_free(gpuresult);
-    magma_free(gpuints);
-    magma_free(gputree);
-    magma_free(gputmp2);
-    magma_free(gputmp1);
+    return info;
+}
 
+/**
+    Purpose
+    -------
+
+    This routine selects an approximate threshold separating the subset_size
+    smallest magnitude elements from the rest.
+
+    Arguments
+    ---------
+
+    @param[in]
+    total_size  magma_int_t
+                size of array val
+
+    @param[in]
+    subset_size magma_int_t
+                number of smallest elements to separate
+
+    @param[in]
+    val         magmaDoubleComplex
+                array containing the values
+
+    @param[out]
+    thrs        double*
+                computed threshold
+
+    @param[inout]
+    tmp_ptr     magma_ptr*
+                pointer to pointer to temporary storage.
+                May be reallocated during execution.
+
+    @param[inout]
+    tmp_size    magma_int_t*
+                pointer to size of temporary storage.
+                May be increased during execution.
+
+    @param[in]
+    queue       magma_queue_t
+                Queue to execute in.
+
+    @ingroup magmasparse_zaux
+    ********************************************************************/
+
+extern "C" magma_int_t
+magma_zsampleselect_approx(
+    magma_int_t total_size,
+    magma_int_t subset_size,
+    magmaDoubleComplex *val,
+    double *thrs,
+    magma_ptr *tmp_ptr,
+    magma_int_t *tmp_size,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+
+    auto num_blocks = magma_ceildiv(total_size, block_size);
+    auto local_work = (total_size + num_threads - 1) / num_threads;
+    auto required_size = sizeof(double) * (total_size + searchtree_size)
+                         + sizeof(int) * (searchtree_width * (num_grouped_blocks + 1) + 1);
+    auto realloc_result = realloc_if_necessary(tmp_ptr, tmp_size, required_size);
+
+    double* gputmp = (double*)*tmp_ptr;
+    double* gputree = gputmp + total_size;
+    unsigned* gpubucketidx = (unsigned*)(gputree + searchtree_size);
+    magma_int_t* gpurankout = (magma_int_t*)(gpubucketidx + 1);
+    magma_int_t* gpucounts = gpurankout + 1;
+    magma_int_t* gpulocalcounts = gpucounts + searchtree_width;
+    magma_int_t bucketidx{};
+
+    CHECK(realloc_result);
+
+    compute_abs<<<num_blocks, block_size, 0, queue->cuda_stream()>>>
+        (val, gputmp, total_size);
+    build_searchtree<double><<<1, sample_size, 0, queue->cuda_stream()>>>
+        (gputmp, gputree, total_size);
+    count_buckets<double,1,1,0><<<num_grouped_blocks, block_size, 0, queue->cuda_stream()>>>
+        (gputmp, gputree, gpulocalcounts, nullptr, total_size, local_work);
+    reduce_counts<<<searchtree_width, num_grouped_blocks, 0, queue->cuda_stream()>>>
+        (gpulocalcounts, gpucounts, num_grouped_blocks);
+    sampleselect_findbucket<<<1, searchtree_width / 2, 0, queue->cuda_stream()>>>
+        (gpucounts, subset_size, gpubucketidx, gpurankout);
+    magma_igetvector(1, (magma_int_t*)gpubucketidx, 1, &bucketidx, 1, queue);
+    magma_dgetvector(1, gputree + searchtree_width - 1 + bucketidx, 1, thrs, 1, queue);
+    *thrs = std::sqrt(*thrs);
+
+cleanup:
     return info;
 }
