@@ -84,6 +84,8 @@ magma_zparilut_gpu(
         UT={Magma_CSR}, L0={Magma_CSR}, U0={Magma_CSR};
     magma_z_matrix dA={Magma_CSR}, dL={Magma_CSR}, dhL={Magma_CSR}, dU={Magma_CSR}, dUT={Magma_CSR}, dhU={Magma_CSR}, dL0={Magma_CSR}, dU0={Magma_CSR}, dLt={Magma_CSR}, dUt={Magma_CSR} ; 
     magma_int_t num_rmL, num_rmU;
+    magma_int_t selecttmp_size = 0;
+    magma_ptr selecttmp_ptr = nullptr;
     double thrsL = 0.0;
     double thrsU = 0.0;
 
@@ -116,7 +118,7 @@ magma_zparilut_gpu(
     CHECK(magma_zmtransfer(U, &dU, Magma_CPU, Magma_DEV, queue));
     L0nnz=L.nnz;
     U0nnz=U.nnz;
-        
+
     if (timing == 1) {
         printf("ilut_fill_ratio = %.6f;\n\n", precond->atol);  
         printf("performance_%d = [\n%%iter      L.nnz      U.nnz    ILU-Norm    transp    candidat  resid     sort    transcand    add      sweep1   selectrm    remove    sweep2     total       accum\n", 
@@ -220,12 +222,12 @@ magma_zparilut_gpu(
             *(iters+1)/precond->sweeps)), 0);
         // pre-select: ignore the diagonal entries
         if (num_rmL>0) {
-            CHECK(magma_zsampleselect(dL.nnz, num_rmL, dL.dval, &thrsL, queue));
+            CHECK(magma_zsampleselect(dL.nnz, num_rmL, dL.dval, &thrsL, &selecttmp_ptr, &selecttmp_size, queue));
         } else {
             thrsL = 0.0;
         }
         if (num_rmU>0) {
-            CHECK(magma_zsampleselect(dU.nnz, num_rmU, dU.dval, &thrsU, queue));
+            CHECK(magma_zsampleselect(dU.nnz, num_rmU, dU.dval, &thrsU, &selecttmp_ptr, &selecttmp_size, queue));
         } else {
             thrsU = 0.0;
         }

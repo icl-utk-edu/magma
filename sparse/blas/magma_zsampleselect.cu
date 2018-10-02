@@ -12,7 +12,6 @@
 
 #include <limits>
 #include <type_traits>
-#include <iostream>
 #include "magmasparse_internal.h"
 #undef max
 
@@ -611,18 +610,14 @@ __global__ typename std::enable_if<!std::is_arithmetic<T>::value>::type compute_
 
 magma_int_t realloc_if_necessary(magma_ptr *ptr, magma_int_t *size, magma_int_t required_size) {
     magma_int_t info = 0;
-    std::cout << "realloc " << *ptr << " " << *size << " " << required_size;
     if (*size < required_size) {
         auto newsize = required_size * 5 / 4;
-        std::cout << ", reallocating to " << newsize;
         CHECK(magma_free(*ptr));
         CHECK(magma_malloc(ptr, newsize));
-        std::cout << ", resulting ptr " << *ptr;
         *size = newsize;
     }
 
 cleanup:
-    std::cout << std::endl;
     return info;
 }
 
