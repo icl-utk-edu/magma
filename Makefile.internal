@@ -50,11 +50,25 @@ cleanall: cleanmake
 cleanmake:
 	-rm -f Makefile.gen Makefile.src CMake.src
 
+# preprocessed headers for Fortran wrappers
+wrapper_headers = \
+	include/magma_s.i \
+	include/magma_d.i \
+	include/magma_c.i \
+	include/magma_z.i \
+	include/magmablas_s.i \
+	include/magmablas_d.i \
+	include/magmablas_c.i \
+	include/magmablas_z.i \
+
 # generate Fortran wrappers directly from the headers
-wrappers: include/magma_s.i include/magma_d.i include/magma_c.i include/magma_z.i
+wrappers: $(wrapper_headers)
 	tools/fortran_wrappers.pl include/magma_s.i
 	tools/fortran_wrappers.pl include/magma_d.i
 	tools/fortran_wrappers.pl include/magma_c.i
 	tools/fortran_wrappers.pl include/magma_z.i
-	mv magma_[sdcz]f77.cpp magma_[sdcz]fortran.F90 control/
+	tools/fortran_wrappers.pl include/magmablas_s.i
+	tools/fortran_wrappers.pl include/magmablas_d.i
+	tools/fortran_wrappers.pl include/magmablas_c.i
+	tools/fortran_wrappers.pl include/magmablas_z.i
 	rm $^

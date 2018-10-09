@@ -761,7 +761,9 @@ subs = {
     
     # ----- data types    
     ('REAL',           'DOUBLE PRECISION', 'REAL',         'DOUBLE PRECISION'),
+    ('real',           'double precision', 'real',         'double precision'),
     ('REAL',           'DOUBLE PRECISION', 'COMPLEX',      'COMPLEX\*16'     ),
+    ('real',           'double precision', 'complex',      'complex\*16'     ),
     ('real',           'double',           'complex',      'complex16'       ),
     ('c_float',        'c_double',         'c_float_complex', 'c_double_complex'),
     ('real',           'real',             'complex',      'complex'         ),

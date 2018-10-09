@@ -13,82 +13,93 @@ implicit none
 !---- Fortran interfaces to MAGMA subroutines ----
 interface
 
+integer function magmaf_get_dlaex3_m_nb(  )
+end
+
 integer function magmaf_get_dpotrf_nb( n )
-    integer :: n
-end function magmaf_get_dpotrf_nb
+    integer          :: n
+end
 
 integer function magmaf_get_dgetrf_nb( m, n )
-    integer :: m, n
-end function magmaf_get_dgetrf_nb
+    integer          :: m
+    integer          :: n
+end
 
 integer function magmaf_get_dgetri_nb( n )
-    integer :: n
-end function magmaf_get_dgetri_nb
+    integer          :: n
+end
 
 integer function magmaf_get_dsytrf_nb( n )
-    integer :: n
-end function magmaf_get_dsytrf_nb
+    integer          :: n
+end
 
 integer function magmaf_get_dsytrf_nopiv_nb( n )
-    integer :: n
-end function magmaf_get_dsytrf_nopiv_nb
+    integer          :: n
+end
 
 integer function magmaf_get_dsytrf_aasen_nb( n )
-    integer :: n
-end function magmaf_get_dsytrf_aasen_nb
+    integer          :: n
+end
 
 integer function magmaf_get_dgeqp3_nb( m, n )
-    integer :: m, n
-end function magmaf_get_dgeqp3_nb
+    integer          :: m
+    integer          :: n
+end
 
 integer function magmaf_get_dgeqrf_nb( m, n )
-    integer :: m, n
-end function magmaf_get_dgeqrf_nb
+    integer          :: m
+    integer          :: n
+end
 
 integer function magmaf_get_dgeqlf_nb( m, n )
-    integer :: m, n
-end function magmaf_get_dgeqlf_nb
+    integer          :: m
+    integer          :: n
+end
 
 integer function magmaf_get_dgelqf_nb( m, n )
-    integer :: m, n
-end function magmaf_get_dgelqf_nb
+    integer          :: m
+    integer          :: n
+end
 
 integer function magmaf_get_dgehrd_nb( n )
-    integer :: n
-end function magmaf_get_dgehrd_nb
+    integer          :: n
+end
 
 integer function magmaf_get_dsytrd_nb( n )
-    integer :: n
-end function magmaf_get_dsytrd_nb
+    integer          :: n
+end
 
 integer function magmaf_get_dsygst_nb( n )
-    integer :: n
-end function magmaf_get_dsygst_nb
+    integer          :: n
+end
 
 integer function magmaf_get_dsygst_m_nb( n )
-    integer :: n
-end function magmaf_get_dsygst_m_nb
+    integer          :: n
+end
 
 integer function magmaf_get_dgebrd_nb( m, n )
-    integer :: m, n
-end function magmaf_get_dgebrd_nb
+    integer          :: m
+    integer          :: n
+end
 
 integer function magmaf_get_dgesvd_nb( m, n )
-    integer :: m, n
-end function magmaf_get_dgesvd_nb
+    integer          :: m
+    integer          :: n
+end
 
-integer function magmaf_get_dbulge_nb( m, n )
-    integer :: m, n
-end function magmaf_get_dbulge_nb
+integer function magmaf_get_dbulge_nb( n, nbthreads )
+    integer          :: n
+    integer          :: nbthreads
+end
 
-subroutine magmaf_get_dbulge_vblksiz( n, nb, nbthreads )
+integer function magmaf_get_dbulge_vblksiz( n, nb, nbthreads )
     integer          :: n
     integer          :: nb
     integer          :: nbthreads
-end subroutine magmaf_get_dbulge_vblksiz
+end
 
-subroutine magmaf_get_dbulge_gcperf(  )
-end subroutine magmaf_get_dbulge_gcperf
+integer function magmaf_get_dbulge_gcperf(  )
+end
 
 subroutine magmaf_dmove_eig( range, n, w, il, iu, vl, vu, mout )
     character        :: range
@@ -99,7 +110,7 @@ subroutine magmaf_dmove_eig( range, n, w, il, iu, vl, vu, mout )
     double precision :: vl
     double precision :: vu
     integer          :: mout(*)
-end subroutine magmaf_dmove_eig
+end
 
 subroutine magmaf_dvrange( k, d, il, iu, vl, vu )
     integer          :: k
@@ -108,7 +119,7 @@ subroutine magmaf_dvrange( k, d, il, iu, vl, vu )
     integer          :: iu(*)
     double precision :: vl
     double precision :: vu
-end subroutine magmaf_dvrange
+end
 
 subroutine magmaf_dirange( k, indxq, iil, iiu, il, iu )
     integer          :: k
@@ -117,7 +128,7 @@ subroutine magmaf_dirange( k, indxq, iil, iiu, il, iu )
     integer          :: iiu(*)
     integer          :: il
     integer          :: iu
-end subroutine magmaf_dirange
+end
 
 subroutine magmaf_dgebrd( m, n, A, lda, d, e, tauq, taup, work, lwork, info )
     integer          :: m
@@ -131,7 +142,7 @@ subroutine magmaf_dgebrd( m, n, A, lda, d, e, tauq, taup, work, lwork, info )
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgebrd
+end
 
 subroutine magmaf_dgeev( jobvl, jobvr, n, A, lda, wr, wi, VL, ldvl, VR, ldvr, work,  &
         lwork, info )
@@ -149,7 +160,7 @@ subroutine magmaf_dgeev( jobvl, jobvr, n, A, lda, wr, wi, VL, ldvl, VR, ldvr, wo
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgeev
+end
 
 subroutine magmaf_dgeev_m( jobvl, jobvr, n, A, lda, wr, wi, VL, ldvl, VR, ldvr, work,  &
         lwork, info )
@@ -167,7 +178,7 @@ subroutine magmaf_dgeev_m( jobvl, jobvr, n, A, lda, wr, wi, VL, ldvl, VR, ldvr, 
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgeev_m
+end
 
 subroutine magmaf_dgegqr_gpu( ikind, m, n, dA, ldda, dwork, work, info )
     integer          :: ikind
@@ -178,7 +189,7 @@ subroutine magmaf_dgegqr_gpu( ikind, m, n, dA, ldda, dwork, work, info )
     magma_devptr_t   :: dwork
     double precision :: work(*)
     integer          :: info
-end subroutine magmaf_dgegqr_gpu
+end
 
 subroutine magmaf_dgehrd( n, ilo, ihi, A, lda, tau, work, lwork, dT, info )
     integer          :: n
@@ -191,7 +202,7 @@ subroutine magmaf_dgehrd( n, ilo, ihi, A, lda, tau, work, lwork, dT, info )
     integer          :: lwork
     magma_devptr_t   :: dT
     integer          :: info
-end subroutine magmaf_dgehrd
+end
 
 subroutine magmaf_dgehrd_m( n, ilo, ihi, A, lda, tau, work, lwork, T, info )
     integer          :: n
@@ -204,7 +215,7 @@ subroutine magmaf_dgehrd_m( n, ilo, ihi, A, lda, tau, work, lwork, T, info )
     integer          :: lwork
     double precision :: T(*)
     integer          :: info
-end subroutine magmaf_dgehrd_m
+end
 
 subroutine magmaf_dgehrd2( n, ilo, ihi, A, lda, tau, work, lwork, info )
     integer          :: n
@@ -216,7 +227,7 @@ subroutine magmaf_dgehrd2( n, ilo, ihi, A, lda, tau, work, lwork, info )
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgehrd2
+end
 
 subroutine magmaf_dgelqf( m, n, A, lda, tau, work, lwork, info )
     integer          :: m
@@ -227,7 +238,7 @@ subroutine magmaf_dgelqf( m, n, A, lda, tau, work, lwork, info )
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgelqf
+end
 
 subroutine magmaf_dgelqf_gpu( m, n, dA, ldda, tau, work, lwork, info )
     integer          :: m
@@ -238,7 +249,7 @@ subroutine magmaf_dgelqf_gpu( m, n, dA, ldda, tau, work, lwork, info )
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgelqf_gpu
+end
 
 subroutine magmaf_dgels( trans, m, n, nrhs, A, lda, B, ldb, hwork, lwork, info )
     character        :: trans
@@ -252,7 +263,38 @@ subroutine magmaf_dgels( trans, m, n, nrhs, A, lda, B, ldb, hwork, lwork, info )
     double precision :: hwork(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgels
+end
+
+subroutine magmaf_dggrqf( m, p, n, A, lda, taua, B, ldb, taub, work, lwork, info )
+    integer          :: m
+    integer          :: p
+    integer          :: n
+    double precision :: A(*)
+    integer          :: lda
+    double precision :: taua(*)
+    double precision :: B(*)
+    integer          :: ldb
+    double precision :: taub(*)
+    double precision :: work(*)
+    integer          :: lwork
+    integer          :: info
+end
+
+subroutine magmaf_dgglse( m, n, p, A, lda, B, ldb, c, d, x, work, lwork, info )
+    integer          :: m
+    integer          :: n
+    integer          :: p
+    double precision :: A(*)
+    integer          :: lda
+    double precision :: B(*)
+    integer          :: ldb
+    double precision :: c(*)
+    double precision :: d(*)
+    double precision :: x(*)
+    double precision :: work(*)
+    integer          :: lwork
+    integer          :: info
+end
 
 subroutine magmaf_dgels_gpu( trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info )
     character        :: trans
@@ -266,7 +308,7 @@ subroutine magmaf_dgels_gpu( trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork
     double precision :: hwork(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgels_gpu
+end
 
 subroutine magmaf_dgels3_gpu( trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwork, info )
     character        :: trans
@@ -280,7 +322,7 @@ subroutine magmaf_dgels3_gpu( trans, m, n, nrhs, dA, ldda, dB, lddb, hwork, lwor
     double precision :: hwork(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgels3_gpu
+end
 
 subroutine magmaf_dgeqlf( m, n, A, lda, tau, work, lwork, info )
     integer          :: m
@@ -291,7 +333,7 @@ subroutine magmaf_dgeqlf( m, n, A, lda, tau, work, lwork, info )
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgeqlf
+end
 
 subroutine magmaf_dgeqp3( m, n, A, lda, jpvt, tau, work, lwork, info )
     integer          :: m
@@ -303,7 +345,7 @@ subroutine magmaf_dgeqp3( m, n, A, lda, jpvt, tau, work, lwork, info )
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgeqp3
+end
 
 subroutine magmaf_dgeqp3_gpu( m, n, dA, ldda, jpvt, tau, dwork, lwork, info )
     integer          :: m
@@ -315,7 +357,7 @@ subroutine magmaf_dgeqp3_gpu( m, n, dA, ldda, jpvt, tau, dwork, lwork, info )
     magma_devptr_t   :: dwork
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgeqp3_gpu
+end
 
 subroutine magmaf_dgeqr2x_gpu( m, n, dA, ldda, dtau, dT, ddA, dwork, info )
     integer          :: m
@@ -327,7 +369,7 @@ subroutine magmaf_dgeqr2x_gpu( m, n, dA, ldda, dtau, dT, ddA, dwork, info )
     magma_devptr_t   :: ddA
     magma_devptr_t   :: dwork
     integer          :: info
-end subroutine magmaf_dgeqr2x_gpu
+end
 
 subroutine magmaf_dgeqr2x2_gpu( m, n, dA, ldda, dtau, dT, ddA, dwork, info )
     integer          :: m
@@ -339,7 +381,7 @@ subroutine magmaf_dgeqr2x2_gpu( m, n, dA, ldda, dtau, dT, ddA, dwork, info )
     magma_devptr_t   :: ddA
     magma_devptr_t   :: dwork
     integer          :: info
-end subroutine magmaf_dgeqr2x2_gpu
+end
 
 subroutine magmaf_dgeqr2x3_gpu( m, n, dA, ldda, dtau, dT, ddA, dwork, info )
     integer          :: m
@@ -351,7 +393,7 @@ subroutine magmaf_dgeqr2x3_gpu( m, n, dA, ldda, dtau, dT, ddA, dwork, info )
     magma_devptr_t   :: ddA
     magma_devptr_t   :: dwork
     integer          :: info
-end subroutine magmaf_dgeqr2x3_gpu
+end
 
 subroutine magmaf_dgeqr2x4_gpu( m, n, dA, ldda, dtau, dT, ddA, dwork, queue, info )
     integer          :: m
@@ -362,9 +404,9 @@ subroutine magmaf_dgeqr2x4_gpu( m, n, dA, ldda, dtau, dT, ddA, dwork, queue, inf
     magma_devptr_t   :: dT
     magma_devptr_t   :: ddA
     magma_devptr_t   :: dwork
-    integer          :: queue
+    magma_devptr_t   :: queue
     integer          :: info
-end subroutine magmaf_dgeqr2x4_gpu
+end
 
 subroutine magmaf_dgeqrf( m, n, A, lda, tau, work, lwork, info )
     integer          :: m
@@ -375,7 +417,7 @@ subroutine magmaf_dgeqrf( m, n, A, lda, tau, work, lwork, info )
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgeqrf
+end
 
 subroutine magmaf_dgeqrf_gpu( m, n, dA, ldda, tau, dT, info )
     integer          :: m
@@ -385,7 +427,7 @@ subroutine magmaf_dgeqrf_gpu( m, n, dA, ldda, tau, dT, info )
     double precision :: tau(*)
     magma_devptr_t   :: dT
     integer          :: info
-end subroutine magmaf_dgeqrf_gpu
+end
 
 subroutine magmaf_dgeqrf_m( ngpu, m, n, A, lda, tau, work, lwork, info )
     integer          :: ngpu
@@ -397,7 +439,7 @@ subroutine magmaf_dgeqrf_m( ngpu, m, n, A, lda, tau, work, lwork, info )
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgeqrf_m
+end
 
 subroutine magmaf_dgeqrf_ooc( m, n, A, lda, tau, work, lwork, info )
     integer          :: m
@@ -408,7 +450,7 @@ subroutine magmaf_dgeqrf_ooc( m, n, A, lda, tau, work, lwork, info )
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgeqrf_ooc
+end
 
 subroutine magmaf_dgeqrf2_gpu( m, n, dA, ldda, tau, info )
     integer          :: m
@@ -417,7 +459,7 @@ subroutine magmaf_dgeqrf2_gpu( m, n, dA, ldda, tau, info )
     integer          :: ldda
     double precision :: tau(*)
     integer          :: info
-end subroutine magmaf_dgeqrf2_gpu
+end
 
 subroutine magmaf_dgeqrf3_gpu( m, n, dA, ldda, tau, dT, info )
     integer          :: m
@@ -427,7 +469,7 @@ subroutine magmaf_dgeqrf3_gpu( m, n, dA, ldda, tau, dT, info )
     double precision :: tau(*)
     magma_devptr_t   :: dT
     integer          :: info
-end subroutine magmaf_dgeqrf3_gpu
+end
 
 subroutine magmaf_dgeqrs_gpu( m, n, nrhs, dA, ldda, tau, dT, dB, lddb, hwork, lwork, info  &
         )
@@ -443,7 +485,7 @@ subroutine magmaf_dgeqrs_gpu( m, n, nrhs, dA, ldda, tau, dT, dB, lddb, hwork, lw
     double precision :: hwork(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgeqrs_gpu
+end
 
 subroutine magmaf_dgeqrs3_gpu( m, n, nrhs, dA, ldda, tau, dT, dB, lddb, hwork, lwork,  &
         info )
@@ -459,7 +501,7 @@ subroutine magmaf_dgeqrs3_gpu( m, n, nrhs, dA, ldda, tau, dT, dB, lddb, hwork, l
     double precision :: hwork(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgeqrs3_gpu
+end
 
 subroutine magmaf_dgerbt_gpu( gen, n, nrhs, dA, ldda, dB, lddb, U, V, info )
     character        :: gen
@@ -472,7 +514,7 @@ subroutine magmaf_dgerbt_gpu( gen, n, nrhs, dA, ldda, dB, lddb, U, V, info )
     double precision :: U(*)
     double precision :: V(*)
     integer          :: info
-end subroutine magmaf_dgerbt_gpu
+end
 
 subroutine magmaf_dgerfs_nopiv_gpu( trans, n, nrhs, dA, ldda, dB, lddb, dX, lddx, dworkd,  &
         dAF, iter, info )
@@ -489,7 +531,7 @@ subroutine magmaf_dgerfs_nopiv_gpu( trans, n, nrhs, dA, ldda, dB, lddb, dX, lddx
     magma_devptr_t   :: dAF
     integer          :: iter
     integer          :: info
-end subroutine magmaf_dgerfs_nopiv_gpu
+end
 
 subroutine magmaf_dgesdd( jobz, m, n, A, lda, s, U, ldu, VT, ldvt, work, lwork, iwork,  &
         info )
@@ -507,7 +549,7 @@ subroutine magmaf_dgesdd( jobz, m, n, A, lda, s, U, ldu, VT, ldvt, work, lwork, 
     integer          :: lwork
     integer          :: iwork(*)
     integer          :: info
-end subroutine magmaf_dgesdd
+end
 
 subroutine magmaf_dgesv( n, nrhs, A, lda, ipiv, B, ldb, info )
     integer          :: n
@@ -518,7 +560,7 @@ subroutine magmaf_dgesv( n, nrhs, A, lda, ipiv, B, ldb, info )
     double precision :: B(*)
     integer          :: ldb
     integer          :: info
-end subroutine magmaf_dgesv
+end
 
 subroutine magmaf_dgesv_gpu( n, nrhs, dA, ldda, ipiv, dB, lddb, info )
     integer          :: n
@@ -529,7 +571,7 @@ subroutine magmaf_dgesv_gpu( n, nrhs, dA, ldda, ipiv, dB, lddb, info )
     magma_devptr_t   :: dB
     integer          :: lddb
     integer          :: info
-end subroutine magmaf_dgesv_gpu
+end
 
 subroutine magmaf_dgesv_nopiv_gpu( n, nrhs, dA, ldda, dB, lddb, info )
     integer          :: n
@@ -539,7 +581,7 @@ subroutine magmaf_dgesv_nopiv_gpu( n, nrhs, dA, ldda, dB, lddb, info )
     magma_devptr_t   :: dB
     integer          :: lddb
     integer          :: info
-end subroutine magmaf_dgesv_nopiv_gpu
+end
 
 subroutine magmaf_dgesv_rbt( ref, n, nrhs, A, lda, B, ldb, info )
     character        :: ref
@@ -550,7 +592,7 @@ subroutine magmaf_dgesv_rbt( ref, n, nrhs, A, lda, B, ldb, info )
     double precision :: B(*)
     integer          :: ldb
     integer          :: info
-end subroutine magmaf_dgesv_rbt
+end
 
 subroutine magmaf_dgesvd( jobu, jobvt, m, n, A, lda, s, U, ldu, VT, ldvt, work, lwork,  &
         info )
@@ -568,7 +610,7 @@ subroutine magmaf_dgesvd( jobu, jobvt, m, n, A, lda, s, U, ldu, VT, ldvt, work, 
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgesvd
+end
 
 subroutine magmaf_dgetf2_gpu( m, n, dA, ldda, ipiv, queue, info )
     integer          :: m
@@ -576,9 +618,9 @@ subroutine magmaf_dgetf2_gpu( m, n, dA, ldda, ipiv, queue, info )
     magma_devptr_t   :: dA
     integer          :: ldda
     integer          :: ipiv(*)
-    integer          :: queue
+    magma_devptr_t   :: queue
     integer          :: info
-end subroutine magmaf_dgetf2_gpu
+end
 
 subroutine magmaf_dgetf2_nopiv( m, n, A, lda, info )
     integer          :: m
@@ -586,7 +628,7 @@ subroutine magmaf_dgetf2_nopiv( m, n, A, lda, info )
     double precision :: A(*)
     integer          :: lda
     integer          :: info
-end subroutine magmaf_dgetf2_nopiv
+end
 
 subroutine magmaf_dgetrf( m, n, A, lda, ipiv, info )
     integer          :: m
@@ -595,7 +637,7 @@ subroutine magmaf_dgetrf( m, n, A, lda, ipiv, info )
     integer          :: lda
     integer          :: ipiv(*)
     integer          :: info
-end subroutine magmaf_dgetrf
+end
 
 subroutine magmaf_dgetrf_gpu( m, n, dA, ldda, ipiv, info )
     integer          :: m
@@ -604,7 +646,7 @@ subroutine magmaf_dgetrf_gpu( m, n, dA, ldda, ipiv, info )
     integer          :: ldda
     integer          :: ipiv(*)
     integer          :: info
-end subroutine magmaf_dgetrf_gpu
+end
 
 subroutine magmaf_dgetrf_m( ngpu, m, n, A, lda, ipiv, info )
     integer          :: ngpu
@@ -614,7 +656,7 @@ subroutine magmaf_dgetrf_m( ngpu, m, n, A, lda, ipiv, info )
     integer          :: lda
     integer          :: ipiv(*)
     integer          :: info
-end subroutine magmaf_dgetrf_m
+end
 
 subroutine magmaf_dgetrf_nopiv( m, n, A, lda, info )
     integer          :: m
@@ -622,7 +664,7 @@ subroutine magmaf_dgetrf_nopiv( m, n, A, lda, info )
     double precision :: A(*)
     integer          :: lda
     integer          :: info
-end subroutine magmaf_dgetrf_nopiv
+end
 
 subroutine magmaf_dgetrf_nopiv_gpu( m, n, dA, ldda, info )
     integer          :: m
@@ -630,7 +672,7 @@ subroutine magmaf_dgetrf_nopiv_gpu( m, n, dA, ldda, info )
     magma_devptr_t   :: dA
     integer          :: ldda
     integer          :: info
-end subroutine magmaf_dgetrf_nopiv_gpu
+end
 
 subroutine magmaf_dgetri_gpu( n, dA, ldda, ipiv, dwork, lwork, info )
     integer          :: n
@@ -640,7 +682,7 @@ subroutine magmaf_dgetri_gpu( n, dA, ldda, ipiv, dwork, lwork, info )
     magma_devptr_t   :: dwork
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dgetri_gpu
+end
 
 subroutine magmaf_dgetrs_gpu( trans, n, nrhs, dA, ldda, ipiv, dB, lddb, info )
     character        :: trans
@@ -652,7 +694,7 @@ subroutine magmaf_dgetrs_gpu( trans, n, nrhs, dA, ldda, ipiv, dB, lddb, info )
     magma_devptr_t   :: dB
     integer          :: lddb
     integer          :: info
-end subroutine magmaf_dgetrs_gpu
+end
 
 subroutine magmaf_dgetrs_nopiv_gpu( trans, n, nrhs, dA, ldda, dB, lddb, info )
     character        :: trans
@@ -663,7 +705,7 @@ subroutine magmaf_dgetrs_nopiv_gpu( trans, n, nrhs, dA, ldda, dB, lddb, info )
     magma_devptr_t   :: dB
     integer          :: lddb
     integer          :: info
-end subroutine magmaf_dgetrs_nopiv_gpu
+end
 
 subroutine magmaf_dsyevd( jobz, uplo, n, A, lda, w, work, lwork, iwork, liwork, info )
     character        :: jobz
@@ -677,7 +719,7 @@ subroutine magmaf_dsyevd( jobz, uplo, n, A, lda, w, work, lwork, iwork, liwork, 
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsyevd
+end
 
 subroutine magmaf_dsyevd_gpu( jobz, uplo, n, dA, ldda, w, wA, ldwa, work, lwork, iwork,  &
         liwork, info )
@@ -694,7 +736,7 @@ subroutine magmaf_dsyevd_gpu( jobz, uplo, n, dA, ldda, w, wA, ldwa, work, lwork,
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsyevd_gpu
+end
 
 subroutine magmaf_dsyevd_m( ngpu, jobz, uplo, n, A, lda, w, work, lwork, iwork, liwork,  &
         info )
@@ -710,7 +752,7 @@ subroutine magmaf_dsyevd_m( ngpu, jobz, uplo, n, A, lda, w, work, lwork, iwork, 
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsyevd_m
+end
 
 subroutine magmaf_dsyevdx( jobz, range, uplo, n, A, lda, vl, vu, il, iu, mout, w, work,  &
         lwork, iwork, liwork, info )
@@ -731,7 +773,7 @@ subroutine magmaf_dsyevdx( jobz, range, uplo, n, A, lda, vl, vu, il, iu, mout, w
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsyevdx
+end
 
 subroutine magmaf_dsyevdx_gpu( jobz, range, uplo, n, dA, ldda, vl, vu, il, iu, mout, w,  &
         wA, ldwa, work, lwork, iwork, liwork, info )
@@ -754,7 +796,7 @@ subroutine magmaf_dsyevdx_gpu( jobz, range, uplo, n, dA, ldda, vl, vu, il, iu, m
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsyevdx_gpu
+end
 
 subroutine magmaf_dsyevdx_m( ngpu, jobz, range, uplo, n, A, lda, vl, vu, il, iu, mout, w,  &
         work, lwork, iwork, liwork, info )
@@ -776,7 +818,7 @@ subroutine magmaf_dsyevdx_m( ngpu, jobz, range, uplo, n, A, lda, vl, vu, il, iu,
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsyevdx_m
+end
 
 subroutine magmaf_dsyevdx_2stage( jobz, range, uplo, n, A, lda, vl, vu, il, iu, mout, w,  &
         work, lwork, iwork, liwork, info )
@@ -797,7 +839,7 @@ subroutine magmaf_dsyevdx_2stage( jobz, range, uplo, n, A, lda, vl, vu, il, iu, 
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsyevdx_2stage
+end
 
 subroutine magmaf_dsyevdx_2stage_m( ngpu, jobz, range, uplo, n, A, lda, vl, vu, il, iu,  &
         mout, w, work, lwork, iwork, liwork, info )
@@ -819,7 +861,7 @@ subroutine magmaf_dsyevdx_2stage_m( ngpu, jobz, range, uplo, n, A, lda, vl, vu, 
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsyevdx_2stage_m
+end
 
 subroutine magmaf_dsygst( itype, uplo, n, A, lda, B, ldb, info )
     integer          :: itype
@@ -830,7 +872,7 @@ subroutine magmaf_dsygst( itype, uplo, n, A, lda, B, ldb, info )
     double precision :: B(*)
     integer          :: ldb
     integer          :: info
-end subroutine magmaf_dsygst
+end
 
 subroutine magmaf_dsygst_gpu( itype, uplo, n, dA, ldda, dB, lddb, info )
     integer          :: itype
@@ -841,7 +883,7 @@ subroutine magmaf_dsygst_gpu( itype, uplo, n, dA, ldda, dB, lddb, info )
     magma_devptr_t   :: dB
     integer          :: lddb
     integer          :: info
-end subroutine magmaf_dsygst_gpu
+end
 
 subroutine magmaf_dsygst_m( ngpu, itype, uplo, n, A, lda, B, ldb, info )
     integer          :: ngpu
@@ -853,7 +895,7 @@ subroutine magmaf_dsygst_m( ngpu, itype, uplo, n, A, lda, B, ldb, info )
     double precision :: B(*)
     integer          :: ldb
     integer          :: info
-end subroutine magmaf_dsygst_m
+end
 
 subroutine magmaf_dsygvd( itype, jobz, uplo, n, A, lda, B, ldb, w, work, lwork, iwork,  &
         liwork, info )
@@ -871,7 +913,7 @@ subroutine magmaf_dsygvd( itype, jobz, uplo, n, A, lda, B, ldb, w, work, lwork, 
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsygvd
+end
 
 subroutine magmaf_dsygvd_m( ngpu, itype, jobz, uplo, n, A, lda, B, ldb, w, work, lwork,  &
         iwork, liwork, info )
@@ -890,7 +932,7 @@ subroutine magmaf_dsygvd_m( ngpu, itype, jobz, uplo, n, A, lda, B, ldb, w, work,
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsygvd_m
+end
 
 subroutine magmaf_dsygvdx( itype, jobz, range, uplo, n, A, lda, B, ldb, vl, vu, il, iu,  &
         mout, w, work, lwork, iwork, liwork, info )
@@ -914,7 +956,7 @@ subroutine magmaf_dsygvdx( itype, jobz, range, uplo, n, A, lda, B, ldb, vl, vu, 
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsygvdx
+end
 
 subroutine magmaf_dsygvdx_m( ngpu, itype, jobz, range, uplo, n, A, lda, B, ldb, vl, vu,  &
         il, iu, mout, w, work, lwork, iwork, liwork, info )
@@ -939,7 +981,7 @@ subroutine magmaf_dsygvdx_m( ngpu, itype, jobz, range, uplo, n, A, lda, B, ldb, 
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsygvdx_m
+end
 
 subroutine magmaf_dsygvdx_2stage( itype, jobz, range, uplo, n, A, lda, B, ldb, vl, vu,  &
         il, iu, mout, w, work, lwork, iwork, liwork, info )
@@ -963,7 +1005,7 @@ subroutine magmaf_dsygvdx_2stage( itype, jobz, range, uplo, n, A, lda, B, ldb, v
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsygvdx_2stage
+end
 
 subroutine magmaf_dsygvdx_2stage_m( ngpu, itype, jobz, range, uplo, n, A, lda, B, ldb,  &
         vl, vu, il, iu, mout, w, work, lwork, iwork, liwork, info )
@@ -988,7 +1030,7 @@ subroutine magmaf_dsygvdx_2stage_m( ngpu, itype, jobz, range, uplo, n, A, lda, B
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dsygvdx_2stage_m
+end
 
 subroutine magmaf_dsysv( uplo, n, nrhs, A, lda, ipiv, B, ldb, info )
     character        :: uplo
@@ -1000,7 +1042,7 @@ subroutine magmaf_dsysv( uplo, n, nrhs, A, lda, ipiv, B, ldb, info )
     double precision :: B(*)
     integer          :: ldb
     integer          :: info
-end subroutine magmaf_dsysv
+end
 
 subroutine magmaf_dsysv_nopiv_gpu( uplo, n, nrhs, dA, ldda, dB, lddb, info )
     character        :: uplo
@@ -1011,7 +1053,7 @@ subroutine magmaf_dsysv_nopiv_gpu( uplo, n, nrhs, dA, ldda, dB, lddb, info )
     magma_devptr_t   :: dB
     integer          :: lddb
     integer          :: info
-end subroutine magmaf_dsysv_nopiv_gpu
+end
 
 subroutine magmaf_dsytrd( uplo, n, A, lda, d, e, tau, work, lwork, info )
     character        :: uplo
@@ -1024,7 +1066,7 @@ subroutine magmaf_dsytrd( uplo, n, A, lda, d, e, tau, work, lwork, info )
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dsytrd
+end
 
 subroutine magmaf_dsytrd_gpu( uplo, n, dA, ldda, d, e, tau, wA, ldwa, work, lwork, info )
     character        :: uplo
@@ -1039,7 +1081,7 @@ subroutine magmaf_dsytrd_gpu( uplo, n, dA, ldda, d, e, tau, wA, ldwa, work, lwor
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dsytrd_gpu
+end
 
 subroutine magmaf_dsytrd2_gpu( uplo, n, dA, ldda, d, e, tau, wA, ldwa, work, lwork,  &
         dwork, ldwork, info )
@@ -1057,10 +1099,10 @@ subroutine magmaf_dsytrd2_gpu( uplo, n, dA, ldda, d, e, tau, wA, ldwa, work, lwo
     magma_devptr_t   :: dwork
     integer          :: ldwork
     integer          :: info
-end subroutine magmaf_dsytrd2_gpu
+end
 
-subroutine magmaf_dsytrd_sb2st( uplo, n, nb, Vblksiz, A, lda, d, e, V, ldv, TAU, compT,  &
-        T, ldt )
+integer function magmaf_dsytrd_sb2st( uplo, n, nb, Vblksiz, A, lda, d, e, V, ldv, TAU,  &
+        compT, T, ldt )
     character        :: uplo
     integer          :: n
     integer          :: nb
@@ -1075,7 +1117,7 @@ subroutine magmaf_dsytrd_sb2st( uplo, n, nb, Vblksiz, A, lda, d, e, V, ldv, TAU,
     integer          :: compT
     double precision :: T(*)
     integer          :: ldt
-end subroutine magmaf_dsytrd_sb2st
+end
 
 subroutine magmaf_dsytrd_sy2sb( uplo, n, nb, A, lda, tau, work, lwork, dT, info )
     character        :: uplo
@@ -1088,7 +1130,7 @@ subroutine magmaf_dsytrd_sy2sb( uplo, n, nb, A, lda, tau, work, lwork, dT, info 
     integer          :: lwork
     magma_devptr_t   :: dT
     integer          :: info
-end subroutine magmaf_dsytrd_sy2sb
+end
 
 subroutine magmaf_dsytrf( uplo, n, A, lda, ipiv, info )
     character        :: uplo
@@ -1097,7 +1139,7 @@ subroutine magmaf_dsytrf( uplo, n, A, lda, ipiv, info )
     integer          :: lda
     integer          :: ipiv(*)
     integer          :: info
-end subroutine magmaf_dsytrf
+end
 
 subroutine magmaf_dsytrf_aasen( uplo, cpu_panel, n, A, lda, ipiv, info )
     character        :: uplo
@@ -1107,7 +1149,7 @@ subroutine magmaf_dsytrf_aasen( uplo, cpu_panel, n, A, lda, ipiv, info )
     integer          :: lda
     integer          :: ipiv(*)
     integer          :: info
-end subroutine magmaf_dsytrf_aasen
+end
 
 subroutine magmaf_dsytrf_nopiv( uplo, n, A, lda, info )
     character        :: uplo
@@ -1115,7 +1157,7 @@ subroutine magmaf_dsytrf_nopiv( uplo, n, A, lda, info )
     double precision :: A(*)
     integer          :: lda
     integer          :: info
-end subroutine magmaf_dsytrf_nopiv
+end
 
 subroutine magmaf_dsytrf_nopiv_cpu( uplo, n, ib, A, lda, info )
     character        :: uplo
@@ -1124,7 +1166,7 @@ subroutine magmaf_dsytrf_nopiv_cpu( uplo, n, ib, A, lda, info )
     double precision :: A(*)
     integer          :: lda
     integer          :: info
-end subroutine magmaf_dsytrf_nopiv_cpu
+end
 
 subroutine magmaf_dsytrf_nopiv_gpu( uplo, n, dA, ldda, info )
     character        :: uplo
@@ -1132,7 +1174,7 @@ subroutine magmaf_dsytrf_nopiv_gpu( uplo, n, dA, ldda, info )
     magma_devptr_t   :: dA
     integer          :: ldda
     integer          :: info
-end subroutine magmaf_dsytrf_nopiv_gpu
+end
 
 subroutine magmaf_dsytrs_nopiv_gpu( uplo, n, nrhs, dA, ldda, dB, lddb, info )
     character        :: uplo
@@ -1143,7 +1185,7 @@ subroutine magmaf_dsytrs_nopiv_gpu( uplo, n, nrhs, dA, ldda, dB, lddb, info )
     magma_devptr_t   :: dB
     integer          :: lddb
     integer          :: info
-end subroutine magmaf_dsytrs_nopiv_gpu
+end
 
 subroutine magmaf_dlaln2( trans, na, nw, smin, ca, A, lda, d1, d2, B, ldb, wr, wi, X,  &
         ldx, scale, xnorm, info )
@@ -1165,7 +1207,7 @@ subroutine magmaf_dlaln2( trans, na, nw, smin, ca, A, lda, d1, d2, B, ldb, wr, w
     double precision :: scale(*)
     double precision :: xnorm(*)
     integer          :: info
-end subroutine magmaf_dlaln2
+end
 
 subroutine magmaf_dlaqtrsd( trans, n, T, ldt, x, ldx, cnorm, info )
     character        :: trans
@@ -1176,20 +1218,20 @@ subroutine magmaf_dlaqtrsd( trans, n, T, ldt, x, ldx, cnorm, info )
     integer          :: ldx
     double precision :: cnorm(*)
     integer          :: info
-end subroutine magmaf_dlaqtrsd
+end
 
-subroutine magmaf_dlarf_gpu( m, n, dv, dtau, dC, lddc, queue )
+integer function magmaf_dlarf_gpu( m, n, dv, dtau, dC, lddc, queue )
     integer          :: m
     integer          :: n
     magma_devptr_t   :: dv
     magma_devptr_t   :: dtau
     magma_devptr_t   :: dC
     integer          :: lddc
-    integer          :: queue
-end subroutine magmaf_dlarf_gpu
+    magma_devptr_t   :: queue
+end
 
-subroutine magmaf_dlarfb2_gpu( m, n, k, dV, lddv, dT, lddt, dC, lddc, dwork, ldwork,  &
-        queue )
+integer function magmaf_dlarfb2_gpu( m, n, k, dV, lddv, dT, lddt, dC, lddc, dwork,  &
+        ldwork, queue )
     integer          :: m
     integer          :: n
     integer          :: k
@@ -1201,8 +1243,8 @@ subroutine magmaf_dlarfb2_gpu( m, n, k, dV, lddv, dT, lddt, dC, lddc, dwork, ldw
     integer          :: lddc
     magma_devptr_t   :: dwork
     integer          :: ldwork
-    integer          :: queue
-end subroutine magmaf_dlarfb2_gpu
+    magma_devptr_t   :: queue
+end
 
 subroutine magmaf_dlauum( uplo, n, A, lda, info )
     character        :: uplo
@@ -1210,7 +1252,7 @@ subroutine magmaf_dlauum( uplo, n, A, lda, info )
     double precision :: A(*)
     integer          :: lda
     integer          :: info
-end subroutine magmaf_dlauum
+end
 
 subroutine magmaf_dlauum_gpu( uplo, n, dA, ldda, info )
     character        :: uplo
@@ -1218,7 +1260,7 @@ subroutine magmaf_dlauum_gpu( uplo, n, dA, ldda, info )
     magma_devptr_t   :: dA
     integer          :: ldda
     integer          :: info
-end subroutine magmaf_dlauum_gpu
+end
 
 subroutine magmaf_dposv( uplo, n, nrhs, A, lda, B, ldb, info )
     character        :: uplo
@@ -1229,7 +1271,7 @@ subroutine magmaf_dposv( uplo, n, nrhs, A, lda, B, ldb, info )
     double precision :: B(*)
     integer          :: ldb
     integer          :: info
-end subroutine magmaf_dposv
+end
 
 subroutine magmaf_dposv_gpu( uplo, n, nrhs, dA, ldda, dB, lddb, info )
     character        :: uplo
@@ -1240,16 +1282,16 @@ subroutine magmaf_dposv_gpu( uplo, n, nrhs, dA, ldda, dB, lddb, info )
     magma_devptr_t   :: dB
     integer          :: lddb
     integer          :: info
-end subroutine magmaf_dposv_gpu
+end
 
 subroutine magmaf_dpotf2_gpu( uplo, n, dA, ldda, queue, info )
     character        :: uplo
     integer          :: n
     magma_devptr_t   :: dA
     integer          :: ldda
-    integer          :: queue
+    magma_devptr_t   :: queue
     integer          :: info
-end subroutine magmaf_dpotf2_gpu
+end
 
 subroutine magmaf_dpotrf( uplo, n, A, lda, info )
     character        :: uplo
@@ -1257,7 +1299,7 @@ subroutine magmaf_dpotrf( uplo, n, A, lda, info )
     double precision :: A(*)
     integer          :: lda
     integer          :: info
-end subroutine magmaf_dpotrf
+end
 
 subroutine magmaf_dpotrf_gpu( uplo, n, dA, ldda, info )
     character        :: uplo
@@ -1265,7 +1307,7 @@ subroutine magmaf_dpotrf_gpu( uplo, n, dA, ldda, info )
     magma_devptr_t   :: dA
     integer          :: ldda
     integer          :: info
-end subroutine magmaf_dpotrf_gpu
+end
 
 subroutine magmaf_dpotrf_m( ngpu, uplo, n, A, lda, info )
     integer          :: ngpu
@@ -1274,7 +1316,7 @@ subroutine magmaf_dpotrf_m( ngpu, uplo, n, A, lda, info )
     double precision :: A(*)
     integer          :: lda
     integer          :: info
-end subroutine magmaf_dpotrf_m
+end
 
 subroutine magmaf_dpotri( uplo, n, A, lda, info )
     character        :: uplo
@@ -1282,7 +1324,7 @@ subroutine magmaf_dpotri( uplo, n, A, lda, info )
     double precision :: A(*)
     integer          :: lda
     integer          :: info
-end subroutine magmaf_dpotri
+end
 
 subroutine magmaf_dpotri_gpu( uplo, n, dA, ldda, info )
     character        :: uplo
@@ -1290,7 +1332,7 @@ subroutine magmaf_dpotri_gpu( uplo, n, dA, ldda, info )
     magma_devptr_t   :: dA
     integer          :: ldda
     integer          :: info
-end subroutine magmaf_dpotri_gpu
+end
 
 subroutine magmaf_dpotrs_gpu( uplo, n, nrhs, dA, ldda, dB, lddb, info )
     character        :: uplo
@@ -1301,7 +1343,7 @@ subroutine magmaf_dpotrs_gpu( uplo, n, nrhs, dA, ldda, dB, lddb, info )
     magma_devptr_t   :: dB
     integer          :: lddb
     integer          :: info
-end subroutine magmaf_dpotrs_gpu
+end
 
 subroutine magmaf_dstedx( range, n, vl, vu, il, iu, d, e, Z, ldz, rwork, lrwork, iwork,  &
         liwork, dwork, info )
@@ -1321,7 +1363,7 @@ subroutine magmaf_dstedx( range, n, vl, vu, il, iu, d, e, Z, ldz, rwork, lrwork,
     integer          :: liwork
     magma_devptr_t   :: dwork
     integer          :: info
-end subroutine magmaf_dstedx
+end
 
 subroutine magmaf_dstedx_m( ngpu, range, n, vl, vu, il, iu, d, e, Z, ldz, rwork, lrwork,  &
         iwork, liwork, info )
@@ -1341,7 +1383,7 @@ subroutine magmaf_dstedx_m( ngpu, range, n, vl, vu, il, iu, d, e, Z, ldz, rwork,
     integer          :: iwork(*)
     integer          :: liwork
     integer          :: info
-end subroutine magmaf_dstedx_m
+end
 
 subroutine magmaf_dtrevc3( side, howmany, select, n, T, ldt, VL, ldvl, VR, ldvr, mm,  &
         mout, work, lwork, info )
@@ -1360,7 +1402,7 @@ subroutine magmaf_dtrevc3( side, howmany, select, n, T, ldt, VL, ldvl, VR, ldvr,
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dtrevc3
+end
 
 subroutine magmaf_dtrevc3_mt( side, howmany, select, n, T, ldt, VL, ldvl, VR, ldvr, mm,  &
         mout, work, lwork, info )
@@ -1379,9 +1421,10 @@ subroutine magmaf_dtrevc3_mt( side, howmany, select, n, T, ldt, VL, ldvl, VR, ld
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dtrevc3_mt
+end
 
-subroutine magmaf_dtrsm_m( ngpu, side, uplo, transa, diag, m, n, alpha, A, lda, B, ldb )
+integer function magmaf_dtrsm_m( ngpu, side, uplo, transa, diag, m, n, alpha, A, lda, B,  &
+        ldb )
     integer          :: ngpu
     character        :: side
     character        :: uplo
@@ -1394,7 +1437,7 @@ subroutine magmaf_dtrsm_m( ngpu, side, uplo, transa, diag, m, n, alpha, A, lda, 
     integer          :: lda
     double precision :: B(*)
     integer          :: ldb
-end subroutine magmaf_dtrsm_m
+end
 
 subroutine magmaf_dtrtri( uplo, diag, n, A, lda, info )
     character        :: uplo
@@ -1403,7 +1446,7 @@ subroutine magmaf_dtrtri( uplo, diag, n, A, lda, info )
     double precision :: A(*)
     integer          :: lda
     integer          :: info
-end subroutine magmaf_dtrtri
+end
 
 subroutine magmaf_dtrtri_gpu( uplo, diag, n, dA, ldda, info )
     character        :: uplo
@@ -1412,7 +1455,7 @@ subroutine magmaf_dtrtri_gpu( uplo, diag, n, dA, ldda, info )
     magma_devptr_t   :: dA
     integer          :: ldda
     integer          :: info
-end subroutine magmaf_dtrtri_gpu
+end
 
 subroutine magmaf_dorgbr( vect, m, n, k, A, lda, tau, work, lwork, info )
     character        :: vect
@@ -1425,7 +1468,7 @@ subroutine magmaf_dorgbr( vect, m, n, k, A, lda, tau, work, lwork, info )
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dorgbr
+end
 
 subroutine magmaf_dorghr( n, ilo, ihi, A, lda, tau, dT, nb, info )
     integer          :: n
@@ -1437,7 +1480,7 @@ subroutine magmaf_dorghr( n, ilo, ihi, A, lda, tau, dT, nb, info )
     magma_devptr_t   :: dT
     integer          :: nb
     integer          :: info
-end subroutine magmaf_dorghr
+end
 
 subroutine magmaf_dorghr_m( n, ilo, ihi, A, lda, tau, T, nb, info )
     integer          :: n
@@ -1449,7 +1492,7 @@ subroutine magmaf_dorghr_m( n, ilo, ihi, A, lda, tau, T, nb, info )
     double precision :: T(*)
     integer          :: nb
     integer          :: info
-end subroutine magmaf_dorghr_m
+end
 
 subroutine magmaf_dorglq( m, n, k, A, lda, tau, dT, nb, info )
     integer          :: m
@@ -1461,7 +1504,7 @@ subroutine magmaf_dorglq( m, n, k, A, lda, tau, dT, nb, info )
     magma_devptr_t   :: dT
     integer          :: nb
     integer          :: info
-end subroutine magmaf_dorglq
+end
 
 subroutine magmaf_dorgqr( m, n, k, A, lda, tau, dT, nb, info )
     integer          :: m
@@ -1473,7 +1516,7 @@ subroutine magmaf_dorgqr( m, n, k, A, lda, tau, dT, nb, info )
     magma_devptr_t   :: dT
     integer          :: nb
     integer          :: info
-end subroutine magmaf_dorgqr
+end
 
 subroutine magmaf_dorgqr_gpu( m, n, k, dA, ldda, tau, dT, nb, info )
     integer          :: m
@@ -1485,7 +1528,7 @@ subroutine magmaf_dorgqr_gpu( m, n, k, dA, ldda, tau, dT, nb, info )
     magma_devptr_t   :: dT
     integer          :: nb
     integer          :: info
-end subroutine magmaf_dorgqr_gpu
+end
 
 subroutine magmaf_dorgqr_m( m, n, k, A, lda, tau, T, nb, info )
     integer          :: m
@@ -1497,7 +1540,7 @@ subroutine magmaf_dorgqr_m( m, n, k, A, lda, tau, T, nb, info )
     double precision :: T(*)
     integer          :: nb
     integer          :: info
-end subroutine magmaf_dorgqr_m
+end
 
 subroutine magmaf_dorgqr2( m, n, k, A, lda, tau, info )
     integer          :: m
@@ -1507,7 +1550,7 @@ subroutine magmaf_dorgqr2( m, n, k, A, lda, tau, info )
     integer          :: lda
     double precision :: tau(*)
     integer          :: info
-end subroutine magmaf_dorgqr2
+end
 
 subroutine magmaf_dormbr( vect, side, trans, m, n, k, A, lda, tau, C, ldc, work, lwork,  &
         info )
@@ -1525,7 +1568,7 @@ subroutine magmaf_dormbr( vect, side, trans, m, n, k, A, lda, tau, C, ldc, work,
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dormbr
+end
 
 subroutine magmaf_dormlq( side, trans, m, n, k, A, lda, tau, C, ldc, work, lwork, info )
     character        :: side
@@ -1541,7 +1584,23 @@ subroutine magmaf_dormlq( side, trans, m, n, k, A, lda, tau, C, ldc, work, lwork
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dormlq
+end
+
+subroutine magmaf_dormrq( side, trans, m, n, k, A, lda, tau, C, ldc, work, lwork, info )
+    character        :: side
+    character        :: trans
+    integer          :: m
+    integer          :: n
+    integer          :: k
+    double precision :: A(*)
+    integer          :: lda
+    double precision :: tau(*)
+    double precision :: C(*)
+    integer          :: ldc
+    double precision :: work(*)
+    integer          :: lwork
+    integer          :: info
+end
 
 subroutine magmaf_dormql( side, trans, m, n, k, A, lda, tau, C, ldc, work, lwork, info )
     character        :: side
@@ -1557,7 +1616,7 @@ subroutine magmaf_dormql( side, trans, m, n, k, A, lda, tau, C, ldc, work, lwork
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dormql
+end
 
 subroutine magmaf_dormql2_gpu( side, trans, m, n, k, dA, ldda, tau, dC, lddc, wA, ldwa,  &
         info )
@@ -1574,7 +1633,7 @@ subroutine magmaf_dormql2_gpu( side, trans, m, n, k, dA, ldda, tau, dC, lddc, wA
     double precision :: wA(*)
     integer          :: ldwa
     integer          :: info
-end subroutine magmaf_dormql2_gpu
+end
 
 subroutine magmaf_dormqr( side, trans, m, n, k, A, lda, tau, C, ldc, work, lwork, info )
     character        :: side
@@ -1590,7 +1649,7 @@ subroutine magmaf_dormqr( side, trans, m, n, k, A, lda, tau, C, ldc, work, lwork
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dormqr
+end
 
 subroutine magmaf_dormqr_gpu( side, trans, m, n, k, dA, ldda, tau, dC, lddc, hwork,  &
         lwork, dT, nb, info )
@@ -1609,7 +1668,7 @@ subroutine magmaf_dormqr_gpu( side, trans, m, n, k, dA, ldda, tau, dC, lddc, hwo
     magma_devptr_t   :: dT
     integer          :: nb
     integer          :: info
-end subroutine magmaf_dormqr_gpu
+end
 
 subroutine magmaf_dormqr2_gpu( side, trans, m, n, k, dA, ldda, tau, dC, lddc, wA, ldwa,  &
         info )
@@ -1626,7 +1685,7 @@ subroutine magmaf_dormqr2_gpu( side, trans, m, n, k, dA, ldda, tau, dC, lddc, wA
     double precision :: wA(*)
     integer          :: ldwa
     integer          :: info
-end subroutine magmaf_dormqr2_gpu
+end
 
 subroutine magmaf_dormqr_m( ngpu, side, trans, m, n, k, A, lda, tau, C, ldc, work, lwork,  &
         info )
@@ -1644,7 +1703,7 @@ subroutine magmaf_dormqr_m( ngpu, side, trans, m, n, k, A, lda, tau, C, ldc, wor
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dormqr_m
+end
 
 subroutine magmaf_dormtr( side, uplo, trans, m, n, A, lda, tau, C, ldc, work, lwork, info  &
         )
@@ -1661,7 +1720,7 @@ subroutine magmaf_dormtr( side, uplo, trans, m, n, A, lda, tau, C, ldc, work, lw
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dormtr
+end
 
 subroutine magmaf_dormtr_gpu( side, uplo, trans, m, n, dA, ldda, tau, dC, lddc, wA, ldwa,  &
         info )
@@ -1678,7 +1737,7 @@ subroutine magmaf_dormtr_gpu( side, uplo, trans, m, n, dA, ldda, tau, dC, lddc, 
     double precision :: wA(*)
     integer          :: ldwa
     integer          :: info
-end subroutine magmaf_dormtr_gpu
+end
 
 subroutine magmaf_dormtr_m( ngpu, side, uplo, trans, m, n, A, lda, tau, C, ldc, work,  &
         lwork, info )
@@ -1696,21 +1755,25 @@ subroutine magmaf_dormtr_m( ngpu, side, uplo, trans, m, n, A, lda, tau, C, ldc, 
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
-end subroutine magmaf_dormtr_m
+end
 
-subroutine magmaf_d_isnan( x )
+integer function magmaf_d_isnan( x )
     double precision :: x
-end subroutine magmaf_d_isnan
+end
 
-subroutine magmaf_d_isinf( x )
+integer function magmaf_d_isinf( x )
     double precision :: x
-end subroutine magmaf_d_isinf
+end
 
-subroutine magmaf_d_isnan_inf( x )
+integer function magmaf_d_isnan_inf( x )
     double precision :: x
-end subroutine magmaf_d_isnan_inf
+end
 
-subroutine magmaf_dnan_inf( uplo, m, n, A, lda, cnt_nan, cnt_inf )
+double precision function magmaf_dmake_lwork( lwork )
+    integer          :: lwork
+end
+
+integer function magmaf_dnan_inf( uplo, m, n, A, lda, cnt_nan, cnt_inf )
     character        :: uplo
     integer          :: m
     integer          :: n
@@ -1718,9 +1781,9 @@ subroutine magmaf_dnan_inf( uplo, m, n, A, lda, cnt_nan, cnt_inf )
     integer          :: lda
     integer          :: cnt_nan(*)
     integer          :: cnt_inf(*)
-end subroutine magmaf_dnan_inf
+end
 
-subroutine magmaf_dnan_inf_gpu( uplo, m, n, dA, ldda, cnt_nan, cnt_inf, queue )
+integer function magmaf_dnan_inf_gpu( uplo, m, n, dA, ldda, cnt_nan, cnt_inf, queue )
     character        :: uplo
     integer          :: m
     integer          :: n
@@ -1728,23 +1791,23 @@ subroutine magmaf_dnan_inf_gpu( uplo, m, n, dA, ldda, cnt_nan, cnt_inf, queue )
     integer          :: ldda
     integer          :: cnt_nan(*)
     integer          :: cnt_inf(*)
-    integer          :: queue
-end subroutine magmaf_dnan_inf_gpu
+    magma_devptr_t   :: queue
+end
 
 subroutine magmaf_dprint( m, n, A, lda )
     integer          :: m
     integer          :: n
     double precision :: A(*)
     integer          :: lda
-end subroutine magmaf_dprint
+end
 
 subroutine magmaf_dprint_gpu( m, n, dA, ldda, queue )
     integer          :: m
     integer          :: n
     magma_devptr_t   :: dA
     integer          :: ldda
-    integer          :: queue
-end subroutine magmaf_dprint_gpu
+    magma_devptr_t   :: queue
+end
 
 subroutine magmaf_dpanel_to_q( uplo, ib, A, lda, work )
     character        :: uplo
@@ -1752,7 +1815,7 @@ subroutine magmaf_dpanel_to_q( uplo, ib, A, lda, work )
     double precision :: A(*)
     integer          :: lda
     double precision :: work(*)
-end subroutine magmaf_dpanel_to_q
+end
 
 subroutine magmaf_dq_to_panel( uplo, ib, A, lda, work )
     character        :: uplo
@@ -1760,7 +1823,7 @@ subroutine magmaf_dq_to_panel( uplo, ib, A, lda, work )
     double precision :: A(*)
     integer          :: lda
     double precision :: work(*)
-end subroutine magmaf_dq_to_panel
+end
 
 end interface
 

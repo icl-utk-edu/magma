@@ -585,8 +585,9 @@ sparse/testing/clean:
 %.$(o_ext): %.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
+# assume C++ for headers; needed for Fortran wrappers
 %.i: %.h
-	$(CC) -E $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 %.i: %.c
 	$(CC) -E $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
