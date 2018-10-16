@@ -486,6 +486,10 @@ typedef enum {
     MagmaRowwise       = 402
 } magma_storev_t;
 
+typedef enum {
+    MagmaHybrid        = 701,
+    MagmaNative        = 702
+} magma_mode_t;
 // -----------------------------------------------------------------------------
 // sparse
 typedef enum {
