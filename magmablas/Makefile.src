@@ -190,7 +190,7 @@ libmagma_src += \
 
 # batch files ( host )
 libmagma_src += \
-	$(cdir)/blasf77_zbatched.cpp	\
+	$(cdir)/blas_zbatched.cpp	\
 
 # ----------------------------------------------------------------------
 # extra include dependencies
