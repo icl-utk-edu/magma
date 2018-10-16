@@ -44,9 +44,9 @@ __global__ void zpotf2_smlpin_fixwidth_kernel(int m, magmaDoubleComplex *dA, int
 {
     #pragma unroll
     for(int i = 0; i < m; i+= POTF2_NB){
-        //if(threadIdx.x < m-i){
+        if(threadIdx.x < m-i){
             zpotf2_smlpout_fixwidth_device(m-i, A(localstep+i, 0), A(localstep+i, localstep+i), ldda, localstep+i, gbstep, dinfo);
-        //}
+        }
     }
 }
 /******************************************************************************/
@@ -55,9 +55,9 @@ __global__ void zpotf2_smlpin_anywidth_kernel(int m, magmaDoubleComplex *dA, int
     #pragma unroll
     for(int i = 0; i < m; i+= POTF2_NB){
         int ib = min(m-i, POTF2_NB);
-        //if(threadIdx.x < m-i){
+        if(threadIdx.x < m-i){
             zpotf2_smlpout_anywidth_device(m-i, ib, A(localstep+i, 0), A(localstep+i, localstep+i), ldda, localstep+i, gbstep, dinfo);
-        //}
+        }
     }
 }
 /******************************************************************************/
