@@ -313,6 +313,11 @@ libmagma_src += \
 	$(cdir)/zpotrf_panel_vbatched.cpp		\
 	$(cdir)/zpotrf_vbatched.cpp		\
 
+# ----------
+# native, GPU interface
+libmagma_src += \
+	$(cdir)/zpotrf_panel_native.cpp		\
+
 # additional dependencies
 $(cdir)/spotrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/dpotrf_batched.$(o_ext): control/batched_kernel_param.h
