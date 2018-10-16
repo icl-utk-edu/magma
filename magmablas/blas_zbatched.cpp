@@ -16,7 +16,7 @@
 
 #if defined(_OPENMP)
 #include <omp.h>
-#include "../control/magma_threadsetting.h"  // internal header
+#include "magma_threadsetting.h"
 #endif
 
 /*******************************************************************************/
