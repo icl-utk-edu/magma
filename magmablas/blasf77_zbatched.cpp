@@ -21,7 +21,7 @@
 
 /*******************************************************************************/
 extern "C" void
-blasf77_zgemm_batched( 
+blas_zgemm_batched( 
         magma_trans_t transA, magma_trans_t transB, 
         magma_int_t m, magma_int_t n, magma_int_t k,
         magmaDoubleComplex alpha,
@@ -52,7 +52,7 @@ blasf77_zgemm_batched(
 
 /*******************************************************************************/
 extern "C" void
-blasf77_ztrsm_batched( 
+blas_ztrsm_batched( 
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
         magma_int_t m, magma_int_t n, 
         magmaDoubleComplex alpha, 
@@ -81,7 +81,7 @@ blasf77_ztrsm_batched(
 
 /*******************************************************************************/
 extern "C" void
-blasf77_ztrmm_batched( 
+blas_ztrmm_batched( 
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
         magma_int_t m, magma_int_t n, 
         magmaDoubleComplex alpha, 
@@ -110,7 +110,7 @@ blasf77_ztrmm_batched(
 
 /*******************************************************************************/
 extern "C" void
-blasf77_zhemm_batched(
+blas_zhemm_batched(
         magma_side_t side, magma_uplo_t uplo, 
         magma_int_t m, magma_int_t n, 
         magmaDoubleComplex alpha, 
@@ -141,7 +141,7 @@ blasf77_zhemm_batched(
 
 /*******************************************************************************/
 extern "C" void
-blasf77_zherk_batched(
+blas_zherk_batched(
     magma_uplo_t uplo, magma_trans_t trans, 
     magma_int_t n, magma_int_t k,
     double alpha, magmaDoubleComplex const * const * hA_array, magma_int_t lda,
@@ -168,7 +168,7 @@ blasf77_zherk_batched(
 
 /*******************************************************************************/
 extern "C" void
-blasf77_zher2k_batched(
+blas_zher2k_batched(
     magma_uplo_t uplo, magma_trans_t trans, 
     magma_int_t n, magma_int_t k,
     magmaDoubleComplex alpha, magmaDoubleComplex const * const * hA_array, magma_int_t lda,
