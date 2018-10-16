@@ -234,7 +234,7 @@ int main( int argc, char** argv)
                     h_B_array[s] = h_Blapack + s * ldb * N;
                 }
                 cpu_time = magma_wtime();
-                blasf77_ztrsm_batched( 
+                blas_ztrsm_batched( 
                     opts.side, opts.uplo, opts.transA, opts.diag, 
                     M, N, 
                     alpha, h_A_array, lda, 

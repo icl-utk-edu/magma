@@ -163,7 +163,7 @@ int main( int argc, char** argv)
                     h_C_array[s] = h_C + s*ldc*N;
                 }
                 cpu_time = magma_wtime();
-                blasf77_zherk_batched( 
+                blas_zherk_batched( 
                     opts.uplo, opts.transA, 
                     N, K, 
                     alpha, h_A_array, lda, 
