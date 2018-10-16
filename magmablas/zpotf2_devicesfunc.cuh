@@ -37,12 +37,12 @@ static inline __device__ void zpotf2_sminout_anywidth_device(const int m, const 
         #ifdef ENABLE_COND1
         }
         #endif
-        __syncthreads();
+        __syncthreads(); // must sync to make sure that A[iter + iter * lda] is read by all threads before modifying it
         #ifdef ENABLE_COND1
         if ( tx >= iter && tx < m )
         {
         #endif
-            A[ tx + iter * lda ] *= factor;
+            A[ tx + iter * lda ] *= factor; // or use the next line and remove the sync above
             //A[ tx + iter * lda ]  = tx == iter ? MAGMA_Z_MAKE(xreal, 0.0) : A[ tx + iter * lda ] * factor;
         #ifdef ENABLE_COND1
         }
