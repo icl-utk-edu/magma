@@ -225,6 +225,11 @@ magma_setdevice( magma_device_t dev );
 size_t
 magma_mem_size( magma_queue_t queue );
 
+magma_int_t
+magma_getdevice_multiprocessor_count();
+
+size_t
+magma_getdevice_shared_memory();
 
 // =============================================================================
 // queue support
