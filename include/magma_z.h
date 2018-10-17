@@ -30,6 +30,7 @@ magma_int_t magma_get_dlaex3_m_nb();       // defined in dlaex3_m.cpp
 // Cholesky, LU, symmetric indefinite
 magma_int_t magma_get_zpotrf_nb( magma_int_t n );
 magma_int_t magma_get_zgetrf_nb( magma_int_t m, magma_int_t n );
+magma_int_t magma_get_zgetrf_native_nb( magma_int_t m, magma_int_t n );
 magma_int_t magma_get_zgetri_nb( magma_int_t n );
 magma_int_t magma_get_zhetrf_nb( magma_int_t n );
 magma_int_t magma_get_zhetrf_nopiv_nb( magma_int_t n );
@@ -489,12 +490,28 @@ magma_zgetf2_native_fused(
     magma_int_t *flags, 
     magma_int_t *info, magma_queue_t queue );
 
+magma_int_t
+magma_zgetf2_native(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *dipiv, magma_int_t* dipivinfo, 
+    magma_int_t *dinfo, magma_int_t gbstep, 
+    magma_queue_t queue, magma_queue_t update_queue);
+
 // CUDA MAGMA only
 magma_int_t
 magma_zgetf2_nopiv(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex *A, magma_int_t lda,
     magma_int_t *info);
+
+magma_int_t
+magma_zgetrf_recpanel_native(
+    magma_int_t m, magma_int_t n,    
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t* dipiv, magma_int_t* dipivinfo,
+    magma_int_t *dinfo, magma_int_t gbstep, 
+    magma_queue_t queue, magma_queue_t update_queue );
 
 magma_int_t
 magma_zgetrf(
