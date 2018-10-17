@@ -435,6 +435,12 @@ magma_zlaswp_rowparallel_native(
     magma_queue_t queue);
 
 void
+magma_zlaswp_columnserial(
+    magma_int_t n, magmaDoubleComplex_ptr dA, magma_int_t lda, 
+    magma_int_t k1, magma_int_t k2, 
+    magma_int_t *dipiv, magma_queue_t queue);
+
+void
 magmablas_zsymmetrize(
     magma_uplo_t uplo, magma_int_t m,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
