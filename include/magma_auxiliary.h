@@ -229,7 +229,10 @@ magma_int_t
 magma_getdevice_multiprocessor_count();
 
 size_t
-magma_getdevice_shared_memory();
+magma_getdevice_shmem_block();
+
+size_t
+magma_getdevice_shmem_multiprocessor();
 
 // =============================================================================
 // queue support
