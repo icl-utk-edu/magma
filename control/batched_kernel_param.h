@@ -42,15 +42,15 @@
 #define SGETF2_PANEL_NB    (16)
 
 // tuning zgetf2_panel_chain
-#define ZGETF2_CHAIN_NTH    (512)
-#define CGETF2_CHAIN_NTH    (512)
-#define DGETF2_CHAIN_NTH    (512)
-#define SGETF2_CHAIN_NTH    (512)
+#define ZGETF2_FUSED_NTH    (512)
+#define CGETF2_FUSED_NTH    (512)
+#define DGETF2_FUSED_NTH    (512)
+#define SGETF2_FUSED_NTH    (512)
 //
-#define ZGETF2_CHAIN_MAX_M    (10240)
-#define CGETF2_CHAIN_MAX_M    (10240)
-#define DGETF2_CHAIN_MAX_M    (25600)
-#define SGETF2_CHAIN_MAX_M    (40960)
+#define ZGETF2_FUSED_MAX_M  (10240)
+#define CGETF2_FUSED_MAX_M  (10240)
+#define DGETF2_FUSED_MAX_M  (25600)
+#define SGETF2_FUSED_MAX_M  (40960)
 
 
 
