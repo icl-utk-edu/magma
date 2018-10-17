@@ -105,6 +105,10 @@ libmagma_src += \
 	$(cdir)/zgeqr2x_gpu-v4.cu	\
 	$(cdir)/zpotf2.cu		\
 
+# native kernels
+libmagma_src += \
+	$(cdir)/zgetf2_native_kernel.cu		\
+
 # batched files, alphabetic order by base name (ignoring precision)
 libmagma_src += \
 	$(cdir)/zgeadd_batched.cu		\
