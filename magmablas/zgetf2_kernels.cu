@@ -112,7 +112,6 @@ izamax_kernel_native(int length, int chunk, magmaDoubleComplex_ptr x, int incx,
     izamax_devfunc(length, x, incx, shared_x, shared_idx);
     if (tx == 0) {
         ipiv[step]  = shared_idx[0] + step + 1; // Fortran Indexing
-        //printf(" ipiv[%5d] = %5d\n", step, ipiv[step]);
         if (shared_x[0] == MAGMA_D_ZERO) {
             (*info) = shared_idx[0] + step + gbstep + 1;
         }
@@ -343,7 +342,7 @@ magma_zswap_batched( magma_int_t n,
 
 
 /******************************************************************************/
-extern "C" magma_int_t
+extern "C" void
 magma_zswap_native( magma_int_t n, magmaDoubleComplex_ptr x, magma_int_t incx, 
                     magma_int_t step, magma_int_t* ipiv,
                     magma_queue_t queue)
@@ -351,11 +350,9 @@ magma_zswap_native( magma_int_t n, magmaDoubleComplex_ptr x, magma_int_t incx,
     /*
     zswap two row: (ipiv[step]-1)th and step th
     */
-    if ( n  > MAX_NTHREADS)
-    {
+    if ( n  > MAX_NTHREADS){
         fprintf( stderr, "%s nb=%lld > %lld, not supported\n",
                  __func__, (long long) n, (long long) MAX_NTHREADS );
-        return -15;
     }
     dim3 grid(1, 1, 1);
     dim3 threads(zamax, 1, 1);
@@ -363,7 +360,6 @@ magma_zswap_native( magma_int_t n, magmaDoubleComplex_ptr x, magma_int_t incx,
     zswap_kernel_native
         <<< grid, threads, 0, queue->cuda_stream() >>>
         (n, x, incx, step, ipiv);
-    return 0;
 }
 
 
@@ -534,10 +530,11 @@ magma_int_t magma_zscal_zgeru_batched(magma_int_t m, magma_int_t n, magma_int_t 
 /******************************************************************************/
 extern "C"
 magma_int_t 
-magma_zscal_zgeru_native( magma_int_t m, magma_int_t n, magma_int_t step,
-                          magmaDoubleComplex_ptr dA, magma_int_t lda,
-                          magma_int_t *info, magma_int_t gbstep,
-                          magma_queue_t queue)
+magma_zscal_zgeru_native( 
+    magma_int_t m, magma_int_t n, magma_int_t step,
+    magmaDoubleComplex_ptr dA, magma_int_t lda,
+    magma_int_t *info, magma_int_t gbstep,
+    magma_queue_t queue)
 {
     /*
     Specialized kernel which merged zscal and zgeru the two kernels
@@ -765,10 +762,11 @@ zgetf2trsm_2d_kernel( int m, int n,
 
 /******************************************************************************/
 extern"C" void 
-magma_zgetf2trsm_2d_native( magma_int_t m, magma_int_t n, 
-                            magmaDoubleComplex_ptr dA, magma_int_t ldda, 
-                            magmaDoubleComplex_ptr dB, magma_int_t lddb, 
-                            magma_queue_t queue)
+magma_zgetf2trsm_2d_native( 
+    magma_int_t m, magma_int_t n, 
+    magmaDoubleComplex_ptr dA, magma_int_t ldda, 
+    magmaDoubleComplex_ptr dB, magma_int_t lddb, 
+    magma_queue_t queue)
 {
     if( m > 32 ){
         magma_ztrsm( MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit, 
