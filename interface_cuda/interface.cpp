@@ -136,9 +136,10 @@ static int g_init = 0;
 struct magma_device_info
 {
     size_t memory;
-    size_t shared_memory;    // maximum shared memory per thread block in bytes
+    size_t shmem_block;      // maximum shared memory per thread block in bytes
+    size_t shmem_multiproc;  // maximum shared memory per multiprocessor in bytes
     magma_int_t cuda_arch;
-    magma_int_t multiprocessor_count;    // number of multiprocessors
+    magma_int_t multiproc_count;    // number of multiprocessors
 };
 
 int g_magma_devices_cnt = 0;
@@ -203,10 +204,11 @@ magma_init()
                     info = MAGMA_ERR_UNKNOWN;
                 }
                 else {
-                    g_magma_devices[dev].memory               = prop.totalGlobalMem;
-                    g_magma_devices[dev].cuda_arch            = prop.major*100 + prop.minor*10;
-                    g_magma_devices[dev].shared_memory        = prop.sharedMemPerBlock; 
-                    g_magma_devices[dev].multiprocessor_count = prop.multiProcessorCount; 
+                    g_magma_devices[dev].memory          = prop.totalGlobalMem;
+                    g_magma_devices[dev].cuda_arch       = prop.major*100 + prop.minor*10;
+                    g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock; 
+                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor; 
+                    g_magma_devices[dev].multiproc_count = prop.multiProcessorCount; 
                 }
             }
 
@@ -598,7 +600,7 @@ magma_getdevice_multiprocessor_count()
         fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
         return 0;
     }
-    return g_magma_devices[dev].multiprocessor_count;
+    return g_magma_devices[dev].multiproc_count;
 }
 
 /***************************************************************************//**
@@ -610,7 +612,7 @@ magma_getdevice_multiprocessor_count()
     @ingroup magma_device
 *******************************************************************************/
 extern "C" size_t
-magma_getdevice_shared_memory()
+magma_getdevice_shmem_block()
 {
     int dev;
     cudaError_t err;
@@ -621,7 +623,31 @@ magma_getdevice_shared_memory()
         fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
         return 0;
     }
-    return g_magma_devices[dev].shared_memory;
+    return g_magma_devices[dev].shmem_block;
+}
+
+
+/***************************************************************************//**
+    Returns the maximum shared memory multiprocessor (in bytes) for the current device.
+    This requires magma_init() to be called first to cache the information.
+
+    @return the maximum shared memory per multiprocessor (in bytes) for the current device.
+
+    @ingroup magma_device
+*******************************************************************************/
+extern "C" size_t
+magma_getdevice_shmem_multiprocessor()
+{
+    int dev;
+    cudaError_t err;
+    err = cudaGetDevice( &dev );
+    check_error( err );
+    MAGMA_UNUSED( err );
+    if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
+        fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
+        return 0;
+    }
+    return g_magma_devices[dev].shmem_multiproc;
 }
 
 
