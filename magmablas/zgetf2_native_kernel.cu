@@ -286,7 +286,7 @@ magma_zgetf2_native_fused(
     if( m < n || m > ZGETF2_FUSED_MAX_M ){
         arginfo = -1;   
     }
-    else if( n > magma_getdevice_shmem_multiprocessor() ){
+    else if( n > magma_getdevice_multiprocessor_count() ){
         arginfo = -2;
     }
     else if( ldda < max(1, m) ){
@@ -306,7 +306,7 @@ magma_zgetf2_native_fused(
     // the kernel uses communication among thread blocks
     // as a safeguard, force one thread block per multiprocessor
     // by allocating more than half the shared memory
-    size_t shmem = (arch >= 700) ? magma_getdevice_shmem_multiprocessor() : shmem = magma_getdevice_shmem_block();
+    size_t shmem = (arch >= 700) ? magma_getdevice_shmem_multiprocessor() : magma_getdevice_shmem_block();
     shmem = (shmem / 2) + 1024;
     int *update_flag = (magma_int_t*) flags;    // update_flag is an int, not magma_int_t
     zgetf2_native_init_kernel<<< 1, max(n,npages), 0, queue->cuda_stream() >>>( n, npages, ipiv, update_flag);
