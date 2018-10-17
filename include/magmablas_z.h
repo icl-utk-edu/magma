@@ -426,6 +426,15 @@ magmablas_zlaswpx(
     magma_queue_t queue );
 
 void
+magma_zlaswp_rowparallel_native(
+    magma_int_t n, 
+    magmaDoubleComplex* input, magma_int_t ldi,
+    magmaDoubleComplex* output, magma_int_t ldo,
+    magma_int_t k1, magma_int_t k2,
+    magma_int_t *pivinfo, 
+    magma_queue_t queue);
+
+void
 magmablas_zsymmetrize(
     magma_uplo_t uplo, magma_int_t m,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
@@ -998,6 +1007,14 @@ magma_izamax(
     magma_queue_t queue );
 
 magma_int_t
+magma_izamax_native( 
+    magma_int_t length, 
+    magmaDoubleComplex_ptr x, magma_int_t incx, 
+    magma_int_t step,  magma_int_t lda, 
+    magma_int_t* ipiv, magma_int_t *info, 
+    magma_int_t gbstep, magma_queue_t queue);
+
+magma_int_t
 magma_izamin(
     magma_int_t n,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
@@ -1101,12 +1118,25 @@ magma_zdscal(
     magmaDoubleComplex_ptr dx, magma_int_t incx,
     magma_queue_t queue );
 
+magma_int_t 
+magma_zscal_zgeru_native( 
+    magma_int_t m, magma_int_t n, magma_int_t step,
+    magmaDoubleComplex_ptr dA, magma_int_t lda,
+    magma_int_t *info, magma_int_t gbstep,
+    magma_queue_t queue);
+
 void
 magma_zswap(
     magma_int_t n,
     magmaDoubleComplex_ptr dx, magma_int_t incx,
     magmaDoubleComplex_ptr dy, magma_int_t incy,
     magma_queue_t queue );
+
+void
+magma_zswap_native( 
+    magma_int_t n, magmaDoubleComplex_ptr x, magma_int_t incx, 
+    magma_int_t step, magma_int_t* ipiv,
+    magma_queue_t queue);
 
 // =============================================================================
 // Level 2 BLAS (alphabetical order)
@@ -1313,6 +1343,13 @@ magma_ztrsm(
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_ptr       dB, magma_int_t lddb,
     magma_queue_t queue );
+
+void 
+magma_zgetf2trsm_2d_native( 
+    magma_int_t m, magma_int_t n, 
+    magmaDoubleComplex_ptr dA, magma_int_t ldda, 
+    magmaDoubleComplex_ptr dB, magma_int_t lddb, 
+    magma_queue_t queue);
 
 magma_int_t
 magma_zpotf2_lpout(

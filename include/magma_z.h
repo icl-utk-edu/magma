@@ -481,6 +481,14 @@ magma_zgetf2_gpu(
     magma_queue_t queue,
     magma_int_t *info);
 
+magma_int_t 
+magma_zgetf2_native_fused( 
+    magma_int_t m, magma_int_t n, 
+    magmaDoubleComplex_ptr dA, magma_int_t ldda, 
+    magma_int_t *ipiv, magma_int_t gbstep, 
+    magma_int_t *flags, 
+    magma_int_t *info, magma_queue_t queue );
+
 // CUDA MAGMA only
 magma_int_t
 magma_zgetf2_nopiv(
