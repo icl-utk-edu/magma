@@ -130,7 +130,7 @@ magma_zgetf2_native_recursive(
     magma_event_create( &events[1] );
 
     magma_int_t nb;
-    magma_int_t sm_count = magma_getdevice_shmem_multiprocessor();
+    magma_int_t sm_count = magma_getdevice_multiprocessor_count();
     if     (sm_count >= 32){nb = 32;}
     else if(sm_count >= 16){nb = 16;}
     else if(sm_count >=  8){nb =  8;}
