@@ -527,6 +527,13 @@ magma_zgetrf_gpu(
     magma_int_t *ipiv,
     magma_int_t *info);
 
+magma_int_t
+magma_zgetrf_native(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *ipiv,
+    magma_int_t *info );
+
 // CUDA MAGMA only
 magma_int_t
 magma_zgetrf_m(
