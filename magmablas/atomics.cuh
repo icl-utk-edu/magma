@@ -48,4 +48,13 @@ magmablas_zatomic_add(magmaDoubleComplex* address, magmaDoubleComplex val)
 }
 
 /******************************************************************************/
+// Atomic exchanges 
+/******************************************************************************/
+__device__ static __inline__ int 
+magmablas_iatomic_exchange(int* address, int val)
+{
+    return atomicExch(address, val);
+}
+
+/******************************************************************************/
 #endif // ATOMICS_CUH
