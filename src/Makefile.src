@@ -317,6 +317,7 @@ libmagma_src += \
 # native, GPU interface
 libmagma_src += \
 	$(cdir)/zgetf2_native.cpp		\
+	$(cdir)/zgetrf_panel_native.cpp		\
 	$(cdir)/zpotrf_panel_native.cpp		\
 
 # additional dependencies
