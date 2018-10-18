@@ -94,33 +94,41 @@ zgetf2_nopiv_batched_kernel( int m, magmaDoubleComplex** dA_array, int ai, int a
 /***************************************************************************//**
     Purpose
     -------
-    zgetrf_batched_smallsq_noshfl computes the LU factorization of a square N-by-N matrix A
-    using partial pivoting with row interchanges. 
-    This routine can deal only with square matrices of size up to 32
+    zgetf2_nopiv computes the non-pivoting LU factorization of an M-by-N matrix A.
+    This routine can deal with matrices of limited widths, so it is for internal use.
 
     The factorization has the form
-        A = P * L * U
-    where P is a permutation matrix, L is lower triangular with unit
-    diagonal elements (lower trapezoidal if m > n), and U is upper
-    triangular (upper trapezoidal if m < n).
-
-    This is the right-looking Level 3 BLAS version of the algorithm.
+       A = L * U
+    where L is lower triangular with unit diagonal elements (lower
+    trapezoidal if m > n), and U is upper triangular (upper
+    trapezoidal if m < n).
 
     This is a batched version that factors batchCount M-by-N matrices in parallel.
-    dA, ipiv, and info become arrays with one entry per matrix.
 
     Arguments
     ---------
     @param[in]
+    m       INTEGER
+            The number of rows the matrix A.  N >= 0.
+
+    @param[in]
     n       INTEGER
-            The size of each matrix A.  N >= 0.
+            The number of columns of the matrix A.  N >= 0.
 
     @param[in,out]
     dA_array    Array of pointers, dimension (batchCount).
             Each is a COMPLEX_16 array on the GPU, dimension (LDDA,N).
             On entry, each pointer is an M-by-N matrix to be factored.
             On exit, the factors L and U from the factorization
-            A = P*L*U; the unit diagonal elements of L are not stored.
+            A = L*U; the unit diagonal elements of L are not stored.
+
+    @param[in]
+    ai      INTEGER
+            Row offset for dA_array.
+
+    @param[in]
+    aj      INTEGER
+            Column offset for dA_array.
 
     @param[in]
     ldda    INTEGER
@@ -135,6 +143,10 @@ zgetf2_nopiv_batched_kernel( int m, magmaDoubleComplex** dA_array, int ai, int a
                   has been completed, but the factor U is exactly
                   singular, and division by zero will occur if it is used
                   to solve a system of equations.
+
+    @param[in]
+    gbstep      INTEGER
+                Internal use.
 
     @param[in]
     batchCount  INTEGER
