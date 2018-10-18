@@ -63,6 +63,11 @@
                   singular, and division by zero will occur if it is used
                   to solve a system of equations.
 
+    @param[in]
+    mode    magma_mode_t
+      -     = MagmaNative:  Factorize dA using GPU only mode.
+      -     = MagmaHybrid:  Factorize dA using Hybrid (CPU/GPU) mode.
+
     @ingroup magma_getrf
 *******************************************************************************/
 extern "C" magma_int_t
@@ -343,9 +348,8 @@ cleanup:
     return *info;
 } /* magma_zgetrf_gpu */
 
-
-
-
+/*******************************************************************************/
+/// @see magma_zgetrf_gpu_expert
 extern "C" magma_int_t
 magma_zgetrf_gpu(
     magma_int_t m, magma_int_t n,
@@ -357,6 +361,8 @@ magma_zgetrf_gpu(
     return *info;
 } /* magma_zgetrf_gpu */
 
+/*******************************************************************************/
+/// @see magma_zgetrf_gpu_expert
 extern "C" magma_int_t
 magma_zgetrf_native(
     magma_int_t m, magma_int_t n,

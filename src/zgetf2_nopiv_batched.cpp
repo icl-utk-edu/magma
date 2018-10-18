@@ -48,6 +48,14 @@
             A = P*L*U; the unit diagonal elements of L are not stored.
 
     @param[in]
+    ai      INTEGER
+            Row offset for A.
+
+    @param[in]
+    aj      INTEGER
+            Column offset for A.
+
+    @param[in]
     ldda    INTEGER
             The leading dimension of each array A.  LDDA >= max(1,M).
 

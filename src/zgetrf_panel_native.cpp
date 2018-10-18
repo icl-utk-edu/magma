@@ -17,8 +17,7 @@
 /***************************************************************************//**
     Purpose
     -------
-    This is an internal routine that might have many assumption.
-    Documentation is not fully completed
+    This is an internal routine.
 
     ZGETRF_PANEL computes an LU factorization of a general M-by-N matrix A
     using partial pivoting with row interchanges.
@@ -31,79 +30,38 @@
 
     This is the right-looking Level 3 BLAS version of the algorithm.
 
-    This is a batched version that factors batchCount M-by-N matrices in parallel.
-    dA, ipiv, and info become arrays with one entry per matrix.
+    This is a GPU-only routine. The host CPU is not used. 
 
     Arguments
     ---------
     @param[in]
     m       INTEGER
-            The number of rows of each matrix A.  M >= 0.
+            The number of rows the matrix A.  M >= 0.
 
     @param[in]
     n       INTEGER
-            The number of columns of each matrix A.  N >= 0.
-
-    @param[in]
-    min_recpnb   INTEGER.
-                 Internal use. The recursive nb
+            The number of columns the matrix A.  N >= 0.
 
     @param[in,out]
-    dA_array    Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array on the GPU, dimension (LDDA,N).
-            On entry, each pointer is an M-by-N matrix to be factored.
+    dA      A COMPLEX_16 array on the GPU, dimension (LDDA,N).
+            On entry, an M-by-N matrix to be factored.
             On exit, the factors L and U from the factorization
             A = P*L*U; the unit diagonal elements of L are not stored.
 
     @param[in]
     ldda    INTEGER
-            The leading dimension of each array A.  LDDA >= max(1,M).
+            The leading dimension of A.  LDDA >= max(1,M).
 
     @param[out]
-    dipiv_array  Array of pointers, dimension (batchCount), for corresponding matrices.
-            Each is an INTEGER array, dimension (min(M,N))
+    dipiv   An INTEGER array, dimension (min(M,N))
             The pivot indices; for 1 <= i <= min(M,N), row i of the
             matrix was interchanged with row IPIV(i).
 
     @param[out]
-    dpivinfo_array  Array of pointers, dimension (batchCount), for internal use.
-
-    @param[in,out]
-    dX_array       Array of pointers, dimension (batchCount).
-             Each is a COMPLEX_16 array X of dimension ( lddx, n ).
-             On entry, should be set to 0
-             On exit, the solution matrix X
-
-    @param[in]
-    dX_length    INTEGER.
-                 The size of each workspace matrix dX
-
-    @param[in,out]
-    dinvA_array    Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array dinvA, a workspace on device.
-            If side == MagmaLeft,  dinvA must be of size >= ceil(m/ZTRTRI_BATCHED_NB)*ZTRTRI_BATCHED_NB*ZTRTRI_BATCHED_NB,
-            If side == MagmaRight, dinvA must be of size >= ceil(n/ZTRTRI_BATCHED_NB)*ZTRTRI_BATCHED_NB*ZTRTRI_BATCHED_NB,
-
-    @param[in]
-    dinvA_length    INTEGER
-                   The size of each workspace matrix dinvA
-    @param[in]
-    dW1_displ  Workspace array of pointers, for internal use.
-
-    @param[in]
-    dW2_displ  Workspace array of pointers, for internal use.
-
-    @param[in]
-    dW3_displ  Workspace array of pointers, for internal use.
-
-    @param[in]
-    dW4_displ  Workspace array of pointers, for internal use.
-
-    @param[in]
-    dW5_displ  Workspace array of pointers, for internal use.
+    dipivinfo  An INTEGER array, for internal use.
 
     @param[out]
-    info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
+    dinfo         INTEGER, stored on the GPU
       -     = 0:  successful exit
       -     < 0:  if INFO = -i, the i-th argument had an illegal value
                   or another error occured, such as memory allocation failed.
@@ -117,12 +75,12 @@
             internal use.
 
     @param[in]
-    batchCount  INTEGER
-                The number of matrices to operate on.
-
-    @param[in]
     queue   magma_queue_t
             Queue to execute in.
+
+    @param[in]
+    update_queue   magma_queue_t
+                   Internal use.
 
     @ingroup magma_getrf_batched
 *******************************************************************************/
