@@ -278,59 +278,8 @@ cleanup:
     return *info;
 } /* magma_zpotrf_LL_expert_gpu */
 
-/***************************************************************************//**
-    Purpose
-    -------
-    ZPOTRF computes the Cholesky factorization of a complex Hermitian
-    positive definite matrix dA.
-
-    The factorization has the form
-        dA = U**H * U,   if UPLO = MagmaUpper, or
-        dA = L  * L**H,  if UPLO = MagmaLower,
-    where U is an upper triangular matrix and L is lower triangular.
-
-    This is the block version of the algorithm, calling Level 3 BLAS.
-
-    Arguments
-    ---------
-    @param[in]
-    uplo    magma_uplo_t
-      -     = MagmaUpper:  Upper triangle of dA is stored;
-      -     = MagmaLower:  Lower triangle of dA is stored.
-
-    @param[in]
-    n       INTEGER
-            The order of the matrix dA.  N >= 0.
-
-    @param[in,out]
-    dA      COMPLEX_16 array on the GPU, dimension (LDDA,N)
-            On entry, the Hermitian matrix dA.  If UPLO = MagmaUpper, the leading
-            N-by-N upper triangular part of dA contains the upper
-            triangular part of the matrix dA, and the strictly lower
-            triangular part of dA is not referenced.  If UPLO = MagmaLower, the
-            leading N-by-N lower triangular part of dA contains the lower
-            triangular part of the matrix dA, and the strictly upper
-            triangular part of dA is not referenced.
-    \n
-            On exit, if INFO = 0, the factor U or L from the Cholesky
-            factorization dA = U**H * U or dA = L * L**H.
-
-    @param[in]
-    ldda     INTEGER
-            The leading dimension of the array dA.  LDDA >= max(1,N).
-            To benefit from coalescent memory accesses LDDA must be
-            divisible by 16.
-
-    @param[out]
-    info    INTEGER
-      -     = 0:  successful exit
-      -     < 0:  if INFO = -i, the i-th argument had an illegal value
-      -     > 0:  if INFO = i, the leading minor of order i is not
-                  positive definite, and the factorization could not be
-                  completed.
-
-    @ingroup magma_potrf
-*******************************************************************************/
+/*******************************************************************************/
+/// @see magma_zpotrf_LL_expert_gpu
 extern "C" magma_int_t
 magma_zpotrf_gpu(
     magma_uplo_t uplo, magma_int_t n,
@@ -341,7 +290,9 @@ magma_zpotrf_gpu(
     magma_zpotrf_LL_expert_gpu(uplo, n, dA, ldda, info, mode);
     return *info;
 }
+
 /*******************************************************************************/
+/// @see magma_zpotrf_LL_expert_gpu
 extern "C" magma_int_t
 magma_zpotrf_native(
     magma_uplo_t uplo, magma_int_t n,
@@ -352,4 +303,5 @@ magma_zpotrf_native(
     magma_zpotrf_LL_expert_gpu(uplo, n, dA, ldda, info, mode);
     return *info;
 }
+
 /*******************************************************************************/
