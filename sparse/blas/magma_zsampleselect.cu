@@ -121,7 +121,7 @@ __device__ inline magma_int_t warp_aggr_atomic_count_predicate(magma_int_t* atom
  * Unaligned byte storage
  */
 __device__ inline void store_packed_bytes(unsigned* output, unsigned amask, unsigned byte, magma_int_t idx) {
-    // pack 4 consecutive bytes magma_int_to an magma_int_teger
+    // pack 4 consecutive bytes into an integer
     unsigned result = byte;
     // ------00 -> ----1100
     result |= __shfl_xor_sync(amask, result, 1, 4) << 8;
@@ -373,7 +373,7 @@ __device__ __forceinline__ void ssss_impl(const T* __restrict__ in,
                                               BucketCallback bucket_cb) {
     __shared__ T local_tree[searchtree_size];
 
-    // load searchtree magma_int_to shared memory
+    // load searchtree into shared memory
     blockwise_work_local(searchtree_size, [&](magma_int_t i) {
         local_tree[i] = tree[i];
     });
@@ -402,7 +402,7 @@ __global__ void count_buckets(const T* __restrict__ in,
     }
     ssss_impl(in, tree, size, workcount, [&](magma_int_t idx, magma_int_t bucket, unsigned amask, unsigned mask) {
         if (write) {
-            static_assert(searchtree_height <= 8, "can't pack bucket idx magma_int_to byte");
+            static_assert(searchtree_height <= 8, "can't pack bucket idx into byte");
             store_packed_bytes(oracles, amask, bucket, idx);
         }
         magma_int_t add = collfree ? __popc(mask) : 1;
