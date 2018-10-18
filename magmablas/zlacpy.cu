@@ -518,6 +518,14 @@ magmablas_zlacpy_batched(
             Otherwise:  All of each matrix dA
     
     @param[in]
+    max_m   INTEGER.
+            maximum value of m.
+    
+    @param[in]
+    max_n   INTEGER.
+            maximum value of n.
+    
+    @param[in]
     m       INTEGER array, dimension (batchCount).
             Each is the number of rows of each matrix dA.  M >= 0.
     
