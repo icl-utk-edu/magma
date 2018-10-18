@@ -141,6 +141,14 @@ izamax_kernel_native(int length, int chunk, magmaDoubleComplex_ptr x, int incx,
 
 
     @param[in]
+    xi      INTEGER
+            Row offset, internal use
+
+    @param[in]
+    xj      INTEGER
+            Column offset, internal use
+
+    @param[in]
     incx    Specifies the increment for the elements of X.
             INCX must not be zero.
 
@@ -290,6 +298,14 @@ void zswap_kernel_native( magma_int_t n,
     dA_array  Array of pointers, dimension (batchCount).
             Each is a COMPLEX_16 array of dimension
 
+
+    @param[in]
+    ai      INTEGER
+            Row offset, internal use.
+
+    @param[in]
+    aj      INTEGER
+            Column offset, internal use.
 
     @param[in]
     incx    Specifies the increment for the elements of X.
@@ -1086,6 +1102,14 @@ zgetf2_fused_batched_kernel( int m,
             On entry, each pointer is an M-by-N matrix to be factored.
             On exit, the factors L and U from the factorization
             A = P*L*U; the unit diagonal elements of L are not stored.
+
+    @param[in]
+    ai      INTEGER
+            Row offset for A.
+
+    @param[in]
+    aj      INTEGER
+            Column offset for A.
 
     @param[in]
     ldda    INTEGER
