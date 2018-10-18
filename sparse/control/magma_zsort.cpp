@@ -19,7 +19,7 @@
 #define SWAPM(a, b) { tmpv = val[a]; val[a] = val[b]; val[b] = tmpv;  \
                       tmpc = col[a]; col[a] = col[b]; col[b] = tmpc;  \
                       tmpr = row[a]; row[a] = row[b]; row[b] = tmpr; }
-                      
+
 #define UP 0
 #define DOWN 1
 
@@ -60,10 +60,10 @@ magma_zsort(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magmaDoubleComplex temp;
     magma_index_t pivot,j,i;
-    
+
     if(first<last){
          pivot=first;
          i=first;
@@ -104,11 +104,11 @@ cleanup:
     @param[in,out]
     x           magmaDoubleComplex*
                 array to sort
-                
+
     @param[in,out]
     col         magma_index_t*
                 Target array, will be modified during operation.
-                
+
     @param[in,out]
     row         magma_index_t*
                 Target array, will be modified during operation.
@@ -139,10 +139,10 @@ magma_zmsort(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magmaDoubleComplex temp;
     magma_index_t pivot,j,i, tmpcol, tmprow;
-    
+
     if(first<last){
          pivot=first;
          i=first;
@@ -214,7 +214,7 @@ magma_zindexsort(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magma_index_t pivot,j,temp,i;
 
     if(first<last){
@@ -257,7 +257,7 @@ cleanup:
     @param[in,out]
     x           magma_index_t*
                 array to sort
-                
+
     @param[in,out]
     y           magmaDoubleComplex*
                 array to sort
@@ -287,7 +287,7 @@ magma_zindexsortval(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
     magma_index_t pivot,j,temp,i;
     magmaDoubleComplex tempval;
 
@@ -314,7 +314,7 @@ magma_zindexsortval(
         temp=x[pivot];
         x[pivot]=x[j];
         x[j]=temp;
-        
+
         tempval=y[pivot];
         y[pivot]=y[j];
         y[j]=tempval;
@@ -331,21 +331,21 @@ cleanup:
     Purpose
     -------
 
-    Identifies the kth smallest/largest element in an array and reorders 
+    Identifies the kth smallest/largest element in an array and reorders
     such that these elements come to the front. The related arrays col and row
     are also reordered.
 
     Arguments
     ---------
-    
+
     @param[in,out]
     val         magmaDoubleComplex*
                 Target array, will be modified during operation.
-                
+
     @param[in,out]
     col         magma_index_t*
                 Target array, will be modified during operation.
-                
+
     @param[in,out]
     row         magma_index_t*
                 Target array, will be modified during operation.
@@ -357,15 +357,15 @@ cleanup:
     @param[in]
     k           magma_int_t
                 Element to be identified (largest/smallest).
-                
+
     @param[in]
     r           magma_int_t
                 rule how to sort: '1' -> largest, '0' -> smallest
-                
+
     @param[out]
     element     magmaDoubleComplex*
                 location of the respective element
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -402,11 +402,11 @@ magma_zmorderstatistics(
             SWAPM(i, st);
             st++;
         }
-     
+
         SWAPM(length-1, st);
-     
+
         if ( k == st ){
-            *element = val[st];    
+            *element = val[st];
         }
         else if ( st > k ) {
             CHECK( magma_zmorderstatistics( val, col, row, st, k, r, element, queue ));
@@ -427,11 +427,11 @@ magma_zmorderstatistics(
             SWAPM(i, st);
             st++;
         }
-     
+
         SWAPM(length-1, st);
-     
+
         if ( k == st ){
-            *element = val[st];    
+            *element = val[st];
         }
         else if ( st > k ) {
             CHECK( magma_zmorderstatistics( val, col, row, st, k, r, element, queue ));
@@ -440,7 +440,7 @@ magma_zmorderstatistics(
             CHECK( magma_zmorderstatistics( val+st, col+st, row+st, length-st, k-st, r, element, queue ));
         }
     }
-    
+
 cleanup:
     return info;
 }
@@ -455,7 +455,7 @@ cleanup:
 
     Arguments
     ---------
-    
+
     @param[in,out]
     val         magmaDoubleComplex*
                 Target array, will be modified during operation.
@@ -467,15 +467,15 @@ cleanup:
     @param[in]
     k           magma_int_t
                 Element to be identified (largest/smallest).
-                
+
     @param[in]
     r           magma_int_t
                 rule how to sort: '1' -> largest, '0' -> smallest
-                
+
     @param[out]
     element     magmaDoubleComplex*
                 location of the respective element
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -510,11 +510,11 @@ magma_zorderstatistics(
             SWAP(i, st);
             st++;
         }
-     
+
         SWAP(length-1, st);
-     
+
         if ( k == st ){
-            *element = val[st];    
+            *element = val[st];
         }
         else if ( st > k ) {
             CHECK( magma_zorderstatistics( val, st, k, r, element, queue ));
@@ -535,11 +535,11 @@ magma_zorderstatistics(
             SWAP(i, st);
             st++;
         }
-     
+
         SWAP(length-1, st);
-     
+
         if ( k == st ){
-            *element = val[st];    
+            *element = val[st];
         }
         else if ( st > k ) {
             CHECK( magma_zorderstatistics( val, st, k, r, element, queue ));
@@ -548,7 +548,7 @@ magma_zorderstatistics(
              CHECK( magma_zorderstatistics( val+st, length-st, k-st, r, element, queue ));
         }
     }
-    
+
 cleanup:
     return info;
 }
@@ -564,7 +564,7 @@ cleanup:
 
     Arguments
     ---------
-    
+
     @param[in,out]
     val         magmaDoubleComplex*
                 Target array, will be modified during operation.
@@ -576,19 +576,19 @@ cleanup:
     @param[in]
     k           magma_int_t
                 Element to be identified (largest/smallest).
-                
+
     @param[in]
     inc         magma_int_t
                 Stepsize in the approximation.
-                
+
     @param[in]
     r           magma_int_t
                 rule how to sort: '1' -> largest, '0' -> smallest
-                
+
     @param[out]
     element     magmaDoubleComplex*
                 location of the respective element
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -624,11 +624,11 @@ magma_zorderstatistics_inc(
             SWAP(i, st);
             st=st+inc;
         }
-     
+
         SWAP(length-inc, st);
-     
+
         if ( k == st ){
-            *element = val[st];    
+            *element = val[st];
         }
         else if ( st > k ) {
             CHECK( magma_zorderstatistics( val, st, k, r, element, queue ));
@@ -649,11 +649,11 @@ magma_zorderstatistics_inc(
             SWAP(i, st);
             st=st+inc;
         }
-     
+
         SWAP(length-inc, st);
-     
+
         if ( k == st ){
-            *element = val[st];    
+            *element = val[st];
         }
         else if ( st > k ) {
             CHECK( magma_zorderstatistics( val, st, k, r, element, queue ));
@@ -662,7 +662,7 @@ magma_zorderstatistics_inc(
              CHECK( magma_zorderstatistics( val+st, length-st, k-st, r, element, queue ));
         }
     }
-    
+
 cleanup:
     return info;
 }
@@ -688,8 +688,8 @@ void swap(magmaDoubleComplex *a, magmaDoubleComplex *b)
 
     Arguments
     ---------
-    
-    @param[in]                                                                                                                                                         
+
+    @param[in]
     start       magma_int_t
                 Start position of the target array.
 
@@ -704,7 +704,7 @@ void swap(magmaDoubleComplex *a, magmaDoubleComplex *b)
     @param[in]
     flag        magma_int_t
                 ???
-                
+
     @param[in]
     queue       magma_queue_t
                 Queue to execute in.
@@ -715,18 +715,18 @@ void swap(magmaDoubleComplex *a, magmaDoubleComplex *b)
 extern "C"
 magma_int_t
 magma_zbitonic_sort(
-    magma_int_t start, 
-    magma_int_t length, 
-    magmaDoubleComplex *seq, 
+    magma_int_t start,
+    magma_int_t length,
+    magmaDoubleComplex *seq,
     magma_int_t flag,
     magma_queue_t queue )
 {
-    
+
     magma_int_t info =0;
-    
+
     magma_int_t m, i, num_threads=1;
     magma_int_t split_length;
-    
+
 #ifdef _OPENMP
     #pragma omp parallel
     {

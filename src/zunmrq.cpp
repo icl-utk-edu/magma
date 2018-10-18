@@ -12,110 +12,110 @@
 #include "magma_internal.h"
 
 /***************************************************************************//**
-    Purpose   
+    Purpose
     -------
-    ZUNMRQ overwrites the general complex M-by-N matrix C with   
+    ZUNMRQ overwrites the general complex M-by-N matrix C with
 
     @verbatim
                               SIDE = MagmaLeft   SIDE = MagmaRight
-    TRANS = MagmaNoTrans:     Q * C              C * Q   
-    TRANS = Magma_ConjTrans:  Q**H * C           C * Q**H   
-    @endverbatim 
+    TRANS = MagmaNoTrans:     Q * C              C * Q
+    TRANS = Magma_ConjTrans:  Q**H * C           C * Q**H
+    @endverbatim
 
-    where Q is a complex unitary matrix defined as the product of k   
-    elementary reflectors   
+    where Q is a complex unitary matrix defined as the product of k
+    elementary reflectors
 
-          Q = H(1)' H(2)' . . . H(k)'   
+          Q = H(1)' H(2)' . . . H(k)'
 
-    as returned by ZGERQF. Q is of order M if SIDE = MagmaLeft and of order N   
-    if SIDE = MagmaRight.   
+    as returned by ZGERQF. Q is of order M if SIDE = MagmaLeft and of order N
+    if SIDE = MagmaRight.
 
-    Arguments   
-    ---------   
+    Arguments
+    ---------
     @param[in]
-    side    magma_side_t 
-      -      = MagmaLeft:    apply Q or Q**H from the Left;   
-      -      = MagmaRight:   apply Q or Q**H from the Right.   
+    side    magma_side_t
+      -      = MagmaLeft:    apply Q or Q**H from the Left;
+      -      = MagmaRight:   apply Q or Q**H from the Right.
 
     @param[in]
     trans   magma_trans_t
-      -      = MagmaNoTrans:    No transpose, apply Q;   
-      -      = Magma_ConjTrans: Conjugate transpose, apply Q**H.   
-
-    @param[in] 
-    m       INTEGER   
-            The number of rows of the matrix C. M >= 0.   
-
-    @param[in] 
-    n       INTEGER   
-            The number of columns of the matrix C. N >= 0.   
+      -      = MagmaNoTrans:    No transpose, apply Q;
+      -      = Magma_ConjTrans: Conjugate transpose, apply Q**H.
 
     @param[in]
-    k       INTEGER   
-            The number of elementary reflectors whose product defines   
-            the matrix Q.   
-            If SIDE = MagmaLeft,  M >= K >= 0;   
-            if SIDE = MagmaRight, N >= K >= 0.   
+    m       INTEGER
+            The number of rows of the matrix C. M >= 0.
 
     @param[in]
-    A       COMPLEX_16 array, dimension (LDA,K)  
-            The i-th row must contain the vector which defines the   
-            elementary reflector H(i), for i = 1,2,...,k, as returned by   
-            ZGERQF in the last k rows of its array argument A.   
-            A is modified by the routine but restored on exit.   
+    n       INTEGER
+            The number of columns of the matrix C. N >= 0.
 
     @param[in]
-    lda     INTEGER   
-            The leading dimension of the array A. 
+    k       INTEGER
+            The number of elementary reflectors whose product defines
+            the matrix Q.
+            If SIDE = MagmaLeft,  M >= K >= 0;
+            if SIDE = MagmaRight, N >= K >= 0.
+
+    @param[in]
+    A       COMPLEX_16 array, dimension (LDA,K)
+            The i-th row must contain the vector which defines the
+            elementary reflector H(i), for i = 1,2,...,k, as returned by
+            ZGERQF in the last k rows of its array argument A.
+            A is modified by the routine but restored on exit.
+
+    @param[in]
+    lda     INTEGER
+            The leading dimension of the array A.
             If SIDE = MagmaLeft,  LDA >= max(1,M);
-            if SIDE = MagmaRight, LDA >= max(1,N). 
+            if SIDE = MagmaRight, LDA >= max(1,N).
 
     @param[in]
-    tau     COMPLEX_16 array, dimension (K)   
-            TAU(i) must contain the scalar factor of the elementary   
-            reflector H(i), as returned by ZGERQF.   
+    tau     COMPLEX_16 array, dimension (K)
+            TAU(i) must contain the scalar factor of the elementary
+            reflector H(i), as returned by ZGERQF.
 
-    @param[in,out]  
-    C       COMPLEX_16 array, dimension (LDC,N)   
-            On entry, the M-by-N matrix C.   
-            On exit, C is overwritten by Q*C or Q**H*C or C*Q**H or C*Q.   
+    @param[in,out]
+    C       COMPLEX_16 array, dimension (LDC,N)
+            On entry, the M-by-N matrix C.
+            On exit, C is overwritten by Q*C or Q**H*C or C*Q**H or C*Q.
 
     @param[in]
-    ldc     INTEGER   
-            The leading dimension of the array C. LDC >= max(1,M).   
+    ldc     INTEGER
+            The leading dimension of the array C. LDC >= max(1,M).
 
     @param[out]
-    work    (workspace) COMPLEX_16 array, dimension (LWORK)   
-            On exit, if INFO = 0, WORK(1) returns the optimal LWORK.   
+    work    (workspace) COMPLEX_16 array, dimension (LWORK)
+            On exit, if INFO = 0, WORK(1) returns the optimal LWORK.
 
     @param[in]
-    lwork   INTEGER   
-            The dimension of the array WORK.   
-            If SIDE = 'L', LWORK >= max(1,N);   
-            if SIDE = 'R', LWORK >= max(1,M).   
-            For optimum performance LWORK >= N*NB if SIDE = 'L', and   
-            LWORK >= M*NB if SIDE = 'R', where NB is the optimal   
-            blocksize.   
+    lwork   INTEGER
+            The dimension of the array WORK.
+            If SIDE = 'L', LWORK >= max(1,N);
+            if SIDE = 'R', LWORK >= max(1,M).
+            For optimum performance LWORK >= N*NB if SIDE = 'L', and
+            LWORK >= M*NB if SIDE = 'R', where NB is the optimal
+            blocksize.
     \n
-            If LWORK = -1, then a workspace query is assumed; the routine   
-            only calculates the optimal size of the WORK array, returns   
-            this value as the first entry of the WORK array, and no error   
-            message related to LWORK is issued by XERBLA.   
+            If LWORK = -1, then a workspace query is assumed; the routine
+            only calculates the optimal size of the WORK array, returns
+            this value as the first entry of the WORK array, and no error
+            message related to LWORK is issued by XERBLA.
 
-    @param[out] 
-    info    INTEGER   
-      -     = 0:  successful exit   
-      -     < 0:  if INFO = -i, the i-th argument had an illegal value   
+    @param[out]
+    info    INTEGER
+      -     = 0:  successful exit
+      -     < 0:  if INFO = -i, the i-th argument had an illegal value
 
     @ingroup magma_unmrq
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zunmrq(
-    magma_side_t side, magma_trans_t trans, 
-    magma_int_t m, magma_int_t n, magma_int_t k, 
-    magmaDoubleComplex *A, magma_int_t lda, 
+    magma_side_t side, magma_trans_t trans,
+    magma_int_t m, magma_int_t n, magma_int_t k,
+    magmaDoubleComplex *A, magma_int_t lda,
     magmaDoubleComplex *tau,
-    magmaDoubleComplex *C, magma_int_t ldc, 
+    magmaDoubleComplex *C, magma_int_t ldc,
     magmaDoubleComplex *work, magma_int_t lwork,
     magma_int_t *info)
 {
@@ -236,7 +236,7 @@ magma_zunmrq(
             i2 = 0;
             step = -nb;
         }
-    
+
         // silence "uninitialized" warnings
         mi = 0;
         ni = 0;
@@ -252,11 +252,11 @@ magma_zunmrq(
         } else {
             transt = MagmaNoTrans;
         }
-    
+
         for (int i = i1; (step < 0 ? i >= i2 : i < i2); i += step) {
             ib = min(nb, k-i);
-            
-            /* Form the triangular factor of the block reflector   
+
+            /* Form the triangular factor of the block reflector
                H = H(i+ib-1) . . . H(i+1) H(i) */
             nq_i = nq - k + i + ib;
             lapackf77_zlarft("Backward", "Rowwise", &nq_i, &ib, A(i,0), &lda, &tau[i], T, &ib);
@@ -275,10 +275,10 @@ magma_zunmrq(
                 /* H or H' is applied to C(1:m,1:n-k+i+ib-1) */
                 ni = n - k + i + ib;
             }
-            
+
             /* Apply H or H' */
             magma_zsetmatrix( ib, ib, T, ib, dT(0,0), ib, queue );
-            magma_zlarfb_gpu(side, transt, MagmaBackward, MagmaRowwise, 
+            magma_zlarfb_gpu(side, transt, MagmaBackward, MagmaRowwise,
                              mi, ni, ib,
                              dV(0,0), ib,
                              dT(0,0), ib,
@@ -292,7 +292,7 @@ magma_zunmrq(
         magma_free_cpu( T );
     }
     work[0] = magma_zmake_lwork( lwkopt );
-    
+
     return *info;
 } /* magma_zunmrq */
 
