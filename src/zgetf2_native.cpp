@@ -210,8 +210,7 @@ magma_zgetf2_native_recursive(
 
     This is the right-looking Level 3 BLAS version of the algorithm.
 
-    This is a batched version that factors batchCount M-by-N matrices in parallel.
-    dA, dipiv, and info become arrays with one entry per matrix.
+    This is a GPU-only routine. The host CPU is not used. 
 
     Arguments
     ---------
@@ -224,33 +223,25 @@ magma_zgetf2_native_recursive(
             The number of columns of each matrix A.  N >= 0.
 
     @param[in,out]
-    dA_array    Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array on the GPU, dimension (LDDA,N).
-            On entry, each pointer is an M-by-N matrix to be factored.
+    dA      A COMPLEX_16 array on the GPU, dimension (LDDA,N).
+            On entry, an M-by-N matrix to be factored.
             On exit, the factors L and U from the factorization
             A = P*L*U; the unit diagonal elements of L are not stored.
 
     @param[in]
     ldda    INTEGER
-            The leading dimension of each array A.  LDDA >= max(1,M).
-
-    @param
-    dW0_displ (workspace) Array of pointers, dimension (batchCount).
-
-    @param
-    dW1_displ (workspace) Array of pointers, dimension (batchCount).
-
-    @param
-    dW2_displ (workspace) Array of pointers, dimension (batchCount).
+            The leading dimension of A.  LDDA >= max(1,M).
 
     @param[out]
-    ipiv_array  Array of pointers, dimension (batchCount), for corresponding matrices.
-            Each is an INTEGER array, dimension (min(M,N))
+    dipiv   An INTEGER array, dimension (min(M,N))
             The pivot indices; for 1 <= i <= min(M,N), row i of the
             matrix was interchanged with row IPIV(i).
 
     @param[out]
-    info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
+    dipivinfo  An INTEGER array, for internal use.
+
+    @param[out]
+    dinfo         INTEGER, stored on the GPU
       -     = 0:  successful exit
       -     < 0:  if INFO = -i, the i-th argument had an illegal value
                   or another error occured, such as memory allocation failed.
@@ -264,14 +255,14 @@ magma_zgetf2_native_recursive(
             internal use.
 
     @param[in]
-    batchCount  INTEGER
-                The number of matrices to operate on.
-
-    @param[in]
     queue   magma_queue_t
             Queue to execute in.
 
-    this is an internal routine that might have many assumption.
+    @param[in]
+    update_queue   magma_queue_t
+                   Internal use.
+
+    This is an internal routine.
 
     @ingroup magma_getf2_batched
 *******************************************************************************/
