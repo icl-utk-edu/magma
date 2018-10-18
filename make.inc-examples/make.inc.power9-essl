@@ -41,7 +41,7 @@ FPIC      = -fPIC
 CFLAGS    = -O3 -ffast-math $(FPIC) -fopenmp -DNDEBUG -DNOCHANGE -Wall -Wshadow 
 FFLAGS    = -O3 -ffast-math $(FPIC)          -DNDEBUG -DNOCHANGE -Wall -Wno-unused-dummy-argument
 F90FLAGS  = -O3 -ffast-math $(FPIC)          -DNDEBUG -DNOCHANGE -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-NVCCFLAGS = -O3                   -DNDEBUG -DNOCHANGE -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+NVCCFLAGS = -O3                   -DNDEBUG -DNOCHANGE -Xcompiler "$(FPIC) -Wall -Wno-unused-function" -std=c++11
 LDFLAGS   =     -ffast-math $(FPIC) -fopenmp
 
 # C++11 (gcc >= 4.7) is not required, but has benefits like atomic operations

@@ -42,7 +42,7 @@ FPIC      = -fPIC
 CFLAGS    = -O3 $(FPIC) -qopenmp -DADD_ -Wall -Wshadow -DMAGMA_WITH_MKL -DDEBUG_MEMORY
 FFLAGS    = -O3 $(FPIC)          -DADD_ -warn all -warn nounused -nogen-interfaces
 F90FLAGS  = -O3 $(FPIC)          -DADD_ -warn all -warn nounused
-NVCCFLAGS = -O3                  -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+NVCCFLAGS = -O3                  -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function" -std=c++11
 LDFLAGS   =     $(FPIC) -qopenmp
 
 # Defining MAGMA_ILP64 or MKL_ILP64 changes magma_int_t to int64_t in include/magma_types.h

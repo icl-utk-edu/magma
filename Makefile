@@ -25,7 +25,7 @@ RANLIB     ?= ranlib
 # may want -std=c99 for CFLAGS, -std=c++11 for CXXFLAGS
 CFLAGS     ?= -O3 $(FPIC) -DADD_ -Wall -MMD
 CXXFLAGS   ?= $(CFLAGS) -std=c++11
-NVCCFLAGS  ?= -O3         -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+NVCCFLAGS  ?= -O3         -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function" -std=c++11
 FFLAGS     ?= -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS   ?= -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
 LDFLAGS    ?= -O3 $(FPIC)

@@ -45,7 +45,7 @@ FPIC      = -fPIC
 CFLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp -DMAGMA_WITH_ACML
 FFLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS  = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-NVCCFLAGS = -O3         -DNDEBUG -DADD_       -Xcompiler "$(FPIC)"
+NVCCFLAGS = -O3         -DNDEBUG -DADD_       -Xcompiler "$(FPIC)" -std=c++11
 LDFLAGS   =     $(FPIC)              -fopenmp
 
 # C++11 (gcc >= 4.7) is not required, but has benefits like atomic operations

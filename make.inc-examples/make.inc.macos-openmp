@@ -56,7 +56,7 @@ FPIC      = -fPIC
 CFLAGS    = -m64 -O3 $(FPIC) -fopenmp -DNDEBUG -DADD_ -Wall -Wshadow -DMAGMA_NOAFFINITY
 FFLAGS    = -m64 -O3 $(FPIC)          -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS  = -m64 -O3 $(FPIC)          -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-NVCCFLAGS = -m64 -O3                  -DNDEBUG -DADD_       -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+NVCCFLAGS = -m64 -O3                  -DNDEBUG -DADD_       -Xcompiler "$(FPIC) -Wall -Wno-unused-function" -std=c++11
 LDFLAGS   = -m64     $(FPIC) -fopenmp
 
 # Options to do extra checks for non-standard things like variable length arrays;
