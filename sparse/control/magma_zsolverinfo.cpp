@@ -610,12 +610,19 @@ magma_zsolverinfo_init(
     // Experimental addition of PAPI SDE (Software-Defined Events)
 
     sde.handle = papi_sde_init("MAGMA");
+    // PAPI SDE Counters
     papi_sde_register_counter( sde.handle, sde_name.numiter, PAPI_SDE_RO|PAPI_SDE_INSTANT, MAGMA_INTEGER, &(solver_par->numiter) );
     papi_sde_register_counter( sde.handle, sde_name.InitialResidual, PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, &(solver_par->init_res) );
     papi_sde_register_counter( sde.handle, sde_name.FinalResidual, PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, &(solver_par->final_res) );
     papi_sde_register_counter( sde.handle, sde_name.IterativeResidual, PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, &(solver_par->iter_res) );
     papi_sde_register_counter( sde.handle, sde_name.SolverRuntime, PAPI_SDE_RO|PAPI_SDE_INSTANT, MAGMA_REAL_DOUBLE, &(solver_par->runtime) );
 
+    // PAPI SDE Counters' Description
+    papi_sde_describe_counter( sde.handle, sde_name.numiter, sde_desc.numiter );
+    papi_sde_describe_counter( sde.handle, sde_name.InitialResidual, sde_desc.InitialResidual );
+    papi_sde_describe_counter( sde.handle, sde_name.FinalResidual, sde_desc.FinalResidual );
+    papi_sde_describe_counter( sde.handle, sde_name.IterativeResidual, sde_desc.IterativeResidual );
+    papi_sde_describe_counter( sde.handle, sde_name.SolverRuntime, sde_desc.SolverRuntime );
 
 cleanup:
     if( info != 0 ){
