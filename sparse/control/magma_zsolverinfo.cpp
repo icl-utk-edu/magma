@@ -11,7 +11,6 @@
 */
 #include <string>
 #include "magmasparse_internal.h"
-#include "papi_sde_interface.h"
 #include "papi_sde_magma.h"
 
 #define RTOLERANCE     lapackf77_dlamch( "E" )
@@ -516,8 +515,10 @@ magma_zsolverinfo_init(
     magma_z_preconditioner *precond_par,
     magma_queue_t queue )
 {
-    papi_handle_t sde_handle;
-
+    sde_t sde;
+    sde_name_t sde_name;
+    sde_desc_t sde_desc;
+    
     magma_int_t info = 0;
     solver_par->runtime         = 0.;
     solver_par->numiter = 0;
@@ -608,12 +609,12 @@ magma_zsolverinfo_init(
 
     // Experimental addition of PAPI SDE (Software-Defined Events)
 
-    sde_handle = papi_sde_init("MAGMA");
-    papi_sde_register_counter( sde_handle, "MAGMA::numiter", PAPI_SDE_RO|PAPI_SDE_INSTANT, MAGMA_INTEGER, &(solver_par->numiter) );
-    papi_sde_register_counter( sde_handle, "MAGMA::InitialResidual", PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, &(solver_par->init_res) );
-    papi_sde_register_counter( sde_handle, "MAGMA::FinalResidual", PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, &(solver_par->final_res) );
-    papi_sde_register_counter( sde_handle, "MAGMA::IterativeResidual", PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, &(solver_par->iter_res) );
-    papi_sde_register_counter( sde_handle, "MAGMA::SolverRuntime", PAPI_SDE_RO|PAPI_SDE_INSTANT, MAGMA_REAL_DOUBLE, &(solver_par->runtime) );
+    sde.handle = papi_sde_init("MAGMA");
+    papi_sde_register_counter( sde.handle, sde_name.numiter, PAPI_SDE_RO|PAPI_SDE_INSTANT, MAGMA_INTEGER, &(solver_par->numiter) );
+    papi_sde_register_counter( sde.handle, sde_name.InitialResidual, PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, &(solver_par->init_res) );
+    papi_sde_register_counter( sde.handle, sde_name.FinalResidual, PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, &(solver_par->final_res) );
+    papi_sde_register_counter( sde.handle, sde_name.IterativeResidual, PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, &(solver_par->iter_res) );
+    papi_sde_register_counter( sde.handle, sde_name.SolverRuntime, PAPI_SDE_RO|PAPI_SDE_INSTANT, MAGMA_REAL_DOUBLE, &(solver_par->runtime) );
 
 
 cleanup:

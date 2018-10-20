@@ -21,6 +21,8 @@
 #include <omp.h>
 #endif
 
+#include "papi_sde_magma.h"
+
 // includes CUDA
 #include <cusparse_v2.h>
 
@@ -420,6 +422,7 @@ typedef struct magma_z_solver_par
     magma_int_t        ev_length;               // needed for framework
     double             *eigenvalues;            // feedback: array containing eigenvalues
     magmaDoubleComplex_ptr      eigenvectors;   // feedback: array containing eigenvectors on DEV
+    sde_t              sde;                     // PAPI SDEs
     magma_int_t        info;                    // feedback: did the solver converge etc.
 
     //---------------------------------
@@ -459,6 +462,7 @@ typedef struct magma_c_solver_par
     magma_int_t        ev_length;               // needed for framework
     float              *eigenvalues;            // feedback: array containing eigenvalues
     magmaFloatComplex_ptr       eigenvectors;   // feedback: array containing eigenvectors on DEV
+    sde_t              sde;                     // PAPI SDEs
     magma_int_t        info;                    // feedback: did the solver converge etc.
 
     //---------------------------------
@@ -498,6 +502,7 @@ typedef struct magma_d_solver_par
     magma_int_t        ev_length;               // needed for framework
     double             *eigenvalues;            // feedback: array containing eigenvalues
     magmaDouble_ptr             eigenvectors;   // feedback: array containing eigenvectors on DEV
+    sde_t              sde;                     // PAPI SDEs
     magma_int_t        info;                    // feedback: did the solver converge etc.
 
     //---------------------------------
@@ -537,6 +542,7 @@ typedef struct magma_s_solver_par
     magma_int_t        ev_length;               // needed for framework
     float              *eigenvalues;            // feedback: array containing eigenvalues
     magmaFloat_ptr              eigenvectors;   // feedback: array containing eigenvectors on DEV
+    sde_t              sde;                     // PAPI SDEs
     magma_int_t        info;                    // feedback: did the solver converge etc.
 
     //---------------------------------

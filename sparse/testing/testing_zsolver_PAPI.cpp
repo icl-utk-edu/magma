@@ -43,11 +43,11 @@ int main(  int argc, char** argv )
     int event_set, retval;
     bool is_papi_on = false;
     long long int values[5];
-    const char *sde_event_name[] = {"sde:::MAGMA::numiter",
-                                    "sde:::MAGMA::InitialResidual",
-                                    "sde:::MAGMA::FinalResidual",
-                                    "sde:::MAGMA::IterativeResidual",
-                                    "sde:::MAGMA::SolverRuntime" };
+    const char *sde_event_name[] = {"sde:::MAGMA::numiter_I",
+                                    "sde:::MAGMA::InitialResidual_D",
+                                    "sde:::MAGMA::FinalResidual_D",
+                                    "sde:::MAGMA::IterativeResidual_D",
+                                    "sde:::MAGMA::SolverRuntime_D" };
     
     int i=1;
     TESTING_CHECK( magma_zparse_opts( argc, argv, &zopts, &i, queue ));
