@@ -81,4 +81,6 @@ LIBDIR    = -L$(CUDADIR)/lib64 \
 INC       = -I$(CUDADIR)/include \
             -I$(MKLROOT)/include
 
-PAPI_DIR  = /home/adanalis/usr/papi_w_sde_wip
+# define PAPI's root directory either in your environment (via PAPIROOT) or here.
+PAPI_DIR  = $(PAPIROOT)
+
