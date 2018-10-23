@@ -26,7 +26,7 @@ subroutine zfill_matrix( m, n, A, lda )
     complex*16 :: A(:,:)
     
     integer :: i, j
-    real*16 :: re, im
+    real*8 :: re, im
     
     do j = 1, n
         do i = 1, m
