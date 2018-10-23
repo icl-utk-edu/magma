@@ -32,7 +32,7 @@ subroutine zfill_matrix( m, n, A, lda )
         do i = 1, m
             call random_number( re )
             call random_number( im )
-            A(i,j) = complex( re, im )
+            A(i,j) = cmplx( re, im )
         end do
     end do
 end subroutine
