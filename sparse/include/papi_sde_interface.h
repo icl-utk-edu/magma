@@ -17,6 +17,19 @@
 #define PAPI_SDE_MAX       0x1
 #define PAPI_SDE_MIN       0x2
 
+
+#define GET_FLOAT_SDE(x) *((float *)&x)
+#define GET_DOUBLE_SDE(x) *((double *)&x)
+/*
+ * GET_RECORDER_ADDRESS() USAGE EXAMPLE:
+ * If SDE recorder logs values of type 'double':
+ *     double *ptr = GET_RECORDER_ADDRESS(papi_event_value[6], double);
+ *     for (j=0; j<CNT; j++)
+ *        printf("    %d: %.4e\n",j, ptr[j]);
+ */
+#define GET_SDE_RECORDER_ADDRESS(x,rcrd_type) ((rcrd_type *)x)
+
+
 typedef long long int (*papi_sde_fptr_t)( void * );
 typedef int (*papi_sde_cmpr_fptr_t)( void * );
 typedef void * papi_handle_t;
