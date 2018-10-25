@@ -11,6 +11,10 @@
 
 #define MAGMA_REAL_DOUBLE PAPI_SDE_double
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* Struct for SDE handle and SDE counters */
 typedef struct sde_t
@@ -52,6 +56,10 @@ typedef struct sde_rcrd_t
    /* Add handle for new SDE recorders HERE */
 } sde_rcrd_t;
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
