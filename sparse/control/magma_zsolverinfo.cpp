@@ -11,7 +11,6 @@
 */
 #include <string>
 #include "magmasparse_internal.h"
-#include "papi_sde_magma.h"
 
 #define RTOLERANCE     lapackf77_dlamch( "E" )
 #define ATOLERANCE     lapackf77_dlamch( "E" )
@@ -295,13 +294,6 @@ magma_zsolverinfo(
                            solver_par->timing[j],
                            (long long) (magma_ceildiv(solver_par->spmv_count, solver_par->numiter)*(j*k)),
                            (long long) solver_par->info );
-
-                    // PAPI SDE recorder of iterative residuals
-                    if ( solver_par->sde_rcrd.magma_env_on != NULL ) {
-                        papi_sde_record(solver_par->sde_rcrd.handle_iter_res, 
-                                        sizeof(solver_par->res_vec[j]), 
-                                        &solver_par->res_vec[j] );
-                    }
                 }
                 printf("%%=================================================================================%%\n");
                 break;
@@ -522,25 +514,6 @@ magma_zsolverinfo_init(
     magma_z_preconditioner *precond_par,
     magma_queue_t queue )
 {
-    sde_t sde;
-    sde_name_t sde_name;
-    sde_desc_t sde_desc;
-
-    // HJ TODO: Needs to be discussed with Magma folks:
-    // Currently, the SDE iterative residual recorder gets
-    // its data from solver_par->res_vec[], which is only 
-    // available (and malloc'ed) when 'verbose' is 'on'. 
-    // For now, the least invasive approach is to set verbose 
-    // to 1 if a user indicates interest in SDE recorders
-    // via the PAPI_SDE_MAGMA environment variable.     
-    solver_par->sde_rcrd.magma_env_on = getenv("PAPI_SDE_MAGMA");
-    if (solver_par->sde_rcrd.magma_env_on!=NULL) {
-        // PAPI SDE recorder handler
-        solver_par->sde_rcrd.handle_iter_res = NULL;
-
-        solver_par->verbose = 1;
-    }
- 
     magma_int_t info = 0;
     solver_par->runtime         = 0.;
     solver_par->numiter = 0;
@@ -627,42 +600,6 @@ magma_zsolverinfo_init(
     precond_par->cuinfoU = NULL;
     precond_par->cuinfoLT = NULL;
     precond_par->cuinfoUT = NULL;
-
-
-    // Experimental addition of PAPI SDE (Software-Defined Events)
-
-    sde.handle = papi_sde_init("MAGMA");
-    // PAPI SDE Counters
-    papi_sde_register_counter( sde.handle, sde_name.numiter, 
-                               PAPI_SDE_RO|PAPI_SDE_INSTANT, MAGMA_INTEGER, 
-                               &(solver_par->numiter) );
-    papi_sde_register_counter( sde.handle, sde_name.InitialResidual, 
-                               PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, 
-                               &(solver_par->init_res) );
-    papi_sde_register_counter( sde.handle, sde_name.FinalResidual, 
-                               PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, 
-                               &(solver_par->final_res) );
-    papi_sde_register_counter( sde.handle, sde_name.IterativeResidual, 
-                               PAPI_SDE_RO|PAPI_SDE_INSTANT, PAPI_SDE_double, 
-                               &(solver_par->iter_res) );
-    papi_sde_register_counter( sde.handle, sde_name.SolverRuntime, 
-                               PAPI_SDE_RO|PAPI_SDE_INSTANT, MAGMA_REAL_DOUBLE, 
-                               &(solver_par->runtime) );
-    if ( solver_par->sde_rcrd.magma_env_on != NULL ) {
-        papi_sde_create_recorder( sde.handle, sde_name.IterativeResidual_RCRD, 
-                                  sizeof(double), papi_sde_compare_double, 
-                                  &solver_par->sde_rcrd.handle_iter_res );
-    }
-     
-    // PAPI SDE Counters' Description
-    papi_sde_describe_counter( sde.handle, sde_name.numiter, sde_desc.numiter );
-    papi_sde_describe_counter( sde.handle, sde_name.InitialResidual, sde_desc.InitialResidual );
-    papi_sde_describe_counter( sde.handle, sde_name.FinalResidual, sde_desc.FinalResidual );
-    papi_sde_describe_counter( sde.handle, sde_name.IterativeResidual, sde_desc.IterativeResidual );
-    papi_sde_describe_counter( sde.handle, sde_name.SolverRuntime, sde_desc.SolverRuntime );
-    if ( solver_par->sde_rcrd.magma_env_on != NULL ) {
-        papi_sde_describe_counter( sde.handle, sde_name.IterativeResidual_RCRD, sde_desc.IterativeResidual_RCRD );
-    }
 
 cleanup:
     if( info != 0 ){
