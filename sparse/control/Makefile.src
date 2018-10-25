@@ -59,6 +59,7 @@ libsparse_src += \
 
 libsparse_src += \
 	$(cdir)/papi_sde_interface.cpp \
+	$(cdir)/magma_z_papi_sde_hook.cpp \
 
 
 
