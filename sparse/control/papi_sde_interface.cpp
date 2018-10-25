@@ -176,6 +176,18 @@ papi_sde_reset_counter( void *cntr_handle )
     return 0;
 }
 
+void 
+__attribute__((weak))
+*papi_sde_get_counter_handle( void *handle, const char *event_name)
+{
+    (void) handle;
+    (void) event_name;
+
+    /* do nothing */
+
+    return NULL;
+}
+
 
 int 
 __attribute__((weak))
