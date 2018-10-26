@@ -2,8 +2,6 @@
        @precisions normal z -> s d c
 */
 
-#include <stdio.h>
-#include <stddef.h>
 #include "papi_sde_hook.h"
 
 int magma_z_papi_sde_hook(magma_z_solver_par *solver_par)
@@ -39,7 +37,6 @@ int magma_z_papi_sde_hook(magma_z_solver_par *solver_par)
                                   sizeof(double), papi_sde_compare_double,
                                   &solver_par->sde_rcrd.handle_iter_res );
 
-        printf("HJ: %s\n", sde_name.IterativeResidual_RCRD);
 
         // PAPI SDE Counters' Description 
         papi_sde_describe_counter( sde.handle, sde_name.numiter,
