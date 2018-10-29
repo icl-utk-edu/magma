@@ -525,7 +525,7 @@ magma_int_t magma_zscal_zgeru_batched(magma_int_t m, magma_int_t n, magma_int_t 
         fprintf( stderr, "%s nb=%lld, > %lld, not supported\n", __func__, (long long) n, (long long) MAX_NTHREADS );
         return -15;
     }
-    const int tbx = MAX_NTHREADS;
+    const int tbx = MAX_NTHREADS / 2;
     dim3 grid(magma_ceildiv(m,tbx), 1, batchCount);
     dim3 threads(tbx, 1, 1);
     switch(n){
@@ -563,7 +563,7 @@ magma_zscal_zgeru_native(
         fprintf( stderr, "%s nb=%lld, > %lld, not supported\n", __func__, (long long) n, (long long) MAX_NTHREADS );
         return -15;
     }
-    const int tbx = MAX_NTHREADS;
+    const int tbx = MAX_NTHREADS / 2;
     dim3 grid(magma_ceildiv(m,tbx), 1, 1);
     dim3 threads(tbx, 1, 1);
     switch(n){
