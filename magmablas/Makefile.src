@@ -243,6 +243,16 @@ $(cdir)/dgeqr2_batched.$(o_ext): $(cdir)/dlarfg_devicesfunc.cuh
 $(cdir)/cgeqr2_batched.$(o_ext): $(cdir)/clarfg_devicesfunc.cuh
 $(cdir)/zgeqr2_batched.$(o_ext): $(cdir)/zlarfg_devicesfunc.cuh
 
+$(cdir)/sgetf2_kernels.$(o_ext): control/batched_kernel_param.h
+$(cdir)/dgetf2_kernels.$(o_ext): control/batched_kernel_param.h
+$(cdir)/cgetf2_kernels.$(o_ext): control/batched_kernel_param.h
+$(cdir)/zgetf2_kernels.$(o_ext): control/batched_kernel_param.h
+
+$(cdir)/sgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
+$(cdir)/dgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
+$(cdir)/cgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
+$(cdir)/zgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
+
 $(cdir)/spotf2_kernels.$(o_ext): $(cdir)/spotf2_devicesfunc.cuh
 $(cdir)/dpotf2_kernels.$(o_ext): $(cdir)/dpotf2_devicesfunc.cuh
 $(cdir)/cpotf2_kernels.$(o_ext): $(cdir)/cpotf2_devicesfunc.cuh

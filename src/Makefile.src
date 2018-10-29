@@ -336,6 +336,10 @@ $(cdir)/dgeqrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cgeqrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/zgeqrf_batched.$(o_ext): control/batched_kernel_param.h
 
+$(cdir)/sgetf2_native.$(o_ext): control/batched_kernel_param.h
+$(cdir)/dgetf2_native.$(o_ext): control/batched_kernel_param.h
+$(cdir)/cgetf2_native.$(o_ext): control/batched_kernel_param.h
+$(cdir)/zgetf2_native.$(o_ext): control/batched_kernel_param.h
 
 # ----------------------------------------------------------------------
 # pop first directory
