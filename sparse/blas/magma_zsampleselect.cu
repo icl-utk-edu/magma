@@ -30,15 +30,17 @@ constexpr magma_int_t warp_size = 1 << warp_size_log2;
 constexpr magma_int_t max_block_size_log2 = 9;
 constexpr magma_int_t max_block_size = 1 << max_block_size_log2;
 
+constexpr magma_int_t bitonic_cutoff_log2 = sample_size_log2;
+constexpr magma_int_t bitonic_cutoff = 1 << bitonic_cutoff_log2;
+
 magma_int_t sampleselect_alloc_size(magma_int_t size);
 
-template<typename T, bool shared>
-__global__ void sampleselect(T* __restrict__ in,
-                             T* __restrict__ tmp,
-                             T* __restrict__ tree,
+__global__ void sampleselect(double* __restrict__ in,
+                             double* __restrict__ tmp,
+                             double* __restrict__ tree,
                              magma_int_t* __restrict__ count_tmp,
                              magma_int_t size, magma_int_t rank,
-                             T* __restrict__ out);
+                             double* __restrict__ out);
 
 constexpr auto block_size = max_block_size;
 constexpr auto num_grouped_blocks = block_size;
@@ -46,33 +48,12 @@ constexpr auto num_threads = block_size * num_grouped_blocks;
 
 constexpr unsigned full_mask = 0xffffffff;
 
-/*
- * General helpers
- */
-template<typename T>
-__device__ void swap(T& a, T& b) {
-    auto tmp = b;
-    b = a;
-    a = tmp;
-}
-
-template<typename T>
-struct max_helper {
-    // workaround for ::max being a __host__ function
-    constexpr static T value = std::numeric_limits<T>::max();
-};
-
-template<typename T>
-__global__ void set_zero(T* in, magma_int_t size) {
-    if (threadIdx.x < size) {
-        in[threadIdx.x] = 0;
-    }
-}
+constexpr static auto max_value = std::numeric_limits<double>::max();
 
 /*
  * Sampling
  */
-__device__ inline magma_int_t uniform_pick_idx(magma_int_t idx, magma_int_t samplesize, magma_int_t size) {
+__device__ magma_int_t uniform_pick_idx(magma_int_t idx, magma_int_t samplesize, magma_int_t size) {
     auto stride = size / samplesize;
     if (stride == 0) {
         return idx * size / samplesize;
@@ -81,19 +62,12 @@ __device__ inline magma_int_t uniform_pick_idx(magma_int_t idx, magma_int_t samp
     }
 }
 
-__device__ inline magma_int_t random_pick_idx(magma_int_t idx, magma_int_t samplesize, magma_int_t size) {
+__device__ magma_int_t random_pick_idx(magma_int_t idx, magma_int_t samplesize, magma_int_t size) {
     // TODO
     return uniform_pick_idx(idx, samplesize, size);
 }
 
-/*
- * Warp-aggregated atomics
- */
-__device__ inline bool is_group_leader(unsigned mask) {
-    return (__ffs(mask) - 1) == (threadIdx.x % warp_size);
-}
-
-__device__ inline magma_int_t prefix_popc(unsigned mask, magma_int_t shift) {
+__device__ magma_int_t prefix_popc(unsigned mask, magma_int_t shift) {
     return __popc(mask << (32 - shift));
     /* alternative:
     magma_int_t prefix_mask = (1 << shift) - 1;
@@ -101,7 +75,7 @@ __device__ inline magma_int_t prefix_popc(unsigned mask, magma_int_t shift) {
      */
 }
 
-__device__ inline magma_int_t warp_aggr_atomic_count_mask(magma_int_t* atomic, unsigned amask, unsigned mask) {
+__device__ magma_int_t warp_aggr_atomic_count_mask(magma_int_t* atomic, unsigned amask, unsigned mask) {
     auto lane_idx = threadIdx.x % warp_size;
     magma_int_t ofs{};
     if (lane_idx == 0) {
@@ -112,7 +86,7 @@ __device__ inline magma_int_t warp_aggr_atomic_count_mask(magma_int_t* atomic, u
     return ofs + local_ofs;
 }
 
-__device__ inline magma_int_t warp_aggr_atomic_count_predicate(magma_int_t* atomic, unsigned amask, bool predicate) {
+__device__ magma_int_t warp_aggr_atomic_count_predicate(magma_int_t* atomic, unsigned amask, bool predicate) {
     auto mask = __ballot_sync(amask, predicate);
     return warp_aggr_atomic_count_mask(atomic, amask, mask);
 }
@@ -120,7 +94,7 @@ __device__ inline magma_int_t warp_aggr_atomic_count_predicate(magma_int_t* atom
 /*
  * Unaligned byte storage
  */
-__device__ inline void store_packed_bytes(unsigned* output, unsigned amask, unsigned byte, magma_int_t idx) {
+__device__ void store_packed_bytes(unsigned* output, unsigned amask, unsigned byte, magma_int_t idx) {
     // pack 4 consecutive bytes into an integer
     unsigned result = byte;
     // ------00 -> ----1100
@@ -132,7 +106,7 @@ __device__ inline void store_packed_bytes(unsigned* output, unsigned amask, unsi
     }
 }
 
-__device__ inline unsigned load_packed_bytes(const unsigned* input, unsigned amask, magma_int_t idx) {
+__device__ unsigned load_packed_bytes(const unsigned* input, unsigned amask, magma_int_t idx) {
     auto char_idx = idx % 4;
     auto pack_idx = idx / 4;
     unsigned packed{};
@@ -150,8 +124,7 @@ __device__ inline unsigned load_packed_bytes(const unsigned* input, unsigned ama
 /*
  * Sorting
  */
-template<typename T>
-__device__ void sort2(T* in, magma_int_t i, magma_int_t j, bool odd) {
+__device__ void sort2(double* in, magma_int_t i, magma_int_t j, bool odd) {
     auto ei = in[i];
     auto ej = in[j];
     if (odd != (ej < ei)) {
@@ -160,11 +133,10 @@ __device__ void sort2(T* in, magma_int_t i, magma_int_t j, bool odd) {
     }
 }
 
-template<magma_int_t log2_size, typename T>
-__device__ void bitonic_sort(T* in) {
+__device__ void bitonic_sort(double* in) {
     magma_int_t idx = threadIdx.x;
     // idx has the form | high | low | where /low/ has /round/ bits
-    for (magma_int_t round = 0; round < log2_size; ++round) {
+    for (magma_int_t round = 0; round < bitonic_cutoff_log2; ++round) {
         // the lowest bit of /high/ decides the sort order
         bool odd = idx & (1 << round);
         for (magma_int_t bit = 1 << round; bit != 0; bit >>= 1) {
@@ -179,23 +151,19 @@ __device__ void bitonic_sort(T* in) {
             } else {
                 __syncwarp();
             }
-            if (idx < 1 << (log2_size - 1)) {
+            if (idx < 1 << (bitonic_cutoff_log2 - 1)) {
                 sort2(in, sort_idx, sort_idx | bit, odd);
             }
         }
     }
 }
 
-constexpr magma_int_t bitonic_cutoff_log2 = 10;
-constexpr magma_int_t bitonic_cutoff = 1 << bitonic_cutoff_log2;
-
-template<typename T>
-__global__ void select_bitonic_basecase(T* __restrict__ in, T* __restrict__ out, magma_int_t size, magma_int_t rank) {
-    __shared__ T data[bitonic_cutoff];
+__global__ void select_bitonic_basecase(double* __restrict__ in, double* __restrict__ out, magma_int_t size, magma_int_t rank) {
+    __shared__ double data[bitonic_cutoff];
     magma_int_t idx = threadIdx.x;
-    data[threadIdx.x] = idx < size ? in[idx] : max_helper<T>::value;
+    data[threadIdx.x] = idx < size ? in[idx] : max_value;
     __syncthreads();
-    bitonic_sort<bitonic_cutoff_log2>(data);
+    bitonic_sort(data);
     __syncthreads();
     if (idx == 0) {
         *out = data[rank];
@@ -205,9 +173,8 @@ __global__ void select_bitonic_basecase(T* __restrict__ in, T* __restrict__ out,
 /*
  * Prefix sum
  */
-template<magma_int_t size_log2>
 __device__ void small_prefix_sum_upward(magma_int_t* data) {
-    constexpr auto size = 1 << size_log2;
+    constexpr auto size = 1 << searchtree_height;
     auto idx = threadIdx.x;
     // upward phase: reduce
     // here we build an implicit reduction tree, overwriting values
@@ -226,9 +193,8 @@ __device__ void small_prefix_sum_upward(magma_int_t* data) {
     }
 }
 
-template<magma_int_t size_log2>
 __device__ void small_prefix_sum_downward(magma_int_t* data) {
-    constexpr auto size = 1 << size_log2;
+    constexpr auto size = 1 << searchtree_height;
     auto idx = threadIdx.x;
     // downward phase: build prefix sum
     // every right child stores the sum of its left sibling
@@ -255,25 +221,23 @@ __device__ void small_prefix_sum_downward(magma_int_t* data) {
     }
 }
 
-template<magma_int_t size_log2>
 __device__ void small_prefix_sum(magma_int_t* data) {
-    small_prefix_sum_upward<size_log2>(data);
+    small_prefix_sum_upward(data);
     __syncthreads();
-    small_prefix_sum_downward<size_log2>(data);
+    small_prefix_sum_downward(data);
 }
 
 /*
  * Prefix sum selection
  */
-template<magma_int_t size_log2>
 __device__ void prefix_sum_select(const magma_int_t* counts, magma_int_t rank, unsigned* out_bucket, magma_int_t* out_rank) {
-    constexpr auto size = 1 << size_log2;
+    constexpr auto size = 1 << searchtree_height;
     // first compute prefix sum of counts
     auto idx = threadIdx.x;
     __shared__ magma_int_t sums[size];
     sums[2 * idx] = counts[2 * idx];
     sums[2 * idx + 1] = counts[2 * idx + 1];
-    small_prefix_sum<size_log2>(sums);
+    small_prefix_sum(sums);
     __syncthreads();
     if (idx >= warp_size) {
         return;
@@ -321,7 +285,7 @@ __device__ void blockwise_work_local(magma_int_t size, F function) {
 }
 
 
-__device__ __forceinline__ magma_int_t searchtree_entry(magma_int_t idx) {
+__device__ magma_int_t searchtree_entry(magma_int_t idx) {
     // determine the level by the node index
     // rationale: a complete binary tree with 2^k leaves has 2^k - 1 inner nodes
     magma_int_t lvl = 31 - __clz(idx + 1);      // == log2(idx + 1)
@@ -330,8 +294,7 @@ __device__ __forceinline__ magma_int_t searchtree_entry(magma_int_t idx) {
     return lvl_idx * step + step / 2;
 }
 
-template<typename T>
-__device__ __forceinline__ magma_int_t searchtree_traversal(const T* searchtree, T el, unsigned amask, unsigned& equal_mask) {
+__device__ magma_int_t searchtree_traversal(const double* searchtree, double el, unsigned amask, unsigned& equal_mask) {
     magma_int_t i = 0;
     equal_mask = amask;
     auto root_splitter = searchtree[0];
@@ -346,15 +309,14 @@ __device__ __forceinline__ magma_int_t searchtree_traversal(const T* searchtree,
     return i - (searchtree_width - 1);
 }
 
-template<typename T>
-__global__ void build_searchtree(const T* __restrict__ in, T* __restrict__ out, magma_int_t size) {
-    __shared__ T sample_buffer[sample_size];
-    __shared__ T leaves[searchtree_width];
+__global__ void build_searchtree(const double* __restrict__ in, double* __restrict__ out, magma_int_t size) {
+    __shared__ double sample_buffer[sample_size];
+    __shared__ double leaves[searchtree_width];
     auto idx = threadIdx.x;
 
     sample_buffer[idx] = in[random_pick_idx(idx, sample_size, size)];
     __syncthreads();
-    bitonic_sort<sample_size_log2>(sample_buffer);
+    bitonic_sort(sample_buffer);
     __syncthreads();
     if (idx < searchtree_width) {
         leaves[idx] = sample_buffer[uniform_pick_idx(idx, searchtree_width, sample_size)];
@@ -366,12 +328,12 @@ __global__ void build_searchtree(const T* __restrict__ in, T* __restrict__ out, 
     }
 }
 
-template<typename BucketCallback, typename T>
-__device__ __forceinline__ void ssss_impl(const T* __restrict__ in,
-                                              const T* __restrict__ tree,
-                                              magma_int_t size, magma_int_t workcount,
-                                              BucketCallback bucket_cb) {
-    __shared__ T local_tree[searchtree_size];
+template<typename BucketCallback>
+__device__ void ssss_impl(const double* __restrict__ in,
+                          const double* __restrict__ tree,
+                          magma_int_t size, magma_int_t workcount,
+                          BucketCallback bucket_cb) {
+    __shared__ double local_tree[searchtree_size];
 
     // load searchtree into shared memory
     blockwise_work_local(searchtree_size, [&](magma_int_t i) {
@@ -387,40 +349,30 @@ __device__ __forceinline__ void ssss_impl(const T* __restrict__ in,
     });
 }
 
-template<typename T, bool shared, bool collfree, bool write>
-__global__ void count_buckets(const T* __restrict__ in,
-                              const T* __restrict__ tree,
+template<bool write>
+__global__ void count_buckets(const double* __restrict__ in,
+                              const double* __restrict__ tree,
                               magma_int_t* __restrict__ counts,
                               unsigned* __restrict__ oracles,
                               magma_int_t size, magma_int_t workcount) {
     __shared__ magma_int_t local_counts[searchtree_width];
-    if (shared) {
-        blockwise_work_local(searchtree_width, [&](magma_int_t i) {
-            local_counts[i] = 0;
-        });
-        __syncthreads();
-    }
+
+    blockwise_work_local(searchtree_width, [&](magma_int_t i) {
+        local_counts[i] = 0;
+    });
+    __syncthreads();
     ssss_impl(in, tree, size, workcount, [&](magma_int_t idx, magma_int_t bucket, unsigned amask, unsigned mask) {
         if (write) {
             static_assert(searchtree_height <= 8, "can't pack bucket idx into byte");
             store_packed_bytes(oracles, amask, bucket, idx);
         }
-        magma_int_t add = collfree ? __popc(mask) : 1;
-        if (!collfree || is_group_leader(mask)) {
-            if (shared) {
-                atomicAdd(&local_counts[bucket], add);
-            } else {
-                atomicAdd(&counts[bucket], add);
-            }
-        }
+        atomicAdd(&local_counts[bucket], 1);
     });
-    if (shared) {
-        __syncthreads();
-        // store the local counts grouped by block idx
-        blockwise_work_local(searchtree_width, [&](magma_int_t i) {
-            counts[i + blockIdx.x * searchtree_width] = local_counts[i];
-        });
-    }
+    __syncthreads();
+    // store the local counts grouped by block idx
+    blockwise_work_local(searchtree_width, [&](magma_int_t i) {
+        counts[i + blockIdx.x * searchtree_width] = local_counts[i];
+    });
 }
 
 __global__ void reduce_counts(const int* __restrict__ in,
@@ -451,61 +403,29 @@ __global__ void prefix_sum_counts(magma_int_t* __restrict__ in,
     }
 }
 
-template<typename T, bool shared>
-__global__ void collect_bucket(const T* __restrict__ data,
-                               const unsigned* __restrict__ oracles_packed,
-                               const magma_int_t* __restrict__ prefix_sum,
-                               T* __restrict__ out,
-                               magma_int_t size, unsigned bucket,
-                               magma_int_t* __restrict__ atomic, magma_int_t workcount) {
-    __shared__ magma_int_t count;
-    if (shared && threadIdx.x == 0) {
-        count = prefix_sum[bucket + searchtree_width * blockIdx.x];
-    }
-    __syncthreads();
-    blockwise_work(workcount, size, [&](magma_int_t idx, unsigned amask) {
-            auto packed = load_packed_bytes(oracles_packed, amask, idx);
-            magma_int_t ofs{};
-            if (shared) {
-                ofs = warp_aggr_atomic_count_predicate(&count, amask, packed == bucket);
-            } else {
-                ofs = warp_aggr_atomic_count_predicate(atomic, amask, packed == bucket);
-            }
-            if (packed == bucket) {
-                out[ofs] = data[idx];
-            }
-        });
-}
-
-template<typename T, bool shared>
-__global__ void sampleselect_tailcall(T* __restrict__ in, T* __restrict__ tmp, T* __restrict__ tree,
-                                      magma_int_t* __restrict__ count_tmp, T* __restrict__ out);
+__global__ void sampleselect_tailcall(double* __restrict__ in, double* __restrict__ tmp, double* __restrict__ tree,
+                                      magma_int_t* __restrict__ count_tmp, double* __restrict__ out);
 
 __global__ void sampleselect_findbucket(magma_int_t* __restrict__ totalcounts, magma_int_t rank, unsigned* __restrict__ out_bucket, magma_int_t* __restrict__ out_rank) {
-    prefix_sum_select<searchtree_height>(totalcounts, rank, out_bucket, out_rank);
+    prefix_sum_select(totalcounts, rank, out_bucket, out_rank);
 }
 
-template<typename T, bool shared>
-__global__ void collect_bucket_indirect(const T* __restrict__ data,
+__global__ void collect_bucket_indirect(const double* __restrict__ data,
                                         const unsigned* __restrict__ oracles_packed,
                                         const magma_int_t* __restrict__ prefix_sum,
-                                        T* __restrict__ out,
+                                        double* __restrict__ out,
                                         magma_int_t size, unsigned* bucket_ptr,
                                         magma_int_t* __restrict__ atomic, magma_int_t workcount) {
     __shared__ magma_int_t count;
     auto bucket = *bucket_ptr;
-    if (shared && threadIdx.x == 0) {
+    if (threadIdx.x == 0) {
         count = prefix_sum[bucket + searchtree_width * blockIdx.x];
     }
     __syncthreads();
     blockwise_work(workcount, size, [&](magma_int_t idx, unsigned amask) {
             auto packed = load_packed_bytes(oracles_packed, amask, idx);
             magma_int_t ofs{};
-            if (shared) {
-                ofs = warp_aggr_atomic_count_predicate(&count, amask, packed == bucket);
-            } else {
-                ofs = warp_aggr_atomic_count_predicate(atomic, amask, packed == bucket);
-            }
+            ofs = warp_aggr_atomic_count_predicate(&count, amask, packed == bucket);
             if (packed == bucket) {
                 out[ofs] = data[idx];
             }
@@ -523,9 +443,8 @@ magma_int_t sampleselect_alloc_size(magma_int_t size) {
          + (size + 3) / 4;    // oracles
 }
 
-template<typename T, bool shared>
-__device__ void launch_sampleselect(T* __restrict__ in, T* __restrict__ tmp, T* __restrict__ tree,
-                                    T* __restrict__ out, magma_int_t* __restrict__ count_tmp, magma_int_t size, magma_int_t rank) {
+__device__ void launch_sampleselect(double* __restrict__ in, double* __restrict__ tmp, double* __restrict__ tree,
+                                    double* __restrict__ out, magma_int_t* __restrict__ count_tmp, magma_int_t size, magma_int_t rank) {
     if (threadIdx.x != 0) {
         return;
     }
@@ -537,7 +456,7 @@ __device__ void launch_sampleselect(T* __restrict__ in, T* __restrict__ tmp, T* 
 
     // launch kernels:
     // sample and build searchtree
-    build_searchtree<T><<<1, sample_size>>>(in, tree, size);
+    build_searchtree<<<1, sample_size>>>(in, tree, size);
 
     auto local_work = (size + num_threads - 1) / num_threads;
     auto bucket_idx = (unsigned*)count_tmp;
@@ -548,25 +467,15 @@ __device__ void launch_sampleselect(T* __restrict__ in, T* __restrict__ tmp, T* 
     auto oracles = (unsigned*)(localcounts + num_grouped_blocks * searchtree_width);
 
     // count buckets
-    if (shared) {
-        count_buckets<T,1,1,1><<<num_grouped_blocks, block_size>>>(in, tree, localcounts, oracles, size, local_work);
-        prefix_sum_counts<<<searchtree_width, num_grouped_blocks>>>(localcounts, totalcounts, num_grouped_blocks);
-        sampleselect_findbucket<<<1, searchtree_width / 2>>>(totalcounts, rank, bucket_idx, rank_out);
-        collect_bucket_indirect<T,1><<<num_grouped_blocks, block_size>>>(in, oracles, localcounts, tmp, size, bucket_idx, nullptr, local_work);
-        sampleselect_tailcall<T,1><<<1, 1>>>(tmp, in, tree, count_tmp, out);
-    } else {
-        *atomic = 0;
-        set_zero<<<1, searchtree_width>>>(totalcounts, searchtree_width);
-        count_buckets<T,0,1,1><<<num_grouped_blocks, block_size>>>(in, tree, totalcounts, oracles, size, local_work);
-        sampleselect_findbucket<<<1, searchtree_width / 2>>>(totalcounts, rank, bucket_idx, rank_out);
-        collect_bucket_indirect<T,0><<<num_grouped_blocks, block_size>>>(in, oracles, nullptr, tmp, size, bucket_idx, atomic, local_work);
-        sampleselect_tailcall<T,0><<<1, 1>>>(tmp, in, tree, count_tmp, out);
-    }
+    count_buckets<true><<<num_grouped_blocks, block_size>>>(in, tree, localcounts, oracles, size, local_work);
+    prefix_sum_counts<<<searchtree_width, num_grouped_blocks>>>(localcounts, totalcounts, num_grouped_blocks);
+    sampleselect_findbucket<<<1, searchtree_width / 2>>>(totalcounts, rank, bucket_idx, rank_out);
+    collect_bucket_indirect<<<num_grouped_blocks, block_size>>>(in, oracles, localcounts, tmp, size, bucket_idx, nullptr, local_work);
+    sampleselect_tailcall<<<1, 1>>>(tmp, in, tree, count_tmp, out);
 }
 
-template<typename T, bool shared>
-__global__ void sampleselect_tailcall(T* __restrict__ in, T* __restrict__ tmp, T* __restrict__ tree,
-                                      magma_int_t* __restrict__ count_tmp, T* __restrict__ out) {
+__global__ void sampleselect_tailcall(double* __restrict__ in, double* __restrict__ tmp, double* __restrict__ tree,
+                                      magma_int_t* __restrict__ count_tmp, double* __restrict__ out) {
     if (threadIdx.x != 0) {
         return;
     }
@@ -577,35 +486,22 @@ __global__ void sampleselect_tailcall(T* __restrict__ in, T* __restrict__ tmp, T
 
     auto size = totalcounts[*bucket_idx];
     auto rank = *rank_out;
-    launch_sampleselect<T,shared>(in, tmp, tree, out, count_tmp, size, rank);
+    launch_sampleselect(in, tmp, tree, out, count_tmp, size, rank);
 }
 
-template<typename T, bool shared>
-__global__ void sampleselect(T* __restrict__ in, T* __restrict__ tmp, T* __restrict__ tree,
-                             magma_int_t* __restrict__ count_tmp, magma_int_t size, magma_int_t rank, T* __restrict__ out) {
-    launch_sampleselect<T,shared>(in, tmp, tree, out, count_tmp, size, rank);
+__global__ void sampleselect(double* __restrict__ in, double* __restrict__ tmp, double* __restrict__ tree,
+                             magma_int_t* __restrict__ count_tmp, magma_int_t size, magma_int_t rank, double* __restrict__ out) {
+    launch_sampleselect(in, tmp, tree, out, count_tmp, size, rank);
 }
 
-template<typename T, typename U>
-__global__ typename std::enable_if<std::is_arithmetic<T>::value>::type  compute_abs(const T* __restrict__ in, U* __restrict__ out, magma_int_t size) {
+__global__ void compute_abs(const magmaDoubleComplex* __restrict__ in, double* __restrict__ out, magma_int_t size) {
     auto idx = threadIdx.x + blockDim.x * blockIdx.x;
     if (idx >= size) {
         return;
     }
 
     auto v = in[idx];
-    out[idx] = v * v;
-}
-
-template<typename T, typename U>
-__global__ typename std::enable_if<!std::is_arithmetic<T>::value>::type compute_abs(const T* __restrict__ in, U* __restrict__ out, magma_int_t size) {
-    auto idx = threadIdx.x + blockDim.x * blockIdx.x;
-    if (idx >= size) {
-        return;
-    }
-
-    auto v = in[idx];
-    out[idx] = v.x * v.x + v.y * v.y;
+    out[idx] = real(v) * real(v) + imag(v) * imag(v);
 }
 
 magma_int_t realloc_if_necessary(magma_ptr *ptr, magma_int_t *size, magma_int_t required_size) {
@@ -693,7 +589,7 @@ magma_zsampleselect(
 
     compute_abs<<<num_blocks, block_size, 0, queue->cuda_stream()>>>
         (val, gputmp1, total_size);
-    sampleselect<double, 1><<<1, 1, 0, queue->cuda_stream()>>>
+    sampleselect<<<1, 1, 0, queue->cuda_stream()>>>
         (gputmp1, gputmp2, gputree, gpuints, total_size, subset_size, gpuresult);
     magma_dgetvector(1, gpuresult, 1, thrs, 1, queue );
     *thrs = std::sqrt(*thrs);
@@ -775,9 +671,9 @@ magma_zsampleselect_approx(
 
     compute_abs<<<num_blocks, block_size, 0, queue->cuda_stream()>>>
         (val, gputmp, total_size);
-    build_searchtree<double><<<1, sample_size, 0, queue->cuda_stream()>>>
+    build_searchtree<<<1, sample_size, 0, queue->cuda_stream()>>>
         (gputmp, gputree, total_size);
-    count_buckets<double,1,1,0><<<num_grouped_blocks, block_size, 0, queue->cuda_stream()>>>
+    count_buckets<false><<<num_grouped_blocks, block_size, 0, queue->cuda_stream()>>>
         (gputmp, gputree, gpulocalcounts, nullptr, total_size, local_work);
     reduce_counts<<<searchtree_width, num_grouped_blocks, 0, queue->cuda_stream()>>>
         (gpulocalcounts, gpucounts, num_grouped_blocks);
