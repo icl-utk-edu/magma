@@ -81,13 +81,21 @@ __device__ magma_int_t warp_aggr_atomic_count_mask(magma_int_t* atomic, unsigned
     if (lane_idx == 0) {
         ofs = atomicAdd(atomic, __popc(mask));
     }
+#if (__CUDACC_VER_MAJOR__ >= 9)
     ofs = __shfl_sync(amask, ofs, 0);
+#else
+    ofs = __shfl(ofs, 0);
+#endif
     auto local_ofs = prefix_popc(mask, lane_idx);
     return ofs + local_ofs;
 }
 
 __device__ magma_int_t warp_aggr_atomic_count_predicate(magma_int_t* atomic, unsigned amask, bool predicate) {
+#if (__CUDACC_VER_MAJOR__ >= 9)
     auto mask = __ballot_sync(amask, predicate);
+#else
+    auto mask = __ballot(predicate) & amask;
+#endif
     return warp_aggr_atomic_count_mask(atomic, amask, mask);
 }
 
@@ -97,10 +105,17 @@ __device__ magma_int_t warp_aggr_atomic_count_predicate(magma_int_t* atomic, uns
 __device__ void store_packed_bytes(unsigned* output, unsigned amask, unsigned byte, magma_int_t idx) {
     // pack 4 consecutive bytes into an integer
     unsigned result = byte;
+#if (__CUDACC_VER_MAJOR__ >= 9)
     // ------00 -> ----1100
     result |= __shfl_xor_sync(amask, result, 1, 4) << 8;
     // ----1100 -> 33221100
     result |= __shfl_xor_sync(amask, result, 2, 4) << 16;
+#else
+    // ------00 -> ----1100
+    result |= __shfl_xor(result, 1, 4) << 8;
+    // ----1100 -> 33221100
+    result |= __shfl_xor(result, 2, 4) << 16;
+#endif
     if (idx % 4 == 0) {
         output[idx / 4] = result;
     }
@@ -115,7 +130,11 @@ __device__ unsigned load_packed_bytes(const unsigned* input, unsigned amask, mag
         packed = input[pack_idx];
     }
     // distribute the data onto all threads
+#if (__CUDACC_VER_MAJOR__ >= 9)
     packed = __shfl_sync(amask, packed, (pack_idx * 4) % warp_size, 4);
+#else
+    packed = __shfl(packed, (pack_idx * 4) % warp_size, 4);
+#endif
     packed >>= char_idx * 8;
     packed &= 255;
     return packed;
@@ -146,11 +165,15 @@ __device__ void bitonic_sort(double* in) {
             magma_int_t upper = idx ^ lower;
             // we then sort the elements | upper | 0/1 | lower |
             magma_int_t sort_idx = lower | (upper << 1);
+#if (__CUDACC_VER_MAJOR__ >= 9)
             if (bit >= warp_size) {
                 __syncthreads();
             } else {
                 __syncwarp();
             }
+#else
+            __syncthreads();
+#endif
             if (idx < 1 << (bitonic_cutoff_log2 - 1)) {
                 sort2(in, sort_idx, sort_idx | bit, odd);
             }
@@ -182,11 +205,15 @@ __device__ void small_prefix_sum_upward(magma_int_t* data) {
     // the block sizes are increased stepwise
     for (magma_int_t blocksize = 2; blocksize <= size; blocksize *= 2) {
         magma_int_t base_idx = idx * blocksize;
+#if (__CUDACC_VER_MAJOR__ >= 9)
         if (blocksize > warp_size || true) { //TODO rethink
             __syncthreads();
         } else {
             __syncwarp();
         }
+#else
+        __syncthreads();
+#endif
         if (base_idx < size) {
             data[base_idx + blocksize - 1] += data[base_idx + blocksize / 2 - 1];
         }
@@ -205,12 +232,16 @@ __device__ void small_prefix_sum_downward(magma_int_t* data) {
     }
     for (magma_int_t blocksize = size; blocksize != 1; blocksize /= 2) {
         magma_int_t base_idx = idx * blocksize;
+#if (__CUDACC_VER_MAJOR__ >= 9)
         if (blocksize > warp_size || true) { //TODO rethink
             static_assert(size / warp_size <= warp_size, "insufficient synchronization");
             __syncthreads();
         } else {
             __syncwarp();
         }
+#else
+        __syncthreads();
+#endif
         if (base_idx < size) {
             // we preserve the invariant for the next level
             auto r = data[base_idx + blocksize - 1];
@@ -245,7 +276,11 @@ __device__ void prefix_sum_select(const magma_int_t* counts, magma_int_t rank, u
     // then determine which group of size step the element belongs to
     constexpr magma_int_t step = size / warp_size;
     static_assert(step <= warp_size, "need a third selection level");
+#if (__CUDACC_VER_MAJOR__ >= 9)
     auto mask = __ballot_sync(full_mask, sums[(warp_size - idx - 1) * step] > rank);
+#else
+    auto mask = __ballot(sums[(warp_size - idx - 1) * step] > rank);
+#endif
     if (idx >= step) {
         return;
     }
@@ -253,7 +288,11 @@ __device__ void prefix_sum_select(const magma_int_t* counts, magma_int_t rank, u
     // finally determine which bucket within the group the element belongs to
     auto base_idx = step * group;
     constexpr auto cur_mask = ((1u << (step - 1)) << 1) - 1;
+#if (__CUDACC_VER_MAJOR__ >= 9)
     mask = __ballot_sync(cur_mask, sums[base_idx + (step - idx - 1)] > rank);
+#else
+    mask = __ballot(sums[base_idx + (step - idx - 1)] > rank) & cur_mask;
+#endif
     // here we need to subtract warp_size - step since we only use a subset of the warp
     if (idx == 0) {
         *out_bucket = __clz(mask) - 1 - (warp_size - step) + base_idx;
@@ -270,7 +309,11 @@ __device__ void blockwise_work(magma_int_t local_work, magma_int_t size, F funct
     auto base_idx = threadIdx.x + blockDim.x * blockIdx.x;
     for (magma_int_t i = 0; i < local_work; ++i) {
         magma_int_t idx = base_idx + i * stride;
+#if (__CUDACC_VER_MAJOR__ >= 9)
         auto amask = __ballot_sync(full_mask, idx < size);
+#else
+        auto amask = __ballot(idx < size);
+#endif
         if (idx < size) {
             function(args..., idx, amask);
         }
@@ -303,7 +346,11 @@ __device__ magma_int_t searchtree_traversal(const double* searchtree, double el,
         bool smaller = next_smaller;
         i = 2 * i + 2 - smaller;
         next_smaller = el < searchtree[i];
+#if (__CUDACC_VER_MAJOR__ >= 9)
         auto local_mask = __ballot_sync(amask, smaller) ^ (smaller - 1);
+#else
+        auto local_mask = (__ballot(smaller) & amask) ^ (smaller - 1);
+#endif
         equal_mask &= local_mask;
     }
     return i - (searchtree_width - 1);
