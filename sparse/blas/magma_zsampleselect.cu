@@ -17,7 +17,7 @@
 
 #define PRECISION_z
 
-namespace {
+namespace magma_sampleselect {
 
 constexpr magma_int_t sample_size_log2 = 10;
 constexpr magma_int_t sample_size = 1 << sample_size_log2;
@@ -564,7 +564,9 @@ cleanup:
     return info;
 }
 
-} // anonymous namespace
+} // namespace magma_sampleselect
+
+using namespace magma_sampleselect;
 
 /**
     Purpose
