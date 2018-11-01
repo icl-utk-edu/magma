@@ -33,7 +33,7 @@ LDFLAGS    ?= -O3 $(FPIC)
 INC        ?= -I$(CUDADIR)/include
 
 LIBDIR     ?= -L$(CUDADIR)/lib64
-LIB        ?= -lcudart -lcublas -lcusparse -llapack -lblas -lpthread -lm
+LIB        ?= -lcudart -lcudadevrt -lcublas -lcusparse -llapack -lblas -lpthread -lm
 
 GPU_TARGET ?= Kepler Maxwell Pascal
 
