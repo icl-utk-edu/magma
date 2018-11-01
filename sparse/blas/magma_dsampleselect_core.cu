@@ -131,11 +131,11 @@ __device__ void ssss_impl(const double* __restrict__ in,
 }
 
 template<bool write>
-__global__ void count_buckets(const double* __restrict__ in,
-                              const double* __restrict__ tree,
-                              magma_int_t* __restrict__ counts,
-                              unsigned* __restrict__ oracles,
-                              magma_int_t size, magma_int_t workcount) {
+__device__ void count_buckets_impl(const double* __restrict__ in,
+                                   const double* __restrict__ tree,
+                                   magma_int_t* __restrict__ counts,
+                                   unsigned* __restrict__ oracles,
+                                   magma_int_t size, magma_int_t workcount) {
     __shared__ magma_int_t local_counts[searchtree_width];
 
     blockwise_work_local(searchtree_width, [&](magma_int_t i) {
@@ -156,8 +156,20 @@ __global__ void count_buckets(const double* __restrict__ in,
     });
 }
 
-template __global__ void count_buckets<0>(const double*,const double*,magma_int_t*,unsigned*,magma_int_t,magma_int_t);
-template __global__ void count_buckets<1>(const double*,const double*,magma_int_t*,unsigned*,magma_int_t,magma_int_t);
+__global__ void count_buckets(const double* __restrict__ in,
+                              const double* __restrict__ tree,
+                              magma_int_t* __restrict__ counts,
+                              magma_int_t size, magma_int_t workcount) {
+    count_buckets_impl<false>(in, tree, counts, nullptr, size, workcount);
+}
+
+__global__ void count_buckets_write(const double* __restrict__ in,
+                                    const double* __restrict__ tree,
+                                    magma_int_t* __restrict__ counts,
+                                    unsigned* __restrict__ oracles,
+                                    magma_int_t size, magma_int_t workcount) {
+    count_buckets_impl<true>(in, tree, counts, oracles, size, workcount);
+}
 
 __global__ void collect_bucket_indirect(const double* __restrict__ data,
                                         const unsigned* __restrict__ oracles_packed,
@@ -205,7 +217,7 @@ __device__ void launch_sampleselect(double* __restrict__ in, double* __restrict_
     auto oracles = (unsigned*)(localcounts + num_grouped_blocks * searchtree_width);
 
     // count buckets
-    count_buckets<true><<<num_grouped_blocks, block_size>>>(in, tree, localcounts, oracles, size, local_work);
+    count_buckets_write<<<num_grouped_blocks, block_size>>>(in, tree, localcounts, oracles, size, local_work);
     prefix_sum_counts<<<searchtree_width, num_grouped_blocks>>>(localcounts, totalcounts, num_grouped_blocks);
     sampleselect_findbucket<<<1, searchtree_width / 2>>>(totalcounts, rank, bucket_idx, rank_out);
     collect_bucket_indirect<<<num_grouped_blocks, block_size>>>(in, oracles, localcounts, tmp, size, bucket_idx, nullptr, local_work);

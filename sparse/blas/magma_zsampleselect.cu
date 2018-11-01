@@ -184,8 +184,8 @@ magma_zsampleselect_approx(
         (val, gputmp, total_size);
     build_searchtree<<<1, sample_size, 0, queue->cuda_stream()>>>
         (gputmp, gputree, total_size);
-    count_buckets<false><<<num_grouped_blocks, block_size, 0, queue->cuda_stream()>>>
-        (gputmp, gputree, gpulocalcounts, nullptr, total_size, local_work);
+    count_buckets<<<num_grouped_blocks, block_size, 0, queue->cuda_stream()>>>
+        (gputmp, gputree, gpulocalcounts, total_size, local_work);
     reduce_counts<<<searchtree_width, num_grouped_blocks, 0, queue->cuda_stream()>>>
         (gpulocalcounts, gpucounts, num_grouped_blocks);
     sampleselect_findbucket<<<1, searchtree_width / 2, 0, queue->cuda_stream()>>>

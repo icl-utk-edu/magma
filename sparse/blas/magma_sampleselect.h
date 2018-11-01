@@ -58,10 +58,10 @@ __global__ void select_bitonic_basecase(float*,float*,magma_int_t,magma_int_t);
 __global__ void select_bitonic_basecase(double*,double*,magma_int_t,magma_int_t);
 __global__ void sampleselect(float*,float*,float*,magma_int_t*,magma_int_t,magma_int_t,float*);
 __global__ void sampleselect(double*,double*,double*,magma_int_t*,magma_int_t,magma_int_t,double*);
-template<bool write>
-__global__ void count_buckets(const float*,const float*,magma_int_t*,unsigned*,magma_int_t,magma_int_t);
-template<bool write>
-__global__ void count_buckets(const double*,const double*,magma_int_t*,unsigned*,magma_int_t,magma_int_t);
+__global__ void count_buckets(const float*,const float*,magma_int_t*,magma_int_t,magma_int_t);
+__global__ void count_buckets(const double*,const double*,magma_int_t*,magma_int_t,magma_int_t);
+__global__ void count_buckets_write(const float*,const float*,magma_int_t*,unsigned*,magma_int_t,magma_int_t);
+__global__ void count_buckets_write(const double*,const double*,magma_int_t*,unsigned*,magma_int_t,magma_int_t);
 __global__ void collect_bucket_indirect(const float*,const unsigned*,const magma_int_t*,float*,magma_int_t,unsigned*,magma_int_t*,magma_int_t);
 __global__ void collect_bucket_indirect(const double*,const unsigned*,const magma_int_t*,double*,magma_int_t,unsigned*,magma_int_t*,magma_int_t);
 
