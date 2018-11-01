@@ -24,16 +24,16 @@ RANLIB     ?= ranlib
 
 # may want -std=c99 for CFLAGS, -std=c++11 for CXXFLAGS
 CFLAGS     ?= -O3 $(FPIC) -DADD_ -Wall -MMD
-CXXFLAGS   ?= $(CFLAGS)
-NVCCFLAGS  ?= -O3         -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+CXXFLAGS   ?= $(CFLAGS) -std=c++11
+NVCCFLAGS  ?= -O3         -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function" -std=c++11
 FFLAGS     ?= -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS   ?= -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
 LDFLAGS    ?= -O3 $(FPIC)
 
 INC        ?= -I$(CUDADIR)/include
 
-LIBDIR     ?= -L$(CUDADIR)/lib
-LIB        ?= -lcudart -lcublas -lcusparse -llapack -lblas
+LIBDIR     ?= -L$(CUDADIR)/lib64
+LIB        ?= -lcudart -lcudadevrt -lcublas -lcusparse -llapack -lblas -lpthread -lm
 
 GPU_TARGET ?= Kepler Maxwell Pascal
 
@@ -68,11 +68,8 @@ codegen    = python tools/codegen.py
 # ------------------------------------------------------------------------------
 # NVCC options for the different cards
 # First, add smXX for architecture names
-ifneq ($(findstring Fermi, $(GPU_TARGET)),)
-    GPU_TARGET += sm_20
-endif
 ifneq ($(findstring Kepler, $(GPU_TARGET)),)
-    GPU_TARGET += sm_30 sm_35
+    GPU_TARGET += sm_35
 endif
 ifneq ($(findstring Maxwell, $(GPU_TARGET)),)
     GPU_TARGET += sm_50
@@ -192,6 +189,7 @@ libmagma_src         :=
 libmagma_dynamic_src :=
 testing_src          :=
 libsparse_src        :=
+libsparse_dynamic_src:=
 sparse_testing_src   :=
 
 subdirs := \
@@ -245,6 +243,12 @@ ifneq ($(libmagma_dynamic_src),)
 libmagma_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libmagma_dynamic_all)))
 libmagma_dlink_obj   := magmablas/dynamic.link.o
 libmagma_obj         += $(libmagma_dynamic_obj) $(libmagma_dlink_obj)
+endif
+
+ifneq ($(libsparse_dynamic_src),)
+libsparse_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libsparse_dynamic_all)))
+libsparse_dlink_obj   := sparse/blas/dynamic.link.o
+libsparse_obj         += $(libsparse_dynamic_obj) $(libsparse_dlink_obj)
 endif
 
 deps :=
@@ -611,6 +615,11 @@ $(libmagma_dynamic_obj): %.$(o_ext): %.cu
 $(libmagma_dlink_obj): $(libmagma_dynamic_obj)
 	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
 
+$(libsparse_dynamic_obj): %.$(o_ext): %.cu
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -I./sparse/include -dc -o $@ $<
+
+$(libsparse_dlink_obj): $(libsparse_dynamic_obj)
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
 
 # ------------------------------------------------------------------------------
 # library rules

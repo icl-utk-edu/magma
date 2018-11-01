@@ -1395,6 +1395,26 @@ magma_zpreselect_gpu(
     magma_z_matrix *oneA,
     magma_queue_t queue );
 
+magma_int_t
+magma_zsampleselect(
+    magma_int_t total_size,
+    magma_int_t subset_size,
+    magmaDoubleComplex *val,
+    double *thrs,
+    magma_ptr *tmp_ptr,
+    magma_int_t *tmp_size,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zsampleselect_approx(
+    magma_int_t total_size,
+    magma_int_t subset_size,
+    magmaDoubleComplex *val,
+    double *thrs,
+    magma_ptr *tmp_ptr,
+    magma_int_t *tmp_size,
+    magma_queue_t queue );
+
 // ISAI preconditioner
 
 magma_int_t
