@@ -58,15 +58,18 @@ libsparse_src += \
 
 # Iterative factorizations
 libsparse_src += \
-	$(cdir)/zparilu.cpp		      \
+	$(cdir)/zparilu.cpp		              \
 	$(cdir)/zparilu_kernels.cu            \
 	$(cdir)/zparic_kernels.cu             \
 	$(cdir)/zparilut_kernels.cu           \
 	$(cdir)/zparilut_candidates.cu        \
-	$(cdir)/magma_zthrsrm.cu	      \
+	$(cdir)/magma_zthrsrm.cu	          \
 	$(cdir)/magma_zpreselect.cu           \
+	$(cdir)/magma_zsampleselect.cu        \
 
-libsparse_dynamic_src += $(cdir)/magma_zsampleselect.cu
+libsparse_dynamic_src += \
+	$(cdir)/magma_dsampleselect_core.cu   \
+	$(cdir)/magma_sampleselect.cu
 
 # Auxiliary routines
 libsparse_src += \
