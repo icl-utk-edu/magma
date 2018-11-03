@@ -191,7 +191,7 @@ magma_zvinit_rand(
         
         CHECK( magma_zmalloc_cpu( &x->val, x->nnz ));
         for( magma_int_t i=0; i<x->nnz; i++) {
-             x->val[i] = MAGMA_Z_MAKE( ((double)(rand()))/ RAND_MAX - .5, ((double)(rand()))/ RAND_MAX - .5 );
+             x->val[i] = MAGMA_Z_MAKE( ((double)(2*rand()))/ RAND_MAX - 1., ((double)(2*rand()))/ RAND_MAX - 1. );
         }
     }
     else if ( mem_loc == Magma_DEV ) {
