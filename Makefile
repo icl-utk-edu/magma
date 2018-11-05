@@ -666,7 +666,7 @@ $(testers_f): %: %.$(o_ext) testing/fortran.o
 	-L./lib -lmagma \
 	$(LIBS)
 
-ifneq ($(PAPI_DIR),)
+ifneq (x$(PAPI_DIR),x)
 PAPI_SDE_LIBS=-L$(PAPI_DIR)/lib -lpapi
 endif
 
