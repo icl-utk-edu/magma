@@ -42,16 +42,20 @@ int main(  int argc, char** argv )
     magma_z_matrix A={Magma_CSR}, B={Magma_CSR}, dB={Magma_CSR};
     magma_z_matrix x={Magma_CSR}, b={Magma_CSR};
     int i=1;
+
+    // PAPI declaration
     int j, event_set, retval;
-    bool is_papi_on = false;
     long long int values[NUM_PAPI_SDE_EVTS];
+    int event_codes[NUM_PAPI_SDE_EVTS];
     const char *sde_event_name[] = {"sde:::MAGMA::numiter_I",
                                     "sde:::MAGMA::InitialResidual_D",
                                     "sde:::MAGMA::FinalResidual_D",
                                     "sde:::MAGMA::IterativeResidual_D",
                                     "sde:::MAGMA::SolverRuntime_D",
                                     "sde:::MAGMA::IterativeResidual_RCRD_D:CNT",
-                                    "sde:::MAGMA::IterativeResidual_RCRD_D" }; 
+                                    "sde:::MAGMA::IterativeResidual_RCRD_D"}; 
+    const char *is_papi_sde_on = getenv("PAPI_SDE_MAGMA");
+
 
     TESTING_CHECK( magma_zparse_opts( argc, argv, &zopts, &i, queue ));
     B.blocksize = zopts.blocksize;
@@ -60,38 +64,29 @@ int main(  int argc, char** argv )
     TESTING_CHECK( magma_zsolverinfo_init( &zopts.solver_par, &zopts.precond_par, queue ));
 
     // PAPI initialization stuff
-    do{
-        int event_codes[NUM_PAPI_SDE_EVTS];
-
+    if ( is_papi_sde_on != NULL ) {
         retval = PAPI_library_init( PAPI_VER_CURRENT );
         if( retval != PAPI_VER_CURRENT ){
             fprintf( stderr, "PAPI_library_init failed: %d. Ensure that the PAPI library used at run time is the same version used during linking\n",PAPI_VER_CURRENT );
-            break;
         }
         event_set = PAPI_NULL;
         retval = PAPI_create_eventset( &event_set );
         if( retval != PAPI_OK ){
             fprintf( stderr, "PAPI_create_eventset failed\n" );
-            break;
         } 
 
         for (j=0; j<NUM_PAPI_SDE_EVTS; j++) {
             retval = PAPI_event_name_to_code( (char *)sde_event_name[j], &event_codes[j] );
             if( retval != PAPI_OK ) {
                 fprintf( stderr, "PAPI_event_name_to_code(%s) failed.\n",sde_event_name[j]);
-                break;
             }
         }
 
         retval = PAPI_add_events( event_set, event_codes, NUM_PAPI_SDE_EVTS );
         if( retval != PAPI_OK ){
             fprintf( stderr, "PAPI_add_events failed\n" );
-            break;
         }
-
-        is_papi_on = true;
-    }while(0);
-
+    }
 
     while( i < argc ) {
         if ( strcmp("LAPLACE2D", argv[i]) == 0 && i+1 < argc ) {   // Laplace test
@@ -102,7 +97,7 @@ int main(  int argc, char** argv )
             TESTING_CHECK( magma_z_csr_mtx( &A,  argv[i], queue ));
         }
 
-        if( is_papi_on ){
+        if ( is_papi_sde_on != NULL ) {
             retval = PAPI_start( event_set );
             if( retval != PAPI_OK ){
                 fprintf( stderr, "PAPI_start failed\n" );
@@ -156,8 +151,7 @@ int main(  int argc, char** argv )
         magma_zsolverinfo( &zopts.solver_par, &zopts.precond_par, queue );
         printf("];\n\n");
        
-
-        if( is_papi_on ){
+        if ( is_papi_sde_on != NULL ) {
             retval = PAPI_stop( event_set, values );
             if( retval != PAPI_OK ){
                 fprintf( stderr, "PAPI_stop failed\n" );
@@ -176,7 +170,6 @@ int main(  int argc, char** argv )
             }
             printf("<<<< PAPI counter report END\n");
         }
-
  
         zopts.solver_par.verbose = 0;
         printf("solverinfo = [\n");
