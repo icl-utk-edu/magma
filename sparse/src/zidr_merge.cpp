@@ -13,6 +13,7 @@
 */
 
 #include "magmasparse_internal.h"
+#include "papi_sde_hook.h"
 #include <cuda_profiler_api.h>
 
 #define RTOLERANCE     lapackf77_dlamch( "E" )
@@ -72,6 +73,9 @@ magma_zidr_merge(
     solver_par->final_res = 0.0;
     solver_par->iter_res = 0.0;
     solver_par->runtime = 0.0;
+
+    // Register PAPI SDE counters and recorders
+    magma_z_papi_sde_hook( solver_par );
 
     // constants
     const magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
@@ -425,6 +429,13 @@ cudaProfilerStart();
                 s = k + 1; // for the x-update outside the loop
                 innerflag = 2;
                 info = MAGMA_SUCCESS;
+
+                // PAPI SDE recorder of iterative residuals
+                if ( solver_par->sde_rcrd.magma_env_on != NULL ) {
+                    papi_sde_record( solver_par->sde_rcrd.handle_iter_res,
+                                     sizeof(nrmr), &nrmr );
+                }
+
                 break;
             }
 
@@ -515,6 +526,12 @@ cudaProfilerStart();
             // |rs|
             nrmr = magma_dznrm2( drs.num_rows, drs.dval, 1, queue );           
 //---------------------------------------
+        }
+
+        // PAPI SDE recorder of iterative residuals
+        if ( solver_par->sde_rcrd.magma_env_on != NULL ) {
+            papi_sde_record( solver_par->sde_rcrd.handle_iter_res,
+                             sizeof(nrmr), &nrmr );
         }
 
         // store current timing and residual
