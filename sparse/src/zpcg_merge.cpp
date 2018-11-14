@@ -11,6 +11,7 @@
 */
 
 #include "magmasparse_internal.h"
+#include "papi_sde_hook.h"
 
 #define RTOLERANCE     lapackf77_dlamch( "E" )
 #define ATOLERANCE     lapackf77_dlamch( "E" )
@@ -69,7 +70,10 @@ magma_zpcg_merge(
     solver_par->solver = Magma_PCGMERGE;
     solver_par->numiter = 0;
     solver_par->spmv_count = 0;
-    
+
+    // Register PAPI SDE counters and recorders
+    magma_z_papi_sde_hook( solver_par );
+   
     // solver variables
     magmaDoubleComplex alpha, beta, gamma, rho, tmp1, *skp_h={0};
     double nom, nom0, r0,  res, nomb;
@@ -196,6 +200,12 @@ magma_zpcg_merge(
         // check stopping criterion (asynchronous copy)
         magma_zgetvector( 1 , skp+6, 1, skp_h+6, 1, queue );
         res = sqrt(MAGMA_Z_ABS(skp_h[6]));
+
+        // PAPI SDE recorder of iterative residuals
+        if ( solver_par->sde_rcrd.magma_env_on != NULL ) {
+            papi_sde_record( solver_par->sde_rcrd.handle_iter_res,
+                             sizeof(res), &res );
+        }
 
         if ( solver_par->verbose > 0 ) {
             tempo2 = magma_sync_wtime( queue );
