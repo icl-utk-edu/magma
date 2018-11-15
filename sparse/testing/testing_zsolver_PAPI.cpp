@@ -17,7 +17,7 @@
 
 // includes, support
 #include <papi.h>
-#define NUM_PAPI_SDE_EVTS 7
+#define NUM_PAPI_SDE_EVTS 8
 
 // includes, project
 #include "magma_v2.h"
@@ -52,6 +52,7 @@ int main(  int argc, char** argv )
                                     "sde:::MAGMA::FinalResidual_D",
                                     "sde:::MAGMA::IterativeResidual_D",
                                     "sde:::MAGMA::SolverRuntime_D",
+                                    "sde:::MAGMA::SpmvCount_I",
                                     "sde:::MAGMA::IterativeResidual_RCRD_D:CNT",
                                     "sde:::MAGMA::IterativeResidual_RCRD_D"}; 
     const char *is_papi_sde_on = getenv("PAPI_SDE_MAGMA");
@@ -163,9 +164,10 @@ int main(  int argc, char** argv )
             printf("    %s: %.4e\n",sde_event_name[3], GET_DOUBLE_SDE(values[3]));
             printf("    %s: %.4e\n",sde_event_name[4], GET_DOUBLE_SDE(values[4]));
             printf("    %s: %lld\n",sde_event_name[5], values[5]);
+            printf("    %s: %lld\n",sde_event_name[6], values[6]);
 
-            double *sde_ptr = GET_SDE_RECORDER_ADDRESS(values[6], double);
-            for (j=0; j<values[5]; j++){
+            double *sde_ptr = GET_SDE_RECORDER_ADDRESS(values[7], double);
+            for (j=0; j<values[6]; j++){
                 printf("    %d: %.4e\n",j, sde_ptr[j]);
             }
             printf("<<<< PAPI counter report END\n");

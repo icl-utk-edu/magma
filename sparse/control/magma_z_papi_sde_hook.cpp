@@ -33,6 +33,9 @@ int magma_z_papi_sde_hook(magma_z_solver_par *solver_par)
         papi_sde_register_counter( sde.handle, sde_name.SolverRuntime,
                                    PAPI_SDE_RO|PAPI_SDE_INSTANT, MAGMA_REAL_DOUBLE,
                                    &(solver_par->runtime) );
+        papi_sde_register_counter( sde.handle, sde_name.SpmvCount,
+                                   PAPI_SDE_RO|PAPI_SDE_INSTANT, MAGMA_INTEGER,
+                                   &(solver_par->spmv_count) );
         papi_sde_create_recorder( sde.handle, sde_name.IterativeResidual_RCRD,
                                   sizeof(double), papi_sde_compare_double,
                                   &solver_par->sde_rcrd.handle_iter_res );
@@ -49,6 +52,8 @@ int magma_z_papi_sde_hook(magma_z_solver_par *solver_par)
                                    sde_desc.IterativeResidual );
         papi_sde_describe_counter( sde.handle, sde_name.SolverRuntime,
                                    sde_desc.SolverRuntime );
+        papi_sde_describe_counter( sde.handle, sde_name.SpmvCount,
+                                   sde_desc.SpmvCount );
         papi_sde_describe_counter( sde.handle, sde_name.IterativeResidual_RCRD,
                                    sde_desc.IterativeResidual_RCRD );
     }
