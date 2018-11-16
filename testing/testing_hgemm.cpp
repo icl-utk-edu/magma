@@ -52,11 +52,12 @@ int main( int argc, char** argv)
     magma_opts opts;
     opts.parse_opts( argc, argv );
     
-    // Allow 3*eps; real needs 2*sqrt(2) factor; see Higham, 2002, sec. 3.6.
+    // Usually 3*eps is allowed; real needs 2*sqrt(2) factor; see Higham, 2002, sec. 3.6.
+    // But we use a much larger tolerance since the GPU results are compared against FP32
     // For half precision, there is no lapackf77_hlamch, please visit: 
     // https://blogs.mathworks.com/cleve/2017/05/08/half-precision-16-bit-floating-point-arithmetic/
     float eps = (float)(0.00097656);
-    float tol = 3*eps;
+    float tol = 30*eps;
 
     
     printf("%% If running with option --lapack (-l) or with checking (-c), GPU error is computed\n"
@@ -64,7 +65,7 @@ int main( int argc, char** argv)
     printf("%% transA = %s, transB = %s\n",
             lapack_trans_const(opts.transA),
             lapack_trans_const(opts.transB) );
-    printf("%%   M     N     K   GPU Gflop/s (ms)  GPU error\n");
+    printf("%%   M     N     K   GPU Gflop/s (ms)      GPU error\n");
     printf("%%========================================================================================================\n");
 
     for( int itest = 0; itest < opts.ntest; ++itest ) {
@@ -119,33 +120,43 @@ int main( int argc, char** argv)
             lapackf77_slarnv( &ione, ISEED, &sizeB, hB );
             lapackf77_slarnv( &ione, ISEED, &sizeC, hC );
 
+            /* Convert the matrices to half precision */
+            // A
             magma_ssetmatrix( Am, An, hA, lda,  dW, lddw, opts.queue );
             magmablas_slag2h( Am, An, dW, lddw, dA, ldda, &info, opts.queue);
             if(info != 0) {
                 printf("error in magmablas_slag2h( dA )\n");
             }
-
+            magmablas_hlag2s( Am, An, dA, ldda, dW, lddw, opts.queue );
+            magma_sgetmatrix( Am, An, dW, lddw, hA, lda, opts.queue );
+            
+            // B
             magma_ssetmatrix( Bm, Bn, hB, ldb,  dW, lddw, opts.queue );
             magmablas_slag2h( Bm, Bn, dW, lddw, dB, lddb, &info, opts.queue);
             if(info != 0) {
                 printf("error in magmablas_slag2h( dB )\n");
             }
+            magmablas_hlag2s( Bm, Bn, dB, lddb, dW, lddw, opts.queue );
+            magma_sgetmatrix( Bm, Bn, dW, lddw, hB, ldb, opts.queue );
+
+            // C
+            magma_ssetmatrix( M, N, hC, ldc, dW, lddw, opts.queue );
+            magmablas_slag2h( M, N, dW, lddw, dC, lddc, &info, opts.queue);
+            if(info != 0) {
+                printf("error in magmablas_slag2h( dC )\n");
+            }
+            magmablas_hlag2s( M, N, dC, lddc, dW, lddw, opts.queue );
+            magma_sgetmatrix( M, N, dW, lddw, hC, ldc, opts.queue );
 
             // for error checks
-            float Anorm = lapackf77_slange( "F", &Am, &An, hA, &lda, work );
-            float Bnorm = lapackf77_slange( "F", &Bm, &Bn, hB, &ldb, work );
-            float Cnorm = lapackf77_slange( "F", &M,  &N,  hC, &ldc, work );
+            float Anorm = (float)((magmaHalf)lapackf77_slange( "F", &Am, &An, hA, &lda, work ));
+            float Bnorm = (float)((magmaHalf)lapackf77_slange( "F", &Bm, &Bn, hB, &ldb, work ));
+            float Cnorm = (float)((magmaHalf)lapackf77_slange( "F", &M,  &N,  hC, &ldc, work ));
             
             /* =====================================================================
                Performs operation using GPU
                =================================================================== */
             #ifdef HAVE_CUBLAS
-                magma_ssetmatrix( M, N, hC, ldc, dW, lddw, opts.queue );
-                magmablas_slag2h( M, N, dW, lddw, dC, lddc, &info, opts.queue);
-                if(info != 0) {
-                    printf("error in magmablas_slag2h( dC )\n");
-                }
-
                 magma_flush_cache( opts.cache );
                 dev_time = magma_sync_wtime( opts.queue );
                 magma_hgemm( opts.transA, opts.transB, M, N, K,
@@ -178,6 +189,14 @@ int main( int argc, char** argv)
                                        hB, &ldb,
                                &beta,  hC, &ldc );
                 
+                magma_ssetmatrix( M, N, hC, ldc,  dW, lddw, opts.queue );
+                magmablas_slag2h( M, N, dW, lddw, dC, lddc, &info, opts.queue);
+                if(info != 0) {
+                    printf("error in magmablas_slag2h( dC ) for checking \n");
+                }
+                magmablas_hlag2s( M, N, dC, lddc, dW, lddw, opts.queue );
+                magma_sgetmatrix( M, N, dW, lddw, hC, ldc, opts.queue );
+                
                 // Compute forward error bound (see Higham, 2002, sec. 3.5),
                 // modified to include alpha, beta, and input C.
                 // ||R_magma - R_ref||_p / (gamma_{K+2} |alpha| ||A||_p ||B||_p + 2 |beta| ||C||_p ) < eps/2.
@@ -201,12 +220,12 @@ int main( int argc, char** argv)
                         (okay ? "ok" : "failed"));
             }
             else {
-                    printf("%5lld %5lld %5lld   %7.2f (%7.2f)     ---   (  ---  )       ---\n",
+                    printf("%5lld %5lld %5lld   %7.2f (%7.2f)       ---\n",
                            (long long) M, (long long) N, (long long) K,
                            dev_perf,    1000.*dev_time );
             }
             #else
-                printf("%5lld %5lld %5lld   %7.2f (%7.2f)     ---   (  ---  )       ---\n",
+                printf("%5lld %5lld %5lld   %7.2f (%7.2f)       ---\n",
                            (long long) M, (long long) N, (long long) K,
                            dev_perf,    1000.*dev_time );
             #endif
