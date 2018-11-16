@@ -147,7 +147,7 @@ __device__ void count_buckets_impl(const double* __restrict__ in,
             static_assert(searchtree_height <= 8, "can't pack bucket idx into byte");
             store_packed_bytes(oracles, amask, bucket, idx);
         }
-        atomicAdd(&local_counts[bucket], 1);
+        atomicAdd((int *)&local_counts[bucket], 1);
     });
     __syncthreads();
     // store the local counts grouped by block idx

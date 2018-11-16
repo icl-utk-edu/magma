@@ -150,9 +150,9 @@ zgetf2_native_kernel( int m, int n,
             // now every thread in the i^th block has the maximum
             if( tx == 0){
                 if( rx_abs_max == MAGMA_D_ZERO){
-                    magmablas_iatomic_exchange( (magma_int_t*)info, (max_id + gbstep + 1) );
+                    magmablas_iatomic_exchange( (int *)info, (max_id + gbstep + 1) );
                 }
-                magmablas_iatomic_exchange( (magma_int_t*)&ipiv[i], (max_id+1) ); // fortran indexing
+                magmablas_iatomic_exchange( (int *)&ipiv[i], (max_id+1) ); // fortran indexing
             }
             __syncthreads();
             if( rx_abs_max == MAGMA_D_ZERO )return;
@@ -220,7 +220,7 @@ zgetf2_native_kernel( int m, int n,
                 dA[ (NPAGES-1) * TX ] = rA[NPAGES-1];
             }
             __threadfence(); __syncthreads(); // after cuda 9.0, both are needed, not sure why
-            if(tx == 0) magmablas_iatomic_exchange( (int*)&update_flag[ i ], 1);
+            if(tx == 0) magmablas_iatomic_exchange( (int *)&update_flag[ i ], 1);
         }
         
         // thread blocks with ID larger than i perform ger
@@ -308,7 +308,7 @@ magma_zgetf2_native_fused(
     // by allocating more than half the shared memory
     magma_int_t shmem = magma_getdevice_shmem_block();
     shmem = (shmem / 2);
-    int *update_flag = (magma_int_t*) flags;    // update_flag is an int, not magma_int_t
+    int *update_flag = (int*) flags;    // update_flag is an int, not magma_int_t
     zgetf2_native_init_kernel<<< 1, max(n,npages), 0, queue->cuda_stream() >>>( n, npages, ipiv, update_flag);
     // The case statement should cover up to ( xGETF2_CHAIN_MAX_M / ntx )
     switch(npages){

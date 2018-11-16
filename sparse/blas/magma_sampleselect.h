@@ -101,7 +101,7 @@ __device__ inline magma_int_t warp_aggr_atomic_count_mask(magma_int_t* atomic, u
     auto lane_idx = threadIdx.x % warp_size;
     magma_int_t ofs{};
     if (lane_idx == 0) {
-        ofs = atomicAdd(atomic, __popc(mask));
+      ofs = atomicAdd((int *)atomic, __popc(mask));
     }
 #if (__CUDACC_VER_MAJOR__ >= 9)
     ofs = __shfl_sync(amask, ofs, 0);
