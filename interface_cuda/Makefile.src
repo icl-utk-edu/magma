@@ -15,6 +15,7 @@ cdir      := interface_cuda
 # alphabetic order by base name (ignoring precision)
 libmagma_src += \
 	$(cdir)/alloc.cpp	\
+	$(cdir)/blas_h_v2.cpp	\
 	$(cdir)/blas_z_v1.cpp	\
 	$(cdir)/blas_z_v2.cpp	\
 	$(cdir)/copy_v1.cpp	\
