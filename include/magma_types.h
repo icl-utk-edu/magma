@@ -75,6 +75,14 @@ typedef double real_Double_t;
     typedef cudaEvent_t    magma_event_t;
     typedef magma_int_t    magma_device_t;
 
+#if CUDA_VERSION >= 7500
+    typedef __half           magmaHalf;
+#else
+    // use short for cuda older than 7.5 
+    // corresponding routines would not work anyway since there is no half precision
+    typedef short            magmaHalf;
+#endif    // CUDA_VERSION >= 7500
+
     typedef cuDoubleComplex magmaDoubleComplex;
     typedef cuFloatComplex  magmaFloatComplex;
 
@@ -124,6 +132,7 @@ typedef double real_Double_t;
     typedef cl_event          magma_event_t;
     typedef cl_device_id      magma_device_t;
 
+    typedef short         magmaHalf;    // placeholder until FP16 is supported 
     typedef DoubleComplex magmaDoubleComplex;
     typedef FloatComplex  magmaFloatComplex;
 
@@ -165,6 +174,7 @@ typedef double real_Double_t;
     typedef int   magma_event_t;
     typedef int   magma_device_t;
 
+    typedef short                 magmaHalf;    // placeholder until FP16 is supported 
     typedef std::complex<float>   magmaFloatComplex;
     typedef std::complex<double>  magmaDoubleComplex;
 
@@ -261,6 +271,9 @@ extern "C" {
 #define CBLAS_SADDR(a)  &(a)
 #endif
 
+typedef magmaHalf          *magmaHalf_ptr;
+typedef magmaHalf    const *magmaHalf_const_ptr;
+
 // for MAGMA_[CZ]_ABS
 double magma_cabs ( magmaDoubleComplex x );
 float  magma_cabsf( magmaFloatComplex  x );
@@ -301,6 +314,7 @@ float  magma_cabsf( magmaFloatComplex  x );
     typedef double             const *magmaDouble_const_ptr;
     typedef magmaFloatComplex  const *magmaFloatComplex_const_ptr;
     typedef magmaDoubleComplex const *magmaDoubleComplex_const_ptr;
+
 #endif
 
 
