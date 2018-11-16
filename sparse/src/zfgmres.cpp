@@ -10,6 +10,7 @@
        @precisions normal z -> s d c
 */
 #include "magmasparse_internal.h"
+#include "papi_sde_hook.h"
 
 #define PRECISION_z
 
@@ -130,6 +131,9 @@ magma_zfgmres(
     solver_par->solver = Magma_PGMRES;
     solver_par->numiter = 0;
     solver_par->spmv_count = 0;
+
+    // Register PAPI SDE counters and recorders
+    magma_z_papi_sde_hook( solver_par );
     
     //Chronometry
     real_Double_t tempo1, tempo2;
@@ -201,10 +205,10 @@ magma_zfgmres(
             break;
         }
         
-        if (solver_par->numiter == 0){
+        if (solver_par->numiter == 1){
             solver_par->init_res = MAGMA_Z_REAL( beta );
             resid0 = MAGMA_Z_REAL( beta );
-        
+ 
             if ( (r0 = nomb * solver_par->rtol) < ATOLERANCE ){
                 r0 = ATOLERANCE;
             }
@@ -215,6 +219,13 @@ magma_zfgmres(
                 goto cleanup;
             }
         }
+
+        // PAPI SDE recorder of iterative residuals
+        if ( solver_par->sde_rcrd.magma_env_on != NULL ) {
+            papi_sde_record( solver_par->sde_rcrd.handle_iter_res,
+                             sizeof(resid0), &resid0 );
+        }
+
         if ( solver_par->verbose > 0 ) {
             solver_par->res_vec[0] = resid0;
             solver_par->timing[0] = 0.0;
@@ -269,6 +280,13 @@ magma_zfgmres(
             
             betanom = MAGMA_Z_ABS( s[i+1] );
             rel_resid = betanom / nomb;
+
+            // PAPI SDE recorder of iterative residuals
+            if ( solver_par->sde_rcrd.magma_env_on != NULL ) {
+                papi_sde_record( solver_par->sde_rcrd.handle_iter_res,
+                                 sizeof(betanom), &betanom );
+            }
+
             if ( solver_par->verbose > 0 ) {
                 tempo2 = magma_sync_wtime( queue );
                 if ( (solver_par->numiter)%solver_par->verbose==0 ) {
