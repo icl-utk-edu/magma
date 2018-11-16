@@ -38,7 +38,7 @@ __global__ void sampleselect_findbucket(magma_int_t* __restrict__ totalcounts,
 }
 
 magma_int_t sampleselect_alloc_size(magma_int_t size) {
-    static_assert(sizeof(magma_int_t) == sizeof(unsigned), "c++ is broken");
+    static_assert(sizeof(magma_int_t) >= sizeof(unsigned), "c++ is broken");
     return 1 // bucket index
          + 1 // rank
          + 1 // atomic
