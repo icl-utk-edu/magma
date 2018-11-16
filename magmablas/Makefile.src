@@ -196,6 +196,12 @@ libmagma_src += \
 libmagma_src += \
 	$(cdir)/blas_zbatched.cpp	\
 
+# FP16 files
+libmagma_src += \
+	$(cdir)/slag2h.cu	\
+	$(cdir)/hlag2s.cu	\
+
+
 # ----------------------------------------------------------------------
 # extra include dependencies
 $(cdir)/strtri_diag.$(o_ext): $(cdir)/strtri.cuh
