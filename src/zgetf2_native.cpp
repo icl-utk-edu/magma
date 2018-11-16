@@ -63,7 +63,7 @@ magma_zgetf2_native_blocked(
                 cublasGetPointerMode(queue->cublas_handle(), &ptr_mode);
                 cublasSetPointerMode(queue->cublas_handle(), CUBLAS_POINTER_MODE_DEVICE);
 
-                cublasIzamax(queue->cublas_handle(), m-gbj, dA(gbj,gbj), 1, dipiv+gbj);
+                cublasIzamax(queue->cublas_handle(), m-gbj, dA(gbj,gbj), 1, (int *)(dipiv+gbj));
 
                 cublasSetPointerMode(queue->cublas_handle(), ptr_mode);
                 adjust_ipiv( dipiv+gbj, 1, gbj, queue);
