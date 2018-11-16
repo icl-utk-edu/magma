@@ -121,13 +121,13 @@ int main( int argc, char** argv)
 
             magma_ssetmatrix( Am, An, hA, lda,  dW, lddw, opts.queue );
             magmablas_slag2h( Am, An, dW, lddw, dA, ldda, &info, opts.queue);
-            if(info == 0) {
+            if(info != 0) {
                 printf("error in magmablas_slag2h( dA )\n");
             }
 
             magma_ssetmatrix( Bm, Bn, hB, ldb,  dW, lddw, opts.queue );
             magmablas_slag2h( Bm, Bn, dW, lddw, dB, lddb, &info, opts.queue);
-            if(info == 0) {
+            if(info != 0) {
                 printf("error in magmablas_slag2h( dB )\n");
             }
 
@@ -142,7 +142,7 @@ int main( int argc, char** argv)
             #ifdef HAVE_CUBLAS
                 magma_ssetmatrix( M, N, hC, ldc, dW, lddw, opts.queue );
                 magmablas_slag2h( M, N, dW, lddw, dC, lddc, &info, opts.queue);
-                if(info == 0) {
+                if(info != 0) {
                     printf("error in magmablas_slag2h( dC )\n");
                 }
 
@@ -201,14 +201,14 @@ int main( int argc, char** argv)
                         (okay ? "ok" : "failed"));
             }
             else {
-            #else
                     printf("%5lld %5lld %5lld   %7.2f (%7.2f)     ---   (  ---  )       ---\n",
                            (long long) M, (long long) N, (long long) K,
                            dev_perf,    1000.*dev_time );
-            #endif
-
-            #ifdef HAVE_CUBLAS
             }
+            #else
+                printf("%5lld %5lld %5lld   %7.2f (%7.2f)     ---   (  ---  )       ---\n",
+                           (long long) M, (long long) N, (long long) K,
+                           dev_perf,    1000.*dev_time );
             #endif
             
             magma_free_cpu( hA );
