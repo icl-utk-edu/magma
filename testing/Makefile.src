@@ -225,6 +225,11 @@ testing_src += \
 	$(cdir)/testing_zpotrf_vbatched.cpp	\
 
 # ----------
+# half precision files
+testing_src += \
+	$(cdir)/testing_hgemm.cpp	\
+
+# ----------
 # fortran.c and fortran_thunking.c are provided by NVIDIA in $(CUDADIR)/src
 ifeq ($(FORT), pgfortran)
 	#	$(cdir)/fortran_thunking.$(o_ext)
