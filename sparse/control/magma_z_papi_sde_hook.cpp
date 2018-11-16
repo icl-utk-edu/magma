@@ -3,6 +3,7 @@
 */
 
 #include "papi_sde_hook.h"
+#include <stdlib.h>
 
 int magma_z_papi_sde_hook(magma_z_solver_par *solver_par)
 {
