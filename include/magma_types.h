@@ -60,6 +60,7 @@ typedef double real_Double_t;
 #if defined(HAVE_CUBLAS)
     // include cublas_v2.h, unless cublas.h has already been included, e.g., via magma.h
     #ifndef CUBLAS_H_
+    #include <cuda.h>    // for CUDA_VERSION
     #include <cublas_v2.h>
     #endif
 
