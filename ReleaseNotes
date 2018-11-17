@@ -24,7 +24,7 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
- 2.5.0 - Nov XX, 2018
+ 2.5.0 - Nov 16, 2018
     * New routine: magmablas_Xgemm_batched_strided (X = {s, d, c, z}) is 
       the stride-based variant of magmablas_Xgemm_batched
     * New routine: magma_Xgetrf_native (X = {s, d, c, z}) performs the 
