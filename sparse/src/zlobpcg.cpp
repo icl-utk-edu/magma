@@ -12,6 +12,7 @@
        @precisions normal z -> s d c
 */
 #include "magmasparse_internal.h"
+#include "papi_sde_hook.h"
 
 #define PRECISION_z
 #define COMPLEX
@@ -96,6 +97,8 @@ magma_zlobpcg(
     solver_par->numiter = 0;
     solver_par->spmv_count = 0;
 
+    // Register PAPI SDE counters and recorders
+    magma_z_papi_sde_hook( solver_par );
 
     magmaDoubleComplex *dwork=NULL, *hwork=NULL;
     magmaDoubleComplex *blockP=NULL, *blockAP=NULL, *blockR=NULL, *blockAR=NULL, *blockAX=NULL, *blockW=NULL;
@@ -494,6 +497,13 @@ magma_zlobpcg(
             condestGhistory[iterationNumber+1]=condestG;
 
             magma_dgetmatrix( 1, 1, residualNorms(0, iterationNumber), 1,  &tmp, 1, queue );
+
+            // PAPI SDE recorder of iterative residuals
+            if ( solver_par->sde_rcrd.magma_env_on != NULL ) {
+                papi_sde_record( solver_par->sde_rcrd.handle_iter_res,
+                                 sizeof(tmp), &tmp );
+            }
+
             if ( iterationNumber == 1 ) {
                 solver_par->init_res = tmp;
                 r0 = tmp * solver_par->rtol;
