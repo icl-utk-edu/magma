@@ -94,7 +94,7 @@ magma_zsampleselect(
     double* gputmp2 = gputmp1 + total_size;
     double* gputree = gputmp2 + total_size;
     double* gpuresult = gputree + searchtree_size;
-    magma_int_t* gpuints = (magma_int_t*)(gpuresult + 1);
+    magma_int_t* gpuints = (int*)(gpuresult + 1);
 
     CHECK(realloc_result);
 
