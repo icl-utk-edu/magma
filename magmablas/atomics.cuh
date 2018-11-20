@@ -57,4 +57,19 @@ magmablas_iatomic_exchange(int* address, int val)
 }
 
 /******************************************************************************/
+__device__ static __inline__ unsigned long long int 
+magmablas_iatomic_exchange(unsigned long long int* address, unsigned long long int val)
+{
+    return atomicExch(address, val);
+}
+
+/******************************************************************************/
+__device__ static __inline__ long long int 
+magmablas_iatomic_exchange(long long int* address, long long int val)
+{
+    // a cast should be safe, because the function just exchanges the 64bit value (no arithmetics)
+    return (long long int)atomicExch((unsigned long long*)address, (unsigned long long)val);
+}
+
+/******************************************************************************/
 #endif // ATOMICS_CUH
