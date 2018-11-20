@@ -211,6 +211,17 @@ magma_izamax_batched(magma_int_t length,
 
 
 /******************************************************************************/
+// For use in magma_izamax_native only
+// cublasIzamax always writes 32bit pivots, so make sure it is magma_int_t
+__global__ void magma_zpivcast(magma_int_t* dipiv)
+{
+    // uses only 1 thread
+    int* address = (int*)dipiv; 
+    int pivot = *address;          // read the value written by cuBLAS (int)
+    *dipiv = (magma_int_t)pivot;    // write it back in the same address as dipiv
+}
+
+/******************************************************************************/
 extern "C" magma_int_t
 magma_izamax_native( magma_int_t length, 
                      magmaDoubleComplex_ptr x, magma_int_t incx, 
@@ -219,12 +230,27 @@ magma_izamax_native( magma_int_t length,
                      magma_int_t gbstep, magma_queue_t queue)
 {
     if (length == 0 ) return 0;
-    dim3 grid(1, 1, 1);
-    dim3 threads(zamax, 1, 1);
 
-    int chunk = magma_ceildiv( length, zamax );
-    izamax_kernel_native<<< grid, threads, zamax * (sizeof(double) + sizeof(int)), queue->cuda_stream() >>>
-        (length, chunk, x, incx, step, lda, ipiv, info, gbstep);
+    // TODO: decide the best izamax for all precisions
+    if( length <= 15360 ) {
+        dim3 grid(1, 1, 1);
+        dim3 threads(zamax, 1, 1);
+
+        int chunk = magma_ceildiv( length, zamax );
+        izamax_kernel_native<<< grid, threads, zamax * (sizeof(double) + sizeof(int)), queue->cuda_stream() >>>
+            (length, chunk, x, incx, step, lda, ipiv, info, gbstep);
+    }
+    else {
+        cublasPointerMode_t ptr_mode;
+        cublasGetPointerMode(queue->cublas_handle(), &ptr_mode);
+        cublasSetPointerMode(queue->cublas_handle(), CUBLAS_POINTER_MODE_DEVICE);
+
+        cublasIzamax(queue->cublas_handle(), length, x + step * lda + step, 1, (int*)(ipiv+step));
+        magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv+step );
+
+        cublasSetPointerMode(queue->cublas_handle(), ptr_mode);
+        adjust_ipiv( ipiv+step, 1, step, queue);
+    }
     return 0;
 }
 
