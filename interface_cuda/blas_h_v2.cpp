@@ -90,8 +90,10 @@ magma_hgemm(
 #if CUDA_VERSION >= 7500
     magma_int_t arch = magma_getdevice_arch();
     if( arch >= 530 ) {
+        #if CUDA_VERSION >= 9000
         // turn on tensor cores by default
         cublasSetMathMode(queue->cublas_handle(), CUBLAS_TENSOR_OP_MATH);
+        #endif
 
         cublasHgemm(
             queue->cublas_handle(),
