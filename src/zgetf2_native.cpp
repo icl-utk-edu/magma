@@ -54,21 +54,7 @@ magma_zgetf2_native_blocked(
         for (step=0; step < ib; step++) {
             gbj = j+step;
             // find the max of the column gbj
-            // TODO: decide the best izamax for all precisions
-            if(m-gbj <= 15360){
-                arginfo = magma_izamax_native( m-gbj, dA, 1, gbj, ldda, dipiv, dinfo, gbstep, queue);
-            }
-            else{
-                cublasPointerMode_t ptr_mode;
-                cublasGetPointerMode(queue->cublas_handle(), &ptr_mode);
-                cublasSetPointerMode(queue->cublas_handle(), CUBLAS_POINTER_MODE_DEVICE);
-
-                cublasIzamax(queue->cublas_handle(), m-gbj, dA(gbj,gbj), 1, (int *)(dipiv+gbj));
-
-                cublasSetPointerMode(queue->cublas_handle(), ptr_mode);
-                adjust_ipiv( dipiv+gbj, 1, gbj, queue);
-                arginfo = 0;
-            }
+            arginfo = magma_izamax_native( m-gbj, dA, 1, gbj, ldda, dipiv, dinfo, gbstep, queue);
 
             if (arginfo != 0 ) return arginfo;
             // Apply the interchange to columns 1:N. swap the whole row
