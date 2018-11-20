@@ -150,9 +150,9 @@ zgetf2_native_kernel( int m, int n,
             // now every thread in the i^th block has the maximum
             if( tx == 0){
                 if( rx_abs_max == MAGMA_D_ZERO){
-                    magmablas_iatomic_exchange( (int *)info, (max_id + gbstep + 1) );
+                    magmablas_iatomic_exchange( (magma_int_t*)info, (magma_int_t)(max_id + gbstep + 1) );
                 }
-                magmablas_iatomic_exchange( (int *)&ipiv[i], (max_id+1) ); // fortran indexing
+                magmablas_iatomic_exchange((magma_int_t*)&ipiv[i], (magma_int_t)(max_id+1) ); // fortran indexing
             }
             __syncthreads();
             if( rx_abs_max == MAGMA_D_ZERO )return;
