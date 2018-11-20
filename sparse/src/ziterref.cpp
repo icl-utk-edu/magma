@@ -116,6 +116,7 @@ magma_ziterref(
     for( solver_par->numiter= 1; solver_par->numiter<solver_par->maxiter;
                                                     solver_par->numiter++ ) {
         magma_zscal( dofs, MAGMA_Z_MAKE(1./nom, 0.), r.dval, 1, queue );  // scale it
+	precond_par->init_res = 1.0;
         CHECK( magma_z_precond( A, r, &z, precond_par, queue )); // inner solver:  A * z = r
         magma_zscal( dofs, MAGMA_Z_MAKE(nom, 0.), z.dval, 1, queue );  // scale it
         magma_zaxpy( dofs,  c_one, z.dval, 1, x->dval, 1, queue );        // x = x + z
@@ -123,7 +124,6 @@ magma_ziterref(
         solver_par->spmv_count++;
         magma_zaxpy( dofs,  c_one, b.dval, 1, r.dval, 1, queue );         // r = r + b
         nom = magma_dznrm2( dofs, r.dval, 1, queue );                    // nom = || r ||
-
         if ( solver_par->verbose > 0 ) {
             tempo2 = magma_sync_wtime( queue );
             if ( (solver_par->numiter)%solver_par->verbose==0 ) {
@@ -133,7 +133,6 @@ magma_ziterref(
                         = (real_Double_t) tempo2-tempo1;
             }
         }
-
         if( nom < solver_par->atol ||
             nom/solver_par->init_res < solver_par->rtol ){
             break;
@@ -144,7 +143,7 @@ magma_ziterref(
     CHECK(  magma_zresidualvec( A, b, *x, &r, &residual, queue));
     solver_par->final_res = residual;
     solver_par->iter_res = nom;
-
+	printf("check %d\n", __LINE__);
     if ( solver_par->numiter < solver_par->maxiter ) {
         info = MAGMA_SUCCESS;
     } else if ( solver_par->init_res > solver_par->final_res ) {
