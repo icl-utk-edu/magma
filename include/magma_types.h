@@ -76,13 +76,15 @@ typedef double real_Double_t;
     typedef cudaEvent_t    magma_event_t;
     typedef magma_int_t    magma_device_t;
 
-#if CUDA_VERSION >= 7500
+    // Half precision in CUDA 
+    #if defined(__cplusplus) && CUDA_VERSION > 7500
+    #include <cuda_fp16.h>
     typedef __half           magmaHalf;
-#else
+    #else
     // use short for cuda older than 7.5 
     // corresponding routines would not work anyway since there is no half precision
     typedef short            magmaHalf;
-#endif    // CUDA_VERSION >= 7500
+    #endif    // CUDA_VERSION >= 7500
 
     typedef cuDoubleComplex magmaDoubleComplex;
     typedef cuFloatComplex  magmaFloatComplex;

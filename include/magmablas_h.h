@@ -13,9 +13,9 @@
 #include "magma_types.h"
 #include "magma_copy.h"
 
+// Half precision routines are available for C++ compilers only
 #ifdef __cplusplus
 extern "C" {
-#endif
 
 // =============================================================================
 // conversion routines
@@ -61,7 +61,6 @@ magma_hgemm(
     magmaHalf_ptr       dC, magma_int_t lddc,
     magma_queue_t queue );
 
-#ifdef __cplusplus
 }
 #endif
 
