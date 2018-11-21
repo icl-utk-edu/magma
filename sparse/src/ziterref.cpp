@@ -11,6 +11,7 @@
 */
 
 #include "magmasparse_internal.h"
+#include "papi_sde_hook.h"
 
 #define RTOLERANCE     lapackf77_dlamch( "E" )
 #define ATOLERANCE     lapackf77_dlamch( "E" )
@@ -72,7 +73,10 @@ magma_ziterref(
     solver_par->solver = Magma_ITERREF;
     solver_par->numiter = 0;
     solver_par->spmv_count = 0;
-    
+   
+    // Register PAPI SDE counters and recorders
+    magma_z_papi_sde_hook( solver_par );
+ 
     magma_int_t dofs = A.num_rows*b.num_cols;
 
     // solver variables
@@ -123,6 +127,13 @@ magma_ziterref(
         solver_par->spmv_count++;
         magma_zaxpy( dofs,  c_one, b.dval, 1, r.dval, 1, queue );         // r = r + b
         nom = magma_dznrm2( dofs, r.dval, 1, queue );                    // nom = || r ||
+
+        // PAPI SDE recorder of iterative residuals
+        if ( solver_par->sde_rcrd.magma_env_on != NULL ) {
+            papi_sde_record( solver_par->sde_rcrd.handle_iter_res,
+                             sizeof(nom), &nom );
+        }
+
         if ( solver_par->verbose > 0 ) {
             tempo2 = magma_sync_wtime( queue );
             if ( (solver_par->numiter)%solver_par->verbose==0 ) {
