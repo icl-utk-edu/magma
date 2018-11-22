@@ -11,12 +11,13 @@
 */
 
 #include "magma_sampleselect.h"
+#include <cstdint>
 
 #define PRECISION_z
 
 namespace magma_sampleselect {
 
-__global__ void compute_abs(const magmaDoubleComplex* __restrict__ in, double* __restrict__ out, magma_int_t size) {
+__global__ void compute_abs(const magmaDoubleComplex* __restrict__ in, double* __restrict__ out, int32_t size) {
     auto idx = threadIdx.x + blockDim.x * blockIdx.x;
     if (idx >= size) {
         return;
@@ -87,14 +88,14 @@ magma_zsampleselect(
 
     magma_int_t num_blocks = magma_ceildiv(total_size, block_size);
     magma_int_t required_size = sizeof(double) * (total_size * 2 + searchtree_size)
-                                + sizeof(int) * sampleselect_alloc_size(total_size);
+                                + sizeof(int32_t) * sampleselect_alloc_size(total_size);
     auto realloc_result = realloc_if_necessary(tmp_ptr, tmp_size, required_size);
 
     double* gputmp1 = (double*)*tmp_ptr;
     double* gputmp2 = gputmp1 + total_size;
     double* gputree = gputmp2 + total_size;
     double* gpuresult = gputree + searchtree_size;
-    magma_int_t* gpuints = (magma_int_t*)(gpuresult + 1);
+    int32_t* gpuints = (int32_t*)(gpuresult + 1);
 
     CHECK(realloc_result);
 
@@ -167,16 +168,16 @@ magma_zsampleselect_approx(
     auto num_blocks = magma_ceildiv(total_size, block_size);
     auto local_work = (total_size + num_threads - 1) / num_threads;
     auto required_size = sizeof(double) * (total_size + searchtree_size)
-                         + sizeof(int) * (searchtree_width * (num_grouped_blocks + 1) + 1);
+                         + sizeof(int32_t) * (searchtree_width * (num_grouped_blocks + 1) + 1);
     auto realloc_result = realloc_if_necessary(tmp_ptr, tmp_size, required_size);
 
     double* gputmp = (double*)*tmp_ptr;
     double* gputree = gputmp + total_size;
-    unsigned* gpubucketidx = (unsigned*)(gputree + searchtree_size);
-    magma_int_t* gpurankout = (magma_int_t*)(gpubucketidx + 1);
-    magma_int_t* gpucounts = gpurankout + 1;
-    magma_int_t* gpulocalcounts = gpucounts + searchtree_width;
-    magma_int_t bucketidx{};
+    uint32_t* gpubucketidx = (uint32_t*)(gputree + searchtree_size);
+    int32_t* gpurankout = (int32_t*)(gpubucketidx + 1);
+    int32_t* gpucounts = gpurankout + 1;
+    int32_t* gpulocalcounts = gpucounts + searchtree_width;
+    uint32_t bucketidx{};
 
     CHECK(realloc_result);
 
@@ -190,7 +191,7 @@ magma_zsampleselect_approx(
         (gpulocalcounts, gpucounts, num_grouped_blocks);
     sampleselect_findbucket<<<1, searchtree_width / 2, 0, queue->cuda_stream()>>>
         (gpucounts, subset_size, gpubucketidx, gpurankout);
-    magma_igetvector(1, (magma_int_t*)gpubucketidx, 1, &bucketidx, 1, queue);
+    magma_getvector(1, sizeof(uint32_t), gpubucketidx, 1, &bucketidx, 1, queue);
     magma_dgetvector(1, gputree + searchtree_width - 1 + bucketidx, 1, thrs, 1, queue);
     *thrs = std::sqrt(*thrs);
 
