@@ -17,7 +17,7 @@
 
 // includes, support
 #include <papi.h>
-#define NUM_PAPI_SDE_EVTS 8
+#define NUM_PAPI_SDE_EVTS 13
 
 // includes, project
 #include "magma_v2.h"
@@ -54,7 +54,12 @@ int main(  int argc, char** argv )
                                     "sde:::MAGMA::SolverRuntime_D",
                                     "sde:::MAGMA::SpmvCount_I",
                                     "sde:::MAGMA::IterativeResidual_RCRD_D:CNT",
-                                    "sde:::MAGMA::IterativeResidual_RCRD_D"}; 
+                                    "sde:::MAGMA::IterativeResidual_RCRD_D", 
+                                    "sde:::MAGMA::IterativeResidual_RCRD_D:MIN",
+                                    "sde:::MAGMA::IterativeResidual_RCRD_D:Q1",
+                                    "sde:::MAGMA::IterativeResidual_RCRD_D:MED",
+                                    "sde:::MAGMA::IterativeResidual_RCRD_D:Q3",
+                                    "sde:::MAGMA::IterativeResidual_RCRD_D:MAX"};
     const char *is_papi_sde_on = getenv("PAPI_SDE_MAGMA");
 
 
@@ -170,6 +175,13 @@ int main(  int argc, char** argv )
             for (j=0; j<values[6]; j++){
                 printf("    %d: %.4e\n",j, sde_ptr[j]);
             }
+
+            printf("\nPAPI SDE recorder statistics:\n");
+            printf("    %s: %.4e\n",sde_event_name[8], GET_DOUBLE_SDE(values[8]));
+            printf("    %s: %.4e\n",sde_event_name[9], GET_DOUBLE_SDE(values[9]));
+            printf("    %s: %.4e\n",sde_event_name[10], GET_DOUBLE_SDE(values[10]));
+            printf("    %s: %.4e\n",sde_event_name[11], GET_DOUBLE_SDE(values[11]));
+            printf("    %s: %.4e\n",sde_event_name[12], GET_DOUBLE_SDE(values[12]));
             printf("<<<< PAPI counter report END\n");
         }
  
