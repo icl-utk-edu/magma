@@ -177,11 +177,16 @@ int main(  int argc, char** argv )
             }
 
             printf("\nPAPI SDE recorder statistics:\n");
-            printf("    %s: %.4e\n",sde_event_name[8], GET_DOUBLE_SDE(values[8]));
-            printf("    %s: %.4e\n",sde_event_name[9], GET_DOUBLE_SDE(values[9]));
-            printf("    %s: %.4e\n",sde_event_name[10], GET_DOUBLE_SDE(values[10]));
-            printf("    %s: %.4e\n",sde_event_name[11], GET_DOUBLE_SDE(values[11]));
-            printf("    %s: %.4e\n",sde_event_name[12], GET_DOUBLE_SDE(values[12]));
+            sde_ptr = GET_SDE_RECORDER_ADDRESS(values[8], double);
+            printf("    %s: %.4e\n",sde_event_name[8], *sde_ptr);
+            sde_ptr = GET_SDE_RECORDER_ADDRESS(values[9], double);
+            printf("    %s: %.4e\n",sde_event_name[9], *sde_ptr);
+            sde_ptr = GET_SDE_RECORDER_ADDRESS(values[10], double);
+            printf("    %s: %.4e\n",sde_event_name[10], *sde_ptr);
+            sde_ptr = GET_SDE_RECORDER_ADDRESS(values[11], double);
+            printf("    %s: %.4e\n",sde_event_name[11], *sde_ptr);
+            sde_ptr = GET_SDE_RECORDER_ADDRESS(values[12], double);
+            printf("    %s: %.4e\n",sde_event_name[12], *sde_ptr);
             printf("<<<< PAPI counter report END\n");
         }
  
