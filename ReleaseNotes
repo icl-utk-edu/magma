@@ -41,6 +41,8 @@ single (s), double (d), single-complex (c), double-complex (z).
     * Added benchmark for GEMM in FP16 arithmetic (HGEMM) as well as 
       auxiliary functions to cast matrices from FP32 to FP16 storage 
       (magmablas_slag2h) and from FP16 to FP32 (magmablas_hlag2s).
+    * Added Fortran wrappers to allocate memory, manage queues and devices,
+      and for BLAS routines with queues.
 
  2.4.0 - Jun 25, 2018
     * Added constrained least squares routines (magma_[sdcz]gglse)
