@@ -103,6 +103,11 @@ magma_hgemm(
             &alpha, dA, int(ldda),
                     dB, int(lddb),
             &beta,  dC, int(lddc) );
+        
+        #if CUDA_VERSION >= 9000
+        // roll back to default
+        cublasSetMathMode(queue->cublas_handle(), CUBLAS_DEFAULT_MATH);
+        #endif
     }
     else {
         printf("ERROR: unsupported architecture for %s \n", __func__ );
