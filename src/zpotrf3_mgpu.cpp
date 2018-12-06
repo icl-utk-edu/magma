@@ -220,7 +220,7 @@ magma_zpotrf3_mgpu(
     }
 
     /* == initialize the trace */
-    trace_init( 1, ngpu, 3, queues );
+    trace_init( 1, ngpu, 3, (magma_queue_t *)queues );
 
     if (upper) {
         /* ---------------------------------------------- */
