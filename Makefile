@@ -69,7 +69,7 @@ codegen    = python tools/codegen.py
 # NVCC options for the different cards
 # First, add smXX for architecture names
 ifneq ($(findstring Kepler, $(GPU_TARGET)),)
-    GPU_TARGET += sm_35
+    GPU_TARGET += sm_30 sm_35
 endif
 ifneq ($(findstring Maxwell, $(GPU_TARGET)),)
     GPU_TARGET += sm_50
@@ -79,6 +79,9 @@ ifneq ($(findstring Pascal, $(GPU_TARGET)),)
 endif
 ifneq ($(findstring Volta, $(GPU_TARGET)),)
     GPU_TARGET += sm_70
+endif
+ifneq ($(findstring Turing, $(GPU_TARGET)),)
+    GPU_TARGET += sm_75
 endif
 
 # Next, add compile options for specific smXX
@@ -102,11 +105,17 @@ ifneq ($(findstring sm_20, $(GPU_TARGET)),)
     MIN_ARCH ?= 200
     NV_SM    += -gencode arch=compute_20,code=sm_20
     NV_COMP  := -gencode arch=compute_20,code=compute_20
+    $(warning CUDA arch 2.x is no longer supported by CUDA >= 9.x)
 endif
 ifneq ($(findstring sm_30, $(GPU_TARGET)),)
     MIN_ARCH ?= 300
     NV_SM    += -gencode arch=compute_30,code=sm_30
     NV_COMP  := -gencode arch=compute_30,code=compute_30
+endif
+ifneq ($(findstring sm_32, $(GPU_TARGET)),)
+    MIN_ARCH ?= 320
+    NV_SM    += -gencode arch=compute_32,code=sm_32
+    NV_COMP  := -gencode arch=compute_32,code=compute_32
 endif
 ifneq ($(findstring sm_35, $(GPU_TARGET)),)
     MIN_ARCH ?= 350
@@ -153,8 +162,13 @@ ifneq ($(findstring sm_71, $(GPU_TARGET)),)
     NV_SM    += -gencode arch=compute_71,code=sm_71
     NV_COMP  := -gencode arch=compute_71,code=compute_71
 endif
+ifneq ($(findstring sm_75, $(GPU_TARGET)),)
+    MIN_ARCH ?= 750
+    NV_SM    += -gencode arch=compute_75,code=sm_75
+    NV_COMP  := -gencode arch=compute_75,code=compute_75
+endif
 ifeq ($(NV_COMP),)
-    $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, or valid sm_[0-9][0-9]. Please edit your make.inc file)
+    $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
 endif
 NVCCFLAGS += $(NV_SM) $(NV_COMP)
 CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)

@@ -4,13 +4,12 @@ all:
 	@echo "================================================================================"
 	./summarize_errors.pl output_err
 
-# Doxyfile-fast explicitly lists files in the SVN,
+# Doxyfile-fast explicitly lists files in the repo,
 # excluding all the precision-generated files.
 # It is a lot faster for checking doxygen warnings,
 # but of course generates only a subset of the documentation.
-# See output_err file for Doxygen warnings.
+# See output_err_fast file for Doxygen warnings.
 fast:
-	cd .. && $(MAKE) generate
 	doxygen Doxyfile-fast
 	@echo "================================================================================"
 	./summarize_errors.pl output_err_fast
