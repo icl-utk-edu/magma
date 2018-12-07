@@ -215,10 +215,15 @@ magma_zfgmres(
                 goto cleanup;
             }
         }
+        tempo2 = magma_sync_wtime( queue );
         if ( solver_par->verbose > 0 ) {
-            solver_par->res_vec[0] = resid0;
-            solver_par->timing[0] = 0.0;
+            solver_par->res_vec[(solver_par->numiter)/solver_par->verbose]
+                        = (real_Double_t) betanom; 
+            solver_par->timing[(solver_par->numiter)/solver_par->verbose]
+                        = (real_Double_t) tempo2-tempo1;
         }
+
+        
         temp = -1.0/beta;
         magma_zscal( dofs, temp, V(0), 1, queue );                 // V(0) = -V(0)/beta
 
