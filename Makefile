@@ -69,7 +69,7 @@ codegen    = python tools/codegen.py
 # NVCC options for the different cards
 # First, add smXX for architecture names
 ifneq ($(findstring Kepler, $(GPU_TARGET)),)
-    GPU_TARGET += sm_35
+    GPU_TARGET += sm_30 sm_35
 endif
 ifneq ($(findstring Maxwell, $(GPU_TARGET)),)
     GPU_TARGET += sm_50

@@ -92,7 +92,7 @@ magmablas_hlag2s(
 extern "C" void
 magmablas_hlag2s_batched(
     magma_int_t m, magma_int_t n,
-    __half const * const * dAarray, magma_int_t lda,
+    magmaHalf const * const * dAarray, magma_int_t lda,
     float               **dSAarray, magma_int_t ldsa,
     magma_int_t batchCount, magma_queue_t queue )
 {
