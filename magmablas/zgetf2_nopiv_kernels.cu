@@ -30,6 +30,9 @@ zgetf2_nopiv_device(int m, magmaDoubleComplex* dA, int ldda, magma_int_t *info, 
     
     int linfo = 0;
     double abs;
+    // check from previous calls if the panel factorization failed previously
+    // this is necessary to report the correct info value 
+    if(gbstep > 0 && *info != 0) return;
 
     // read 
     #pragma unroll
@@ -47,7 +50,8 @@ zgetf2_nopiv_device(int m, magmaDoubleComplex* dA, int ldda, magma_int_t *info, 
         __syncthreads();
 
         abs = fabs(MAGMA_Z_REAL( sx[i] )) + fabs(MAGMA_Z_IMAG( sx[i] ));
-        linfo = ( abs  == MAGMA_D_ZERO ) ? min(linfo,gbstep+i+1):0;
+        linfo = ( abs == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;
+        //linfo = ( abs  == MAGMA_D_ZERO ) ? min(linfo,gbstep+i+1):0;
         reg   = (linfo == 0 ) ? MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] ) : MAGMA_Z_ONE;
 
         // scal and ger
