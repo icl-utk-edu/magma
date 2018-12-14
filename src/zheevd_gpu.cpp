@@ -353,7 +353,7 @@ magma_zheevd_gpu(
         timer_start( time );
         lapackf77_dsterf( &n, w, &rwork[inde], info );
         timer_stop( time );
-        timer_printf( "time dsteqr = %6.2f\n", time );
+        timer_printf( "time dsterf = %6.2f\n", time );
     }
     else {
         timer_start( time );

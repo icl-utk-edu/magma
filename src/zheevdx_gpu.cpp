@@ -408,7 +408,7 @@ magma_zheevdx_gpu(
         lapackf77_dsterf( &n, w, &rwork[inde], info );
         magma_dmove_eig( range, n, w, &il, &iu, vl, vu, mout );
         timer_stop( time );
-        timer_printf( "time dsteqr = %6.2f\n", time );
+        timer_printf( "time dsterf = %6.2f\n", time );
     }
     else {
         timer_start( time );
