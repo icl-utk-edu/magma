@@ -95,6 +95,7 @@ testing_src += \
 # LU, GPU interface
 testing_src += \
 	$(cdir)/testing_zcgesv_gpu.cpp	\
+	$(cdir)/testing_dxgesv_gpu.cpp	\
 	\
 	$(cdir)/testing_zgesv_gpu.cpp	\
 	$(cdir)/testing_zgetrf_gpu.cpp	\

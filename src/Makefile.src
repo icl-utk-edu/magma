@@ -53,7 +53,11 @@ libmagma_src += \
 libmagma_src += \
 	$(cdir)/zcgesv_gpu.cpp		\
 	$(cdir)/zcgetrs_gpu.cpp		\
+	$(cdir)/dgmres_plu_gpu.cpp		\
+	$(cdir)/dxgesv_gmres_gpu.cpp		\
 	\
+	$(cdir)/xshgetrf_gpu.cpp	\
+	$(cdir)/xhsgetrf_gpu.cpp	\
 	$(cdir)/zgerfs_nopiv_gpu.cpp	\
 	$(cdir)/zgesv_gpu.cpp		\
 	$(cdir)/zgesv_nopiv_gpu.cpp	\

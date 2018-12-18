@@ -35,8 +35,7 @@ magma_int_t magma_get_spotrf_nb( magma_int_t n )
     magma_int_t arch = magma_getdevice_arch();
     if ( arch >= 300 ) {       // 3.x Kepler
         if      (n <  1500) nb = 256;
-        else if (n < 10240) nb = 512;
-        else                nb = 1024;
+        else                nb = 512;
     }
     else if ( arch >= 200 ) {  // 2.x Fermi
         if      (n <  2048) nb = 256;
@@ -57,8 +56,7 @@ magma_int_t magma_get_dpotrf_nb( magma_int_t n )
     magma_int_t arch = magma_getdevice_arch();
     if ( arch >= 300 ) {       // 3.x Kepler
         if      (n <  3072) nb = 256;
-        else if (n < 10240) nb = 512;
-        else                nb = 1024;
+        else                nb = 512;
     }
     else if ( arch >= 200 ) {  // 2.x Fermi
         nb = 256;
@@ -345,6 +343,283 @@ magma_int_t magma_get_zgelqf_nb( magma_int_t m, magma_int_t n )
     if      (minmn <  1024) nb = 64;
     else                    nb = 128;
     return nb;
+}
+
+/******************************************************************************/
+/// @return nb for hgetrf based on m, n
+//-------------------------------------------------------------------------------
+double magma_get_gemex_rankk_time( magma_int_t m, magma_int_t k, magma_mp_type_t gmtype)
+{
+    double perf=0;
+    switch (gmtype)
+    {
+        case Magma_MP_GEMEX_I16_O32_C32:
+            {
+                // use square data for k>1024 for now
+                if(k >= 1024)
+                {
+                    perf = 90e12;
+                }else if( k >= 512)
+                {
+                    if(m <= 2048) 
+                        perf = 28e12;
+                    else if(m <= 4096)
+                        perf = 46e12;
+                    else
+                        perf = 54e12;
+                }else if (k >= 384)
+                {
+                    if(m <= 2048) 
+                        perf = 21e12;
+                    else if(m <= 4096)
+                        perf = 40e12;
+                    else
+                        perf = 47e12;
+                }else if (k >= 256)
+                {
+                    if(m <= 2048) 
+                        perf = 16e12;
+                    else if(m <= 4096)
+                        perf = 29e12;
+                    else
+                        perf = 36e12;
+                }else if (k >= 128)
+                {
+                    if(m <= 2048) 
+                        perf = 9e12;
+                    else if(m <= 4096)
+                        perf = 17e12;
+                    else
+                        perf = 22e12;
+                }else
+                {
+                    perf = 9e12;
+                }
+            }
+            break;
+        case Magma_MP_GEMEX_I16_O16_C32:
+            {
+       
+            }
+            break;
+        case Magma_MP_GEMEX_I16_O16_C16:
+            {
+       
+            }
+            break;
+        default:
+            {
+       
+            }
+    }
+    return (2.0*double(m)*double(m)*double(k)/perf);
+}
+//-------------------------------------------------------------------------------
+#define FMULS_GETRF(m_, n_) ( ((m_) < (n_)) \
+    ? (0.5 * (m_) * ((m_) * ((n_) - (1./3.) * (m_) - 1. ) + (n_)) + (2. / 3.) * (m_)) \
+    : (0.5 * (n_) * ((n_) * ((m_) - (1./3.) * (n_) - 1. ) + (m_)) + (2. / 3.) * (n_)) )
+#define FADDS_GETRF(m_, n_) ( ((m_) < (n_)) \
+    ? (0.5 * (m_) * ((m_) * ((n_) - (1./3.) * (m_)      ) - (n_)) + (1. / 6.) * (m_)) \
+    : (0.5 * (n_) * ((n_) * ((m_) - (1./3.) * (n_)      ) - (m_)) + (1. / 6.) * (n_)) )
+#define FLOPS_SGETRF(m_, n_) (     FMULS_GETRF((double)(m_), (double)(n_)) +       FADDS_GETRF((double)(m_), (double)(n_)) )
+
+double magma_get_cpu_sgetrf_time( magma_int_t m, magma_int_t n)
+{
+    double sgetrf_perf=0;
+    double pci_bandwidth = 12e9;
+    double time_data_transfer = 2*(m*n*4)/pci_bandwidth;
+    double time_sgetrf        = 0;
+
+    if(n >= 1024)
+    {
+        sgetrf_perf = 587e9;
+    }else if( n >= 512)
+    {
+        if(m <= 4096) 
+            sgetrf_perf = 180e9;
+        else if(m <= 8192)
+            sgetrf_perf = 280e9;
+        else if(m <= 14000)
+            sgetrf_perf = 380e9;
+        else if(m <= 20000)
+            sgetrf_perf = 480e9;
+        else
+            sgetrf_perf = 600e9;
+    }else if( n >= 384)
+    {
+        if(m <= 4096) 
+            sgetrf_perf = 150e9;
+        else if(m <= 8192)
+            sgetrf_perf = 250e9;
+        else if(m <= 16000)
+            sgetrf_perf = 350e9;
+        else if(m <= 20000)
+            sgetrf_perf = 450e9;
+        else
+            sgetrf_perf = 570e9;
+    }else if( n >= 256)
+    {
+        if(m <= 4096) 
+            sgetrf_perf = 100e9;
+        else if(m <= 8192)
+            sgetrf_perf = 160e9;
+        else if(m <= 16000)
+            sgetrf_perf = 260e9;
+        else if(m <= 22000)
+            sgetrf_perf = 300e9;
+        else
+            sgetrf_perf = 350e9;
+    }else if( n >= 128)
+    {
+        if(m <= 4096) 
+            sgetrf_perf = 60e9;
+        else if(m <= 8192)
+            sgetrf_perf = 100e9;
+        else if(m <= 16000)
+            sgetrf_perf = 160e9;
+        else if(m <= 22000)
+            sgetrf_perf = 200e9;
+        else
+            sgetrf_perf = 250e9;
+    }else
+    {
+        sgetrf_perf = 200e9;
+    }
+
+    time_sgetrf = FLOPS_SGETRF(m, n)/sgetrf_perf;
+
+    return (time_sgetrf+time_data_transfer);
+
+
+}
+#undef FLOPS_SGETRF
+#undef FMULS_GETRF
+#undef FADDS_GETRF
+//-------------------------------------------------------------------------------
+magma_int_t magma_get_xgetrf_nb( 
+        magma_int_t m, magma_int_t n, magma_int_t prev_nb, 
+        magma_mp_type_t enable_tc, magma_mp_type_t mp_algo_type)
+{
+    magma_int_t nb;
+    magma_int_t minmn = min( m, n );
+    //magma_int_t arch = magma_getdevice_arch();
+#if 0
+    if (minmn <=  5248) nb = 128;
+//    else if (minmn <= 10240) nb = 256;
+    else if (minmn <= 8192) nb = 256;
+    else if (minmn <= 10240) nb = 384;
+    else if (minmn <= 20480) nb = 512;
+    else                    nb = 512;
+#else
+    if (minmn <=  6000) nb = 128;
+    else if (minmn <= 12000) nb = 256;
+    else if (minmn <= 36000) nb = 384;
+    else                    nb = 512;
+#endif
+
+
+    double mintime128=0.0, mintime1536=0.0;
+    int proposed_nb128=128, proposed_nb1536=128;
+    for (int ib=128; ib<=512; ib+=128)
+    {
+         double time_sgetrf = magma_get_cpu_sgetrf_time(minmn, ib);
+         double time_gemm   = magma_get_gemex_rankk_time( minmn, ib, Magma_MP_GEMEX_I16_O32_C32);
+         double maxtime     = max(time_sgetrf, time_gemm);
+         double divto_128   = double(ib/128);
+         double multo_1536  = double(1536/ib);
+         double time_on_128 = maxtime/divto_128;
+         double time_on_1536= maxtime*multo_1536;
+         mintime128  = ib == 128 ? time_on_128  : min(mintime128,  time_on_128);
+         mintime1536 = ib == 128 ? time_on_1536 : min(mintime1536, time_on_1536);
+         if(mintime128  == time_on_128)
+             proposed_nb128  = ib;
+         if(mintime1536 == time_on_1536)
+             proposed_nb1536 = ib;
+
+     /*
+         double scale;
+         char unit[10];
+         scale       = maxtime < 1e-3 ? 1e6     : maxtime < 1e0 ? 1e3  : 1e0;
+         snprintf(unit, sizeof(unit),"%s",(maxtime < 1e-3 ? "micros": maxtime < 1e0 ? "ms" : "s"));
+         printf("\t\tvoici minmn %5d ib %3d, time_sgetrf %8.5f %s, time_gemm %8.5f %s, max_time: %8.5f %s, 128: %8.5f %s 1536: %8.5f %s\n",
+                 minmn, ib, time_sgetrf*scale, unit, time_gemm*scale, unit,
+                 maxtime*scale, unit, maxtime*scale/divto_128, unit, maxtime*scale*multo_1536, unit); 
+               */  
+    }
+    /*
+    printf("\t\tvoici minmn %5d choosen nb %3d  proposed_nb128 %4d proposed_nb1536 %4d\n",
+                 minmn, nb, proposed_nb128, proposed_nb1536, min(proposed_nb128)); 
+                 */
+
+    MAGMA_UNUSED( nb );
+    MAGMA_UNUSED( proposed_nb128 );
+    MAGMA_UNUSED( proposed_nb1536 );
+
+    return proposed_nb128;
+    //return nb;
+
+}
+//-------------------------------------------------------------------------------
+magma_int_t magma_get_hgetrf_nb( magma_int_t m, magma_int_t n )
+{
+    magma_int_t nb;
+    magma_int_t minmn = min( m, n );
+    //magma_int_t arch = magma_getdevice_arch();
+#if 0
+    if (minmn <=  5248) nb = 128;
+//    else if (minmn <= 10240) nb = 256;
+    else if (minmn <= 8192) nb = 256;
+    else if (minmn <= 10240) nb = 384;
+    else if (minmn <= 20480) nb = 512;
+    else                    nb = 512;
+#else
+    if (minmn <=  6000) nb = 128;
+    else if (minmn <= 12000) nb = 256;
+    else if (minmn <= 36000) nb = 384;
+    else                    nb = 512;
+#endif
+
+    double mintime128=0.0, mintime1536=0.0;
+    int proposed_nb128=128, proposed_nb1536=128;
+    for (int ib=128; ib<=512; ib+=128)
+    {
+         double time_sgetrf = magma_get_cpu_sgetrf_time(minmn, ib);
+         double time_gemm   = magma_get_gemex_rankk_time( minmn, ib, Magma_MP_GEMEX_I16_O32_C32);
+         double maxtime     = max(time_sgetrf, time_gemm);
+         double divto_128   = double(ib/128);
+         double multo_1536  = double(1536/ib);
+         double time_on_128 = maxtime/divto_128;
+         double time_on_1536= maxtime*multo_1536;
+         mintime128  = ib == 128 ? time_on_128  : min(mintime128,  time_on_128);
+         mintime1536 = ib == 128 ? time_on_1536 : min(mintime1536, time_on_1536);
+         if(mintime128  == time_on_128)
+             proposed_nb128  = ib;
+         if(mintime1536 == time_on_1536)
+             proposed_nb1536 = ib;
+
+     /*
+         double scale;
+         char unit[10];
+         scale       = maxtime < 1e-3 ? 1e6     : maxtime < 1e0 ? 1e3  : 1e0;
+         snprintf(unit, sizeof(unit),"%s",(maxtime < 1e-3 ? "micros": maxtime < 1e0 ? "ms" : "s"));
+         printf("\t\tvoici minmn %5d ib %3d, time_sgetrf %8.5f %s, time_gemm %8.5f %s, max_time: %8.5f %s, 128: %8.5f %s 1536: %8.5f %s\n",
+                 minmn, ib, time_sgetrf*scale, unit, time_gemm*scale, unit,
+                 maxtime*scale, unit, maxtime*scale/divto_128, unit, maxtime*scale*multo_1536, unit); 
+               */  
+    }
+    /*
+    printf("\t\tvoici minmn %5d choosen nb %3d  proposed_nb128 %4d proposed_nb1536 %4d\n",
+                 minmn, nb, proposed_nb128, proposed_nb1536, min(proposed_nb128)); 
+                 */
+
+
+    MAGMA_UNUSED( nb );
+    MAGMA_UNUSED( proposed_nb128 );
+    MAGMA_UNUSED( proposed_nb1536 );
+
+    //return proposed_nb128;
+    return nb;
+
 }
 
 
