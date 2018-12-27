@@ -206,7 +206,7 @@ magma_dfgmres_plu_gpu(
         //cudaFree(inner_dX);
             tot_inner_iter += inner_iter;
             if(!is_inner)
-                MAGMA_PRINTF("%s_GMRES_outer_iter %d uses inner_iter %d \n", algoname, iters, inner_iter );
+                MAGMA_PRINTF("%s_GMRES_outer_iter %lld uses inner_iter %lld \n", algoname, (long long) iters, (long long) inner_iter );
         }
 
 
@@ -261,10 +261,10 @@ magma_dfgmres_plu_gpu(
 		ro = fabs(rs[i+1]);
 
 		if (PRINT2 && is_inner){
-		    MAGMA_PRINTF("     %s_GPU_GMRES_INNER_ITER %5d     %8.2E\n", algoname, iters, ro);
+		    MAGMA_PRINTF("     %s_GPU_GMRES_INNER_ITER %5lld     %8.2E\n", algoname, (long long) iters, ro);
         }
         else if (PRINT2 && ~is_inner){
-		    MAGMA_PRINTF("     %s_GPU_GMRES_ITER %5d  inner_iter %5d   %8.2E\n", algoname, iters, inner_iter, ro);
+		    MAGMA_PRINTF("     %s_GPU_GMRES_ITER %5lld  inner_iter %5lld   %8.2E\n", algoname, (long long) iters, (long long) inner_iter, ro);
         }
 
 
@@ -299,7 +299,7 @@ magma_dfgmres_plu_gpu(
     {    
         snprintf(algoname_outer, sizeof(algoname_outer),"%s_outer_niter",algoname);
         snprintf(algoname_inner, sizeof(algoname_inner),"%s_inner_niter",algoname);
-        MAGMA_PRINTF("\n\ninfo===> %s %d  %s is %d \n\n", algoname_outer, iters, algoname_inner, tot_inner_iter); 
+        MAGMA_PRINTF("\n\ninfo===> %s %lld  %s is %d \n\n", algoname_outer, (long long) iters, algoname_inner, tot_inner_iter); 
     }
     /*------------------------------------------------------*
       |          Finalization:  Free Memory

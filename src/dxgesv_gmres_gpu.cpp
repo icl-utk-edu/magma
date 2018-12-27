@@ -365,7 +365,7 @@ magma_dxgesv_gmres_gpu(
             *info = -15;
     }
     //snprintf(algoname, sizeof(algoname),"%s_%s", factoname, solvername);
-    snprintf(algoname, sizeof(algoname),"%d_%s_%s", n, factoname, solvername);
+    snprintf(algoname, sizeof(algoname),"%lld_%s_%s", (long long) n, factoname, solvername);
 
     if (*info != 0) {
         magma_xerbla( __func__, -(*info) );
@@ -448,7 +448,7 @@ magma_dxgesv_gmres_gpu(
         
         if (*info != 0) {
             *iter = -3;
-            MAGMA_PRINTF("dsgesv_gmres magma_xgetrf_gpu error info %d fallback to FP64\n",*info);
+            MAGMA_PRINTF("dsgesv_gmres magma_xgetrf_gpu error info %lld fallback to FP64\n", (long long) *info);
             goto fallback;
         }
         // Azzam:insert the option if(solver_type == Magma_REFSLV_DTRS && facto_type != Magma_PREC_HD) here
@@ -561,7 +561,7 @@ magma_dxgesv_gmres_gpu(
 
             Rnrm = MAGMA_D_ABS(Rnrmv);
             //Rnrm = lapackf77_dlange( "F", &ione, &ione, &Rnrmv, &ione, work );
-            MAGMA_PRINTF("\n    CPU_GMRES_ITER   %d  %10.5e  %10.5e  \n", 0, Rnrm, Rnrm );
+            MAGMA_PRINTF("\n    CPU_GMRES_ITER   %lld  %10.5e  %10.5e  \n", (long long) 0, Rnrm, Rnrm );
         }
     }
 #endif
@@ -649,8 +649,8 @@ magma_dxgesv_gmres_gpu(
 
             Rnrm = MAGMA_D_ABS(Rnrmv);
             //Rnrm = lapackf77_dlange( "F", &ione, &ione, &Rnrmv, &ione, work );
-            MAGMA_PRINTF("%s_IR_residual @ iter %d using inner_iter %d is Rnrm %10.5e    Xnrm*cte % 10.5e  Xnrm %10.5e   cte %10.5e  \n", 
-                    algoname, 1, 0, Rnrm, Xnrm*cte, Xnrm, cte );
+            MAGMA_PRINTF("%s_IR_residual @ iter %lld using inner_iter %lld is Rnrm %10.5e    Xnrm*cte % 10.5e  Xnrm %10.5e   cte %10.5e  \n", 
+                    algoname, (long long) 1, (long long) 0, Rnrm, Xnrm*cte, Xnrm, cte );
 
             if ( Rnrm >  Xnrm*cte ) {
                 goto refinement;
@@ -758,7 +758,7 @@ refinement:
                 //Rnrm = lapackf77_dlange( "F", &ione, &ione, &Rnrmv, &ione, work );
                 Rnrm = MAGMA_D_ABS(Rnrmv);
 
-                MAGMA_PRINTF("%s_IR_residual @ iter %d using inner_iter %d is Rnrm %10.5e    Xnrm*cte % 10.5e  Xnrm %10.5e   cte %10.5e  \n", algoname, iiter+1, inner_iter, Rnrm, Xnrm*cte, Xnrm, cte );
+                MAGMA_PRINTF("%s_IR_residual @ iter %lld using inner_iter %lld is Rnrm %10.5e    Xnrm*cte % 10.5e  Xnrm %10.5e   cte %10.5e  \n", algoname, (long long) iiter+1, (long long) inner_iter, Rnrm, Xnrm*cte, Xnrm, cte );
                 if ( Rnrm >  Xnrm*cte ) {
                     goto L20;
                 }
@@ -777,7 +777,7 @@ refinement:
 
             snprintf(algoname_outer, sizeof(algoname_outer),"%s_outer_niter",algoname);
             snprintf(algoname_inner, sizeof(algoname_inner),"%s_inner_niter",algoname);
-            MAGMA_PRINTF("\n\ninfo===> %s %d  %s is %d \n\n", algoname_outer, iiter+1, algoname_inner, tot_inner_iter); 
+            MAGMA_PRINTF("\n\ninfo===> %s %lld  %s is %lld \n\n", algoname_outer, (long long) iiter+1, algoname_inner, (long long) tot_inner_iter); 
             
             //*iter = iiter;
             *iter = ( solver_type == Magma_REFINE_IRGMSTRS   || solver_type == Magma_REFINE_IRGMDTRS) ? tot_inner_iter : iiter; 
@@ -802,7 +802,7 @@ L20:
         *iter = ( solver_type == Magma_REFINE_IRGMSTRS   || solver_type == Magma_REFINE_IRGMDTRS) ? -tot_inner_iter : -iiter+1;
         snprintf(algoname_outer, sizeof(algoname_outer),"%s_outer_niter",algoname);
         snprintf(algoname_inner, sizeof(algoname_inner),"%s_inner_niter",algoname);
-        MAGMA_PRINTF("\n\ninfo===> %s %d  %s is %d \n\n", algoname_outer, iiter, algoname_inner, tot_inner_iter); 
+        MAGMA_PRINTF("\n\ninfo===> %s %lld  %s is %lld \n\n", algoname_outer, (long long) iiter, algoname_inner, (long long) tot_inner_iter); 
     }
 
 fallback:

@@ -110,11 +110,10 @@ magma_xshgetrf_gpu(
     magma_int_t maxm, maxn, minmn, maxnb;
     magma_int_t i, j, rows, lddat, ldwork;
     magmaFloat_ptr dAT=NULL, dAP=NULL, work=NULL;
+    
     cublasMath_t mode;
     cublasStatus_t cuerr;
-
-
-    cublasGemmAlgo_t ALGO;
+    cublasGemmAlgo_t ALGO = CUBLAS_GEMM_DFALT;
     magmaHalf *dApanel_hp=NULL, *dAtrsm1_hp=NULL, *dAtrsm2_hp=NULL, *dwork_hp=NULL;
 
     /* Check arguments */
@@ -370,6 +369,9 @@ cleanup:
     {
         magma_free( dwork_hp );
     }
+
+    MAGMA_UNUSED( cuerr );
+    MAGMA_UNUSED( mode  );
     return *info;
 #else
     return MAGMA_ERR_NOT_SUPPORTED;
