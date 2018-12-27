@@ -11,7 +11,11 @@
 */
 #include <cuda.h>    // for CUDA_VERSION
 #include <cuda_runtime.h>
+
+#if CUDA_VERSION >= 7500
 #include <cuda_fp16.h>
+#endif
+
 #include "magma_internal.h"
 //#include "nvToolsExt.h"
 
