@@ -34,18 +34,15 @@ magma_zpotrf_lg_batched(
     magma_getdevice( &cdev );
 
     // queues for streamed herk
-    magma_int_t streamid;
-    const magma_int_t nbstreams=10;
+    magma_int_t create_stream, streamid;
+    const magma_int_t nbstreams=4;
     magma_queue_t queues[nbstreams];
-    for (k=0; k < nbstreams; k++) {
-        magma_queue_create( cdev, &queues[k] );
-    }
+
     // aux array for streamed herk
     magmaDoubleComplex** cpuAarray = NULL;
     magma_malloc_cpu((void**) &cpuAarray, batchCount*sizeof(magmaDoubleComplex*));
     if(cpuAarray == NULL) goto fin;
     magma_getvector( batchCount, sizeof(magmaDoubleComplex*), dA_array, 1, cpuAarray, 1, queue);
-
 
     if ( n > 2048 ) {
         #ifndef MAGMA_NOWARNING
@@ -59,6 +56,14 @@ magma_zpotrf_lg_batched(
     magma_int_t nb, recnb;
     magma_get_zpotrf_batched_nbparam(n, &nb, &recnb);
     nb = recnb = 192;
+
+    // queues for streamed herk
+    create_stream = magma_zrecommend_cublas_gemm_stream(MagmaNoTrans, MagmaConjTrans, n-nb, n-nb, nb);
+    if(create_stream){
+        for (k=0; k < nbstreams; k++) {
+            magma_queue_create( cdev, &queues[k] );
+        }
+    }
 
     if (uplo == MagmaUpper) {
         printf("Upper side is unavailable\n");
@@ -101,11 +106,13 @@ magma_zpotrf_lg_batched(
             } 
         }
     }
+    if(create_stream){
+        for (k=0; k < nbstreams; k++) {
+            magma_queue_destroy( queues[k] );
+        }
+    }
 
 fin:
-    for (k=0; k < nbstreams; k++) {
-        magma_queue_destroy( queues[k] );
-    }
     magma_queue_sync(queue);
     magma_free_cpu( cpuAarray );
     return arginfo;
