@@ -48,7 +48,7 @@ int32_t sampleselect_alloc_size(int32_t size) {
          + (size + 3) / 4;    // oracles
 }
 
-int32_t realloc_if_necessary(magma_ptr *ptr, int32_t *size, int32_t required_size) {
+int32_t realloc_if_necessary(magma_ptr *ptr, magma_int_t *size, magma_int_t required_size) {
     int32_t info = 0;
     if (*size < required_size) {
         auto newsize = required_size * 5 / 4;
