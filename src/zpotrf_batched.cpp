@@ -88,11 +88,8 @@ magma_zpotrf_lg_batched(
                             d_neg_one, (const magmaDoubleComplex*) cpuAarray[k] + j+ib+j*ldda     , ldda, 
                             d_one,                                 cpuAarray[k] + j+ib+(j+ib)*ldda, ldda, queues[streamid] );
                     }
-                    // if queue is not NULL, must sync before starting next panel
-                    if (queue != NULL) {
-                        for (magma_int_t s=0; s < nbstreams; s++)
-                            magma_queue_sync(queues[s]);
-                    }
+                    for (magma_int_t s=0; s < nbstreams; s++)
+                        magma_queue_sync(queues[s]);
                 }
                 else{
                     magmablas_zherk_batched_core( uplo, MagmaNoTrans, n-j-ib, ib,
@@ -106,6 +103,9 @@ magma_zpotrf_lg_batched(
     }
 
 fin:
+    for (k=0; k < nbstreams; k++) {
+        magma_queue_destroy( queues[k] );
+    }
     magma_queue_sync(queue);
     magma_free_cpu( cpuAarray );
     return arginfo;
