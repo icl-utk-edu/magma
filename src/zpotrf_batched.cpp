@@ -58,7 +58,6 @@ magma_zpotrf_lg_batched(
 
     magma_int_t nb, recnb;
     magma_get_zpotrf_batched_nbparam(n, &nb, &recnb);
-    nb = recnb = 192;
 
     if (uplo == MagmaUpper) {
         printf("Upper side is unavailable\n");
