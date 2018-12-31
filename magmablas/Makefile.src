@@ -200,7 +200,8 @@ libmagma_src += \
 libmagma_src += \
 	$(cdir)/slag2h.cu	\
 	$(cdir)/hlag2s.cu	\
-
+	$(cdir)/hlaconvert.cu	\
+	$(cdir)/hlaswp.cu		\
 
 # ----------------------------------------------------------------------
 # extra include dependencies

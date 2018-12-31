@@ -38,7 +38,7 @@ constexpr uint32_t full_mask = 0xffffffff;
  * Forward declarations
  */
 int32_t sampleselect_alloc_size(int32_t);
-int32_t realloc_if_necessary(magma_ptr*,int32_t*,int32_t);
+int32_t realloc_if_necessary(magma_ptr*,magma_int_t*,magma_int_t);
 
 /*
  * Type-independent kernels

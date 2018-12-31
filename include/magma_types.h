@@ -647,6 +647,61 @@ typedef enum {
     Magma_SPMV         = 810
 } magma_operation_t;
 
+typedef enum {
+    Magma_PREC_SS           = 900,
+    Magma_PREC_SST          = 901,
+    Magma_PREC_HS           = 902,
+    Magma_PREC_HST          = 903,
+    Magma_PREC_SH           = 904,
+    Magma_PREC_SHT          = 905,
+    
+    Magma_PREC_XHS_H        = 910,
+    Magma_PREC_XHS_HTC      = 911,
+    Magma_PREC_XHS_161616   = 912,
+    Magma_PREC_XHS_161616TC = 913,
+    Magma_PREC_XHS_161632TC = 914,
+    Magma_PREC_XSH_S        = 915,
+    Magma_PREC_XSH_STC      = 916,
+    Magma_PREC_XSH_163232TC = 917,
+    Magma_PREC_XSH_323232TC = 918,
+
+    Magma_REFINE_IRSTRS   = 920,
+    Magma_REFINE_IRDTRS   = 921,
+    Magma_REFINE_IRGMSTRS = 922,
+    Magma_REFINE_IRGMDTRS = 923,
+    Magma_REFINE_GMSTRS   = 924,
+    Magma_REFINE_GMDTRS   = 925,
+    Magma_REFINE_GMGMSTRS = 926,
+    Magma_REFINE_GMGMDTRS = 927,
+
+    Magma_PREC_HD         = 930,
+} magma_refinement_t;
+
+typedef enum {
+    Magma_MP_BASE_SS              = 950,
+    Magma_MP_BASE_DD              = 951,
+    Magma_MP_BASE_XHS             = 952,
+    Magma_MP_BASE_XSH             = 953,
+    Magma_MP_BASE_XHD             = 954,
+    Magma_MP_BASE_XDH             = 955,
+
+    Magma_MP_ENABLE_DFLT_MATH     = 960,
+    Magma_MP_ENABLE_TC_MATH       = 961,
+    Magma_MP_SGEMM                = 962,
+    Magma_MP_HGEMM                = 963,
+    Magma_MP_GEMEX_I32_O32_C32    = 964,
+    Magma_MP_GEMEX_I16_O32_C32    = 965,
+    Magma_MP_GEMEX_I16_O16_C32    = 966,
+    Magma_MP_GEMEX_I16_O16_C16    = 967,
+
+    Magma_MP_TC_SGEMM             = 968,
+    Magma_MP_TC_HGEMM             = 969,
+    Magma_MP_TC_GEMEX_I32_O32_C32 = 970,
+    Magma_MP_TC_GEMEX_I16_O32_C32 = 971,
+    Magma_MP_TC_GEMEX_I16_O16_C32 = 972,
+    Magma_MP_TC_GEMEX_I16_O16_C16 = 973,
+
+} magma_mp_type_t;
 
 // When adding constants, remember to do these steps as appropriate:
 // 1)  add magma_xxxx_const()  converter below and in control/constants.cpp

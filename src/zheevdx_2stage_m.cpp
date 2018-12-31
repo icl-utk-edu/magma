@@ -584,6 +584,7 @@ magma_zheevdx_2stage_m(
 
         magma_dmove_eig(range, n, W, &il, &iu, vl, vu, m);
 
+        timer_start( time );
 #ifdef SINGLEGPU
         magmaDoubleComplex *dZ;
         magma_int_t lddz = n;
@@ -593,7 +594,6 @@ magma_zheevdx_2stage_m(
             return *info;
         }
 
-        timer_start( time );
 
         magma_zbulge_back(uplo, n, nb, *m, Vblksiz, Z +ldz*(il-1), ldz, dZ, lddz,
                           V2, ldv, TAU2, T2, ldt, info);

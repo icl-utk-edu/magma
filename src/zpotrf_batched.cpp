@@ -34,18 +34,15 @@ magma_zpotrf_lg_batched(
     magma_getdevice( &cdev );
 
     // queues for streamed herk
-    magma_int_t streamid;
-    const magma_int_t nbstreams=10;
+    magma_int_t create_stream, streamid;
+    const magma_int_t nbstreams=4;
     magma_queue_t queues[nbstreams];
-    for (k=0; k < nbstreams; k++) {
-        magma_queue_create( cdev, &queues[k] );
-    }
+
     // aux array for streamed herk
     magmaDoubleComplex** cpuAarray = NULL;
     magma_malloc_cpu((void**) &cpuAarray, batchCount*sizeof(magmaDoubleComplex*));
     if(cpuAarray == NULL) goto fin;
     magma_getvector( batchCount, sizeof(magmaDoubleComplex*), dA_array, 1, cpuAarray, 1, queue);
-
 
     if ( n > 2048 ) {
         #ifndef MAGMA_NOWARNING
@@ -58,6 +55,14 @@ magma_zpotrf_lg_batched(
 
     magma_int_t nb, recnb;
     magma_get_zpotrf_batched_nbparam(n, &nb, &recnb);
+
+    // queues for streamed herk
+    create_stream = magma_zrecommend_cublas_gemm_stream(MagmaNoTrans, MagmaConjTrans, n-nb, n-nb, nb);
+    if(create_stream){
+        for (k=0; k < nbstreams; k++) {
+            magma_queue_create( cdev, &queues[k] );
+        }
+    }
 
     if (uplo == MagmaUpper) {
         printf("Upper side is unavailable\n");
@@ -87,11 +92,8 @@ magma_zpotrf_lg_batched(
                             d_neg_one, (const magmaDoubleComplex*) cpuAarray[k] + j+ib+j*ldda     , ldda, 
                             d_one,                                 cpuAarray[k] + j+ib+(j+ib)*ldda, ldda, queues[streamid] );
                     }
-                    // if queue is not NULL, must sync before starting next panel
-                    if (queue != NULL) {
-                        for (magma_int_t s=0; s < nbstreams; s++)
-                            magma_queue_sync(queues[s]);
-                    }
+                    for (magma_int_t s=0; s < nbstreams; s++)
+                        magma_queue_sync(queues[s]);
                 }
                 else{
                     magmablas_zherk_batched_core( uplo, MagmaNoTrans, n-j-ib, ib,
@@ -101,6 +103,11 @@ magma_zpotrf_lg_batched(
                                           batchCount, queue );
                 }
             } 
+        }
+    }
+    if(create_stream){
+        for (k=0; k < nbstreams; k++) {
+            magma_queue_destroy( queues[k] );
         }
     }
 
