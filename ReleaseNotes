@@ -25,6 +25,17 @@ Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
  2.5.0 - Nov 16, 2018
+    * New routines: Magma is releasing the Nvidia Tensor Cores version 
+      of its linear mixed-precision solver that is able to provide an 
+      FP64 solution with up to 4X speedup. The release includes:
+      magma_dhgesv_iteref_gpu (FP64-FP16 solver with FP64 input and solution)
+      magma_dsgesv_iteref_gpu (FP64-FP32 solver with FP64 input and solution)
+      magma_hgetrf_gpu        (mixed precision FP32-FP16 LU factorization)
+      magma_htgetrf_gpu       (mixed precision FP32-FP16 LU factorization using Tensor Cores)
+
+      Further details for the function names and the testing routines are given in file
+      README_FP16_Iterative_Refinement.txt 
+
     * New routine: magmablas_Xgemm_batched_strided (X = {s, d, c, z}) is 
       the stride-based variant of magmablas_Xgemm_batched
     * New routine: magma_Xgetrf_native (X = {s, d, c, z}) performs the 
