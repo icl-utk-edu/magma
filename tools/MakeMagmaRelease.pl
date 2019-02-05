@@ -92,6 +92,13 @@ sub MakeRelease
         $version .= "-beta$beta";
         $stage = "beta$beta";
     }
+    my($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime;
+    my @months = (
+        'January',   'February', 'March',    'April',
+        'May',       'June',     'July',     'August',
+        'September', 'October',  'November', 'December',
+    );
+    $year += 1900;
 
     # Require recent doxygen, say >= 1.8.
     # ICL machines have ancient versions of doxygen (1.4 and 1.6);
@@ -138,11 +145,12 @@ EOT
                  .             " include/magma_types.h";
             myCmd($cmd);
             myCmd("perl -pi -e 's/PROJECT_NUMBER +=.*/PROJECT_NUMBER         = $major.$minor.$micro/' docs/Doxyfile");
-            myCmd("hg diff include/magma_types.h docs/Doxyfile");
+            myCmd("perl -pi -e 's/(Copyright 2009)-\\d{4}/\$1-$year/' COPYRIGHT");
+            myCmd("hg diff include/magma_types.h docs/Doxyfile COPYRIGHT");
             print "Commit these changes now (y/n)? ";
             $_ = <STDIN>;
             if ( m/\b(y|yes)\b/ ) {
-                myCmd("hg commit -m 'version $major.$minor.$micro' include/magma_types.h docs/Doxyfile");
+                myCmd("hg commit -m 'version $major.$minor.$micro' include/magma_types.h docs/Doxyfile COPYRIGHT");
             }
 
             print "Tag release in Mercurial (y/n)? ";
@@ -186,13 +194,6 @@ EOT
     myCmd("perl -pi -e 's/PROJECT_NUMBER +=.*/PROJECT_NUMBER         = $major.$minor.$micro/' docs/Doxyfile");
 
     # Change the version and date in comments
-    my($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime;
-    my @months = (
-        'January',   'February', 'March',    'April',
-        'May',       'June',     'July',     'August',
-        'September', 'October',  'November', 'December',
-    );
-    $year += 1900;
     my $date = "$months[$mon] $year";
     my $script = "s/MAGMA \\\(version [0-9.]+\\\)/MAGMA (version $version)/;";
     $script .= " s/\\\@date.*/\\\@date $date/;";
