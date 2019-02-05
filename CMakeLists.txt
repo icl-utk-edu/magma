@@ -434,7 +434,7 @@ add_custom_target( lib DEPENDS magma )
 # else,           compile only C++     files, not Fortran files
 if ( USE_FORTRAN )
 	foreach( f ${liblapacktest_all} )
-		if ( ${f} MATCHES "\\.(f|f90)$" )
+		if ( ${f} MATCHES "\\.(f|f90|F90)$" )
 			list( APPEND liblapacktest_all_f ${f} )
 		endif()
 	endforeach()

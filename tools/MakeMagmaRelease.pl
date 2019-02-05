@@ -189,8 +189,10 @@ EOT
     myCmd("perl -pi -e '$script' lib/pkgconfig/magma.pc.in");
     
     # Precision Generation
+    # Need to define Fortran compiler to something that exists (true),
+    # in order to include all Fortran files in CMake.src.
     print "Generate the different precisions\n";
-    myCmd("touch make.inc");
+    myCmd("echo 'FORT = true' > make.inc");
     myCmd("make -j generate");
 
     # Compile the documentation
