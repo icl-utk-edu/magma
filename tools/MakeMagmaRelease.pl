@@ -22,23 +22,23 @@ my @files2delete = qw(
     ReleaseChecklist
     Makefile.internal
     control/sizeptr
-    
+
     docs/Doxyfile-fast
     docs/output_err
-    
+
     include/Makefile
     make.inc
     make.inc-examples/make.inc.ig.pgi
     scripts
 
     sparse/python
-    
+
     sparse/testing/test_matrices
     sparse/testing/testing_zpardiso.cpp
     sparse/testing/testing_zparilu_weight.cpp
     sparse/testing/testing_zsolver_allufmc.cpp
     sparse/testing/testing_zsolver_energy.cpp
-    
+
     sparse/blas/zilut.cpp
 
     testing/*.txt
@@ -64,9 +64,8 @@ my @files2delete = qw(
 sub myCmd
 {
     my ($cmd) = @_;
-    print "---------------------------------------------------------------\n";
+    print '-' x 80, "\n";
     print $cmd."\n";
-    print "---------------------------------------------------------------\n";
     my $err = system($cmd);
     if ($err != 0) {
         print "Error during execution of the following command:\n$cmd\n";
@@ -119,13 +118,13 @@ EOT
     if ( -e $RELEASE_PATH ) {
         die( "RELEASE_PATH $RELEASE_PATH already exists.\nPlease delete it or use different version.\n" );
     }
-    
+
     # Save current directory
     my $dir = `pwd`;
     chomp $dir;
 
     if ( not $rc and not $alpha and not $beta ) {
-        print "Update MAGMA version in include headers (yes/no)?";
+        print "Update MAGMA version in include headers and tag release (y/n)? ";
         $_ = <STDIN>;
         if ( m/\b(y|yes)\b/ ) {
             # If run as ./tools/MakeMagmaRelease.pl, no need to change dir;
@@ -140,17 +139,32 @@ EOT
             myCmd($cmd);
             myCmd("perl -pi -e 's/PROJECT_NUMBER +=.*/PROJECT_NUMBER         = $major.$minor.$micro/' docs/Doxyfile");
             myCmd("hg diff include/magma_types.h docs/Doxyfile");
-            print "Commit & push these changes now (yes/no)?\n";
+            print "Commit these changes now (y/n)? ";
             $_ = <STDIN>;
             if ( m/\b(y|yes)\b/ ) {
                 myCmd("hg commit -m 'version $major.$minor.$micro' include/magma_types.h docs/Doxyfile");
+            }
+
+            print "Tag release in Mercurial (y/n)? ";
+            $_ = <STDIN>;
+            if ( m/\b(y|yes)\b/ ) {
+                myCmd("hg tag v$version");
+            }
+
+            myCmd("hg out");
+            print "Push the above changes now (y/n)? ";
+            $_ = <STDIN>;
+            if ( m/\b(y|yes)\b/ ) {
                 myCmd("hg push");
             }
-            
+            else {
+                print "Remember to push changes later!\n";
+            }
+
             # allow user to see that it went successfully
             print "Type enter to continue\n";
             $_ = <STDIN>;
-            
+
             chdir $dir;
         }
     }
@@ -183,11 +197,11 @@ EOT
     my $script = "s/MAGMA \\\(version [0-9.]+\\\)/MAGMA (version $version)/;";
     $script .= " s/\\\@date.*/\\\@date $date/;";
     myCmd("find . -type f -exec perl -pi -e '$script' {} \\;");
-    
+
     # Change version in pkgconfig
     $script = "s/Version: [0-9.]+/Version: $version/;";
     myCmd("perl -pi -e '$script' lib/pkgconfig/magma.pc.in");
-    
+
     # Precision Generation
     # Need to define Fortran compiler to something that exists (true),
     # in order to include all Fortran files in CMake.src.
