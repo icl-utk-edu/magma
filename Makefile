@@ -83,6 +83,8 @@ endif
 ifneq ($(findstring Turing, $(GPU_TARGET)),)
     GPU_TARGET += sm_75
 endif
+# Remember to add to CMakeLists.txt too!
+
 
 # Next, add compile options for specific smXX
 # sm_xx is binary, compute_xx is PTX for forward compatability

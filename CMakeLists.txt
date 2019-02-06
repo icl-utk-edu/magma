@@ -130,23 +130,27 @@ if ( CUDA_FOUND )
 	if ( ${GPU_TARGET} MATCHES Fermi )
 		set( GPU_TARGET "${GPU_TARGET} sm_20" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES Kepler )
 		set( GPU_TARGET "${GPU_TARGET} sm_30 sm_35" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES Maxwell )
 		set( GPU_TARGET "${GPU_TARGET} sm_50" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES Pascal )
 		set( GPU_TARGET "${GPU_TARGET} sm_60" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES Volta )
 		set( GPU_TARGET "${GPU_TARGET} sm_70" )
 	endif()
-	
+
+	if ( ${GPU_TARGET} MATCHES Turing )
+		set( GPU_TARGET "${GPU_TARGET} sm_75" )
+	endif()
+
 	if ( ${GPU_TARGET} MATCHES sm_20 )
 		if ( NOT MIN_ARCH )
 			set( MIN_ARCH 200 )
@@ -155,7 +159,7 @@ if ( CUDA_FOUND )
 		set( NV_COMP        -gencode arch=compute_20,code=compute_20 )
 		message( STATUS "    compile for CUDA arch 2.0 (Fermi)" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES sm_30 )
 		if ( NOT MIN_ARCH )
 			set( MIN_ARCH 300 )
@@ -164,7 +168,7 @@ if ( CUDA_FOUND )
 		set( NV_COMP        -gencode arch=compute_30,code=compute_30 )
 		message( STATUS "    compile for CUDA arch 3.0 (Kepler)" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES sm_35 )
 		if ( NOT MIN_ARCH )
 			set( MIN_ARCH 300 )
@@ -173,7 +177,7 @@ if ( CUDA_FOUND )
 		set( NV_COMP        -gencode arch=compute_35,code=compute_35 )
 		message( STATUS "    compile for CUDA arch 3.5 (Kepler)" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES sm_50 )
 		if ( NOT MIN_ARCH )
 			set( MIN_ARCH 500 )
@@ -182,7 +186,7 @@ if ( CUDA_FOUND )
 		set( NV_COMP        -gencode arch=compute_50,code=compute_50 )
 		message( STATUS "    compile for CUDA arch 5.0 (Maxwell)" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES sm_52 )
 		if ( NOT MIN_ARCH )
 			set( MIN_ARCH 520 )
@@ -191,7 +195,7 @@ if ( CUDA_FOUND )
 		set( NV_COMP        -gencode arch=compute_52,code=compute_52 )
 		message( STATUS "    compile for CUDA arch 5.2 (Maxwell)" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES sm_53 )
 		if ( NOT MIN_ARCH )
 			set( MIN_ARCH 530 )
@@ -200,7 +204,7 @@ if ( CUDA_FOUND )
 		set( NV_COMP        -gencode arch=compute_53,code=compute_53 )
 		message( STATUS "    compile for CUDA arch 5.3 (Maxwell)" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES sm_60 )
 		if ( NOT MIN_ARCH )
 			set( MIN_ARCH 600 )
@@ -209,7 +213,7 @@ if ( CUDA_FOUND )
 		set( NV_COMP        -gencode arch=compute_60,code=compute_60 )
 		message( STATUS "    compile for CUDA arch 6.0 (Pascal)" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES sm_61 )
 		if ( NOT MIN_ARCH )
 			set( MIN_ARCH 610 )
@@ -218,7 +222,7 @@ if ( CUDA_FOUND )
 		set( NV_COMP        -gencode arch=compute_61,code=compute_61 )
 		message( STATUS "    compile for CUDA arch 6.1 (Pascal)" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES sm_62 )
 		if ( NOT MIN_ARCH )
 			set( MIN_ARCH 620 )
@@ -227,7 +231,7 @@ if ( CUDA_FOUND )
 		set( NV_COMP        -gencode arch=compute_62,code=compute_62 )
 		message( STATUS "    compile for CUDA arch 6.2 (Pascal)" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES sm_70 )
 		if ( NOT MIN_ARCH )
 			set( MIN_ARCH 700 )
@@ -236,7 +240,7 @@ if ( CUDA_FOUND )
 		set( NV_COMP        -gencode arch=compute_70,code=compute_70 )
 		message( STATUS "    compile for CUDA arch 7.0 (Volta)" )
 	endif()
-	
+
 	if ( ${GPU_TARGET} MATCHES sm_71 )
 		if ( NOT MIN_ARCH )
 			set( MIN_ARCH 710 )
@@ -245,11 +249,20 @@ if ( CUDA_FOUND )
 		set( NV_COMP        -gencode arch=compute_71,code=compute_71 )
 		message( STATUS "    compile for CUDA arch 7.1 (Volta)" )
 	endif()
-	
-	if ( NOT MIN_ARCH )
-		message( FATAL_ERROR "GPU_TARGET must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, or valid sm_[0-9][0-9]" )
+
+	if ( ${GPU_TARGET} MATCHES sm_75 )
+		if ( NOT MIN_ARCH )
+			set( MIN_ARCH 750 )
+		endif()
+		set( NV_SM ${NV_SM} -gencode arch=compute_75,code=sm_75 )
+		set( NV_COMP        -gencode arch=compute_75,code=compute_75 )
+		message( STATUS "    compile for CUDA arch 7.5 (Turing)" )
 	endif()
-	
+
+	if ( NOT MIN_ARCH )
+		message( FATAL_ERROR "GPU_TARGET must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]" )
+	endif()
+
         set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -fPIC -DHAVE_CUBLAS ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )
 	add_definitions( "-DHAVE_CUBLAS -DMIN_CUDA_ARCH=${MIN_ARCH}" )
 	message( STATUS "Define -DHAVE_CUBLAS -DMIN_CUDA_ARCH=${MIN_ARCH}" )
@@ -351,10 +364,10 @@ if ( CMAKE_HOST_APPLE )
 			message( WARNING "\n      Warning: cannot compile blas_fix library for MacOS X without Fortran compiler.\n" )
 		endif()
 	endif()
-	
+
 	set( CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} -DMAGMA_NOAFFINITY" )
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMAGMA_NOAFFINITY" )
-	
+
 	# previously, just compile as 32-bit, but CUDA 6.5 no longer has 32-bit FAT libraries
 	## set( CMAKE_C_FLAGS       "${CMAKE_C_FLAGS} -m32" )
 	## set( CMAKE_CXX_FLAGS     "${CMAKE_CXX_FLAGS} -m32" )
@@ -381,7 +394,7 @@ if ( WIN32 )
 	# Windows seems to have a problem mixing C, CUDA, and Fortran files
 	# Currently ignores .f90 and .F90 files, because it doesn't seem to
 	# understand that .F90 files should be pre-processed.
-	
+
 	# separate Fortran and C/C++/CUDA files
 	foreach( f ${libmagma_all} )
 		if ( ${f} MATCHES "\\.(f)$" )  # |f90|F90
@@ -392,7 +405,7 @@ if ( WIN32 )
 	endforeach()
 	#message( "libmagma_all_cpp ${libmagma_all_cpp}" )
 	#message( "libmagma_all_f   ${libmagma_all_f}"   )
-	
+
 	# on Windows, Fortran files aren't compiled if listed here...
 	cuda_add_library( magma ${libmagma_all_cpp} )
 	target_link_libraries( magma
@@ -401,7 +414,7 @@ if ( WIN32 )
 		${CUDA_CUBLAS_LIBRARIES}
 		${CUDA_cusparse_LIBRARY}
 	)
-	
+
 	# no Fortran files at the moment (how to test libmagma_all_f is not empty?),
 	# but keep this around for future reference.
 	#
@@ -413,7 +426,7 @@ if ( WIN32 )
 	##     ${CUDA_CUBLAS_LIBRARIES}
 	##     ${CUDA_cusparse_LIBRARY}
 	## )
-	
+
 	set( LIBS tester lapacktest magma )  ##magmaf )
 else()
 	# Unix doesn't seem to have a problem with mixing C, CUDA, and Fortran files
