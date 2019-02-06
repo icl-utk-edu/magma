@@ -426,6 +426,7 @@ if ( WIN32 )
 	##     ${CUDA_CUBLAS_LIBRARIES}
 	##     ${CUDA_cusparse_LIBRARY}
 	## )
+	## make list of Fortran .mod files to install, as below
 
 	set( LIBS tester lapacktest magma )  ##magmaf )
 else()
@@ -437,6 +438,15 @@ else()
 		${CUDA_CUBLAS_LIBRARIES}
 		${CUDA_cusparse_LIBRARY}
 	)
+
+	# make list of Fortran .mod files to install
+	foreach( f ${libmagma_all} )
+		if ( ${f} MATCHES "\\.(f90|F90)$" )
+			# mod files seem to wind up in root build directory
+			get_filename_component( fmod ${f} NAME_WE )
+			list( APPEND modules "${CMAKE_BINARY_DIR}/${fmod}.mod" )
+		endif()
+	endforeach()
 endif()
 add_custom_target( lib DEPENDS magma )
 
@@ -542,7 +552,7 @@ install( TARGETS magma magma_sparse ${blas_fix}
          LIBRARY DESTINATION lib
          ARCHIVE DESTINATION lib )
 file( GLOB headers include/*.h sparse/include/*.h )
-install( FILES ${headers}
+install( FILES ${headers} ${modules}
          DESTINATION include )
 
 # ----------------------------------------
@@ -560,3 +570,4 @@ message( STATUS "    LAPACK_LIBRARIES:      ${LAPACK_LIBRARIES}"      )
 message( STATUS "    CUDA_CUDART_LIBRARY:   ${CUDA_CUDART_LIBRARY}"   )
 message( STATUS "    CUDA_CUBLAS_LIBRARIES: ${CUDA_CUBLAS_LIBRARIES}" )
 message( STATUS "    CUDA_cusparse_LIBRARY: ${CUDA_cusparse_LIBRARY}" )
+message( STATUS "    Fortran modules:       ${modules}" )
