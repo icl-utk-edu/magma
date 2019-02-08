@@ -70,10 +70,10 @@ interface
         queue ) &
     bind(C, name="magma_zaxpy")
         use iso_c_binding
-        integer(c_int),         value :: n, incx, incy
-        real(c_double_complex), value :: alpha
-        type(c_ptr),            value :: dx, dy
-        type(c_ptr),            value :: queue  !! queue_t
+        integer(c_int),             value :: n, incx, incy
+        complex(c_double_complex),  value :: alpha
+        type(c_ptr),                value :: dx, dy
+        type(c_ptr),                value :: queue  !! queue_t
     end subroutine
 
     subroutine magma_zgemv( &
@@ -84,10 +84,10 @@ interface
         queue ) &
     bind(C, name="magma_zgemv")
         use iso_c_binding
-        integer(c_int),         value :: transA, m, n, lda, incx, incy
-        real(c_double_complex), value :: alpha, beta
-        type(c_ptr),            value :: dA, dx, dy
-        type(c_ptr),            value :: queue  !! queue_t
+        integer(c_int),             value :: transA, m, n, lda, incx, incy
+        complex(c_double_complex),  value :: alpha, beta
+        type(c_ptr),                value :: dA, dx, dy
+        type(c_ptr),                value :: queue  !! queue_t
     end subroutine
 
     subroutine magma_zgemm( &
@@ -98,10 +98,10 @@ interface
         queue ) &
     bind(C, name="magma_zgemm")
         use iso_c_binding
-        integer(c_int),         value :: transA, transB, m, n, k, lda, ldb, ldc
-        real(c_double_complex), value :: alpha, beta
-        type(c_ptr),            value :: dA, dB, dC
-        type(c_ptr),            value :: queue  !! queue_t
+        integer(c_int),             value :: transA, transB, m, n, k, lda, ldb, ldc
+        complex(c_double_complex),  value :: alpha, beta
+        type(c_ptr),                value :: dA, dB, dC
+        type(c_ptr),                value :: queue  !! queue_t
     end subroutine
 
 end interface
