@@ -683,9 +683,9 @@ $(testers): %: %.$(o_ext)
 	$(LIBS)
 
 # link Fortran testing_foo from testing_foo.o
-$(testers_f): %: %.$(o_ext) testing/fortran.o
+$(testers_f): %: %.$(o_ext)
 	$(FORT) $(LDFLAGS) $(RPATH) \
-	-o $@ $< testing/fortran.o \
+	-o $@ $< \
 	-L./testing -ltest \
 	-L./testing/lin -llapacktest \
 	-L./lib -lmagma \

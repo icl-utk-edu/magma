@@ -88,8 +88,5 @@ example_sparse_operator: example_sparse_operator.o
 %.o: %.F90
 	$(FORT) $(F90FLAGS) $(MAGMA_F90FLAGS) -c -o $@ $<
 
-fortran.o: $(CUDADIR)/src/fortran.c
-	$(CC) $(CFLAGS) $(MAGMA_CFLAGS) -DCUBLAS_GFORTRAN -c -o $@ $<
-
-example_f: example_f.o fortran.o
+example_f: example_f.o
 	$(FORT) $(LDFLAGS) -o $@ $^ $(MAGMA_LIBS)
