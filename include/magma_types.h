@@ -274,9 +274,6 @@ extern "C" {
 #define CBLAS_SADDR(a)  &(a)
 #endif
 
-typedef magmaHalf          *magmaHalf_ptr;
-typedef magmaHalf    const *magmaHalf_const_ptr;
-
 // for MAGMA_[CZ]_ABS
 double magma_cabs ( magmaDoubleComplex x );
 float  magma_cabsf( magmaFloatComplex  x );
@@ -308,6 +305,7 @@ float  magma_cabsf( magmaFloatComplex  x );
     typedef double             *magmaDouble_ptr;
     typedef magmaFloatComplex  *magmaFloatComplex_ptr;
     typedef magmaDoubleComplex *magmaDoubleComplex_ptr;
+    typedef magmaHalf          *magmaHalf_ptr;
 
     typedef void               const *magma_const_ptr;
     typedef magma_int_t        const *magmaInt_const_ptr;
@@ -317,7 +315,7 @@ float  magma_cabsf( magmaFloatComplex  x );
     typedef double             const *magmaDouble_const_ptr;
     typedef magmaFloatComplex  const *magmaFloatComplex_const_ptr;
     typedef magmaDoubleComplex const *magmaDoubleComplex_const_ptr;
-
+    typedef magmaHalf          const *magmaHalf_const_ptr;
 #endif
 
 
