@@ -77,7 +77,7 @@ typedef double real_Double_t;
     typedef magma_int_t    magma_device_t;
 
     // Half precision in CUDA 
-    #if defined(__cplusplus) && CUDA_VERSION > 7500
+    #if defined(__cplusplus) && CUDA_VERSION >= 7500
     #include <cuda_fp16.h>
     typedef __half           magmaHalf;
     #else
