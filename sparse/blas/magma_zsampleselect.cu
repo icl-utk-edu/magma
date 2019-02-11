@@ -15,6 +15,8 @@
 
 #define PRECISION_z
 
+#if (CUDA_ARCH >= 350)
+
 namespace magma_sampleselect {
 
 __global__ void compute_abs(const magmaDoubleComplex* __restrict__ in, double* __restrict__ out, int32_t size) {
@@ -110,6 +112,8 @@ cleanup:
     return info;
 }
 
+#endif
+
 /**
     Purpose
     -------
@@ -164,6 +168,8 @@ magma_zsampleselect_approx(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
+    
+#if (CUDA_ARCH >= 350)
 
     auto num_blocks = magma_ceildiv(total_size, block_size);
     auto local_work = (total_size + num_threads - 1) / num_threads;
@@ -194,6 +200,11 @@ magma_zsampleselect_approx(
     magma_getvector(1, sizeof(uint32_t), gpubucketidx, 1, &bucketidx, 1, queue);
     magma_dgetvector(1, gputree + searchtree_width - 1 + bucketidx, 1, thrs, 1, queue);
     *thrs = std::sqrt(*thrs);
+    
+#else
+    printf("error: this functionality needs CUDA architecture >= 3.5\n");
+    inf = ERR_NOT_SUPPORTED;
+#endif
 
 cleanup:
     return info;
