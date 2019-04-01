@@ -169,7 +169,9 @@ magma_zsampleselect_approx(
 {
     magma_int_t info = 0;
     
-#if (CUDA_ARCH >= 350)
+    magma_int_t arch = magma_getdevice_arch();
+    
+#if (arch >= 350)
 
     auto num_blocks = magma_ceildiv(total_size, block_size);
     auto local_work = (total_size + num_threads - 1) / num_threads;
