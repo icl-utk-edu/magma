@@ -12,13 +12,23 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-
+#include <cuda_runtime_api.h>
 // includes, project
 #include "flops.h"
 #include "magma_v2.h"
 #include "magma_lapack.h"
 #include "testings.h"
+#include <cusolverDn.h>
 
+extern "C" magma_int_t
+magma_zgeqrf_expert_gpu(
+    magma_mode_t mode, magma_int_t cleanV, 
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex *dA, magma_int_t ldda,
+    magmaDoubleComplex *dtau, 
+    magmaDoubleComplex *dTT,
+    magmaDoubleComplex *dRR,
+    magma_int_t *info);
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zgeqrf
 */
@@ -37,7 +47,7 @@ int main( int argc, char** argv)
     real_Double_t    gflops, gpu_perf, gpu_time, cpu_perf=0, cpu_time=0;
     double           Anorm, error=0, error2=0;
     magmaDoubleComplex *h_A, *h_R, *tau, *h_work, tmp[1], unused[1];
-    magmaDoubleComplex_ptr d_A, dT;
+    magmaDoubleComplex_ptr d_A, dT, dtau;
     magma_int_t M, N, n2, lda, ldda, lwork, info, min_mn, nb, size;
     magma_int_t ISEED[4] = {0,0,0,1};
     
@@ -82,6 +92,7 @@ int main( int argc, char** argv)
             lapackf77_zgeqrf( &M, &N, unused, &M, unused, tmp, &lwork, &info );
             lwork = (magma_int_t)MAGMA_Z_REAL( tmp[0] );
             
+            TESTING_CHECK( magma_zmalloc( &dtau,    min_mn ));
             TESTING_CHECK( magma_zmalloc_cpu( &tau,    min_mn ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_A,    n2     ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_work, lwork  ));
@@ -90,17 +101,40 @@ int main( int argc, char** argv)
             
             TESTING_CHECK( magma_zmalloc( &d_A,    ldda*N ));
             
-            if ( opts.version == 1 || opts.version == 3 ) {
+            //if ( opts.version == 1 || opts.version == 3 ) {
                 size = (2*min(M, N) + magma_roundup( N, 32 ) )*nb;
                 TESTING_CHECK( magma_zmalloc( &dT, size ));
                 magmablas_zlaset( MagmaFull, size, 1, c_zero, c_zero, dT, size, opts.queue );
-            }
+            //}
             
             /* Initialize the matrix */
             magma_generate_matrix( opts, M, N, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, h_A, &lda, h_R, &lda );
             magma_zsetmatrix( M, N, h_R, lda, d_A, ldda, opts.queue );
             
+
+            magmaDoubleComplex *h_B, *d_B;
+            magma_int_t nrhs = opts.nrhs;
+            magma_int_t ldb    = max(M, N);
+            magma_int_t lddb   = magma_roundup( max(M, N), opts.align );  // multiple of 32 by default
+            
+            size = M*nrhs;
+            TESTING_CHECK( magma_zmalloc_cpu( &h_B,    ldb*nrhs  ));
+            TESTING_CHECK( magma_zmalloc( &d_B,    lddb*nrhs ));
+            lapackf77_zlarnv( &ione, ISEED, &size, h_B );
+            magma_zsetmatrix( M, nrhs, h_B, ldb, d_B, lddb, opts.queue );
+            
+#ifdef use_cusolver
+    cusolverDnHandle_t cusolverH;
+    cusolverStatus_t cusolver_status = CUSOLVER_STATUS_SUCCESS;
+    cusolver_status = cusolverDnCreate(&cusolverH);
+    int lwork_geqrf;
+    cusolver_status = cusolverDnDgeqrf_bufferSize(cusolverH, M, N, d_A, ldda, &lwork_geqrf);
+    magmaDoubleComplex *dwork;
+    int *devinfo;
+    TESTING_CHECK( magma_zmalloc( &dwork,    lwork_geqrf ));
+    TESTING_CHECK( magma_malloc( (void**)&devinfo,    sizeof(int) ));
+#endif
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
@@ -113,7 +147,14 @@ int main( int argc, char** argv)
             }
             else if ( opts.version == 2 ) {
                 // LAPACK complaint arguments
-                magma_zgeqrf2_gpu( M, N, d_A, ldda, tau, &info );
+                #ifndef use_cusolver
+                //magma_zgeqrf2_gpu( M, N, d_A, ldda, tau, &info );
+                magmaDoubleComplex *dR = dT+min(M, N)*nb;
+                magma_zgeqrf_expert_gpu( MagmaNative, 0, M, N, d_A, ldda, dtau, dT, dR, &info );
+                #else
+                cusolver_status = cusolverDnDgeqrf(cusolverH, M, N, d_A, ldda, dtau, dwork, lwork_geqrf, devinfo);
+                cudaDeviceSynchronize();
+                #endif
             }
             #ifdef HAVE_CUBLAS
             else if ( opts.version == 3 ) {
@@ -121,6 +162,11 @@ int main( int argc, char** argv)
                 magma_zgeqrf3_gpu( M, N, d_A, ldda, tau, dT, &info );
             }
             #endif
+            else if ( opts.version == 4 ) {
+                // stores dT, V blocks have zeros, R blocks stored in dT
+                magmaDoubleComplex *dR = dT+min(M, N)*nb;
+                magma_zgeqrf_expert_gpu( MagmaNative, 1, M, N, d_A, ldda, dtau, dT, dR, &info );
+            }
             else {
                 printf( "Unknown version %lld\n", (long long) opts.version );
                 return -1;
@@ -131,6 +177,33 @@ int main( int argc, char** argv)
                 printf("magma_zgeqrf returned error %lld: %s.\n",
                        (long long) info, magma_strerror( info ));
             }
+
+            printf("voici time facto  = %8.5f ms\n", gpu_time*1000);
+            magma_zgetmatrix( min_mn, 1, dtau, min_mn, tau, min_mn, opts.queue );
+
+            magma_int_t nlp=10;
+            gpu_time = magma_wtime();
+            if ( info == 0 ) {
+                for(magma_int_t r=0; r<nlp; r++){
+                if ( opts.version == 1 ) {
+                    magma_zgeqrs3_gpu( M, N, nrhs,
+                            d_A, ldda, tau, dT,
+                            d_B, lddb, h_work, lwork, &info );
+                }
+                else if ( opts.version == 3 ) {
+                    magma_zgeqrs3_gpu( M, N, nrhs,
+                            d_A, ldda, tau, dT,
+                            d_B, lddb, h_work, lwork, &info );
+                }
+                }
+            }
+            gpu_time = magma_wtime() - gpu_time;
+            printf("voici time solve for %lld RHS = %8.5f ms\n",(long long) nrhs, gpu_time*1000.0/double(nlp));
+            magma_free_cpu(h_B);
+            magma_free(d_B);
+
+
+            
             
             if ( opts.check == 1 && (opts.version == 2 || opts.version == 3) ) {
                 if ( opts.version == 3 ) {

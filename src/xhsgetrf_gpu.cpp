@@ -19,6 +19,7 @@
 #if CUDA_VERSION < 9020
 // conversion float to half are not defined for host in CUDA version <9.2
 // thus uses the conversion below when CUDA VERSION is < 9.2.
+#include <string.h>
 //
 // Copyright (c) 1993-2016, NVIDIA CORPORATION. All rights reserved.
 //

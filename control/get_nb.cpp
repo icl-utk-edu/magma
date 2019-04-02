@@ -502,6 +502,7 @@ magma_int_t magma_get_xgetrf_nb(
 {
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
+    return 256;
     //magma_int_t arch = magma_getdevice_arch();
 #if 0
     if (minmn <=  5248) nb = 128;

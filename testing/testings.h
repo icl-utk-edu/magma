@@ -227,6 +227,7 @@ public:
     std::vector< magma_vec_t > jobv;
 
     // LAPACK test matrix generation
+    char *fname;
     std::string matrix;
     double      cond;
     double      condD;
