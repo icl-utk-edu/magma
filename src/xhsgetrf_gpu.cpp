@@ -16,7 +16,7 @@
 #include <cuda_fp16.h>
 #endif
 
-#if CUDA_VERSION < 9200
+#if CUDA_VERSION < 9020
 // conversion float to half are not defined for host in CUDA version <9.2
 // thus uses the conversion below when CUDA VERSION is < 9.2.
 //
@@ -230,7 +230,7 @@ magma_xhsgetrf_gpu(
     float c_one     = MAGMA_S_ONE;
     float c_neg_one = MAGMA_S_NEG_ONE;
     #if 1
-    #if CUDA_VERSION >= 9200
+    #if CUDA_VERSION >= 9020
     const magmaHalf h_one     = (magmaHalf) 1.0;
     const magmaHalf h_neg_one = (magmaHalf)-1.0;
     #else
