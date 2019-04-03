@@ -18,12 +18,6 @@
 #include <string.h>
 #include <math.h>
 
-//#define MAGMA_USE_CUSOLVER
-#ifdef MAGMA_USE_CUSOLVER
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <cusolverDn.h>
-#endif
 // includes, project
 #include "magma_v2.h"
 #include "magma_lapack.h"
@@ -31,6 +25,7 @@
 #include "testings.h"
 
 #define COMPLEX
+
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zheevd
 */
@@ -45,7 +40,7 @@ int main( int argc, char** argv)
     const magma_int_t ione  = 1;
     
     /* Local variables */
-    real_Double_t   gpu_time, cpu_time, cpy_time, start;
+    real_Double_t   gpu_time, cpu_time;
     magmaDoubleComplex *h_A, *h_R, *h_Z, *h_work, aux_work[1], unused[1];
     #ifdef COMPLEX
     double *rwork, aux_rwork[1];
@@ -172,26 +167,6 @@ int main( int argc, char** argv)
             /* Initialize the matrix */
             magma_generate_matrix( opts, N, N, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_R, &lda );
-
-            #ifdef MAGMA_USE_CUSOLVER
-            magmaDoubleComplex *dwork, *d_A;
-            double *d_W;
-
-            magma_int_t ldda   = magma_roundup( N, opts.align );  // multiple of 32 by default
-            TESTING_CHECK( magma_zmalloc( &d_A,    N*ldda  ));
-            TESTING_CHECK( magma_dmalloc( &d_W,    N       ));
-
-            cusolverDnHandle_t cusolverH;
-            cusolverStatus_t cusolver_status = CUSOLVER_STATUS_SUCCESS;
-            cusolver_status = cusolverDnCreate(&cusolverH);
-            int lwork_syevd;
-            cusolver_status = cusolverDnZheevd_bufferSize(
-                    cusolverH, CUSOLVER_EIG_MODE_VECTOR, CUBLAS_FILL_MODE_LOWER,
-                    N, d_A, ldda, NULL, &lwork_syevd);
-            int *devinfo;
-            TESTING_CHECK( magma_zmalloc( &dwork,    lwork_syevd ));
-            TESTING_CHECK( magma_malloc( (void**)&devinfo,    sizeof(int) ));
-            #endif
             
             /* ====================================================================
                Performs operation using MAGMA
@@ -199,22 +174,6 @@ int main( int argc, char** argv)
             gpu_time = magma_wtime();
             if (opts.version == 1) {
                 if (opts.ngpu == 1) {
-                    #ifdef MAGMA_USE_CUSOLVER
-                    printf("\n\n\n\n\n\n\n\n\n\n start cusolverDnZheevd with size %lld \n\n\n\n\n\n\n\n\n\n", (long long) N);
-                    start = magma_wtime();
-                    magma_zsetmatrix( N, N, h_R, lda, d_A, ldda, opts.queue );
-                    cudaDeviceSynchronize();
-                    cpy_time = magma_wtime() - start;
-                    cusolver_status = cusolverDnZheevd(
-                             cusolverH, CUSOLVER_EIG_MODE_VECTOR, CUBLAS_FILL_MODE_LOWER,
-                             N, d_A, ldda, d_W, dwork, lwork_syevd, devinfo);
-                    cudaDeviceSynchronize();
-                    start = magma_wtime();
-                    magma_zgetmatrix( N, N, d_A, ldda, h_R, lda, opts.queue );
-                    magma_zgetmatrix( N, 1, d_W, N, w1, N, opts.queue );
-                    cpy_time += magma_wtime() - start;
-                    #else
-                    printf("\n\n\n\n\n\n\n\n\n\n start magma_zheevd with size %lld \n\n\n\n\n\n\n\n\n\n", (long long) N);
                     magma_zheevd( opts.jobz, opts.uplo,
                                   N, h_R, lda, w1,
                                   h_work, lwork,
@@ -223,7 +182,6 @@ int main( int argc, char** argv)
                                   #endif
                                   iwork, liwork,
                                   &info );
-                    #endif
                 }
                 else {
                     //printf( "magma_zheevd_m, ngpu %lld (%lld)\n", (long long) opts.ngpu, (long long) abs_ngpu );
@@ -425,22 +383,12 @@ int main( int argc, char** argv)
                 result[3] = diff / (N*maxw);
                 
                 okay = okay && (result[3] < tolulp);
-                #ifdef MAGMA_USE_CUSOLVER
-                printf("%5lld   %9.4f        %9.4f        %9.4f         %8.2e  ",
-                       (long long) N, cpu_time, gpu_time, cpy_time, result[3] );
-                #else
                 printf("%5lld   %9.4f        %9.4f         %8.2e  ",
                        (long long) N, cpu_time, gpu_time, result[3] );
-                #endif
             }
             else {
-                #ifdef MAGMA_USE_CUSOLVER
-                printf("%5lld      ---           %9.4f        %9.4f           ---     ",
-                       (long long) N, gpu_time, cpy_time);
-                #else
                 printf("%5lld      ---           %9.4f           ---     ",
                        (long long) N, gpu_time);
-                #endif
             }
             
             // print error checks
@@ -453,12 +401,6 @@ int main( int argc, char** argv)
             }
             printf("   %s\n", (okay ? "ok" : "failed"));
             status += ! okay;
-            
-            #ifdef MAGMA_USE_CUSOLVER
-            magma_free( d_A   );
-            magma_free( d_W   );
-            magma_free( dwork   );
-            #endif
             
             magma_free_cpu( h_A   );
             magma_free_cpu( w1    );

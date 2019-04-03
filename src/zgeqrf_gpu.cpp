@@ -11,7 +11,6 @@
        @precisions normal z -> s d c
 */
 #include "magma_internal.h"
-#include "nvToolsExt.h"
 
 /***************************************************************************//**
     Auxiliary function: "A" is pointer to the current panel holding the
@@ -227,16 +226,12 @@ magma_zgeqrf_gpu(
             }
             
             magma_queue_sync( queues[1] );  // wait to get work(i)
-            nvtxRangeId_t id1 = nvtxRangeStartA("dgeqrf-cpu");            
             lapackf77_zgeqrf( &rows, &ib, work, &ldwork, &tau[i], hwork, &lhwork, info );
-            nvtxRangeEnd(id1);
             // Form the triangular factor of the block reflector in hwork
             // H = H(i) H(i+1) . . . H(i+ib-1)
-            nvtxRangeId_t id2 = nvtxRangeStartA("dlarft-cpu");            
             lapackf77_zlarft( MagmaForwardStr, MagmaColumnwiseStr,
                               &rows, &ib,
                               work, &ldwork, &tau[i], hwork, &ib );
-            nvtxRangeEnd(id2);
             
             // wait for previous trailing matrix update (above) to finish with R
             magma_queue_sync( queues[0] );

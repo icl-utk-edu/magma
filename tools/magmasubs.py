@@ -443,7 +443,6 @@ subs = {
     ('#undef SINGLE',        '#undef DOUBLE',        '#undef SINGLE',         '#undef DOUBLE'        ),  # deprecated
     ('#define MAGMA_SINGLE', '#define MAGMA_DOUBLE', '#define MAGMA_SINGLE',  '#define MAGMA_DOUBLE' ),
     ('#undef MAGMA_SINGLE',  '#undef MAGMA_DOUBLE',  '#undef MAGMA_SINGLE',   '#undef MAGMA_DOUBLE'  ),
-    ('cusolverDnSsyevd',         'cusolverDnDsyevd',         'cusolverDnCheevd',         'cusolverDnZheevd'          ),
 
     # ----- Text
     ('symmetric',      'symmetric',      'hermitian',      'hermitian'       ),

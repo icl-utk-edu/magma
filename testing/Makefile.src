@@ -96,8 +96,6 @@ testing_src += \
 testing_src += \
 	$(cdir)/testing_zcgesv_gpu.cpp	\
 	$(cdir)/testing_dxgesv_gpu.cpp	\
-	$(cdir)/testing_dsgesv_gmres_gpu.cpp	\
-	$(cdir)/testing_dsgesv_gmres_gpu_alltester.cpp	\
 	\
 	$(cdir)/testing_zgesv_gpu.cpp	\
 	$(cdir)/testing_zgetrf_gpu.cpp	\
