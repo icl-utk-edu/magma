@@ -109,14 +109,11 @@ if ( CUDA_FOUND )
 	set( NV_SM    "" )
 	set( NV_COMP  "" )
 
-	# -std=c++11 messes with nvcc, so don't propagate CXXFLAGS to nvcc.
-	# BUT, Windows requires flags to be propagated to get /MD correct.
-	# Since Visual Studio doesn't use -std, test that for now.
-	# Ultimately, this is a bug in CMake's FindCUDA module:
-	# https://cmake.org/Bug/view.php?id=13450
-	if ( ${CMAKE_CXX_FLAGS} MATCHES -std= )
-		set( CUDA_PROPAGATE_HOST_FLAGS OFF )
-	endif()
+	# nvcc >= 6.5 supports -std=c++11, so propagate CXXFLAGS to NVCCFLAGS.
+	# Older nvcc didn't support -std=c++11, so previously we disabled propagation.
+	##if ( ${CMAKE_CXX_FLAGS} MATCHES -std= )
+	##    set( CUDA_PROPAGATE_HOST_FLAGS OFF )
+	##endif()
 	
 	if ( ${GPU_TARGET} MATCHES Fermi )
 		set( GPU_TARGET "${GPU_TARGET} sm_20" )
