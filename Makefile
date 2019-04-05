@@ -411,6 +411,7 @@ test: testing
 testers_f: $(testers_f)
 
 sparse-test: sparse/testing
+sparse-testing: sparse/testing
 
 # cleangen is defined in Makefile.gen; cleanall also does cleanmake in Makefile.internal
 cleanall: clean cleangen

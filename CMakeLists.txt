@@ -3,7 +3,7 @@ cmake_minimum_required( VERSION 2.8.1 )
 # ----------------------------------------
 # to disable Fortran, set this to "off"
 # see also -DADD_ below
-set( USE_FORTRAN on CACHE BOOL "Fortran is required for some tester checks, but can be disabled with reduced functionality" )
+option( USE_FORTRAN "Fortran is required for some tester checks, but can be disabled with reduced functionality" ON )
 
 if ( USE_FORTRAN )
 	project( MAGMA C CXX Fortran )
@@ -75,6 +75,7 @@ else()
 	# set one of -DADD_, -DUPCASE, or -DNOCHANGE. See README.
 	message( STATUS "Building without Fortran compiler" )
 	set( FORTRAN_CONVENTION "-DADD_" CACHE STRING "Fortran calling convention, one of -DADD_, -DNOCHANGE, -DUPCASE" )
+	set_property( CACHE FORTRAN_CONVENTION PROPERTY STRINGS -DADD_ -DNOCHANGE -DUPCASE )
 	message( STATUS "    Using ${FORTRAN_CONVENTION} for Fortran calling convention" )
 	set( CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${FORTRAN_CONVENTION}" )
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FORTRAN_CONVENTION}" )
@@ -108,7 +109,7 @@ if ( CUDA_FOUND )
 
 	# NVCC options for the different cards
 	# sm_xx is binary, compute_xx is PTX for forward compatability
-	# MIN_ARCH is lowest requested version 
+	# MIN_ARCH is lowest requested version
 	# NV_SM    accumulates sm_xx for all requested versions
 	# NV_COMP  is compute_xx for highest requested version
 	set( NV_SM    "" )
@@ -251,30 +252,35 @@ endif()
 
 # ----------------------------------------
 # locate LAPACK libraries
+if ( NOT ${BLA_VENDOR} MATCHES "^(Intel10_32|Intel10_64lp|Intel10_64lp_seq|Intel10_64ilp|Intel10_64ilp_seq|Intel|OpenBLAS|FLAME|ACML|Apple|NAS|Generic)$" )
+	message( WARNING "BLA_VENDOR=${BLA_VENDOR} not one of Intel10_32, Intel10_64lp, Intel10_64lp_seq, Intel10_64ilp, Intel10_64ilp_seq, Intel, OpenBLAS, FLAME, ACML, Apple, NAS, Generic (FindLAPACK list as of CMake 3.14)" )
+endif()
 set( LAPACK_LIBRARIES "" CACHE STRING "Libraries for LAPACK and BLAS, to manually override search" )
 if ( "${LAPACK_LIBRARIES}" STREQUAL "" )
 	message( STATUS "Searching for BLAS and LAPACK. To override, set LAPACK_LIBRARIES using ccmake." )
 	find_package( LAPACK )
+	# force showing updated LAPACK_LIBRARIES in ccmake / cmake-gui.
+	set( LAPACK_LIBRARIES ${LAPACK_LIBRARIES} CACHE STRING "Libraries for LAPACK and BLAS, to manually override search" FORCE )
 else()
 	message( STATUS "User set LAPACK_LIBRARIES. To change, edit LAPACK_LIBRARIES using ccmake (set to empty to enable search)." )
-	# Check existence -- but this may be okay, if the user entered, e.g., -llapack instead of /path/to/lapack.a
+	# Check either -lname syntax or file existence
 	foreach( LIB ${LAPACK_LIBRARIES} )
+		if ( NOT ${LIB} MATCHES "^-l[a-zA-Z0-9_-]+$" )
 		if ( NOT EXISTS ${LIB} )
 			message( WARNING "\n      Warning: file ${LIB} does not exist.\n" )
 		endif()
+		endif()
 	endforeach()
 endif()
-message( STATUS "    BLAS_LIBRARIES:      ${BLAS_LIBRARIES}"      )
-message( STATUS "    LAPACK_LIBRARIES:    ${LAPACK_LIBRARIES}"    )
 
 # If using MKL, add it to includes and define MAGMA_WITH_MKL
 # Initially, this gets MKLROOT from environment, but then the user can edit it.
-set( MKLROOT $ENV{MKLROOT} CACHE STRING "MKL installation directory" )
-if ( NOT "${MKLROOT}" STREQUAL "" )
-	message( STATUS "MKLROOT set to ${MKLROOT}. To change, edit MKLROOT using ccmake." )
-	if ( NOT LAPACK_LIBRARIES MATCHES mkl_core )
-		message( WARNING "MKLROOT set, but LAPACK_LIBRARIES doesn't contain mkl_core; ignoring MKLROOT." )
+if ( LAPACK_LIBRARIES MATCHES mkl_core )
+	set( MKLROOT $ENV{MKLROOT} CACHE STRING "MKL installation directory" )
+	if ( ${MKLROOT} STREQUAL "" )
+		message( WARNING "LAPACK_LIBRARIES has MKL, but MKLROOT not set; can't add include directory." )
 	else()
+		message( STATUS "MKLROOT set to ${MKLROOT}. To change, edit MKLROOT using ccmake." )
 		if ( NOT EXISTS "${MKLROOT}" )
 			message( FATAL_ERROR "MKLROOT ${MKLROOT} directory does not exist." )
 		endif()
@@ -282,8 +288,6 @@ if ( NOT "${MKLROOT}" STREQUAL "" )
 		add_definitions( -DMAGMA_WITH_MKL )
 		message( STATUS "Define -DMAGMA_WITH_MKL" )
 	endif()
-else()
-	message( STATUS "MKLROOT not set. To change, set MKLROOT using ccmake." )
 endif()
 
 
@@ -412,6 +416,7 @@ else()
 		${CUDA_cusparse_LIBRARY}
 	)
 endif()
+add_custom_target( lib DEPENDS magma )
 
 
 # ----------------------------------------
@@ -465,6 +470,7 @@ target_link_libraries( magma_sparse
 	${CUDA_cusparse_LIBRARY}
 )
 set( LIBS_SPARSE ${LIBS} magma_sparse )
+add_custom_target( sparse-lib DEPENDS magma_sparse )
 
 
 # ----------------------------------------
@@ -488,7 +494,9 @@ foreach( TEST ${testing_all_cpp} )
 	#message( "${TEST} --> ${EXE}" )
 	add_executable( ${EXE} ${TEST} )
 	target_link_libraries( ${EXE} ${LIBS} )
+	list( APPEND testing ${EXE} )
 endforeach()
+add_custom_target( testing DEPENDS ${testing} )
 
 
 # ----------------------------------------
@@ -500,7 +508,9 @@ foreach( TEST ${sparse_testing_all} )
 	#message( "${TEST} --> ${EXE}" )
 	add_executable( ${EXE} ${TEST} )
 	target_link_libraries( ${EXE} ${LIBS_SPARSE} )
+	list( APPEND sparse-testing ${EXE} )
 endforeach()
+add_custom_target( sparse-testing DEPENDS ${sparse-testing} )
 
 
 # ----------------------------------------
@@ -519,7 +529,11 @@ get_directory_property( compile_definitions COMPILE_DEFINITIONS )
 message( STATUS "Flags" )
 message( STATUS "    CFLAGS       ${CMAKE_C_FLAGS}" )
 message( STATUS "    CXXFLAGS     ${CMAKE_CXX_FLAGS}" )
-message( STATUS "    NFLAGS       ${CUDA_NVCC_FLAGS}" )
+message( STATUS "    NVCCFLAGS    ${CUDA_NVCC_FLAGS}" )
 message( STATUS "    FFLAGS       ${CMAKE_Fortran_FLAGS}" )
 message( STATUS "    LIBS         ${LIBS}" )
 message( STATUS "    LIBS_SPARSE  ${LIBS_SPARSE}" )
+message( STATUS "    LAPACK_LIBRARIES:      ${LAPACK_LIBRARIES}"      )
+message( STATUS "    CUDA_CUDART_LIBRARY:   ${CUDA_CUDART_LIBRARY}"   )
+message( STATUS "    CUDA_CUBLAS_LIBRARIES: ${CUDA_CUBLAS_LIBRARIES}" )
+message( STATUS "    CUDA_cusparse_LIBRARY: ${CUDA_cusparse_LIBRARY}" )
