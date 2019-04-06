@@ -325,6 +325,9 @@ else()
 endif()
 
 if ( CMAKE_HOST_APPLE )
+	# Use rpaths, which is on by default in CMake 3.
+	set( CMAKE_MACOSX_RPATH 1 )
+	
 	# 64-bit veclib (Accelerate) has issues; substitute correct functions from LAPACK.
 	# (The issue is single precision functions that return doubles;
 	# if a consistent prototype is used, the problem goes away in C,
