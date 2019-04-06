@@ -39,6 +39,11 @@ endif()
 
 
 # ----------------------------------------
+# prefer shared libraries
+option( BUILD_SHARED_LIBS "If on, build shared libraries, otherwise build static libraries" ON )
+
+
+# ----------------------------------------
 # use C++11 and C99
 # see http://stackoverflow.com/questions/10851247/how-to-activate-c-11-in-cmake
 include(CheckCXXCompilerFlag)
@@ -324,6 +329,9 @@ if ( CMAKE_HOST_APPLE )
 		if ( USE_FORTRAN )
 			message( STATUS "MacOS X: adding blas_fix library" )
 			add_library( blas_fix ${libblas_fix_src} )
+			target_link_libraries( blas_fix
+				${LAPACK_LIBRARIES}
+			)
 			list( APPEND LIBS blas_fix )
 			set( blas_fix blas_fix )
 		else()
@@ -407,11 +415,6 @@ endif()
 
 
 # ----------------------------------------
-# compile tester library
-add_library( tester ${libtest_all} )
-
-
-# ----------------------------------------
 # compile lapacktest library
 # If use fortran, compile only Fortran files, not magma_[sdcz]_no_fortran.cpp
 # else,           compile only C++     files, not Fortran files
@@ -431,6 +434,19 @@ else()
 	endforeach()
 	add_library( lapacktest ${liblapacktest_all_cpp} )
 endif()
+target_link_libraries( lapacktest
+	${LAPACK_LIBRARIES}
+)
+
+
+# ----------------------------------------
+# compile tester library
+add_library( tester ${libtest_all} )
+target_link_libraries( tester
+    magma
+    lapacktest
+    ${LAPACK_LIBRARIES}
+)
 
 
 # ----------------------------------------
