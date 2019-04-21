@@ -85,7 +85,9 @@
 
 // =============================================================================
   #ifdef TEXTURE_1D
-    #define fetch(A, m, n, bound) tex_fetch(tex_ref_##A, coord_##A + n*LD##A+m)
+    #define fetch(A, m, n, bound) tex_fetch(Mjoin1(tex_ref_##A##magma_,precision), coord_##A + n*LD##A+m)
+    #define Mjoin1(Mname,Mp) Mjoin(Mname,Mp)
+    #define Mjoin(Mname,Mp) Mname##Mp
   #else
     #define fetch(A, m, n, bound) offs_d##A[min(n*LD##A+m, bound)]
   #endif
@@ -132,19 +134,19 @@
 
     #ifdef COMPLEX
       #ifdef DOUBLE
-        texture<int4, cudaTextureType1D, cudaReadModeElementType> tex_ref_A;
-        texture<int4, cudaTextureType1D, cudaReadModeElementType> tex_ref_B;
+        texture<int4, cudaTextureType1D, cudaReadModeElementType> tex_ref_Amagma_z;
+        texture<int4, cudaTextureType1D, cudaReadModeElementType> tex_ref_Bmagma_z;
       #else
-        texture<float2, cudaTextureType1D, cudaReadModeElementType> tex_ref_A;
-        texture<float2, cudaTextureType1D, cudaReadModeElementType> tex_ref_B;
+        texture<float2, cudaTextureType1D, cudaReadModeElementType> tex_ref_Amagma_c;
+        texture<float2, cudaTextureType1D, cudaReadModeElementType> tex_ref_Bmagma_c;
       #endif
     #else
       #ifdef DOUBLE
-        texture<int2, cudaTextureType1D, cudaReadModeElementType> tex_ref_A;
-        texture<int2, cudaTextureType1D, cudaReadModeElementType> tex_ref_B;
+        texture<int2, cudaTextureType1D, cudaReadModeElementType> tex_ref_Amagma_d;
+        texture<int2, cudaTextureType1D, cudaReadModeElementType> tex_ref_Bmagma_d;
       #else
-        texture<float, cudaTextureType1D, cudaReadModeElementType> tex_ref_A;
-        texture<float, cudaTextureType1D, cudaReadModeElementType> tex_ref_B;
+        texture<float, cudaTextureType1D, cudaReadModeElementType> tex_ref_Amagma_s;
+        texture<float, cudaTextureType1D, cudaReadModeElementType> tex_ref_Bmagma_s;
       #endif
     #endif
 
