@@ -42,6 +42,10 @@ endif()
 # prefer shared libraries
 option( BUILD_SHARED_LIBS "If on, build shared libraries, otherwise build static libraries" ON )
 
+# prefer /usr/local/magma, instead of /usr/local.
+if (UNIX AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "/usr/local/magma" CACHE PATH "..." FORCE)
+endif()
 
 # ----------------------------------------
 # use C++11 and C99
@@ -532,12 +536,13 @@ install( FILES ${headers}
 get_directory_property( compile_definitions COMPILE_DEFINITIONS )
 
 message( STATUS "Flags" )
-message( STATUS "    CFLAGS       ${CMAKE_C_FLAGS}" )
-message( STATUS "    CXXFLAGS     ${CMAKE_CXX_FLAGS}" )
-message( STATUS "    NVCCFLAGS    ${CUDA_NVCC_FLAGS}" )
-message( STATUS "    FFLAGS       ${CMAKE_Fortran_FLAGS}" )
-message( STATUS "    LIBS         ${LIBS}" )
-message( STATUS "    LIBS_SPARSE  ${LIBS_SPARSE}" )
+message( STATUS "    CMAKE_INSTALL_PREFIX:  ${CMAKE_INSTALL_PREFIX}" )
+message( STATUS "    CFLAGS:                ${CMAKE_C_FLAGS}" )
+message( STATUS "    CXXFLAGS:              ${CMAKE_CXX_FLAGS}" )
+message( STATUS "    NVCCFLAGS:             ${CUDA_NVCC_FLAGS}" )
+message( STATUS "    FFLAGS:                ${CMAKE_Fortran_FLAGS}" )
+message( STATUS "    LIBS:                  ${LIBS}" )
+message( STATUS "    LIBS_SPARSE:           ${LIBS_SPARSE}" )
 message( STATUS "    LAPACK_LIBRARIES:      ${LAPACK_LIBRARIES}"      )
 message( STATUS "    CUDA_CUDART_LIBRARY:   ${CUDA_CUDART_LIBRARY}"   )
 message( STATUS "    CUDA_CUBLAS_LIBRARIES: ${CUDA_CUBLAS_LIBRARIES}" )

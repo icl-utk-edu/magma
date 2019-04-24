@@ -27,6 +27,18 @@ MAGMA README FILE
     For more Windows-specific instructions, see README-Windows.
     On Unix & MacOS:
 
+    Step 0: setup
+    If you downloaded an official release (e.g., magma-2.5.0.tar.gz), you can
+    skip this step.
+    If you checked out MAGMA from bitbucket, you first need to generate all
+    the precisions. Currently this is done only by the Makefile, not by CMake.
+    Using a minimal make.inc configuration:
+        echo "FORT = true" > make.inc
+        make generate
+    That should run `python tools/codegen.py` on all the src files and
+    create CMake.src.
+
+    Step 1: compile
         mkdir build
         cd build
         rm -rf *            # to clear any cached CMake configuration
