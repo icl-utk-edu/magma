@@ -28,8 +28,6 @@
 
       PARAMETER          ( nrhs = 1, c_one = 1., c_neg_one = -1. )
       
-      call cublas_init()
-
       n   = 2048
       lda = n
  
@@ -101,9 +99,6 @@
 
 !---- Free CPU memory
       deallocate(A, A2, B, X, ipiv, work)
-
-!---- Free GPU memory
-      call cublas_shutdown()
 
  105  format((a35,es10.3))
 

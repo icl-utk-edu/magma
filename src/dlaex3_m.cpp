@@ -360,7 +360,7 @@ magma_dlaex3_m(
             lapackf77_dlaed4( &k, &tmpp, dlamda, w, Q(0,j), &rho, &d[j], &iinfo );
             // If the zero finder fails, the computation is terminated.
             if (iinfo != 0) {
-                #pragma omp critical (info)
+                #pragma omp critical (magma_dlaex3_m)
                 *info = iinfo;
                 break;
             }

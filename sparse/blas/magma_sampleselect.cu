@@ -38,7 +38,6 @@ __global__ void sampleselect_findbucket(int32_t* __restrict__ totalcounts,
 }
 
 int32_t sampleselect_alloc_size(int32_t size) {
-    static_assert(sizeof(int32_t) >= sizeof(uint32_t), "c++ is broken");
     return 1 // bucket index
          + 1 // rank
          + 1 // atomic

@@ -3,7 +3,7 @@ MAGMA README FILE
 ===================
 
 --------------------------------------------------------------------------------
-* Quick start
+* Quick start (make)
 
     Create a make.inc file to indicate your C/C++ compiler, Fortran compiler,
     and where CUDA, CPU BLAS, and LAPACK are installed on your system.
@@ -16,20 +16,69 @@ MAGMA README FILE
         make
     or:
         make lib
-        make test
+        make testing
         make sparse-lib
-        make sparse-test
-
-    To install libraries and headers:
+        make sparse-testing
         make install prefix=/usr/local/magma
+
+* Quick start (CMake)
+
+    There is also a CMake option to configure and build MAGMA.
+    For more Windows-specific instructions, see README-Windows.
+    On Unix & MacOS:
+
+    Step 0: setup
+    If you downloaded an official release (e.g., magma-2.5.0.tar.gz), you can
+    skip this step.
+    If you checked out MAGMA from bitbucket, you first need to generate all
+    the precisions. Currently this is done only by the Makefile, not by CMake.
+    Using a minimal make.inc configuration:
+        echo "FORT = true" > make.inc
+        make generate
+    That should run `python tools/codegen.py` on all the src files and
+    create CMake.src.
+
+    Step 1: compile
+        mkdir build
+        cd build
+        rm -rf *            # to clear any cached CMake configuration
+        cmake [options] ..  # or ccmake ..
+    then:
+        make
+    or:
+        make lib
+        make testing
+        make sparse-lib
+        make sparse-testing
+        make install
+
+    Options include:
+        -DGPU_TARGET='target', where target includes one or more of:
+            Fermi, Kepler, Maxwell, Pascal, Volta, or valid sm_[0-9][0-9].
+
+        -DBLA_VENDOR=vendor, where vendor is one of:
+            Intel10_64lp, Intel10_64lp_seq, Intel10_64ilp, Intel10_64ilp_seq,
+            Intel10_32, OpenBLAS, FLAME, ACML, Apple, NAS, Generic.
+            See https://cmake.org/cmake/help/latest/module/FindLAPACK.html
+
+        -DLAPACK_LIBRARIES='libs', where libs is the libraries to link with for
+            BLAS and LAPACK, e.g., -DLAPACK_LIBRARIES='-llapack -lblas'.
+            This overrides CMake's BLAS/LAPACK search.
+
+        -DBUILD_SHARED_LIBRARIES=[on|off], to turn on/off shared libraries.
+
+        -DUSE_FORTRAN=[on|off], to turn on/off Fortran.
+
+        -DFORTRAN_CONVENTION=flag, where flag is one of:
+            -DADD_, -DNOCHANGE, -DUPCASE
+            for whether a Fortran routine such as "dgemm" is called
+            dgemm_, dgemm, or DGEMM, respectively, in the BLAS/LAPACK library.
+            ADD_ is most common.
 
 * Detailed installation instructions and further documentation is provided in
     docs/html/index.html
     or
     http://icl.utk.edu/projectsfiles/magma/doxygen/
-
-* There is also a CMake option, especially useful for building on Windows.
-  See README-Windows.
 
 --------------------------------------------------------------------------------
 * Forum

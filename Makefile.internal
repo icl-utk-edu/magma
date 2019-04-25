@@ -40,7 +40,8 @@ CMake.src: Makefile.gen
 	echo    "$(testing_all) )"           | $(newlines) >> $@
 	echo                                               >> $@
 	echo "set( libsparse_all"                          >> $@
-	echo    "$(libsparse_all) )"         | $(newlines) >> $@
+	echo    "$(libsparse_all)"           | $(newlines) >> $@
+	echo    "$(libsparse_dynamic_all) )" | $(newlines) >> $@
 	echo                                               >> $@
 	echo "set( sparse_testing_all"                     >> $@
 	echo    "$(sparse_testing_all) )"    | $(newlines) >> $@

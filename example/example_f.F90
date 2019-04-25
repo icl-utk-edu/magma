@@ -54,13 +54,16 @@ end subroutine
 subroutine zfill_matrix_gpu( m, n, dA, lda )
     integer :: m, n, lda
     magma_devptr_t :: dA
-    
+    magma_devptr_t :: queue  !! really a CPU pointer
+
     complex*16, allocatable :: A(:,:)
     integer :: sizeof_complex=16
     
     allocate( A(lda,n) )
     call zfill_matrix( m, n, A, lda )
-    call cublas_set_matrix( m, n, sizeof_complex, A, lda, dA, lda )
+    call magmaf_queue_create( 0, queue )
+    call magmaf_zsetmatrix( m, n, A, lda, dA, lda, queue )
+    call magmaf_queue_destroy( queue )
     deallocate( A )
 end subroutine
 
@@ -134,11 +137,10 @@ subroutine gpu_interface( n, nrhs )
     ldda = ceiling(real(n)/32)*32
     lddx = ldda
     info = 0
-        
+
     !! allocate GPU memory
-    !! no magma Fortran routines for this, so use cublas
-    call cublas_alloc( ldda*n,    sizeof_complex, dA )
-    call cublas_alloc( lddx*nrhs, sizeof_complex, dX )
+    info = magmaf_zmalloc( dA, ldda*n )
+    info = magmaf_zmalloc( dX, lddx*nrhs )
     allocate( ipiv(n) )  !! ipiv always on CPU
     if (dA == 0 .or. dX == 0) then
         print "(a)", "malloc failed"
@@ -158,8 +160,16 @@ subroutine gpu_interface( n, nrhs )
     
 !! cleanup:
 1000 continue
-    call cublas_free( dA )
-    call cublas_free( dX )
+    info = magmaf_free( dA )
+    if (info .ne. 0) then
+        print *, 'Error: magmaf_free( dA ) failed: ', info
+    endif
+
+    info = magmaf_free( dX )
+    if (info .ne. 0) then
+        print *, 'Error: magmaf_free( dX ) failed: ', info
+    endif
+
     deallocate( ipiv )
 end subroutine
 

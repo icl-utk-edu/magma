@@ -195,6 +195,7 @@ __global__ void collect_bucket_indirect(const double* __restrict__ data,
 
 __device__ void launch_sampleselect(double* __restrict__ in, double* __restrict__ tmp, double* __restrict__ tree,
                                     double* __restrict__ out, int32_t* __restrict__ count_tmp, int32_t size, int32_t rank) {
+#if (__CUDA_ARCH >= 350)
     if (threadIdx.x != 0) {
         return;
     }
@@ -222,6 +223,7 @@ __device__ void launch_sampleselect(double* __restrict__ in, double* __restrict_
     sampleselect_findbucket<<<1, searchtree_width / 2>>>(totalcounts, rank, bucket_idx, rank_out);
     collect_bucket_indirect<<<num_grouped_blocks, block_size>>>(in, oracles, localcounts, tmp, size, bucket_idx, nullptr, local_work);
     sampleselect_tailcall<<<1, 1>>>(tmp, in, tree, count_tmp, out);
+#endif
 }
 
 __global__ void sampleselect_tailcall(double* __restrict__ in, double* __restrict__ tmp, double* __restrict__ tree,
