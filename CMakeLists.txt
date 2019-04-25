@@ -324,8 +324,6 @@ include( ${CMAKE_SOURCE_DIR}/CMake.src )
 # ----------------------------------------
 # common flags
 
-set( LIBS tester lapacktest magma )
-
 if (WIN32)
     # On Windows:
     #     Strip out /W3; we will use -W4
@@ -358,8 +356,8 @@ if (CMAKE_HOST_APPLE)
             target_link_libraries( blas_fix
                 ${LAPACK_LIBRARIES}
             )
-            list( APPEND LIBS blas_fix )
             set( blas_fix blas_fix )
+            set( blas_fix_lib -lblas_fix )
         else()
             message( WARNING "\n      Warning: cannot compile blas_fix library for MacOS X without Fortran compiler.\n" )
         endif()
@@ -427,12 +425,11 @@ if (WIN32)
     ##     ${CUDA_cusparse_LIBRARY}
     ## )
     ## make list of Fortran .mod files to install, as below
-
-    set( LIBS tester lapacktest magma )  ##magmaf )
 else()
     # Unix doesn't seem to have a problem with mixing C, CUDA, and Fortran files
     cuda_add_library( magma ${libmagma_all} )
     target_link_libraries( magma
+        ${blas_fix}
         ${LAPACK_LIBRARIES}
         ${CUDA_CUDART_LIBRARY}
         ${CUDA_CUBLAS_LIBRARIES}
@@ -472,6 +469,7 @@ else()
     add_library( lapacktest ${liblapacktest_all_cpp} )
 endif()
 target_link_libraries( lapacktest
+    ${blas_fix}
     ${LAPACK_LIBRARIES}
 )
 
@@ -482,6 +480,7 @@ add_library( tester ${libtest_all} )
 target_link_libraries( tester
     magma
     lapacktest
+    ${blas_fix}
     ${LAPACK_LIBRARIES}
 )
 
@@ -496,12 +495,12 @@ include_directories( testing )
 cuda_add_library( magma_sparse ${libsparse_all} )
 target_link_libraries( magma_sparse
     magma
+    ${blas_fix}
     ${LAPACK_LIBRARIES}
     ${CUDA_CUDART_LIBRARY}
     ${CUDA_CUBLAS_LIBRARIES}
     ${CUDA_cusparse_LIBRARY}
 )
-set( LIBS_SPARSE ${LIBS} magma_sparse )
 add_custom_target( sparse-lib DEPENDS magma_sparse )
 
 
@@ -525,7 +524,7 @@ foreach( TEST ${testing_all_cpp} )
     string( REGEX REPLACE "testing/" "" EXE ${EXE} )
     #message( "${TEST} --> ${EXE}" )
     add_executable( ${EXE} ${TEST} )
-    target_link_libraries( ${EXE} ${LIBS} )
+    target_link_libraries( ${EXE} tester lapacktest magma )
     list( APPEND testing ${EXE} )
 endforeach()
 add_custom_target( testing DEPENDS ${testing} )
@@ -539,7 +538,7 @@ foreach( TEST ${sparse_testing_all} )
     string( REGEX REPLACE "sparse/testing/" "" EXE ${EXE} )
     #message( "${TEST} --> ${EXE}" )
     add_executable( ${EXE} ${TEST} )
-    target_link_libraries( ${EXE} ${LIBS_SPARSE} )
+    target_link_libraries( ${EXE} magma_sparse magma )
     list( APPEND sparse-testing ${EXE} )
 endforeach()
 add_custom_target( sparse-testing DEPENDS ${sparse-testing} )
@@ -556,6 +555,21 @@ install( FILES ${headers} ${modules}
          DESTINATION include )
 
 # ----------------------------------------
+# pkg-config
+set( pkgconfig lib/pkgconfig/magma.pc )
+message( STATUS "pkgconfig ${pkgconfig}" )
+set( INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" )
+set( CFLAGS "${CMAKE_C_FLAGS}" )
+# CMake finds the Accelerate directory; we want -framework Accelerate for linking.
+string( REPLACE "/System/Library/Frameworks/Accelerate.framework" "-framework Accelerate" LAPACK_LIBS "${LAPACK_LIBRARIES}" )
+string( REPLACE ";" " " LIBS
+        "${blas_fix_lib} ${LAPACK_LIBS} ${CUDA_CUDART_LIBRARY} ${CUDA_CUBLAS_LIBRARIES} ${CUDA_cusparse_LIBRARY}" )
+set( MAGMA_REQUIRED "" )
+configure_file( "${pkgconfig}.in" "${pkgconfig}" @ONLY )
+install( FILES "${CMAKE_BINARY_DIR}/${pkgconfig}"
+         DESTINATION lib/pkgconfig )
+
+# ----------------------------------------
 get_directory_property( compile_definitions COMPILE_DEFINITIONS )
 
 message( STATUS "Flags" )
@@ -565,7 +579,7 @@ message( STATUS "    CXXFLAGS:              ${CMAKE_CXX_FLAGS}" )
 message( STATUS "    NVCCFLAGS:             ${CUDA_NVCC_FLAGS}" )
 message( STATUS "    FFLAGS:                ${CMAKE_Fortran_FLAGS}" )
 message( STATUS "    LIBS:                  ${LIBS}" )
-message( STATUS "    LIBS_SPARSE:           ${LIBS_SPARSE}" )
+message( STATUS "    blas_fix:              ${blas_fix}  (MacOS Accelerate only)" )
 message( STATUS "    LAPACK_LIBRARIES:      ${LAPACK_LIBRARIES}"      )
 message( STATUS "    CUDA_CUDART_LIBRARY:   ${CUDA_CUDART_LIBRARY}"   )
 message( STATUS "    CUDA_CUBLAS_LIBRARIES: ${CUDA_CUBLAS_LIBRARIES}" )
