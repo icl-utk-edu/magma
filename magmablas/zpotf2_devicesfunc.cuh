@@ -390,7 +390,7 @@ static inline __device__ void zpotf2_smlpout_fixwidth_device(const int m,
                 if (cleanup[ty] == 0) *info = i + gbstep + 1;
                 cleanup[ty] = 1;
                 #else
-                *info = i + gbstep + 1;
+                *info = i + localstep + gbstep + 1;
                 cleanup[ty] = 1;
                 break;
                 #endif
@@ -463,7 +463,7 @@ static inline __device__ void zpotf2_smlpout_anywidth_device(const int m, const 
                 if (cleanup[ty] == 0) *info = i + gbstep + 1;
                 cleanup[ty] = 1;
                 #else
-                *info = i + gbstep + 1;
+                *info = i + localstep + gbstep + 1;
                 cleanup[ty] = 1;
                 break;
                 #endif
