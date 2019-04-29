@@ -531,6 +531,8 @@ sparse/src:     $(sparse_src_obj)
 
 sparse/testing: $(sparse_testers)
 
+run_test: test
+	cd testing && python ./run_tests.py
 
 # ----------
 # sub-directory clean
@@ -724,7 +726,11 @@ install: lib sparse-lib install_dirs
 	cp include/*.mod       $(DESTDIR)$(prefix)/include
 	cp sparse/include/*.h  $(DESTDIR)$(prefix)/include
 	cp $(libs)             $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)
+	${MAKE} pkgconfig
+
+pkgconfig:
 	# pkgconfig
+	mkdir -p $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)/pkgconfig
 	cat lib/pkgconfig/magma.pc.in                   | \
 	sed -e s:@INSTALL_PREFIX@:"$(prefix)":          | \
 	sed -e s:@CFLAGS@:"$(INSTALL_FLAGS) $(INC)":    | \

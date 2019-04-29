@@ -116,13 +116,13 @@ magma_zpotrf_LL_expert_gpu(
     nb = magma_get_zpotrf_nb( n );
     recnb = 128;
     
-    if( mode == MagmaHybrid ) {
+    if (mode == MagmaHybrid) {
         if (MAGMA_SUCCESS != magma_zmalloc_pinned( &work, nb*nb )) {
             *info = MAGMA_ERR_HOST_ALLOC;
             goto cleanup;
         }
     }
-    else{
+    else {
         if (MAGMA_SUCCESS != magma_imalloc( &dinfo, 1 ) ) {
             /* alloc failed for workspace */
             *info = MAGMA_ERR_DEVICE_ALLOC;
@@ -138,7 +138,7 @@ magma_zpotrf_LL_expert_gpu(
     magma_queue_create( cdev, &queues[1] );
     magma_event_create(&events[0]);
     magma_event_create(&events[1]);
-    if( mode == MagmaNative ) 
+    if (mode == MagmaNative)
         magma_setvector( 1, sizeof(magma_int_t), info, 1, dinfo, 1, queues[0]);
     
     if (uplo == MagmaUpper) {
@@ -152,16 +152,16 @@ magma_zpotrf_LL_expert_gpu(
                          d_neg_one, dA(0, j), ldda,
                          d_one,     dA(j, j), ldda, queues[1] );
             
-            if(mode == MagmaHybrid){
+            if (mode == MagmaHybrid) {
                 magma_queue_sync( queues[1] );
                 magma_zgetmatrix_async( jb, jb,
                                         dA(j, j), ldda,
                                         work,     jb, queues[0] );
             }
-            else{
+            else {
                 //Azzam: need to add events to allow overlap
-                magma_zpotrf_rectile_native(MagmaUpper, jb, recnb, 
-                                            dA(j, j), ldda, j, 
+                magma_zpotrf_rectile_native(MagmaUpper, jb, recnb,
+                                            dA(j, j), ldda, j,
                                             dinfo, info, queues[1] );
             }
 
@@ -177,7 +177,7 @@ magma_zpotrf_LL_expert_gpu(
             
             // simultaneous with above zgemm, transfer diagonal block,
             // factor it on CPU, and test for positive definiteness
-            if(mode == MagmaHybrid){
+            if (mode == MagmaHybrid) {
                 magma_queue_sync( queues[0] );
                 lapackf77_zpotrf( MagmaUpperStr, &jb, work, &jb, info );
                 magma_zsetmatrix_async( jb, jb,
@@ -209,14 +209,14 @@ magma_zpotrf_LL_expert_gpu(
                          d_neg_one, dA(j, 0), ldda,
                          d_one,     dA(j, j), ldda, queues[0] );
             // Azzam: this section of "ifthenelse" can be moved down to the factorize section and I don't think performane wil be affected.
-            if(mode == MagmaHybrid){
+            if (mode == MagmaHybrid) {
                 magma_zgetmatrix_async( jb, jb,
                                         dA(j, j), ldda,
                                         work,     jb, queues[0] );
             }
-            else{
-                magma_zpotrf_rectile_native(MagmaLower, jb, recnb, 
-                                            dA(j, j), ldda, j, 
+            else {
+                magma_zpotrf_rectile_native(MagmaLower, jb, recnb,
+                                            dA(j, j), ldda, j,
                                             dinfo, info, queues[0] );
             }
             
@@ -234,7 +234,7 @@ magma_zpotrf_LL_expert_gpu(
             // simultaneous with above zgemm, transfer diagonal block,
             // factor it on CPU, and test for positive definiteness
             // Azzam: The above section can be moved here the code will look cleaner.
-            if(mode == MagmaHybrid){
+            if (mode == MagmaHybrid) {
                 magma_queue_sync( queues[0] );
                 lapackf77_zpotrf( MagmaLowerStr, &jb, work, &jb, info );
                 magma_zsetmatrix_async( jb, jb,
@@ -257,7 +257,7 @@ magma_zpotrf_LL_expert_gpu(
             }
         }
     }
-    if( mode == MagmaNative ) 
+    if (mode == MagmaNative)
         magma_getvector( 1, sizeof(magma_int_t), dinfo, 1, info, 1, queues[0]);
 
 cleanup:
@@ -268,18 +268,22 @@ cleanup:
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
     
-    if( mode == MagmaHybrid ) {
+    if (mode == MagmaHybrid) {
         magma_free_pinned( work );
     }
-    else{
+    else {
         magma_free( dinfo );
     }
     
     return *info;
 } /* magma_zpotrf_LL_expert_gpu */
 
-/*******************************************************************************/
-/// @see magma_zpotrf_LL_expert_gpu
+/***************************************************************************//**
+    magma_zpotrf_LL_expert_gpu with mode = MagmaHybrid.
+    Computation is hybrid, part on CPU (panels), part on GPU (matrix updates).
+    @see magma_zpotrf_LL_expert_gpu
+    @ingroup magma_potrf
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_gpu(
     magma_uplo_t uplo, magma_int_t n,
@@ -291,8 +295,12 @@ magma_zpotrf_gpu(
     return *info;
 }
 
-/*******************************************************************************/
-/// @see magma_zpotrf_LL_expert_gpu
+/***************************************************************************//**
+    magma_zpotrf_LL_expert_gpu with mode = MagmaNative.
+    Computation is done only on the GPU, not on the CPU.
+    @see magma_zpotrf_LL_expert_gpu
+    @ingroup magma_potrf
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_native(
     magma_uplo_t uplo, magma_int_t n,
@@ -303,5 +311,3 @@ magma_zpotrf_native(
     magma_zpotrf_LL_expert_gpu(uplo, n, dA, ldda, info, mode);
     return *info;
 }
-
-/*******************************************************************************/

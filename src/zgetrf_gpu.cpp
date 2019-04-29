@@ -125,13 +125,13 @@ magma_zgetrf_gpu_expert(
     magma_queue_create( cdev, &queues[0] );
     magma_queue_create( cdev, &queues[1] );
 
-    if(mode == MagmaNative){
+    if (mode == MagmaNative) {
         liwork = m + minmn + 1;
-        if( MAGMA_SUCCESS != magma_imalloc(&diwork, liwork) ){
+        if (MAGMA_SUCCESS != magma_imalloc(&diwork, liwork)) {
             *info = MAGMA_ERR_DEVICE_ALLOC;
             goto cleanup;
         }
-        else{
+        else {
             dipivinfo = diwork;     // dipivinfo size = m
             dipiv = dipivinfo + m;  // dipiv size = minmn
             dinfo = dipiv + minmn;  // dinfo size = 1
@@ -140,7 +140,7 @@ magma_zgetrf_gpu_expert(
     }
     
     if (nb <= 1 || nb >= min(m,n) ) {
-        if( mode == MagmaHybrid ){
+        if (mode == MagmaHybrid) {
             /* Use CPU code. */
             if ( MAGMA_SUCCESS != magma_zmalloc_cpu( &work, m*n )) {
                 *info = MAGMA_ERR_HOST_ALLOC;
@@ -151,10 +151,10 @@ magma_zgetrf_gpu_expert(
             magma_zsetmatrix( m, n, work, m, dA(0,0), ldda, queues[0] );
             magma_free_cpu( work );  work=NULL;
         }
-        else{
+        else {
             /* Use GPU code (native mode). */
             magma_zgetrf_recpanel_native( m, n, dA(0,0), ldda, dipiv, dipivinfo, dinfo, 0, queues[0], queues[1]);
-            magma_igetvector( minmn, dipiv, 1, ipiv, 1, queues[0] ); 
+            magma_igetvector( minmn, dipiv, 1, ipiv, 1, queues[0] );
             magma_igetvector( 1, dinfo, 1, info, 1, queues[0] );
         }
     }
@@ -186,7 +186,7 @@ magma_zgetrf_gpu_expert(
         magma_queue_sync( queues[0] );  // finish transpose
 
         ldwork = maxm;
-        if(mode == MagmaHybrid){
+        if (mode == MagmaHybrid) {
             if (MAGMA_SUCCESS != magma_zmalloc_pinned( &work, ldwork*nb )) {
                 *info = MAGMA_ERR_HOST_ALLOC;
                 goto cleanup;
@@ -197,7 +197,7 @@ magma_zgetrf_gpu_expert(
             // get j-th panel from device
             magmablas_ztranspose( nb, m-j, dAT(j,j), lddat, dAP(0,0), maxm, queues[1] );
             magma_queue_sync( queues[1] );  // wait for transpose
-            if(mode == MagmaHybrid){
+            if (mode == MagmaHybrid) {
                 magma_zgetmatrix_async( m-j, nb, dAP(0,0), maxm, work, ldwork, queues[0] );
             }
 
@@ -214,7 +214,7 @@ magma_zgetrf_gpu_expert(
             }
 
             rows = m - j;
-            if(mode == MagmaHybrid) {
+            if (mode == MagmaHybrid) {
                 // do the cpu part
                 magma_queue_sync( queues[0] );  // wait to get work
                 lapackf77_zgetrf( &rows, &nb, work, &ldwork, ipiv+j, &iinfo );
@@ -236,7 +236,7 @@ magma_zgetrf_gpu_expert(
                 magma_zgetrf_recpanel_native( rows, nb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, queues[0], queues[1]);
                 adjust_ipiv( dipiv+j, nb, j, queues[0]);
                 #ifdef SWP_CHUNK
-                magma_igetvector_async( nb, dipiv+j, 1, ipiv+j, 1, queues[0] ); 
+                magma_igetvector_async( nb, dipiv+j, 1, ipiv+j, 1, queues[0] );
                 #endif
 
                 magma_queue_sync( queues[0] );  // wait for the pivot
@@ -278,7 +278,7 @@ magma_zgetrf_gpu_expert(
             rows = m - j;
             
             magmablas_ztranspose( jb, rows, dAT(j,j), lddat, dAP(0,0), maxm, queues[1] );
-            if( mode == MagmaHybrid ) {
+            if (mode == MagmaHybrid) {
                 magma_zgetmatrix( rows, jb, dAP(0,0), maxm, work, ldwork, queues[1] );
             
                 // do the cpu part
@@ -298,7 +298,7 @@ magma_zgetrf_gpu_expert(
                 magma_zgetrf_recpanel_native( rows, jb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, queues[1], queues[0]);
                 adjust_ipiv( dipiv+j, jb, j, queues[1]);
                 #ifdef SWP_CHUNK
-                magma_igetvector( jb, dipiv+j, 1, ipiv+j, 1, queues[1] ); 
+                magma_igetvector( jb, dipiv+j, 1, ipiv+j, 1, queues[1] );
                 magmablas_zlaswp( n, dAT(0,0), lddat, j + 1, j + jb, ipiv, 1, queues[1] );
                 #else
                 magma_zlaswp_columnserial(n, dAT(0,0), lddat, j + 1, j + jb, dipiv, queues[1]);
@@ -313,7 +313,7 @@ magma_zgetrf_gpu_expert(
                                 dAT(j,j+jb), lddat, queues[1] );
         }
         
-        if(mode == MagmaNative) {
+        if (mode == MagmaNative) {
             // copy the pivot vector to the CPU
             #ifndef SWP_CHUNK
             magma_igetvector(minmn, dipiv, 1, ipiv, 1, queues[1] );
@@ -338,7 +338,7 @@ cleanup:
         magma_free( dAT );
     }
 
-    if( mode == MagmaHybrid ) {
+    if (mode == MagmaHybrid) {
         magma_free_pinned( work );
     }
     else {
@@ -348,8 +348,12 @@ cleanup:
     return *info;
 } /* magma_zgetrf_gpu */
 
-/*******************************************************************************/
-/// @see magma_zgetrf_gpu_expert
+/***************************************************************************//**
+    magma_zgetrf_gpu_expert with mode = MagmaHybrid.
+    Computation is hybrid, part on CPU (panels), part on GPU (matrix updates).
+    @see magma_zgetrf_gpu_expert
+    @ingroup magma_getrf
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zgetrf_gpu(
     magma_int_t m, magma_int_t n,
@@ -361,8 +365,12 @@ magma_zgetrf_gpu(
     return *info;
 } /* magma_zgetrf_gpu */
 
-/*******************************************************************************/
-/// @see magma_zgetrf_gpu_expert
+/***************************************************************************//**
+    magma_zgetrf_gpu_expert with mode = MagmaNative.
+    Computation is done only on the GPU, not on the CPU.
+    @see magma_zgetrf_gpu_expert
+    @ingroup magma_getrf
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zgetrf_native(
     magma_int_t m, magma_int_t n,
