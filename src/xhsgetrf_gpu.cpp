@@ -14,7 +14,6 @@
 
 #if CUDA_VERSION >= 7500
 #include <cuda_fp16.h>
-#endif
 
 #if CUDA_VERSION < 9020
 // conversion float to half are not defined for host in CUDA version <9.2
@@ -140,6 +139,7 @@ static float half_to_float(half hf)
     return o.f;
 }
 #endif
+#endif // CUDA_VERSION >= 7500
 
 #include "magma_internal.h"
 //#include "nvToolsExt.h"
