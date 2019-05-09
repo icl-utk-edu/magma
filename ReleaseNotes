@@ -24,6 +24,15 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+ 2.5.1 - May 9, 2019
+    * Updates and improvements in CMakeLists.txt for improved/friendlier CMake 
+      and spack installations
+    * Fixes related to MAGMA installation on GPUs and CUDA versions that do not 
+      support FP16 arithmetic
+    * Support for Turing GPUs added
+    * Remove some C++ features from MAGMA Sparse for friedlier compilation
+      (using nvcc and various CPU compilers) 
+
  2.5.0 - Nov 16, 2018
     * New routines: Magma is releasing the Nvidia Tensor Cores version 
       of its linear mixed-precision solver that is able to provide an 
