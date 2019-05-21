@@ -33,10 +33,10 @@ magmablas_zsyrkherk_batched(
     magma_uplo_t uplo, magma_trans_t trans, 
     magma_int_t n, magma_int_t k,
     magmaDoubleComplex alpha,
-    magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
-    magmaDoubleComplex const * const * dB_array, magma_int_t lddb,
+    magmaDoubleComplex const * const * dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magmaDoubleComplex const * const * dB_array, magma_int_t bi, magma_int_t bj, magma_int_t lddb,
     magmaDoubleComplex beta,
-    magmaDoubleComplex **dC_array, magma_int_t lddc, 
+    magmaDoubleComplex **dC_array, magma_int_t ci, magma_int_t cj, magma_int_t lddc, 
     magma_int_t batchCount, magma_queue_t queue )
 {
     magmaDoubleComplex cbeta  = beta;
@@ -51,17 +51,15 @@ magmablas_zsyrkherk_batched(
     {
         case 0: // nc or nt
             {
-                if (k <= 8)
-                {
+                if (k <= 8){
                     // version 58
                     herk_template_batched_nt<magmaDoubleComplex, version(NT,58), 0, CONJ>
-                    (uplo, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, calpha, cbeta, batchCount, queue);
+                    (uplo, n, k, dA_array, ai, aj, ldda, dB_array, bi, bj, lddb, dC_array, ci, cj, lddc, calpha, cbeta, batchCount, queue);
                 }
-                else
-                {
+                else{
                     // version 29
                     herk_template_batched_nt<magmaDoubleComplex, version(NT,29), 0, CONJ>
-                    (uplo, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, calpha, cbeta, batchCount, queue);
+                    (uplo, n, k, dA_array, ai, aj, ldda, dB_array, bi, bj, lddb, dC_array, ci, cj, lddc, calpha, cbeta, batchCount, queue);
                 }
             }
             break;
@@ -69,7 +67,7 @@ magmablas_zsyrkherk_batched(
             {
                 // version 72
                 herk_template_batched_tn<magmaDoubleComplex, version(TN,72), CONJ, 0>
-                (uplo, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, calpha, cbeta, batchCount, queue);
+                (uplo, n, k, dA_array, ai, aj, ldda, dB_array, bi, bj, lddb, dC_array, ci, cj, lddc, calpha, cbeta, batchCount, queue);
             }
             break;
         default:; // propose something
@@ -78,34 +76,48 @@ magmablas_zsyrkherk_batched(
 
 
 /******************************************************************************/
+// This routines accepts A and B instead of A only, since it is internally used for her2k
 extern "C" void 
-magmablas_zsyrk_internal_batched(
+magmablas_zsyrk_batched_core(
     magma_uplo_t uplo, magma_trans_t trans, 
     magma_int_t n, magma_int_t k,
     magmaDoubleComplex alpha,
-    magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
-    magmaDoubleComplex const * const * dB_array, magma_int_t lddb,
+    magmaDoubleComplex const * const * dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magmaDoubleComplex const * const * dB_array, magma_int_t bi, magma_int_t bj, magma_int_t lddb,
     magmaDoubleComplex beta,
-    magmaDoubleComplex **dC_array, magma_int_t lddc, 
+    magmaDoubleComplex **dC_array, magma_int_t ci, magma_int_t cj, magma_int_t lddc, 
     magma_int_t batchCount, magma_queue_t queue )
 {
-    magmablas_zsyrkherk_batched<0>(uplo, trans, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc, batchCount, queue );
+    magmablas_zsyrkherk_batched<0>(
+            uplo, trans, 
+            n, k, 
+            alpha, dA_array, ai, aj, ldda, 
+                   dB_array, bi, bj, lddb, 
+            beta,  dC_array, ci, cj, lddc, 
+            batchCount, queue );
 }
 
 
 /******************************************************************************/
+// This routines accepts A and B instead of A only, since it is internally used for her2k
 extern "C" void
-magmablas_zherk_internal_batched(
+magmablas_zherk_batched_core(
     magma_uplo_t uplo, magma_trans_t trans, 
     magma_int_t n, magma_int_t k,
     magmaDoubleComplex alpha,
-    magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
-    magmaDoubleComplex const * const * dB_array, magma_int_t lddb,
+    magmaDoubleComplex const * const * dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magmaDoubleComplex const * const * dB_array, magma_int_t bi, magma_int_t bj, magma_int_t lddb,
     magmaDoubleComplex beta,
-    magmaDoubleComplex **dC_array, magma_int_t lddc, 
+    magmaDoubleComplex **dC_array, magma_int_t ci, magma_int_t cj, magma_int_t lddc, 
     magma_int_t batchCount, magma_queue_t queue )
 {
-    magmablas_zsyrkherk_batched<1>(uplo, trans, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc, batchCount, queue );
+    magmablas_zsyrkherk_batched<1>(
+            uplo, trans, 
+            n, k, 
+            alpha, dA_array, ai, aj, ldda, 
+                   dB_array, bi, bj, lddb, 
+            beta,  dC_array, ci, cj, lddc, 
+            batchCount, queue );
 }
 
 
@@ -260,7 +272,13 @@ magmablas_zsyrk_batched(
     if ( n <= 0 || k <= 0 )
         return;
 
-    magmablas_zsyrk_internal_batched(uplo, trans, n, k, alpha, dA_array, ldda, dA_array, ldda, beta, dC_array, lddc, batchCount, queue );
+    magmablas_zsyrk_batched_core(
+            uplo, trans, 
+            n, k, 
+            alpha, dA_array, 0, 0, ldda, 
+                   dA_array, 0, 0, ldda, 
+            beta,  dC_array, 0, 0, lddc, 
+            batchCount, queue );
 }
 
 
@@ -415,5 +433,11 @@ magmablas_zherk_batched(
     if ( n <= 0 || k <= 0 )
         return;
 
-    magmablas_zherk_internal_batched(uplo, trans, n, k, MAGMA_Z_MAKE(alpha, 0.), dA_array, ldda, dA_array, ldda, MAGMA_Z_MAKE(beta, 0.), dC_array, lddc, batchCount, queue );
+    magmablas_zherk_batched_core(
+            uplo, trans, 
+            n, k, 
+            MAGMA_Z_MAKE(alpha, 0.), dA_array, 0, 0, ldda, 
+                                     dA_array, 0, 0, ldda, 
+            MAGMA_Z_MAKE(beta, 0.),  dC_array, 0, 0, lddc, 
+            batchCount, queue );
 }

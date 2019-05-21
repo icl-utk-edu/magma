@@ -101,7 +101,19 @@ public:
     /// @return cuSparse handle associated with this queue; requires CUDA.
     /// MAGMA assumes the handle won't be changed, e.g., its stream won't be modified.
     cusparseHandle_t cusparse_handle() { return cusparse__; }
+
     #endif
+    /// @return the pointer array dAarray__.
+    void** get_dAarray() {return dAarray__; }
+
+    /// @return the pointer array dBarray__.
+    void** get_dBarray() {return dBarray__; }
+
+    /// @return the pointer array dCarray__.
+    void** get_dCarray() {return dCarray__; }
+
+    /// @return the pointer array dCarray__.
+    magma_int_t get_maxBatch() {return (magma_int_t)maxbatch__; }
 
 protected:
     friend
@@ -130,6 +142,10 @@ protected:
     // bitmask whether MAGMA owns the CUDA stream, cuBLAS and cuSparse handles
     int              own__;
     magma_device_t   device__;      // associated device ID
+    int              maxbatch__;    // maximum size of the pointer array
+    void**           dAarray__;     // pointer array
+    void**           dBarray__;     // pointer array
+    void**           dCarray__;     // pointer array
 
     #ifdef HAVE_CUBLAS
     cudaStream_t     stream__;      // associated CUDA stream; may be NULL

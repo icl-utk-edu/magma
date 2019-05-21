@@ -79,8 +79,8 @@ magma_zparilut_cpu(
 
     real_Double_t start, end;
     real_Double_t t_rm=0.0, t_add=0.0, t_res=0.0, t_sweep1=0.0, t_sweep2=0.0, 
-        t_cand=0.0, t_transpose1=0.0, t_transpose2=0.0, t_selectrm=0.0,
-        t_selectadd=0.0, t_nrm=0.0, t_total = 0.0, accum=0.0;
+        t_cand=0.0, t_sort=0.0, t_transpose1=0.0, t_transpose2=0.0, t_selectrm=0.0,
+        t_nrm=0.0, t_total = 0.0, accum=0.0;
                     
     double sum, sumL, sumU;
 
@@ -123,8 +123,8 @@ magma_zparilut_cpu(
     oneU.memory_location = Magma_CPU;
         
     if (timing == 1) {
-        printf("ilut_fill_ratio = %.6f;\n\n", precond->atol); 
-        printf("performance_%d = [\n%%iter L.nnz U.nnz    ILU-Norm    candidat  resid     ILU-norm  selectad  add       transp1   sweep1  selectrm  remove    sweep2    transp2   total       accum\n", 
+        printf("ilut_fill_ratio = %.6f;\n\n", precond->atol);  
+        printf("performance_%d = [\n%%iter      L.nnz      U.nnz    ILU-Norm    transp    candidat  resid     sort    transcand    add      sweep1   selectrm    remove    sweep2     total       accum\n", 
             (int) num_threads);
     }
 
@@ -132,19 +132,23 @@ magma_zparilut_cpu(
 
     for (magma_int_t iters =0; iters<precond->sweeps; iters++) {
         t_rm=0.0; t_add=0.0; t_res=0.0; t_sweep1=0.0; t_sweep2=0.0; t_cand=0.0;
-        t_transpose1=0.0; t_transpose2=0.0; t_selectrm=0.0;
-        t_selectadd=0.0; t_nrm=0.0; t_total = 0.0;
+        t_transpose1=0.0; t_transpose2=0.0;  t_selectrm=0.0; t_sort = 0;
+        t_sort=0.0; t_nrm=0.0; t_total = 0.0;
      
-        // step 1: find candidates
+        // step 1: transpose U
         start = magma_sync_wtime(queue);
         magma_zmfree(&UT, queue);
         CHECK(magma_zcsrcoo_transpose(U, &UT, queue));
         end = magma_sync_wtime(queue); t_transpose1+=end-start;
+        
+        
+        // step 2: find candidates
         start = magma_sync_wtime(queue);
         CHECK(magma_zparilut_candidates(L0, U0, L, UT, &hL, &hU, queue));
         end = magma_sync_wtime(queue); t_cand=+end-start;
         
-        // step 2: compute residuals (optional when adding all candidates)
+        
+        // step 3: compute residuals (optional when adding all candidates)
         start = magma_sync_wtime(queue);
         CHECK(magma_zparilut_residuals(hA, L, U, &hL, queue));
         CHECK(magma_zparilut_residuals(hA, L, U, &hU, queue));
@@ -157,16 +161,21 @@ magma_zparilut_cpu(
         CHECK(magma_zmatrix_swap(&hL, &oneL, queue));
         magma_zmfree(&hL, queue);
         
-        // step 3: add candidates
+        
+        // step 4: sort candidates
+        start = magma_sync_wtime(queue);
+        CHECK(magma_zcsr_sort(&hL, queue));
+        CHECK(magma_zcsr_sort(&hU, queue));
+        end = magma_sync_wtime(queue); t_sort+=end-start;
+        
+        
+        // step 5: transpose candidates
         start = magma_sync_wtime(queue);
         magma_zcsrcoo_transpose(hU, &oneU, queue);
         end = magma_sync_wtime(queue); t_transpose2+=end-start;
-        start = magma_sync_wtime(queue);
-        magma_zmfree(&hU, queue);
-        magma_zmfree(&UT, queue);
-        CHECK(magma_zcsr_sort(&hL, queue));
-        CHECK(magma_zcsr_sort(&hU, queue));
-        end = magma_sync_wtime(queue); t_selectadd+=end-start;
+        
+        
+        // step 6: add candidates
         start = magma_sync_wtime(queue);
         CHECK(magma_zmatrix_cup(L, oneL, &L_new, queue));   
         CHECK(magma_zmatrix_cup(U, oneU, &U_new, queue));
@@ -174,12 +183,14 @@ magma_zparilut_cpu(
         magma_zmfree(&oneL, queue);
         magma_zmfree(&oneU, queue);
        
-        // step 4: sweep
+        
+        // step 7: sweep
         start = magma_sync_wtime(queue);
         CHECK(magma_zparilut_sweep_sync(&hA, &L_new, &U_new, queue));
         end = magma_sync_wtime(queue); t_sweep1+=end-start;
         
-        // step 5: select threshold to remove elements
+        
+        // step 8: select threshold to remove elements
         start = magma_sync_wtime(queue);
         num_rmL = max((L_new.nnz-L0nnz*(1+(precond->atol-1.)
             *(iters+1)/precond->sweeps)), 0);
@@ -189,13 +200,13 @@ magma_zparilut_cpu(
         CHECK(magma_zparilut_preselect(0, &L_new, &oneL, queue));
         CHECK(magma_zparilut_preselect(0, &U_new, &oneU, queue));
         if (num_rmL>0) {
-            CHECK(magma_zparilut_set_thrs_randomselect(num_rmL, 
+            CHECK(magma_zparilut_set_thrs_randomselect_approx(num_rmL, 
                 &oneL, 0, &thrsL, queue));
         } else {
             thrsL = 0.0;
         }
         if (num_rmU>0) {
-            CHECK(magma_zparilut_set_thrs_randomselect(num_rmU, 
+            CHECK(magma_zparilut_set_thrs_randomselect_approx(num_rmU, 
                 &oneU, 0, &thrsU, queue));
         } else {
             thrsU = 0.0;
@@ -204,7 +215,8 @@ magma_zparilut_cpu(
         magma_zmfree(&oneU, queue);
         end = magma_sync_wtime(queue); t_selectrm=end-start;
 
-        // step 6: remove elements
+        
+        // step 9: remove elements
         start = magma_sync_wtime(queue);
         CHECK(magma_zparilut_thrsrm(1, &L_new, &thrsL, queue));
         CHECK(magma_zparilut_thrsrm(1, &U_new, &thrsU, queue));
@@ -214,21 +226,19 @@ magma_zparilut_cpu(
         magma_zmfree(&U_new, queue);
         end = magma_sync_wtime(queue); t_rm=end-start;
         
-        // step 7: sweep
+        
+        // step 10: sweep
         start = magma_sync_wtime(queue);
         CHECK(magma_zparilut_sweep_sync(&hA, &L, &U, queue));
         end = magma_sync_wtime(queue); t_sweep2+=end-start;
         
         if (timing == 1) {
-            t_total = t_cand+t_res+t_nrm+t_selectadd+t_add+t_transpose1
-                +t_sweep1+t_selectrm+t_rm+t_sweep2+t_transpose2;
+            t_total = t_transpose1+ t_cand+ t_res+ t_sort+ t_transpose2+ t_add+ t_sweep1+ t_selectrm+ t_rm+ t_sweep2;
             accum = accum + t_total;
-            printf("%5lld %5lld %5lld  %.4e   %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e    %.2e\n",
+            printf("%5lld %10lld %10lld  %.4e   %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e  %.2e      %.2e\n",
                 (long long) iters, (long long) L.nnz, (long long) U.nnz, 
                 (double) sum, 
-                t_cand, t_res, t_nrm, t_selectadd, t_add, t_transpose1, 
-                t_sweep1, t_selectrm, t_rm, t_sweep2, t_transpose2, t_total, 
-                accum);
+                t_transpose1, t_cand, t_res, t_sort, t_transpose2, t_add, t_sweep1, t_selectrm, t_rm, t_sweep2, t_total, accum);
             fflush(stdout);
         }
     }

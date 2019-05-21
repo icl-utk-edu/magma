@@ -34,10 +34,10 @@ magmablas_csyrkherk_batched(
     magma_uplo_t uplo, magma_trans_t trans, 
     magma_int_t n, magma_int_t k,
     magmaFloatComplex alpha,
-    magmaFloatComplex const * const * dA_array, magma_int_t ldda,
-    magmaFloatComplex const * const * dB_array, magma_int_t lddb,
+    magmaFloatComplex const * const * dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magmaFloatComplex const * const * dB_array, magma_int_t bi, magma_int_t bj, magma_int_t lddb,
     magmaFloatComplex beta,
-    magmaFloatComplex **dC_array, magma_int_t lddc, 
+    magmaFloatComplex **dC_array, magma_int_t ci, magma_int_t cj, magma_int_t lddc, 
     magma_int_t batchCount, magma_queue_t queue )
 {
     magmaFloatComplex cbeta  = beta;
@@ -55,19 +55,19 @@ magmablas_csyrkherk_batched(
                 if (k < 64)
                 {
                     herk_template_batched_nt<magmaFloatComplex, version(NT,338), 0, CONJ>
-                    (uplo, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, calpha, cbeta, batchCount, queue);
+                    (uplo, n, k, dA_array, ai, aj, ldda, dB_array, bi, bj, lddb, dC_array, ci, cj, lddc, calpha, cbeta, batchCount, queue);
                 }
                 else
                 {
                     if (n < 128)
                     {
                         herk_template_batched_nt<magmaFloatComplex, version(NT,338), 0, CONJ>
-                        (uplo, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, calpha, cbeta, batchCount, queue);
+                        (uplo, n, k, dA_array, ai, aj, ldda, dB_array, bi, bj, lddb, dC_array, ci, cj, lddc, calpha, cbeta, batchCount, queue);
                     }
                     else
                     {
                         herk_template_batched_nt<magmaFloatComplex, version(NT,426), 0, CONJ>
-                        (uplo, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, calpha, cbeta, batchCount, queue);
+                        (uplo, n, k, dA_array, ai, aj, ldda, dB_array, bi, bj, lddb, dC_array, ci, cj, lddc, calpha, cbeta, batchCount, queue);
                     }
                 }
             }
@@ -77,12 +77,12 @@ magmablas_csyrkherk_batched(
                 if (k < 16)
                 {
                     herk_template_batched_tn<magmaFloatComplex, version(TN,282), CONJ, 0>
-                    (uplo, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, calpha, cbeta, batchCount, queue);
+                    (uplo, n, k, dA_array, ai, aj, ldda, dB_array, bi, bj, lddb, dC_array, ci, cj, lddc, calpha, cbeta, batchCount, queue);
                 }
                 else
                 {
                     herk_template_batched_tn<magmaFloatComplex, version(TN,505), CONJ, 0>
-                    (uplo, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, calpha, cbeta, batchCount, queue);
+                    (uplo, n, k, dA_array, ai, aj, ldda, dB_array, bi, bj, lddb, dC_array, ci, cj, lddc, calpha, cbeta, batchCount, queue);
                 }
             }
             break;
@@ -93,33 +93,43 @@ magmablas_csyrkherk_batched(
 
 /******************************************************************************/
 extern "C" void
-magmablas_csyrk_internal_batched(
+magmablas_csyrk_batched_core(
     magma_uplo_t uplo, magma_trans_t trans, 
     magma_int_t n, magma_int_t k,
     magmaFloatComplex alpha,
-    magmaFloatComplex const * const * dA_array, magma_int_t ldda,
-    magmaFloatComplex const * const * dB_array, magma_int_t lddb,
+    magmaFloatComplex const * const * dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magmaFloatComplex const * const * dB_array, magma_int_t bi, magma_int_t bj, magma_int_t lddb,
     magmaFloatComplex beta,
-    magmaFloatComplex **dC_array, magma_int_t lddc, 
+    magmaFloatComplex **dC_array, magma_int_t ci, magma_int_t cj, magma_int_t lddc, 
     magma_int_t batchCount, magma_queue_t queue )
 {
-    magmablas_csyrkherk_batched<0>(uplo, trans, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc, batchCount, queue );
+    magmablas_csyrkherk_batched<0>(
+            uplo, trans, 
+            n, k, 
+            alpha, dA_array, ai, aj, ldda, 
+                   dB_array, bi, bj, lddb, 
+            beta,  dC_array, ci, cj, lddc, batchCount, queue );
 }
 
 
 /******************************************************************************/
 extern "C" void
-magmablas_cherk_internal_batched(
+magmablas_cherk_batched_core(
     magma_uplo_t uplo, magma_trans_t trans, 
     magma_int_t n, magma_int_t k,
     magmaFloatComplex alpha,
-    magmaFloatComplex const * const * dA_array, magma_int_t ldda,
-    magmaFloatComplex const * const * dB_array, magma_int_t lddb,
+    magmaFloatComplex const * const * dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magmaFloatComplex const * const * dB_array, magma_int_t bi, magma_int_t bj, magma_int_t lddb,
     magmaFloatComplex beta,
-    magmaFloatComplex **dC_array, magma_int_t lddc, 
+    magmaFloatComplex **dC_array, magma_int_t ci, magma_int_t cj, magma_int_t lddc, 
     magma_int_t batchCount, magma_queue_t queue )
 {
-    magmablas_csyrkherk_batched<1>(uplo, trans, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc, batchCount, queue );
+    magmablas_csyrkherk_batched<1>(
+            uplo, trans, 
+            n, k, 
+            alpha, dA_array, ai, aj, ldda, 
+                   dB_array, bi, bj, lddb, 
+            beta,  dC_array, ci, cj, lddc, batchCount, queue );
 }
 
 
@@ -274,7 +284,12 @@ magmablas_csyrk_batched(
     if ( n <= 0 || k <= 0 )
         return;
 
-    magmablas_csyrk_internal_batched(uplo, trans, n, k, alpha, dA_array, ldda, dA_array, ldda, beta, dC_array, lddc, batchCount, queue );
+    magmablas_csyrk_batched_core(
+            uplo, trans, 
+            n, k, 
+            alpha, dA_array, 0, 0, ldda, 
+                   dA_array, 0, 0, ldda, 
+            beta,  dC_array, 0, 0, lddc, batchCount, queue );
 }
 
 
@@ -319,5 +334,10 @@ magmablas_cherk_batched(
     if ( n <= 0 || k <= 0 )
         return;
 
-    magmablas_cherk_internal_batched(uplo, trans, n, k, MAGMA_C_MAKE(alpha, 0.), dA_array, ldda, dA_array, ldda, MAGMA_C_MAKE(beta, 0.), dC_array, lddc, batchCount, queue );
+    magmablas_cherk_batched_core(
+            uplo, trans, 
+            n, k, 
+            MAGMA_C_MAKE(alpha, 0.), dA_array, 0, 0, ldda, 
+                                     dA_array, 0, 0, ldda, 
+            MAGMA_C_MAKE(beta, 0.),  dC_array, 0, 0, lddc, batchCount, queue );
 }

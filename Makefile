@@ -24,16 +24,16 @@ RANLIB     ?= ranlib
 
 # may want -std=c99 for CFLAGS, -std=c++11 for CXXFLAGS
 CFLAGS     ?= -O3 $(FPIC) -DADD_ -Wall -MMD
-CXXFLAGS   ?= $(CFLAGS)
-NVCCFLAGS  ?= -O3         -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+CXXFLAGS   ?= $(CFLAGS) -std=c++11
+NVCCFLAGS  ?= -O3         -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function" -std=c++11
 FFLAGS     ?= -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS   ?= -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
 LDFLAGS    ?= -O3 $(FPIC)
 
 INC        ?= -I$(CUDADIR)/include
 
-LIBDIR     ?= -L$(CUDADIR)/lib
-LIB        ?= -lcudart -lcublas -lcusparse -llapack -lblas
+LIBDIR     ?= -L$(CUDADIR)/lib64
+LIB        ?= -lcudart -lcudadevrt -lcublas -lcusparse -llapack -lblas -lpthread -lm
 
 GPU_TARGET ?= Kepler Maxwell Pascal
 
@@ -60,8 +60,7 @@ CFLAGS    += -DHAVE_CUBLAS
 CXXFLAGS  += -DHAVE_CUBLAS
 
 # where testers look for MAGMA libraries
-RPATH      = -Wl,-rpath,../lib
-RPATH2     = -Wl,-rpath,../../lib
+RPATH      = -Wl,-rpath,${abspath ./lib}
 
 codegen    = python tools/codegen.py
 
@@ -69,9 +68,6 @@ codegen    = python tools/codegen.py
 # ------------------------------------------------------------------------------
 # NVCC options for the different cards
 # First, add smXX for architecture names
-ifneq ($(findstring Fermi, $(GPU_TARGET)),)
-    GPU_TARGET += sm_20
-endif
 ifneq ($(findstring Kepler, $(GPU_TARGET)),)
     GPU_TARGET += sm_30 sm_35
 endif
@@ -84,6 +80,11 @@ endif
 ifneq ($(findstring Volta, $(GPU_TARGET)),)
     GPU_TARGET += sm_70
 endif
+ifneq ($(findstring Turing, $(GPU_TARGET)),)
+    GPU_TARGET += sm_75
+endif
+# Remember to add to CMakeLists.txt too!
+
 
 # Next, add compile options for specific smXX
 # sm_xx is binary, compute_xx is PTX for forward compatability
@@ -106,11 +107,17 @@ ifneq ($(findstring sm_20, $(GPU_TARGET)),)
     MIN_ARCH ?= 200
     NV_SM    += -gencode arch=compute_20,code=sm_20
     NV_COMP  := -gencode arch=compute_20,code=compute_20
+    $(warning CUDA arch 2.x is no longer supported by CUDA >= 9.x)
 endif
 ifneq ($(findstring sm_30, $(GPU_TARGET)),)
     MIN_ARCH ?= 300
     NV_SM    += -gencode arch=compute_30,code=sm_30
     NV_COMP  := -gencode arch=compute_30,code=compute_30
+endif
+ifneq ($(findstring sm_32, $(GPU_TARGET)),)
+    MIN_ARCH ?= 320
+    NV_SM    += -gencode arch=compute_32,code=sm_32
+    NV_COMP  := -gencode arch=compute_32,code=compute_32
 endif
 ifneq ($(findstring sm_35, $(GPU_TARGET)),)
     MIN_ARCH ?= 350
@@ -157,8 +164,13 @@ ifneq ($(findstring sm_71, $(GPU_TARGET)),)
     NV_SM    += -gencode arch=compute_71,code=sm_71
     NV_COMP  := -gencode arch=compute_71,code=compute_71
 endif
+ifneq ($(findstring sm_75, $(GPU_TARGET)),)
+    MIN_ARCH ?= 750
+    NV_SM    += -gencode arch=compute_75,code=sm_75
+    NV_COMP  := -gencode arch=compute_75,code=compute_75
+endif
 ifeq ($(NV_COMP),)
-    $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, or valid sm_[0-9][0-9]. Please edit your make.inc file)
+    $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
 endif
 NVCCFLAGS += $(NV_SM) $(NV_COMP)
 CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
@@ -193,6 +205,7 @@ libmagma_src         :=
 libmagma_dynamic_src :=
 testing_src          :=
 libsparse_src        :=
+libsparse_dynamic_src:=
 sparse_testing_src   :=
 
 subdirs := \
@@ -246,6 +259,12 @@ ifneq ($(libmagma_dynamic_src),)
 libmagma_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libmagma_dynamic_all)))
 libmagma_dlink_obj   := magmablas/dynamic.link.o
 libmagma_obj         += $(libmagma_dynamic_obj) $(libmagma_dlink_obj)
+endif
+
+ifneq ($(libsparse_dynamic_src),)
+libsparse_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libsparse_dynamic_all)))
+libsparse_dlink_obj   := sparse/blas/dynamic.link.o
+libsparse_obj         += $(libsparse_dynamic_obj) $(libsparse_dlink_obj)
 endif
 
 deps :=
@@ -370,11 +389,12 @@ endif
 
 
 # ------------------------------------------------------------------------------
-# MacOS likes shared library's path to be set; see make.inc.macos
-
-ifneq ($(INSTALL_NAME),)
-    $(libmagma_so):  LDFLAGS += $(INSTALL_NAME)$(notdir $(libmagma_so))
-    $(libsparse_so): LDFLAGS += $(INSTALL_NAME)$(notdir $(libsparse_so))
+# MacOS (darwin) needs shared library's path set
+# $OSTYPE may not be exported from the shell, so echo it
+ostype = ${shell echo $${OSTYPE}}
+ifneq ($(findstring darwin, ${ostype}),)
+    $(libmagma_so):  LDFLAGS += -install_name @rpath/$(notdir $(libmagma_so))
+    $(libsparse_so): LDFLAGS += -install_name @rpath/$(notdir $(libsparse_so))
 endif
 
 
@@ -398,6 +418,7 @@ test: testing
 testers_f: $(testers_f)
 
 sparse-test: sparse/testing
+sparse-testing: sparse/testing
 
 # cleangen is defined in Makefile.gen; cleanall also does cleanmake in Makefile.internal
 cleanall: clean cleangen
@@ -515,6 +536,8 @@ sparse/src:     $(sparse_src_obj)
 
 sparse/testing: $(sparse_testers)
 
+run_test: test
+	cd testing && python ./run_tests.py
 
 # ----------
 # sub-directory clean
@@ -535,6 +558,9 @@ magmablas/clean:
 
 src/clean:
 	-rm -f $(src_obj)
+
+testing/cleanexe:
+	-rm -f $(testers) $(testers_f)
 
 testing/clean: testing/lin/clean
 	-rm -f $(testers) $(testers_f) $(testing_obj) \
@@ -587,8 +613,9 @@ sparse/testing/clean:
 %.$(o_ext): %.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
+# assume C++ for headers; needed for Fortran wrappers
 %.i: %.h
-	$(CC) -E $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 %.i: %.c
 	$(CC) -E $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
@@ -607,11 +634,16 @@ sparse/testing/clean:
 	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 $(libmagma_dynamic_obj): %.$(o_ext): %.cu
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dc -o $@ $<
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -I./sparse/include -dc -o $@ $<
 
 $(libmagma_dlink_obj): $(libmagma_dynamic_obj)
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -o $@ $^
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
 
+$(libsparse_dynamic_obj): %.$(o_ext): %.cu
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -I./sparse/include -dc -o $@ $<
+
+$(libsparse_dlink_obj): $(libsparse_dynamic_obj)
+	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
 
 # ------------------------------------------------------------------------------
 # library rules
@@ -658,9 +690,9 @@ $(testers): %: %.$(o_ext)
 	$(LIBS)
 
 # link Fortran testing_foo from testing_foo.o
-$(testers_f): %: %.$(o_ext) testing/fortran.o
+$(testers_f): %: %.$(o_ext)
 	$(FORT) $(LDFLAGS) $(RPATH) \
-	-o $@ $< testing/fortran.o \
+	-o $@ $< \
 	-L./testing -ltest \
 	-L./testing/lin -llapacktest \
 	-L./lib -lmagma \
@@ -672,7 +704,7 @@ endif
 
 # link sparse testing_foo from testing_foo.o
 $(sparse_testers): %: %.$(o_ext)
-	$(CXX) $(LDFLAGS) $(RPATH2) \
+	$(CXX) $(LDFLAGS) $(RPATH) \
 	-o $@ $< \
 	-L./testing -ltest \
 	-L./lib $(PAPI_SDE_LIBS) -lmagma_sparse -lmagma \
@@ -703,7 +735,11 @@ install: lib sparse-lib install_dirs
 	cp include/*.mod       $(DESTDIR)$(prefix)/include
 	cp sparse/include/*.h  $(DESTDIR)$(prefix)/include
 	cp $(libs)             $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)
+	${MAKE} pkgconfig
+
+pkgconfig:
 	# pkgconfig
+	mkdir -p $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)/pkgconfig
 	cat lib/pkgconfig/magma.pc.in                   | \
 	sed -e s:@INSTALL_PREFIX@:"$(prefix)":          | \
 	sed -e s:@CFLAGS@:"$(INSTALL_FLAGS) $(INC)":    | \

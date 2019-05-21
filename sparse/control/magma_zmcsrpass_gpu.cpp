@@ -78,6 +78,7 @@ magma_zcsrset_gpu(
     A->dval = val;
     A->dcol = col;
     A->drow = row;
+    A->ownership = MagmaFalse;
 
     return MAGMA_SUCCESS;
 }
@@ -144,6 +145,7 @@ magma_zcsrget_gpu(
         *val = A.dval;
         *col = A.dcol;
         *row = A.drow;
+        A.ownership = MagmaFalse;
     } else {
         CHECK( magma_zmconvert( A, &A_CSR, A.storage_type, Magma_CSR, queue ));
         CHECK( magma_zmtransfer( A_CSR, &A_DEV, A.memory_location, Magma_DEV, queue ));

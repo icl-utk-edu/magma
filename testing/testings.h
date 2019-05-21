@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <string>
+#include <cmath>
 
 #include "magma_lapack.h"
 #include "magma_lapack.hpp"  // C++ bindings; need traits
@@ -19,7 +20,6 @@
 #include "testing_c.h"
 #include "testing_z.h"
 
-
 /***************************************************************************//**
  *  For portability to Windows
  */
@@ -28,16 +28,9 @@
     // (only with Microsoft, not with nvcc on Windows)
     // in both magma_internal.h and testings.h
     #ifndef __NVCC__
-    
-        #include <float.h>
-        #define copysign(x,y) _copysign(x,y)
-        #define isnan(x)      _isnan(x)
-        #define isinf(x)      ( ! _finite(x) && ! _isnan(x) )
-        #define isfinite(x)   _finite(x)
         // note _snprintf has slightly different semantics than snprintf
         #define snprintf      _snprintf
         #define unlink        _unlink
-        
     #endif
 #endif
 
@@ -247,10 +240,6 @@ public:
     // handle for directly calling cublas
     cublasHandle_t  handle;
     #endif
-    
-    // misc
-    int flock_op;   // shared or exclusive lock
-    int flock_fd;   // lock file
 };
 
 extern const char* g_platform_str;
@@ -259,14 +248,14 @@ extern const char* g_platform_str;
 template< typename FloatT >
 void magma_generate_matrix(
     magma_opts& opts,
-    Vector< typename blas::traits<FloatT>::real_t >& sigma,
-    Matrix< FloatT >& A );
+    Matrix< FloatT >& A,
+    Vector< typename blas::traits<FloatT>::real_t >& sigma );
 
 template< typename FloatT >
 void magma_generate_matrix(
     magma_opts& opts,
     magma_int_t m, magma_int_t n,
-    typename blas::traits<FloatT>::real_t* sigma,
-    FloatT* A, magma_int_t lda );
+    FloatT* A, magma_int_t lda,
+    typename blas::traits<FloatT>::real_t* sigma=nullptr );
 
 #endif /* TESTINGS_H */

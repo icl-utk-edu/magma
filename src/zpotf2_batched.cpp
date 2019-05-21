@@ -17,79 +17,16 @@
 #define COMPLEX
 
 /******************************************************************************/
-extern "C" magma_int_t
-magma_zpotf2_ztrsm_batched(
-    magma_uplo_t uplo, magma_int_t m, magma_int_t n,
-    magmaDoubleComplex **dA_array, magma_int_t lda,
-    magmaDoubleComplex **dA_displ, 
-    magmaDoubleComplex **dB_displ, 
-    magmaDoubleComplex **dC_displ,
-    magma_int_t *info_array, magma_int_t gbstep,  
-    magma_int_t batchCount, magma_queue_t queue)
-{
-    magma_int_t j;
-    magma_int_t arginfo = 0;
-    if ( m > MAX_NTHREADS )
-    {
-        printf("magma_zpotf2_ztrsm_batched m=%lld > %lld not supported today\n", (long long) m, (long long) MAX_NTHREADS );
-        arginfo = -13;
-        return arginfo;
-    }
-
-    // Quick return if possible
-    if (n == 0) {
-        return arginfo;
-    }
-
-    magmaDoubleComplex alpha = MAGMA_Z_NEG_ONE;
-    magmaDoubleComplex beta  = MAGMA_Z_ONE;
-
-    if (uplo == MagmaUpper) {
-        printf("Upper side is unavailable\n");
-    }
-    else {
-        for (j = 0; j < n; j++) {
-            magma_zpotf2_zdotc_batched(j, dA_array, lda, j, info_array, gbstep, batchCount, queue); // including zdotc product and update a(j,j)
-            if (j < n) {
-                #ifdef COMPLEX
-                magma_zlacgv_batched(j, dA_array, lda, j, batchCount, queue);
-                #endif
-
-                magma_zdisplace_pointers(dA_displ, dA_array, lda, j+1, 0, batchCount, queue);
-                magma_zdisplace_pointers(dB_displ, dA_array, lda, j, 0, batchCount, queue);
-                magma_zdisplace_pointers(dC_displ, dA_array, lda, j+1, j, batchCount, queue);
-
-                // Compute elements J+1:N of column J = A(j+1:n,1:j-1) * A(j,1:j-1) (row).
-                magmablas_zgemv_batched( MagmaNoTrans, m-j-1, j,
-                                 alpha, dA_displ, lda,
-                                        dB_displ,    lda,
-                                 beta,  dC_displ, 1,
-                                 batchCount, queue );
-
-                #ifdef COMPLEX
-                magma_zlacgv_batched(j, dA_array, lda, j, batchCount, queue);
-                #endif
-                magma_zpotf2_zdscal_batched(m-j, dA_array, 1, j+j*lda, info_array, batchCount, queue);
-            }
-        }
-    }
-
-    return arginfo;
-}
-
-
-/******************************************************************************/
+// This is a recursive routine
 extern "C" magma_int_t
 magma_zpotf2_batched(
-    magma_uplo_t uplo, magma_int_t m, magma_int_t n,
-    magmaDoubleComplex **dA_array, magma_int_t lda,
-    magmaDoubleComplex **dA_displ, 
-    magmaDoubleComplex **dW_displ,
-    magmaDoubleComplex **dB_displ, 
-    magmaDoubleComplex **dC_displ, 
+    magma_uplo_t uplo, magma_int_t n,
+    magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
     magma_int_t *info_array, magma_int_t gbstep, 
     magma_int_t batchCount, magma_queue_t queue)
 {
+#define dAarray(i,j) dA_array, i, j
+
     magma_int_t arginfo=0;
 
     // Quick return if possible
@@ -97,66 +34,44 @@ magma_zpotf2_batched(
         return 1;
     }
 
-    magmaDoubleComplex alpha = MAGMA_Z_NEG_ONE;
-    magmaDoubleComplex beta  = MAGMA_Z_ONE;
+    magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
+    magmaDoubleComplex c_one     = MAGMA_Z_ONE;
 
-
-    magma_int_t nb = POTF2_NB;
-    magma_int_t j, ib, rows;
     magma_int_t crossover = magma_get_zpotrf_batched_crossover();
 
     if (uplo == MagmaUpper) {
         printf("Upper side is unavailable\n");
     }
     else {
-        if ( n <= crossover )
-        {
-            arginfo = magma_zpotrf_lpout_batched(uplo, n, dA_array, lda, gbstep, info_array, batchCount, queue);
-        } else {
-            for (j = 0; j < n; j += nb) {
-                ib   = min(nb, n-j);
-                rows = m-j;
-                if ( (rows <= POTF2_TILE_SIZE) && (ib <= POTF2_TILE_SIZE) ) {
-                    magma_zdisplace_pointers(dA_displ, dA_array, lda, j, j, batchCount, queue);
-                    arginfo = magma_zpotf2_tile_batched(
-                                   uplo, rows, ib,
-                                   dA_displ, lda,
-                                   info_array, gbstep, batchCount, queue);
-                }
-                else {
-                    magma_zdisplace_pointers(dA_displ, dA_array, lda, j, j, batchCount, queue); 
-                    magma_zpotf2_ztrsm_batched(
-                              uplo, rows, ib,
-                              dA_displ, lda,
-                              dW_displ, dB_displ, dC_displ, 
-                              info_array, gbstep, batchCount, queue);
-                }
-                #if 1
-                //#define RIGHT_LOOKING
-                if ( (n-j-ib) > 0) {
-                    #ifdef RIGHT_LOOKING
-                    magma_zdisplace_pointers(dA_displ, dA_array, lda, j+ib, j, batchCount, queue);
-                    magma_zdisplace_pointers(dC_displ, dA_array, lda, j+ib, j+ib, batchCount, queue);
-                    magma_zgemm_batched( MagmaNoTrans, MagmaConjTrans,
-                                 m-j-ib, n-j-ib, ib,
-                                 alpha, dA_displ, lda,
-                                        dA_displ, lda,
-                                 beta,  dC_displ, lda, batchCount, queue );
-                #else
-                    // update next subpanel
-                    magma_zdisplace_pointers(dA_displ, dA_array, lda, j+ib, 0, batchCount, queue);
-                    magma_zdisplace_pointers(dC_displ, dA_array, lda, j+ib, j+ib, batchCount, queue);
-                    magma_zgemm_batched( MagmaNoTrans, MagmaConjTrans,
-                                 m-j-ib, min((n-j-ib),ib), j+ib,
-                                 alpha, dA_displ, lda,
-                                        dA_displ, lda,
-                                 beta,  dC_displ, lda, batchCount, queue );
-                #endif
-                } // end of if ( (n-j-ib) > 0)
-                #endif
-            }
+        if( n <= crossover ){
+            arginfo = magma_zpotrf_lpout_batched(uplo, n, dAarray(ai, aj), ldda, gbstep, info_array, batchCount, queue);
+        }
+        else{
+            magma_int_t n1 = n / 2;
+            magma_int_t n2 = n - n1;
+            // panel
+            magma_zpotrf_lpout_batched(uplo, n1, dAarray(ai, aj), ldda, gbstep, info_array, batchCount, queue);
+
+            // trsm
+            magmablas_ztrsm_recursive_batched( 
+                    MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit, 
+                    n2, n1, MAGMA_Z_ONE, 
+                    dAarray(ai   , aj), ldda, 
+                    dAarray(ai+n1, aj), ldda, batchCount, queue );
+
+            // herk
+            magmablas_zherk_batched_core( 
+                    MagmaLower, MagmaNoTrans, 
+                    n2, n1, 
+                    c_neg_one, dAarray(ai+n1, aj   ), ldda,
+                               dAarray(ai+n1, aj   ), ldda,
+                    c_one,     dAarray(ai+n1, aj+n1), ldda, batchCount, queue );
+
+            // panel
+            arginfo = magma_zpotrf_lpout_batched(uplo, n2, dAarray(ai+n1, aj+n1), ldda, gbstep + n1, info_array, batchCount, queue);
         }
     }
-
     return arginfo;
+
+#undef dAarray
 }

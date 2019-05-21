@@ -99,7 +99,7 @@ int main( int argc, char** argv )
             lapackf77_zlacpy( "Full", &m, &n, C, &ldc, R, &ldc );
             
             // A is k x nn
-            magma_generate_matrix( opts, k, nn, nullptr, A, lda );
+            magma_generate_matrix( opts, k, nn, A, lda );
             
             // compute LQ factorization to get Householder vectors in A, tau
             magma_zgelqf( k, nn, A, lda, tau, W, lwork_max, &info );

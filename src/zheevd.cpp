@@ -315,7 +315,10 @@ magma_zheevd(
      * tridiagonal matrix, then call ZUNMTR to multiply it to the Householder
      * transformations represented as Householder vectors in A. */
     if (! wantz) {
+        timer_start( time );
         lapackf77_dsterf( &n, w, &rwork[inde], info );
+        timer_stop( time );
+        timer_printf( "time dsterf = %6.2f\n", time );
     }
     else {
         timer_start( time );

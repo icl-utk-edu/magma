@@ -189,10 +189,34 @@ magmablas_zher2k_batched(
       ) return;
     
     if( trans == MagmaNoTrans){
-        magmablas_zherk_internal_batched(uplo, MagmaNoTrans, n, k, alpha, dA_array, ldda, dB_array, lddb, cbeta, dC_array, lddc, batchCount, queue );
-        magmablas_zherk_internal_batched(uplo, MagmaNoTrans, n, k, MAGMA_Z_CONJ(alpha), dB_array, lddb, dA_array, ldda, c_one, dC_array, lddc, batchCount, queue );    
+        magmablas_zherk_batched_core(
+                uplo, MagmaNoTrans, 
+                n, k, 
+                alpha, dA_array, 0, 0, ldda, 
+                       dB_array, 0, 0, lddb, 
+                cbeta, dC_array, 0, 0, lddc, 
+                batchCount, queue );
+        magmablas_zherk_batched_core(
+                uplo, MagmaNoTrans, 
+                n, k, 
+                MAGMA_Z_CONJ(alpha), dB_array, 0, 0, lddb, 
+                                     dA_array, 0, 0, ldda, 
+                c_one,               dC_array, 0, 0, lddc, 
+                batchCount, queue );    
     }else{
-        magmablas_zherk_internal_batched(uplo, Magma_ConjTrans, n, k, alpha, dA_array, ldda, dB_array, lddb, cbeta, dC_array, lddc, batchCount, queue );
-        magmablas_zherk_internal_batched(uplo, Magma_ConjTrans, n, k, MAGMA_Z_CONJ(alpha), dB_array, lddb, dA_array, ldda, c_one, dC_array, lddc, batchCount, queue );
+        magmablas_zherk_batched_core(
+                uplo, Magma_ConjTrans, 
+                n, k, 
+                alpha, dA_array, 0, 0, ldda, 
+                       dB_array, 0, 0, lddb, 
+                cbeta, dC_array, 0, 0, lddc, 
+                batchCount, queue );
+        magmablas_zherk_batched_core(
+                uplo, Magma_ConjTrans, 
+                n, k, 
+                MAGMA_Z_CONJ(alpha), dB_array, 0, 0, lddb, 
+                                     dA_array, 0, 0, ldda, 
+                c_one,               dC_array, 0, 0, lddc, 
+                batchCount, queue );
     }
 }

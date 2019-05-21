@@ -9,9 +9,6 @@
        @author Hartwig Anzt
 */
 
-//  in this file, many routines are taken from
-//  the IO functions provided by MatrixMarket
-
 #include "magmasparse_internal.h"
 
 
@@ -64,6 +61,7 @@ magma_zvset(
     v->val = val;
     v->major = MagmaColMajor;
     v->storage_type = Magma_DENSE;
+    v->ownership = MagmaFalse;
 
     return MAGMA_SUCCESS;
 }
@@ -73,7 +71,8 @@ magma_zvset(
     Purpose
     -------
 
-    Passes a MAGMA vector back.
+    Passes a MAGMA vector back. This function requires the array val to be 
+    already allocated (of size m x n).
 
     Arguments
     ---------
@@ -92,7 +91,7 @@ magma_zvset(
 
     @param[out]
     val         magmaDoubleComplex*
-                array containing vector entries
+                array of size m x n the vector entries are copied into
 
     @param[in]
     queue       magma_queue_t
@@ -103,10 +102,10 @@ magma_zvset(
 
 extern "C"
 magma_int_t
-magma_zvget(
+magma_zvcopy(
     magma_z_matrix v,
     magma_int_t *m, magma_int_t *n,
-    magmaDoubleComplex **val,
+    magmaDoubleComplex *val,
     magma_queue_t queue )
 {
     magma_z_matrix v_CPU={Magma_CSR};
@@ -115,10 +114,12 @@ magma_zvget(
     if ( v.memory_location == Magma_CPU ) {
         *m = v.num_rows;
         *n = v.num_cols;
-        *val = v.val;
+        for (magma_int_t i=0; i<v.num_rows*v.num_cols; i++) {
+            val[i] = v.val[i];
+        }
     } else {
         CHECK( magma_zmtransfer( v, &v_CPU, v.memory_location, Magma_CPU, queue ));
-        CHECK( magma_zvget( v_CPU, m, n, val, queue ));
+        CHECK( magma_zvcopy( v_CPU, m, n, val, queue ));
     }
     
 cleanup:

@@ -109,7 +109,7 @@ int main( int argc, char** argv)
             magmablas_zlaset( MagmaFull, N, N, c_zero, c_zero, d_T, N, opts.queue );
             
             /* Initialize the matrix */
-            magma_generate_matrix( opts, M, N, nullptr, h_A, lda );
+            magma_generate_matrix( opts, M, N, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, h_A, &lda, h_R, &lda );
             magma_zsetmatrix( M, N, h_R, lda, d_A, ldda, opts.queue );
     

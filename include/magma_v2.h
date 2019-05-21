@@ -31,5 +31,6 @@
 #include "magma_zc.h"
 #include "magma_ds.h"
 #include "magma_auxiliary.h"
+#include "magma_htc.h"
 
 #endif // MAGMA_V2_H

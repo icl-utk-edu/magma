@@ -187,10 +187,12 @@ for config in $@; do
         ln control/*.o        $builds/$config/control
         ln magmablas/*.o      $builds/$config/magmablas
         ln interface_cuda/*.o $builds/$config/interface_cuda
+        ln testing/*.o        $builds/$config/testing
 
         ln sparse/src/*.o     $builds/$config/sparse/src
         ln sparse/control/*.o $builds/$config/sparse/control
         ln sparse/blas/*.o    $builds/$config/sparse/blas
+        ln sparse/testing/*.o $builds/$config/sparse/testing
     fi
 
     # tar objects

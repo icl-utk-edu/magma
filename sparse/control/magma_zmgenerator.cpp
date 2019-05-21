@@ -242,6 +242,10 @@ magma_zm_27stencil(
         }
     }
     hA.true_nnz = hA.nnz;
+    if (A->ownership) {
+        magma_zmfree( A, queue );
+    }
+    A->ownership = MagmaTrue;
     CHECK( magma_zmconvert( hA, A, Magma_CSR, Magma_CSR, queue ));
 
 cleanup:
@@ -295,7 +299,9 @@ magma_zm_5stencil(
     magmaDoubleComplex *diag_vals=NULL;
     CHECK( magma_zmalloc_cpu( &diag_vals, offdiags+1 ));
     CHECK( magma_index_malloc_cpu( &diag_offset, offdiags+1 ));
-
+    
+    magma_zmfree( A, queue );
+    A->ownership = MagmaTrue;
     diag_offset[0] = 0;
     diag_offset[1] = 1;
     diag_offset[2] = n;

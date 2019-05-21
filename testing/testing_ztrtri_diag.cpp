@@ -98,7 +98,7 @@ int main( int argc, char** argv )
              * Copy L to U, since L seems okay when used with non-unit diagonal
              * (i.e., from U), while U fails when used with unit diagonal. */
             //sizeA = lda*N;
-            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
+            magma_generate_matrix( opts, N, N, h_A, lda );
             lapackf77_zgetrf( &N, &N, h_A, &lda, ipiv, &info );
             for( j = 0; j < N; ++j ) {
                 for( i = 0; i < j; ++i ) {

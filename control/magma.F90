@@ -9,26 +9,179 @@
 module magma
 
     use magma_param
+
     use magma_zfortran
     use magma_dfortran
     use magma_cfortran
     use magma_sfortran
-    
+
+    use magmablas_zfortran
+    use magmablas_dfortran
+    use magmablas_cfortran
+    use magmablas_sfortran
+
     !---- Fortran interfaces to MAGMA subroutines ----
     interface
-    
+
+    !! -------------------------------------------------------------------------
+    !! initialize
     subroutine magmaf_init( )
     end subroutine
-    
+
     subroutine magmaf_finalize(  )
     end subroutine
-    
+
+    !! -------------------------------------------------------------------------
+    !! version
+    subroutine magmaf_version( major, minor, micro )
+        integer         :: major, minor, micro
+    end subroutine
+
+    subroutine magmaf_print_environment()
+    end subroutine
+
+    !! -------------------------------------------------------------------------
+    !! device support
+    integer function magmaf_num_gpus()
+    end function
+
+    integer function magmaf_getdevice_arch()
+    end function
+
+    subroutine magmaf_getdevice( dev )
+        integer         :: dev
+    end subroutine
+
+    subroutine magmaf_setdevice( dev )
+        integer         :: dev
+    end subroutine
+
+    function magmaf_mem_size( queue )
+        integer(kind=8) :: magmaf_mem_size
+        magma_devptr_t  :: queue
+    end function
+
+    !! -------------------------------------------------------------------------
+    !! queue support
+    subroutine magmaf_queue_create( dev, queue )
+        integer        :: dev
+        magma_devptr_t :: queue
+    end subroutine
+
+    subroutine magmaf_queue_destroy( queue )
+        magma_devptr_t :: queue
+    end subroutine
+
+    subroutine magmaf_queue_sync( queue )
+        magma_devptr_t :: queue
+    end subroutine
+
+    integer function magmaf_queue_get_device( queue )
+        magma_devptr_t :: queue
+    end function
+
+    !! -------------------------------------------------------------------------
+    !! GPU allocation
+    integer function magmaf_malloc( ptr, bytes )
+        magma_devptr_t  :: ptr
+        integer         :: bytes
+    end function
+
+    integer function magmaf_smalloc( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_dmalloc( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_cmalloc( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_zmalloc( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_free( ptr )
+        magma_devptr_t  :: ptr
+    end function
+
+    !! -------------------------------------------------------------------------
+    !! CPU regular (non-pinned) allocation
+    integer function magmaf_malloc_cpu( ptr, bytes )
+        magma_devptr_t  :: ptr
+        integer         :: bytes
+    end function
+
+    integer function magmaf_smalloc_cpu( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_dmalloc_cpu( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_cmalloc_cpu( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_zmalloc_cpu( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_free_cpu( ptr )
+        magma_devptr_t  :: ptr
+    end function
+
+    !! -------------------------------------------------------------------------
+    !! CPU pinned allocation
+    integer function magmaf_malloc_pinned( ptr, bytes )
+        magma_devptr_t  :: ptr
+        integer         :: bytes
+    end function
+
+    integer function magmaf_smalloc_pinned( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_dmalloc_pinned( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_cmalloc_pinned( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_zmalloc_pinned( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_free_pinned( ptr )
+        magma_devptr_t  :: ptr
+    end function
+
+    !! -------------------------------------------------------------------------
+    !! timing; see magma_timer.cpp
     subroutine magmaf_wtime( time )
         double precision :: time
     end subroutine
-    
+
     end interface
-    
+
+    !! -------------------------------------------------------------------------
     ! parameter constants from magma_types.h
     ! currently MAGMA's Fortran interface uses characters, not integers
     character, parameter :: &

@@ -65,7 +65,8 @@ magma_zcsrsplit(
     // make sure the target structure is empty
     magma_zmfree( D, queue );
     magma_zmfree( R, queue );
-    
+    D->ownership = MagmaTrue;
+    R->ownership = MagmaTrue;
     D->val = NULL;
     D->col = NULL;
     D->row = NULL;

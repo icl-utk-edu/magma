@@ -131,10 +131,6 @@
     work    (workspace) DOUBLE PRECISION array, dimension (MAX(1,LWORK))
             On exit, if INFO = 0, WORK[0] returns the optimal LWORK.
 
-    @param[out]
-    work    (workspace) DOUBLE PRECISION array, dimension (MAX(1,LWORK))
-            On exit, if INFO = 0, WORK[0] returns the optimal LWORK.
-
     @param[in]
     lwork   INTEGER
             The length of the array WORK.

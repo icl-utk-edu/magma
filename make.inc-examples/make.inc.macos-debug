@@ -56,7 +56,7 @@ FPIC      = -fPIC
 CFLAGS    = -m64 -O3 $(FPIC) -DADD_ -Wall -Wshadow -DMAGMA_NOAFFINITY -DDEBUG_MEMORY
 FFLAGS    = -m64 -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS  = -m64 -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-NVCCFLAGS = -m64 -O3         -DADD_       -Xcompiler "$(FPIC) -Wall -Wno-unused-function"
+NVCCFLAGS = -m64 -O3         -DADD_       -Xcompiler "$(FPIC) -Wall -Wno-unused-function" -std=c++11
 LDFLAGS   = -m64     $(FPIC)
 
 # Options to do extra checks for non-standard things like variable length arrays;
@@ -67,9 +67,6 @@ CFLAGS   += -pedantic -Wno-long-long
 # C++11 (gcc >= 4.7) is not required, but has benefits like atomic operations
 CXXFLAGS := $(CFLAGS) -std=c++11
 CFLAGS   += -std=c99
-
-# MacOS likes the library's path to be set
-INSTALL_NAME = -install_name @rpath/
 
 
 # --------------------

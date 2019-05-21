@@ -62,13 +62,34 @@ libmagma_src += \
 	$(cdir)/magma_dfortran.F90	\
 	$(cdir)/magma_cfortran.F90	\
 	$(cdir)/magma_zfortran.F90	\
+	$(cdir)/magmablas_sf77.cpp		\
+	$(cdir)/magmablas_df77.cpp		\
+	$(cdir)/magmablas_cf77.cpp		\
+	$(cdir)/magmablas_zf77.cpp		\
+	$(cdir)/magmablas_sfortran.F90	\
+	$(cdir)/magmablas_dfortran.F90	\
+	$(cdir)/magmablas_cfortran.F90	\
+	$(cdir)/magmablas_zfortran.F90	\
 
 # Extra dependencies for .mod files
-$(cdir)/magma.$(o_ext): $(cdir)/magma_zfortran.$(o_ext) $(cdir)/magma_cfortran.$(o_ext) $(cdir)/magma_dfortran.$(o_ext) $(cdir)/magma_sfortran.$(o_ext) 
+$(cdir)/magma.$(o_ext): \
+	$(cdir)/magma_zfortran.$(o_ext) \
+	$(cdir)/magma_cfortran.$(o_ext) \
+	$(cdir)/magma_dfortran.$(o_ext) \
+	$(cdir)/magma_sfortran.$(o_ext) \
+	$(cdir)/magmablas_zfortran.$(o_ext) \
+	$(cdir)/magmablas_cfortran.$(o_ext) \
+	$(cdir)/magmablas_dfortran.$(o_ext) \
+	$(cdir)/magmablas_sfortran.$(o_ext) \
+
 $(cdir)/magma_zfortran.$(o_ext): $(cdir)/magma_param.$(o_ext)
 $(cdir)/magma_cfortran.$(o_ext): $(cdir)/magma_param.$(o_ext)
 $(cdir)/magma_dfortran.$(o_ext): $(cdir)/magma_param.$(o_ext)
 $(cdir)/magma_sfortran.$(o_ext): $(cdir)/magma_param.$(o_ext)
+$(cdir)/magmablas_zfortran.$(o_ext): $(cdir)/magma_param.$(o_ext)
+$(cdir)/magmablas_cfortran.$(o_ext): $(cdir)/magma_param.$(o_ext)
+$(cdir)/magmablas_dfortran.$(o_ext): $(cdir)/magma_param.$(o_ext)
+$(cdir)/magmablas_sfortran.$(o_ext): $(cdir)/magma_param.$(o_ext)
 
 
 # ----------------------------------------------------------------------

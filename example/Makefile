@@ -20,28 +20,28 @@ LDFLAGS       = -Wall #-fopenmp
 
 # ----------------------------------------
 # Flags and paths to MAGMA, CUDA, and LAPACK/BLAS
-MAGMA_CFLAGS     := -DADD_ \
-                    -I$(MAGMADIR)/include \
-                    -I$(MAGMADIR)/sparse/include \
-                    -I$(CUDADIR)/include
-
-MAGMA_F90FLAGS   := -Dmagma_devptr_t="integer(kind=8)" \
-                    -I$(MAGMADIR)/include
-
-# may be lib instead of lib64 on some systems
-MAGMA_LIBS       := -L$(MAGMADIR)/lib -lmagma_sparse -lmagma \
-                    -L$(CUDADIR)/lib64 -lcublas -lcudart -lcusparse \
-                    -L$(OPENBLASDIR)/lib -lopenblas
+# MAGMA_CFLAGS     := -DADD_ \
+#                     -I$(MAGMADIR)/include \
+#                     -I$(MAGMADIR)/sparse/include \
+#                     -I$(CUDADIR)/include
+# 
+# MAGMA_F90FLAGS   := -Dmagma_devptr_t="integer(kind=8)" \
+#                     -I$(MAGMADIR)/include
+# 
+# # may be lib instead of lib64 on some systems
+# MAGMA_LIBS       := -L$(MAGMADIR)/lib -lmagma_sparse -lmagma \
+#                     -L$(CUDADIR)/lib64 -lcublas -lcudart -lcusparse \
+#                     -L$(OPENBLASDIR)/lib -lopenblas
 
 
 # ----------------------------------------
 # Alternatively, using pkg-config (see README.txt):
-# MAGMA_CFLAGS   := $(shell pkg-config --cflags magma)
-#
-# MAGMA_F90FLAGS := -Dmagma_devptr_t="integer(kind=8)" \
-#                   $(shell pkg-config --cflags-only-I magma)
-#
-# MAGMA_LIBS     := $(shell pkg-config --libs   magma)
+MAGMA_CFLAGS   := $(shell pkg-config --cflags magma)
+
+MAGMA_F90FLAGS := -Dmagma_devptr_t="integer(kind=8)" \
+                  $(shell pkg-config --cflags-only-I magma)
+
+MAGMA_LIBS     := $(shell pkg-config --libs   magma)
 
 
 # ----------------------------------------
@@ -88,8 +88,5 @@ example_sparse_operator: example_sparse_operator.o
 %.o: %.F90
 	$(FORT) $(F90FLAGS) $(MAGMA_F90FLAGS) -c -o $@ $<
 
-fortran.o: $(CUDADIR)/src/fortran.c
-	$(CC) $(CFLAGS) $(MAGMA_CFLAGS) -DCUBLAS_GFORTRAN -c -o $@ $<
-
-example_f: example_f.o fortran.o
+example_f: example_f.o
 	$(FORT) $(LDFLAGS) -o $@ $^ $(MAGMA_LIBS)

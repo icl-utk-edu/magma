@@ -352,7 +352,7 @@ magma_zhetrd_mgpu(
         }
     }
     else {
-        trace_init( 1, ngpu, nqueue, queues );
+        trace_init( 1, ngpu, nqueue, (magma_queue_t *)queues );
         /* Copy the matrix to the GPU */
         if (1 <= n-nx) {
             magma_zhtodhe( ngpu, uplo, n, nb, A, lda, dA, ldda, queues, &iinfo );

@@ -162,7 +162,7 @@ int main( int argc, char** argv)
                     Anorm = safe_lapackf77_zlanhe("f", uplo, &N, h_A + i * lda*N, &lda, work);
                     err   = safe_lapackf77_zlanhe("f", uplo, &N, h_R + i * lda*N, &lda, work)
                           / Anorm;
-                    if ( isnan(err) || isinf(err) ) {
+                    if (std::isnan(err) || std::isinf(err)) {
                         error = err;
                         break;
                     }

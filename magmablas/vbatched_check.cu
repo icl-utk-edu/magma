@@ -214,7 +214,7 @@ herk_vbatched_checker(
 // driver - ssyrk, dsyrk, csyrk, zsyrk
 extern "C" magma_int_t 
 magma_syrk_vbatched_checker(
-        magma_int_t complex, 
+        magma_int_t icomplex, 
         magma_uplo_t uplo, magma_trans_t trans, 
         magma_int_t *n, magma_int_t *k, 
         magma_int_t *ldda, magma_int_t *lddc, 
@@ -244,8 +244,8 @@ magma_syrk_vbatched_checker(
     
     if      ( uplo != MagmaUpper && uplo != MagmaLower )
         info = -1;
-    else if ( ( complex == 0 && (trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans) ) || 
-              ( complex == 1 && (trans != MagmaNoTrans && trans != MagmaTrans) )
+    else if ( ( icomplex == 0 && (trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans) ) || 
+              ( icomplex == 1 && (trans != MagmaNoTrans && trans != MagmaTrans) )
             )
         info = -2;
     else if ( n_err < 0 )
@@ -346,7 +346,7 @@ her2k_vbatched_checker(
 // driver - ssyr2k, dsyr2k, csyr2k, zsyr2k
 extern "C" magma_int_t 
 magma_syr2k_vbatched_checker(
-        magma_int_t complex, 
+        magma_int_t icomplex, 
         magma_uplo_t uplo, magma_trans_t trans, 
         magma_int_t *n, magma_int_t *k, 
         magma_int_t *ldda, magma_int_t *lddb, magma_int_t *lddc, 
@@ -378,8 +378,8 @@ magma_syr2k_vbatched_checker(
     
     if      ( uplo != MagmaUpper && uplo != MagmaLower )
         info = -1;
-    else if ( ( complex == 0 && (trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans) ) || 
-              ( complex == 1 && (trans != MagmaNoTrans && trans != MagmaTrans                           ) )
+    else if ( ( icomplex == 0 && (trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans) ) || 
+              ( icomplex == 1 && (trans != MagmaNoTrans && trans != MagmaTrans                           ) )
             )
         info = -2;
     else if ( n_err < 0 )

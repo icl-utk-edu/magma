@@ -118,6 +118,15 @@ void ztranspose_kernel_batched(
     ztranspose_device(m, n, dA_array[batchid], lda, dAT_array[batchid], ldat);
 }
 
+__global__
+void ztranspose_kernel_batched_stride(
+    int m, int n, int stride,
+    magmaDoubleComplex *dA_array,  int lda,
+    magmaDoubleComplex *dAT_array, int ldat)
+{
+    int batchid = blockIdx.z * stride;
+    ztranspose_device(m, n, dA_array + batchid, lda, dAT_array + batchid, ldat);
+}
 
 /***************************************************************************//**
     Purpose
@@ -268,4 +277,40 @@ magmablas_ztranspose_batched(
     dim3 grid( magma_ceildiv( m, NB ), magma_ceildiv( n, NB ), batchCount );
     ztranspose_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
         ( m, n, dA_array, ldda, dAT_array, lddat );
+}
+
+extern "C" void
+magmablas_ztranspose_batched_stride(
+    magma_int_t m, magma_int_t n, magma_int_t stride,
+    magmaDoubleComplex *dA_array,  magma_int_t ldda,
+    magmaDoubleComplex *dAT_array, magma_int_t lddat,
+    magma_int_t batchCount,
+    magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    if ( m < 0 )
+        info = -1;
+    else if ( n < 0 )
+        info = -2;
+    else if (stride < m*n)
+        info = -3;
+    else if ( ldda < m )
+        info = -5;
+    else if ( lddat < n )
+        info = -7;
+
+    if ( info != 0 ) {
+        magma_xerbla( __func__, -(info) );
+        return;  //info;
+    }
+
+    /* Quick return */
+    if ( (m == 0) || (n == 0) )
+        return;
+
+    dim3 threads( NX, NY, 1 );
+    dim3 grid( magma_ceildiv( m, NB ), magma_ceildiv( n, NB ), batchCount );
+    //ztranspose_kernel_batched_stride<<< grid, threads, 0, queue->cuda_stream() >>>
+    ztranspose_kernel_batched_stride<<< grid, threads>>>
+        ( m, n, stride, dA_array, ldda, dAT_array, lddat );
 }

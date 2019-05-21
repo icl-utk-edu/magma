@@ -56,11 +56,11 @@
     ANLOC       magma_z_matrix*
                 sparse matrix in CSR
                 
-   @param[in,out]          
+    @param[in,out]
     comm_i      magma_int_t*
                 communication plan
  
-    @param[in,out]          
+    @param[in,out]
     comm_v      magmaDoubleComplex*
                 communication plan
 
@@ -68,11 +68,11 @@
     queue       magma_queue_t
                 Queue to execute in.
                 
-    @param[out]          
+    @param[out]
     start       magma_int_t*
                 start of slice (row-index)
                 
-    @param[out]          
+    @param[out]
     end         magma_int_t*
                 end of slice (row-index)
 

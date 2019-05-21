@@ -168,7 +168,7 @@ magma_zgetrf2_mgpu(
         /* workspaces */
         d_panel[d] = &(d_lAP[d][h*nb*maxm]);   /* temporary panel storage */
     }
-    trace_init( 1, ngpu, 2, queues );
+    trace_init( 1, ngpu, 2, (magma_queue_t *)queues );
 
     /* start sending the panel to cpu */
     nb0 = min(mindim, nb);

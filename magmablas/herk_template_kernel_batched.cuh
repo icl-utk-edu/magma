@@ -26,7 +26,10 @@ void herk_template_batched_nt_kernel(
     T alpha, 
     T const * const * Aarray, int LDA,
     T const * const * Barray, int LDB,
-    T beta, T**       Carray, int LDC)
+    T beta, T**       Carray, int LDC, 
+    int Ai, int Aj, 
+    int Bi, int Bj, 
+    int Ci, int Cj)
 {
     // for lower: each thread-block checks its bottom left corner of its corresponding C block
     if ( ( uplo == MagmaLower ) && ( blockIdx.y*BLK_N > (blockIdx.x+1)*BLK_M ) )
@@ -40,7 +43,10 @@ void herk_template_batched_nt_kernel(
     
     gemm_template_device_nt
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
-        ( N, N, K, Aarray[batchid], LDA, Barray[batchid], LDB, Carray[batchid], LDC, alpha, beta );
+        ( N, N, K, Aarray[batchid] + Aj * LDA + Ai, LDA, 
+                   Barray[batchid] + Bj * LDB + Bi, LDB, 
+                   Carray[batchid] + Cj * LDC + Ci, LDC, 
+                   alpha, beta );
 }
 
 
@@ -54,7 +60,11 @@ void herk_template_batched_tn_kernel(
     T alpha, 
     T const * const * Aarray, int LDA,
     T const * const * Barray, int LDB,
-    T beta, T**       Carray, int LDC )
+    T beta, T**       Carray, int LDC, 
+    int Ai, int Aj, 
+    int Bi, int Bj, 
+    int Ci, int Cj)
+
 {
     // for lower: each thread-block checks its bottom left corner of its corresponding C block
     if ( ( uplo == MagmaLower ) && ( blockIdx.y*BLK_N > (blockIdx.x+1)*BLK_M ) )
@@ -68,7 +78,10 @@ void herk_template_batched_tn_kernel(
     
     gemm_template_device_tn
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
-        ( N, N, K, Aarray[batchid], LDA, Barray[batchid], LDB, Carray[batchid], LDC, alpha, beta );
+        ( N, N, K, Aarray[batchid] + Aj * LDA + Ai, LDA, 
+                   Barray[batchid] + Bj * LDB + Bi, LDB, 
+                   Carray[batchid] + Cj * LDC + Ci, LDC,
+                   alpha, beta );
 }
 
 
@@ -80,9 +93,9 @@ template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const i
          const int CONJA, const int CONJB>
 void herk_template_batched_nt(
     magma_uplo_t uplo, magma_int_t n, magma_int_t k,
-    T const * const * dA_array, magma_int_t ldda,
-    T const * const * dB_array, magma_int_t lddb,
-    T**       dC_array, magma_int_t lddc,
+    T const * const * dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    T const * const * dB_array, magma_int_t bi, magma_int_t bj, magma_int_t lddb,
+    T**               dC_array, magma_int_t ci, magma_int_t cj, magma_int_t lddc,
     T alpha, T beta,
     magma_int_t batchCount, magma_queue_t queue)
 {
@@ -91,7 +104,7 @@ void herk_template_batched_nt(
     herk_template_batched_nt_kernel
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
         <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
-        (uplo, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc);
+        (uplo, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc, ai, aj, bi, bj, ci, cj);
 }
 
 
@@ -102,9 +115,9 @@ template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const i
          const int CONJA, const int CONJB>
 void herk_template_batched_tn(
     magma_uplo_t uplo, magma_int_t n, magma_int_t k,
-    T const * const * dA_array, magma_int_t ldda,
-    T const * const * dB_array, magma_int_t lddb,
-    T**       dC_array, magma_int_t lddc,
+    T const * const * dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    T const * const * dB_array, magma_int_t bi, magma_int_t bj, magma_int_t lddb,
+    T**               dC_array, magma_int_t ci, magma_int_t cj, magma_int_t lddc,
     T alpha, T beta,
     magma_int_t batchCount, magma_queue_t queue)
 {
@@ -113,7 +126,7 @@ void herk_template_batched_tn(
     herk_template_batched_tn_kernel
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
         <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
-        (uplo, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc);
+        (uplo, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc, ai, aj, bi, bj, ci, cj);
 }
 
 #endif //HERK_TEMPLATE_KERNEL_BATCHED_CUH

@@ -16,5 +16,6 @@
 #include "magmablas_s.h"
 #include "magmablas_zc.h"
 #include "magmablas_ds.h"
+#include "magmablas_h.h"
 
 #endif // MAGMABLAS_H

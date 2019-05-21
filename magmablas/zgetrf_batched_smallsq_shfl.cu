@@ -66,7 +66,8 @@ zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda,
                 rx_abs_max = sx[j];
             }
         }
-        linfo = ( rx_abs_max == MAGMA_D_ZERO ) ? i+1 : 0;
+        linfo = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (i+1) : linfo;
+        //linfo = ( rx_abs_max == MAGMA_D_ZERO ) ? min(linfo, i+1) : 0;
 
         if(rowid == max_id){
             sipiv[i] = max_id;

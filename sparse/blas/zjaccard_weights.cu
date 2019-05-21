@@ -90,7 +90,7 @@ magma_zjaccardweights_kernel(
                 input matrix
 
     @param[out]
-    W           magma_z_matrix*
+    J           magma_z_matrix*
                 Jaccard weights
                 
     @param[in]
@@ -118,7 +118,7 @@ magma_zjaccard_weights(
     int dimgrid1 = sqrt( magma_ceildiv( nnz, blocksize1 ) );
     int dimgrid2 = magma_ceildiv(nnz, blocksize1*dimgrid1);
     int dimgrid3 = 1;
-    printf("thread block: ( %d x %d  ) x [%d x %d]\n", blocksize1, blocksize2, dimgrid1, dimgrid2);
+    // printf("thread block: ( %d x %d  ) x [%d x %d]\n", blocksize1, blocksize2, dimgrid1, dimgrid2);
 
     // Runtime API
     // cudaFuncCachePreferShared: shared memory is 48 KB
@@ -141,6 +141,5 @@ magma_zjaccard_weights(
         A.dcol,
         A.dval );
 
-cleanup:
     return info;
 }

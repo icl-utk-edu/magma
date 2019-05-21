@@ -135,6 +135,14 @@ magma_zvget(
     magma_queue_t queue );
 
 magma_int_t 
+magma_zvcopy( 
+    magma_z_matrix v,
+    magma_int_t *m, 
+    magma_int_t *n, 
+    magmaDoubleComplex *val,
+    magma_queue_t queue );
+
+magma_int_t 
 magma_zvset_dev( 
     magma_int_t m, 
     magma_int_t n, 
@@ -148,6 +156,14 @@ magma_zvget_dev(
     magma_int_t *m, 
     magma_int_t *n, 
     magmaDoubleComplex_ptr *val,
+    magma_queue_t queue );
+
+magma_int_t 
+magma_zvcopy_dev( 
+    magma_z_matrix v,
+    magma_int_t *m, 
+    magma_int_t *n, 
+    magmaDoubleComplex *val,
     magma_queue_t queue );
 
 
@@ -1372,6 +1388,33 @@ magma_zparilut_preselect(
     magma_z_matrix *oneA,
     magma_queue_t queue );
 
+magma_int_t
+magma_zpreselect_gpu(
+    magma_int_t order,
+    magma_z_matrix *A,
+    magma_z_matrix *oneA,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zsampleselect(
+    magma_int_t total_size,
+    magma_int_t subset_size,
+    magmaDoubleComplex *val,
+    double *thrs,
+    magma_ptr *tmp_ptr,
+    magma_int_t *tmp_size,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zsampleselect_approx(
+    magma_int_t total_size,
+    magma_int_t subset_size,
+    magmaDoubleComplex *val,
+    double *thrs,
+    magma_ptr *tmp_ptr,
+    magma_int_t *tmp_size,
+    magma_queue_t queue );
+
 // ISAI preconditioner
 
 magma_int_t
@@ -1451,31 +1494,17 @@ magma_zmbackinsert_batched_gpu(
     magma_queue_t queue );
 
 magma_int_t
-magma_ziluisaisetup(
-    magma_z_matrix A,
-    magma_z_matrix b,
-    magma_z_preconditioner *precond,
-    magma_queue_t queue );
-
-magma_int_t
 magma_ziluisaisetup_lower(
-    magma_z_matrix A,
+    magma_z_matrix L,
     magma_z_matrix S,
-    magma_z_preconditioner *precond,
+    magma_z_matrix *ISAIL,
     magma_queue_t queue );
 
 magma_int_t
 magma_ziluisaisetup_upper(
-    magma_z_matrix A,
+    magma_z_matrix U,
     magma_z_matrix S,
-    magma_z_preconditioner *precond,
-    magma_queue_t queue );
-
-magma_int_t
-magma_ziluisaisetup_t(
-    magma_z_matrix A,
-    magma_z_matrix b,
-    magma_z_preconditioner *precond,
+    magma_z_matrix *ISAIU,
     magma_queue_t queue );
 
 magma_int_t
@@ -1521,66 +1550,9 @@ magma_zmiluisai_sizecheck(
     magma_queue_t queue );
 
 magma_int_t
-magma_zmisai_blockstruct(
-    magma_int_t n,
-    magma_int_t bs,
-    magma_int_t offs,
-    magma_uplo_t uplotype,
-    magma_z_matrix *S,
-    magma_queue_t queue );
-
-magma_int_t
-magma_zmisai_blockstruct_gpu(
-    magma_int_t n,
-    magma_int_t bs,
-    magma_int_t offs,
-    magma_uplo_t uplotype,
-    magma_z_matrix *A,
-    magma_queue_t queue );
-
-magma_int_t
 magma_zgeisai_maxblock(
     magma_z_matrix L,
     magma_z_matrix *MT,
-    magma_queue_t queue );
-
-magma_int_t
-magma_zisaigenerator_32_gpu(
-    magma_uplo_t uplotype,
-    magma_trans_t transtype,
-    magma_diag_t diagtype,
-    magma_z_matrix L,
-    magma_z_matrix *M,
-    magma_index_t *sizes,
-    magma_index_t *locations,
-    magmaDoubleComplex *trisystems,
-    magmaDoubleComplex *rhs,    
-    magma_queue_t queue );
-
-magma_int_t
-magma_zisaigenerator_16_gpu(
-    magma_uplo_t uplotype,
-    magma_trans_t transtype,
-    magma_diag_t diagtype,
-    magma_z_matrix L,
-    magma_z_matrix *M,
-    magma_index_t *sizes,
-    magma_index_t *locations,
-    magmaDoubleComplex *trisystems,
-    magmaDoubleComplex *rhs,    
-    magma_queue_t queue );
-
-magma_int_t
-magma_zisaigenerator_8_gpu(
-    magma_uplo_t uplotype,
-    magma_trans_t transtype,
-    magma_diag_t diagtype,
-    magma_z_matrix L,
-    magma_z_matrix *M,
-    magma_index_t *sizes,
-    magma_index_t *locations,
-    magmaDoubleComplex *trisystems,
-    magmaDoubleComplex *rhs,    
     magma_queue_t queue );
 
 magma_int_t
@@ -3400,6 +3372,7 @@ magma_zjaccard_weights(
 
 magma_int_t
 magma_zthrsholdselect(
+    magma_int_t sampling,
     magma_int_t total_size,
     magma_int_t subset_size,
     magmaDoubleComplex *val,

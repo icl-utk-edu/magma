@@ -208,14 +208,8 @@ magmablas_zgemv(
     // --------------------
     // CUDA ARCH 2.x (Fermi) version
     if ( trans == MagmaNoTrans ) {
-        if (m <= 256) {
-            zgemvn_template_fermi<version(N, 137)>
-                ( m, n, alpha, dA, ldda, dx, incx, beta, dy, incy, queue );
-        }
-        else {
-            zgemvn_template_fermi<version(N, 140)>
-                ( m, n, alpha, dA, ldda, dx, incx, beta, dy, incy, queue );
-        }
+        zgemvn_template_fermi<version(N, 106)>
+            ( m, n, alpha, dA, ldda, dx, incx, beta, dy, incy, queue );
     }
     else {
         zgemvc_template_fermi<version(T, 189)>

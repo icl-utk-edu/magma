@@ -127,7 +127,7 @@ int main( int argc, char** argv )
             lapackf77_zlacpy( "Full", &m, &n, C, &ldc, R, &ldc );
             
             // A is mm x nn
-            magma_generate_matrix( opts, mm, nn, nullptr, A, lda );
+            magma_generate_matrix( opts, mm, nn, A, lda );
             
             // compute BRD factorization to get Householder vectors in A, tauq, taup
             //lapackf77_zgebrd( &mm, &nn, A, &lda, d, e, tauq, taup, work, &lwork_max, &info );

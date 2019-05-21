@@ -209,25 +209,25 @@ magmablas_zgemm(
 
     #ifdef TEXTURE_1D
         // Set textures parameters
-        tex_ref_A.normalized = false;
-        tex_ref_A.filterMode = cudaFilterModePoint;
-        tex_ref_A.addressMode[0] = cudaAddressModeClamp;
+        tex_ref_Amagma_z.normalized = false;
+        tex_ref_Amagma_z.filterMode = cudaFilterModePoint;
+        tex_ref_Amagma_z.addressMode[0] = cudaAddressModeClamp;
 
-        tex_ref_B.normalized = false;
-        tex_ref_B.filterMode = cudaFilterModePoint;
-        tex_ref_B.addressMode[0] = cudaAddressModeClamp;
+        tex_ref_Bmagma_z.normalized = false;
+        tex_ref_Bmagma_z.filterMode = cudaFilterModePoint;
+        tex_ref_Bmagma_z.addressMode[0] = cudaAddressModeClamp;
 
         // Bind A and B to texture references
         cudaError_t err;
-        err = cudaBindTexture(&offsetA, tex_ref_A, dA, sizeA*sizeof(magmaDoubleComplex));
+        err = cudaBindTexture(&offsetA, tex_ref_Amagma_z, dA, sizeA*sizeof(magmaDoubleComplex));
         if ( err != cudaSuccess ) {
             fprintf( stderr, "cannot bind A to texture: %s (%d)\n", cudaGetErrorString(err), err );
             return;
         }
-        err = cudaBindTexture(&offsetB, tex_ref_B, dB, sizeB*sizeof(magmaDoubleComplex));
+        err = cudaBindTexture(&offsetB, tex_ref_Bmagma_z, dB, sizeB*sizeof(magmaDoubleComplex));
         if ( err != cudaSuccess ) {
             fprintf( stderr, "cannot bind B to texture: %s (%d)\n", cudaGetErrorString(err), err );
-            cudaUnbindTexture( tex_ref_A );
+            cudaUnbindTexture( tex_ref_Amagma_z );
             return;
         }
     #endif
@@ -303,7 +303,7 @@ magmablas_zgemm(
     }
 
     #ifdef TEXTURE_1D
-        cudaUnbindTexture( tex_ref_A );
-        cudaUnbindTexture( tex_ref_B );
+        cudaUnbindTexture( tex_ref_Amagma_z );
+        cudaUnbindTexture( tex_ref_Bmagma_z );
     #endif
 }

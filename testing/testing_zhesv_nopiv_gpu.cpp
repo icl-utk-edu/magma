@@ -72,7 +72,7 @@ int main(int argc, char **argv)
             /* Initialize the matrices */
             //sizeA = lda*N;
             sizeB = ldb*nrhs;
-            magma_generate_matrix( opts, N, N, nullptr, h_A, lda );
+            magma_generate_matrix( opts, N, N, h_A, lda );
             lapackf77_zlarnv( &ione, ISEED, &sizeB, h_B );
             
             bool nopiv = true;

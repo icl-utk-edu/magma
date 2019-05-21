@@ -57,7 +57,9 @@ FloatingPoint_t tex_fetch(texture<float> tex_ref, int coord)
 
 // =============================================================================
 #ifdef TEXTURE_1D
-    #define fetch(A, m, n, bound) tex_fetch(tex_ref_##A, coord_##A + n*LD##A+m)
+    #define fetch(A, m, n, bound) tex_fetch(Mjoin1(tex_ref_##A##magma_,precision), coord_##A + n*LD##A+m)
+    #define Mjoin1(Mname,Mp) Mjoin(Mname,Mp)
+    #define Mjoin(Mname,Mp) Mname##Mp
 #else
     #define fetch(A, m, n, bound) offs_d##A[min(n*LD##A+m, bound)]
 #endif
@@ -67,18 +69,21 @@ FloatingPoint_t tex_fetch(texture<float> tex_ref, int coord)
     #define conj(A)          cuConj(A)
     #define add(A, B)        cuCadd(A, B)
     #define mul(A, B)        cuCmul(A, B)
+    #define div(A, B)        cuCdiv(A, B)
     #define fma(A, B, C) C = cuCfma(A, B, C)
     #define make_FloatingPoint(x, y) make_cuDoubleComplex(x, y)
 #elif defined(PRECISION_c)
     #define conj(A)          cuConjf(A)
     #define add(A, B)        cuCaddf(A, B)
     #define mul(A, B)        cuCmulf(A, B)
+    #define div(A, B)        cuCdivf(A, B)
     #define fma(A, B, C) C = cuCfmaf(A, B, C)
     #define make_FloatingPoint(x, y) make_cuFloatComplex(x, y)
 #else
     #define conj(A)           (A)
     #define add(A, B)         (A+B)
     #define mul(A, B)         (A*B)
+    #define div(A, B)         (A/B)
     #define fma(A, B, C) C += (A*B)
     #define make_FloatingPoint(x, y) (x)
 #endif
@@ -97,17 +102,17 @@ FloatingPoint_t tex_fetch(texture<float> tex_ref, int coord)
 #ifdef TEXTURE_1D
 
     #if defined(PRECISION_z)
-        texture<int4, cudaTextureType1D, cudaReadModeElementType> tex_ref_A;
-        texture<int4, cudaTextureType1D, cudaReadModeElementType> tex_ref_B;
+        texture<int4, cudaTextureType1D, cudaReadModeElementType> tex_ref_Amagma_z;
+        texture<int4, cudaTextureType1D, cudaReadModeElementType> tex_ref_Bmagma_z;
     #elif defined(PRECISION_c)
-        texture<float2, cudaTextureType1D, cudaReadModeElementType> tex_ref_A;
-        texture<float2, cudaTextureType1D, cudaReadModeElementType> tex_ref_B;
+        texture<float2, cudaTextureType1D, cudaReadModeElementType> tex_ref_Amagma_c;
+        texture<float2, cudaTextureType1D, cudaReadModeElementType> tex_ref_Bmagma_c;
     #elif defined(PRECISION_d)
-        texture<int2, cudaTextureType1D, cudaReadModeElementType> tex_ref_A;
-        texture<int2, cudaTextureType1D, cudaReadModeElementType> tex_ref_B;
+        texture<int2, cudaTextureType1D, cudaReadModeElementType> tex_ref_Amagma_d;
+        texture<int2, cudaTextureType1D, cudaReadModeElementType> tex_ref_Bmagma_d;
     #elif defined(PRECISION_s)
-        texture<float, cudaTextureType1D, cudaReadModeElementType> tex_ref_A;
-        texture<float, cudaTextureType1D, cudaReadModeElementType> tex_ref_B;
+        texture<float, cudaTextureType1D, cudaReadModeElementType> tex_ref_Amagma_s;
+        texture<float, cudaTextureType1D, cudaReadModeElementType> tex_ref_Bmagma_s;
     #endif
     
 #endif

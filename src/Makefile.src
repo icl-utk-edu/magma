@@ -53,7 +53,11 @@ libmagma_src += \
 libmagma_src += \
 	$(cdir)/zcgesv_gpu.cpp		\
 	$(cdir)/zcgetrs_gpu.cpp		\
+	$(cdir)/dgmres_plu_gpu.cpp		\
+	$(cdir)/dxgesv_gmres_gpu.cpp		\
 	\
+	$(cdir)/xshgetrf_gpu.cpp	\
+	$(cdir)/xhsgetrf_gpu.cpp	\
 	$(cdir)/zgerfs_nopiv_gpu.cpp	\
 	$(cdir)/zgesv_gpu.cpp		\
 	$(cdir)/zgesv_nopiv_gpu.cpp	\
@@ -313,6 +317,13 @@ libmagma_src += \
 	$(cdir)/zpotrf_panel_vbatched.cpp		\
 	$(cdir)/zpotrf_vbatched.cpp		\
 
+# ----------
+# native, GPU interface
+libmagma_src += \
+	$(cdir)/zgetf2_native.cpp		\
+	$(cdir)/zgetrf_panel_native.cpp		\
+	$(cdir)/zpotrf_panel_native.cpp		\
+
 # additional dependencies
 $(cdir)/spotrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/dpotrf_batched.$(o_ext): control/batched_kernel_param.h
@@ -329,6 +340,10 @@ $(cdir)/dgeqrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cgeqrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/zgeqrf_batched.$(o_ext): control/batched_kernel_param.h
 
+$(cdir)/sgetf2_native.$(o_ext): control/batched_kernel_param.h
+$(cdir)/dgetf2_native.$(o_ext): control/batched_kernel_param.h
+$(cdir)/cgetf2_native.$(o_ext): control/batched_kernel_param.h
+$(cdir)/zgetf2_native.$(o_ext): control/batched_kernel_param.h
 
 # ----------------------------------------------------------------------
 # pop first directory

@@ -70,7 +70,7 @@ int main( int argc, char** argv)
                Initialize the matrix
                =================================================================== */
             sizeB = ldb*opts.nrhs;
-            magma_generate_matrix( opts, N, N, sigma, h_A, lda );
+            magma_generate_matrix( opts, N, N, h_A, lda, sigma );
             lapackf77_zlarnv( &ione, opts.iseed, &sizeB, h_B );
             magma_zmake_hpd( N, h_A, lda );
             

@@ -60,6 +60,7 @@ typedef double real_Double_t;
 #if defined(HAVE_CUBLAS)
     // include cublas_v2.h, unless cublas.h has already been included, e.g., via magma.h
     #ifndef CUBLAS_H_
+    #include <cuda.h>    // for CUDA_VERSION
     #include <cublas_v2.h>
     #endif
 
@@ -74,6 +75,16 @@ typedef double real_Double_t;
     typedef struct magma_queue* magma_queue_t;
     typedef cudaEvent_t    magma_event_t;
     typedef magma_int_t    magma_device_t;
+
+    // Half precision in CUDA 
+    #if defined(__cplusplus) && CUDA_VERSION >= 7500
+    #include <cuda_fp16.h>
+    typedef __half           magmaHalf;
+    #else
+    // use short for cuda older than 7.5 
+    // corresponding routines would not work anyway since there is no half precision
+    typedef short            magmaHalf;
+    #endif    // CUDA_VERSION >= 7500
 
     typedef cuDoubleComplex magmaDoubleComplex;
     typedef cuFloatComplex  magmaFloatComplex;
@@ -124,6 +135,7 @@ typedef double real_Double_t;
     typedef cl_event          magma_event_t;
     typedef cl_device_id      magma_device_t;
 
+    typedef short         magmaHalf;    // placeholder until FP16 is supported 
     typedef DoubleComplex magmaDoubleComplex;
     typedef FloatComplex  magmaFloatComplex;
 
@@ -165,6 +177,7 @@ typedef double real_Double_t;
     typedef int   magma_event_t;
     typedef int   magma_device_t;
 
+    typedef short                 magmaHalf;    // placeholder until FP16 is supported 
     typedef std::complex<float>   magmaFloatComplex;
     typedef std::complex<double>  magmaDoubleComplex;
 
@@ -292,6 +305,7 @@ float  magma_cabsf( magmaFloatComplex  x );
     typedef double             *magmaDouble_ptr;
     typedef magmaFloatComplex  *magmaFloatComplex_ptr;
     typedef magmaDoubleComplex *magmaDoubleComplex_ptr;
+    typedef magmaHalf          *magmaHalf_ptr;
 
     typedef void               const *magma_const_ptr;
     typedef magma_int_t        const *magmaInt_const_ptr;
@@ -301,6 +315,7 @@ float  magma_cabsf( magmaFloatComplex  x );
     typedef double             const *magmaDouble_const_ptr;
     typedef magmaFloatComplex  const *magmaFloatComplex_const_ptr;
     typedef magmaDoubleComplex const *magmaDoubleComplex_const_ptr;
+    typedef magmaHalf          const *magmaHalf_const_ptr;
 #endif
 
 
@@ -309,7 +324,7 @@ float  magma_cabsf( magmaFloatComplex  x );
 
 // -----------------------------------------------------------------------------
 #define MAGMA_VERSION_MAJOR 2
-#define MAGMA_VERSION_MINOR 3
+#define MAGMA_VERSION_MINOR 5
 #define MAGMA_VERSION_MICRO 0
 
 // stage is "svn", "beta#", "rc#" (release candidate), or blank ("") for final release
@@ -486,6 +501,10 @@ typedef enum {
     MagmaRowwise       = 402
 } magma_storev_t;
 
+typedef enum {
+    MagmaHybrid        = 701,
+    MagmaNative        = 702
+} magma_mode_t;
 // -----------------------------------------------------------------------------
 // sparse
 typedef enum {
@@ -626,6 +645,61 @@ typedef enum {
     Magma_SPMV         = 810
 } magma_operation_t;
 
+typedef enum {
+    Magma_PREC_SS           = 900,
+    Magma_PREC_SST          = 901,
+    Magma_PREC_HS           = 902,
+    Magma_PREC_HST          = 903,
+    Magma_PREC_SH           = 904,
+    Magma_PREC_SHT          = 905,
+    
+    Magma_PREC_XHS_H        = 910,
+    Magma_PREC_XHS_HTC      = 911,
+    Magma_PREC_XHS_161616   = 912,
+    Magma_PREC_XHS_161616TC = 913,
+    Magma_PREC_XHS_161632TC = 914,
+    Magma_PREC_XSH_S        = 915,
+    Magma_PREC_XSH_STC      = 916,
+    Magma_PREC_XSH_163232TC = 917,
+    Magma_PREC_XSH_323232TC = 918,
+
+    Magma_REFINE_IRSTRS   = 920,
+    Magma_REFINE_IRDTRS   = 921,
+    Magma_REFINE_IRGMSTRS = 922,
+    Magma_REFINE_IRGMDTRS = 923,
+    Magma_REFINE_GMSTRS   = 924,
+    Magma_REFINE_GMDTRS   = 925,
+    Magma_REFINE_GMGMSTRS = 926,
+    Magma_REFINE_GMGMDTRS = 927,
+
+    Magma_PREC_HD         = 930,
+} magma_refinement_t;
+
+typedef enum {
+    Magma_MP_BASE_SS              = 950,
+    Magma_MP_BASE_DD              = 951,
+    Magma_MP_BASE_XHS             = 952,
+    Magma_MP_BASE_XSH             = 953,
+    Magma_MP_BASE_XHD             = 954,
+    Magma_MP_BASE_XDH             = 955,
+
+    Magma_MP_ENABLE_DFLT_MATH     = 960,
+    Magma_MP_ENABLE_TC_MATH       = 961,
+    Magma_MP_SGEMM                = 962,
+    Magma_MP_HGEMM                = 963,
+    Magma_MP_GEMEX_I32_O32_C32    = 964,
+    Magma_MP_GEMEX_I16_O32_C32    = 965,
+    Magma_MP_GEMEX_I16_O16_C32    = 966,
+    Magma_MP_GEMEX_I16_O16_C16    = 967,
+
+    Magma_MP_TC_SGEMM             = 968,
+    Magma_MP_TC_HGEMM             = 969,
+    Magma_MP_TC_GEMEX_I32_O32_C32 = 970,
+    Magma_MP_TC_GEMEX_I16_O32_C32 = 971,
+    Magma_MP_TC_GEMEX_I16_O16_C32 = 972,
+    Magma_MP_TC_GEMEX_I16_O16_C16 = 973,
+
+} magma_mp_type_t;
 
 // When adding constants, remember to do these steps as appropriate:
 // 1)  add magma_xxxx_const()  converter below and in control/constants.cpp

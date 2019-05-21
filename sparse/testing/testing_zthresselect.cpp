@@ -30,23 +30,24 @@ int main(  int argc, char** argv )
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
-    magma_zopts zopts;
     magma_queue_t queue=NULL;
     magma_queue_create( 0, &queue );
     
-    
-    real_Double_t start, end;
-    
+    magma_z_matrix A={Magma_CSR};
+    real_Double_t start, end, t_gpu=0.0, t_cpu=0.0;
+    magma_int_t sampling = 16;
     double thrs;
-    for( int m = 320; m<10001; m=m*2) {
-        int n = 100;
+    for( int m = 1000; m<10000001; m=m*2) {
+        for( int n = 320; n<m; n=n*2){
         int count = 0;
+        sampling = m/327680+1;
+        sampling = 1;
         magmaDoubleComplex *val, *d_val;
         TESTING_CHECK(magma_zmalloc_cpu(&val, m));
         TESTING_CHECK(magma_zmalloc(&d_val, m));
         // fill the values with random numbers
         for (int z=0; z<m; z++){
-            val[z] = MAGMA_Z_MAKE((double)(rand()%m)/(double)m, 0.0);        
+            val[z] = MAGMA_Z_MAKE(55.0*(double)(rand()%m)/(double)m, 0.0);        
         }
         
         // copy over
@@ -54,10 +55,29 @@ int main(  int argc, char** argv )
         
         start = magma_sync_wtime( queue );
         for(int i=0; i<10; i++)
-            TESTING_CHECK(magma_zthrsholdselect(m, n, d_val, &thrs, queue));
+            TESTING_CHECK(magma_zthrsholdselect(sampling, m, n, d_val, &thrs, queue));
         end = magma_sync_wtime( queue );
+        t_gpu = (end-start) / 10.0;
+        count = 0;
+        for(int z=0; z<m; z++) {
+            if (MAGMA_Z_ABS(val[z])<thrs) {
+                count++;    
+            }
+        }
+        printf("%% m n thrs count absolute-acc relative-acc time-gpu m n thrs count absolute-acc relative-acc time-cpu\n");
+
+        printf( " %10d  %10d  %.8e  %10d %.4e %.4e\t\t %.3e", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), t_gpu );
         
-        
+        // cpu reference for comparison
+        A.nnz = m;
+        A.val = val;
+        start = magma_sync_wtime( queue );
+        for(int i=0; i<10; i++)
+            magma_zselectrandom( A.val, m, n, queue );
+        end = magma_sync_wtime( queue );
+        t_cpu = (end-start) / 10.0;
+        thrs = MAGMA_Z_ABS(A.val[n]);
+        count = 0;
         for(int z=0; z<m; z++) {
             if (MAGMA_Z_ABS(val[z])<thrs) {
                 count++;    
@@ -66,9 +86,9 @@ int main(  int argc, char** argv )
                 
         magma_free(d_val);
         magma_free_cpu(val);
-        printf("%% m n thrs count sec\n");
 
-        printf( " %10d  %10d  %.8e  %10d %.4e\n", m, n, thrs, count, (end-start)/10 );
+        printf( " %10d  %10d  %.8e  %10d %.4e %.4e\t\t %.3e\n", m, n, thrs, count, fabs(1.0-(float)count/(float)n), fabs((float)(n-count)/(float)m), t_cpu );
+    }
     }
     
     magma_queue_destroy( queue );

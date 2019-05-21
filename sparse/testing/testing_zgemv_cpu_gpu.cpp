@@ -36,25 +36,25 @@
     Arguments
     ---------
     @param[in]
-    transA     	transA is CHARACTER*1
-           	   	On entry, TRANS specifies the operation to be performed as
-           	   	follows:
+    transA      transA is CHARACTER*1
+                On entry, TRANS specifies the operation to be performed as
+                follows:
 
-           	   	transA = 'N' or 'n'   y := alpha*A*x + beta*y.
+                transA = 'N' or 'n'   y := alpha*A*x + beta*y.
 
-           	   	transA = 'T' or 't'   y := alpha*A^T*x + beta*y.
+                transA = 'T' or 't'   y := alpha*A^T*x + beta*y.
 
-           	   	transA = 'C' or 'c'   y := alpha*A^H*x + beta*y.
+                transA = 'C' or 'c'   y := alpha*A^H*x + beta*y.
     @param[in]
-    flip 	      magma_int_t
+    flip        magma_int_t
                 0: transA unchanged, 1: transA reversed
                 
     @param[in]
-    m 	       	magma_int_t
+    m          magma_int_t
                 number of rows of the matrix A.
 
     @param[in]
-    n 	       	magma_int_t
+    n          magma_int_t
                 number of columns of the matrix A.                
                 
     @param[in]
@@ -171,15 +171,15 @@ cleanup:
     Arguments
     ---------
     @param[in]
-    dofs 	      magma_int_t
+    dofs        magma_int_t
                 number of elements in vectors.
                 
     @param[in]
-    dy 	       	magmaDoubleComplex_ptr
+    dy          magmaDoubleComplex_ptr
                 input vector dx.
 
     @param[in]
-    dyTrans    	magmaDoubleComplex_ptr
+    dyTrans     magmaDoubleComplex_ptr
                 first reference vector dx.                
                 
     @param[in]

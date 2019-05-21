@@ -44,7 +44,7 @@ FPIC      = -fPIC
 CFLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -m64
 FFLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -m64
 F90FLAGS  = -O3 $(FPIC) -DNDEBUG -DADD_ -m64
-NVCCFLAGS = -O3         -DNDEBUG -DADD_ -m64 -Xcompiler "$(FPIC)" -DUNIX
+NVCCFLAGS = -O3         -DNDEBUG -DADD_ -m64 -Xcompiler "$(FPIC)" -DUNIX -std=c++11
 LDFLAGS   =     $(FPIC)
 
 
@@ -53,7 +53,7 @@ LDFLAGS   =     $(FPIC)
 
 LIB       = -Wl,--start-group -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -Wl,--end-group -lpthread -lm
 
-LIB      += -lcublas -lcusparse -lcudart -lcudafor
+LIB      += -lcublas -lcusparse -lcudart -lcudafor -lcudadevrt
 
 
 # --------------------

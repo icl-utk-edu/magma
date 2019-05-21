@@ -1,136 +1,191 @@
-!
-!   -- MAGMA (version 2.0) --
-!      Univ. of Tennessee, Knoxville
-!      Univ. of California, Berkeley
-!      Univ. of Colorado, Denver
-!      @date
-!
-!  @precisions normal z -> c d s
-!
-      program testing_zgetrf_gpu_f
+!!
+!!   -- MAGMA (version 2.0)
+!!      Univ. of Tennessee, Knoxville
+!!      Univ. of California, Berkeley
+!!      Univ. of Colorado, Denver
+!!      @date
+!!
+!!  @precisions normal z -> c d s
+!!
+program testing_zgetrf_gpu_f
+    use magma
+    implicit none
 
-      use magma
+    external zlange, zgemm, zgesv, dlamch
 
-      external cublas_init, cublas_set_matrix, cublas_get_matrix
-      external cublas_shutdown, cublas_alloc
-      external zlange, zgemm, zgesv, dlamch
+    double precision zlange, dlamch
 
-      double precision zlange, dlamch
-      integer cublas_alloc
+    double precision              :: rnumber(2), Anorm, Bnorm, Rnorm, Xnorm, error, tol
+    double precision              :: dAnorm, dBnorm, dRnorm, dXnorm, derror
+    double precision, allocatable :: work(:)
+    complex*16, allocatable       :: hA(:), hB(:), hX(:)
+    magma_devptr_t                :: dA, dB, dX, dwork
+    magma_devptr_t                :: queue
+    integer, allocatable          :: ipiv(:)
+    integer                       :: dev, i, n, nb, info, lda, ldda, nrhs, lwork
+    character(len=16)             :: okay
+    !! magma's precision generator messes up "double precision", so use "real(kind=8)"
+    real(kind=8)                  :: gflops, t, tstart, tend
 
-      double precision              :: rnumber(2), Anorm, Bnorm, Rnorm, Xnorm
-      double precision, allocatable :: work(:)
-      complex*16, allocatable       :: h_A(:), h_B(:), h_X(:)
-      magma_devptr_t                :: devptrA, devptrB
-      integer,    allocatable       :: ipiv(:)
+    complex*16                    :: c_one, c_neg_one
+    parameter                       (c_one = 1., c_neg_one = -1.)
 
-      complex*16                    :: c_one, c_neg_one
-      integer                       :: i, n, info, stat, lda, ldda
-      integer                       :: size_of_elt, nrhs
-      real(kind=8)                  :: flops, t, tstart, tend
+    !! Initialize MAGMA
+    call magmaf_init()
+    dev = 0
+    call magmaf_queue_create( dev, queue )
 
-      PARAMETER          ( nrhs = 1, c_one = 1., c_neg_one = -1. )
-      
-      call cublas_init()
+    !! Print header
+    print '(a5, "  ", a5, "  ", a5, "  ", a12, "  ", a12, "  ", a12, "  ", a)', &
+          "n", "nrhs", "nb", "error", "error2", "Gflop/s", "status"
 
-      n   = 2048
-      lda  = n
-      ldda = ((n+31)/32)*32
-      size_of_elt = sizeof_complex_16
- 
-!------ Allocate CPU memory
-      allocate(h_A(lda*n))
-      allocate(h_B(lda*nrhs))
-      allocate(h_X(lda*nrhs))
-      allocate(work(n))
-      allocate(ipiv(n))
+    do n = 100, 1000, 100
+        nrhs = 10
+        lda  = n
+        ldda = ((n+31)/32)*32  !! round up to multiple of 32
 
-!------ Allocate GPU memory
-      stat = cublas_alloc(ldda*n, size_of_elt, devPtrA)
-      if (stat .ne. 0) then
-         write(*,*) "device memory allocation failed"
-         stop
-      endif
+        !! get nb, just to check that the Fortran nb interface works
+        nb = magmaf_get_zgetrf_nb( n, n );
 
-      stat = cublas_alloc(ldda*nrhs, size_of_elt, devPtrB)
-      if (stat .ne. 0) then
-         write(*,*) "device memory allocation failed"
-         stop
-      endif
+        !! Allocate CPU memory
+        allocate( hA( lda*n ) )
+        allocate( hB( lda*nrhs ) )
+        allocate( hX( lda*nrhs ) )
+        allocate( work( n ) )
+        allocate( ipiv( n ) )
 
-!---- Initializa the matrix
-      do i=1,lda*n
-         call random_number(rnumber)
-         h_A(i) = rnumber(1)
-      end do
+        !! Allocate GPU memory
+        info = magmaf_zmalloc( dA, ldda*n )
+        if (info .ne. 0) then
+            print *, "Error: magmaf_zmalloc( dA ) failed, info = ", info
+            stop
+        endif
 
-      do i=1,lda*nrhs
-        call random_number(rnumber)
-        h_B(i) = rnumber(1)
-      end do
-      h_X(:) = h_B(:)
+        info = magmaf_zmalloc( dB, ldda*nrhs )
+        if (info .ne. 0) then
+            print *, "Error: magmaf_zmalloc( dB  ) failed, info = ", info
+            stop
+        endif
 
-!---- devPtrA = h_A
-      call cublas_set_matrix(n, n, size_of_elt, h_A, lda, devptrA, ldda)
+        info = magmaf_zmalloc( dX, ldda*nrhs )
+        if (info .ne. 0) then
+            print *, "Error: magmaf_zmalloc( dX  ) failed, info = ", info
+            stop
+        endif
 
-!---- devPtrB = h_B
-      call cublas_set_matrix(n, nrhs, size_of_elt, h_B, lda, devptrB, ldda)
+        lwork = n
+        info = magmaf_zmalloc( dwork, lwork )
+        if (info .ne. 0) then
+            print *, "Error: magmaf_zmalloc( dwork  ) failed, info = ", info
+            stop
+        endif
 
-!---- Call magma LU ----------------
-      call magmaf_wtime(tstart)
-      call magmaf_zgetrf_gpu(n, n, devptrA, ldda, ipiv, info)
-      call magmaf_wtime(tend)
+        !! Initializa the matrix
+        do i = 1, lda*n
+            call random_number(rnumber)
+            hA(i) = rnumber(1)
+        end do
 
-      if ( info .ne. 0 )  then
-         write(*,*) "Info : ", info
-      end if
+        do i = 1, lda*nrhs
+          call random_number(rnumber)
+          hB(i) = rnumber(1)
+        end do
+        hX(:) = hB(:)
 
-!---- Call magma solve -------------
-      call magmaf_zgetrs_gpu('n', n, nrhs, devptrA, ldda, ipiv, devptrB, ldda, info)
+        !! dA = hA
+        call magmaf_zsetmatrix( n, n, hA, lda, dA, ldda, queue )
 
-      if ( info .ne. 0 )  then
-         write(*,*) "Info : ", info
-      end if
+        !! dB = hB
+        !! dX = dB
+        call magmaf_zsetmatrix( n, nrhs, hB, lda, dB, ldda, queue )
+        call magmaf_zcopymatrix( n, nrhs, dB, ldda, dX, ldda, queue )
 
-!---- h_X = devptrB
-      call cublas_get_matrix (n, nrhs, size_of_elt, devptrB, ldda, h_X, lda)
+        !! Call magma LU
+        call magmaf_wtime( tstart )
+        call magmaf_zgetrf_gpu( n, n, dA, ldda, ipiv, info )
+        call magmaf_wtime( tend )
+        if (info .ne. 0) then
+            print *, "Error: magmaf_zgetrf_gpu failed, info = ", info
+            stop
+        endif
 
-!---- Compare the two results ------
-      Anorm = zlange('I', n, n,    h_A, lda, work)
-      Bnorm = zlange('I', n, nrhs, h_B, lda, work)
-      Xnorm = zlange('I', n, nrhs, h_X, lda, work)
-      call zgemm('n', 'n', n,  nrhs, n, c_one, h_A, lda, h_X, lda, c_neg_one, h_B, lda)
-      Rnorm = zlange('I', n, nrhs, h_B, lda, work)
+        t = tend - tstart
+        gflops = 2./3. * n * n * n * 1e-9 / t
 
-      write(*,*)
-      write(*,*  ) 'Solving A x = b using LU factorization:'
-      write(*,105) '  || A || = ', Anorm
-      write(*,105) '  || b || = ', Bnorm
-      write(*,105) '  || x || = ', Xnorm
-      write(*,105) '  || b - A x || = ', Rnorm
+        !! Call magma solve
+        call magmaf_zgetrs_gpu( 'n', n, nrhs, dA, ldda, ipiv, dX, ldda, info )
+        if (info .ne. 0) then
+            print *, "Error: magmaf_zgetrs_gpu failed, info = ", info
+            stop
+        endif
 
-      flops = 2. * n * n * n / 3.
-      t = tend - tstart
+        !! hX = dX
+        call magmaf_zgetmatrix( n, nrhs, dX, ldda, hX, lda, queue )
 
-      write(*,*)   '  Gflops  = ',  flops / t / 1e9
-      write(*,*)
+        !! Compute residual, using LAPACK
+        Anorm = zlange( '1', n, n,    hA, lda, work )
+        Bnorm = zlange( '1', n, nrhs, hB, lda, work )
+        Xnorm = zlange( '1', n, nrhs, hX, lda, work )
+        call zgemm( 'n', 'n', n,  nrhs, n, &
+                    c_one,     hA, lda, &
+                               hX, lda, &
+                    c_neg_one, hB, lda )
+        Rnorm = zlange( '1', n, nrhs, hB, lda, work )
+        error = Rnorm / ((Anorm*Xnorm + Bnorm) * n)
 
-      Rnorm = Rnorm / ( (Anorm*Xnorm+Bnorm) * n * dlamch('E') )
+        !! Compute residual, using MAGMA, to demo their use
+        !! reset dA = hA
+        call magmaf_zsetmatrix( n, n, hA, lda, dA, ldda, queue )
+        dAnorm = magmablasf_zlange( '1', n, n,    dA, ldda, dwork, lwork, queue )
+        dBnorm = magmablasf_zlange( '1', n, nrhs, dB, ldda, dwork, lwork, queue )
+        dXnorm = magmablasf_zlange( '1', n, nrhs, dX, ldda, dwork, lwork, queue )
+        call magmablasf_zgemm( 'n', 'n', n, nrhs, n, &
+                               c_one,     dA, ldda, &
+                                          dX, ldda, &
+                               c_neg_one, dB, ldda, queue )
+        dRnorm = magmablasf_zlange( '1', n, nrhs, dB, ldda, dwork, lwork, queue )
+        derror = dRnorm / ((dAnorm*dXnorm + dBnorm) * n)
 
-      if ( Rnorm > 60. ) then
-         write(*,105) '  Solution is suspicious, ', Rnorm
-      else
-         write(*,105) '  Solution is CORRECT'
-      end if
+        tol = 60 * dlamch('E')
+        if (error < tol .and. derror < tol) then
+            okay = "ok"
+        else
+            okay = "FAILED"
+        endif
 
-!---- Free CPU memory
-      deallocate(h_A, h_X, h_B, work, ipiv)
+        print '(i5, "  ", i5, "  ", i5, "  ", e12.4, "  ", e12.4, "  ", f12.4, "  ", a)', &
+              n, nrhs, nb, error, derror, gflops, okay
 
-!---- Free GPU memory
-      call cublas_free(devPtrA)
-      call cublas_free(devPtrB)
-      call cublas_shutdown()
+        !! Free CPU memory
+        deallocate( hA, hX, hB, work, ipiv )
 
- 105  format((a35,es10.3))
+        !! Free GPU memory
+        info = magmaf_free( dA )
+        if (info .ne. 0) then
+            print *, 'Error: magmaf_free( dA ) failed, info = ', info
+            stop
+        endif
 
-      end
+        info = magmaf_free( dB )
+        if (info .ne. 0) then
+            print *, 'Error: magmaf_free( dB ) failed, info = ', info
+            stop
+        endif
+
+        info = magmaf_free( dX )
+        if (info .ne. 0) then
+            print *, 'Error: magmaf_free( dX ) failed, info = ', info
+            stop
+        endif
+
+        info = magmaf_free( dwork )
+        if (info .ne. 0) then
+            print *, 'Error: magmaf_free( dwork ) failed, info = ', info
+            stop
+        endif
+    enddo
+
+    !! Cleanup
+    call magmaf_queue_destroy( queue );
+    call magmaf_finalize()
+end

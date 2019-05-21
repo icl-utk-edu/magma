@@ -143,12 +143,6 @@ magma_zunmqr_2stage_gpu(
         *info = -10;
     }
 
-    // TODO alloc after xerbla & quick return, else memory leak
-    if (MAGMA_SUCCESS != magma_zmalloc( &dwork, n*nb )) {
-        printf ("!!!! zungqr_2stage magma_alloc failed for: dwork\n" );
-        exit(-1);
-    }
-
     if (*info != 0) {
         magma_xerbla( __func__, -(*info) );
         return *info;
@@ -157,6 +151,12 @@ magma_zunmqr_2stage_gpu(
     /* Quick return if possible */
     if (m == 0 || n == 0 || k == 0) {
         return *info;
+    }
+
+    // TODO alloc after xerbla & quick return, else memory leak
+    if (MAGMA_SUCCESS != magma_zmalloc( &dwork, n*nb )) {
+        printf ("!!!! zungqr_2stage magma_alloc failed for: dwork\n" );
+        return MAGMA_ERR_ALLOCATION;
     }
 
     magma_queue_t queues[2];

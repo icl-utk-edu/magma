@@ -63,7 +63,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc( &d_A, ldda*N ));
             
             /* Initialize the matrix */
-            magma_generate_matrix( opts, N, N, sigma, h_A, lda );
+            magma_generate_matrix( opts, N, N, h_A, lda, sigma );
             lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_R, &lda );
             magma_zsetmatrix( N, N, h_A, lda, d_A, ldda, opts.queue );
             
@@ -71,7 +71,12 @@ int main( int argc, char** argv)
                Performs operation using MAGMA
                =================================================================== */
             gpu_time = magma_wtime();
-            magma_zpotrf_gpu( opts.uplo, N, d_A, ldda, &info );
+            if(opts.version == 1){
+                magma_zpotrf_gpu( opts.uplo, N, d_A, ldda, &info );
+            }
+            else if(opts.version == 2){
+                magma_zpotrf_native(opts.uplo, N, d_A, ldda, &info );
+            }
             gpu_time = magma_wtime() - gpu_time;
             gpu_perf = gflops / gpu_time;
             if (info != 0) {

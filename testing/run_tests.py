@@ -721,8 +721,9 @@ chol = (
 	('testing_zposv_gpu',        '-L    -c',  n,    ''),
 	('testing_zposv_gpu',        '-U    -c',  n,    ''),
 	
-	('testing_zpotrf_gpu',       '-L   -c2',  n,    ''),
-	('testing_zpotrf_gpu',       '-U   -c2',  n,    ''),
+	('testing_zpotrf_gpu', '--version 1 -L   -c2',  n,    ''),
+	('testing_zpotrf_gpu', '--version 1 -U   -c2',  n,    ''),
+	('testing_zpotrf_gpu', '--version 2 -L   -c2',  n,    ''), # zpotrf_native, lower only
 	
 	('testing_zpotf2_gpu',       '-L    -c',  n + tall,  ''),
 	('testing_zpotf2_gpu',       '-U    -c',  n + tall,  ''),
@@ -797,6 +798,7 @@ lu = (
 	('testing_zgesv_gpu',              '-c',  n,    ''),
 	('testing_zgetrf_gpu', '--version 1 -c2', n,    ''),
 	('testing_zgetrf_gpu', '--version 2 -c2', n,    ''), # zgetrf_nopiv_gpu
+	('testing_zgetrf_gpu', '--version 3 -c2', n,    ''), # zgetrf_native
 	('testing_zgetf2_gpu',             '-c',  n + tall,  ''),
 	('testing_zgetri_gpu',             '-c',  n,    ''),
 	('testing_zgetrf_mgpu',    ngpu + '-c2',  n,    ''),

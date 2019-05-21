@@ -268,7 +268,7 @@ magma_z_cucsrtranspose(
         B->num_cols        = A.num_rows;  // transposed
         B->nnz             = A.nnz;
         B->true_nnz = A.true_nnz;
-        
+        B->ownership = MagmaTrue;
         if ( A.fill_mode == MagmaFull ) {
             B->fill_mode = MagmaFull;
         }
@@ -379,6 +379,7 @@ magma_zmtransposeconjugate(
         B->num_cols        = A.num_rows;  // transposed
         B->nnz             = A.nnz;
         B->true_nnz = A.true_nnz;
+        B->ownership = MagmaTrue;
         if ( A.fill_mode == MagmaFull ) {
             B->fill_mode = MagmaFull;
         }

@@ -34,7 +34,7 @@ void init_matrix(
         iseed_save[i] = opts.iseed[i];
     }
 
-    magma_generate_matrix( opts, m, n, nullptr, A, lda );
+    magma_generate_matrix( opts, m, n, A, lda );
 
     // restore iseed
     for (magma_int_t i = 0; i < 4; ++i) {
@@ -236,6 +236,9 @@ int main( int argc, char** argv)
             }
             else if ( opts.version == 2 ) {
                 magma_zgetrf_nopiv_gpu( M, N, d_A, ldda, &info);
+            }
+            else if ( opts.version == 3 ) {
+                magma_zgetrf_native( M, N, d_A, ldda, ipiv, &info);
             }
             gpu_time = magma_wtime() - gpu_time;
             gpu_perf = gflops / gpu_time;

@@ -234,7 +234,7 @@ magma_zfgmres(
                         = (real_Double_t) tempo2-tempo1;
         }
 
-
+        
         temp = -1.0/beta;
         magma_zscal( dofs, temp, V(0), 1, queue );                 // V(0) = -V(0)/beta
 

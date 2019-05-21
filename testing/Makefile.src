@@ -95,6 +95,7 @@ testing_src += \
 # LU, GPU interface
 testing_src += \
 	$(cdir)/testing_zcgesv_gpu.cpp	\
+	$(cdir)/testing_dxgesv_gpu.cpp	\
 	\
 	$(cdir)/testing_zgesv_gpu.cpp	\
 	$(cdir)/testing_zgetrf_gpu.cpp	\
@@ -225,26 +226,22 @@ testing_src += \
 	$(cdir)/testing_zpotrf_vbatched.cpp	\
 
 # ----------
-# fortran.c and fortran_thunking.c are provided by NVIDIA in $(CUDADIR)/src
+# half precision files
+testing_src += \
+	$(cdir)/testing_hgemm.cpp	\
+
+# ----------
 ifeq ($(FORT), pgfortran)
-	#	$(cdir)/fortran_thunking.$(o_ext)
+	# Does this need fortran_thunking.$(o_ext) ?
 	testing_src += \
 		$(cdir)/testing_zgetrf_gpu_f.cuf
 else
-	#	$(cdir)/fortran.$(o_ext)
 	testing_src += \
 		$(cdir)/testing_zgetrf_gpu_f.F90	\
 		$(cdir)/testing_zgetrf_f.f90
 endif
 
-#
-# These two files are provided by cuda
-# CUDA 5 needs -DCUBLAS_GFORTRAN or appropriate setting to compile cuda/src/fortran.c bindings
-#
-$(cdir)/fortran.$(o_ext) : CFLAGS += -DCUBLAS_GFORTRAN
-$(cdir)/fortran.$(o_ext) : $(CUDADIR)/src/fortran.c
-	$(CC) $(CFLAGS) $(INC) -c $< -o $@
-
+# fortran_thunking.c is provided by CUDA
 $(cdir)/fortran_thunking.$(o_ext) : $(CUDADIR)/src/fortran_thunking.c
 	$(CC) $(CFLAGS) $(INC) -c $< -o $@
 

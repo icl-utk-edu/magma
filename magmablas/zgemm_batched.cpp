@@ -27,6 +27,58 @@
 
 #define PRECISION_z
 
+void
+magma_zgemm_batched_core(
+    magma_trans_t transA, magma_trans_t transB,
+    magma_int_t m, magma_int_t n, magma_int_t k,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+    magmaDoubleComplex const * const * dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t lddb,
+    magmaDoubleComplex beta,
+    magmaDoubleComplex **dC_array, magma_int_t Ci, magma_int_t Cj, magma_int_t lddc,
+    magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_int_t use_cublas  = magma_zrecommend_cublas_gemm_batched(transA, transB, m, n, k);
+    magma_int_t zero_offset = (Ai == 0 && Aj == 0 && Bi == 0 && Bj == 0 && Ci == 0 && Cj == 0);
+    if(use_cublas){
+        if(zero_offset){
+            cublasZgemmBatched(
+                    queue->cublas_handle(), cublas_trans_const(transA), cublas_trans_const(transB),
+                    int(m), int(n), int(k),
+                    &alpha, (const magmaDoubleComplex**)dA_array, int(ldda),
+                            (const magmaDoubleComplex**)dB_array, int(lddb),
+                    &beta,                              dC_array, int(lddc), int(batchCount) );
+        }
+        else{
+            magmaDoubleComplex** dAarray = (magmaDoubleComplex**)queue->get_dAarray();
+            magmaDoubleComplex** dBarray = (magmaDoubleComplex**)queue->get_dBarray();
+            magmaDoubleComplex** dCarray = (magmaDoubleComplex**)queue->get_dCarray();
+            magma_int_t max_batchCount   = queue->get_maxBatch();
+            for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+                magma_int_t batch = min(max_batchCount, batchCount-i);
+                magma_zdisplace_pointers(dAarray, (magmaDoubleComplex**)dA_array + i, ldda, Ai, Aj, batch, queue);
+                magma_zdisplace_pointers(dBarray, (magmaDoubleComplex**)dB_array + i, lddb, Bi, Bj, batch, queue);
+                magma_zdisplace_pointers(dCarray, (magmaDoubleComplex**)dC_array + i, lddc, Ci, Cj, batch, queue);
+                cublasZgemmBatched(
+                        queue->cublas_handle(), cublas_trans_const(transA), cublas_trans_const(transB),
+                        int(m), int(n), int(k),
+                        &alpha, (const magmaDoubleComplex**)dAarray, int(ldda),
+                                (const magmaDoubleComplex**)dBarray, int(lddb),
+                        &beta,                              dCarray, int(lddc), int(batch) );
+            }
+        }
+    }
+    else{
+        magmablas_zgemm_batched_core(
+            transA, transB,
+            m, n, k, 
+            alpha, dA_array, Ai, Aj, ldda, 
+                   dB_array, Bi, Bj, lddb, 
+            beta,  dC_array, Ci, Cj, lddc, 
+            batchCount, queue);
+    }
+}
+
 /***************************************************************************//**
     Purpose
     -------
@@ -156,11 +208,41 @@ magmablas_zgemm_batched( magma_trans_t transA, magma_trans_t transB,
 {
     magmablas_zgemm_batched_core(
                 transA, transB, m, n, k,
-                alpha, dA_array, ldda,
-                dB_array, lddb,
-                beta, dC_array, lddc, 
-                0, 0, 0, 0, 0, 0, 
+                alpha, dA_array, 0, 0, ldda,
+                       dB_array, 0, 0, lddb,
+                 beta, dC_array, 0, 0, lddc, 
                 batchCount, queue );
+}
+
+
+/******************************************************************************/
+extern "C" void
+magmablas_zgemm_batched_strided( magma_trans_t transA, magma_trans_t transB, 
+                     magma_int_t m, magma_int_t n, magma_int_t k,
+                     magmaDoubleComplex alpha,
+                     magmaDoubleComplex const * dA, magma_int_t ldda, magma_int_t strideA, 
+                     magmaDoubleComplex const * dB, magma_int_t lddb, magma_int_t strideB, 
+                     magmaDoubleComplex beta,
+                     magmaDoubleComplex       * dC, magma_int_t lddc, magma_int_t strideC,  
+                     magma_int_t batchCount, magma_queue_t queue )
+{
+    magmaDoubleComplex** dAarray = (magmaDoubleComplex**)queue->get_dAarray();
+    magmaDoubleComplex** dBarray = (magmaDoubleComplex**)queue->get_dBarray();
+    magmaDoubleComplex** dCarray = (magmaDoubleComplex**)queue->get_dCarray();
+    magma_int_t max_batchCount   = queue->get_maxBatch();
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+        magma_int_t batch = min(max_batchCount, batchCount-i);
+        magma_zset_pointer(dAarray, (magmaDoubleComplex*)(dA + i * strideA), ldda, 0, 0, strideA, batch, queue);
+        magma_zset_pointer(dBarray, (magmaDoubleComplex*)(dB + i * strideB), lddb, 0, 0, strideB, batch, queue);
+        magma_zset_pointer(dCarray, dC + i * strideC, lddc, 0, 0, strideC, batch, queue);
+        magmablas_zgemm_batched_core( 
+            transA, transB,
+            m, n, k, 
+            alpha, dAarray, 0, 0, ldda, 
+                   dBarray, 0, 0, lddb, 
+            beta,  dCarray, 0, 0, lddc, 
+            batch, queue);
+    }
 }
 
 
@@ -175,22 +257,10 @@ magma_zgemm_batched( magma_trans_t transA, magma_trans_t transB,
                      magmaDoubleComplex **dC_array, magma_int_t lddc, 
                      magma_int_t batchCount, magma_queue_t queue )
 {
-    magma_int_t use_cublas = magma_zrecommend_cublas_gemm_batched(transA, transB, m, n, k);
-
-    if (use_cublas) {
-        cublasZgemmBatched(
-                queue->cublas_handle(), cublas_trans_const(transA), cublas_trans_const(transB),
-                int(m), int(n), int(k),
-                &alpha, (const magmaDoubleComplex**)dA_array, int(ldda),
-                     (const magmaDoubleComplex**)dB_array, int(lddb),
-                &beta, dC_array, int(lddc), int(batchCount) );
-    }
-    else {
-        magmablas_zgemm_batched(
-                transA, transB, m, n, k,
-                alpha, dA_array, ldda,
-                dB_array, lddb,
-                beta, dC_array, lddc, 
-                batchCount, queue );
-    }
+    magma_zgemm_batched_core(
+            transA, transB, m, n, k,
+            alpha, dA_array, 0, 0, ldda,
+                   dB_array, 0, 0, lddb,
+            beta,  dC_array, 0, 0, lddc, 
+            batchCount, queue );
 }

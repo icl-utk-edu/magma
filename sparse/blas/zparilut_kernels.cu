@@ -366,9 +366,3 @@ magma_zparilut_residuals_gpu(
 
     return MAGMA_SUCCESS;
 }
-
-
-
-
-
-

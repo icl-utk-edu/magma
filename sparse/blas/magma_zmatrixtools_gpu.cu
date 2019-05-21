@@ -353,6 +353,7 @@ magma_zmatrix_cup_gpu(
         U->drow, U->drowidx, U->dcol, U->dval);
     
 cleanup:
+    magma_free(inserted);
     return info;
 }
 

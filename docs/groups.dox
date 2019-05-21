@@ -115,6 +115,7 @@
         @see group_orthogonal
         @{
             @defgroup magma_gels        gels: Least squares solves Ax = b using QR factorization (driver)
+            @defgroup magma_gglse       gglse: Least squares solves Ax = b subject to Bx = d (driver) 
             @defgroup magma_geqrsv      geqrsv: Solves Ax = b using QR factorization (driver)
         @}
 
@@ -191,6 +192,7 @@
         @brief    Factor \f$ A = RQ \f$
         @{
             @defgroup magma_gerqf       gerqf: RQ factorization
+            @defgroup magma_ggrqf       ggrqf: generalized RQ factorization of an M-by-N matrix A and a P-by-N matrix B
             @defgroup magma_unmrq       or/unmrq: Multiply by Q from RQ factorization
             @defgroup magma_ungrq       or/ungrq: Generate    Q from RQ factorization
         @}

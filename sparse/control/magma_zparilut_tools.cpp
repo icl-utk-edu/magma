@@ -3100,7 +3100,6 @@ magma_zparilut_candidates(
             }
         }
     }
-    printf("here %d Lnew-nnz:%d Unew-nnz:%d\n", __LINE__, L_new->nnz, U_new->nnz);
     magma_zmalloc_cpu( &L_new->val, L_new->nnz );
     magma_index_malloc_cpu( &L_new->rowidx, L_new->nnz );
     magma_index_malloc_cpu( &L_new->col, L_new->nnz );

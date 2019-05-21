@@ -196,10 +196,10 @@ magma_z_spmv(
 
                 if ( x.major == MagmaColMajor) {
                     cusparseZcsrmm(cusparseHandle,
-                    CUSPARSE_OPERATION_NON_TRANSPOSE,
-                    A.num_rows,   num_vecs, A.num_cols, A.nnz,
-                    &alpha, descr, A.dval, A.drow, A.dcol,
-                    x.dval, A.num_cols, &beta, y.dval, A.num_cols);
+                                   CUSPARSE_OPERATION_NON_TRANSPOSE,
+                                   A.num_rows,   num_vecs, A.num_cols, A.nnz,
+                                   &alpha, descr, A.dval, A.drow, A.dcol,
+                                   x.dval, A.num_cols, &beta, y.dval, A.num_cols);
                 } else if ( x.major == MagmaRowMajor) {
                     /*cusparseZcsrmm2(cusparseHandle,
                     CUSPARSE_OPERATION_NON_TRANSPOSE,
@@ -208,33 +208,33 @@ magma_z_spmv(
                     &alpha, descr, A.dval, A.drow, A.dcol,
                     x.dval, A.num_cols, &beta, y.dval, A.num_cols);
                     */
-                }
-            else if ( A.storage_type == Magma_CSC )
-            {
-                CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-                CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
-                CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
-                
-                CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
-                CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
-                
-                cusparseZcsrmm( cusparseHandle,CUSPARSE_OPERATION_TRANSPOSE,
-                                A.num_rows,   num_vecs, A.num_cols, A.nnz,
-                                &alpha, descr, A.dval, A.drow, A.dcol,
-                                x.dval, A.num_cols, &beta, y.dval, A.num_cols);
-            }
+                    printf("error: format not supported.\n");
+                    info = MAGMA_ERR_NOT_SUPPORTED;
+                } else if ( A.storage_type == Magma_CSC )
+                    {
+                        CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
+                        CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
+                        CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
+                        
+                        CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
+                        CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
+                        
+                        cusparseZcsrmm( cusparseHandle,CUSPARSE_OPERATION_TRANSPOSE,
+                                        A.num_rows,   num_vecs, A.num_cols, A.nnz,
+                                        &alpha, descr, A.dval, A.drow, A.dcol,
+                                        x.dval, A.num_cols, &beta, y.dval, A.num_cols);
+                    }
             } else if ( A.storage_type == Magma_SELLP ) {
                 if ( x.major == MagmaRowMajor) {
-                 CHECK( magma_zmgesellpmv( MagmaNoTrans, A.num_rows, A.num_cols,
-                    num_vecs, A.blocksize, A.numblocks, A.alignment,
-                    alpha, A.dval, A.dcol, A.drow, x.dval, beta, y.dval, queue ));
-                }
-                else if ( x.major == MagmaColMajor) {
+                    CHECK( magma_zmgesellpmv( MagmaNoTrans, A.num_rows, A.num_cols,
+                                              num_vecs, A.blocksize, A.numblocks, A.alignment,
+                                              alpha, A.dval, A.dcol, A.drow, x.dval, beta, y.dval, queue ));
+                } else if ( x.major == MagmaColMajor) {
                     // transpose first to row major
                     CHECK( magma_zvtranspose( x, &x2, queue ));
                     CHECK( magma_zmgesellpmv( MagmaNoTrans, A.num_rows, A.num_cols,
-                    num_vecs, A.blocksize, A.numblocks, A.alignment,
-                    alpha, A.dval, A.dcol, A.drow, x2.dval, beta, y.dval, queue ));
+                                              num_vecs, A.blocksize, A.numblocks, A.alignment,
+                                              alpha, A.dval, A.dcol, A.drow, x2.dval, beta, y.dval, queue ));
                 }
             }
             /*if ( A.storage_type == Magma_DENSE ) {
@@ -245,8 +245,8 @@ magma_z_spmv(
                 //printf("done.\n");
             }*/
             else {
-                 printf("error: format not supported.\n");
-                 info = MAGMA_ERR_NOT_SUPPORTED;
+                printf("error: format not supported.\n");
+                info = MAGMA_ERR_NOT_SUPPORTED;
             }
         }
     }

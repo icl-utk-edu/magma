@@ -105,6 +105,10 @@ libmagma_src += \
 	$(cdir)/zgeqr2x_gpu-v4.cu	\
 	$(cdir)/zpotf2.cu		\
 
+# native kernels
+libmagma_src += \
+	$(cdir)/zgetf2_native_kernel.cu		\
+
 # batched files, alphabetic order by base name (ignoring precision)
 libmagma_src += \
 	$(cdir)/zgeadd_batched.cu		\
@@ -113,6 +117,7 @@ libmagma_src += \
 	$(cdir)/dgemm_batched_core.cu		\
 	$(cdir)/sgemm_batched_core.cu		\
 	$(cdir)/zgemm_batched_core.cu		\
+	$(cdir)/zgemm_batched_smallsq.cu		\
 	$(cdir)/cgemv_batched_core.cu		\
 	$(cdir)/dgemv_batched_core.cu		\
 	$(cdir)/sgemv_batched_core.cu		\
@@ -140,8 +145,11 @@ libmagma_src += \
 	$(cdir)/ssyrk_batched_core.cu		\
 	$(cdir)/ztrmm_batched_core.cu		\
 	$(cdir)/ztrsm_batched.cpp		\
+	$(cdir)/ztrsm_batched_core.cpp		\
+	$(cdir)/ztrsm_small_batched.cu		\
 	$(cdir)/ztrsv_batched.cu		\
 	$(cdir)/ztrtri_diag_batched.cu		\
+	$(cdir)/zgetf2_nopiv_kernels.cu		\
 
 # vbatched files
 libmagma_src += \
@@ -183,6 +191,17 @@ libmagma_src += \
 	$(cdir)/prefix_sum.cu		\
 	$(cdir)/vbatched_aux.cu		\
 	$(cdir)/vbatched_check.cu		\
+
+# batch files ( host )
+libmagma_src += \
+	$(cdir)/blas_zbatched.cpp	\
+
+# FP16 files
+libmagma_src += \
+	$(cdir)/slag2h.cu	\
+	$(cdir)/hlag2s.cu	\
+	$(cdir)/hlaconvert.cu	\
+	$(cdir)/hlaswp.cu		\
 
 # ----------------------------------------------------------------------
 # extra include dependencies
@@ -230,6 +249,16 @@ $(cdir)/sgeqr2_batched.$(o_ext): $(cdir)/slarfg_devicesfunc.cuh
 $(cdir)/dgeqr2_batched.$(o_ext): $(cdir)/dlarfg_devicesfunc.cuh
 $(cdir)/cgeqr2_batched.$(o_ext): $(cdir)/clarfg_devicesfunc.cuh
 $(cdir)/zgeqr2_batched.$(o_ext): $(cdir)/zlarfg_devicesfunc.cuh
+
+$(cdir)/sgetf2_kernels.$(o_ext): control/batched_kernel_param.h
+$(cdir)/dgetf2_kernels.$(o_ext): control/batched_kernel_param.h
+$(cdir)/cgetf2_kernels.$(o_ext): control/batched_kernel_param.h
+$(cdir)/zgetf2_kernels.$(o_ext): control/batched_kernel_param.h
+
+$(cdir)/sgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
+$(cdir)/dgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
+$(cdir)/cgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
+$(cdir)/zgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
 
 $(cdir)/spotf2_kernels.$(o_ext): $(cdir)/spotf2_devicesfunc.cuh
 $(cdir)/dpotf2_kernels.$(o_ext): $(cdir)/dpotf2_devicesfunc.cuh

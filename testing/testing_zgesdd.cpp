@@ -599,7 +599,7 @@ int main( int argc, char** argv)
             double result_lapack[5] = { nan, nan, nan, nan, nan };
             
             /* Initialize the matrix */
-            magma_generate_matrix( opts, M, N, Sref, hA, lda );
+            magma_generate_matrix( opts, M, N, hA, lda, Sref );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, hA, &lda, hR, &lda );
             
             // ----------

@@ -171,6 +171,7 @@ magma_zmconvert(
     
     // make sure the target structure is empty
     magma_zmfree( B, queue );
+    B->ownership = MagmaTrue;
 
     B->val = NULL;
     B->col = NULL;

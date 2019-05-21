@@ -40,6 +40,8 @@
 #include "magma_internal.h"
 #include "error.h"
 
+#define MAX_BATCHCOUNT    (65534)
+
 #ifdef HAVE_CUBLAS
 
 #ifdef DEBUG_MEMORY
@@ -134,7 +136,10 @@ static int g_init = 0;
 struct magma_device_info
 {
     size_t memory;
+    size_t shmem_block;      // maximum shared memory per thread block in bytes
+    size_t shmem_multiproc;  // maximum shared memory per multiprocessor in bytes
     magma_int_t cuda_arch;
+    magma_int_t multiproc_count;    // number of multiprocessors
 };
 
 int g_magma_devices_cnt = 0;
@@ -199,8 +204,11 @@ magma_init()
                     info = MAGMA_ERR_UNKNOWN;
                 }
                 else {
-                    g_magma_devices[dev].memory    = prop.totalGlobalMem;
-                    g_magma_devices[dev].cuda_arch = prop.major*100 + prop.minor*10;
+                    g_magma_devices[dev].memory          = prop.totalGlobalMem;
+                    g_magma_devices[dev].cuda_arch       = prop.major*100 + prop.minor*10;
+                    g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock; 
+                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor; 
+                    g_magma_devices[dev].multiproc_count = prop.multiProcessorCount; 
                 }
             }
 
@@ -572,6 +580,76 @@ magma_setdevice( magma_device_t device )
     MAGMA_UNUSED( err );
 }
 
+/***************************************************************************//**
+    Returns the multiprocessor count for the current device.
+    This requires magma_init() to be called first to cache the information.
+
+    @return the multiprocessor count for the current device.
+
+    @ingroup magma_device
+*******************************************************************************/
+extern "C" magma_int_t
+magma_getdevice_multiprocessor_count()
+{
+    int dev;
+    cudaError_t err;
+    err = cudaGetDevice( &dev );
+    check_error( err );
+    MAGMA_UNUSED( err );
+    if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
+        fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
+        return 0;
+    }
+    return g_magma_devices[dev].multiproc_count;
+}
+
+/***************************************************************************//**
+    Returns the maximum shared memory per block (in bytes) for the current device.
+    This requires magma_init() to be called first to cache the information.
+
+    @return the maximum shared memory per block (in bytes) for the current device.
+
+    @ingroup magma_device
+*******************************************************************************/
+extern "C" size_t
+magma_getdevice_shmem_block()
+{
+    int dev;
+    cudaError_t err;
+    err = cudaGetDevice( &dev );
+    check_error( err );
+    MAGMA_UNUSED( err );
+    if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
+        fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
+        return 0;
+    }
+    return g_magma_devices[dev].shmem_block;
+}
+
+
+/***************************************************************************//**
+    Returns the maximum shared memory multiprocessor (in bytes) for the current device.
+    This requires magma_init() to be called first to cache the information.
+
+    @return the maximum shared memory per multiprocessor (in bytes) for the current device.
+
+    @ingroup magma_device
+*******************************************************************************/
+extern "C" size_t
+magma_getdevice_shmem_multiprocessor()
+{
+    int dev;
+    cudaError_t err;
+    err = cudaGetDevice( &dev );
+    check_error( err );
+    MAGMA_UNUSED( err );
+    if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
+        fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
+        return 0;
+    }
+    return g_magma_devices[dev].shmem_multiproc;
+}
+
 
 /***************************************************************************//**
     @param[in]
@@ -701,6 +779,7 @@ magma_queue_create_internal(
     queue->stream__   = NULL;
     queue->cublas__   = NULL;
     queue->cusparse__ = NULL;
+    queue->maxbatch__ = MAX_BATCHCOUNT;
 
     magma_setdevice( device );
 
@@ -722,6 +801,13 @@ magma_queue_create_internal(
     queue->own__ |= own_cusparse;
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
+
+    magma_malloc((void**)&(queue->dAarray__), queue->maxbatch__ * sizeof(void*));
+    assert( queue->dAarray__ != NULL);
+    magma_malloc((void**)&(queue->dBarray__), queue->maxbatch__ * sizeof(void*));
+    assert( queue->dBarray__ != NULL);
+    magma_malloc((void**)&(queue->dCarray__), queue->maxbatch__ * sizeof(void*));
+    assert( queue->dCarray__ != NULL);
 
     MAGMA_UNUSED( err );
     MAGMA_UNUSED( stat );
@@ -778,6 +864,7 @@ magma_queue_create_from_cuda_internal(
     queue->stream__   = NULL;
     queue->cublas__   = NULL;
     queue->cusparse__ = NULL;
+    queue->maxbatch__ = MAX_BATCHCOUNT;
 
     magma_setdevice( device );
 
@@ -805,6 +892,14 @@ magma_queue_create_from_cuda_internal(
     queue->cusparse__ = cusparse_handle;
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
+
+    magma_malloc((void**)&queue->dAarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dAarray__ != NULL);
+    magma_malloc((void**)&queue->dBarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dBarray__ != NULL);
+    magma_malloc((void**)&queue->dCarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dCarray__ != NULL);
+
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
 }
@@ -846,6 +941,10 @@ magma_queue_destroy_internal(
             check_xerror( err, func, file, line );
             MAGMA_UNUSED( err );
         }
+        magma_free( queue->dAarray__ );
+        magma_free( queue->dBarray__ );
+        magma_free( queue->dCarray__ );
+
         queue->own__      = own_none;
         queue->device__   = -1;
         queue->stream__   = NULL;
