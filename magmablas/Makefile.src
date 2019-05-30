@@ -37,6 +37,7 @@ libmagma_src += \
 	$(cdir)/zgetmatrix_transpose.cpp	\
 	$(cdir)/zhemv.cu		\
 	$(cdir)/zhemv_upper.cu		\
+	$(cdir)/zherk_small_reduce.cu	\
 	$(cdir)/zlacpy.cu		\
 	$(cdir)/zlacpy_conj.cu		\
 	$(cdir)/zlacpy_sym_in.cu	\
