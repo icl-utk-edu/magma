@@ -24,7 +24,12 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
- 2.5.1 - May 9, 2019
+ 2.5.1 - Aug 2, 2019
+    * New routine: magmablas_Xherk_small_reduce (X = 's', 'd', 'c', or 'z') 
+      is a special HERK routine that assumes that the output matrix is very 
+      small (up to 32), that that the input matrix is very tall-and-skinny    
+ 
+ 2.5.1-alpha1 - May 9, 2019
     * Updates and improvements in CMakeLists.txt for improved/friendlier CMake 
       and spack installations
     * Fixes related to MAGMA installation on GPUs and CUDA versions that do not 

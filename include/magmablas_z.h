@@ -1300,6 +1300,14 @@ magma_zherk(
     magmaDoubleComplex_ptr       dC, magma_int_t lddc,
     magma_queue_t queue );
 
+void 
+magmablas_zherk_small_reduce( 
+    magma_uplo_t uplo, magma_trans_t trans, 
+    magma_int_t n, magma_int_t k, 
+    double alpha, magmaDoubleComplex* dA, magma_int_t ldda,
+    double beta,  magmaDoubleComplex* dC, magma_int_t lddc, 
+    magma_int_t nthread_blocks, magma_queue_t queue );
+
 void
 magma_zsymm(
     magma_side_t side, magma_uplo_t uplo,
