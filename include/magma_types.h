@@ -18,8 +18,15 @@
 #define HAVE_clBLAS
 #endif
 
+// the default should be to check for HAVE_CUDA
+#ifdef HAVE_CUBLAS
+#define HAVE_CUDA
+#endif
+
+
 // each implementation of MAGMA defines HAVE_* appropriately.
-#if ! defined(HAVE_CUBLAS) && ! defined(HAVE_clBLAS) && ! defined(HAVE_MIC)
+#if ! defined(HAVE_CUBLAS) && ! defined(HAVE_clBLAS) && ! defined(HAVE_MIC) && ! defined(HAVE_HIP)
+#error No 'HAVE_*' macros were set! (defaulting to CUBLAS)
 #define HAVE_CUBLAS
 #endif
 
@@ -57,7 +64,7 @@ typedef double real_Double_t;
 // =============================================================================
 // define types specific to implementation (CUDA, OpenCL, MIC)
 // define macros to deal with complex numbers
-#if defined(HAVE_CUBLAS)
+#if defined(HAVE_CUDA)
     // include cublas_v2.h, unless cublas.h has already been included, e.g., via magma.h
     #ifndef CUBLAS_H_
     #include <cuda.h>    // for CUDA_VERSION
@@ -124,6 +131,54 @@ typedef double real_Double_t;
     #ifdef __cplusplus
     }
     #endif
+#elif defined(HAVE_HIP)
+    #include <hip/hip_runtime.h> 
+    
+    #define HAVE_HIP_COMPLEX
+    #include <hip/hip_complex.h>
+    
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
+   
+    typedef hipStream_t magma_queue_t;
+    typedef hipEvent_t  magma_event_t;
+    typedef int         magma_device_t;
+
+
+    // there is support for fp16, but the documentation is failing me at the moment.
+    typedef short       magmaHalf;
+    typedef hipDoubleComplex magmaDoubleComplex;
+    typedef hipFloatComplex magmaFloatComplex;
+
+    #define MAGMA_Z_MAKE(r,i)    make_hipDoubleComplex((r), (i))
+    #define MAGMA_Z_REAL(a)      hipCreal(a)
+    #define MAGMA_Z_IMAG(a)      hipCimag(a)
+    #define MAGMA_Z_ADD(a, b)    hipCadd((a), (b))
+    #define MAGMA_Z_SUB(a, b)    hipCsub((a), (b))    
+    #define MAGMA_Z_MUL(a, b)    hipCmul((a), (b))
+    #define MAGMA_Z_DIV(a, b)    hipCdiv((a), (b))
+    #define MAGMA_Z_ABS(a)       hipCabs(a)
+    #define MAGMA_Z_ABS1(a)      (fabs(MAGMA_Z_REAL(a))+fabs(MAGMA_Z_IMAG(a)))
+    #define MAGMA_Z_CONJ(a)      hipConj(a)
+
+    #define MAGMA_C_MAKE(r,i)    make_hipFloatComplex((r), (i))
+    #define MAGMA_C_REAL(a)      hipCrealf(a)
+    #define MAGMA_C_IMAG(a)      hipCimagf(a)
+    #define MAGMA_C_ADD(a, b)    hipCaddf((a), (b))
+    #define MAGMA_C_SUB(a, b)    hipCsubf((a), (b))
+    #define MAGMA_C_MUL(a, b)    hipCmulf((a), (b))
+    #define MAGMA_C_DIV(a, b)    hipCdivf((a), (b))
+    #define MAGMA_C_ABS(a)       hipCabsf(a)
+    #define MAGMA_C_ABS1(a)      (fabsf(MAGMA_C_REAL(a))+fabsf(MAGMA_C_IMAG(a)))
+    #define MAGMA_C_CONJ(a)      hipConjf(a)
+
+
+
+    #ifdef __cplusplus
+    }
+    #endif 
+
 #elif defined(HAVE_clBLAS)
     #include <clBLAS.h>
 

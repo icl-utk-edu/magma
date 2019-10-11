@@ -253,14 +253,14 @@ ifeq ($(BACKEND),cuda)
 	CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
 	CXXFLAGS  += -DMIN_CUDA_ARCH=$(MIN_ARCH)
 
-	CFLAGS    += -DHAVE_CUBLAS
-	CXXFLAGS  += -DHAVE_CUBLAS
-else ifeq($(BACKEND),hip)
+	CFLAGS    += -DHAVE_CUDA -DHAVE_CUBLAS
+	CXXFLAGS  += -DHAVE_CUDA -DHAVE_CUBLAS
+else ifeq ($(BACKEND),hip)
 
 	#DEVCCFLAGS += --amdgpu-target=gfx701
 	#TODO: make a bunch of loops like are above for the nvidia architectures
 	DEVCCFLAGS += $(foreach target,$(GPU_TARGET),--amdgpu-target=$(target))
-	CFLAGS    += -DHNVCCAVE_HIP
+	CFLAGS    += -DHAVE_HIP
 	CXXFLAGS  += -DHAVE_HIP
 
 endif
@@ -314,7 +314,7 @@ subdirs := \
 ifeq ($(BACKEND),cuda)
 	subdirs += interface_cuda
 	subdirs += magmablas
-else ifeq ($(BACKEND), hip)
+else ifeq ($(BACKEND),hip)
 	# this needs to be generated!
 	subdirs += interface_hip
 	subdirs += magmablas_hip
@@ -353,7 +353,12 @@ sparse_testing_obj := $(addsuffix .$(o_ext), $(basename $(sparse_testing_all)))
 
 ifneq ($(libmagma_dynamic_src),)
 libmagma_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libmagma_dynamic_all)))
-libmagma_dlink_obj   := magmablas/dynamic.link.o
+  ifeq ($(BACKEND),cuda)
+    libmagma_dlink_obj   := magmablas/dynamic.link.o
+  else ifeq ($(BACKEND),hip)
+    libmagma_dlink_obj   := magmablas_hip/dynamic.link.o
+  endif
+
 libmagma_obj         += $(libmagma_dynamic_obj) $(libmagma_dlink_obj)
 endif
 
@@ -404,8 +409,13 @@ MAGMA_INC  = -I./include
 $(libmagma_obj):       MAGMA_INC += -I./control
 $(libtest_obj):        MAGMA_INC += -I./testing
 $(testing_obj):        MAGMA_INC += -I./testing
-$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas -I./sparse/include -I./sparse/control
 $(sparse_testing_obj): MAGMA_INC += -I./sparse/include -I./sparse/control -I./testing
+
+ifeq ($(BACKEND),cuda) 
+$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas -I./sparse/include -I./sparse/control
+else ifeq ($(BACKEND),hip)
+$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_hip -I./sparse/include -I./sparse/control
+endif
 
 
 # ----- headers
@@ -716,6 +726,7 @@ sparse/testing/clean:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 %.$(o_ext): %.cpp
+	@#$(DEVCC) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 # assume C++ for headers; needed for Fortran wrappers
