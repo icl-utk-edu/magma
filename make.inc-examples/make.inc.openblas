@@ -6,69 +6,121 @@
 #      @date
 #//////////////////////////////////////////////////////////////////////////////
 
-# GPU_TARGET contains one or more of Fermi, Kepler, Maxwell, Pascal, Volta
-# to specify for which GPUs you want to compile MAGMA:
-#     Fermi   - NVIDIA compute capability 2.x cards
-#     Kepler  - NVIDIA compute capability 3.x cards
-#     Maxwell - NVIDIA compute capability 5.x cards
-#     Pascal  - NVIDIA compute capability 6.x cards
-#     Volta   - NVIDIA compute capability 7.x cards
-# The default is "Kepler Maxwell Pascal".
-# Note that NVIDIA no longer supports 1.x cards, as of CUDA 6.5.
-# See http://developer.nvidia.com/cuda-gpus
-#
-#GPU_TARGET ?= Kepler Maxwell Pascal
+
+
+# --------------------
+# configuration
+
+# should MAGMA be built on CUDA (NVIDIA only) or HIP (AMD or NVIDIA)
+# enter 'cuda' or 'hip' respectively
+BACKEND     ?= cuda
+
+# set these to their real paths
+OPENBLASDIR ?= /usr/local/openblas
+CUDADIR     ?= /usr/local/cuda
+HIPDIR      ?= /opt/rocm/hip
+
+# require either hip or cuda
+ifneq (,$(findstring $(BACKEND),hip cuda))
+    $(error "'BACKEND' should be either 'cuda' or 'hip' (got $(BACKEND))")
+endif
 
 # --------------------
 # programs
 
-CC        = gcc
-CXX       = g++
-NVCC      = nvcc
-FORT      = gfortran
+# set compilers
+CC          ?= gcc
+CXX         ?= g++
+FORT        ?= gfortran
+HIPCC       ?= hipcc
+NVCC        ?= nvcc
+DEVCC       ?= NONE
 
+# set from 'BACKEND'
+ifeq ($(BACKEND),cuda)
+    DEVCC = $(NVCC)
+else ifeq ($(BACKEND),hip)
+    DEVCC = $(HIPCC)
+endif
+
+# and utilities
 ARCH      = ar
 ARCHFLAGS = cr
 RANLIB    = ranlib
 
 
 # --------------------
-# flags
+# flags/settings
+
+# set our GPU targets
+ifeq ($(BACKEND),cuda)
+    GPU_TARGET = Kepler Maxwell Pascal
+else ifeq ($(BACKEND),hip)
+    GPU_TARGET = gfx803 gfx900 gfx901
+endif
 
 # Use -fPIC to make shared (.so) and static (.a) library;
 # can be commented out if making only static library.
 FPIC      = -fPIC
 
-CFLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp
-FFLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
-F90FLAGS  = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-NVCCFLAGS = -O3         -DNDEBUG -DADD_       -Xcompiler "$(FPIC)" -std=c++11
-LDFLAGS   =     $(FPIC)                       -fopenmp
+# now, generate our flags
+CFLAGS      = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp -std=c99
+CXXFLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp -std=c++11
+FFLAGS      = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
+F90FLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
+LDFLAGS     =     $(FPIC)                       -fopenmp
 
-# C++11 (gcc >= 4.7) is not required, but has benefits like atomic operations
-CXXFLAGS := $(CFLAGS) -std=c++11
-CFLAGS   += -std=c99
+DEVCCFLAGS  = -O3         -DNDEBUG -DADD_       
+
+# DEVCCFLAGS are populated later in `backend-specific`
 
 
 # --------------------
 # libraries
 
 # gcc with OpenBLAS (includes LAPACK)
-LIB       = -lopenblas
-
-LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
-
+LIB       += -lopenblas
 
 # --------------------
 # directories
 
 # define library directories preferably in your environment, or here.
-#OPENBLASDIR ?= /usr/local/openblas
-#CUDADIR ?= /usr/local/cuda
+LIBDIR    += -L$(OPENBLASDIR)/lib
+INC       += 
+
+
+# --------------------
+# checks
+
+# check for openblas
 -include make.check-openblas
--include make.check-cuda
 
-LIBDIR    = -L$(CUDADIR)/lib64 \
-            -L$(OPENBLASDIR)/lib
 
-INC       = -I$(CUDADIR)/include
+# --------------------
+# backend-specific
+
+# add appropriate cuda flags
+ifeq ($(BACKEND),cuda)
+    -include make.check-cuda
+
+    DEVCCFLAGS += -Xcompiler "$(FPIC)" -std=c++11
+
+    # link with cuda specific libraries
+    LIB += -lcublas -lcusparse -lcudart -lcudadevrt
+    INC += -I$(CUDADIR)/include
+
+endif
+
+# add appropriate HIP flags
+ifeq ($(BACKEND),hip)
+    -include make.check-hip
+
+    DEVCCFLAGS += $(FPIC) -std=c++11
+
+    #TODO: see if we need to link any HIP libraries
+    #LIB += -lhip_hcc -lhsa-runtime64
+    INC += -I$(HIPDIR)/include
+
+endif
+
+
