@@ -103,6 +103,15 @@ public:
     cusparseHandle_t cusparse_handle() { return cusparse__; }
 
     #endif
+
+    
+    #ifdef HAVE_HIP
+    
+    hipStream_t      hip_stream()      { return stream_hip__; };
+
+    #endif
+
+
     /// @return the pointer array dAarray__.
     void** get_dAarray() {return dAarray__; }
 
@@ -152,6 +161,11 @@ protected:
     cublasHandle_t   cublas__;      // associated cuBLAS handle
     cusparseHandle_t cusparse__;    // associated cuSparse handle
     #endif
+
+    #ifdef HAVE_HIP
+    hipStream_t      stream_hip__;
+    #endif
+
 };
 
 #ifdef __cplusplus

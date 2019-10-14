@@ -11,7 +11,14 @@
 #include "magma_internal.h"
 
 #if defined(_OPENMP)
-#include <omp.h>
+
+//#include <omp.h>
+
+// for some reason, I'm having to include just this file, as including the full
+// path where 'omp.h' is located causes a conflict with other headers
+// 
+#include OMP_HEADER
+//#include </usr/lib/gcc/x86_64-redhat-linux/4.8.5/include/omp.h>
 #endif
 
 #if defined(MAGMA_WITH_MKL)
