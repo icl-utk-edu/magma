@@ -295,4 +295,37 @@ magma_free_pinned_internal( void* ptr,
     return MAGMA_SUCCESS;
 }
 
+/***************************************************************************//**
+    @fn magma_mem_info( free, total )
+
+    Sets the parameters 'free' and 'total' to the free and total memory in the
+    system (in bytes).
+
+    @param[in]
+    free    Address of the result for 'free' bytes on the system
+    total   Address of the result for 'total' bytes on the system
+    
+    @return MAGMA_SUCCESS
+    @return MAGMA_ERR_INVALID_PTR on failure
+
+*******************************************************************************/
+extern "C" magma_int_t
+magma_mem_info(size_t * freeMem, size_t * totalMem) {
+    cudaMemGetInfo(freeMem, totalMem);
+    return MAGMA_SUCCESS;
+}
+
+
+extern "C" magma_int_t
+magma_memset(void * ptr, int value, size_t count) {
+    return cudaMemset(ptr, value, count);
+}
+
+extern "C" magma_int_t
+magma_memset_async(void * ptr, int value, size_t count, magma_queue_t queue) {
+    return cudaMemsetAsync(ptr, value, count, queue);
+}
+
+
+
 #endif // HAVE_CUBLAS

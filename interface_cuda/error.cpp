@@ -24,6 +24,7 @@
 
     @ingroup magma_error_internal
 *******************************************************************************/
+#ifdef HAVE_CUDA
 void magma_xerror( cudaError_t err, const char* func, const char* file, int line )
 {
     if ( err != cudaSuccess ) {
@@ -31,11 +32,13 @@ void magma_xerror( cudaError_t err, const char* func, const char* file, int line
                  cudaGetErrorString( err ), err, func, file, line );
     }
 }
+#endif
 
 
 /******************************************************************************/
 /// @see magma_xerror
 /// @ingroup magma_error_internal
+#if defined(HAVE_CUBLAS) || defined(HAVE_HIPBLAS)
 void magma_xerror( cublasStatus_t err, const char* func, const char* file, int line )
 {
     if ( err != CUBLAS_STATUS_SUCCESS ) {
@@ -43,6 +46,24 @@ void magma_xerror( cublasStatus_t err, const char* func, const char* file, int l
                  magma_cublasGetErrorString( err ), err, func, file, line );
     }
 }
+#endif
+
+
+
+/******************************************************************************/
+/// @see magma_xerror
+/// @ingroup magma_error_internal
+#ifdef HAVE_HIP
+void magma_xerror( hipError_t err, const char* func, const char* file, int line)
+{
+
+    if (err != HIP_SUCCESS) {
+        fprintf( stderr, "HIP error: %s (%d) in %s at %s:%d\n",
+                hipGetErrorString( err ), err, func, file, line );
+    }
+
+}
+#endif
 
 
 /******************************************************************************/
@@ -66,6 +87,7 @@ void magma_xerror( magma_int_t err, const char* func, const char* file, int line
 
     @ingroup magma_error_internal
 *******************************************************************************/
+#if defined(HAVE_CUBLAS) || defined(HAVE_HIPBLAS)
 extern "C"
 const char* magma_cublasGetErrorString( cublasStatus_t err )
 {
@@ -98,7 +120,7 @@ const char* magma_cublasGetErrorString( cublasStatus_t err )
             return "unknown CUBLAS error code";
     }
 }
-
+#endif
 
 /***************************************************************************//**
     @return String describing MAGMA errors (magma_int_t).
