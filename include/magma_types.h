@@ -132,6 +132,7 @@ typedef double real_Double_t;
     }
     #endif
 #elif defined(HAVE_HIP)
+    
     #include <hip/hip_runtime.h> 
     
     #define HAVE_HIP_COMPLEX
@@ -140,16 +141,18 @@ typedef double real_Double_t;
     #ifdef __cplusplus
     extern "C" {
     #endif
-   
-    typedef hipStream_t magma_queue_t;
+  
+    // opaque queue struct type
+    struct magma_queue; 
+    typedef struct magma_queue* magma_queue_t;
     typedef hipEvent_t  magma_event_t;
     typedef int         magma_device_t;
 
 
     // there is support for fp16, but the documentation is failing me at the moment.
-    typedef short       magmaHalf;
+    typedef short            magmaHalf;
     typedef hipDoubleComplex magmaDoubleComplex;
-    typedef hipFloatComplex magmaFloatComplex;
+    typedef hipFloatComplex  magmaFloatComplex;
 
     #define MAGMA_Z_MAKE(r,i)    make_hipDoubleComplex((r), (i))
     #define MAGMA_Z_REAL(a)      hipCreal(a)

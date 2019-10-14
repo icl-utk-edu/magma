@@ -257,12 +257,11 @@ ifeq ($(BACKEND),cuda)
 	CXXFLAGS  += -DHAVE_CUDA -DHAVE_CUBLAS
 else ifeq ($(BACKEND),hip)
 
-	#DEVCCFLAGS += --amdgpu-target=gfx701
-	#TODO: make a bunch of loops like are above for the nvidia architectures
-	DEVCCFLAGS += $(foreach target,$(GPU_TARGET),--amdgpu-target=$(target))
-	CFLAGS    += -DHAVE_HIP
-	CXXFLAGS  += -DHAVE_HIP
-
+# DEVCCFLAGS += --amdgpu-target=gfx701
+    #TODO: make a bunch of loops like are above for the nvidia architectures
+    DEVCCFLAGS += $(foreach target,$(GPU_TARGET),--amdgpu-target=$(target))
+    CFLAGS    += -DHAVE_HIP
+    CXXFLAGS  += -DHAVE_HIP
 endif
 
 
@@ -726,8 +725,8 @@ sparse/testing/clean:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 %.$(o_ext): %.cpp
-	@#$(DEVCC) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(DEVCC) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+	@#$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 # assume C++ for headers; needed for Fortran wrappers
 %.i: %.h

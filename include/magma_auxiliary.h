@@ -52,7 +52,6 @@ real_Double_t magma_sync_wtime( magma_queue_t queue );
 // =============================================================================
 // misc. functions
 
-// CUDA MAGMA only
 // magma GPU-complex PCIe connection
 magma_int_t magma_buildconnection_mgpu(
     magma_int_t gnode[MagmaMaxGPUs+2][MagmaMaxGPUs+2],
@@ -107,6 +106,17 @@ magma_free_pinned_internal(
     void *ptr,
     const char* func, const char* file, int line );
 
+// returns memory info (basically a wrapper around cudaMemGetInfo
+magma_int_t
+magma_mem_info(size_t* freeMem, size_t* totalMem);
+
+// wrapper around cudaMemset
+void
+magma_memset(void * ptr, int value, size_t count);
+
+// wrapper around cudaMemsetAsync
+magma_int_t
+magma_memset_async(void * ptr, int value, size_t count, magma_queue_t queue);
 
 // type-safe convenience functions to avoid using (void**) cast and sizeof(...)
 // here n is the number of elements (floats, doubles, etc.) not the number of bytes.
@@ -296,6 +306,9 @@ magma_queue_get_device( magma_queue_t queue );
 
 void
 magma_event_create( magma_event_t* event_ptr );
+
+void
+magma_event_create_untimed( magma_event_t* event_ptr );
 
 void
 magma_event_destroy( magma_event_t event );
