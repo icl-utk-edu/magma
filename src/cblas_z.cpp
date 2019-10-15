@@ -172,7 +172,7 @@ magmaDoubleComplex magma_cblas_zdotc(
     magma_int_t i;
     if ( incx == 1 && incy == 1 ) {
         for( i=0; i < n; ++i ) {
-            value += conj( x[i] ) * y[i];
+            value = value + conj( x[i] ) * y[i];
         }
     }
     else {
@@ -180,7 +180,7 @@ magmaDoubleComplex magma_cblas_zdotc(
         if ( incx < 0 ) { ix = (-n + 1)*incx; }
         if ( incy < 0 ) { iy = (-n + 1)*incy; }
         for( i=0; i < n; ++i ) {
-            value += conj( x[ix] ) * y[iy];
+            value = value + conj( x[ix] ) * y[iy];
             ix += incx;
             iy += incy;
         }
@@ -226,7 +226,7 @@ magmaDoubleComplex magma_cblas_zdotu(
     magma_int_t i;
     if ( incx == 1 && incy == 1 ) {
         for( i=0; i < n; ++i ) {
-            value += x[i] * y[i];
+            value = value + x[i] * y[i];
         }
     }
     else {
@@ -234,7 +234,7 @@ magmaDoubleComplex magma_cblas_zdotu(
         if ( incx < 0 ) { ix = (-n + 1)*incx; }
         if ( incy < 0 ) { iy = (-n + 1)*incy; }
         for( i=0; i < n; ++i ) {
-            value += x[ix] * y[iy];
+            value = value + x[ix] * y[iy];
             ix += incx;
             iy += incy;
         }

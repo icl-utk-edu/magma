@@ -21,7 +21,7 @@ CUDADIR     ?= /usr/local/cuda
 HIPDIR      ?= /opt/rocm/hip
 
 # require either hip or cuda
-ifneq (,$(findstring $(BACKEND),hip cuda))
+ifeq (,$(findstring $(BACKEND),hip cuda))
     $(error "'BACKEND' should be either 'cuda' or 'hip' (got $(BACKEND))")
 endif
 

@@ -307,7 +307,7 @@ magma_int_t magma_ztrevc3(
             // Solve upper triangular system:
             // [ T(1:ki-1,1:ki-1) - T(ki,ki) ]*X = scale*work.
             for( k=0; k < ki; ++k ) {
-                *T(k,k) -= *T(ki,ki);
+                *T(k,k) = *T(k, k) - *T(ki,ki);
                 if ( MAGMA_Z_ABS1( *T(k,k) ) < smin ) {
                     *T(k,k) = MAGMA_Z_MAKE( smin, 0. );
                 }
@@ -433,7 +433,7 @@ magma_int_t magma_ztrevc3(
             // Solve conjugate-transposed triangular system:
             // [ T(ki+1:n,ki+1:n) - T(ki,ki) ]**H * X = scale*work.
             for( k = ki + 1; k < n; ++k ) {
-                *T(k,k) -= *T(ki,ki);
+                *T(k,k) = *T(k, k) - *T(ki,ki);
                 if ( MAGMA_Z_ABS1( *T(k,k) ) < smin ) {
                     *T(k,k) = MAGMA_Z_MAKE( smin, 0. );
                 }

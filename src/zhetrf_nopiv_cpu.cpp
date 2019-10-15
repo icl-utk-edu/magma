@@ -71,7 +71,7 @@ magma_int_t zherk_d(
                 Dkk = D;
                 Akj = A+j;
                 for (k=0; k < n; k++) {
-                    tmp += (*Aik) * (*Dkk) * conj( *Akj );
+                    tmp = tmp + (*Aik) * (*Dkk) * conj( *Akj );
                     Aik += lda;
                     Dkk += incD;
                     Akj += lda;
@@ -85,7 +85,7 @@ magma_int_t zherk_d(
             for (i=0; i <= j; i++) {
                 magmaDoubleComplex tmp = MAGMA_Z_ZERO;
                 for (k=0; k < n; k++) {
-                    tmp += A(i, k) * D( k ) * conj( A(k, j) );
+                    tmp = tmp + A(i, k) * D( k ) * conj( A(k, j) );
                 }
                 C(i, j) = beta * C(i, j) + alpha * tmp;
             }

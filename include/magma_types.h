@@ -18,11 +18,6 @@
 #define HAVE_clBLAS
 #endif
 
-// the default should be to check for HAVE_CUDA
-#ifdef HAVE_CUBLAS
-#define HAVE_CUDA
-#endif
-
 
 // each implementation of MAGMA defines HAVE_* appropriately.
 #if ! defined(HAVE_CUBLAS) && ! defined(HAVE_clBLAS) && ! defined(HAVE_MIC) && ! defined(HAVE_HIP)

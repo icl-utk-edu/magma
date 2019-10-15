@@ -11,7 +11,6 @@
   
        @precisions normal z -> s d c
 */
-#include <cuda_runtime.h>
 
 #include "magma_internal.h"
 #include "magma_bulge.h"
@@ -98,10 +97,10 @@ magma_zbulge_applyQ_v2(
     magma_queue_create( cdev, &queues[1] );
 
     magma_event_t myevent[2];
-    cudaEventCreateWithFlags(&myevent[0],cudaEventDisableTiming);
-    cudaEventCreateWithFlags(&myevent[1],cudaEventDisableTiming);
-    //magma_event_create(&myevent[0]);
-    //magma_event_create(&myevent[1]);
+    //cudaEventCreateWithFlags(&myevent[0],cudaEventDisableTiming);
+    //cudaEventCreateWithFlags(&myevent[1],cudaEventDisableTiming);
+    magma_event_create_untimed(&myevent[0]);
+    magma_event_create_untimed(&myevent[1]);
 
 
     // Azzam 21/11/2012

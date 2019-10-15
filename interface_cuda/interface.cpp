@@ -19,7 +19,7 @@
 #endif
 
 #if defined(_OPENMP)
-#include OMP_HEADER
+#include <omp.h>
 #endif
 
 #if defined(MAGMA_WITH_MKL)
@@ -208,7 +208,12 @@ magma_init()
                     g_magma_devices[dev].memory          = prop.totalGlobalMem;
                     g_magma_devices[dev].cuda_arch       = prop.major*100 + prop.minor*10;
                     g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock; 
+                    #ifdef HAVE_CUDA
                     g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor; 
+                    #elif defined(HAVE_HIP)
+                    g_magma_devices[dev].shmem_multiproc = prop.maxSharedMemoryPerMultiProcessor; 
+                    #endif
+
                     g_magma_devices[dev].multiproc_count = prop.multiProcessorCount; 
                 }
             }
@@ -427,7 +432,7 @@ magma_print_environment()
                 prop.totalGlobalMem / (1024.*1024.),
                 prop.major,
                 prop.minor );
-
+        #ifdef HAVE_CUDA
         int arch = prop.major*100 + prop.minor*10;
         if ( arch < MIN_CUDA_ARCH ) {
             printf("\n"
@@ -437,6 +442,9 @@ magma_print_environment()
                    "==============================================================================\n\n",
                    MIN_CUDA_ARCH/100., dev, arch/100. );
         }
+        #endif
+
+
     }
 
     MAGMA_UNUSED( err );
@@ -473,12 +481,24 @@ magma_is_devptr( const void* A )
     err = cudaGetDevice( &dev );
     if ( ! err ) {
         err = cudaGetDeviceProperties( &prop, dev );
+
+        #ifdef HAVE_CUDA
         if ( ! err && prop.unifiedAddressing ) {
+        #elif defined(HAVE_HIP)
+        // in HIP, assume all can. 
+        // There's no corresponding property, and examples show no need to check any properties
+        if ( ! err ) {
+        #endif
+
             // I think the cudaPointerGetAttributes prototype is wrong, missing const (mgates)
             err = cudaPointerGetAttributes( &attr, const_cast<void*>( A ));
             if ( ! err ) {
                 // definitely know type
+                #ifdef HAVE_CUDA
                 return (attr.memoryType == cudaMemoryTypeDevice);
+                #elif defined(HAVE_HIP)
+                return (attr.memoryType == hipMemoryTypeDevice);
+                #endif
             }
             else if ( err == cudaErrorInvalidValue ) {
                 // clear error; see http://icl.cs.utk.edu/magma/forum/viewtopic.php?f=2&t=529
@@ -1048,7 +1068,7 @@ extern "C" void
 magma_event_create_untimed( magma_event_t* event )
 {
     cudaError_t err;
-    err = cudaEventCreateWithFlags( event , cudaEventDisableTiming );
+    err = cudaEventCreateWithFlags( event, cudaEventDisableTiming );
     check_error( err );
     MAGMA_UNUSED( err );
 }

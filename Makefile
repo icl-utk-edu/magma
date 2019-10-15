@@ -1,4 +1,5 @@
 # ------------------------------------------------------------------------------
+$(info $$libmagma_all=$(libmagma_all))
 # programs
 #
 # Users should make all changes in make.inc
@@ -327,7 +328,6 @@ include $(Makefiles)
 -include Makefile.local
 -include Makefile.gen
 
-
 # ------------------------------------------------------------------------------
 # objects
 
@@ -341,6 +341,8 @@ ifeq ($(FORT),)
     libmagma_all := $(filter-out %.f %.f90 %.F90, $(libmagma_all))
     testing_all  := $(filter-out %.f %.f90 %.F90, $(testing_all))
 endif
+
+#$(info $$libmagma_all=$(libmagma_all))
 
 libmagma_obj       := $(addsuffix .$(o_ext), $(basename $(libmagma_all)))
 libblas_fix_obj    := $(addsuffix .$(o_ext), $(basename $(libblas_fix_src)))
@@ -709,6 +711,70 @@ sparse/testing/clean:
 .DELETE_ON_ERROR:
 
 .SUFFIXES:
+
+# add HIP generation rules
+ifeq ($(BACKEND),hip)
+
+# -*- interface_hip/ rules
+
+interface_hip/%.cpp: interface_cuda/%.cpp
+	@mkdir -p interface_hip
+	$(HIPIFY) $< > $@
+
+interface_hip/%.h: interface_cuda/%.h
+	@mkdir -p interface_hip
+	$(HIPIFY) $< > $@
+
+# so % will match Makefile, as well as Makefile.src
+# replace the name with the new folder
+interface_hip/Makefil%: interface_cuda/Makefil%
+	@mkdir -p interface_hip
+	cp $< $@
+	@sed -i -e "s/:=  *interface_cuda/:= interface_hip/g" $@
+
+# -*- magmablas_hip/ rules
+
+# replace includes with .hip.hpp instead of .cuh
+magmablas_hip/%.hip.cpp: magmablas/%.cu
+	@mkdir -p magmablas_hip
+	$(HIPIFY) $< > $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+
+magmablas_hip/%.hip.hpp: magmablas/%.cuh
+	@mkdir -p magmablas_hip
+	$(HIPIFY) $< > $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+
+magmablas_hip/%.cpp: magmablas/%.cpp
+	@mkdir -p magmablas_hip
+	$(HIPIFY) $< > $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+
+# .h's do not require transforming
+magmablas_hip/%.h: magmablas/%.h
+	@mkdir -p magmablas_hip
+	cp $< $@
+
+# config folders are just copied
+magmablas_hip/%_config: magmablas/%_config
+	@mkdir -p magmablas_hip
+	cp -rf $< $@
+
+# have to replace the names for all types of file here
+magmablas_hip/Makefil%: magmablas/Makefil%
+	@mkdir -p magmablas_hip
+	cp $< $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+	@sed -i -e "s/.cu/.hip.cpp/g" $@
+	@sed -i -e "s/:=  *magmablas/:= magmablas_hip/g" $@
+
+# -*- generating source
+magmablas_hip/.cache: $(patsubst magmablas/%.cu,magmablas_hip/%.hip.cpp,$(wildcard magmablas/*.cu))
+	touch $@
+
+endif
+
+# object file rules
 
 %.$(o_ext): %.f
 	$(FORT) $(FFLAGS) -c -o $@ $<

@@ -25,10 +25,8 @@ targets := \
 	generate             \
 	include              \
 	install              \
-	interface_cuda       \
 	interface_opencl     \
 	lib                  \
-	magmablas            \
 	shared               \
 	sparsela             \
 	sparse               \
@@ -48,6 +46,13 @@ targets := \
 	testing              \
 	testing/lin          \
 	wrappers             \
+
+ifeq ($(BACKEND),cuda)
+    targets += interface_cuda magmablas
+else ifeq ($(BACKEND),hip)
+    targets += interface_hip magmablas_hip
+endif
+
 
 ifneq ($(MAKECMDGOALS),)
 

@@ -180,7 +180,7 @@ magma_zgegqr_gpu(
             for (k=0; k < n; k++) {
                 vt = VT + k*n;
                 for (j=0; j < n; j++)
-                    vt[j] *= S[j];
+                    vt[j] = vt[j] * S[j];
             }
             lapackf77_zgeqrf( &n, &n, VT, &n, tau, hwork, &lwork, info );
             

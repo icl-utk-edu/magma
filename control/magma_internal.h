@@ -107,7 +107,7 @@ public:
     
     #ifdef HAVE_HIP
     
-    hipStream_t      hip_stream()      { return stream_hip__; };
+    hipStream_t      hip_stream()      { return stream__; };
 
     #endif
 
@@ -163,7 +163,7 @@ protected:
     #endif
 
     #ifdef HAVE_HIP
-    hipStream_t      stream_hip__;
+    hipStream_t      stream__;
     #endif
 
 };

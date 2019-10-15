@@ -1,0 +1,113 @@
+# File: make.gen.interface_hip
+#   @author Cade Brown <cbrow216@vols.utk.edu>
+#
+# Generates the `interface_hip` folder automatically from the `interface_cuda` directory automatically
+#
+# Run like:
+# $ make -f make.gen.interface_hip
+#
+# To clean/remove all changes:
+# $ make -f make.gen.interface_hip clean
+#
+#
+# To set the `HIPIFY` script, run:
+# $ export HIPIFY=/path/to/hipify-perl
+# (or the equivalent for your shell)
+#
+# -*-
+#
+# Notes: Never touches or changes anything other than interface_hip/
+#
+# This is not a full solution yet; some of our code needs to probably be changed in MAGMA
+#   For instance, adding HIP-specific things and a more configurable build process (so it can be built without cublas)
+#
+
+
+# utilities, by default assume they are in the $PATH
+HIPIFY ?= $(shell which hipify-perl)
+SED    ?= $(shell which sed)
+
+# TODO: search for hipify included in magma
+
+
+# make sure we have hipify and sed
+ifeq ($(HIPIFY),)
+  $(error Could not find `hipify`, please run like `HIPIFY=... make interface_hip`)
+endif
+
+ifeq ($(SED),)
+  $(error Could not find `sed`, please run like `SED=... make interface_hip`)
+endif
+
+# sed transform to replace the old directory with the new one
+# TODO: speak with Mark & Stan about this (see make.gen_magmablas_hip for more information)
+_SED_MK_TRANSFORM  ?= "s/:=  *interface_cuda/:= interface_hip/g"
+
+
+# input directory (default magma interface for CUDA)
+INTERFACE_CUDA_DIR ?= ./interface_cuda
+
+# target directory (generated magma interface for HIP)
+INTERFACE_HIP_DIR  ?= ./interface_hip
+
+
+#*- input sources -*#
+
+# input C++ files
+INTERFACE_CUDA_SRC_CPP = $(wildcard $(INTERFACE_CUDA_DIR)/*.cpp)
+# input H files
+INTERFACE_CUDA_SRC_H   = $(wildcard $(INTERFACE_CUDA_DIR)/*.h)
+# input makefiles
+INTERFACE_CUDA_SRC_MK  = $(wildcard $(INTERFACE_CUDA_DIR)/Makefile*)
+
+
+#*- generated output -*#
+
+# output C++ files
+INTERFACE_HIP_SRC_CPP  = $(subst $(INTERFACE_CUDA_DIR),$(INTERFACE_HIP_DIR),$(INTERFACE_CUDA_SRC_CPP))
+# output H files
+INTERFACE_HIP_SRC_H    = $(subst $(INTERFACE_CUDA_DIR),$(INTERFACE_HIP_DIR),$(INTERFACE_CUDA_SRC_H))
+# output makefiles
+INTERFACE_HIP_SRC_MK   = $(subst $(INTERFACE_CUDA_DIR),$(INTERFACE_HIP_DIR),$(INTERFACE_CUDA_SRC_MK))
+
+
+
+#*- build rules -*#
+
+# a 'fake' target to build and force the creation of the output directory
+_FAKE_TARGET = $(INTERFACE_HIP_DIR)/.cache
+
+# by default just build everything
+all: $(_FAKE_TARGET)
+
+# special rule to build fake target instead
+.PHONY: all clean $(_FAKE_TARGET)
+
+# have the cache set on all generated outputs
+$(_FAKE_TARGET): $(INTERFACE_HIP_DIR) $(INTERFACE_HIP_SRC_CPP) $(INTERFACE_HIP_SRC_H) $(INTERFACE_HIP_SRC_MK)
+
+# just creates the directory
+$(INTERFACE_HIP_DIR):
+	@echo Creating directory $@...
+	@mkdir -p $@
+
+# removes the directory (which is the only place this makefile will generate to 
+clean:
+	@echo Removing directory $(INTERFACE_HIP_DIR)...
+	@rm -rf $(INTERFACE_HIP_DIR)
+
+# basic cpp translation
+$(INTERFACE_HIP_DIR)/%.cpp: $(INTERFACE_CUDA_DIR)/%.cpp
+	@echo "hipify $< > $@"
+	@$(HIPIFY) $< > $@
+
+$(INTERFACE_HIP_DIR)/%.h: $(INTERFACE_CUDA_DIR)/%.h
+	@echo "hipify $< > $@"
+	@$(HIPIFY) $< > $@
+
+# little hack so % acts like Makefile*.
+$(INTERFACE_HIP_DIR)/Makefil%: $(INTERFACE_CUDA_DIR)/Makefil%
+	cp $< $@
+	@$(SED) -i -e $(_SED_MK_TRANSFORM) $@
+
+

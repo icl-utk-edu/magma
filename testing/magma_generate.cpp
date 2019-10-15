@@ -381,7 +381,7 @@ void magma_generate_svd(
         }
         for (magma_int_t j = 0; j < A.n; ++j) {
             for (magma_int_t i = 0; i < A.m; ++i) {
-                *A(i,j) *= D[j];
+                *A(i,j) = *A(i,j) * D[j];
             }
         }
     }
@@ -468,7 +468,7 @@ void magma_generate_heev(
         }
         for (magma_int_t j = 0; j < n; ++j) {
             for (magma_int_t i = 0; i < n; ++i) {
-                *A(i,j) *= D[i] * D[j];
+                *A(i,j) = *A(i,j) * D[i] * D[j];
             }
         }
     }

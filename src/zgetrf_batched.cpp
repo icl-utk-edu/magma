@@ -10,7 +10,6 @@
 
    @precisions normal z -> s d c
 */
-#include <cuda_runtime.h>
 
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
@@ -120,7 +119,8 @@ magma_zgetrf_batched(
         }
     }
 
-    cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
+    //cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
+    magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
 
     if ( m >  2048 || n > 2048 ) {
         #ifndef MAGMA_NOWARNING
