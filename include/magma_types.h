@@ -129,7 +129,9 @@ typedef double real_Double_t;
 #elif defined(HAVE_HIP)
     
     #include <hip/hip_runtime.h> 
-    
+    #include <hipblas.h>
+    #include <hipsparse.h>
+
     #define HAVE_HIP_COMPLEX
     #include <hip/hip_complex.h>
     
@@ -148,6 +150,11 @@ typedef double real_Double_t;
     typedef short            magmaHalf;
     typedef hipDoubleComplex magmaDoubleComplex;
     typedef hipFloatComplex  magmaFloatComplex;
+
+
+    hipStream_t     magma_queue_get_hip_stream      ( magma_queue_t queue );
+    hipblasHandle_t   magma_queue_get_hipblas_handle  ( magma_queue_t queue );
+    hipsparseHandle_t magma_queue_get_hipsparse_handle( magma_queue_t queue );
 
     #define MAGMA_Z_MAKE(r,i)    make_hipDoubleComplex((r), (i))
     #define MAGMA_Z_REAL(a)      hipCreal(a)

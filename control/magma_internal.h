@@ -80,6 +80,9 @@
     @see magma_queue_get_cuda_stream
     @see magma_queue_get_cublas_handle
     @see magma_queue_get_cusparse_handle
+    @see magma_queue_get_hip_stream
+    @see magma_queue_get_hipblas_handle
+    @see magma_queue_get_hipsparse_handle
 
     @ingroup magma_queue
 *******************************************************************************/
@@ -108,6 +111,10 @@ public:
     #ifdef HAVE_HIP
     
     hipStream_t      hip_stream()      { return stream__; };
+
+    hipblasHandle_t  hipblas_handle()  { return hipblas__; };
+
+    hipsparseHandle_t hipsparse_handle() { return hipsparse__; };
 
     #endif
 
@@ -164,6 +171,8 @@ protected:
 
     #ifdef HAVE_HIP
     hipStream_t      stream__;
+    hipblasHandle_t  hipblas__;
+    hipsparseHandle_t hipsparse__;
     #endif
 
 };

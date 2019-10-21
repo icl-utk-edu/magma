@@ -100,14 +100,13 @@ endif
 # add appropriate HIP flags
 ifeq ($(BACKEND),hip)
     -include make.check-hip
-
     GPU_TARGET ?= gfx701 gfx801 gfx900 gfx1010
 
     DEVCCFLAGS += $(FPIC) -std=c++11
 
     #TODO: see if we need to link any HIP libraries
     #LIB += -lhip_hcc -lhsa-runtime64
-    INC += -I$(HIPDIR)/include
+    INC += -I$(HIPDIR)/include -I$(HIPBLASDIR)/include -I$(HIPSPARSEDIR)/include
 
 endif
 

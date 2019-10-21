@@ -67,7 +67,9 @@ enum {
     own_cublas   = 0x0002,
     own_cusparse = 0x0004,
     own_opencl   = 0x0008,
-    own_hip      = 0x0010
+    own_hip      = 0x0010,
+    own_hipblas  = 0x0020,
+    own_hipsparse= 0x0040
 };
 
 
@@ -735,6 +737,7 @@ magma_queue_get_device( magma_queue_t queue )
 }
 
 
+#ifdef HAVE_CUDA
 /***************************************************************************//**
     @param[in]
     queue       Queue to query.
@@ -768,7 +771,6 @@ magma_queue_get_cublas_handle( magma_queue_t queue )
     return queue->cublas_handle();
 }
 
-
 /***************************************************************************//**
     @param[in]
     queue       Queue to query.
@@ -784,6 +786,62 @@ magma_queue_get_cusparse_handle( magma_queue_t queue )
 {
     return queue->cusparse_handle();
 }
+
+#elif defined(HAVE_HIP)
+
+/***************************************************************************//**
+    @param[in]
+    queue       Queue to query.
+
+    @return HIP stream associated with the MAGMA queue.
+
+    @ingroup magma_queue
+*******************************************************************************/
+extern "C"
+hipStream_t
+magma_queue_get_hip_stream( magma_queue_t queue )
+{
+    return queue->hip_stream();
+}
+
+
+/***************************************************************************//**
+    @param[in]
+    queue       Queue to query.
+
+    @return hipBLAS handle associated with the MAGMA queue.
+            MAGMA assumes the handle's stream will not be modified.
+
+    @ingroup magma_queue
+*******************************************************************************/
+
+extern "C"
+hipblasHandle_t
+magma_queue_get_hipblas_handle( magma_queue_t queue )
+{
+    return queue->hipblas_handle();
+}
+
+/***************************************************************************//**
+    @param[in]
+    queue       Queue to query.
+
+    @return hipSparse handle associated with the MAGMA queue.
+            MAGMA assumes the handle's stream will not be modified.
+
+    @ingroup magma_queue
+*******************************************************************************/
+extern "C"
+cusparseHandle_t
+magma_queue_get_hipsparse_handle( magma_queue_t queue )
+{
+    return queue->hipsparse_handle();
+}
+
+
+
+#endif
+
 
 
 /***************************************************************************//**
@@ -818,9 +876,12 @@ magma_queue_create_internal(
     queue->own__      = own_none;
     queue->device__   = device;
     queue->stream__   = NULL;
-#if defined(HAVE_CUBLAS) || defined(HAVE_HIPBLAS)
+#if defined(HAVE_CUDA)
     queue->cublas__   = NULL;
     queue->cusparse__ = NULL;
+#elif defined(HAVE_HIP)
+    queue->hipblas__  = NULL;
+    queue->hipsparse__ = NULL;
 #endif
     queue->maxbatch__ = MAX_BATCHCOUNT;
 
@@ -831,7 +892,7 @@ magma_queue_create_internal(
     check_xerror( err, func, file, line );
     queue->own__ |= own_stream;
 
-#if defined(HAVE_CUBLAS) || defined(HAVE_HIPBLAS)
+#if defined(HAVE_CUDA)
     cublasStatus_t stat;
     stat = cublasCreate( &queue->cublas__ );
     check_xerror( stat, func, file, line );
@@ -845,6 +906,22 @@ magma_queue_create_internal(
     queue->own__ |= own_cusparse;
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
+#elif defined(HAVE_HIP)
+
+    hipblasStatus_t stat;
+    stat = hipblasCreate( &queue->hipblas__ );
+    check_xerror( stat, func, file, line );
+    queue->own__ |= own_hipblas;
+    stat = hipblasSetStream( queue->hipblas__, queue->stream__ );
+    check_xerror( stat, func, file, line );
+
+    hipsparseStatus_t stat2;
+    stat2 = hipsparseCreate( &queue->hipsparse__ );
+    check_xerror( stat2, func, file, line );
+    queue->own__ |= own_hipsparse;
+    stat2 = hipsparseSetStream( queue->hipsparse__, queue->stream__ );
+    check_xerror( stat2, func, file, line );
+
 #endif
 
     magma_malloc((void**)&(queue->dAarray__), queue->maxbatch__ * sizeof(void*));
