@@ -180,7 +180,7 @@ zlange_one_kernel(
  * then threads collectively do a sum-reduction of ssum,
  * and finally thread 0 saves to dwork[j]. */
 extern "C" __global__ void
-zlange_f_kernel(
+zlange_fro_kernel(
     int m, int n,
     const magmaDoubleComplex * __restrict__ A, int lda,
     double * __restrict__ dwork )
@@ -222,7 +222,7 @@ zlange_f_kernel(
                 (
                 ( normI(A),         NORM = MagmaInfNorm
                 (
-                ( normF(A),         NORM = MagmaFrobeniusNorm  ** not yet supported
+                ( normF(A),         NORM = MagmaFrobeniusNorm
     
     where norm1 denotes the one norm of a matrix (maximum column sum),
     normI denotes the infinity norm of a matrix (maximum row sum) and
@@ -321,7 +321,7 @@ magmablas_zlange(
     }
     else if ( norm == MagmaFrobeniusNorm ) {
         dim3 grid( n );
-        zlange_f_kernel<<< grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dwork );
+        zlange_fro_kernel<<< grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dwork );
         magma_sum_reduce_kernel<<< 1, 512, 0, queue->cuda_stream() >>>( n, dwork );  // note n instead of m
     }
  
