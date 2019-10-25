@@ -11,6 +11,8 @@
 #include "magma_internal.h"
 #include "magma_templates.h"
 
+#define COMPLEX
+
 #define NB_X 64
 
 /* Computes row sums dwork[i] = sum( abs( A(i,:) )), i=0:m-1, for || A ||_inf,
@@ -190,8 +192,12 @@ zlange_f_kernel(
     
     ssum[tx] = 0;
     for( int i = tx; i < m; i += NB_X ) {
-        double abs = MAGMA_Z_ABS( A[i] );
-        ssum[tx] += abs*abs;
+#ifdef COMPLEX
+        double a = MAGMA_Z_ABS( A[i] );
+#else
+        double a = A[i];
+#endif
+        ssum[tx] += a*a;
     }
     magma_sum_reduce< NB_X >( tx, ssum );
     if ( tx == 0 ) {
