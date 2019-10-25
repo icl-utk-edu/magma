@@ -55,8 +55,6 @@ int main( int argc, char** argv)
     
     double eps = lapackf77_dlamch("E");
     
-    // Frobenius norm not currently supported, but leave this here for future support
-    // of different norms. See similar code in testing_zlanhe.cpp.
     magma_norm_t norm[] = { MagmaMaxNorm, MagmaOneNorm, MagmaInfNorm, MagmaFrobeniusNorm };
     
     printf("%%   M     N   norm   CPU GByte/s (ms)    GPU GByte/s (ms)        error               nan      inf\n");
