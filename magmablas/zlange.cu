@@ -170,6 +170,34 @@ zlange_one_kernel(
     }
 }
 
+/* Based on zlange_one_kernel code, above.
+ * Computes col sums dwork[j] = sum( abs( A(:,j) )^2 ), j=0:n-1, for || A ||_F,
+ * where m and n are any size.
+ * Has n blocks of NB threads each. Block j sums one column, A(:,j) into dwork[j].
+ * Thread i accumulates A(i,j) + A(i+NB,j) + A(i+2*NB,j) + ... into ssum[i],
+ * then threads collectively do a sum-reduction of ssum,
+ * and finally thread 0 saves to dwork[j]. */
+extern "C" __global__ void
+zlange_f_kernel(
+    int m, int n,
+    const magmaDoubleComplex * __restrict__ A, int lda,
+    double * __restrict__ dwork )
+{
+    __shared__ double ssum[NB_X];
+    int tx = threadIdx.x;
+    
+    A += blockIdx.x*lda;  // column j
+    
+    ssum[tx] = 0;
+    for( int i = tx; i < m; i += NB_X ) {
+        double abs = MAGMA_Z_ABS( A[i] );
+        ssum[tx] += abs*abs;
+    }
+    magma_sum_reduce< NB_X >( tx, ssum );
+    if ( tx == 0 ) {
+        dwork[ blockIdx.x ] = ssum[0];
+    }
+}
 
 /***************************************************************************//**
     Purpose
@@ -245,7 +273,8 @@ magmablas_zlange(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    if ( ! (norm == MagmaInfNorm || norm == MagmaMaxNorm || norm == MagmaOneNorm) )
+    if ( ! (norm == MagmaInfNorm || norm == MagmaMaxNorm ||
+            norm == MagmaOneNorm || norm == MagmaFrobeniusNorm) )
         info = -1;
     else if ( m < 0 )
         info = -2;
@@ -254,7 +283,7 @@ magmablas_zlange(
     else if ( ldda < m )
         info = -5;
     else if ( ((norm == MagmaInfNorm || norm == MagmaMaxNorm) && (lwork < m)) ||
-              ((norm == MagmaOneNorm) && (lwork < n)) )
+              ((norm == MagmaOneNorm || norm == MagmaFrobeniusNorm ) && (lwork < n)) )
         info = -7;
 
     if ( info != 0 ) {
@@ -284,7 +313,16 @@ magmablas_zlange(
         zlange_one_kernel<<< grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dwork );
         magma_max_nan_kernel<<< 1, 512, 0, queue->cuda_stream() >>>( n, dwork );  // note n instead of m
     }
+    else if ( norm == MagmaFrobeniusNorm ) {
+        dim3 grid( n );
+        zlange_f_kernel<<< grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dwork );
+        magma_sum_reduce_kernel<<< 1, 512, 0, queue->cuda_stream() >>>( n, dwork );  // note n instead of m
+    }
+ 
     magma_dgetvector( 1, &dwork[0], 1, &result, 1, queue );
+    if( norm == MagmaFrobeniusNorm ) {
+        result = sqrt(result); // Square root for final result.
+    }
     
     return result;
 }
