@@ -264,16 +264,16 @@ template< typename T >
 __global__ void
 magma_sum_reduce_kernel( int n, T* x )
 {
-    __shared__ T smax[ 512 ];
+    __shared__ T sum[ 512 ];
     int tx = threadIdx.x;
     
-    smax[tx] = 0;
+    sum[tx] = 0;
     for( int i=tx; i < n; i += 512 ) {
-        smax[tx] += x[i];
+        sum[tx] += x[i];
     }
-    magma_sum_reduce< 512 >( tx, smax );
+    magma_sum_reduce< 512 >( tx, sum );
     if ( tx == 0 ) {
-        x[0] = smax[0];
+        x[0] = sum[0];
     }
 }
 
