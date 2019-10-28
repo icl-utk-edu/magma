@@ -256,7 +256,7 @@ magma_sum_reduce( /*int n,*/ int i, T* x )
 
 
 /***************************************************************************//**
-    max reduction, for arbitrary size vector. Leaves max(x) in x[0].
+    sum reduction, for arbitrary size vector. Leaves sum(x) in x[0].
     Uses only one thread block of 512 threads, so is not efficient for really large vectors.
     @ingroup magma_kernel
 *******************************************************************************/
