@@ -129,12 +129,21 @@ typedef double real_Double_t;
 #elif defined(HAVE_HIP)
     
     #include <hip/hip_runtime.h> 
+
+    //#define HAVE_HIP_COMPLEX
+    //#include <hip/hip_complex.h>
+    // instead, use this fix:
+    #include "magma_hip_complex.h"
+    
     #include <hipblas.h>
+    // some fixes for hipblas
+    // no-ops that aren't implemented yet
+    #define hipblasZgemmBatched(...) 
+
+
     #include <hipsparse.h>
 
-    #define HAVE_HIP_COMPLEX
-    #include <hip/hip_complex.h>
-    
+
     #ifdef __cplusplus
     extern "C" {
     #endif
@@ -166,6 +175,7 @@ typedef double real_Double_t;
     #define MAGMA_Z_ABS(a)       hipCabs(a)
     #define MAGMA_Z_ABS1(a)      (fabs(MAGMA_Z_REAL(a))+fabs(MAGMA_Z_IMAG(a)))
     #define MAGMA_Z_CONJ(a)      hipConj(a)
+
 
     #define MAGMA_C_MAKE(r,i)    make_hipFloatComplex((r), (i))
     #define MAGMA_C_REAL(a)      hipCrealf(a)
@@ -273,6 +283,27 @@ typedef double real_Double_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// setting to zero
+__device__ __host__ static inline void magmaCsetzero(hipDoubleComplex* z, int n) {
+    for (int i = 0; i < n; ++i) {
+        z[i] = MAGMA_Z_MAKE(0.0f, 0.0f);
+    }
+}
+
+__device__ __host__ static inline void magmaCsetzero(double* z, int n) {
+    for (int i = 0; i < n; ++i) {
+        z[i] = 0.0f;
+    }
+}
+
+
+__device__ __host__ static inline void magmaCsetzerof(hipFloatComplex* z, int n) {
+    for (int i = 0; i < n; ++i) {
+        z[i] = MAGMA_C_MAKE(0.0f, 0.0f);
+    }
+}
+
 
 #define MAGMA_Z_EQUAL(a,b)        (MAGMA_Z_REAL(a)==MAGMA_Z_REAL(b) && MAGMA_Z_IMAG(a)==MAGMA_Z_IMAG(b))
 #define MAGMA_Z_NEGATE(a)         MAGMA_Z_MAKE( -MAGMA_Z_REAL(a), -MAGMA_Z_IMAG(a))
@@ -895,6 +926,26 @@ cublasOperation_t    cublas_trans_const ( magma_trans_t trans );
 cublasFillMode_t     cublas_uplo_const  ( magma_uplo_t  uplo  );
 cublasDiagType_t     cublas_diag_const  ( magma_diag_t  diag  );
 cublasSideMode_t     cublas_side_const  ( magma_side_t  side  );
+
+#define magma_backend_trans_const cublas_trans_const
+#define magma_backend_uplo_const cublas_uplo_const
+#define magma_backend_diag_const cublas_diag_const
+#define magma_backend_side_const cublas_side_const
+#endif
+
+
+// -----------------------------------------------------------------------------
+// Convert MAGMA constants to hipBLAS constants
+#if defined(HAVE_HIP)
+hipblasOperation_t   hipblas_trans_const( magma_trans_t trans );
+hipblasFillMode_t    hipblas_uplo_const (magma_uplo_t uplo    );
+hipblasDiagType_t    hipblas_diag_const (magma_diag_t diag    );
+hipblasSideMode_t    hipblas_side_const (magma_side_t side    );
+
+#define magma_backend_trans_const hipblas_trans_const
+#define magma_backend_uplo_const hipblas_uplo_const
+#define magma_backend_diag_const hipblas_diag_const
+#define magma_backend_side_const hipblas_side_const
 #endif
 
 
