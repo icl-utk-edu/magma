@@ -95,7 +95,7 @@ magmablas_hip/%.hip.hpp: magmablas/%.cuh
 # so, just copy them
 magmablas_hip/%.h: magmablas/%.h
 	cp $< $@
-	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/.cuh/.hip.hpp/g" $@
 
 
 # converts *_config <- *_config

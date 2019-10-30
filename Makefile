@@ -1,5 +1,4 @@
 # ------------------------------------------------------------------------------
-$(info $$libmagma_all=$(libmagma_all))
 # programs
 #
 # Users should make all changes in make.inc
@@ -314,18 +313,24 @@ ifeq ($(BACKEND),cuda)
 	subdirs += interface_cuda
 	subdirs += magmablas
 else ifeq ($(BACKEND),hip)
-	# this needs to be generated!
+	# this needs to be generate!
 	subdirs += interface_hip
 	subdirs += magmablas_hip
 endif
 
 Makefiles := $(addsuffix /Makefile.src, $(subdirs))
 
+#$(info $$Makefiles=$(Makefiles))
+
 include $(Makefiles)
 
 -include Makefile.internal
 -include Makefile.local
 -include Makefile.gen
+
+
+#$(info $$libmagma_src=$(libmagma_src))
+#$(info $$libmagma_all=$(libmagma_all))
 
 # ------------------------------------------------------------------------------
 # objects
@@ -340,8 +345,6 @@ ifeq ($(FORT),)
     libmagma_all := $(filter-out %.f %.f90 %.F90, $(libmagma_all))
     testing_all  := $(filter-out %.f %.f90 %.F90, $(testing_all))
 endif
-
-#$(info $$libmagma_all=$(libmagma_all))
 
 libmagma_obj       := $(addsuffix .$(o_ext), $(basename $(libmagma_all)))
 libblas_fix_obj    := $(addsuffix .$(o_ext), $(basename $(libblas_fix_src)))
@@ -450,6 +453,8 @@ libs_a := \
 libs_so := \
 	$(libmagma_so)		\
 	$(libsparse_so)		\
+
+#$(info $$libmagma_obj=$(libmagma_obj))
 
 # add objects to libraries
 $(libmagma_a):      $(libmagma_obj)
@@ -612,12 +617,14 @@ sparse_src_obj       := $(filter       sparse/src/%.o, $(libsparse_obj))
 
 
 ifeq ($(BACKEND),cuda)
-	interface_cuda_obj   := $(filter   interface_cuda/%.o, $(libmagma_obj))
-	magmablas_obj        := $(filter        magmablas/%.o, $(libmagma_obj))
+  interface_cuda_obj   := $(filter   interface_cuda/%.o, $(libmagma_obj))
+  magmablas_obj        := $(filter        magmablas/%.o, $(libmagma_obj))
 else ifeq ($(BACKEND),hip)
-	interface_hip_obj   := $(filter     interface_hip/%.o, $(libmagma_obj))
-	magmablas_hip_obj   := $(filter     magmablas_hip/%.o, $(libmagma_obj))
+  interface_hip_obj   := $(filter     interface_hip/%.o, $(libmagma_obj))
+  magmablas_hip_obj   := $(filter     magmablas_hip/%.o, $(libmagma_obj))
+  #$(info $$magmablas_hip_obj=$(magmablas_hip_obj))
 endif
+
 
 
 # ----------
@@ -665,11 +672,22 @@ blas_fix/clean:
 control/clean:
 	-rm -f $(control_obj) include/*.mod control/*.mod
 
+ifeq ($(BACKEND),cuda)
 interface_cuda/clean:
 	-rm -f $(interface_cuda_obj)
 
 magmablas/clean:
 	-rm -f $(magmablas_obj)
+
+else ifeq ($(BACKEND),hip)
+
+interface_hip/clean:
+	-rm -f $(interface_hip_obj)
+
+magmablas_hip/clean:
+	-rm -f $(magmablas_hip_obj)
+
+endif
 
 src/clean:
 	-rm -f $(src_obj)
@@ -711,68 +729,6 @@ sparse/testing/clean:
 
 .SUFFIXES:
 
-# add HIP generation rules
-ifeq ($(BACKEND),hip)
-
-# -*- interface_hip/ rules
-
-interface_hip/%.cpp: interface_cuda/%.cpp
-	@mkdir -p interface_hip
-	$(HIPIFY) $< > $@
-
-interface_hip/%.h: interface_cuda/%.h
-	@mkdir -p interface_hip
-	$(HIPIFY) $< > $@
-
-# so % will match Makefile, as well as Makefile.src
-# replace the name with the new folder
-interface_hip/Makefil%: interface_cuda/Makefil%
-	@mkdir -p interface_hip
-	cp $< $@
-	@sed -i -e "s/:=  *interface_cuda/:= interface_hip/g" $@
-
-# -*- magmablas_hip/ rules
-
-# replace includes with .hip.hpp instead of .cuh
-magmablas_hip/%.hip.cpp: magmablas/%.cu
-	@mkdir -p magmablas_hip
-	$(HIPIFY) $< > $@
-	@sed -i -e "s/.cuh/.hip.hpp/g" $@
-
-magmablas_hip/%.hip.hpp: magmablas/%.cuh
-	@mkdir -p magmablas_hip
-	$(HIPIFY) $< > $@
-	@sed -i -e "s/.cuh/.hip.hpp/g" $@
-
-magmablas_hip/%.cpp: magmablas/%.cpp
-	@mkdir -p magmablas_hip
-	$(HIPIFY) $< > $@
-	@sed -i -e "s/.cuh/.hip.hpp/g" $@
-
-# .h's do not require transforming
-magmablas_hip/%.h: magmablas/%.h
-	@mkdir -p magmablas_hip
-	cp $< $@
-
-# config folders are just copied
-magmablas_hip/%_config: magmablas/%_config
-	@mkdir -p magmablas_hip
-	cp -rf $< $@
-
-# have to replace the names for all types of file here
-magmablas_hip/Makefil%: magmablas/Makefil%
-	@mkdir -p magmablas_hip
-	cp $< $@
-	@sed -i -e "s/.cuh/.hip.hpp/g" $@
-	@sed -i -e "s/.cu/.hip.cpp/g" $@
-	@sed -i -e "s/:=  *magmablas/:= magmablas_hip/g" $@
-
-# -*- generating source
-magmablas_hip/.cache: $(patsubst magmablas/%.cu,magmablas_hip/%.hip.cpp,$(wildcard magmablas/*.cu))
-	touch $@
-
-endif
-
 # object file rules
 
 %.$(o_ext): %.f
@@ -789,7 +745,7 @@ endif
 %.$(o_ext): %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-%.$(o_ext): %.cpp
+%.o: %.cpp
 	$(DEVCC) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 	@#$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 

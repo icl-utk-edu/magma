@@ -758,6 +758,75 @@ cublasSideMode_t     cublas_side_const  ( magma_side_t magma_const )
 #endif  // HAVE_CUBLAS
 
 
+
+#ifdef HAVE_HIPBLAS
+
+const int magma2hipblas_constants[] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0,                      // 100
+    0,                      // 101: MagmaRowMajor
+    0,                      // 102: MagmaColMajor
+    0, 0, 0, 0, 0, 0, 0, 0,
+    HIPBLAS_OP_N,           // 111: MagmaNoTrans
+    HIPBLAS_OP_T,           // 112: MagmaTrans
+    HIPBLAS_OP_C,           // 113: MagmaConjTrans
+    0, 0, 0, 0, 0, 0, 0,
+    HIPBLAS_FILL_MODE_UPPER,// 121: MagmaUpper
+    HIPBLAS_FILL_MODE_LOWER,// 122: MagmaLower
+    0, 0, 0, 0, 0, 0, 0, 0,
+    HIPBLAS_DIAG_NON_UNIT,  // 131: MagmaNonUnit
+    HIPBLAS_DIAG_UNIT,      // 132: MagmaUnit
+    0, 0, 0, 0, 0, 0, 0, 0,
+    HIPBLAS_SIDE_LEFT,      // 141: MagmaLeft
+    HIPBLAS_SIDE_RIGHT,     // 142: MagmaRight
+    0, 0, 0, 0, 0, 0, 0, 0
+};
+
+extern "C"
+hipblasOperation_t    hipblas_trans_const ( magma_trans_t magma_const )
+{
+    assert( magma_const >= MagmaNoTrans   );
+    assert( magma_const <= MagmaConjTrans );
+    return (hipblasOperation_t)  magma2hipblas_constants[ magma_const ];
+}
+
+extern "C"
+hipblasFillMode_t     hipblas_uplo_const  ( magma_uplo_t magma_const )
+{
+    assert( magma_const >= MagmaUpper );
+    assert( magma_const <= MagmaLower );
+    return (hipblasFillMode_t)   magma2hipblas_constants[ magma_const ];
+}
+
+extern "C"
+hipblasDiagType_t     hipblas_diag_const  ( magma_diag_t magma_const )
+{
+    assert( magma_const >= MagmaNonUnit );
+    assert( magma_const <= MagmaUnit    );
+    return (hipblasDiagType_t)   magma2hipblas_constants[ magma_const ];
+}
+
+extern "C"
+hipblasSideMode_t     hipblas_side_const  ( magma_side_t magma_const )
+{
+    assert( magma_const >= MagmaLeft  );
+    assert( magma_const <= MagmaRight );
+    return (hipblasSideMode_t)   magma2hipblas_constants[ magma_const ];
+}
+
+
+#endif // HAVE_HIPBLAS
+
 #ifdef HAVE_CBLAS
 // =============================================================================
 /// @addtogroup cblas_const
