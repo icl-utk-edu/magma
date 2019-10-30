@@ -19,7 +19,7 @@
 
 // This kernel uses registers for matrix storage, shared mem. for communication.
 // It also uses lazy swap.
-extern __shared__ magmaDoubleComplex zdata[];
+//extern __shared__ magmaDoubleComplex zdata[];
 
 template<int N>
 __device__ void

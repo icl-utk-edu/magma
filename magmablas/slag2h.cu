@@ -96,7 +96,7 @@ magmablas_slag2h(
         return;
     }
 
-    cudaMemcpyToSymbol( flag, info, sizeof(flag) );    // flag = 0
+    cudaMemcpyToSymbol( &flag, info, sizeof(flag) );    // flag = 0
     
     // there is no lapackf77_hlamch, please visit: 
     // https://blogs.mathworks.com/cleve/2017/05/08/half-precision-16-bit-floating-point-arithmetic/
@@ -108,7 +108,7 @@ magmablas_slag2h(
     slag2h_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
     ( m, n, dA, lda, dHA, ldha, rmax, &flag );
 
-    cudaMemcpyFromSymbol( info, flag, sizeof(flag) );  // info = flag
+    cudaMemcpyFromSymbol( info, &flag, sizeof(flag) );  // info = flag
 
 }
 

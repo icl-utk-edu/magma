@@ -139,7 +139,10 @@
 #define THR_N ( BLK_N / DIM_Y )
 
 /******************************************************************************/
-extern "C" static __device__
+
+extern "C" {
+
+static __device__
 void devfunc_name(precision) (
     int M, int N, int K,
     const FloatingPoint_t* __restrict__ A, int LDA,
@@ -445,3 +448,5 @@ void devfunc_name(precision) (
     }
 #endif /* (__CUDA_ARCH__ >= 200) */
 }
+
+} /* extern "C" { */

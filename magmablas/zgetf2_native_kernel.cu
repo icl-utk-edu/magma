@@ -309,7 +309,8 @@ magma_zgetf2_native_fused(
     magma_int_t shmem = magma_getdevice_shmem_block();
     shmem = (shmem / 2);
     int *update_flag = (int*) flags;    // update_flag is an int, not magma_int_t
-    zgetf2_native_init_kernel<<< 1, max(n,npages), 0, queue->cuda_stream() >>>( n, npages, ipiv, update_flag);
+    size_t max_n_npages = max(n,npages);
+    zgetf2_native_init_kernel<<< 1, max_n_npages, 0, queue->cuda_stream() >>>( n, npages, ipiv, update_flag);
     // The case statement should cover up to ( xGETF2_CHAIN_MAX_M / ntx )
     switch(npages){
         case  1: zgetf2_native_kernel< ntx,  1><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;

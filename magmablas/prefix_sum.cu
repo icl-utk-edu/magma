@@ -114,7 +114,7 @@ magma_prefix_sum_internal_w(
         // prefix sum on the workspace 
         dim3 threads_sumw(SCAN_TB_SIZE, 1, 1);
         dim3 grid_sumw(1, 1, 1);
-        prefix_sum_kernel<<<grid_sumw, threads_sumw, 0, queue->cuda_stream()>>>(workspace, workspace, lwork, NULL, 0);
+        prefix_sum_kernel<<<grid_sumw, threads_sumw, 0, queue->cuda_stream()>>>(workspace, workspace, lwork, (int*)NULL, 0);
         
         // update the sum
         dim3 threads_update(SCAN_SEG_SIZE, 1, 1);
@@ -134,7 +134,7 @@ magma_prefix_sum_internal(magma_int_t* ivec, magma_int_t* ovec, magma_int_t leng
     
     magma_prefix_sum_internal_w(ivec, ovec, length, workspace, lwork, queue);
         
-    if(workspace != NULL)magma_free( workspace );
+    if(workspace != (int*)NULL)magma_free( workspace );
 }
 //----------------------------------------------------------------------------------------
 

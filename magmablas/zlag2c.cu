@@ -163,9 +163,9 @@ magmablas_zlag2c(
 
     dim3 threads( BLK_X, 1 );
     dim3 grid( magma_ceildiv( m, BLK_X ), magma_ceildiv( n, BLK_Y ) );
-    cudaMemcpyToSymbol( flag, info, sizeof(flag) );    // flag = 0
+    cudaMemcpyToSymbol( &flag, info, sizeof(flag) );    // flag = 0
     
     zlag2c_kernel<<< grid, threads, 0, queue->cuda_stream() >>>( m, n, A, lda, SA, ldsa, rmax );
     
-    cudaMemcpyFromSymbol( info, flag, sizeof(flag) );  // info = flag
+    cudaMemcpyFromSymbol( info, &flag, sizeof(flag) );  // info = flag
 }

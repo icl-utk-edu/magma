@@ -72,7 +72,8 @@ zgemm_kernel_16(
     
     // compute NT x 16 block of C
     // each thread computes one 1x16 row, C(id,0:15)
-    magmaDoubleComplex rC[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    magmaDoubleComplex rC[16];
+    magmaCsetzero(rC, 16);
     magmaDoubleComplex rA[4];
 
     do {
@@ -93,7 +94,7 @@ zgemm_kernel_16(
         rA[2] = A[2*lda];
         rA[3] = A[3*lda];
 
-        // axpy:  C(id,:) += A(id,k) * B(k,:) for k=0, ..., 15
+        // axpy:  C(id,:) += A(id,k) * B(k,:) for k={0,0}, ..., 15
         zaxpy16( rA[0], &sB[ 0][0], rC );  rA[0] = A[ 4*lda];
         zaxpy16( rA[1], &sB[ 1][0], rC );  rA[1] = A[ 5*lda];
         zaxpy16( rA[2], &sB[ 2][0], rC );  rA[2] = A[ 6*lda];

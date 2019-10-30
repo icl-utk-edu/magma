@@ -19,7 +19,11 @@
 // =============================================================================
 #define COMPLEX
 #define DOUBLE
-#define TEXTURE_1D
+#ifdef HAVE_CUDA
+  #define TEXTURE_1D
+#endif
+
+
 
 #include "gemm_stencil_defs.h"
 

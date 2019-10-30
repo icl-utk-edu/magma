@@ -241,6 +241,7 @@ magma_izamax_native( magma_int_t length,
             (length, chunk, x, incx, step, lda, ipiv, info, gbstep);
     }
     else {
+    #ifdef HAVE_CUBLAS
         cublasPointerMode_t ptr_mode;
         cublasGetPointerMode(queue->cublas_handle(), &ptr_mode);
         cublasSetPointerMode(queue->cublas_handle(), CUBLAS_POINTER_MODE_DEVICE);
@@ -249,6 +250,18 @@ magma_izamax_native( magma_int_t length,
         magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv+step );
 
         cublasSetPointerMode(queue->cublas_handle(), ptr_mode);
+    #elif defined(HAVE_HIPBLAS)
+        hipblasPointerMode_t ptr_mode;
+        hipblasGetPointerMode(queue->hipblas_handle(), &ptr_mode);
+        hipblasSetPointerMode(queue->hipblas_handle(), CUBLAS_POINTER_MODE_DEVICE);
+
+        hipblasIzamax(queue->hipblas_handle(), length, x + step * lda + step, 1, (int*)(ipiv+step));
+        magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv+step );
+
+        hipblasSetPointerMode(queue->hipblas_handle(), ptr_mode);
+    #endif
+
+
         adjust_ipiv( ipiv+step, 1, step, queue);
     }
     return 0;

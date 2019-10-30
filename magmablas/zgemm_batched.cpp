@@ -42,12 +42,22 @@ magma_zgemm_batched_core(
     magma_int_t zero_offset = (Ai == 0 && Aj == 0 && Bi == 0 && Bj == 0 && Ci == 0 && Cj == 0);
     if(use_cublas){
         if(zero_offset){
+        #ifdef HAVE_CUDA
             cublasZgemmBatched(
                     queue->cublas_handle(), cublas_trans_const(transA), cublas_trans_const(transB),
                     int(m), int(n), int(k),
                     &alpha, (const magmaDoubleComplex**)dA_array, int(ldda),
                             (const magmaDoubleComplex**)dB_array, int(lddb),
                     &beta,                              dC_array, int(lddc), int(batchCount) );
+        #elif defined(HAVE_HIP)
+            hipblasZgemmBatched(
+                    queue->hipblas_handle(), hipblas_trans_const(transA), hipblas_trans_const(transB),
+                    int(m), int(n), int(k),
+                    &alpha, (const magmaDoubleComplex**)dA_array, int(ldda),
+                            (const magmaDoubleComplex**)dB_array, int(lddb),
+                    &beta,                              dC_array, int(lddc), int(batchCount) );
+
+        #endif
         }
         else{
             magmaDoubleComplex** dAarray = (magmaDoubleComplex**)queue->get_dAarray();
@@ -59,12 +69,22 @@ magma_zgemm_batched_core(
                 magma_zdisplace_pointers(dAarray, (magmaDoubleComplex**)dA_array + i, ldda, Ai, Aj, batch, queue);
                 magma_zdisplace_pointers(dBarray, (magmaDoubleComplex**)dB_array + i, lddb, Bi, Bj, batch, queue);
                 magma_zdisplace_pointers(dCarray, (magmaDoubleComplex**)dC_array + i, lddc, Ci, Cj, batch, queue);
-                cublasZgemmBatched(
-                        queue->cublas_handle(), cublas_trans_const(transA), cublas_trans_const(transB),
-                        int(m), int(n), int(k),
-                        &alpha, (const magmaDoubleComplex**)dAarray, int(ldda),
-                                (const magmaDoubleComplex**)dBarray, int(lddb),
-                        &beta,                              dCarray, int(lddc), int(batch) );
+                #ifdef HAVE_CUDA
+                    cublasZgemmBatched(
+                            queue->cublas_handle(), cublas_trans_const(transA), cublas_trans_const(transB),
+                            int(m), int(n), int(k),
+                            &alpha, (const magmaDoubleComplex**)dA_array, int(ldda),
+                                    (const magmaDoubleComplex**)dB_array, int(lddb),
+                            &beta,                              dC_array, int(lddc), int(batchCount) );
+                #elif defined(HAVE_HIP)
+                    hipblasZgemmBatched(
+                            queue->hipblas_handle(), hipblas_trans_const(transA), hipblas_trans_const(transB),
+                            int(m), int(n), int(k),
+                            &alpha, (const magmaDoubleComplex**)dA_array, int(ldda),
+                                    (const magmaDoubleComplex**)dB_array, int(lddb),
+                            &beta,                              dC_array, int(lddc), int(batchCount) );
+
+                #endif
             }
         }
     }
