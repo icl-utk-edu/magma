@@ -232,7 +232,7 @@ magmablas_zlat2c(
 
     dim3 threads( BLK_X, 1 );
     dim3    grid( magma_ceildiv( n, BLK_X ), magma_ceildiv( n, BLK_Y ) );
-    cudaMemcpyToSymbol( &flag, info, sizeof(flag) );    // flag = 0
+    cudaMemcpyToSymbol( flag, info, sizeof(flag) );    // flag = 0
     
     if (uplo == MagmaLower) {
         zlat2c_lower<<< grid, threads, 0, queue->cuda_stream() >>> (n, A, lda, SA, ldsa, rmax);
@@ -241,5 +241,5 @@ magmablas_zlat2c(
         zlat2c_upper<<< grid, threads, 0, queue->cuda_stream() >>> (n, A, lda, SA, ldsa, rmax);
     }
     
-    cudaMemcpyFromSymbol( info, &flag, sizeof(flag) );  // info = flag
+    cudaMemcpyFromSymbol( info, flag, sizeof(flag) );  // info = flag
 }
