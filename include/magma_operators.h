@@ -89,7 +89,7 @@ __host__ __device__ static inline float  abs1(const float              &x) { ret
 // magmaDoubleComplex
 
 // hip_complex.h also defines oeprators
-#ifndef HAVE_HIP_COMPLEX
+//#ifndef HAVE_HIP_COMPLEX
 
 // ---------- negate
 __host__ __device__ static inline magmaDoubleComplex
@@ -581,7 +581,7 @@ operator != (const float s, const magmaFloatComplex a)
     return ! (a == s);
 }
 
-#endif /* HAVE_HIP_COMPLEX */
+//#endif /* HAVE_HIP_COMPLEX */
 
 
 #ifdef HAVE_clBLAS

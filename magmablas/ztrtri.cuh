@@ -72,8 +72,7 @@ zgemm_kernel_16(
     
     // compute NT x 16 block of C
     // each thread computes one 1x16 row, C(id,0:15)
-    magmaDoubleComplex rC[16];
-    magmaCsetzero(rC, 16);
+    magmaDoubleComplex rC[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     magmaDoubleComplex rA[4];
 
     do {

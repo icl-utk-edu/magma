@@ -139,7 +139,7 @@ typedef double real_Double_t;
     // some fixes for hipblas
     // no-ops that aren't implemented yet
     #define hipblasZgemmBatched(...) 
-
+    #define hipblasCgemmBatched(...) 
 
     #include <hipsparse.h>
 
@@ -283,27 +283,6 @@ typedef double real_Double_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-// setting to zero
-__device__ __host__ static inline void magmaCsetzero(hipDoubleComplex* z, int n) {
-    for (int i = 0; i < n; ++i) {
-        z[i] = MAGMA_Z_MAKE(0.0f, 0.0f);
-    }
-}
-
-__device__ __host__ static inline void magmaCsetzero(double* z, int n) {
-    for (int i = 0; i < n; ++i) {
-        z[i] = 0.0f;
-    }
-}
-
-
-__device__ __host__ static inline void magmaCsetzerof(hipFloatComplex* z, int n) {
-    for (int i = 0; i < n; ++i) {
-        z[i] = MAGMA_C_MAKE(0.0f, 0.0f);
-    }
-}
-
 
 #define MAGMA_Z_EQUAL(a,b)        (MAGMA_Z_REAL(a)==MAGMA_Z_REAL(b) && MAGMA_Z_IMAG(a)==MAGMA_Z_IMAG(b))
 #define MAGMA_Z_NEGATE(a)         MAGMA_Z_MAKE( -MAGMA_Z_REAL(a), -MAGMA_Z_IMAG(a))
