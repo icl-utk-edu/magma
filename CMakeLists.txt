@@ -436,14 +436,16 @@ else()
         ${CUDA_cusparse_LIBRARY}
     )
 
-    # make list of Fortran .mod files to install
-    foreach( f ${libmagma_all} )
-        if (${f} MATCHES "\\.(f90|F90)$")
-            # mod files seem to wind up in root build directory
-            get_filename_component( fmod ${f} NAME_WE )
-            list( APPEND modules "${CMAKE_BINARY_DIR}/${fmod}.mod" )
-        endif()
-    endforeach()
+    if (USE_FORTRAN)
+        # make list of Fortran .mod files to install
+        foreach( f ${libmagma_all} )
+            if (${f} MATCHES "\\.(f90|F90)$")
+                # mod files seem to wind up in root build directory
+                get_filename_component( fmod ${f} NAME_WE )
+                list( APPEND modules "${CMAKE_BINARY_DIR}/${fmod}.mod" )
+            endif()
+        endforeach()
+    endif()
 endif()
 add_custom_target( lib DEPENDS magma )
 
