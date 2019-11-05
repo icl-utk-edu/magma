@@ -19,12 +19,13 @@
 
 // This kernel uses registers for matrix storage, shared mem. for communication.
 // It also uses lazy swap.
-extern __shared__ magmaDoubleComplex zdata[];
+//extern __shared__ magmaDoubleComplex zdata[];
 template<int N, int NPOW2>
 __global__ void
 zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda, 
                                 magma_int_t** ipiv_array, magma_int_t *info_array, int batchCount)
 {
+extern __shared__ magmaDoubleComplex zdata[];
     const int tx = threadIdx.x;
     const int ty = threadIdx.y; 
     const int batchid = blockIdx.x * blockDim.y + ty;

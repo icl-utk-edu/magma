@@ -16,7 +16,7 @@
 
 #define use_gemm_larft
 
-extern __shared__ magmaDoubleComplex shared_data[];
+//extern __shared__ magmaDoubleComplex shared_data[];
 
 /******************************************************************************/
 static __device__
@@ -24,6 +24,8 @@ void zlarft_gemvcolwise_device(
     int m, magmaDoubleComplex *v, magmaDoubleComplex *tau,
     magmaDoubleComplex *c, int ldc, magmaDoubleComplex *T, int ldt, int step )
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+
     const int thblk =  blockIdx.x;
     if (thblk > step)
         return;
@@ -185,6 +187,8 @@ zlarft_gemvrowwise_kernel(
     magmaDoubleComplex *v, int ldv, 
     magmaDoubleComplex *T, int ldt)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+
     magmaDoubleComplex *W =  T +i*ldt;
 
     magmaDoubleComplex *sdata = (magmaDoubleComplex*)shared_data;
@@ -202,6 +206,8 @@ zlarft_gemvrowwise_kernel_batched(
     magmaDoubleComplex **v_array, int ldv, 
     magmaDoubleComplex **T_array, int ldt)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+    
     int batchid = blockIdx.z;
 
     magmaDoubleComplex *W =  T_array[batchid] +i*ldt;
@@ -263,6 +269,8 @@ zlarft_gemv_loop_inside_device(
     magmaDoubleComplex *v, int ldv, 
     magmaDoubleComplex *T, int ldt)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+    
     int tx = threadIdx.x; 
     int ty = threadIdx.y; 
     
@@ -400,6 +408,8 @@ zlarft_ztrmv_sm32x32_device(
     int n, int k, magmaDoubleComplex *tau,
     magmaDoubleComplex *Tin, int ldtin,  magmaDoubleComplex *Tout, int ldtout )
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+    
     int tx = threadIdx.x; 
     magmaDoubleComplex *sdata = (magmaDoubleComplex*)shared_data;
     magmaDoubleComplex res;
@@ -525,6 +535,8 @@ zlarft_recztrmv_sm32x32_device(
     int m, int n, magmaDoubleComplex *tau,
     magmaDoubleComplex *Trec, int ldtrec, magmaDoubleComplex *Ttri, int ldttri)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+    
     int tx = threadIdx.x; 
     magmaDoubleComplex *sdata = (magmaDoubleComplex*)shared_data;
     magmaDoubleComplex res;

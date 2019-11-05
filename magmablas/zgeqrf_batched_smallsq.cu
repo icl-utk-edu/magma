@@ -17,7 +17,6 @@
 #include "batched_kernel_param.h"
 
 #define SLDA(N)    ( (N==15||N==23||N==31)? (N+2) : (N+1) )
-extern __shared__ magmaDoubleComplex zdata[];
 template<int N>
 __global__ void
 zgeqrf_batched_sq1d_reg_kernel( 
@@ -25,6 +24,7 @@ zgeqrf_batched_sq1d_reg_kernel(
     magmaDoubleComplex **dtau_array, magma_int_t *info_array, 
     magma_int_t batchCount)
 {
+    extern __shared__ magmaDoubleComplex zdata[];
     const int tx = threadIdx.x;
     const int ty = threadIdx.y; 
     const int batchid = blockIdx.x * blockDim.y + ty;

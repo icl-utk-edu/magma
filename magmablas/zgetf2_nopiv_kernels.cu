@@ -77,12 +77,13 @@ zgetf2_nopiv_device(int m, magmaDoubleComplex* dA, int ldda, magma_int_t *info, 
 }
 
 /******************************************************************************/
-extern __shared__ magmaDoubleComplex zdata[];
 template<int N, int NPOW2>
 __global__ void
 zgetf2_nopiv_batched_kernel( int m, magmaDoubleComplex** dA_array, int ai, int aj, int ldda, 
                              magma_int_t* info_array, int gbstep, int batchCount)
 {
+    extern __shared__ magmaDoubleComplex zdata[];
+
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
     const int batchid = blockIdx.x * blockDim.y + ty;

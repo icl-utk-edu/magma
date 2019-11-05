@@ -17,7 +17,7 @@
 #define MAGMABLAS_ZPOTF2_DEVICES_Z_H
 
 
-extern __shared__ magmaDoubleComplex shared_data[];
+//extern __shared__ magmaDoubleComplex shared_data[];
 
 /******************************************************************************/
 static inline __device__ void zpotf2_sminout_anywidth_device(const int m, const int n, magmaDoubleComplex *A, const int lda, int* info)
@@ -369,6 +369,8 @@ static inline __device__ void zpotf2_smlpout_fixwidth_device(const int m,
         const int localstep, const int gbstep,
         magma_int_t *info)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+
     // checkinfo to avoid computation of the singular matrix
     #ifndef BATCH_DISABLE_CHECKING
     if (*info != 0 ) return;
@@ -429,6 +431,7 @@ static inline __device__ void zpotf2_smlpout_anywidth_device(const int m, const 
         const int localstep, const int gbstep,
         magma_int_t *info)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
     // checkinfo to avoid computation of the singular matrix
     #ifndef BATCH_DISABLE_CHECKING
     if (*info != 0 ) return;

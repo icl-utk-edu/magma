@@ -23,12 +23,12 @@
 
 // dynamically allocated shared memory, set to size number of threads when the kernel is launched.
 // See CUDA Guide B.2.3
-extern __shared__ magmaDoubleComplex shared_data[];
+//extern __shared__ magmaDoubleComplex shared_data[];
 
 
 // dynamically allocated shared memory, set to size number of threads when the kernel is launched.
 // See CUDA Guide B.2.3
-extern __shared__ double dble_shared_data[];
+//extern __shared__ double dble_shared_data[];
 
 
 /******************************************************************************/
@@ -36,6 +36,8 @@ __global__ void zdotc_kernel_batched(
     int n, magmaDoubleComplex **x_array, int incx, int offset,
     magma_int_t *info_array, int gbstep)
 {
+    extern __shared__ double dble_shared_data[];
+
     int tx = threadIdx.x;
 
     magmaDoubleComplex *x = x_array[blockIdx.z]+offset;
@@ -213,6 +215,8 @@ static __device__ void zpotf2_device(int m, int n,
                               magmaDoubleComplex alpha, 
                               magmaDoubleComplex beta, magma_int_t *info, int gbstep)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+
     /*
     Each thread block load entire A into shared memory
     factorize it and copy back. n must be small enough to fit shared memory.

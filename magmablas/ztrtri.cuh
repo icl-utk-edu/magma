@@ -20,6 +20,9 @@
 
 #define PRECISION_z 
 
+// define 0 for large initializations
+#define Z0 MAGMA_Z_ZERO
+
 #include "batched_kernel_param.h"
 #if   defined(TRTRI_BATCHED)
 #define IB    (ZTRTRI_BATCHED_BLOCK_SIZE)
@@ -72,7 +75,7 @@ zgemm_kernel_16(
     
     // compute NT x 16 block of C
     // each thread computes one 1x16 row, C(id,0:15)
-    magmaDoubleComplex rC[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
     magmaDoubleComplex rA[4];
 
     do {

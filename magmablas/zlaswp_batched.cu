@@ -17,7 +17,7 @@
 #define ZLASWP_COL_NTH 32
 // SWP_WIDTH is number of threads in a block
 // 64 and 256 are better on Kepler; 
-extern __shared__ magmaDoubleComplex shared_data[];
+//extern __shared__ magmaDoubleComplex shared_data[];
 
 
 /******************************************************************************/
@@ -28,6 +28,8 @@ void zlaswp_rowparallel_devfunc(
                               magmaDoubleComplex *dout, int ldo,
                               magma_int_t* pivinfo)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+
     //int height = k2- k1;
     //int height = blockDim.x;
     unsigned int tid = threadIdx.x;

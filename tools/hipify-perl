@@ -115,6 +115,12 @@ sub clearStats {
 }
 
 sub simpleSubstitutions {
+# MAGMA-specifics
+    $ft{'magma'} += s/\bcublas_trans_const\b/hipblas_trans_const/g;
+    $ft{'magma'} += s/\bcublas_handle\b/hipblas_handle/g;
+    $ft{'magma'} += s/\bcublasZgemmBatched\b/hipblasZgemmBatched/g;
+    $ft{'magma'} += s/\bcublasDgemmBatched\b/hipblasDgemmBatched/g;
+    
     $ft{'error'} += s/\bcudaGetErrorName\b/hipGetErrorName/g;
     $ft{'error'} += s/\bcudaGetErrorString\b/hipGetErrorString/g;
     $ft{'error'} += s/\bcudaGetLastError\b/hipGetLastError/g;
@@ -2417,7 +2423,7 @@ while (@ARGV) {
         transformHostFunctions();
         # TODO: would like to move this code outside loop but it uses $_ which contains the whole file
         unless ($no_output) {
-            my $apiCalls   = $ft{'error'} + $ft{'init'} + $ft{'version'} + $ft{'device'} + $ft{'context'} + $ft{'module'} + $ft{'memory'} + $ft{'addressing'} + $ft{'stream'} + $ft{'event'} + $ft{'external_resource_interop'} + $ft{'stream_memory'} + $ft{'execution'} + $ft{'graph'} + $ft{'occupancy'} + $ft{'texture'} + $ft{'surface'} + $ft{'peer'} + $ft{'graphics'} + $ft{'profiler'} + $ft{'openGL'} + $ft{'D3D9'} + $ft{'D3D10'} + $ft{'D3D11'} + $ft{'VDPAU'} + $ft{'EGL'} + $ft{'thread'} + $ft{'complex'} + $ft{'library'} + $ft{'device_library'} + $ft{'include'} + $ft{'include_cuda_main_header'} + $ft{'type'} + $ft{'literal'} + $ft{'numeric_literal'} + $ft{'define'};
+            my $apiCalls   = $ft{'magma'} +  $ft{'error'} + $ft{'init'} + $ft{'version'} + $ft{'device'} + $ft{'context'} + $ft{'module'} + $ft{'memory'} + $ft{'addressing'} + $ft{'stream'} + $ft{'event'} + $ft{'external_resource_interop'} + $ft{'stream_memory'} + $ft{'execution'} + $ft{'graph'} + $ft{'occupancy'} + $ft{'texture'} + $ft{'surface'} + $ft{'peer'} + $ft{'graphics'} + $ft{'profiler'} + $ft{'openGL'} + $ft{'D3D9'} + $ft{'D3D10'} + $ft{'D3D11'} + $ft{'VDPAU'} + $ft{'EGL'} + $ft{'thread'} + $ft{'complex'} + $ft{'library'} + $ft{'device_library'} + $ft{'include'} + $ft{'include_cuda_main_header'} + $ft{'type'} + $ft{'literal'} + $ft{'numeric_literal'} + $ft{'define'};
             my $kernStuff  = $hasDeviceCode + $ft{'kernel_launch'} + $ft{'device_function'};
             my $totalCalls = $apiCalls + $kernStuff;
             $is_dos = m/\r\n$/;
