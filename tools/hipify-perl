@@ -115,12 +115,6 @@ sub clearStats {
 }
 
 sub simpleSubstitutions {
-# MAGMA-specifics
-    $ft{'magma'} += s/\bcublas_trans_const\b/hipblas_trans_const/g;
-    $ft{'magma'} += s/\bcublas_handle\b/hipblas_handle/g;
-    $ft{'magma'} += s/\bcublasZgemmBatched\b/hipblasZgemmBatched/g;
-    $ft{'magma'} += s/\bcublasDgemmBatched\b/hipblasDgemmBatched/g;
-    
     $ft{'error'} += s/\bcudaGetErrorName\b/hipGetErrorName/g;
     $ft{'error'} += s/\bcudaGetErrorString\b/hipGetErrorString/g;
     $ft{'error'} += s/\bcudaGetLastError\b/hipGetLastError/g;
@@ -1632,6 +1626,18 @@ sub simpleSubstitutions {
     $ft{'define'} += s/\bcudaTextureType3D\b/hipTextureType3D/g;
     $ft{'define'} += s/\bcudaTextureTypeCubemap\b/hipTextureTypeCubemap/g;
     $ft{'define'} += s/\bcudaTextureTypeCubemapLayered\b/hipTextureTypeCubemapLayered/g;
+
+
+# MAGMA-specifics
+    $ft{'magma'} += s/\bcublas_trans_const\b/hipblas_trans_const/g;
+    $ft{'magma'} += s/\bcublas_handle\b/hipblas_handle/g;
+    $ft{'magma'} += s/\bcublasZgemmBatched\b/hipblasZgemmBatched/g;
+    $ft{'magma'} += s/\bcublasDgemmBatched\b/hipblasDgemmBatched/g;
+
+    $ft{'magma'} += s/\bcublas/hipblas/g;
+    #$ft{'magma'} += s/\bhipblas/rocblas/g;
+
+
 }
 
 # CUDA extern __shared__ syntax replace with HIP_DYNAMIC_SHARED() macro

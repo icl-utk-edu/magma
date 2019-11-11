@@ -16,7 +16,7 @@
 #include <string.h>
 #include <math.h>
 
-#include <cuda.h>  // for CUDA_VERSION
+//#include <cuda.h>  // for CUDA_VERSION
 
 // includes, project
 #include "flops.h"

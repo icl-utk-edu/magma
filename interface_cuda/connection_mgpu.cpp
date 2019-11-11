@@ -9,7 +9,9 @@
 */
 #include "magma_internal.h"
 
-extern "C"
+extern "C" {
+
+#if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
 magma_int_t magma_buildconnection_mgpu(
     magma_int_t gnode[MagmaMaxGPUs+2][MagmaMaxGPUs+2],
     magma_int_t *ncmplx, magma_int_t ngpu)
@@ -31,11 +33,18 @@ magma_int_t magma_buildconnection_mgpu(
         // check for unified memory & enable peer memory access between all GPUs.
         magma_setdevice( d );
         cudaGetDeviceProperties( &prop, int(d) );
+
+        #ifdef HAVE_CUBLAS
         if ( ! prop.unifiedAddressing ) {
+        #elif defined(HAVE_HIP)
+        // assume it does, HIP does not have support for checking this
+        if ( ! true ) {
+        #endif
             printf( "device %lld doesn't support unified addressing\n", (long long) d );
             magma_free_cpu( deviceid );
             return -1;
         }
+
         // add this device to the list if not added yet.
         // not added yet meaning belong to a new complex
         if (deviceid[d] == 0) {
@@ -52,7 +61,12 @@ magma_int_t magma_buildconnection_mgpu(
             // check for unified memory & enable peer memory access between all GPUs.
             magma_setdevice( d2 );
             cudaGetDeviceProperties( &prop, int(d2) );
+            #ifdef HAVE_CUBLAS
             if ( ! prop.unifiedAddressing ) {
+            #elif defined(HAVE_HIP)
+            // assume it does, HIP does not have support for checking this
+            if ( ! true ) {
+            #endif
                 printf( "device %lld doesn't support unified addressing\n", (long long) d2 );
                 magma_free_cpu( deviceid );
                 return -1;
@@ -107,5 +121,7 @@ magma_int_t magma_buildconnection_mgpu(
     // Err: CUDA only
     return -1;
 #endif
+
+}
 
 }

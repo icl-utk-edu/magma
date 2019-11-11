@@ -18,7 +18,8 @@
 #include "magma_internal.h"
 #include "error.h"
 
-#ifdef HAVE_CUBLAS
+
+#if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
 #ifndef MAGMA_NO_V1
 
 // -----------------------------------------------------------------------------
@@ -150,7 +151,11 @@ magma_queue_t magmablasGetQueue()
         }
         // create queue w/ NULL stream first time that NULL queue is used
         if ( g_null_queues[dev] == NULL ) {
+            #ifdef HAVE_CUBLAS
             magma_queue_create_from_cuda( dev, NULL, NULL, NULL, &g_null_queues[dev] );
+            #elif defined(HAVE_HIP)
+            magma_queue_create_from_hip( dev, NULL, NULL, NULL, &g_null_queues[dev] );
+            #endif
             //printf( "dev %lld create queue %p\n", (long long) dev, (void*) g_null_queues[dev] );
             assert( g_null_queues[dev] != NULL );
         }

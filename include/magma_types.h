@@ -134,12 +134,215 @@ typedef double real_Double_t;
     //#include <hip/hip_complex.h>
     // instead, use this fix:
     #include "magma_hip_complex.h"
-    
+
     #include <hipblas.h>
     // some fixes for hipblas
     // no-ops that aren't implemented yet
-    #define hipblasZgemmBatched(...) 
-    #define hipblasCgemmBatched(...) 
+
+    #define mher (hipblasStatus_t)(fprintf(stderr, "Unsupported func used\n"))
+
+
+
+    #define hipblasSetVectorAsync(...) mher
+    #define hipblasGetVectorAsync(...) mher
+    #define hipblasSetMatrixAsync(...) mher
+    #define hipblasGetMatrixAsync(...) mher
+    #define hipblasSetVectorAsync(...) mher
+    #define hipblasGetVectorAsync(...) mher
+    #define hipblasSetMatrixAsync(...) mher
+    #define hipblasGetMatrixAsync(...) mher
+
+    
+
+
+    #define hipblasZgemmBatched(...) mher
+    #define hipblasZgerc(...) mher
+    #define hipblasZgeru(...) mher
+    #define hipblasZgemv(...) mher
+    #define hipblasZswap(...) mher
+    #define hipblasZdscal(...) mher
+    #define hipblasZscal(...) mher
+    #define hipblasZsyr(...) mher
+    #define hipblasZsyr2(...) mher
+    #define hipblasZsymv(...) mher
+    #define hipblasZher(...) mher
+    #define hipblasZher2(...) mher
+    #define hipblasZrotg(...) mher
+    #define hipblasZrotc(...) mher
+    #define hipblasZdrot(...) mher
+    #define hipblasZhemv(...) mher
+    #define hipblasDznrm2(...) mher
+    #define hipblasDasum(...) mher    
+
+    #define hipblasIzamax(...) mher    
+    #define hipblasIzamin(...) mher    
+    #define hipblasZtrmm(...) mher    
+    #define hipblasZaxpy(...) mher    
+
+    #define hipblasCgemmBatched(...) mher
+
+    #define hipblasDzasum(...) mher
+    #define hipblasZcopy(...) mher
+    #define hipblasZdotc(...) mher
+    #define hipblasZdotu(...) mher
+    #define hipblasZrot(...) mher
+    #define hipblasZtrmv(...) mher
+    #define hipblasZtrsv(...) mher
+    #define hipblasZgemm(...) mher
+    #define hipblasZhemm(...) mher
+    #define hipblasZherk(...) mher
+    #define hipblasZher2k(...) mher
+    #define hipblasZsymm(...) mher
+    #define hipblasZsyrk(...) mher
+    #define hipblasZsyr2k(...) mher
+    #define hipblasZtrsm(...) mher
+    #define hipblasDzasum(...) mher
+    #define hipblasZcopy(...) mher
+    #define hipblasZdotc(...) mher
+    #define hipblasZdotu(...) mher
+    #define hipblasZrot(...) mher
+    #define hipblasZtrmv(...) mher
+    #define hipblasZtrsv(...) mher
+    #define hipblasZgemm(...) mher
+    #define hipblasZhemm(...) mher
+    #define hipblasZherk(...) mher
+    #define hipblasZher2k(...) mher
+    #define hipblasZsymm(...) mher
+    #define hipblasZsyrk(...) mher
+    #define hipblasZsyr2k(...) mher
+    #define hipblasZtrsm(...) mher
+    #define hipblasIdamin(...) mher
+    #define hipblasDrot(...) mher
+    #define hipblasDrotg(...) mher
+    #define hipblasDrotm(...) mher
+    #define hipblasDrotmg(...) mher
+    #define hipblasDswap(...) mher
+    #define hipblasDsymv(...) mher
+    #define hipblasDsyr(...) mher
+    #define hipblasDsyr2(...) mher
+    #define hipblasDtrmv(...) mher
+    #define hipblasDtrsv(...) mher
+    #define hipblasDsymm(...) mher
+    #define hipblasDsyrk(...) mher
+    #define hipblasDsyr2k(...) mher
+    #define hipblasIcamax(...) mher
+    #define hipblasDtrmm(...) mher
+    #define hipblasIcamin(...) mher
+    #define hipblasScasum(...) mher
+    #define hipblasCaxpy(...) mher
+    #define hipblasCcopy(...) mher
+    #define hipblasCdotc(...) mher
+    #define hipblasCdotu(...) mher
+    #define hipblasScnrm2(...) mher
+    #define hipblasCrot(...) mher
+    #define hipblasCsrot(...) mher
+    #define hipblasCrotg(...) mher
+    #define hipblasCscal(...) mher
+    #define hipblasCsscal(...) mher
+    #define hipblasCswap(...) mher
+    #define hipblasCgemv(...) mher
+    #define hipblasCgerc(...) mher
+    #define hipblasCgeru(...) mher
+    #define hipblasIsamin(...) mher
+    #define hipblasSrot(...) mher
+    #define hipblasSrotg(...) mher
+    #define hipblasSrotm(...) mher
+    #define hipblasSrotmg(...) mher
+    #define hipblasSswap(...) mher
+    #define hipblasSsymv(...) mher
+    #define hipblasSsyr(...) mher
+    #define hipblasSsyr2(...) mher
+    #define hipblasStrmv(...) mher
+    #define hipblasStrsv(...) mher
+    #define hipblasSsymm(...) mher
+    #define hipblasSsyrk(...) mher
+    #define hipblasSsyr2k(...) mher
+    #define hipblasStrmm(...) mher
+    #define hipblasIdamin(...) mher
+    #define hipblasDrot(...) mher
+    #define hipblasDrotg(...) mher
+    #define hipblasDrotm(...) mher
+    #define hipblasDrotmg(...) mher
+    #define hipblasDswap(...) mher
+    #define hipblasDsymv(...) mher
+    #define hipblasDsyr(...) mher
+    #define hipblasDsyr2(...) mher
+    #define hipblasIcamax(...) mher
+    #define hipblasDtrmv(...) mher
+    #define hipblasIcamin(...) mher
+    #define hipblasScasum(...) mher
+    #define hipblasDtrsv(...) mher
+    #define hipblasCaxpy(...) mher
+    #define hipblasCcopy(...) mher
+    #define hipblasDsymm(...) mher
+    #define hipblasCdotc(...) mher
+    #define hipblasCdotu(...) mher
+    #define hipblasDsyrk(...) mher
+    #define hipblasScnrm2(...) mher
+    #define hipblasCrot(...) mher
+    #define hipblasCsrot(...) mher
+    #define hipblasDtrmm(...) mher
+    #define hipblasCrotg(...) mher
+    #define hipblasCscal(...) mher
+    #define hipblasCsscal(...) mher
+    #define hipblasCswap(...) mher
+    #define hipblasCgemv(...) mher
+    #define hipblasCgerc(...) mher
+    #define hipblasCgeru(...) mher
+    #define hipblasIsamin(...) mher
+    #define hipblasSrot(...) mher
+    #define hipblasSrotg(...) mher
+    #define hipblasSrotm(...) mher
+    #define hipblasSrotmg(...) mher
+    #define hipblasSswap(...) mher
+    #define hipblasSsymv(...) mher
+    #define hipblasSsyr(...) mher
+    #define hipblasSsyr2(...) mher
+    #define hipblasStrmv(...) mher
+    #define hipblasStrsv(...) mher
+    #define hipblasSsymm(...) mher
+    #define hipblasSsyrk(...) mher
+    #define hipblasSsyr2k(...) mher
+    #define hipblasStrmm(...) mher
+    #define hipblasChemv(...) mher
+    #define hipblasCher(...) mher
+    #define hipblasCher2(...) mher
+    #define hipblasCsymv(...) mher
+    #define hipblasCsyr(...) mher
+    #define hipblasCsyr2(...) mher
+    #define hipblasCtrmv(...) mher
+    #define hipblasCtrsv(...) mher
+    #define hipblasCgemm(...) mher
+    #define hipblasChemm(...) mher
+    #define hipblasCherk(...) mher
+    #define hipblasCher2k(...) mher
+    #define hipblasCsymm(...) mher
+    #define hipblasCsyrk(...) mher
+    #define hipblasCsyr2k(...) mher
+    #define hipblasCtrmm(...) mher
+    #define hipblasCtrsm(...) mher
+    #define hipblasChemv(...) mher
+    #define hipblasCher(...) mher
+    #define hipblasCher2(...) mher
+    #define hipblasCsymv(...) mher
+    #define hipblasCsyr(...) mher
+    #define hipblasCsyr2(...) mher
+    #define hipblasCtrmv(...) mher
+    #define hipblasCtrsv(...) mher
+    #define hipblasCgemm(...) mher
+    #define hipblasChemm(...) mher
+    #define hipblasCherk(...) mher
+    #define hipblasCher2k(...) mher
+    #define hipblasCsymm(...) mher
+    #define hipblasCsyrk(...) mher
+    #define hipblasCsyr2k(...) mher
+    #define hipblasCtrmm(...) mher
+    #define hipblasCtrsm(...) mher
+
+
+
+
+
 
     #include <hipsparse.h>
 

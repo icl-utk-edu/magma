@@ -13,7 +13,7 @@
 
 #define COMPLEX
 
-#ifdef HAVE_CUBLAS
+//#ifdef HAVE_CUBLAS
 
 // =============================================================================
 // Level 1 BLAS
@@ -1904,6 +1904,6 @@ magma_ztrsm(
                 dB, int(lddb) );
 }
 
-#endif // HAVE_CUBLAS
+//#endif // HAVE_CUBLAS
 
 #undef COMPLEX

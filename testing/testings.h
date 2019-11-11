@@ -12,6 +12,15 @@
 #include <string>
 #include <cmath>
 
+
+// special region to replace certain functions
+#ifdef HAVE_HIP
+#define cublas_trans_const hipblas_trans_const
+#define cublas_diag_const hipblas_diag_const
+#define cublas_uplo_const hipblas_uplo_const
+#define cublas_side_const hipblas_side_const
+#endif
+
 #include "magma_lapack.h"
 #include "magma_lapack.hpp"  // C++ bindings; need traits
 #include "magma_matrix.hpp"  // experimental Matrix and Vector classes
@@ -239,6 +248,8 @@ public:
     #ifdef HAVE_CUBLAS
     // handle for directly calling cublas
     cublasHandle_t  handle;
+    #elif defined(HAVE_HIP)
+    hipblasHandle_t handle;
     #endif
 };
 

@@ -24,7 +24,7 @@
 
 
 # utilities, by default assume they are in the $PATH
-HIPIFY ?= $(shell which hipify-perl)
+HIPIFY ?= tools/hipify-perl
 SED    ?= $(shell which sed)
 
 # TODO: search for hipify included in magma

@@ -111,7 +111,7 @@ magma_int_t
 magma_mem_info(size_t* freeMem, size_t* totalMem);
 
 // wrapper around cudaMemset
-void
+magma_int_t
 magma_memset(void * ptr, int value, size_t count);
 
 // wrapper around cudaMemsetAsync
@@ -253,6 +253,9 @@ magma_getdevice_shmem_multiprocessor();
 #define magma_queue_create_from_cuda(          device, cuda_stream, cublas_handle, cusparse_handle, queue_ptr ) \
         magma_queue_create_from_cuda_internal( device, cuda_stream, cublas_handle, cusparse_handle, queue_ptr, __func__, __FILE__, __LINE__ )
 
+#define magma_queue_create_from_hip(           device, hip_stream, hipblas_handle, hipsparse_handle, queue_ptr ) \
+        magma_queue_create_from_hip_internal( device, hip_stream, hipblas_handle, hipsparse_handle, queue_ptr, __func__, __FILE__, __LINE__ )
+
 #define magma_queue_create_from_opencl(          device, cl_queue, queue_ptr ) \
         magma_queue_create_from_opencl_internal( device, cl_queue, queue_ptr, __func__, __FILE__, __LINE__ )
 
@@ -278,6 +281,19 @@ magma_queue_create_from_cuda_internal(
     magma_queue_t*   queue_ptr,
     const char* func, const char* file, int line );
 #endif
+
+
+#ifdef HAVE_HIP
+void
+magma_queue_create_from_hip_internal(
+    magma_device_t    device,
+    hipStream_t       stream,
+    hipblasHandle_t   hipblas,
+    hipsparseHandle_t hipsparse,
+    magma_queue_t*    queue_ptr,
+    const char* func, const char* file, int line );
+#endif
+
 
 #ifdef HAVE_clBLAS
 magma_int_t

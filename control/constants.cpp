@@ -759,7 +759,7 @@ cublasSideMode_t     cublas_side_const  ( magma_side_t magma_const )
 
 
 
-#ifdef HAVE_HIPBLAS
+#ifdef HAVE_HIP
 
 const int magma2hipblas_constants[] =
 {

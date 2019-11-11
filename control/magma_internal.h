@@ -86,6 +86,7 @@
 
     @ingroup magma_queue
 *******************************************************************************/
+
 struct magma_queue
 {
 #ifdef __cplusplus
@@ -148,6 +149,18 @@ protected:
         const char* func, const char* file, int line );
     #endif
 
+    #ifdef HAVE_HIP
+    friend
+    void magma_queue_create_from_hip_internal(
+        magma_device_t    device,
+        hipStream_t       stream,
+        hipblasHandle_t   hipblas_handle,
+        hipsparseHandle_t hipsparse_handle,
+        magma_queue_t*    queuePtr,
+        const char* func, const char* file, int line );
+    #endif
+
+
     friend
     void magma_queue_destroy_internal(
         magma_queue_t queue,
@@ -171,8 +184,10 @@ protected:
 
     #ifdef HAVE_HIP
     hipStream_t      stream__;
+    //rocblas_handle rocblas__;
     hipblasHandle_t  hipblas__;
     hipsparseHandle_t hipsparse__;
+
     #endif
 
 };

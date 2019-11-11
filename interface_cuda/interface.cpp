@@ -380,8 +380,17 @@ magma_print_environment()
 
 #if defined(HAVE_HIP)
     // TODO: add more specifics here
+
+    int hip_runtime=0, hip_driver=0;
     hipError_t err;
-    printf("Compiled with HIP support");
+    err = hipDriverGetVersion( &hip_driver );
+    check_error( err );
+    err = hipRuntimeGetVersion( &hip_runtime );
+    if ( err != hipErrorNoDevice ) {
+        check_error( err );
+    }
+
+    printf("%% HIP runtime %d, driver %d. ", hip_runtime, hip_driver );
 #endif    
 
 
@@ -1028,6 +1037,100 @@ magma_queue_create_from_cuda_internal(
 
 #endif
 }
+
+
+/***************************************************************************//**
+    @fn magma_queue_create_from_hip( device, hip_stream, hipblas_handle, hipsparse_handle, queue_ptr )
+
+    Warning: non-portable outside of CUDA. Use with discretion.
+
+    Creates a new MAGMA queue, using the given CUDA stream, cuBLAS handle, and
+    cuSparse handle. The caller retains ownership of the given stream and
+    handles, so must free them after destroying the queue;
+    see magma_queue_destroy().
+
+    MAGMA sets the stream on the cuBLAS and cuSparse handles, and assumes
+    it will not be changed while MAGMA is running.
+
+    @param[in]
+    device          Device to create queue on.
+
+    @param[in]
+    cuda_stream     CUDA stream to use, even if NULL (the so-called default stream).
+
+    @param[in]
+    cublas_handle   cuBLAS handle to use. If NULL, a new handle is created.
+
+    @param[in]
+    cusparse_handle cuSparse handle to use. If NULL, a new handle is created.
+
+    @param[out]
+    queue_ptr       On output, the newly created queue.
+
+    @ingroup magma_queue
+*******************************************************************************/
+extern "C" void
+magma_queue_create_from_hip_internal(
+    magma_device_t    device,
+    hipStream_t       hip_stream,
+    hipblasHandle_t   hipblas_handle,
+    hipsparseHandle_t hipsparse_handle,
+    magma_queue_t*    queue_ptr,
+    const char* func, const char* file, int line )
+{
+#ifdef HAVE_HIP
+    magma_queue_t queue;
+    magma_malloc_cpu( (void**)&queue, sizeof(*queue) );
+    assert( queue != NULL );
+    *queue_ptr = queue;
+
+    queue->own__      = own_none;
+    queue->device__   = device;
+    queue->stream__   = NULL;
+    queue->hipblas__  = NULL;
+    queue->hipsparse__= NULL;
+    queue->maxbatch__ = MAX_BATCHCOUNT;
+
+    magma_setdevice( device );
+
+    // stream can be NULL
+    queue->stream__ = hip_stream;
+
+    // allocate cublas handle if given as NULL
+    hipblasStatus_t stat;
+    if ( hipblas_handle == NULL ) {
+        stat  = hipblasCreate( &hipblas_handle );
+        check_xerror( stat, func, file, line );
+        queue->own__ |= own_hipblas;
+    }
+    queue->hipblas__ = hipblas_handle;
+    stat  = hipblasSetStream( queue->hipblas__, queue->stream__ );
+    check_xerror( stat, func, file, line );
+
+    // allocate cusparse handle if given as NULL
+    hipsparseStatus_t stat2;
+    if ( hipsparse_handle == NULL ) {
+        stat2 = hipsparseCreate( &hipsparse_handle );
+        check_xerror( stat, func, file, line );
+        queue->own__ |= own_hipsparse;
+    }
+    queue->hipsparse__ = hipsparse_handle;
+    stat2 = hipsparseSetStream( queue->hipsparse__, queue->stream__ );
+    check_xerror( stat2, func, file, line );
+
+    magma_malloc((void**)&queue->dAarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dAarray__ != NULL);
+    magma_malloc((void**)&queue->dBarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dBarray__ != NULL);
+    magma_malloc((void**)&queue->dCarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dCarray__ != NULL);
+
+    MAGMA_UNUSED( stat );
+    MAGMA_UNUSED( stat2 );
+
+#endif
+}
+
 
 
 /***************************************************************************//**
