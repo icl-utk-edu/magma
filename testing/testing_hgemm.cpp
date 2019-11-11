@@ -148,6 +148,50 @@ static float half_to_float(half hf)
 #endif
 
 /* ////////////////////////////////////////////////////////////////////////////
+   (1) converts a matrix from float to half on the GPU 
+   (2) convert back to float and sent it to the CPU to compute the correct norm
+*/
+void preprocess_matrix( 
+            magma_int_t M, magma_int_t N, 
+            float     *hA, magma_int_t lda, 
+            magmaHalf *dA, magma_int_t ldda, 
+            magma_queue_t queue )
+{
+    float *dwork;
+    magma_int_t info = 0; 
+
+    
+    TESTING_CHECK( magma_smalloc(&dwork, lda*N) );               // alloc. dwork on GPU
+    magma_ssetmatrix(M, N, hA, lda, dwork, lda, queue);          // send to the GPU
+    magmablas_slag2h(M, N, dwork, lda, dA, ldda, &info, queue);  // convert: s -> h
+    if(info != 0)printf("preprocess_matrix: error at slag2h\n"); // check
+    magmablas_hlag2s(M, N, dA, ldda, dwork, lda, queue );        // convert back: h -> hc
+    magma_sgetmatrix( M, N, dwork, lda, hA, lda, queue);         // send to the CPU after conversion
+
+    // free workspace
+    magma_free( dwork );
+}
+
+/* ////////////////////////////////////////////////////////////////////////////
+   (1) converts a matrix from half to float on the GPU 
+   (2) send the converted matrix to the CPU
+*/
+void postprocess_matrix( 
+            magma_int_t M, magma_int_t N, 
+            magmaHalf *dA, magma_int_t ldda, 
+            float     *hA, magma_int_t lda, 
+            magma_queue_t queue )
+{
+    float *dwork;
+
+    TESTING_CHECK( magma_smalloc(&dwork, lda*N) );
+    magmablas_hlag2s(M, N, dA, ldda, dwork, lda, queue ); // convert h -> s
+    magma_sgetmatrix( M, N, dwork, lda, hA, lda, queue);  // send to CPU 
+
+    magma_free( dwork );
+}
+
+/* ////////////////////////////////////////////////////////////////////////////
    -- Testing sgemm
 */
 int main( int argc, char** argv)
@@ -159,15 +203,14 @@ int main( int argc, char** argv)
     real_Double_t   gflops, dev_perf, dev_time;
     float          dev_error, work[1];
     magma_int_t M, N, K;
-    magma_int_t Am, An, Bm, Bn, Wm, Wn, info;
+    magma_int_t Am, An, Bm, Bn;
     magma_int_t sizeA, sizeB, sizeC;
-    magma_int_t lda, ldb, ldc, ldda, lddb, lddc, lddw;
+    magma_int_t lda, ldb, ldc, ldda, lddb, lddc;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
 
     float *hA, *hB, *hC, *hCdev;
-    float *dW;
     magmaHalf_ptr dA, dB, dC;
     float c_neg_one = MAGMA_S_NEG_ONE;
     float alpha = MAGMA_S_MAKE(  0.29, -0.86 );
@@ -221,14 +264,9 @@ int main( int argc, char** argv)
             }
             ldc = M;
             
-            // workspace for conversion between single anf half precisions
-            Wm    = max(Am, Bm);
-            Wn    = max(An, Bn);
-
             ldda = magma_roundup( lda, opts.align );  // multiple of 32 by default
             lddb = magma_roundup( ldb, opts.align );  // multiple of 32 by default
             lddc = magma_roundup( ldc, opts.align );  // multiple of 32 by default
-            lddw = magma_roundup(  Wm, opts.align );  // multiple of 32 by default
             
             sizeA = lda*An;
             sizeB = ldb*Bn;
@@ -239,7 +277,6 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_smalloc_cpu( &hC,       ldc*N  ));
             TESTING_CHECK( magma_smalloc_cpu( &hCdev,    ldc*N  ));
             
-            TESTING_CHECK( magma_smalloc( &dW, lddw*Wn  ));
             TESTING_CHECK( magma_malloc( (void**)&dA, ldda*An*sizeof(magmaHalf) ));
             TESTING_CHECK( magma_malloc( (void**)&dB, lddb*Bn*sizeof(magmaHalf) ));
             TESTING_CHECK( magma_malloc( (void**)&dC, lddc*N *sizeof(magmaHalf)  ));
@@ -250,26 +287,9 @@ int main( int argc, char** argv)
             lapackf77_slarnv( &ione, ISEED, &sizeC, hC );
 
             /* Convert the matrices to half precision */
-            // A
-            magma_ssetmatrix( Am, An, hA, lda,  dW, lddw, opts.queue );
-            magmablas_slag2h( Am, An, dW, lddw, dA, ldda, &info, opts.queue);
-            if(info != 0) {
-                printf("error in magmablas_slag2h( dA )\n");
-            }
-            
-            // B
-            magma_ssetmatrix( Bm, Bn, hB, ldb,  dW, lddw, opts.queue );
-            magmablas_slag2h( Bm, Bn, dW, lddw, dB, lddb, &info, opts.queue);
-            if(info != 0) {
-                printf("error in magmablas_slag2h( dB )\n");
-            }
-
-            // C
-            magma_ssetmatrix( M, N, hC, ldc, dW, lddw, opts.queue );
-            magmablas_slag2h( M, N, dW, lddw, dC, lddc, &info, opts.queue);
-            if(info != 0) {
-                printf("error in magmablas_slag2h( dC )\n");
-            }
+            preprocess_matrix( Am, An, hA, lda, dA, ldda, opts.queue );
+            preprocess_matrix( Bm, Bn, hB, ldb, dB, lddb, opts.queue );
+            preprocess_matrix(  M,  N, hC, ldc, dC, lddc, opts.queue );
 
             // for error checks
             float Anorm = lapackf77_slange( "F", &Am, &An, hA, &lda, work );
@@ -292,8 +312,7 @@ int main( int argc, char** argv)
                 dev_time = magma_sync_wtime( opts.queue ) - dev_time;
                 dev_perf = gflops / dev_time;
                 
-                magmablas_hlag2s( M, N, dC, lddc, dW, lddw, opts.queue );
-                magma_sgetmatrix( M, N, dW, lddw, hCdev, ldc, opts.queue );
+                postprocess_matrix( M, N, dC, lddc, hCdev, ldc, opts.queue );
             #else
                 dev_time = 0.0;
                 dev_perf = 0.0;
@@ -355,7 +374,6 @@ int main( int argc, char** argv)
             magma_free( dA );
             magma_free( dB );
             magma_free( dC );
-            magma_free( dW );
             fflush( stdout );
         }
         if ( opts.niter > 1 ) {
