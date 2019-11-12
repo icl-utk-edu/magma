@@ -199,10 +199,12 @@ libmagma_src += \
 
 # FP16 files
 libmagma_src += \
-	$(cdir)/slag2h.cu	\
-	$(cdir)/hlag2s.cu	\
-	$(cdir)/hlaconvert.cu	\
-	$(cdir)/hlaswp.cu		\
+	$(cdir)/hgemm_batched_core.cu    \
+	$(cdir)/slag2h.cu                \
+	$(cdir)/hlag2s.cu	             \
+	$(cdir)/hlaconvert.cu	         \
+	$(cdir)/hlaswp.cu		         \
+	$(cdir)/hset_pointer.cu		     \
 
 # ----------------------------------------------------------------------
 # extra include dependencies
