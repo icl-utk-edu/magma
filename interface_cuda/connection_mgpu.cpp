@@ -124,4 +124,6 @@ magma_int_t magma_buildconnection_mgpu(
 
 }
 
-}
+} /* extern "C" */
+
+
