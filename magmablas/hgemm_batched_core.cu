@@ -50,6 +50,12 @@ magmablas_hgemm_batched(
         return info;
     }
 
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch < 700) {
+        printf("%s: architecture %lld is not supported\n", __func__, (long long)arch);
+        return -14;
+    }
+
     magma_int_t shape = 0;
     if      (transA == MagmaNoTrans   && transB == MagmaNoTrans)   { shape = 0; } // nn
     else if (transA == MagmaNoTrans   && transB == MagmaTrans)     { shape = 1; } // nt
