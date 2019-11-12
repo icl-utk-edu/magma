@@ -166,7 +166,7 @@ void preprocess_matrix(
     magmablas_slag2h(M, N, dwork, lda, dA, ldda, &info, queue);  // convert: s -> h
     if(info != 0)printf("preprocess_matrix: error at slag2h\n"); // check
     magmablas_hlag2s(M, N, dA, ldda, dwork, lda, queue );        // convert back: h -> hc
-    magma_sgetmatrix( M, N, dwork, lda, hA, lda, queue);         // send to the CPU after conversion
+    magma_sgetmatrix(M, N, dwork, lda, hA, lda, queue);         // send to the CPU after conversion
 
     // free workspace
     magma_free( dwork );
@@ -186,7 +186,7 @@ void postprocess_matrix(
 
     TESTING_CHECK( magma_smalloc(&dwork, lda*N) );
     magmablas_hlag2s(M, N, dA, ldda, dwork, lda, queue ); // convert h -> s
-    magma_sgetmatrix( M, N, dwork, lda, hA, lda, queue);  // send to CPU 
+    magma_sgetmatrix(M, N, dwork, lda, hA, lda, queue);  // send to CPU 
 
     magma_free( dwork );
 }
