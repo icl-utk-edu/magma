@@ -228,7 +228,8 @@ testing_src += \
 # ----------
 # half precision files
 testing_src += \
-	$(cdir)/testing_hgemm.cpp	\
+	$(cdir)/testing_hgemm.cpp	        \
+	$(cdir)/testing_hgemm_batched.cpp	\
 
 # ----------
 ifeq ($(FORT), pgfortran)
