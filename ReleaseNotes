@@ -34,7 +34,10 @@ single (s), double (d), single-complex (c), double-complex (z).
       65535
     * Fix a bug in the FP32 <-> FP16 conversion routines (magmablas_hlag2s and 
       magmablas_slag2h). The bug used to cause a launch failure for very large 
-      matrices 
+      matrices
+    * Fix a bug in batched LU factorization to avoind NaNs when singularity is ancountered
+    * Fix a bug in batched LU factorization to ensure that the first pivot is always returned 
+      even when multilpe pivots with the same absolute value are found
 
  2.5.1 - Aug 2, 2019
     * New routine: magmablas_Xherk_small_reduce (X = 's', 'd', 'c', or 'z') 
