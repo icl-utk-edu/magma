@@ -31,7 +31,7 @@ single (s), double (d), single-complex (c), double-complex (z).
       are not multiple of 8. The kernel is tuned for the notrans-notrans case only. 
       Comprehensive tuning is planned in future releases
     * Fix magmablas_?gemm_vbatched routines to correctly handle batch sizes over 
-      65535
+      65535. The same fix is applied to vbatched syrk, herk, syr2k, her2k, symm, hemm, and trmm
     * Fix a bug in the FP32 <-> FP16 conversion routines (magmablas_hlag2s and 
       magmablas_slag2h). The bug used to cause a launch failure for very large 
       matrices
