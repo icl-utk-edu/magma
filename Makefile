@@ -99,12 +99,13 @@ endif
 # add appropriate HIP flags
 ifeq ($(BACKEND),hip)
     -include make.check-hip
-    GPU_TARGET ?= gfx701 gfx801 gfx900 gfx1010
+    GPU_TARGET ?= gfx803 # gfx701 gfx801 gfx900 gfx1010
 
     DEVCCFLAGS += $(FPIC) -std=c++11
 
+    LDFLAGS += -L/opt/rocm/lib -L/opt/rocm/hip/lib
     #TODO: see if we need to link any HIP libraries
-    #LIB += -lhip_hcc -lhsa-runtime64
+    LIB += -lhipsparse -lhipblas
     INC += -I$(HIPDIR)/include -I$(HIPBLASDIR)/include -I$(HIPSPARSEDIR)/include
 
 endif
@@ -300,7 +301,6 @@ subdirs := \
 	control             \
 	include             \
 	src                 \
-	testing             \
 	testing/lin         \
 	sparse              \
 	sparse/blas         \
@@ -311,11 +311,14 @@ subdirs := \
 
 ifeq ($(BACKEND),cuda)
 	subdirs += interface_cuda
+	subdirs += testing
 	subdirs += magmablas
 else ifeq ($(BACKEND),hip)
 	# this needs to be generate!
 	subdirs += interface_hip
 	subdirs += magmablas_hip
+	#subdirs += testing
+	subdirs += testing_hip
 endif
 
 Makefiles := $(addsuffix /Makefile.src, $(subdirs))
@@ -407,7 +410,7 @@ force: ;
 
 
 # ----- include paths
-MAGMA_INC  = -I./include
+MAGMA_INC  = -I./include -I./testing
 
 $(libmagma_obj):       MAGMA_INC += -I./control
 $(libtest_obj):        MAGMA_INC += -I./testing
@@ -801,7 +804,7 @@ $(libs_a):
 ifneq ($(have_fpic),)
     $(libmagma_so):
 	@echo "===== shared library $@"
-	$(CXX) $(LDFLAGS) -shared -o $@ \
+	$(DEVCC) $(LDFLAGS) -shared -o $@ \
 		$^ \
 		-L./lib $(LIBS)
 	@echo

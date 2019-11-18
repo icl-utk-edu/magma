@@ -142,14 +142,23 @@ typedef double real_Double_t;
     // macro to return an error code and print out the error code
     #define magma_unsupported(fname) ((hipblasStatus_t)(HIPBLAS_STATUS_NOT_SUPPORTED + 0 * fprintf(stderr, "MAGMA: Unsupported function '" #fname "'\n")))
 
+
+    // special cases for async get, set. Just do synchronous, so that it definitely works
+    /*
     #define hipblasSetVectorAsync(...) magma_unsupported(hipblasSetVectorAsync)
     #define hipblasGetVectorAsync(...) magma_unsupported(hipblasGetVectorAsync)
-    #define hipblasSetMatrixAsync(...) magma_unsupported(hipblasSetMatrixAsync)
     #define hipblasGetMatrixAsync(...) magma_unsupported(hipblasGetMatrixAsync)
     #define hipblasSetVectorAsync(...) magma_unsupported(hipblasSetVectorAsync)
-    #define hipblasGetVectorAsync(...) magma_unsupported(hipblasGetVectorAsync)
-    #define hipblasSetMatrixAsync(...) magma_unsupported(hipblasSetMatrixAsync)
-    #define hipblasGetMatrixAsync(...) magma_unsupported(hipblasGetMatrixAsync)
+    */
+
+    // just ignore the stream. it won't be as fast, but it should still work the same
+    // This should be removed once the hipblas{Get,Set}{Vector,Matrix}Async 
+    //   functions are exported by hipBLAS
+    #define hipblasGetVectorAsync(a, b, c, d, e, f, stream) hipblasGetVector(a, b, c, d, e, f)
+    #define hipblasSetVectorAsync(a, b, c, d, e, f, stream) hipblasSetVector(a, b, c, d, e, f)
+    #define hipblasGetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasGetMatrix(a, b, c ,d, e, f, g)
+    #define hipblasSetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasSetMatrix(a, b, c, d, e, f, g)
+
     #define hipblasZgemmBatched(...) magma_unsupported(hipblasZgemmBatched)
     #define hipblasZgerc(...) magma_unsupported(hipblasZgerc)
     #define hipblasZgeru(...) magma_unsupported(hipblasZgeru)
@@ -167,6 +176,9 @@ typedef double real_Double_t;
     #define hipblasZdrot(...) magma_unsupported(hipblasZdrot)
     #define hipblasZhemv(...) magma_unsupported(hipblasZhemv)
     #define hipblasDznrm2(...) magma_unsupported(hipblasDznrm2)
+    #define hipblasDtrsm(...) magma_unsupported(hipblasDtrsm)
+    #define hipblasStrsm(...) magma_unsupported(hipblasStrsm)
+    #define hipblasZtrsm(...) magma_unsupported(hipblasZtrsm)
     #define hipblasDasum(...) magma_unsupported(hipblasDasum)
     #define hipblasIzamax(...) magma_unsupported(hipblasIzamax)
     #define hipblasIzamin(...) magma_unsupported(hipblasIzamin)
@@ -330,8 +342,6 @@ typedef double real_Double_t;
     #define hipblasCsyr2k(...) magma_unsupported(hipblasCsyr2k)
     #define hipblasCtrmm(...) magma_unsupported(hipblasCtrmm)
     #define hipblasCtrsm(...) magma_unsupported(hipblasCtrsm)
-
-
 
 
     #include <hipsparse.h>

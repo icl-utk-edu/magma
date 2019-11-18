@@ -134,7 +134,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Performs operation using cuBLAS (out-of-place)
                =================================================================== */
-            #ifdef HAVE_CUBLAS
+            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 magma_zsetmatrix( Ak, Ak, hA, lda, dA(0,0), ldda, opts.queue );
                 magma_zsetmatrix( M,  N,  hB, ldb, dB(0,0), lddb, opts.queue );
                 
@@ -176,7 +176,7 @@ int main( int argc, char** argv)
                 dev_error = lapackf77_zlange( "M", &M, &N, hBdev, &ldb, work )
                             / (sqrt(double(Ak+2))*fabs(alpha)*Anorm*Bnorm);
                 
-                #ifdef HAVE_CUBLAS
+                #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 blasf77_zaxpy( &sizeB, &c_neg_one, hB, &ione, hBoop, &ione );
                 oop_error = lapackf77_zlange( "M", &M, &N, hBoop, &ldb, work )
                             / (sqrt(double(Ak+2))*fabs(alpha)*Anorm*Bnorm);

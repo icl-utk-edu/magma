@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     double tol = 3*eps;
 
     printf("%% uplo = %s\n", lapack_uplo_const(opts.uplo) );
-    #ifdef HAVE_CUBLAS
+    #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
         printf("%%   N   MAGMA Gflop/s (ms)    Atomics Gflop/s      %s Gflop/s       CPU Gflop/s   MAGMA error  %s\n",
                 g_platform_str, g_platform_str );
         printf("%%==========================================================================================================\n");
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
             /* =====================================================================
                Performs operation using cuBLAS - using atomics
                =================================================================== */
-            #ifdef HAVE_CUBLAS
+            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 cublasSetAtomicsMode( opts.handle, CUBLAS_ATOMICS_ALLOWED );
                 magma_zsetvector( N, Y, incy, dY(0), incy, opts.queue );
                 
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
             /* =====================================================================
                Performs operation using MAGMABLAS (only with CUDA)
                =================================================================== */
-            #ifdef HAVE_CUBLAS
+            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 magma_zsetvector( N, Y, incy, dY(0), incy, opts.queue );
                 
                 magma_time = magma_sync_wtime( opts.queue );
@@ -206,7 +206,7 @@ int main(int argc, char **argv)
             dev_error = lapackf77_zlange( "M", &N, &ione, Ydev, &N, work )
                             / (sqrt(double(N+2))*fabs(alpha)*Anorm*Xnorm + 2*fabs(beta)*Ynorm);
             
-            #ifdef HAVE_CUBLAS
+            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 blasf77_zaxpy( &N, &c_neg_one, Y, &incy, Yatomics, &incy );
                 atomics_error = lapackf77_zlange( "M", &N, &ione, Yatomics, &N, work )
                             / (sqrt(double(N+2))*fabs(alpha)*Anorm*Xnorm + 2*fabs(beta)*Ynorm);

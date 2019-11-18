@@ -66,8 +66,8 @@ int main( int argc, char** argv)
     // Allow 3*eps; complex needs 2*sqrt(2) factor; see Higham, 2002, sec. 3.6.
     double eps = lapackf77_dlamch("E");
     double tol = 3*eps;
-
-    #ifdef HAVE_CUBLAS
+    
+    #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
         // for CUDA, we can check MAGMA vs. CUBLAS, without running LAPACK
         printf("%% If running lapack (option --lapack), MAGMA and %s error are both computed\n"
                "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to %s result.\n\n",
@@ -145,7 +145,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Performs operation using MAGMABLAS (currently only with CUDA)
                =================================================================== */
-            #ifdef HAVE_CUBLAS
+            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 magma_zsetmatrix( M, N, hC, ldc, dC, lddc, opts.queue );
                 
                 magma_flush_cache( opts.cache );
@@ -209,7 +209,7 @@ int main( int argc, char** argv)
                 dev_error = lapackf77_zlange( "F", &M, &N, hCdev, &ldc, work )
                             / (sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
                 
-                #ifdef HAVE_CUBLAS
+                #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                     blasf77_zaxpy( &sizeC, &c_neg_one, hC, &ione, hCmagma, &ione );
                     magma_error = lapackf77_zlange( "F", &M, &N, hCmagma, &ldc, work )
                             / (sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
@@ -235,7 +235,8 @@ int main( int argc, char** argv)
                 #endif
             }
             else {
-                #ifdef HAVE_CUBLAS
+                #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+
                     // use cuBLAS for R_ref (currently only with CUDA)
                     blasf77_zaxpy( &sizeC, &c_neg_one, hCdev, &ione, hCmagma, &ione );
                     magma_error = lapackf77_zlange( "F", &M, &N, hCmagma, &ldc, work )

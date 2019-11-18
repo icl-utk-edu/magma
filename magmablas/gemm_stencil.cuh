@@ -151,7 +151,6 @@ void devfunc_name(precision) (
     FloatingPoint_t alpha, FloatingPoint_t beta,
     int offsetA, int offsetB )
 {
-#if (__CUDA_ARCH__ >= 200)
     int idx = threadIdx.x;  // thread's m dimension
     int idy = threadIdx.y;  // thread's n dimension
 
@@ -446,7 +445,6 @@ void devfunc_name(precision) (
             }
         }
     }
-#endif /* (__CUDA_ARCH__ >= 200) */
 }
 
 } /* extern "C" { */

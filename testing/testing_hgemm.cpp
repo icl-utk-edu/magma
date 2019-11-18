@@ -279,7 +279,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Performs operation using GPU
                =================================================================== */
-            #ifdef HAVE_CUBLAS
+            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 magma_flush_cache( opts.cache );
                 dev_time = magma_sync_wtime( opts.queue );
 
@@ -303,7 +303,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Check the result
                =================================================================== */
-            #ifdef HAVE_CUBLAS
+            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
             if ( opts.lapack || opts.check ) {
                 /* =====================================================================
                    Performs operation using CPU BLAS
