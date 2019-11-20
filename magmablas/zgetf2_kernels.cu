@@ -1002,11 +1002,11 @@ zgetf2_fused_device( int m, magmaDoubleComplex* dA, int ldda, magma_int_t* dipiv
     magmaDoubleComplex update    = MAGMA_Z_ZERO;
     
     int max_id, rowid = tx;
-    int linfo = 0;
+    int linfo = (gbstep == 0) ? 0 : *info;
     double rx_abs_max = MAGMA_D_ZERO;
     // check from previous calls if the panel factorization failed previously
     // this is necessary to report the correct info value 
-    if(gbstep > 0 && *info != 0) return;
+    //if(gbstep > 0 && *info != 0) return;
     
     magmaDoubleComplex *sx = (magmaDoubleComplex*)(swork);
     double* dsx = (double*)(sx + blockDim.y * WIDTH);
