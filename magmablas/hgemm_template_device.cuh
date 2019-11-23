@@ -17,6 +17,8 @@
 using namespace nvcuda;
 #endif
 
+#include "sync.cuh"
+
 #define WARP_SIZE 32
 #define NWRPS (DIM_X*DIM_Y/WARP_SIZE)
 #define fetch_half(Am, An, A, LDA, i, j)  (((i) < Am && (j) < An)? A[(j) * LDA + (i)] : make_FloatingPoint(0.0, 0.0)) 
@@ -32,7 +34,7 @@ __device__ __inline__ void sync()
 template<>
 __device__ __inline__ void sync<WARP_SIZE>()
 {
-    __syncwarp();
+    magmablas_syncwarp();
 }
 
 /******************************************************************************/
