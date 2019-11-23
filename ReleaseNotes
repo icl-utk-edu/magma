@@ -38,6 +38,8 @@ single (s), double (d), single-complex (c), double-complex (z).
     * Fix a bug in batched LU factorization to avoind NaNs when singularity is ancountered
     * Fix a bug in batched LU factorization to ensure that the first pivot is always returned 
       even when multilpe pivots with the same absolute value are found
+    * Add Frobenius norm for general matrices
+      (supported as option to magmablas_Xlange for X = 's', 'd', 'c', or 'z')
 
  2.5.1 - Aug 2, 2019
     * New routine: magmablas_Xherk_small_reduce (X = 's', 'd', 'c', or 'z') 
