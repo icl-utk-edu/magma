@@ -256,6 +256,29 @@ magma_sum_reduce( /*int n,*/ int i, T* x )
 
 
 /***************************************************************************//**
+    sum reduction, for arbitrary size vector. Leaves sum(x) in x[0].
+    Uses only one thread block of 512 threads, so is not efficient for really large vectors.
+    @ingroup magma_kernel
+*******************************************************************************/
+template< typename T >
+__global__ void
+magma_sum_reduce_kernel( int n, T* x )
+{
+    __shared__ T sum[ 512 ];
+    int tx = threadIdx.x;
+    
+    sum[tx] = 0;
+    for( int i=tx; i < n; i += 512 ) {
+        sum[tx] += x[i];
+    }
+    magma_sum_reduce< 512 >( tx, sum );
+    if ( tx == 0 ) {
+        x[0] = sum[0];
+    }
+}
+
+
+/***************************************************************************//**
     Same as magma_sum_reduce(),
     but takes n as runtime argument instead of compile-time template parameter.
     @ingroup magma_kernel
