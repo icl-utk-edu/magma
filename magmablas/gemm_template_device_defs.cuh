@@ -85,7 +85,7 @@ FloatingPoint_t tex_fetch(texture<float> tex_ref, int coord)
     #define mul(A, B)         (A*B)
     #define div(A, B)         (A/B)
     #define fma(A, B, C) C += (A*B)
-    #define make_FloatingPoint(x, y) ((__half)x)
+    #define make_FloatingPoint(x, y) ((magmaHalf)x)
 #else
     #define conj(A)           (A)
     #define add(A, B)         (A+B)

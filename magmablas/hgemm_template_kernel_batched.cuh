@@ -143,10 +143,12 @@ void hgemm_template_batched_nn(
     shmem += BLK_M * BLK_K * sizeof(T);    // sA
     shmem += BLK_K * BLK_N * sizeof(T);    // sB
 
+    #if CUDA_VERSION >= 9000
     if(shmem > 49152) {
         cudaFuncSetAttribute( hgemm_template_batched_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, TC_M, TC_N, TC_K>, 
                               cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
+    #endif
 
     dim3 dimBlock(DIM_X * DIM_Y, 1);
     const int maxbatch = 50000;
@@ -180,10 +182,12 @@ void hgemm_template_batched_nt(
     shmem += BLK_M * BLK_K * sizeof(T);    // sA
     shmem += BLK_K * BLK_N * sizeof(T);    // sB
 
+    #if CUDA_VERSION >= 9000
     if(shmem > 49152) {
         cudaFuncSetAttribute( hgemm_template_batched_nt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, TC_M, TC_N, TC_K>, 
                               cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
+    #endif
 
     dim3 dimBlock(DIM_X * DIM_Y, 1);
     const int maxbatch = 50000;
@@ -217,10 +221,12 @@ void hgemm_template_batched_tn(
     shmem += BLK_M * BLK_K * sizeof(T);    // sA
     shmem += BLK_K * BLK_N * sizeof(T);    // sB
 
+    #if CUDA_VERSION >= 9000
     if(shmem > 49152) {
         cudaFuncSetAttribute( hgemm_template_batched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, TC_M, TC_N, TC_K>, 
                               cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
+    #endif
 
     dim3 dimBlock(DIM_X * DIM_Y, 1);
     const int maxbatch = 50000;
@@ -254,10 +260,12 @@ void hgemm_template_batched_tt(
     shmem += BLK_M * BLK_K * sizeof(T);    // sA
     shmem += BLK_K * BLK_N * sizeof(T);    // sB
 
+    #if CUDA_VERSION >= 9000
     if(shmem > 49152) {
         cudaFuncSetAttribute( hgemm_template_batched_tt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, TC_M, TC_N, TC_K>, 
                               cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
+    #endif
 
     dim3 dimBlock(DIM_X * DIM_Y, 1);
     const int maxbatch = 50000;
