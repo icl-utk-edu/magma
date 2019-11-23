@@ -21,10 +21,10 @@
 # --------------------
 # programs
 
-CC        = xlc++_r -qsmp
-CXX       = xlc++_r -qsmp
+CC        = xlc++_r
+CXX       = xlc++_r
 NVCC      = nvcc
-FORT      = gfortran -fno-underscoring
+FORT      = xlf
 
 ARCH      = ar
 ARCHFLAGS = cr
@@ -38,11 +38,11 @@ RANLIB    = ranlib
 # can be commented out if making only static library.
 FPIC      = -fPIC
 
-CFLAGS    = -O3 $(FPIC) -fopenmp -DNDEBUG -DNOCHANGE -Wall -Wshadow 
-FFLAGS    = -O3 $(FPIC)          -DNDEBUG -DNOCHANGE -Wall -Wno-unused-dummy-argument
-F90FLAGS  = -O3 $(FPIC)          -DNDEBUG -DNOCHANGE -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-NVCCFLAGS = -O3                  -DNDEBUG -DNOCHANGE -Xcompiler "$(FPIC) -Wall -Wno-unused-function" -std=c++11
-LDFLAGS   =     $(FPIC) -fopenmp
+CFLAGS    = -O3 $(FPIC) -qsmp=omp -DNDEBUG -DNOCHANGE -Wall -Wshadow 
+FFLAGS    = -O3 $(FPIC)       -DNDEBUG -DNOCHANGE
+F90FLAGS  = -O3 $(FPIC)       -DNDEBUG -DNOCHANGE
+NVCCFLAGS = -O3               -DNDEBUG -DNOCHANGE -Xcompiler "$(FPIC) -Wall -Wno-unused-function" -std=c++11
+LDFLAGS   =     $(FPIC) -qsmp=omp
 
 # C++11 (gcc >= 4.7) is not required, but has benefits like atomic operations
 CXXFLAGS := $(CFLAGS) -std=c++11
@@ -53,7 +53,7 @@ CFLAGS   += -std=c99
 # libraries
 
 # ESSL is not LAPACK complete, so reference LAPACK must be added
-LIB       = -lesslsmp -lpthread -lstdc++ -lm -lgfortran -llapack -lblas
+LIB       = -lesslsmp -lpthread -lstdc++ -lm -llapack
 
 LIB      += -lcublas -lcusparse -lcudart -lcudadevrt
 
