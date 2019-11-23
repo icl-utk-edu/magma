@@ -56,6 +56,7 @@ magmablas_hgemm_batched(
         return -14;
     }
 
+#if CUDA_VERSION >= 9000
     magma_int_t shape = 0;
     if      (transA == MagmaNoTrans   && transB == MagmaNoTrans)   { shape = 0; } // nn
     else if (transA == MagmaNoTrans   && transB == MagmaTrans)     { shape = 1; } // nt
@@ -67,7 +68,6 @@ magmablas_hgemm_batched(
     else if (transA == MagmaConjTrans && transB == MagmaTrans)     { shape = 7; } // ct
     else if (transA == MagmaConjTrans && transB == MagmaConjTrans) { shape = 8; } // cc
 
-#if CUDA_VERSION >= 9000
     switch(shape){
         case 0:    // nn
         {
