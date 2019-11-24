@@ -3,7 +3,7 @@
 #      Univ. of Tennessee, Knoxville
 #      Univ. of California, Berkeley
 #      Univ. of Colorado, Denver
-#      @date November 2016
+#      @date
 #//////////////////////////////////////////////////////////////////////////////
 
 # GPU_TARGET contains one or more of Fermi, Kepler, or Maxwell,
