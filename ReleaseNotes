@@ -24,7 +24,7 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
- 2.5.2 - <date>
+ 2.5.2 - Nov 24, 2019
     * New routine: magmablas_hgemm_batched for fixed size batched matrix multiplication 
       in FP16 using the Tensor Cores. The routine does not currently support pre-Volta GPUs. 
       The routine outperforms cuBLAS for sizes less than 100, as well as for general sizes that 
