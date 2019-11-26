@@ -1,3 +1,18 @@
+
+# ------------------------------------------------------------------------------
+# build process
+#
+# For hipMAGMA (branch of MAGMA that builds on HIP), the build process is basically:
+# 0: Clone the repo, or download a release
+# 1: Copy your `make.inc` for your specific platform
+# 2: If its the repo, then run `make -f make.gen.interface_hip`, and `make -f make.gen.magmablas_hip`, 
+#      and `make -f make.gen.testing_hip`
+# 3: Now, run `make`, like normal.
+# 4: You can make specific testers if the builds are failing
+#
+
+
+
 # ------------------------------------------------------------------------------
 # programs
 #
@@ -5,6 +20,11 @@
 # It should not be necesary to change anything in here.
 
 include make.inc
+
+
+
+
+
 
 # --------------------
 # configuration
@@ -257,9 +277,10 @@ ifeq ($(BACKEND),cuda)
 	CXXFLAGS  += -DHAVE_CUDA -DHAVE_CUBLAS
 else ifeq ($(BACKEND),hip)
 
-# DEVCCFLAGS += --amdgpu-target=gfx701
+    # DEVCCFLAGS += --amdgpu-target=gfx701
     #TODO: make a bunch of loops like are above for the nvidia architectures
-    DEVCCFLAGS += $(foreach target,$(GPU_TARGET),--amdgpu-target=$(target))
+    #DEVCCFLAGS += $(foreach target,$(GPU_TARGET),--amdgpu-target=$(target))
+    #DEVCCFLAGS += --amdgpu-target=gfx900
     CFLAGS    += -DHAVE_HIP
     CXXFLAGS  += -DHAVE_HIP
 endif
@@ -748,8 +769,9 @@ sparse/testing/clean:
 %.$(o_ext): %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
+# use 
 %.o: %.cpp
-	$(DEVCC) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(DEVCC) $(CXXFLAGS) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 	@#$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 # assume C++ for headers; needed for Fortran wrappers
