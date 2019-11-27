@@ -778,7 +778,7 @@ sparse/testing/clean:
 # but there's no good way to tell whether or not it fails for some reason. (buggy
 # hipcc is probably the culprit)
 %.o: %.cpp
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(DEVCC) $(CXXFLAGS) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 	@#$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 # assume C++ for headers; needed for Fortran wrappers
