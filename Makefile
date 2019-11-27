@@ -81,7 +81,7 @@ FFLAGS      ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS    ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
 LDFLAGS     ?=     $(FPIC)                       -fopenmp
 
-DEVCCFLAGS  ?= -O3         -DNDEBUG -DADD_       
+DEVCCFLAGS  ?= -O3         -DNDEBUG -DADD_ 
 # DEVCCFLAGS are populated later in `backend-specific`
 
 
@@ -121,9 +121,14 @@ ifeq ($(BACKEND),hip)
     -include make.check-hip
     GPU_TARGET ?= gfx803 # gfx701 gfx801 gfx900 gfx1010
 
-    DEVCCFLAGS += $(FPIC) -std=c++11
+
+    # -fno-gpu-rdc allows `g++` (or another C++ compiler) to link the resultant
+    #  objects. Basically, hipcc will link each as a static function with a compilation
+    #  unit
+    DEVCCFLAGS += $(FPIC) -std=c++11 -fno-gpu-rdc
 
     LDFLAGS += -L/opt/rocm/lib -L/opt/rocm/hip/lib
+    
     #TODO: see if we need to link any HIP libraries
     LIB += -lhipsparse -lhipblas
     INC += -I$(HIPDIR)/include -I$(HIPBLASDIR)/include -I$(HIPSPARSEDIR)/include
@@ -769,9 +774,11 @@ sparse/testing/clean:
 %.$(o_ext): %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-# use 
+# use `hipcc` for all .cpp's. It may be a bit slower (althought I haven't tested it)
+# but there's no good way to tell whether or not it fails for some reason. (buggy
+# hipcc is probably the culprit)
 %.o: %.cpp
-	$(DEVCC) $(CXXFLAGS) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 	@#$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 # assume C++ for headers; needed for Fortran wrappers
@@ -826,7 +833,7 @@ $(libs_a):
 ifneq ($(have_fpic),)
     $(libmagma_so):
 	@echo "===== shared library $@"
-	$(DEVCC) $(LDFLAGS) -shared -o $@ \
+	$(CXX) $(LDFLAGS) -shared -o $@ \
 		$^ \
 		-L./lib $(LIBS)
 	@echo
