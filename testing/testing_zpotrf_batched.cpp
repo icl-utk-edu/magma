@@ -95,7 +95,7 @@ int main( int argc, char** argv)
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
-            magmaMemset( dinfo_magma, 0, batchCount * sizeof(magma_int_t) );
+            magma_memset( dinfo_magma, 0, batchCount * sizeof(magma_int_t) );
 
             magma_zset_pointer( d_A_array, d_A, ldda, 0, 0, ldda * N, batchCount, queue );
             gpu_time = magma_sync_wtime( opts.queue );
