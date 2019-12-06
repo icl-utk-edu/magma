@@ -208,11 +208,13 @@ magma_init()
                 }
                 else {
                     g_magma_devices[dev].memory          = prop.totalGlobalMem;
-                    g_magma_devices[dev].cuda_arch       = prop.major*100 + prop.minor*10;
                     g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock; 
                     #ifdef HAVE_CUDA
+                    g_magma_devices[dev].cuda_arch       = prop.major*100 + prop.minor*10;
                     g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor; 
                     #elif defined(HAVE_HIP)
+                    // we just assume the HIP device is compatible with at least CUDA 3.3
+                    g_magma_devices[dev].cuda_arch       = 330;
                     g_magma_devices[dev].shmem_multiproc = prop.maxSharedMemoryPerMultiProcessor; 
                     #endif
 

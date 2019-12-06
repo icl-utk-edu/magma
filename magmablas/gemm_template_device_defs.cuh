@@ -22,7 +22,7 @@
 static __device__
 FloatingPoint_t tex_fetch(texture<int4> tex_ref, int coord)
 {
-    #if (__CUDA_ARCH__ >= 200)
+    #if (__CUDA_ARCH__ >= 200) || defined(HAVE_HIP)
     int4 v = tex1Dfetch(tex_ref, coord);
     return make_cuDoubleComplex(__hiloint2double(v.y, v.x), __hiloint2double(v.w, v.z));
     #else
@@ -39,7 +39,7 @@ FloatingPoint_t tex_fetch(texture<float2> tex_ref, int coord)
 static __device__
 FloatingPoint_t tex_fetch(texture<int2> tex_ref, int coord)
 {
-    #if (__CUDA_ARCH__ >= 200)
+    #if (__CUDA_ARCH__ >= 200) || defined(HAVE_HIP)
     int2 v = tex1Dfetch(tex_ref, coord);
     return __hiloint2double(v.y, v.x);
     #else
