@@ -30,11 +30,10 @@
 
 # should MAGMA be built on CUDA (NVIDIA only) or HIP (AMD or NVIDIA)
 # enter 'cuda' or 'hip' respectively
-BACKEND     ?= hip
+BACKEND      = hip
 
 # set these to their real paths
 OPENBLASDIR ?= /usr/local/openblas
-CUDADIR     ?= /usr/local/cuda
 HIPDIR      ?= /opt/rocm/hip
 
 # require either hip or cuda
