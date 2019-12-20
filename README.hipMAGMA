@@ -13,12 +13,15 @@ This is intended for use on a HIP-enabled system. To check whether your system i
   3. Export environment variables. For example, the computer hipMAGMA has been developed on (ICL's `caffeine` machine) has openblas installed in `/nfs/apps/spack/opt/spack/linux-centos7-x86_64/gcc-7.2.0/openblas-0.2.20-rnb5trk6z6o767ontlvlrjviswap2wxu`, so I would run the following command:
        * `export OPENBLASDIR=/nfs/apps/spack/opt/spack/linux-centos7-x86_64/gcc-7.2.0/openblas-0.2.20-rnb5trk6z6o767ontlvlrjviswap2wxu`
 
-  4. Generate the HIP-specific code, by running these 3 commands:
+  4. Make sure to add any extra paths required. For example:
+       * In `make.inc`, `INC += -I/opt/rocm/hipblas/include -I/opt/rocm/hipsparse/include` (if there are errors related to including `hipblas.h` or `hipsparse.h`
+
+  5. Generate the HIP-specific code, by running these 3 commands:
        * `make -f make.gen.interface_hip`
        * `make -f make.gen.testing_hip`
        * `make -f make.gen.magmablas_hip`
 
-  5. Once all 3 of those commands have been ran, you can `make` MAGMA as normal. Here are common targets:
+  6. Once all 3 of those commands have been ran, you can `make` MAGMA as normal. Here are common targets:
        * `make lib/libmagma.so -j32` (builds the shared lib using 32 cores)
        * `make testing_hip/testing_dgemm` (builds the dgemm tester`
 
