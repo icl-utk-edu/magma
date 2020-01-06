@@ -136,9 +136,11 @@ typedef double real_Double_t;
     //#include "magma_hip_complex.h"
     // HIP does not want to play well with complex numbers, so we don't include
     //   their headers, but rather just define some replacements here:
+    
+/*
     #define make_hipFloatComplex MAGMA_C_MAKE
     #define make_hipDoubleComplex MAGMA_Z_MAKE
-    
+ 
     #define hipCadd magmaCadd
     #define hipCsub magmaCsub
     #define hipCmul magmaCmul
@@ -153,9 +155,7 @@ typedef double real_Double_t;
     #define hipCdivf magmaCdivf
     #define hipConjf MAGMA_C_CONJ
     #define hipCfmaf magmaCfmaf
-
-
-
+*/
 
     #include <hipblas.h>
     // some fixes for hipblas
@@ -180,6 +180,8 @@ typedef double real_Double_t;
     #define hipblasSetVectorAsync(a, b, c, d, e, f, stream) hipblasSetVector(a, b, c, d, e, f)
     #define hipblasGetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasGetMatrix(a, b, c ,d, e, f, g)
     #define hipblasSetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasSetMatrix(a, b, c, d, e, f, g)
+
+    #define hipblasSetAtomicsMode(...) magma_unsupported(hipblasSetAtomicsMode)
 
     #define hipblasZgemmBatched(...) magma_unsupported(hipblasZgemmBatched)
     #define hipblasZgerc(...) magma_unsupported(hipblasZgerc)
@@ -398,8 +400,10 @@ typedef double real_Double_t;
         double x, y;
 
     } magmaDoubleComplex;
+    
 
     #define MAGMA_Z_MAKE(r,i)    ((magmaDoubleComplex){(double)(r), (double)(i)})
+    //#define MAGMA_Z_MAKE(r,i)    (magmaDoubleComplex((double)(r), (double)(i)))
     #define MAGMA_Z_REAL(a)      (a).x
     #define MAGMA_Z_IMAG(a)      (a).y
     #define MAGMA_Z_ADD(a, b)    magmaCadd((a), (b))
@@ -434,6 +438,12 @@ typedef double real_Double_t;
         return ret;
     }
 
+    __device__ __host__ static inline magmaDoubleComplex magmaConj(magmaDoubleComplex p) {
+        return MAGMA_Z_MAKE(p.x, -p.y);
+    }
+
+
+
     __device__ __host__ static inline magmaDoubleComplex magmaCfma(magmaDoubleComplex p, magmaDoubleComplex q, magmaDoubleComplex r) {
         double real = (p.x * q.x) + r.x;
         double imag = (q.x * p.y) + r.y;
@@ -445,15 +455,17 @@ typedef double real_Double_t;
     }
 
 
-
+    
     typedef struct {
 
         // real, imag
         float x, y;
 
     } magmaFloatComplex;
-    
+        
+
     #define MAGMA_C_MAKE(r,i)    ((magmaFloatComplex){ .x = (float)(r), .y = (float)(i)})
+    //#define MAGMA_C_MAKE(r,i)    (magmaFloatComplex((float)(r), (float)(i)))
     #define MAGMA_C_REAL(a)      (a).x
     #define MAGMA_C_IMAG(a)      (a).y
     #define MAGMA_C_ADD(a, b)    magmaCaddf((a), (b))
@@ -486,6 +498,10 @@ typedef double real_Double_t;
         ret.x = (p.x * q.x + p.y * q.y) / sqabs;
         ret.y = (p.y * q.x - p.x * q.y) / sqabs;
         return ret;
+    }
+
+    __device__ __host__ static inline magmaFloatComplex magmaConjf(magmaFloatComplex p) {
+        return MAGMA_C_MAKE(p.x, -p.y);
     }
 
     __device__ __host__ static inline magmaFloatComplex magmaCfmaf(magmaFloatComplex p, magmaFloatComplex q, magmaFloatComplex r) {
