@@ -43,6 +43,8 @@ int main( int argc, char** argv )
     magma_queue_t queue;
     magma_queue_create( 0, &queue );
     
+    memset(&opts, 0, sizeof(magma_dopts));
+    
     magma_d_matrix A={Magma_CSR}, dA={Magma_CSR};
     magma_d_matrix b={Magma_CSR}, db={Magma_CSR};
     magma_d_matrix x={Magma_CSR}, dx={Magma_CSR};
