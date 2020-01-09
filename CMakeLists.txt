@@ -553,8 +553,12 @@ install( TARGETS magma magma_sparse ${blas_fix}
          LIBRARY DESTINATION lib
          ARCHIVE DESTINATION lib )
 file( GLOB headers include/*.h sparse/include/*.h )
-install( FILES ${headers} ${modules}
-         DESTINATION include )
+if (USE_FORTRAN)
+    install( FILES ${headers} ${modules}
+             DESTINATION include )
+else()
+    install( FILES ${headers} DESTINATION include )
+endif()
 
 # ----------------------------------------
 # pkg-config
