@@ -16,7 +16,7 @@ extern "C"
 magmaDoubleComplex magma_zsqrt( magmaDoubleComplex x )
 {
     std::complex<double> y = std::sqrt( std::complex<double>( real(x), imag(x) ));
-    return MAGMA_Z_MAKE( y.real(), y.imag() );
+    return MAGMA_Z_MAKE( real(y), imag(y) );
 }
 
 
@@ -24,5 +24,5 @@ extern "C"
 magmaFloatComplex magma_csqrt( magmaFloatComplex x )
 {
     std::complex<float> y = std::sqrt( std::complex<float>( real(x), imag(x) ));
-    return MAGMA_C_MAKE( y.real(), y.imag() );
+    return MAGMA_C_MAKE( real(y), imag(y) );
 }
