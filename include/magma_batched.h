@@ -18,6 +18,7 @@
 #include "magma_cbatched.h"
 #include "magma_dbatched.h"
 #include "magma_sbatched.h"
+#include "magma_hbatched.h"
 
 
 

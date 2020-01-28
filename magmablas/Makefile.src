@@ -37,6 +37,7 @@ libmagma_src += \
 	$(cdir)/zgetmatrix_transpose.cpp	\
 	$(cdir)/zhemv.cu		\
 	$(cdir)/zhemv_upper.cu		\
+	$(cdir)/zherk_small_reduce.cu	\
 	$(cdir)/zlacpy.cu		\
 	$(cdir)/zlacpy_conj.cu		\
 	$(cdir)/zlacpy_sym_in.cu	\
@@ -198,10 +199,12 @@ libmagma_src += \
 
 # FP16 files
 libmagma_src += \
-	$(cdir)/slag2h.cu	\
-	$(cdir)/hlag2s.cu	\
-	$(cdir)/hlaconvert.cu	\
-	$(cdir)/hlaswp.cu		\
+	$(cdir)/hgemm_batched_core.cu    \
+	$(cdir)/slag2h.cu                \
+	$(cdir)/hlag2s.cu	             \
+	$(cdir)/hlaconvert.cu	         \
+	$(cdir)/hlaswp.cu		         \
+	$(cdir)/hset_pointer.cu		     \
 
 # ----------------------------------------------------------------------
 # extra include dependencies
@@ -309,6 +312,7 @@ $(cdir)/zgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.cuh $(
 $(cdir)/cgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/dgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/sgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/hgemm_batched_core.$(o_ext): $(cdir)/hgemm_template_kernel_batched.cuh $(cdir)/hgemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 
 $(cdir)/sgemm_vbatched_core.$(o_ext): $(cdir)/gemm_template_kernel_vbatched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/dgemm_vbatched_core.$(o_ext): $(cdir)/gemm_template_kernel_vbatched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh

@@ -89,10 +89,15 @@ void herk_template_vbatched_nt(
     magma_int_t batchCount, magma_queue_t queue, 
     magma_int_t max_n)
 {
+    magma_int_t max_batchCount = 50000;
     dim3 dimBlock(DIM_X, DIM_Y);
-    dim3 dimGrid( magma_ceildiv( max_n, BLK_M ), magma_ceildiv( max_n, BLK_N ), batchCount );
-    herk_template_vbatched_nt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-    <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>(uplo, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc);
+    for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 dimGrid( magma_ceildiv( max_n, BLK_M ), magma_ceildiv( max_n, BLK_N ), ibatch );
+        herk_template_vbatched_nt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
+        <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>
+        (uplo, n+i, k+i, alpha, dA_array+i, ldda+i, dB_array+i, lddb+i, beta, dC_array+i, lddc+i);
+    }
 }
 
 
@@ -110,10 +115,15 @@ void herk_template_vbatched_tn(
     magma_int_t batchCount, magma_queue_t queue, 
     magma_int_t max_n)
 {
+    magma_int_t max_batchCount = 50000;
     dim3 dimBlock(DIM_X, DIM_Y);
-    dim3 dimGrid( magma_ceildiv( max_n, BLK_M ), magma_ceildiv( max_n, BLK_N ), batchCount );
-    herk_template_vbatched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-    <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>(uplo, n, k, alpha, dA_array, ldda, dB_array, lddb, beta, dC_array, lddc);
+    for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 dimGrid( magma_ceildiv( max_n, BLK_M ), magma_ceildiv( max_n, BLK_N ), ibatch );
+        herk_template_vbatched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
+        <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>
+        (uplo, n+i, k+i, alpha, dA_array+i, ldda+i, dB_array+i, lddb+i, beta, dC_array+i, lddc+i);
+    }
 }
 
 #endif //HERK_TEMPLATE_KERNEL_VBATCHED_CUH

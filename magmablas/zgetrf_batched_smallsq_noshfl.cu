@@ -34,8 +34,9 @@ zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda,
     magma_int_t* ipiv = ipiv_array[batchid];
     magma_int_t* info = &info_array[batchid];
     
-    magmaDoubleComplex rA[N] = {MAGMA_Z_ZERO};
-    magmaDoubleComplex reg = MAGMA_Z_ZERO; 
+    magmaDoubleComplex rA[N]  = {MAGMA_Z_ZERO};
+    magmaDoubleComplex reg    = MAGMA_Z_ZERO; 
+    magmaDoubleComplex update = MAGMA_Z_ZERO;
     
     int max_id, rowid = tx;
     int linfo = 0;
@@ -70,14 +71,15 @@ zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda,
                 rx_abs_max = dsx[j];
             }
         }
-        linfo = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (i+1) : linfo;
+        linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (i+1) : linfo;
+        update = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
         
         if(rowid == max_id){
             sipiv[i] = max_id;
             rowid = i;
             #pragma unroll
             for(int j = i; j < N; j++){
-                sx[j] = rA[j];
+                sx[j] = update * rA[j];
             }
         }
         else if(rowid == i){
@@ -85,7 +87,7 @@ zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda,
         }
         magmablas_syncwarp();
         
-        reg = MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] );
+        reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] );
         // scal and ger
         if( rowid > i ){
             rA[i] *= reg;

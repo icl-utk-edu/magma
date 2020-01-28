@@ -32,12 +32,18 @@ void slag2h_device(
     float tmp;
     float neg_rmax = - rmax;
 
-    if(gtx < m && gty < n){
-        tmp = A[gty * lda + gtx];
-        if ( (MAGMA_S_REAL(tmp) < neg_rmax) || (MAGMA_S_REAL(tmp) > rmax) ) {
-           *dinfo  = 1;
+    for(int j = 0; j < n; j += gridDim.y) {
+        const int gty_ = gty + j;
+        for(int i = 0; i < m; i+= gridDim.x){
+            const int gtx_ = gtx + i;
+            if(gtx_ < m && gty_ < n){
+                tmp = A[gty_ * lda + gtx_];
+                if ( (MAGMA_S_REAL(tmp) < neg_rmax) || (MAGMA_S_REAL(tmp) > rmax) ) {
+                    *dinfo  = 1;
+                }
+                HA[gty_ * ldha + gtx_] = __float2half( tmp );
+            }
         }
-        HA[gty * ldha + gtx] = __float2half( tmp );
     }
 #endif
 }
@@ -103,7 +109,7 @@ magmablas_slag2h(
     float rmax = (float)(65504);
 
     dim3 threads( BLK_X, BLK_Y );
-    dim3 grid( magma_ceildiv(m, BLK_X), magma_ceildiv(n, BLK_Y), 1);
+    dim3 grid( magma_ceildiv(m, BLK_X), min(50000, magma_ceildiv(n, BLK_Y)), 1);
 
     slag2h_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
     ( m, n, dA, lda, dHA, ldha, rmax, &flag );

@@ -34,9 +34,11 @@ zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda,
     magma_int_t* ipiv = ipiv_array[batchid];
     magma_int_t* info = &info_array[batchid];
     
-    magmaDoubleComplex rA[N] = {MAGMA_Z_ZERO};
-    magmaDoubleComplex  y[N] = {MAGMA_Z_ZERO};
-    magmaDoubleComplex reg = MAGMA_Z_ZERO; 
+    magmaDoubleComplex rA[N]  = {MAGMA_Z_ZERO};
+    magmaDoubleComplex  y[N]  = {MAGMA_Z_ZERO};
+    magmaDoubleComplex reg    = MAGMA_Z_ZERO; 
+    magmaDoubleComplex update = MAGMA_Z_ZERO;
+ 
     int max_id, current_piv_tx, rowid = tx, linfo = 0;
     double rx_abs_max = MAGMA_D_ZERO;
     // shared memory pointers
@@ -57,6 +59,7 @@ zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda,
     #pragma unroll
     for(int i = 0; i < N; i++){
         sx[ rowid ] = fabs(MAGMA_Z_REAL( rA[i] )) + fabs(MAGMA_Z_IMAG( rA[i] ));
+        magmablas_syncwarp();
         rx_abs_max = sx[i];
         max_id = i; 
         #pragma unroll
@@ -67,7 +70,7 @@ zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda,
             }
         }
         linfo = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (i+1) : linfo;
-        //linfo = ( rx_abs_max == MAGMA_D_ZERO ) ? min(linfo, i+1) : 0;
+        update = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
 
         if(rowid == max_id){
             sipiv[i] = max_id;
@@ -78,12 +81,13 @@ zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda,
             rowid = max_id; 
         }
         current_piv_tx = (*scurrent_piv_tx);
+        magmablas_syncwarp();
         
         #pragma unroll
         for(int j = i; j < N; j++){
-            y[j] = magmablas_zshfl( rA[j], current_piv_tx, NSHFL);
+            y[j] = update * magmablas_zshfl( rA[j], current_piv_tx, NSHFL);
         }
-        reg = MAGMA_Z_DIV(MAGMA_Z_ONE, y[i] ); 
+        reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, y[i] ); 
         // scal and ger
         if( rowid > i ){
             rA[i] *= reg;
