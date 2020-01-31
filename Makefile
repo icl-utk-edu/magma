@@ -22,10 +22,6 @@
 include make.inc
 
 
-
-
-
-
 # --------------------
 # configuration
 
@@ -84,7 +80,6 @@ LDFLAGS     ?=     $(FPIC)                       -fopenmp
 DEVCCFLAGS  ?= -O3         -DNDEBUG -DADD_ 
 # DEVCCFLAGS are populated later in `backend-specific`
 
-
 # --------------------
 # libraries
 
@@ -121,17 +116,17 @@ ifeq ($(BACKEND),hip)
     -include make.check-hip
     GPU_TARGET ?= gfx803 # gfx701 gfx801 gfx900 gfx1010
 
-
     # -fno-gpu-rdc allows `g++` (or another C++ compiler) to link the resultant
-    #  objects. Basically, hipcc will link each as a static function with a compilation
-    #  unit
+    #  objects. Basically, hipcc will link each as a static function within a compilation
+    #  unit. This saves a LOT of time (i.e. about 30 minutes) when generating a shared lib
     DEVCCFLAGS += $(FPIC) -std=c++11 -fno-gpu-rdc
 
     LDFLAGS += -L/opt/rocm/lib -L/opt/rocm/hip/lib
     
     #TODO: see if we need to link any HIP libraries
     LIB += -lhipsparse -lhipblas
-    INC += -I$(HIPDIR)/include -I$(HIPBLASDIR)/include -I$(HIPSPARSEDIR)/include
+    #INC += -I$(HIPDIR)/include -I$(HIPBLASDIR)/include -I$(HIPSPARSEDIR)/include
+    INC += -I$(HIPDIR)/include
 
 endif
 
@@ -139,8 +134,8 @@ endif
 # Extension for object files: o for unix, obj for Windows?
 o_ext      ?= o
 
+# where to install to?
 prefix     ?= /usr/local/magma
-
 
 # ------------------------------------------------------------------------------
 # MAGMA-specific programs & flags
@@ -155,12 +150,10 @@ LIBS       = $(LIBDIR) $(LIB)
 # preprocessor flags. See below for MAGMA_INC
 CPPFLAGS   = $(INC) $(MAGMA_INC)
 
-
 # where testers look for MAGMA libraries
 RPATH      = -Wl,-rpath,${abspath ./lib}
 
 codegen    = python tools/codegen.py
-
 
 ifeq ($(BACKEND),cuda)
 
@@ -283,11 +276,15 @@ ifeq ($(BACKEND),cuda)
 else ifeq ($(BACKEND),hip)
 
     # DEVCCFLAGS += --amdgpu-target=gfx701
-    #TODO: make a bunch of loops like are above for the nvidia architectures
+    #TODO: make a bunch of loops like those above for the nvidia architectures
+    # right now, targets should be set in make.inc
     #DEVCCFLAGS += $(foreach target,$(GPU_TARGET),--amdgpu-target=$(target))
     #DEVCCFLAGS += --amdgpu-target=gfx900
-    CFLAGS    += -DHAVE_HIP
-    CXXFLAGS  += -DHAVE_HIP
+
+    # just so we know
+    CFLAGS     += -DHAVE_HIP
+    CXXFLAGS   += -DHAVE_HIP
+    DEVCCFLAGS += -DHAVE_HIP
 endif
 
 
@@ -770,7 +767,7 @@ sparse/testing/clean:
 %.$(o_ext): %.F90 $(PTREXEC)
 	$(FORT) $(F90FLAGS) $(CPPFLAGS) $(PTROPT) -c -o $@ $<
 	-mv $(notdir $(basename $@)).mod include/
-
+ 
 %.$(o_ext): %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
@@ -778,7 +775,7 @@ sparse/testing/clean:
 # but there's no good way to tell whether or not it fails for some reason. (buggy
 # hipcc is probably the culprit)
 %.o: %.cpp
-	$(DEVCC) $(CXXFLAGS) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 	@#$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 # assume C++ for headers; needed for Fortran wrappers

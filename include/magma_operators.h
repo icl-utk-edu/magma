@@ -45,7 +45,7 @@
 
 
 // hip_complex.h manually uses the function name 'real' and 'imag' in the GLOBAL namespace (why they claim the name 'real' is beyond me...), but it should work the same as ours
-#ifndef HAVE_HIP_COMPLEX
+//#ifndef HAVE_HIP_COMPLEX
 __host__ __device__ static inline double real(const magmaDoubleComplex &x) { return MAGMA_Z_REAL(x); }
 __host__ __device__ static inline float  real(const magmaFloatComplex  &x) { return MAGMA_C_REAL(x); }
 
@@ -54,7 +54,7 @@ __host__ __device__ static inline float  imag(const magmaFloatComplex  &x) { ret
 
 __host__ __device__ static inline magmaDoubleComplex conj(const magmaDoubleComplex &x) { return MAGMA_Z_CONJ(x); }
 __host__ __device__ static inline magmaFloatComplex  conj(const magmaFloatComplex  &x) { return MAGMA_C_CONJ(x); }
-#endif
+//#endif
 
 __host__ __device__ static inline double real(const double             &x) { return x; }
 __host__ __device__ static inline float  real(const float              &x) { return x; }
@@ -194,6 +194,15 @@ operator * (const magmaDoubleComplex a, const double s)
 }
 
 __host__ __device__ static inline magmaDoubleComplex
+operator * (const magmaDoubleComplex a, const float s)
+{
+    return MAGMA_Z_MAKE( real(a)*s,
+                         imag(a)*s );
+}
+
+
+
+__host__ __device__ static inline magmaDoubleComplex
 operator * (const double s, const magmaDoubleComplex a)
 {
     return MAGMA_Z_MAKE( real(a)*s,
@@ -321,7 +330,6 @@ operator != (const magmaDoubleComplex a, const magmaDoubleComplex b)
 {
     return ! (a == b);
 }
-
 __host__ __device__ static inline bool
 operator != (const magmaDoubleComplex a, const double s)
 {
@@ -333,6 +341,7 @@ operator != (const double s, const magmaDoubleComplex a)
 {
     return ! (a == s);
 }
+
 
 
 // =============================================================================

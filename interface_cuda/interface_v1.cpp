@@ -12,8 +12,9 @@
 #include <stdio.h>
 #include <time.h>
 
-#include <cuda_runtime.h>
-#include <cublas_v2.h>
+// these are included already in magma_internal.h & other headers
+//#include <cuda_runtime.h>
+//#include <cublas_v2.h>
 
 #include "magma_internal.h"
 #include "error.h"

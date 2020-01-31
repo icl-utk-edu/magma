@@ -45,8 +45,8 @@ endif
 # programs
 
 # set compilers
-CC          ?= gcc
-CXX         ?= g++
+CC           = hipcc
+CXX          = hipcc
 FORT        ?= gfortran
 HIPCC       ?= hipcc
 NVCC        ?= nvcc
@@ -88,7 +88,8 @@ FPIC        = -fPIC
 
 # use -fopenmp to support openmp builds
 # comment out to build without openmp support
-FOPENMP     = -fopenmp
+#FOPENMP     = -fopenmp
+FOPENMP     =
 
 # now, generate our flags
 CFLAGS      = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c99
