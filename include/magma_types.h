@@ -191,7 +191,16 @@ typedef double real_Double_t;
      * its just a one time run to figure out which are undefined, then write a simple script
      * to turn them into the macro #define s you see below:
      */
+    
+    #define hipblasZgemmStridedBatched(...) magma_unsupported(hipblasZgemmStridedBatched)
+    #define hipblasZgemmBatched(...) magma_unsupported(hipblasZgemmBatched)
+    
+    #define hipblasCgemmBatched(...) magma_unsupported(hipblasCgemmBatched)
+    #define hipblasCgemmStridedBatched(...) magma_unsupported(hipblasCgemmStridedBatched)
+    
+    #define hipblasSetAtomicsMode(...) magma_unsupported(hipblasSetAtomicsMode)   
 
+ 
     #define hipblasZgerc(...)    magma_unsupported(hipblasZgerc)
     #define hipblasZgeru(...)    magma_unsupported(hipblasZgeru)
     #define hipblasZhemv(...)    magma_unsupported(hipblasZhemv)

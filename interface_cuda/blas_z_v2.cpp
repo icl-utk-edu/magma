@@ -22,24 +22,24 @@
  * FUTURE READERS: If hipBLAS changes numbers to `hipblas*Complex` rather than `hip*Complex`,
  *   these will need more complicated macro if/else blocks
  */
-#ifdef PRECISION_z
+/*#ifdef PRECISION_z
   #ifdef HAVE_HIP
-    typedef hipDoubleComplex BackendFloat_t;
+    typedef hipDoubleComplex cuDoubleComplex;
   #else
-    typedef cuDoubleComplex BackendFloat_t;
+    typedef cuDoubleComplex cuDoubleComplex;
   #endif
 #elif defined(PRECISION_c)
   #ifdef HAVE_HIP
-    typedef hipComplex BackendFloat_t;
+    typedef hipComplex cuDoubleComplex;
   #else
-    typedef cuFloatComplex BackendFloat_t;
+    typedef cuFloatComplex cuDoubleComplex;
   #endif
 #elif defined(PRECISION_d)
-  typedef double BackendFloat_t;
+  typedef double cuDoubleComplex;
 #else
-  typedef float BackendFloat_t;
+  typedef float cuDoubleComplex;
 #endif
-
+*/
 //#ifdef HAVE_CUBLAS
 
 // =============================================================================
@@ -72,7 +72,7 @@ magma_izamax(
     magma_queue_t queue )
 {
     int result; /* not magma_int_t */
-    cublasIzamax( queue->cublas_handle(), int(n), (BackendFloat_t*)dx, int(incx), &result );
+    cublasIzamax( queue->cublas_handle(), int(n), (cuDoubleComplex*)dx, int(incx), &result );
     return result;
 }
 
@@ -104,7 +104,7 @@ magma_izamin(
     magma_queue_t queue )
 {
     int result; /* not magma_int_t */
-    cublasIzamin( queue->cublas_handle(), int(n), (BackendFloat_t*)dx, int(incx), &result );
+    cublasIzamin( queue->cublas_handle(), int(n), (cuDoubleComplex*)dx, int(incx), &result );
     return result;
 }
 
@@ -136,7 +136,7 @@ magma_dzasum(
     magma_queue_t queue )
 {
     double result;
-    cublasDzasum( queue->cublas_handle(), int(n), (BackendFloat_t*)dx, int(incx), &result );
+    cublasDzasum( queue->cublas_handle(), int(n), (cuDoubleComplex*)dx, int(incx), &result );
     return result;
 }
 
@@ -178,7 +178,7 @@ magma_zaxpy(
     magmaDoubleComplex_ptr       dy, magma_int_t incy,
     magma_queue_t queue )
 {
-    cublasZaxpy( queue->cublas_handle(), int(n), (BackendFloat_t*)&alpha, (BackendFloat_t*)dx, int(incx), (BackendFloat_t*)dy, int(incy) );
+    cublasZaxpy( queue->cublas_handle(), int(n), (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dx, int(incx), (cuDoubleComplex*)dy, int(incy) );
 }
 
 
@@ -215,7 +215,7 @@ magma_zcopy(
     magmaDoubleComplex_ptr       dy, magma_int_t incy,
     magma_queue_t queue )
 {
-    cublasZcopy( queue->cublas_handle(), int(n), (BackendFloat_t*)dx, int(incx), (BackendFloat_t*)dy, int(incy) );
+    cublasZcopy( queue->cublas_handle(), int(n), (cuDoubleComplex*)dx, int(incx), (cuDoubleComplex*)dy, int(incy) );
 }
 
 
@@ -254,7 +254,7 @@ magmaDoubleComplex magma_zdotc(
     magma_queue_t queue )
 {
     magmaDoubleComplex result;
-    cublasZdotc( queue->cublas_handle(), int(n), (BackendFloat_t*)dx, int(incx), (BackendFloat_t*)dy, int(incy), (BackendFloat_t*)&result );
+    cublasZdotc( queue->cublas_handle(), int(n), (cuDoubleComplex*)dx, int(incx), (cuDoubleComplex*)dy, int(incy), (cuDoubleComplex*)&result );
     return result;
 }
 #endif // COMPLEX
@@ -294,7 +294,7 @@ magmaDoubleComplex magma_zdotu(
     magma_queue_t queue )
 {
     magmaDoubleComplex result;
-    cublasZdotu( queue->cublas_handle(), int(n), (BackendFloat_t*)dx, int(incx), (BackendFloat_t*)dy, int(incy), (BackendFloat_t*)&result );
+    cublasZdotu( queue->cublas_handle(), int(n), (cuDoubleComplex*)dx, int(incx), (cuDoubleComplex*)dy, int(incy), (cuDoubleComplex*)&result );
     return result;
 }
 
@@ -326,7 +326,7 @@ magma_dznrm2(
     magma_queue_t queue )
 {
     double result;
-    cublasDznrm2( queue->cublas_handle(), int(n), (BackendFloat_t*)dx, int(incx), &result );
+    cublasDznrm2( queue->cublas_handle(), int(n), (cuDoubleComplex*)dx, int(incx), &result );
     return result;
 }
 
@@ -375,7 +375,7 @@ magma_zrot(
     double c, magmaDoubleComplex s,
     magma_queue_t queue )
 {
-    cublasZrot( queue->cublas_handle(), int(n), (BackendFloat_t*)dx, int(incx), (BackendFloat_t*)dy, int(incy), &c, (BackendFloat_t*)&s );
+    cublasZrot( queue->cublas_handle(), int(n), (cuDoubleComplex*)dx, int(incx), (cuDoubleComplex*)dy, int(incy), &c, (cuDoubleComplex*)&s );
 }
 
 
@@ -424,7 +424,7 @@ magma_zdrot(
     double c, double s,
     magma_queue_t queue )
 {
-    cublasZdrot( queue->cublas_handle(), int(n), (BackendFloat_t*)dx, int(incx), (BackendFloat_t*)dy, int(incy), &c, &s );
+    cublasZdrot( queue->cublas_handle(), int(n), (cuDoubleComplex*)dx, int(incx), (cuDoubleComplex*)dy, int(incy), &c, &s );
 }
 #endif // COMPLEX
 
@@ -469,7 +469,7 @@ magma_zrotg(
     double             *c, magmaDoubleComplex *s,
     magma_queue_t queue )
 {
-    cublasZrotg( queue->cublas_handle(), (BackendFloat_t*)a, (BackendFloat_t*)b, c, (BackendFloat_t*)s );
+    cublasZrotg( queue->cublas_handle(), (cuDoubleComplex*)a, (cuDoubleComplex*)b, c, (cuDoubleComplex*)s );
 }
 
 
@@ -539,7 +539,7 @@ magma_zscal(
     magmaDoubleComplex_ptr dx, magma_int_t incx,
     magma_queue_t queue )
 {
-    cublasZscal( queue->cublas_handle(), int(n), (BackendFloat_t*)&alpha, (BackendFloat_t*)dx, int(incx) );
+    cublasZscal( queue->cublas_handle(), int(n), (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dx, int(incx) );
 }
 
 
@@ -573,7 +573,7 @@ magma_zdscal(
     magmaDoubleComplex_ptr dx, magma_int_t incx,
     magma_queue_t queue )
 {
-    cublasZdscal( queue->cublas_handle(), int(n), &alpha, (BackendFloat_t*)dx, int(incx) );
+    cublasZdscal( queue->cublas_handle(), int(n), &alpha, (cuDoubleComplex*)dx, int(incx) );
 }
 #endif // COMPLEX
 
@@ -611,7 +611,7 @@ magma_zswap(
     magmaDoubleComplex_ptr dy, magma_int_t incy,
     magma_queue_t queue )
 {
-    cublasZswap( queue->cublas_handle(), int(n), (BackendFloat_t*)dx, int(incx), (BackendFloat_t*)dy, int(incy) );
+    cublasZswap( queue->cublas_handle(), int(n), (cuDoubleComplex*)dx, int(incx), (cuDoubleComplex*)dy, int(incy) );
 }
 
 
@@ -683,9 +683,9 @@ magma_zgemv(
         queue->cublas_handle(),
         cublas_trans_const( transA ),
         int(m), int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dA, int(ldda),
-                (BackendFloat_t*)dx, int(incx),
-        (BackendFloat_t*)&beta,  (BackendFloat_t*)dy, int(incy) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
+                (cuDoubleComplex*)dx, int(incx),
+        (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dy, int(incy) );
 }
 
 
@@ -741,9 +741,9 @@ magma_zgerc(
     cublasZgerc(
         queue->cublas_handle(),
         int(m), int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dx, int(incx),
-                (BackendFloat_t*)dy, int(incy),
-                (BackendFloat_t*)dA, int(ldda) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dx, int(incx),
+                (cuDoubleComplex*)dy, int(incy),
+                (cuDoubleComplex*)dA, int(ldda) );
 }
 #endif // COMPLEX
 
@@ -799,9 +799,9 @@ magma_zgeru(
     cublasZgeru(
         queue->cublas_handle(),
         int(m), int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dx, int(incx),
-                (BackendFloat_t*)dy, int(incy),
-                (BackendFloat_t*)dA, int(ldda) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dx, int(incx),
+                (cuDoubleComplex*)dy, int(incy),
+                (cuDoubleComplex*)dA, int(ldda) );
 }
 
 
@@ -864,9 +864,9 @@ magma_zhemv(
         queue->cublas_handle(),
         cublas_uplo_const( uplo ),
         int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dA, int(ldda),
-                (BackendFloat_t*)dx, int(incx),
-        (BackendFloat_t*)&beta,  (BackendFloat_t*)dy, int(incy) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
+                (cuDoubleComplex*)dx, int(incx),
+        (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dy, int(incy) );
 }
 #endif // COMPLEX
 
@@ -918,8 +918,8 @@ magma_zher(
         queue->cublas_handle(),
         cublas_uplo_const( uplo ),
         int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dx, int(incx),
-                (BackendFloat_t*)dA, int(ldda) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dx, int(incx),
+                (cuDoubleComplex*)dA, int(ldda) );
 }
 #endif // COMPLEX
 
@@ -979,9 +979,9 @@ magma_zher2(
         queue->cublas_handle(),
         cublas_uplo_const( uplo ),
         int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dx, int(incx),
-                (BackendFloat_t*)dy, int(incy),
-                (BackendFloat_t*)dA, int(ldda) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dx, int(incx),
+                (cuDoubleComplex*)dy, int(incy),
+                (cuDoubleComplex*)dA, int(ldda) );
 }
 #endif // COMPLEX
 
@@ -1044,9 +1044,9 @@ magma_zsymv(
         queue->cublas_handle(),
         cublas_uplo_const( uplo ),
         int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dA, int(ldda),
-                (BackendFloat_t*)dx, int(incx),
-        (BackendFloat_t*)&beta,  (BackendFloat_t*)dy, int(incy) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
+                (cuDoubleComplex*)dx, int(incx),
+        (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dy, int(incy) );
 }
 
 
@@ -1096,8 +1096,8 @@ magma_zsyr(
         queue->cublas_handle(),
         cublas_uplo_const( uplo ),
         int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dx, int(incx),
-                (BackendFloat_t*)dA, int(ldda) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dx, int(incx),
+                (cuDoubleComplex*)dA, int(ldda) );
 }
 
 
@@ -1155,9 +1155,9 @@ magma_zsyr2(
         queue->cublas_handle(),
         cublas_uplo_const( uplo ),
         int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dx, int(incx),
-                (BackendFloat_t*)dy, int(incy),
-                (BackendFloat_t*)dA, int(ldda) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dx, int(incx),
+                (cuDoubleComplex*)dy, int(incy),
+                (cuDoubleComplex*)dA, int(ldda) );
 }
 
 
@@ -1213,8 +1213,8 @@ magma_ztrmv(
         cublas_trans_const( trans ),
         cublas_diag_const( diag ),
         int(n),
-        (BackendFloat_t*)dA, int(ldda),
-        (BackendFloat_t*)dx, int(incx) );
+        (cuDoubleComplex*)dA, int(ldda),
+        (cuDoubleComplex*)dx, int(incx) );
 }
 
 
@@ -1271,8 +1271,8 @@ magma_ztrsv(
         cublas_trans_const( trans ),
         cublas_diag_const( diag ),
         int(n),
-        (BackendFloat_t*)dA, int(ldda),
-        (BackendFloat_t*)dx, int(incx) );
+        (cuDoubleComplex*)dA, int(ldda),
+        (cuDoubleComplex*)dx, int(incx) );
 }
 
 
@@ -1348,9 +1348,9 @@ magma_zgemm(
         cublas_trans_const( transA ),
         cublas_trans_const( transB ),
         int(m), int(n), int(k),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dA, int(ldda),
-                (BackendFloat_t*)dB, int(lddb),
-        (BackendFloat_t*)&beta,  (BackendFloat_t*)dC, int(lddc) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
+                (cuDoubleComplex*)dB, int(lddb),
+        (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
 }
 
 
@@ -1423,9 +1423,9 @@ magma_zhemm(
         cublas_side_const( side ),
         cublas_uplo_const( uplo ),
         int(m), int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dA, int(ldda),
-                (BackendFloat_t*)dB, int(lddb),
-        (BackendFloat_t*)&beta,  (BackendFloat_t*)dC, int(lddc) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
+                (cuDoubleComplex*)dB, int(lddb),
+        (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
 }
 #endif // COMPLEX
 
@@ -1492,8 +1492,8 @@ magma_zherk(
         cublas_uplo_const( uplo ),
         cublas_trans_const( trans ),
         int(n), int(k),
-        &alpha, (BackendFloat_t*)dA, int(ldda),
-        &beta,  (BackendFloat_t*)dC, int(lddc) );
+        &alpha, (cuDoubleComplex*)dA, int(ldda),
+        &beta,  (cuDoubleComplex*)dC, int(lddc) );
 }
 #endif // COMPLEX
 
@@ -1569,9 +1569,9 @@ magma_zher2k(
         cublas_uplo_const( uplo ),
         cublas_trans_const( trans ),
         int(n), int(k),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dA, int(ldda),
-                (BackendFloat_t*)dB, int(lddb),
-        &beta,  (BackendFloat_t*)dC, int(lddc) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
+                (cuDoubleComplex*)dB, int(lddb),
+        &beta,  (cuDoubleComplex*)dC, int(lddc) );
 }
 #endif // COMPLEX
 
@@ -1644,9 +1644,9 @@ magma_zsymm(
         cublas_side_const( side ),
         cublas_uplo_const( uplo ),
         int(m), int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dA, int(ldda),
-                (BackendFloat_t*)dB, int(lddb),
-        (BackendFloat_t*)&beta,  (BackendFloat_t*)dC, int(lddc) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
+                (cuDoubleComplex*)dB, int(lddb),
+        (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
 }
 
 
@@ -1711,8 +1711,8 @@ magma_zsyrk(
         cublas_uplo_const( uplo ),
         cublas_trans_const( trans ),
         int(n), int(k),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dA, int(ldda),
-        (BackendFloat_t*)&beta,  (BackendFloat_t*)dC, int(lddc) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
+        (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
 }
 
 
@@ -1786,9 +1786,9 @@ magma_zsyr2k(
         cublas_uplo_const( uplo ),
         cublas_trans_const( trans ),
         int(n), int(k),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dA, int(ldda),
-                (BackendFloat_t*)dB, int(lddb),
-        (BackendFloat_t*)&beta,  (BackendFloat_t*)dC, int(lddc) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
+                (cuDoubleComplex*)dB, int(lddb),
+        (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
 }
 
 
@@ -1856,9 +1856,9 @@ magma_ztrmm(
         cublas_trans_const( trans ),
         cublas_diag_const( diag ),
         int(m), int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dA, int(ldda),
-                (BackendFloat_t*)dB, int(lddb),
-                (BackendFloat_t*)dB, int(lddb) );  /* C same as B; less efficient */
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
+                (cuDoubleComplex*)dB, int(lddb),
+                (cuDoubleComplex*)dB, int(lddb) );  /* C same as B; less efficient */
 }
 
 
@@ -1927,8 +1927,8 @@ magma_ztrsm(
         cublas_trans_const( trans ),
         cublas_diag_const( diag ),
         int(m), int(n),
-        (BackendFloat_t*)&alpha, (BackendFloat_t*)dA, int(ldda),
-                (BackendFloat_t*)dB, int(lddb) );
+        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
+                (cuDoubleComplex*)dB, int(lddb) );
 }
 
 //#endif // HAVE_CUBLAS
