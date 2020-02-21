@@ -18,16 +18,17 @@ This is intended for use on a HIP-enabled system. To check whether your system i
   4. Make sure to add any extra paths required. For example:
        * In `make.inc`, `INC += -I/opt/rocm/hipblas/include -I/opt/rocm/hipsparse/include` (if there are errors related to including `hipblas.h` or `hipsparse.h`
 
-  5. Generate the HIP-specific code, by running these 3 commands:
-       * `make -f make.gen.interface_hip`
-       * `make -f make.gen.testing_hip`
-       * `make -f make.gen.magmablas_hip`
+  5. Generate the HIP-specific code, by running this command:
+       * `make -f make.gen.hipMAGMA`
+     
+     To ensure the sources are up to date, re-run this command if you change the original CUDA sources
 
-  6. Once all 3 of those commands have been ran, you can `make` MAGMA as normal. Here are common targets:
+  6. Once that command has been ran successfully, you can `make` MAGMA as normal. Here are common targets:
        * `make lib/libmagma.so -j32` (builds the shared lib using 32 cores)
        * `make testing_hip/testing_dgemm` (builds the dgemm tester`
 
-So, to test, run `make testing_hip/testing_dgemm && ./testing_hip/testing_dgemm`
+So, to build the library and a tester, run :
+  * `make -f make.gen.hipMAGMA -j16 && make testing_hip/testing_dgemm -j16 && ./testing_hip/testing_dgemm`
 
 # Known Problems
 
@@ -66,8 +67,6 @@ The function `*getrf_batched_smallsq_noshfl` has many of its sizes ommitted, due
 Questions? I work on most of the HIP-specific things, you can reach me at: Cade Brown <cbrow216@vols.utk.edu>
 
 For general MAGMA questions, check the forum: https://icl.cs.utk.edu/magma/forum/viewforum.php?f=2
-
-
 
 
 

@@ -1,0 +1,141 @@
+# make.gen.hipMAGMA - makefile to ensure all hipMAGMA sources are up to date
+#   @author Cade Brown <cbrow216@vols.utk.edu>
+#
+# Generates the `interface_hip`, `magmablas_hip`, and `testing_hip` folders 
+#   automatically from the original MAGMA sources
+#
+# Run like:
+# $ make -f make.gen.hipMAGMA
+#
+# To clean/remove all changes:
+# $ make -f make.gen.hipMAGMA clean
+#
+#
+# To set the `HIPIFY` script, run:
+# $ export HIPIFY=/path/to/hipify-perl
+# (or the equivalent for your shell)
+#
+# Otherwise, it uses the built in one I slightly modified from `hipify-perl`
+#
+# -*-
+#
+# Notes: Never touches or changes anything other than the generated hipMAGMA folders
+#
+
+# utility functions
+
+# tool to 'hipify' it
+HIPIFY            ?= tools/hipify-perl
+
+# TODO: Distribute a `hipify` script with MAGMA
+
+ifeq ($(HIPIFY),)
+$(error Could not find `hipify` please run like `HIPIFY=... make -f make.gen.hipMAGMA`)
+endif
+
+$(shell mkdir -p interface_hip magmablas_hip testing_hip)
+
+#*- input sources -*#
+
+src_cpp := $(wildcard interface_cuda/*.cpp magmablas/*.cpp testing/*.cpp)
+src_h   := $(wildcard interface_cuda/*.h magmablas/*.h testing/*.h)
+src_cu  := $(wildcard magmablas/*.cu)
+src_cuh := $(wildcard magmablas/*.cuh)
+src_mk  := $(wildcard interface_cuda/Makefile* magmablas/Makefile* testing/Makefile*)
+src_cfg := $(wildcard magmablas/*_config)
+src_f90 := $(wildcard testing/*.F90 testing/*.f90)
+
+#*- generated output -*#
+
+# function to replace all relevant directories
+hip_repl = $(patsubst %.cuh,%.hip.hpp,$(patsubst %.cu,%.hip.cpp, \
+    $(subst testing/,testing_hip/,$(subst magmablas/,magmablas_hip/,$(subst interface_cuda/,interface_hip/,$(1)))) \
+))
+
+out_cpp := $(call hip_repl,$(src_cpp))
+out_h   := $(call hip_repl,$(src_h))
+out_cu  := $(call hip_repl,$(src_cu))
+out_cuh := $(call hip_repl,$(src_cuh))
+out_mk  := $(call hip_repl,$(src_mk))
+out_cfg := $(call hip_repl,$(src_cfg))
+out_f90 := $(call hip_repl,$(src_f90))
+
+
+#*- build rules -*#
+
+# by default just build everything
+all: $(out_cpp) $(out_h) $(out_cu) $(out_cuh) $(out_mk) $(out_cfg) $(out_f90)
+
+# special rule to build fake target instead
+.PHONY: all clean
+
+# removes the directory (which is the only place this makefile will generate to 
+clean:
+	rm -rf $(wildcard interface_hip magmablas_hip testing_hip)
+
+# basic cpp translation
+interface_hip/%.cpp: interface_cuda/%.cpp
+	$(HIPIFY) $< > $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+magmablas_hip/%.cpp: magmablas/%.cpp
+	$(HIPIFY) $< > $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+testing_hip/%.cpp: testing/%.cpp
+	$(HIPIFY) $< > $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+
+# basic .h translation
+interface_hip/%.h: interface_cuda/%.h
+	$(HIPIFY) $< > $@
+	sed -i -e "s/.cuh/.hip.hpp/g" $@
+magmablas_hip/%.h: magmablas/%.h
+	$(HIPIFY) $< > $@
+	sed -i -e "s/.cuh/.hip.hpp/g" $@
+testing_hip/%.h: testing/%.h
+	$(HIPIFY) $< > $@
+	sed -i -e "s/.cuh/.hip.hpp/g" $@
+
+# converts .hip.cpp <- .cu
+magmablas_hip/%.hip.cpp: magmablas/%.cu
+	$(HIPIFY) $< > $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+
+# converts .hip.hpp <- .cuh
+magmablas_hip/%.hip.hpp: magmablas/%.cuh
+	$(HIPIFY) $< > $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+
+
+
+
+# converts *_config <- *_config
+# these are things like gemm_configs, so are architecture agnostic
+# so, just copy them
+magmablas_hip/%_config: magmablas/%_config
+	cp -rf $< $@
+
+# copy in fortran sources
+testing_hip/%.f90: testing/%.f90
+	cp $^ $@
+testing_hip/%.F90: testing/%.F90
+	cp $^ $@
+
+# little hack so % acts like Makefile*.
+interface_hip/Makefil%: interface_cuda/Makefil%
+	cp $< $@
+	@sed -i -e "s/:=  *interface_cuda/:= interface_hip/g" $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+	@sed -i -e "s/.cu/.hip.cpp/g" $@
+magmablas_hip/Makefil%: magmablas/Makefil%
+	cp $< $@
+	@sed -i -e "s/:=  *magmablas/:= magmablas_hip/g" $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+	@sed -i -e "s/.cu/.hip.cpp/g" $@
+testing_hip/Makefil%: testing/Makefil%
+	cp $< $@
+	@sed -i -e "s/:=  *testing/:= testing_hip/g" $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+	@sed -i -e "s/.cu/.hip.cpp/g" $@
+
+
+
