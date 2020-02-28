@@ -16,16 +16,16 @@ This is intended for use on a HIP-enabled system. To check whether your system i
        * `export OPENBLASDIR=/nfs/apps/spack/opt/spack/linux-centos7-x86_64/gcc-7.2.0/openblas-0.2.20-rnb5trk6z6o767ontlvlrjviswap2wxu`
 
   4. Make sure to add any extra paths required. For example:
-       * In `make.inc`, `INC += -I/opt/rocm/hipblas/include -I/opt/rocm/hipsparse/include` (if there are errors related to including `hipblas.h` or `hipsparse.h`
+       * In `make.inc`, `INC += -I/opt/rocm/hipblas/include -I/opt/rocm/hipsparse/include` (add this if there are errors related to including `hipblas.h` or `hipsparse.h`
 
   5. Generate the HIP-specific code, by running this command:
        * `make -f make.gen.hipMAGMA`
      
-     To ensure the sources are up to date, re-run this command if you change the original CUDA sources
+     To ensure the sources are up to date, re-run this command if you change the original CUDA sources. 
 
   6. Once that command has been ran successfully, you can `make` MAGMA as normal. Here are common targets:
        * `make lib/libmagma.so -j32` (builds the shared lib using 32 cores)
-       * `make testing_hip/testing_dgemm` (builds the dgemm tester`
+       * `make testing_hip/testing_dgemm` (builds the dgemm tester)
 
 So, to build the library and a tester, run :
   * `make -f make.gen.hipMAGMA -j16 && make testing_hip/testing_dgemm -j16 && ./testing_hip/testing_dgemm`
@@ -58,8 +58,7 @@ For some reason, `dgemm` has poor performance on our test machines. `zgemm` some
 
 Many HIP functions have not been exported, so magma prints an error and treats it as a NOOP. A list of these functions can be found in `include/magma_types.h` around line 180. Or, you can grep for `magma_unsupported`, which is the macro used to mark functions as unsupported.
 
-The function `*getrf_batched_smallsq_noshfl` has many of its sizes ommitted, due to an internal compiler bug. See the file `magmablas/zgetrf_batched_smallsq_noshfl.cu` for comments explaining this
-
+The function `*getrf_batched_smallsq_noshfl` has many of its sizes ommitted, due to an internal compiler bug. See the file `magmablas/zgetrf_batched_smallsq_noshfl.cu` for comments explaining this. Currently, it prints a message to stderr, and does not perform the computation
 
 
 ## END/Contact

@@ -21,7 +21,6 @@
 
 include make.inc
 
-
 # --------------------
 # configuration
 
@@ -50,11 +49,19 @@ HIPCC       ?= hipcc
 NVCC        ?= nvcc
 DEVCC       ?= NONE
 
+
 # set from 'BACKEND'
 ifeq ($(BACKEND),cuda)
     DEVCC = $(NVCC)
 else ifeq ($(BACKEND),hip)
     DEVCC = $(HIPCC)
+    # if we are using HIP, make sure generated sources are up to date
+    # Technically, this 'recursive' make which we don't like to do, but also this is a simple solution
+    #   that allows that file to handle all code generation
+    # Another reason is that I don't want to flood the namespace (for example, that file also 
+    #   defines an 'all' and 'clean' target as phonies)
+    # So, in the future that whole file may be integrated, but for now this seems simplest
+    #$(MAKE) -f make.gen.hipMAGMA
 endif
 
 # and utilities
