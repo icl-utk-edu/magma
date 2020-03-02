@@ -1290,6 +1290,16 @@ magma_zher2k(
     magmaDoubleComplex_ptr       dC, magma_int_t lddc,
     magma_queue_t queue );
 
+void magmablas_zher2k(
+    magma_uplo_t uplo, magma_trans_t trans,
+    magma_int_t n, magma_int_t k,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magmaDoubleComplex_ptr dB, magma_int_t lddb,
+    double beta,
+    magmaDoubleComplex_ptr       dC, magma_int_t lddc,
+    magma_queue_t queue );
+
 void
 magma_zherk(
     magma_uplo_t uplo, magma_trans_t trans,
@@ -1299,6 +1309,25 @@ magma_zherk(
     double beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc,
     magma_queue_t queue );
+
+void magmablas_zherk(
+    magma_uplo_t uplo, magma_trans_t trans, 
+    magma_int_t n, magma_int_t k, 
+    double alpha,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda, 
+    double beta,
+    magmaDoubleComplex_ptr dC, magma_int_t lddc, 
+    magma_queue_t queue);
+
+void magmablas_zherk_internal(
+    magma_uplo_t uplo, magma_trans_t trans, 
+    magma_int_t n, magma_int_t k, magma_int_t nb,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda, 
+    magmaDoubleComplex_ptr dB, magma_int_t lddb, 
+    magmaDoubleComplex beta,
+    magmaDoubleComplex_ptr dC, magma_int_t lddc, 
+    magma_queue_t queue);
 
 void 
 magmablas_zherk_small_reduce( 
