@@ -1280,6 +1280,17 @@ magma_zhemm(
     magma_queue_t queue );
 
 void
+magmablas_zhemm(
+    magma_side_t side, magma_uplo_t uplo,
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
+    magmaDoubleComplex_const_ptr dB, magma_int_t lddb,
+    magmaDoubleComplex beta,
+    magmaDoubleComplex_ptr       dC, magma_int_t lddc,
+    magma_queue_t queue );
+
+void
 magma_zher2k(
     magma_uplo_t uplo, magma_trans_t trans,
     magma_int_t n, magma_int_t k,
