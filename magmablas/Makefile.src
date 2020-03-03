@@ -35,6 +35,7 @@ libmagma_src += \
 	$(cdir)/zgerbt.cu		\
 	$(cdir)/zgerbt_kernels.cu	\
 	$(cdir)/zgetmatrix_transpose.cpp	\
+	$(cdir)/zhemm.cu		\
 	$(cdir)/zhemv.cu		\
 	$(cdir)/zhemv_upper.cu		\
 	$(cdir)/zher2k.cpp	\
