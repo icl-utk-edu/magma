@@ -222,17 +222,14 @@ void gemm_template_vbatched_nn(
     magma_int_t specM, magma_int_t specN, magma_int_t specK, 
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
-    magma_int_t batchCount_percall = batchCount/ncalls;
-
-    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
-    {
-        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
-
-        dim3 dimBlock(DIM_X, DIM_Y);
-        dim3 dimGrid( magma_ceildiv( max_m, BLK_M ), magma_ceildiv( max_n, BLK_N ), this_batchCount );
+    magma_int_t max_batchCount = 50000;
+    dim3 dimBlock(DIM_X, DIM_Y);
+    for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 dimGrid( magma_ceildiv( max_m, BLK_M ), magma_ceildiv( max_n, BLK_N ), ibatch );
         gemm_template_vbatched_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-            <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>(m, n, k, dA_array+batch_starting_id, ldda, dB_array+batch_starting_id, lddb, dC_array+batch_starting_id, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN, specK);
+        <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>
+        (m+i, n+i, k+i, dA_array+i, ldda+i, dB_array+i, lddb+i, dC_array+i, lddc+i, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN, specK);
     }
 }
 
@@ -255,17 +252,14 @@ void gemm_template_vbatched_nt(
     magma_int_t specM, magma_int_t specN, magma_int_t specK, 
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
-    magma_int_t batchCount_percall = batchCount/ncalls;
-
-    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
-    {
-        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
-
-        dim3 dimBlock(DIM_X, DIM_Y);
-        dim3 dimGrid( magma_ceildiv( max_m, BLK_M ), magma_ceildiv( max_n, BLK_N ), this_batchCount );
+    magma_int_t max_batchCount = 50000;
+    dim3 dimBlock(DIM_X, DIM_Y);
+    for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 dimGrid( magma_ceildiv( max_m, BLK_M ), magma_ceildiv( max_n, BLK_N ), ibatch );
         gemm_template_vbatched_nt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-            <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>(m, n, k, dA_array+batch_starting_id, ldda, dB_array+batch_starting_id, lddb, dC_array+batch_starting_id, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN, specK);
+        <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>
+        (m+i, n+i, k+i, dA_array+i, ldda+i, dB_array+i, lddb+i, dC_array+i, lddc+i, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN, specK);
     }
 }
 
@@ -288,17 +282,14 @@ void gemm_template_vbatched_tn(
     magma_int_t specM, magma_int_t specN, magma_int_t specK, 
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
-    magma_int_t batchCount_percall = batchCount/ncalls;
-
-    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
-    {
-        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
-
-        dim3 dimBlock(DIM_X, DIM_Y);
-        dim3 dimGrid( magma_ceildiv( max_m, BLK_M ), magma_ceildiv( max_n, BLK_N ), this_batchCount );
+    magma_int_t max_batchCount = 50000;
+    dim3 dimBlock(DIM_X, DIM_Y);
+    for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 dimGrid( magma_ceildiv( max_m, BLK_M ), magma_ceildiv( max_n, BLK_N ), ibatch );
         gemm_template_vbatched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-            <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>(m, n, k, dA_array+batch_starting_id, ldda, dB_array+batch_starting_id, lddb, dC_array+batch_starting_id, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN, specK);
+        <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>
+        (m+i, n+i, k+i, dA_array+i, ldda+i, dB_array+i, lddb+i, dC_array+i, lddc+i, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN, specK);
     }
 
 }
@@ -322,17 +313,14 @@ void gemm_template_vbatched_tt(
     magma_int_t specM, magma_int_t specN, magma_int_t specK, 
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
-    magma_int_t batchCount_percall = batchCount/ncalls;
-
-    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
-    {
-        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
-
-        dim3 dimBlock(DIM_X, DIM_Y);
-        dim3 dimGrid( magma_ceildiv( max_m, BLK_M ), magma_ceildiv( max_n, BLK_N ), this_batchCount );
+    magma_int_t max_batchCount = 50000;
+    dim3 dimBlock(DIM_X, DIM_Y);
+    for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 dimGrid( magma_ceildiv( max_m, BLK_M ), magma_ceildiv( max_n, BLK_N ), ibatch );
         gemm_template_vbatched_tt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-            <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>(m, n, k, dA_array+batch_starting_id, ldda, dB_array+batch_starting_id, lddb, dC_array+batch_starting_id, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN, specK);
+        <<<dimGrid, dimBlock, 0, queue->cuda_stream()>>>
+        (m+i, n+i, k+i, dA_array+i, ldda+i, dB_array+i, lddb+i, dC_array+i, lddc+i, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN, specK);
     }
 }
 

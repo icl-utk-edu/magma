@@ -55,21 +55,19 @@ int main( int argc, char** argv)
     
     double eps = lapackf77_dlamch("E");
     
-    // Frobenius norm not currently supported, but leave this here for future support
-    // of different norms. See similar code in testing_zlanhe.cpp.
     magma_norm_t norm[] = { MagmaMaxNorm, MagmaOneNorm, MagmaInfNorm, MagmaFrobeniusNorm };
     
     printf("%%   M     N   norm   CPU GByte/s (ms)    GPU GByte/s (ms)        error               nan      inf\n");
     printf("%%================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
-      for( int inorm = 0; inorm < 3; ++inorm ) {  /* < 4 for Frobenius */
+      for( int inorm = 0; inorm < 4; ++inorm ) {  /* < 4 for Frobenius */
         for( int iter = 0; iter < opts.niter; ++iter ) {
             M   = opts.msize[itest];
             N   = opts.nsize[itest];
             lda = M;
             n2  = lda*N;
             ldda = magma_roundup( M, opts.align );
-            if ( norm[inorm] == MagmaOneNorm )
+            if ( norm[inorm] == MagmaOneNorm || norm[inorm] == MagmaFrobeniusNorm )
                 lwork = N;
             else
                 lwork = M;

@@ -24,6 +24,23 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+ 2.5.2 - Nov 24, 2019
+    * New routine: magmablas_hgemm_batched for fixed size batched matrix multiplication 
+      in FP16 using the Tensor Cores. The routine does not currently support pre-Volta GPUs. 
+      The routine outperforms cuBLAS for sizes less than 100, as well as for general sizes that 
+      are not multiple of 8. The kernel is tuned for the notrans-notrans case only. 
+      Comprehensive tuning is planned in future releases
+    * Fix magmablas_?gemm_vbatched routines to correctly handle batch sizes over 
+      65535. The same fix is applied to vbatched syrk, herk, syr2k, her2k, symm, hemm, and trmm
+    * Fix a bug in the FP32 <-> FP16 conversion routines (magmablas_hlag2s and 
+      magmablas_slag2h). The bug used to cause a launch failure for very large 
+      matrices
+    * Fix a bug in batched LU factorization to avoind NaNs when singularity is ancountered
+    * Fix a bug in batched LU factorization to ensure that the first pivot is always returned 
+      even when multilpe pivots with the same absolute value are found
+    * Add Frobenius norm for general matrices
+      (supported as option to magmablas_Xlange for X = 's', 'd', 'c', or 'z')
+
  2.5.1 - Aug 2, 2019
     * New routine: magmablas_Xherk_small_reduce (X = 's', 'd', 'c', or 'z') 
       is a special HERK routine that assumes that the output matrix is very 

@@ -1014,14 +1014,15 @@ zgetf2_fused_device( int m, magmaDoubleComplex* dA, int ldda, magma_int_t* dipiv
     const int ty = threadIdx.y;
 
     magmaDoubleComplex rA[WIDTH] = {MAGMA_Z_ZERO};
-    magmaDoubleComplex reg = MAGMA_Z_ZERO; 
+    magmaDoubleComplex reg       = MAGMA_Z_ZERO; 
+    magmaDoubleComplex update    = MAGMA_Z_ZERO;
     
     int max_id, rowid = tx;
-    int linfo = 0;
+    int linfo = (gbstep == 0) ? 0 : *info;
     double rx_abs_max = MAGMA_D_ZERO;
     // check from previous calls if the panel factorization failed previously
     // this is necessary to report the correct info value 
-    if(gbstep > 0 && *info != 0) return;
+    //if(gbstep > 0 && *info != 0) return;
     
     magmaDoubleComplex *sx = (magmaDoubleComplex*)(swork);
     double* dsx = (double*)(sx + blockDim.y * WIDTH);
@@ -1052,7 +1053,8 @@ zgetf2_fused_device( int m, magmaDoubleComplex* dA, int ldda, magma_int_t* dipiv
         magma_getidmax_n(m-i, tx, dsx+i, isx+i); // this devfunc has syncthreads at the end
         rx_abs_max = dsx[i];
         max_id = isx[i];
-        linfo = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;
+        linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;
+        update = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
         __syncthreads();
 
         if(rowid == max_id){
@@ -1060,7 +1062,7 @@ zgetf2_fused_device( int m, magmaDoubleComplex* dA, int ldda, magma_int_t* dipiv
             rowid = i;
             #pragma unroll
             for(int j = 0; j < WIDTH; j++){
-                sx[j] = rA[j];
+                sx[j] = update * rA[j];
             }
         }
         else if(rowid == i){

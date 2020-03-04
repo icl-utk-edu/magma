@@ -48,13 +48,6 @@ void trmm_template_vbatched_lNx_kernel(
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_n, NB) ) return;
     
-    /*if(blockIdx.x == 0 && threadIdx.x == 0 && threadIdx.y == 0){
-        printf("trmm - batchid = %d, m = %d, n = %d\n", batchid, my_m, my_n);
-        printf("force(%d, %d) - offset A (%d, %d) - offset B (%d, %d)\n", spec_m, spec_n, roffA, coffA, roffB, coffB);
-    }*/
-    //if(threadIdx.x == 0 && threadIdx.y == 0){
-    //    printf("trmm - batchid = %d, hello from block (%d, %d)\n", batchid, blockIdx.x, blockIdx.y);
-    //}
     trmm_small_template_device_lNx<T, NB>(
             uplo, diag, 
             my_m, my_n, 
@@ -173,12 +166,15 @@ void trmm_template_vbatched_lNx(
     magma_int_t spec_m, magma_int_t spec_n, 
     magma_int_t batchCount, magma_queue_t queue)
 {
+    magma_int_t max_batchCount = 50000;
     dim3 threads(NB, NB, 1);
-    dim3 grid( magma_ceildiv( max_n, NB ), 1, batchCount );
-    trmm_template_vbatched_lNx_kernel<T, NB>
-        <<< grid, threads, 0, queue->cuda_stream() >>>
-        (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv( max_n, NB ), 1, ibatch );
+        trmm_template_vbatched_lNx_kernel<T, NB><<< grid, threads, 0, queue->cuda_stream() >>>
+        (uplo, diag, m+i, n+i, alpha, dA_array+i, ldda+i, dB_array+i, lddb+i, 
         roffA, coffA, roffB, coffB, spec_m, spec_n);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // lTx, lCx 
@@ -194,12 +190,15 @@ void trmm_template_vbatched_lTx(
     magma_int_t spec_m, magma_int_t spec_n, 
     magma_int_t batchCount, magma_queue_t queue)
 {
+    magma_int_t max_batchCount = 50000;
     dim3 threads(NB, NB, 1);
-    dim3 grid( magma_ceildiv( max_n, NB ), 1, batchCount );
-    trmm_template_vbatched_lTx_kernel<T, NB, CONJA>
-        <<< grid, threads, 0, queue->cuda_stream() >>>
-        (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv( max_n, NB ), 1, ibatch );
+        trmm_template_vbatched_lTx_kernel<T, NB, CONJA><<< grid, threads, 0, queue->cuda_stream() >>>
+        (uplo, diag, m+i, n+i, alpha, dA_array+i, ldda+i, dB_array+i, lddb+i, 
         roffA, coffA, roffB, coffB, spec_m, spec_n);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // rNx
@@ -215,12 +214,15 @@ void trmm_template_vbatched_rNx(
     magma_int_t spec_m, magma_int_t spec_n, 
     magma_int_t batchCount, magma_queue_t queue)
 {
+    magma_int_t max_batchCount = 50000;
     dim3 threads(NB, NB, 1);
-    dim3 grid( magma_ceildiv( max_m, NB ), 1, batchCount );
-    trmm_template_vbatched_rNx_kernel<T, NB>
-        <<< grid, threads, 0, queue->cuda_stream() >>>
-        (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv( max_m, NB ), 1, ibatch );
+        trmm_template_vbatched_rNx_kernel<T, NB><<< grid, threads, 0, queue->cuda_stream() >>>
+        (uplo, diag, m+i, n+i, alpha, dA_array+i, ldda+i, dB_array+i, lddb+i, 
         roffA, coffA, roffB, coffB, spec_m, spec_n);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // rTx, rCx 
@@ -236,11 +238,14 @@ void trmm_template_vbatched_rTx(
     magma_int_t spec_m, magma_int_t spec_n, 
     magma_int_t batchCount, magma_queue_t queue)
 {
+    magma_int_t max_batchCount = 50000;
     dim3 threads(NB, NB, 1);
-    dim3 grid( magma_ceildiv( max_m, NB ), 1, batchCount );
-    trmm_template_vbatched_rTx_kernel<T, NB, CONJA>
-        <<< grid, threads, 0, queue->cuda_stream() >>>
-        (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv( max_m, NB ), 1, ibatch );
+        trmm_template_vbatched_rTx_kernel<T, NB, CONJA><<< grid, threads, 0, queue->cuda_stream() >>>
+        (uplo, diag, m+i, n+i, alpha, dA_array+i, ldda+i, dB_array+i, lddb+i, 
         roffA, coffA, roffB, coffB, spec_m, spec_n);
+    }
 }
 #endif //TRMM_TEMPLATE_KERNEL_BATCHED_CUH

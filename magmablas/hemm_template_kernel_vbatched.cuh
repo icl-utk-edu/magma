@@ -188,47 +188,43 @@ void hemm_template_vbatched(
     magma_int_t specM, magma_int_t specN, 
     magma_int_t batchCount, magma_queue_t queue)
 {
+    magma_int_t max_batchCount = 50000;
     dim3 threads(DIM, DIM, 1);
-    dim3 grid( magma_ceildiv( max_m, BLK_M ), magma_ceildiv( max_n, BLK_N ), batchCount );
     if( side == MagmaLeft ){
         if(uplo == MagmaLower){
-            hemm_template_vbatched_ll_kernel <T, DIM, BLK_M, BLK_N, CONJA>
-            <<< grid, threads, 0, queue->cuda_stream() >>>
-            ( m, n, 
-              dA_array, ldda, 
-              dB_array, lddb, 
-              dC_array, lddc, 
-              alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, 
-              specM, specN );
+            for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+                magma_int_t ibatch = min(max_batchCount, batchCount-i);
+                dim3 grid( magma_ceildiv(max_m, BLK_M), magma_ceildiv(max_n, BLK_N), ibatch );
+                hemm_template_vbatched_ll_kernel <T, DIM, BLK_M, BLK_N, CONJA><<< grid, threads, 0, queue->cuda_stream() >>>
+                ( m+i, n+i, dA_array+i, ldda+i, dB_array+i, lddb+i, dC_array+i, lddc+i, 
+                  alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN );
+            }
         }else{
-            hemm_template_vbatched_lu_kernel <T, DIM, BLK_M, BLK_N, CONJA>
-            <<< grid, threads, 0, queue->cuda_stream() >>>
-            ( m, n, 
-              dA_array, ldda, 
-              dB_array, lddb, 
-              dC_array, lddc, 
-              alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, 
-              specM, specN );
+            for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+                magma_int_t ibatch = min(max_batchCount, batchCount-i);
+                dim3 grid( magma_ceildiv(max_m, BLK_M), magma_ceildiv(max_n, BLK_N), ibatch );
+                hemm_template_vbatched_lu_kernel <T, DIM, BLK_M, BLK_N, CONJA><<< grid, threads, 0, queue->cuda_stream() >>>
+                ( m+i, n+i, dA_array+i, ldda+i, dB_array+i, lddb+i, dC_array+i, lddc+i, 
+                  alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN );
+            }
         }
     }else{
         if(uplo == MagmaLower){
-            hemm_template_vbatched_rl_kernel <T, DIM, BLK_M, BLK_N, CONJA>
-            <<< grid, threads, 0, queue->cuda_stream() >>>
-            ( m, n, 
-              dA_array, ldda, 
-              dB_array, lddb, 
-              dC_array, lddc, 
-              alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, 
-              specM, specN );
+            for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+                magma_int_t ibatch = min(max_batchCount, batchCount-i);
+                dim3 grid( magma_ceildiv(max_m, BLK_M), magma_ceildiv(max_n, BLK_N), ibatch );
+                hemm_template_vbatched_rl_kernel <T, DIM, BLK_M, BLK_N, CONJA><<< grid, threads, 0, queue->cuda_stream() >>>
+                ( m+i, n+i, dA_array+i, ldda+i, dB_array+i, lddb+i, dC_array+i, lddc+i, 
+                  alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN );
+            }
         }else{
-            hemm_template_vbatched_ru_kernel <T, DIM, BLK_M, BLK_N, CONJA>
-            <<< grid, threads, 0, queue->cuda_stream() >>>
-            ( m, n, 
-              dA_array, ldda, 
-              dB_array, lddb, 
-              dC_array, lddc, 
-              alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, 
-              specM, specN );
+            for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+                magma_int_t ibatch = min(max_batchCount, batchCount-i);
+                dim3 grid( magma_ceildiv(max_m, BLK_M), magma_ceildiv(max_n, BLK_N), ibatch );
+                hemm_template_vbatched_ru_kernel <T, DIM, BLK_M, BLK_N, CONJA><<< grid, threads, 0, queue->cuda_stream() >>>
+                ( m+i, n+i, dA_array+i, ldda+i, dB_array+i, lddb+i, dC_array+i, lddc+i, 
+                  alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC, specM, specN );
+            }
         }
     }
 }
