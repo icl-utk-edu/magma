@@ -1434,6 +1434,7 @@ magma_zhemm(
         (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
                 (cuDoubleComplex*)dB, int(lddb),
         (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
+    #endif
 }
 #endif // COMPLEX
 
@@ -1509,6 +1510,7 @@ magma_zherk(
         int(n), int(k),
         &alpha, (cuDoubleComplex*)dA, int(ldda),
         &beta,  (cuDoubleComplex*)dC, int(lddc) );
+    #endif	
 }
 #endif // COMPLEX
 
@@ -1595,6 +1597,7 @@ magma_zher2k(
         (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
                 (cuDoubleComplex*)dB, int(lddb),
         &beta,  (cuDoubleComplex*)dC, int(lddc) );
+    #endif
 }
 #endif // COMPLEX
 
