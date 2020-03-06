@@ -45,8 +45,8 @@ endif
 # programs
 
 # set compilers
-CC           = hipcc
-CXX          = hipcc
+CC           = gcc
+CXX          = g++
 FORT        ?= gfortran
 HIPCC       ?= hipcc
 NVCC        ?= nvcc
@@ -88,8 +88,10 @@ FPIC        = -fPIC
 
 # use -fopenmp to support openmp builds
 # comment out to build without openmp support
+# NOTE: For some reason, using `-fopenmp` is not enough to add linker flags to 
+#   the compiler, so we need to add -L here too
 FOPENMP     = 
-#FOPENMP     = -fopenmp -I/opt/rocm/aomp/include
+#FOPENMP     = -fopenmp -L$(HIPDIR)/../aomp/lib -I$(HIPDIR)/../aomp/include
 
 # now, generate our flags
 CFLAGS      = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c99
@@ -114,7 +116,7 @@ else ifeq ($(BACKEND),hip)
     endif
 
     # add in linker flags
-    LDFLAGS += -L/opt/rocm/aomp/lib
+    LDFLAGS += -L$(HIPDIR)/../aomp/lib -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib
 
 endif
 
@@ -147,7 +149,7 @@ INC       +=
 ifeq ($(BACKEND),cuda)
     INC   += -I$(CUDADIR)/include
 else ifeq ($(BACKEND),hip)
-    INC   += -I$(HIPDIR)/include
+    INC   += -I$(HIPDIR)/include -I$(HIPDIR)/../hipblas/include -I$(HIPDIR)/../hipsparse/include
 endif
 
 

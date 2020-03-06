@@ -200,7 +200,7 @@ typedef double real_Double_t;
     
     #define hipblasSetAtomicsMode(...) magma_unsupported(hipblasSetAtomicsMode)   
 
- 
+    #define hipblasZgetrfBatched(...) magma_unsupported(hipblasZgetrfBatched) 
     #define hipblasZgerc(...)    magma_unsupported(hipblasZgerc)
     #define hipblasZgeru(...)    magma_unsupported(hipblasZgeru)
     #define hipblasZhemv(...)    magma_unsupported(hipblasZhemv)
