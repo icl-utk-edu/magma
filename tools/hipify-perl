@@ -843,8 +843,15 @@ sub simpleSubstitutions {
     $ft{'type'} += s/\bcsrilu02Info_t\b/csrilu02Info_t/g;
     $ft{'type'} += s/\bcsrsv2Info_t\b/csrsv2Info_t/g;
     $ft{'type'} += s/\bcuComplex\b/hipComplex/g;
-    $ft{'type'} += s/\bcuDoubleComplex\b/hipDoubleComplex/g;
-    $ft{'type'} += s/\bcuFloatComplex\b/hipFloatComplex/g;
+    
+    # original type subs
+    #$ft{'type'} += s/\bcuDoubleComplex\b/hipDoubleComplex/g;
+    #$ft{'type'} += s/\bcuFloatComplex\b/hipFloatComplex/g;
+    
+    # replace them with hipBLAS types
+    $ft{'type'} += s/\bcuDoubleComplex\b/hipblasDoubleComplex/g;
+    $ft{'type'} += s/\bcuFloatComplex\b/hipblasFloatComplex/g;
+    
     $ft{'type'} += s/\bcublasDataType_t\b/hipblasDatatype_t/g;
     $ft{'type'} += s/\bcublasDiagType_t\b/hipblasDiagType_t/g;
     $ft{'type'} += s/\bcublasFillMode_t\b/hipblasFillMode_t/g;

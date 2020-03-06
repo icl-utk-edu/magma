@@ -131,7 +131,8 @@ ifeq ($(BACKEND),hip)
     LDFLAGS += -L/opt/rocm/lib -L/opt/rocm/hip/lib
     
     #TODO: see if we need to link any HIP libraries
-    LIB += -lhipsparse -lhipblas
+    # add in fopenmp, since hipcc seems to need it
+    LIB += -lhipsparse -lhipblas $(FOPENMP)
     #INC += -I$(HIPDIR)/include -I$(HIPBLASDIR)/include -I$(HIPSPARSEDIR)/include
     INC += -I$(HIPDIR)/include
 
