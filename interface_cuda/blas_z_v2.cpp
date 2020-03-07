@@ -1681,6 +1681,7 @@ magma_zsymm(
         (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
                 (cuDoubleComplex*)dB, int(lddb),
         (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
+    #endif
 }
 
 
@@ -1754,6 +1755,7 @@ magma_zsyrk(
         int(n), int(k),
         (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
         (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
+    #endif
 }
 
 
@@ -1838,6 +1840,7 @@ magma_zsyr2k(
         (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
                 (cuDoubleComplex*)dB, int(lddb),
         (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
+    #endif
 }
 
 
