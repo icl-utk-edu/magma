@@ -5,7 +5,7 @@
        Univ. of Colorado, Denver
        @date
 
-       @precisions normal z -> s d c
+       @precisions normal z -> c
 
        @author Ahmad Abdelfattah
        
@@ -13,20 +13,15 @@
 #include "magma_internal.h"
 
 #define PRECISION_z
+#define COMPLEX
 #include "hemm_template_kernel.cuh"
 
 #if defined(PRECISION_z)
 #define HEMM_LEFT    8, 16, 16, 1
 #define HEMM_RIGHT   8, 16, 16, 1
-#elif defined(PRECISION_c)
+#else
 #define HEMM_LEFT    16, 32, 32, 1
 #define HEMM_RIGHT   16, 32, 32, 1
-#elif defined(PRECISION_d)
-#define HEMM_LEFT    16, 48, 32, 0
-#define HEMM_RIGHT   16, 32, 32, 0
-#else
-#define HEMM_LEFT    32, 64, 64, 0
-#define HEMM_RIGHT   32, 64, 64, 0
 #endif
 
 /***************************************************************************//**
@@ -145,6 +140,7 @@
 
     @ingroup magma_hemm
 *******************************************************************************/
+#ifdef COMPLEX
 extern "C" 
 void
 magmablas_zhemm(
@@ -189,3 +185,5 @@ magmablas_zhemm(
         (side, uplo, m, n, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
     }
 }
+#endif
+
