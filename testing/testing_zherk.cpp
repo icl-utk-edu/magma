@@ -71,7 +71,7 @@ int main( int argc, char** argv)
     }
     #endif
     
-    #ifdef HAVE_CUBLAS
+    #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
     // for CUDA, we can check MAGMA vs. CUBLAS, without running LAPACK
     printf("%% If running lapack (option --lapack), MAGMA and %s errors are both computed\n"
            "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to %s result.\n\n",
@@ -147,7 +147,7 @@ int main( int argc, char** argv)
                =================================================================== */
             magma_zsetmatrix( N, N, hC, ldc, dC(0,0), lddc, opts.queue );
 
-            #if HAVE_CUBLAS
+            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
             dev_time = magma_sync_wtime( opts.queue );
             magma_zherk( opts.uplo, opts.transA, N, K,
                          alpha, dA(0,0), ldda,
@@ -179,7 +179,7 @@ int main( int argc, char** argv)
                 magma_error = safe_lapackf77_zlanhe( "F", lapack_uplo_const(opts.uplo), &N, hCmagma, &ldc, work )
                             / (sqrt(double(K+2))*fabs(alpha)*Anorm*Anorm + 2*fabs(beta)*Cnorm);
 
-                #ifdef HAVE_CUBLAS
+                #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 blasf77_zaxpy( &sizeC, &c_neg_one, hC, &ione, hCdev, &ione );
                 dev_error = safe_lapackf77_zlanhe( "F", lapack_uplo_const(opts.uplo), &N, hCdev, &ldc, work )
                             / (sqrt(double(K+2))*fabs(alpha)*Anorm*Anorm + 2*fabs(beta)*Cnorm);
@@ -204,7 +204,7 @@ int main( int argc, char** argv)
                 
             }
             else {
-                #ifdef HAVE_CUBLAS
+                #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 blasf77_zaxpy( &sizeC, &c_neg_one, hCdev, &ione, hCmagma, &ione );
                 magma_error = safe_lapackf77_zlanhe( "F", lapack_uplo_const(opts.uplo), &N, hCmagma, &ldc, work )
                             / (sqrt(double(K+2))*fabs(alpha)*Anorm*Anorm + 2*fabs(beta)*Cnorm);
