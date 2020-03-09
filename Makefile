@@ -87,19 +87,6 @@ DEVCCFLAGS  ?= -O3         -DNDEBUG -DADD_
 # DEVCCFLAGS are populated later in `backend-specific`
 
 # --------------------
-# libraries
-
-LIB       += 
-
-# --------------------
-# directories
-
-# define library directories preferably in your environment, or here.
-LIBDIR    += 
-INC       += 
-
-
-# --------------------
 # backend-specific
 
 # add appropriate cuda flags
