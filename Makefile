@@ -29,7 +29,6 @@ include make.inc
 BACKEND     ?= cuda
 
 # set these to their real paths
-OPENBLASDIR ?= /usr/local/openblas
 CUDADIR     ?= /usr/local/cuda
 HIPDIR      ?= /opt/rocm/hip
 
@@ -90,14 +89,13 @@ DEVCCFLAGS  ?= -O3         -DNDEBUG -DADD_
 # --------------------
 # libraries
 
-# gcc with OpenBLAS (includes LAPACK)
-LIB       += -lopenblas
+LIB       += 
 
 # --------------------
 # directories
 
 # define library directories preferably in your environment, or here.
-LIBDIR    += -L$(OPENBLASDIR)/lib
+LIBDIR    += 
 INC       += 
 
 
