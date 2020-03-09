@@ -95,8 +95,16 @@ int main( int argc, char** argv)
                    Check the result compared to LAPACK
                    =================================================================== */
                 blasf77_zaxpy(&n2, &c_neg_one, h_A, &ione, h_R, &ione);
+                #ifndef HAVE_HIP
                 Anorm = lapackf77_zlange("f", &N, &N, h_A, &lda, work);
                 error = lapackf77_zlange("f", &N, &N, h_R, &lda, work) / Anorm;
+                #else
+                // TODO: use zlange when the herk/syrk implementations are standardized. 
+                // For HIP, the current herk/syrk routines overwrite the entire diagonal
+                // blocks of the matrix, so using zlange causes the error check to fail
+                Anorm = safe_lapackf77_zlanhe( "f", lapack_uplo_const(opts.uplo), &N, h_A, &lda, work );
+                error = safe_lapackf77_zlanhe( "f", lapack_uplo_const(opts.uplo), &N, h_R, &lda, work ) / Anorm;
+                #endif
                 
                 printf("%5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %s\n",
                        (long long) N, cpu_perf, cpu_time, gpu_perf, gpu_time,
