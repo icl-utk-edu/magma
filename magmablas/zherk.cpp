@@ -11,8 +11,6 @@
 */
 
 #include "magma_internal.h"
-
-#define COMPLEX
 #define PRECISION_z
 
 /******************************************************************************/
@@ -25,7 +23,7 @@ void magmablas_zherk_internal(
     magmaDoubleComplex_ptr dB, magma_int_t lddb, 
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc, 
-    magma_queue_t queue)
+    magma_int_t conjugate, magma_queue_t queue)
 {
     #define dA(i_, j_) (dA + (i_) + (j_)*ldda)
     #define dB(i_, j_) (dB + (i_) + (j_)*lddb)
@@ -37,9 +35,9 @@ void magmablas_zherk_internal(
     
     if (trans == MagmaNoTrans) {
         transA = MagmaNoTrans;
-        transB = Magma_ConjTrans;
+        transB = ( conjugate == 0 ) ? MagmaTrans : Magma_ConjTrans;
     } else {
-        transA = Magma_ConjTrans;
+        transA = ( conjugate == 0 ) ? MagmaTrans : Magma_ConjTrans;
         transB = MagmaNoTrans;
     }
 
@@ -66,6 +64,7 @@ void magmablas_zherk_internal(
 }
 
 /******************************************************************************/
+#if defined(PRECISION_c) || defined(PRECISION_z)
 extern "C"
 void magmablas_zherk(
     magma_uplo_t uplo, magma_trans_t trans, 
@@ -79,8 +78,52 @@ void magmablas_zherk(
     magma_int_t info = 0;
     if ( uplo != MagmaUpper && uplo != MagmaLower )
         info = -1;
-    #if defined(PRECISION_c) || defined(PRECISION_z)
     else if ( trans != MagmaNoTrans && trans != MagmaConjTrans )
+        info = -2;
+    else if ( n < 0 )
+        info = -3;
+    else if ( k < 0 )
+        info = -4;
+    else if ( trans == MagmaNoTrans ? ldda < n : ldda < k )
+        info = -7;
+    else if ( lddc < n )
+        info = -10;
+
+    if (info != 0) {
+        magma_xerbla( __func__, -(info) );
+        return;  //info;
+    }
+
+    if ( n <= 0 || k <= 0 )
+        return;
+
+    // TODO: tune nb?
+    magma_int_t nb = 512; 
+    magmablas_zherk_internal(
+        uplo, trans, 
+        n, k, nb,
+        MAGMA_Z_MAKE(alpha, 0.), dA, ldda, dA, ldda, 
+        MAGMA_Z_MAKE(beta, 0.),  dC, lddc, 1, queue);
+}
+#endif
+
+
+/******************************************************************************/
+extern "C"
+void magmablas_zsyrk(
+    magma_uplo_t uplo, magma_trans_t trans, 
+    magma_int_t n, magma_int_t k, 
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda, 
+    magmaDoubleComplex beta,
+    magmaDoubleComplex_ptr dC, magma_int_t lddc, 
+    magma_queue_t queue)
+{
+    magma_int_t info = 0;
+    if ( uplo != MagmaUpper && uplo != MagmaLower )
+        info = -1;
+    #if defined(PRECISION_c) || defined(PRECISION_z)
+    else if ( trans != MagmaNoTrans && trans != MagmaTrans )
     #else
     else if ( trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans )
     #endif
@@ -107,6 +150,6 @@ void magmablas_zherk(
     magmablas_zherk_internal(
         uplo, trans, 
         n, k, nb,
-        MAGMA_Z_MAKE(alpha, 0.), dA, ldda, dA, ldda, 
-        MAGMA_Z_MAKE(beta, 0.),  dC, lddc, queue);
+        alpha, dA, ldda, dA, ldda, 
+        beta,  dC, lddc, 0, queue);
 }

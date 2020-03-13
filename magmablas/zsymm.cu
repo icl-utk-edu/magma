@@ -5,7 +5,7 @@
        Univ. of Colorado, Denver
        @date
 
-       @precisions normal z -> c
+       @precisions normal z -> s d c
 
        @author Ahmad Abdelfattah
        
@@ -13,34 +13,39 @@
 #include "magma_internal.h"
 
 #define PRECISION_z
-#define COMPLEX
 #include "hemm_template_kernel.cuh"
 
 #if defined(PRECISION_z)
-#define HEMM_LEFT    8, 16, 16, 1
-#define HEMM_RIGHT   8, 16, 16, 1
+#define SYMM_LEFT    8, 16, 16, 0
+#define SYMM_RIGHT   8, 16, 16, 0
+#elif defined(PRECISION_c)
+#define SYMM_LEFT    16, 32, 32, 0
+#define SYMM_RIGHT   16, 32, 32, 0
+#elif defined(PRECISION_d)
+#define SYMM_LEFT    16, 32, 32, 0
+#define SYMM_RIGHT   16, 32, 32, 0
 #else
-#define HEMM_LEFT    16, 32, 32, 1
-#define HEMM_RIGHT   16, 32, 32, 1
+#define SYMM_LEFT    16, 32, 32, 0
+#define SYMM_RIGHT   16, 32, 32, 0
 #endif
 
 /***************************************************************************//**
     Purpose
     -------
-    ZHEMM performs one of the matrix-matrix operations
+    ZSYMM performs one of the matrix-matrix operations
 
         C := alpha*A*B + beta*C,
     or
         C := alpha*B*A + beta*C,
 
-    where alpha and beta are scalars, A is a Hermitian matrix, and
+    where alpha and beta are scalars, A is a symmetric matrix, and
     B and C are m by n matrices.
 
     Arguments
     ---------
     @param[in]
     side    magma_side_t
-            On entry, side specifies whether the Hermitian matrix A
+            On entry, side specifies whether the symmetric matrix A
             appears on the left or right in the operation as follows:
 
             SIDE = MagmaLeft    C := alpha*A*B + beta*C,
@@ -50,13 +55,13 @@
     @param[in]
     uplo    magma_uplo_t
             On entry, uplo specifies whether the upper or lower
-            triangular part of the Hermitian matrix A is to be
+            triangular part of the symmetric matrix A is to be
             referenced as follows:
 
             uplo = MagmaUpper   Only the upper triangular part of the
-                                Hermitian matrix is to be referenced.
+                                symmetric matrix is to be referenced.
             uplo = MagmaLower   Only the lower triangular part of the
-                                Hermitian matrix is to be referenced.
+                                symmetric matrix is to be referenced.
 
     @param[in]
     m       INTEGER
@@ -76,23 +81,23 @@
     dA      COMPLEX*16 array A of DIMENSION ( ldda, ka ), where ka is
             m when side = MagmaLower and is n otherwise.
             Before entry with side = MagmaLeft, the m by m part of
-            the array A must contain the Hermitian matrix, such that
+            the array A must contain the symmetric matrix, such that
             when uplo = MagmaUpper, the leading m by m upper triangular
             part of the array A must contain the upper triangular part
-            of the Hermitian matrix and the strictly lower triangular
+            of the symmetric matrix and the strictly lower triangular
             part of A is not referenced, and when uplo = MagmaLower,
             the leading m by m lower triangular part of the array A
-            must contain the lower triangular part of the Hermitian
+            must contain the lower triangular part of the symmetric
             matrix and the strictly upper triangular part of A is not
             referenced.
             Before entry with side = MagmaRight, the n by n part of
-            the array A must contain the Hermitian matrix, such that
+            the array A must contain the symmetric matrix, such that
             when uplo = MagmaUpper, the leading n by n upper triangular
             part of the array A must contain the upper triangular part
-            of the Hermitian matrix and the strictly lower triangular
+            of the symmetric matrix and the strictly lower triangular
             part of A is not referenced, and when uplo = MagmaLower,
             the leading n by n lower triangular part of the array A
-            must contain the lower triangular part of the Hermitian
+            must contain the lower triangular part of the symmetric
             matrix and the strictly upper triangular part of A is not
             referenced.
             Note that the imaginary parts of the diagonal elements need
@@ -140,10 +145,9 @@
 
     @ingroup magma_hemm
 *******************************************************************************/
-#ifdef COMPLEX
 extern "C" 
 void
-magmablas_zhemm(
+magmablas_zsymm(
     magma_side_t side, magma_uplo_t uplo,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
@@ -151,7 +155,7 @@ magmablas_zhemm(
     magmaDoubleComplex_const_ptr dB, magma_int_t lddb,
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc,
-    magma_queue_t queue )	
+    magma_queue_t queue )
 {
     magma_int_t nrowa = (side == MagmaLeft ? m : n);
     magma_int_t info = 0;
@@ -177,13 +181,12 @@ magmablas_zhemm(
     }
     
     if( side == MagmaLeft ) { 
-        hemm_template<magmaDoubleComplex, HEMM_LEFT>
+        hemm_template<magmaDoubleComplex, SYMM_LEFT>
         (side, uplo, m, n, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
     }
     else {
-        hemm_template<magmaDoubleComplex, HEMM_RIGHT>
+        hemm_template<magmaDoubleComplex, SYMM_RIGHT>
         (side, uplo, m, n, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
     }
 }
-#endif
 

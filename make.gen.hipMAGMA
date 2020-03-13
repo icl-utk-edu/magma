@@ -82,7 +82,8 @@ magmablas_hip/%.cpp: magmablas/%.cpp
 	@sed -i -e "s/.cuh/.hip.hpp/g" $@
 testing_hip/%.cpp: testing/%.cpp
 	$(HIPIFY) $< > $@
-	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+	@sed -i -e "s/.cuh/.hip.hpp/g" $@ 
+	@sed -i -e "s/CUBLAS/hipBLAS/g" $@
 
 # basic .h translation
 interface_hip/%.h: interface_cuda/%.h

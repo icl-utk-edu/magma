@@ -73,6 +73,7 @@ libmagma_src += \
 	$(cdir)/zswap.cu		\
 	$(cdir)/zswapblk.cu		\
 	$(cdir)/zswapdblk.cu		\
+	$(cdir)/zsymm.cu		\
 	$(cdir)/zsymmetrize.cu		\
 	$(cdir)/zsymmetrize_tiles.cu	\
 	$(cdir)/zsymv.cu		\

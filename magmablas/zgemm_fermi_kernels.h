@@ -31,25 +31,45 @@
 // currently, CPU driver assumes all transpose versions have same DIM_X, DIM_Y
 
 // size of thread block for calculating C (innermost loop)
-#define DIM_X  8
-#define DIM_Y  8
-
+#if defined(HAVE_CUBLAS)
+    #define DIM_X  8
+    #define DIM_Y  8
+#else
+    #define DIM_X  16
+    #define DIM_Y  16
+#endif
 
 // =============================================================================
 // A x B
-// size of work for a thread block
-#define BLK_M_nn  24
-#define BLK_N_nn  16
+#if defined(HAVE_CUBLAS)
+    // size of work for a thread block
+    #define BLK_M_nn  24
+    #define BLK_N_nn  16
 
-#define BLK_K  8
+    #define BLK_K  8
 
-// size of thread block for reading A (dev->regs->shmem)
-#define DIM_XA 8
-#define DIM_YA 8
+    // size of thread block for reading A (dev->regs->shmem)
+    #define DIM_XA 8
+    #define DIM_YA 8
 
-// size of thread block for reading B (dev->regs->shmem)
-#define DIM_XB 8
-#define DIM_YB 8
+    // size of thread block for reading B (dev->regs->shmem)
+    #define DIM_XB 8
+    #define DIM_YB 8
+#else
+    // size of work for a thread block
+    #define BLK_M_nn  32
+    #define BLK_N_nn  32
+
+    #define BLK_K  8
+
+    // size of thread block for reading A (dev->regs->shmem)
+    #define DIM_XA 32
+    #define DIM_YA 8
+
+    // size of thread block for reading B (dev->regs->shmem)
+    #define DIM_XB 8
+    #define DIM_YB 32
+#endif
 
 #undef  version
 #define version trans_nn
@@ -66,25 +86,43 @@
 #undef DIM_XB
 #undef DIM_YB
 
-
 // =============================================================================
 // A x B^T
-// size of work for a thread block
-#define BLK_M_nt  16
-#define BLK_N_nt  24
+#if defined(HAVE_CUBLAS)
+    // size of work for a thread block
+    #define BLK_M_nt  16
+    #define BLK_N_nt  24
 
-#define BLK_M_nc  16
-#define BLK_N_nc  24
+    #define BLK_M_nc  16
+    #define BLK_N_nc  24
 
-#define BLK_K 8
+    #define BLK_K 8
 
-// size of thread block for reading A (dev->regs->shmem)
-#define DIM_XA 8
-#define DIM_YA 8
+    // size of thread block for reading A (dev->regs->shmem)
+    #define DIM_XA 8
+    #define DIM_YA 8
 
-// size of thread block for reading B (dev->regs->shmem)
-#define DIM_XB 8
-#define DIM_YB 8
+    // size of thread block for reading B (dev->regs->shmem)
+    #define DIM_XB 8
+    #define DIM_YB 8
+#else
+    // size of work for a thread block
+    #define BLK_M_nt  32
+    #define BLK_N_nt  32
+
+    #define BLK_M_nc  32
+    #define BLK_N_nc  32
+
+    #define BLK_K 8
+
+    // size of thread block for reading A (dev->regs->shmem)
+    #define DIM_XA 32
+    #define DIM_YA 8
+
+    // size of thread block for reading B (dev->regs->shmem)
+    #define DIM_XB 32
+    #define DIM_YB 8
+#endif
 
 #undef  version
 #define version trans_nt
@@ -109,28 +147,53 @@
 
 // =============================================================================
 // A^T x B^T
-// size of work for a thread block
-#define BLK_M_tt  16
-#define BLK_N_tt  24
+#if defined(HAVE_CUBLAS)
+    // size of work for a thread block
+    #define BLK_M_tt  16
+    #define BLK_N_tt  24
 
-#define BLK_M_tc  16
-#define BLK_N_tc  24
+    #define BLK_M_tc  16
+    #define BLK_N_tc  24
 
-#define BLK_M_ct  16
-#define BLK_N_ct  24
+    #define BLK_M_ct  16
+    #define BLK_N_ct  24
 
-#define BLK_M_cc  16
-#define BLK_N_cc  24
+    #define BLK_M_cc  16
+    #define BLK_N_cc  24
 
-#define BLK_K 8
+    #define BLK_K 8
 
-// size of thread block for reading A (dev->regs->shmem)
-#define DIM_XA 4
-#define DIM_YA 16
+    // size of thread block for reading A (dev->regs->shmem)
+    #define DIM_XA 4
+    #define DIM_YA 16
 
-// size of thread block for reading B (dev->regs->shmem)
-#define DIM_XB 8
-#define DIM_YB 8
+    // size of thread block for reading B (dev->regs->shmem)
+    #define DIM_XB 8
+    #define DIM_YB 8
+#else
+    // size of work for a thread block
+    #define BLK_M_tt  32
+    #define BLK_N_tt  32
+
+    #define BLK_M_tc  32
+    #define BLK_N_tc  32
+
+    #define BLK_M_ct  32
+    #define BLK_N_ct  32
+
+    #define BLK_M_cc  32
+    #define BLK_N_cc  32
+
+    #define BLK_K 8
+
+    // size of thread block for reading A (dev->regs->shmem)
+    #define DIM_XA 8
+    #define DIM_YA 32
+
+    // size of thread block for reading B (dev->regs->shmem)
+    #define DIM_XB 32
+    #define DIM_YB 8
+#endif
 
 #undef  version
 #define version trans_tt
@@ -165,22 +228,41 @@
 
 // =============================================================================
 // A^T x B
-// size of work for a thread block
-#define BLK_M_tn  24
-#define BLK_N_tn  16
+#if defined(HAVE_CUBLAS)
+    // size of work for a thread block
+    #define BLK_M_tn  24
+    #define BLK_N_tn  16
 
-#define BLK_M_cn  24
-#define BLK_N_cn  16
+    #define BLK_M_cn  24
+    #define BLK_N_cn  16
 
-#define BLK_K  8
+    #define BLK_K  8
 
-// size of thread block for reading A (dev->regs->shmem)
-#define DIM_XA 8
-#define DIM_YA 8
+    // size of thread block for reading A (dev->regs->shmem)
+    #define DIM_XA 8
+    #define DIM_YA 8
 
-// size of thread block for reading B (dev->regs->shmem)
-#define DIM_XB 8
-#define DIM_YB 8
+    // size of thread block for reading B (dev->regs->shmem)
+    #define DIM_XB 8
+    #define DIM_YB 8
+#else
+    // size of work for a thread block
+    #define BLK_M_tn  32
+    #define BLK_N_tn  32
+
+    #define BLK_M_cn  32
+    #define BLK_N_cn  32
+
+    #define BLK_K  8
+
+    // size of thread block for reading A (dev->regs->shmem)
+    #define DIM_XA 8
+    #define DIM_YA 32
+
+    // size of thread block for reading B (dev->regs->shmem)
+    #define DIM_XB 8
+    #define DIM_YB 32
+#endif
 
 #undef  version
 #define version trans_tn
