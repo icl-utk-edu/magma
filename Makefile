@@ -121,7 +121,9 @@ endif
 # add appropriate HIP flags
 ifeq ($(BACKEND),hip)
     -include make.check-hip
-    GPU_TARGET ?= gfx803 # gfx701 gfx801 gfx900 gfx1010
+    #GPU_TARGET ?= gfx803 # gfx701 gfx801 gfx900 gfx1010
+    GPU_TARGET ?= gfx803 gfx900 gfx906 gfx908 # gfx1010 gfx1012
+
 
     # -fno-gpu-rdc allows `g++` (or another C++ compiler) to link the resultant
     #  objects. Basically, hipcc will link each as a static function within a compilation
