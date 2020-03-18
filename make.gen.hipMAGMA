@@ -113,7 +113,7 @@ magmablas_hip/%.hip.hpp: magmablas/%.cuh
 # these are things like gemm_configs, so are architecture agnostic
 # so, just copy them
 magmablas_hip/%_config: magmablas/%_config
-	cp -rf $< $@
+	cp -rf $< magmablas_hip/
 
 # copy in fortran sources
 testing_hip/%.f90: testing/%.f90
