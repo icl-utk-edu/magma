@@ -24,6 +24,15 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+ 2.5.3 - Mar 28, 2020
+    * Small modifications to enable hipMAGMA generation from MAGMA to support AMD GPUs 
+    * New routine: add syrk in all precisions
+    * New routine: add hemm/symm in all precisions
+    * New routine: add GEMM-based herk and her2k in all precision
+    * Bug fix in cmake when USE_FORTRAN is OFF
+    * Bug fix in example_sparse.c
+    * Fix support for half computation in magmablas_hgemm_batched tester for CUDA < 9.2 
+
  2.5.2 - Nov 24, 2019
     * New routine: magmablas_hgemm_batched for fixed size batched matrix multiplication 
       in FP16 using the Tensor Cores. The routine does not currently support pre-Volta GPUs. 
