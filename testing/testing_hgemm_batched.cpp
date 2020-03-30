@@ -265,8 +265,13 @@ int main( int argc, char** argv)
     float *hA, *hB, *hC, *hC_magma, *hC_cublas;
     magmaHalf *dA, *dB, *dC;
     float c_neg_one = MAGMA_S_NEG_ONE;
+    #if CUDA_VERSION >= 9020
+    magmaHalf alpha = 0.29;
+    magmaHalf beta  = -0.48;
+    #else
     magmaHalf alpha = approx_float_to_half(0.29); 
     magmaHalf beta  = approx_float_to_half(-0.48);
+    #endif
 
     magmaHalf **dA_array = NULL;
     magmaHalf **dB_array = NULL;
@@ -399,8 +404,13 @@ int main( int argc, char** argv)
                Performs operation using CPU BLAS
                =================================================================== */
             if ( opts.lapack ) {
+                #if CUDA_VERSION >= 9020
+                float alpha_r32 = (float)alpha;
+                float beta_r32  = (float)beta;
+                #else
                 float alpha_r32 = half_to_float(alpha);
                 float beta_r32  = half_to_float(beta);
+                #endif
                 cpu_time = magma_wtime();
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                 magma_int_t nthreads = magma_get_lapack_numthreads();
