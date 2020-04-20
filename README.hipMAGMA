@@ -1,0 +1,74 @@
+===================
+hipMAGMA README FILE
+===================
+
+This readme is specifically for the `hipMAGMA` branch (located here: https://bitbucket.org/icl/magma/commits/branch/hipMAGMA)
+
+This is intended for use on a HIP-enabled system. To check whether your system is compatible, make sure the HIP development libraries are installed (most of the time, this is in /opt/rocm). Ensure you have `hipcc` available
+
+
+**NOTE**: Please don't mix CUDA and HIP builds. So if you've already built with CUDA, please remove the entire folder (or clone/untar to a new one) and start with a clean, fresh copy of MAGMA source code on the hipMAGMA branch before you start the build process
+
+# Build Instructions
+
+  1. Starting with a clone of the MAGMA source code (either from the bitbucket URL above, or from a release .zip/tarball), `cd magma` (or whatever the name of the repository is)
+
+  2. Create a `make.inc` from one of the examples. For instance, the one I have been using during development is `make.inc-examples/make.inc.hip_openblas`, so, for example, run: `cp make.inc-examples/make.inc.hip_openblas make.inc`
+
+  3. Export environment variables. For example, the computer hipMAGMA has been developed on (ICL's `caffeine` machine) has openblas installed in `/nfs/apps/spack/opt/spack/linux-centos7-x86_64/gcc-7.2.0/openblas-0.2.20-rnb5trk6z6o767ontlvlrjviswap2wxu`, so I would run the following command:
+       * `export OPENBLASDIR=/nfs/apps/spack/opt/spack/linux-centos7-x86_64/gcc-7.2.0/openblas-0.2.20-rnb5trk6z6o767ontlvlrjviswap2wxu`
+
+  4. Make sure to add any extra paths required. For example:
+       * In `make.inc`, `INC += -I/opt/rocm/hipblas/include -I/opt/rocm/hipsparse/include` (add this if there are errors related to including `hipblas.h` or `hipsparse.h`
+
+  5. Generate the HIP-specific code, by running this command:
+       * `make -f make.gen.hipMAGMA`
+     
+     To ensure the sources are up to date, re-run this command if you change the original CUDA sources. 
+
+  6. Once that command has been ran successfully, you can `make` MAGMA as normal. Here are common targets:
+       * `make lib/libmagma.so -j32` (builds the shared lib using 32 cores)
+       * `make testing_hip/testing_dgemm` (builds the dgemm tester)
+
+So, to build the library and a tester, run :
+  * `make -f make.gen.hipMAGMA -j16 && make testing_hip/testing_dgemm -j16 && ./testing_hip/testing_dgemm`
+
+# Known Problems
+
+## `libhip_hcc.so not found`
+Sometimes, you get a list of errors like
+
+```
+/usr/bin/ld: warning: libhip_hcc.so, needed by /opt/rocm/lib/libhipblas.so, not found (try using -rpath or -rpath-link)
+./lib/libmagma.so: undefined reference to `hipModuleLaunchKernel'
+./lib/libmagma.so: undefined reference to `hipStreamSynchronize'
+./lib/libmagma.so: undefined reference to `hipRuntimeGetVersion'
+./lib/libmagma.so: undefined reference to `hipStreamDestroy'
+./lib/libmagma.so: undefined reference to `hipGetLastError'
+./lib/libmagma.so: undefined reference to `hip_impl::program_state::kernel_descriptor(unsigned long, hsa_agent_s)'
+... (+100 lines)
+```
+
+To fix this, you need to include the `HIP` libraries on your dynamic loader path:
+
+`export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/hip/lib`
+
+## Performance
+
+For some reason, `dgemm` has poor performance on our test machines. `zgemm` somehow has better performance, which makes no sense. I'm still looking in to this.
+
+## Unimplemented Functions
+
+Many HIP functions have not been exported, so magma prints an error and treats it as a NOOP. A list of these functions can be found in `include/magma_types.h` around line 180. Or, you can grep for `magma_unsupported`, which is the macro used to mark functions as unsupported.
+
+The function `*getrf_batched_smallsq_noshfl` has many of its sizes ommitted, due to an internal compiler bug. See the file `magmablas/zgetrf_batched_smallsq_noshfl.cu` for comments explaining this. Currently, it prints a message to stderr, and does not perform the computation
+
+
+## END/Contact
+
+Questions? I work on most of the HIP-specific things, you can reach me at: Cade Brown <cbrow216@vols.utk.edu>
+
+For general MAGMA questions, check the forum: https://icl.cs.utk.edu/magma/forum/viewforum.php?f=2
+
+
+
