@@ -223,7 +223,7 @@ magma_zhetrd_mgpu(
 
     #ifdef MAGMA_DISABLE_MKL_THREADING_ISSUE_BLAS1
     magma_int_t lapack_nthread = magma_get_lapack_numthreads();
-    magma_set_lapack_numthreads(1);
+    magma_set_lapack_numthreads(lapack_nthread > 1 ? 2 : 1);
     #endif
 
     magma_device_t orig_dev;
