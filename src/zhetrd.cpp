@@ -222,6 +222,11 @@ magma_zhetrd(
     magmaDoubleComplex *dwork2 = dwork + 2*lddw*nb;
     #endif
 
+    #ifdef MAGMA_DISABLE_MKL_THREADING_ISSUE_BLAS1
+    magma_int_t lapack_nthread = magma_get_lapack_numthreads();
+    magma_set_lapack_numthreads(1);
+    #endif
+
     // nx <= n is required
     // use LAPACK for n < 3000, otherwise switch at 512
     if (n < 3000)
@@ -340,5 +345,8 @@ magma_zhetrd(
     
     work[0] = magma_zmake_lwork( lwkopt );
 
+    #ifdef MAGMA_DISABLE_MKL_THREADING_ISSUE_BLAS1
+    magma_set_lapack_numthreads(lapack_nthread);
+    #endif
     return *info;
 } /* magma_zhetrd */
