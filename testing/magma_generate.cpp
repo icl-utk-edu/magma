@@ -42,6 +42,7 @@ enum class MatrixType {
     zero,
     identity,
     jordan,
+    kronecker,
     diag,
     svd,
     poev,
@@ -550,6 +551,7 @@ void magma_generate_geevx(
     zero
     identity
     jordan      ones on diagonal and first subdiagonal
+    kronecker   A(i,j) = 1 + alpha * kronecker_delta(i,j)
 
     rand*       matrix entries random uniform on (0, 1)
     randu*      matrix entries random uniform on (-1, 1)
@@ -643,6 +645,7 @@ void magma_generate_matrix(
     if      (name == "zero")          { type = MatrixType::zero;      }
     else if (name == "identity")      { type = MatrixType::identity;  }
     else if (name == "jordan")        { type = MatrixType::jordan;    }
+    else if (name == "kronecker")     { type = MatrixType::kronecker; }
     else if (begins( name, "randn" )) { type = MatrixType::randn;     }
     else if (begins( name, "randu" )) { type = MatrixType::randu;     }
     else if (begins( name, "rand"  )) { type = MatrixType::rand;      }
@@ -701,7 +704,8 @@ void magma_generate_matrix(
     if (opts.cond != 0 &&
         (dist == Dist::randn ||
          dist == Dist::randu ||
-         dist == Dist::rand))
+         dist == Dist::rand) &&
+        type != MatrixType::kronecker)
     {
         fprintf( stderr, "%sWarning: --matrix '%s' ignores --cond %.2e; use a different distribution.%s\n",
                  ansi_red, name.c_str(), opts.cond, ansi_normal );
@@ -738,6 +742,17 @@ void magma_generate_matrix(
             magma_int_t n1 = A.n - 1;
             lapack::laset( "upper", A.n, A.n, c_zero, c_one, A(0,0), A.ld );  // ones on diagonal
             lapack::laset( "lower", n1,  n1,  c_zero, c_one, A(1,0), A.ld );  // ones on sub-diagonal
+            break;
+        }
+
+        case MatrixType::kronecker: {
+            FloatT diag = blas::traits<FloatT>::make( 1 + A.m / cond, 0 );
+            for( int j = 0; j < A.n; j++)
+                for( int i = 0; i < A.m; i++)
+                    if (i == j)
+                        *A(i,j) = diag;
+                    else
+                        *A(i,j) = c_one;
             break;
         }
 
