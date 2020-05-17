@@ -55,15 +55,18 @@ int main(int argc, char **argv)
     printf("%% trans = %s\n", lapack_trans_const(opts.transA) );
     #ifdef REAL
     if ( opts.version == 3 ) {
-        printf("%%   N  NRHS   DP-Factor  DP-Solve  HP-Factor  HP-Solve  MP: FP16->FP64-Solve  Iter   |b-Ax|/N|A|\n");
+        printf("%%   N  NRHS   DP-Factor  DP-Solve  HP-Factor  HP-Solve  FP16-64-Solve Iter   |b-Ax|/N|A|\n");
+        printf("%%                                                                            DP       MP  \n");
     }
     else{
-        printf("%%   N  NRHS   DP-Factor  DP-Solve  SP-Factor  SP-Solve  MP: FP32->FP64-Solve  Iter   |b-Ax|/N|A|\n");
+        printf("%%   N  NRHS   DP-Factor  DP-Solve  SP-Factor  SP-Solve  FP32-64-Solve Iter   |b-Ax|/N|A|\n");
+        printf("%%                                                                            DP       MP  \n");
     }
     #else
-    printf("%%   N  NRHS   DP-Factor  DP-Solve  SP-Factor  SP-Solve  MP-Solve  Iter   |b-Ax|/N|A|\n");
+    printf("%%   N  NRHS   DP-Factor  DP-Solve  SP-Factor  SP-Solve  FP32-64-Solve Iter   |b-Ax|/N|A|\n");
+    printf("%%                                                                            DP       MP  \n");
     #endif
-    printf("%%=========================================================================================\n");
+    printf("%%=============================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
             N = opts.nsize[itest];
@@ -141,6 +144,9 @@ int main(int argc, char **argv)
             Rnorm = lapackf77_zlange("I", &N, &nrhs, h_B, &ldb, h_workd);
             error = Rnorm / (N*Anorm);
             
+            // restore h_B from d_B
+            magma_zgetmatrix( N, nrhs, d_B, lddb, h_B, ldb, opts.queue );
+
             //=====================================================================
             //                 Double Precision Factor
             //=====================================================================
@@ -171,6 +177,16 @@ int main(int argc, char **argv)
                        (long long) info, magma_strerror( info ));
             }
             
+            // Compute error
+            magma_zgetmatrix( N, nrhs, d_B, lddb, h_X, ldx, opts.queue );
+            blasf77_zgemm( lapack_trans_const(opts.transA), MagmaNoTransStr,
+                           &N, &nrhs, &N,
+                           &c_one,     h_A, &lda,
+                                       h_X, &ldx,
+                           &c_neg_one, h_B, &ldb);
+            Rnorm = lapackf77_zlange("I", &N, &nrhs, h_B, &ldb, h_workd);
+            double dp_error = Rnorm / (N*Anorm);
+
             //=====================================================================
             //                 Single Precision Factor
             //=====================================================================
@@ -223,10 +239,10 @@ int main(int argc, char **argv)
                        (long long) info, magma_strerror( info ));
             }
             
-            printf("%5lld %5lld   %7.2f    %7.2f   %7.2f    %7.2f   %7.2f            %4lld   %8.2e   %s\n",
+            printf("%5lld %5lld   %7.2f    %7.2f   %7.2f    %7.2f   %7.2f     %4lld  %8.2e %8.2e %s\n",
                    (long long) N, (long long) nrhs,
                    gpu_perfdf, gpu_perfds, gpu_perfsf, gpu_perfss, gpu_perf,
-                   (long long) gesv_iter, error, (error < tol ? "ok" : "failed"));
+                   (long long) gesv_iter, dp_error, error, (error < tol ? "ok" : "failed"));
             status += ! (error < tol);
             
             magma_free_cpu( h_A     );
