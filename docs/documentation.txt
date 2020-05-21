@@ -368,6 +368,10 @@ There are several classes of routines in MAGMA:
 A brief summary of routines is given here.
 Full descriptions of individual routines are given in the Modules section.
 
+To start, in C or C++, include the magma_v2.h header.
+
+    #include <magma_v2.h>
+
 Driver & computational routines have a `magma_` prefix. These are
 generally hybrid CPU/GPU algorithms. A suffix indicates in what memory the
 matrix starts and ends, not where the computation is done.

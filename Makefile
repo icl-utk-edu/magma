@@ -396,7 +396,7 @@ endif
 # ------------------------------------------------------------------------------
 # targets
 
-.PHONY: all lib static shared clean test dense sparse
+.PHONY: all lib static shared clean test dense sparse docs
 
 .DEFAULT_GOAL := all
 
@@ -414,6 +414,9 @@ testers_f: $(testers_f)
 
 sparse-test: sparse/testing
 sparse-testing: sparse/testing
+
+docs:
+	cd docs && ${MAKE}
 
 # cleangen is defined in Makefile.gen; cleanall also does cleanmake in Makefile.internal
 cleanall: clean cleangen
