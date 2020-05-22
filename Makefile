@@ -1,4 +1,3 @@
-
 # ------------------------------------------------------------------------------
 # build process
 #
@@ -320,21 +319,17 @@ subdirs := \
 	include             \
 	src                 \
 	testing/lin         \
-	sparse              \
-	sparse/blas         \
-	sparse/control      \
-	sparse/include      \
-	sparse/src          \
-	sparse/testing      \
 
 ifeq ($(BACKEND),cuda)
 	subdirs += interface_cuda
 	subdirs += testing
 	subdirs += magmablas
+	subdirs += sparse sparse/blas sparse/control sparse/include sparse/src sparse/testing
 else ifeq ($(BACKEND),hip)
 	# this needs to be generate!
 	subdirs += interface_hip
 	subdirs += magmablas_hip
+	subdirs += sparse_hip sparse_hip/blas sparse_hip/control sparse_hip/include sparse_hip/src sparse_hip/testing
 	#subdirs += testing
 	subdirs += testing_hip
 endif
@@ -433,12 +428,13 @@ MAGMA_INC  = -I./include -I./testing
 $(libmagma_obj):       MAGMA_INC += -I./control
 $(libtest_obj):        MAGMA_INC += -I./testing
 $(testing_obj):        MAGMA_INC += -I./testing
-$(sparse_testing_obj): MAGMA_INC += -I./sparse/include -I./sparse/control -I./testing
 
 ifeq ($(BACKEND),cuda) 
 $(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas -I./sparse/include -I./sparse/control
+$(sparse_testing_obj): MAGMA_INC += -I./sparse/include -I./sparse/control -I./testing
 else ifeq ($(BACKEND),hip)
-$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_hip -I./sparse/include -I./sparse/control
+$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_hip -I./sparse_hip/include -I./sparse_hip/control
+$(sparse_testing_obj): MAGMA_INC += -I./sparse_hip/include -I./sparse_hip/control -I./testing
 endif
 
 
@@ -544,9 +540,13 @@ test: testing
 
 testers_f: $(testers_f)
 
+ifeq ($(BACKEND),cuda)
 sparse-test: sparse/testing
 sparse-testing: sparse/testing
-
+else ifeq ($(BACKEND),hip)
+sparse-test: sparse_hip/testing
+sparse-testing: sparse_hip/testing
+endif
 # cleangen is defined in Makefile.gen; cleanall also does cleanmake in Makefile.internal
 cleanall: clean cleangen
 
@@ -801,6 +801,7 @@ endif
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
+ifeq ($(BACKEND),cuda)
 $(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I./sparse/include -dc -o $@ $<
 
@@ -813,6 +814,20 @@ $(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext)
 $(libsparse_dlink_obj): $(libsparse_dynamic_obj)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
 
+else ifeq ($(BACKEND),hip)
+$(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I./sparse_hip/include -dc -o $@ $<
+
+$(libmagma_dlink_obj): $(libmagma_dynamic_obj)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse_hip/include -o $@ $^
+
+$(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I./sparse_hip/include -dc -o $@ $<
+
+$(libsparse_dlink_obj): $(libsparse_dynamic_obj)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse_hip/include -o $@ $^
+
+endif
 # ------------------------------------------------------------------------------
 # library rules
 

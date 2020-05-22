@@ -25,6 +25,30 @@
 #include <cusparse_v2.h>
 
 
+/* (author: Cade Brown <cbrow216@vols.utk.edu>
+ *
+ * There have been changes to cuSPARSE in 10.2, specifically many removed hybrid formatting/partitioning, some
+ *   solvers, solve analysis, and sparse BLAS (doti, srmm, ...). So, those must be fixed in the cuSPARSE version.
+ *
+ * As a result, these functionalities are not even included as deprecated features in hipSPARSE, they are excluded entirely.
+ *
+ * In the future, `MAGMA_USE_SOLVEANALYSIS` and similar switches should default to 'off', once the cuSPARSE backend is fixed
+ *
+ *
+ */
+
+// if defined, use the cusparseSolveAnalysisInfo_t structures & functionality
+//#define MAGMA_USE_SOLVEANALYSIS
+
+#if   defined(HAVE_CUDA)
+// for now, enable, but this has been deprecated
+// eventually this should be disabled by default
+#define MAGMA_USE_SOLVEANALYSIS
+#elif defined(HAVE_HIP)
+// disable, since hipSPARSE doesn't support solve analysis at all
+#endif
+
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -603,11 +627,14 @@ typedef struct magma_z_preconditioner
     magma_index_t*            L_dgraphindegree_bak; // for sync-free trisolve
     magma_index_t*            U_dgraphindegree;     // for sync-free trisolve
     magma_index_t*            U_dgraphindegree_bak; // for sync-free trisolve
+#if defined(MAGMA_USE_SOLVEANALYSIS)
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;
     cusparseSolveAnalysisInfo_t cuinfoU;
     cusparseSolveAnalysisInfo_t cuinfoUT;
+#endif
+
     magma_bool_t            transpose;                 // need the transpose for the solver?
 #if defined(HAVE_PASTIX)
     pastix_data_t*          pastix_data;
@@ -779,11 +806,13 @@ typedef struct magma_s_preconditioner
     magma_index_t*            L_dgraphindegree_bak; // for sync-free trisolve
     magma_index_t*            U_dgraphindegree;     // for sync-free trisolve
     magma_index_t*            U_dgraphindegree_bak; // for sync-free trisolve
+#if defined(MAGMA_USE_SOLVEANALYSIS)
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;
     cusparseSolveAnalysisInfo_t cuinfoU;
     cusparseSolveAnalysisInfo_t cuinfoUT;
+#endif
     magma_bool_t            transpose;                 // need the transpose for the solver?
 #if defined(HAVE_PASTIX)
     pastix_data_t*          pastix_data;

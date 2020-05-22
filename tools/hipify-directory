@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+""" hipify-directory - hipify directory 
+
+This tool is written to convert an entire directory (in MAGMA) to another, HIP-compatible one.
+
+The basic usage is:
+  $ ./tools/hipify-directory FROM TO
+
+For example, `./tools/hipify-directory magmablas magmablas_hip` will generate the 'magmablas_hip' folder from hipified sources.
+
+
+WARNING: `TO` directory may have its contents erased!
+
+
+
+@author: Cade Brown <cbrow216@vols.utk.edu>
+
+"""
+
+## imports (all std)
+import argparse
+import sys
+import os
+import glob
+import re
+import shutil
+import errno
+import time
+
+# construct & parse given arguments
+parser = argparse.ArgumentParser(description='Hipify an entire directory')
+
+parser.add_argument('fromdir',   help='The directory to transform')
+parser.add_argument('todir'  ,   help='The directory to transform into')
+
+args = parser.parse_args()
+
+# script to hipify a single file, which uses the included `hipify-perl` script found in the same directory
+HIPIFY = f"{os.path.dirname(os.path.realpath(__file__))}/hipify-perl"
+
+# little hack so that Python accepts keyboard interrupts
+# it's a very small amount of time required for the interrupt handler, so 
+# it shouldn't 
+def _stall_hack(amt=.001):
+    time.sleep(amt)
+
+# method to hipify a C/CPP/CU/etc normal code file
+def f_code(fl_in):
+    fl_out = fl_in.replace(args.fromdir, args.todir)
+    
+    # replace any file extensions
+    fl_out = fl_out.replace('.cuh', '.hip.hpp').replace('.cu', '.hip.cpp')
+    print (f"Processing {fl} -> {fl_out} ...")
+    
+    # run the hipify-perl script
+    os.system(f"{HIPIFY} {fl_in} > {fl_out}")   
+    _stall_hack()
+
+    # we could replace it
+    os.system(f"sed -i -e 's/.cuh/.hip.hpp/g' {fl_out}")    
+    _stall_hack()
+
+# copy with no translation
+def f_copy(fl_in):
+    fl_out = fl_in.replace(args.fromdir, args.todir)
+    print (f"Processing {fl} -> {fl_out} ...")
+
+    try:
+        # try copy directory
+        shutil.copytree(fl_in, fl_out)
+    except OSError as exc:
+        # else, copy file
+        if exc.errno == errno.ENOTDIR:
+            shutil.copy(fl_in, fl_out)
+        else: raise    
+
+
+# method to hipify a makefile
+def f_makefile(fl_in):
+    fl_out = fl_in.replace(args.fromdir, args.todir)
+    print (f"Processing {fl} -> {fl_out} ...")
+    
+    # read in the input
+    with open(fl_in, 'r') as fp:
+        src = fp.read()
+
+    # translate all reference to the new directory
+    src = src.replace(args.fromdir, args.todir)
+    
+    # replace file endings
+    src = src.replace('.cuh', '.hip.hpp')
+    src = src.replace('.cu' , '.hip.cpp')
+
+    # output it
+    with open(fl_out, 'w') as fp:
+        fp.write(src)
+
+
+# translate a given file into its output in HIP
+def hipify_file(fl):
+    if fl.endswith('Makefile') or fl.endswith('Makefile.src'):
+        f_makefile(fl)
+    elif fl.endswith('.f90') or fl.endswith('.F90'):
+        f_copy(fl)
+    elif fl.endswith('_config'):
+        f_copy(fl)        
+    else:
+        f_code(fl)
+
+# remove the destination if it exists
+if os.path.exists(args.todir):
+    shutil.rmtree(args.todir)
+
+# create output directory
+os.makedirs(args.todir)
+
+# these are the valid extensions
+# TODO: perhaps use regex matching instead?
+#   this may be more general and usable outside of MAGMA if regex-based
+#   matching is used
+valid_exts = (
+
+    # source code
+    '.cu'  , '.cuh' ,
+    '.cpp' , '.hpp' , '.h'  ,
+    '.f90' , '.F90' ,
+
+    # misc
+    'Makefile', 'Makefile.src',
+    
+    '_config'
+
+)
+
+# create a list of files that match the given extension
+files = sum((glob.glob(f"{args.fromdir}/*{ext}") for ext in valid_exts), [])
+
+# attempt to hipify all the sources
+try:
+    for fl in files:
+        hipify_file(fl)
+except KeyboardInterrupt:
+    print (" -*- Caught Interrupt... Some sources may not be finished! -*-")
+    exit(1)
+
+
