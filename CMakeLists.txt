@@ -271,9 +271,22 @@ endif()
 
 # ----------------------------------------
 # locate LAPACK libraries
-if (NOT BLA_VENDOR MATCHES "^(Intel10_32|Intel10_64lp|Intel10_64lp_seq|Intel10_64ilp|Intel10_64ilp_seq|Intel|OpenBLAS|FLAME|ACML|Apple|NAS|Generic)$")
-    message( WARNING "BLA_VENDOR=${BLA_VENDOR} not one of Intel10_32, Intel10_64lp, Intel10_64lp_seq, Intel10_64ilp, Intel10_64ilp_seq, Intel, OpenBLAS, FLAME, ACML, Apple, NAS, Generic (FindLAPACK list as of CMake 3.14)" )
-endif()
+
+set(BLA_VENDOR "" CACHE STRING
+    "Use specified BLAS library. See https://cmake.org/cmake/help/latest/module/FindBLAS.html")
+
+# List from CMake 3.17, minus some obsolete ones:
+# PhiPACK, Compaq CXML, DEC Alpha DXML, SunPerf, SGI SCSL, SGIMATH,
+# Intel, NAS (Apple veclib).
+# FLAME is BLIS.
+set_property(CACHE BLA_VENDOR PROPERTY STRINGS
+    "" "All" "Goto" "OpenBLAS" "FLAME" "ATLAS" "IBMESSL"
+    "Intel10_64lp" "Intel10_64lp_seq" "Intel10_64ilp" "Intel10_64ilp_seq"
+    "ACML" "ACML_MP" "ACML_GPU"
+    "Apple"
+    "Arm" "Arm_mp" "Arm_ilp64" "Arm_ilp64_mp"
+    "Generic")
+
 set( LAPACK_LIBRARIES "" CACHE STRING "Libraries for LAPACK and BLAS, to manually override search" )
 if (LAPACK_LIBRARIES STREQUAL "")
     message( STATUS "Searching for BLAS and LAPACK. To override, set LAPACK_LIBRARIES using ccmake." )
