@@ -212,7 +212,7 @@ EOT
 
     # Compile the documentation
     print "Compile the documentation\n";
-    myCmd("make -C ./docs");
+    myCmd("make docs");
     myCmd("rm -f make.inc");
 
     # Remove non-required files (e.g., Makefile.gen)

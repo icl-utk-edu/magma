@@ -58,7 +58,7 @@ void magmablas_zherk_internal(
         magma_int_t in = ib;
         magma_zgemm( transA, transB, im, in, k,
                      alpha, dAi, ldda,
-                            dBi, ldda,
+                            dBi, lddb,
                      beta,  dCi, lddc, queue);
     }
 }
