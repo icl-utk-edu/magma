@@ -320,19 +320,26 @@ subdirs := \
 	src                 \
 	testing/lin         \
 
+# the directory in which the MAGMA sparse source is located
+# change to sparse_hip for hipified sources
+# right now, just use old one so the dense section still builds
+SPARSE_DIR = ./sparse
+
 ifeq ($(BACKEND),cuda)
 	subdirs += interface_cuda
 	subdirs += testing
 	subdirs += magmablas
-	subdirs += sparse sparse/blas sparse/control sparse/include sparse/src sparse/testing
 else ifeq ($(BACKEND),hip)
 	# this needs to be generate!
 	subdirs += interface_hip
 	subdirs += magmablas_hip
-	subdirs += sparse_hip sparse_hip/blas sparse_hip/control sparse_hip/include sparse_hip/src sparse_hip/testing
 	#subdirs += testing
 	subdirs += testing_hip
 endif
+
+# add all sparse folders
+subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
+
 
 Makefiles := $(addsuffix /Makefile.src, $(subdirs))
 
@@ -433,8 +440,8 @@ ifeq ($(BACKEND),cuda)
 $(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas -I./sparse/include -I./sparse/control
 $(sparse_testing_obj): MAGMA_INC += -I./sparse/include -I./sparse/control -I./testing
 else ifeq ($(BACKEND),hip)
-$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_hip -I./sparse_hip/include -I./sparse_hip/control
-$(sparse_testing_obj): MAGMA_INC += -I./sparse_hip/include -I./sparse_hip/control -I./testing
+$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_hip -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control
+$(sparse_testing_obj): MAGMA_INC += -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control -I./testing
 endif
 
 
@@ -544,8 +551,8 @@ ifeq ($(BACKEND),cuda)
 sparse-test: sparse/testing
 sparse-testing: sparse/testing
 else ifeq ($(BACKEND),hip)
-sparse-test: sparse_hip/testing
-sparse-testing: sparse_hip/testing
+sparse-test: $(SPARSE_DIR)/testing
+sparse-testing: $(SPARSE_DIR)/testing
 endif
 # cleangen is defined in Makefile.gen; cleanall also does cleanmake in Makefile.internal
 cleanall: clean cleangen
@@ -816,16 +823,16 @@ $(libsparse_dlink_obj): $(libsparse_dynamic_obj)
 
 else ifeq ($(BACKEND),hip)
 $(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I./sparse_hip/include -dc -o $@ $<
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -dc -o $@ $<
 
 $(libmagma_dlink_obj): $(libmagma_dynamic_obj)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse_hip/include -o $@ $^
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
 
 $(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I./sparse_hip/include -dc -o $@ $<
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -dc -o $@ $<
 
 $(libsparse_dlink_obj): $(libsparse_dynamic_obj)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse_hip/include -o $@ $^
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
 
 endif
 # ------------------------------------------------------------------------------
