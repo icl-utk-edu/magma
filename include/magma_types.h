@@ -162,7 +162,9 @@ typedef double real_Double_t;
     
     // this macro allows you to define an unsupported function (primarily from hipBLAS)
     // which will become a NOOP, and print an error message
+    #ifndef magma_unsupported
     #define magma_unsupported(fname) ((hipblasStatus_t)(fprintf(stderr, "MAGMA: Unsupported function '" #fname "'\n"), HIPBLAS_STATUS_NOT_SUPPORTED))
+    #endif
 
     /* hipBLAS has not yet implemented some async variants of {Get,Set}{Vector,Matrix},
      * So instead, we just do them synchronously. This will, of course, be slower & blocking

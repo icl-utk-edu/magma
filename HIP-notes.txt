@@ -39,4 +39,35 @@ Then, `hipcc $CFLAGS source.o source2.o (other.o ...) $LDFLAGS -o liboutput.so`
 
 While the result would be the same with or without the `-fno-gpu-rdc` flag, without it causes the final compilation step to finalize device code for EVERY `.o`, whereas with the flag, only does it for the `.o` files that `make` regenerates
 
+### Missing Functions
+
+Right now, our approach to missing functions is to list them out in a header file
+
+For example, to find a list of unsupported functions in the `sparse/` folder, we use this command:
+
+```
+$ make sparse -j4 2>&1 | grep "use of undeclared identifier" | awk '{gsub("'"'"'", "", $7) ; gsub(";", "", $7) ; print $7}'
+hipsparseZbsrmv
+hipsparseZbsrmv
+```
+
+(note: this may fail with different compiler versions)
+
+Now, we define a macro and add definitions for the missing functionalities:
+
+```
+#define magma_unsupported_sparse(fname) ((hipsparseStatus_t)(fprintf(stderr, "MAGMA: Unsupported (sparse) function '" #fname "'\n"), HIPSPARSE_STATUS_INTERNAL_ERROR))
+
+#define hipsparseZbsrmv(...) magma_unsupported_sparse(hipsparseZbsrmv)
+...
+```
+
+When the missing function is called, it is a NO-OP on the arguments, and instead prints out to the stderr with a message which can tell the user/developer that the output may not be reliable.
+
+Also, any status that was being checked will return an error (by use of the comma operator), so error checking will still work (and thus always report an error with the operation)
+
+
+
+
+
 

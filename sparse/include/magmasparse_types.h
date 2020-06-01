@@ -50,6 +50,27 @@
 
 
 
+/* Currently unsupported hipsparse functions
+ *
+ * (these should be added in ROCm 3.5, or otherwise pretty soon)
+ *
+ *
+ */
+#if defined(HAVE_HIP)
+
+// this macro allows you to define an unsupported function (primarily from hipSPARSE)
+// which will become a NOOP, and print an error message
+#define magma_unsupported_sparse(fname) ((hipsparseStatus_t)(fprintf(stderr, "MAGMA: Unsupported (sparse) function '" #fname "'\n"), HIPSPARSE_STATUS_INTERNAL_ERROR))
+
+
+#define hipsparseZcsrmv(...) magma_unsupported_sparse(hipsparseZcsrmv)
+#define hipsparseZbsrmv(...) magma_unsupported_sparse(hipsparseZcsrmv)
+#define hipsparseZcsrmm(...) magma_unsupported_sparse(hipsparseZcsrmm)
+
+#endif
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -688,11 +709,15 @@ typedef struct magma_c_preconditioner
     magma_index_t*            L_dgraphindegree_bak; // for sync-free trisolve
     magma_index_t*            U_dgraphindegree;     // for sync-free trisolve
     magma_index_t*            U_dgraphindegree_bak; // for sync-free trisolve
+
+#if defined(MAGMA_USE_SOLVEANALYSIS)
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;
     cusparseSolveAnalysisInfo_t cuinfoU;
     cusparseSolveAnalysisInfo_t cuinfoUT;
+#endif
+
     magma_bool_t            transpose;                 // need the transpose for the solver?
 #if defined(HAVE_PASTIX)
     pastix_data_t*          pastix_data;
@@ -747,11 +772,15 @@ typedef struct magma_d_preconditioner
     magma_index_t*            L_dgraphindegree_bak; // for sync-free trisolve
     magma_index_t*            U_dgraphindegree;     // for sync-free trisolve
     magma_index_t*            U_dgraphindegree_bak; // for sync-free trisolve
+
+#if defined(MAGMA_USE_SOLVEANALYSIS)
     cusparseSolveAnalysisInfo_t cuinfo;
     cusparseSolveAnalysisInfo_t cuinfoL;
     cusparseSolveAnalysisInfo_t cuinfoLT;
     cusparseSolveAnalysisInfo_t cuinfoU;
     cusparseSolveAnalysisInfo_t cuinfoUT;
+#endif
+
     magma_bool_t            transpose;                 // need the transpose for the solver?
 #if defined(HAVE_PASTIX)
     pastix_data_t*          pastix_data;
