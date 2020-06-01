@@ -1,7 +1,7 @@
 /**
 
 ********************************************************************************
-@page MAGMA-sparse Overview
+@page MAGMA-sparse Sparse Overview
 
 
 The MAGMA-sparse Package
@@ -19,6 +19,11 @@ A typical application includes:
 
 For each of these steps, multiple options are offered by the MAGMA software
 stack.
+
+To start, in C or C++, include the magma_v2.h and magmasparse.h headers.
+
+    #include <magma_v2.h>
+    #include <magmasparse.h>
 
 
 Sparse Data Structures {#datastructures}
@@ -95,7 +100,7 @@ matrix, the sparse matrix vector product can then be used via the wrapper:
 Sparse I/O {#io}
 =================================
 A sparse matrix stored in mtx format can be read from disk via the function:
-    
+
     magma_z_csr_mtx(
             magma_z_matrix *A,
             const char *filename,
@@ -125,10 +130,10 @@ If the matrix is already present in DEV memory, the corresponding function is
         magmaDoubleComplex_ptr val,
         magma_z_matrix *A,
         magma_queue_t queue );
-    
-    
+
+
 Similarly, matrices handled in MAGMA can be returned via the functions
-    
+
     magma_zcsrget(
         magma_z_matrix A,
         magma_int_t *m,
@@ -146,9 +151,9 @@ Similarly, matrices handled in MAGMA can be returned via the functions
         magmaIndex_ptr *col,
         magmaDoubleComplex_ptr *val,
         magma_queue_t queue );
-    
+
     respectively
-    
+
     write_z_csrtomtx(
         magma_z_matrix A,
         const char *filename,
@@ -158,7 +163,7 @@ Similarly, matrices handled in MAGMA can be returned via the functions
 Additionally, MAGMA contains routines to generate stencil discretizations
 of different kind.
 
-Vectors are handled as dense matrices (Magma_DENSE) and 
+Vectors are handled as dense matrices (Magma_DENSE) and
 can be initialized inside MAGMA via
 
     magma_z_vinit(
@@ -245,7 +250,7 @@ Linear algebra objects can be deallocated via
         magma_z_matrix *A,
         magma_queue_t queue );
 
-        
+
 Iterative Solvers {#sparsesolvers}
 =================================
 The MAGMA-sparse package contains a variety of linear solvers, eigensolvers,
@@ -276,12 +281,12 @@ controlling the iterative solver and collecting information during the execution
         double             *eigenvalues;            // feedback: array containing eigenvalues
         magmaDoubleComplex_ptr      eigenvectors;   // feedback: array containing eigenvectors on DEV
         magma_int_t        info;                    // feedback: did the solver converge etc.
-    
+
         //---------------------------------
         // the input for verbose is:
         // 0 = production mode
-        // k>0 = convergence and timing is monitored in *res_vec and *timeing every  
-        // k-th iteration 
+        // k>0 = convergence and timing is monitored in *res_vec and *timeing every
+        // k-th iteration
         //
         // the output of info is:
         //  0 = convergence (stopping criterion met)
@@ -320,12 +325,12 @@ typedef struct magma_z_preconditioner
     magma_int_t             bsize;
     magma_int_t             offset;
     magma_precision         format;
-    double                  atol;                
-    double                  rtol;    
+    double                  atol;
+    double                  rtol;
     magma_int_t             maxiter;
-    magma_int_t             restart; 
+    magma_int_t             restart;
     magma_int_t             numiter;
-    magma_int_t             spmv_count;  
+    magma_int_t             spmv_count;
     double                  init_res;
     double                  final_res;
     real_Double_t      runtime;       // feedback: preconditioner runtime
@@ -343,11 +348,11 @@ typedef struct magma_z_preconditioner
     magma_z_matrix          work2;
     magma_int_t*            int_array_1;
     magma_int_t*            int_array_2;
-    cusparseSolveAnalysisInfo_t cuinfo;      // for cuSPARSE ILU        
-    cusparseSolveAnalysisInfo_t cuinfoL;     // for cuSPARSE ILU 
-    cusparseSolveAnalysisInfo_t cuinfoLT;    // for cuSPARSE ILU 
-    cusparseSolveAnalysisInfo_t cuinfoU;     // for cuSPARSE ILU 
-    cusparseSolveAnalysisInfo_t cuinfoUT;    // for cuSPARSE ILU 
+    cusparseSolveAnalysisInfo_t cuinfo;      // for cuSPARSE ILU
+    cusparseSolveAnalysisInfo_t cuinfoL;     // for cuSPARSE ILU
+    cusparseSolveAnalysisInfo_t cuinfoLT;    // for cuSPARSE ILU
+    cusparseSolveAnalysisInfo_t cuinfoU;     // for cuSPARSE ILU
+    cusparseSolveAnalysisInfo_t cuinfoUT;    // for cuSPARSE ILU
 } magma_z_preconditioner;
 
 An easy way to access the data collected during a solver execution is given
@@ -406,10 +411,10 @@ familiar with the package is to use and modify one of the predefined testers.
 In the following example we assume to have an application coded in C and
 running in double precision that at some instance requires solving a linear
 system of the form Ax=b, where A and b are generated within the application.
-Furthermore, we assume that the matrix A is in CSR format and stored in 
-row/col/val, and the vector b is stored in valb. These entities are passed to 
-MAGMA-sparse. In the end, we want the solution passed back to the application in 
-the vector valx.  
+Furthermore, we assume that the matrix A is in CSR format and stored in
+row/col/val, and the vector b is stored in valb. These entities are passed to
+MAGMA-sparse. In the end, we want the solution passed back to the application in
+the vector valx.
 
     // initialize MAGMA-sparse and create some LA objects
     magma_dopts dopts;
@@ -420,20 +425,20 @@ the vector valx.
     // pass linear system to MAGMA-sparse
     magma_dcsrset( m, n, row, col, val, &A, queue );
     magma_dvset( m, n, valb, &b, queue );
-    
+
     // copy the linear system to the device
-    magma_d_vtransfer( b, &b_d, Magma_CPU, Magma_DEV, queue );    
-    magma_d_mtransfer( A, &A_d, Magma_CPU, Magma_DEV, queue );    
+    magma_d_vtransfer( b, &b_d, Magma_CPU, Magma_DEV, queue );
+    magma_d_mtransfer( A, &A_d, Magma_CPU, Magma_DEV, queue );
     // allocate solution vector - on device
     magma_d_vinit( &x_d, Magma_DEV, A.num_cols, 1, one, queue );
-    
+
     // configure solver
-    dopts.solver_par.solver = Magma_PGMRES; dopts.solver_par.restart = 30; 
+    dopts.solver_par.solver = Magma_PGMRES; dopts.solver_par.restart = 30;
     dopts.solver_par.rtol = 1e-10;
     magma_dsolverinfo_init( &dopts.solver_par, &dopts.precond_par, queue );
-    
+
     // configure the preconditioner
-    dopts.precond_par.solver = Magma_ILU; dopts.precond_par.levels = 0; 
+    dopts.precond_par.solver = Magma_ILU; dopts.precond_par.levels = 0;
     dopts.precond_par.trisolver = Magma_CUSOLVE;
     magma_d_precondsetup( A, b, &dopts.solver_par, &dopts.precond_par, queue );
 
@@ -443,7 +448,7 @@ the vector valx.
     // copy the solution vector back to the host and pass it back to the application
     magma_d_mtransfer( x_d, &x, Magma_DEV, Magma_CPU, queue );
     magma_dvget( x, &m, &n, &valx, queue );
-    
+
     // clean up the memory
     magma_dsolverinfo_free( &dopts.solver_par, &dopts.precond_par, queue );
     magma_d_mfree(&A_d, queue );

@@ -576,7 +576,7 @@ float  magma_cabsf( magmaFloatComplex  x );
 // -----------------------------------------------------------------------------
 #define MAGMA_VERSION_MAJOR 2
 #define MAGMA_VERSION_MINOR 5
-#define MAGMA_VERSION_MICRO 2
+#define MAGMA_VERSION_MICRO 3
 
 // stage is "svn", "beta#", "rc#" (release candidate), or blank ("") for final release
 #define MAGMA_VERSION_STAGE "svn"
