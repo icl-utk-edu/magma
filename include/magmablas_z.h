@@ -1419,6 +1419,15 @@ magma_ztrmm(
     magmaDoubleComplex_ptr       dB, magma_int_t lddb,
     magma_queue_t queue );
 
+void 
+magmablas_ztrmm(
+        magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
+        magma_int_t m, magma_int_t n, 
+        magmaDoubleComplex alpha, 
+        magmaDoubleComplex *dA, magma_int_t ldda,
+        magmaDoubleComplex *dB, magma_int_t lddb, 
+        magma_queue_t queue );
+
 void
 magma_ztrsm(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t trans, magma_diag_t diag,
