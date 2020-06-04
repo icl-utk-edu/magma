@@ -82,6 +82,7 @@ libmagma_src += \
 	$(cdir)/ztranspose_conj.cu		\
 	$(cdir)/ztranspose_conj_inplace.cu	\
 	$(cdir)/ztranspose_inplace.cu	\
+	$(cdir)/ztrmm.cu		\
 	$(cdir)/ztrsm.cu		\
 	$(cdir)/ztrsv.cu		\
 	$(cdir)/ztrtri_diag.cu		\
