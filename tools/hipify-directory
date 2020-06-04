@@ -12,6 +12,9 @@ For example, `./tools/hipify-directory magmablas magmablas_hip` will generate th
 WARNING: `TO` directory may have its contents erased!
 
 
+TODO:
+  * Possibly use multithreading/threadpool to speed up execution
+
 
 @author: Cade Brown <cbrow216@vols.utk.edu>
 
@@ -40,8 +43,8 @@ HIPIFY = f"{os.path.dirname(os.path.realpath(__file__))}/hipify-perl"
 
 # little hack so that Python accepts keyboard interrupts
 # it's a very small amount of time required for the interrupt handler, so 
-# it shouldn't 
-def _stall_hack(amt=.001):
+# it shouldn't cause a large time delay, we just need some non-zero amount
+def _stall_hack(amt=.0001):
     time.sleep(amt)
 
 # method to hipify a C/CPP/CU/etc normal code file
