@@ -74,11 +74,17 @@
 #define SSYMM_BATCHED_LEFT    32, 64, 64, 0
 #define SSYMM_BATCHED_RIGHT   32, 64, 64, 0
 
-// TRMM tuning
+// Batch TRMM tuning
 #define ZTRMM_BATCHED_NB    (16)
 #define CTRMM_BATCHED_NB    (16)
 #define DTRMM_BATCHED_NB    (32)
 #define STRMM_BATCHED_NB    (32)
+
+// TRMM Tuning
+#define ZTRMM_NB    (16)
+#define CTRMM_NB    (16)
+#define DTRMM_NB    (32)
+#define STRMM_NB    (32)
 
 // HEMV tuning
 #define ZHEMV_BATCHED_LOWER    16, 4
