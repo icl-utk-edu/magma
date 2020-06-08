@@ -24,6 +24,10 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+ 2.x.x - xxx xx, 2020
+    * New routine: add trmm in all precisions
+    * Bug fixes in herk and sytrd 
+
  2.5.3 - Mar 28, 2020
     * Small modifications to enable hipMAGMA generation from MAGMA to support AMD GPUs 
     * New routine: add syrk in all precisions
