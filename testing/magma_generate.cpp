@@ -553,7 +553,7 @@ void magma_generate_geevx(
     ones        all entries are 1
     identity    diagonal entries are 1
     jordan      diagonal and first subdiagonal entries are 1
-    kronecker   A(i,j) = 1 + alpha * kronecker_delta(i,j)
+    kronecker   A(i,j) = 1 + (m/cond) * kronecker_delta(i,j)
 
     rand*       matrix entries random uniform on (0, 1)
     rands*      matrix entries random uniform on (-1, 1)
@@ -656,10 +656,10 @@ void magma_generate_matrix(
     else if (begins( name, "rand"  )) { type = MatrixType::rand;      }
     else if (begins( name, "diag"  )) { type = MatrixType::diag;      }
     else if (begins( name, "svd"   )) { type = MatrixType::svd;       }
-    else if (begins( name, "poev"  ) ||
-             begins( name, "spd"   )) { type = MatrixType::poev;      }
-    else if (begins( name, "heev"  ) ||
-             begins( name, "syev"  )) { type = MatrixType::heev;      }
+    else if (begins( name, "poev"  )
+          || begins( name, "spd"   )) { type = MatrixType::poev;      }
+    else if (begins( name, "heev"  )
+          || begins( name, "syev"  )) { type = MatrixType::heev;      }
     else if (begins( name, "geevx" )) { type = MatrixType::geevx;     }
     else if (begins( name, "geev"  )) { type = MatrixType::geev;      }
     else {
@@ -667,24 +667,24 @@ void magma_generate_matrix(
         throw std::exception();
     }
 
-    if (A.m != A.n &&
-        (type == MatrixType::jordan ||
-         type == MatrixType::poev   ||
-         type == MatrixType::heev   ||
-         type == MatrixType::geev   ||
-         type == MatrixType::geevx))
+    if (A.m != A.n
+        && (type == MatrixType::jordan
+            || type == MatrixType::poev
+            || type == MatrixType::heev
+            || type == MatrixType::geev
+            || type == MatrixType::geevx))
     {
         fprintf( stderr, "Eigenvalue matrix requires m == n.\n" );
         throw std::exception();
     }
 
-    if (opts.cond != 0 &&
-        (type == MatrixType::zero      ||
-         type == MatrixType::identity  ||
-         type == MatrixType::jordan    ||
-         type == MatrixType::randn     ||
-         type == MatrixType::rands     ||
-         type == MatrixType::rand))
+    if (opts.cond != 0
+        && (type == MatrixType::zero
+            || type == MatrixType::identity
+            || type == MatrixType::jordan
+            || type == MatrixType::randn
+            || type == MatrixType::rands
+            || type == MatrixType::rand))
     {
         fprintf( stderr, "%sWarning: --matrix %s ignores --cond %.2e.%s\n",
                  ansi_red, name.c_str(), opts.cond, ansi_normal );
@@ -706,19 +706,19 @@ void magma_generate_matrix(
     else if (contains( name, "_rcluster0" )) { dist = Dist::rcluster0; }
     else if (contains( name, "_specified" )) { dist = Dist::specified; }
 
-    if (opts.cond != 0 &&
-        (dist == Dist::randn ||
-         dist == Dist::rands ||
-         dist == Dist::rand) &&
-        type != MatrixType::kronecker)
+    if (opts.cond != 0
+        && (dist == Dist::randn
+            || dist == Dist::rands
+            || dist == Dist::rand)
+        && type != MatrixType::kronecker)
     {
         fprintf( stderr, "%sWarning: --matrix '%s' ignores --cond %.2e; use a different distribution.%s\n",
                  ansi_red, name.c_str(), opts.cond, ansi_normal );
     }
 
-    if (type == MatrixType::poev &&
-        (dist == Dist::rands ||
-         dist == Dist::randn))
+    if (type == MatrixType::poev
+        && (dist == Dist::rands
+            || dist == Dist::randn))
     {
         fprintf( stderr, "%sWarning: --matrix '%s' using rands or randn "
                  "will not generate SPD matrix; use rand instead.%s\n",
@@ -756,12 +756,7 @@ void magma_generate_matrix(
 
         case MatrixType::kronecker: {
             FloatT diag = blas::traits<FloatT>::make( 1 + A.m / cond, 0 );
-            for( int j = 0; j < A.n; j++)
-                for( int i = 0; i < A.m; i++)
-                    if (i == j)
-                        *A(i,j) = diag;
-                    else
-                        *A(i,j) = c_one;
+            lapack::laset( "general", A.m, A.n, c_one, diag, A(0,0), A.ld );
             break;
         }
 
