@@ -121,7 +121,7 @@ int main( int argc, char** argv)
             magma_zsetmatrix( M,  N,  hB, ldb, dB(0,0), lddb, opts.queue );
 
             magma_time = magma_sync_wtime( opts.queue );
-            magma_ztrmm( opts.side, opts.uplo, opts.transA, opts.diag,
+            magmablas_ztrmm( opts.side, opts.uplo, opts.transA, opts.diag,
                          M, N,
                          alpha, dA(0,0), ldda,
                                 dB(0,0), lddb, opts.queue );
