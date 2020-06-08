@@ -40,6 +40,7 @@ enum class MatrixType {
     rands     = 2,  // maps to larnv idist
     randn     = 3,  // maps to larnv idist
     zero,
+    ones,
     identity,
     jordan,
     kronecker,
@@ -548,9 +549,10 @@ void magma_generate_geevx(
     Table 11 (Test matrices for the singular value decomposition)
 
     Matrix      Description
-    zero
-    identity
-    jordan      ones on diagonal and first subdiagonal
+    zero        all entries are 0
+    ones        all entries are 1
+    identity    diagonal entries are 1
+    jordan      diagonal and first subdiagonal entries are 1
     kronecker   A(i,j) = 1 + alpha * kronecker_delta(i,j)
 
     rand*       matrix entries random uniform on (0, 1)
@@ -643,7 +645,9 @@ void magma_generate_matrix(
 
     // ----- decode matrix type
     MatrixType type = MatrixType::identity;
-    if      (name == "zero")          { type = MatrixType::zero;      }
+    if      (name == "zero"
+          || name == "zeros")         { type = MatrixType::zero;      }
+    else if (name == "ones")          { type = MatrixType::ones;      }
     else if (name == "identity")      { type = MatrixType::identity;  }
     else if (name == "jordan")        { type = MatrixType::jordan;    }
     else if (name == "kronecker")     { type = MatrixType::kronecker; }
@@ -732,6 +736,10 @@ void magma_generate_matrix(
         case MatrixType::zero:
             lapack::laset( "general", A.m, A.n, c_zero, c_zero, A(0,0), A.ld );
             lapack::laset( "general", sigma.n, 1, d_zero, d_zero, sigma(0), sigma.n );
+            break;
+
+        case MatrixType::ones:
+            lapack::laset( "general", A.m, A.n, c_one, c_one, A(0,0), A.ld );
             break;
 
         case MatrixType::identity:
