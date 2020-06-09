@@ -154,11 +154,10 @@ magma_zhetrf(
     magma_getdevice( &cdev );
 
     magma_queue_t queues[2];
-    magma_event_t event[2];
+    magma_event_t event;
     magma_queue_create( cdev, &queues[0] );
     magma_queue_create( cdev, &queues[1] );
-    magma_event_create( &event[0] );
-    magma_event_create( &event[1] );
+    magma_event_create( &event );
     trace_init( 1, 1, 2, queues );
 
     /* copy matrix to GPU */
@@ -194,13 +193,12 @@ magma_zhetrf(
                    update columns 1:k-kb */
 
                 magma_zlahef_gpu( MagmaUpper, nk, kb, &kb, dA( 0, 0 ), ldda,
-                                  &ipiv[0], dW, ldda, queues, event, &iinfo );
+                                  &ipiv[0], dW, ldda, queues, &iinfo );
 
                 // copying the panel back to CPU
-                magma_event_record( event[0], queues[0] );
-                magma_queue_wait_event( queues[1], event[0] );
+                magma_event_record( event, queues[0] );
+                magma_queue_wait_event( queues[1], event );
                 trace_gpu_start( 0, 1, "get", "get" );
-                //magma_zgetmatrix_async( n, n-(k+1), &dA(0,k+1), ldda, &A(0,k+1), lda, queues[1] );
                 magma_zgetmatrix_async( nk, kb, dA(0,nk-kb), ldda, A(0,nk-kb), lda, queues[1] );  
                 trace_gpu_end( 0, 1 );
             } else {
@@ -230,13 +228,12 @@ magma_zhetrf(
                 /* Factorize columns k:k+kb-1 of A and use blocked code to
                    update columns k+kb:n */
                 magma_zlahef_gpu( MagmaLower, nk, nb, &kb, dA( k, k ), ldda,
-                                  &ipiv[k], dW, ldda, queues, event, &iinfo );
+                                  &ipiv[k], dW, ldda, queues, &iinfo );
 
                 // copying the panel back to CPU
-                magma_event_record( event[0], queues[0] );
-                magma_queue_wait_event( queues[1], event[0] );
+                magma_event_record( event, queues[0] );
+                magma_queue_wait_event( queues[1], event );
                 trace_gpu_start( 0, 1, "get", "get" );
-                //magma_zgetmatrix_async( n, k, &dA(0,0), ldda, &A(0,0), lda, queues[1] );
                 magma_zgetmatrix_async( nk, kb, dA(k,k), ldda, A(k,k), lda, queues[1] );
                 trace_gpu_end( 0, 1 ); 
             }
@@ -262,8 +259,7 @@ magma_zhetrf(
     trace_finalize( "zhetrf.svg", "trace.css" );
     magma_queue_sync( queues[0] );
     magma_queue_sync( queues[1] );
-    magma_event_destroy( event[0] );
-    magma_event_destroy( event[1] );
+    magma_event_destroy( event );
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
     magma_free( dA );
