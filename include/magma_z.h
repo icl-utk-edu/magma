@@ -1039,6 +1039,13 @@ magma_zhetrf(
     magma_int_t *ipiv,
     magma_int_t *info);
 
+magma_int_t
+magma_zhetrf_gpu(
+   magma_uplo_t uplo, magma_int_t n,
+   magmaDoubleComplex *dA, magma_int_t ldda,
+   magma_int_t *ipiv, 
+   magma_int_t *info);
+
 // CUDA MAGMA only
 magma_int_t
 magma_zhetrf_aasen(
@@ -1162,7 +1169,7 @@ magma_zlahef_gpu(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *ipiv,
     magmaDoubleComplex_ptr dW, magma_int_t lddw,
-    magma_queue_t queues[], magma_event_t event[],
+    magma_queue_t queues[],
     magma_int_t *info);
 
 magma_int_t
