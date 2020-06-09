@@ -5,6 +5,8 @@
        Univ. of Colorado, Denver
        @date
 
+       @author Ichi Yamazaki
+
        @precisions normal z -> s d c
 */
 #include "magma_internal.h"
@@ -425,12 +427,6 @@ magma_zlahef_gpu(
                 magmablas_zswap( n-j, &dA( jp, j ), ldda, &dA( jj, j ), ldda, queues[0] );
         }
 
-        // copying the panel back to CPU
-        magma_event_record( events[0], queues[0] );
-        magma_queue_wait_event( queues[1], events[0] );
-        trace_gpu_start( 0, 1, "get", "get" );
-        magma_zgetmatrix_async( n, n-(k+1), &dA(0,k+1), ldda, &A(0,k+1), lda, queues[1] );
-
         /* Set KB to the number of columns factorized */
         *kb = n - (k+1);
     }
@@ -726,12 +722,7 @@ magma_zlahef_gpu(
                 magma_queue_sync( queues[0] );
             }
         }
-        // copying the panel back to CPU
-        magma_event_record( events[0], queues[0] );
-        magma_queue_wait_event( queues[1], events[0] );
-        trace_gpu_start( 0, 1, "get", "get" );
-        magma_zgetmatrix_async( n, k, &dA(0,0), ldda, &A(0,0), lda, queues[1] );
-        trace_gpu_end( 0, 1 );
+
         /* Set KB to the number of columns factorized */
         *kb = k;
     }
