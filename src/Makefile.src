@@ -135,6 +135,10 @@ libmagma_src += \
 	$(cdir)/zunmqr_m.cpp		\
 
 # ----------
+# symmetric indefinite factorization, GPU interface
+libmagma_src += \
+        $(cdir)/zhetrf_gpu.cpp          \
+
 # symmetric indefinite factorization, CPU interface
 libmagma_src += \
 	$(cdir)/zchesv_gpu.cpp		\
