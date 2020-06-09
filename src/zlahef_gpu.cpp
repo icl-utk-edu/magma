@@ -102,11 +102,6 @@
             queues contain the queues used for the partial factorization.
             Currently, only one queue is used.
 
-    @param[in]
-    events  magma_event_t
-            events contain the events used for the partial factorization.
-            Currently, only one event is used.
-
     @param[out]
     info    INTEGER
       -     = 0: successful exit
@@ -121,7 +116,7 @@ magma_zlahef_gpu(
     magma_uplo_t uplo, magma_int_t n, magma_int_t nb, magma_int_t *kb,
     magmaDoubleComplex_ptr dA, magma_int_t ldda, magma_int_t *ipiv,
     magmaDoubleComplex_ptr dW, magma_int_t lddw,
-    magma_queue_t queues[], magma_event_t events[],
+    magma_queue_t queues[],
     magma_int_t *info)
 {
     /* .. Parameters .. */
