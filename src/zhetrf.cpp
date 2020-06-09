@@ -193,7 +193,7 @@ magma_zhetrf(
                 /* Factorize columns k-kb+1:k of A and use blocked code to
                    update columns 1:k-kb */
 
-                magma_zlahef_gpu( MagmaUpper, nk, kb, &kb, A( 0, 0 ), lda, dA( 0, 0 ), ldda,
+                magma_zlahef_gpu( MagmaUpper, nk, kb, &kb, dA( 0, 0 ), ldda,
                                   &ipiv[0], dW, ldda, queues, event, &iinfo );
 
                 // copying the panel back to CPU
@@ -229,7 +229,7 @@ magma_zhetrf(
             if ( k < n-nb ) {
                 /* Factorize columns k:k+kb-1 of A and use blocked code to
                    update columns k+kb:n */
-                magma_zlahef_gpu( MagmaLower, nk, nb, &kb, A( k, k ), lda, dA( k, k ), ldda,
+                magma_zlahef_gpu( MagmaLower, nk, nb, &kb, dA( k, k ), ldda,
                                   &ipiv[k], dW, ldda, queues, event, &iinfo );
 
                 // copying the panel back to CPU

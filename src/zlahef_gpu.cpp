@@ -6,6 +6,7 @@
        @date
 
        @author Ichi Yamazaki
+       @author Stan Tomov
 
        @precisions normal z -> s d c
 */
@@ -59,21 +60,6 @@
     kb      INTEGER
             The number of columns of A that were actually factored.
             KB is either NB-1 or NB, or N if N <= NB.
-
-    @param[in,out]
-    hA      COMPLEX*16 array, dimension (LDA,N)
-            On entry, the Hermitian matrix A.  If UPLO = MagmaUpper, the leading
-            n-by-n upper triangular part of A contains the upper
-            triangular part of the matrix A, and the strictly lower
-            triangular part of A is not referenced.  If UPLO = MagmaLower, the
-            leading n-by-n lower triangular part of A contains the lower
-            triangular part of the matrix A, and the strictly upper
-            triangular part of A is not referenced.
-            On exit, A contains details of the partial factorization.
-
-    @param[in]
-    lda     INTEGER
-            The leading dimension of the array A.  LDA >= max(1,N).
 
     @param[in,out]
     dA      COMPLEX*16 array on GPU, dimension (LDDA,N)
@@ -133,7 +119,6 @@
 extern "C" magma_int_t
 magma_zlahef_gpu(
     magma_uplo_t uplo, magma_int_t n, magma_int_t nb, magma_int_t *kb,
-    magmaDoubleComplex    *hA, magma_int_t lda,
     magmaDoubleComplex_ptr dA, magma_int_t ldda, magma_int_t *ipiv,
     magmaDoubleComplex_ptr dW, magma_int_t lddw,
     magma_queue_t queues[], magma_event_t events[],
@@ -156,7 +141,6 @@ magma_zlahef_gpu(
 
     #define dA(i, j)  (dA[(j)*ldda  + (i)])
     #define dW(i, j)  (dW[(j)*lddw  + (i)])
-    #define  A(i, j)  (hA[(j)*lda   + (i)])
 
     /* .. Executable Statements .. */
     *info = 0;

@@ -1159,7 +1159,6 @@ magma_zlabrd_gpu(
 magma_int_t
 magma_zlahef_gpu(
     magma_uplo_t uplo, magma_int_t n, magma_int_t nb, magma_int_t *kb,
-    magmaDoubleComplex    *hA, magma_int_t lda,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *ipiv,
     magmaDoubleComplex_ptr dW, magma_int_t lddw,
