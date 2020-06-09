@@ -644,7 +644,7 @@ int main( int argc, char** argv)
     double          error, error_lapack = 0.0;
     magma_int_t     *ipiv;
     magma_int_t     cpu_panel = 1, N, n2, lda, lwork, info;
-    magma_int_t     cpu = 0, nopiv = 0, nopiv_gpu = 0, row = 0, aasen = 0;
+    magma_int_t     cpu = 0, gpu = 0, nopiv = 0, nopiv_gpu = 0, row = 0, aasen = 0;
     int status = 0;
     
     magma_opts opts;
@@ -663,7 +663,7 @@ int main( int argc, char** argv)
     //}
 
     printf( "%% --version 1 = Bunch-Kauffman (CPU)\n"
-            "%%           2 = Bunch-Kauffman (GPU) -- not yet available\n"
+            "%%           2 = Bunch-Kauffman (GPU)\n"
             "%%           3 = No-piv (CPU) -- uses random, diagonally dominant matrix by default\n"
             "%%           4 = No-piv (GPU) -- uses random, diagonally dominant matrix by default\n"
             "%%           6 = Aasen's\n"
@@ -675,10 +675,8 @@ int main( int argc, char** argv)
             printf( "CPU-interface to Bunch-Kauffman on GPU" );
             break;
         case 2:
-            //gpu = 1;
+            gpu = 1;
             printf( "GPU-interface to Bunch-Kauffman on GPU" );
-            printf( "\n%% not yet available.\n" );
-            return 0;
             break;
         case 3:
             nopiv = 1;
@@ -771,6 +769,18 @@ int main( int argc, char** argv)
                 magma_zsetmatrix(N, N, h_A, lda, d_A, ldda, opts.queue );
                 gpu_time = magma_wtime();
                 magma_zhetrf_nopiv_gpu( opts.uplo, N, d_A, ldda, &info);
+                gpu_time = magma_wtime() - gpu_time;
+                magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
+                magma_free( d_A );
+            }
+            else if (gpu) {
+                // GPU-interface to Bunch-Kauffman LDLt
+                magma_int_t ldda = magma_roundup( N, opts.align );
+                magmaDoubleComplex_ptr d_A;
+                TESTING_CHECK( magma_zmalloc( &d_A, N*ldda ));
+                magma_zsetmatrix(N, N, h_A, lda, d_A, ldda, opts.queue );
+                gpu_time = magma_wtime();
+                magma_zhetrf_gpu( opts.uplo, N, d_A, ldda, ipiv, &info);
                 gpu_time = magma_wtime() - gpu_time;
                 magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
                 magma_free( d_A );
