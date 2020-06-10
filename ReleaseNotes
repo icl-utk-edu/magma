@@ -27,6 +27,9 @@ single (s), double (d), single-complex (c), double-complex (z).
  2.x.x - xxx xx, 2020
     * Support for Ampere GPUs
     * New routine: add trmm in all precisions
+    * New routine: add sidi routine in real precisions to compute inertia for 
+      symmetric indefinite matrices
+    * New routine: GPU interfaces to hetrf in all precisions
     * Bug fixes in herk and sytrd
 
  2.5.3 - Mar 28, 2020
