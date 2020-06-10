@@ -73,6 +73,13 @@ magma_int_t magma_get_zbulge_gcperf();
 
 #ifdef MAGMA_REAL
 // only applicable to real [sd] precisions
+magma_int_t
+magma_dsidi(
+    double *A, magma_int_t lda, magma_int_t n, magma_int_t *ipiv,
+    double *det, magma_int_t *inert,
+    double *work, magma_int_t job,
+    magma_int_t *info);
+
 void
 magma_dmove_eig(
     magma_range_t range, magma_int_t n, double *w,
