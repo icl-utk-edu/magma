@@ -199,7 +199,7 @@ magma_dsidi(
                 if (k > 0) {
                     blasf77_dcopy(&k, A(0, k), &ione, work, &ione);
                     for(j = 0; j<k; j++) {
-                        int jp1 = j+1;
+                        const magma_int_t jp1 = j+1;
                         *A(j,k) = blasf77_ddot(&jp1, A(0,j),&ione, work,&ione);
                         blasf77_daxpy(&j, &work[j], A(0,j),&ione, A(0,k),&ione);
                     }
@@ -219,7 +219,7 @@ magma_dsidi(
                 if (k > 0) {
                     blasf77_dcopy(&k, A(0,k+1),&ione, work,&ione);
                     for(j = 0; j<k; j++) {
-                        int jp1 = j+1;
+                        const magma_int_t jp1 = j+1;
                         *A(j,k+1) = blasf77_ddot(&jp1, A(0,j),&ione, work,&ione);
                         blasf77_daxpy(&j, &work[j], A(0,j),&ione, A(0,k+1),&ione);
                     }
@@ -228,7 +228,7 @@ magma_dsidi(
                     blasf77_dcopy(&k, A(0,k),&ione, work,&ione);
                     
                     for(j = 0; j<k; j++) {
-                        int jp1 = j+1;
+                        const magma_int_t jp1 = j+1;
                         *A(j,k) = blasf77_ddot(&jp1, A(0,j),&ione, work,&ione);
                         blasf77_daxpy(&j, &work[j], A(0,j),&ione, A(0,k),&ione);
                     }
@@ -239,7 +239,7 @@ magma_dsidi(
             /* swap */
             ks = abs(ipiv[k])-1;
             if (ks != k) {
-                int ksp1 = ks+1;
+                const magma_int_t ksp1 = ks+1;
                 blasf77_dswap(&ksp1, A(0,ks),&ione, A(0,k),&ione);
                 for(jb = ks; jb<=k; jb++) {
                     j = k + ks - jb;
