@@ -83,6 +83,9 @@ endif
 ifneq ($(findstring Turing, $(GPU_TARGET)),)
     GPU_TARGET += sm_75
 endif
+ifneq ($(findstring Ampere, $(GPU_TARGET)),)
+    GPU_TARGET += sm_80
+endif
 # Remember to add to CMakeLists.txt too!
 
 
@@ -169,8 +172,13 @@ ifneq ($(findstring sm_75, $(GPU_TARGET)),)
     NV_SM    += -gencode arch=compute_75,code=sm_75
     NV_COMP  := -gencode arch=compute_75,code=compute_75
 endif
+ifneq ($(findstring sm_80, $(GPU_TARGET)),)
+    MIN_ARCH ?= 800
+    NV_SM    += -gencode arch=compute_80,code=sm_80
+    NV_COMP  := -gencode arch=compute_80,code=compute_80
+endif
 ifeq ($(NV_COMP),)
-    $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
+    $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]. Please edit your make.inc file)
 endif
 NVCCFLAGS += $(NV_SM) $(NV_COMP)
 CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
