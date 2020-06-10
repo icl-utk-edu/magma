@@ -631,6 +631,8 @@ double get_LTLt_error(
     return residual / (matnorm * N);
 }
 
+#define COMPLEX
+
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zhetrf
 */
@@ -760,6 +762,21 @@ int main( int argc, char** argv)
                 gpu_time = magma_wtime();
                 magma_zhetrf( opts.uplo, N, h_A, lda, ipiv, &info);
                 gpu_time = magma_wtime() - gpu_time;
+
+                // To do: extend to test inertia for real case; 
+                #ifdef REALNO
+                double det[2];
+                magma_int_t inert[3];
+                //for(int kk=0; kk<N; kk++)
+                //    h_A[kk+(N-1)*lda] = h_A[N-1+kk*lda] = 0.;
+                TESTING_CHECK( magma_zmalloc_cpu( &work, N ));
+                magma_dsidi(h_A, lda, N, ipiv, det, inert,
+                            work, 110, &info);
+                printf("det[0] = %e, det[1] = %e\n", det[0], det[1]);
+                printf("inertia: positive / negative / zero = %d / %d / %d\n",
+                       inert[0], inert[1], inert[2]);
+                magma_free_cpu(work);
+                #endif
             }
             else if (nopiv_gpu) {
                 // GPU-interface to non-piv LDLt

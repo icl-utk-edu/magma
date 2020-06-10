@@ -145,6 +145,7 @@ libmagma_src += \
         \
 	$(cdir)/zhesv.cpp		\
 	$(cdir)/zhetrf.cpp		\
+        $(cdir)/dsidi.cpp               \
 	$(cdir)/zhetrf_aasen.cpp	\
 	$(cdir)/zhetrf_nopiv.cpp	\
 	$(cdir)/zhetrf_nopiv_cpu.cpp	\
