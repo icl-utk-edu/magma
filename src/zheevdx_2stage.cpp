@@ -246,9 +246,6 @@ magma_zheevdx_2stage(
     sizTAU1                      = n;
     ldz                          = n;
 
-    //magma_int_t sizZ;
-    //sizZ                         = wantz == 0 ? 0 : n*ldz;
-
     #ifdef COMPLEX
     lquery = (lwork == -1 || lrwork == -1 || liwork == -1);
     #else
@@ -351,7 +348,8 @@ magma_zheevdx_2stage(
     if ( ( ntiles < 2 ) || ( n <= 128 ) ) {
         #ifdef ENABLE_DEBUG
         printf("--------------------------------------------------------------\n");
-        printf("  warning matrix too small N=%lld NB=%lld, calling lapack on CPU\n", (long long) n, (long long) nb );
+        printf("  warning matrix too small N=%lld NB=%lld, calling lapack on CPU\n", 
+               (long long) n, (long long) nb );
         printf("--------------------------------------------------------------\n");
         #endif
         lapackf77_zheevd(jobz_, uplo_, &n,
@@ -392,22 +390,6 @@ magma_zheevdx_2stage(
         lapackf77_zlascl(uplo_, &izero, &izero, &d_one, &sigma, &n, &n, A,
                          &lda, info);
     }
-
-
-/*
-    #ifdef COMPLEX
-    magma_int_t indTAU1 = 0;
-    #else
-    magma_int_t indTAU1 = n;
-    #endif
-    magma_int_t indTAU2 = indTAU1 + sizTAU1;
-    magma_int_t indV2   = indTAU2 + sizTAU2;
-    magma_int_t indT2   = indV2   + sizV2;
-    magma_int_t indWORK = indT2   + sizT2;
-    magma_int_t indA2   = indWORK;
-    magma_int_t indZ    = indWORK;
-    magma_int_t indWEDC = indZ   + sizZ;
-*/
 
     #ifdef COMPLEX
     double *E                 = rwork;
@@ -554,11 +536,13 @@ magma_zheevdx_2stage(
         magma_queue_destroy( queue );
 
         timer_stop( time );
-        timer_printf( "  N= %10lld  nb= %5lld time zunmqr + copy = %6.2f\n", (long long) n, (long long) nb, time );
+        timer_printf( "  N= %10lld  nb= %5lld time zunmqr + copy = %6.2f\n", 
+                      (long long) n, (long long) nb, time );
         magma_free(dZ);
         magma_free(dA);
         timer_stop( time_total );
-        timer_printf( "  N= %10lld  nb= %5lld time eigenvectors backtransf. = %6.2f\n", (long long) n, (long long) nb, time_total );
+        timer_printf( "  N= %10lld  nb= %5lld time eigenvectors backtransf. = %6.2f\n", 
+                      (long long) n, (long long) nb, time_total );
     }
 
     magma_free(dT1);

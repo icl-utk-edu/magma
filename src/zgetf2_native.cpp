@@ -68,15 +68,15 @@ magma_zgetf2_native_blocked(
         }
 
         if ( (n-j-ib) > 0) {
-            magma_zgetf2trsm_2d_native( ib, n-j-ib, 
-                                        dA(j,j   ), ldda, 
+            magma_zgetf2trsm_2d_native( ib, n-j-ib,
+                                        dA(j,j   ), ldda,
                                         dA(j,j+ib), ldda, queue);
 
-            magma_zgemm( MagmaNoTrans, MagmaNoTrans, 
-                         m-(j+ib), n-(j+ib), ib, 
-                         c_neg_one, dA(ib+j, j   ), ldda, 
-                                    dA(j   , ib+j), ldda, 
-                         c_one,     dA(ib+j, ib+j), ldda, 
+            magma_zgemm( MagmaNoTrans, MagmaNoTrans,
+                         m-(j+ib), n-(j+ib), ib,
+                         c_neg_one, dA(ib+j, j   ), ldda,
+                                    dA(j   , ib+j), ldda,
+                         c_one,     dA(ib+j, ib+j), ldda,
                                     queue);
         }
     }
@@ -88,8 +88,8 @@ magma_int_t
 magma_zgetf2_native_recursive(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
-    magma_int_t *dipiv, magma_int_t *dipivinfo, 
-    magma_int_t *dinfo, magma_int_t gbstep, 
+    magma_int_t *dipiv, magma_int_t *dipivinfo,
+    magma_int_t *dinfo, magma_int_t gbstep,
     magma_queue_t queue, magma_queue_t update_queue)
 {
     magma_int_t arginfo = 0;
@@ -111,7 +111,7 @@ magma_zgetf2_native_recursive(
         return arginfo;
     }
 
-    magma_event_t events[2]; 
+    magma_event_t events[2];
     magma_event_create( &events[0] );
     magma_event_create( &events[1] );
 
@@ -125,12 +125,12 @@ magma_zgetf2_native_recursive(
     else                   {nb =  1;}
 
     if( n <= nb){
-        magma_int_t* update_flags = dipivinfo; 
+        magma_int_t* update_flags = dipivinfo;
         // wait for all kernels in the update queue to end before calling the panel kernel
         magma_event_record( events[0], update_queue );
         magma_queue_wait_event( queue, events[0] );
         magma_zgetf2_native_fused( m, n, dA(0,0), ldda, dipiv, gbstep, update_flags, dinfo, queue );
-        magma_event_record( events[1], queue ); 
+        magma_event_record( events[1], queue );
         magma_queue_wait_event( update_queue, events[1] );
         return 0;
     }
@@ -150,17 +150,17 @@ magma_zgetf2_native_recursive(
         #endif
 
         // update (trsm + gemm)
-        magma_zgetf2trsm_2d_native( n1, n2, 
-                                    dA(0,0), ldda, 
+        magma_zgetf2trsm_2d_native( n1, n2,
+                                    dA(0,0), ldda,
                                     dA(0,n1), ldda, queue);
 
-        magma_zgemm( MagmaNoTrans, MagmaNoTrans, 
-                     m-n1, n2, n1, 
-                     MAGMA_Z_NEG_ONE, dA(n1,  0), ldda, 
-                                      dA(0 , n1), ldda, 
+        magma_zgemm( MagmaNoTrans, MagmaNoTrans,
+                     m-n1, n2, n1,
+                     MAGMA_Z_NEG_ONE, dA(n1,  0), ldda,
+                                      dA(0 , n1), ldda,
                      MAGMA_Z_ONE,     dA(n1, n1), ldda, queue );
 
-        // lu on A2 
+        // lu on A2
         magma_zgetf2_native_recursive(m-n1, n2, dA(n1,n1), ldda, dipiv+n1, dipivinfo, dinfo, gbstep, queue, update_queue );
 
         // swap right: if PARSWAP is set, we need to call setup_pivinfo
@@ -196,7 +196,7 @@ magma_zgetf2_native_recursive(
 
     This is the right-looking Level 3 BLAS version of the algorithm.
 
-    This is a GPU-only routine. The host CPU is not used. 
+    This is a GPU-only routine. The host CPU is not used.
 
     Arguments
     ---------
@@ -256,16 +256,23 @@ extern "C" magma_int_t
 magma_zgetf2_native(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
-    magma_int_t *dipiv, magma_int_t* dipivinfo, 
-    magma_int_t *dinfo, magma_int_t gbstep, 
+    magma_int_t *dipiv, magma_int_t* dipivinfo,
+    magma_int_t *dinfo, magma_int_t gbstep,
     magma_queue_t queue, magma_queue_t update_queue)
 {
+    #ifdef HAVE_CUBLAS
     magma_int_t arch = magma_getdevice_arch();
     if(m > ZGETF2_FUSED_MAX_M || arch < 300){
       magma_zgetf2_native_blocked(m, n, dA, ldda, dipiv, dinfo, gbstep, queue);
     }
     else{
       magma_zgetf2_native_recursive(m, n, dA, ldda, dipiv, dipivinfo, dinfo, gbstep, queue, update_queue);
-    }    
+    }
+    #else
+    // (Ahmad) hipcc (from rocm 3.5) fails to compile the fused LU panel kernel
+    // (under magmablas/zgetf2_native_kernel.cu)
+    // So use the blocked implementation only
+    magma_zgetf2_native_blocked(m, n, dA, ldda, dipiv, dinfo, gbstep, queue);
+    #endif    // HAVE_CUBLAS
     return 0;
 }

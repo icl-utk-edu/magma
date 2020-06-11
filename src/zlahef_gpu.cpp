@@ -5,6 +5,9 @@
        Univ. of Colorado, Denver
        @date
 
+       @author Ichi Yamazaki
+       @author Stan Tomov
+
        @precisions normal z -> s d c
 */
 #include "magma_internal.h"
@@ -59,21 +62,6 @@
             KB is either NB-1 or NB, or N if N <= NB.
 
     @param[in,out]
-    hA      COMPLEX*16 array, dimension (LDA,N)
-            On entry, the Hermitian matrix A.  If UPLO = MagmaUpper, the leading
-            n-by-n upper triangular part of A contains the upper
-            triangular part of the matrix A, and the strictly lower
-            triangular part of A is not referenced.  If UPLO = MagmaLower, the
-            leading n-by-n lower triangular part of A contains the lower
-            triangular part of the matrix A, and the strictly upper
-            triangular part of A is not referenced.
-            On exit, A contains details of the partial factorization.
-
-    @param[in]
-    lda     INTEGER
-            The leading dimension of the array A.  LDA >= max(1,N).
-
-    @param[in,out]
     dA      COMPLEX*16 array on GPU, dimension (LDDA,N)
             On entry, the Hermitian matrix A.  If UPLO = MagmaUpper, the leading
             n-by-n upper triangular part of A contains the upper
@@ -114,11 +102,6 @@
             queues contain the queues used for the partial factorization.
             Currently, only one queue is used.
 
-    @param[in]
-    events  magma_event_t
-            events contain the events used for the partial factorization.
-            Currently, only one event is used.
-
     @param[out]
     info    INTEGER
       -     = 0: successful exit
@@ -131,10 +114,9 @@
 extern "C" magma_int_t
 magma_zlahef_gpu(
     magma_uplo_t uplo, magma_int_t n, magma_int_t nb, magma_int_t *kb,
-    magmaDoubleComplex    *hA, magma_int_t lda,
     magmaDoubleComplex_ptr dA, magma_int_t ldda, magma_int_t *ipiv,
     magmaDoubleComplex_ptr dW, magma_int_t lddw,
-    magma_queue_t queues[], magma_event_t events[],
+    magma_queue_t queues[],
     magma_int_t *info)
 {
     /* .. Parameters .. */
@@ -154,7 +136,6 @@ magma_zlahef_gpu(
 
     #define dA(i, j)  (dA[(j)*ldda  + (i)])
     #define dW(i, j)  (dW[(j)*lddw  + (i)])
-    #define  A(i, j)  (hA[(j)*lda   + (i)])
 
     /* .. Executable Statements .. */
     *info = 0;
@@ -424,12 +405,6 @@ magma_zlahef_gpu(
             if ( jp != jj && j < n )
                 magmablas_zswap( n-j, &dA( jp, j ), ldda, &dA( jj, j ), ldda, queues[0] );
         }
-
-        // copying the panel back to CPU
-        magma_event_record( events[0], queues[0] );
-        magma_queue_wait_event( queues[1], events[0] );
-        trace_gpu_start( 0, 1, "get", "get" );
-        magma_zgetmatrix_async( n, n-(k+1), &dA(0,k+1), ldda, &A(0,k+1), lda, queues[1] );
 
         /* Set KB to the number of columns factorized */
         *kb = n - (k+1);
@@ -726,12 +701,7 @@ magma_zlahef_gpu(
                 magma_queue_sync( queues[0] );
             }
         }
-        // copying the panel back to CPU
-        magma_event_record( events[0], queues[0] );
-        magma_queue_wait_event( queues[1], events[0] );
-        trace_gpu_start( 0, 1, "get", "get" );
-        magma_zgetmatrix_async( n, k, &dA(0,0), ldda, &A(0,0), lda, queues[1] );
-        trace_gpu_end( 0, 1 );
+
         /* Set KB to the number of columns factorized */
         *kb = k;
     }

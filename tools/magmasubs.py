@@ -168,6 +168,7 @@ lapack = [
     ('sbdsdc',         'dbdsdc',         'sbdsdc',         'dbdsdc'          ),
     ('sbdsqr',         'dbdsqr',         'cbdsqr',         'zbdsqr'          ),
     ('sbdt01',         'dbdt01',         'cbdt01',         'zbdt01'          ),
+    ('ssidi',          'dsidi',          'ssidi',          'dsidi'           ),
     ('sgbbrd',         'dgbbrd',         'cgbbrd',         'zgbbrd'          ),
     ('sgbsv',          'dgbsv',          'cgbsv',          'zgbsv'           ),
     ('sgebak',         'dgebak',         'cgebak',         'zgebak'          ),

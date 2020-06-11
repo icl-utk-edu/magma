@@ -101,7 +101,7 @@ endif()
 
 # ----------------------------------------
 # locate CUDA libraries
-set( GPU_TARGET "Kepler Maxwell Pascal" CACHE STRING "CUDA architectures to compile for; one or more of Fermi, Kepler, Maxwell, Pascal, Volta, or valid sm_[0-9][0-9]" )
+set( GPU_TARGET "Kepler Maxwell Pascal" CACHE STRING "CUDA architectures to compile for; one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
 find_package( CUDA )
 if (CUDA_FOUND)
     message( STATUS "Found CUDA ${CUDA_VERSION}" )
@@ -149,6 +149,10 @@ if (CUDA_FOUND)
 
     if (GPU_TARGET MATCHES Turing)
         set( GPU_TARGET "${GPU_TARGET} sm_75" )
+    endif()
+
+    if (GPU_TARGET MATCHES Ampere)
+        set( GPU_TARGET "${GPU_TARGET} sm_80" )
     endif()
 
     if (GPU_TARGET MATCHES sm_20)
@@ -259,8 +263,17 @@ if (CUDA_FOUND)
         message( STATUS "    compile for CUDA arch 7.5 (Turing)" )
     endif()
 
+    if (GPU_TARGET MATCHES sm_80)
+        if (NOT MIN_ARCH)
+            set( MIN_ARCH 800 )
+        endif()
+        set( NV_SM ${NV_SM} -gencode arch=compute_80,code=sm_80 )
+        set( NV_COMP        -gencode arch=compute_80,code=compute_80 )
+        message( STATUS "    compile for CUDA arch 8.0 (Ampere)" )
+    endif()
+
     if (NOT MIN_ARCH)
-        message( FATAL_ERROR "GPU_TARGET must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]" )
+        message( FATAL_ERROR "GPU_TARGET must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
     endif()
 
     set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -fPIC -DHAVE_CUBLAS ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )

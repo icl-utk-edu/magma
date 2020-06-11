@@ -5,8 +5,9 @@
        Univ. of Colorado, Denver
        @date
 
+       @author Stan Tomov 
        @author Ichi Yamazaki
-
+       
        @precisions normal z -> s d c
 */
 #include "magma_internal.h"
@@ -40,7 +41,7 @@
             The order of the matrix A.  N >= 0.
   
     @param[in,out]
-    A       COMPLEX*16 array, dimension (LDA,N)
+    dA      COMPLEX*16 array, dimension (LDA,N)
             On entry, the Hermitian matrix A.  If UPLO = MagmaUpper, the leading
             N-by-N upper triangular part of A contains the upper
             triangular part of the matrix A, and the strictly lower
@@ -53,7 +54,7 @@
             to obtain the factor U or L (see below for further details).
  
     @param[in]
-    lda     INTEGER
+    ldda    INTEGER
             The leading dimension of the array A.  LDA >= max(1,N).
  
     @param[out]
@@ -115,12 +116,12 @@
     @ingroup magma_hetrf
 *******************************************************************************/
 extern "C" magma_int_t
-magma_zhetrf(
+magma_zhetrf_gpu(
     magma_uplo_t uplo, magma_int_t n,
-    magmaDoubleComplex *A, magma_int_t lda,
+    magmaDoubleComplex *dA, magma_int_t ldda,
     magma_int_t *ipiv, magma_int_t *info)
 {
-    #define  A(i_, j_) ( A + (i_) + (j_)*lda )
+    #define  A(i_, j_) ( A + (0 ) + (0 )*lda )
     #define dA(i_, j_) (dA + (i_) + (j_)*ldda)
 
     /* .. Local Scalars .. */
@@ -134,7 +135,7 @@ magma_zhetrf(
         *info = -1;
     } else if ( n < 0 ) {
         *info = -2;
-    } else if ( lda < max( 1, n ) ) {
+    } else if ( ldda < max( 1, n ) ) {
         *info = -4;
     }
     if ( *info != 0 ) {
@@ -143,10 +144,10 @@ magma_zhetrf(
     }
 
     // TODO fix memory leak of dA if dW fails
-    magma_int_t ldda = magma_roundup( n, 32 );
-    magmaDoubleComplex_ptr dA, dW;
-    if ((MAGMA_SUCCESS != magma_zmalloc( &dA, n*ldda  )) ||
-        (MAGMA_SUCCESS != magma_zmalloc( &dW, (1+nb)*ldda ))) {
+    magma_int_t lda = magma_roundup( n, 32 );
+    magmaDoubleComplex_ptr A, dW;
+    if ((MAGMA_SUCCESS != magma_zmalloc_pinned( &A, nb*lda  )) ||
+        (MAGMA_SUCCESS != magma_zmalloc( &dW,  (1+nb)*ldda ))) {
         *info = MAGMA_ERR_DEVICE_ALLOC;
         return *info;
     }
@@ -154,27 +155,9 @@ magma_zhetrf(
     magma_getdevice( &cdev );
 
     magma_queue_t queues[2];
-    magma_event_t event;
     magma_queue_create( cdev, &queues[0] );
     magma_queue_create( cdev, &queues[1] );
-    magma_event_create( &event );
     trace_init( 1, 1, 2, queues );
-
-    /* copy matrix to GPU */
-    trace_gpu_start( 0, 0, "set", "setA" );
-    //magma_zsetmatrix_async( n, n, A(0,0), lda, dA(0,0), ldda, queues[0] );
-    if ( upper ) {
-        for (k = 0; k < n; k += nb ) {
-            kb = min(nb, n-k);
-            magma_zsetmatrix_async( k+kb, kb, A(0,k), lda, dA(0,k), ldda, queues[0] );
-        }
-    } else {
-        for (k = 0; k < n; k += nb ) {
-            kb = min(nb, n-k);
-            magma_zsetmatrix_async( n-k, kb, A(k,k), lda, dA(k,k), ldda, queues[0] );
-        }
-    }
-    trace_gpu_end( 0, 0 );
 
     if ( upper ) {
         /* Factorize A as U*D*U' using the upper triangle of A
@@ -194,19 +177,13 @@ magma_zhetrf(
 
                 magma_zlahef_gpu( MagmaUpper, nk, kb, &kb, dA( 0, 0 ), ldda,
                                   &ipiv[0], dW, ldda, queues, &iinfo );
-
-                // copying the panel back to CPU
-                magma_event_record( event, queues[0] );
-                magma_queue_wait_event( queues[1], event );
-                trace_gpu_start( 0, 1, "get", "get" );
-                magma_zgetmatrix_async( nk, kb, dA(0,nk-kb), ldda, A(0,nk-kb), lda, queues[1] );  
-                trace_gpu_end( 0, 1 );
             } else {
                 /* Use unblocked code to factorize columns 1:k of A */
 
                 magma_queue_sync( queues[0] );
                 magma_zgetmatrix( nk, nk, dA( 0, 0 ), ldda, A( 0, 0 ), lda, queues[0] );
                 lapackf77_zhetf2( MagmaUpperStr, &nk, A( 0, 0 ), &lda, &ipiv[0], &iinfo );
+                magma_zsetmatrix( nk, nk, A( 0, 0 ), lda, dA( 0, 0 ), ldda, queues[0] );
                 kb = k+1;
             }
 
@@ -229,19 +206,13 @@ magma_zhetrf(
                    update columns k+kb:n */
                 magma_zlahef_gpu( MagmaLower, nk, nb, &kb, dA( k, k ), ldda,
                                   &ipiv[k], dW, ldda, queues, &iinfo );
-
-                // copying the panel back to CPU
-                magma_event_record( event, queues[0] );
-                magma_queue_wait_event( queues[1], event );
-                trace_gpu_start( 0, 1, "get", "get" );
-                magma_zgetmatrix_async( nk, kb, dA(k,k), ldda, A(k,k), lda, queues[1] );
-                trace_gpu_end( 0, 1 ); 
             }
             else {
                 /* Use unblocked code to factorize columns k:n of A */
                 magma_queue_sync( queues[0] );
                 magma_zgetmatrix( nk, nk, dA(k,k), ldda, A(k,k), lda, queues[0] );
                 lapackf77_zhetf2( MagmaLowerStr, &nk, A( k, k ), &lda, &ipiv[k], &iinfo );
+                magma_zsetmatrix( nk, nk, A(k,k), lda, dA(k,k), ldda, queues[0] );
             }
             /* Set INFO on the first occurrence of a zero pivot */
             if ( *info == 0 && iinfo > 0 ) *info = iinfo + k;
@@ -259,10 +230,9 @@ magma_zhetrf(
     trace_finalize( "zhetrf.svg", "trace.css" );
     magma_queue_sync( queues[0] );
     magma_queue_sync( queues[1] );
-    magma_event_destroy( event );
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
-    magma_free( dA );
+    magma_free_pinned( A );
     magma_free( dW );
     
     return *info;

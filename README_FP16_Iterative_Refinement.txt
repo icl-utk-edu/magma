@@ -1,7 +1,7 @@
 Magma is releasing the Nvidia Tensor Cores version of its linear mixed-precision solver that is able to provide an FP64 solution with up to 4X speedup.
 The goal is to show that Tensor Cores are not limited to artificial intelligence and we showed that high-performance computing (HPC) applications can also harness this power.
 
-The idea is to take advantage of the 125 Tflops FP16 performance of the Tensor Cores on Nvidia Volta and to develop mixed-precision algorithms that use the Tensor Cores hardware and can provide solution to the FP64 accuracy by using iterative refinement techniques and mixed-precision factorizations.
+The idea is to take advantage of the FP16 performance of the Tensor Cores on Nvidia Volta (or later) GPUs, and to develop mixed-precision algorithms that use the Tensor Cores hardware and can provide solution to the FP64 accuracy by using iterative refinement techniques and mixed-precision factorizations.
 That's what we call FP16-TC iterative refinement linear solver to solve Ax=b.
 
 The API for the solver is designed to make it simple and straightforward to plug and replace LAPACK or Magma call by the new Magma API.
@@ -17,10 +17,10 @@ Iterative refinement has been known longtime ago for FP32 to FP64 where the most
 Magma releases its solver that can go from FP16 or FP32 to FP64 using different techniques for iterative refinement such as GMRES or classical iterative refinement. This provides a large set of implementations that can be studied and investigated by the research community. All versions are embedded and accessible through one expert API call where the user can specify which mixed-precision algorithm and which iterative refinement techniques must be used.
 The solver has fallback to a FP64 computation in case any of the internal computations fail.
 
-For simplicity, we also provide 2 other simple APIs that are similar to the LAPACK dsgesv API for users who want plug and replace APIs in their code without worrying about how to call the expert API. 
-1- The FP32 to FP64 API magma_dsgesv_iteref_gpu, which is similar to the LAPACK dsgesv API. Here A, X, and B are FP64, the routine does the internal conversion and computation, and provides FP64 solution.  
+For simplicity, we also provide 2 other simple APIs that are similar to the LAPACK dsgesv API for users who want plug and replace APIs in their code without worrying about how to call the expert API.
+1- The FP32 to FP64 API magma_dsgesv_iteref_gpu, which is similar to the LAPACK dsgesv API. Here A, X, and B are FP64, the routine does the internal conversion and computation, and provides FP64 solution.
 
-2- The FP16 to FP64 API magma_dhgesv_iteref_gpu, which is similar to the magma_dsgesv_gpu API, except it does use the tensor cores and performs computations in FP16. Here A, X, and B are FP64, the routine does the internal conversion and computation, and provides FP64 solution.  
+2- The FP16 to FP64 API magma_dhgesv_iteref_gpu, which is similar to the magma_dsgesv_gpu API, except it does use the tensor cores and performs computations in FP16. Here A, X, and B are FP64, the routine does the internal conversion and computation, and provides FP64 solution.
 
 
 Other released routines  include the Mixed precision LU factorization routines:

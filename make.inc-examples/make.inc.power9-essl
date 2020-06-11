@@ -6,17 +6,19 @@
 #      @date
 #//////////////////////////////////////////////////////////////////////////////
 
-# GPU_TARGET contains one or more of Fermi, Kepler, or Maxwell,
+# GPU_TARGET contains one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or Ampere
 # to specify for which GPUs you want to compile MAGMA:
-#     Fermi   - NVIDIA compute capability 2.x cards
-#     Kepler  - NVIDIA compute capability 3.x cards
-#     Maxwell - NVIDIA compute capability 5.x cards
-#     Pascal  - NVIDIA compute capability 6.x cards
-# The default is "Fermi Kepler".
+#     Fermi          - NVIDIA compute capability 2.x cards
+#     Kepler         - NVIDIA compute capability 3.x cards
+#     Maxwell        - NVIDIA compute capability 5.x cards
+#     Pascal         - NVIDIA compute capability 6.x cards
+#     Volta/Turing   - NVIDIA compute capability 7.x cards
+#     Ampere         - NVIDIA compute capability 8.x cards
+# The default is "Kepler Maxwell Pascal".
 # Note that NVIDIA no longer supports 1.x cards, as of CUDA 6.5.
 # See http://developer.nvidia.com/cuda-gpus
 #
-#GPU_TARGET ?= Fermi Kepler Volta
+#GPU_TARGET ?= Kepler Maxwell Pascal
 
 # --------------------
 # programs
@@ -38,7 +40,7 @@ RANLIB    = ranlib
 # can be commented out if making only static library.
 FPIC      = -fPIC
 
-CFLAGS    = -O3 $(FPIC) -qsmp=omp -DNDEBUG -DNOCHANGE -Wall -Wshadow 
+CFLAGS    = -O3 $(FPIC) -qsmp=omp -DNDEBUG -DNOCHANGE -Wall -Wshadow
 FFLAGS    = -O3 $(FPIC)       -DNDEBUG -DNOCHANGE
 F90FLAGS  = -O3 $(FPIC)       -DNDEBUG -DNOCHANGE
 NVCCFLAGS = -O3               -DNDEBUG -DNOCHANGE -Xcompiler "$(FPIC) -Wall -Wno-unused-function" -std=c++11

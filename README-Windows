@@ -46,25 +46,26 @@ the setup some.
    (all on one line, no spaces before or after):
 
    c:\Program Files (x86)\Intel\Composer XE\mkl\lib\intel64\mkl_intel_lp64_dll.lib;c:\Program Files (x86)\Intel\Composer XE\mkl\lib\intel64\mkl_intel_thread_dll.lib;c:\Program Files (x86)\Intel\Composer XE\mkl\lib\intel64\mkl_core_dll.lib;c:\Program Files (x86)\Intel\Composer XE\compiler\lib\intel64\libiomp5md.lib
-   
+
    For MKL, you can determine what libraries to link with using the
    Intel MKL Link Link Advisor, at
    http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor
-   
+
    For OpenBLAS, we used (again, no spaces before or after):
-   
+
    c:\openblas-0.2.14\lib\libopenblas.dll.a
 
 *  If using Intel MKL, also set MKLROOT. In our case, we used:
    C:\Program Files (x86)\Intel\Composer XE\mkl
 
-*  GPU_TARGET contains one or more of Fermi, Kepler, Maxwell, Pascal, Volta
+*  GPU_TARGET contains one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or Ampere
    to specify for which GPUs you want to compile MAGMA:
-       Fermi   - NVIDIA compute capability 2.x cards
-       Kepler  - NVIDIA compute capability 3.x cards
-       Maxwell - NVIDIA compute capability 5.x cards
-       Pascal  - NVIDIA compute capability 6.x cards
-       Volta   - NVIDIA compute capability 7.x cards
+       Fermi          - NVIDIA compute capability 2.x cards
+       Kepler         - NVIDIA compute capability 3.x cards
+       Maxwell        - NVIDIA compute capability 5.x cards
+       Pascal         - NVIDIA compute capability 6.x cards
+       Volta/Turing   - NVIDIA compute capability 7.x cards
+       Ampere         - NVIDIA compute capability 8.x cards
    The default is "Kepler Maxwell Pascal".
    See http://developer.nvidia.com/cuda-gpus
 
