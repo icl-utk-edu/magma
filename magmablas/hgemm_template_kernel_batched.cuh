@@ -14,7 +14,6 @@
 #include "gemm_template_device_defs.cuh"
 #include "hgemm_template_device.cuh"
 
-extern __shared__ float sdata[];
 /******************************************************************************/
 template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, const int TC_M, const int TC_N, const int TC_K>
 static __global__
@@ -29,6 +28,8 @@ void hgemm_template_batched_nn_kernel(
     int roffC, int coffC )
 {
     const int batchid = blockIdx.z;
+    extern __shared__ float sdata[];
+    
     T* sC = (T*)sdata;
     T* sA = sC + BLK_M * BLK_N;
     T* sB = sA + BLK_M * BLK_K;    
@@ -56,6 +57,8 @@ void hgemm_template_batched_nt_kernel(
     int roffC, int coffC )
 {
     const int batchid = blockIdx.z;
+    extern __shared__ float sdata[];
+    
     T* sC = (T*)sdata;
     T* sA = sC + BLK_M * BLK_N;
     T* sB = sA + BLK_M * BLK_K;    
@@ -83,6 +86,8 @@ void hgemm_template_batched_tn_kernel(
     int roffC, int coffC )
 {
     const int batchid = blockIdx.z;
+    extern __shared__ float sdata[];
+    
     T* sC = (T*)sdata;
     T* sA = sC + BLK_M * BLK_N;
     T* sB = sA + BLK_M * BLK_K;    
@@ -110,6 +115,8 @@ void hgemm_template_batched_tt_kernel(
     int roffC, int coffC )
 {
     const int batchid = blockIdx.z;
+    extern __shared__ float sdata[];
+    
     T* sC = (T*)sdata;
     T* sA = sC + BLK_M * BLK_N;
     T* sB = sA + BLK_M * BLK_K;    
