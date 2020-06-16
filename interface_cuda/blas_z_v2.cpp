@@ -1905,8 +1905,8 @@ magma_ztrmm(
     // TODO: remove fallback when hipblas provides this routine
     magmablas_ztrmm(
         side, uplo, trans, diag, m, n,
-        alpha, dA, ldda,
-               dB, lddb, queue );
+        alpha, (magmaDoubleComplex_ptr)dA, ldda,
+               (magmaDoubleComplex_ptr)dB, lddb, queue );
     #else
     cublasZtrmm(
         queue->cublas_handle(),
