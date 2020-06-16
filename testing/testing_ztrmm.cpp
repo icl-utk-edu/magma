@@ -55,7 +55,7 @@ int main( int argc, char** argv)
     double eps = lapackf77_dlamch("E");
     double tol = 3*eps;
 
-    #ifdef HAVE_CUBLAS
+    #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
     // for CUDA, we can check MAGMA vs. CUBLAS, without running LAPACK
     printf("%% If running lapack (option --lapack), MAGMA and %s errors are both computed\n"
            "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to %s result.\n\n",
@@ -136,7 +136,7 @@ int main( int argc, char** argv)
             magma_zsetmatrix( Ak, Ak, hA, lda, dA(0,0), ldda, opts.queue );
             magma_zsetmatrix( M,  N,  hB, ldb, dB(0,0), lddb, opts.queue );
 
-            #if HAVE_CUBLAS
+            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
             // note cublas does trmm out-of-place (i.e., adds output matrix C),
             // but allows C=B to do in-place.
             dev_time = magma_sync_wtime( opts.queue );
@@ -173,7 +173,7 @@ int main( int argc, char** argv)
                 magma_error = lapackf77_zlange( "M", &M, &N, hBmagma, &ldb, work )
                             / (sqrt(double(Ak+2))*fabs(alpha)*Anorm*Bnorm);
 
-                #ifdef HAVE_CUBLAS
+                #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 blasf77_zaxpy( &sizeB, &c_neg_one, hB, &ione, hBdev, &ione );
                 dev_error = lapackf77_zlange( "M", &M, &N, hBdev, &ldb, work )
                             / (sqrt(double(Ak+2))*fabs(alpha)*Anorm*Bnorm);
@@ -199,7 +199,7 @@ int main( int argc, char** argv)
 
             }
             else {
-                #ifdef HAVE_CUBLAS
+                #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 blasf77_zaxpy( &sizeB, &c_neg_one, hBdev, &ione, hBmagma, &ione );
                 magma_error = lapackf77_zlange( "M", &M, &N, hBmagma, &ldb, work )
                             / (sqrt(double(Ak+2))*fabs(alpha)*Anorm*Bnorm);
