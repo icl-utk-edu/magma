@@ -1903,7 +1903,7 @@ magma_ztrmm(
 {
     #ifdef HAVE_HIP
     // TODO: remove fallback when hipblas provides this routine
-    magma_ztrmm(
+    magmablas_ztrmm(
         side, uplo, trans, diag, m, n,
         alpha, dA, ldda,
                dB, lddb, queue );
