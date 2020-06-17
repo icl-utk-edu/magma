@@ -918,7 +918,7 @@ magma_zher(
         queue->cublas_handle(),
         cublas_uplo_const( uplo ),
         int(n),
-        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dx, int(incx),
+        (const double*)&alpha, (cuDoubleComplex*)dx, int(incx),
                 (cuDoubleComplex*)dA, int(ldda) );
 }
 #endif // COMPLEX

@@ -37,13 +37,13 @@
  *       */
 #ifdef PRECISION_z
   #ifdef HAVE_HIP
-    typedef hipDoubleComplex BackendFloat_t;
+    typedef hipblasDoubleComplex BackendFloat_t;
   #else
     typedef BackendFloat_t BackendFloat_t;
   #endif
 #elif defined(PRECISION_c)
   #ifdef HAVE_HIP
-    typedef hipComplex BackendFloat_t;
+    typedef hipblasComplex BackendFloat_t;
   #else
     typedef cuFloatComplex BackendFloat_t;
   #endif
