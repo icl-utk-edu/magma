@@ -1421,9 +1421,9 @@ magma_zhemm(
     #ifdef HAVE_HIP
     // TODO: remove fallback when hipblas provides this routine
     magmablas_zhemm(
-        side, uplo, m, n, 
-        alpha, (magmaDoubleComplex_ptr)dA, ldda, 
-               (magmaDoubleComplex_ptr)dB, lddb, 
+        side, uplo, m, n,
+        alpha, (magmaDoubleComplex_ptr)dA, ldda,
+               (magmaDoubleComplex_ptr)dB, lddb,
         beta,  dC, lddc, queue );
     #else
     cublasZhemm(
@@ -1499,8 +1499,8 @@ magma_zherk(
     #ifdef HAVE_HIP
     // TODO: remove fallback when hipblas provides this routine
     magmablas_zherk(
-        uplo, trans, n, k, 
-        alpha, (magmaDoubleComplex_ptr)dA, ldda, 
+        uplo, trans, n, k,
+        alpha, (magmaDoubleComplex_ptr)dA, ldda,
         beta,  dC, lddc, queue );
     #else
     cublasZherk(
@@ -1510,7 +1510,7 @@ magma_zherk(
         int(n), int(k),
         &alpha, (cuDoubleComplex*)dA, int(ldda),
         &beta,  (cuDoubleComplex*)dC, int(lddc) );
-    #endif	
+    #endif
 }
 #endif // COMPLEX
 
@@ -1584,9 +1584,9 @@ magma_zher2k(
     #ifdef HAVE_HIP
     // TODO: remove fallback when hipblas provides this routine
     magmablas_zher2k(
-        uplo, trans, n, k, 
-        alpha, (magmaDoubleComplex_ptr)dA, ldda, 
-               (magmaDoubleComplex_ptr)dB, lddb, 
+        uplo, trans, n, k,
+        alpha, (magmaDoubleComplex_ptr)dA, ldda,
+               (magmaDoubleComplex_ptr)dB, lddb,
         beta,  dC, lddc, queue );
     #else
     cublasZher2k(
@@ -1668,9 +1668,9 @@ magma_zsymm(
     #ifdef HAVE_HIP
     // TODO: remove fallback when hipblas provides this routine
     magmablas_zsymm(
-        side, uplo, m, n, 
-        alpha, (magmaDoubleComplex_ptr)dA, ldda, 
-               (magmaDoubleComplex_ptr)dB, lddb, 
+        side, uplo, m, n,
+        alpha, (magmaDoubleComplex_ptr)dA, ldda,
+               (magmaDoubleComplex_ptr)dB, lddb,
         beta,  dC, lddc, queue );
     #else
     cublasZsymm(
@@ -1744,8 +1744,8 @@ magma_zsyrk(
     #ifdef HAVE_HIP
     // TODO: remove fallback when hipblas provides this routine
     magmablas_zsyrk(
-        uplo, trans, n, k, 
-        alpha, (magmaDoubleComplex_ptr)dA, ldda, 
+        uplo, trans, n, k,
+        alpha, (magmaDoubleComplex_ptr)dA, ldda,
         beta,  dC, lddc, queue );
     #else
     cublasZsyrk(
@@ -1827,9 +1827,9 @@ magma_zsyr2k(
     #ifdef HAVE_HIP
     // TODO: remove fallback when hipblas provides this routine
     magmablas_zsyr2k(
-        uplo, trans, n, k, 
-        alpha, (magmaDoubleComplex_ptr)dA, ldda, 
-               (magmaDoubleComplex_ptr)dB, lddb, 
+        uplo, trans, n, k,
+        alpha, (magmaDoubleComplex_ptr)dA, ldda,
+               (magmaDoubleComplex_ptr)dB, lddb,
         beta,  dC, lddc, queue );
     #else
     cublasZsyr2k(
@@ -1901,6 +1901,13 @@ magma_ztrmm(
     magmaDoubleComplex_ptr       dB, magma_int_t lddb,
     magma_queue_t queue )
 {
+    #ifdef HAVE_HIP
+    // TODO: remove fallback when hipblas provides this routine
+    magmablas_ztrmm(
+        side, uplo, trans, diag, m, n,
+        alpha, (magmaDoubleComplex_ptr)dA, ldda,
+               (magmaDoubleComplex_ptr)dB, lddb, queue );
+    #else
     cublasZtrmm(
         queue->cublas_handle(),
         cublas_side_const( side ),
@@ -1908,9 +1915,10 @@ magma_ztrmm(
         cublas_trans_const( trans ),
         cublas_diag_const( diag ),
         int(m), int(n),
-        (cuDoubleComplex*)&alpha, (cuDoubleComplex*)dA, int(ldda),
-                (cuDoubleComplex*)dB, int(lddb),
-                (cuDoubleComplex*)dB, int(lddb) );  /* C same as B; less efficient */
+        &alpha, dA, int(ldda),
+                dB, int(lddb),
+                dB, int(lddb) );  /* C same as B; less efficient */
+    #endif
 }
 
 
