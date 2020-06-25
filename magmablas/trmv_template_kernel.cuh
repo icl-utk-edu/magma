@@ -39,7 +39,7 @@ void trmv_template(
     if(!(transA == MagmaNoTrans)) {
         // the device code transposes the matrix in shared memory
         // so we should switch the uplo Trans and ConjTrans
-        uplo == (uplo == MagmaLower) ? MagmaUpper : MagmaLower;
+        uplo = (uplo == MagmaLower) ? MagmaUpper : MagmaLower;
     }
 
     dim3 threads(NB, 1, 1);
