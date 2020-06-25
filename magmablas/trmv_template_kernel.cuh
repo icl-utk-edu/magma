@@ -30,7 +30,7 @@ void trmv_small_template_kernel(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // kernel wrappers
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB>
+template <typename T, const int NB, int CONJA>
 void trmv_template(
     magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t n, T* dA, magma_int_t ldda, T* dX, magma_int_t incx,
