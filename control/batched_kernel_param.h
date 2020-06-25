@@ -54,7 +54,7 @@
 
 
 
-// TRSM tuning parameters 
+// TRSM tuning parameters
 #define STRTRI_BATCHED_NB         (64)
 #define STRTRI_BATCHED_BLOCK_SIZE (16)
 #define DTRTRI_BATCHED_NB         (64)
@@ -64,7 +64,7 @@
 #define ZTRTRI_BATCHED_NB         (128)
 #define ZTRTRI_BATCHED_BLOCK_SIZE (16)
 
-// HEMM tuning 
+// HEMM tuning
 #define ZHEMM_BATCHED_LEFT    8, 16, 16, 1
 #define ZHEMM_BATCHED_RIGHT   8, 16, 16, 1
 #define CHEMM_BATCHED_LEFT    16, 32, 32, 1
@@ -86,6 +86,12 @@
 #define DTRMM_NB    (32)
 #define STRMM_NB    (32)
 
+// TRMV Tuning
+#define ZTRMV_NB    (32)
+#define CTRMV_NB    (64)
+#define DTRMV_NB    (64)
+#define STRMV_NB    (64)
+
 // HEMV tuning
 #define ZHEMV_BATCHED_LOWER    16, 4
 #define CHEMV_BATCHED_LOWER    16, 4
@@ -106,6 +112,6 @@
                                (N >   8)? 16 : \
                                (N >   4)?  8 : \
                                (N >   2)?  4 : \
-                               (N >   0)?  2 : 0 )    
+                               (N >   0)?  2 : 0 )
 
 #endif        //  #ifndef BATCHED_KERNEL_PARAM_H
