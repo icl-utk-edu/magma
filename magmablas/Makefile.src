@@ -355,6 +355,11 @@ $(cdir)/cherk_vbatched_core.$(o_ext): $(cdir)/herk_template_kernel_vbatched.cuh 
 $(cdir)/dsyrk_vbatched_core.$(o_ext): $(cdir)/herk_template_kernel_vbatched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/ssyrk_vbatched_core.$(o_ext): $(cdir)/herk_template_kernel_vbatched.cuh $(cdir)/gemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 
+$(cdir)/ztrmv.$(o_ext): $(cdir)/trmv_template_kernel.cuh $(cdir)/trmv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/ctrmv.$(o_ext): $(cdir)/trmv_template_kernel.cuh $(cdir)/trmv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/dtrmv.$(o_ext): $(cdir)/trmv_template_kernel.cuh $(cdir)/trmv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/strmv.$(o_ext): $(cdir)/trmv_template_kernel.cuh $(cdir)/trmv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+
 $(cdir)/zgemm_fermi.$(o_ext): $(cdir)/zgemm_fermi_kernels.h $(cdir)/gemm_stencil.cuh $(cdir)/gemm_kernel.cuh $(cdir)/gemm_stencil_defs.h
 $(cdir)/cgemm_fermi.$(o_ext): $(cdir)/cgemm_fermi_kernels.h $(cdir)/gemm_stencil.cuh $(cdir)/gemm_kernel.cuh $(cdir)/gemm_stencil_defs.h
 $(cdir)/dgemm_fermi.$(o_ext): $(cdir)/dgemm_fermi_kernels.h $(cdir)/gemm_stencil.cuh $(cdir)/gemm_kernel.cuh $(cdir)/gemm_stencil_defs.h
