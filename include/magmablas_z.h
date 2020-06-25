@@ -1248,7 +1248,7 @@ magma_ztrmv(
 
 void
 magmablas_ztrmv(
-    magma_trans_t trans, magma_diag_t diag,
+    magma_uplo_t uplo, magma_trans_t trans, magma_diag_t diag,
     magma_int_t n,
     magmaDoubleComplex *dA, magma_int_t ldda,
     magmaDoubleComplex *dx, magma_int_t incx,
