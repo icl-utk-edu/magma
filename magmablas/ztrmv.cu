@@ -152,7 +152,7 @@ magmablas_ztrmv_core(
                         uplo, transA, diag, n2,
                         dA(n1, n1), ldda, dX(n1), incx, queue );
 
-                magma_zgemm(
+                magma_zgemv(
                         transA,
                         n1, n2,
                         c_one, dA(0, n1), ldda,
