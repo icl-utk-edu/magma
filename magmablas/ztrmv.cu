@@ -87,12 +87,11 @@ magmablas_ztrmv_core(
                         uplo, transA, diag, m2,
                         dA(m1, m1), ldda, dX(m1), incx, queue );
 
-                magma_zgemm(
-                        MagmaNoTrans, MagmaNoTrans,
-                        m2, n, m1,
-                        alpha, dA(m1, 0), ldda,
-                               dB( 0, 0), lddb,
-                        c_one, dB(m1, 0), lddb,
+                magmablas_zgemv(
+                        MagmaNoTrans, m2, m1,
+                        c_one, dA(m1, 0), ldda,
+                               dX( 0), incx,
+                        c_one, dX(m1), incx,
                         queue );
 
                 magmablas_ztrmv_core(
@@ -109,12 +108,12 @@ magmablas_ztrmv_core(
                         uplo, transA, diag, m1,
                         dA(0, 0), ldda, dX(0), incx, queue );
 
-                magma_zgemm(
-                        MagmaNoTrans, MagmaNoTrans,
-                        m1, n, m2,
-                        alpha, dA( 0, m1), ldda,
-                               dB(m1,  0), lddb,
-                        c_one, dB( 0,  0), lddb,
+                magma_zgemv(
+                        MagmaNoTrans,
+                        m1, m2,
+                        c_one, dA( 0, m1), ldda,
+                               dX(m1), incx,
+                        c_one, dX( 0), incx,
                         queue );
 
                 magmablas_ztrmv_core(
@@ -129,14 +128,14 @@ magmablas_ztrmv_core(
 
                 magmablas_ztrmv_core(
                         uplo, transA, diag, m1,
-                        dA(0, 0), ldda, dX(0, 0), incx, queue );
+                        dA(0, 0), ldda, dX(0), incx, queue );
 
-                magma_zgemm(
-                        transA, MagmaNoTrans,
-                        m1, n, m2,
-                        alpha, dA(m1, 0), ldda,
-                               dB(m1, 0), lddb,
-                        c_one, dB( 0, 0), lddb,
+                magma_zgemv(
+                        transA,
+                        m2, m1,
+                        c_one, dA(m1, 0), ldda,
+                               dX(m1), incx,
+                        c_one, dX( 0), incx,
                         queue );
 
                 magmablas_ztrmv_core(
@@ -151,14 +150,14 @@ magmablas_ztrmv_core(
 
                 magmablas_ztrmv_core(
                         uplo, transA, diag, m2,
-                        dA(m1, m1), ldda, dX(m1,  0), incx, queue );
+                        dA(m1, m1), ldda, dX(m1), incx, queue );
 
                 magma_zgemm(
-                        transA, MagmaNoTrans,
-                        m2, n, m1,
-                        alpha, dA(0, m1), ldda,
-                               dB(0,  0), lddb,
-                        c_one, dB(m1, 0), lddb,
+                        transA,
+                        m1, m2,
+                        c_one, dA(0, m1), ldda,
+                               dX( 0), incx,
+                        c_one, dX(m1), incx,
                         queue );
 
                 magmablas_ztrmv_core(
