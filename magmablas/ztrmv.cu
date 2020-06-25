@@ -64,7 +64,7 @@ magmablas_ztrmv_core(
     const magmaDoubleComplex c_one = MAGMA_Z_ONE;
 
     // stopping condition
-    if(nrowA <= ZTRMV_NB){
+    if(n <= ZTRMV_NB){
         magmablas_ztrmv_small( uplo, transA, diag, n, dA, ldda, dX, incx, queue );
         return;
     }
@@ -80,7 +80,7 @@ magmablas_ztrmv_core(
     {
         case 0: // Nl
             {
-                const int m1 = magma_get_ztrmv_nb(m);
+                const int m1 = magma_get_ztrmv_nb(n);
                 const int m2 = m - m1;
 
                 magmablas_ztrmv_core(
@@ -101,7 +101,7 @@ magmablas_ztrmv_core(
             break;
         case 1: // NU
             {
-                const int m2 = magma_get_ztrmv_nb(m);
+                const int m2 = magma_get_ztrmv_nb(n);
                 const int m1 = m - m2;
 
                 magmablas_ztrmv_core(
@@ -123,7 +123,7 @@ magmablas_ztrmv_core(
             break;
         case 2: // TL || CL
             {
-                const int m2 = magma_get_ztrmv_nb(m);
+                const int m2 = magma_get_ztrmv_nb(n);
                 const int m1 = m - m2;
 
                 magmablas_ztrmv_core(
@@ -145,7 +145,7 @@ magmablas_ztrmv_core(
             break;
         case 3: // TU | CU
             {
-                const int m1 = magma_get_ztrmv_nb(m);
+                const int m1 = magma_get_ztrmv_nb(n);
                 const int m2 = m - m1;
 
                 magmablas_ztrmv_core(
