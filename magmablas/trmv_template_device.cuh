@@ -86,7 +86,7 @@ void trmv_small_template_device(
         rx += sA(tx,j,slda) * sX[j];
 
     // write B
-    if(tx < n) sX[ tx * incx ] = rx;
+    if(tx < n) X[ tx * incx ] = rx;
 #undef sA
 }
 
