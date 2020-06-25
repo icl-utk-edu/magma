@@ -102,7 +102,7 @@ int main( int argc, char** argv)
             magma_zsetvector( N, hx, 1, dx(0), 1, opts.queue );
 
             magma_time = magma_sync_wtime( opts.queue );
-            magma_ztrmv( opts.uplo, opts.transA, opts.diag,
+            magmablas_ztrmv( opts.uplo, opts.transA, opts.diag,
                          N,
                          dA(0,0), ldda,
                          dx(0),   1, opts.queue );
