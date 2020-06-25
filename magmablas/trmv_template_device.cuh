@@ -69,12 +69,12 @@ void trmv_small_template_device(
 
     // handle uplo
     if(uplo == MagmaUpper){
-        for(j = 0; j < n; j++) {
+        for(int j = 0; j < n; j++) {
             sA(tx,j,slda) = (tx > j) ? make_FloatingPoint(0.0, 0.0) : sA(tx,j,slda);
         }
     }
     else {
-        for(j = 0; j < n; j++) {
+        for(int j = 0; j < n; j++) {
             sA(tx,j,slda) = (tx < j) ? make_FloatingPoint(0.0, 0.0) : sA(tx,j,slda);
         }
     }
@@ -82,7 +82,7 @@ void trmv_small_template_device(
 
     // multiply
     T rx = make_FloatingPoint(0.0, 0.0);
-    for(int j = 0; j < NB; i++)
+    for(int j = 0; j < NB; j++)
         rx += sA(tx,j,slda) * sX[j];
 
     // write B
