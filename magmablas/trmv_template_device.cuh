@@ -63,6 +63,7 @@ void trmv_small_template_device(
         }
         sX[ tx ] = X[tx * incx];
     }
+    __syncthreads();
 
     // handle diag -- no need to sync before that because every thread is updating the row it read
     if(diag == MagmaUnit){
