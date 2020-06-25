@@ -50,17 +50,19 @@ void trmv_small_template_device(
     }
 
     // load A and X
-    if(transA == MagmaNoTrans) {
-        for(int j = 0; j < n; j++) {
-            sA(tx,j,slda) = A[j * ldda + tx];
+    if(tx < n) {
+        if(transA == MagmaNoTrans) {
+            for(int j = 0; j < n; j++) {
+                sA(tx,j,slda) = A[j * ldda + tx];
+            }
         }
-    }
-    else {
-        for(int j = 0; j < n; j++) {
-            sA(j,tx,slda) = OP<T,CONJA>( A[j * ldda + tx] );
+        else {
+            for(int j = 0; j < n; j++) {
+                sA(j,tx,slda) = OP<T,CONJA>( A[j * ldda + tx] );
+            }
         }
+        sX[ tx ] = X[tx * incx];
     }
-    if(tx < n) sX[ tx ] = X[tx * incx];
 
     // handle diag -- no need to sync before that because every thread is updating the row it read
     if(diag == MagmaUnit){
