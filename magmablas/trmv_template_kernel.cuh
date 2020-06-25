@@ -36,6 +36,12 @@ void trmv_template(
     magma_int_t n, T* dA, magma_int_t ldda, T* dX, magma_int_t incx,
     magma_queue_t queue)
 {
+    if(!(transA == MagmaNoTrans)) {
+        // the device code transposes the matrix in shared memory
+        // so we should switch the uplo Trans and ConjTrans
+        uplo == (uplo == MagmaLower) ? MagmaUpper : MagmaLower;
+    }
+
     dim3 threads(NB, 1, 1);
     dim3 grid( 1, 1, 1 );
     trmv_small_template_kernel<T, NB, CONJA><<< grid, threads, 0, queue->cuda_stream() >>>
