@@ -171,6 +171,66 @@ magmablas_ztrmv_core(
 #undef dX
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+    Purpose
+    =======
+
+    ZTRMV  performs the matrix-vector operation
+
+       X := op( A )*X
+
+    where A is a unit, or non-unit,  upper or lower triangular n-by-n matrix
+    and  op( A )  is one  of
+
+       op( A ) = A   or   op( A ) = A'   or   op( A ) = conjg( A' ).
+
+    Parameters
+    ==========
+    @param[in]
+    uplo    Whether the upper or lower triangle of A is referenced.
+
+    @param[in]
+    trans   Operation to perform on A.
+
+    @param[in]
+    diag    Whether the diagonal of A is assumed to be unit or non-unit.
+
+    @param[in]
+    n       Number of rows and columns of A. n >= 0.
+
+    @param[in]
+    dA      COMPLEX_16 array of dimension (ldda,n), ldda >= max(1,n).
+            The n-by-n matrix A, on GPU device.
+            Before entry with  UPLO = 'U' or 'u', the leading n-by-n upper
+            triangular part of the array A must contain the upper triangular matrix
+            and the strictly lower triangular part of A is not referenced.
+            Before entry with UPLO = 'L' or 'l', the leading n-by-n lower triangular
+            part of the array A must contain the lower triangular matrix and the
+            strictly upper triangular part of A is not referenced.
+            Note that when  DIAG = 'U' or 'u', the diagonal elements of A are not
+            referenced either, but are assumed to be unity.
+            Unchanged on exit.
+
+    @param[in]
+    ldda    Leading dimension of dA, must be at least max( 1, n ).
+
+    @param[in,out]
+    dx      COMPLEX_16 array on GPU device.
+            The n element vector x of dimension (1 + (n-1)*incx).
+            Before entry, the incremented array X must contain the n element
+            vector x.
+            On exit, X is overwritten with the transformed vector x.
+
+    @param[in]
+    incx    Stride between consecutive elements of dx. incx != 0.
+
+    @param[in]
+    queue   magma_queue_t
+            Queue to execute in.
+
+    @ingroup magma_trmv
+*******************************************************************************/
 extern "C" void
 magmablas_ztrmv(
         magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
