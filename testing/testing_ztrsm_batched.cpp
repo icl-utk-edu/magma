@@ -210,7 +210,7 @@ int main( int argc, char** argv)
                 opts.handle, cublas_side_const(opts.side), cublas_uplo_const(opts.uplo),
                 cublas_trans_const(opts.transA), cublas_diag_const(opts.diag),
                 int(M), int(N), (const cuDoubleComplex*)&alpha,
-                (const cuDoubleComplex**) d_A_array, int(ldda),
+                (cuDoubleComplex* const*) d_A_array, int(ldda),
                 (      cuDoubleComplex**) d_B_array, int(lddb), int(batchCount) );
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
             cublas_perf = gflops / cublas_time;
@@ -270,7 +270,6 @@ int main( int argc, char** argv)
 
             memcpy( h_X, h_Bcublas, sizeB*sizeof(magmaDoubleComplex) );
             // check cublas
-            #if CUDA_VERSION >= 6050
             for (int s=0; s < batchCount; s++) {
                 normA = lapackf77_zlantr( "M",
                                           lapack_uplo_const(opts.uplo),
@@ -289,7 +288,6 @@ int main( int argc, char** argv)
                 error = normR/(normX*normA);
                 cublas_error = magma_max_nan( error, cublas_error );
             }
-            #endif
             bool okay = (magma_error < tol && cublas_error < tol);
             status += ! okay;
 
