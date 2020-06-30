@@ -6,7 +6,7 @@
        @date
 
        @author Mark Gates
-       
+
        Utilities for testing.
 */
 #include <stdarg.h>
@@ -157,7 +157,7 @@ const char *usage =
 magma_opts::magma_opts( magma_opts_t flag )
 {
     int nt = magma_get_lapack_numthreads();
-    
+
     // fill in default values
     this->batchcount = 300;
     this->device   = 0;
@@ -174,20 +174,20 @@ magma_opts::magma_opts( magma_opts_t flag )
     this->itype    = 1;
     this->version  = 1;
     this->verbose  = 0;
-    
+
     this->fraction_lo = 0.;
     this->fraction_up = 1.;
     this->irange_lo = 0;
     this->irange_up = 0;
     this->vrange_lo = 0;
     this->vrange_up = 0;
-    
+
     this->tolerance = 30.;
     this->check     = (getenv("MAGMA_TESTINGS_CHECK") != NULL);
     this->magma     = true;
     this->lapack    = (getenv("MAGMA_RUN_LAPACK")     != NULL);
     this->warmup    = (getenv("MAGMA_WARMUP")         != NULL);
-    
+
     this->uplo      = MagmaLower;      // potrf, etc.
     this->transA    = MagmaNoTrans;    // gemm, etc.
     this->transB    = MagmaNoTrans;    // gemm
@@ -200,7 +200,7 @@ magma_opts::magma_opts( magma_opts_t flag )
     this->matrix    = "rand";
     this->cond      = 0;  // zero means cond = sqrt( 1/eps ), which varies by precision
     this->condD     = 1;
-    
+
     this->iseed[0]  = 0;
     this->iseed[1]  = 0;
     this->iseed[2]  = 0;
@@ -275,11 +275,11 @@ bool scan_range( char** handle, int* start, int* end, int* step )
 void magma_opts::parse_opts( int argc, char** argv )
 {
     printf( usage_short, argv[0] );
-    
+
     magma_int_t ndevices;
     magma_device_t devices[ MagmaMaxGPUs ];
     magma_getdevices( devices, MagmaMaxGPUs, &ndevices );
-    
+
     this->ntest = 0;
     for( int i = 1; i < argc; ++i ) {
         // ----- problem size
@@ -315,7 +315,7 @@ void magma_opts::parse_opts( int argc, char** argv )
                     }
                 }
             }
-            
+
             magma_assert( valid, "error: '%s %s' is not valid, expected (m|m_start:m_end:m_step)[,(n|n_start:n_end:n_step)[,(k|k_start:k_end:k_step)]]\n",
                           argv[i-1], argv[i] );
             // if all zero steps, just give start point
@@ -343,7 +343,7 @@ void magma_opts::parse_opts( int argc, char** argv )
                 }
             }
         }
-        
+
         // ----- scalar arguments
         else if ( strcmp("--dev", argv[i]) == 0 && i+1 < argc ) {
             this->device = atoi( argv[++i] );
@@ -476,28 +476,28 @@ void magma_opts::parse_opts( int argc, char** argv )
         else if ( strcmp("-c2",        argv[i]) == 0 ||
                   strcmp("--check2",   argv[i]) == 0 ) { this->check  = 2; }
         else if ( strcmp("--nocheck",  argv[i]) == 0 ) { this->check  = 0; }
-        
+
         else if ( strcmp("-l",         argv[i]) == 0 ||
                   strcmp("--lapack",   argv[i]) == 0 ) { this->lapack = true;  }
         else if ( strcmp("--nolapack", argv[i]) == 0 ) { this->lapack = false; }
-        
+
         else if ( strcmp("--magma",    argv[i]) == 0 ) { this->magma  = true;  }
         else if ( strcmp("--nomagma",  argv[i]) == 0 ) { this->magma  = false; }
-        
+
         else if ( strcmp("--warmup",   argv[i]) == 0 ) { this->warmup = true;  }
         else if ( strcmp("--nowarmup", argv[i]) == 0 ) { this->warmup = false; }
-        
+
         //else if ( strcmp("--all",      argv[i]) == 0 ) { this->all    = true;  }
         //else if ( strcmp("--notall",   argv[i]) == 0 ) { this->all    = false; }
-        
+
         else if ( strcmp("-v",         argv[i]) == 0 ||
                   strcmp("--verbose",  argv[i]) == 0 ) { this->verbose += 1;  }
-        
+
         // ----- lapack options
         else if ( strcmp("-L",  argv[i]) == 0 ) { this->uplo = MagmaLower; }
         else if ( strcmp("-U",  argv[i]) == 0 ) { this->uplo = MagmaUpper; }
         else if ( strcmp("-F",  argv[i]) == 0 ) { this->uplo = MagmaFull; }
-        
+
         else if ( strcmp("-NN", argv[i]) == 0 ) { this->transA = MagmaNoTrans;   this->transB = MagmaNoTrans;   }
         else if ( strcmp("-NT", argv[i]) == 0 ) { this->transA = MagmaNoTrans;   this->transB = MagmaTrans;     }
         else if ( strcmp("-NC", argv[i]) == 0 ) { this->transA = MagmaNoTrans;   this->transB = MagmaConjTrans; }
@@ -509,22 +509,22 @@ void magma_opts::parse_opts( int argc, char** argv )
         else if ( strcmp("-CC", argv[i]) == 0 ) { this->transA = MagmaConjTrans; this->transB = MagmaConjTrans; }
         else if ( strcmp("-T",  argv[i]) == 0 ) { this->transA = MagmaTrans;     }
         else if ( strcmp("-C",  argv[i]) == 0 ) { this->transA = MagmaConjTrans; }
-        
+
         else if ( strcmp("-SL", argv[i]) == 0 ) { this->side  = MagmaLeft;  }
         else if ( strcmp("-SR", argv[i]) == 0 ) { this->side  = MagmaRight; }
-        
+
         else if ( strcmp("-DN", argv[i]) == 0 ) { this->diag  = MagmaNonUnit; }
         else if ( strcmp("-DU", argv[i]) == 0 ) { this->diag  = MagmaUnit;    }
-        
+
         else if ( strcmp("-JN", argv[i]) == 0 ) { this->jobz  = MagmaNoVec; }
         else if ( strcmp("-JV", argv[i]) == 0 ) { this->jobz  = MagmaVec;   }
-        
+
         else if ( strcmp("-LN", argv[i]) == 0 ) { this->jobvl = MagmaNoVec; }
         else if ( strcmp("-LV", argv[i]) == 0 ) { this->jobvl = MagmaVec;   }
-        
+
         else if ( strcmp("-RN", argv[i]) == 0 ) { this->jobvr = MagmaNoVec; }
         else if ( strcmp("-RV", argv[i]) == 0 ) { this->jobvr = MagmaVec;   }
-        
+
         // ----- vectors of options
         else if ( strcmp("--svd-work", argv[i]) == 0 && i+1 < argc ) {
             i += 1;
@@ -555,7 +555,7 @@ void magma_opts::parse_opts( int argc, char** argv )
             }
             free( arg );
         }
-        
+
         else if ( strcmp("--jobu", argv[i]) == 0 && i+1 < argc ) {
             i += 1;
             const char* arg = argv[i];
@@ -577,7 +577,7 @@ void magma_opts::parse_opts( int argc, char** argv )
                     ++arg;
             }
         }
-        
+
         // ----- test matrix
         else if ( strcmp("--matrix", argv[i]) == 0 && i+1 < argc) {
             i += 1;
@@ -607,7 +607,7 @@ void magma_opts::parse_opts( int argc, char** argv )
             exit(1);
         }
     }
-    
+
     // default values
     if ( this->svd_work.size() == 0 ) {
         this->svd_work.push_back( MagmaSVD_query );
@@ -618,7 +618,7 @@ void magma_opts::parse_opts( int argc, char** argv )
     if ( this->jobv.size() == 0 ) {
         this->jobv.push_back( MagmaNoVec );
     }
-    
+
     // if -N or --range not given, use default range
     if ( this->ntest == 0 ) {
         magma_int_t n2 = this->default_nstart;  //1024 + 64;
@@ -631,21 +631,21 @@ void magma_opts::parse_opts( int argc, char** argv )
         }
     }
     assert( this->ntest <= MAX_NTEST );
-    
-    #ifdef HAVE_CUBLAS
+
+    #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
     magma_setdevice( this->device );
     #endif
-    
+
     // create queues on this device
     // 2 queues + 1 extra NULL entry to catch errors
     magma_queue_create( devices[ this->device ], &this->queues2[ 0 ] );
     magma_queue_create( devices[ this->device ], &this->queues2[ 1 ] );
     this->queues2[ 2 ] = NULL;
-    
+
     this->queue = this->queues2[ 0 ];
-    
-    #ifdef HAVE_CUBLAS
-    // handle for directly calling cublas
+
+    #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+    // handle for directly calling cublas (auto translated to hipblas handle for hipmagma)
     this->handle = magma_queue_get_cublas_handle( this->queue );
     #endif
 }
@@ -707,8 +707,8 @@ void magma_opts::cleanup()
     magma_queue_destroy( this->queues2[1] );
     this->queues2[0] = NULL;
     this->queues2[1] = NULL;
-    
-    #ifdef HAVE_CUBLAS
+
+    #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
     this->handle = NULL;
     #endif
 }
@@ -734,19 +734,19 @@ void flops_init()
         fprintf( stderr, "Error: PAPI couldn't initialize: %s (%d)\n",
                  PAPI_strerror(err), err );
     }
-    
+
     // read flops
     err = PAPI_create_eventset( &gPAPI_flops_set );
     if ( err != PAPI_OK ) {
         fprintf( stderr, "Error: PAPI_create_eventset failed\n" );
     }
-    
+
     err = PAPI_assign_eventset_component( gPAPI_flops_set, 0 );
     if ( err != PAPI_OK ) {
         fprintf( stderr, "Error: PAPI_assign_eventset_component failed: %s (%d)\n",
                  PAPI_strerror(err), err );
     }
-    
+
     PAPI_option_t opt;
     memset( &opt, 0, sizeof(PAPI_option_t) );
     opt.inherit.inherit  = PAPI_INHERIT_ALL;
@@ -756,13 +756,13 @@ void flops_init()
         fprintf( stderr, "Error: PAPI_set_opt failed: %s (%d)\n",
                  PAPI_strerror(err), err );
     }
-    
+
     err = PAPI_add_event( gPAPI_flops_set, PAPI_FP_OPS );
     if ( err != PAPI_OK ) {
         fprintf( stderr, "Error: PAPI_add_event failed: %s (%d)\n",
                  PAPI_strerror(err), err );
     }
-    
+
     err = PAPI_start( gPAPI_flops_set );
     if ( err != PAPI_OK ) {
         fprintf( stderr, "Error: PAPI_start failed: %s (%d)\n",
@@ -777,7 +777,7 @@ void flops_init()
 void magma_flush_cache( size_t cache_size )
 {
     unsigned char* buf = (unsigned char*) malloc( 2 * cache_size );
-    
+
     int nthread = 1;
     #pragma omp parallel
     #pragma omp master
@@ -786,9 +786,9 @@ void magma_flush_cache( size_t cache_size )
         nthread = omp_get_num_threads();
         #endif
     }
-    
+
     size_t per_core = 2 * cache_size / nthread;
-    
+
     #pragma omp parallel
     {
         int tid = 0;
@@ -799,6 +799,6 @@ void magma_flush_cache( size_t cache_size )
             buf[i] = i % 256;
         }
     }
-    
+
     free( buf );
 }
