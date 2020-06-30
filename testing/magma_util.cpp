@@ -644,9 +644,14 @@ void magma_opts::parse_opts( int argc, char** argv )
 
     this->queue = this->queues2[ 0 ];
 
-    #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
-    // handle for directly calling cublas (auto translated to hipblas handle for hipmagma)
-    this->handle = magma_queue_get_cublas_handle( this->queue );
+    #if defined(HAVE_HIP)
+        // handle for directly calling hipblas
+        this->handle = magma_queue_get_hipblas_handle( this->queue );
+    #elif defined(HAVE_CUBLAS)
+        // handle for directly calling cublas
+        this->handle = magma_queue_get_cublas_handle( this->queue );
+    #else
+        #error "unknown platform"
     #endif
 }
 // end parse_opts
