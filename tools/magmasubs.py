@@ -519,6 +519,7 @@ subs = {
     ('scheck',         'dcheck',         'ccheck',         'zcheck'          ),
     ('SCODELETS',      'DCODELETS',      'CCODELETS',      'ZCODELETS'       ),
     ('sgeadd',         'dgeadd',         'cgeadd',         'zgeadd'          ),
+    ('sgeam',          'dgeam',          'cgeam',          'zgeam'           ),
     ('sgecfi',         'dgecfi',         'cgecfi',         'zgecfi'          ),
     ('SGERBT',         'DGERBT',         'CGERBT',         'ZGERBT'          ),
     ('sgerbt',         'dgerbt',         'cgerbt',         'zgerbt'          ),
