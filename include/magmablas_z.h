@@ -291,6 +291,17 @@ magmablas_zgeadd2(
     magma_queue_t queue );
 
 void
+magmablas_zgeam(
+    magma_trans_t transA, magma_trans_t transB,
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
+    magmaDoubleComplex beta,
+    magmaDoubleComplex_const_ptr dB, magma_int_t lddb,
+    magmaDoubleComplex_ptr dC, magma_int_t lddc,
+    magma_queue_t queue );
+
+void
 magmablas_zlacpy(
     magma_uplo_t uplo,
     magma_int_t m, magma_int_t n,
