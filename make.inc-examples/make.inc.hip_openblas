@@ -65,6 +65,10 @@ ARCHFLAGS   ?= cr
 RANLIB      ?= ranlib
 
 
+# sparse directory (uncomment to try & build MAGMA sparse/ on HIP
+#SPARSE_DIR  = sparse_hip
+
+
 # --------------------
 # flags/settings
 

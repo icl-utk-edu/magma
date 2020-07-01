@@ -323,7 +323,7 @@ subdirs := \
 # the directory in which the MAGMA sparse source is located
 # change to sparse_hip for hipified sources
 # right now, just use old one so the dense section still builds
-SPARSE_DIR = ./sparse
+SPARSE_DIR ?= ./sparse
 
 ifeq ($(BACKEND),cuda)
 	subdirs += interface_cuda
