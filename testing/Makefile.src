@@ -39,6 +39,7 @@ testing_src += \
 	$(cdir)/testing_blas_z.cpp	\
 	$(cdir)/testing_cblas_z.cpp	\
 	$(cdir)/testing_zgeadd.cpp	\
+        $(cdir)/testing_zgeam.cpp       \
 	$(cdir)/testing_zlacpy.cpp	\
 	$(cdir)/testing_zlag2c.cpp	\
 	$(cdir)/testing_zlange.cpp	\

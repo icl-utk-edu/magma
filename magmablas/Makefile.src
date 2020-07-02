@@ -28,6 +28,7 @@ libmagma_src += \
 	$(cdir)/zcaxpycp.cu		\
 	$(cdir)/zgeadd.cu		\
 	$(cdir)/zgeadd2.cu		\
+        $(cdir)/zgeam.cu                \
 	$(cdir)/zgemm_fermi.cu		\
 	$(cdir)/zgemm_reduce.cu		\
 	$(cdir)/zgemv_conj.cu		\
