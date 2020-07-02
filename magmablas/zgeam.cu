@@ -377,23 +377,25 @@ magmablas_zgeam(
         return;
 
     dim3 threads( NX, NY );
-    dim3 grid( magma_ceildiv( m, NB ), magma_ceildiv( n, NB ) );
+    dim3 grid( magma_ceildiv( n, NB ), magma_ceildiv( m, NB ) );
 
     if ( MAGMA_Z_EQUAL( alpha, MAGMA_Z_ZERO ) && 
          MAGMA_Z_EQUAL(  beta, MAGMA_Z_ZERO ) )
         // set to 0
         magmablas_zlaset( MagmaFull, m, n, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dC, lddc, queue );
-    else if ( transA == MagmaNoTrans && transB == MagmaNoTrans )
+    else if ( transA == MagmaNoTrans && transB == MagmaNoTrans ){
+        dim3 grid( magma_ceildiv( m, NB ), magma_ceildiv( n, NB ) ); 
         zgeam_kernel_nn<<<grid, threads, 0, queue->cuda_stream() >>>
             (m, n,  alpha, dA, ldda, beta, dB, lddb, dC, lddc);
+    }
     else if ( transA == MagmaNoTrans )
         zgeam_kernel_nc<<<grid, threads, 0, queue->cuda_stream() >>>
-            (m, n,  alpha, dA, ldda, beta, dB, lddb, dC, lddc);
+            (n, m,  alpha, dA, ldda, beta, dB, lddb, dC, lddc);
     else if ( transB == MagmaNoTrans )
         zgeam_kernel_cn<<<grid, threads, 0, queue->cuda_stream() >>>
-            (m, n,  alpha, dA, ldda, beta, dB, lddb, dC, lddc);
+            (n, m,  alpha, dA, ldda, beta, dB, lddb, dC, lddc);
     else 
         zgeam_kernel_cc<<<grid, threads, 0, queue->cuda_stream() >>>
-            (m, n,  alpha, dA, ldda, beta, dB, lddb, dC, lddc);
+            (n, m,  alpha, dA, ldda, beta, dB, lddb, dC, lddc);
 }
 
