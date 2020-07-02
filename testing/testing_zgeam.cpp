@@ -94,7 +94,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc_cpu( &h_C, ldc * N ));
             
             TESTING_CHECK( magma_zmalloc( &d_A, ldda*An ));
-            TESTING_CHECK( magma_zmalloc( &d_B, ldda*Bn ));
+            TESTING_CHECK( magma_zmalloc( &d_B, lddb*Bn ));
             TESTING_CHECK( magma_zmalloc( &d_C, lddc*N  ));
             
             lapackf77_zlarnv( &ione, ISEED, &size, h_A );
@@ -113,8 +113,16 @@ int main( int argc, char** argv)
             gpu_time = magma_sync_wtime( opts.queue );
             magmablas_zgeam( opts.transA, opts.transB, M, N, 
                              alpha, d_A, ldda, 
-                             beta , d_B, ldda, 
+                             beta , d_B, lddb, 
                              d_C, lddc, opts.queue );
+            /*
+            cublasZgeam(opts.handle, 
+                        cublas_trans_const(opts.transA), cublas_trans_const(opts.transB), 
+                        M, N,
+                        &alpha, d_A, ldda,
+                        &beta , d_B, lddb,
+                        d_C, lddc);
+            */
             gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             gpu_perf = gbytes / gpu_time;
             
@@ -153,7 +161,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Check result
                =================================================================== */
-            magma_zgetmatrix( M, N, d_C, lddc, h_A, lda, opts.queue );
+            magma_zgetmatrix( M, N, d_C, lddc, h_A, M, opts.queue );
             
             blasf77_zaxpy( &size, &c_neg_one, h_C, &ione, h_A, &ione );
             error = lapackf77_zlange( "F", &M, &N, h_A, &M, work )/ (fabs(alpha)*Anorm+fabs(beta)*Bnorm);

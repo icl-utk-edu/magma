@@ -8,7 +8,10 @@
        @author Azzam Haidar 
 
 */
-#include <cuda.h>
+#if defined(HAVE_CUBLAS)
+#include <cuda.h>    // for CUDA_VERSION
+#endif
+
 #include "magma_internal.h"
 //#define MAGMA_PRINTF printf
 #define MAGMA_PRINTF(...)
