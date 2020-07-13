@@ -22,7 +22,7 @@
     Each thread adds one row, iterating across all columns.
     The bottom block of rows may be partially outside the matrix;
     if so, rows outside the matrix (i >= m) are disabled.
-    
+
     TODO. Block in both directions, for large matrices.
     E.g., each block does 64x64 tile, instead of 64xN tile.
 */
@@ -55,45 +55,45 @@ zgeadd_batched_kernel(
     -------
     ZGEADD adds two sets of matrices, dAarray[i] = alpha*dAarray[i] + dBarray[i],
     for i = 0, ..., batchCount-1.
-    
+
     Arguments
     ---------
-    
+
     @param[in]
     m       INTEGER
             The number of rows of each matrix dAarray[i].  M >= 0.
-    
+
     @param[in]
     n       INTEGER
             The number of columns of each matrix dAarray[i].  N >= 0.
-    
+
     @param[in]
     alpha   COMPLEX_16
             The scalar alpha.
-            
+
     @param[in]
     dAarray array on GPU, dimension(batchCount), of pointers to arrays,
             with each array a COMPLEX_16 array, dimension (LDDA,N)
             The m by n matrices dAarray[i].
-    
+
     @param[in]
     ldda    INTEGER
             The leading dimension of each array dAarray[i].  LDDA >= max(1,M).
-            
+
     @param[in,out]
     dBarray array on GPU, dimension(batchCount), of pointers to arrays,
             with each array a COMPLEX_16 array, dimension (LDDB,N)
             The m by n matrices dBarray[i].
-    
+
     @param[in]
     lddb    INTEGER
             The leading dimension of each array dBarray[i].  LDDB >= max(1,M).
-    
+
     @param[in]
     batchCount INTEGER
             The number of matrices to add; length of dAarray and dBarray.
             batchCount >= 0.
-    
+
     @param[in]
     queue   magma_queue_t
             Queue to execute in.
@@ -120,18 +120,23 @@ magmablas_zgeadd_batched(
         info = -7;
     else if ( batchCount < 0 )
         info = -8;
-    
+
     if ( info != 0 ) {
         magma_xerbla( __func__, -(info) );
         return;
     }
-    
+
     if ( m == 0 || n == 0 || batchCount == 0 )
         return;
-    
+
     dim3 threads( NB );
-    dim3 grid( magma_ceildiv( m, NB ), batchCount );
-    
-    zgeadd_batched_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(
-        m, n, alpha, dAarray, ldda, dBarray, lddb );
+    magma_int_t max_batchCount = 50000;
+
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv( m, NB ), ibatch );
+
+        zgeadd_batched_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
+        (m, n, alpha, dAarray+i, ldda, dBarray+i, lddb );
+    }
 }
