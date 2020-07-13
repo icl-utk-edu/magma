@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Ahmad Abdelfattah
 */
 
@@ -19,182 +19,200 @@
 template <typename T, const int NB, const int NRHS>
 static __global__
 void trsm_template_batched_lNL_kernel(
-        magma_diag_t diag, int m, int n, 
-        T alpha, T** Aarray,  int ldda, 
-                 T** Barray,  int lddb, 
+        magma_diag_t diag, int m, int n,
+        T alpha, T** Aarray,  int ldda,
+                 T** Barray,  int lddb,
         int roffA, int coffA, int roffB, int coffB)
 {
     const int batchid = blockIdx.z;
-    
+
     trsm_template_device_lNL<T, NB, NRHS>(
-            diag, m, n, 
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda, 
+            diag, m, n,
+            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS>
 static __global__
 void trsm_template_batched_lNU_kernel(
-        magma_diag_t diag, int m, int n, 
-        T alpha, T** Aarray,  int ldda, 
-                 T** Barray,  int lddb, 
+        magma_diag_t diag, int m, int n,
+        T alpha, T** Aarray,  int ldda,
+                 T** Barray,  int lddb,
         int roffA, int coffA, int roffB, int coffB)
 {
     int batchid = blockIdx.z;
-    
+
     trsm_template_device_lNU<T, NB, NRHS>(
-            diag, m, n, 
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda, 
+            diag, m, n,
+            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS, const int CONJA>
 static __global__
 void trsm_template_batched_lTL_kernel(
-        magma_diag_t diag, int m, int n, 
-        T alpha, T** Aarray, int ldda, 
-                 T** Barray,  int lddb, 
+        magma_diag_t diag, int m, int n,
+        T alpha, T** Aarray, int ldda,
+                 T** Barray,  int lddb,
         int roffA, int coffA, int roffB, int coffB)
 {
     int batchid = blockIdx.z;
-    
+
     trsm_template_device_lTL<T, NB, NRHS, CONJA>(
-            diag, m, n, 
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda, 
+            diag, m, n,
+            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS, const int CONJA>
 static __global__
 void trsm_template_batched_lTU_kernel(
-        magma_diag_t diag, int m, int n, 
-        T alpha, T** Aarray, int ldda, 
-                 T** Barray,  int lddb, 
+        magma_diag_t diag, int m, int n,
+        T alpha, T** Aarray, int ldda,
+                 T** Barray,  int lddb,
         int roffA, int coffA, int roffB, int coffB)
 {
     int batchid = blockIdx.z;
-    
+
     trsm_template_device_lTU<T, NB, NRHS, CONJA>(
-            diag, m, n, 
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda, 
+            diag, m, n,
+            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS>
 static __global__
 void trsm_template_batched_rNL_kernel(
-        magma_diag_t diag, int m, int n, 
-        T alpha, T** Aarray, int ldda, 
-                 T** Barray,  int lddb, 
+        magma_diag_t diag, int m, int n,
+        T alpha, T** Aarray, int ldda,
+                 T** Barray,  int lddb,
         int roffA, int coffA, int roffB, int coffB)
 {
     int batchid = blockIdx.z;
-    
+
     trsm_template_device_rNL<T, NB, NRHS>(
-            diag, m, n, 
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda, 
+            diag, m, n,
+            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS>
 static __global__
 void trsm_template_batched_rNU_kernel(
-        magma_diag_t diag, int m, int n, 
-        T alpha, T** Aarray, int ldda, 
-                 T** Barray,  int lddb, 
+        magma_diag_t diag, int m, int n,
+        T alpha, T** Aarray, int ldda,
+                 T** Barray,  int lddb,
         int roffA, int coffA, int roffB, int coffB)
 {
     int batchid = blockIdx.z;
-    
+
     trsm_template_device_rNU<T, NB, NRHS>(
-            diag, m, n, 
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda, 
+            diag, m, n,
+            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS, const int CONJA>
 static __global__
 void trsm_template_batched_rTL_kernel(
-        magma_diag_t diag, int m, int n, 
-        T alpha, T** Aarray, int ldda, 
-                 T** Barray,  int lddb, 
+        magma_diag_t diag, int m, int n,
+        T alpha, T** Aarray, int ldda,
+                 T** Barray,  int lddb,
         int roffA, int coffA, int roffB, int coffB)
 {
     int batchid = blockIdx.z;
-    
+
     trsm_template_device_rTL<T, NB, NRHS, CONJA>(
-            diag, m, n, 
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda, 
+            diag, m, n,
+            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS, const int CONJA>
 static __global__
 void trsm_template_batched_rTU_kernel(
-        magma_diag_t diag, int m, int n, 
-        T alpha, T** Aarray, int ldda, 
-                 T** Barray,  int lddb, 
+        magma_diag_t diag, int m, int n,
+        T alpha, T** Aarray, int ldda,
+                 T** Barray,  int lddb,
         int roffA, int coffA, int roffB, int coffB)
 {
     int batchid = blockIdx.z;
-    
+
     trsm_template_device_rTU<T, NB, NRHS, CONJA>(
-            diag, m, n, 
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda, 
+            diag, m, n,
+            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // kernel wrappers
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// lNx 
+// lNx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS>
 void trsm_template_batched_lNx(
-    magma_uplo_t uplo, magma_diag_t diag, 
-    magma_int_t m, magma_int_t n, 
+    magma_uplo_t uplo, magma_diag_t diag,
+    magma_int_t m, magma_int_t n,
     T alpha, T** dA_array, magma_int_t ldda,
              T** dB_array, magma_int_t lddb,
-    magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, 
+    magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB,
     magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 threads(NRHS, 1, 1);
-    dim3 grid( magma_ceildiv(n, NRHS), 1, batchCount );
+    magma_int_t max_batchCount = 50000;
+
     if(uplo == MagmaLower){
-        trsm_template_batched_lNL_kernel<T, NB, NRHS>
+        for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+            magma_int_t ibatch = min(max_batchCount, batchCount-i);
+            dim3 grid( magma_ceildiv(n, NRHS), 1, ibatch );
+
+            trsm_template_batched_lNL_kernel<T, NB, NRHS>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
-            roffA, coffA, roffB, coffB);
+            (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
+        }
     }else{
-        trsm_template_batched_lNU_kernel<T, NB, NRHS>
+        for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+            magma_int_t ibatch = min(max_batchCount, batchCount-i);
+            dim3 grid( magma_ceildiv(n, NRHS), 1, ibatch );
+
+            trsm_template_batched_lNU_kernel<T, NB, NRHS>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
-            roffA, coffA, roffB, coffB);
+            (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
+        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// lTx, lCx 
+// lTx, lCx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS, const int CONJA>
 void trsm_template_batched_lTx(
-    magma_uplo_t uplo, magma_diag_t diag, 
-    magma_int_t m, magma_int_t n, 
+    magma_uplo_t uplo, magma_diag_t diag,
+    magma_int_t m, magma_int_t n,
     T alpha, T** dA_array, magma_int_t ldda,
              T** dB_array, magma_int_t lddb,
-    magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, 
+    magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB,
     magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 threads(NRHS, 1, 1);
-    dim3 grid( magma_ceildiv(n, NRHS), 1, batchCount );
+    magma_int_t max_batchCount = 50000;
+
     if(uplo == MagmaLower){
-        trsm_template_batched_lTL_kernel<T, NB, NRHS, CONJA>
+        for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+            magma_int_t ibatch = min(max_batchCount, batchCount-i);
+            dim3 grid( magma_ceildiv(n, NRHS), 1, ibatch );
+
+            trsm_template_batched_lTL_kernel<T, NB, NRHS, CONJA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
-            roffA, coffA, roffB, coffB);
+            (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
+        }
     }else{
-        trsm_template_batched_lTU_kernel<T, NB, NRHS, CONJA>
+        for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+            magma_int_t ibatch = min(max_batchCount, batchCount-i);
+            dim3 grid( magma_ceildiv(n, NRHS), 1, ibatch );
+
+            trsm_template_batched_lTU_kernel<T, NB, NRHS, CONJA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
-            roffA, coffA, roffB, coffB);
+            (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
+        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,51 +220,69 @@ void trsm_template_batched_lTx(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS>
 void trsm_template_batched_rNx(
-    magma_uplo_t uplo, magma_diag_t diag, 
-    magma_int_t m, magma_int_t n, 
+    magma_uplo_t uplo, magma_diag_t diag,
+    magma_int_t m, magma_int_t n,
     T alpha, T** dA_array, magma_int_t ldda,
              T** dB_array, magma_int_t lddb,
-    magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, 
+    magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB,
     magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 threads(NRHS, 1, 1);
-    dim3 grid( magma_ceildiv(m, NRHS), 1, batchCount );
+    magma_int_t max_batchCount = 50000;
+
     if(uplo == MagmaLower){
-        trsm_template_batched_rNL_kernel<T, NB, NRHS>
+        for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+            magma_int_t ibatch = min(max_batchCount, batchCount-i);
+            dim3 grid( magma_ceildiv(m, NRHS), 1, ibatch );
+
+            trsm_template_batched_rNL_kernel<T, NB, NRHS>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
-            roffA, coffA, roffB, coffB);
+            (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
+        }
     }else{
-        trsm_template_batched_rNU_kernel<T, NB, NRHS>
+        for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+            magma_int_t ibatch = min(max_batchCount, batchCount-i);
+            dim3 grid( magma_ceildiv(m, NRHS), 1, ibatch );
+
+            trsm_template_batched_rNU_kernel<T, NB, NRHS>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
-            roffA, coffA, roffB, coffB);
+            (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
+        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// rTx, rCx 
+// rTx, rCx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS, const int CONJA>
 void trsm_template_batched_rTx(
-    magma_uplo_t uplo, magma_diag_t diag, 
-    magma_int_t m, magma_int_t n, 
+    magma_uplo_t uplo, magma_diag_t diag,
+    magma_int_t m, magma_int_t n,
     T alpha, T** dA_array, magma_int_t ldda,
              T** dB_array, magma_int_t lddb,
-    magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, 
+    magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB,
     magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 threads(NRHS, 1, 1);
-    dim3 grid( magma_ceildiv(m, NRHS), 1, batchCount );
+    magma_int_t max_batchCount = 50000;
+
     if(uplo == MagmaLower){
-        trsm_template_batched_rTL_kernel<T, NB, NRHS, CONJA>
+        for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+            magma_int_t ibatch = min(max_batchCount, batchCount-i);
+            dim3 grid( magma_ceildiv(m, NRHS), 1, ibatch );
+
+            trsm_template_batched_rTL_kernel<T, NB, NRHS, CONJA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
-            roffA, coffA, roffB, coffB);
+            (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
+        }
     }else{
-        trsm_template_batched_rTU_kernel<T, NB, NRHS, CONJA>
+        for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+            magma_int_t ibatch = min(max_batchCount, batchCount-i);
+            dim3 grid( magma_ceildiv(m, NRHS), 1, ibatch );
+
+            trsm_template_batched_rTU_kernel<T, NB, NRHS, CONJA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, ldda, dB_array, lddb, 
-            roffA, coffA, roffB, coffB);
+            (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
+        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -254,11 +290,11 @@ void trsm_template_batched_rTx(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename T, const int NB, const int NRHS>
 void trsm_small_batched(
-        magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag, 
-        magma_int_t m, magma_int_t n, 
+        magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
+        magma_int_t m, magma_int_t n,
         T alpha, T **dA_array, magma_int_t ldda,
-                 T **dB_array, magma_int_t lddb, 
-        magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, 
+                 T **dB_array, magma_int_t lddb,
+        magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB,
         magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t shape = 0;
@@ -268,7 +304,7 @@ void trsm_small_batched(
     else if (side == MagmaRight && transA == MagmaNoTrans   ) { shape = 3; } // right - NoTrans   (rNx)
     else if (side == MagmaRight && transA == MagmaTrans     ) { shape = 4; } // right - Trans     (rTx)
     else if (side == MagmaRight && transA == MagmaConjTrans ) { shape = 5; } // right - ConjTrans (rCx)
-    
+
     switch(shape)
     {
         case 0: // lNx
