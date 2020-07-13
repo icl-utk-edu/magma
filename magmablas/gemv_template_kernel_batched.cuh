@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Tingxing Dong
        @author Azzam Haidar
 
@@ -17,7 +17,7 @@
 
 
 /******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE> 
+template<typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE>
 __global__ void
 gemvn_kernel_batched(
     int m, int n, T alpha,
@@ -41,25 +41,22 @@ void gemvn_template_batched(
     T beta, T** dy_array, magma_int_t incy,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
-    magma_int_t batchCount_percall = batchCount/ncalls;
+    magma_int_t max_batchCount = 50000;
+    dim3 threads ( DIM_X, DIM_Y);
 
-    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
-    {
-        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
-
-        dim3 grid    ( magma_ceildiv(m, TILE_SIZE), 1, this_batchCount );                                                
-        dim3 threads ( DIM_X, DIM_Y);
+    for(magma_int_t i=0; i<batchCount; i+=max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv(m, TILE_SIZE), 1, ibatch );
 
         gemvn_kernel_batched<T, DIM_X, DIM_Y, TILE_SIZE>
-            <<< grid, threads, 0, queue->cuda_stream() >>>                    
-            ( m, n, alpha, dA_array+batch_starting_id, ldda, dx_array+batch_starting_id, incx, beta, dy_array+batch_starting_id, incy );
+        <<< grid, threads, 0, queue->cuda_stream() >>>
+        ( m, n, alpha, dA_array+i, ldda, dx_array+i, incx, beta, dy_array+i, incy );
     }
 }
 
 
 /******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE, magma_trans_t trans> 
+template<typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE, magma_trans_t trans>
 __global__ void
 gemvc_kernel_batched(
     int m, int n, T alpha,
@@ -83,26 +80,22 @@ void gemvc_template_batched(
     T beta, T** dy_array, magma_int_t incy,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t ncalls = magma_ceildiv(batchCount, 65536);
-    magma_int_t batchCount_percall = batchCount/ncalls;
+    magma_int_t max_batchCount = 50000;
+    dim3 threads ( DIM_X, DIM_Y );
 
-    for(magma_int_t batch_starting_id=0; batch_starting_id<batchCount; batch_starting_id+=batchCount_percall)
-    {
-        magma_int_t this_batchCount = min(batchCount_percall, batchCount-batch_starting_id);
-        dim3 grid    ( magma_ceildiv(n, TILE_SIZE), 1, this_batchCount );                                                
-        dim3 threads ( DIM_X, DIM_Y );
+    for(magma_int_t i=0; i<batchCount; i+=max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv(n, TILE_SIZE), 1, ibatch );
 
-        if (trans == MagmaConjTrans)
-        {                         
+        if (trans == MagmaConjTrans) {
             gemvc_kernel_batched<T, DIM_X, DIM_Y, TILE_SIZE, MagmaConjTrans>
-                <<< grid, threads, 0, queue->cuda_stream() >>>                    
-                ( m, n, alpha, dA_array+batch_starting_id, ldda, dx_array+batch_starting_id, incx, beta, dy_array+batch_starting_id, incy );        
+            <<< grid, threads, 0, queue->cuda_stream() >>>
+            ( m, n, alpha, dA_array+i, ldda, dx_array+i, incx, beta, dy_array+i, incy );
         }
-        else if (trans == MagmaTrans)
-        {
+        else if (trans == MagmaTrans) {
             gemvc_kernel_batched<T, DIM_X, DIM_Y, TILE_SIZE, MagmaTrans>
-                <<< grid, threads, 0, queue->cuda_stream() >>>                    
-                ( m, n, alpha, dA_array+batch_starting_id, ldda, dx_array+batch_starting_id, incx, beta, dy_array+batch_starting_id, incy );       
+            <<< grid, threads, 0, queue->cuda_stream() >>>
+            ( m, n, alpha, dA_array+i, ldda, dx_array+i, incx, beta, dy_array+i, incy );
         }
     }
 }
