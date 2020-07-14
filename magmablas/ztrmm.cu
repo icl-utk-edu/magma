@@ -455,7 +455,7 @@ magmablas_ztrmm_core(
     queue   magma_queue_t.
             Queue to execute in.
 
-    @ingroup magma_trmm_batched
+    @ingroup magma_trmm
     ===================================================================== */
 extern "C" void
 magmablas_ztrmm(
