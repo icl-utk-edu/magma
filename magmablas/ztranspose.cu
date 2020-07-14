@@ -54,10 +54,10 @@ ztranspose_device(
     int ibx = blockIdx.x*NB;
     int iby = blockIdx.y*NB;
     int i, j;
-    
+
     A  += ibx + tx + (iby + ty)*lda;
     AT += iby + tx + (ibx + ty)*ldat;
-    
+
     #pragma unroll
     for( int tile=0; tile < NB/NX; ++tile ) {
         // load NX-by-NB subtile transposed from A into sA
@@ -72,7 +72,7 @@ ztranspose_device(
             }
         }
         __syncthreads();
-        
+
         // save NB-by-NX subtile from sA into AT
         i = iby + tx;
         j = ibx + ty + tile*NX;
@@ -88,7 +88,7 @@ ztranspose_device(
             }
         }
         __syncthreads();
-        
+
         // move to next subtile
         A  += NX;
         AT += NX*ldat;
@@ -132,39 +132,39 @@ void ztranspose_kernel_batched_stride(
     Purpose
     -------
     ztranspose copies and transposes a matrix dA to matrix dAT.
-    
+
     Same as ztranspose, but adds queue argument.
-        
+
     Arguments
     ---------
     @param[in]
     m       INTEGER
             The number of rows of the matrix dA.  M >= 0.
-    
+
     @param[in]
     n       INTEGER
             The number of columns of the matrix dA.  N >= 0.
-    
+
     @param[in]
     dA      COMPLEX_16 array, dimension (LDDA,N)
             The M-by-N matrix dA.
-    
+
     @param[in]
     ldda    INTEGER
             The leading dimension of the array dA.  LDDA >= M.
-    
+
     @param[in]
     dAT     COMPLEX_16 array, dimension (LDDAT,M)
             The N-by-M matrix dAT.
-    
+
     @param[in]
     lddat   INTEGER
             The leading dimension of the array dAT.  LDDAT >= N.
-    
+
     @param[in]
     queue   magma_queue_t
             Queue to execute in.
-    
+
     @ingroup magma_transpose
 *******************************************************************************/
 extern "C" void
@@ -183,12 +183,12 @@ magmablas_ztranspose(
         info = -4;
     else if ( lddat < n )
         info = -6;
-    
+
     if ( info != 0 ) {
         magma_xerbla( __func__, -(info) );
         return;  //info;
     }
-    
+
     /* Quick return */
     if ( (m == 0) || (n == 0) )
         return;
@@ -204,43 +204,43 @@ magmablas_ztranspose(
     Purpose
     -------
     ztranspose_batched copies and transposes a matrix dA_array[i] to matrix dAT_array[i].
-    
+
     Same as ztranspose_batched, but adds queue argument.
-        
+
     Arguments
     ---------
     @param[in]
     m       INTEGER
             The number of rows of the matrix dA.  M >= 0.
-    
+
     @param[in]
     n       INTEGER
             The number of columns of the matrix dA.  N >= 0.
-    
+
     @param[in]
-    dA_array 
+    dA_array
             COMPLEX_16* array, dimension (batchCount)
             array of pointers to the matrices dA, where each dA is of dimension (LDDA,N)
             The M-by-N matrix dA.
-    
+
     @param[in]
     ldda    INTEGER
             The leading dimension of the array dA.  LDDA >= M.
-    
+
     @param[in]
-    dAT_array     
+    dAT_array
             COMPLEX_16* array, dimension (batchCount)
             array of pointers to the matrices dAT, where each dAT is of dimension (LDDAT,M)
             The N-by-M matrix dAT.
-    
+
     @param[in]
     lddat   INTEGER
             The leading dimension of the array dAT.  LDDAT >= N.
-    
+
     @param[in]
     queue   magma_queue_t
             Queue to execute in.
-    
+
     @param[in]
     batchCount  Number of matrices in dA_array and dAT_array
 
@@ -263,20 +263,26 @@ magmablas_ztranspose_batched(
         info = -4;
     else if ( lddat < n )
         info = -6;
-    
+
     if ( info != 0 ) {
         magma_xerbla( __func__, -(info) );
         return;  //info;
     }
-    
+
     /* Quick return */
     if ( (m == 0) || (n == 0) )
         return;
 
     dim3 threads( NX, NY, 1 );
-    dim3 grid( magma_ceildiv( m, NB ), magma_ceildiv( n, NB ), batchCount );
-    ztranspose_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
-        ( m, n, dA_array, ldda, dAT_array, lddat );
+    magma_int_t max_batchCount = 50000;
+
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv( m, NB ), magma_ceildiv( n, NB ), ibatch );
+
+        ztranspose_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
+        ( m, n, dA_array+i, ldda, dAT_array+i, lddat );
+    }
 }
 
 extern "C" void
@@ -309,8 +315,13 @@ magmablas_ztranspose_batched_stride(
         return;
 
     dim3 threads( NX, NY, 1 );
-    dim3 grid( magma_ceildiv( m, NB ), magma_ceildiv( n, NB ), batchCount );
-    //ztranspose_kernel_batched_stride<<< grid, threads, 0, queue->cuda_stream() >>>
-    ztranspose_kernel_batched_stride<<< grid, threads>>>
-        ( m, n, stride, dA_array, ldda, dAT_array, lddat );
+    magma_int_t max_batchCount = 50000;
+
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+
+        dim3 grid( magma_ceildiv( m, NB ), magma_ceildiv( n, NB ), ibatch );
+        ztranspose_kernel_batched_stride<<< grid, threads, 0, queue->cuda_stream() >>>
+        ( m, n, stride, dA_array+i, ldda, dAT_array+i, lddat );
+    }
 }
