@@ -18,7 +18,7 @@
  *  Each thread iterates across one row of the block.
  */
 
-__global__ void 
+__global__ void
 zswapdblk_batched_kernel( int nb, int n_mod_nb,
                   magmaDoubleComplex **dA_array, int ldda, int inca,
                   magmaDoubleComplex **dB_array, int lddb, int incb )
@@ -26,15 +26,15 @@ zswapdblk_batched_kernel( int nb, int n_mod_nb,
     const int tx = threadIdx.x;
     const int bx = blockIdx.x;
     const int batchid = blockIdx.z;
-    
+
     magmaDoubleComplex *dA = dA_array[batchid];
     magmaDoubleComplex *dB = dB_array[batchid];
-    
+
     dA += tx + bx * nb * (ldda + inca);
     dB += tx + bx * nb * (lddb + incb);
 
     magmaDoubleComplex tmp;
-    
+
     if (bx < gridDim.x-1)
     {
         #pragma unroll
@@ -63,7 +63,7 @@ zswapdblk_batched_kernel( int nb, int n_mod_nb,
     For i = 1 .. nblocks, submatrices
     dA( i*nb*inca, i*nb ) and
     dB( i*nb*incb, i*nb ) are swapped.
-    
+
     Arguments
     ---------
     @param[in]
@@ -76,7 +76,7 @@ zswapdblk_batched_kernel( int nb, int n_mod_nb,
             NB > 0 and NB <= maximum threads per CUDA block (512 or 1024).
 
     @param[in,out]
-    dA_array Array of pointers, dimension (batchCount). 
+    dA_array Array of pointers, dimension (batchCount).
              Each is a COMPLEX_16 array dA, dimension (ldda,n)
              The matrix dA.
 
@@ -104,7 +104,7 @@ zswapdblk_batched_kernel( int nb, int n_mod_nb,
     @param[in]
     incb    INTEGER
             The row increment between diagonal blocks of dB. incb >= 0. See inca.
-    
+
     @param[in]
     batchCount  INTEGER
                 The number of matrices to operate on.
@@ -115,7 +115,7 @@ zswapdblk_batched_kernel( int nb, int n_mod_nb,
 
     @ingroup magma_swapdblk
 *******************************************************************************/
-extern "C" void 
+extern "C" void
 magmablas_zswapdblk_batched(
     magma_int_t n, magma_int_t nb,
     magmaDoubleComplex **dA_array, magma_int_t ldda, magma_int_t inca,
@@ -124,7 +124,7 @@ magmablas_zswapdblk_batched(
 {
     magma_int_t nblocks = magma_ceildiv( n, nb );
     magma_int_t n_mod_nb = n % nb;
-    
+
     magma_int_t info = 0;
     if (n < 0) {
         info = -1;
@@ -144,16 +144,19 @@ magmablas_zswapdblk_batched(
         magma_xerbla( __func__, -(info) );
         return;  //info;
     }
-    
+
     if (n_mod_nb == 0) nblocks += 1; // a dummy thread block for cleanup code
-    
-    dim3 dimGrid(nblocks, 1, batchCount);
-    
+
     dim3 dimBlock(nb);
-    
+    magma_int_t max_batchCount = 50000;
     if ( nblocks > 0 ) {
-        zswapdblk_batched_kernel<<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
-            ( nb, n_mod_nb, dA_array, ldda, inca,
-                  dB_array, lddb, incb );
+
+        for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+            magma_int_t ibatch = min(max_batchCount, batchCount-i);
+            dim3 dimGrid(nblocks, 1, ibatch);
+
+            zswapdblk_batched_kernel<<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
+            ( nb, n_mod_nb, dA_array+i, ldda, inca, dB_array+i, lddb, incb );
+        }
     }
 }
