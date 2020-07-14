@@ -7,7 +7,7 @@
 
        @author Mark Gates
        @author Azzam Haidar
-       
+
        @precisions normal z -> s d c
 
 */
@@ -264,7 +264,7 @@ void zlaset_upper_kernel_vbatched(
     -------
     ZLASET initializes a 2-D array A to DIAG on the diagonal and
     OFFDIAG on the off-diagonals.
-    
+
     Arguments
     ---------
     @param[in]
@@ -273,23 +273,23 @@ void zlaset_upper_kernel_vbatched(
       -     = MagmaUpper:      Upper triangular part
       -     = MagmaLower:      Lower triangular part
       -     = MagmaFull:       All of the matrix dA
-    
+
     @param[in]
     m       INTEGER
             The number of rows of the matrix dA.  M >= 0.
-    
+
     @param[in]
     n       INTEGER
             The number of columns of the matrix dA.  N >= 0.
-    
+
     @param[in]
     offdiag COMPLEX_16
             The scalar OFFDIAG. (In LAPACK this is called ALPHA.)
-    
+
     @param[in]
     diag    COMPLEX_16
             The scalar DIAG. (In LAPACK this is called BETA.)
-    
+
     @param[in]
     dA      COMPLEX_16 array, dimension (LDDA,N)
             The M-by-N matrix dA.
@@ -297,15 +297,15 @@ void zlaset_upper_kernel_vbatched(
             if UPLO = MagmaLower, only the lower triangle or trapezoid is accessed.
             On exit, A(i,j) = OFFDIAG, 1 <= i <= m, 1 <= j <= n, i != j;
             and      A(i,i) = DIAG,    1 <= i <= min(m,n)
-    
+
     @param[in]
     ldda    INTEGER
             The leading dimension of the array dA.  LDDA >= max(1,M).
-    
+
     @param[in]
     queue   magma_queue_t
             Queue to execute in.
-    
+
     @ingroup magma_laset
 *******************************************************************************/
 extern "C"
@@ -316,7 +316,7 @@ void magmablas_zlaset(
     magma_queue_t queue)
 {
     #define dA(i_, j_) (dA + (i_) + (j_)*ldda)
-    
+
     magma_int_t info = 0;
     if ( uplo != MagmaLower && uplo != MagmaUpper && uplo != MagmaFull )
         info = -1;
@@ -326,23 +326,23 @@ void magmablas_zlaset(
         info = -3;
     else if ( ldda < max(1,m) )
         info = -7;
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return;  //info;
     }
-    
+
     if ( m == 0 || n == 0 ) {
         return;
     }
-    
+
     assert( BLK_X == BLK_Y );
     const magma_int_t super_NB = max_blocks*BLK_X;
     dim3 super_grid( magma_ceildiv( m, super_NB ), magma_ceildiv( n, super_NB ) );
-    
+
     dim3 threads( BLK_X, 1 );
     dim3 grid;
-    
+
     magma_int_t mm, nn;
     if (uplo == MagmaLower) {
         for( unsigned int i=0; i < super_grid.x; ++i ) {
@@ -431,33 +431,41 @@ void magmablas_zlaset_batched(
         info = -3;
     else if ( ldda < max(1,m) )
         info = -7;
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return;  //info;
     }
-    
+
     if ( m == 0 || n == 0 ) {
         return;
     }
-    
+
     dim3 threads( BLK_X, 1, 1 );
-    dim3 grid( magma_ceildiv( m, BLK_X ), magma_ceildiv( n, BLK_Y ), batchCount );
-    
-    if (uplo == MagmaLower) {
-        zlaset_lower_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>> (m, n, offdiag, diag, dAarray, ldda);
-    }
-    else if (uplo == MagmaUpper) {
-        zlaset_upper_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>> (m, n, offdiag, diag, dAarray, ldda);
-    }
-    else {
-        zlaset_full_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>> (m, n, offdiag, diag, dAarray, ldda);
+    magma_int_t max_batchCount = 50000;
+
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv( m, BLK_X ), magma_ceildiv( n, BLK_Y ), ibatch );
+
+        if (uplo == MagmaLower) {
+            zlaset_lower_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
+            (m, n, offdiag, diag, dAarray+i, ldda);
+        }
+        else if (uplo == MagmaUpper) {
+            zlaset_upper_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
+            (m, n, offdiag, diag, dAarray+i, ldda);
+        }
+        else {
+            zlaset_full_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
+            (m, n, offdiag, diag, dAarray+i, ldda);
+        }
     }
 }
 /******************************************************************************/
 extern "C"
 void magmablas_zlaset_vbatched(
-    magma_uplo_t uplo, magma_int_t max_m, magma_int_t max_n, 
+    magma_uplo_t uplo, magma_int_t max_m, magma_int_t max_n,
     magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex offdiag, magmaDoubleComplex diag,
     magmaDoubleComplex_ptr dAarray[], magma_int_t* ldda,
@@ -472,26 +480,34 @@ void magmablas_zlaset_vbatched(
         info = -3;
     //else if ( ldda < max(1,m) )
     //    info = -7;
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return;  //info;
     }
-    
+
     if ( max_m == 0 || max_n == 0 ) {
         return;
     }
-    
+
     dim3 threads( BLK_X, 1, 1 );
-    dim3 grid( magma_ceildiv( max_m, BLK_X ), magma_ceildiv( max_n, BLK_Y ), batchCount );
-    
-    if (uplo == MagmaLower) {
-        zlaset_lower_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>> (m, n, offdiag, diag, dAarray, ldda);
-    }
-    else if (uplo == MagmaUpper) {
-        zlaset_upper_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>> (m, n, offdiag, diag, dAarray, ldda);
-    }
-    else {
-        zlaset_full_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>> (m, n, offdiag, diag, dAarray, ldda);
+    magma_int_t max_batchCount = 50000;
+
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv( max_m, BLK_X ), magma_ceildiv( max_n, BLK_Y ), ibatch );
+
+        if (uplo == MagmaLower) {
+            zlaset_lower_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>>
+            (m+i, n+i, offdiag, diag, dAarray+i, ldda+i);
+        }
+        else if (uplo == MagmaUpper) {
+            zlaset_upper_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>>
+            (m+i, n+i, offdiag, diag, dAarray+i, ldda+i);
+        }
+        else {
+            zlaset_full_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>>
+            (m+i, n+i, offdiag, diag, dAarray+i, ldda+i);
+        }
     }
 }
