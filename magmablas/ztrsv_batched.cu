@@ -150,16 +150,9 @@ magmablas_ztrsv_outofplace_batched(
     if (n == 0)
         return;
 
-    dim3 threads( NUM_THREADS, 1, 1 );
-    dim3 blocks( 1, 1, batchCount );
-    size_t shmem = n * sizeof(magmaDoubleComplex);
-
-    if (trans == MagmaNoTrans)
-    {
-        if (uplo == MagmaUpper)
-        {
-            if (diag == MagmaNonUnit)
-            {
+    if (trans == MagmaNoTrans) {
+        if (uplo == MagmaUpper) {
+            if (diag == MagmaNonUnit) {
                 if (flag == 0) {
                     ztrsv_notrans_outplace_batched< BLOCK_SIZE_N, DIM_X_N, DIM_Y_N, MagmaBigTileSize, 0, MagmaUpper, MagmaNoTrans, MagmaNonUnit >
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
@@ -169,8 +162,7 @@ magmablas_ztrsv_outofplace_batched(
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
             }
-            else if (diag == MagmaUnit)
-            {
+            else if (diag == MagmaUnit) {
                 if (flag == 0) {
                     ztrsv_notrans_outplace_batched< BLOCK_SIZE_N, DIM_X_N, DIM_Y_N, MagmaBigTileSize, 0, MagmaUpper, MagmaNoTrans, MagmaUnit >
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
@@ -181,12 +173,9 @@ magmablas_ztrsv_outofplace_batched(
                 }
             }
         }
-        else //Lower
-        {
-            if (diag == MagmaNonUnit)
-            {
-                if (flag == 0)
-                {
+        else { //Lower
+            if (diag == MagmaNonUnit) {
+                if (flag == 0) {
                     ztrsv_notrans_outplace_batched< BLOCK_SIZE_N, DIM_X_N, DIM_Y_N, MagmaBigTileSize, 0, MagmaLower, MagmaNoTrans, MagmaNonUnit >
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
@@ -195,10 +184,8 @@ magmablas_ztrsv_outofplace_batched(
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
             }
-            else if (diag == MagmaUnit)
-            {
-                if (flag == 0)
-                {
+            else if (diag == MagmaUnit) {
+                if (flag == 0) {
                     ztrsv_notrans_outplace_batched< BLOCK_SIZE_N, DIM_X_N, DIM_Y_N, MagmaBigTileSize, 0, MagmaLower, MagmaNoTrans, MagmaUnit>
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
@@ -209,13 +196,10 @@ magmablas_ztrsv_outofplace_batched(
             }
         }
     }
-    else if (trans == MagmaTrans)
-    {
-        if (uplo == MagmaUpper)
-        {
+    else if (trans == MagmaTrans) {
+        if (uplo == MagmaUpper) {
             if (diag == MagmaNonUnit) {
-                if (flag == 0)
-                {
+                if (flag == 0) {
                     ztrsv_trans_outplace_batched< BLOCK_SIZE_T, DIM_X_T, DIM_Y_T, MagmaBigTileSize, 0, MagmaUpper, MagmaTrans, MagmaNonUnit >
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
@@ -225,8 +209,7 @@ magmablas_ztrsv_outofplace_batched(
                 }
             }
             else if (diag == MagmaUnit) {
-                if (flag == 0)
-                {
+                if (flag == 0) {
                     ztrsv_trans_outplace_batched< BLOCK_SIZE_T, DIM_X_T, DIM_Y_T, MagmaBigTileSize, 0, MagmaUpper, MagmaTrans, MagmaUnit >
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
@@ -236,11 +219,9 @@ magmablas_ztrsv_outofplace_batched(
                 }
             }
         }
-        else
-        {
+        else {
             if (diag == MagmaNonUnit) {
-                if (flag == 0)
-                {
+                if (flag == 0) {
                     ztrsv_trans_outplace_batched< BLOCK_SIZE_T, DIM_X_T, DIM_Y_T,MagmaBigTileSize, 0, MagmaLower, MagmaTrans, MagmaNonUnit >
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
@@ -250,8 +231,7 @@ magmablas_ztrsv_outofplace_batched(
                 }
             }
             else if (diag == MagmaUnit) {
-                if (flag == 0)
-                {
+                if (flag == 0) {
                     ztrsv_trans_outplace_batched< BLOCK_SIZE_T, DIM_X_T, DIM_Y_T,MagmaBigTileSize, 0, MagmaLower, MagmaTrans, MagmaUnit >
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
@@ -262,13 +242,10 @@ magmablas_ztrsv_outofplace_batched(
             }
         }
     }
-    else if (trans == MagmaConjTrans)
-    {
-        if (uplo == MagmaUpper)
-        {
+    else if (trans == MagmaConjTrans) {
+        if (uplo == MagmaUpper) {
             if (diag == MagmaNonUnit) {
-                if (flag == 0)
-                {
+                if (flag == 0) {
                     ztrsv_trans_outplace_batched< BLOCK_SIZE_T, DIM_X_T, DIM_Y_T, MagmaBigTileSize, 0, MagmaUpper, MagmaConjTrans, MagmaNonUnit >
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
@@ -278,8 +255,7 @@ magmablas_ztrsv_outofplace_batched(
                 }
             }
             else if (diag == MagmaUnit) {
-                if (flag == 0)
-                {
+                if (flag == 0) {
                     ztrsv_trans_outplace_batched< BLOCK_SIZE_T, DIM_X_T, DIM_Y_T, MagmaBigTileSize, 0, MagmaUpper, MagmaConjTrans, MagmaUnit >
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
@@ -289,11 +265,9 @@ magmablas_ztrsv_outofplace_batched(
                 }
             }
         }
-        else
-        {
+        else {
             if (diag == MagmaNonUnit) {
-                if (flag == 0)
-                {
+                if (flag == 0) {
                     ztrsv_trans_outplace_batched< BLOCK_SIZE_T, DIM_X_T, DIM_Y_T,MagmaBigTileSize, 0, MagmaLower, MagmaConjTrans, MagmaNonUnit >
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
@@ -303,8 +277,7 @@ magmablas_ztrsv_outofplace_batched(
                 }
             }
             else if (diag == MagmaUnit) {
-                if (flag == 0)
-                {
+                if (flag == 0) {
                     ztrsv_trans_outplace_batched< BLOCK_SIZE_T, DIM_X_T, DIM_Y_T,MagmaBigTileSize, 0, MagmaLower, MagmaConjTrans, MagmaUnit >
                     (n, A_array, lda, b_array, incb, x_array, batchCount, queue);
                 }
