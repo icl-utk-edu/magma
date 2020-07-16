@@ -988,6 +988,13 @@ magma_zpotrf_v33_batched(
 
 // host interface
 void
+blas_zlacpy_batched(
+    magma_uplo_t uplo, magma_int_t m, magma_int_t n,
+    magmaDoubleComplex const * const * hA_array, magma_int_t lda,
+    magmaDoubleComplex               **hB_array, magma_int_t ldb,
+    magma_int_t batchCount );
+
+void
 blas_zgemm_batched(
     magma_trans_t transA, magma_trans_t transB,
     magma_int_t m, magma_int_t n, magma_int_t k,
