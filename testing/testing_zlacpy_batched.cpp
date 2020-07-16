@@ -43,7 +43,7 @@ int main( int argc, char** argv)
 
     magma_opts opts( MagmaOptsBatched );
     opts.parse_opts( argc, argv );
-    magma_int_t batchCount = opts.batchCount;
+    magma_int_t batchCount = opts.batchcount;
 
     magma_uplo_t uplo[] = { MagmaLower, MagmaUpper, MagmaFull };
     printf("%% BatchCount   uplo    M     N   CPU GByte/s (ms)    GPU GByte/s (ms)    check\n");
@@ -120,7 +120,7 @@ int main( int argc, char** argv)
             }
 
             cpu_time = magma_wtime();
-            blas_zlacpy_batched(uplo[iuplo], m, n, hA_array, lda, hB_array, ldb, batchCount );
+            blas_zlacpy_batched(uplo[iuplo], M, N, hA_array, lda, hB_array, ldb, batchCount );
             cpu_time = magma_wtime() - cpu_time;
             cpu_perf = gbytes / cpu_time;
 
