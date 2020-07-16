@@ -34,10 +34,10 @@ blas_zlacpy_batched(
     #pragma omp parallel for schedule(dynamic)
     #endif
     for (int i=0; i < batchCount; i++) {
-        blasf77_zlacpy( lapack_uplo_const(uplo),
-                       &m, &n,
-                       hA_array[i], &lda,
-                       hB_array[i], &ldb );
+        lapackf77_zlacpy( lapack_uplo_const(uplo),
+                          &m, &n,
+                          hA_array[i], &lda,
+                          hB_array[i], &ldb );
     }
     #if defined(_OPENMP)
     magma_set_lapack_numthreads(nthreads);
