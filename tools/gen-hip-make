@@ -39,6 +39,8 @@ odirs = []
 for dr in dirs:
     if dr.endswith('cuda'):
         odirs += [dr.replace('cuda', 'hip')]
+    elif '/' in dr:
+        odirs += [dr.replace('/', '_hip/', 1)]
     else:
         odirs += [dr + '_hip']
 
@@ -57,10 +59,10 @@ ODIRS             := {" ".join(odirs)}
 
 # -- Rules --
 
-all: $(DIRS)
+all: $(ODIRS)
 
 clean: FORCE
-	rm -f $(wildcard $(ODIRS))
+	rm -rf $(wildcard $(ODIRS))
 
 FORCE:
 
@@ -73,6 +75,10 @@ FORCE:
 """)
 
 
+# escapes directory slashes for regex
+def _escslash(dr):
+    return dr.replace('/', '\\/')
+
 for dr, odr in zip(dirs, odirs):
     print (f"""
 
@@ -81,8 +87,8 @@ for dr, odr in zip(dirs, odirs):
 {odr}/%.cpp: {dr}/%.cpp
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	@sed -i -e "s/.cuh/.hip.hpp/g" $@ 
-	@sed -i -e "s/CUBLAS/hipBLAS/g" $@
+	sed -i -e "s/.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/CUBLAS/hipBLAS/g" $@
 
 {odr}/%.h: {dr}/%.h
 	@mkdir -p $(dir $@)
@@ -93,12 +99,12 @@ for dr, odr in zip(dirs, odirs):
 {odr}/%.hip.cpp: {dr}/%.cu
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/.cuh/.hip.hpp/g" $@
 
 {odr}/%.hip.hpp: {dr}/%.cuh
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	@sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/.cuh/.hip.hpp/g" $@
 
 # converts *_config <- *_config
 # these are things like gemm_configs, so are architecture agnostic
@@ -119,9 +125,9 @@ for dr, odr in zip(dirs, odirs):
 {odr}/Makefil%: {dr}/Makefil%
 	@mkdir -p $(dir $@)
 	cp $< $@
-	@sed -i -e "s/:=  *{dr}/:= {odr}/g" $@
-	@sed -i -e "s/.cuh/.hip.hpp/g" $@
-	@sed -i -e "s/.cu/.hip.cpp/g" $@
+	sed -i -e "s/:=  *{_escslash(dr)}/:= {_escslash(odr)}/g" $@
+	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/.cu/.hip.cpp/g" $@
     
 """)
 
