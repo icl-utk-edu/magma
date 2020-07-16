@@ -46,8 +46,8 @@ int main( int argc, char** argv)
     magma_int_t batchCount = opts.batchcount;
 
     magma_uplo_t uplo[] = { MagmaLower, MagmaUpper, MagmaFull };
-    printf("%% BatchCount   uplo    M     N   CPU GByte/s (ms)    GPU GByte/s (ms)    check\n");
-    printf("%%=============================================================================\n");
+    printf("%% BatchCount   uplo      M     N   CPU GByte/s (ms)    GPU GByte/s (ms)    check\n");
+    printf("%%===============================================================================\n");
     for( int iuplo = 0; iuplo < 3; ++iuplo ) {
         for( int itest = 0; itest < opts.ntest; ++itest ) {
             for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -57,8 +57,8 @@ int main( int argc, char** argv)
             ldb   = lda;
             ldda  = magma_roundup( M, opts.align );  // multiple of 32 by default
             lddb  = ldda;
-            sizeA = lda*N;
-            sizeB = ldb*N;
+            sizeA = batchCount*lda*N;
+            sizeB = batchCount*ldb*N;
 
             if ( uplo[iuplo] == MagmaLower ) {
                 // load & save lower trapezoid (with diagonal)
@@ -94,23 +94,24 @@ int main( int argc, char** argv)
 
 
             lapackf77_zlarnv( &ione, ISEED, &sizeA, h_A );
-            lapackf77_zlarnv( &ione, ISEED, &sizeA, h_B );
+            lapackf77_zlarnv( &ione, ISEED, &sizeB, h_B );
 
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
             magma_zsetmatrix( M, N*batchCount, h_A, lda, d_A, ldda, opts.queue );
-            magma_zsetmatrix( M, N*batchCount, h_B, lda, d_B, ldda, opts.queue );
+            magma_zsetmatrix( M, N*batchCount, h_B, ldb, d_B, lddb, opts.queue );
 
             // setup pointers
             magma_zset_pointer( dA_array, d_A, ldda, 0, 0, ldda*N, batchCount, opts.queue );
             magma_zset_pointer( dB_array, d_B, lddb, 0, 0, lddb*N, batchCount, opts.queue );
 
             gpu_time = magma_sync_wtime( opts.queue );
-            magmablas_zlacpy_batched( uplo[iuplo], M, N, dA_array, ldda, dB_array, ldda, batchCount, opts.queue );
+            magmablas_zlacpy_batched( uplo[iuplo], M, N, dA_array, ldda, dB_array, lddb, batchCount, opts.queue );
             gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             gpu_perf = gbytes / gpu_time;
 
+            magma_zgetmatrix( M, N*batchCount, d_B, lddb, h_R, ldb, opts.queue );
             /* =====================================================================
                Performs operation using LAPACK
                =================================================================== */
@@ -127,15 +128,13 @@ int main( int argc, char** argv)
             /* =====================================================================
                Check the result
                =================================================================== */
-            magma_zgetmatrix( M, N*batchCount, d_B, ldda, h_R, ldb, opts.queue );
-            blasf77_zaxpy(&sizeB, &c_neg_one, h_B, &ione, h_R, &ione);
-
             magma_int_t NN = batchCount*N;
+            blasf77_zaxpy(&sizeB, &c_neg_one, h_B, &ione, h_R, &ione);
             error = lapackf77_zlange("f", &M, &NN, h_R, &ldb, work);
             bool okay = (error == 0);
             status += ! okay;
 
-            printf("  %10lld %5s %5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %s\n",
+            printf("%10lld   %7s %5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %s\n",
                    (long long) batchCount, lapack_uplo_const(uplo[iuplo]),
                    (long long) M, (long long) N,
                    cpu_perf, cpu_time*1000., gpu_perf, gpu_time*1000.,
