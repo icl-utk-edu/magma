@@ -8,6 +8,13 @@
 #include "magma_v2.h"
 #endif
 
+// ignore/replace some cuBLAS calls
+#ifdef HAVE_HIP
+#define cublasSetAtomicsMode(...)
+
+#endif
+
+
 #include <vector>
 #include <string>
 #include <cmath>

@@ -333,8 +333,8 @@ else ifeq ($(BACKEND),hip)
 	# this needs to be generate!
 	subdirs += interface_hip
 	subdirs += magmablas_hip
-	#subdirs += testing
-	subdirs += testing_hip
+	subdirs += testing
+	#subdirs += testing_hip
 endif
 
 # add all sparse folders
