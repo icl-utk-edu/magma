@@ -1,12 +1,12 @@
 # -- GENERATED MAKEFILE --
-# This makefile generates ['interface_cuda', 'magmablas', 'sparse', 'sparse/src', 'sparse/include', 'sparse/control', 'sparse/blas', 'sparse/testing'] -> ['interface_hip', 'magmablas_hip', 'sparse_hip', 'sparse_hip/src', 'sparse_hip/include', 'sparse_hip/control', 'sparse_hip/blas', 'sparse_hip/testing']
+# This makefile generates ['interface_cuda', 'magmablas', 'sparse/src', 'sparse/include', 'sparse/control', 'sparse/blas', 'sparse/testing', 'sparse'] -> ['interface_hip', 'magmablas_hip', 'sparse_hip/src', 'sparse_hip/include', 'sparse_hip/control', 'sparse_hip/blas', 'sparse_hip/testing', 'sparse_hip']
 
 # tool to 'hipify' it
 HIPIFY            ?= tools/hipify-perl
 
 # input & output directories
-DIRS              := interface_cuda magmablas sparse sparse/src sparse/include sparse/control sparse/blas sparse/testing
-ODIRS             := interface_hip magmablas_hip sparse_hip sparse_hip/src sparse_hip/include sparse_hip/control sparse_hip/blas sparse_hip/testing
+DIRS              := interface_cuda magmablas sparse/src sparse/include sparse/control sparse/blas sparse/testing sparse
+ODIRS             := interface_hip magmablas_hip sparse_hip/src sparse_hip/include sparse_hip/control sparse_hip/blas sparse_hip/testing sparse_hip
 
 
 # -- Rules --
@@ -32,24 +32,24 @@ interface_hip: $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_
 interface_hip/%.cpp: interface_cuda/%.cpp
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
 	sed -i -e "s/CUBLAS/hipBLAS/g" $@
 
 interface_hip/%.h: interface_cuda/%.h
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 interface_hip/%.hip.cpp: interface_cuda/%.cu
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 interface_hip/%.hip.hpp: interface_cuda/%.cuh
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 # converts *_config <- *_config
 # these are things like gemm_configs, so are architecture agnostic
@@ -71,8 +71,8 @@ interface_hip/Makefil%: interface_cuda/Makefil%
 	@mkdir -p $(dir $@)
 	cp $< $@
 	sed -i -e "s/:=  *interface_cuda/:= interface_hip/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cu/.hip.cpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cu/.hip.cpp/g" $@
     
 
 
@@ -82,24 +82,24 @@ magmablas_hip: $(patsubst magmablas/%,magmablas_hip/%,$(wildcard magmablas/*.cpp
 magmablas_hip/%.cpp: magmablas/%.cpp
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
 	sed -i -e "s/CUBLAS/hipBLAS/g" $@
 
 magmablas_hip/%.h: magmablas/%.h
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 magmablas_hip/%.hip.cpp: magmablas/%.cu
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 magmablas_hip/%.hip.hpp: magmablas/%.cuh
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 # converts *_config <- *_config
 # these are things like gemm_configs, so are architecture agnostic
@@ -121,58 +121,8 @@ magmablas_hip/Makefil%: magmablas/Makefil%
 	@mkdir -p $(dir $@)
 	cp $< $@
 	sed -i -e "s/:=  *magmablas/:= magmablas_hip/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cu/.hip.cpp/g" $@
-    
-
-
-
-sparse_hip: $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.cpp)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.h)) $(patsubst sparse/%.cu,sparse_hip/%.hip.cpp,$(wildcard sparse/*.cu)) $(patsubst sparse/%.cuh,sparse_hip/%.hip.hpp,$(wildcard sparse/*.cuh)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/Makefil*)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*_config)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.f90 sparse/*.F90)) FORCE
-
-sparse_hip/%.cpp: sparse/%.cpp
-	@mkdir -p $(dir $@)
-	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@ 
-	sed -i -e "s/CUBLAS/hipBLAS/g" $@
-
-sparse_hip/%.h: sparse/%.h
-	@mkdir -p $(dir $@)
-	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-
-sparse_hip/%.hip.cpp: sparse/%.cu
-	@mkdir -p $(dir $@)
-	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-
-sparse_hip/%.hip.hpp: sparse/%.cuh
-	@mkdir -p $(dir $@)
-	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-
-# converts *_config <- *_config
-# these are things like gemm_configs, so are architecture agnostic
-# so, just copy them
-sparse_hip/%_config: sparse/%_config
-	@mkdir -p $(dir $@)
-	cp -rf $< $(dir $@)
-
-# copy in fortran sources
-sparse_hip/%.f90: sparse/%.f90
-	@mkdir -p $(dir $@)
-	cp $^ $@
-sparse_hip/%.F90: sparse/%.F90
-	@mkdir -p $(dir $@)
-	cp $^ $@
-
-# little hack so % acts like Makefile*.
-sparse_hip/Makefil%: sparse/Makefil%
-	@mkdir -p $(dir $@)
-	cp $< $@
-	sed -i -e "s/:=  *sparse/:= sparse_hip/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cu/.hip.cpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cu/.hip.cpp/g" $@
     
 
 
@@ -182,24 +132,24 @@ sparse_hip/src: $(patsubst sparse/src/%,sparse_hip/src/%,$(wildcard sparse/src/*
 sparse_hip/src/%.cpp: sparse/src/%.cpp
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
 	sed -i -e "s/CUBLAS/hipBLAS/g" $@
 
 sparse_hip/src/%.h: sparse/src/%.h
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 sparse_hip/src/%.hip.cpp: sparse/src/%.cu
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 sparse_hip/src/%.hip.hpp: sparse/src/%.cuh
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 # converts *_config <- *_config
 # these are things like gemm_configs, so are architecture agnostic
@@ -221,8 +171,8 @@ sparse_hip/src/Makefil%: sparse/src/Makefil%
 	@mkdir -p $(dir $@)
 	cp $< $@
 	sed -i -e "s/:=  *sparse\/src/:= sparse_hip\/src/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cu/.hip.cpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cu/.hip.cpp/g" $@
     
 
 
@@ -232,24 +182,24 @@ sparse_hip/include: $(patsubst sparse/include/%,sparse_hip/include/%,$(wildcard 
 sparse_hip/include/%.cpp: sparse/include/%.cpp
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
 	sed -i -e "s/CUBLAS/hipBLAS/g" $@
 
 sparse_hip/include/%.h: sparse/include/%.h
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 sparse_hip/include/%.hip.cpp: sparse/include/%.cu
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 sparse_hip/include/%.hip.hpp: sparse/include/%.cuh
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 # converts *_config <- *_config
 # these are things like gemm_configs, so are architecture agnostic
@@ -271,8 +221,8 @@ sparse_hip/include/Makefil%: sparse/include/Makefil%
 	@mkdir -p $(dir $@)
 	cp $< $@
 	sed -i -e "s/:=  *sparse\/include/:= sparse_hip\/include/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cu/.hip.cpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cu/.hip.cpp/g" $@
     
 
 
@@ -282,24 +232,24 @@ sparse_hip/control: $(patsubst sparse/control/%,sparse_hip/control/%,$(wildcard 
 sparse_hip/control/%.cpp: sparse/control/%.cpp
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
 	sed -i -e "s/CUBLAS/hipBLAS/g" $@
 
 sparse_hip/control/%.h: sparse/control/%.h
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 sparse_hip/control/%.hip.cpp: sparse/control/%.cu
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 sparse_hip/control/%.hip.hpp: sparse/control/%.cuh
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 # converts *_config <- *_config
 # these are things like gemm_configs, so are architecture agnostic
@@ -321,8 +271,8 @@ sparse_hip/control/Makefil%: sparse/control/Makefil%
 	@mkdir -p $(dir $@)
 	cp $< $@
 	sed -i -e "s/:=  *sparse\/control/:= sparse_hip\/control/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cu/.hip.cpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cu/.hip.cpp/g" $@
     
 
 
@@ -332,24 +282,24 @@ sparse_hip/blas: $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/bl
 sparse_hip/blas/%.cpp: sparse/blas/%.cpp
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
 	sed -i -e "s/CUBLAS/hipBLAS/g" $@
 
 sparse_hip/blas/%.h: sparse/blas/%.h
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 sparse_hip/blas/%.hip.cpp: sparse/blas/%.cu
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 sparse_hip/blas/%.hip.hpp: sparse/blas/%.cuh
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 # converts *_config <- *_config
 # these are things like gemm_configs, so are architecture agnostic
@@ -371,8 +321,8 @@ sparse_hip/blas/Makefil%: sparse/blas/Makefil%
 	@mkdir -p $(dir $@)
 	cp $< $@
 	sed -i -e "s/:=  *sparse\/blas/:= sparse_hip\/blas/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cu/.hip.cpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cu/.hip.cpp/g" $@
     
 
 
@@ -382,24 +332,24 @@ sparse_hip/testing: $(patsubst sparse/testing/%,sparse_hip/testing/%,$(wildcard 
 sparse_hip/testing/%.cpp: sparse/testing/%.cpp
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
 	sed -i -e "s/CUBLAS/hipBLAS/g" $@
 
 sparse_hip/testing/%.h: sparse/testing/%.h
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 sparse_hip/testing/%.hip.cpp: sparse/testing/%.cu
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 sparse_hip/testing/%.hip.hpp: sparse/testing/%.cuh
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 # converts *_config <- *_config
 # these are things like gemm_configs, so are architecture agnostic
@@ -421,8 +371,58 @@ sparse_hip/testing/Makefil%: sparse/testing/Makefil%
 	@mkdir -p $(dir $@)
 	cp $< $@
 	sed -i -e "s/:=  *sparse\/testing/:= sparse_hip\/testing/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cu/.hip.cpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cu/.hip.cpp/g" $@
+    
+
+
+
+sparse_hip: $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.cpp)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.h)) $(patsubst sparse/%.cu,sparse_hip/%.hip.cpp,$(wildcard sparse/*.cu)) $(patsubst sparse/%.cuh,sparse_hip/%.hip.hpp,$(wildcard sparse/*.cuh)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/Makefil*)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*_config)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.f90 sparse/*.F90)) FORCE
+
+sparse_hip/%.cpp: sparse/%.cpp
+	@mkdir -p $(dir $@)
+	$(HIPIFY) $< > $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/CUBLAS/hipBLAS/g" $@
+
+sparse_hip/%.h: sparse/%.h
+	@mkdir -p $(dir $@)
+	$(HIPIFY) $< > $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+
+sparse_hip/%.hip.cpp: sparse/%.cu
+	@mkdir -p $(dir $@)
+	$(HIPIFY) $< > $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+
+sparse_hip/%.hip.hpp: sparse/%.cuh
+	@mkdir -p $(dir $@)
+	$(HIPIFY) $< > $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+
+# converts *_config <- *_config
+# these are things like gemm_configs, so are architecture agnostic
+# so, just copy them
+sparse_hip/%_config: sparse/%_config
+	@mkdir -p $(dir $@)
+	cp -rf $< $(dir $@)
+
+# copy in fortran sources
+sparse_hip/%.f90: sparse/%.f90
+	@mkdir -p $(dir $@)
+	cp $^ $@
+sparse_hip/%.F90: sparse/%.F90
+	@mkdir -p $(dir $@)
+	cp $^ $@
+
+# little hack so % acts like Makefile*.
+sparse_hip/Makefil%: sparse/Makefil%
+	@mkdir -p $(dir $@)
+	cp $< $@
+	sed -i -e "s/:=  *sparse/:= sparse_hip/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cu/.hip.cpp/g" $@
     
 
 # -- Done --

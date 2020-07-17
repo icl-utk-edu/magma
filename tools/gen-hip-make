@@ -38,7 +38,7 @@ odirs = []
 
 for dr in dirs:
     if dr.endswith('cuda'):
-        odirs += [dr.replace('cuda', 'hip')]
+        odirs += [dr.replace('cuda', 'hip', 1)]
     elif '/' in dr:
         odirs += [dr.replace('/', '_hip/', 1)]
     else:
@@ -87,24 +87,24 @@ for dr, odr in zip(dirs, odirs):
 {odr}/%.cpp: {dr}/%.cpp
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
 	sed -i -e "s/CUBLAS/hipBLAS/g" $@
 
 {odr}/%.h: {dr}/%.h
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 {odr}/%.hip.cpp: {dr}/%.cu
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 {odr}/%.hip.hpp: {dr}/%.cuh
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 
 # converts *_config <- *_config
 # these are things like gemm_configs, so are architecture agnostic
@@ -126,8 +126,8 @@ for dr, odr in zip(dirs, odirs):
 	@mkdir -p $(dir $@)
 	cp $< $@
 	sed -i -e "s/:=  *{_escslash(dr)}/:= {_escslash(odr)}/g" $@
-	sed -i -e "s/.cuh/.hip.hpp/g" $@
-	sed -i -e "s/.cu/.hip.cpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cu/.hip.cpp/g" $@
     
 """)
 
