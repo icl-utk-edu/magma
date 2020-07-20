@@ -200,8 +200,8 @@ magma_zhetrd_hb2st(
     magma_int_t mklth   = magma_get_lapack_numthreads();
     magma_int_t ompth   = magma_get_omp_numthreads();
 
-    //magma_set_omp_numthreads(1);
-    //magma_set_lapack_numthreads(1);
+    magma_set_omp_numthreads(1);
+    magma_set_lapack_numthreads(1);
 
     magma_int_t blkcnt, sizTAU2, sizT2, sizV2;
     magma_zbulge_getstg2size(n, nb, wantz, 

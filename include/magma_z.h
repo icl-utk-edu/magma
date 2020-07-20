@@ -1117,7 +1117,7 @@ magma_dlaex1(
     double *work, magma_int_t *iwork,
     magmaDouble_ptr dwork,
     magma_range_t range, double vl, double vu, magma_int_t il, magma_int_t iu,
-    magma_int_t *info);
+    magma_queue_t queue, magma_int_t *info);
 
 // CUDA MAGMA only
 magma_int_t
@@ -1141,7 +1141,7 @@ magma_dlaex3(
     magma_int_t *ctot, double *w, double *s, magma_int_t *indxq,
     magmaDouble_ptr dwork,
     magma_range_t range, double vl, double vu, magma_int_t il, magma_int_t iu,
-    magma_int_t *info);
+    magma_queue_t queue, magma_int_t *info);
 
 // CUDA MAGMA only
 magma_int_t

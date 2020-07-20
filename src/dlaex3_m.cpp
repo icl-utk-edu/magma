@@ -209,7 +209,7 @@ magma_dlaex3_m(
         magma_setdevice(0);
         magma_dlaex3( k, n, n1, d, Q, ldq, rho,
                       dlamda, Q2, indx, ctot, w, s, indxq,
-                      *dwork, range, vl, vu, il, iu, info );
+                      *dwork, range, vl, vu, il, iu, queues[0][0], info );
         return *info;
     }
     double d_one  = 1.;

@@ -132,6 +132,11 @@ magma_dlaex0(
     if (n == 0)
         return *info;
 
+    magma_queue_t queue;
+    magma_device_t cdev;
+    magma_getdevice( &cdev );
+    magma_queue_create( cdev, &queue );
+
     smlsiz = magma_get_smlsize_divideconquer();
 
     // Determine the size and placement of the submatrices, and save in
@@ -221,7 +226,7 @@ magma_dlaex0(
             magma_dlaex1(matsiz, &d[submat], Q(submat, submat), ldq,
                          &iwork[indxq+submat], e[submat+msd2-1], msd2,
                          work, &iwork[subpbs], dwork,
-                         range2, vl, vu, il, iu, info);
+                         range2, vl, vu, il, iu, queue, info);
 
             if (*info != 0) {
                 *info = (submat+1)*(n+1) + submat + matsiz;
@@ -245,6 +250,8 @@ magma_dlaex0(
     }
     blasf77_dcopy(&n, work, &ione, d, &ione);
     lapackf77_dlacpy( "A", &n, &n, &work[n], &n, Q, &ldq );
+
+    magma_queue_destroy( queue );
 
     return *info;
 } /* magma_dlaex0 */
