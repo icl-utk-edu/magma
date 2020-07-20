@@ -36,7 +36,7 @@ int main( int argc, char** argv)
     magmaDoubleComplex *h_A, *h_B, *h_R;
     magmaDoubleComplex_ptr d_A, d_B;
     magmaDoubleComplex **hA_array, **hB_array, **dA_array, **dB_array;
-    magma_int_t M, N, mb, nb, sizeA, sizeB, lda, ldda, ldb, lddb;
+    magma_int_t M, N, sizeA, sizeB, lda, ldda, ldb, lddb;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
