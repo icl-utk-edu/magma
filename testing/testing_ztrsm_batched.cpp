@@ -122,23 +122,25 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_malloc( (void**) &d_A_array,   batchCount * sizeof(magmaDoubleComplex*) ));
             TESTING_CHECK( magma_malloc( (void**) &d_B_array,   batchCount * sizeof(magmaDoubleComplex*) ));
 
-            TESTING_CHECK( magma_malloc( (void**) &dW1_displ,   batchCount * sizeof(magmaDoubleComplex*) ));
-            TESTING_CHECK( magma_malloc( (void**) &dW2_displ,   batchCount * sizeof(magmaDoubleComplex*) ));
-            TESTING_CHECK( magma_malloc( (void**) &dW3_displ,   batchCount * sizeof(magmaDoubleComplex*) ));
-            TESTING_CHECK( magma_malloc( (void**) &dW4_displ,   batchCount * sizeof(magmaDoubleComplex*) ));
-            TESTING_CHECK( magma_malloc( (void**) &dinvA_array, batchCount * sizeof(magmaDoubleComplex*) ));
-            TESTING_CHECK( magma_malloc( (void**) &dwork_array, batchCount * sizeof(magmaDoubleComplex*) ));
-
             magmaDoubleComplex* dinvA=NULL;
             magmaDoubleComplex* dwork=NULL; // invA and work are workspace in ztrsm
-
             magma_int_t dinvA_batchSize = magma_roundup( Ak, TRI_NB )*TRI_NB;
             magma_int_t dwork_batchSize = lddb*N;
-            TESTING_CHECK( magma_zmalloc( &dinvA, dinvA_batchSize * batchCount ));
-            TESTING_CHECK( magma_zmalloc( &dwork, dwork_batchSize * batchCount ));
+            if(opts.version == 1) {
+                // these allocations are needed only for the inversion-based trsm
+                TESTING_CHECK( magma_malloc( (void**) &dW1_displ,   batchCount * sizeof(magmaDoubleComplex*) ));
+                TESTING_CHECK( magma_malloc( (void**) &dW2_displ,   batchCount * sizeof(magmaDoubleComplex*) ));
+                TESTING_CHECK( magma_malloc( (void**) &dW3_displ,   batchCount * sizeof(magmaDoubleComplex*) ));
+                TESTING_CHECK( magma_malloc( (void**) &dW4_displ,   batchCount * sizeof(magmaDoubleComplex*) ));
 
-            magma_zset_pointer( dwork_array, dwork, lddb, 0, 0, dwork_batchSize, batchCount, opts.queue );
-            magma_zset_pointer( dinvA_array, dinvA, magma_roundup( Ak, TRI_NB ), 0, 0, dinvA_batchSize, batchCount, opts.queue );
+                TESTING_CHECK( magma_malloc( (void**) &dinvA_array, batchCount * sizeof(magmaDoubleComplex*) ));
+                TESTING_CHECK( magma_malloc( (void**) &dwork_array, batchCount * sizeof(magmaDoubleComplex*) ));
+                TESTING_CHECK( magma_zmalloc( &dinvA, dinvA_batchSize * batchCount ));
+                TESTING_CHECK( magma_zmalloc( &dwork, dwork_batchSize * batchCount ));
+
+                magma_zset_pointer( dwork_array, dwork, lddb, 0, 0, dwork_batchSize, batchCount, opts.queue );
+                magma_zset_pointer( dinvA_array, dinvA, magma_roundup( Ak, TRI_NB ), 0, 0, dinvA_batchSize, batchCount, opts.queue );
+            }
 
             memset( h_Bmagma, 0, batchCount*ldb*N*sizeof(magmaDoubleComplex) );
             magmablas_zlaset( MagmaFull, lddb, N*batchCount, c_zero, c_zero, dwork, lddb, opts.queue );
@@ -169,7 +171,6 @@ int main( int argc, char** argv)
 
             magma_zset_pointer( d_A_array, d_A, ldda, 0, 0, ldda*Ak, batchCount, opts.queue );
             magma_zset_pointer( d_B_array, d_B, lddb, 0, 0, lddb*N, batchCount, opts.queue );
-            magma_zset_pointer( dwork_array, dwork, lddb, 0, 0, lddb*N, batchCount, opts.queue );
 
             magma_time = magma_sync_wtime( opts.queue );
             if (opts.version == 1) {
@@ -347,15 +348,17 @@ int main( int argc, char** argv)
             magma_free( d_A_array );
             magma_free( d_B_array );
 
-            magma_free( dW1_displ );
-            magma_free( dW2_displ );
-            magma_free( dW3_displ );
-            magma_free( dW4_displ );
+            if(opts.version == 1) {
+                magma_free( dW1_displ );
+                magma_free( dW2_displ );
+                magma_free( dW3_displ );
+                magma_free( dW4_displ );
 
-            magma_free( dinvA );
-            magma_free( dwork );
-            magma_free( dwork_array );
-            magma_free( dinvA_array );
+                magma_free( dinvA );
+                magma_free( dwork );
+                magma_free( dwork_array );
+                magma_free( dinvA_array );
+            }
 
             fflush( stdout );
         }
