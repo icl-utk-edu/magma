@@ -82,9 +82,11 @@
       -     = 0:  successful exit
       -     < 0:  if INFO = -i, the i-th argument had an illegal value
                   or another error occured, such as memory allocation failed.
-      -     > 0:  for ikind = 4, the normal equations were not
+      -     > 0:  for ikind = 1 and 4, the normal equations were not
                   positive definite, so the factorization could not be
                   completed, and the solution has not been computed.
+                  For ikind = 3, the space is not linearly independent.
+                  For all these cases the rank (< n) of the space is returned.
 
     @ingroup magma_gegqr
 *******************************************************************************/
@@ -102,7 +104,7 @@ magma_zgegqr_gpu(
     magma_int_t ione = 1;
     magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
     magmaDoubleComplex c_one  = MAGMA_Z_ONE;
-    double cn = 200., mins, maxs;
+    double cn;
 
     /* check arguments */
     *info = 0;
@@ -155,6 +157,7 @@ magma_zgegqr_gpu(
         }
         #endif
         
+        double eps = lapackf77_dlamch("Epsilon");
         do {
             i++;
             
@@ -169,12 +172,13 @@ magma_zgegqr_gpu(
                               #endif
                               info );
             
-            mins = 100.f, maxs = 0.f;
             for (k=0; k < n; k++) {
                 S[k] = magma_dsqrt( S[k] );
                 
-                if (S[k] < mins)  mins = S[k];
-                if (S[k] > maxs)  maxs = S[k];
+                if (S[k] < eps) {
+                    *info = k;
+                    return *info;
+                }
             }
             
             for (k=0; k < n; k++) {
@@ -192,11 +196,9 @@ magma_zgegqr_gpu(
             magma_zsetmatrix( n, n, VT, n, dwork, n, queue );
             magma_ztrsm( MagmaRight, MagmaUpper, MagmaNoTrans, MagmaNonUnit,
                          m, n, c_one, dwork, n, dA, ldda, queue );
-            if (mins > 0.00001f)
-                cn = maxs/mins;
-            
-            //fprintf( stderr, "Iteration %lld, cond num = %f\n", (long long) i, cn );
-        } while (cn > 10.f);
+
+            cn = S[0]/S[n-1];
+        } while (cn > 10.f && i<5);
         
         magma_free_cpu( hwork );
         #ifdef COMPLEX
@@ -224,6 +226,7 @@ magma_zgegqr_gpu(
     }
     else if (ikind == 3) {
         // ================== MGS               ================================
+        double eps = lapackf77_dlamch("Epsilon");
         for (j = 0; j < n; j++) {
             for (i = 0; i < j; i++) {
                 *work(i, j) = magma_zdotc( m, dA(0,i), 1, dA(0,j), 1, queue );
@@ -235,6 +238,10 @@ magma_zgegqr_gpu(
             //*work(j,j) = MAGMA_Z_MAKE( magma_dznrm2( m, dA(0,j), 1), 0., queue );
             *work(j,j) = magma_zdotc( m, dA(0,j), 1, dA(0,j), 1, queue );
             *work(j,j) = MAGMA_Z_MAKE( sqrt(MAGMA_Z_REAL( *work(j,j) )), 0. );
+            if (MAGMA_Z_ABS(*work(j,j)) < eps) {
+                *info = j;
+                break;
+            }
             magma_zscal( m, 1./ *work(j,j), dA(0,j), 1, queue );
         }
         // ================== end of ikind == 3 ================================
