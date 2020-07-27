@@ -135,9 +135,9 @@ magma_dlaex1(
     magma_int_t *indxq, double rho, magma_int_t cutpnt,
     double *work, magma_int_t *iwork,
     magmaDouble_ptr dwork,
+    magma_queue_t queue,
     magma_range_t range, double vl, double vu,
     magma_int_t il, magma_int_t iu,
-    magma_queue_t queue,
     magma_int_t *info)
 {
 #define Q(i_,j_) (Q + (i_) + (j_)*ldq)
@@ -199,7 +199,7 @@ magma_dlaex1(
         magma_dlaex3(k, n, cutpnt, d, Q, ldq, rho,
                      &work[idlmda], &work[iq2], &iwork[indxc],
                      &iwork[coltyp], &work[iw], &work[is],
-                     indxq, dwork, range, vl, vu, il, iu, queue, info );
+                     indxq, dwork, queue, range, vl, vu, il, iu, info );
         if ( *info != 0 )
             return *info;
     }

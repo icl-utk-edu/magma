@@ -223,8 +223,8 @@ magma_dlaex3(
     double *dlamda, double *Q2, magma_int_t *indx,
     magma_int_t *ctot, double *w, double *s, magma_int_t *indxq,
     magmaDouble_ptr dwork,
-    magma_range_t range, double vl, double vu, magma_int_t il, magma_int_t iu,
     magma_queue_t queue,
+    magma_range_t range, double vl, double vu, magma_int_t il, magma_int_t iu,
     magma_int_t *info )
 {
     #define   Q(i_,j_) (Q   + (i_) + (j_)*ldq)

@@ -225,8 +225,8 @@ magma_dlaex0(
 
             magma_dlaex1(matsiz, &d[submat], Q(submat, submat), ldq,
                          &iwork[indxq+submat], e[submat+msd2-1], msd2,
-                         work, &iwork[subpbs], dwork,
-                         range2, vl, vu, il, iu, queue, info);
+                         work, &iwork[subpbs], dwork, queue,
+                         range2, vl, vu, il, iu, info);
 
             if (*info != 0) {
                 *info = (submat+1)*(n+1) + submat + matsiz;
