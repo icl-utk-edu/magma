@@ -223,6 +223,7 @@ magma_dlaex3(
     double *dlamda, double *Q2, magma_int_t *indx,
     magma_int_t *ctot, double *w, double *s, magma_int_t *indxq,
     magmaDouble_ptr dwork,
+    magma_queue_t queue,
     magma_range_t range, double vl, double vu, magma_int_t il, magma_int_t iu,
     magma_int_t *info )
 {
@@ -309,11 +310,6 @@ magma_dlaex3(
     iq2 = n1 * n12;
     lq2 = iq2 + n2 * n23;
     
-    magma_queue_t queue;
-    magma_device_t cdev;
-    magma_getdevice( &cdev );
-    magma_queue_create( cdev, &queue );
-
     magma_dsetvector_async( lq2, Q2, 1, dQ2(0,0), 1, queue );
 
 #ifdef _OPENMP
@@ -568,8 +564,6 @@ magma_dlaex3(
     }
     //timer_stop( time );
     //timer_printf( "gemms = %6.2f\n", time );
-
-    magma_queue_destroy( queue );
 
     return *info;
 } /* magma_dlaex3 */
