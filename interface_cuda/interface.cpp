@@ -1071,6 +1071,7 @@ magma_queue_create_from_cuda_internal(
 
     @ingroup magma_queue
 *******************************************************************************/
+#ifdef HAVE_HIP
 extern "C" void
 magma_queue_create_from_hip_internal(
     magma_device_t    device,
@@ -1080,7 +1081,6 @@ magma_queue_create_from_hip_internal(
     magma_queue_t*    queue_ptr,
     const char* func, const char* file, int line )
 {
-#ifdef HAVE_HIP
     magma_queue_t queue;
     magma_malloc_cpu( (void**)&queue, sizeof(*queue) );
     assert( queue != NULL );
@@ -1129,9 +1129,8 @@ magma_queue_create_from_hip_internal(
 
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
-
-#endif
 }
+#endif
 
 
 

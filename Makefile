@@ -147,7 +147,7 @@ CPPFLAGS   = $(INC) $(MAGMA_INC)
 # where testers look for MAGMA libraries
 RPATH      = -Wl,-rpath,${abspath ./lib}
 
-codegen    = python tools/codegen.py
+codegen    = python3 tools/codegen.py
 
 ifeq ($(BACKEND),cuda)
 
