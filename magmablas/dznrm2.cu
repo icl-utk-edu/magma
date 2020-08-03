@@ -220,11 +220,16 @@ magma_dznrm2_row_check_adjust_kernel(
         double temp2 = xnorm[tx] / xnorm2[tx];
         temp2 = temp * (temp2 * temp2);
         
+        // todo: check this accuracy procedure; currently is not working for
+        //       constant matrix so it is disabled for now
+        /*
         if (temp2 <= tol) {
             lsticc[tx+1] = 1;
         } else {
             xnorm[tx] *= sqrt(temp);
         }
+        */
+        xnorm[tx] *= sqrt(temp);
     }
     if (tx == 0)
         lsticc[0] = 0;
