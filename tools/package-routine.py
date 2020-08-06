@@ -35,7 +35,7 @@ args = parser.parse_args()
 
 # generate output directory
 if not args.output:
-    args.output = "magma_pkg_" + "_".join(args.routines)
+    args.output = "magma_pkg_" + args.interface + "_" + "_".join(args.routines)
 
 print (f"""Packaging routines: {args.routines} and storing in: {args.output}/""")
 
@@ -143,7 +143,9 @@ re_include = re.compile(r"\#include (?:\"|\<)(magma[\w\.]+)(?:\"|\<)")
 
 
 # all files possible
-allfiles = set(glob.glob("src/*.cpp") + glob.glob("control/*.cpp") + glob.glob("include/*.h") + glob.glob(f"interface_{args.interface}/*.cpp"))
+allfiles = set(glob.glob("src/*.cpp") + glob.glob("control/*.cpp") + glob.glob("include/*.h") + glob.glob(f"interface_{args.interface}/*.cpp") + glob.glob(f"magmablas/*.cpp") if args.interface == "cuda" else glob.glob(f"magmablas_hip/*.cpp"))
+
+print (allfiles)
 
 
 # set of all files
@@ -160,8 +162,7 @@ funcs_warn = set()
 
 # if these special cases are encountered, add it to warns
 funcs_special_cases = {
-    'magma_dgetf2trsm_2d_native',
-    'magma_dgetf2_native_fused'
+
 }
 
 
@@ -171,15 +172,15 @@ funcs_err = set()
 # functions to ignore
 funcs_ignore = { 
     'magma_warn_leaks', 
-    'magma_zlaswp_rowparallel_native', 'magma_claswp_rowparallel_native', 'magma_dlaswp_rowparallel_native', 'magma_slaswp_rowparallel_native',
-    'magma_zlaswp_columnserial', 'magma_claswp_columnserial', 'magma_dlaswp_columnserial', 'magma_slaswp_columnserial',
-    'magma_zlaswp_rowserial_native', 'magma_claswp_rowserial_native', 'magma_dlaswp_rowserial_native', 'magma_slaswp_rowserial_native',
+#    'magma_zlaswp_rowparallel_native', 'magma_claswp_rowparallel_native', 'magma_dlaswp_rowparallel_native', 'magma_slaswp_rowparallel_native',
+#    'magma_zlaswp_columnserial', 'magma_claswp_columnserial', 'magma_dlaswp_columnserial', 'magma_slaswp_columnserial',
+#    'magma_zlaswp_rowserial_native', 'magma_claswp_rowserial_native', 'magma_dlaswp_rowserial_native', 'magma_slaswp_rowserial_native',
     
     # TODO handle these?
-    'magma_zgetmatrix_1D_col_bcyclic', 'magma_cgetmatrix_1D_col_bcyclic', 'magma_dgetmatrix_1D_col_bcyclic', 'magma_sgetmatrix_1D_col_bcyclic', 
-    'magma_zgetmatrix_1D_row_bcyclic', 'magma_cgetmatrix_1D_row_bcyclic', 'magma_dgetmatrix_1D_row_bcyclic', 'magma_sgetmatrix_1D_row_bcyclic',
-    'magma_zsetmatrix_1D_col_bcyclic', 'magma_csetmatrix_1D_col_bcyclic', 'magma_dsetmatrix_1D_col_bcyclic', 'magma_ssetmatrix_1D_col_bcyclic', 
-    'magma_zsetmatrix_1D_row_bcyclic', 'magma_csetmatrix_1D_row_bcyclic', 'magma_dsetmatrix_1D_row_bcyclic', 'magma_ssetmatrix_1D_row_bcyclic',
+#    'magma_zgetmatrix_1D_col_bcyclic', 'magma_cgetmatrix_1D_col_bcyclic', 'magma_dgetmatrix_1D_col_bcyclic', 'magma_sgetmatrix_1D_col_bcyclic', 
+#    'magma_zgetmatrix_1D_row_bcyclic', 'magma_cgetmatrix_1D_row_bcyclic', 'magma_dgetmatrix_1D_row_bcyclic', 'magma_sgetmatrix_1D_row_bcyclic',
+#    'magma_zsetmatrix_1D_col_bcyclic', 'magma_csetmatrix_1D_col_bcyclic', 'magma_dsetmatrix_1D_col_bcyclic', 'magma_ssetmatrix_1D_col_bcyclic', 
+#    'magma_zsetmatrix_1D_row_bcyclic', 'magma_csetmatrix_1D_row_bcyclic', 'magma_dsetmatrix_1D_row_bcyclic', 'magma_ssetmatrix_1D_row_bcyclic',
 }
 
 
