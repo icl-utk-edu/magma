@@ -127,13 +127,13 @@ else:
 # -*- Regex Definitions -*-
 
 # regex for calling a MAGMA function
-re_call = re.compile(r" *(magma_\w+)\(")
+re_call = re.compile(r" *(magma(?:blas)?_\w+)\(")
 
 # regex for a function definition, i.e. not just a declaration (must be multiline due to how many functions are declared)
-re_funcdef = re.compile(r"^(?:extern \"C\"|static inline)? ?\n?(?:[\w\* ]+ *?)\n?(magma_\w+)( \n)*\([\w\[\]\* ,\n]*\)\n? *\{", re.MULTILINE)
+re_funcdef = re.compile(r"(?:extern \"C\"|static inline)? ?\n?(?:[\w\* ]+ *?)\n?(magma(?:blas)?_\w+)( \n)*\([\w\[\]\* ,\n]*\)\n? *\n?\{", re.MULTILINE)
 
 # regex for a macro definition
-re_macdef = re.compile(r"#define  *(magma_\w+)\(")
+re_macdef = re.compile(r"#define  *(magma(?:blas)?_\w+)\(")
 
 # regex for an include statement
 re_include = re.compile(r"\#include (?:\"|\<)(magma[\w\.]+)(?:\"|\<)")
@@ -143,9 +143,9 @@ re_include = re.compile(r"\#include (?:\"|\<)(magma[\w\.]+)(?:\"|\<)")
 
 
 # all files possible
-allfiles = set(glob.glob("src/*.cpp") + glob.glob("control/*.cpp") + glob.glob("include/*.h") + glob.glob(f"interface_{args.interface}/*.cpp") + glob.glob(f"magmablas/*.cpp") if args.interface == "cuda" else glob.glob(f"magmablas_hip/*.cpp"))
+allfiles = set(glob.glob("src/*.cpp") + glob.glob("control/*.cpp") + glob.glob("include/*.h") + glob.glob(f"interface_{args.interface}/*.cpp") + (glob.glob(f"magmablas/*.cpp") + glob.glob(f"magmablas/*.cu") + glob.glob(f"magmablas/*.cuh") + glob.glob(f"magmablas/*.h")) if args.interface == "cuda" else (glob.glob(f"magmablas_hip/*.cpp") + glob.glob(f"magmablas_hip/*.hpp") + glob.glob(f"magmablas_hip/*.h")))
 
-print (allfiles)
+#print (allfiles)
 
 
 # set of all files
@@ -172,15 +172,17 @@ funcs_err = set()
 # functions to ignore
 funcs_ignore = { 
     'magma_warn_leaks', 
-#    'magma_zlaswp_rowparallel_native', 'magma_claswp_rowparallel_native', 'magma_dlaswp_rowparallel_native', 'magma_slaswp_rowparallel_native',
-#    'magma_zlaswp_columnserial', 'magma_claswp_columnserial', 'magma_dlaswp_columnserial', 'magma_slaswp_columnserial',
-#    'magma_zlaswp_rowserial_native', 'magma_claswp_rowserial_native', 'magma_dlaswp_rowserial_native', 'magma_slaswp_rowserial_native',
+    #'magma_dgetf2_native_fused', 'magma_dgetf2trsm_2d_native',
+
+    #'magma_zlaswp_rowparallel_native', 'magma_claswp_rowparallel_native', 'magma_dlaswp_rowparallel_native', 'magma_slaswp_rowparallel_native',
+    #'magma_zlaswp_columnserial', 'magma_claswp_columnserial', 'magma_dlaswp_columnserial', 'magma_slaswp_columnserial',
+    #'magma_zlaswp_rowserial_native', 'magma_claswp_rowserial_native', 'magma_dlaswp_rowserial_native', 'magma_slaswp_rowserial_native',
     
     # TODO handle these?
-#    'magma_zgetmatrix_1D_col_bcyclic', 'magma_cgetmatrix_1D_col_bcyclic', 'magma_dgetmatrix_1D_col_bcyclic', 'magma_sgetmatrix_1D_col_bcyclic', 
-#    'magma_zgetmatrix_1D_row_bcyclic', 'magma_cgetmatrix_1D_row_bcyclic', 'magma_dgetmatrix_1D_row_bcyclic', 'magma_sgetmatrix_1D_row_bcyclic',
-#    'magma_zsetmatrix_1D_col_bcyclic', 'magma_csetmatrix_1D_col_bcyclic', 'magma_dsetmatrix_1D_col_bcyclic', 'magma_ssetmatrix_1D_col_bcyclic', 
-#    'magma_zsetmatrix_1D_row_bcyclic', 'magma_csetmatrix_1D_row_bcyclic', 'magma_dsetmatrix_1D_row_bcyclic', 'magma_ssetmatrix_1D_row_bcyclic',
+    #'magma_zgetmatrix_1D_col_bcyclic', 'magma_cgetmatrix_1D_col_bcyclic', 'magma_dgetmatrix_1D_col_bcyclic', 'magma_sgetmatrix_1D_col_bcyclic', 
+    #'magma_zgetmatrix_1D_row_bcyclic', 'magma_cgetmatrix_1D_row_bcyclic', 'magma_dgetmatrix_1D_row_bcyclic', 'magma_sgetmatrix_1D_row_bcyclic',
+    #'magma_zsetmatrix_1D_col_bcyclic', 'magma_csetmatrix_1D_col_bcyclic', 'magma_dsetmatrix_1D_col_bcyclic', 'magma_ssetmatrix_1D_col_bcyclic', 
+    #'magma_zsetmatrix_1D_row_bcyclic', 'magma_csetmatrix_1D_row_bcyclic', 'magma_dsetmatrix_1D_row_bcyclic', 'magma_ssetmatrix_1D_row_bcyclic',
 }
 
 
@@ -248,7 +250,7 @@ while needed_funcs():
     # get first one
     func = next(iter(needed_funcs()))
 
-    if 'magma_' not in func:
+    if 'magma' not in func:
         raise Exception(f"Need function '{func}', which is not part of MAGMA!")
 
     # turn it into just the MAGMA name (no prefix)
@@ -335,6 +337,7 @@ while keepGoing:
             possible = [
                 f"include/{incfl}",
                 f"control/{incfl}",
+                f"magmablas/{incfl}" if args.interface == "cuda" else f"magmablas_{args.interface}/{incfl}",
             ]
 
             isFound = False
