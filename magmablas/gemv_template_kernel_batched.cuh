@@ -41,7 +41,7 @@ void gemvn_template_batched(
     T beta, T** dy_array, magma_int_t incy,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads ( DIM_X, DIM_Y);
 
     for(magma_int_t i=0; i<batchCount; i+=max_batchCount) {
@@ -80,7 +80,7 @@ void gemvc_template_batched(
     T beta, T** dy_array, magma_int_t incy,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads ( DIM_X, DIM_Y );
 
     for(magma_int_t i=0; i<batchCount; i+=max_batchCount) {
