@@ -70,7 +70,7 @@ MAGMA README FILE
             BLAS and LAPACK, e.g., -DLAPACK_LIBRARIES='-llapack -lblas'.
             This overrides CMake's BLAS/LAPACK search.
 
-        -DBUILD_SHARED_LIBRARIES=[on|off], to turn on/off shared libraries.
+        -DBUILD_SHARED_LIBS=[on|off], to turn on/off shared libraries.
 
         -DUSE_FORTRAN=[on|off], to turn on/off Fortran.
 
