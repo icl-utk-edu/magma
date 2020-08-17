@@ -158,7 +158,7 @@ void trsm_template_batched_lNx(
     magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 threads(NRHS, 1, 1);
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     if(uplo == MagmaLower){
         for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -193,7 +193,7 @@ void trsm_template_batched_lTx(
     magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 threads(NRHS, 1, 1);
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     if(uplo == MagmaLower){
         for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -228,7 +228,7 @@ void trsm_template_batched_rNx(
     magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 threads(NRHS, 1, 1);
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     if(uplo == MagmaLower){
         for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -263,7 +263,7 @@ void trsm_template_batched_rTx(
     magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 threads(NRHS, 1, 1);
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     if(uplo == MagmaLower){
         for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {

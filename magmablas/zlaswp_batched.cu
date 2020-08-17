@@ -115,7 +115,7 @@ magma_zlaswp_rowparallel_batched( magma_int_t n,
     }
 
     int blocks = magma_ceildiv( n, SWP_WIDTH );
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -244,7 +244,7 @@ magma_zlaswp_rowserial_batched(magma_int_t n, magmaDoubleComplex** dA_array, mag
     if (n == 0) return;
 
     int blocks = magma_ceildiv( n, BLK_SIZE );
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -361,7 +361,7 @@ magma_zlaswp_columnserial_batched(magma_int_t n, magmaDoubleComplex** dA_array, 
 
     int blocks = magma_ceildiv( n, ZLASWP_COL_NTH );
 
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);

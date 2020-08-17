@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Mark Gates
        @author Azzam Haidar
        @author Ahmad Abdelfattah
@@ -16,26 +16,26 @@
 #include "gemm_template_device.cuh"
 
 /******************************************************************************/
-template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, 
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB, 
+template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
+         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
 static __global__
 void herk_template_vbatched_nt_kernel(
-    magma_uplo_t uplo, magma_int_t* N, magma_int_t* K, 
-    T alpha, 
+    magma_uplo_t uplo, magma_int_t* N, magma_int_t* K,
+    T alpha,
     T const * const * Aarray, magma_int_t* LDA,
     T const * const * Barray, magma_int_t* LDB,
     T beta, T**       Carray, magma_int_t* LDC)
 {
-    const int batchid = blockIdx.z; 
+    const int batchid = blockIdx.z;
     const int my_N = (int)N[batchid];
     if( blockIdx.x >= magma_ceildiv( my_N, BLK_M ) ) return;
     if( blockIdx.y >= magma_ceildiv( my_N, BLK_N ) ) return;
-    
+
     // for lower: each thread-block checks its bottom left corner of its corresponding C block
     if ( ( uplo == MagmaLower ) && ( blockIdx.y*BLK_N > (blockIdx.x+1)*BLK_M ) )
         return;
-    
+
     // for upper: each thread-block checks its top right corner of its corresponding C block
     if ( ( uplo == MagmaUpper)  && ( blockIdx.x*BLK_M > (blockIdx.y+1)*BLK_N ) )
         return;
@@ -46,17 +46,17 @@ void herk_template_vbatched_nt_kernel(
 
 
 /******************************************************************************/
-template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, 
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB, 
+template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
+         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
 static __global__
 void herk_template_vbatched_tn_kernel(
-    magma_uplo_t uplo, magma_int_t* N, magma_int_t* K, 
+    magma_uplo_t uplo, magma_int_t* N, magma_int_t* K,
     T alpha, T const * const * Aarray, magma_int_t* LDA,
     T const * const * Barray, magma_int_t* LDB,
     T beta, T**       Carray, magma_int_t* LDC )
 {
-    const int batchid = blockIdx.z; 
+    const int batchid = blockIdx.z;
     const int my_N = (int)N[batchid];
     if( blockIdx.x >= magma_ceildiv( my_N, BLK_M ) ) return;
     if( blockIdx.y >= magma_ceildiv( my_N, BLK_N ) ) return;
@@ -64,7 +64,7 @@ void herk_template_vbatched_tn_kernel(
     // for lower: each thread-block checks its bottom left corner of its corresponding C block
     if ( ( uplo == MagmaLower ) && ( blockIdx.y*BLK_N > (blockIdx.x+1)*BLK_M ) )
         return;
-    
+
     // for upper: each thread-block checks its top right corner of its corresponding C block
     if ( ( uplo == MagmaUpper)  && ( blockIdx.x*BLK_M > (blockIdx.y+1)*BLK_N ) )
         return;
@@ -76,9 +76,9 @@ void herk_template_vbatched_tn_kernel(
 
 /******************************************************************************/
 // kernel wrappers
-// NT, NC 
-template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec, 
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB, 
+// NT, NC
+template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
+         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
 void herk_template_vbatched_nt(
     magma_uplo_t uplo, magma_int_t* n, magma_int_t* k,
@@ -86,10 +86,10 @@ void herk_template_vbatched_nt(
     T const * const * dB_array, magma_int_t* lddb,
     T**       dC_array, magma_int_t* lddc,
     T alpha, T beta,
-    magma_int_t batchCount, magma_queue_t queue, 
+    magma_int_t batchCount, magma_queue_t queue,
     magma_int_t max_n)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -102,9 +102,9 @@ void herk_template_vbatched_nt(
 
 
 /******************************************************************************/
-// TN, CN 
-template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec, 
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB, 
+// TN, CN
+template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
+         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
 void herk_template_vbatched_tn(
     magma_uplo_t uplo, magma_int_t* n, magma_int_t* k,
@@ -112,10 +112,10 @@ void herk_template_vbatched_tn(
     T const * const * dB_array, magma_int_t* lddb,
     T**       dC_array, magma_int_t* lddc,
     T alpha, T beta,
-    magma_int_t batchCount, magma_queue_t queue, 
+    magma_int_t batchCount, magma_queue_t queue,
     magma_int_t max_n)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);

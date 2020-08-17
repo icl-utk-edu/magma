@@ -13,7 +13,6 @@
 
 #define BLK_X 32
 #define BLK_Y 4
-#define MAX_BATCH    50000
 
 /******************************************************************************/
 __device__
@@ -41,8 +40,8 @@ void hlag2s_device(
 /******************************************************************************/
 __global__
 void hlag2s_kernel(
-        int m, int n, 
-        magmaHalf_const_ptr dA, int lda, 
+        int m, int n,
+        magmaHalf_const_ptr dA, int lda,
         float             *dSA, int ldsa )
 {
     hlag2s_device(m, n, dA, lda, dSA, ldsa);
@@ -51,8 +50,8 @@ void hlag2s_kernel(
 /******************************************************************************/
 __global__
 void hlag2s_kernel_batched(
-        int m, int n, 
-        magmaHalf const * const * dAarray, int lda, 
+        int m, int n,
+        magmaHalf const * const * dAarray, int lda,
         float**                  dSAarray, int ldsa )
 {
     const int batchid = blockIdx.z;
@@ -76,7 +75,7 @@ magmablas_hlag2s(
         info = -4;
     else if ( ldsa < max(1,m) )
         info = -6;
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return;
@@ -86,9 +85,10 @@ magmablas_hlag2s(
     if ( m == 0 || n == 0 ) {
         return;
     }
-    
+
+    const int max_gridy = 65000; // the kernel can work with any gridx/gridy dimension
     dim3 threads( BLK_X, BLK_Y );
-    dim3 grid(magma_ceildiv( m, BLK_X ), min(50000, magma_ceildiv(n, BLK_Y)), 1);
+    dim3 grid(magma_ceildiv( m, BLK_X ), min(max_gridy, magma_ceildiv(n, BLK_Y)), 1);
     hlag2s_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
     ( m, n, dA, lda, dSA, ldsa );
 }
@@ -111,7 +111,7 @@ magmablas_hlag2s_batched(
         info = -4;
     else if ( ldsa < max(1,m) )
         info = -6;
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return;
@@ -121,9 +121,9 @@ magmablas_hlag2s_batched(
     if ( m == 0 || n == 0 ) {
         return;
     }
-    
+
     dim3 threads( BLK_X, BLK_Y );
-    const int maxBatch = MAX_BATCH;
+    const int maxBatch = queue->get_maxBatch();
     for(int i = 0; i < batchCount; i+=maxBatch){
         magma_int_t batch = min(maxBatch, batchCount-i);
         dim3 grid(magma_ceildiv( m, BLK_X ), magma_ceildiv( n, BLK_Y ), batch);

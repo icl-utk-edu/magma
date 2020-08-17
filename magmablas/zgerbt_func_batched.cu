@@ -49,7 +49,7 @@ magmablas_zprbt_mtv_batched(
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t threads = block_length;
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(int i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -96,7 +96,7 @@ magmablas_zprbt_mv_batched(
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t threads = block_length;
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -155,7 +155,7 @@ magmablas_zprbt_batched(
 
     dim3 threads(block_height, block_width);
     dim3 threads2(block_height, block_width);
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);

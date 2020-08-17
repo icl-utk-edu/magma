@@ -148,7 +148,7 @@ magmablas_zswapdblk_batched(
     if (n_mod_nb == 0) nblocks += 1; // a dummy thread block for cleanup code
 
     dim3 dimBlock(nb);
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     if ( nblocks > 0 ) {
 
         for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {

@@ -114,7 +114,7 @@ void hemm_template_batched(
     magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(DIM, DIM, 1);
 
     if( side == MagmaLeft ){

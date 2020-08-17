@@ -147,7 +147,7 @@ void gemm_template_batched_nn(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -176,7 +176,7 @@ void gemm_template_batched_nt(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -205,7 +205,7 @@ void gemm_template_batched_tn(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -234,7 +234,7 @@ void gemm_template_batched_tt(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);

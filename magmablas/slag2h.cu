@@ -13,7 +13,7 @@
 
 #define BLK_X 32
 #define BLK_Y 4
-#define MAX_BATCH    50000
+#define MAX_BATCH    65000
 
 static __device__ magma_int_t flag = 0;
 static __device__ magma_int_t flag_array[ MAX_BATCH ] = { 0 };
@@ -52,9 +52,9 @@ void slag2h_device(
 /******************************************************************************/
 __global__
 void slag2h_kernel(
-        int m, int n, 
-        float const *dA, int lda, 
-        magmaHalf* dHA, int ldha, 
+        int m, int n,
+        float const *dA, int lda,
+        magmaHalf* dHA, int ldha,
         float rmax, magma_int_t* dinfo )
 {
     slag2h_device(m, n, dA, lda, dHA, ldha, rmax, dinfo);
@@ -64,10 +64,10 @@ void slag2h_kernel(
 /******************************************************************************/
 __global__
 void slag2h_kernel_batched(
-        int m, int n, 
-        float const * const * dAarray, int lda, 
-        magmaHalf** dHAarray, int ldha, 
-        float rmax, magma_int_t* dinfo_array, 
+        int m, int n,
+        float const * const * dAarray, int lda,
+        magmaHalf** dHAarray, int ldha,
+        float rmax, magma_int_t* dinfo_array,
         magma_queue_t queue )
 {
     const int batchid = blockIdx.z;
@@ -91,7 +91,7 @@ magmablas_slag2h(
         *info = -4;
     else if ( ldha < max(1,m) )
         *info = -6;
-    
+
     if (*info != 0) {
         magma_xerbla( __func__, -(*info) );
         return;
@@ -103,13 +103,13 @@ magmablas_slag2h(
     }
 
     cudaMemcpyToSymbol( flag, info, sizeof(flag) );    // flag = 0
-    
-    // there is no lapackf77_hlamch, please visit: 
+
+    // there is no lapackf77_hlamch, please visit:
     // https://blogs.mathworks.com/cleve/2017/05/08/half-precision-16-bit-floating-point-arithmetic/
     float rmax = (float)(65504);
 
     dim3 threads( BLK_X, BLK_Y );
-    dim3 grid( magma_ceildiv(m, BLK_X), min(50000, magma_ceildiv(n, BLK_Y)), 1);
+    dim3 grid( magma_ceildiv(m, BLK_X), min(65000, magma_ceildiv(n, BLK_Y)), 1);
 
     slag2h_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
     ( m, n, dA, lda, dHA, ldha, rmax, &flag );
@@ -125,7 +125,7 @@ magmablas_slag2h_batched(
     magma_int_t m, magma_int_t n,
     float const * const * dAarray, magma_int_t lda,
     magmaHalf** dHAarray, magma_int_t ldha,
-    magma_int_t *info_array, magma_int_t batchCount, 
+    magma_int_t *info_array, magma_int_t batchCount,
     magma_queue_t queue)
 {
     magma_int_t arginfo = 0;
@@ -137,7 +137,7 @@ magmablas_slag2h_batched(
         arginfo = -4;
     else if ( ldha < max(1,m) )
         arginfo = -6;
-    
+
     if (arginfo != 0) {
         magma_xerbla( __func__, -(arginfo) );
         return;
@@ -147,10 +147,10 @@ magmablas_slag2h_batched(
     if ( m == 0 || n == 0 ) {
         return;
     }
-    
+
     memset( info_array, 0, batchCount * sizeof(magma_int_t) );    // init info_array to zero
 
-    // there is no lapackf77_hlamch, please visit: 
+    // there is no lapackf77_hlamch, please visit:
     // https://blogs.mathworks.com/cleve/2017/05/08/half-precision-16-bit-floating-point-arithmetic/
     float rmax = (float)(65504);
 

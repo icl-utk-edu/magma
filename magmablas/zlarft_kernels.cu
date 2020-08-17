@@ -115,7 +115,7 @@ void magmablas_zlarft_gemvcolwise_batched(
     magmaDoubleComplex **tau_array, magma_int_t batchCount, magma_queue_t queue )
 {
     dim3 threads( BLOCK_SIZE );
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -248,7 +248,7 @@ void magmablas_zlarft_gemvrowwise_batched(
     magmaDoubleComplex **T_array, magma_int_t ldt,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(zgemv_bs, max(i,1), 1);
     size_t shmem = sizeof(magmaDoubleComplex)*zgemv_bs*(i+1);
 
@@ -398,7 +398,7 @@ void magmablas_zlarft_gemv_loop_inside_batched(
     magmaDoubleComplex **T_array, magma_int_t ldt, magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 threads(zgemv_bs, max(k,1), 1);
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     size_t shmem = sizeof(magmaDoubleComplex) * (zgemv_bs*(k+1));
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -530,7 +530,7 @@ void magmablas_zlarft_ztrmv_sm32x32_batched(
     magma_int_t batchCount, magma_queue_t queue)
 {
 
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(max(m,1), 1, 1);
     size_t shmem = sizeof(magmaDoubleComplex)*(m*m);
 
@@ -636,7 +636,7 @@ void magmablas_zlarft_recztrmv_sm32x32_batched(
     magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 threads(max(m,1), 1, 1);
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     size_t shmem = sizeof(magmaDoubleComplex)*(m*n);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {

@@ -554,7 +554,7 @@ magma_int_t magma_zscal_zgeru_batched(magma_int_t m, magma_int_t n, magma_int_t 
         return -15;
     }
 
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     const int tbx = MAX_NTHREADS / 2;
     dim3 threads(tbx, 1, 1);
 

@@ -120,7 +120,7 @@ magmablas_ztrtri_diag_batched(
     // in input parameter and has been tested and was slower.
     //was not the largest size computed by the high API getrf_batched then it is bug and need to use magmablas_zlaset_batched
 
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);

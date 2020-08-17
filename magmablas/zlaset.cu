@@ -442,7 +442,7 @@ void magmablas_zlaset_batched(
     }
 
     dim3 threads( BLK_X, 1, 1 );
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -491,7 +491,7 @@ void magmablas_zlaset_vbatched(
     }
 
     dim3 threads( BLK_X, 1, 1 );
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);

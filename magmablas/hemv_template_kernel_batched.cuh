@@ -80,7 +80,7 @@ void hemv_diag_template_batched(
     magma_int_t offA, magma_int_t offX, magma_int_t offY,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(NB, TY, 1);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -108,7 +108,7 @@ void hemv_lower_template_batched(
     magma_int_t offA, magma_int_t offX, magma_int_t offY,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(NB, TY, 1);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -137,7 +137,7 @@ void hemv_upper_template_batched(
     magma_int_t offA, magma_int_t offX, magma_int_t offY,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(NB, TY, 1);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {

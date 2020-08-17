@@ -75,7 +75,7 @@ ztrsv_notrans_outplace_batched(
     magmaDoubleComplex **x_array,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     size_t shmem = n * sizeof(magmaDoubleComplex);
     dim3 threads( NUM_THREADS, 1, 1 );
 
@@ -100,7 +100,7 @@ ztrsv_trans_outplace_batched(
     magmaDoubleComplex **x_array,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     size_t shmem = n * sizeof(magmaDoubleComplex);
     dim3 threads( NUM_THREADS, 1, 1 );
 

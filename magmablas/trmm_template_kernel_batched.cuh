@@ -101,7 +101,7 @@ void trmm_template_batched_lNx(
     magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(NB, NB, 1);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -126,7 +126,7 @@ void trmm_template_batched_lTx(
     magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(NB, NB, 1);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -151,7 +151,7 @@ void trmm_template_batched_rNx(
     magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(NB, NB, 1);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -176,7 +176,7 @@ void trmm_template_batched_rTx(
     magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(NB, NB, 1);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {

@@ -323,7 +323,7 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
 
     k = min(m,n);
 
-    magma_int_t max_batchCount = 50000;
+    magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(BLOCK_SIZE);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
