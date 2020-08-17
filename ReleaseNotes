@@ -25,6 +25,7 @@ Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
  2.x.x - xxx xx, 2020
+    * Support for CUDA 11
     * Support for Ampere GPUs
     * New routine: add trmm in all precisions
     * New routine: add sidi routine in real precisions to compute inertia for 
