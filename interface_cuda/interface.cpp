@@ -206,9 +206,9 @@ magma_init()
                 else {
                     g_magma_devices[dev].memory          = prop.totalGlobalMem;
                     g_magma_devices[dev].cuda_arch       = prop.major*100 + prop.minor*10;
-                    g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock; 
-                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor; 
-                    g_magma_devices[dev].multiproc_count = prop.multiProcessorCount; 
+                    g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock;
+                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor;
+                    g_magma_devices[dev].multiproc_count = prop.multiProcessorCount;
                 }
             }
 
@@ -779,6 +779,10 @@ magma_queue_create_internal(
     queue->stream__   = NULL;
     queue->cublas__   = NULL;
     queue->cusparse__ = NULL;
+    queue->ptrArray__ = NULL;
+    queue->dAarray__  = NULL;
+    queue->dBarray__  = NULL;
+    queue->dCarray__  = NULL;
     queue->maxbatch__ = MAX_BATCHCOUNT;
 
     magma_setdevice( device );
@@ -802,12 +806,12 @@ magma_queue_create_internal(
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
 
-    magma_malloc((void**)&(queue->dAarray__), queue->maxbatch__ * sizeof(void*));
-    assert( queue->dAarray__ != NULL);
-    magma_malloc((void**)&(queue->dBarray__), queue->maxbatch__ * sizeof(void*));
-    assert( queue->dBarray__ != NULL);
-    magma_malloc((void**)&(queue->dCarray__), queue->maxbatch__ * sizeof(void*));
-    assert( queue->dCarray__ != NULL);
+    magma_malloc((void**)&(queue->ptrArray__), 3 * queue->maxbatch__ * sizeof(void*));
+    assert( queue->ptrArray__ != NULL);
+
+    queue->dAarray__ = queue->ptrArray__;
+    queue->dBarray__ = queue->dAarray__ + queue->maxbatch__;
+    queue->dCarray__ = queue->dBarray__ + queue->maxbatch__;
 
     MAGMA_UNUSED( err );
     MAGMA_UNUSED( stat );
@@ -864,6 +868,10 @@ magma_queue_create_from_cuda_internal(
     queue->stream__   = NULL;
     queue->cublas__   = NULL;
     queue->cusparse__ = NULL;
+    queue->ptrArray__ = NULL;
+    queue->dAarray__  = NULL;
+    queue->dBarray__  = NULL;
+    queue->dCarray__  = NULL;
     queue->maxbatch__ = MAX_BATCHCOUNT;
 
     magma_setdevice( device );
@@ -893,12 +901,12 @@ magma_queue_create_from_cuda_internal(
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
 
-    magma_malloc((void**)&queue->dAarray__, queue->maxbatch__ * sizeof(void*));
-    assert( queue->dAarray__ != NULL);
-    magma_malloc((void**)&queue->dBarray__, queue->maxbatch__ * sizeof(void*));
-    assert( queue->dBarray__ != NULL);
-    magma_malloc((void**)&queue->dCarray__, queue->maxbatch__ * sizeof(void*));
-    assert( queue->dCarray__ != NULL);
+    magma_malloc((void**)&(queue->ptrArray__), 3 * queue->maxbatch__ * sizeof(void*));
+    assert( queue->ptrArray__ != NULL);
+
+    queue->dAarray__ = queue->ptrArray__;
+    queue->dBarray__ = queue->dAarray__ + queue->maxbatch__;
+    queue->dCarray__ = queue->dBarray__ + queue->maxbatch__;
 
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
