@@ -143,6 +143,7 @@ protected:
     int              own__;
     magma_device_t   device__;      // associated device ID
     int              maxbatch__;    // maximum size of the pointer array
+    void**           ptrArray__;    // pointer array workspace for batch routines
     void**           dAarray__;     // pointer array
     void**           dBarray__;     // pointer array
     void**           dCarray__;     // pointer array
