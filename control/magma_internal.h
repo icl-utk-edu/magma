@@ -103,14 +103,35 @@ public:
     cusparseHandle_t cusparse_handle() { return cusparse__; }
 
     #endif
+
+    // pointer array setup.
+    void setup_ptrArray() {
+        if(ptrArray__ == NULL) {
+            magma_malloc((void**)&(ptrArray__), 3 * maxbatch__ * sizeof(void*));
+            assert( ptrArray__ != NULL);
+            queue->dAarray__ = queue->ptrArray__;
+            queue->dBarray__ = queue->dAarray__ + queue->maxbatch__;
+            queue->dCarray__ = queue->dBarray__ + queue->maxbatch__;
+        }
+    }
+
     /// @return the pointer array dAarray__.
-    void** get_dAarray() {return dAarray__; }
+    void** get_dAarray() {
+        if(ptrArray__ == NULL) setup_ptrArray();
+        return dAarray__;
+    }
 
     /// @return the pointer array dBarray__.
-    void** get_dBarray() {return dBarray__; }
+    void** get_dBarray() {
+        if(ptrArray__ == NULL) setup_ptrArray();
+        return dBarray__;
+    }
 
     /// @return the pointer array dCarray__.
-    void** get_dCarray() {return dCarray__; }
+    void** get_dCarray() {
+        if(ptrArray__ == NULL) setup_ptrArray();
+        return dCarray__;
+    }
 
     /// @return the pointer array dCarray__.
     magma_int_t get_maxBatch() {return (magma_int_t)maxbatch__; }
@@ -144,15 +165,15 @@ protected:
     magma_device_t   device__;      // associated device ID
     int              maxbatch__;    // maximum size of the pointer array
     void**           ptrArray__;    // pointer array workspace for batch routines
-    void**           dAarray__;     // pointer array
-    void**           dBarray__;     // pointer array
-    void**           dCarray__;     // pointer array
+    void**           dAarray__;     // pointer array (assigned from ptrArray, not allocated/freed)
+    void**           dBarray__;     // pointer array (assigned from ptrArray, not allocated/freed)
+    void**           dCarray__;     // pointer array (assigned from ptrArray, not allocated/freed)
 
     #ifdef HAVE_CUBLAS
     cudaStream_t     stream__;      // associated CUDA stream; may be NULL
     cublasHandle_t   cublas__;      // associated cuBLAS handle
     cusparseHandle_t cusparse__;    // associated cuSparse handle
-    #endif
+    #endif // HAVE_CUBLAS
 };
 
 #ifdef __cplusplus
