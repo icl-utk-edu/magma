@@ -424,6 +424,11 @@ magma_print_environment()
     printf( "%% %s", ctime( &t ));
 }
 
+#if CUDA_VERSION >= 11000
+#define magma_memoryType() type
+#else
+#define magma_memoryType() memoryType
+#endif
 
 /***************************************************************************//**
     For debugging purposes, determines whether a pointer points to CPU or GPU memory.
@@ -458,7 +463,7 @@ magma_is_devptr( const void* A )
             err = cudaPointerGetAttributes( &attr, const_cast<void*>( A ));
             if ( ! err ) {
                 // definitely know type
-                return (attr.memoryType == cudaMemoryTypeDevice);
+                return (attr.magma_memoryType() == cudaMemoryTypeDevice);
             }
             else if ( err == cudaErrorInvalidValue ) {
                 // clear error; see http://icl.cs.utk.edu/magma/forum/viewtopic.php?f=2&t=529
