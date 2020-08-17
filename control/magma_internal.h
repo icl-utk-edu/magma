@@ -109,9 +109,9 @@ public:
         if(ptrArray__ == NULL) {
             magma_malloc((void**)&(ptrArray__), 3 * maxbatch__ * sizeof(void*));
             assert( ptrArray__ != NULL);
-            queue->dAarray__ = queue->ptrArray__;
-            queue->dBarray__ = queue->dAarray__ + queue->maxbatch__;
-            queue->dCarray__ = queue->dBarray__ + queue->maxbatch__;
+            dAarray__ = ptrArray__;
+            dBarray__ = dAarray__ + maxbatch__;
+            dCarray__ = dBarray__ + maxbatch__;
         }
     }
 
