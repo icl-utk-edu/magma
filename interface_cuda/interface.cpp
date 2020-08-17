@@ -949,15 +949,17 @@ magma_queue_destroy_internal(
             check_xerror( err, func, file, line );
             MAGMA_UNUSED( err );
         }
-        magma_free( queue->dAarray__ );
-        magma_free( queue->dBarray__ );
-        magma_free( queue->dCarray__ );
+        magma_free( queue->ptrArray__ );
 
         queue->own__      = own_none;
         queue->device__   = -1;
         queue->stream__   = NULL;
         queue->cublas__   = NULL;
         queue->cusparse__ = NULL;
+        queue->ptrArray__ = NULL;
+        queue->dAarray__  = NULL;
+        queue->dBarray__  = NULL;
+        queue->dCarray__  = NULL;
         magma_free_cpu( queue );
     }
 }
