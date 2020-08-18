@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Stan Tomov
        @author Mark Gates
        @author Azzam Haidar
@@ -361,7 +361,7 @@ double magma_get_gemex_rankk_time( magma_int_t m, magma_int_t k, magma_mp_type_t
                     perf = 90e12;
                 }else if( k >= 512)
                 {
-                    if(m <= 2048) 
+                    if(m <= 2048)
                         perf = 28e12;
                     else if(m <= 4096)
                         perf = 46e12;
@@ -369,7 +369,7 @@ double magma_get_gemex_rankk_time( magma_int_t m, magma_int_t k, magma_mp_type_t
                         perf = 54e12;
                 }else if (k >= 384)
                 {
-                    if(m <= 2048) 
+                    if(m <= 2048)
                         perf = 21e12;
                     else if(m <= 4096)
                         perf = 40e12;
@@ -377,7 +377,7 @@ double magma_get_gemex_rankk_time( magma_int_t m, magma_int_t k, magma_mp_type_t
                         perf = 47e12;
                 }else if (k >= 256)
                 {
-                    if(m <= 2048) 
+                    if(m <= 2048)
                         perf = 16e12;
                     else if(m <= 4096)
                         perf = 29e12;
@@ -385,7 +385,7 @@ double magma_get_gemex_rankk_time( magma_int_t m, magma_int_t k, magma_mp_type_t
                         perf = 36e12;
                 }else if (k >= 128)
                 {
-                    if(m <= 2048) 
+                    if(m <= 2048)
                         perf = 9e12;
                     else if(m <= 4096)
                         perf = 17e12;
@@ -399,17 +399,17 @@ double magma_get_gemex_rankk_time( magma_int_t m, magma_int_t k, magma_mp_type_t
             break;
         case Magma_MP_GEMEX_I16_O16_C32:
             {
-       
+
             }
             break;
         case Magma_MP_GEMEX_I16_O16_C16:
             {
-       
+
             }
             break;
         default:
             {
-       
+
             }
     }
     return (2.0*double(m)*double(m)*double(k)/perf);
@@ -435,7 +435,7 @@ double magma_get_cpu_sgetrf_time( magma_int_t m, magma_int_t n)
         sgetrf_perf = 587e9;
     }else if( n >= 512)
     {
-        if(m <= 4096) 
+        if(m <= 4096)
             sgetrf_perf = 180e9;
         else if(m <= 8192)
             sgetrf_perf = 280e9;
@@ -447,7 +447,7 @@ double magma_get_cpu_sgetrf_time( magma_int_t m, magma_int_t n)
             sgetrf_perf = 600e9;
     }else if( n >= 384)
     {
-        if(m <= 4096) 
+        if(m <= 4096)
             sgetrf_perf = 150e9;
         else if(m <= 8192)
             sgetrf_perf = 250e9;
@@ -459,7 +459,7 @@ double magma_get_cpu_sgetrf_time( magma_int_t m, magma_int_t n)
             sgetrf_perf = 570e9;
     }else if( n >= 256)
     {
-        if(m <= 4096) 
+        if(m <= 4096)
             sgetrf_perf = 100e9;
         else if(m <= 8192)
             sgetrf_perf = 160e9;
@@ -471,7 +471,7 @@ double magma_get_cpu_sgetrf_time( magma_int_t m, magma_int_t n)
             sgetrf_perf = 350e9;
     }else if( n >= 128)
     {
-        if(m <= 4096) 
+        if(m <= 4096)
             sgetrf_perf = 60e9;
         else if(m <= 8192)
             sgetrf_perf = 100e9;
@@ -496,8 +496,8 @@ double magma_get_cpu_sgetrf_time( magma_int_t m, magma_int_t n)
 #undef FMULS_GETRF
 #undef FADDS_GETRF
 //-------------------------------------------------------------------------------
-magma_int_t magma_get_xgetrf_nb( 
-        magma_int_t m, magma_int_t n, magma_int_t prev_nb, 
+magma_int_t magma_get_xgetrf_nb(
+        magma_int_t m, magma_int_t n, magma_int_t prev_nb,
         magma_mp_type_t enable_tc, magma_mp_type_t mp_algo_type)
 {
     magma_int_t nb;
@@ -543,12 +543,12 @@ magma_int_t magma_get_xgetrf_nb(
          snprintf(unit, sizeof(unit),"%s",(maxtime < 1e-3 ? "micros": maxtime < 1e0 ? "ms" : "s"));
          printf("\t\tvoici minmn %5d ib %3d, time_sgetrf %8.5f %s, time_gemm %8.5f %s, max_time: %8.5f %s, 128: %8.5f %s 1536: %8.5f %s\n",
                  minmn, ib, time_sgetrf*scale, unit, time_gemm*scale, unit,
-                 maxtime*scale, unit, maxtime*scale/divto_128, unit, maxtime*scale*multo_1536, unit); 
-               */  
+                 maxtime*scale, unit, maxtime*scale/divto_128, unit, maxtime*scale*multo_1536, unit);
+               */
     }
     /*
     printf("\t\tvoici minmn %5d choosen nb %3d  proposed_nb128 %4d proposed_nb1536 %4d\n",
-                 minmn, nb, proposed_nb128, proposed_nb1536, min(proposed_nb128)); 
+                 minmn, nb, proposed_nb128, proposed_nb1536, min(proposed_nb128));
                  */
 
     MAGMA_UNUSED( nb );
@@ -604,12 +604,12 @@ magma_int_t magma_get_hgetrf_nb( magma_int_t m, magma_int_t n )
          snprintf(unit, sizeof(unit),"%s",(maxtime < 1e-3 ? "micros": maxtime < 1e0 ? "ms" : "s"));
          printf("\t\tvoici minmn %5d ib %3d, time_sgetrf %8.5f %s, time_gemm %8.5f %s, max_time: %8.5f %s, 128: %8.5f %s 1536: %8.5f %s\n",
                  minmn, ib, time_sgetrf*scale, unit, time_gemm*scale, unit,
-                 maxtime*scale, unit, maxtime*scale/divto_128, unit, maxtime*scale*multo_1536, unit); 
-               */  
+                 maxtime*scale, unit, maxtime*scale/divto_128, unit, maxtime*scale*multo_1536, unit);
+               */
     }
     /*
     printf("\t\tvoici minmn %5d choosen nb %3d  proposed_nb128 %4d proposed_nb1536 %4d\n",
-                 minmn, nb, proposed_nb128, proposed_nb1536, min(proposed_nb128)); 
+                 minmn, nb, proposed_nb128, proposed_nb1536, min(proposed_nb128));
                  */
 
 
@@ -630,11 +630,7 @@ magma_int_t magma_get_sgetrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 600 ) {       // 6.x Pascal
-        if      (minmn <  4096) nb = 128;
-        else                    nb = 512;
-    }
-    else if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <  4096) nb = 256;
         else if (minmn < 18432) nb = 512;
         else                    nb = 1024;
