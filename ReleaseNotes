@@ -32,6 +32,7 @@ single (s), double (d), single-complex (c), double-complex (z).
       symmetric indefinite matrices
     * New routine: GPU interfaces to hetrf in all precisions
     * Bug fixes in herk and sytrd
+    * Performance improvement for Symmetric/Hermitian eigensolvers
 
  2.5.3 - Mar 28, 2020
     * Small modifications to enable hipMAGMA generation from MAGMA to support AMD GPUs
