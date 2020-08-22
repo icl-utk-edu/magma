@@ -490,7 +490,7 @@ subs = {
     ('real',                 'double precision',     'real',                 'double precision'    ),  # before double
     ('float',                'double',               'float _Complex',       'double _Complex'     ),
     ('float',                'double',               'cuFloatComplex',       'cuDoubleComplex'     ),
-    ('CUDA_R_32F',           'CUDA_F_64F',           'CUDA_C_32F',           'CUDA_C_64F'          ),
+    ('CUDA_R_32F',           'CUDA_R_64F',           'CUDA_C_32F',           'CUDA_C_64F'          ),
     ('float',                'double',               'MKL_Complex8',         'MKL_Complex16'       ),
     ('magmaFloat_const_ptr', 'magmaDouble_const_ptr','magmaFloatComplex_const_ptr', 'magmaDoubleComplex_const_ptr'),  # before magmaDoubleComplex
     ('magmaFloat_const_ptr', 'magmaDouble_const_ptr','magmaFloat_const_ptr',        'magmaDouble_const_ptr'       ),  # before magmaDoubleComplex
