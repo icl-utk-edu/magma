@@ -35,6 +35,35 @@
 #include "magma_operators.h"
 #include "testings.h"
 
+#if CUDA_VERSION >= 11000
+// todo: destroy descriptor and see if the original code descriptors have to be changed 
+#define cusparseZcsrmv(handle, op, rows, cols, nnz, alpha, descr, dval, drow, dcol, x, beta, y) \
+    {                                                                                           \
+        cusparseSpMatDescr_t descrA;                                                            \
+        cusparseDnVecDescr_t descrX, descrY;                                                    \
+        cusparseCreateCsr(&descrA, rows, cols, nnz,                                             \
+                          (void *)drow, (void *)dcol, (void *)dval,                             \
+                          CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,                               \
+                          CUSPARSE_INDEX_BASE_ZERO, CUDA_C_64F);                                \
+        cusparseCreateDnVec(&descrX, cols, x, CUDA_C_64F);                                      \
+        cusparseCreateDnVec(&descrY, rows, y, CUDA_C_64F);                                      \
+                                                                                                \
+        size_t bufsize;                                                                         \
+        void *buf;                                                                              \
+        cusparseSpMV_bufferSize(handle, op,                                                     \
+                                (void *)alpha, descrA, descrX, (void *)beta,                    \
+                                descrY, CUDA_C_64F, CUSPARSE_CSRMV_ALG1, &bufsize);             \
+        if (bufsize > 0)                                                                        \
+           magma_malloc(&buf, bufsize);                                                         \
+        cusparseSpMV( handle, op,                                                               \
+                      (void *)alpha, descrA, descrX, (void *)beta,                              \
+                      descrY, CUDA_C_64F, CUSPARSE_CSRMV_ALG1, buf);                            \
+        if (bufsize > 0)                                                                        \
+           magma_free(buf);                                                                     \
+        ;\
+    }
+#endif
+
 
 /* ////////////////////////////////////////////////////////////////////////////
    -- testing sparse matrix vector product
@@ -76,7 +105,6 @@ int main(  int argc, char** argv )
     
     cusparseMatDescr_t descrA=NULL;
     cusparseHandle_t cusparseHandle = NULL;
-    cusparseHybMat_t hybA=NULL;
     cusparseMatDescr_t descr = NULL;
     
     #ifdef MAGMA_WITH_MKL
@@ -314,14 +342,12 @@ int main(  int argc, char** argv )
 
         start = magma_sync_wtime( queue );
         for (j=0; j < 200; j++) {
-            TESTING_CHECK( cusparseZcsrmv(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
+            cusparseZcsrmv(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
                         hA.num_rows, hA.num_cols, hA.nnz, &alpha, descr,
-                        dA.dval, dA.drow, dA.dcol, dx.dval, &beta, dy.dval) );
+                        dA.dval, dA.drow, dA.dcol, dx.dval, &beta, dy.dval);
         }
         end = magma_sync_wtime( queue );
 
-        TESTING_CHECK( cusparseCreateMatDescr( &descrA ));
-        cusparseCreateHybMat( &hybA );
         TESTING_CHECK( magma_zmtransfer( dy, &hcheck , Magma_DEV, Magma_CPU, queue ));
         res = 0.0;
         for(magma_int_t k=0; k < hA.num_rows; k++ ){
@@ -344,6 +370,13 @@ int main(  int argc, char** argv )
         }
         magma_zmfree( &hcheck, queue );
         magma_zmfree( &dy, queue );
+
+
+#if CUDA_VERSION < 11000
+        // Test hybrid matix format for CUDA before version 11 ===
+        cusparseHybMat_t hybA=NULL;
+        TESTING_CHECK( cusparseCreateMatDescr( &descrA ));
+        cusparseCreateHybMat( &hybA );
         TESTING_CHECK( magma_zvinit( &dy, Magma_DEV, hA.num_rows, 1, c_zero, queue ));
         cusparseZcsr2hyb(cusparseHandle,  hA.num_rows, hA.num_cols,
                         descrA, dA.dval, dA.drow, dA.dcol,
@@ -381,10 +414,13 @@ int main(  int argc, char** argv )
 
         cusparseDestroyMatDescr( descrA );
         cusparseDestroyHybMat( hybA );
-        cusparseDestroy( cusparseHandle ); 
         descrA=NULL;
-        cusparseHandle = NULL;
         hybA=NULL;
+#endif // end test for HYB matrix format
+
+        cusparseDestroyMatDescr( descr  );
+        cusparseDestroy( cusparseHandle );
+        cusparseHandle = NULL;
         descr = NULL;
         
         // print everything in matlab-readable output

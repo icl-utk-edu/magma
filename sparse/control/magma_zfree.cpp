@@ -10,6 +10,11 @@
 */
 #include "magmasparse_internal.h"
 
+// todo: see how to destroy info
+// there are different, e.g., cusparseDestroyCsrsv2Info(info), etc.
+#if CUDA_VERSION >= 11000
+#define cusparseDestroySolveAnalysisInfo(info) {;}
+#endif
 
 /**
     Purpose
@@ -607,14 +612,15 @@ magma_zprecondfree(
             cusparseDestroySolveAnalysisInfo( precond_par->cuinfoL ); 
         if( precond_par->cuinfoU != NULL )
             cusparseDestroySolveAnalysisInfo( precond_par->cuinfoU ); 
-        precond_par->cuinfoL = NULL;
-        precond_par->cuinfoU = NULL;
+        // todo: error: invalid conversion from ‘long int’ to ‘cusparseSolvePolicy_t’ 
+        //precond_par->cuinfoL = NULL;
+        //precond_par->cuinfoU = NULL;
         if( precond_par->cuinfoLT != NULL )
             cusparseDestroySolveAnalysisInfo( precond_par->cuinfoLT ); 
         if( precond_par->cuinfoUT != NULL )
             cusparseDestroySolveAnalysisInfo( precond_par->cuinfoUT ); 
-        precond_par->cuinfoLT = NULL;
-        precond_par->cuinfoUT = NULL;
+        //precond_par->cuinfoLT = NULL;
+        //precond_par->cuinfoUT = NULL;
     }
     if ( precond_par->LD.val != NULL ) {
         if ( precond_par->LD.memory_location == Magma_DEV )

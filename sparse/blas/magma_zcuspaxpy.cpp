@@ -14,6 +14,46 @@
 #define RTOLERANCE     lapackf77_dlamch( "E" )
 #define ATOLERANCE     lapackf77_dlamch( "E" )
 
+// todo: alpha and beta passed, dvalA, dvalB, valC, colC; buf passed to next
+#if CUDA_VERSION >= 11000
+#define cusparseXcsrgeamNnz(handle, m, n, descrA, nnzA, drowA, dcolA,                           \
+                            descrB, nnzB, drowB, dcolB, descrC, rowC, nnzTotal )                \
+    {                                                                                           \
+        size_t bufsize;                                                                         \
+        void *buf;                                                                              \
+        cuDoubleComplex alpha = MAGMA_Z_ONE, beta = MAGMA_Z_ZERO;                               \
+        cusparseSetPointerMode(handle, CUSPARSE_POINTER_MODE_HOST);                             \
+        cusparseZcsrgeam2_bufferSizeExt(handle, m, n, &alpha,                                   \
+                                        descrA, nnzA, NULL, drowA, dcolA,                       \
+                                        &beta,                                                  \
+                                        descrB, nnzB, NULL, drowB, dcolB,                       \
+                                        descrC, NULL, rowC, NULL, &bufsize);                    \
+        if (bufsize > 0)                                                                        \
+           magma_malloc(&buf, bufsize);                                                         \
+        cusparseXcsrgeam2Nnz(handle, m, n,                                                      \
+                             descrA, nnzA, drowA, dcolA,                                        \
+                             descrB, nnzB, drowB, dcolB,                                        \
+                             descrC, rowC, nnzTotal, buf);                                      \
+        if (bufsize > 0)                                                                        \
+           magma_free(buf);                                                                     \
+    }
+#endif
+
+// todo: buf is passed from above
+#if CUDA_VERSION >= 11000
+#define cusparseZcsrgeam(handle, m, n, alpha, descrA, nnzA, dvalA, drowA, dcolA, beta,          \
+                         descrB, nnzB, dvalB, drowB, dcolB, descrC, dvalC, drowC, dcolC )       \
+    {                                                                                           \
+        void *buf;                                                                              \
+        printf("cusparseZcsrgeam bufsize = %d\n", 0);\
+        cusparseZcsrgeam2(handle, m, n, alpha,                                                  \
+                          descrA, nnzA, dvalA, drowA, dcolA,                                    \
+                          beta,                                                                 \
+                          descrB, nnzB, dvalB, drowB, dcolB,                                    \
+                          descrC, dvalC, drowC, dcolC,                                          \
+                          buf);                                                                 \
+    }
+#endif
 
 /**
     Purpose
@@ -96,7 +136,6 @@ magma_zcuspaxpy(
              B.storage_type == Magma_CSRCOO ) )
     {
         // CUSPARSE context //
-
         CHECK_CUSPARSE( cusparseCreate( &handle ));
         CHECK_CUSPARSE( cusparseSetStream( handle, queue->cuda_stream() ));
         CHECK_CUSPARSE( cusparseCreateMatDescr( &descrA ));
@@ -114,10 +153,10 @@ magma_zcuspaxpy(
         magma_index_t *nnzTotalDevHostPtr = (magma_index_t*) &C.nnz;
         CHECK_CUSPARSE( cusparseSetPointerMode( handle, CUSPARSE_POINTER_MODE_HOST ));
         CHECK( magma_index_malloc( &C.drow, (A.num_rows + 1) ));
-        CHECK_CUSPARSE( cusparseXcsrgeamNnz( handle, A.num_rows, A.num_cols,
-                    descrA, A.nnz, A.drow, A.dcol,
-                    descrB, B.nnz, B.drow, B.dcol,
-                    descrC, C.row, nnzTotalDevHostPtr ));
+        cusparseXcsrgeamNnz( handle, A.num_rows, A.num_cols,
+                             descrA, A.nnz, A.drow, A.dcol,
+                             descrB, B.nnz, B.drow, B.dcol,
+                             descrC, C.row, nnzTotalDevHostPtr );
 
         if (NULL != nnzTotalDevHostPtr) {
             C.nnz = *nnzTotalDevHostPtr;
@@ -131,15 +170,15 @@ magma_zcuspaxpy(
         }
         CHECK( magma_index_malloc( &C.dcol, C.nnz ));
         CHECK( magma_zmalloc( &C.dval, C.nnz ));
-        CHECK_CUSPARSE( cusparseZcsrgeam( handle, A.num_rows, A.num_cols,
-                alpha,
-                descrA, A.nnz,
-                A.dval, A.drow, A.dcol,
-                beta,
-                descrB, B.nnz,
-                B.dval, B.drow, B.dcol,
-                descrC,
-                C.dval, C.drow, C.dcol ));
+        cusparseZcsrgeam( handle, A.num_rows, A.num_cols,
+                          alpha,
+                          descrA, A.nnz,
+                          A.dval, A.drow, A.dcol,
+                          beta,
+                          descrB, B.nnz,
+                          B.dval, B.drow, B.dcol,
+                          descrC,
+                          C.dval, C.drow, C.dcol );
         // end CUSPARSE context //
 
         CHECK( magma_zmtransfer( C, AB, Magma_DEV, Magma_DEV, queue ));

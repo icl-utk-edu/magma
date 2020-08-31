@@ -15,6 +15,33 @@
 
 #define PRECISION_z
 
+#if CUDA_VERSION >= 11000
+// todo: destroy descriptor and see if the original code descriptors have to be changed
+#define cusparseZcsrmv(handle, op, rows, cols, nnz, alpha, descr, dval, drow, dcol, x, beta, y) \
+    {                                                                                           \
+        cusparseSpMatDescr_t descrA;                                                            \
+        cusparseDnVecDescr_t descrX, descrY;                                                    \
+        cusparseCreateCsr(&descrA, rows, cols, nnz,                                             \
+                          (void *)drow, (void *)dcol, (void *)dval,                             \
+                          CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,                               \
+                          CUSPARSE_INDEX_BASE_ZERO, CUDA_C_64F);                                \
+        cusparseCreateDnVec(&descrX, cols, x, CUDA_C_64F);                                      \
+        cusparseCreateDnVec(&descrY, rows, y, CUDA_C_64F);                                      \
+                                                                                                \
+        size_t bufsize;                                                                         \
+        void *buf;                                                                              \
+        cusparseSpMV_bufferSize(handle, op,                                                     \
+                                (void *)alpha, descrA, descrX, (void *)beta,                    \
+                                descrY, CUDA_C_64F, CUSPARSE_CSRMV_ALG1, &bufsize);             \
+        if (bufsize > 0)                                                                        \
+           magma_malloc(&buf, bufsize);                                                         \
+        cusparseSpMV( handle, op,                                                               \
+                      (void *)alpha, descrA, descrX, (void *)beta,                              \
+                      descrY, CUDA_C_64F, CUSPARSE_CSRMV_ALG1, buf);                            \
+        if (bufsize > 0)                                                                        \
+           magma_free(buf);                                                                     \
+    }
+#endif
 
 // These routines merge multiple kernels from zmergecg into one
 // for a description see 
@@ -1069,8 +1096,8 @@ magma_zcgmerge_spmv1(
         cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL );
         cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO );
         cusparseZcsrmv( cusparseHandle,CUSPARSE_OPERATION_NON_TRANSPOSE,
-        A.num_rows, A.num_cols, A.nnz, &c_one, descr,
-        A.dval, A.drow, A.dcol, dd, &c_zero, dz );
+                        A.num_rows, A.num_cols, A.nnz, &c_one, descr,
+                        A.dval, A.drow, A.dcol, dd, &c_zero, dz );
         cusparseDestroyMatDescr( descr );
         cusparseDestroy( cusparseHandle );
         cusparseHandle = 0;

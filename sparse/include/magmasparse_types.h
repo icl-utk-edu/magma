@@ -558,6 +558,10 @@ typedef struct magma_s_solver_par
 
 //************            preconditioner parameters       ********************//
 
+#if CUDA_VERSION >= 11000
+    #define cusparseSolveAnalysisInfo_t csrsm2Info_t
+#endif
+
 typedef struct magma_z_preconditioner
 {
     magma_solver_type       solver;

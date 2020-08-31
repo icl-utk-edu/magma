@@ -57,7 +57,10 @@ magma_zmtransfer(
     // make sure the target structure is empty
     magma_zmfree( B, queue );
     B->ownership = MagmaTrue;
-    
+
+    // Initialize bufsize to -1; buf is not allocated; cuSparse handle is not created
+    //B->bufsize = -1;
+
     B->val = NULL;
     B->diag = NULL;
     B->row = NULL;

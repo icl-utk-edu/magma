@@ -11,6 +11,63 @@
 */
 #include "magmasparse_internal.h"
 
+#if CUDA_VERSION >= 11000
+// todo: destroy descriptor and see if the original code descriptors have to be changed 
+#define cusparseZcsrmv(handle, op, rows, cols, nnz, alpha, descr, dval, drow, dcol, x, beta, y) \
+    {                                                                                           \
+        cusparseSpMatDescr_t descrA;                                                            \
+        cusparseDnVecDescr_t descrX, descrY;                                                    \
+        cusparseCreateCsr(&descrA, rows, cols, nnz,                                             \
+                          (void *)drow, (void *)dcol, (void *)dval,                             \
+                          CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,                               \
+                          CUSPARSE_INDEX_BASE_ZERO, CUDA_C_64F);                                \
+        cusparseCreateDnVec(&descrX, cols, x, CUDA_C_64F);                                      \
+        cusparseCreateDnVec(&descrY, rows, y, CUDA_C_64F);                                      \
+                                                                                                \
+        size_t bufsize;                                                                         \
+        void *buf;                                                                              \
+        cusparseSpMV_bufferSize(handle, op,                                                     \
+                                (void *)alpha, descrA, descrX, (void *)beta,                    \
+                                descrY, CUDA_C_64F, CUSPARSE_CSRMV_ALG1, &bufsize);             \
+        if (bufsize > 0)                                                                        \
+           magma_malloc(&buf, bufsize);                                                         \
+        cusparseSpMV( handle, op,                                                               \
+                      (void *)alpha, descrA, descrX, (void *)beta,                              \
+                      descrY, CUDA_C_64F, CUSPARSE_CSRMV_ALG1, buf);                            \
+        if (bufsize > 0)                                                                        \
+           magma_free(buf);                                                                     \
+    }
+#else
+CHECK_CUSPARSE(cusparseZcsrmv(handle,op,rows,cols,nnz,alpha,descr,dval,drow,dcol,x,beta,y))
+#endif
+
+#if CUDA_VERSION >= 11000
+#define cusparseZcsrmm(handle, op, rows, num_vecs, cols, nnz, alpha, descr, dval, drow, dcol,   \
+                       x, ldx, beta, y, ldy)                                                    \
+    {                                                                                           \
+        cusparseSpMatDescr_t descrA;                                                            \
+        cusparseDnMatDescr_t descrX, descrY;                                                    \
+        cusparseCreateCsr(&descrA, rows, cols, nnz,                                             \
+                          (void *)drow, (void *)dcol, (void *)dval,                             \
+                          CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,                               \
+                          CUSPARSE_INDEX_BASE_ZERO, CUDA_C_64F);                                \
+        cusparseCreateDnMat(&descrX, cols, num_vecs, ldx, x, CUDA_C_64F, CUSPARSE_ORDER_COL);   \
+        cusparseCreateDnMat(&descrY, cols, num_vecs, ldy, y, CUDA_C_64F, CUSPARSE_ORDER_COL);   \
+                                                                                                \
+        size_t bufsize;                                                                         \
+        void *buf;                                                                              \
+        cusparseSpMM_bufferSize(handle, op, CUSPARSE_OPERATION_NON_TRANSPOSE,                   \
+                                (void *)alpha, descrA, descrX, beta, descrY, CUDA_C_64F,        \
+                                CUSPARSE_CSRMM_ALG1, &bufsize);                                 \
+        if (bufsize > 0)                                                                        \
+           magma_malloc(&buf, bufsize);                                                         \
+        cusparseSpMM(handle, op, CUSPARSE_OPERATION_NON_TRANSPOSE,                              \
+                     (void *)alpha, descrA, descrX, beta, descrY, CUDA_C_64F,                   \
+                     CUSPARSE_CSRMM_ALG1, buf);                                                 \
+        if (bufsize > 0)                                                                        \
+           magma_free(buf);                                                                     \
+    }
+#endif
 
 /**
     Purpose
@@ -95,10 +152,10 @@ magma_z_spmv(
                 
                 CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
                 CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
-                
-                CHECK_CUSPARSE( cusparseZcsrmv( cusparseHandle,CUSPARSE_OPERATION_NON_TRANSPOSE,
-                              A.num_rows, A.num_cols, A.nnz, &alpha, descr,
-                              A.dval, A.drow, A.dcol, x.dval, &beta, y.dval ) );
+                                 
+                cusparseZcsrmv( cusparseHandle,CUSPARSE_OPERATION_NON_TRANSPOSE,
+                                A.num_rows, A.num_cols, A.nnz, &alpha, descr,
+                                A.dval, A.drow, A.dcol, x.dval, &beta, y.dval );
             }
             else if ( A.storage_type == Magma_CSC )
             {

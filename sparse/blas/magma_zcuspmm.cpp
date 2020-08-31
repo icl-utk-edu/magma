@@ -14,6 +14,59 @@
 #define RTOLERANCE     lapackf77_dlamch( "E" )
 #define ATOLERANCE     lapackf77_dlamch( "E" )
 
+#if CUDA_VERSION >= 11000
+#define cusparseXcsrgemmNnz(handle, transA, transB, m, n, k, descrA, nnzA, drowA, dcolA,        \
+                            descrB, nnzB, drowB, dcolB, descrC, drowC, nnzTotal )               \
+    {                                                                                           \
+        cusparseMatDescr_t descrD;                                                              \
+        int nnzD, *drowD, *dcolD;                                                               \
+        csrgemm2Info_t linfo = NULL;                                                            \
+        size_t bufsize;                                                                         \
+        void *buf;                                                                              \
+        cuDoubleComplex alpha = MAGMA_Z_ONE, *beta = NULL;                                      \
+        cusparseSetPointerMode(handle, CUSPARSE_POINTER_MODE_HOST);                             \
+        cusparseCreateCsrgemm2Info(&linfo);                                                     \
+        cusparseZcsrgemm2_bufferSizeExt(handle, m, n, k, &alpha,                                \
+                                        descrA, nnzA, drowA, dcolA,                             \
+                                        descrB, nnzB, drowB, dcolB,                             \
+                                        beta,                                                   \
+                                        descrD, nnzD, drowD, dcolD,                             \
+                                        linfo, &bufsize);                                       \
+        if (bufsize > 0)                                                                        \
+           magma_malloc(&buf, bufsize);                                                         \
+        cusparseXcsrgemm2Nnz(handle, m, n, k,                                                   \
+                             descrA, nnzA, drowA, dcolA,                                        \
+                             descrB, nnzB, drowB, dcolB,                                        \
+                             descrD, nnzD, drowD, dcolD,                                        \
+                             descrC, drowC, nnzTotal,                                           \
+                             linfo, buf);                                                       \
+        if (bufsize > 0)                                                                        \
+           magma_free(buf);                                                                     \
+    }
+#endif
+
+// todo: info and buf are passed from the above function
+// also at the end destroy info: cusparseDestroyCsrgemm2Info(info);
+#if CUDA_VERSION >= 11000
+#define cusparseZcsrgemm(handle, transA, transB, m, n, k, descrA, nnzA, dvalA, drowA, dcolA,    \
+                         descrB, nnzB, dvalB, drowB, dcolB, descrC, dvalC, drowC, dcolC )       \
+    {                                                                                           \
+        cusparseMatDescr_t descrD;                                                              \
+        int nnzD, *drowD, *dcolD;                                                               \
+        cuDoubleComplex *dvalD, alpha = MAGMA_Z_ONE, *beta = NULL;                              \
+        void *buf;                                                                              \
+        csrgemm2Info_t linfo = NULL;                                                            \
+        printf("cusparseZcsrgemm bufsize = %d\n", -1);                                          \
+        cusparseZcsrgemm2(handle, m, n, k, &alpha,                                              \
+                          descrA, nnzA, dvalA, drowA, dcolA,                                    \
+                          descrB, nnzB, dvalB, drowB, dcolB,                                    \
+                          beta,                                                                 \
+                          descrD, nnzD, dvalD, drowD, dcolD,                                    \
+                          descrC, dvalC, drowC, dcolC,                                          \
+                          linfo, buf);                                                          \
+    }
+#endif
+
 
 /**
     Purpose
@@ -104,12 +157,12 @@ magma_zcuspmm(
         magma_index_t *nnzTotalDevHostPtr = (magma_index_t*) &C.nnz;
         CHECK_CUSPARSE( cusparseSetPointerMode( handle, CUSPARSE_POINTER_MODE_HOST ));
         CHECK( magma_index_malloc( &C.drow, (A.num_rows + 1) ));
-        CHECK_CUSPARSE( cusparseXcsrgemmNnz( handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                                    CUSPARSE_OPERATION_NON_TRANSPOSE,
-                                    A.num_rows, B.num_cols, A.num_cols,
-                                    descrA, A.nnz, A.drow, A.dcol,
-                                    descrB, B.nnz, B.drow, B.dcol,
-                                    descrC, C.drow, nnzTotalDevHostPtr ));
+        cusparseXcsrgemmNnz( handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                             CUSPARSE_OPERATION_NON_TRANSPOSE,
+                             A.num_rows, B.num_cols, A.num_cols,
+                             descrA, A.nnz, A.drow, A.dcol,
+                             descrB, B.nnz, B.drow, B.dcol,
+                             descrC, C.drow, nnzTotalDevHostPtr );
         if (NULL != nnzTotalDevHostPtr) {
             C.nnz = *nnzTotalDevHostPtr;
         } else {
@@ -122,15 +175,15 @@ magma_zcuspmm(
         }
         CHECK( magma_index_malloc( &C.dcol, C.nnz ));
         CHECK( magma_zmalloc( &C.dval, C.nnz ));
-        CHECK_CUSPARSE( cusparseZcsrgemm( handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                                    CUSPARSE_OPERATION_NON_TRANSPOSE,
-                        A.num_rows, B.num_cols, A.num_cols,
-                        descrA, A.nnz,
-                        A.dval, A.drow, A.dcol,
-                        descrB, B.nnz,
-                        B.dval, B.drow, B.dcol,
-                        descrC,
-                        C.dval, C.drow, C.dcol ));
+        cusparseZcsrgemm( handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
+                          CUSPARSE_OPERATION_NON_TRANSPOSE,
+                          A.num_rows, B.num_cols, A.num_cols,
+                          descrA, A.nnz,
+                          A.dval, A.drow, A.dcol,
+                          descrB, B.nnz,
+                          B.dval, B.drow, B.dcol,
+                          descrC,
+                          C.dval, C.drow, C.dcol );
         // end CUSPARSE context //
         magma_queue_sync( queue );
         CHECK( magma_zmtransfer( C, AB, Magma_DEV, Magma_DEV, queue ));
