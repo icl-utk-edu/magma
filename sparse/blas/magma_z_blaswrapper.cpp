@@ -38,7 +38,8 @@
            magma_free(buf);                                                                     \
     }
 #else
-CHECK_CUSPARSE(cusparseZcsrmv(handle,op,rows,cols,nnz,alpha,descr,dval,drow,dcol,x,beta,y))
+#define cusparseZcsrmv(handle, op, rows, cols, nnz, alpha, descr, dval, drow, dcol, x, beta, y) \
+    CHECK_CUSPARSE(cusparseZcsrmv(handle,op,rows,cols,nnz,alpha,descr,dval,drow,dcol,x,beta,y))
 #endif
 
 #if CUDA_VERSION >= 11000
