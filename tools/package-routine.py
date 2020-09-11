@@ -219,6 +219,16 @@ def matches(regex, src, group=1):
 def needed_funcs():
     return funcs_requested - funcs_defined - funcs_err - funcs_warn - funcs_ignore
 
+_p_files = {}
+
+def p_file(fname, mode):
+    if mode not in _p_files:
+        _p_files[mode] = set()
+    if fname in _p_files[mode]:
+        print ("Warning: file checked multiple times: ", fname)
+    print ("[", mode, "] Checking file:", fname, " " * 80, end='\r')
+    _p_files[mode].add(fname)
+
 # -*- Search through routines -*-
 
 # attempt to resolve each one
@@ -245,19 +255,24 @@ for func in args.routines:
         raise Exception(f"Unknown routine '{func}'")
 
 
-# while there are needed functions
+print ("Checking for functions:", funcs_requested)
+
+
+# while there are needed functions to resolve
 while needed_funcs():
     # get first one
     func = next(iter(needed_funcs()))
 
+    # ensure it is a magma function
     if 'magma' not in func:
         raise Exception(f"Need function '{func}', which is not part of MAGMA!")
 
     # turn it into just the MAGMA name (no prefix)
     magma_name = func.replace('magma_', '')
 
-    # iterate through new files
+    # iterate through files the routine probably needs
     for fl in newfiles(f"src/{magma_name}.cpp", f"src/{''.join([i for i in magma_name if not i.isdigit()])}.cpp"):
+        p_file(fl, 'defs')
         src = readall(fl)
 
         # get matches and see if this file works
@@ -270,6 +285,8 @@ while needed_funcs():
 
             # we need to see what else is requested
             funcs_requested.update(matches(re_call, src))
+
+            # we found the requested function, so stop looking for it
             break
 
     if func not in funcs_defined:
@@ -298,9 +315,11 @@ while needed_funcs():
                         break
             
         if not isFound:
+            #print ("not yet found:", func)
 
             # not a BLAS routine, so now just search everywhere for it
             for fl in newfiles(*allfiles):
+                p_file(fl, 'defs')
                 src = readall(fl)
 
                 # get matches and see if this file works
@@ -325,6 +344,8 @@ if funcs_err:
     raise Exception(f"Could not find functions: {funcs_err}")
 
 
+print ("Checking for included files", set_c)
+
 # new includse
 keepGoing = True
 while keepGoing:
@@ -332,6 +353,7 @@ while keepGoing:
     new_includes = set()
 
     for fl in set_c:
+        p_file(fl, 'includes')
         src = readall(fl)
         for incfl in matches(re_include, src):
             possible = [
@@ -362,7 +384,6 @@ while keepGoing:
             raise Exception(f"Could not find included file '{incfl}'")
 
     set_c.update(new_includes)
-
     keepGoing = bool(new_includes)
 
 
