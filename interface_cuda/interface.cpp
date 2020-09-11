@@ -1155,7 +1155,7 @@ magma_queue_destroy_internal(
     const char* func, const char* file, int line )
 {
     if ( queue != NULL ) {
-    #ifdef HAVE_CUDA
+    #if defined(HAVE_CUDA)
         if ( queue->cublas__ != NULL && (queue->own__ & own_cublas)) {
             cublasStatus_t stat = cublasDestroy( queue->cublas__ );
             check_xerror( stat, func, file, line );
@@ -1163,6 +1163,18 @@ magma_queue_destroy_internal(
         }
         if ( queue->cusparse__ != NULL && (queue->own__ & own_cusparse)) {
             cusparseStatus_t stat = cusparseDestroy( queue->cusparse__ );
+            check_xerror( stat, func, file, line );
+            MAGMA_UNUSED( stat );
+        }
+    #elif defined(HAVE_HIP)
+
+        if ( queue->hipblas__ != NULL && (queue->own__ & own_hipblas)) {
+            hipblasStatus_t stat = hipblasDestroy( queue->hipblas__ );
+            check_xerror( stat, func, file, line );
+            MAGMA_UNUSED( stat );
+        }
+        if ( queue->hipsparse__ != NULL && (queue->own__ & own_hipsparse)) {
+            hipsparseStatus_t stat = hipsparseDestroy( queue->hipsparse__ );
             check_xerror( stat, func, file, line );
             MAGMA_UNUSED( stat );
         }
@@ -1179,10 +1191,14 @@ magma_queue_destroy_internal(
         queue->own__      = own_none;
         queue->device__   = -1;
         queue->stream__   = NULL;
-    #ifdef HAVE_CUDA
+    #if defined(HAVE_CUDA)
         queue->cublas__   = NULL;
         queue->cusparse__ = NULL;
+    #elif defined(HAVE_HIP)
+        queue->hipblas__  = NULL;
+        queue->hipsparse__= NULL;
     #endif
+
         magma_free_cpu( queue );
     }
 }

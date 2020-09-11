@@ -118,7 +118,7 @@ zlarfg_kernel(
          H * ( alpha ) = ( beta ),   H**H * H = I.
              (   x   )   (   0  )
 
-    where alpha and beta are scalars, with beta real and beta = ±norm([alpha, x]),
+    where alpha and beta are scalars, with beta real and |beta| = norm([alpha, x]),
     and x is an (n-1)-element complex vector. H is represented in the form
 
          H = I - tau * ( 1 ) * ( 1 v**H ),
