@@ -93,7 +93,6 @@ void zgeqr2_device( magma_int_t m, magma_int_t n,
 
 
 /******************************************************************************/
-extern __shared__ magmaDoubleComplex shared_data[];
 
 
 /******************************************************************************/
@@ -101,6 +100,8 @@ __global__
 void zgeqr2_sm_kernel_batched( int m, int n, magmaDoubleComplex** dA_array, magma_int_t lda,
                                magmaDoubleComplex **dtau_array)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+    
     magmaDoubleComplex* dA = dA_array[blockIdx.z];
     magmaDoubleComplex* dtau = dtau_array[blockIdx.z];
 
@@ -154,6 +155,8 @@ __global__
 void zgeqr2_column_sm_kernel_batched( int m, int n, magmaDoubleComplex** dA_array, magma_int_t lda,
                                magmaDoubleComplex **dtau_array)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+    
     magmaDoubleComplex* dA = dA_array[blockIdx.z];
     magmaDoubleComplex* dtau = dtau_array[blockIdx.z];
 

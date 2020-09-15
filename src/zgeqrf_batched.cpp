@@ -10,7 +10,6 @@
 
        @precisions normal z -> s d c
 */
-#include <cuda_runtime.h>
 
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
@@ -122,7 +121,7 @@ magma_zgeqrf_batched(
         return magma_zgeqrf_batched_smallsq( m, dA_array, ldda, dtau_array, info_array, batchCount, queue );
     }
 
-    cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
+    magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
 
     magmaDoubleComplex *dT        = NULL;
     magmaDoubleComplex *dR        = NULL;

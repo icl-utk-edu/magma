@@ -17,6 +17,7 @@
                                   multiple times, once for each transpose version.
 */
 
+
 // =============================================================================
 
 #ifdef COMPLEX
@@ -46,7 +47,7 @@
         static __device__
         FloatingPoint_t tex_fetch(texture<int4> tex_ref, int coord)
         {
-            #if (__CUDA_ARCH__ >= 200)
+            #if (__CUDA_ARCH__ >= 200) || defined(HAVE_HIP)
             int4 v = tex1Dfetch(tex_ref, coord);
             return make_cuDoubleComplex(__hiloint2double(v.y, v.x), __hiloint2double(v.w, v.z));
             #else
@@ -65,7 +66,7 @@
         static __device__
         FloatingPoint_t tex_fetch(texture<int2> tex_ref, int coord)
         {
-            #if (__CUDA_ARCH__ >= 200)
+            #if (__CUDA_ARCH__ >= 200) || defined(HAVE_HIP)
             int2 v = tex1Dfetch(tex_ref, coord);
             return __hiloint2double(v.y, v.x);
             #else
@@ -94,17 +95,17 @@
 
 #ifdef COMPLEX
   #ifdef DOUBLE
-    #define conj(A)          cuConj(A)
-    #define add(A, B)        cuCadd(A, B)
-    #define mul(A, B)        cuCmul(A, B)
-    #define fma(A, B, C) C = cuCfma(A, B, C)
-    #define make_FloatingPoint(x, y) make_cuDoubleComplex(x, y);
+    #define conj(A)          magmaConj(A)
+    #define add(A, B)        magmaCadd(A, B)
+    #define mul(A, B)        magmaCmul(A, B)
+    #define fma(A, B, C) C = magmaCfma(A, B, C)
+    #define make_FloatingPoint(x, y) MAGMA_Z_MAKE(x, y);
   #else
-    #define conj(A)          cuConjf(A)
-    #define add(A, B)        cuCaddf(A, B)
-    #define mul(A, B)        cuCmulf(A, B)
-    #define fma(A, B, C) C = cuCfmaf(A, B, C)
-    #define make_FloatingPoint(x, y) make_cuFloatComplex(x, y);
+    #define conj(A)          magmaConjf(A)
+    #define add(A, B)        magmaCaddf(A, B)
+    #define mul(A, B)        magmaCmulf(A, B)
+    #define fma(A, B, C) C = magmaCfmaf(A, B, C)
+    #define make_FloatingPoint(x, y) MAGMA_C_MAKE(x, y);
   #endif
 #else
     #define conj(A)           (A)

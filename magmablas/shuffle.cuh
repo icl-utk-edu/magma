@@ -15,7 +15,7 @@
 __device__ static inline int magmablas_ishfl(int var, int srcLane, int width=32, unsigned mask=SHFL_FULL_MASK) 
 {
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(HAVE_HIP)
      return __shfl(var, srcLane, width);
 #else
      return __shfl_sync(mask, var, srcLane, width);
@@ -30,7 +30,7 @@ return 0;
 __device__ static inline float magmablas_sshfl(float var, int srcLane, int width=32, unsigned mask=SHFL_FULL_MASK) 
 {
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(HAVE_HIP)
      return __shfl(var, srcLane, width);
 #else
      return __shfl_sync(mask, var, srcLane, width);
@@ -45,7 +45,7 @@ return MAGMA_S_ZERO;
 __device__ static inline double magmablas_dshfl(double var, int srcLane, int width=32, unsigned mask=SHFL_FULL_MASK) 
 {
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(HAVE_HIP)
     // Split the double number into 2 32b registers.
     int lo, hi;
     asm volatile("mov.b64 {%0,%1}, %2;" : "=r"(lo), "=r"(hi):"d"(var));
@@ -102,7 +102,7 @@ __device__ static inline magmaDoubleComplex magmablas_zshfl(magmaDoubleComplex v
 __device__ static inline int magmablas_ishfl_xor(int var, int laneMask, int width=32, unsigned mask=SHFL_FULL_MASK) 
 {
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(HAVE_HIP)
     return __shfl_xor(var, laneMask, width);
 #else
     return __shfl_xor_sync(mask, var, laneMask, width);
@@ -118,7 +118,7 @@ return 0;
 __device__ static inline float magmablas_sshfl_xor(float var, int laneMask, int width=32, unsigned mask=SHFL_FULL_MASK) 
 {
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(HAVE_HIP)
     return __shfl_xor(var, laneMask, width);
 #else
     return __shfl_xor_sync(mask, var, laneMask, width);
@@ -133,7 +133,7 @@ return MAGMA_S_ZERO;
 __device__ static inline double magmablas_dshfl_xor(double var, int laneMask, int width=32, unsigned mask=SHFL_FULL_MASK) 
 {
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(HAVE_HIP)
     // Split the double number into 2 32b registers.
     int lo, hi;
     asm volatile("mov.b64 {%0,%1}, %2;" : "=r"(lo), "=r"(hi):"d"(var));

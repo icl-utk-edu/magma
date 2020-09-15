@@ -139,7 +139,10 @@
 #define THR_N ( BLK_N / DIM_Y )
 
 /******************************************************************************/
-extern "C" static __device__
+
+extern "C" {
+
+static __device__
 void devfunc_name(precision) (
     int M, int N, int K,
     const FloatingPoint_t* __restrict__ A, int LDA,
@@ -148,7 +151,6 @@ void devfunc_name(precision) (
     FloatingPoint_t alpha, FloatingPoint_t beta,
     int offsetA, int offsetB )
 {
-#if (__CUDA_ARCH__ >= 200)
     int idx = threadIdx.x;  // thread's m dimension
     int idy = threadIdx.y;  // thread's n dimension
 
@@ -443,5 +445,6 @@ void devfunc_name(precision) (
             }
         }
     }
-#endif /* (__CUDA_ARCH__ >= 200) */
 }
+
+} /* extern "C" { */

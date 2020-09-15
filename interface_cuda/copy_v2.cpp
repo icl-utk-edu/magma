@@ -12,7 +12,7 @@
 
 #include <cuda_runtime.h>
 
-#ifdef HAVE_CUBLAS
+#if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
 
 // Generic, type-independent routines to copy data.
 // Type-safe versions which avoid the user needing sizeof(...) are in headers;

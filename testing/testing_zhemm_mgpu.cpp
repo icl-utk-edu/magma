@@ -18,8 +18,6 @@
 #include <math.h>
 #include <assert.h>
 
-#include <cuda_runtime.h>
-
 // includes, project
 #include "flops.h"
 #include "magma_v2.h"

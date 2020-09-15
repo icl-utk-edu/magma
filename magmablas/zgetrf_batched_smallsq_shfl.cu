@@ -19,12 +19,14 @@
 
 // This kernel uses registers for matrix storage, shared mem. and shuffle for communication.
 // It also uses lazy swap.
-extern __shared__ double ddata[];
+//extern __shared__ double ddata[];
 template<int N, int NSHFL>
 __global__ void
 zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda, 
                                 magma_int_t** ipiv_array, magma_int_t *info_array, int batchCount)
 {
+    extern __shared__ double ddata[];
+
     const int tx = threadIdx.x;
     const int ty = threadIdx.y; 
     const int batchid = blockIdx.x * blockDim.y + ty;

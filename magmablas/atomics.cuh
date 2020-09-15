@@ -15,7 +15,10 @@ magmablas_satomic_add(float* address, float val)
 __device__ static __inline__ double 
 magmablas_datomic_add(double* address, double val)
 {
-#if __CUDA_ARCH__ < 600    // atomic add for double precision is natively supported on sm_60
+
+// NOTE: HIP doesn't define anything specific for double atomics, but Im assuming int64 atomics are valid.
+// SEE HERE: https://github.com/ROCm-Developer-Tools/HIP/blob/master/docs/markdown/hip_porting_guide.md#hip_arch-defines
+#if (__CUDA_ARCH__ < 600) || !(__HIP_ARCH_HAS_GLOBAL_INT64_ATOMICS__)   // atomic add for double precision is natively supported on sm_60
     unsigned long long int* address_as_ull =
     (unsigned long long int*)address;
     unsigned long long int old = *address_as_ull, assumed;
@@ -35,7 +38,7 @@ magmablas_catomic_add(magmaFloatComplex* address, magmaFloatComplex val)
 {
     float re = magmablas_satomic_add( (float*) (&(*address).x) ,val.x);
     float im = magmablas_satomic_add( (float*) (&(*address).y) ,val.y);
-    return make_cuFloatComplex(re, im);
+    return MAGMA_C_MAKE(re, im);
 }
 
 /******************************************************************************/
@@ -44,7 +47,7 @@ magmablas_zatomic_add(magmaDoubleComplex* address, magmaDoubleComplex val)
 {
     double re = magmablas_datomic_add( (double*) (&(*address).x) ,val.x);
     double im = magmablas_datomic_add( (double*) (&(*address).y) ,val.y);
-    return make_cuDoubleComplex(re, im);
+    return MAGMA_Z_MAKE(re, im);
 }
 
 /******************************************************************************/

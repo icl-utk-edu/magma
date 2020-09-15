@@ -80,9 +80,13 @@
     @see magma_queue_get_cuda_stream
     @see magma_queue_get_cublas_handle
     @see magma_queue_get_cusparse_handle
+    @see magma_queue_get_hip_stream
+    @see magma_queue_get_hipblas_handle
+    @see magma_queue_get_hipsparse_handle
 
     @ingroup magma_queue
 *******************************************************************************/
+
 struct magma_queue
 {
 #ifdef __cplusplus
@@ -114,6 +118,17 @@ public:
             dCarray__ = dBarray__ + maxbatch__;
         }
     }
+    
+    #ifdef HAVE_HIP
+    
+    hipStream_t      hip_stream()      { return stream__; };
+
+    hipblasHandle_t  hipblas_handle()  { return hipblas__; };
+
+    hipsparseHandle_t hipsparse_handle() { return hipsparse__; };
+
+    #endif
+
 
     /// @return the pointer array dAarray__.
     void** get_dAarray() {
@@ -153,6 +168,18 @@ protected:
         const char* func, const char* file, int line );
     #endif
 
+    #ifdef HAVE_HIP
+    friend
+    void magma_queue_create_from_hip_internal(
+        magma_device_t    device,
+        hipStream_t       stream,
+        hipblasHandle_t   hipblas_handle,
+        hipsparseHandle_t hipsparse_handle,
+        magma_queue_t*    queuePtr,
+        const char* func, const char* file, int line );
+    #endif
+
+
     friend
     void magma_queue_destroy_internal(
         magma_queue_t queue,
@@ -174,6 +201,14 @@ protected:
     cublasHandle_t   cublas__;      // associated cuBLAS handle
     cusparseHandle_t cusparse__;    // associated cuSparse handle
     #endif // HAVE_CUBLAS
+
+    #ifdef HAVE_HIP
+    hipStream_t      stream__;
+    //rocblas_handle rocblas__;
+    hipblasHandle_t  hipblas__;
+    hipsparseHandle_t hipsparse__;
+
+    #endif
 };
 
 #ifdef __cplusplus

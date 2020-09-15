@@ -29,7 +29,7 @@ magma_htgetrf_gpu (performs LU mixed precision factorization in FP16-TC using Te
 
 
 Tester:
-We provided a tester (testing_dxgesv_gpu ) for the new functionality. Since the API is very similar to the existing magma_dsgesv_gpu API, the new functionality can also be called from the existing tester (testing_dsgesv_gpu) with the '--version 2’ argument (for magma_dsgesv_iteref_gpu FP32) and the '--version 3’ argument (for magma_dhegsv_iteref_gpu FP16-TC).
+We provided a tester (testing_dxgesv_gpu ) for the new functionality. Since the API is very similar to the existing magma_dsgesv_gpu API, the new functionality can also be called from the existing tester (testing_dsgesv_gpu) with the '--version 2' argument (for magma_dsgesv_iteref_gpu FP32) and the '--version 3' argument (for magma_dhegsv_iteref_gpu FP16-TC).
 
 The tester routine can be called this way:
 using the FP16-TC

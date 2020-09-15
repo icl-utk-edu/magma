@@ -29,11 +29,6 @@
 
 #define A(i, j)  (A + (i) + (j)*lda)   // A(i, j) means at i row, j column
 
-/******************************************************************************/
-extern __shared__ magmaDoubleComplex shared_data[];
-extern __shared__ double sdata[];
-extern __shared__ int int_sdata[];
-
 
 /******************************************************************************/
 __device__ int
@@ -78,7 +73,12 @@ __global__ void
 izamax_kernel_batched(int length, int chunk, magmaDoubleComplex **x_array, int xi, int xj, int incx,
                    int step, int lda, magma_int_t** ipiv_array, magma_int_t *info_array, int gbstep)
 {
+    /* MERGE: different branches used .x and .z as batch ID  */
+    extern __shared__ double sdata[];
+    
     const int batchid = blockIdx.x;
+    const int batchid = blockIdx.z;
+    
     magmaDoubleComplex *x_start = x_array[batchid] + xj * lda + xi;
     const magmaDoubleComplex *x = &(x_start[step + step * lda]);
 
@@ -104,6 +104,8 @@ __global__ void
 izamax_kernel_native(int length, int chunk, magmaDoubleComplex_ptr x, int incx,
                      int step, int lda, magma_int_t* ipiv, magma_int_t *info, int gbstep)
 {
+    extern __shared__ double sdata[];
+    
     const int tx = threadIdx.x;
     x += step * lda + step;
 
@@ -242,6 +244,7 @@ magma_izamax_native( magma_int_t length,
             (length, chunk, x, incx, step, lda, ipiv, info, gbstep);
     }
     else {
+    #ifdef HAVE_CUBLAS
         cublasPointerMode_t ptr_mode;
         cublasGetPointerMode(queue->cublas_handle(), &ptr_mode);
         cublasSetPointerMode(queue->cublas_handle(), CUBLAS_POINTER_MODE_DEVICE);
@@ -250,6 +253,18 @@ magma_izamax_native( magma_int_t length,
         magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv+step );
 
         cublasSetPointerMode(queue->cublas_handle(), ptr_mode);
+    #elif defined(HAVE_HIPBLAS)
+        hipblasPointerMode_t ptr_mode;
+        hipblasGetPointerMode(queue->hipblas_handle(), &ptr_mode);
+        hipblasSetPointerMode(queue->hipblas_handle(), CUBLAS_POINTER_MODE_DEVICE);
+
+        hipblasIzamax(queue->hipblas_handle(), length, x + step * lda + step, 1, (int*)(ipiv+step));
+        magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv+step );
+
+        hipblasSetPointerMode(queue->hipblas_handle(), ptr_mode);
+    #endif
+
+
         adjust_ipiv( ipiv+step, 1, step, queue);
     }
     return 0;
@@ -602,15 +617,15 @@ magma_zscal_zgeru_native(
     dim3 grid(magma_ceildiv(m,tbx), 1, 1);
     dim3 threads(tbx, 1, 1);
     switch(n){
-        case 1:zscal_zgeru_1d_kernel_native<1><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 2:zscal_zgeru_1d_kernel_native<2><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 3:zscal_zgeru_1d_kernel_native<3><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 4:zscal_zgeru_1d_kernel_native<4><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 5:zscal_zgeru_1d_kernel_native<5><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 6:zscal_zgeru_1d_kernel_native<6><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 7:zscal_zgeru_1d_kernel_native<7><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 8:zscal_zgeru_1d_kernel_native<8><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        default:zscal_zgeru_1d_generic_kernel_native<<<grid, threads, 0, queue->cuda_stream()>>>( m, n, step, dA, lda, info, gbstep);
+        case 1: zscal_zgeru_1d_kernel_native<1><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
+        case 2: zscal_zgeru_1d_kernel_native<2><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
+        case 3: zscal_zgeru_1d_kernel_native<3><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
+        case 4: zscal_zgeru_1d_kernel_native<4><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
+        case 5: zscal_zgeru_1d_kernel_native<5><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
+        case 6: zscal_zgeru_1d_kernel_native<6><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
+        case 7: zscal_zgeru_1d_kernel_native<7><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
+        case 8: zscal_zgeru_1d_kernel_native<8><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
+        default: zscal_zgeru_1d_generic_kernel_native<<<grid, threads, 0, queue->cuda_stream()>>>( m, n, step, dA, lda, info, gbstep);
     }
     return 0;
 }
@@ -620,6 +635,9 @@ magma_zscal_zgeru_native(
 __global__
 void zgetf2trsm_kernel_batched(int ib, int n, magmaDoubleComplex **dA_array, int step, int lda)
 {
+
+    extern __shared__ magmaDoubleComplex shared_data[];
+    
     /*
         this kernel does the safe nonblocked TRSM operation
         B = A^-1 * B
@@ -833,10 +851,10 @@ magma_zgetf2trsm_2d_native(
     dim3 threads(m8, m8, 1);
 
     switch(m8){
-        case  8:zgetf2trsm_2d_kernel< 8><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
-        case 16:zgetf2trsm_2d_kernel<16><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
-        case 24:zgetf2trsm_2d_kernel<24><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
-        case 32:zgetf2trsm_2d_kernel<32><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
+        case  8: zgetf2trsm_2d_kernel< 8><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
+        case 16: zgetf2trsm_2d_kernel<16><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
+        case 24: zgetf2trsm_2d_kernel<24><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
+        case 32: zgetf2trsm_2d_kernel<32><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
         default:;
     }
 }
@@ -897,6 +915,8 @@ zcomputecolumn_kernel_shared_batched( int m, int paneloffset, int step,
                                       int lda, magma_int_t **ipiv_array, magma_int_t *info_array, int gbstep)
 {
     const int batchid = blockIdx.x;
+    extern __shared__ magmaDoubleComplex shared_data[];
+    
     int gboff = paneloffset+step;
     magma_int_t *ipiv           = ipiv_array[batchid] + ai;
     magmaDoubleComplex *A_start = dA_array[batchid] + aj * lda + ai;
@@ -1091,15 +1111,21 @@ zgetf2_fused_device( int m, magmaDoubleComplex* dA, int ldda, magma_int_t* dipiv
 }
 
 /******************************************************************************/
-extern __shared__ magmaDoubleComplex zdata[];
 template<int WIDTH>
 __global__ void
 zgetf2_fused_batched_kernel( int m,
                            magmaDoubleComplex** dA_array, int ai, int aj, int ldda,
                            magma_int_t** dipiv_array, magma_int_t* info_array, int batchCount)
 {
-     magmaDoubleComplex* swork = (magmaDoubleComplex*)zdata;
-     const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
+    magmaDoubleComplex* swork = (magmaDoubleComplex*)zdata;
+    
+    // different indices per branch
+    const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
+    const int batchid = blockIdx.z * blockDim.y + threadIdx.y;
+    
+    extern __shared__ magmaDoubleComplex zdata[];
+
+    magmaDoubleComplex* swork = (magmaDoubleComplex*)zdata;
      if(batchid >= batchCount)return;
      zgetf2_fused_device<WIDTH>(
              m, dA_array[batchid] + aj * ldda + ai, ldda,

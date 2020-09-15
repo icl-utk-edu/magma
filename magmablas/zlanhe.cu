@@ -34,7 +34,7 @@ zlanhe_inf_kernel_lower(
     double * __restrict__ dwork,
     int n_full_block, int n_mod_bs )
 {
-#if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c) || __CUDA_ARCH__ >= 200)
+#if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c) || __CUDA_ARCH__ >= 200) || defined(HAVE_HIP)
     int tx = threadIdx.x;
     int ty = threadIdx.y;
     
@@ -229,7 +229,7 @@ zlanhe_inf_kernel_lower(
             dwork[ind] = res;
         }
     }
-#endif /* (PRECISION_s || PRECISION_d || PRECISION_c || __CUDA_ARCH__ >= 200) */
+#endif /* (PRECISION_s || PRECISION_d || PRECISION_c || __CUDA_ARCH__ >= 200 || defined(HAVE_HIP)) */
 }
 
 
@@ -250,7 +250,7 @@ zlanhe_inf_kernel_upper(
     double * __restrict__ dwork,
     int n_full_block, int n_mod_bs )
 {
-#if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c) || __CUDA_ARCH__ >= 200)
+#if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c) || __CUDA_ARCH__ >= 200) || defined(HAVE_HIP)
     int tx = threadIdx.x;
     int ty = threadIdx.y;
     
@@ -447,7 +447,7 @@ zlanhe_inf_kernel_upper(
             dwork[ind] = res;
         }
     }
-#endif /* (PRECISION_s || PRECISION_d || PRECISION_c || __CUDA_ARCH__ >= 200) */
+#endif /* (PRECISION_s || PRECISION_d || PRECISION_c || __CUDA_ARCH__ >= 200 || defined(HAVE_HIP)) */
 }
 
 

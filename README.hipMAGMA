@@ -6,9 +6,6 @@ This readme is specifically for the `hipMAGMA` branch (located here: https://bit
 
 This is intended for use on a HIP-enabled system. To check whether your system is compatible, make sure the HIP development libraries are installed (most of the time, this is in /opt/rocm). Ensure you have `hipcc` available
 
-
-**NOTE**: Please don't mix CUDA and HIP builds. So if you've already built with CUDA, please remove the entire folder (or clone/untar to a new one) and start with a clean, fresh copy of MAGMA source code on the hipMAGMA branch before you start the build process
-
 # Build Instructions
 
   1. Starting with a clone of the MAGMA source code (either from the bitbucket URL above, or from a release .zip/tarball), `cd magma` (or whatever the name of the repository is)

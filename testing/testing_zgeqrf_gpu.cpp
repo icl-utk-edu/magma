@@ -115,7 +115,7 @@ int main( int argc, char** argv)
                 // LAPACK complaint arguments
                 magma_zgeqrf2_gpu( M, N, d_A, ldda, tau, &info );
             }
-            #ifdef HAVE_CUBLAS
+            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
             else if ( opts.version == 3 ) {
                 // stores dT, V blocks have zeros, R blocks stored in dT
                 magma_zgeqrf3_gpu( M, N, d_A, ldda, tau, dT, &info );
@@ -222,7 +222,7 @@ int main( int argc, char** argv)
                     }
                     magma_free_cpu( hwork );
                 }
-                #ifdef HAVE_CUBLAS
+                #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 else if ( opts.version == 3 ) {
                     // allocate hwork
                     magma_zgeqrs3_gpu( M, N, 1,

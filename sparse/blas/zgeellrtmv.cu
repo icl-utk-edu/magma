@@ -10,7 +10,7 @@
 */
 #include "magmasparse_internal.h"
 
-//F. Vázquez, G. Ortega, J.J. Fernández, E.M. Garzón, Almeria University
+//F. Vazquez, G. Ortega, J.J. Fernandez, E.M. Garzon, Almeria University
 __global__ void 
 zgeellrtmv_kernel_32( 
     int num_rows, 
@@ -62,7 +62,7 @@ zgeellrtmv_kernel_32(
     }
 }
 
-//F. Vázquez, G. Ortega, J.J. Fernández, E.M. Garzón, Almeria University
+//F. Vazquez, G. Ortega, J.J. Fernandez, E.M. Garzon, Almeria University
 __global__ void 
 zgeellrtmv_kernel_16( 
     int num_rows, 
@@ -113,7 +113,7 @@ zgeellrtmv_kernel_16(
     }
 }
 
-//F. Vázquez, G. Ortega, J.J. Fernández, E.M. Garzón, Almeria University
+//F. Vazquez, G. Ortega, J.J. Fernandez, E.M. Garzon, Almeria University
 __global__ void 
 zgeellrtmv_kernel_8( 
     int num_rows, 

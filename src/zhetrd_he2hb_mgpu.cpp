@@ -11,7 +11,6 @@
        @precisions normal z -> s d c
 
 */
-#include <cuda_runtime.h>
 
 #include "magma_internal.h"
 #include "magma_bulge.h"
@@ -278,8 +277,8 @@ magma_zhetrd_he2hb_mgpu(
         dwork[dev]    = dw[dev]      + nb*lddw;
         dworkbis[dev] = dwork[dev]   + nb*ldda;
         for( i = 0; i < nevents; ++i ) {
-            cudaEventCreateWithFlags( &events[dev][i], cudaEventDisableTiming );
-            //magma_create_event( &events[dev][i] );
+            //cudaEventCreateWithFlags( &events[dev][i], cudaEventDisableTiming );
+            magma_event_create_untimed( &events[dev][i] );
         }
     }
 

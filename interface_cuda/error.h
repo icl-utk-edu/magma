@@ -4,8 +4,18 @@
 #include "magma_types.h"
 
 // overloaded C++ functions to deal with errors
+#ifdef HAVE_CUDA
 void magma_xerror( cudaError_t    err, const char* func, const char* file, int line );
+#endif
+
+#ifdef HAVE_CUBLAS
 void magma_xerror( cublasStatus_t err, const char* func, const char* file, int line );
+#endif 
+
+#ifdef HAVE_HIP
+void magma_xerror( hipError_t     err, const char* func, const char* file, int line );
+#endif
+
 void magma_xerror( magma_int_t    err, const char* func, const char* file, int line );
 
 #ifdef __cplusplus
@@ -15,7 +25,9 @@ extern "C" {
 // cuda provides cudaGetErrorString,
 // but not cublasGetErrorString, so provide our own.
 // In magma.h, we also provide magma_strerror.
+#ifdef HAVE_CUBLAS
 const char* magma_cublasGetErrorString( cublasStatus_t error );
+#endif
 
 #ifdef __cplusplus
 }
@@ -33,7 +45,6 @@ const char* magma_cublasGetErrorString( cublasStatus_t error );
 
     @param[in]
     err     Error code.
-
     @ingroup magma_error_internal
 *******************************************************************************/
 #define check_error( err ) \

@@ -8,5 +8,5 @@ $(error Set $$CUDADIR, preferably in your environment, e.g., run "export CUDADIR
 endif
 
 ifeq ($(wildcard $(CUDADIR)),)
-$(error $$CUDADIR=$(CUDADIR) does not exist. Please set $$CUDADIR to where CUDA is installed.)
+$(error $$CUDADIR=$(CUDADIR) does not exist. Please set $$CUDADIR to where CUDA is installed. (normally in /usr/local/cuda))
 endif

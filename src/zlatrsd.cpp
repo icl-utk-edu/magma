@@ -585,12 +585,12 @@ L110:
                 /* Otherwise, use in-line code for the dot product. */
                 if ( upper ) {
                     for( i = 0; i < j; ++i ) {
-                        csumj += (*A(i,j) * uscal) * x[i];
+                        csumj = csumj + (*A(i,j) * uscal) * x[i];
                     }
                 }
                 else if ( j < n-1 ) {
                     for( i = j+1; i < n; ++i ) {
-                        csumj += (*A(i,j) * uscal) * x[i];
+                        csumj = csumj + (*A(i,j) * uscal) * x[i];
                     }
                 }
             }
@@ -598,7 +598,7 @@ L110:
             if ( uscal == MAGMA_Z_MAKE( tscal, 0. )) {
                 /* Compute x(j) := ( x(j) - CSUMJ ) / A(j,j) if 1/A(j,j) */
                 /* was not used to scale the dotproduct. */
-                x[j] -= csumj;
+                x[j] = x[j] - csumj;
                 xj = MAGMA_Z_ABS1( x[j] );
                 if ( nounit ) {
                     tjjs = (*A(j,j) - lambda) * tscal;
@@ -703,12 +703,12 @@ L160:
                 /* Otherwise, use in-line code for the dot product. */
                 if ( upper ) {
                     for( i = 0; i < j; ++i ) {
-                        csumj += (MAGMA_Z_CONJ( *A(i,j) ) * uscal) * x[i];
+                        csumj = csumj + (MAGMA_Z_CONJ( *A(i,j) ) * uscal) * x[i];
                     }
                 }
                 else if ( j < n-1 ) {
                     for( i = j + 1; i < n; ++i ) {
-                        csumj += (MAGMA_Z_CONJ( *A(i,j) ) * uscal) * x[i];
+                        csumj = csumj + (MAGMA_Z_CONJ( *A(i,j) ) * uscal) * x[i];
                     }
                 }
             }
@@ -716,7 +716,7 @@ L160:
             if ( uscal == tscal ) {
                 /* Compute x(j) := ( x(j) - CSUMJ ) / A(j,j) if 1/A(j,j) */
                 /* was not used to scale the dotproduct. */
-                x[j] -= csumj;
+                x[j] = x[j] - csumj;
                 xj = MAGMA_Z_ABS1( x[j] );
                 if ( nounit ) {
                     tjjs = MAGMA_Z_CONJ( *A(j,j) - lambda ) * tscal;

@@ -34,6 +34,9 @@
 #elif defined(HAVE_MIC)
     const char* g_platform_str = "Xeon Phi";
 
+#elif defined(HAVE_HIP)
+    const char* g_platform_str = "HIP";
+
 #else
     #error "unknown platform"
 #endif

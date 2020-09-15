@@ -1,0 +1,73 @@
+
+# HIP Notes
+
+This document is my collected and organized notes on HIP/ROCm programming, mainly learned during my project porting MAGMA from CUDA to HIP.
+
+
+## Compiling
+
+To compile, you use `hipcc`, which works the same as most C compilers (and on NVIDIA platforms, it is a macro-layer over `nvcc`)
+
+### Dumping ISA/GPU assembly
+
+I figured out how to dump ISA/GPU assembly from HIP source files. The process is a bit odd (I would like to see AMD introduce a compiler flag similar to `-S` to emit GPU kernels), but it is as follows:
+
+Say we have a file `source.cpp`, which has some GPU kernels in it. Normally, we would compile like so `hipcc $CFLAGS source.cpp -c -fPIC -o source.o`. Normally, to emit assembly, you would run `hipcc $CFLAGS source.cpp -S source.s`
+
+But, `hipcc` handles it differently, you must export an environment variable. And, you cannot control the output. To do this you run:
+
+`KMDUMPISA=1 hipcc $CFLAGS source.cpp -c -fPIC -o source.o`
+
+This command will dump the GCN ISA to files in the local directory (mine were called `dump-gfx900.isa` and some other files too -- just check what files were created).
+
+`KMDUMPLLVM=1 hipcc $CFLAGS source.cpp -c -fPIC -o source.o`
+
+This command will dump the LLVM IR (Intermediate Representation) of the kernels. However, this is less useful for most use cases, because LLVM IR is largely machine independent, so there is no guarantee of which exact instructions will be generated. Therefore, for most HPC tasks, I recommend inspecting the ISA
+
+
+### Link times
+
+I was noticing extremely long link times (>20 minutes) for creating `libmagma.so`, which consisted of a bunch of object files. This will also affect other projects; it is not specific to MAGMA
+
+The reason is that HIP saves device code linking until that final linking step, which is a very costly operation. NVIDIA, by default, does this per compilation unit.
+
+You can enable it by including `-fno-gpu-rdc` (which forces HIP to finalize the device code per CU).
+
+So, for example: `hipcc $CFLAGS source.cpp -fno-gpu-rdc -c -fPIC -o source.o`
+
+Then, `hipcc $CFLAGS source.o source2.o (other.o ...) $LDFLAGS -o liboutput.so`
+
+While the result would be the same with or without the `-fno-gpu-rdc` flag, without it causes the final compilation step to finalize device code for EVERY `.o`, whereas with the flag, only does it for the `.o` files that `make` regenerates
+
+### Missing Functions
+
+Right now, our approach to missing functions is to list them out in a header file
+
+For example, to find a list of unsupported functions in the `sparse/` folder, we use this command:
+
+```
+$ make sparse -j4 2>&1 | grep "use of undeclared identifier" | awk '{gsub("'"'"'", "", $7) ; gsub(";", "", $7) ; print $7}'
+hipsparseZbsrmv
+hipsparseZbsrmv
+```
+
+(note: this may fail with different compiler versions)
+
+Now, we define a macro and add definitions for the missing functionalities:
+
+```
+#define magma_unsupported_sparse(fname) ((hipsparseStatus_t)(fprintf(stderr, "MAGMA: Unsupported (sparse) function '" #fname "'\n"), HIPSPARSE_STATUS_INTERNAL_ERROR))
+
+#define hipsparseZbsrmv(...) magma_unsupported_sparse(hipsparseZbsrmv)
+...
+```
+
+When the missing function is called, it is a NO-OP on the arguments, and instead prints out to the stderr with a message which can tell the user/developer that the output may not be reliable.
+
+Also, any status that was being checked will return an error (by use of the comma operator), so error checking will still work (and thus always report an error with the operation)
+
+
+
+
+
+

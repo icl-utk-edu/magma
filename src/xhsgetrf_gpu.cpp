@@ -9,13 +9,19 @@
        
 
 */
+
+
+#ifdef HAVE_CUDA
+
 #include <cuda.h>    // for CUDA_VERSION
 #include <cuda_runtime.h>
 
-#if CUDA_VERSION >= 7500
+#endif
+
+#if defined(HAVE_CUDA) && CUDA_VERSION >= 7500
 #include <cuda_fp16.h>
 
-#if CUDA_VERSION < 9020
+#if !defined(HAVE_CUDA) || CUDA_VERSION < 9020
 // conversion float to half are not defined for host in CUDA version <9.2
 // thus uses the conversion below when CUDA VERSION is < 9.2.
 #include <string.h>

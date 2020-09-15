@@ -56,7 +56,7 @@ zhemv_kernel_L_mgpu(
     int ngpu,
     int block_offset )
 {
-#if (__CUDA_ARCH__ >= 200)
+#if (__CUDA_ARCH__ >= 200) || defined(HAVE_HIP)
 
     // treats sA as 16x64 block
     #define sA16(i_, j_) (sA[(i_)][(j_)])  // i.e., sA[ (i_)*(NB_X+3) + (j_) ]
@@ -436,7 +436,7 @@ zhemv_kernel_L_mgpu(
               + sA16(3, tx);
         work[blk*NB_X + tx] = total;  // store at work( blk*NB_X + tx, blk )
     }
-#endif  /* (__CUDA_ARCH__ >= 200) */
+#endif  /* (__CUDA_ARCH__ >= 200) || defined(HAVE_HIP) */
 }
 // end zhemv_kernel_L_mgpu
 
@@ -667,13 +667,15 @@ magmablas_zhemv_mgpu(
     magma_queue_t queues[] )
 {
     magma_int_t arch = magma_getdevice_arch();
+    #ifndef HAVE_HIP
     if ( arch < 200  ) {
         // --------------------
         // no CUDA ARCH 1.x version
         fprintf( stderr, "%s not supported on CUDA arch 1.x\n", __func__ );
         return MAGMA_ERR_NOT_SUPPORTED;
     }
-    
+    #endif    
+
     // --------------------
     // CUDA ARCH 2.x (Fermi) version
     bool upper = (uplo == MagmaUpper);

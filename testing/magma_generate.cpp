@@ -383,7 +383,7 @@ void magma_generate_svd(
         }
         for (magma_int_t j = 0; j < A.n; ++j) {
             for (magma_int_t i = 0; i < A.m; ++i) {
-                *A(i,j) *= D[j];
+                *A(i,j) = *A(i,j) * D[j];
             }
         }
     }
@@ -470,7 +470,7 @@ void magma_generate_heev(
         }
         for (magma_int_t j = 0; j < n; ++j) {
             for (magma_int_t i = 0; i < n; ++i) {
-                *A(i,j) *= D[i] * D[j];
+                *A(i,j) = *A(i,j) * D[i] * D[j];
             }
         }
     }
@@ -592,7 +592,7 @@ void magma_generate_geevx(
     _ofl        scale near overflow          = 2e+308 for double
     _small      scale near sqrt( underflow ) = 1e-154 for double
     _large      scale near sqrt( overflow  ) = 6e+153 for double
-    _dominant   diagonally dominant: set A_ii = ± max( sum_j |A_ij|, sum_j |A_ji| )
+    _dominant   diagonally dominant: set |A_ii| = max( sum_j |A_ij|, sum_j |A_ji| )
                 Note _dominant changes the singular or eigenvalues.
 
     [below scaling by D implemented, scaling by K not yet implemented]

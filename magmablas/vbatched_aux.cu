@@ -82,7 +82,7 @@ magma_int_t magma_ivec_max( magma_int_t vecsize,
     while(new_vecsize > 1)
     {
         grid.x = magma_ceildiv( new_vecsize, MAX_REDUCE_SEGMENT );
-        magma_ivec_max_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(new_vecsize, work, NULL, 1);
+        magma_ivec_max_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(new_vecsize, work, (int*)NULL, 1);
         new_vecsize = grid.x;
     }
     
@@ -156,7 +156,7 @@ magma_int_t magma_isum_reduce( magma_int_t vecsize,
     while(new_vecsize > 1)
     {
         grid.x = magma_ceildiv( new_vecsize, ISUM_REDUCE_SEGMENT );
-        magma_isum_reduce_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(new_vecsize, work, NULL, 1);
+        magma_isum_reduce_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(new_vecsize, work, (int*)NULL, 1);
         new_vecsize = grid.x;
     }
     

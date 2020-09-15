@@ -252,7 +252,7 @@ int main( int argc, char** argv)
              * zswapblk, blocked version (2 matrices)
              */
             
-            #ifdef HAVE_CUBLAS
+            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
                 /* Row Major */
                 init_matrix( N, N, h_A1, lda, 0 );
                 init_matrix( N, N, h_A2, lda, 100 );

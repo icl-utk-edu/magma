@@ -112,8 +112,10 @@ setup_pivinfo_batched( magma_int_t **pivinfo_array, magma_int_t **ipiv_array, ma
                          magma_queue_t queue)
 {
     if (nb == 0 ) return;
+
+    size_t min_m_MAX_NTHREADS = min(m, MAX_NTHREADS);
     setup_pivinfo_kernel_batched
-        <<< batchCount, min(m, MAX_NTHREADS), 0, queue->cuda_stream() >>>
+        <<< batchCount, min_m_MAX_NTHREADS, 0, queue->cuda_stream() >>>
         (pivinfo_array, ipiv_array, ipiv_offset, m, nb);
 }
 
@@ -125,11 +127,12 @@ setup_pivinfo( magma_int_t *pivinfo, magma_int_t *ipiv,
                  magma_queue_t queue)
 {
     if (nb == 0 ) return;
+    size_t min_m_MAX_NTHREADS = min(m, MAX_NTHREADS);
     if( m > 10240 ){
-        setup_pivinfo_kernel<<< 1, min(m, MAX_NTHREADS), 0, queue->cuda_stream() >>>(pivinfo, ipiv, m, nb);
+        setup_pivinfo_kernel<<< 1, min_m_MAX_NTHREADS, 0, queue->cuda_stream() >>>(pivinfo, ipiv, m, nb);
     }
     else{
-        setup_pivinfo_sm_kernel<<< 1, min(m, MAX_NTHREADS), 0, queue->cuda_stream() >>>(pivinfo, ipiv, m, nb);
+        setup_pivinfo_sm_kernel<<< 1, min_m_MAX_NTHREADS, 0, queue->cuda_stream() >>>(pivinfo, ipiv, m, nb);
     }
 }
 

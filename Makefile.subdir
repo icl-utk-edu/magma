@@ -25,17 +25,10 @@ targets := \
 	generate             \
 	include              \
 	install              \
-	interface_cuda       \
 	interface_opencl     \
 	lib                  \
-	magmablas            \
 	shared               \
 	sparsela             \
-	sparse               \
-	sparse/blas          \
-	sparse/control       \
-	sparse/src           \
-	sparse/testing       \
 	sparse-lib           \
 	sparse-shared        \
 	sparse-static        \
@@ -48,6 +41,17 @@ targets := \
 	testing              \
 	testing/lin          \
 	wrappers             \
+
+ifeq ($(BACKEND),cuda)
+    targets += interface_cuda magmablas
+
+    # add CUDA-specific sparse
+    targets += sparse sparse/blas sparse/control sparse/src sparse/testing
+else ifeq ($(BACKEND),hip)
+    targets += interface_hip magmablas_hip
+    targets += sparse_hip sparse_hip/blas sparse_hip/control sparse_hip/src sparse_hip/testing
+endif
+
 
 ifneq ($(MAKECMDGOALS),)
 

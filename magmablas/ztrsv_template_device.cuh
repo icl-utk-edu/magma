@@ -23,7 +23,6 @@
 
 #define A(i, j)  (A + (i) + (j)*lda)   // A(i, j) means at i row, j column
 
-extern __shared__ magmaDoubleComplex shared_data[];
 
 
 /******************************************************************************/
@@ -156,6 +155,8 @@ ztrsv_notrans_device(
     magmaDoubleComplex *b, int incb,
     magmaDoubleComplex *x)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+    
     int tx = threadIdx.x;
     int col = n;
     magmaDoubleComplex *sx = (magmaDoubleComplex*)shared_data;
@@ -224,6 +225,8 @@ ztrsv_trans_device(
     magmaDoubleComplex *b, int incb,
     magmaDoubleComplex *x)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+    
     int tx = threadIdx.x;
     int col = n;
     magmaDoubleComplex *sx = (magmaDoubleComplex*)shared_data;

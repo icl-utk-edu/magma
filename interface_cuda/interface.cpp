@@ -42,7 +42,7 @@
 
 #define MAX_BATCHCOUNT    (65534)
 
-#ifdef HAVE_CUBLAS
+#if defined(HAVE_CUDA) || defined(HAVE_HIP)
 
 #ifdef DEBUG_MEMORY
 // defined in alloc.cpp
@@ -66,7 +66,10 @@ enum {
     own_stream   = 0x0001,
     own_cublas   = 0x0002,
     own_cusparse = 0x0004,
-    own_opencl   = 0x0008
+    own_opencl   = 0x0008,
+    own_hip      = 0x0010,
+    own_hipblas  = 0x0020,
+    own_hipsparse= 0x0040
 };
 
 
@@ -205,10 +208,17 @@ magma_init()
                 }
                 else {
                     g_magma_devices[dev].memory          = prop.totalGlobalMem;
+                    g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock; 
+                    #ifdef HAVE_CUDA
                     g_magma_devices[dev].cuda_arch       = prop.major*100 + prop.minor*10;
-                    g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock;
-                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor;
-                    g_magma_devices[dev].multiproc_count = prop.multiProcessorCount;
+                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor; 
+                    #elif defined(HAVE_HIP)
+                    // we just assume the HIP device is compatible with at least CUDA 3.3
+                    g_magma_devices[dev].cuda_arch       = 330;
+                    g_magma_devices[dev].shmem_multiproc = prop.maxSharedMemoryPerMultiProcessor; 
+                    #endif
+
+                    g_magma_devices[dev].multiproc_count = prop.multiProcessorCount; 
                 }
             }
 
@@ -342,12 +352,18 @@ magma_print_environment()
 {
     magma_int_t major, minor, micro;
     magma_version( &major, &minor, &micro );
-    printf( "%% MAGMA %lld.%lld.%lld %s compiled for CUDA capability >= %.1f, %lld-bit magma_int_t, %lld-bit pointer.\n",
+
+    printf( "%% MAGMA %lld.%lld.%lld %s %lld-bit magma_int_t, %lld-bit pointer.\n",
             (long long) major, (long long) minor, (long long) micro,
             MAGMA_VERSION_STAGE,
-            MIN_CUDA_ARCH/100.,
             (long long) (8*sizeof(magma_int_t)),
             (long long) (8*sizeof(void*)) );
+
+/* CUDA */
+
+#if defined(HAVE_CUDA)
+
+    printf("Compiled with CUDA support for %.1f\n", MIN_CUDA_ARCH/100.);
 
     // CUDA, OpenCL, OpenMP, MKL, ACML versions all printed on same line
     int cuda_runtime=0, cuda_driver=0;
@@ -359,6 +375,28 @@ magma_print_environment()
         check_error( err );
     }
     printf( "%% CUDA runtime %d, driver %d. ", cuda_runtime, cuda_driver );
+
+#endif
+
+/* HIP */
+
+#if defined(HAVE_HIP)
+    // TODO: add more specifics here
+
+    int hip_runtime=0, hip_driver=0;
+    hipError_t err;
+    err = hipDriverGetVersion( &hip_driver );
+    check_error( err );
+    err = hipRuntimeGetVersion( &hip_runtime );
+    if ( err != hipErrorNoDevice ) {
+        check_error( err );
+    }
+
+    printf("%% HIP runtime %d, driver %d. ", hip_runtime, hip_driver );
+#endif    
+
+
+/* OpenMP */
 
 #if defined(_OPENMP)
     int omp_threads = 0;
@@ -407,7 +445,7 @@ magma_print_environment()
                 prop.totalGlobalMem / (1024.*1024.),
                 prop.major,
                 prop.minor );
-
+        #ifdef HAVE_CUDA
         int arch = prop.major*100 + prop.minor*10;
         if ( arch < MIN_CUDA_ARCH ) {
             printf("\n"
@@ -417,6 +455,9 @@ magma_print_environment()
                    "==============================================================================\n\n",
                    MIN_CUDA_ARCH/100., dev, arch/100. );
         }
+        #endif
+
+
     }
 
     MAGMA_UNUSED( err );
@@ -458,12 +499,24 @@ magma_is_devptr( const void* A )
     err = cudaGetDevice( &dev );
     if ( ! err ) {
         err = cudaGetDeviceProperties( &prop, dev );
+
+        #ifdef HAVE_CUDA
         if ( ! err && prop.unifiedAddressing ) {
+        #elif defined(HAVE_HIP)
+        // in HIP, assume all can. 
+        // There's no corresponding property, and examples show no need to check any properties
+        if ( ! err ) {
+        #endif
+
             // I think the cudaPointerGetAttributes prototype is wrong, missing const (mgates)
             err = cudaPointerGetAttributes( &attr, const_cast<void*>( A ));
             if ( ! err ) {
                 // definitely know type
-                return (attr.magma_memoryType() == cudaMemoryTypeDevice);
+                #ifdef HAVE_CUDA
+                return (attr.memoryType == cudaMemoryTypeDevice);
+                #elif defined(HAVE_HIP)
+                return (attr.memoryType == hipMemoryTypeDevice);
+                #endif
             }
             else if ( err == cudaErrorInvalidValue ) {
                 // clear error; see http://icl.cs.utk.edu/magma/forum/viewtopic.php?f=2&t=529
@@ -700,6 +753,7 @@ magma_queue_get_device( magma_queue_t queue )
 }
 
 
+#ifdef HAVE_CUDA
 /***************************************************************************//**
     @param[in]
     queue       Queue to query.
@@ -725,13 +779,13 @@ magma_queue_get_cuda_stream( magma_queue_t queue )
 
     @ingroup magma_queue
 *******************************************************************************/
+
 extern "C"
 cublasHandle_t
 magma_queue_get_cublas_handle( magma_queue_t queue )
 {
     return queue->cublas_handle();
 }
-
 
 /***************************************************************************//**
     @param[in]
@@ -748,6 +802,62 @@ magma_queue_get_cusparse_handle( magma_queue_t queue )
 {
     return queue->cusparse_handle();
 }
+
+#elif defined(HAVE_HIP)
+
+/***************************************************************************//**
+    @param[in]
+    queue       Queue to query.
+
+    @return HIP stream associated with the MAGMA queue.
+
+    @ingroup magma_queue
+*******************************************************************************/
+extern "C"
+hipStream_t
+magma_queue_get_hip_stream( magma_queue_t queue )
+{
+    return queue->hip_stream();
+}
+
+
+/***************************************************************************//**
+    @param[in]
+    queue       Queue to query.
+
+    @return hipBLAS handle associated with the MAGMA queue.
+            MAGMA assumes the handle's stream will not be modified.
+
+    @ingroup magma_queue
+*******************************************************************************/
+
+extern "C"
+hipblasHandle_t
+magma_queue_get_hipblas_handle( magma_queue_t queue )
+{
+    return queue->hipblas_handle();
+}
+
+/***************************************************************************//**
+    @param[in]
+    queue       Queue to query.
+
+    @return hipSparse handle associated with the MAGMA queue.
+            MAGMA assumes the handle's stream will not be modified.
+
+    @ingroup magma_queue
+*******************************************************************************/
+extern "C"
+cusparseHandle_t
+magma_queue_get_hipsparse_handle( magma_queue_t queue )
+{
+    return queue->hipsparse_handle();
+}
+
+
+
+#endif
+
 
 
 /***************************************************************************//**
@@ -782,12 +892,18 @@ magma_queue_create_internal(
     queue->own__      = own_none;
     queue->device__   = device;
     queue->stream__   = NULL;
+#if defined(HAVE_CUDA)
     queue->cublas__   = NULL;
     queue->cusparse__ = NULL;
+    
     queue->ptrArray__ = NULL;
     queue->dAarray__  = NULL;
     queue->dBarray__  = NULL;
     queue->dCarray__  = NULL;
+#elif defined(HAVE_HIP)
+    queue->hipblas__  = NULL;
+    queue->hipsparse__ = NULL;
+#endif
     queue->maxbatch__ = MAX_BATCHCOUNT;
 
     magma_setdevice( device );
@@ -797,6 +913,7 @@ magma_queue_create_internal(
     check_xerror( err, func, file, line );
     queue->own__ |= own_stream;
 
+#if defined(HAVE_CUDA)
     cublasStatus_t stat;
     stat = cublasCreate( &queue->cublas__ );
     check_xerror( stat, func, file, line );
@@ -810,6 +927,23 @@ magma_queue_create_internal(
     queue->own__ |= own_cusparse;
     stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
+#elif defined(HAVE_HIP)
+
+    hipblasStatus_t stat;
+    stat = hipblasCreate( &queue->hipblas__ );
+    check_xerror( stat, func, file, line );
+    queue->own__ |= own_hipblas;
+    stat = hipblasSetStream( queue->hipblas__, queue->stream__ );
+    check_xerror( stat, func, file, line );
+
+    hipsparseStatus_t stat2;
+    stat2 = hipsparseCreate( &queue->hipsparse__ );
+    check_xerror( stat2, func, file, line );
+    queue->own__ |= own_hipsparse;
+    stat2 = hipsparseSetStream( queue->hipsparse__, queue->stream__ );
+    check_xerror( stat2, func, file, line );
+
+#endif
 
     MAGMA_UNUSED( err );
     MAGMA_UNUSED( stat );
@@ -856,6 +990,7 @@ magma_queue_create_from_cuda_internal(
     magma_queue_t*   queue_ptr,
     const char* func, const char* file, int line )
 {
+#ifdef HAVE_CUDA
     magma_queue_t queue;
     magma_malloc_cpu( (void**)&queue, sizeof(*queue) );
     assert( queue != NULL );
@@ -901,7 +1036,102 @@ magma_queue_create_from_cuda_internal(
 
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
+
+#endif
 }
+
+
+/***************************************************************************//**
+    @fn magma_queue_create_from_hip( device, hip_stream, hipblas_handle, hipsparse_handle, queue_ptr )
+
+    Warning: non-portable outside of CUDA. Use with discretion.
+
+    Creates a new MAGMA queue, using the given CUDA stream, cuBLAS handle, and
+    cuSparse handle. The caller retains ownership of the given stream and
+    handles, so must free them after destroying the queue;
+    see magma_queue_destroy().
+
+    MAGMA sets the stream on the cuBLAS and cuSparse handles, and assumes
+    it will not be changed while MAGMA is running.
+
+    @param[in]
+    device          Device to create queue on.
+
+    @param[in]
+    cuda_stream     CUDA stream to use, even if NULL (the so-called default stream).
+
+    @param[in]
+    cublas_handle   cuBLAS handle to use. If NULL, a new handle is created.
+
+    @param[in]
+    cusparse_handle cuSparse handle to use. If NULL, a new handle is created.
+
+    @param[out]
+    queue_ptr       On output, the newly created queue.
+
+    @ingroup magma_queue
+*******************************************************************************/
+#ifdef HAVE_HIP
+extern "C" void
+magma_queue_create_from_hip_internal(
+    magma_device_t    device,
+    hipStream_t       hip_stream,
+    hipblasHandle_t   hipblas_handle,
+    hipsparseHandle_t hipsparse_handle,
+    magma_queue_t*    queue_ptr,
+    const char* func, const char* file, int line )
+{
+    magma_queue_t queue;
+    magma_malloc_cpu( (void**)&queue, sizeof(*queue) );
+    assert( queue != NULL );
+    *queue_ptr = queue;
+
+    queue->own__      = own_none;
+    queue->device__   = device;
+    queue->stream__   = NULL;
+    queue->hipblas__  = NULL;
+    queue->hipsparse__= NULL;
+    queue->maxbatch__ = MAX_BATCHCOUNT;
+
+    magma_setdevice( device );
+
+    // stream can be NULL
+    queue->stream__ = hip_stream;
+
+    // allocate cublas handle if given as NULL
+    hipblasStatus_t stat;
+    if ( hipblas_handle == NULL ) {
+        stat  = hipblasCreate( &hipblas_handle );
+        check_xerror( stat, func, file, line );
+        queue->own__ |= own_hipblas;
+    }
+    queue->hipblas__ = hipblas_handle;
+    stat  = hipblasSetStream( queue->hipblas__, queue->stream__ );
+    check_xerror( stat, func, file, line );
+
+    // allocate cusparse handle if given as NULL
+    hipsparseStatus_t stat2;
+    if ( hipsparse_handle == NULL ) {
+        stat2 = hipsparseCreate( &hipsparse_handle );
+        check_xerror( stat, func, file, line );
+        queue->own__ |= own_hipsparse;
+    }
+    queue->hipsparse__ = hipsparse_handle;
+    stat2 = hipsparseSetStream( queue->hipsparse__, queue->stream__ );
+    check_xerror( stat2, func, file, line );
+
+    magma_malloc((void**)&queue->dAarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dAarray__ != NULL);
+    magma_malloc((void**)&queue->dBarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dBarray__ != NULL);
+    magma_malloc((void**)&queue->dCarray__, queue->maxbatch__ * sizeof(void*));
+    assert( queue->dCarray__ != NULL);
+
+    MAGMA_UNUSED( stat );
+    MAGMA_UNUSED( stat2 );
+}
+#endif
+
 
 
 /***************************************************************************//**
@@ -925,6 +1155,7 @@ magma_queue_destroy_internal(
     const char* func, const char* file, int line )
 {
     if ( queue != NULL ) {
+    #if defined(HAVE_CUDA)
         if ( queue->cublas__ != NULL && (queue->own__ & own_cublas)) {
             cublasStatus_t stat = cublasDestroy( queue->cublas__ );
             check_xerror( stat, func, file, line );
@@ -935,6 +1166,19 @@ magma_queue_destroy_internal(
             check_xerror( stat, func, file, line );
             MAGMA_UNUSED( stat );
         }
+    #elif defined(HAVE_HIP)
+
+        if ( queue->hipblas__ != NULL && (queue->own__ & own_hipblas)) {
+            hipblasStatus_t stat = hipblasDestroy( queue->hipblas__ );
+            check_xerror( stat, func, file, line );
+            MAGMA_UNUSED( stat );
+        }
+        if ( queue->hipsparse__ != NULL && (queue->own__ & own_hipsparse)) {
+            hipsparseStatus_t stat = hipsparseDestroy( queue->hipsparse__ );
+            check_xerror( stat, func, file, line );
+            MAGMA_UNUSED( stat );
+        }
+    #endif
         if ( queue->stream__ != NULL && (queue->own__ & own_stream)) {
             cudaError_t err = cudaStreamDestroy( queue->stream__ );
             check_xerror( err, func, file, line );
@@ -946,12 +1190,18 @@ magma_queue_destroy_internal(
         queue->own__      = own_none;
         queue->device__   = -1;
         queue->stream__   = NULL;
+    #if defined(HAVE_CUDA)
         queue->cublas__   = NULL;
         queue->cusparse__ = NULL;
         queue->ptrArray__ = NULL;
         queue->dAarray__  = NULL;
         queue->dBarray__  = NULL;
         queue->dCarray__  = NULL;
+    #elif defined(HAVE_HIP)
+        queue->hipblas__  = NULL;
+        queue->hipsparse__= NULL;
+    #endif
+
         magma_free_cpu( queue );
     }
 }
@@ -1007,6 +1257,25 @@ magma_event_create( magma_event_t* event )
 
 
 /***************************************************************************//**
+    Creates a GPU event, without timing support. May improve performance
+
+    @param[in]
+    event           On output, the newly created event.
+
+    @ingroup magma_event
+*******************************************************************************/
+extern "C" void
+magma_event_create_untimed( magma_event_t* event )
+{
+    cudaError_t err;
+    err = cudaEventCreateWithFlags( event, cudaEventDisableTiming );
+    check_error( err );
+    MAGMA_UNUSED( err );
+}
+
+
+
+/***************************************************************************//*
     Destroys a GPU event, freeing its resources.
 
     @param[in]

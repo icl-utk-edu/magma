@@ -9,8 +9,6 @@
        
 
 */
-#include <cuda.h>    // for CUDA_VERSION
-#include <cuda_runtime.h>
 #include "magma_internal.h"
 //#include "nvToolsExt.h"
 //#define MAGMA_PRINTF printf
@@ -92,7 +90,7 @@ magma_xshgetrf_gpu(
     magma_mp_type_t enable_tc,
     magma_mp_type_t mp_algo_type )
 {
-#if CUDA_VERSION >= 9000
+#if defined(HAVE_CUDA) && defined(HAVE_CUBLAS) && CUDA_VERSION >= 9000
     #ifdef HAVE_clBLAS
     #define  dA(i_, j_) dA,  (dA_offset  + (i_)       + (j_)*ldda)
     #define dAT(i_, j_) dAT, (dAT_offset + (i_)*lddat + (j_))

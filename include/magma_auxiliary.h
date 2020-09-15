@@ -52,7 +52,6 @@ real_Double_t magma_sync_wtime( magma_queue_t queue );
 // =============================================================================
 // misc. functions
 
-// CUDA MAGMA only
 // magma GPU-complex PCIe connection
 magma_int_t magma_buildconnection_mgpu(
     magma_int_t gnode[MagmaMaxGPUs+2][MagmaMaxGPUs+2],
@@ -107,6 +106,17 @@ magma_free_pinned_internal(
     void *ptr,
     const char* func, const char* file, int line );
 
+// returns memory info (basically a wrapper around cudaMemGetInfo
+magma_int_t
+magma_mem_info(size_t* freeMem, size_t* totalMem);
+
+// wrapper around cudaMemset
+magma_int_t
+magma_memset(void * ptr, int value, size_t count);
+
+// wrapper around cudaMemsetAsync
+magma_int_t
+magma_memset_async(void * ptr, int value, size_t count, magma_queue_t queue);
 
 // type-safe convenience functions to avoid using (void**) cast and sizeof(...)
 // here n is the number of elements (floats, doubles, etc.) not the number of bytes.
@@ -243,6 +253,9 @@ magma_getdevice_shmem_multiprocessor();
 #define magma_queue_create_from_cuda(          device, cuda_stream, cublas_handle, cusparse_handle, queue_ptr ) \
         magma_queue_create_from_cuda_internal( device, cuda_stream, cublas_handle, cusparse_handle, queue_ptr, __func__, __FILE__, __LINE__ )
 
+#define magma_queue_create_from_hip(           device, hip_stream, hipblas_handle, hipsparse_handle, queue_ptr ) \
+        magma_queue_create_from_hip_internal( device, hip_stream, hipblas_handle, hipsparse_handle, queue_ptr, __func__, __FILE__, __LINE__ )
+
 #define magma_queue_create_from_opencl(          device, cl_queue, queue_ptr ) \
         magma_queue_create_from_opencl_internal( device, cl_queue, queue_ptr, __func__, __FILE__, __LINE__ )
 
@@ -268,6 +281,19 @@ magma_queue_create_from_cuda_internal(
     magma_queue_t*   queue_ptr,
     const char* func, const char* file, int line );
 #endif
+
+
+#ifdef HAVE_HIP
+void
+magma_queue_create_from_hip_internal(
+    magma_device_t    device,
+    hipStream_t       stream,
+    hipblasHandle_t   hipblas,
+    hipsparseHandle_t hipsparse,
+    magma_queue_t*    queue_ptr,
+    const char* func, const char* file, int line );
+#endif
+
 
 #ifdef HAVE_clBLAS
 magma_int_t
@@ -296,6 +322,9 @@ magma_queue_get_device( magma_queue_t queue );
 
 void
 magma_event_create( magma_event_t* event_ptr );
+
+void
+magma_event_create_untimed( magma_event_t* event_ptr );
 
 void
 magma_event_destroy( magma_event_t event );

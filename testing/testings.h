@@ -8,9 +8,25 @@
 #include "magma_v2.h"
 #endif
 
+// ignore/replace some cuBLAS calls
+#ifdef HAVE_HIP
+#define cublasSetAtomicsMode(...)
+
+#endif
+
+
 #include <vector>
 #include <string>
 #include <cmath>
+
+
+// special region to replace certain functions
+#ifdef HAVE_HIP
+#define cublas_trans_const hipblas_trans_const
+#define cublas_diag_const hipblas_diag_const
+#define cublas_uplo_const hipblas_uplo_const
+#define cublas_side_const hipblas_side_const
+#endif
 
 #include "magma_lapack.h"
 #include "magma_lapack.hpp"  // C++ bindings; need traits
@@ -239,6 +255,8 @@ public:
     #ifdef HAVE_CUBLAS
     // handle for directly calling cublas
     cublasHandle_t  handle;
+    #elif defined(HAVE_HIP)
+    hipblasHandle_t handle;
     #endif
 };
 

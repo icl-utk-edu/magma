@@ -27,7 +27,6 @@ libmagma_src += \
 	$(cdir)/abs.cpp			\
 	$(cdir)/affinity.cpp		\
 	$(cdir)/auxiliary.cpp		\
-	$(cdir)/connection_mgpu.cpp	\
 	$(cdir)/constants.cpp		\
 	$(cdir)/get_batched_crossover.cpp	\
 	$(cdir)/get_batched_gemm_decision.cpp	\

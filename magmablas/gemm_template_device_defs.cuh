@@ -22,7 +22,7 @@
 static __device__
 FloatingPoint_t tex_fetch(texture<int4> tex_ref, int coord)
 {
-    #if (__CUDA_ARCH__ >= 200)
+    #if (__CUDA_ARCH__ >= 200) || defined(HAVE_HIP)
     int4 v = tex1Dfetch(tex_ref, coord);
     return make_cuDoubleComplex(__hiloint2double(v.y, v.x), __hiloint2double(v.w, v.z));
     #else
@@ -39,7 +39,7 @@ FloatingPoint_t tex_fetch(texture<float2> tex_ref, int coord)
 static __device__
 FloatingPoint_t tex_fetch(texture<int2> tex_ref, int coord)
 {
-    #if (__CUDA_ARCH__ >= 200)
+    #if (__CUDA_ARCH__ >= 200) || defined(HAVE_HIP)
     int2 v = tex1Dfetch(tex_ref, coord);
     return __hiloint2double(v.y, v.x);
     #else
@@ -66,19 +66,19 @@ FloatingPoint_t tex_fetch(texture<float> tex_ref, int coord)
 
 
 #if defined(PRECISION_z)
-    #define conj(A)          cuConj(A)
-    #define add(A, B)        cuCadd(A, B)
-    #define mul(A, B)        cuCmul(A, B)
-    #define div(A, B)        cuCdiv(A, B)
-    #define fma(A, B, C) C = cuCfma(A, B, C)
-    #define make_FloatingPoint(x, y) make_cuDoubleComplex(x, y)
+    #define conj(A)          MAGMA_Z_CONJ(A)
+    #define add(A, B)        MAGMA_Z_ADD(A, B)
+    #define mul(A, B)        MAGMA_Z_MUL(A, B)
+    #define div(A, B)        MAGMA_Z_DIV(A, B)
+    #define fma(A, B, C) C = magmaCfma(A, B, C)
+    #define make_FloatingPoint(x, y) MAGMA_Z_MAKE(x, y)
 #elif defined(PRECISION_c)
-    #define conj(A)          cuConjf(A)
-    #define add(A, B)        cuCaddf(A, B)
-    #define mul(A, B)        cuCmulf(A, B)
-    #define div(A, B)        cuCdivf(A, B)
-    #define fma(A, B, C) C = cuCfmaf(A, B, C)
-    #define make_FloatingPoint(x, y) make_cuFloatComplex(x, y)
+    #define conj(A)          MAGMA_C_CONJ(A)
+    #define add(A, B)        MAGMA_C_ADD(A, B)
+    #define mul(A, B)        MAGMA_C_MUL(A, B)
+    #define div(A, B)        MAGMA_C_DIV(A, B)
+    #define fma(A, B, C) C = magmaCfmaf(A, B, C)
+    #define make_FloatingPoint(x, y) MAGMA_C_MAKE(x, y)
 #elif defined(PRECISION_h)
     #define conj(A)           (A)
     #define add(A, B)         (A+B)

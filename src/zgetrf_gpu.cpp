@@ -11,7 +11,6 @@
        @precisions normal z -> s d c
 
 */
-#include "cuda_runtime.h"    // for cudaMemsetAsync
 #include "magma_internal.h"
 
 /***************************************************************************//**
@@ -135,7 +134,8 @@ magma_zgetrf_gpu_expert(
             dipivinfo = diwork;     // dipivinfo size = m
             dipiv = dipivinfo + m;  // dipiv size = minmn
             dinfo = dipiv + minmn;  // dinfo size = 1
-            cudaMemsetAsync( dinfo, 0, sizeof(magma_int_t), queues[0]->cuda_stream() );
+            magma_memset_async(dinfo, 0, sizeof(magma_int_t), queues[0]);
+            //cudaMemsetAsync( dinfo, 0, sizeof(magma_int_t), queues[0]->cuda_stream() );
         }
     }
     

@@ -42,22 +42,30 @@
 
 /// @return real component of complex number x; x for real number.
 /// @ingroup magma_complex
+
+
+// hip_complex.h manually uses the function name 'real' and 'imag' in the GLOBAL namespace (why they claim the name 'real' is beyond me...), but it should work the same as ours
+//#ifndef HAVE_HIP_COMPLEX
 __host__ __device__ static inline double real(const magmaDoubleComplex &x) { return MAGMA_Z_REAL(x); }
 __host__ __device__ static inline float  real(const magmaFloatComplex  &x) { return MAGMA_C_REAL(x); }
+
+__host__ __device__ static inline double imag(const magmaDoubleComplex &x) { return MAGMA_Z_IMAG(x); }
+__host__ __device__ static inline float  imag(const magmaFloatComplex  &x) { return MAGMA_C_IMAG(x); }
+
+__host__ __device__ static inline magmaDoubleComplex conj(const magmaDoubleComplex &x) { return MAGMA_Z_CONJ(x); }
+__host__ __device__ static inline magmaFloatComplex  conj(const magmaFloatComplex  &x) { return MAGMA_C_CONJ(x); }
+//#endif
+
 __host__ __device__ static inline double real(const double             &x) { return x; }
 __host__ __device__ static inline float  real(const float              &x) { return x; }
 
 /// @return imaginary component of complex number x; 0 for real number.
 /// @ingroup magma_complex
-__host__ __device__ static inline double imag(const magmaDoubleComplex &x) { return MAGMA_Z_IMAG(x); }
-__host__ __device__ static inline float  imag(const magmaFloatComplex  &x) { return MAGMA_C_IMAG(x); }
 __host__ __device__ static inline double imag(const double             &x) { return 0.; }
 __host__ __device__ static inline float  imag(const float              &x) { return 0.f; }
 
 /// @return conjugate of complex number x; x for real number.
 /// @ingroup magma_complex
-__host__ __device__ static inline magmaDoubleComplex conj(const magmaDoubleComplex &x) { return MAGMA_Z_CONJ(x); }
-__host__ __device__ static inline magmaFloatComplex  conj(const magmaFloatComplex  &x) { return MAGMA_C_CONJ(x); }
 __host__ __device__ static inline double             conj(const double             &x) { return x; }
 __host__ __device__ static inline float              conj(const float              &x) { return x; }
 
@@ -79,6 +87,9 @@ __host__ __device__ static inline float  abs1(const float              &x) { ret
 
 // =============================================================================
 // magmaDoubleComplex
+
+// hip_complex.h also defines oeprators
+//#ifndef HAVE_HIP_COMPLEX
 
 // ---------- negate
 __host__ __device__ static inline magmaDoubleComplex
@@ -181,6 +192,15 @@ operator * (const magmaDoubleComplex a, const double s)
     return MAGMA_Z_MAKE( real(a)*s,
                          imag(a)*s );
 }
+
+__host__ __device__ static inline magmaDoubleComplex
+operator * (const magmaDoubleComplex a, const float s)
+{
+    return MAGMA_Z_MAKE( real(a)*s,
+                         imag(a)*s );
+}
+
+
 
 __host__ __device__ static inline magmaDoubleComplex
 operator * (const double s, const magmaDoubleComplex a)
@@ -310,7 +330,6 @@ operator != (const magmaDoubleComplex a, const magmaDoubleComplex b)
 {
     return ! (a == b);
 }
-
 __host__ __device__ static inline bool
 operator != (const magmaDoubleComplex a, const double s)
 {
@@ -322,6 +341,7 @@ operator != (const double s, const magmaDoubleComplex a)
 {
     return ! (a == s);
 }
+
 
 
 // =============================================================================
@@ -569,6 +589,9 @@ operator != (const float s, const magmaFloatComplex a)
 {
     return ! (a == s);
 }
+
+//#endif /* HAVE_HIP_COMPLEX */
+
 
 #ifdef HAVE_clBLAS
 #undef __host__

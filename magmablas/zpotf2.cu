@@ -160,12 +160,14 @@ magma_zpotf2_gpu(
 #define zdotc_bs  512
 #define zlacgv_bs 512
 
-// dynamically allocated shared memory, set to size number of threads when the kernel is launched.
-// See CUDA Guide B.2.3
-extern __shared__ double shared_data[];
 
 __global__ void kernel_zdotc(int n, magmaDoubleComplex *x, int incx, int threadSize)
 {
+
+    // dynamically allocated shared memory, set to size number of threads when the kernel is launched.
+    // See CUDA Guide B.2.3
+    extern __shared__ double shared_data[];
+
     int tx = threadIdx.x;
 
     double *sdata = shared_data;

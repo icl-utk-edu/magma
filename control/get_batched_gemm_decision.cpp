@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 // Definition of blocking sizes for NVIDIA cards
-#ifdef HAVE_CUBLAS
+#if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
 
 // =============================================================================
 /// @addtogroup magma_tuning
