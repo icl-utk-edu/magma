@@ -286,7 +286,6 @@ zlarft_gemv_loop_inside_device(
     int tx = threadIdx.x; 
     int ty = threadIdx.y; 
     
->>>>>>> origin/hipMAGMA
     int incx = 1;
     magmaDoubleComplex *sdata = (magmaDoubleComplex*)shared_data;
 

@@ -77,7 +77,7 @@ izamax_kernel_batched(int length, int chunk, magmaDoubleComplex **x_array, int x
     extern __shared__ double sdata[];
     
     const int batchid = blockIdx.x;
-    const int batchid = blockIdx.z;
+   // const int batchid = blockIdx.z;
     
     magmaDoubleComplex *x_start = x_array[batchid] + xj * lda + xi;
     const magmaDoubleComplex *x = &(x_start[step + step * lda]);
@@ -578,15 +578,15 @@ magma_int_t magma_zscal_zgeru_batched(magma_int_t m, magma_int_t n, magma_int_t 
         dim3 grid(magma_ceildiv(m,tbx), 1, ibatch);
 
         switch(n){
-            case  1:zscal_zgeru_1d_kernel_batched< 1><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  2:zscal_zgeru_1d_kernel_batched< 2><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  3:zscal_zgeru_1d_kernel_batched< 3><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  4:zscal_zgeru_1d_kernel_batched< 4><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  5:zscal_zgeru_1d_kernel_batched< 5><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  6:zscal_zgeru_1d_kernel_batched< 6><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  7:zscal_zgeru_1d_kernel_batched< 7><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  8:zscal_zgeru_1d_kernel_batched< 8><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            default:zscal_zgeru_1d_generic_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>(m, n, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);
+            case  1: zscal_zgeru_1d_kernel_batched< 1><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
+            case  2: zscal_zgeru_1d_kernel_batched< 2><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
+            case  3: zscal_zgeru_1d_kernel_batched< 3><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
+            case  4: zscal_zgeru_1d_kernel_batched< 4><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
+            case  5: zscal_zgeru_1d_kernel_batched< 5><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
+            case  6: zscal_zgeru_1d_kernel_batched< 6><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
+            case  7: zscal_zgeru_1d_kernel_batched< 7><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
+            case  8: zscal_zgeru_1d_kernel_batched< 8><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
+            default: zscal_zgeru_1d_generic_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>(m, n, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);
         }
     }
     return 0;
@@ -1117,11 +1117,9 @@ zgetf2_fused_batched_kernel( int m,
                            magmaDoubleComplex** dA_array, int ai, int aj, int ldda,
                            magma_int_t** dipiv_array, magma_int_t* info_array, int batchCount)
 {
-    magmaDoubleComplex* swork = (magmaDoubleComplex*)zdata;
-    
     // different indices per branch
     const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
-    const int batchid = blockIdx.z * blockDim.y + threadIdx.y;
+    //const int batchid = blockIdx.z * blockDim.y + threadIdx.y;
     
     extern __shared__ magmaDoubleComplex zdata[];
 
