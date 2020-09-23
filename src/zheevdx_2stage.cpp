@@ -201,6 +201,7 @@ magma_zheevdx_2stage(
     
     const char* uplo_  = lapack_uplo_const( uplo  );
     const char* jobz_  = lapack_vec_const( jobz  );
+    const char* range_ = lapack_range_const( range );
     magmaDoubleComplex c_one  = MAGMA_Z_ONE;
     magma_int_t ione = 1;
     magma_int_t izero = 0;
@@ -352,15 +353,30 @@ magma_zheevdx_2stage(
                (long long) n, (long long) nb );
         printf("--------------------------------------------------------------\n");
         #endif
-        lapackf77_zheevd(jobz_, uplo_, &n,
-                        A, &lda, W,
-                        work, &lwork,
-                        #ifdef COMPLEX
-                        rwork, &lrwork,
-                        #endif
-                        iwork, &liwork,
-                        info);
-        *m = n;
+        double abstol = 2 * lapackf77_dlamch("Safe minimum");
+        magma_int_t ldy = lda;
+        double* lapack_rwork;
+        magma_int_t* lapack_iwork;
+        magma_int_t* ifail;
+        magmaDoubleComplex* Y;
+        magma_dmalloc_cpu(&lapack_rwork, 7*n);
+        magma_imalloc_cpu(&lapack_iwork, 5*n);
+        magma_imalloc_cpu(&ifail, n);
+        magma_zmalloc_cpu(&Y, n*ldy);
+        lapackf77_zheevx(jobz_, range_, uplo_,
+                         &n, A, &lda, &vl, &vu, &il, &iu, &abstol, m,
+                         W, Y, &ldy, work, &lwork,
+                         #ifdef COMPLEX
+                         lapack_rwork,
+                         #endif
+                         lapack_iwork, ifail, info);
+        if( wantz ) {
+            lapackf77_zlacpy(MagmaFullStr, &n, m, Y, &ldy, A, &lda);
+        }
+        magma_free_cpu(lapack_rwork);
+        magma_free_cpu(lapack_iwork);
+        magma_free_cpu(ifail);
+        magma_free_cpu(Y);
         return *info;
     }
 

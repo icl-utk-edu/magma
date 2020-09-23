@@ -160,6 +160,7 @@ extern "C" {
 #define lapackf77_zbdt01   FORTRAN_NAME( zbdt01, ZBDT01 )
 #define lapackf77_zget22   FORTRAN_NAME( zget22, ZGET22 )
 #define lapackf77_zhet21   FORTRAN_NAME( zhet21, ZHET21 )
+#define lapackf77_zhet22   FORTRAN_NAME( zhet22, ZHET22 )
 #define lapackf77_zhst01   FORTRAN_NAME( zhst01, ZHST01 )
 #define lapackf77_zlarfy   FORTRAN_NAME( zlarfy, ZLARFY )
 #define lapackf77_zlatms   FORTRAN_NAME( zlatms, ZLATMS )
@@ -1189,6 +1190,19 @@ void   lapackf77_zget22( const char *transa, const char *transe, const char *tra
 
 void   lapackf77_zhet21( const magma_int_t *itype, const char *uplo,
                          const magma_int_t *n, const magma_int_t *kband,
+                         magmaDoubleComplex *A, const magma_int_t *lda,
+                         double *d, double *e,
+                         magmaDoubleComplex *U, const magma_int_t *ldu,
+                         magmaDoubleComplex *V, const magma_int_t *ldv,
+                         magmaDoubleComplex *tau,
+                         magmaDoubleComplex *work,
+                         #ifdef MAGMA_COMPLEX
+                         double *rwork,
+                         #endif
+                         double *result );
+
+void   lapackf77_zhet22( const magma_int_t *itype, const char *uplo,
+                         const magma_int_t *n, const magma_int_t *m, const magma_int_t *kband,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          double *d, double *e,
                          magmaDoubleComplex *U, const magma_int_t *ldu,

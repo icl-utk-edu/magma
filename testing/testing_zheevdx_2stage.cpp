@@ -30,7 +30,7 @@
 
 static magma_int_t check_orthogonality(magma_int_t M, magma_int_t N, magmaDoubleComplex *Q, magma_int_t LDQ, double eps);
 static magma_int_t check_reduction(magma_uplo_t uplo, magma_int_t N, magma_int_t bw, magmaDoubleComplex *A, double *D, magma_int_t LDA, magmaDoubleComplex *Q, double eps );
-static magma_int_t check_solution(magma_int_t N, double *E1, double *E2, double eps);
+static magma_int_t check_solution(magma_int_t N, magma_int_t Nfound, double *E1, double *E2, double tolulp);
 
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zhegvdx
@@ -42,23 +42,28 @@ int main( int argc, char** argv)
 
     real_Double_t gpu_time;
 
-    magmaDoubleComplex *h_A, *h_R, *h_work;
+    magmaDoubleComplex *h_A, *h_R, *h_work, unused[1];;
 
     #ifdef COMPLEX
     double *rwork;
     magma_int_t lrwork;
     #endif
 
-    double *w1, *w2;
+    double *w1, *w2, result[4]={0, 0, 0, 0}, runused[1];
     magma_int_t *iwork;
     magma_int_t N, Nfound, n2, info, lda, lwork, liwork;
     magma_int_t info_ortho     = 0;
     magma_int_t info_solution  = 0;
     magma_int_t info_reduction = 0;
+    magma_int_t ione = 1;
+    magma_int_t izero = 0;
     int status = 0;
 
     magma_opts opts;
     opts.parse_opts( argc, argv );
+
+    double tol    = opts.tolerance * lapackf77_dlamch("E");
+    double tolulp = opts.tolerance * lapackf77_dlamch("P");
 
     // pass ngpu = -1 to test multi-GPU code using 1 gpu
     magma_int_t abs_ngpu = abs( opts.ngpu );
@@ -87,6 +92,14 @@ int main( int argc, char** argv)
                                      &lrwork, 
                                      #endif
                                      &liwork);
+
+            if( opts.jobz == MagmaNoVec ) {
+                // For LAPACK test using zheevx.
+                #ifdef COMPLEX
+                lrwork = 7*N;
+                #endif
+                liwork = 5*N;
+            }
             
             /* Allocate host memory for the matrix */
             TESTING_CHECK( magma_zmalloc_cpu( &h_A,   n2 ));
@@ -179,24 +192,83 @@ int main( int argc, char** argv)
                 info_ortho     = 0;
                 info_reduction = 0;
                 //double eps   = lapackf77_dlamch("E")*lapackf77_dlamch("B");
-                double eps   = lapackf77_dlamch("E");
+                double eps    = lapackf77_dlamch("E");
+                double abstol = 2 * lapackf77_dlamch("S");
+
+                magmaDoubleComplex* h_Z;
+                magma_int_t* ifail;
+                TESTING_CHECK( magma_zmalloc_cpu( &h_Z,    N*lda      ));
+                TESTING_CHECK( magma_imalloc_cpu( &ifail,  N          ));
               
                 /* Check the orthogonality, reduction and the eigen solutions */
                 if (opts.jobz == MagmaVec) {
-                    info_ortho = check_orthogonality(N, N, h_R, lda, eps);
-                    info_reduction = check_reduction(opts.uplo, N, 1, h_A, w1, lda, h_R, eps);
+                    // Disable the following old tests and use LAPACK routines.
+                    //info_ortho = check_orthogonality(N, N, h_R, lda, eps);
+                    //info_reduction = check_reduction(opts.uplo, N, 1, h_A, w1, lda, h_R, eps);
+
+                    /* =====================================================================
+                       Check the results following the LAPACK's [zcds]drvst routine.
+                       A is factored as A = U S U^H and the following 3 tests computed:
+                       (1)    | A - U S U^H | / ( |A| N ) if all eigenvectors were computed
+                              | U^H A U - S | / ( |A| Nfound ) otherwise
+                       (2)    | I - U^H U   | / ( N )
+                       (3)    | S(with U) - S(w/o U) | / | S |    // currently disabled, but compares to LAPACK
+                       =================================================================== */
+                    magmaDoubleComplex* work;
+                    TESTING_CHECK( magma_zmalloc_cpu( &work, 2*N*N ));
+
+                    // e is unused since kband=0; tau is unused since itype=1
+                    if( Nfound == N ) {
+                        lapackf77_zhet21( &ione, lapack_uplo_const(opts.uplo), &N, &izero,
+                                          h_A, &lda,
+                                          w1, runused,
+                                          h_R, &lda,
+                                          h_R, &lda,
+                                          unused, work,
+                                          #ifdef COMPLEX
+                                          rwork,
+                                          #endif
+                                          &result[0] );
+                    } else {
+                        lapackf77_zhet22( &ione, lapack_uplo_const(opts.uplo), &N, &Nfound, &izero,
+                                          h_A, &lda,
+                                          w1, runused,
+                                          h_R, &lda,
+                                          h_R, &lda,
+                                          unused, work,
+                                          #ifdef COMPLEX
+                                          rwork,
+                                          #endif
+                                          &result[0] );
+                    }
+                    result[0] *= eps;
+                    result[1] *= eps;
+                    info_reduction = result[0] >= tol;
+                    info_ortho     = result[1] >= tol;
+                    printf("       %8.2e      %8.2e", result[0], result[1] );
+                    magma_free_cpu( work );  work=NULL;
                 } else {
                     printf("         ---                ---  ");
                 }
-                lapackf77_zheevd("N", "L", &N, 
-                                h_A, &lda, w2, 
-                                h_work, &lwork, 
-                                #ifdef COMPLEX
-                                rwork, &lrwork, 
-                                #endif
-                                iwork, &liwork, 
-                                &info);
-                info_solution = check_solution(N, w2, w1, eps);
+                lapackf77_zheevx( "N",
+                                  lapack_range_const(range),
+                                  lapack_uplo_const(opts.uplo),
+                                  &N, h_A, &lda,
+                                  &vl, &vu, &il, &iu, &abstol,
+                                  &Nfound, w2,
+                                  h_Z, &lda,
+                                  h_work, &lwork,
+                                  #ifdef COMPLEX
+                                  rwork,
+                                  #endif
+                                  iwork,
+                                  ifail,
+                                  &info );
+
+                info_solution = check_solution(N, Nfound, w2, w1, eps);
+
+                magma_free_cpu(h_Z);
+                magma_free_cpu(ifail);
                 
                 bool okay = (info_solution == 0) && (info_ortho == 0) && (info_reduction == 0);
                 status += ! okay;
@@ -333,7 +405,7 @@ static magma_int_t check_reduction(magma_uplo_t uplo, magma_int_t N, magma_int_t
 /*------------------------------------------------------------
  *  Check the eigenvalues 
  */
-static magma_int_t check_solution(magma_int_t N, double *E1, double *E2, double eps)
+static magma_int_t check_solution(magma_int_t N, magma_int_t Nfound, double *E1, double *E2, double tolulp)
 {
     magma_int_t   info_solution, i;
     double unfl   = lapackf77_dlamch("Safe minimum");
@@ -341,7 +413,7 @@ static magma_int_t check_solution(magma_int_t N, double *E1, double *E2, double 
     double maxtmp;
     double maxdif = fabs( fabs(E1[0]) - fabs(E2[0]) );
     double maxeig = max( fabs(E1[0]), fabs(E2[0]) );
-    for (i = 1; i < N; i++) {
+    for (i = 1; i < Nfound; i++) {
         resid   = fabs(fabs(E1[i])-fabs(E2[i]));
         maxtmp  = max(fabs(E1[i]), fabs(E2[i]));
 
@@ -349,12 +421,11 @@ static magma_int_t check_solution(magma_int_t N, double *E1, double *E2, double 
         maxeig = max(maxtmp, maxeig);
         maxdif  = max(resid,  maxdif );
     }
-    maxtmp = maxdif / max(unfl, eps*max(maxeig, maxdif));
+    maxtmp = maxdif / max(unfl, max(maxeig, maxdif));
 
     printf("              %8.2e", maxdif / (max(maxeig, maxdif)) );
 
-    // TODO: use opts.tolerance instead of hard coding 100
-    if (std::isnan(maxtmp) || std::isinf(maxtmp) || (maxtmp > 100)) {
+    if (std::isnan(maxtmp) || std::isinf(maxtmp) || (maxtmp >= tolulp * N)) {
         info_solution = 1;
     }
     else {
