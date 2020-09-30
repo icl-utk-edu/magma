@@ -60,6 +60,8 @@ else ifeq ($(BACKEND),hip)
     #   defines an 'all' and 'clean' target as phonies)
     # So, in the future that whole file may be integrated, but for now this seems simplest
     #$(MAKE) -f make.gen.hipMAGMA
+else
+    $(warning BACKEND: $(BACKEND) not recognized)
 endif
 
 # and utilities
@@ -260,7 +262,7 @@ ifeq ($(BACKEND),cuda)
 	endif
 	
 	
-	DEVCCFLAGS += $(NV_SM) $(NV_COMP)
+	DEVCCFLAGS += -DHAVE_CUDA -DHAVE_CUBLAS -DMIN_CUDA_ARCH=$(MIN_ARCH) $(NV_SM) $(NV_COMP)
 
 	CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
 	CXXFLAGS  += -DMIN_CUDA_ARCH=$(MIN_ARCH)
@@ -796,9 +798,9 @@ sparse/testing/clean:
 
 # set the device extension
 ifeq ($(BACKEND),cuda)
-	d_ext = .cu
+d_ext := cu
 else ifeq ($(BACKEND),hip)
-	d_ext = .hip.cpp
+d_ext := hip.cpp
 endif
 
 %.i: %.$(d_ext)

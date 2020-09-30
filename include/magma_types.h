@@ -120,6 +120,9 @@ typedef double real_Double_t;
     #define MAGMA_C_ABS1(a)       (fabsf((a).x) + fabsf((a).y))
     #define MAGMA_C_CONJ(a)       cuConjf(a)
 
+    #define magmaCfma cuCfma
+    #define magmaCfmaf cuCfmaf
+
     /// @}
     // end group magma_complex
 

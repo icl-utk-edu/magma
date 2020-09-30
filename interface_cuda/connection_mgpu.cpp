@@ -7,6 +7,8 @@
 
        @author Azzam Haidar
 */
+#include <cuda_runtime.h>
+
 #include "magma_internal.h"
 
 extern "C" {

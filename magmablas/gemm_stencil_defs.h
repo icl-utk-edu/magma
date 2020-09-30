@@ -95,15 +95,15 @@
 
 #ifdef COMPLEX
   #ifdef DOUBLE
-    #define conj(A)          magmaConj(A)
-    #define add(A, B)        magmaCadd(A, B)
-    #define mul(A, B)        magmaCmul(A, B)
+    #define conj(A)          MAGMA_Z_CONJ(A)
+    #define add(A, B)        MAGMA_Z_ADD(A, B)
+    #define mul(A, B)        MAGMA_Z_MUL(A, B)
     #define fma(A, B, C) C = magmaCfma(A, B, C)
     #define make_FloatingPoint(x, y) MAGMA_Z_MAKE(x, y);
   #else
-    #define conj(A)          magmaConjf(A)
-    #define add(A, B)        magmaCaddf(A, B)
-    #define mul(A, B)        magmaCmulf(A, B)
+    #define conj(A)          MAGMA_C_CONJ(A)
+    #define add(A, B)        MAGMA_C_ADD(A, B)
+    #define mul(A, B)        MAGMA_C_MUL(A, B)
     #define fma(A, B, C) C = magmaCfmaf(A, B, C)
     #define make_FloatingPoint(x, y) MAGMA_C_MAKE(x, y);
   #endif

@@ -513,7 +513,12 @@ magma_is_devptr( const void* A )
             if ( ! err ) {
                 // definitely know type
                 #ifdef HAVE_CUDA
-                return (attr.memoryType == cudaMemoryTypeDevice);
+                  #if CUDA_VERSION >= 11000
+                    return (attr.type == cudaMemoryTypeDevice);
+                  #else
+                    return (attr.memoryType == cudaMemoryTypeDevice);
+                  #endif
+
                 #elif defined(HAVE_HIP)
                 return (attr.memoryType == hipMemoryTypeDevice);
                 #endif

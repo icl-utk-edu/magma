@@ -39,7 +39,7 @@
   #ifdef HAVE_HIP
     typedef hipblasDoubleComplex BackendFloat_t;
   #else
-    typedef BackendFloat_t BackendFloat_t;
+    typedef cuDoubleComplex BackendFloat_t;
   #endif
 #elif defined(PRECISION_c)
   #ifdef HAVE_HIP
