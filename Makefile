@@ -272,7 +272,7 @@ else ifeq ($(BACKEND),hip)
     # DEVCCFLAGS += --amdgpu-target=gfx701
     #TODO: make a bunch of loops like those above for the nvidia architectures
     # right now, targets should be set in make.inc
-    #DEVCCFLAGS += $(foreach target,$(GPU_TARGET),--amdgpu-target=$(target))
+    DEVCCFLAGS += $(foreach target,$(GPU_TARGET),--amdgpu-target=$(target))
     #DEVCCFLAGS += --amdgpu-target=gfx900
 
     # just so we know
