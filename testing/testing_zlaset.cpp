@@ -57,8 +57,8 @@ int main( int argc, char** argv)
             // 1     0        3.14
             // 2     1.23     0
             // 3     1.23     3.14
-            offdiag = MAGMA_Z_MAKE( 1.2345, 6.7890 ) * (ival / 2);
-            diag    = MAGMA_Z_MAKE( 3.1415, 2.7183 ) * (ival % 2);
+            offdiag = MAGMA_Z_MAKE( 1.2345, 6.7890 ) * (double)(ival / 2);
+            diag    = MAGMA_Z_MAKE( 3.1415, 2.7183 ) * (double)(ival % 2);
             
             M = opts.msize[itest];
             N = opts.nsize[itest];

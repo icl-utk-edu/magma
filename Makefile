@@ -689,7 +689,7 @@ sparse/src:     $(sparse_src_obj)
 sparse/testing: $(sparse_testers)
 
 run_test: test
-	cd testing && python ./run_tests.py
+	cd testing && python3 ./run_tests.py
 
 # ----------
 # sub-directory clean

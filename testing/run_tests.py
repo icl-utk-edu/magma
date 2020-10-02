@@ -1606,10 +1606,11 @@ def run( cmd ):
 	error = 0
 	# read unbuffered ("for line in p.stdout" will buffer)
 	while True:
-		line = p.stdout.readline()
+		# .decode() required for Python3
+		line = p.stdout.readline().decode()
 		if not line:
 			break
-		print line.rstrip()
+		print (line.rstrip())
 		if re.search( r'\bok *$', line ):
 			okay += 1
 		if re.search( 'failed', line ):
@@ -1677,7 +1678,7 @@ for test in tests:
 		# skip tests not in args, or duplicates
 		# skip and warn about non-existing
 		if (    (args and not cmdp in args)
-		     or (seen.has_key( cmd_opts )) ):
+		     or (cmd_opts in seen) ):
 			continue
 		# end
 		if (not os.path.exists( cmdp )):
@@ -1693,10 +1694,10 @@ for test in tests:
 		while repeat_test:
 			repeat_test = False
 			
-			print
-			print '*'*100
-			print cmd_args
-			print '*'*100
+			print()
+			print('*'*100)
+			print(cmd_args)
+			print('*'*100)
 			sys.stdout.flush()
 			
 			if (output_to_file):
@@ -1747,7 +1748,7 @@ for test in tests:
 				x = raw_input( '[enter to continue; M to make and re-run] ' )
 				if (x in ('m','M')):
 					make = 'make ' + cmdp
-					print make
+					print(make)
 					run( make )
 					repeat_test = True
 				# end
