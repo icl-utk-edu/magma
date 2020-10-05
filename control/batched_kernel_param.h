@@ -49,7 +49,7 @@
 //
 #define ZGETF2_FUSED_MAX_M  (7168)
 #define CGETF2_FUSED_MAX_M  (10240)
-#define DGETF2_FUSED_MAX_M  (25600)
+#define DGETF2_FUSED_MAX_M  (23552)
 #define SGETF2_FUSED_MAX_M  (40960)
 
 
