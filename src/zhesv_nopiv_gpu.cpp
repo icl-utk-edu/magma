@@ -18,8 +18,7 @@
         A * X = B
     where A is an n-by-n Hermitian matrix and X and B are n-by-nrhs matrices.
     The LU decomposition with no pivoting is
-    used to factor A as
-    The factorization has the form
+    used to factor A as:
         A = U^H * D * U,  if UPLO = MagmaUpper, or
         A = L  * D * L^H, if UPLO = MagmaLower,
     where U is an upper triangular matrix, L is lower triangular, and
