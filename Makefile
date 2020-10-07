@@ -156,23 +156,30 @@ ifeq ($(BACKEND),cuda)
 	# ------------------------------------------------------------------------------
 	# NVCC options for the different cards
 	# First, add smXX for architecture names
+	# Internal CUDA architectures we support
+	# TODO: Filter on regex to discard the named architectures?
+	CUDA_ARCH_ := $(GPU_TARGET)
 	ifneq ($(findstring Kepler, $(GPU_TARGET)),)
-		GPU_TARGET += sm_30 sm_35
+		CUDA_ARCH_ += sm_30
+		CUDA_ARCH_ += sm_35
 	endif
 	ifneq ($(findstring Maxwell, $(GPU_TARGET)),)
-		GPU_TARGET += sm_50
+		CUDA_ARCH_ += sm_50
 	endif
 	ifneq ($(findstring Pascal, $(GPU_TARGET)),)
-		GPU_TARGET += sm_60
+		CUDA_ARCH_ += sm_60
 	endif
 	ifneq ($(findstring Volta, $(GPU_TARGET)),)
-		GPU_TARGET += sm_70
+		CUDA_ARCH_ += sm_70
 	endif
 	ifneq ($(findstring Turing, $(GPU_TARGET)),)
-		GPU_TARGET += sm_75
+		CUDA_ARCH_ += sm_75
 	endif
+	ifneq ($(findstring Ampere, $(GPU_TARGET)),)
+		CUDA_ARCH_ += sm_80
+	endif
+	
 	# Remember to add to CMakeLists.txt too!
-
 
 	# Next, add compile options for specific smXX
 	# sm_xx is binary, compute_xx is PTX for forward compatability
@@ -182,85 +189,82 @@ ifeq ($(BACKEND),cuda)
 	# NV_COMP  is compute_xx for highest requested version
 	#
 	# See also $(info compile for ...) in Makefile
-	NV_SM    :=
-	NV_COMP  :=
 
-	ifneq ($(findstring sm_10, $(GPU_TARGET)),)
-		$(warning CUDA arch 1.x is no longer supported by CUDA >= 6.x and MAGMA >= 2.0)
-	endif
-	ifneq ($(findstring sm_13, $(GPU_TARGET)),)
-		$(warning CUDA arch 1.x is no longer supported by CUDA >= 6.x and MAGMA >= 2.0)
-	endif
-	ifneq ($(findstring sm_20, $(GPU_TARGET)),)
-		MIN_ARCH ?= 200
-		NV_SM    += -gencode arch=compute_20,code=sm_20
-		NV_COMP  := -gencode arch=compute_20,code=compute_20
-		$(warning CUDA arch 2.x is no longer supported by CUDA >= 9.x)
-	endif
-	ifneq ($(findstring sm_30, $(GPU_TARGET)),)
-		MIN_ARCH ?= 300
-		NV_SM    += -gencode arch=compute_30,code=sm_30
-		NV_COMP  := -gencode arch=compute_30,code=compute_30
-	endif
-	ifneq ($(findstring sm_32, $(GPU_TARGET)),)
-		MIN_ARCH ?= 320
-		NV_SM    += -gencode arch=compute_32,code=sm_32
-		NV_COMP  := -gencode arch=compute_32,code=compute_32
-	endif
-	ifneq ($(findstring sm_35, $(GPU_TARGET)),)
-		MIN_ARCH ?= 350
-		NV_SM    += -gencode arch=compute_35,code=sm_35
-		NV_COMP  := -gencode arch=compute_35,code=compute_35
-	endif
-	ifneq ($(findstring sm_50, $(GPU_TARGET)),)
-		MIN_ARCH ?= 500
-		NV_SM    += -gencode arch=compute_50,code=sm_50
-		NV_COMP  := -gencode arch=compute_50,code=compute_50
-	endif
-	ifneq ($(findstring sm_52, $(GPU_TARGET)),)
-		MIN_ARCH ?= 520
-		NV_SM    += -gencode arch=compute_52,code=sm_52
-		NV_COMP  := -gencode arch=compute_52,code=compute_52
-	endif
-	ifneq ($(findstring sm_53, $(GPU_TARGET)),)
-		MIN_ARCH ?= 530
-		NV_SM    += -gencode arch=compute_53,code=sm_53
-		NV_COMP  := -gencode arch=compute_53,code=compute_53
-	endif
-	ifneq ($(findstring sm_60, $(GPU_TARGET)),)
-		MIN_ARCH ?= 600
-		NV_SM    += -gencode arch=compute_60,code=sm_60
-		NV_COMP  := -gencode arch=compute_60,code=compute_60
-	endif
-	ifneq ($(findstring sm_61, $(GPU_TARGET)),)
-		MIN_ARCH ?= 610
-		NV_SM    += -gencode arch=compute_61,code=sm_61
-		NV_COMP  := -gencode arch=compute_61,code=compute_61
-	endif
-	ifneq ($(findstring sm_62, $(GPU_TARGET)),)
-		MIN_ARCH ?= 620
-		NV_SM    += -gencode arch=compute_62,code=sm_62
-		NV_COMP  := -gencode arch=compute_62,code=compute_62
-	endif
-	ifneq ($(findstring sm_70, $(GPU_TARGET)),)
-		MIN_ARCH ?= 700
-		NV_SM    += -gencode arch=compute_70,code=sm_70
-		NV_COMP  := -gencode arch=compute_70,code=compute_70
-	endif
-	ifneq ($(findstring sm_71, $(GPU_TARGET)),)
-		MIN_ARCH ?= 710
-		NV_SM    += -gencode arch=compute_71,code=sm_71
-		NV_COMP  := -gencode arch=compute_71,code=compute_71
-	endif
-	ifneq ($(findstring sm_75, $(GPU_TARGET)),)
-		MIN_ARCH ?= 750
-		NV_SM    += -gencode arch=compute_75,code=sm_75
-		NV_COMP  := -gencode arch=compute_75,code=compute_75
-	endif
-	ifeq ($(NV_COMP),)
+	## Suggestion by Mark (from SLATE)
+	# Valid architecture numbers
+    VALID_SMS = 30 32 35 37 50 52 53 60 61 62 70 72 75 80
+
+    # code=sm_XX is binary, code=compute_XX is PTX
+    GENCODE_SM      = -gencode arch=compute_$(sm),code=sm_$(sm)
+    GENCODE_COMP    = -gencode arch=compute_$(sm),code=compute_$(sm)
+
+    # Get gencode options for all sm_XX in cuda_arch_.
+    NV_SM      := $(filter %, $(foreach sm, $(VALID_SMS),$(if $(findstring sm_$(sm), $(CUDA_ARCH_)),$(GENCODE_SM))))
+    NV_COMP    := $(filter %, $(foreach sm, $(VALID_SMS),$(if $(findstring sm_$(sm), $(CUDA_ARCH_)),$(GENCODE_COMP))))
+
+    ifeq ($(NV_SM),)
+		$(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
+    else
+        # Get last option (last 2 words) of nv_compute.
+        nwords := $(words $(NV_COMP))
+        nwords_1 := $(shell expr $(nwords) - 1)
+        NV_COMP_LAST := $(wordlist $(nwords_1), $(nwords), $(NV_COMP))
+    endif
+
+    # Use all sm_XX (binary), and the last compute_XX (PTX) for forward compatibility.
+    DEVCCFLAGS += $(NV_SM) $(NV_COMP_LAST)
+    LIBS += -lcublas -lcudart
+	
+    # determine minimum archicture compatibility
+    ifneq ($(findstring sm_10, $(CUDA_ARCH_)),)
+        $(warning CUDA arch 1.x is no longer supported by CUDA >= 6.x and MAGMA >= 2.0)
+    endif
+    ifneq ($(findstring sm_13, $(CUDA_ARCH_)),)
+        $(warning CUDA arch 1.x is no longer supported by CUDA >= 6.x and MAGMA >= 2.0)
+    endif
+    ifneq ($(findstring sm_20, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 200
+        $(warning CUDA arch 2.x is no longer supported by CUDA >= 9.x)
+    endif
+    ifneq ($(findstring sm_30, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 300
+    endif
+    ifneq ($(findstring sm_32, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 320
+    endif
+    ifneq ($(findstring sm_35, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 350
+    endif
+    ifneq ($(findstring sm_50, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 500
+    endif
+    ifneq ($(findstring sm_52, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 520
+    endif
+    ifneq ($(findstring sm_53, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 530
+    endif
+    ifneq ($(findstring sm_60, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 600
+    endif
+    ifneq ($(findstring sm_61, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 610
+    endif
+    ifneq ($(findstring sm_62, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 620
+    endif
+    ifneq ($(findstring sm_70, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 700
+    endif
+    ifneq ($(findstring sm_71, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 710
+    endif
+    ifneq ($(findstring sm_75, $(CUDA_ARCH_)),)
+        MIN_ARCH ?= 750
+    endif
+	ifeq ($(CUDA_ARCH_),)
 		$(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
 	endif
-	
 	
 	DEVCCFLAGS += -DHAVE_CUDA -DHAVE_CUBLAS -DMIN_CUDA_ARCH=$(MIN_ARCH) $(NV_SM) $(NV_COMP)
 
