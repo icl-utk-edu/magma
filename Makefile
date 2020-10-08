@@ -116,6 +116,7 @@ ifeq ($(BACKEND),hip)
     #  unit. This saves a LOT of time (i.e. about 30 minutes) when generating a shared lib
     DEVCCFLAGS += $(FPIC) -std=c++11 -fno-gpu-rdc
 
+
     LDFLAGS += -L/opt/rocm/lib -L/opt/rocm/hip/lib
     
     #TODO: see if we need to link any HIP libraries
@@ -178,6 +179,7 @@ ifeq ($(BACKEND),cuda)
 	ifneq ($(findstring Ampere, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_80
 	endif
+
 	
 	# Remember to add to CMakeLists.txt too!
 
@@ -192,6 +194,7 @@ ifeq ($(BACKEND),cuda)
 
 	## Suggestion by Mark (from SLATE)
 	# Valid architecture numbers
+	# TODO: remove veryold ones?
     VALID_SMS = 30 32 35 37 50 52 53 60 61 62 70 72 75 80
 
     # code=sm_XX is binary, code=compute_XX is PTX
@@ -214,59 +217,15 @@ ifeq ($(BACKEND),cuda)
     # Use all sm_XX (binary), and the last compute_XX (PTX) for forward compatibility.
     DEVCCFLAGS += $(NV_SM) $(NV_COMP_LAST)
     LIBS += -lcublas -lcudart
-	
-    # determine minimum archicture compatibility
-    ifneq ($(findstring sm_10, $(CUDA_ARCH_)),)
-        $(warning CUDA arch 1.x is no longer supported by CUDA >= 6.x and MAGMA >= 2.0)
-    endif
-    ifneq ($(findstring sm_13, $(CUDA_ARCH_)),)
-        $(warning CUDA arch 1.x is no longer supported by CUDA >= 6.x and MAGMA >= 2.0)
-    endif
-    ifneq ($(findstring sm_20, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 200
-        $(warning CUDA arch 2.x is no longer supported by CUDA >= 9.x)
-    endif
-    ifneq ($(findstring sm_30, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 300
-    endif
-    ifneq ($(findstring sm_32, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 320
-    endif
-    ifneq ($(findstring sm_35, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 350
-    endif
-    ifneq ($(findstring sm_50, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 500
-    endif
-    ifneq ($(findstring sm_52, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 520
-    endif
-    ifneq ($(findstring sm_53, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 530
-    endif
-    ifneq ($(findstring sm_60, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 600
-    endif
-    ifneq ($(findstring sm_61, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 610
-    endif
-    ifneq ($(findstring sm_62, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 620
-    endif
-    ifneq ($(findstring sm_70, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 700
-    endif
-    ifneq ($(findstring sm_71, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 710
-    endif
-    ifneq ($(findstring sm_75, $(CUDA_ARCH_)),)
-        MIN_ARCH ?= 750
-    endif
-	ifeq ($(CUDA_ARCH_),)
+
+    # Get first (minimum) architecture
+    MIN_ARCH := $(wordlist 1, 1, $(foreach sm, $(VALID_SMS),$(if $(findstring sm_$(sm), $(CUDA_ARCH_)),$(sm)0)))
+	ifeq ($(MIN_ARCH),)
 		$(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
 	endif
 	
-	DEVCCFLAGS += -DHAVE_CUDA -DHAVE_CUBLAS -DMIN_CUDA_ARCH=$(MIN_ARCH) $(NV_SM) $(NV_COMP)
+	DEVCCFLAGS += -DHAVE_CUDA -DHAVE_CUBLAS -DMIN_CUDA_ARCH=$(MIN_ARCH)
+
 
 	CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
 	CXXFLAGS  += -DMIN_CUDA_ARCH=$(MIN_ARCH)
@@ -275,7 +234,10 @@ ifeq ($(BACKEND),cuda)
 	CXXFLAGS  += -DHAVE_CUDA -DHAVE_CUBLAS
 else ifeq ($(BACKEND),hip)
 
-    # DEVCCFLAGS += --amdgpu-target=gfx701
+	# ------------------------------------------------------------------------------
+	# hipcc backend
+	# Source: https://llvm.org/docs/AMDGPUUsage.html#target-triples
+
     #TODO: make a bunch of loops like those above for the nvidia architectures
     # right now, targets should be set in make.inc
     DEVCCFLAGS += $(foreach target,$(GPU_TARGET),--amdgpu-target=$(target))
