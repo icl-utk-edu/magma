@@ -803,7 +803,7 @@ int main( int argc, char** argv)
                 */
 
                 magma_int_t *dinert, inert[3];
-                TESTING_CHECK( magma_imalloc(&dinert, 3) );
+                TESTING_CHECK( magma_malloc((void**)&dinert, 3*sizeof(magma_int_t)) );
                 cudaMemset( dinert, 0, 3*sizeof(magma_int_t) );
 
                 magmablas_zdiinertia(N, d_A, ldda, dinert, opts.queue );
