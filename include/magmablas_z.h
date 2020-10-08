@@ -273,6 +273,13 @@ magma_zherk_mgpu2(
   /*
    * LAPACK auxiliary functions (alphabetical order)
    */
+magma_int_t
+magmablas_zdiinertia(
+    magma_int_t n,
+    magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
+    magma_int_t *dneig,
+    magma_queue_t queue );
+
 void
 magmablas_zgeadd(
     magma_int_t m, magma_int_t n,

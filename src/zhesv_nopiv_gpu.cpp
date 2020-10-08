@@ -45,8 +45,7 @@
     @param[in,out]
     dA      COMPLEX_16 array, dimension (ldda,n).
             On entry, the n-by-n matrix to be factored.
-            On exit, the factors L and U from the factorization
-            A = L*U; the unit diagonal elements of L are not stored.
+            On exit, the factors L/U and the diagonal D from the factorization.
 
     @param[in]
     ldda    INTEGER
