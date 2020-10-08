@@ -277,7 +277,7 @@ magma_int_t
 magmablas_zdiinertia(
     magma_int_t n,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
-    magma_int_t *dneig,
+    int *dneig,
     magma_queue_t queue );
 
 void

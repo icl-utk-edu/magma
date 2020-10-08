@@ -802,12 +802,12 @@ int main( int argc, char** argv)
                 magma_dsetmatrix(N, N, h_A, lda, d_A, ldda, opts.queue );
                 */
 
-                magma_int_t *dinert, inert[3];
-                TESTING_CHECK( magma_malloc((void**)&dinert, 3*sizeof(magma_int_t)) );
-                cudaMemset( dinert, 0, 3*sizeof(magma_int_t) );
+                int *dinert, inert[3];
+                TESTING_CHECK( magma_malloc((void**)&dinert, 3*sizeof(int)) );
+                cudaMemset( dinert, 0, 3*sizeof(int) );
 
                 magmablas_zdiinertia(N, d_A, ldda, dinert, opts.queue );
-                magma_igetvector( 3, dinert, 1, inert, 1, opts.queue );
+                magma_getvector( 3, sizeof(int), dinert, 1, inert, 1, opts.queue );
                 magma_free( dinert );
                 printf("inertia: positive / negative / zero = %d / %d / %d\n",
                        inert[0], inert[1], inert[2]);

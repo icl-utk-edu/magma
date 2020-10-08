@@ -17,7 +17,7 @@
 #define NBLOCKS     40
 
 __global__ void
-zdiinertia_kernel(int n, magmaDoubleComplex_const_ptr dA, int ldda, magma_int_t *dneig)
+zdiinertia_kernel(int n, magmaDoubleComplex_const_ptr dA, int ldda, int *dneig)
 {
     const int tx  = threadIdx.x;
     const int blk = blockIdx.x;
@@ -97,7 +97,7 @@ magma_int_t
 magmablas_zdiinertia(
     magma_int_t n,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda, 
-    magma_int_t *dneig, 
+    int *dneig, 
     magma_queue_t queue )
 {
     /*
