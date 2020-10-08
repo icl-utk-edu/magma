@@ -24,13 +24,15 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
- 2.x.x - xxx xx, 2020
+ 2.5.4 - Oct 8, 2020
     * Support for CUDA 11
     * Support for Ampere GPUs
     * New routine: add trmm in all precisions
     * New routine: add sidi routine in real precisions to compute inertia for 
       symmetric indefinite matrices
     * New routine: GPU interfaces to hetrf in all precisions
+    * New routine: magmablas_Xdiinertia to compute the inertia of a diagonal 
+      of a matrix in the GPU memory
     * Bug fixes in herk and sytrd
     * Performance improvement for Symmetric/Hermitian eigensolvers
 
