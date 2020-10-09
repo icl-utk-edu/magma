@@ -34,6 +34,7 @@ single (s), double (d), single-complex (c), double-complex (z).
     * New routine: magmablas_Xdiinertia to compute the inertia of a diagonal 
       of a matrix in the GPU memory
     * Bug fixes in herk and sytrd
+    * Bug fixes in ranged eignesolver testers and fallback calls for small matrixes
     * Performance improvement for Symmetric/Hermitian eigensolvers
 
  2.5.3 - Mar 28, 2020
