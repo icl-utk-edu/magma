@@ -24,6 +24,9 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+ 2.x.x - xxx xx, xxxx
+    *
+
  2.5.4 - Oct 8, 2020
     * Support for CUDA 11
     * Support for Ampere GPUs
@@ -34,7 +37,7 @@ single (s), double (d), single-complex (c), double-complex (z).
     * New routine: magmablas_Xdiinertia to compute the inertia of a diagonal 
       of a matrix in the GPU memory
     * Bug fixes in herk and sytrd
-    * Bug fixes in ranged eignesolver testers and fallback calls for small matrixes
+    * Bug fixes in ranged eignesolver testers and fallback calls for small matrices
     * Performance improvement for Symmetric/Hermitian eigensolvers
 
  2.5.3 - Mar 28, 2020
