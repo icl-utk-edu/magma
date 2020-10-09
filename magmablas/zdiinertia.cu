@@ -125,6 +125,9 @@ magmablas_zdiinertia(
     dim3 grid( NBLOCKS, 1, 1 );
     dim3 threads( NTHREADS, 1, 1 );
     
+    // Set itertia to zero
+    cudaMemsetAsync(dneig, 0, 3*sizeof(int), queue->cuda_stream() );
+
     zdiinertia_kernel<<<grid, threads, 0, queue->cuda_stream() >>>
         (n, dA, ldda, dneig);
     
