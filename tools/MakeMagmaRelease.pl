@@ -126,6 +126,8 @@ EOT
         die( "RELEASE_PATH $RELEASE_PATH already exists.\nPlease delete it or use different version.\n" );
     }
 
+    myCmd("mkdir $RELEASE_PATH");
+    
     # Save current directory
     my $dir = `pwd`;
     chomp $dir;
@@ -146,24 +148,24 @@ EOT
             myCmd($cmd);
             myCmd("perl -pi -e 's/PROJECT_NUMBER +=.*/PROJECT_NUMBER         = $major.$minor.$micro/' docs/Doxyfile");
             myCmd("perl -pi -e 's/(Copyright 2009)-\\d{4}/\$1-$year/' COPYRIGHT");
-            myCmd("hg diff include/magma_types.h docs/Doxyfile COPYRIGHT");
+            myCmd("git diff include/magma_types.h docs/Doxyfile COPYRIGHT");
             print "Commit these changes now (y/n)? ";
             $_ = <STDIN>;
             if ( m/\b(y|yes)\b/ ) {
-                myCmd("hg commit -m 'version $major.$minor.$micro' include/magma_types.h docs/Doxyfile COPYRIGHT");
+                myCmd("git commit -m 'version $major.$minor.$micro' include/magma_types.h docs/Doxyfile COPYRIGHT");
             }
 
             print "Tag release in Mercurial (y/n)? ";
             $_ = <STDIN>;
             if ( m/\b(y|yes)\b/ ) {
-                myCmd("hg tag v$version");
+                myCmd("git tag v$version");
             }
 
-            myCmd("hg out");
+            myCmd("git log --branches --not --remotes=origin");
             print "Push the above changes now (y/n)? ";
             $_ = <STDIN>;
             if ( m/\b(y|yes)\b/ ) {
-                myCmd("hg push");
+                myCmd("git push");
             }
             else {
                 print "Remember to push changes later!\n";
@@ -177,13 +179,16 @@ EOT
         }
     }
 
-    $cmd = "hg archive $revision $RELEASE_PATH";
+    $cmd = "git archive --format=tar.gz v$major.$minor.$micro > $RELEASE_PATH/magma-$major.$minor.$micro.tar.gz";
     myCmd($cmd);
 
     print "cd $RELEASE_PATH\n";
     chdir $RELEASE_PATH;
 
-    # Change version in magma.h (in export, not in the hg repo itself)
+    myCmd("tar -xvf magma-$major.$minor.$micro.tar.gz");
+    myCmd("rm magma-$major.$minor.$micro.tar.gz");
+
+    # Change version in magma.h (in export, not in the git repo itself)
     # See similar replacement above (minus stage)
     $cmd = "perl -pi -e 's/VERSION_MAJOR +[0-9]+/VERSION_MAJOR $major/; "
          .             " s/VERSION_MINOR +[0-9]+/VERSION_MINOR $minor/; "
@@ -247,7 +252,7 @@ sub Usage
     print "   -a alpha      Alpha version\n";
     print "   -b beta       Beta version\n";
     print "   -c candidate  Release candidate number\n";
-    print "   -r revision   Choose hg revision number\n";
+    print "   -r revision   Choose git revision number\n";
 }
 
 
@@ -269,7 +274,7 @@ if ( defined $opts{c} ) {
     $rc = $opts{c};
 }
 if ( defined $opts{r} ) {
-    $revision = "-r $opts{r}";
+    $revision = "--prefix=$opts{r}";
 }
 if ( ($#ARGV + 1) != 1 ) {
     Usage();
