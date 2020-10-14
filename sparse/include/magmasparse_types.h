@@ -45,7 +45,8 @@
 // eventually this should be disabled by default
 #define MAGMA_USE_SOLVEANALYSIS
 #elif defined(HAVE_HIP)
-// disable, since hipSPARSE doesn't support solve analysis at all
+
+#define MAGMA_USE_SOLVEANALYSIS
 #endif
 
 
@@ -605,6 +606,9 @@ typedef struct magma_s_solver_par
 
 #if CUDA_VERSION >= 11000
     #define cusparseSolveAnalysisInfo_t csrsm2Info_t
+#endif
+#if defined(HAVE_HIP)
+    #define hipsparseSolveAnalysisInfo_t csrsm2Info_t
 #endif
 
 typedef struct magma_z_preconditioner

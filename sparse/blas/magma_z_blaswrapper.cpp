@@ -11,6 +11,13 @@
 */
 #include "magmasparse_internal.h"
 
+#ifdef HAVE_HIP
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#define hipblasDoubleComplex hipDoubleComplex
+
+#endif
+
+
 #if CUDA_VERSION >= 11000
 // todo: destroy descriptor and see if the original code descriptors have to be changed 
 #define cusparseZcsrmv(handle, op, rows, cols, nnz, alpha, descr, dval, drow, dcol, x, beta, y) \
@@ -155,8 +162,8 @@ magma_z_spmv(
                 CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
                                  
                 cusparseZcsrmv( cusparseHandle,CUSPARSE_OPERATION_NON_TRANSPOSE,
-                                A.num_rows, A.num_cols, A.nnz, &alpha, descr,
-                                A.dval, A.drow, A.dcol, x.dval, &beta, y.dval );
+                                A.num_rows, A.num_cols, A.nnz, (cuDoubleComplex*)&alpha, descr,
+                                (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)x.dval, (cuDoubleComplex*)&beta, (cuDoubleComplex*)y.dval );
             }
             else if ( A.storage_type == Magma_CSC )
             {
@@ -168,8 +175,8 @@ magma_z_spmv(
                 CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
                 
                 cusparseZcsrmv( cusparseHandle,CUSPARSE_OPERATION_TRANSPOSE,
-                              A.num_rows, A.num_cols, A.nnz, &alpha, descr,
-                              A.dval, A.drow, A.dcol, x.dval, &beta, y.dval );
+                              A.num_rows, A.num_cols, A.nnz, (cuDoubleComplex*)&alpha, descr,
+                              (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)x.dval, (cuDoubleComplex*)&beta, (cuDoubleComplex*)y.dval );
             }
             else if ( A.storage_type == Magma_ELL ) {
                 //printf("using ELLPACKT kernel for SpMV: ");
