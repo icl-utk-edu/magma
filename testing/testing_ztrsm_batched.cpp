@@ -207,12 +207,22 @@ int main( int argc, char** argv)
             magma_zset_pointer( d_B_array, d_B, lddb, 0, 0, lddb*N, batchCount, opts.queue );
 
             cublas_time = magma_sync_wtime( opts.queue );
+            #ifdef HAVE_CUBLAS
             cublasZtrsmBatched(
                 opts.handle, cublas_side_const(opts.side), cublas_uplo_const(opts.uplo),
                 cublas_trans_const(opts.transA), cublas_diag_const(opts.diag),
                 int(M), int(N), (const cuDoubleComplex*)&alpha,
                 (cuDoubleComplex* const*) d_A_array, int(ldda),
                 (      cuDoubleComplex**) d_B_array, int(lddb), int(batchCount) );
+            #else
+            hipblasZtrsmBatched(
+                opts.handle, cublas_side_const(opts.side), cublas_uplo_const(opts.uplo),
+                cublas_trans_const(opts.transA), cublas_diag_const(opts.diag),
+                int(M), int(N), (const hipblasDoubleComplex*)&alpha,
+                (hipblasDoubleComplex* const*) d_A_array, int(ldda),
+                (      hipblasDoubleComplex**) d_B_array, int(lddb), int(batchCount) );
+            #endif 
+
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
             cublas_perf = gflops / cublas_time;
 
