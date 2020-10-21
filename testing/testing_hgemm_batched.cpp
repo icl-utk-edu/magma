@@ -22,6 +22,13 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
+#ifdef HAVE_HIP
+/* need typedef */
+typedef unsigned short half;
+
+#endif
+
+
 #if CUDA_VERSION < 9020
 // conversion float to half are not defined for host in CUDA version <9.2
 // thus uses the conversion below when CUDA VERSION is < 9.2.
@@ -374,6 +381,8 @@ int main( int argc, char** argv)
             magma_hset_pointer( dC_array, dC, lddc, 0, 0, lddc*N,  batchCount, opts.queue );
 
             magma_time = magma_sync_wtime( opts.queue );
+            
+            /* right now, only cuda has the 'hgemm' functionality*/
             magmablas_hgemm_batched( 
                         opts.transA, opts.transB, 
                         M, N, K, 
@@ -388,14 +397,26 @@ int main( int argc, char** argv)
                Performs operation using CUBLAS
                =================================================================== */
             preprocess_matrix( M, batchCount*N,  hC, ldc, dC, lddc, opts.queue );
+            #ifdef HAVE_CUBLAS
             cublasSetMathMode(opts.handle, CUBLAS_TENSOR_OP_MATH);
-            
+            #else
+            /* HIP */
+            #endif            
+
             cublas_time = magma_sync_wtime( opts.queue );
+            #ifdef HAVE_CUBLAS
             cublasHgemmBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                int(M), int(N), int(K),
                                &alpha, (const magmaHalf**)dA_array, int(ldda),
                                        (const magmaHalf**)dB_array, int(lddb),
                                &beta,                     dC_array, int(lddc), int(batchCount) );
+            #else
+            hipblasHgemmBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
+                               int(M), int(N), int(K),
+                               (half*)&alpha, (const half**)dA_array, int(ldda),
+                                       (const half**)dB_array, int(lddb),
+                               (half*)&beta,             (half**)dC_array, int(lddc), int(batchCount) );
+            #endif
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
             cublas_perf = gflops / cublas_time;
             postprocess_matrix(M, batchCount*N, dC, lddc, hC_cublas, ldc, opts.queue );

@@ -703,6 +703,7 @@ subs = {
     ('cublasIs',       'cublasId',       'cublasIs',       'cublasId'        ),
     ('cublasIs',       'cublasId',       'cublasIc',       'cublasIz'        ),
     ('cublasS',        'cublasD',        'cublasC',        'cublasZ'         ),
+    ('hipblasS',       'hipblasD',       'hipblasC',       'hipblasZ'        ), # hipBLAS
     ('clblasiS',       'clblasiD',       'clblasiC',       'clblasiZ'        ),
     ('clblasS',        'clblasD',        'clblasC',        'clblasZ'         ),
     ('example_s',      'example_d',      'example_c',      'example_z'       ),

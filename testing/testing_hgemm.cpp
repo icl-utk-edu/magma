@@ -299,7 +299,8 @@ int main( int argc, char** argv)
             /* =====================================================================
                Performs operation using GPU
                =================================================================== */
-            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+            #if defined(HAVE_CUBLAS)
+                /* TODO: add support for HIP platform */
                 magma_flush_cache( opts.cache );
                 dev_time = magma_sync_wtime( opts.queue );
 

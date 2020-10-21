@@ -172,9 +172,15 @@ int main( int argc, char** argv)
 
             cublas_time = magma_sync_wtime( opts.queue );
             if (M == N ) {
+                #ifdef HAVE_CUBLAS
                 cublasZgetrfBatched( opts.handle, int(N),
                                      dA_array, int(ldda), dipiv_cublas,
                                      dinfo_cublas, int(batchCount) );
+                #else
+                hipblasZgetrfBatched( opts.handle, int(N),
+                                     (hipblasDoubleComplex**)dA_array, int(ldda), dipiv_cublas,
+                                     dinfo_cublas, int(batchCount) );
+                #endif    
             }
             else {
                 printf("M != N, CUBLAS required M == N; CUBLAS is disabled\n");

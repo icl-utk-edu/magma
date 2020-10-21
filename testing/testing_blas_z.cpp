@@ -61,6 +61,7 @@ int main( int argc, char** argv )
     magma_opts opts;
     opts.parse_opts( argc, argv );
     
+    #ifdef HAVE_CUBLAS 
     printf( "Compares magma wrapper function to cublas function; all diffs should be exactly 0.\n\n" );
     
     total_error = 0.;
@@ -451,7 +452,13 @@ int main( int argc, char** argv )
         magma_free( dC2 );
         fflush( stdout );
     }
+   
+    #else
     
+    printf("Not checking for exact error==0.0, since functions may not be direct wrappers on HIP\n");
+
+    #endif
+ 
     if ( total_error != 0. ) {
         printf( "total error %.2g -- ought to be 0 -- some test failed (see above).\n",
                 total_error );

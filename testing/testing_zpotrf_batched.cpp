@@ -16,8 +16,6 @@
 #include <string.h>
 #include <math.h>
 
-#include <cuda_runtime.h>  // cudaMemset
-
 // includes, project
 #include "flops.h"
 #include "magma_v2.h"
