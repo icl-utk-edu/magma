@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+
+{% block pagejs %}
+
+<script>
+    // TODO: use data table
+    var routines = ['internal error'];
+    window.onload = function() {
+        $.get(
+            "/list",
+            function(data) {
+                routines = data.split(",");
+                routines.sort();
+
+                var optstr = '<option val="">- CHOOSE -</option>';
+                for (var i = 0; i < routines.length; ++i) {
+                    optstr += '<option>' + routines[i] + '</option>';
+                }
+
+                sel = $('.selectpicker');
+                sel.append(optstr)
+                sel.selectpicker('refresh');
+                
+
+                $('.submit-button').click(function() {
+                    console.log('submit clicked');
+  
+                    var qstr = "", ct = 0;
+                    for (var i = 0; i < sel.length; ++i) {
+                        var v = $(sel[i]).selectpicker('val');
+                        if (v[0] != '-') {
+                            qstr += v + ',';
+                            ct++;
+                        }
+                    }
+                    if (ct == 0) {
+                        alert('Please select at least one routine!');
+                        return;
+                    }
+
+                    var relurl = "/get?routines=" + qstr;
+                    window.location.href = relurl;
+                    console.log('request: ', relurl);
+
+                    //window.location.replace("/get?routines=" + qstr);
+                });
+
+                /* select picker change */
+                function on_spc(e) {
+                    var v = this.value;
+                    if (v[0] == '-') {
+                        /* delete it */
+                        if (sel.length > 1) {
+                            console.log('del picker');
+                            $(this).selectpicker('destroy');
+                            this.remove();
+                            sel = $('.selectpicker');
+                        }
+                    } else {
+                        var had_space = false;
+                        for (var i = 0; i < sel.length; ++i) {
+                            if ($(sel[i]).selectpicker('val')[0] == '-') {
+                                had_space = true;
+                                break;
+                            }
+                        }
+                        if (!had_space) {
+                            console.log("new picker");
+                            for (var i = 0; i < routines.length; ++i) {
+                                sel.append('<option>' + routines[i] + '</option>')
+                            }
+
+                            $('.submit-button').before('<select class="selectpicker" data-live-search="true">' + optstr + '</select>');
+                            sel = $('.selectpicker');
+                        }
+                    }
+
+                    sel.off('change');
+                    sel.on('change', on_spc);
+                    sel.selectpicker('refresh');
+                }
+
+                sel.on('change', on_spc);
+
+            }
+        );
+
+    }
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+    <select class="selectpicker" data-live-search="true"></select>
+
+    <button id="submit-button" class="submit-button" >Submit</button>
+
+{% endblock %}
+

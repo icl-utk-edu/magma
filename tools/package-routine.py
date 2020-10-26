@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
 """ package-routine.py - package up a single routine into a distributable package
+See 'package-routine.web' for how to use multiple files together
 
 Example:
 
 $ ./tools/package-routine.py dgesv
 
-$ ./tools/package-routine.py dgesv sgeqrf
+$ ./tools/package-routine.py dgesv
 
 $ ./tools/package-routine.py -h
-
-
 
 """
 ## imports (all std)
 import argparse
+import io
 import os
 import glob
 import re
 import shutil
 import time
 import errno
+import tarfile
 
 # for 'blas' endings
 import magmasubs
@@ -27,114 +28,44 @@ import magmasubs
 # construct & parse given arguments
 parser = argparse.ArgumentParser(description='Package a single MAGMA routine into a folder')
 
-parser.add_argument('routines', nargs='+', help='Routines to package up (i.e. sgemm, dgemm, etc)')
-parser.add_argument('-o', '--output', default=None, help='Destination folder (leave empty for a default)')
+parser.add_argument('routine', help='Routine to package up (i.e. sgemm, dgemm, etc)')
+parser.add_argument('-o', '--output', default=None, help='Destination tar archive (leave empty for a default)')
 parser.add_argument('--interface', default='cuda', choices=['hip', 'cuda'], help='Which interface/backend to use?')
 
 args = parser.parse_args()
 
-# generate output directory
+if args.routine.startswith('magma'):
+    args.routine = args.routine
+else:
+    #pass
+    args.routine = 'magma_' + args.routine
+
+# generate output folder
 if not args.output:
-    args.output = "magma_pkg_" + args.interface + "_" + "_".join(args.routines)
+    args.output = "magma_" + args.interface + '_' + args.routine.replace('magmablas_', '').replace('magma_', '') + '.tar.gz'
 
-print (f"""Packaging routines: {args.routines} and storing in: {args.output}/""")
-
+print (f"""Packaging routine: {args.routine} and storing in: {args.output}""")
 
 # escape sequence, so it can be in an fstring
 _n = '\n'
 
-
-# string for the README file 
-README = f"""# MAGMA Packaged Routines
-
-Check the files:
-  * FUNCS.mf
-  * BLAS.mf
-  * WARNINGS.mf
-
-For the functions defined, blas still required, and warnings emitted. To use `cublas` as the blas, you will have to put lines like:
-
-```c
-```
-
-"""
-
-
 # Package for a given interface
 if args.interface == 'cuda':
-
-    README += f"""
-## Interface (CUDA)
-
-To build with CUDA, source files that end in `.cu` should be compiled with `nvcc`, i.e. the NVIDIA CUDA compiler. Given as makefile rules, you should have (approximately):
-
-(keep in mind, throughout these examples, that some variables are just illustrative; you will have to define or supplement them with the relevant files/definitions in your build system)
-
-```makefile
-
-# rule to compile single object file
-%.o: %.cu $(magma_H)
-\t$(NVCC) -std=c++11 $< -Xcompiler "-fPIC" -o $@
-
-```
-
-And, to compile MAGMA into your own library (say `libmine.so`), you would modify your existing rule:
-
-```makefile
-
-# rule to compile your library (including MAGMA objects from this folder)
-libmine.so: $(MAGMA_CU_O) $(MINE_C_O)
-\t$(CC) $^ -lcublas -lcusparse -lcudart -lcudadevrt -shared -o $@
-
-```
-
-Assuming `MAGMA_CU_O` are the object files from MAGMA, and `MINE_C_O` are the object files from your library, this should link them together and create your shared library
-
-
-"""
+    pass
 elif args.interface == 'hip':
-
-    README += f"""
-## Interface (HIP)
-
-To build with HIP, source files that end in `.hip.cpp` should be compiled with `hipcc`, i.e. the HIP device compiler.
-
-(keep in mind, throughout these examples, that some variables are just illustrative; you will have to define or supplement them with the relevant files/definitions in your build system)
-
-```makefile
-
-# rule to compile single object file
-%.o: %.cu $(magma_H)
-\t$(HIPCC) -DHAVE_HIP -std=c++11 -fno-gpu-rdc $< -fPIC -o $@
-
-```
-
-And, to compile MAGMA into your own library (say `libmine.so`), you would modify your existing rule:
-
-```makefile
-
-# rule to compile your library (including MAGMA objects from this folder)
-libmine.so: $(MAGMA_HIP_O) $(MINE_C_O)
-\t$(CC) $^ -lhipsparse -lhipblas -shared -o $@
-
-```
-
-Assuming `MAGMA_HIP_O` are the object files from MAGMA, and `MINE_C_O` are the object files from your library, this should link them together and create your shared library
-
-"""
-
+    pass
 else:
     raise Exception(f"Unknown interface requested: {args.interface}")
-
 
 
 # -*- Regex Definitions -*-
 
 # regex for calling a MAGMA function
-re_call = re.compile(r" *(magma(?:blas)?_\w+)\(")
+re_call = re.compile(r" *((?:magma(?:blas)?_|\w*_kernel)\w+)\s*(?:<<<.*>>>)?\s*\(")
 
 # regex for a function definition, i.e. not just a declaration (must be multiline due to how many functions are declared)
-re_funcdef = re.compile(r"(?:extern \"C\"|static inline)? ?\n?(?:[\w\* ]+ *?)\n?(magma(?:blas)?_\w+)( \n)*\([\w\[\]\* ,\n]*\)\n? *\n?\{", re.MULTILINE)
+#re_funcdef = re.compile(r"(?:extern \"C\"|static inline)? ?\n?(?:[\w\* ]+ *?)\n?(magma(?:blas)?_\w+)( \n)*\([\w\[\]\* ,\n]*\)\n? *\n?\{", re.MULTILINE)
+re_funcdef = re.compile(r"(?:extern \"C\"|static inline)? ?\n?[\w\* ]+\s+(\w+)( \n)*\([\w\[\]\* ,\n]*\)\n? *\n?\{", re.MULTILINE)
 
 # regex for a macro definition
 re_macdef = re.compile(r"#define  *(magma(?:blas)?_\w+)\(")
@@ -229,31 +160,37 @@ def p_file(fname, mode):
     if mode not in _p_files:
         _p_files[mode] = set()
     if fname in _p_files[mode]:
-        print ("Warning: file checked multiple times: ", fname)
+        #print ("Warning: file checked multiple times: ", fname)
+        pass
     print ("[", mode, "] Checking file:", fname, " " * 80, end='\r')
     _p_files[mode].add(fname)
 
 # -*- Search through routines -*-
 
 # attempt to resolve each one
-for func in args.routines:
-    funcs_requested.add("magma_" + func)
+for func in [args.routine]:
+    funcs_requested.add(func)
 
     ct = 0
+    fnm = func.replace('magmablas_', '').replace('magma_', '')
 
     # check a list of files
-    for fl in newfiles(f"src/{func}.cpp", f"src/{func}_gpu.cpp", f"src/{func}2.cpp", f"src/{func}2_mgpu"):
+    for fl in newfiles(f"src/{fnm}.cpp", f"src/{fnm}_gpu.cpp", f"src/{fnm}2.cpp", f"src/{fnm}2_mgpu", *allfiles):
         src = readall(fl)
 
-        ct += 1
-
         # add functions which were defined
-        funcs_defined.update(matches(re_funcdef, src))
+        defs = matches(re_funcdef, src)
+        if func in defs:
+            ct += 1
 
-        # add references to subroutines & other functions called
-        funcs_requested.update(matches(re_call, src))
+            funcs_defined.update(defs)
+            print (func, fl)
 
-        set_c.add(fl)
+            # add references to subroutines & other functions called
+            funcs_requested.update(matches(re_call, src))
+
+            set_c.add(fl)
+            break
 
     if ct < 1:
         raise Exception(f"Unknown routine '{func}'")
@@ -266,11 +203,11 @@ while needed_funcs():
     func = next(iter(needed_funcs()))
 
     # ensure it is a magma function
-    if 'magma' not in func:
+    if not ('magma' in func or '_kernel' in func):
         raise Exception(f"Need function '{func}', which is not part of MAGMA!")
 
     # turn it into just the MAGMA name (no prefix)
-    magma_name = func.replace('magma_', '')
+    magma_name = func.replace('magma_', '').replace('magmablas_', '')
 
     # iterate through files the routine probably needs
     for fl in newfiles(f"src/{magma_name}.cpp", f"src/{''.join([i for i in magma_name if not i.isdigit()])}.cpp"):
@@ -388,43 +325,89 @@ while keepGoing:
     set_c.update(new_includes)
     keepGoing = bool(new_includes)
 
-# -- Manifest Files --
-MF_FUNCS = "\n".join(funcs_defined)
-MF_WARNINGS = "\n".join(funcs_warn)
-MF_BLAS = "\n".join(blas_requested)
 
-TEST_C = f"""/* test.c - GENERATED test file to ensure magma compiles & can execute
- *
- * Generated by `package-routine.py`
- *
- * @author: Cade Brown <cade@utk.edu>
- */
- 
-#include <magma_v2.h>
-#include <stdio.h>
+# -*- Output -*-
 
-int main(int argc, char** argv) {{
-    // initialize
-    int st;
-    if ((st = magma_init()) != MAGMA_SUCCESS) {{
-        fprintf(stderr, "magma_init() failed! (code: %i)\\n", st);
-        return -1;
-    }}
-    
-    if ((st = magma_finalize()) != MAGMA_SUCCESS) {{
-        fprintf(stderr, "magma_finalize() failed! (code: %i)\\n", st);
-        
-        return -1;
-    }}
-    // success
-    return 0;
-}} 
+# make output tarfile
+tarcomp = args.output[args.output.rindex('.')+1:]
+tf = tarfile.open(args.output, 'w:' + tarcomp)
+
+def addfile(name, src):
+    bs = src.encode()
+    fp = io.BytesIO(bs)
+    info = tarfile.TarInfo(name)
+    info.size = len(bs)
+    fp.seek(0)
+    tf.addfile(info, fp)
+
+addfile('README.md', f"""# MAGMA Package Routine
+
+This is a generic README; check the `.mf` files (manifest files) for specific information about packaged routines.
+
+  * FUNCS.mf
+    * Contains a list of defined functions
+  * BLAS.mf
+    * Contains a list of required BLAS
+  * WARNINGS.mf
+    * Contains a list of possibly problematic functions
+
+## CUDA Interface
+
+To build with CUDA, source files that end in `.cu` should be compiled with `nvcc`, i.e. the NVIDIA CUDA compiler. Given as makefile rules, you should have (approximately):
+
+(keep in mind, throughout these examples, that some variables are just illustrative; you will have to define or supplement them with the relevant files/definitions in your build system)
+
+```makefile
+
+# rule to compile single object file
+%.o: %.cu $(magma_H)
+\t$(NVCC) -std=c++11 $< -Xcompiler "-fPIC" -o $@
+
+```
+
+And, to compile MAGMA into your own library (say `libmine.so`), you would modify your existing rule:
+
+```makefile
+
+# rule to compile your library (including MAGMA objects from this folder)
+libmine.so: $(MAGMA_CU_O) $(MINE_C_O)
+\t$(CC) $^ -lcublas -lcusparse -lcudart -lcudadevrt -shared -o $@
+
+```
+
+Assuming `MAGMA_CU_O` are the object files from MAGMA, and `MINE_C_O` are the object files from your library, this should link them together and create your shared library
+
+## HIP Interface
+
+To build with HIP, source files that end in `.hip.cpp` should be compiled with `hipcc`, i.e. the HIP device compiler.
+
+(keep in mind, throughout these examples, that some variables are just illustrative; you will have to define or supplement them with the relevant files/definitions in your build system)
+
+```makefile
+
+# rule to compile single object file
+%.o: %.cu $(magma_H)
+\t$(HIPCC) -DHAVE_HIP -std=c++11 -fno-gpu-rdc $< -fPIC -o $@
+
+```
+
+And, to compile MAGMA into your own library (say `libmine.so`), you would modify your existing rule:
+
+```makefile
+
+# rule to compile your library (including MAGMA objects from this folder)
+libmine.so: $(MAGMA_HIP_O) $(MINE_C_O)
+\t$(CC) $^ -lhipsparse -lhipblas -shared -o $@
+
+```
+
+Assuming `MAGMA_HIP_O` are the object files from MAGMA, and `MINE_C_O` are the object files from your library, this should link them together and create your shared library
+
+""")
 
 
-"""
 
-# string for `Makefile`
-MAKEFILE = f"""# -*- Makefile - generated by `package-routine.py`
+addfile('Makefile', f"""# -*- Makefile - generated by `package-routine.py`
 
 # variables
 NVCC       ?= nvcc
@@ -462,49 +445,41 @@ FORCE:
 
 .PHONY: default clean FORCE
 
-"""
+""")
+addfile('test.c', f"""/* test.c - GENERATED test file to ensure magma compiles & can execute
+ *
+ * Generated by `package-routine.py`
+ *
+ * @author: Cade Brown <cade@utk.edu>
+ */
+ 
+#include <magma_v2.h>
+#include <stdio.h>
 
+int main(int argc, char** argv) {{
+    // initialize
+    int st;
+    if ((st = magma_init()) != MAGMA_SUCCESS) {{
+        fprintf(stderr, "magma_init() failed! (code: %i)\\n", st);
+        return -1;
+    }}
+    
+    if ((st = magma_finalize()) != MAGMA_SUCCESS) {{
+        fprintf(stderr, "magma_finalize() failed! (code: %i)\\n", st);
+        
+        return -1;
+    }}
+    // success
+    return 0;
+}} 
 
-# -*- Output -*-
+""")
 
-# make the output
-try:
-    os.makedirs(args.output)
-except:
-    pass
-
-# write readme
-with open(f"{args.output}/README.md", 'w') as fp:
-    fp.write(README)
-
-# write makefile
-with open(f"{args.output}/Makefile", 'w') as fp:
-    fp.write(MAKEFILE)
-
-# write makefile
-with open(f"{args.output}/test.c", 'w') as fp:
-    fp.write(TEST_C)
-
-# write manifests
-with open(f"{args.output}/FUNCS.mf", 'w') as fp:
-    fp.write(MF_FUNCS)
-with open(f"{args.output}/WARNINGS.mf", 'w') as fp:
-    fp.write(MF_WARNINGS)
-with open(f"{args.output}/BLAS.mf", 'w') as fp:
-    fp.write(MF_BLAS)
-
-# copy a file, creating destination folder
-def copy(src, dst):
-    try:
-        os.makedirs(os.path.dirname(dst))
-    except OSError as exc: # Guard against race condition
-        if exc.errno != errno.EEXIST:
-            raise
-    shutil.copy(src, dst)
-
-# copy in everything
+addfile('FUNCS.mf', "\n".join(funcs_defined))
+addfile('WARNINGS.mf', "\n".join(funcs_warn))
+addfile('BLAS.mf', "\n".join(blas_requested))
 
 for fl in set_c:
-    copy(fl, f"{args.output}/{fl}")
+    addfile(fl, readall(fl))
 
-
+tf.close()

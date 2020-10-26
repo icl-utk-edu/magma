@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<!-- Head -->
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <title>MAGMA - Package Routines</title>
+    
+    <!-- Lib CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+
+    <!-- Lib JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
+
+    <!-- Site CSS -->
+    <style>
+        :root {
+            --col-bg0: #ffffff;
+            --col-bg1: #efefef;
+            --col-shadow: #aaaaaa;
+
+            --col-text: #000000;
+
+            --col-link: #366fca;
+        }
+        body {
+            margin: 1em;
+            line-height: 1.19rem;
+            font-size: 1.08rem;
+            background-color: var(--col-bg0);
+            color: var(--col-text);
+        }
+
+        hr {
+            border: 0;
+            clear:both;
+            display:block;
+            background-color: #333333;
+            height: 1px;
+        }
+
+        .main {
+            background-color: var(--col-bg1);
+            border-radius: 5px;
+            box-shadow: 4px 4px 7px var(--col-shadow);
+            padding: 1em;
+        }
+
+        .submit-button {
+            width: 9em;
+            height: 3em;
+            margin: 0.8em;
+            display:block;
+            background-color: #DDDDDD;
+        }
+
+        @media screen and (min-width: 992px) {
+            body {
+                margin: 1em 12vw;
+            }
+        }
+    </style>
+
+    <!-- Site JS -->
+    {% block pagejs %}{% endblock %}
+
+    </script>
+
+</head>
+
+<!-- Body -->
+<body>
+<div class="main">
+    <header>
+        <h1><a href='.'>MAGMA -- Package Routine</a></h1>
+    </header>
+<hr>
+
+    {% block content %}{% endblock %}
+
+<hr>
+    <p><small><i>MAGMA Package Routine script. Contact: <a href="mailto:cade@utk.edu">Cade Brown &lt;cade@utk.edu&gt;</a></i></small></p>
+</div>
+</body>
+</html>
