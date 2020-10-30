@@ -32,6 +32,12 @@ So, to build the library and a tester, run :
 
 # Known Problems
 
+## `sparse` library / hipSPARSE support
+
+In general, the sparse library on the HIP backend does not work right now. We aren't sure what the solution is yet, but for now you cannot build it.
+
+So, don't run `make sparse` or `make all`. You should use `make lib`, and `make test`.
+
 ## `libhip_hcc.so not found`
 Sometimes, you get a list of errors like
 
