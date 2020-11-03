@@ -21,6 +21,8 @@
 #include "magma_operators.h"  // for MAGMA_Z_DIV
 #include "testings.h"
 
+#include <cuda_runtime.h>     // cudaMemset
+
 /******************************************************************************/
 // Initialize matrix to random.
 // This ensures the same ISEED is always used,
@@ -787,7 +789,40 @@ int main( int argc, char** argv)
                 gpu_time = magma_wtime();
                 magma_zhetrf_nopiv_gpu( opts.uplo, N, d_A, ldda, &info);
                 gpu_time = magma_wtime() - gpu_time;
+
+                /*
+                for(int ll=0; ll<N; ll++){
+                    if (ll<200)
+                        h_A[ll+ll*lda] = 0.;
+                    else if (ll<500)
+                        h_A[ll+ll*lda] = 1.;
+                    else
+                        h_A[ll+ll*lda] = -1.;
+                }
+                magma_dsetmatrix(N, N, h_A, lda, d_A, ldda, opts.queue );
+                */
+
+                int *dinert, inert[3];
+                TESTING_CHECK( magma_malloc((void**)&dinert, 3*sizeof(int)) );
+
+                magmablas_zdiinertia(N, d_A, ldda, dinert, opts.queue );
+                magma_getvector( 3, sizeof(int), dinert, 1, inert, 1, opts.queue );
+                magma_free( dinert );
+                printf("inertia: positive / negative / zero = %d / %d / %d\n",
+                       inert[0], inert[1], inert[2]);
+
+                inert[0] = inert[1] = inert[2] = 0;
                 magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
+                for(int ll=0; ll<N; ll++){
+                    if (MAGMA_Z_REAL(h_A[ll+ll*lda])>0.)
+                        inert[0]++;
+                    else if (MAGMA_Z_REAL(h_A[ll+ll*lda])<0.)
+                        inert[1]++;
+                    else
+                        inert[2]++;
+                }
+                printf("inertia: positive / negative / zero = %d / %d / %d\n",
+                       inert[0], inert[1], inert[2]);
                 magma_free( d_A );
             }
             else if (gpu) {

@@ -201,6 +201,7 @@ magma_zheevdx_gpu(
 {
     const char* uplo_  = lapack_uplo_const( uplo  );
     const char* jobz_  = lapack_vec_const( jobz  );
+    const char* range_ = lapack_range_const( range );
     magma_int_t ione = 1;
 
     double d__1;
@@ -314,15 +315,35 @@ magma_zheevdx_gpu(
         magmaDoubleComplex *A;
         magma_zmalloc_cpu( &A, lda*n );
         magma_zgetmatrix( n, n, dA, ldda, A, lda, queue );
-        lapackf77_zheevd( jobz_, uplo_,
-                          &n, A, &lda,
-                          w, work, &lwork,
-                          rwork, &lrwork,
-                          iwork, &liwork, info );
+
+        double abstol = 2 * lapackf77_dlamch("Safe minimum");
+        magma_int_t ldz = lda;
+        double* lapack_rwork;
+        magma_int_t* lapack_iwork;
+        magma_int_t* ifail;
+        magmaDoubleComplex* Z;
+        magma_dmalloc_cpu(&lapack_rwork, 7*n);
+        magma_imalloc_cpu(&lapack_iwork, 5*n);
+        magma_imalloc_cpu(&ifail, n);
+        magma_zmalloc_cpu(&Z, n*ldz);
+        lapackf77_zheevx(jobz_, range_, uplo_,
+                         &n, A, &lda, &vl, &vu, &il, &iu, &abstol, mout,
+                         w, Z, &ldz, work, &lwork,
+                         #ifdef COMPLEX
+                         lapack_rwork,
+                         #endif
+                         lapack_iwork, ifail, info);
+        if( wantz ) {
+            lapackf77_zlacpy(MagmaFullStr, &n, mout, Z, &ldz, A, &lda);
+        }
+        magma_free_cpu(lapack_rwork);
+        magma_free_cpu(lapack_iwork);
+        magma_free_cpu(ifail);
+        magma_free_cpu(Z);
+
         magma_zsetmatrix( n, n, A, lda, dA, ldda, queue );
         magma_free_cpu( A );
         magma_queue_destroy( queue );
-        *mout = n;
         return *info;
     }
 

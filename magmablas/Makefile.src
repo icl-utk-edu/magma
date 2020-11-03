@@ -26,6 +26,7 @@ hdr += \
 libmagma_src += \
 	$(cdir)/zaxpycp.cu		\
 	$(cdir)/zcaxpycp.cu		\
+        $(cdir)/zdiinertia.cu           \
 	$(cdir)/zgeadd.cu		\
 	$(cdir)/zgeadd2.cu		\
         $(cdir)/zgeam.cu                \

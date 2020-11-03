@@ -69,6 +69,20 @@ void   lapackf77_zhet21( const magma_int_t *itype, const char *uplo,
                          double *result )
                          { printf( format, __func__ ); }
 
+void   lapackf77_zhet22( const magma_int_t *itype, const char *uplo,
+                         const magma_int_t *n,  const magma_int_t *m, const magma_int_t *kband,
+                         magmaDoubleComplex *A, const magma_int_t *lda,
+                         double *d, double *e,
+                         magmaDoubleComplex *U, const magma_int_t *ldu,
+                         magmaDoubleComplex *V, const magma_int_t *ldv,
+                         magmaDoubleComplex *tau,
+                         magmaDoubleComplex *work,
+                         #ifdef COMPLEX
+                         double *rwork,
+                         #endif
+                         double *result )
+                         { printf( format, __func__ ); }
+
 void   lapackf77_zhst01( const magma_int_t *n, const magma_int_t *ilo, const magma_int_t *ihi,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *H, const magma_int_t *ldh,

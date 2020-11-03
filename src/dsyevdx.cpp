@@ -174,6 +174,7 @@ magma_dsyevdx(
 {
     const char* uplo_  = lapack_uplo_const( uplo  );
     const char* jobz_  = lapack_vec_const( jobz  );
+    const char* range_  = lapack_range_const( range );
     magma_int_t ione = 1;
     magma_int_t izero = 0;
     double d_one = 1.;
@@ -285,10 +286,24 @@ magma_dsyevdx(
         printf("  warning matrix too small N=%lld NB=%lld, calling lapack on CPU\n", (long long) n, (long long) nb );
         printf("--------------------------------------------------------------\n");
         #endif
-        lapackf77_dsyevd(jobz_, uplo_,
-                         &n, A, &lda,
-                         w, work, &lwork,
-                         iwork, &liwork, info);
+        double abstol = 2 * lapackf77_dlamch("Safe minimum");
+        magma_int_t* lapack_iwork;
+        magma_int_t ldz = lda;
+        magma_int_t* ifail;
+        double* Z;
+        magma_imalloc_cpu(&lapack_iwork, 5*n);
+        magma_imalloc_cpu(&ifail, n);
+        magma_dmalloc_cpu(&Z, n*ldz);
+        lapackf77_dsyevx(jobz_, range_, uplo_,
+                         &n, A, &lda, &vl, &vu, &il, &iu, &abstol, m,
+                         w, Z, &ldz, work, &lwork,
+                         lapack_iwork, ifail, info);
+        if( wantz ) {
+            lapackf77_dlacpy(MagmaFullStr, &n, m, Z, &ldz, A, &lda);
+        }
+        magma_free_cpu(lapack_iwork);
+        magma_free_cpu(ifail);
+        magma_free_cpu(Z);
         return *info;
     }
 

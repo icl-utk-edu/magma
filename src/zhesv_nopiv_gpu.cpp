@@ -18,8 +18,7 @@
         A * X = B
     where A is an n-by-n Hermitian matrix and X and B are n-by-nrhs matrices.
     The LU decomposition with no pivoting is
-    used to factor A as
-    The factorization has the form
+    used to factor A as:
         A = U^H * D * U,  if UPLO = MagmaUpper, or
         A = L  * D * L^H, if UPLO = MagmaLower,
     where U is an upper triangular matrix, L is lower triangular, and
@@ -46,8 +45,7 @@
     @param[in,out]
     dA      COMPLEX_16 array, dimension (ldda,n).
             On entry, the n-by-n matrix to be factored.
-            On exit, the factors L and U from the factorization
-            A = L*U; the unit diagonal elements of L are not stored.
+            On exit, the factors L/U and the diagonal D from the factorization.
 
     @param[in]
     ldda    INTEGER

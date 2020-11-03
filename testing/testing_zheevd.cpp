@@ -81,6 +81,7 @@ int main( int argc, char** argv)
         for( int iter = 0; iter < opts.niter; ++iter ) {
             N = opts.nsize[itest];
             lda = N;
+            Nfound = N;
             abstol = 0;  // auto, in zheevr
             
             magma_range_t range;
@@ -98,6 +99,13 @@ int main( int argc, char** argv)
                               #endif
                               aux_iwork, -1,
                               &info );
+                if( opts.version == 2 && opts.jobz == MagmaNoVec ) {
+                    // For LAPACK test using zheevx.
+                    #ifdef COMPLEX
+                    aux_rwork[0] = double(7*N);
+                    #endif
+                    aux_iwork[0] = double(5*N);
+                }
             }
             else if ( opts.version == 3 ) {
                 #ifdef COMPLEX
@@ -150,16 +158,16 @@ int main( int argc, char** argv)
             
             TESTING_CHECK( magma_zmalloc_pinned( &h_R,    N*lda  ));
             TESTING_CHECK( magma_zmalloc_pinned( &h_work, lwork  ));
-            
+
+            if (opts.version == 2 || opts.version == 4) {
+                TESTING_CHECK( magma_zmalloc_cpu( &h_Z,    N*lda      ));
+                TESTING_CHECK( magma_imalloc_cpu( &ifail,  N          ));
+            }
             if (opts.version == 3) {
                 TESTING_CHECK( magma_zmalloc_cpu( &h_Z,    N*lda      ));
                 TESTING_CHECK( magma_imalloc_cpu( &isuppz, 2*max(1,N) ));
             }
-            if (opts.version == 4) {
-                TESTING_CHECK( magma_zmalloc_cpu( &h_Z,    N*lda      ));
-                TESTING_CHECK( magma_imalloc_cpu( &ifail,  N          ));
-            }
-            
+
             /* Clear eigenvalues, for |S-S_magma| check when fraction < 1. */
             lapackf77_dlaset( "Full", &N, &ione, &d_zero, &d_zero, w1, &N );
             lapackf77_dlaset( "Full", &N, &ione, &d_zero, &d_zero, w2, &N );
@@ -269,7 +277,8 @@ int main( int argc, char** argv)
                 /* =====================================================================
                    Check the results following the LAPACK's [zcds]drvst routine.
                    A is factored as A = U S U^H and the following 3 tests computed:
-                   (1)    | A - U S U^H | / ( |A| N )
+                   (1)    | A - U S U^H | / ( |A| N ) if all eigenvectors were computed
+                          | U^H A U - S | / ( |A| Nfound ) otherwise
                    (2)    | I - U^H U   | / ( N )
                    (3)    | S(with U) - S(w/o U) | / | S |    // currently disabled, but compares to LAPACK
                    =================================================================== */
@@ -277,16 +286,29 @@ int main( int argc, char** argv)
                 TESTING_CHECK( magma_zmalloc_cpu( &work, 2*N*N ));
                 
                 // e is unused since kband=0; tau is unused since itype=1
-                lapackf77_zhet21( &ione, lapack_uplo_const(opts.uplo), &N, &izero,
-                                  h_A, &lda,
-                                  w1, runused,
-                                  h_R, &lda,
-                                  h_R, &lda,
-                                  unused, work,
-                                  #ifdef COMPLEX
-                                  rwork,
-                                  #endif
-                                  &result[0] );
+                if( Nfound == N ) {
+                    lapackf77_zhet21( &ione, lapack_uplo_const(opts.uplo), &N, &izero,
+                                      h_A, &lda,
+                                      w1, runused,
+                                      h_R, &lda,
+                                      h_R, &lda,
+                                      unused, work,
+                                      #ifdef COMPLEX
+                                      rwork,
+                                      #endif
+                                      &result[0] );
+                } else {
+                    lapackf77_zhet22( &ione, lapack_uplo_const(opts.uplo), &N, &Nfound, &izero,
+                                      h_A, &lda,
+                                      w1, runused,
+                                      h_R, &lda,
+                                      h_R, &lda,
+                                      unused, work,
+                                      #ifdef COMPLEX
+                                      rwork,
+                                      #endif
+                                      &result[0] );
+                }
                 result[0] *= eps;
                 result[1] *= eps;
                 
@@ -324,7 +346,7 @@ int main( int argc, char** argv)
                =================================================================== */
             if ( opts.lapack ) {
                 cpu_time = magma_wtime();
-                if ( opts.version == 1 || opts.version == 2 ) {
+                if ( opts.version == 1 ) {
                     lapackf77_zheevd( lapack_vec_const(opts.jobz), lapack_uplo_const(opts.uplo),
                                       &N, h_A, &lda, w2,
                                       h_work, &lwork,
@@ -333,6 +355,23 @@ int main( int argc, char** argv)
                                       #endif
                                       iwork, &liwork,
                                       &info );
+                }
+                else if ( opts.version == 2 || opts.version == 4 ) {
+                    lapackf77_zheevx( lapack_vec_const(opts.jobz),
+                                      lapack_range_const(range),
+                                      lapack_uplo_const(opts.uplo),
+                                      &N, h_A, &lda,
+                                      &vl, &vu, &il, &iu, &abstol,
+                                      &Nfound, w2,
+                                      h_Z, &lda,
+                                      h_work, &lwork,
+                                      #ifdef COMPLEX
+                                      rwork,
+                                      #endif
+                                      iwork,
+                                      ifail,
+                                      &info );
+                    lapackf77_zlacpy( "Full", &N, &N, h_Z, &lda, h_A, &lda );
                 }
                 else if ( opts.version == 3 ) {
                     lapackf77_zheevr( lapack_vec_const(opts.jobz),
@@ -350,23 +389,6 @@ int main( int argc, char** argv)
                                       &info );
                     lapackf77_zlacpy( "Full", &N, &N, h_Z, &lda, h_A, &lda );
                 }
-                else if ( opts.version == 4 ) {
-                    lapackf77_zheevx( lapack_vec_const(opts.jobz),
-                                      lapack_range_const(range),
-                                      lapack_uplo_const(opts.uplo),
-                                      &N, h_A, &lda,
-                                      &vl, &vu, &il, &iu, &abstol,
-                                      &Nfound, w2,
-                                      h_Z, &lda,
-                                      h_work, &lwork,
-                                      #ifdef COMPLEX
-                                      rwork,
-                                      #endif
-                                      iwork,
-                                      ifail,
-                                      &info );
-                    lapackf77_zlacpy( "Full", &N, &N, h_Z, &lda, h_A, &lda );
-                }
                 cpu_time = magma_wtime() - cpu_time;
                 if (info != 0) {
                     printf("lapackf77_zheevd returned error %lld: %s.\n",
@@ -375,7 +397,7 @@ int main( int argc, char** argv)
                 
                 // compare eigenvalues
                 double maxw=0, diff=0;
-                for( int j=0; j < N; j++ ) {
+                for( int j=0; j < Nfound; j++ ) {
                     maxw = max(maxw, fabs(w1[j]));
                     maxw = max(maxw, fabs(w2[j]));
                     diff = max(diff, fabs(w1[j] - w2[j]));
@@ -417,7 +439,7 @@ int main( int argc, char** argv)
                 magma_free_cpu( h_Z    );
                 magma_free_cpu( isuppz );
             }
-            if ( opts.version == 4 ) {
+            if ( opts.version == 2 || opts.version == 4 ) {
                 magma_free_cpu( h_Z    );
                 magma_free_cpu( ifail  );
             }

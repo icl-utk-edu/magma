@@ -47,6 +47,7 @@ liblapacktest_src += \
 	$(cdir)/zbdt01.f  \
 	$(cdir)/zget22.f  \
 	$(cdir)/zhet21.f  \
+	$(cdir)/zhet22.f  \
 	$(cdir)/zhst01.f  \
 	$(cdir)/zunt01.f  \
 	$(cdir)/zqpt01.f  \
@@ -57,6 +58,7 @@ liblapacktest_src += \
 	$(cdir)/cbdt01.f  \
 	$(cdir)/cget22.f  \
 	$(cdir)/chet21.f  \
+	$(cdir)/chet22.f  \
 	$(cdir)/chst01.f  \
 	$(cdir)/cunt01.f  \
 	$(cdir)/cqpt01.f  \
@@ -67,6 +69,7 @@ liblapacktest_src += \
 	$(cdir)/dbdt01.f  \
 	$(cdir)/dget22.f  \
 	$(cdir)/dsyt21.f  \
+	$(cdir)/dsyt22.f  \
 	$(cdir)/dhst01.f  \
 	$(cdir)/dort01.f  \
 	$(cdir)/dqpt01.f  \
@@ -77,6 +80,7 @@ liblapacktest_src += \
 	$(cdir)/sbdt01.f  \
 	$(cdir)/sget22.f  \
 	$(cdir)/ssyt21.f  \
+	$(cdir)/ssyt22.f  \
 	$(cdir)/shst01.f  \
 	$(cdir)/sort01.f  \
 	$(cdir)/sqpt01.f  \
