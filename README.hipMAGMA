@@ -32,6 +32,15 @@ So, to build the library and a tester, run :
 
 # Known Problems
 
+## OpenMP support
+
+In general, HIP frontend (clang) support for OpenMP is iffy, `-fopenmp` has not always worked well. Sometimes, in `make.inc` we had to include `FOPENMP     = -fopenmp -L$(HIPDIR)/../aomp/lib -I$(HIPDIR)/../aomp/include`
+
+Relevant Link(s):
+  * https://rocmdocs.amd.com/en/latest/Current_Release_Notes/Current-Release-Notes.html#auxiliary-package-supporting-openmp
+  * https://github.com/CEED/libCEED/issues/654
+
+
 ## `sparse` library / hipSPARSE support
 
 In general, the sparse library on the HIP backend does not work right now. We aren't sure what the solution is yet, but for now you cannot build it.
