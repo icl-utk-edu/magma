@@ -55,16 +55,16 @@
         hipDoubleComplex *B;                                                                     \
         size_t bufsize;                                                                         \
         void *buf;                                                                              \
-        cusparseZcsrsm2_bufferSizeExt(handle, 0, op, HIPSPARSE_OPERATION_NON_TRANSPOSE,         \
+        hipsparseZcsrsm2_bufferSizeExt(handle, 0, op, HIPSPARSE_OPERATION_NON_TRANSPOSE,         \
                                       rows, 1, nnz, (const hipDoubleComplex *)&alpha,           \
                                       descrA, (const hipDoubleComplex *)dval, (const int *)drow, (const int *)dcol,  \
-                                      (const hipDoubleComplex *)B, rows, info, CUSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize); \
+                                      (const hipDoubleComplex *)B, rows, info, HIPSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize); \
         if (bufsize > 0)                                                                        \
            magma_malloc(&buf, bufsize);                                                         \
-        cusparseZcsrsm2_analysis(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE,               \
+        hipsparseZcsrsm2_analysis(handle, 0, op, HIPSPARSE_OPERATION_NON_TRANSPOSE,               \
                                  rows, 1, nnz, (const hipDoubleComplex *)&alpha,                 \
                                  descrA, (const hipDoubleComplex *)dval, drow, dcol,            \
-                                 B, rows, info, CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);           \
+                                 B, rows, info, HIPSPARSE_SOLVE_POLICY_NO_LEVEL, buf);           \
         if (bufsize > 0)                                                                        \
            magma_free(buf);                                                                     \
     }
@@ -115,13 +115,13 @@
     {                                                                                           \
         size_t bufsize;                                                                         \
         void *buf;                                                                              \
-        cusparseZcsrsm2_bufferSizeExt(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE,          \
+        hipsparseZcsrsm2_bufferSizeExt(handle, 0, op, HIPSPARSE_OPERATION_NON_TRANSPOSE,          \
                                       rows, cols, nnz, (const hipDoubleComplex*)alpha, descrA, (const hipDoubleComplex*)dval, drow, dcol,         \
-                                      (hipDoubleComplex*)b, ldb, info, CUSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \ 
+                                      (hipDoubleComplex*)b, ldb, info, HIPSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \ 
         magma_malloc(&buf, bufsize);                                                            \
-        cusparseZcsrsm2_solve(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE, rows, cols, nnz, \
+        hipsparseZcsrsm2_solve(handle, 0, op, HIPSPARSE_OPERATION_NON_TRANSPOSE, rows, cols, nnz, \
                               (const hipDoubleComplex*)alpha, descrA, (const hipDoubleComplex*)dval, drow, dcol, (hipDoubleComplex*)b, ldb, info,                    \
-                              CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                             \
+                              HIPSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                             \
         magmablas_zlacpy( MagmaFull, rows, cols, b, ldb, x, ldx, queue );                       \
         magma_free(buf);                                                                        \
     }
@@ -161,18 +161,18 @@
         int bufsize;                                                                            \
         void *buf;                                                                              \
         csric02Info_t linfo;                                                                    \
-        cusparseCreateCsric02Info(&linfo);                                                      \
-        cusparseZcsric02_bufferSize(handle, rows, nnz, descrA, (hipDoubleComplex*)dval, drow, dcol,linfo,&bufsize);\
+        hipsparseCreateCsric02Info(&linfo);                                                      \
+        hipsparseZcsric02_bufferSize(handle, rows, nnz, descrA, (hipDoubleComplex*)dval, drow, dcol,linfo,&bufsize);\
         if (bufsize > 0)                                                                        \
            magma_malloc(&buf, bufsize);                                                         \
-        cusparseZcsric02_analysis(handle, rows, nnz, descrA, (hipDoubleComplex*)dval, drow, dcol, linfo,           \
-                                  CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                         \
+        hipsparseZcsric02_analysis(handle, rows, nnz, descrA, (hipDoubleComplex*)dval, drow, dcol, linfo,           \
+                                  HIPSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                         \
         int numerical_zero;                                                                     \
-        if (CUSPARSE_STATUS_ZERO_PIVOT ==                                                       \
-            cusparseXcsric02_zeroPivot( handle, linfo, &numerical_zero ))                       \
+        if (HIPSPARSE_STATUS_ZERO_PIVOT ==                                                       \
+            hipsparseXcsric02_zeroPivot( handle, linfo, &numerical_zero ))                       \
             printf("A(%d,%d) is missing\n", numerical_zero, numerical_zero);                    \
-        cusparseZcsric02(handle, rows, nnz, descrA, (hipDoubleComplex*)dval, drow, dcol, linfo,                    \
-                         CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                                  \
+        hipsparseZcsric02(handle, rows, nnz, descrA, (hipDoubleComplex*)dval, drow, dcol, linfo,                    \
+                         HIPSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                                  \
         if (bufsize > 0)                                                                        \
            magma_free(buf);                                                                     \
     } 
