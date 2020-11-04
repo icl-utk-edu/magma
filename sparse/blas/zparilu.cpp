@@ -13,7 +13,7 @@
 
 #define PRECISION_z
 
-#if CUDA_VERSION >= 11000
+#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
 #define cusparseCreateSolveAnalysisInfo(info) cusparseCreateCsrsm2Info(info)
 #else
 #define cusparseCreateSolveAnalysisInfo(info)                                                   \
@@ -34,6 +34,22 @@
            magma_malloc(&buf, bufsize);                                                         \
         cusparseZcsrsv2_analysis(handle, trans, m, nnz, descr, val, row, col, linfo,            \
                                  CUSPARSE_SOLVE_POLICY_USE_LEVEL, buf);                         \
+        if (bufsize > 0)                                                                        \
+           magma_free(buf);                                                                     \
+    }
+#elif defined(HAVE_HIP)
+#define cusparseZcsrsv_analysis(handle, trans, m, nnz, descr, val, row, col, info)              \
+    {                                                                                           \
+        csrsv2Info_t linfo = 0;                                                                 \
+        int bufsize;                                                                            \
+        void *buf;                                                                              \
+        hipsparseCreateCsrsv2Info(&linfo);                                                       \
+        hipsparseZcsrsv2_bufferSize(handle, trans, m, nnz, descr, (hipDoubleComplex*)val, row, col,                 \
+                                   linfo, &bufsize);                                            \
+        if (bufsize > 0)                                                                        \
+           magma_malloc(&buf, bufsize);                                                         \
+        hipsparseZcsrsv2_analysis(handle, trans, m, nnz, descr, (hipDoubleComplex*)val, row, col, linfo,            \
+                                 HIPSPARSE_SOLVE_POLICY_USE_LEVEL, buf);                         \
         if (bufsize > 0)                                                                        \
            magma_free(buf);                                                                     \
     }
