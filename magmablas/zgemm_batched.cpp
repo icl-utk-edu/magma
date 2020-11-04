@@ -73,7 +73,7 @@ magma_zgemm_batched_core(
             cublasZgemmBatched(
                     queue->cublas_handle(), cublas_trans_const(transA), cublas_trans_const(transB),
                     int(m), int(n), int(k),
-                    (BackendFloat_t*)&alpha, (BackendFloat_t**)dA_array, int(ldda),
+                    (BackendFloat_t*)&alpha, (const BackendFloat_t**)dA_array, int(ldda),
                             (const BackendFloat_t**)dB_array, int(lddb),
                     (BackendFloat_t*)&beta,  (BackendFloat_t**)dC_array, int(lddc), int(batchCount) );
         }
@@ -90,7 +90,7 @@ magma_zgemm_batched_core(
                 cublasZgemmBatched(
                         queue->cublas_handle(), cublas_trans_const(transA), cublas_trans_const(transB),
                         int(m), int(n), int(k),
-                        (BackendFloat_t*)&alpha, (BackendFloat_t**)dAarray, int(ldda),
+                        (BackendFloat_t*)&alpha, (const BackendFloat_t**)dAarray, int(ldda),
                                 (const BackendFloat_t**)dBarray, int(lddb),
                         (BackendFloat_t*)&beta,  (BackendFloat_t**)dCarray, int(lddc), int(batch) );
             }
