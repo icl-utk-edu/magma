@@ -21,8 +21,6 @@
 #include "magma_operators.h"  // for MAGMA_Z_DIV
 #include "testings.h"
 
-#include <cuda_runtime.h>     // cudaMemset
-
 /******************************************************************************/
 // Initialize matrix to random.
 // This ensures the same ISEED is always used,
