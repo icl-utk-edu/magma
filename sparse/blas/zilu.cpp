@@ -92,7 +92,24 @@
 #endif
 
 
-#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
+#if CUDA_VERSION >= 11000 
+#define cusparseZcsrsm_solve(handle, op, rows, cols, nnz, alpha, descrA, dval, drow, dcol,      \
+                             info, b, ldb, x, ldx )                                             \
+    {                                                                                           \
+        size_t bufsize;                                                                         \
+        void *buf;                                                                              \
+        cusparseZcsrsm2_bufferSizeExt(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE,          \
+                                      rows, cols, nnz, alpha, descrA, dval, drow, dcol,         \
+                                      b, ldb, info, CUSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \ 
+        magma_malloc(&buf, bufsize);                                                            \
+        cusparseZcsrsm2_solve(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE, rows, cols, nnz, \
+                              alpha, descrA, dval, drow, dcol, b, ldb, info,                    \
+                              CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                             \
+        magmablas_zlacpy( MagmaFull, rows, cols, b, ldb, x, ldx, queue );                       \
+        magma_free(buf);                                                                        \
+    }
+
+#elif defined(HAVE_HIP) 
 #define cusparseZcsrsm_solve(handle, op, rows, cols, nnz, alpha, descrA, dval, drow, dcol,      \
                              info, b, ldb, x, ldx )                                             \
     {                                                                                           \
@@ -107,7 +124,8 @@
                               CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                             \
         magmablas_zlacpy( MagmaFull, rows, cols, b, ldb, x, ldx, queue );                       \
         magma_free(buf);                                                                        \
-    }  
+    }
+
 #else
 #define cusparseZcsrsm_solve(handle, op, rows, cols, nnz, alpha, descrA, dval, drow, dcol,      \
                              info, b, ldb, x, ldx )                                             \
@@ -116,7 +134,28 @@
 #endif 
 
 // todo: info is passed from analysis; to change info with this linfo & remove linfo from here
-#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
+#if CUDA_VERSION >= 11000
+#define cusparseZcsric0(handle, op, rows, nnz, descrA, dval, drow, dcol, info )                 \
+    {                                                                                           \
+        int bufsize;                                                                            \
+        void *buf;                                                                              \
+        csric02Info_t linfo;                                                                    \
+        cusparseCreateCsric02Info(&linfo);                                                      \
+        cusparseZcsric02_bufferSize(handle, rows, nnz, descrA, dval, drow, dcol,linfo,&bufsize);\
+        if (bufsize > 0)                                                                        \
+           magma_malloc(&buf, bufsize);                                                         \
+        cusparseZcsric02_analysis(handle, rows, nnz, descrA, dval, drow, dcol, linfo,           \
+                                  CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                         \
+        int numerical_zero;                                                                     \
+        if (CUSPARSE_STATUS_ZERO_PIVOT ==                                                       \
+            cusparseXcsric02_zeroPivot( handle, linfo, &numerical_zero ))                       \
+            printf("A(%d,%d) is missing\n", numerical_zero, numerical_zero);                    \
+        cusparseZcsric02(handle, rows, nnz, descrA, dval, drow, dcol, linfo,                    \
+                         CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                                  \
+        if (bufsize > 0)                                                                        \
+           magma_free(buf);                                                                     \
+    }
+#elif defined(HAVE_HIP)
 #define cusparseZcsric0(handle, op, rows, nnz, descrA, dval, drow, dcol, info )                 \
     {                                                                                           \
         int bufsize;                                                                            \
@@ -364,8 +403,8 @@ magma_zcumilusetup(
             #else
             cusparseZcsr2csc(cusparseHandle, hU.num_cols, 
                              hU.num_rows, hU.nnz,
-                             (hipDoubleComplex*)hU.dval, hU.drow, hU.dcol, 
-                             (hipDoubleComplex*)precond->U.dval, precond->U.dcol, precond->U.drow,
+                             hU.dval, hU.drow, hU.dcol, 
+                             precond->U.dval, precond->U.dcol, precond->U.drow,
                              CUSPARSE_ACTION_NUMERIC,
                              CUSPARSE_INDEX_BASE_ZERO);
             #endif
