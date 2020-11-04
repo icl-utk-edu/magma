@@ -150,7 +150,7 @@ CPPFLAGS   = $(INC) $(MAGMA_INC)
 # where testers look for MAGMA libraries
 RPATH      = -Wl,-rpath,${abspath ./lib}
 
-codegen    = python3 tools/codegen.py
+codegen    = ./tools/codegen.py
 
 ifeq ($(BACKEND),cuda)
 
@@ -656,7 +656,7 @@ sparse/src:     $(sparse_src_obj)
 sparse/testing: $(sparse_testers)
 
 run_test: test
-	cd testing && python3 ./run_tests.py
+	cd testing && ./run_tests.py
 
 # ----------
 # sub-directory clean
@@ -742,23 +742,8 @@ sparse/testing/clean:
 %.$(o_ext): %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-# use `hipcc` for all .cpp's. It may be a bit slower (althought I haven't tested it)
-# but there's no good way to tell whether or not it fails for some reason. (buggy
-# hipcc is probably the culprit)
-%.o: %.cpp
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
-	@#$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-# assume C++ for headers; needed for Fortran wrappers
-%.i: %.h
-	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-%.i: %.c
-	$(CC) -E $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-%.i: %.cpp
-	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
-
+ifeq ($(BACKEND),cuda)
 
 # ------------------------------------------------------------------------------
 # DEVICE kernels
@@ -775,6 +760,36 @@ endif
 
 %.$(o_ext): %.$(d_ext)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+
+else ifeq ($(BACKEND),hip)
+
+# use `hipcc` for all .cpp's. It may be a bit slower (althought I haven't tested it)
+# but there's no good way to tell whether or not it fails for some reason. (buggy
+# hipcc is probably the culprit)
+%.o: %.cpp
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+	
+endif
+
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+	
+
+# assume C++ for headers; needed for Fortran wrappers
+%.i: %.h
+	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+%.i: %.c
+	$(CC) -E $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+%.i: %.cpp
+	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+
+
+
 
 
 ifeq ($(BACKEND),cuda)
