@@ -40,8 +40,10 @@ void init_matrix(
     magma_generate_matrix( opts, m, n, A, lda );
 
     // copy src column into dst col
-    for(magma_int_t ic = 0; ic < n; ic++) {
-        A[ic * lda + dst_row] = A[ic * lda + src_row];
+    for(magma_int_t ir = dst_row; ir < m; ir++) {
+        for(magma_int_t ic = 0; ic < n; ic++) {
+            A[ic * lda + ir] = A[ic * lda + src_row];
+        }
     }
 
     // restore iseed
