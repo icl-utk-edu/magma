@@ -29,8 +29,8 @@ void init_matrix(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex *A, magma_int_t lda )
 {
-    const int src_col = 0;
-    const int dst_col = 10;
+    const int src_row = 0;
+    const int dst_row = 10;
 
     magma_int_t iseed_save[4];
     for (magma_int_t i = 0; i < 4; ++i) {
@@ -40,8 +40,8 @@ void init_matrix(
     magma_generate_matrix( opts, m, n, A, lda );
 
     // copy src column into dst col
-    for(magma_int_t ir = 0; ir < m; ir++) {
-        A[dst_col * lda + ir] = A[src_col * lda + ir];
+    for(magma_int_t ic = 0; ic < n; ic++) {
+        A[ic * lda + dst_row] = A[ic * lda + src_row];
     }
 
     // restore iseed
