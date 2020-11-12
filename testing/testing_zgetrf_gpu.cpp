@@ -29,6 +29,7 @@ void init_matrix(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex *A, magma_int_t lda )
 {
+    //static int f = 0;
     const int src_row = 0;
     const int dst_row = 10;
 
@@ -39,12 +40,18 @@ void init_matrix(
 
     magma_generate_matrix( opts, m, n, A, lda );
 
+    A[ 7 * lda +  7] = MAGMA_Z_ZERO;
+    A[17 * lda + 17] = MAGMA_Z_ZERO;
     // copy src column into dst col
-    for(magma_int_t ir = dst_row; ir < m; ir++) {
-        for(magma_int_t ic = 0; ic < n; ic++) {
-            A[ic * lda + ir] = A[ic * lda + src_row];
-        }
-    }
+    //for(magma_int_t ir = dst_row; ir < m; ir++) {
+    //    for(magma_int_t ic = 0; ic < n; ic++) {
+    //        A[ic * lda + ir] = A[ic * lda + src_row];
+    //    }
+    //}
+    //if(f == 0) {
+    //    magma_zprint(m, n, A, lda);
+    //    f = 1;
+    //}
 
     // restore iseed
     for (magma_int_t i = 0; i < 4; ++i) {
@@ -226,6 +233,8 @@ int main( int argc, char** argv)
                     printf("lapackf77_zgetrf returned error %lld: %s.\n",
                            (long long) info, magma_strerror( info ));
                 }
+                //printf("Acpu = \n");
+                //magma_zprint(M, N, h_A, lda);
             }
 
             /* ====================================================================
@@ -256,6 +265,9 @@ int main( int argc, char** argv)
                 printf("magma_zgetrf_gpu returned error %lld: %s.\n",
                        (long long) info, magma_strerror( info ));
             }
+
+            //printf("Amagma = \n");
+            //magma_zprint_gpu(M, N, d_A, ldda, opts.queue);
 
             /* =====================================================================
                Check the factorization
