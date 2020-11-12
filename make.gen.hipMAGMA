@@ -26,8 +26,7 @@ ODIRS             := interface_hip magmablas_hip sparse_hip/src sparse_hip/inclu
 
 
 
-
-interface_hip: $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*.cpp)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*.h)) $(patsubst interface_cuda/%.cu,interface_hip/%.hip.cpp,$(wildcard interface_cuda/*.cu)) $(patsubst interface_cuda/%.cuh,interface_hip/%.hip.hpp,$(wildcard interface_cuda/*.cuh)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/Makefil*)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*_config)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*.f90 interface_cuda/*.F90)) FORCE
+interface_hip: $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*.cpp)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*.h)) $(patsubst interface_cuda/%.cu,interface_hip/%.hip.cpp,$(wildcard interface_cuda/*.cu)) $(patsubst interface_cuda/%.cuh,interface_hip/%.hip.hpp,$(wildcard interface_cuda/*.cuh)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/Makefil*)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*_config)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*.f90 interface_cuda/*.F90))
 
 interface_hip/%.cpp: interface_cuda/%.cpp
 	@mkdir -p $(dir $@)
@@ -77,7 +76,7 @@ interface_hip/Makefil%: interface_cuda/Makefil%
 
 
 
-magmablas_hip: $(patsubst magmablas/%,magmablas_hip/%,$(wildcard magmablas/*.cpp)) $(patsubst magmablas/%,magmablas_hip/%,$(wildcard magmablas/*.h)) $(patsubst magmablas/%.cu,magmablas_hip/%.hip.cpp,$(wildcard magmablas/*.cu)) $(patsubst magmablas/%.cuh,magmablas_hip/%.hip.hpp,$(wildcard magmablas/*.cuh)) $(patsubst magmablas/%,magmablas_hip/%,$(wildcard magmablas/Makefil*)) $(patsubst magmablas/%,magmablas_hip/%,$(wildcard magmablas/*_config)) $(patsubst magmablas/%,magmablas_hip/%,$(wildcard magmablas/*.f90 magmablas/*.F90)) FORCE
+magmablas_hip: $(patsubst magmablas/%,magmablas_hip/%,$(wildcard magmablas/*.cpp)) $(patsubst magmablas/%,magmablas_hip/%,$(wildcard magmablas/*.h)) $(patsubst magmablas/%.cu,magmablas_hip/%.hip.cpp,$(wildcard magmablas/*.cu)) $(patsubst magmablas/%.cuh,magmablas_hip/%.hip.hpp,$(wildcard magmablas/*.cuh)) $(patsubst magmablas/%,magmablas_hip/%,$(wildcard magmablas/Makefil*)) $(patsubst magmablas/%,magmablas_hip/%,$(wildcard magmablas/*_config)) $(patsubst magmablas/%,magmablas_hip/%,$(wildcard magmablas/*.f90 magmablas/*.F90))
 
 magmablas_hip/%.cpp: magmablas/%.cpp
 	@mkdir -p $(dir $@)
@@ -127,7 +126,7 @@ magmablas_hip/Makefil%: magmablas/Makefil%
 
 
 
-sparse_hip/src: $(patsubst sparse/src/%,sparse_hip/src/%,$(wildcard sparse/src/*.cpp)) $(patsubst sparse/src/%,sparse_hip/src/%,$(wildcard sparse/src/*.h)) $(patsubst sparse/src/%.cu,sparse_hip/src/%.hip.cpp,$(wildcard sparse/src/*.cu)) $(patsubst sparse/src/%.cuh,sparse_hip/src/%.hip.hpp,$(wildcard sparse/src/*.cuh)) $(patsubst sparse/src/%,sparse_hip/src/%,$(wildcard sparse/src/Makefil*)) $(patsubst sparse/src/%,sparse_hip/src/%,$(wildcard sparse/src/*_config)) $(patsubst sparse/src/%,sparse_hip/src/%,$(wildcard sparse/src/*.f90 sparse/src/*.F90)) FORCE
+sparse_hip/src: $(patsubst sparse/src/%,sparse_hip/src/%,$(wildcard sparse/src/*.cpp)) $(patsubst sparse/src/%,sparse_hip/src/%,$(wildcard sparse/src/*.h)) $(patsubst sparse/src/%.cu,sparse_hip/src/%.hip.cpp,$(wildcard sparse/src/*.cu)) $(patsubst sparse/src/%.cuh,sparse_hip/src/%.hip.hpp,$(wildcard sparse/src/*.cuh)) $(patsubst sparse/src/%,sparse_hip/src/%,$(wildcard sparse/src/Makefil*)) $(patsubst sparse/src/%,sparse_hip/src/%,$(wildcard sparse/src/*_config)) $(patsubst sparse/src/%,sparse_hip/src/%,$(wildcard sparse/src/*.f90 sparse/src/*.F90))
 
 sparse_hip/src/%.cpp: sparse/src/%.cpp
 	@mkdir -p $(dir $@)
@@ -177,7 +176,7 @@ sparse_hip/src/Makefil%: sparse/src/Makefil%
 
 
 
-sparse_hip/include: $(patsubst sparse/include/%,sparse_hip/include/%,$(wildcard sparse/include/*.cpp)) $(patsubst sparse/include/%,sparse_hip/include/%,$(wildcard sparse/include/*.h)) $(patsubst sparse/include/%.cu,sparse_hip/include/%.hip.cpp,$(wildcard sparse/include/*.cu)) $(patsubst sparse/include/%.cuh,sparse_hip/include/%.hip.hpp,$(wildcard sparse/include/*.cuh)) $(patsubst sparse/include/%,sparse_hip/include/%,$(wildcard sparse/include/Makefil*)) $(patsubst sparse/include/%,sparse_hip/include/%,$(wildcard sparse/include/*_config)) $(patsubst sparse/include/%,sparse_hip/include/%,$(wildcard sparse/include/*.f90 sparse/include/*.F90)) FORCE
+sparse_hip/include: $(patsubst sparse/include/%,sparse_hip/include/%,$(wildcard sparse/include/*.cpp)) $(patsubst sparse/include/%,sparse_hip/include/%,$(wildcard sparse/include/*.h)) $(patsubst sparse/include/%.cu,sparse_hip/include/%.hip.cpp,$(wildcard sparse/include/*.cu)) $(patsubst sparse/include/%.cuh,sparse_hip/include/%.hip.hpp,$(wildcard sparse/include/*.cuh)) $(patsubst sparse/include/%,sparse_hip/include/%,$(wildcard sparse/include/Makefil*)) $(patsubst sparse/include/%,sparse_hip/include/%,$(wildcard sparse/include/*_config)) $(patsubst sparse/include/%,sparse_hip/include/%,$(wildcard sparse/include/*.f90 sparse/include/*.F90))
 
 sparse_hip/include/%.cpp: sparse/include/%.cpp
 	@mkdir -p $(dir $@)
@@ -227,7 +226,7 @@ sparse_hip/include/Makefil%: sparse/include/Makefil%
 
 
 
-sparse_hip/control: $(patsubst sparse/control/%,sparse_hip/control/%,$(wildcard sparse/control/*.cpp)) $(patsubst sparse/control/%,sparse_hip/control/%,$(wildcard sparse/control/*.h)) $(patsubst sparse/control/%.cu,sparse_hip/control/%.hip.cpp,$(wildcard sparse/control/*.cu)) $(patsubst sparse/control/%.cuh,sparse_hip/control/%.hip.hpp,$(wildcard sparse/control/*.cuh)) $(patsubst sparse/control/%,sparse_hip/control/%,$(wildcard sparse/control/Makefil*)) $(patsubst sparse/control/%,sparse_hip/control/%,$(wildcard sparse/control/*_config)) $(patsubst sparse/control/%,sparse_hip/control/%,$(wildcard sparse/control/*.f90 sparse/control/*.F90)) FORCE
+sparse_hip/control: $(patsubst sparse/control/%,sparse_hip/control/%,$(wildcard sparse/control/*.cpp)) $(patsubst sparse/control/%,sparse_hip/control/%,$(wildcard sparse/control/*.h)) $(patsubst sparse/control/%.cu,sparse_hip/control/%.hip.cpp,$(wildcard sparse/control/*.cu)) $(patsubst sparse/control/%.cuh,sparse_hip/control/%.hip.hpp,$(wildcard sparse/control/*.cuh)) $(patsubst sparse/control/%,sparse_hip/control/%,$(wildcard sparse/control/Makefil*)) $(patsubst sparse/control/%,sparse_hip/control/%,$(wildcard sparse/control/*_config)) $(patsubst sparse/control/%,sparse_hip/control/%,$(wildcard sparse/control/*.f90 sparse/control/*.F90))
 
 sparse_hip/control/%.cpp: sparse/control/%.cpp
 	@mkdir -p $(dir $@)
@@ -277,7 +276,7 @@ sparse_hip/control/Makefil%: sparse/control/Makefil%
 
 
 
-sparse_hip/blas: $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/blas/*.cpp)) $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/blas/*.h)) $(patsubst sparse/blas/%.cu,sparse_hip/blas/%.hip.cpp,$(wildcard sparse/blas/*.cu)) $(patsubst sparse/blas/%.cuh,sparse_hip/blas/%.hip.hpp,$(wildcard sparse/blas/*.cuh)) $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/blas/Makefil*)) $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/blas/*_config)) $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/blas/*.f90 sparse/blas/*.F90)) FORCE
+sparse_hip/blas: $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/blas/*.cpp)) $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/blas/*.h)) $(patsubst sparse/blas/%.cu,sparse_hip/blas/%.hip.cpp,$(wildcard sparse/blas/*.cu)) $(patsubst sparse/blas/%.cuh,sparse_hip/blas/%.hip.hpp,$(wildcard sparse/blas/*.cuh)) $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/blas/Makefil*)) $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/blas/*_config)) $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/blas/*.f90 sparse/blas/*.F90))
 
 sparse_hip/blas/%.cpp: sparse/blas/%.cpp
 	@mkdir -p $(dir $@)
@@ -327,7 +326,7 @@ sparse_hip/blas/Makefil%: sparse/blas/Makefil%
 
 
 
-sparse_hip/testing: $(patsubst sparse/testing/%,sparse_hip/testing/%,$(wildcard sparse/testing/*.cpp)) $(patsubst sparse/testing/%,sparse_hip/testing/%,$(wildcard sparse/testing/*.h)) $(patsubst sparse/testing/%.cu,sparse_hip/testing/%.hip.cpp,$(wildcard sparse/testing/*.cu)) $(patsubst sparse/testing/%.cuh,sparse_hip/testing/%.hip.hpp,$(wildcard sparse/testing/*.cuh)) $(patsubst sparse/testing/%,sparse_hip/testing/%,$(wildcard sparse/testing/Makefil*)) $(patsubst sparse/testing/%,sparse_hip/testing/%,$(wildcard sparse/testing/*_config)) $(patsubst sparse/testing/%,sparse_hip/testing/%,$(wildcard sparse/testing/*.f90 sparse/testing/*.F90)) FORCE
+sparse_hip/testing: $(patsubst sparse/testing/%,sparse_hip/testing/%,$(wildcard sparse/testing/*.cpp)) $(patsubst sparse/testing/%,sparse_hip/testing/%,$(wildcard sparse/testing/*.h)) $(patsubst sparse/testing/%.cu,sparse_hip/testing/%.hip.cpp,$(wildcard sparse/testing/*.cu)) $(patsubst sparse/testing/%.cuh,sparse_hip/testing/%.hip.hpp,$(wildcard sparse/testing/*.cuh)) $(patsubst sparse/testing/%,sparse_hip/testing/%,$(wildcard sparse/testing/Makefil*)) $(patsubst sparse/testing/%,sparse_hip/testing/%,$(wildcard sparse/testing/*_config)) $(patsubst sparse/testing/%,sparse_hip/testing/%,$(wildcard sparse/testing/*.f90 sparse/testing/*.F90))
 
 sparse_hip/testing/%.cpp: sparse/testing/%.cpp
 	@mkdir -p $(dir $@)
@@ -377,7 +376,7 @@ sparse_hip/testing/Makefil%: sparse/testing/Makefil%
 
 
 
-sparse_hip: $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.cpp)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.h)) $(patsubst sparse/%.cu,sparse_hip/%.hip.cpp,$(wildcard sparse/*.cu)) $(patsubst sparse/%.cuh,sparse_hip/%.hip.hpp,$(wildcard sparse/*.cuh)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/Makefil*)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*_config)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.f90 sparse/*.F90)) FORCE
+sparse_hip: $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.cpp)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.h)) $(patsubst sparse/%.cu,sparse_hip/%.hip.cpp,$(wildcard sparse/*.cu)) $(patsubst sparse/%.cuh,sparse_hip/%.hip.hpp,$(wildcard sparse/*.cuh)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/Makefil*)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*_config)) $(patsubst sparse/%,sparse_hip/%,$(wildcard sparse/*.f90 sparse/*.F90))
 
 sparse_hip/%.cpp: sparse/%.cpp
 	@mkdir -p $(dir $@)

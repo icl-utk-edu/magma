@@ -53,7 +53,9 @@ ifeq ($(BACKEND),cuda)
     DEVCC = $(NVCC)
 else ifeq ($(BACKEND),hip)
     DEVCC = $(HIPCC)
-	include make.gen.hipMAGMA
+    include make.gen.hipMAGMA
+    lib: magmablas_hip interface_hip
+
     # if we are using HIP, make sure generated sources are up to date
     # Technically, this 'recursive' make which we don't like to do, but also this is a simple solution
     #   that allows that file to handle all code generation
@@ -301,6 +303,10 @@ ifeq ($(BACKEND),cuda)
 	subdirs += testing
 	subdirs += magmablas
 
+    # add all sparse folders
+	# Don't do it for HIP yet
+    subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
+
 else ifeq ($(BACKEND),hip)
 	SPARSE_DIR ?= ./sparse_hip
 	subdirs += interface_hip
@@ -308,8 +314,7 @@ else ifeq ($(BACKEND),hip)
 	subdirs += testing
 endif
 
-# add all sparse folders
-subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
+
 
 
 Makefiles := $(addsuffix /Makefile.src, $(subdirs))
