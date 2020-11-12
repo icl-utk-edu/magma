@@ -180,21 +180,21 @@ ifeq ($(BACKEND),cuda)
 		CUDA_ARCH_ += sm_80
 	endif
 
-	
-	# Remember to add to CMakeLists.txt too!
 
-	# Next, add compile options for specific smXX
-	# sm_xx is binary, compute_xx is PTX for forward compatability
-	# MIN_ARCH is lowest requested version
-	#          Use it ONLY in magma_print_environment; elsewhere use __CUDA_ARCH__ or magma_getdevice_arch()
-	# NV_SM    accumulates sm_xx for all requested versions
-	# NV_COMP  is compute_xx for highest requested version
-	#
-	# See also $(info compile for ...) in Makefile
+        # Remember to add to CMakeLists.txt too!
 
-	## Suggestion by Mark (from SLATE)
-	# Valid architecture numbers
-	# TODO: remove veryold ones?
+        # Next, add compile options for specific smXX
+        # sm_xx is binary, compute_xx is PTX for forward compatability
+        # MIN_ARCH is lowest requested version
+        #          Use it ONLY in magma_print_environment; elsewhere use __CUDA_ARCH__ or magma_getdevice_arch()
+        # NV_SM    accumulates sm_xx for all requested versions
+        # NV_COMP  is compute_xx for highest requested version
+        #
+        # See also $(info compile for ...) in Makefile
+
+        ## Suggestion by Mark (from SLATE)
+        # Valid architecture numbers
+        # TODO: remove veryold ones?
     VALID_SMS = 30 32 35 37 50 52 53 60 61 62 70 72 75 80
 
     # code=sm_XX is binary, code=compute_XX is PTX
@@ -223,7 +223,7 @@ ifeq ($(BACKEND),cuda)
 	ifeq ($(MIN_ARCH),)
 		$(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
 	endif
-	
+
 	DEVCCFLAGS += -DHAVE_CUDA -DHAVE_CUBLAS -DMIN_CUDA_ARCH=$(MIN_ARCH)
 
 
@@ -234,9 +234,9 @@ ifeq ($(BACKEND),cuda)
 	CXXFLAGS  += -DHAVE_CUDA -DHAVE_CUBLAS
 else ifeq ($(BACKEND),hip)
 
-	# ------------------------------------------------------------------------------
-	# hipcc backend
-	# Source: https://llvm.org/docs/AMDGPUUsage.html#target-triples
+        # ------------------------------------------------------------------------------
+        # hipcc backend
+        # Source: https://llvm.org/docs/AMDGPUUsage.html#target-triples
 
     #TODO: make a bunch of loops like those above for the nvidia architectures
     # right now, targets should be set in make.inc
@@ -303,7 +303,6 @@ else ifeq ($(BACKEND),hip)
 	subdirs += interface_hip
 	subdirs += magmablas_hip
 	subdirs += testing
-	#subdirs += testing_hip
 endif
 
 # add all sparse folders
@@ -761,6 +760,8 @@ endif
 %.$(o_ext): %.$(d_ext)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 else ifeq ($(BACKEND),hip)
 
@@ -769,13 +770,9 @@ else ifeq ($(BACKEND),hip)
 # hipcc is probably the culprit)
 %.o: %.cpp
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
-	
+
 endif
 
-
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
-	
 
 # assume C++ for headers; needed for Fortran wrappers
 %.i: %.h
@@ -901,7 +898,7 @@ install_dirs:
 	mkdir -p $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)/pkgconfig
 
 install: lib sparse-lib install_dirs
-	# MAGMA
+        # MAGMA
 	cp include/*.h         $(DESTDIR)$(prefix)/include
 	cp include/*.mod       $(DESTDIR)$(prefix)/include
 	cp sparse/include/*.h  $(DESTDIR)$(prefix)/include
@@ -909,7 +906,7 @@ install: lib sparse-lib install_dirs
 	${MAKE} pkgconfig
 
 pkgconfig:
-	# pkgconfig
+        # pkgconfig
 	mkdir -p $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)/pkgconfig
 	cat lib/pkgconfig/magma.pc.in                   | \
 	sed -e s:@INSTALL_PREFIX@:"$(prefix)":          | \
