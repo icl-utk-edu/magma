@@ -53,6 +53,7 @@ ifeq ($(BACKEND),cuda)
     DEVCC = $(NVCC)
 else ifeq ($(BACKEND),hip)
     DEVCC = $(HIPCC)
+	include make.gen.hipMAGMA
     # if we are using HIP, make sure generated sources are up to date
     # Technically, this 'recursive' make which we don't like to do, but also this is a simple solution
     #   that allows that file to handle all code generation

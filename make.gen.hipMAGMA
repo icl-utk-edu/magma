@@ -11,14 +11,14 @@ ODIRS             := interface_hip magmablas_hip sparse_hip/src sparse_hip/inclu
 
 # -- Rules --
 
-all: $(ODIRS)
+#all: $(ODIRS)
 
-clean: FORCE
-	rm -rf $(wildcard $(ODIRS))
+#clean: FORCE
+#	rm -rf $(wildcard $(ODIRS))
 
-FORCE:
+#FORCE:
 
-.PHONY: all clean FORCE $(ODIRS)
+#.PHONY: all clean FORCE $(ODIRS)
 
 
 # -- Generated --
