@@ -19,7 +19,7 @@
 #endif
 
 #if HAVE_HIP
-#include <hip_fp16.h>
+#include <hip/hip_fp16.h>
 #endif
 
 // includes, project
