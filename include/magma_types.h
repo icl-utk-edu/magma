@@ -130,7 +130,11 @@ typedef double real_Double_t;
     }
     #endif
 #elif defined(HAVE_HIP)
-   
+
+    // default to HCC
+    #if !defined(__HIP_PLATFORM_HCC__) && !defined(__HIP_PLATFORM_NVCC)
+      #define __HIP_PLATFORM_HCC__
+    #endif
     // the standard HIP header, similar to CUDA's 'cuda.h'
     #include <hip/hip_runtime.h> 
 

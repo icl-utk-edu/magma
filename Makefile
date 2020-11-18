@@ -816,7 +816,6 @@ sparse/testing/clean:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
-ifeq ($(BACKEND),cuda)
 
 # ------------------------------------------------------------------------------
 # DEVICE kernels
@@ -826,27 +825,36 @@ ifeq ($(BACKEND),cuda)
 d_ext := cu
 else ifeq ($(BACKEND),hip)
 d_ext := hip.cpp
+CXXFLAGS += -D__HIP_PLATFORM_HCC__
 endif
 
+
+ifeq ($(BACKEND),cuda)
+
 %.i: %.$(d_ext)
-	$(DEVCC) -E $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(DEVCC) -E $(DEVCCFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 %.$(o_ext): %.$(d_ext)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(DEVCC) $(DEVCCFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 else ifeq ($(BACKEND),hip)
 
+%.hip.o: %.$(d_ext)
+	$(DEVCC) $(DEVCCFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
 # use `hipcc` for all .cpp's. It may be a bit slower (althought I haven't tested it)
 # but there's no good way to tell whether or not it fails for some reason. (buggy
 # hipcc is probably the culprit)
-%.o: %.cpp
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+#%.o: %.cpp
+#	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 endif
-
 
 # assume C++ for headers; needed for Fortran wrappers
 %.i: %.h
@@ -857,10 +865,6 @@ endif
 
 %.i: %.cpp
 	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-
-
-
 
 
 ifeq ($(BACKEND),cuda)
