@@ -21,10 +21,9 @@ FORCE:
 .PHONY: all clean FORCE $(ODIRS)
 
 
+sparse_hip: sparse_hip/src sparse_hip/include sparse_hip/control sparse_hip/blas sparse_hip/testing sparse_hip
+
 # -- Generated --
-
-
-
 
 interface_hip: $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*.cpp)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*.h)) $(patsubst interface_cuda/%.cu,interface_hip/%.hip.cpp,$(wildcard interface_cuda/*.cu)) $(patsubst interface_cuda/%.cuh,interface_hip/%.hip.hpp,$(wildcard interface_cuda/*.cuh)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/Makefil*)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*_config)) $(patsubst interface_cuda/%,interface_hip/%,$(wildcard interface_cuda/*.f90 interface_cuda/*.F90))
 

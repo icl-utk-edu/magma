@@ -60,7 +60,11 @@ else ifeq ($(BACKEND),hip)
     # Another reason is that I don't want to flood the namespace (for example, that file also 
     #   defines an 'all' and 'clean' target as phonies)
     # So, in the future that whole file may be integrated, but for now this seems simplest
-    tmp := $(shell $(MAKE) -f make.gen.hipMAGMA)
+	# Detect number of jobs here, so it runs at an appropriate speed
+    MAKE_PID := $(shell echo $$PPID)
+    JOB_FLAG := $(filter -j%, $(subst -j ,-j,$(shell ps T | grep "^\s*$(MAKE_PID).*$(MAKE)")))
+    JOBS     := $(subst -j,,$(JOB_FLAG))
+    tmp := $(shell $(MAKE) -j$(JOBS) -f make.gen.hipMAGMA 1>&2)
 else
     $(warning BACKEND: $(BACKEND) not recognized)
 endif
@@ -235,16 +239,80 @@ ifeq ($(BACKEND),cuda)
 	CXXFLAGS  += -DHAVE_CUDA -DHAVE_CUBLAS
 else ifeq ($(BACKEND),hip)
 
-        # ------------------------------------------------------------------------------
-        # hipcc backend
-        # Source: https://llvm.org/docs/AMDGPUUsage.html#target-triples
+	# ------------------------------------------------------------------------------
+	# hipcc backend
+	# Source: https://llvm.org/docs/AMDGPUUsage.html#target-triples
 
-    #TODO: make a bunch of loops like those above for the nvidia architectures
-    # right now, targets should be set in make.inc
-    # Compiler has problems recognizing these architectures and there is no 
-    # difference in performance if recognized; need more investigation; remove for now
-    #DEVCCFLAGS += $(foreach target,$(GPU_TARGET),--amdgpu-target=$(target))
-    #DEVCCFLAGS += --amdgpu-target=gfx900
+	# Filter our human readable names and replace with numeric names
+	HIP_ARCH_ := $(GPU_TARGET)
+	ifneq ($(findstring kaveri, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx700
+	endif
+	ifneq ($(findstring hawaii, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx701
+	endif
+	ifneq ($(findstring kabini, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx703
+	endif
+	ifneq ($(findstring mullins, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx703
+	endif
+	ifneq ($(findstring bonaire, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx704
+	endif
+	ifneq ($(findstring carrizo, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx801
+	endif
+	ifneq ($(findstring iceland, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx802
+	endif
+	ifneq ($(findstring tonga, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx802
+	endif
+	ifneq ($(findstring fiji, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx803
+	endif
+	# These are in the documentation, and the leftmost column *seems* like a continuation
+	#   of gfx803
+	ifneq ($(findstring polaris10, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx803
+	endif
+	ifneq ($(findstring polaris11, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx803
+	endif
+
+	ifneq ($(findstring tongapro, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx805
+	endif
+	ifneq ($(findstring stoney, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx810
+	endif
+
+    ## Suggestion by Mark (from SLATE)
+    # Valid architecture numbers
+    # TODO: remove veryold ones?
+    VALID_GFXS = 600 601 602 700 701 702 703 704 705 801 802 803 805 810 900 902 904 906 908 909 90c 1010 1011 1012 1030 1031 1032 1033
+
+
+	# Generated GFX option
+    TARGET_GFX      = --amdgpu-target=gfx$(gfx)
+
+    # Get gencode options for all sm_XX in cuda_arch_.
+    AMD_GFX    := $(filter %, $(foreach gfx, $(VALID_GFXS),$(if $(findstring gfx$(gfx), $(HIP_ARCH_)),$(TARGET_GFX))))
+
+    ifeq ($(AMD_GFX),)
+        $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of the targets for AMDGPUs (https://llvm.org/docs/AMDGPUUsage.html#target-triples), or valid gfx[0-9][0-9][0-9][0-9]?. Please edit your make.inc file)
+    else
+    endif
+
+    # Use all sm_XX (binary), and the last compute_XX (PTX) for forward compatibility.
+    DEVCCFLAGS += $(AMD_GFX)
+
+    # Get first (minimum) architecture
+    MIN_ARCH := $(wordlist 1, 1, $(foreach gfx, $(VALID_GFXS),$(if $(findstring gfx$(gfx), $(HIP_ARCH_)),$(gfx))))
+	ifeq ($(MIN_ARCH),)
+		$(error GPU_TARGET, currently $(GPU_TARGET), did not contain a minimum arch)
+	endif
 
     # just so we know
     CFLAGS     += -DHAVE_HIP
