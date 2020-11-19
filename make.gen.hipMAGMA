@@ -12,9 +12,10 @@ ODIRS             := interface_hip magmablas_hip # sparse_hip/src sparse_hip/inc
 # -- Rules --
 
 all: $(ODIRS)
+	@:
 
 clean: FORCE
-#	rm -rf $(wildcard $(ODIRS))
+	rm -rf $(wildcard $(ODIRS))
 
 FORCE:
 

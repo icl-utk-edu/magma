@@ -94,8 +94,9 @@ FPIC        = -fPIC
 # use -fopenmp to support openmp builds
 # comment out to build without openmp support
 # NOTE: For some reason, using `-fopenmp` is not enough to add linker flags to 
-#   the compiler, so we need to add -L here too
-FOPENMP     = 
+#   the compiler sometimes, so we need to add -L here too if there are problems
+FOPENMP     = -fopenmp
+#FOPENMP     = 
 #FOPENMP     = -fopenmp -L$(HIPDIR)/../aomp/lib -I$(HIPDIR)/../aomp/include
 
 # now, generate our flags
