@@ -75,10 +75,10 @@ izamax_kernel_batched(int length, int chunk, magmaDoubleComplex **x_array, int x
 {
     /* MERGE: different branches used .x and .z as batch ID  */
     extern __shared__ double sdata[];
-    
+
     const int batchid = blockIdx.x;
    // const int batchid = blockIdx.z;
-    
+
     magmaDoubleComplex *x_start = x_array[batchid] + xj * lda + xi;
     const magmaDoubleComplex *x = &(x_start[step + step * lda]);
 
@@ -105,7 +105,7 @@ izamax_kernel_native(int length, int chunk, magmaDoubleComplex_ptr x, int incx,
                      int step, int lda, magma_int_t* ipiv, magma_int_t *info, int gbstep)
 {
     extern __shared__ double sdata[];
-    
+
     const int tx = threadIdx.x;
     x += step * lda + step;
 
@@ -253,7 +253,7 @@ magma_izamax_native( magma_int_t length,
         magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv+step );
 
         cublasSetPointerMode(queue->cublas_handle(), ptr_mode);
-    #elif defined(HAVE_HIPBLAS)
+    #elif defined(HAVE_HIP)
         hipblasPointerMode_t ptr_mode;
         hipblasGetPointerMode(queue->hipblas_handle(), &ptr_mode);
         hipblasSetPointerMode(queue->hipblas_handle(), CUBLAS_POINTER_MODE_DEVICE);
@@ -637,7 +637,7 @@ void zgetf2trsm_kernel_batched(int ib, int n, magmaDoubleComplex **dA_array, int
 {
 
     extern __shared__ magmaDoubleComplex shared_data[];
-    
+
     /*
         this kernel does the safe nonblocked TRSM operation
         B = A^-1 * B
@@ -916,7 +916,7 @@ zcomputecolumn_kernel_shared_batched( int m, int paneloffset, int step,
 {
     const int batchid = blockIdx.x;
     extern __shared__ magmaDoubleComplex shared_data[];
-    
+
     int gboff = paneloffset+step;
     magma_int_t *ipiv           = ipiv_array[batchid] + ai;
     magmaDoubleComplex *A_start = dA_array[batchid] + aj * lda + ai;
@@ -1120,7 +1120,7 @@ zgetf2_fused_batched_kernel( int m,
     // different indices per branch
     const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
     //const int batchid = blockIdx.z * blockDim.y + threadIdx.y;
-    
+
     extern __shared__ magmaDoubleComplex zdata[];
 
     magmaDoubleComplex* swork = (magmaDoubleComplex*)zdata;
