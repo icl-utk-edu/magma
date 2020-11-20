@@ -38,7 +38,7 @@ void magma_xerror( cudaError_t err, const char* func, const char* file, int line
 /******************************************************************************/
 /// @see magma_xerror
 /// @ingroup magma_error_internal
-#if defined(HAVE_CUBLAS) || defined(HAVE_HIPBLAS)
+#if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
 void magma_xerror( cublasStatus_t err, const char* func, const char* file, int line )
 {
     if ( err != CUBLAS_STATUS_SUCCESS ) {
@@ -87,7 +87,7 @@ void magma_xerror( magma_int_t err, const char* func, const char* file, int line
 
     @ingroup magma_error_internal
 *******************************************************************************/
-#if defined(HAVE_CUBLAS) || defined(HAVE_HIPBLAS)
+#if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
 extern "C"
 const char* magma_cublasGetErrorString( cublasStatus_t err )
 {

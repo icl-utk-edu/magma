@@ -825,7 +825,7 @@ hipblasSideMode_t     hipblas_side_const  ( magma_side_t magma_const )
 }
 
 
-#endif // HAVE_HIPBLAS
+#endif // HAVE_HIP
 
 #ifdef HAVE_CBLAS
 // =============================================================================
