@@ -228,6 +228,15 @@ libmagma_src += \
 	$(cdir)/core_zhbtype2cb.cpp	\
 	$(cdir)/core_zhbtype3cb.cpp	\
 
+# eigenvalue iterative refinement
+libmagma_src += \
+	$(cdir)/zcheevdx.cpp    \
+	$(cdir)/dssyevdx.cpp    \
+	$(cdir)/zcheevdx_2stage.cpp    \
+	$(cdir)/dssyevdx_2stage.cpp    \
+	$(cdir)/zchesicesm.cpp    \
+	$(cdir)/dssysicesm.cpp    \
+
 # generalized symmetric eigenvalues
 libmagma_src += \
 	$(cdir)/dsygvd.cpp		\

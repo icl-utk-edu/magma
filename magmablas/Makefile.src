@@ -213,6 +213,11 @@ libmagma_src += \
 	$(cdir)/hlaswp.cu		         \
 	$(cdir)/hset_pointer.cu		     \
 
+# Eigenvalue iterative refinement
+libmagma_src += \
+	$(cdir)/sicesm.cu                \
+
+
 # ----------------------------------------------------------------------
 # extra include dependencies
 $(cdir)/strtri_diag.$(o_ext): $(cdir)/strtri.cuh

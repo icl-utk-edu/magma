@@ -169,6 +169,91 @@ magmablas_hlaswp(
     const magma_int_t *ipiv, magma_int_t inci,
     magma_queue_t queue );
 
+/* Eigenvalue refinement routines */
+magma_int_t
+magma_zcheevdx(
+    magma_vec_t jobz, magma_range_t range, magma_uplo_t uplo,
+    magma_int_t n,
+    magmaDoubleComplex *A, magma_int_t lda,
+    double vl, double vu, magma_int_t il, magma_int_t iu,
+    magma_int_t *m, double *w,
+    magmaDoubleComplex *work, magma_int_t lwork,
+    double *rwork, magma_int_t lrwork,
+    magma_int_t *iwork, magma_int_t liwork,
+    magma_int_t *info);
+
+magma_int_t
+magma_zcheevdx_2stage(
+    magma_vec_t jobz, magma_range_t range, magma_uplo_t uplo,
+    magma_int_t n,
+    magmaDoubleComplex *A, magma_int_t lda,
+    double vl, double vu, magma_int_t il, magma_int_t iu,
+    magma_int_t *m, double *w,
+    magmaDoubleComplex *work, magma_int_t lwork,
+    double *rwork, magma_int_t lrwork,
+    magma_int_t *iwork, magma_int_t liwork,
+    magma_int_t *info);
+
+magma_int_t
+magma_dssyevdx(
+    magma_vec_t jobz, magma_range_t range, magma_uplo_t uplo,
+    magma_int_t n,
+    double *A, magma_int_t lda,
+    double vl, double vu, magma_int_t il, magma_int_t iu,
+    magma_int_t *m, double *w,
+    double *work, magma_int_t lwork,
+    magma_int_t *iwork, magma_int_t liwork,
+    magma_int_t *info);
+
+magma_int_t
+magma_dssyevdx_2stage(
+    magma_vec_t jobz, magma_range_t range, magma_uplo_t uplo,
+    magma_int_t n,
+    double *A, magma_int_t lda,
+    double vl, double vu, magma_int_t il, magma_int_t iu,
+    magma_int_t *m, double *w,
+    double *work, magma_int_t lwork,
+    magma_int_t *iwork, magma_int_t liwork,
+    magma_int_t *info);
+
+void magma_znormalize( magma_int_t n, magma_int_t m, magmaDoubleComplex *dX, magma_int_t ldx, magma_queue_t queue);
+void magma_dnormalize( magma_int_t n, magma_int_t m, double *dX, magma_int_t ldx, magma_queue_t queue);
+void magma_zdiag_scale( magma_int_t m, magma_int_t n, magmaDoubleComplex *A, magma_int_t lda,
+                        double *x, magma_int_t incx,
+                        magmaDoubleComplex *C, magma_int_t ldc, magma_queue_t queue );
+void magma_ddiag_scale( magma_int_t m, magma_int_t n, double *A, magma_int_t lda,
+                        double *x, magma_int_t incx,
+                        double *C, magma_int_t ldc, magma_queue_t queue );
+void magma_zsolve_sicesm( magma_int_t n, magma_int_t m, magmaDoubleComplex *dR, magma_int_t ldr,
+                          magmaDoubleComplex *dC, double *dd, double* de, magmaDoubleComplex *df, double *dw,
+                          magmaDoubleComplex *dwork, double *drwork, magma_queue_t queue );
+void magma_dsolve_sicesm( magma_int_t n, magma_int_t m, double *dR, magma_int_t ldr,
+                          double *dC, double *dd, double* de, double *df, double *dw,
+                          double* dwork, double* drwork, magma_queue_t queue );
+void magma_zupdate_eigenvalues( magma_int_t m, magmaDoubleComplex *dX, magma_int_t incx,
+                                double *dw, magma_queue_t queue );
+void magma_zadd_eigenvalues( magma_int_t m, magmaDoubleComplex *dX, magma_int_t incx,
+                                                double *dw, magma_queue_t queue );
+magma_int_t
+magma_zchesicesm(
+    magma_int_t n, magma_int_t m,
+    magmaDoubleComplex *dA, magma_int_t lda,
+    magmaFloatComplex *dfloatQ, magma_int_t ldq,
+    magmaDoubleComplex *dX, magma_int_t ldx,
+    double *w, double *d, double *e,
+    magmaDoubleComplex *dwork, magma_int_t ldwork,
+    magma_queue_t queue);
+
+magma_int_t
+magma_dssysicesm(
+    magma_int_t n, magma_int_t m,
+    double *dA, magma_int_t lda,
+    float *dfloatQ, magma_int_t ldq,
+    double *dX, magma_int_t ldx,
+    double *w, double *d, double *e,
+    double *dwork, magma_int_t ldwork,
+    magma_queue_t queue);
+
 #ifdef __cplusplus
 }
 #endif

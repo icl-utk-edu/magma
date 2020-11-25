@@ -159,6 +159,10 @@ testing_src += \
 	$(cdir)/testing_zheevd.cpp	\
 	$(cdir)/testing_zhetrd.cpp	\
 	$(cdir)/testing_zheevdx_2stage.cpp	\
+	$(cdir)/testing_zcheevdx.cpp	\
+	$(cdir)/testing_zcheevdx_2stage.cpp	\
+	$(cdir)/testing_dssyevdx.cpp	\
+	$(cdir)/testing_dssyevdx_2stage.cpp	\
 
 # generalized symmetric eigenvalues
 testing_src += \
