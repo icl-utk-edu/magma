@@ -1789,6 +1789,7 @@ sub simpleSubstitutions {
     $ft{'magma'} += s/\bcublasDgemmBatched\b/hipblasDgemmBatched/g;
 
     $ft{'magma'} += s/\bcublas/hipblas/g;
+    $ft{'magma'} += s/\bmagma_cublas/magma_hipblas/g;
     #$ft{'magma'} += s/\bhipblas/rocblas/g;
 
 

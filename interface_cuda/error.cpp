@@ -3,6 +3,52 @@
 #include "magma_internal.h"
 #include "error.h"
 
+
+/***************************************************************************//**
+    @return String describing cuBLAS errors (cublasStatus_t).
+    CUDA provides cudaGetErrorString, but not cublasGetErrorString.
+
+    @param[in]
+    err     Error code.
+
+    @ingroup magma_error_internal
+*******************************************************************************/
+#if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+extern "C"
+const char* magma_cublasGetErrorString( cublasStatus_t err )
+{
+    switch( err ) {
+        case CUBLAS_STATUS_SUCCESS:
+            return "success";
+
+        case CUBLAS_STATUS_NOT_INITIALIZED:
+            return "not initialized";
+
+        case CUBLAS_STATUS_ALLOC_FAILED:
+            return "out of memory";
+
+        case CUBLAS_STATUS_INVALID_VALUE:
+            return "invalid value";
+
+        case CUBLAS_STATUS_ARCH_MISMATCH:
+            return "architecture mismatch";
+
+        case CUBLAS_STATUS_MAPPING_ERROR:
+            return "memory mapping error";
+
+        case CUBLAS_STATUS_EXECUTION_FAILED:
+            return "execution failed";
+
+        case CUBLAS_STATUS_INTERNAL_ERROR:
+            return "internal error";
+
+        default:
+            return "unknown CUBLAS error code";
+    }
+}
+#endif
+
+/***************************************************************************//**
 /***************************************************************************//**
     Prints error message to stderr.
     C++ function overloaded for different error types (CUDA,
@@ -78,49 +124,6 @@ void magma_xerror( magma_int_t err, const char* func, const char* file, int line
 }
 
 
-/***************************************************************************//**
-    @return String describing cuBLAS errors (cublasStatus_t).
-    CUDA provides cudaGetErrorString, but not cublasGetErrorString.
-
-    @param[in]
-    err     Error code.
-
-    @ingroup magma_error_internal
-*******************************************************************************/
-#if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
-extern "C"
-const char* magma_cublasGetErrorString( cublasStatus_t err )
-{
-    switch( err ) {
-        case CUBLAS_STATUS_SUCCESS:
-            return "success";
-
-        case CUBLAS_STATUS_NOT_INITIALIZED:
-            return "not initialized";
-
-        case CUBLAS_STATUS_ALLOC_FAILED:
-            return "out of memory";
-
-        case CUBLAS_STATUS_INVALID_VALUE:
-            return "invalid value";
-
-        case CUBLAS_STATUS_ARCH_MISMATCH:
-            return "architecture mismatch";
-
-        case CUBLAS_STATUS_MAPPING_ERROR:
-            return "memory mapping error";
-
-        case CUBLAS_STATUS_EXECUTION_FAILED:
-            return "execution failed";
-
-        case CUBLAS_STATUS_INTERNAL_ERROR:
-            return "internal error";
-
-        default:
-            return "unknown CUBLAS error code";
-    }
-}
-#endif
 
 /***************************************************************************//**
     @return String describing MAGMA errors (magma_int_t).
