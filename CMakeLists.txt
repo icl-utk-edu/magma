@@ -149,7 +149,7 @@ if (CUDA_FOUND)
 
     # NVCC options for the different cards
     # sm_xx is binary, compute_xx is PTX for forward compatability
-    # MIN_ARCH is lowest requested version
+    # MIN_SM/MAX_SM is lowest/highest requested version
     # NV_SM    accumulates sm_xx for all requested versions
     # NV_COMP  is compute_xx for highest requested version
     set( MIN_SM 99 )
@@ -160,15 +160,15 @@ if (CUDA_FOUND)
     string( REGEX MATCHALL "sm_[0-9][0-9]" sms "${GPU_TARGET}" )
     list( SORT sms ) # To make output easier to reason about
     foreach (sm IN LISTS sms)
-        string( REPLACE sm_ "" sm "${sm}") # Remove sm_ prefix
+        string( REPLACE "sm_" "" sm "${sm}") # Remove sm_ prefix
         if (sm LESS MIN_SM)
             set( MIN_SM "${sm}" )
         endif()
         if (sm GREATER MAX_SM)
             set( MAX_SM "${sm}" )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_${sm},code=sm_${sm} )
-        string( REGEX REPLACE "sm_([0-9])([0-9])" "\\1.\\2" cuda_arch "${sm}" )
+        list( APPEND NV_SM "-gencode arch=compute_${sm},code=sm_${sm}" )
+        string( REGEX REPLACE "([0-9])([0-9])" "\\1.\\2" cuda_arch "${sm}" )
         message( STATUS "    compile for CUDA arch ${cuda_arch}" )
     endforeach()
 
@@ -179,11 +179,11 @@ if (CUDA_FOUND)
                  "Was: ${GPU_TARGET}" )
     endif()
 
-    set( MIN_ARCH ${sm}0 )
-    set( NV_COMP -gencode arch=compute_${MAX_SM},code=compute_${MAX_SM} )
+    set( MIN_ARCH ${MIN_SM}0 )
+    set( NV_COMP "-gencode arch=compute_${MAX_SM},code=compute_${MAX_SM}" )
 
-    set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -fPIC -DHAVE_CUBLAS ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )
-    add_definitions( "-DHAVE_CUBLAS -DMIN_CUDA_ARCH=${MIN_ARCH}" )
+    list( APPEND CUDA_NVCC_FLAGS "-Xcompiler -fPIC" ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )
+    add_definitions( -DHAVE_CUBLAS -DMIN_CUDA_ARCH=${MIN_ARCH} )
     message( STATUS "Define -DHAVE_CUBLAS -DMIN_CUDA_ARCH=${MIN_ARCH}" )
 endif()
 
