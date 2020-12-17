@@ -167,7 +167,7 @@ if (CUDA_FOUND)
         if (sm GREATER MAX_SM)
             set( MAX_SM "${sm}" )
         endif()
-        list( APPEND NV_SM "-gencode arch=compute_${sm},code=sm_${sm}" )
+        list( APPEND NV_SM -gencode arch=compute_${sm},code=sm_${sm} )
         string( REGEX REPLACE "([0-9])([0-9])" "\\1.\\2" cuda_arch "${sm}" )
         message( STATUS "    compile for CUDA arch ${cuda_arch}" )
     endforeach()
@@ -180,9 +180,11 @@ if (CUDA_FOUND)
     endif()
 
     set( MIN_ARCH ${MIN_SM}0 )
-    set( NV_COMP "-gencode arch=compute_${MAX_SM},code=compute_${MAX_SM}" )
+    set( NV_COMP -gencode arch=compute_${MAX_SM},code=compute_${MAX_SM} )
 
-    list( APPEND CUDA_NVCC_FLAGS "-Xcompiler -fPIC" ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )
+    # Note: CUDA_NVCC_FLAGS must be a list of flags, each one will be quoted by CMake later on
+    #       So use `-Xcompiler -fPIC` not `"-Xcompiler -fPIC"`, same for `-gencode arch=...`
+    list( APPEND CUDA_NVCC_FLAGS -Xcompiler -fPIC ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )
     add_definitions( -DHAVE_CUBLAS -DMIN_CUDA_ARCH=${MIN_ARCH} )
     message( STATUS "Define -DHAVE_CUBLAS -DMIN_CUDA_ARCH=${MIN_ARCH}" )
 endif()
