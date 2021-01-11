@@ -14,6 +14,12 @@
 
 #define SWAP(a, b)  { tmp = a; a = b; b = tmp; }
 
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#ifdef HAVE_HIP
+  #define hipblasDoubleComplex hipDoubleComplex
+#endif
+
+
 
 __global__ void 
 magma_zvalinit_kernel(  
@@ -432,7 +438,7 @@ magma_zcsr_sort_gpu(
         descrA, A->drow, A->dcol, P, pBuffer);
     
     // step 4: gather sorted csrVal
-    cusparseZgthr(handle, A->nnz, A->dval, csrVal_sorted, P, 
+    cusparseZgthr(handle, A->nnz, (cuDoubleComplex*)A->dval, (cuDoubleComplex*)csrVal_sorted, P, 
         CUSPARSE_INDEX_BASE_ZERO);
     
     SWAP(A->dval, csrVal_sorted);

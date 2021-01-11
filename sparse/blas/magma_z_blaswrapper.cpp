@@ -11,14 +11,19 @@
 */
 #include "magmasparse_internal.h"
 
-#ifdef HAVE_HIP
-/* For hipSPARSE, they use a separate complex type than for hipBLAS */
-#define hipblasDoubleComplex hipDoubleComplex
+#define PRECISION_z
 
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#if defined(HAVE_HIP)
+  #ifdef PRECISION_z
+    #define hipblasDoubleComplex hipDoubleComplex
+  #elif defined(PRECISION_c)
+    #define hipblasComplex hipComplex
+  #endif
 #endif
 
 
-#if CUDA_VERSION >= 11000
+#if CUDA_VERSION >= 11000 
 // todo: destroy descriptor and see if the original code descriptors have to be changed 
 #define cusparseZcsrmv(handle, op, rows, cols, nnz, alpha, descr, dval, drow, dcol, x, beta, y) \
     {                                                                                           \
@@ -242,8 +247,8 @@ magma_z_spmv(
                CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
                cusparseZbsrmv( cusparseHandle, dirA,
                    CUSPARSE_OPERATION_NON_TRANSPOSE, mb, nb, A.numblocks,
-                   &alpha, descr, A.dval, A.drow, A.dcol, A.blocksize, x.dval,
-                   &beta, y.dval );
+                   (cuDoubleComplex*)&alpha, descr, (cuDoubleComplex*)A.dval, A.drow, A.dcol, A.blocksize, (cuDoubleComplex*)x.dval,
+                   (cuDoubleComplex*)&beta, (cuDoubleComplex*)y.dval );
             }
             else {
                 printf("error: format not supported.\n");
@@ -263,8 +268,8 @@ magma_z_spmv(
                     cusparseZcsrmm(cusparseHandle,
                                    CUSPARSE_OPERATION_NON_TRANSPOSE,
                                    A.num_rows,   num_vecs, A.num_cols, A.nnz,
-                                   &alpha, descr, A.dval, A.drow, A.dcol,
-                                   x.dval, A.num_cols, &beta, y.dval, A.num_cols);
+                                   (cuDoubleComplex*)&alpha, descr, (cuDoubleComplex*)A.dval, A.drow, A.dcol,
+                                   (cuDoubleComplex*)x.dval, A.num_cols, (cuDoubleComplex*)&beta, (cuDoubleComplex*)y.dval, A.num_cols);
                 } else if ( x.major == MagmaRowMajor) {
                     /*cusparseZcsrmm2(cusparseHandle,
                     CUSPARSE_OPERATION_NON_TRANSPOSE,
@@ -286,8 +291,8 @@ magma_z_spmv(
                         
                         cusparseZcsrmm( cusparseHandle,CUSPARSE_OPERATION_TRANSPOSE,
                                         A.num_rows,   num_vecs, A.num_cols, A.nnz,
-                                        &alpha, descr, A.dval, A.drow, A.dcol,
-                                        x.dval, A.num_cols, &beta, y.dval, A.num_cols);
+                                        (cuDoubleComplex*)&alpha, descr, (cuDoubleComplex*)A.dval, A.drow, A.dcol,
+                                        (cuDoubleComplex*)x.dval, A.num_cols, (cuDoubleComplex*)&beta, (cuDoubleComplex*)y.dval, A.num_cols);
                     }
             } else if ( A.storage_type == Magma_SELLP ) {
                 if ( x.major == MagmaRowMajor) {

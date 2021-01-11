@@ -492,6 +492,7 @@ subs = {
     ('real',                 'double precision',     'real',                 'double precision'    ),  # before double
     ('float',                'double',               'float _Complex',       'double _Complex'     ),
     ('float',                'double',               'cuFloatComplex',       'cuDoubleComplex'     ),
+    ('float',                'double',               'hipFloatComplex',      'hipDoubleComplex'    ),
     ('CUDA_R_32F',           'CUDA_R_64F',           'CUDA_C_32F',           'CUDA_C_64F'          ),
     #('float',                'double',               'hipComplex',           'hipDoubleComplex'   ),
     ('float',                'double',               'hipblasComplex',       'hipblasDoubleComplex'),
@@ -571,6 +572,8 @@ subs = {
 
     # ----- SPARSE BLAS
     ('cusparseS',      'cusparseD',      'cusparseC',      'cusparseZ'       ),
+    ('hipsparseS',     'hipsparseD',     'hipsparseC',     'hipsparseZ'      ), # hipSPARSE
+
     ('sgeaxpy',        'dgeaxpy',        'cgeaxpy',        'zgeaxpy'         ),
     ('sgedense',       'dgedense',       'cgedense',       'zgedense'        ),
     ('sgecsr',         'dgecsr',         'cgecsr',         'zgecsr'          ),

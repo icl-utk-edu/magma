@@ -10,6 +10,19 @@
 */
 #include "magmasparse_internal.h"
 
+
+/* Runtime API (this comment caused odd issues with hipify scripts) 
+ *
+ * cudaFuncCachePreferShared: shared memory is 48 KB
+ * cudaFuncCachePreferEqual: shared memory is 32 KB
+ * cudaFuncCachePreferL1: shared memory is 16 KB
+ * cudaFuncCachePreferNone: no preference
+ *
+ * (spaces are added to prevent expansion from the script from messing up)
+ * cudaFunc Set CacheConfig(cudaFuncCache PreferShared);
+ */
+
+
 #define PRECISION_z
 
 
@@ -205,13 +218,7 @@ magma_zparilut_sweep_gpu(
     dim3 grid2( dimgrid21, dimgrid22, dimgrid23 );
     dim3 block2( blocksize1, blocksize2, 1 );
 
-    // Runtime API
-    // cudaFuncCachePreferShared: shared memory is 48 KB
-    // cudaFuncCachePreferEqual: shared memory is 32 KB
-    // cudaFuncCachePreferL1: shared memory is 16 KB
-    // cudaFuncCachePreferNone: no preference
-    //cudaFuncSetCacheConfig(cudaFuncCachePreferShared);
-
+    // Runtime API (see top of file)
     cudaDeviceSetCacheConfig( cudaFuncCachePreferL1 );
 
     magma_zparilut_L_kernel<<< grid1, block1, 0, queue->cuda_stream() >>>
@@ -348,12 +355,7 @@ magma_zparilut_residuals_gpu(
     dim3 grid1( dimgrid11, dimgrid12, dimgrid13 );
     dim3 block1( blocksize1, blocksize2, 1 );
    
-    // Runtime API
-    // cudaFuncCachePreferShared: shared memory is 48 KB
-    // cudaFuncCachePreferEqual: shared memory is 32 KB
-    // cudaFuncCachePreferL1: shared memory is 16 KB
-    // cudaFuncCachePreferNone: no preference
-    //cudaFuncSetCacheConfig(cudaFuncCachePreferShared);
+    // Runtime API (see top of file)
 
     cudaDeviceSetCacheConfig( cudaFuncCachePreferL1 );
 

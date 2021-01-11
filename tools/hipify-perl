@@ -1808,6 +1808,8 @@ sub transformKernelLaunch {
     no warnings qw/uninitialized/;
     my $k = 0;
 
+
+
     # Handle the kern<...><<<Dg, Db, Ns, S>>>() syntax with empty args:
     $k += s/([:|\w]+)\s*<(.+)>\s*<<<\s*(.+)\s*,\s*(.+)\s*,\s*(.+)\s*,\s*(.+)\s*>>>(\s*)\((\s*)\)/hipLaunchKernelGGL(HIP_KERNEL_NAME($1<$2>), dim3($3), dim3($4), $5, $6)/g;
     # Handle the kern<<<Dg, Db, Ns, S>>>() syntax with empty args:

@@ -5,8 +5,8 @@
 HIPIFY            ?= tools/hipify-perl
 
 # input & output directories
-DIRS              := interface_cuda magmablas # sparse/src sparse/include sparse/control sparse/blas sparse/testing sparse
-ODIRS             := interface_hip magmablas_hip # sparse_hip/src sparse_hip/include sparse_hip/control sparse_hip/blas sparse_hip/testing sparse_hip
+DIRS              := interface_cuda magmablas sparse/src sparse/include sparse/control sparse/blas sparse/testing sparse
+ODIRS             := interface_hip magmablas_hip sparse_hip/src sparse_hip/include sparse_hip/control sparse_hip/blas sparse_hip/testing sparse_hip
 
 
 # -- Rules --
@@ -22,7 +22,7 @@ FORCE:
 .PHONY: all clean FORCE $(ODIRS)
 
 
-sparse_hip: sparse_hip/src sparse_hip/include sparse_hip/control sparse_hip/blas sparse_hip/testing sparse_hip
+sparse_hip_all: sparse_hip/src sparse_hip/include sparse_hip/control sparse_hip/blas sparse_hip/testing sparse_hip
 
 # -- Generated --
 

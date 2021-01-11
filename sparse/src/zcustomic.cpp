@@ -13,8 +13,14 @@
 
 #define COMPLEX
 
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#ifdef HAVE_HIP
+  #define hipblasDoubleComplex hipDoubleComplex
+#endif
+
+
 // todo: make it spacific
-#if CUDA_VERSION >= 11000
+#if CUDA_VERSION >= 11000  || defined(HAVE_HIP)
 #define cusparseCreateSolveAnalysisInfo(info) {;}
 #else
 #define cusparseCreateSolveAnalysisInfo(info)                                                   \
@@ -22,14 +28,14 @@
 #endif
 
 // todo: info is passed; buf has to be passed
-#if CUDA_VERSION >= 11000
+#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
 #define cusparseZcsrsv_analysis(handle, trans, m, nnz, descr, val, row, col, info)              \
     {                                                                                           \
         csrsv2Info_t linfo = 0;                                                                 \
         int bufsize;                                                                            \
         void *buf;                                                                              \
         cusparseCreateCsrsv2Info(&linfo);                                                       \
-        cusparseZcsrsv2_bufferSize(handle, trans, m, nnz, descr, val, row, col,                 \
+        cusparseZcsrsv2_bufferSize(handle, trans, m, nnz, descr, (cuDoubleComplex*)val, row, col, \
                                    linfo, &bufsize);                                            \
         if (bufsize > 0)                                                                        \
            magma_malloc(&buf, bufsize);                                                         \
@@ -117,7 +123,7 @@ magma_zcustomicsetup(
     cusparseZcsrsv_analysis( cusparseHandle,
                              CUSPARSE_OPERATION_NON_TRANSPOSE, precond->M.num_rows,
                              precond->M.nnz, descrL,
-                             precond->M.val, precond->M.row, precond->M.col, 
+                             (cuDoubleComplex*)precond->M.val, precond->M.row, precond->M.col, 
                              precond->cuinfoL );
     CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
     CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
@@ -128,7 +134,7 @@ magma_zcustomicsetup(
     cusparseZcsrsv_analysis( cusparseHandle,
                              CUSPARSE_OPERATION_TRANSPOSE, precond->M.num_rows,
                              precond->M.nnz, descrU,
-                             precond->M.val, precond->M.row, precond->M.col, 
+                             (cuDoubleComplex*)precond->M.val, precond->M.row, precond->M.col, 
                              precond->cuinfoU );
 
     

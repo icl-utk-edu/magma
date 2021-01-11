@@ -13,8 +13,13 @@
 
 #define COMPLEX
 
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#ifdef HAVE_HIP
+  #define hipblasDoubleComplex hipDoubleComplex
+#endif
+
 // todo: make it spacific
-#if CUDA_VERSION >= 11000
+#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
 #define cusparseCreateSolveAnalysisInfo(info) {;}
 #else
 #define cusparseCreateSolveAnalysisInfo(info)                                                   \
@@ -22,18 +27,18 @@
 #endif
 
 // todo: info is passed; buf has to be passed
-#if CUDA_VERSION >= 11000
+#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
 #define cusparseZcsrsv_analysis(handle, trans, m, nnz, descr, val, row, col, info)              \
     {                                                                                           \
         csrsv2Info_t linfo = 0;                                                                 \
         int bufsize;                                                                            \
         void *buf;                                                                              \
         cusparseCreateCsrsv2Info(&linfo);                                                       \
-        cusparseZcsrsv2_bufferSize(handle, trans, m, nnz, descr, val, row, col,                 \
+        cusparseZcsrsv2_bufferSize(handle, trans, m, nnz, descr, (cuDoubleComplex*)val, row, col,                 \
                                    linfo, &bufsize);                                            \
         if (bufsize > 0)                                                                        \
            magma_malloc(&buf, bufsize);                                                         \
-        cusparseZcsrsv2_analysis(handle, trans, m, nnz, descr, val, row, col, linfo,            \
+        cusparseZcsrsv2_analysis(handle, trans, m, nnz, descr, (cuDoubleComplex*)val, row, col, linfo,            \
                                  CUSPARSE_SOLVE_POLICY_USE_LEVEL, buf);                         \
         if (bufsize > 0)                                                                        \
            magma_free(buf);                                                                     \
@@ -118,7 +123,7 @@ magma_zcustomilusetup(
     cusparseZcsrsv_analysis( cusparseHandle,
                              CUSPARSE_OPERATION_NON_TRANSPOSE, precond->L.num_rows,
                              precond->L.nnz, descrL,
-                             precond->L.val, precond->L.row, precond->L.col, 
+                             (cuDoubleComplex*)precond->L.val, precond->L.row, precond->L.col, 
                              precond->cuinfoL );
     
     
@@ -131,7 +136,7 @@ magma_zcustomilusetup(
     cusparseZcsrsv_analysis( cusparseHandle,
                              CUSPARSE_OPERATION_NON_TRANSPOSE, precond->U.num_rows,
                              precond->U.nnz, descrU,
-                             precond->U.val, precond->U.row, precond->U.col, 
+                             (cuDoubleComplex*)precond->U.val, precond->U.row, precond->U.col, 
                              precond->cuinfoU );
 
     

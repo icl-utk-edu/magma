@@ -12,6 +12,13 @@
 
 #include <cuda.h>  // for CUDA_VERSION
 
+
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#ifdef HAVE_HIP
+  #define hipblasDoubleComplex hipDoubleComplex
+#endif
+
+
 // todo: check if we need buf later
 #if CUDA_VERSION >= 11000
 #define cusparseZcsr2csc(handle, m, n, nnz, valA, rowA, colA, valB, rowB, colB,                \
@@ -1750,9 +1757,9 @@ magma_zmconvert(
             // conversion using CUSPARSE
             cusparseZcsr2bsr( cusparseHandle, CUSPARSE_DIRECTION_ROW,
                               A.num_rows, A.num_cols, descr,
-                              A.dval, A.drow, A.dcol,
+                              (cuDoubleComplex*)A.dval, A.drow, A.dcol,
                               size_b, descr,
-                              B->dval, B->drow, B->dcol);
+                              (cuDoubleComplex*)B->dval, B->drow, B->dcol);
         }
         // BCSR to CSR
         else if ( old_format == Magma_BCSR && new_format == Magma_CSR ) {
@@ -1784,9 +1791,9 @@ magma_zmconvert(
 
             // conversion using CUSPARSE
             cusparseZbsr2csr( cusparseHandle, CUSPARSE_DIRECTION_ROW,
-                              mb, nb, descr, A.dval, A.drow, A.dcol,
+                              mb, nb, descr, (cuDoubleComplex*)A.dval, A.drow, A.dcol,
                               size_b, descr,
-                              B->dval, B->drow, B->dcol );
+                              (cuDoubleComplex*)B->dval, B->drow, B->dcol );
         }
         // CSR to CSC
         else if ( old_format == Magma_CSR && new_format == Magma_CSC ) {
@@ -1812,8 +1819,8 @@ magma_zmconvert(
 
             // conversion using CUSPARSE
             cusparseZcsr2csc(cusparseHandle, A.num_rows, A.num_cols, A.nnz,
-                             A.dval, A.drow, A.dcol,
-                             B->dval, B->drow, B->dcol,
+                             (cuDoubleComplex*)A.dval, A.drow, A.dcol,
+                             (cuDoubleComplex*)B->dval, B->drow, B->dcol,
                              CUSPARSE_ACTION_NUMERIC,
                              CUSPARSE_INDEX_BASE_ZERO);
         }
@@ -1841,8 +1848,8 @@ magma_zmconvert(
 
             // conversion using CUSPARSE
             cusparseZcsr2csc(cusparseHandle, A.num_cols, A.num_rows, A.nnz,
-                             A.dval, A.dcol, A.drow,
-                             B->dval, B->dcol, B->drow,
+                             (cuDoubleComplex*)A.dval, A.dcol, A.drow,
+                             (cuDoubleComplex*)B->dval, B->dcol, B->drow,
                              CUSPARSE_ACTION_NUMERIC,
                              CUSPARSE_INDEX_BASE_ZERO);
         }

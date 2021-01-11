@@ -11,9 +11,20 @@
 */
 #include "magmasparse_internal.h"
 
+#define PRECISION_z
+
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#if defined(HAVE_HIP)
+  #ifdef PRECISION_z
+    #define hipblasDoubleComplex hipDoubleComplex
+  #elif defined(PRECISION_c)
+    #define hipblasComplex hipComplex
+  #endif
+#endif
+
+
 #define BLOCK_SIZE 512
 
-#define PRECISION_z
 
 #if CUDA_VERSION >= 11000
 // todo: destroy descriptor and see if the original code descriptors have to be changed
@@ -1096,8 +1107,8 @@ magma_zcgmerge_spmv1(
         cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL );
         cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO );
         cusparseZcsrmv( cusparseHandle,CUSPARSE_OPERATION_NON_TRANSPOSE,
-                        A.num_rows, A.num_cols, A.nnz, &c_one, descr,
-                        A.dval, A.drow, A.dcol, dd, &c_zero, dz );
+                        A.num_rows, A.num_cols, A.nnz, (cuDoubleComplex*)&c_one, descr,
+                        (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)dd, (cuDoubleComplex*)&c_zero, (cuDoubleComplex*)dz );
         cusparseDestroyMatDescr( descr );
         cusparseDestroy( cusparseHandle );
         cusparseHandle = 0;

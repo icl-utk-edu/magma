@@ -378,6 +378,9 @@ else ifeq ($(BACKEND),hip)
 	subdirs += interface_hip
 	subdirs += magmablas_hip
 	subdirs += testing
+
+    subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
+
 endif
 
 
@@ -432,7 +435,15 @@ endif
 
 ifneq ($(libsparse_dynamic_src),)
 libsparse_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libsparse_dynamic_all)))
-libsparse_dlink_obj   := sparse/blas/dynamic.link.o
+
+ifeq ($(BACKEND),cuda)
+  libsparse_dlink_obj   := $(SPARSE_DIR)/blas/dynamic.link.o
+else ifeq ($(BACKEND),hip)
+  # No dynamic parallelism support in HIP
+  #libsparse_dlink_obj   := $(SPARSE_DIR)/blas/dynamic.link.o
+endif
+
+
 libsparse_obj         += $(libsparse_dynamic_obj) $(libsparse_dlink_obj)
 endif
 
@@ -681,9 +692,9 @@ sparse-static: $(libsparse_a)
 control_obj          := $(filter          control/%.o, $(libmagma_obj))
 src_obj              := $(filter              src/%.o, $(libmagma_obj))
 
-sparse_control_obj   := $(filter   sparse/control/%.o, $(libsparse_obj))
-sparse_blas_obj      := $(filter      sparse/blas/%.o, $(libsparse_obj))
-sparse_src_obj       := $(filter       sparse/src/%.o, $(libsparse_obj))
+sparse_control_obj   := $(filter   $(SPARSE_DIR)/control/%.o, $(libsparse_obj))
+sparse_blas_obj      := $(filter      $(SPARSE_DIR)/blas/%.o, $(libsparse_obj))
+sparse_src_obj       := $(filter       $(SPARSE_DIR)/src/%.o, $(libsparse_obj))
 
 
 ifeq ($(BACKEND),cuda)
@@ -824,7 +835,7 @@ sparse/testing/clean:
 ifeq ($(BACKEND),cuda)
 d_ext := cu
 else ifeq ($(BACKEND),hip)
-d_ext := hip.cpp
+d_ext := cpp
 CXXFLAGS += -D__HIP_PLATFORM_HCC__
 endif
 
@@ -842,7 +853,7 @@ ifeq ($(BACKEND),cuda)
 
 else ifeq ($(BACKEND),hip)
 
-%.hip.o: %.$(d_ext)
+%.hip.o: %.hip.cpp
 	$(DEVCC) $(DEVCCFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 %.o: %.cpp
@@ -869,29 +880,30 @@ endif
 
 ifeq ($(BACKEND),cuda)
 $(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I./sparse/include -dc -o $@ $<
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -dc -o $@ $<
 
 $(libmagma_dlink_obj): $(libmagma_dynamic_obj)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
 
 $(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I./sparse/include -dc -o $@ $<
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -dc -o $@ $<
 
 $(libsparse_dlink_obj): $(libsparse_dynamic_obj)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
 
 else ifeq ($(BACKEND),hip)
+
 $(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -dc -o $@ $<
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -c -o $@ $<
 
 $(libmagma_dlink_obj): $(libmagma_dynamic_obj)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
 
 $(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -dc -o $@ $<
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -c -o $@ $<
 
 $(libsparse_dlink_obj): $(libsparse_dynamic_obj)
-	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -c -o $@ $^
 
 endif
 # ------------------------------------------------------------------------------
@@ -979,7 +991,7 @@ install: lib sparse-lib install_dirs
         # MAGMA
 	cp include/*.h         $(DESTDIR)$(prefix)/include
 	cp include/*.mod       $(DESTDIR)$(prefix)/include
-	cp sparse/include/*.h  $(DESTDIR)$(prefix)/include
+	cp $(SPARSE_DIR)/include/*.h  $(DESTDIR)$(prefix)/include
 	cp $(libs)             $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)
 	${MAKE} pkgconfig
 

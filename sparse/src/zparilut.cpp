@@ -17,8 +17,13 @@
 
 #define PRECISION_z
 
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#ifdef HAVE_HIP
+  #define hipblasDoubleComplex hipDoubleComplex
+#endif
+
 // todo: make it spacific
-#if CUDA_VERSION >= 11000
+#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
 #define cusparseCreateSolveAnalysisInfo(info) {;}
 #else
 #define cusparseCreateSolveAnalysisInfo(info)                                                   \
@@ -26,18 +31,18 @@
 #endif
 
 // todo: info is passed; buf has to be passed 
-#if CUDA_VERSION >= 11000
+#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
 #define cusparseZcsrsv_analysis(handle, trans, m, nnz, descr, val, row, col, info)              \
     {                                                                                           \
         csrsv2Info_t linfo = 0;                                                                 \
         int bufsize;                                                                            \
         void *buf;                                                                              \
         cusparseCreateCsrsv2Info(&linfo);                                                       \
-        cusparseZcsrsv2_bufferSize(handle, trans, m, nnz, descr, val, row, col,                 \
+        cusparseZcsrsv2_bufferSize(handle, trans, m, nnz, descr, (cuDoubleComplex*)val, row, col,                 \
                                    linfo, &bufsize);                                            \
         if (bufsize > 0)                                                                        \
            magma_malloc(&buf, bufsize);                                                         \
-        cusparseZcsrsv2_analysis(handle, trans, m, nnz, descr, val, row, col, linfo,            \
+        cusparseZcsrsv2_analysis(handle, trans, m, nnz, descr, (cuDoubleComplex*)val, row, col, linfo,            \
                                  CUSPARSE_SOLVE_POLICY_USE_LEVEL, buf);                         \
         if (bufsize > 0)                                                                        \
            magma_free(buf);                                                                     \
