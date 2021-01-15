@@ -6,9 +6,9 @@ MAGMA README FILE
 * Quick start (make)
 
     Create a make.inc file to indicate your C/C++ compiler, Fortran compiler,
-    and where CUDA, CPU BLAS, and LAPACK are installed on your system.
+    and where CUDA, HIP, CPU BLAS, and LAPACK are installed on your system.
     Examples are given in the make.inc-examples directory for various
-    libraries and operating systems. The examples rely on paths such as $CUDADIR
+    libraries and operating systems. The examples rely on paths such as $CUDADIR, $HIPDIR,
     and $MKLROOT being set in your environment.
 
     To compile shared and static libraries in lib, and testers in testing and

@@ -13,22 +13,18 @@ This is intended for use on a HIP-enabled system. To check whether your system i
   2. Create a `make.inc` from one of the examples. For instance, the one I have been using during development is `make.inc-examples/make.inc.hip_openblas`, so, for example, run: `cp make.inc-examples/make.inc.hip_openblas make.inc`
 
   3. Export environment variables. For example, the computer hipMAGMA has been developed on (ICL's `caffeine` machine) has openblas installed in `/nfs/apps/spack/opt/spack/linux-centos7-x86_64/gcc-7.2.0/openblas-0.2.20-rnb5trk6z6o767ontlvlrjviswap2wxu`, so I would run the following command:
-       * `export OPENBLASDIR=/nfs/apps/spack/opt/spack/linux-centos7-x86_64/gcc-7.2.0/openblas-0.2.20-rnb5trk6z6o767ontlvlrjviswap2wxu`
+       * `export OPENBLASDIR=/nfs/apps/spack/opt/spack/linux-centos7-x86_64/gcc-7.2.0/openblas-0.2.20-rnb5trk6z6o767on1tlvlrjviswap2wxu`
 
   4. Make sure to add any extra paths required. For example:
-       * In `make.inc`, `INC += -I/opt/rocm/hipblas/include -I/opt/rocm/hipsparse/include` (add this if there are errors related to including `hipblas.h` or `hipsparse.h`
-
-  5. Generate the HIP-specific code, by running this command:
-       * `make -f make.gen.hipMAGMA`
-     
-     To ensure the sources are up to date, re-run this command if you change the original CUDA sources. 
+       * In `make.inc`, `INC += -I/opt/rocm/hipblas/include -I/opt/rocm/hipsparse/include` (add this if there are errors related to including `hipblas.h` or `hipsparse.h`)
 
   6. Once that command has been ran successfully, you can `make` MAGMA as normal. Here are common targets:
-       * `make lib/libmagma.so -j32` (builds the shared lib using 32 cores)
+       * `make lib -j32` (builds the shared lib using 32 cores)
        * `make testing_hip/testing_dgemm` (builds the dgemm tester)
+       * `make sparse -j32` (builds the sparse library)
 
 So, to build the library and a tester, run :
-  * `make -f make.gen.hipMAGMA -j16 && make testing_hip/testing_dgemm -j16 && ./testing_hip/testing_dgemm`
+  * `make testing_hip/testing_dgemm -j16 && ./testing_hip/testing_dgemm`
 
 # Known Problems
 
