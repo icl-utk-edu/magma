@@ -246,4 +246,69 @@ __global__ void sampleselect(double* __restrict__ in, double* __restrict__ tmp, 
     launch_sampleselect(in, tmp, tree, out, count_tmp, size, rank);
 }
 
+
+
+/**  No-Dynamic-Parallism version **/
+
+
+void launch_sampleselect_nodp(cudaStream_t stream, double* __restrict__ in, double* __restrict__ tmp, double* __restrict__ tree,
+                                    double* __restrict__ out, int32_t* __restrict__ count_tmp, int32_t size, int32_t rank) {
+                                    
+
+    /* TODO: read back and check */
+    //if (threadIdx.x != 0) {
+    //    return;
+    //}
+
+    if (size <= bitonic_cutoff) {
+        select_bitonic_basecase<<<1, bitonic_cutoff>>>(in, out, size, rank);
+        return;
+    }
+
+    // launch kernels:
+    // sample and build searchtree
+    build_searchtree<<<1, sample_size, 0, stream>>>(in, tree, size);
+
+    auto local_work = (size + num_threads - 1) / num_threads;
+    auto bucket_idx = (uint32_t*)count_tmp;
+    auto rank_out = ((int32_t*)bucket_idx) + 1;
+    auto atomic = rank_out + 1;
+    auto totalcounts = atomic + 1;
+    auto localcounts = totalcounts + searchtree_width;
+    auto oracles = (uint32_t*)(localcounts + num_grouped_blocks * searchtree_width);
+
+    // count buckets
+    count_buckets_write<<<num_grouped_blocks, block_size, 0, stream>>>(in, tree, localcounts, oracles, size, local_work);
+    prefix_sum_counts<<<searchtree_width, num_grouped_blocks, 0, stream>>>(localcounts, totalcounts, num_grouped_blocks);
+    sampleselect_findbucket<<<1, searchtree_width / 2, 0, stream>>>(totalcounts, rank, bucket_idx, rank_out);
+    collect_bucket_indirect<<<num_grouped_blocks, block_size, 0, stream>>>(in, oracles, localcounts, tmp, size, bucket_idx, nullptr, local_work);
+
+    sampleselect_tailcall_nodp(stream, tmp, in, tree, count_tmp, out);
+}
+
+void sampleselect_tailcall_nodp(cudaStream_t stream, double* __restrict__ in, double* __restrict__ tmp, double* __restrict__ tree,
+    int32_t* __restrict__ count_tmp, double* __restrict__ out) {
+    //if (threadIdx.x != 0) {
+    //    return;
+    //}
+    auto bucket_idx = count_tmp;
+    auto rank_out = bucket_idx + 1;
+    auto atomic = rank_out + 1;
+    auto totalcounts = atomic + 1;
+
+    auto size = totalcounts[*bucket_idx];
+    auto rank = *rank_out;
+    launch_sampleselect_nodp(stream, in, tmp, tree, out, count_tmp, size, rank);
+}
+
+
+void sampleselect_nodp(cudaStream_t stream, double* __restrict__ in, double* __restrict__ tmp, double* __restrict__ tree,
+    int32_t* __restrict__ count_tmp, int32_t size, int32_t rank, double* __restrict__ out) {
+    
+    launch_sampleselect_nodp(stream, in, tmp, tree, out, count_tmp, size, rank);
+}
+
+
+
+
 } // namespace magma_sampleselect

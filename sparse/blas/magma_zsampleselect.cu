@@ -18,7 +18,7 @@
 
 namespace magma_sampleselect {
 
-__global__ void compute_abs(const magmaDoubleComplex* __restrict__ in, double* __restrict__ out, int32_t size) 
+static __global__ void compute_abs(const magmaDoubleComplex* __restrict__ in, double* __restrict__ out, int32_t size) 
 {
     auto idx = threadIdx.x + blockDim.x * blockIdx.x;
     if (idx >= size) {

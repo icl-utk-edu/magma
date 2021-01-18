@@ -197,7 +197,9 @@ magma_z_precondsetup(
     
     else if ( precond->solver == Magma_PARILUT ) {
         #ifdef _OPENMP
+        /* Here, use No-Dynamic-Parallelism vresion */
             info = magma_zparilut_gpu( A, b, precond, queue );
+            //info = magma_zparilut_gpu_nodp(A, b, precond, queue);
             if ( precond->trisolver == Magma_ISAI  ||
                 precond->trisolver == Magma_JACOBI ||
                 precond->trisolver == Magma_VBJACOBI ){

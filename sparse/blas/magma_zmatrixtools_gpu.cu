@@ -331,6 +331,7 @@ magma_zmatrix_cup_gpu(
     U->storage_type = Magma_CSR;
     U->memory_location = Magma_DEV;
    
+
     int blocksize1 = 128;
     int blocksize2 = 1;
 
@@ -349,7 +350,8 @@ magma_zmatrix_cup_gpu(
         (num_rows, A.drow, A.dcol, B.drow, B.dcol, inserted);
     
     CHECK(magma_zget_row_ptr(num_rows, &U->nnz, inserted, U->drow, queue));
-        
+    
+
     CHECK(magma_zmalloc(&U->dval, U->nnz));
     CHECK(magma_index_malloc(&U->drowidx, U->nnz));
     CHECK(magma_index_malloc(&U->dcol, U->nnz));
