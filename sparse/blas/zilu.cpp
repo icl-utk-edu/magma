@@ -78,10 +78,10 @@
                                       rows, cols, nnz, alpha, descrA, dval, drow, dcol,         \
                                       b, ldb, info, CUSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \ 
         magma_malloc(&buf, bufsize);                                                            \
-        cusparseZcsrsm2_solve(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE, rows, cols, nnz, \
-                              alpha, descrA, dval, drow, dcol, b, ldb, info,                    \
-                              CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                             \
         magmablas_zlacpy( MagmaFull, rows, cols, b, ldb, x, ldx, queue );                       \
+        cusparseZcsrsm2_solve(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE, rows, cols, nnz, \
+                              alpha, descrA, dval, drow, dcol, x, ldb, info,                    \
+                              CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                             \
         magma_free(buf);                                                                        \
     }  
 #else
