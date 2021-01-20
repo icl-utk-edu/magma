@@ -75,6 +75,7 @@
     {                                                                                           \
         size_t bufsize;                                                                         \
         void *buf;                                                                              \
+        cusparseSetMatType( descrA, CUSPARSE_MATRIX_TYPE_GENERAL );                             \
         cusparseZcsrsm2_bufferSizeExt(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE,          \
                                       rows, cols, nnz, alpha, descrA, dval, drow, dcol,         \
                                       b, ldb, info, CUSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \ 
