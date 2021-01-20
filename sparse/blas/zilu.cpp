@@ -34,6 +34,7 @@
         cuDoubleComplex *B;                                                                     \
         size_t bufsize;                                                                         \
         void *buf;                                                                              \
+        cusparseSetMatType( descrA, CUSPARSE_MATRIX_TYPE_GENERAL );                             \
         cusparseZcsrsm2_bufferSizeExt(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE,          \
                                       rows, 1, nnz, (const cuDoubleComplex *)&alpha,            \
                                       descrA, dval, drow, dcol,                                 \
