@@ -119,7 +119,7 @@ magma_zgetrf_batched(
             return magma_zgetrf_batched_smallsq_shfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );
         }
         #else
-        return magma_zgetrf_batched_smallsq_shfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );
+        return magma_zgetrf_batched_smallsq_noshfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );
         #endif
     }
 
