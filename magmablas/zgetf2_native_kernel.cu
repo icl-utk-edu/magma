@@ -63,10 +63,13 @@ zgetf2_native_kernel( int m, int n,
     magmaDoubleComplex rA[NPAGES] = {MAGMA_Z_ZERO};
     magmaDoubleComplex rx, rx_max;
     magmaDoubleComplex_ptr da = dA;
-    int rx_id, max_id, flag = 0;
+    int rx_id, max_id, flag = 0, linfo;
     double  rx_abs = 0.0, rx_abs_max = 0.0;
     const int m_ = m-(NPAGES-1)*TX;
     if( bx >= n ) return;
+
+    // read the info (if it is set to non-zero a previous panel, then we don't set it again)
+    linfo = (int)(*info);
 
     __shared__ magmaDoubleComplex sx[ TX ];
     __shared__ double sabs[ TX ];
@@ -140,7 +143,7 @@ zgetf2_native_kernel( int m, int n,
             if(tx == 0){
                 sx[ 0 ] = rx_max;
                 sabs[ 0 ] = rx_abs_max;
-                smax_id[ 0 ] = max_id;
+                smax_id[ 0 ] = (rx_abs_max == MAGMA_D_ZERO) ? i : max_id;
             }
             __syncthreads();
             rx_max = sx[ 0 ];
@@ -149,14 +152,14 @@ zgetf2_native_kernel( int m, int n,
             __syncthreads();
 
             // now every thread in the i^th block has the maximum
+            linfo = (rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (max_id+gbstep+1) : linfo;
             if( tx == 0){
-                if( rx_abs_max == MAGMA_D_ZERO){
-                    magmablas_iatomic_exchange( (magma_int_t*)info, (magma_int_t)(max_id + gbstep + 1) );
-                }
+                //printf("[%2d]: bx = %d, max_id, = %d, rx_abs_max = %f, linfo = %d\n", i, bx, max_id, rx_abs_max, linfo);
+                magmablas_iatomic_exchange((magma_int_t*)info, (magma_int_t)(linfo) );
                 magmablas_iatomic_exchange((magma_int_t*)&ipiv[i], (magma_int_t)(max_id+1) ); // fortran indexing
             }
             __syncthreads();
-            if( rx_abs_max == MAGMA_D_ZERO )return;
+            //if( rx_abs_max == MAGMA_D_ZERO )return;
         }
         else{ // other thread blocks are waiting
             if(tx == 0){
@@ -169,8 +172,9 @@ zgetf2_native_kernel( int m, int n,
             __syncthreads();
             max_id = smax_id[ 0 ];
             max_id -= 1; // revert fortran indexing
+            linfo = (*info);
             __syncthreads();
-            if( (*info) != 0 ) return;
+            //if( (*info) != 0 ) return;
         }
 
         // swap
@@ -203,7 +207,7 @@ zgetf2_native_kernel( int m, int n,
 
         // the ith block does scal
         if(bx == i){
-            magmaDoubleComplex reg = MAGMA_Z_DIV(MAGMA_Z_ONE, rx_max );
+            magmaDoubleComplex reg = (rx_max == MAGMA_Z_ZERO) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, rx_max );
             // scal
             if( tx > i ){
                 rA[0] *= reg;
