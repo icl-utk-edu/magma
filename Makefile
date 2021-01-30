@@ -92,47 +92,6 @@ LDFLAGS     ?=     $(FPIC)                       -fopenmp
 DEVCCFLAGS  ?= -O3         -DNDEBUG -DADD_ 
 # DEVCCFLAGS are populated later in `backend-specific`
 
-# --------------------
-# backend-specific
-
-# add appropriate cuda flags
-ifeq ($(BACKEND),cuda)
-    -include make.check-cuda
-
-    GPU_TARGET ?= Kepler Maxwell Pascal
-
-    DEVCCFLAGS += -Xcompiler "$(FPIC)" -std=c++11
-
-    # link with cuda specific libraries
-    LIB += -lcublas -lcusparse -lcudart -lcudadevrt
-    INC += -I$(CUDADIR)/include
-
-endif
-
-# add appropriate HIP flags
-ifeq ($(BACKEND),hip)
-    -include make.check-hip
-    #GPU_TARGET ?= gfx803 # gfx701 gfx801 gfx900 gfx1010
-    GPU_TARGET ?= gfx803 gfx900 gfx906 gfx908 # gfx1010 gfx1012
-
-
-    # -fno-gpu-rdc allows `g++` (or another C++ compiler) to link the resultant
-    #  objects. Basically, hipcc will link each as a static function within a compilation
-    #  unit. This saves a LOT of time (i.e. about 30 minutes) when generating a shared lib
-    DEVCCFLAGS += $(FPIC) -std=c++11 -fno-gpu-rdc
-
-
-    LDFLAGS += -L/opt/rocm/lib -L/opt/rocm/hip/lib
-    
-    #TODO: see if we need to link any HIP libraries
-    # add in fopenmp, since hipcc seems to need it
-    LIB += -lhipsparse -lhipblas $(FOPENMP)
-    #INC += -I$(HIPDIR)/include -I$(HIPBLASDIR)/include -I$(HIPSPARSEDIR)/include
-    INC += -I$(HIPDIR)/include
-
-endif
-
-
 # Extension for object files: o for unix, obj for Windows?
 o_ext      ?= o
 
@@ -211,7 +170,7 @@ ifeq ($(BACKEND),cuda)
     NV_COMP    := $(filter %, $(foreach sm, $(VALID_SMS),$(if $(findstring sm_$(sm), $(CUDA_ARCH_)),$(GENCODE_COMP))))
 
     ifeq ($(NV_SM),)
-		$(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
+        $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
     else
         # Get last option (last 2 words) of nv_compute.
         nwords := $(words $(NV_COMP))
@@ -843,10 +802,10 @@ endif
 ifeq ($(BACKEND),cuda)
 
 %.i: %.$(d_ext)
-	$(DEVCC) -E $(DEVCCFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(DEVCC) -E $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 %.$(o_ext): %.$(d_ext)
-	$(DEVCC) $(DEVCCFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS)  -c -o $@ $<
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
