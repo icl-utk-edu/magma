@@ -104,7 +104,7 @@ CFLAGS      = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c99
 CXXFLAGS    = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c++11
 FFLAGS      = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-LDFLAGS     =     $(FPIC)                       
+LDFLAGS     =     $(FPIC) $(FOPENMP)                 
 
 # add in the default for device compiling
 DEVCCFLAGS  = -O3 -DNDEBUG -DADD_ 
@@ -136,8 +136,7 @@ LIB       += -lopenblas
 ifeq ($(BACKEND),cuda)
     LIB   += -lcublas -lcusparse -lcudart -lcudadevrt
 else ifeq ($(BACKEND),hip)
-    # TODO: see if we will need to link anything
-    LIB   += 
+    LIB   += -lhipblas -lhipsparse 
 endif
 
 # --------------------
