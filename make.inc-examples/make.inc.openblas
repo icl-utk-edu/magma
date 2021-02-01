@@ -54,6 +54,8 @@ RANLIB    = ranlib
 
 # set our GPU targets
 ifeq ($(BACKEND),cuda)
+    # For newer cards
+    #GPU_TARGET = Pascal Volta Turing Ampere
     GPU_TARGET = Kepler Maxwell Pascal
 else ifeq ($(BACKEND),hip)
     GPU_TARGET = gfx803 gfx900 gfx901
