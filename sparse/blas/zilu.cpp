@@ -43,6 +43,7 @@
         cuDoubleComplex *B;                                                                     \
         size_t bufsize;                                                                         \
         void *buf;                                                                              \
+        cusparseSetMatType( descrA, CUSPARSE_MATRIX_TYPE_GENERAL );                             \
         cusparseZcsrsm2_bufferSizeExt(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE,          \
                                       rows, 1, nnz, (const cuDoubleComplex *)&alpha,            \
                                       descrA, dval, drow, dcol,                                 \
@@ -107,14 +108,15 @@
     {                                                                                           \
         size_t bufsize;                                                                         \
         void *buf;                                                                              \
+        cusparseSetMatType( descrA, CUSPARSE_MATRIX_TYPE_GENERAL );                             \
         cusparseZcsrsm2_bufferSizeExt(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE,          \
                                       rows, cols, nnz, alpha, descrA, dval, drow, dcol,         \
                                       b, ldb, info, CUSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \ 
         magma_malloc(&buf, bufsize);                                                            \
-        cusparseZcsrsm2_solve(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE, rows, cols, nnz, \
-                              alpha, descrA, dval, drow, dcol, b, ldb, info,                    \
-                              CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                             \
         magmablas_zlacpy( MagmaFull, rows, cols, b, ldb, x, ldx, queue );                       \
+        cusparseZcsrsm2_solve(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE, rows, cols, nnz, \
+                              alpha, descrA, dval, drow, dcol, x, ldx, info,                    \
+                              CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                             \
         magma_free(buf);                                                                        \
     }
 

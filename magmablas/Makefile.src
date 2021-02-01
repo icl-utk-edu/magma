@@ -117,6 +117,7 @@ libmagma_src += \
 # native kernels
 libmagma_src += \
 	$(cdir)/zgetf2_native_kernel.cu		\
+        $(cdir)/zhetrs.cu                       \
 
 # batched files, alphabetic order by base name (ignoring precision)
 libmagma_src += \

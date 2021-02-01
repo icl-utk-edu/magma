@@ -131,6 +131,76 @@ double get_residual(
     return norm_r / (n * norm_A * norm_x);
 }
 
+// Input and output is similar to get_residual but here the solve
+// is done on the GPU and timing is stored in time[0].
+// GPU solve is also simulated by copying the data to the CPU, and
+// CPU solve is used. Timing for this solver is returned in time[1].
+double get_residual_gpu(
+    magma_opts &opts,
+    bool nopiv, magma_uplo_t uplo, magma_int_t n,
+    magmaDoubleComplex *A, magma_int_t lda,
+    magmaDoubleComplex *dA, magma_int_t ldda,
+    magma_int_t *ipiv, 
+    real_Double_t *time)
+{
+    const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
+    const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
+    const magma_int_t ione = 1;
+
+    // this seed should be DIFFERENT than used in init_matrix
+    // (else x is column of A, so residual can be exactly zero)
+    magma_int_t ISEED[4] = {0,0,0,1};
+    magma_int_t info = 0;
+    magmaDoubleComplex *x, *dx, *b;
+
+    // initialize RHS
+    TESTING_CHECK( magma_zmalloc_cpu( &x, n ));
+    TESTING_CHECK( magma_zmalloc_cpu( &b, n ));
+    TESTING_CHECK( magma_zmalloc( &dx, n ));
+    lapackf77_zlarnv( &ione, ISEED, &n, b );
+    blasf77_zcopy( &n, b, &ione, x, &ione );
+
+    // solve Ax = v on the CPU and measure the time in time[1]
+    time[1] = magma_sync_wtime( opts.queue );
+    magma_zgetmatrix(n, n, dA, ldda, A, lda, opts.queue );
+    magma_zgetvector(n, dx, 1, x, 1, opts.queue );
+    lapackf77_zhetrs( lapack_uplo_const(uplo), &n, &ione, A, &lda, ipiv, x, &n, &info );
+    magma_zsetvector(n, x, 1, dx, 1, opts.queue );
+    time[1] = magma_sync_wtime( opts.queue ) - time[1];
+
+    // solve Ax = b on the GPU and measure the time in time[0]
+    blasf77_zcopy( &n, b, &ione, x, &ione );
+    magma_zsetvector(n, x, 1, dx, 1, opts.queue );
+    time[0] = magma_sync_wtime( opts.queue );
+    magma_zhetrs_gpu( uplo, n, ione, dA, ldda, ipiv, dx, n, &info, opts.queue );
+    time[0] = magma_sync_wtime( opts.queue ) - time[0];
+
+    magma_zgetvector(n, dx, 1, x, 1, opts.queue );
+    magma_free(dx);
+
+    if (info != 0) {
+        printf("magma_zhetrs returned error %lld: %s.\n",
+               (long long) info, magma_strerror( info ));
+    }
+    // reset to original A
+    init_matrix( opts, n, n, A, lda );
+
+    // compute r = Ax - b, saved in b
+    blasf77_zhemv( lapack_uplo_const(uplo), &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
+
+    // compute residual |Ax - b| / (n*|A|*|x|)
+    double norm_x, norm_A, norm_r, work[1];
+    norm_A = lapackf77_zlanhe( "Fro", lapack_uplo_const(uplo), &n, A, &lda, work );
+    norm_r = lapackf77_zlange( "Fro", &n, &ione, b, &n, work );
+    norm_x = lapackf77_zlange( "Fro", &n, &ione, x, &n, work );
+
+    magma_free_cpu( x );
+    magma_free_cpu( b );
+
+    //printf( "r=%.2e, A=%.2e, x=%.2e, n=%lld\n", norm_r, norm_A, norm_x, (long long) n );
+    return norm_r / (n * norm_A * norm_x);
+}
+
 /******************************************************************************/
 double get_residual_aasen(
     magma_opts &opts,
@@ -642,7 +712,7 @@ int main( int argc, char** argv)
     magma_print_environment();
 
     magmaDoubleComplex *h_A, *work, temp;
-    real_Double_t   gflops, gpu_perf, gpu_time = 0.0, cpu_perf=0, cpu_time=0;
+    real_Double_t   gflops, gpu_perf, gpu_time = 0.0, cpu_perf=0, cpu_time=0, solve_time[2];
     double          error, error_lapack = 0.0;
     magma_int_t     *ipiv;
     magma_int_t     cpu_panel = 1, N, n2, lda, lwork, info;
@@ -832,7 +902,14 @@ int main( int argc, char** argv)
                 gpu_time = magma_wtime();
                 magma_zhetrf_gpu( opts.uplo, N, d_A, ldda, ipiv, &info);
                 gpu_time = magma_wtime() - gpu_time;
+
                 magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
+                if ( opts.check == 2 && info == 0) {
+                    error = get_residual_gpu( opts, (nopiv | nopiv_gpu), opts.uplo, N, 
+                                              h_A, lda, d_A, ldda, ipiv, solve_time );
+                    magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
+                }
+
                 magma_free( d_A );
             }
             else if (aasen) {
@@ -868,12 +945,22 @@ int main( int argc, char** argv)
                 if (aasen) {
                     error = get_residual_aasen( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
                 }
-                else {
+                else if (!gpu) {
                     error = get_residual( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
                 }
-                printf("   %8.2e   %s", error, (error < tol ? "ok" : "failed"));
-                if (opts.lapack)
-                    printf(" (lapack rel.res. = %8.2e)", error_lapack);
+                // gpu case calls get_residual_gpu before to initialize error and timing.
+                // This is done above in a block where GPU memory is allocated, computatio is done,
+                // and the GPU memory is freed. 
+                if (gpu) {
+                    printf("   %8.2e (%.2f s) %s", error, solve_time[0], (error < tol ? "ok" : "failed"));
+                    if (opts.lapack)
+                        printf(" (lapack rel.res. = %8.2e (%.2f s))", error_lapack, solve_time[1]);
+                }
+                else {
+                    printf("   %8.2e   %s", error, (error < tol ? "ok" : "failed"));
+                    if (opts.lapack)
+                        printf(" (lapack rel.res. = %8.2e)", error_lapack);
+                }
                 printf("\n");
                 status += ! (error < tol);
             }

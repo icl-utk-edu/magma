@@ -21,17 +21,17 @@
 
 // todo: check if we need buf later
 #if CUDA_VERSION >= 11000
-#define cusparseZcsr2csc(handle, m, n, nnz, valA, rowA, colA, valB, rowB, colB,                \
+#define cusparseZcsr2csc(handle, m, n, nnz, valA, rowA, colA, valB, colB, rowB,                \
                          action, base)                                                         \
     {                                                                                          \
         size_t bufsize;                                                                        \
         void *buf;                                                                             \
         cusparseCsr2cscEx2_bufferSize(handle, m, n, nnz, valA, rowA, colA,                     \
-                                      valB, rowB, colB, CUDA_C_64F, action, base,              \
+                                      valB, colB, rowB, CUDA_C_64F, action, base,              \
                                       CUSPARSE_CSR2CSC_ALG1, &bufsize);                        \
         if (bufsize > 0)                                                                       \
            magma_malloc(&buf, bufsize);                                                        \
-        cusparseCsr2cscEx2(handle, m, n, nnz, valA, rowA, colA, valB, rowB, colB,              \
+        cusparseCsr2cscEx2(handle, m, n, nnz, valA, rowA, colA, valB, colB, rowB,              \
                            CUDA_C_64F, action, base, CUSPARSE_CSR2CSC_ALG1, buf);              \
         if (bufsize > 0)                                                                       \
            magma_free(buf);                                                                    \
