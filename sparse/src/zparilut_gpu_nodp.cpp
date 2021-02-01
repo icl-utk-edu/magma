@@ -139,8 +139,7 @@ magma_zparilut_gpu_nodp(
         magma_zmfree(&dUT, queue);
         dU.storage_type = Magma_CSR;
         CHECK(magma_zmtranspose( dU, &dUT, queue));
-        end = magma_sync_wtime(queue); t_transpose1+=end-start;
-        
+        end = magma_sync_wtime(queue); t_transpose1+=end-start;        
         
         // step 2: find candidates
         start = magma_sync_wtime(queue);
@@ -165,7 +164,6 @@ magma_zparilut_gpu_nodp(
         sum = sumL + sumU;
         end = magma_sync_wtime(queue); t_nrm+=end-start;
 
-
         // step 4: sort candidates
         start = magma_sync_wtime(queue);
         CHECK(magma_zcsr_sort_gpu( &dhL, queue));
@@ -174,7 +172,6 @@ magma_zparilut_gpu_nodp(
         magma_zmfree(&dUt, queue);
         dhU.storage_type = Magma_CSR;
         end = magma_sync_wtime(queue); t_sort+=end-start;
-        
         
         // step 5: transpose candidates
         start = magma_sync_wtime(queue);
@@ -234,7 +231,7 @@ magma_zparilut_gpu_nodp(
             thrsU = 0.0;
         }
         end = magma_sync_wtime(queue); t_selectrm=end-start;
-        
+
         // step 9: remove elements
         start = magma_sync_wtime(queue);
         // GPU kernel
@@ -242,6 +239,7 @@ magma_zparilut_gpu_nodp(
         CHECK(magma_zthrsholdrm_gpu(1, &dU, &thrsU, queue));
         // GPU kernel
         end = magma_sync_wtime(queue); t_rm=end-start;
+        
         
         // step 10: sweep
         start = magma_sync_wtime(queue);

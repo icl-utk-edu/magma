@@ -114,8 +114,11 @@ magma_zsampleselect_nodp(
         //    (gputmp1, gputmp2, gputree, gpuints, total_size, subset_size, gpuresult);
         magma_dgetvector(1, gpuresult, 1, thrs, 1, queue );
         *thrs = std::sqrt(*thrs);
-        printf("q9023qf9iosdfmkasdmkasmifiaosefX: %lf\n", *thrs);
+        
 
+        // Does this work?
+        *thrs = 0;
+        
     /*}
     else {
         printf("error: this functionality needs CUDA architecture >= 3.5\n");
