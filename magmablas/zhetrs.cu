@@ -39,7 +39,7 @@ magmablas_zdscal_inverse(
 // Multiply array dB of size 2 by the inverse of the 2x2 diagonal block at dA.
 // This is a batch operation where each thread is doing one multiplication.
 __global__ void
-magmablas_zdscal_inverseblock(
+magmablas_zdscal_inverseblock_upper(
     const magmaDoubleComplex *dA, int ldda, 
     magmaDoubleComplex *dB, int lddb)
 {
@@ -56,6 +56,26 @@ magmablas_zdscal_inverseblock(
     *dB(0,tx) = MAGMA_Z_DIV(  AK*BKM1-BK ,  DENOM );
     *dB(1,tx) = MAGMA_Z_DIV( AKM1*BK-BKM1,  DENOM );
 }
+
+__global__ void
+magmablas_zdscal_inverseblock_lower(
+    const magmaDoubleComplex *dA, int ldda,
+    magmaDoubleComplex *dB, int lddb)
+{
+    int tx  = threadIdx.x;
+
+    magmaDoubleComplex AKM1K = *dA(1,0);
+    magmaDoubleComplex AKM1  = MAGMA_Z_DIV(*dA(0,0), MAGMA_Z_CONJ( AKM1K ) );
+    magmaDoubleComplex AK    = MAGMA_Z_DIV(*dA(1,1), AKM1K );
+    magmaDoubleComplex DENOM = AKM1*AK - MAGMA_Z_ONE;
+
+    magmaDoubleComplex  BKM1 = MAGMA_Z_DIV( *dB(0,tx),  MAGMA_Z_CONJ(AKM1K));
+    magmaDoubleComplex  BK   = MAGMA_Z_DIV( *dB(1,tx), AKM1K );
+
+    *dB(0,tx) = MAGMA_Z_DIV(  AK*BKM1-BK ,  DENOM );
+    *dB(1,tx) = MAGMA_Z_DIV( AKM1*BK-BKM1,  DENOM );
+}
+
 
 /***************************************************************************//**
     Purpose
@@ -192,7 +212,7 @@ magma_zhetrs_gpu(
                 magma_zgeru(k-1, nrhs, c_neg_one, dA(0,k-1), 1, dB(k-1,0), lddb, dB, lddb, queue);
 
                 /* Multiply by the inverse of the diagonal block. */
-                magmablas_zdscal_inverseblock<<<1, nrhs, 0, queue->cuda_stream()>>>
+                magmablas_zdscal_inverseblock_upper<<<1, nrhs, 0, queue->cuda_stream()>>>
                     (dA(k-1,k-1), ldda, dB(k-1,0), lddb);
 
                 /* reduce k once more for the 2 x 2 block */
@@ -298,7 +318,7 @@ magma_zhetrs_gpu(
                 }
             
                 /* Multiply by the inverse of the diagonal block. */
-                magmablas_zdscal_inverseblock<<<1, nrhs, 0, queue->cuda_stream()>>>
+                magmablas_zdscal_inverseblock_lower<<<1, nrhs, 0, queue->cuda_stream()>>>
                     (dA(k,k), ldda, dB(k,0), lddb);
 
                 /* increase k one more for the 2 x 2 block */
