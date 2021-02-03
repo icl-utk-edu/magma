@@ -425,9 +425,9 @@ magma_zhetrs_gpu(
                     #ifdef COMPLEX
                     magmablas_zlacgv(nrhs, dB(k,0), lddb, queue);
                     #endif
-                    magmablas_zgemv(MagmaConjTrans, n-k-1, nrhs, c_neg_one,
-                                    dB(k+1,0), lddb, dA(k+1,k), 1, c_one,
-                                    dB(k,0), lddb, queue);
+                    magma_zgemv(MagmaConjTrans, n-k-1, nrhs, c_neg_one,
+                                dB(k+1,0), lddb, dA(k+1,k), 1, c_one,
+                                dB(k,0), lddb, queue);
                     #ifdef COMPLEX
                     magmablas_zlacgv(nrhs, dB(k,0), lddb, queue);
                     #endif
@@ -449,9 +449,9 @@ magma_zhetrs_gpu(
                     #ifdef COMPLEX
                     magmablas_zlacgv(nrhs, dB(k,0), lddb, queue);
                     #endif
-                    magmablas_zgemv(MagmaConjTrans, n-k-1, nrhs, c_neg_one,
-                                    dB(k+1,0), lddb, dA(k+1,k), 1, c_one,
-                                    dB(k,0), lddb, queue);
+                    magma_zgemv(MagmaConjTrans, n-k-1, nrhs, c_neg_one,
+                                dB(k+1,0), lddb, dA(k+1,k), 1, c_one,
+                                dB(k,0), lddb, queue);
                     #ifdef COMPLEX
                     magmablas_zlacgv(nrhs, dB(k,0), lddb, queue);
                     #endif
@@ -459,9 +459,9 @@ magma_zhetrs_gpu(
                     #ifdef COMPLEX
                     magmablas_zlacgv(nrhs, dB(k-1,0), lddb, queue);
                     #endif
-                    magmablas_zgemv(MagmaConjTrans, n-k-1, nrhs, c_neg_one,
-                                    dB(k+1,0), lddb, dA(k+1,k-1), 1, c_one,
-                                    dB(k-1,0), lddb, queue);
+                    magma_zgemv(MagmaConjTrans, n-k-1, nrhs, c_neg_one,
+                                dB(k+1,0), lddb, dA(k+1,k-1), 1, c_one,
+                                dB(k-1,0), lddb, queue);
                     #ifdef COMPLEX
                     magmablas_zlacgv(nrhs, dB(k-1,0), lddb, queue);
                     #endif
