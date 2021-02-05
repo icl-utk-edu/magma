@@ -22,6 +22,76 @@
 void magmablas_zlacgv( magma_int_t n, magmaDoubleComplex *x, magma_int_t incx, magma_queue_t queue );
 #endif
 
+__global__ void
+magma_zgeru_1(
+    int n, int k, int kp, int nrhs, 
+    magmaDoubleComplex *A, magmaDoubleComplex *B, int lddb)
+{
+    int tx  = threadIdx.x + 64 * blockIdx.x;
+
+    if (k+1+tx < n)
+        if (k!=kp && k+1+tx == kp)
+            // if k <-> kp pivoting, B[k] holds the result for B[kp]
+            B[k]  -= A[kp]*B[kp];
+        else
+            B[k+1+tx] -= A[k+1+tx]*B[kp];
+}
+
+__global__ void
+magma_zswap_scal(
+    int k, int kp, int nrhs, 
+    magmaDoubleComplex *A, magmaDoubleComplex *B, int lddb)
+{
+    magmaDoubleComplex tmp;
+    if (k != kp){
+        tmp   = B[k];
+        B[k]  = B[kp];
+        B[kp] = tmp;
+    }
+    B[k] *= MAGMA_Z_DIV(MAGMA_Z_ONE, A[k]);
+}
+
+__global__ void
+magma_zgeru_2(
+    int n, int k, int kp, int nrhs,
+    magmaDoubleComplex *A, int ldda, magmaDoubleComplex *B, int lddb)
+{
+    int tx  = threadIdx.x + 64 * blockIdx.x;
+
+    if (k+2+tx < n)
+        if (k+1!=kp && k+2+tx == kp)
+            // if k+1 <-> kp pivoting, B[k+1] holds the result for B[kp]
+            B[k+1]  -= A[kp]*B[k] + A[kp+ldda]*B[kp];
+        else
+            B[k+2+tx] -= A[k+2+tx]*B[k] + A[k+2+tx+ldda]*B[kp];
+}
+
+__global__ void
+magma_zswap_scal_inverseblock_lower(
+    int k, int kp, int nrhs, 
+    magmaDoubleComplex *dA, int ldda, magmaDoubleComplex *dB, int lddb)
+{
+    int tx  = threadIdx.x;
+
+    magmaDoubleComplex tmp;
+    if (k+1 != kp){
+        tmp         = *dB(k+1,tx);
+        *dB(k+1,tx) = *dB(kp ,tx);
+        *dB( kp,tx) = tmp;
+    }
+
+    magmaDoubleComplex AKM1K = *dA(1,0);
+    magmaDoubleComplex AKM1  = MAGMA_Z_DIV(*dA(0,0), MAGMA_Z_CONJ( AKM1K ) );
+    magmaDoubleComplex AK    = MAGMA_Z_DIV(*dA(1,1), AKM1K );
+    magmaDoubleComplex DENOM = AKM1*AK - MAGMA_Z_ONE;
+
+    magmaDoubleComplex  BKM1 = MAGMA_Z_DIV( *dB(k,tx),  MAGMA_Z_CONJ(AKM1K));
+    magmaDoubleComplex  BK   = MAGMA_Z_DIV( *dB(k+1,tx), AKM1K );
+
+    *dB(k,tx) = MAGMA_Z_DIV(  AK*BKM1-BK ,  DENOM );
+    *dB(k+1,tx) = MAGMA_Z_DIV( AKM1*BK-BKM1,  DENOM );
+}
+
 // This kernel scales the array B by 1/alpha.
 // The kernel is called on one thread block with thread equal the 
 // length of B, so that each thread scales just one element of B.
@@ -39,7 +109,7 @@ magmablas_zdscal_inverse(
 // Multiply array dB of size 2 by the inverse of the 2x2 diagonal block at dA.
 // This is a batch operation where each thread is doing one multiplication.
 __global__ void
-magmablas_zdscal_inverseblock(
+magmablas_zdscal_inverseblock_upper(
     const magmaDoubleComplex *dA, int ldda, 
     magmaDoubleComplex *dB, int lddb)
 {
@@ -56,6 +126,26 @@ magmablas_zdscal_inverseblock(
     *dB(0,tx) = MAGMA_Z_DIV(  AK*BKM1-BK ,  DENOM );
     *dB(1,tx) = MAGMA_Z_DIV( AKM1*BK-BKM1,  DENOM );
 }
+
+__global__ void
+magmablas_zdscal_inverseblock_lower(
+    const magmaDoubleComplex *dA, int ldda,
+    magmaDoubleComplex *dB, int lddb)
+{
+    int tx  = threadIdx.x;
+
+    magmaDoubleComplex AKM1K = *dA(1,0);
+    magmaDoubleComplex AKM1  = MAGMA_Z_DIV(*dA(0,0), MAGMA_Z_CONJ( AKM1K ) );
+    magmaDoubleComplex AK    = MAGMA_Z_DIV(*dA(1,1), AKM1K );
+    magmaDoubleComplex DENOM = AKM1*AK - MAGMA_Z_ONE;
+
+    magmaDoubleComplex  BKM1 = MAGMA_Z_DIV( *dB(0,tx),  MAGMA_Z_CONJ(AKM1K));
+    magmaDoubleComplex  BK   = MAGMA_Z_DIV( *dB(1,tx), AKM1K );
+
+    *dB(0,tx) = MAGMA_Z_DIV(  AK*BKM1-BK ,  DENOM );
+    *dB(1,tx) = MAGMA_Z_DIV( AKM1*BK-BKM1,  DENOM );
+}
+
 
 /***************************************************************************//**
     Purpose
@@ -192,7 +282,7 @@ magma_zhetrs_gpu(
                 magma_zgeru(k-1, nrhs, c_neg_one, dA(0,k-1), 1, dB(k-1,0), lddb, dB, lddb, queue);
 
                 /* Multiply by the inverse of the diagonal block. */
-                magmablas_zdscal_inverseblock<<<1, nrhs, 0, queue->cuda_stream()>>>
+                magmablas_zdscal_inverseblock_upper<<<1, nrhs, 0, queue->cuda_stream()>>>
                     (dA(k-1,k-1), ldda, dB(k-1,0), lddb);
 
                 /* reduce k once more for the 2 x 2 block */
@@ -268,6 +358,7 @@ magma_zhetrs_gpu(
                 /* 1 x 1 diagonal block 
                    Interchange rows K and IPIV(K). */
                 kp = ipiv[k]-1;
+                if (0){
                 if ( kp != k )
                     magma_zswap(nrhs, dB(k,0), lddb, dB(kp,0), lddb, queue);
                 
@@ -280,11 +371,19 @@ magma_zhetrs_gpu(
                 /* Multiply by the inverse of the diagonal block. */
                 magmablas_zdscal_inverse<<<1, nrhs, 0, queue->cuda_stream()>>>
                     (dA(k,k), dB(k,0), lddb);
+                }     
+                else {
+                    magma_zgeru_1<<<magma_ceildiv(n-k-1,64), 64, 0, queue->cuda_stream()>>>
+                        (n, k, kp, nrhs, dA(0,k), dB, lddb);
+                    magma_zswap_scal<<<1, nrhs, 0, queue->cuda_stream()>>>
+                        (k, kp, nrhs, dA(0,k), dB, lddb);
+                }
             }
             else {
                 /*  2 x 2 diagonal block
                     Interchange rows K+1 and -IPIV(K). */
                 kp = -ipiv[k]-1;
+                if (0) {
                 if ( kp != k+1 )
                     magma_zswap(nrhs, dB(k+1,0), lddb, dB(kp,0), lddb, queue);
 
@@ -293,13 +392,20 @@ magma_zhetrs_gpu(
                 if ( k < n-2 ) {
                     magma_zgeru(n-k-2, nrhs, c_neg_one, dA(k+2,k), 1, dB(k,0), lddb,
                                 dB(k+2,0), lddb, queue);
-                    magma_zgeru(n-k-2, nrhs, c_neg_one, dA(k+2,k+1), 1,
-                                dB(k+1,0), lddb, dB(k+2,0), lddb, queue);
+                    magma_zgeru(n-k-2, nrhs, c_neg_one, dA(k+2,k+1), 1, dB(k+1,0), lddb, 
+                                dB(k+2,0), lddb, queue);
                 }
             
                 /* Multiply by the inverse of the diagonal block. */
-                magmablas_zdscal_inverseblock<<<1, nrhs, 0, queue->cuda_stream()>>>
+                magmablas_zdscal_inverseblock_lower<<<1, nrhs, 0, queue->cuda_stream()>>>
                     (dA(k,k), ldda, dB(k,0), lddb);
+                }
+                else {
+                    magma_zgeru_2<<<magma_ceildiv(n-k-2,64), 64, 0, queue->cuda_stream()>>>
+                        (n, k, kp, nrhs, dA(0,k), ldda, dB, lddb);
+                    magma_zswap_scal_inverseblock_lower<<<1, nrhs, 0, queue->cuda_stream()>>>
+                        (k, kp, nrhs, dA(k,k), ldda, dB(0, 0), lddb);
+                }
 
                 /* increase k one more for the 2 x 2 block */
                 k++;
@@ -314,6 +420,7 @@ magma_zhetrs_gpu(
                 /* 1 x 1 diagonal block.
                    Multiply by inv(L'(K)), where L(K) is the transformation
                    stored in column K of A. */
+                if (1){
                 if ( k < n-1 ) {
                     #ifdef COMPLEX
                     magmablas_zlacgv(nrhs, dB(k,0), lddb, queue);
@@ -330,6 +437,9 @@ magma_zhetrs_gpu(
                 kp = ipiv[k]-1;
                 if ( kp!=k )
                     magma_zswap(nrhs, dB(k,0), lddb, dB(kp,0), lddb, queue);
+                }
+                else {
+                }
             }
             else {
                 /*  2 x 2 diagonal block
