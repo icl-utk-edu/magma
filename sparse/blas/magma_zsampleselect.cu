@@ -89,7 +89,7 @@ magma_zsampleselect(
     magma_int_t info = 0;
     magma_int_t arch = magma_getdevice_arch();
 
-    if( arch >= 350 ) {
+    if( arch >= 300 ) {
         magma_int_t num_blocks = magma_ceildiv(total_size, block_size);
         magma_int_t required_size = sizeof(double) * (total_size * 2 + searchtree_size)
                                     + sizeof(int32_t) * sampleselect_alloc_size(total_size);
