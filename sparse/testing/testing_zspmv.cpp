@@ -303,7 +303,7 @@ int main(  int argc, char** argv )
         for(magma_int_t k=0; k < hA.num_rows; k++ ){
             res = res + MAGMA_Z_ABS(hcheck.val[k] - hrefvec.val[k]);
         }
-        //res /= ref;
+        //res /= ref
         res = ref == 0 ? res : res / ref;
         if ( res < accuracy ) {
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (CSR5).\n",
@@ -324,10 +324,8 @@ int main(  int argc, char** argv )
 
 
         // SpMV on GPU (CUSPARSE - CSR)
-        // CUSPARSE context //
-
-        TESTING_CHECK( cusparseCreate( &cusparseHandle ));
-        TESTING_CHECK( cusparseSetStream( cusparseHandle, magma_queue_get_cuda_stream(queue) ));
+        // CUSPARSE context
+        cusparseHandle = magma_queue_get_cusparse_handle( queue );
         TESTING_CHECK( cusparseCreateMatDescr( &descr ));
              
         TESTING_CHECK( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
@@ -419,8 +417,6 @@ int main(  int argc, char** argv )
 #endif // end test for HYB matrix format
 
         cusparseDestroyMatDescr( descr  );
-        cusparseDestroy( cusparseHandle );
-        cusparseHandle = NULL;
         descr = NULL;
         
         // print everything in matlab-readable output
@@ -429,10 +425,11 @@ int main(  int argc, char** argv )
         // printf("%% MKL cuSPARSE-CSR cuSPARSE-HYB  ELL SELLP  CSR5\n");
         // printf("%% runtime performance (GFLOP/s)\n");
         // printf("data = [\n");
-        printf(" %.2e %.2e\t %.2e %.2e\t %.2e %.2e\t %.2e %.2e\t %.2e %.2e\t %.2e %.2e\n",
+        printf(" MKL (sec GFlop/s)   cuCSR (s GFlop/s)   cuHYB (s GFlop/s)   ELL (sec GFlop/s)   Sell (s  GFlop/s)   CSR5 (s GFlop/s)\n");
+        printf("=====================================================================================================================\n");
+        printf(" %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e\n",
                  mkltime, mklgflops, cuCSRtime, cuCSRgflops, cuHYBtime, cuHYBgflops, 
                  elltime, ellgflops, sellptime, sellpgflops, csr5time, csr5gflops);
-        // printf("];\n");
 
         // free CPU memory
         magma_zmfree( &hA, queue );
