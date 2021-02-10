@@ -159,8 +159,7 @@ magma_z_spmv(
                  A.storage_type == Magma_CSRL  ||
                  A.storage_type == Magma_CSRU )
             {
-                CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-                CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
+                cusparseHandle = magma_queue_get_cusparse_handle( queue );
                 CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
                 
                 CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
@@ -172,8 +171,7 @@ magma_z_spmv(
             }
             else if ( A.storage_type == Magma_CSC )
             {
-                CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-                CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
+                cusparseHandle = magma_queue_get_cusparse_handle( queue );
                 CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
                 
                 CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
@@ -242,8 +240,8 @@ magma_z_spmv(
                cusparseDirection_t dirA = CUSPARSE_DIRECTION_ROW;
                int mb = magma_ceildiv( A.num_rows, A.blocksize );
                int nb = magma_ceildiv( A.num_cols, A.blocksize );
-               CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-               CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
+
+               cusparseHandle = magma_queue_get_cusparse_handle( queue );
                CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
                cusparseZbsrmv( cusparseHandle, dirA,
                    CUSPARSE_OPERATION_NON_TRANSPOSE, mb, nb, A.numblocks,
@@ -258,8 +256,7 @@ magma_z_spmv(
         else if ( A.num_cols < x.num_rows || x.num_cols > 1 ) {
             magma_int_t num_vecs = x.num_rows / A.num_cols * x.num_cols;
             if ( A.storage_type == Magma_CSR ) {
-                CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-                CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
+                cusparseHandle = magma_queue_get_cusparse_handle( queue );
                 CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
                 CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
                 CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
@@ -282,8 +279,7 @@ magma_z_spmv(
                     info = MAGMA_ERR_NOT_SUPPORTED;
                 } else if ( A.storage_type == Magma_CSC )
                     {
-                        CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-                        CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
+                        cusparseHandle = magma_queue_get_cusparse_handle( queue );
                         CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
                         
                         CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
@@ -337,8 +333,6 @@ magma_z_spmv(
 
 cleanup:
     cusparseDestroyMatDescr( descr );
-    cusparseDestroy( cusparseHandle );
-    cusparseHandle = 0;
     descr = 0;
     magma_zmfree(&x2, queue );
     magma_zmfree(&dx, queue );
