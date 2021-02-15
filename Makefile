@@ -51,6 +51,7 @@ DEVCC       ?= NONE
 # set from 'BACKEND'
 ifeq ($(BACKEND),cuda)
     DEVCC = $(NVCC)
+
 else ifeq ($(BACKEND),hip)
     DEVCC = $(HIPCC)
 
@@ -118,6 +119,9 @@ codegen    = ./tools/codegen.py
 
 ifeq ($(BACKEND),cuda)
 
+	# Add legacy flags
+	DEVCCFLAGS += $(NVCCFLAGS)
+	
 	# ------------------------------------------------------------------------------
 	# NVCC options for the different cards
 	# First, add smXX for architecture names
