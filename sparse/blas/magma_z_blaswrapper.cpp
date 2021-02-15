@@ -48,6 +48,9 @@
                       descrY, CUDA_C_64F, CUSPARSE_CSRMV_ALG1, buf);                            \
         if (bufsize > 0)                                                                        \
            magma_free(buf);                                                                     \
+        cusparseDestroySpMat(descrA);                                                           \
+        cusparseDestroyDnVec(descrX);                                                           \
+        cusparseDestroyDnVec(descrY);                                                           \
     }
 #else
 #define cusparseZcsrmv(handle, op, rows, cols, nnz, alpha, descr, dval, drow, dcol, x, beta, y) \
@@ -79,6 +82,9 @@
                      CUSPARSE_CSRMM_ALG1, buf);                                                 \
         if (bufsize > 0)                                                                        \
            magma_free(buf);                                                                     \
+        cusparseDestroySpMat(descrA);                                                           \
+        cusparseDestroyDnVec(descrX);                                                           \
+        cusparseDestroyDnVec(descrY);                                                           \
     }
 #endif
 
