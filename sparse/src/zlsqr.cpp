@@ -86,7 +86,7 @@ magma_zlsqr(
                     v={Magma_CSR}, z={Magma_CSR}, zt={Magma_CSR},
                     d={Magma_CSR}, vt={Magma_CSR}, q={Magma_CSR}, 
                     w={Magma_CSR}, u={Magma_CSR}, ut={Magma_CSR};
-    CHECK( magma_zvinit( &r, Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
+    CHECK( magma_zvinit( &r, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &v, Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &z, Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &zt,Magma_DEV, A.num_cols, b.num_cols, c_zero, queue ));
