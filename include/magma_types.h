@@ -21,7 +21,8 @@
 
 // each implementation of MAGMA defines HAVE_* appropriately.
 #if ! defined(HAVE_CUBLAS) && ! defined(HAVE_clBLAS) && ! defined(HAVE_MIC) && ! defined(HAVE_HIP)
-#error No 'HAVE_*' macros were set! (defaulting to CUBLAS)
+// Pytorch requires that the error commented out below is not produced and that HAVE_CUBLAS is defined:
+// #error No 'HAVE_*' macros were set! (defaulting to CUBLAS)
 #define HAVE_CUBLAS
 #endif
 
@@ -59,7 +60,8 @@ typedef double real_Double_t;
 // =============================================================================
 // define types specific to implementation (CUDA, OpenCL, MIC)
 // define macros to deal with complex numbers
-#if defined(HAVE_CUDA)
+// Pytorch does not define HAVE_CUDA. However HAVE_CUBLAS must be defined:
+#if defined(HAVE_CUBLAS)
     // include cublas_v2.h, unless cublas.h has already been included, e.g., via magma.h
     #ifndef CUBLAS_H_
     #include <cuda.h>    // for CUDA_VERSION
