@@ -27,8 +27,8 @@
 // todo: destroy descriptor and see if the original code descriptors have to be changed 
 #define cusparseZcsrmv(handle, op, rows, cols, nnz, alpha, descr, dval, drow, dcol, x, beta, y) \
     {                                                                                           \
-        cusparseSpMatDescr_t descrA;                                                            \
-        cusparseDnVecDescr_t descrX, descrY;                                                    \
+        cusparseSpMatDescr_t descrA=NULL;                                                       \
+        cusparseDnVecDescr_t descrX=NULL, descrY=NULL;                                          \
         cusparseCreateCsr(&descrA, rows, cols, nnz,                                             \
                           (void *)drow, (void *)dcol, (void *)dval,                             \
                           CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,                               \
@@ -61,8 +61,8 @@
 #define cusparseZcsrmm(handle, op, rows, num_vecs, cols, nnz, alpha, descr, dval, drow, dcol,   \
                        x, ldx, beta, y, ldy)                                                    \
     {                                                                                           \
-        cusparseSpMatDescr_t descrA;                                                            \
-        cusparseDnMatDescr_t descrX, descrY;                                                    \
+        cusparseSpMatDescr_t descrA=NULL;                                                       \
+        cusparseDnVecDescr_t descrX=NULL, descrY=NULL;                                          \
         cusparseCreateCsr(&descrA, rows, cols, nnz,                                             \
                           (void *)drow, (void *)dcol, (void *)dval,                             \
                           CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,                               \
