@@ -62,7 +62,7 @@
                        x, ldx, beta, y, ldy)                                                    \
     {                                                                                           \
         cusparseSpMatDescr_t descrA=NULL;                                                       \
-        cusparseDnVecDescr_t descrX=NULL, descrY=NULL;                                          \
+        cusparseDnMatDescr_t descrX=NULL, descrY=NULL;                                          \
         cusparseCreateCsr(&descrA, rows, cols, nnz,                                             \
                           (void *)drow, (void *)dcol, (void *)dval,                             \
                           CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,                               \
@@ -83,8 +83,8 @@
         if (bufsize > 0)                                                                        \
            magma_free(buf);                                                                     \
         cusparseDestroySpMat(descrA);                                                           \
-        cusparseDestroyDnVec(descrX);                                                           \
-        cusparseDestroyDnVec(descrY);                                                           \
+        cusparseDestroyDnMat(descrX);                                                           \
+        cusparseDestroyDnMat(descrY);                                                           \
     }
 #endif
 
