@@ -120,9 +120,10 @@ else ifeq ($(BACKEND),hip)
         # they don't have hipblasComplex yet, so replace it manually
         DEVCCFLAGS += -DhipblasComplex=hipComplex -DhipblasDoubleComplex=hipDoubleComplex
     endif
-
+    
     # add in linker flags
-    LDFLAGS += -L$(HIPDIR)/../aomp/lib -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib
+    LDFLAGS += -L$(HIPDIR)/lib -L$(HIPDIR)/../aomp/lib -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib
+    CXXFLAGS += -I$(HIPDIR)/include
 
 endif
 
