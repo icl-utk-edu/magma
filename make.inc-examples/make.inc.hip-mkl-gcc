@@ -44,8 +44,9 @@ endif
 # programs
 
 # set compilers
+# NOTE: CC & CXX need to be a HIP compiler
 CC           = hipcc
-CXX          = g++
+CXX          = hipcc
 FORT        ?= gfortran
 HIPCC       ?= hipcc
 NVCC        ?= nvcc
