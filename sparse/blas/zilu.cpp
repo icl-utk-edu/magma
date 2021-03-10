@@ -27,7 +27,7 @@
 #if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
 #define cusparseCreateSolveAnalysisInfo(info) cusparseCreateCsrsm2Info(info) 
 #else
-#define cusparseCreateSolveAnalysisInfo(info)                                                   \ 
+#define cusparseCreateSolveAnalysisInfo(info)                                                   \
         CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( info ))
 #endif
 
@@ -111,7 +111,7 @@
         cusparseSetMatType( descrA, CUSPARSE_MATRIX_TYPE_GENERAL );                             \
         cusparseZcsrsm2_bufferSizeExt(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE,          \
                                       rows, cols, nnz, alpha, descrA, dval, drow, dcol,         \
-                                      b, ldb, info, CUSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \ 
+                                      b, ldb, info, CUSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \
         magma_malloc(&buf, bufsize);                                                            \
         magmablas_zlacpy( MagmaFull, rows, cols, b, ldb, x, ldx, queue );                       \
         cusparseZcsrsm2_solve(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE, rows, cols, nnz, \
@@ -128,7 +128,7 @@
         void *buf;                                                                              \
         hipsparseZcsrsm2_bufferSizeExt(handle, 0, op, HIPSPARSE_OPERATION_NON_TRANSPOSE,          \
                                       rows, cols, nnz, (const hipDoubleComplex*)alpha, descrA, (const hipDoubleComplex*)dval, drow, dcol,         \
-                                      (hipDoubleComplex*)b, ldb, info, HIPSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \ 
+                                      (hipDoubleComplex*)b, ldb, info, HIPSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \
         magma_malloc(&buf, bufsize);                                                            \
         hipsparseZcsrsm2_solve(handle, 0, op, HIPSPARSE_OPERATION_NON_TRANSPOSE, rows, cols, nnz, \
                               (const hipDoubleComplex*)alpha, descrA, (const hipDoubleComplex*)dval, drow, dcol, (hipDoubleComplex*)b, ldb, info,                    \
