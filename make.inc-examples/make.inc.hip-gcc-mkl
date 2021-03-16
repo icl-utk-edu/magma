@@ -7,7 +7,7 @@
 #//////////////////////////////////////////////////////////////////////////////
 
 # --------------------
-# hipMAGMA make.inc
+# MAGMA configuration: HIP, GCC, MKL
 
 # -*-
 # Most things here are similar to CUDA, and this script is designed to build
@@ -31,12 +31,9 @@
 # should MAGMA be built on CUDA (NVIDIA only) or HIP (AMD or NVIDIA)
 # enter 'cuda' or 'hip' respectively
 BACKEND      = hip
-#BACKEND      = cuda
 
 # set these to their real paths
-OPENBLASDIR ?= /usr/local/openblas
 HIPDIR      ?= /opt/rocm/hip
-CUDADIR     ?= /usr/local/cuda
 
 # require either hip or cuda
 ifeq (,$(findstring $(BACKEND),hip cuda))
@@ -47,7 +44,7 @@ endif
 # programs
 
 # set compilers
-# (for HIP, set all compilers to 'hipcc')
+# NOTE: CC & CXX need to be a HIP compiler
 CC           = hipcc
 CXX          = hipcc
 FORT        ?= gfortran
@@ -67,8 +64,6 @@ ARCH        ?= ar
 ARCHFLAGS   ?= cr
 RANLIB      ?= ranlib
 
-# sparse directory (uncomment to try & build MAGMA sparse/ on HIP
-#SPARSE_DIR  = sparse_hip
 
 # --------------------
 # flags/settings
@@ -104,7 +99,7 @@ CFLAGS      = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c99
 CXXFLAGS    = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c++11
 FFLAGS      = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-LDFLAGS     =     $(FPIC) $(FOPENMP)                 
+LDFLAGS     =     $(FPIC) $(FOPENMP)        
 
 # add in the default for device compiling
 DEVCCFLAGS  = -O3 -DNDEBUG -DADD_ 
@@ -124,19 +119,21 @@ else ifeq ($(BACKEND),hip)
     # add in linker flags
     LDFLAGS += -L$(HIPDIR)/lib -L$(HIPDIR)/../aomp/lib -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib
     CXXFLAGS += -I$(HIPDIR)/include
-
 endif
 
 
 # --------------------
 # libraries
 
-# gcc with OpenBLAS (includes LAPACK)
-LIB       += -lopenblas
+LIB       = -lpthread -lstdc++ -lm -lgomp
+
+# MKL
+LIB      += -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core
 
 ifeq ($(BACKEND),cuda)
     LIB   += -lcublas -lcusparse -lcudart -lcudadevrt
 else ifeq ($(BACKEND),hip)
+    # TODO: see if we will need to link anything
     LIB   += -lhipblas -lhipsparse 
 endif
 
@@ -144,9 +141,9 @@ endif
 # directories
 
 # define library directories preferably in your environment, or here.
-LIBDIR    += -L$(OPENBLASDIR)/lib
+LIBDIR    += -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib -L$(MKLROOT)/lib/intel64
 # define include directories (like -I/path/to/dir) in your env, or here.
-INC       +=  
+INC       += -I$(HIPDIR)/../hipblas/include -I$(HIPDIR)/../hipsparse/include -I$(MKLROOT)/include
 
 # include each's directories
 # note: we don't need to include the library directories, since nvcc or hipcc 
@@ -155,15 +152,18 @@ INC       +=
 ifeq ($(BACKEND),cuda)
     INC   += -I$(CUDADIR)/include
 else ifeq ($(BACKEND),hip)
-    INC   += -I$(HIPDIR)/include -I$(HIPDIR)/../hipblas/include -I$(HIPDIR)/../hipsparse/include
+    INC   += -I$(HIPDIR)/include
 endif
 
 
 # --------------------
 # checks
 
-# check for openblas
--include make.check-openblas
+# check for MKL
+# define library directories preferably in your environment, or here.
+# for MKL run, e.g.: source /opt/intel/composerxe/mkl/bin/mklvars.sh intel64
+#MKLROOT ?= /opt/intel/composerxe/mkl
+-include make.check-mkl
 
 # checks for the specified backend
 ifeq ($(BACKEND),cuda)
