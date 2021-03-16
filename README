@@ -9,7 +9,9 @@ MAGMA README FILE
     and where CUDA, HIP, CPU BLAS, and LAPACK are installed on your system.
     Examples are given in the make.inc-examples directory for various
     libraries and operating systems. The examples rely on paths such as $CUDADIR, $HIPDIR,
-    and $MKLROOT being set in your environment.
+    and $MKLROOT being set in your environment. There are some examples in `make.inc-examples`
+
+    For help building on HIP/ROCm, see README-HIP
 
     To compile shared and static libraries in lib, and testers in testing and
     sparse/testing:

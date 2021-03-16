@@ -7,7 +7,7 @@
 #//////////////////////////////////////////////////////////////////////////////
 
 # --------------------
-# hipMAGMA make.inc
+# MAGMA configuration: HIP, GCC, OpenBLAS
 
 # -*-
 # Most things here are similar to CUDA, and this script is designed to build
@@ -31,7 +31,6 @@
 # should MAGMA be built on CUDA (NVIDIA only) or HIP (AMD or NVIDIA)
 # enter 'cuda' or 'hip' respectively
 BACKEND      = hip
-#BACKEND      = cuda
 
 # set these to their real paths
 OPENBLASDIR ?= /usr/local/openblas
@@ -124,15 +123,16 @@ else ifeq ($(BACKEND),hip)
     # add in linker flags
     LDFLAGS += -L$(HIPDIR)/lib -L$(HIPDIR)/../aomp/lib -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib
     CXXFLAGS += -I$(HIPDIR)/include
-
 endif
 
 
 # --------------------
 # libraries
 
-# gcc with OpenBLAS (includes LAPACK)
-LIB       += -lopenblas
+LIB       =
+
+# OpenBLAS
+LIB      += -lopenblas
 
 ifeq ($(BACKEND),cuda)
     LIB   += -lcublas -lcusparse -lcudart -lcudadevrt
@@ -155,7 +155,7 @@ INC       +=
 ifeq ($(BACKEND),cuda)
     INC   += -I$(CUDADIR)/include
 else ifeq ($(BACKEND),hip)
-    INC   += -I$(HIPDIR)/include -I$(HIPDIR)/../hipblas/include -I$(HIPDIR)/../hipsparse/include
+    INC   += -I$(HIPDIR)/include
 endif
 
 

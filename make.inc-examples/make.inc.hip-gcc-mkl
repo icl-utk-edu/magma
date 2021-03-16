@@ -7,7 +7,7 @@
 #//////////////////////////////////////////////////////////////////////////////
 
 # --------------------
-# hipMAGMA make.inc
+# MAGMA configuration: HIP, GCC, OpenBLAS
 
 # -*-
 # Most things here are similar to CUDA, and this script is designed to build
@@ -72,14 +72,14 @@ RANLIB      ?= ranlib
 ifeq ($(BACKEND),cuda)
     # See a full table: https://nouveau.freedesktop.org/wiki/CodeNames/
     # note: provided by freedesktop, which is reliable, but not from the vendor
-    GPU_TARGET = Kepler Maxwell Pascal
+    GPU_TARGET ?= Maxwell Pascal Volta Turing
 else ifeq ($(BACKEND),hip)
     # See a full table: 
     #   https://llvm.org/docs/AMDGPUUsage.html#amdgpu-processor-table
     # note: provided by LLVM, so not technically from the vendor.
     # Here's ROCm's source: https://rocm.github.io/hardware.html , but it is 
     # not specific enough. TODO: find better link?
-    GPU_TARGET = gfx803 gfx900 gfx901
+    GPU_TARGET ?= gfx803 gfx900 gfx906 gfx908
 endif
 
 # Use -fPIC to make shared (.so) and static (.a) library;
@@ -88,18 +88,21 @@ FPIC        = -fPIC
 
 # use -fopenmp to support openmp builds
 # comment out to build without openmp support
-FOPENMP     = 
-#FOPENMP     = -fopenmp -I/opt/rocm/aomp/include
+# NOTE: For some reason, using `-fopenmp` is not enough to add linker flags to 
+#   the compiler sometimes, so we need to add -L here too if there are problems
+FOPENMP     = -fopenmp
+#FOPENMP     = 
+#FOPENMP     = -fopenmp -L$(HIPDIR)/../aomp/lib -I$(HIPDIR)/../aomp/include
 
 # now, generate our flags
 CFLAGS      = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c99
-CXXFLAGS    = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c++11 -Wno-c99-designator
+CXXFLAGS    = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c++11
 FFLAGS      = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-LDFLAGS     =     $(FPIC)                       
+LDFLAGS     =     $(FPIC) $(FOPENMP)        
 
 # add in the default for device compiling
-DEVCCFLAGS  = -O3 -DNDEBUG -DADD_ -Wno-c99-designator
+DEVCCFLAGS  = -O3 -DNDEBUG -DADD_ 
 
 # add the flags in a backend-specific way
 ifeq ($(BACKEND),cuda)
@@ -112,24 +115,26 @@ else ifeq ($(BACKEND),hip)
         # they don't have hipblasComplex yet, so replace it manually
         DEVCCFLAGS += -DhipblasComplex=hipComplex -DhipblasDoubleComplex=hipDoubleComplex
     endif
-
+    
     # add in linker flags
-    LDFLAGS += -L/opt/rocm/aomp/lib
-
+    LDFLAGS += -L$(HIPDIR)/lib -L$(HIPDIR)/../aomp/lib -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib
+    CXXFLAGS += -I$(HIPDIR)/include
 endif
 
 
 # --------------------
 # libraries
 
-# gcc with MKL
-LIB       = -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core -lpthread -lstdc++ -lm -lgomp
+LIB       = -lpthread -lstdc++ -lm -lgomp
+
+# MKL
+LIB      += -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core
 
 ifeq ($(BACKEND),cuda)
     LIB   += -lcublas -lcusparse -lcudart -lcudadevrt
 else ifeq ($(BACKEND),hip)
     # TODO: see if we will need to link anything
-    LIB   += 
+    LIB   += -lhipblas -lhipsparse 
 endif
 
 # --------------------
