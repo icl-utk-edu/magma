@@ -90,7 +90,9 @@ FFLAGS      ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS    ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
 LDFLAGS     ?=     $(FPIC)                       -fopenmp
 
-DEVCCFLAGS  ?= -O3         -DNDEBUG -DADD_ 
+ifndef $(and DEVCCFLAGS, NVCCFLAGS)
+    DEVCCFLAGS  ?= -O3         -DNDEBUG -DADD_
+endif
 # DEVCCFLAGS are populated later in `backend-specific`
 
 # Extension for object files: o for unix, obj for Windows?
