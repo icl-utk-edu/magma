@@ -151,32 +151,39 @@ ifeq ($(BACKEND),cuda)
 	endif
 
 
-        # Remember to add to CMakeLists.txt too!
+	# Remember to add to CMakeLists.txt too!
 
-        # Next, add compile options for specific smXX
-        # sm_xx is binary, compute_xx is PTX for forward compatability
-        # MIN_ARCH is lowest requested version
-        #          Use it ONLY in magma_print_environment; elsewhere use __CUDA_ARCH__ or magma_getdevice_arch()
-        # NV_SM    accumulates sm_xx for all requested versions
-        # NV_COMP  is compute_xx for highest requested version
-        #
-        # See also $(info compile for ...) in Makefile
+	# Next, add compile options for specific smXX
+	# sm_xx is binary, compute_xx is PTX for forward compatability
+	# MIN_ARCH is lowest requested version
+	#          Use it ONLY in magma_print_environment; elsewhere use __CUDA_ARCH__ or magma_getdevice_arch()
+	# NV_SM    accumulates sm_xx for all requested versions
+	# NV_COMP  is compute_xx for highest requested version
+	#
+	# See also $(info compile for ...) in Makefile
 
-        ## Suggestion by Mark (from SLATE)
-        # Valid architecture numbers
-        # TODO: remove veryold ones?
-    VALID_SMS = 30 32 35 37 50 52 53 60 61 62 70 72 75 80
+
+    CUDA_ARCH_UNKNOWN_ = $(filter-out sm_% Kepler Maxwell Pascal Volta Turing Ampere, $(CUDA_ARCH_))
+    ifneq ($(CUDA_ARCH_UNKNOWN_),)
+        $(error ERROR: unknown `$(CUDA_ARCH_UNKNOWN_)` in GPU_TARGET)
+    endif
+
+	# Now, sort sm's
+    SMS      := $(patsubst sm_%,%,$(filter sm_%, $(CUDA_ARCH_)))
+    SMS      := $(shell printf "%s\n" $(SMS) | sort -n)
+
 
     # code=sm_XX is binary, code=compute_XX is PTX
     GENCODE_SM      = -gencode arch=compute_$(sm),code=sm_$(sm)
     GENCODE_COMP    = -gencode arch=compute_$(sm),code=compute_$(sm)
 
     # Get gencode options for all sm_XX in cuda_arch_.
-    NV_SM      := $(filter %, $(foreach sm, $(VALID_SMS),$(if $(findstring sm_$(sm), $(CUDA_ARCH_)),$(GENCODE_SM))))
-    NV_COMP    := $(filter %, $(foreach sm, $(VALID_SMS),$(if $(findstring sm_$(sm), $(CUDA_ARCH_)),$(GENCODE_COMP))))
+    NV_SM    := $(foreach sm,$(SMS),$(GENCODE_SM))
+    NV_COMP  := $(foreach sm,$(SMS),$(GENCODE_COMP))
 
+	# Check for empty
     ifeq ($(NV_SM),)
-        $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
+        $(error ERROR: unknown `GPU_TARGET=$(GPU_TARGET)`. Set cuda_arch to one or more of Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_XX from nvcc -h)
     else
         # Get last option (last 2 words) of nv_compute.
         nwords := $(words $(NV_COMP))
@@ -189,19 +196,20 @@ ifeq ($(BACKEND),cuda)
     LIBS += -lcublas -lcudart
 
     # Get first (minimum) architecture
-    MIN_ARCH := $(wordlist 1, 1, $(foreach sm, $(VALID_SMS),$(if $(findstring sm_$(sm), $(CUDA_ARCH_)),$(sm)0)))
-	ifeq ($(MIN_ARCH),)
-		$(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
-	endif
+	# (add zero, so its comparable to '__CUDA_ARCH__')
+    MIN_ARCH := $(word 1, $(SMS))0
+    ifeq ($(MIN_ARCH),)
+        $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
+    endif
 
-	DEVCCFLAGS += -DHAVE_CUDA -DHAVE_CUBLAS -DMIN_CUDA_ARCH=$(MIN_ARCH)
+    DEVCCFLAGS += -DHAVE_CUDA -DHAVE_CUBLAS -DMIN_CUDA_ARCH=$(MIN_ARCH)
 
 
-	CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
-	CXXFLAGS  += -DMIN_CUDA_ARCH=$(MIN_ARCH)
+    CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
+    CXXFLAGS  += -DMIN_CUDA_ARCH=$(MIN_ARCH)
 
-	CFLAGS    += -DHAVE_CUDA -DHAVE_CUBLAS
-	CXXFLAGS  += -DHAVE_CUDA -DHAVE_CUBLAS
+    CFLAGS    += -DHAVE_CUDA -DHAVE_CUBLAS
+    CXXFLAGS  += -DHAVE_CUDA -DHAVE_CUBLAS
 else ifeq ($(BACKEND),hip)
 
 	# ------------------------------------------------------------------------------
@@ -209,7 +217,7 @@ else ifeq ($(BACKEND),hip)
 	# Source: https://llvm.org/docs/AMDGPUUsage.html#target-triples
 
 	# Filter our human readable names and replace with numeric names
-	HIP_ARCH_ := $(GPU_TARGET)
+    HIP_ARCH_ := $(GPU_TARGET)
 	ifneq ($(findstring kaveri, $(GPU_TARGET)),)
 		HIP_ARCH_ += gfx700
 	endif
