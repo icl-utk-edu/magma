@@ -229,10 +229,6 @@ magma_zgesv_batched_small(
      *
      */
 
-    magma_int_t nrhs,
-    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t** dipiv_array,
-    magmaDoubleComplex **dB_array, magma_int_t lddb,
-    magma_int_t* dinfo_array, magma_int_t batchCount )
     switch(m){
         case  1: zgesv_batched_small_kernel< 1, magma_ceilpow2( 1)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
         case  2: zgesv_batched_small_kernel< 2, magma_ceilpow2( 2)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
