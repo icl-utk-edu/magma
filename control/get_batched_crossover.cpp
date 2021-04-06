@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 // Definition of blocking sizes for NVIDIA cards
-#if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
 
 // =============================================================================
 /// @addtogroup magma_tuning
@@ -449,7 +449,7 @@ magma_int_t magma_get_strsm_batched_stop_nb(magma_side_t side, magma_int_t m, ma
 /// @}
 // end group magma_tuning
 
-#endif  // HAVE_CUBLAS
+#endif  // MAGMA_HAVE_CUDA
 
 #ifdef __cplusplus
 } // extern "C"

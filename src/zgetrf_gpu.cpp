@@ -76,7 +76,7 @@ magma_zgetrf_gpu_expert(
     magma_int_t *ipiv,
     magma_int_t *info, magma_mode_t mode)
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define  dA(i_, j_) dA,  (dA_offset  + (i_)       + (j_)*ldda)
     #define dAT(i_, j_) dAT, (dAT_offset + (i_)*lddat + (j_))
     #define dAP(i_, j_) dAP, (             (i_)          + (j_)*maxm)

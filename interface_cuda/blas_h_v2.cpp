@@ -11,7 +11,7 @@
 #include "magma_internal.h"
 #include "error.h"
 
-#ifdef HAVE_CUBLAS
+#ifdef MAGMA_HAVE_CUDA
 
 // =============================================================================
 // Level 1 BLAS
@@ -116,5 +116,5 @@ magma_hgemm(
     printf("ERROR: unsupported CUDA version for %s \n", __func__ );
 #endif    // CUDA_VERSION >= 7500
 }
-#endif // HAVE_CUBLAS
+#endif // MAGMA_HAVE_CUDA
 

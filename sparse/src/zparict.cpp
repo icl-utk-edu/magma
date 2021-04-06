@@ -19,13 +19,13 @@
 
 
 /* For hipSPARSE, they use a separate complex type than for hipBLAS */
-#ifdef HAVE_HIP
+#ifdef MAGMA_HAVE_HIP
   #define hipblasDoubleComplex hipDoubleComplex
 #endif
 
 
 // todo: make it spacific  
-#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
+#if CUDA_VERSION >= 11000 || defined(MAGMA_HAVE_HIP)
 #define cusparseCreateSolveAnalysisInfo(info) {;}
 #else
 #define cusparseCreateSolveAnalysisInfo(info)                                                   \
@@ -33,7 +33,7 @@
 #endif
 
 // todo: info is passed; buf has to be passed 
-#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
+#if CUDA_VERSION >= 11000 || defined(MAGMA_HAVE_HIP)
 #define cusparseZcsrsv_analysis(handle, trans, m, nnz, descr, val, row, col, info)              \
     {                                                                                           \
         csrsv2Info_t linfo = 0;                                                                 \
@@ -52,7 +52,7 @@
 #endif
 
 // todo: check the info and linfo if we have to give it back; free memory?   
-#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
+#if CUDA_VERSION >= 11000 || defined(MAGMA_HAVE_HIP)
 #define cusparseZcsrsm_analysis(handle, op, rows, nnz, descrA, dval, drow, dcol, info )         \
     {                                                                                           \
         magmaDoubleComplex alpha = MAGMA_Z_ONE;                                                 \

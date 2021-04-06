@@ -8,7 +8,7 @@
        @author Azzam Haidar 
 
 */
-#if defined(HAVE_CUBLAS)
+#if defined(MAGMA_HAVE_CUDA)
 #include <cuda.h>    // for CUDA_VERSION
 #endif
 

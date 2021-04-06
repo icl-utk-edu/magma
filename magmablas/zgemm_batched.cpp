@@ -36,13 +36,13 @@
  *      *   these will need more complicated macro if/else blocks
  *       */
 #ifdef PRECISION_z
-  #ifdef HAVE_HIP
+  #ifdef MAGMA_HAVE_HIP
     typedef hipblasDoubleComplex BackendFloat_t;
   #else
     typedef cuDoubleComplex BackendFloat_t;
   #endif
 #elif defined(PRECISION_c)
-  #ifdef HAVE_HIP
+  #ifdef MAGMA_HAVE_HIP
     typedef hipblasComplex BackendFloat_t;
   #else
     typedef cuFloatComplex BackendFloat_t;

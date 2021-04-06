@@ -22,7 +22,7 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
-#ifdef HAVE_HIP
+#ifdef MAGMA_HAVE_HIP
 /* need typedef */
 typedef unsigned short half;
 
@@ -397,14 +397,14 @@ int main( int argc, char** argv)
                Performs operation using CUBLAS
                =================================================================== */
             preprocess_matrix( M, batchCount*N,  hC, ldc, dC, lddc, opts.queue );
-            #ifdef HAVE_CUBLAS
+            #ifdef MAGMA_HAVE_CUDA
             cublasSetMathMode(opts.handle, CUBLAS_TENSOR_OP_MATH);
             #else
             /* HIP */
             #endif            
 
             cublas_time = magma_sync_wtime( opts.queue );
-            #ifdef HAVE_CUBLAS
+            #ifdef MAGMA_HAVE_CUDA
             cublasHgemmBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                int(M), int(N), int(K),
                                &alpha, (const magmaHalf**)dA_array, int(ldda),

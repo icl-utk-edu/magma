@@ -101,7 +101,7 @@ magma_zgeqrf(
 {
     #define  A(i_,j_)  (A + (i_) + (j_)*lda)
     
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_,j_)  dA,    ((i_) + (j_)*ldda + dA_offset)
     #define dT(i_,j_)  dT,    ((i_) + (j_)*nb   + dT_offset)
     #define dwork(i_)  dwork, ((i_)             + dwork_offset)

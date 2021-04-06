@@ -61,7 +61,7 @@ int main( int argc, char** argv )
     magma_opts opts;
     opts.parse_opts( argc, argv );
     
-    #ifdef HAVE_CUBLAS 
+    #ifdef MAGMA_HAVE_CUDA 
     printf( "Compares magma wrapper function to cublas function; all diffs should be exactly 0.\n\n" );
     
     total_error = 0.;

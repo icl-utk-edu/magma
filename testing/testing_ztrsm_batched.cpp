@@ -207,7 +207,7 @@ int main( int argc, char** argv)
             magma_zset_pointer( d_B_array, d_B, lddb, 0, 0, lddb*N, batchCount, opts.queue );
 
             cublas_time = magma_sync_wtime( opts.queue );
-            #ifdef HAVE_CUBLAS
+            #ifdef MAGMA_HAVE_CUDA
             cublasZtrsmBatched(
                 opts.handle, cublas_side_const(opts.side), cublas_uplo_const(opts.uplo),
                 cublas_trans_const(opts.transA), cublas_diag_const(opts.diag),

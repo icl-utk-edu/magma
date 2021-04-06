@@ -2822,7 +2822,7 @@ INCLUDE_FILE_PATTERNS  =
 # Compile as if CUBLAS, CBLAS, and (for constants.cpp) clBLAS are available
 # Compile as C++.
 # Remove gcc attributes.
-PREDEFINED             = HAVE_CUBLAS HAVE_CBLAS HAVE_clBLAS \
+PREDEFINED             = MAGMA_HAVE_CUDA HAVE_CBLAS MAGMA_HAVE_OPENCL \
                          __cplusplus \
                          __attribute__(x)=
 

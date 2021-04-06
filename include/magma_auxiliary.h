@@ -24,7 +24,7 @@ extern "C" {
 magma_int_t magma_init( void );
 magma_int_t magma_finalize( void );
 
-#ifdef HAVE_clBLAS
+#ifdef MAGMA_HAVE_OPENCL
 magma_int_t magma_init_opencl(
     cl_platform_id platform,
     cl_context context,
@@ -271,7 +271,7 @@ magma_queue_create_internal(
     magma_queue_t* queue_ptr,
     const char* func, const char* file, int line );
 
-#ifdef HAVE_CUBLAS
+#ifdef MAGMA_HAVE_CUDA
 void
 magma_queue_create_from_cuda_internal(
     magma_device_t   device,
@@ -283,7 +283,7 @@ magma_queue_create_from_cuda_internal(
 #endif
 
 
-#ifdef HAVE_HIP
+#ifdef MAGMA_HAVE_HIP
 void
 magma_queue_create_from_hip_internal(
     magma_device_t    device,
@@ -295,7 +295,7 @@ magma_queue_create_from_hip_internal(
 #endif
 
 
-#ifdef HAVE_clBLAS
+#ifdef MAGMA_HAVE_OPENCL
 magma_int_t
 magma_queue_create_from_opencl_internal(
     magma_device_t   device,

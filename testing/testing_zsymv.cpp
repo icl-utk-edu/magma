@@ -28,7 +28,7 @@
 */
 int main(int argc, char **argv)
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_, j_)  dA, ((i_) + (j_)*ldda)
     #define dX(i_)      dX, ((i_))
     #define dY(i_)      dY, ((i_))
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
             /* =====================================================================
                Performs operation using MAGMABLAS
                =================================================================== */
-            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
                 magma_zsetmatrix( N, N, A, lda, dA(0,0), ldda, opts.queue );
                 magma_zsetvector( N, X, incx, dX(0), incx, opts.queue );
                 magma_zsetvector( N, Y, incy, dY(0), incy, opts.queue );

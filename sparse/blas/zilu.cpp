@@ -15,7 +15,7 @@
 #define PRECISION_z
 
 /* For hipSPARSE, they use a separate complex type than for hipBLAS */
-#if defined(HAVE_HIP)
+#if defined(MAGMA_HAVE_HIP)
   #ifdef PRECISION_z
     #define hipblasDoubleComplex hipDoubleComplex
   #elif defined(PRECISION_c)
@@ -24,14 +24,14 @@
 #endif
 
 // todo: make it spacific
-#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
+#if CUDA_VERSION >= 11000 || defined(MAGMA_HAVE_HIP)
 #define cusparseCreateSolveAnalysisInfo(info) cusparseCreateCsrsm2Info(info) 
 #else
 #define cusparseCreateSolveAnalysisInfo(info)                                                   \
         CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( info ))
 #endif
 
-#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
+#if CUDA_VERSION >= 11000 || defined(MAGMA_HAVE_HIP)
 #define cusparseDestroySolveAnalysisInfo(info) cusparseDestroyCsrsm2Info(info)
 #endif
 
@@ -58,7 +58,7 @@
            magma_free(buf);                                                                     \
     }
 
-#elif defined(HAVE_HIP)
+#elif defined(MAGMA_HAVE_HIP)
 #define cusparseZcsrsm_analysis(handle, op, rows, nnz, descrA, dval, drow, dcol, info )         \
     {                                                                                           \
         magmaDoubleComplex alpha = MAGMA_Z_ONE;                                                 \
@@ -120,7 +120,7 @@
         magma_free(buf);                                                                        \
     }
 
-#elif defined(HAVE_HIP) 
+#elif defined(MAGMA_HAVE_HIP) 
 #define cusparseZcsrsm_solve(handle, op, rows, cols, nnz, alpha, descrA, dval, drow, dcol,      \
                              info, b, ldb, x, ldx )                                             \
     {                                                                                           \
@@ -166,7 +166,7 @@
         if (bufsize > 0)                                                                        \
            magma_free(buf);                                                                     \
     }
-#elif defined(HAVE_HIP)
+#elif defined(MAGMA_HAVE_HIP)
 #define cusparseZcsric0(handle, op, rows, nnz, descrA, dval, drow, dcol, info )                 \
     {                                                                                           \
         int bufsize;                                                                            \
@@ -227,7 +227,7 @@ magma_zcumilusetup(
     cusparseMatDescr_t descrA=NULL;
     cusparseMatDescr_t descrL=NULL;
     cusparseMatDescr_t descrU=NULL;
-#if CUDA_VERSION >= 7000 || defined(HAVE_HIP)
+#if CUDA_VERSION >= 7000 || defined(MAGMA_HAVE_HIP)
     csrilu02Info_t info_M=NULL;
     void *pBuffer = NULL;
 #endif
@@ -294,7 +294,7 @@ magma_zcumilusetup(
                          precond->M.dval, precond->M.drow, precond->M.dcol,
                          info_M, CUSPARSE_SOLVE_POLICY_NO_LEVEL, pBuffer) );
 
-#elif defined(HAVE_HIP)
+#elif defined(MAGMA_HAVE_HIP)
 
     // this version has the bug fixed where a zero on the diagonal causes a crash
     CHECK_CUSPARSE( hipsparseCreateCsrilu02Info(&info_M) );
@@ -384,7 +384,7 @@ magma_zcumilusetup(
             magma_zmfree(&hU, queue );
             magma_zmtransfer( precond->L, &hL, Magma_DEV, Magma_DEV, queue );
             // conversion using CUSPARSE
-            #ifdef HAVE_HIP
+            #ifdef MAGMA_HAVE_HIP
             hipsparseZcsr2csc(cusparseHandle, hL.num_cols, 
                              hL.num_rows, hL.nnz,
                              (hipDoubleComplex*)hL.dval, hL.drow, hL.dcol, 
@@ -404,7 +404,7 @@ magma_zcumilusetup(
             magma_zmtransfer( precond->U, &hU, Magma_DEV, Magma_DEV, queue );
             // conversion using CUSPARSE
 
-            #ifdef HAVE_HIP
+            #ifdef MAGMA_HAVE_HIP
             hipsparseZcsr2csc(cusparseHandle, hU.num_cols, 
                              hU.num_rows, hU.nnz,
                              (hipDoubleComplex*)hU.dval, hU.drow, hU.dcol, 
@@ -454,7 +454,7 @@ magma_zcumilusetup(
 
     
 cleanup:
-#if CUDA_VERSION >= 7000 || defined(HAVE_HIP)
+#if CUDA_VERSION >= 7000 || defined(MAGMA_HAVE_HIP)
     magma_free( pBuffer );
     cusparseDestroyCsrilu02Info( info_M );
 #endif

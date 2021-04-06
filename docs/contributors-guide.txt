@@ -142,7 +142,7 @@ This guide is based on the PLASMA coding style guide, though slightly different.
         
         // for clBLAS, return cl_mem object and offset (2 values);
         // for others, return (pointer + offset) (1 value).
-        #ifdef HAVE_clBLAS
+        #ifdef MAGMA_HAVE_OPENCL
             #define dA(i_,j_)  dA , (i_) + ((size_t) j_)*lda
         #else
             #define dA(i_,j_) (dA + (i_) + ((size_t) j_)*lda)

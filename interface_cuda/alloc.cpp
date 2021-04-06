@@ -22,7 +22,7 @@
 #include "magma_internal.h"
 #include "error.h"
 
-//#ifdef HAVE_CUBLAS
+//#ifdef MAGMA_HAVE_CUDA
 
 
 #ifdef DEBUG_MEMORY
@@ -324,14 +324,14 @@ magma_memset(void * ptr, int value, size_t count) {
 
 extern "C" magma_int_t
 magma_memset_async(void * ptr, int value, size_t count, magma_queue_t queue) {
-#ifdef HAVE_CUDA
+#ifdef MAGMA_HAVE_CUDA
 //    return cudaMemsetAsync(ptr, value, count, queue);
     return cudaMemsetAsync(ptr, value, count, queue->cuda_stream());
-#elif defined(HAVE_HIP)
+#elif defined(MAGMA_HAVE_HIP)
     return hipMemsetAsync(ptr, value, count, queue->hip_stream());
 #endif
 }
 
 
 
-//#endif // HAVE_CUBLAS
+//#endif // MAGMA_HAVE_CUDA

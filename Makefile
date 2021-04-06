@@ -1,14 +1,7 @@
 # ------------------------------------------------------------------------------
 # build process
 #
-# For hipMAGMA (branch of MAGMA that builds on HIP), the build process is basically:
-# 0: Clone the repo, or download a release
-# 1: Copy your `make.inc` for your specific platform
-# 2: If its the repo, then run `make -f make.gen.interface_hip`, and `make -f make.gen.magmablas_hip`, 
-#      and `make -f make.gen.testing_hip`
-# 3: Now, run `make`, like normal.
-# 4: You can make specific testers if the builds are failing
-#
+# 
 
 
 
@@ -47,13 +40,19 @@ HIPCC       ?= hipcc
 NVCC        ?= nvcc
 DEVCC       ?= NONE
 
+# Configuration variables
+HAVE_CUDA  = 
+HAVE_HIP   = 
+CUDA_ARCH_MIN =
 
 # set from 'BACKEND'
 ifeq ($(BACKEND),cuda)
     DEVCC = $(NVCC)
+	HAVE_CUDA = 1
 
 else ifeq ($(BACKEND),hip)
     DEVCC = $(HIPCC)
+	HAVE_HIP = 1
 
     # if we are using HIP, make sure generated sources are up to date
     # Technically, this 'recursive' make which we don't like to do, but also this is a simple solution
@@ -118,6 +117,7 @@ CPPFLAGS   = $(INC) $(MAGMA_INC)
 RPATH      = -Wl,-rpath,${abspath ./lib}
 
 codegen    = ./tools/codegen.py
+
 
 ifeq ($(BACKEND),cuda)
 
@@ -197,19 +197,10 @@ ifeq ($(BACKEND),cuda)
 
     # Get first (minimum) architecture
 	# (add zero, so its comparable to '__CUDA_ARCH__')
-    MIN_ARCH := $(word 1, $(SMS))0
-    ifeq ($(MIN_ARCH),)
+    CUDA_ARCH_MIN := $(word 1, $(SMS))0
+    ifeq ($(CUDA_ARCH_MIN),)
         $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
     endif
-
-    DEVCCFLAGS += -DHAVE_CUDA -DHAVE_CUBLAS -DMIN_CUDA_ARCH=$(MIN_ARCH)
-
-
-    CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
-    CXXFLAGS  += -DMIN_CUDA_ARCH=$(MIN_ARCH)
-
-    CFLAGS    += -DHAVE_CUDA -DHAVE_CUBLAS
-    CXXFLAGS  += -DHAVE_CUDA -DHAVE_CUBLAS
 else ifeq ($(BACKEND),hip)
 
 	# ------------------------------------------------------------------------------
@@ -282,15 +273,12 @@ else ifeq ($(BACKEND),hip)
     DEVCCFLAGS += $(AMD_GFX)
 
     # Get first (minimum) architecture
-    MIN_ARCH := $(wordlist 1, 1, $(foreach gfx, $(VALID_GFXS),$(if $(findstring gfx$(gfx), $(HIP_ARCH_)),$(gfx))))
-	ifeq ($(MIN_ARCH),)
-		$(error GPU_TARGET, currently $(GPU_TARGET), did not contain a minimum arch)
-	endif
+	# NOTE: Not so useful for HIP
+    #MIN_ARCH := $(wordlist 1, 1, $(foreach gfx, $(VALID_GFXS),$(if $(findstring gfx$(gfx), $(HIP_ARCH_)),$(gfx))))
+	#ifeq ($(MIN_ARCH),)
+	#	$(error GPU_TARGET, currently $(GPU_TARGET), did not contain a minimum arch)
+	#endif
 
-    # just so we know
-    CFLAGS     += -DHAVE_HIP
-    CXXFLAGS   += -DHAVE_HIP
-    DEVCCFLAGS += -DHAVE_HIP
 endif
 
 
@@ -368,7 +356,6 @@ include $(Makefiles)
 -include Makefile.internal
 -include Makefile.local
 -include Makefile.gen
-
 
 #$(info $$libmagma_src=$(libmagma_src))
 #$(info $$libmagma_all=$(libmagma_all))
@@ -472,6 +459,43 @@ endif
 
 
 # ----- headers
+
+# Configuration file
+CONFIG     := include/magma_config.h
+
+# add to a list of all headers
+header_all += $(CONFIG)
+# add to list of generated files
+libmagma_generated += $(CONFIG)
+
+# Dependencies of the config
+CONFIGDEPS := include/magma_config.h.in Makefile make.inc
+
+# All flags, for searching
+ALLFLAGS := $(CFLAGS) $(CXXFLAGS) $(DEVCCFLAGS)
+
+# Configuration header
+$(CONFIG):: $(CONFIGDEPS) 
+	cp $< $@
+	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
+
+ifneq (,$(HAVE_CUDA))
+$(CONFIG):: $(CONFIGDEPS) 
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#define MAGMA_HAVE_CUDA/g' $@
+else
+$(CONFIG):: $(CONFIGDEPS) 
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#undef MAGMA_HAVE_CUDA/g' $@
+endif
+
+ifneq (,$(HAVE_HIP))
+$(CONFIG):: $(CONFIGDEPS) 
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#define MAGMA_HAVE_HIP/g' $@
+else
+$(CONFIG):: $(CONFIGDEPS) 
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#undef MAGMA_HAVE_HIP/g' $@
+endif
+
+
 # to test that headers are self-contained,
 # pre-compile each into a header.h.gch file using "g++ ... -c header.h"
 header_gch := $(addsuffix .gch, $(filter-out %.cuh, $(header_all)))
@@ -480,6 +504,8 @@ test_headers: $(header_gch)
 
 %.h.gch: %.h
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+
 
 
 # ----- libraries
@@ -507,8 +533,8 @@ libs_so := \
 #$(info $$libmagma_obj=$(libmagma_obj))
 
 # add objects to libraries
-$(libmagma_a):      $(libmagma_obj)
-$(libmagma_so):     $(libmagma_obj)
+$(libmagma_a):      $(CONFIG) $(libmagma_obj) 
+$(libmagma_so):     $(CONFIG) $(libmagma_obj) 
 $(libblas_fix_a):   $(libblas_fix_obj)
 $(libtest_a):       $(libtest_obj)
 $(liblapacktest_a): $(liblapacktest_obj)
@@ -678,7 +704,6 @@ else ifeq ($(BACKEND),hip)
   magmablas_hip_obj   := $(filter     magmablas_hip/%.o, $(libmagma_obj))
   #$(info $$magmablas_hip_obj=$(magmablas_hip_obj))
 endif
-
 
 
 # ----------
@@ -946,9 +971,9 @@ $(sparse_testers): %: %.$(o_ext)
 #TODO: add hip specific ones
 INSTALL_FLAGS := $(filter-out \
 	-DMAGMA_NOAFFINITY -DMAGMA_SETAFFINITY -DMAGMA_WITH_ACML -DMAGMA_WITH_MKL -DUSE_FLOCK \
-	-DMIN_CUDA_ARCH=100 -DMIN_CUDA_ARCH=200 -DMIN_CUDA_ARCH=300 \
-	-DMIN_CUDA_ARCH=350 -DMIN_CUDA_ARCH=500 -DMIN_CUDA_ARCH=600 -DMIN_CUDA_ARCH=610 \
-	-DHAVE_CUBLAS -DHAVE_clBLAS -DHAVE_HIP \
+	-DMAGMA_CUDA_ARCH_MIN=100 -DMAGMA_CUDA_ARCH_MIN=200 -DMAGMA_CUDA_ARCH_MIN=300 \
+	-DMAGMA_CUDA_ARCH_MIN=350 -DMAGMA_CUDA_ARCH_MIN=500 -DMAGMA_CUDA_ARCH_MIN=600 -DMAGMA_CUDA_ARCH_MIN=610 \
+	-DMAGMA_HAVE_CUDA -DMAGMA_HAVE_HIP -DMAGMA_HAVE_clBLAS \
 	-fno-strict-aliasing -fPIC -O0 -O1 -O2 -O3 -pedantic -std=c99 -stdc++98 -stdc++11 \
 	-Wall -Wshadow -Wno-long-long, $(CFLAGS))
 

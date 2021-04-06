@@ -13,7 +13,7 @@
 
 extern "C" {
 
-#if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
 magma_int_t magma_buildconnection_mgpu(
     magma_int_t gnode[MagmaMaxGPUs+2][MagmaMaxGPUs+2],
     magma_int_t *ncmplx, magma_int_t ngpu)
@@ -36,9 +36,9 @@ magma_int_t magma_buildconnection_mgpu(
         magma_setdevice( d );
         cudaGetDeviceProperties( &prop, int(d) );
 
-        #ifdef HAVE_CUBLAS
+        #ifdef MAGMA_HAVE_CUDA
         if ( ! prop.unifiedAddressing ) {
-        #elif defined(HAVE_HIP)
+        #elif defined(MAGMA_HAVE_HIP)
         // assume it does, HIP does not have support for checking this
         if ( ! true ) {
         #endif
@@ -63,9 +63,9 @@ magma_int_t magma_buildconnection_mgpu(
             // check for unified memory & enable peer memory access between all GPUs.
             magma_setdevice( d2 );
             cudaGetDeviceProperties( &prop, int(d2) );
-            #ifdef HAVE_CUBLAS
+            #ifdef MAGMA_HAVE_CUDA
             if ( ! prop.unifiedAddressing ) {
-            #elif defined(HAVE_HIP)
+            #elif defined(MAGMA_HAVE_HIP)
             // assume it does, HIP does not have support for checking this
             if ( ! true ) {
             #endif

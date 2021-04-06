@@ -20,7 +20,7 @@
 
 //#undef COMPLEX
 //#undef DOUBLE
-#ifdef HAVE_CUDA
+#ifdef MAGMA_HAVE_CUDA
   #define TEXTURE_1D
 #endif
 
@@ -36,7 +36,7 @@
 
 // =============================================================================
 // A x B
-#if defined(HAVE_CUBLAS)
+#if defined(MAGMA_HAVE_CUDA)
     // size of work for a thread block
     #define BLK_M_nn  96
     #define BLK_N_nn  96

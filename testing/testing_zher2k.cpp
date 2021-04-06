@@ -29,7 +29,7 @@
 */
 int main( int argc, char** argv)
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_, j_)  dA, ((i_) + (j_)*ldda)
     #define dB(i_, j_)  dB, ((i_) + (j_)*lddb)
     #define dC(i_, j_)  dC, ((i_) + (j_)*lddc)
@@ -73,7 +73,7 @@ int main( int argc, char** argv)
     }
     #endif
 
-    #ifdef HAVE_CUBLAS
+    #ifdef MAGMA_HAVE_CUDA
     // for CUDA, we can check MAGMA vs. CUBLAS, without running LAPACK
     printf("%% If running lapack (option --lapack), MAGMA and %s errors are both computed\n"
            "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to %s result.\n\n",
@@ -162,7 +162,7 @@ int main( int argc, char** argv)
                =================================================================== */
             magma_zsetmatrix( N, N, hC, ldc, dC(0,0), lddc, opts.queue );
             
-            #if HAVE_CUBLAS
+            #ifdef MAGMA_HAVE_CUDA
             dev_time = magma_sync_wtime( opts.queue );
             magma_zher2k( opts.uplo, opts.transA, N, K,
                           alpha, dA(0,0), ldda,
@@ -196,7 +196,7 @@ int main( int argc, char** argv)
                 magma_error = safe_lapackf77_zlanhe( "F", lapack_uplo_const(opts.uplo), &N, hCmagma, &ldc, work )
                             / (2*sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
 
-                #ifdef HAVE_CUBLAS
+                #ifdef MAGMA_HAVE_CUDA
                 blasf77_zaxpy( &sizeC, &c_neg_one, hC, &ione, hCdev, &ione );
                 dev_error = safe_lapackf77_zlanhe( "F", lapack_uplo_const(opts.uplo), &N, hCdev, &ldc, work )
                             / (2*sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
@@ -221,7 +221,7 @@ int main( int argc, char** argv)
                 
             }
             else {
-                #ifdef HAVE_CUBLAS
+                #ifdef MAGMA_HAVE_CUDA
                 blasf77_zaxpy( &sizeC, &c_neg_one, hCdev, &ione, hCmagma, &ione );
                 magma_error = safe_lapackf77_zlanhe( "F", lapack_uplo_const(opts.uplo), &N, hCmagma, &ldc, work )
                             / (2*sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);

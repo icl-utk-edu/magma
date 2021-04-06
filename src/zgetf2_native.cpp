@@ -260,7 +260,7 @@ magma_zgetf2_native(
     magma_int_t *dinfo, magma_int_t gbstep,
     magma_queue_t queue, magma_queue_t update_queue)
 {
-    #ifdef HAVE_CUBLAS
+    #ifdef MAGMA_HAVE_CUDA
     magma_int_t arch = magma_getdevice_arch();
     if(m > ZGETF2_FUSED_MAX_M || arch < 300){
       magma_zgetf2_native_blocked(m, n, dA, ldda, dipiv, dinfo, gbstep, queue);
@@ -273,6 +273,6 @@ magma_zgetf2_native(
     // (under magmablas/zgetf2_native_kernel.cu)
     // So use the blocked implementation only
     magma_zgetf2_native_blocked(m, n, dA, ldda, dipiv, dinfo, gbstep, queue);
-    #endif    // HAVE_CUBLAS
+    #endif    // MAGMA_HAVE_CUDA
     return 0;
 }

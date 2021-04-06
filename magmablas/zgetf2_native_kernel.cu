@@ -57,7 +57,7 @@ zgetf2_native_kernel( int m, int n,
                       volatile int* update_flag,
                       volatile magma_int_t *info)
 {
-#ifdef HAVE_CUBLAS
+#ifdef MAGMA_HAVE_CUDA
     const int tx  = threadIdx.x;
     const int bx = blockIdx.x;
     magmaDoubleComplex rA[NPAGES] = {MAGMA_Z_ZERO};
@@ -275,7 +275,7 @@ zgetf2_native_kernel( int m, int n,
         }
     }
 
-#endif    // HAVE_CUBLAS
+#endif    // MAGMA_HAVE_CUDA
 }
 
 // =============================================================================

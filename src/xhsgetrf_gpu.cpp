@@ -11,17 +11,17 @@
 */
 
 
-#ifdef HAVE_CUDA
+#ifdef MAGMA_HAVE_CUDA
 
 #include <cuda.h>    // for CUDA_VERSION
 #include <cuda_runtime.h>
 
 #endif
 
-#if defined(HAVE_CUDA) && CUDA_VERSION >= 7500
+#if defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 7500
 #include <cuda_fp16.h>
 
-#if !defined(HAVE_CUDA) || CUDA_VERSION < 9020
+#if !defined(MAGMA_HAVE_CUDA) || CUDA_VERSION < 9020
 // conversion float to half are not defined for host in CUDA version <9.2
 // thus uses the conversion below when CUDA VERSION is < 9.2.
 #include <string.h>
@@ -223,7 +223,7 @@ magma_xhsgetrf_gpu(
     magma_mp_type_t mp_algo_type )
 {
 #if CUDA_VERSION >= 7500
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define  dA(i_, j_) dA,  (dA_offset  + (i_)       + (j_)*ldda)
     #define dAT(i_, j_) dAT, (dAT_offset + (i_)*lddat + (j_))
     #define dAP(i_, j_) dAP, (             (i_)          + (j_)*maxm)

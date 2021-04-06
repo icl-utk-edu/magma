@@ -95,7 +95,7 @@ int main( int argc, char** argv)
                    Check the result compared to LAPACK
                    =================================================================== */
                 blasf77_zaxpy(&n2, &c_neg_one, h_A, &ione, h_R, &ione);
-                #ifndef HAVE_HIP
+                #ifndef MAGMA_HAVE_HIP
                 Anorm = lapackf77_zlange("f", &N, &N, h_A, &lda, work);
                 error = lapackf77_zlange("f", &N, &N, h_R, &lda, work) / Anorm;
                 #else

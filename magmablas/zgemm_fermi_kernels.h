@@ -19,7 +19,7 @@
 // =============================================================================
 #define COMPLEX
 #define DOUBLE
-#ifdef HAVE_CUDA
+#ifdef MAGMA_HAVE_CUDA
   #define TEXTURE_1D
 #endif
 
@@ -31,7 +31,7 @@
 // currently, CPU driver assumes all transpose versions have same DIM_X, DIM_Y
 
 // size of thread block for calculating C (innermost loop)
-#if defined(HAVE_CUBLAS)
+#if defined(MAGMA_HAVE_CUDA)
     #define DIM_X  8
     #define DIM_Y  8
 #else
@@ -41,7 +41,7 @@
 
 // =============================================================================
 // A x B
-#if defined(HAVE_CUBLAS)
+#if defined(MAGMA_HAVE_CUDA)
     // size of work for a thread block
     #define BLK_M_nn  24
     #define BLK_N_nn  16
@@ -88,7 +88,7 @@
 
 // =============================================================================
 // A x B^T
-#if defined(HAVE_CUBLAS)
+#if defined(MAGMA_HAVE_CUDA)
     // size of work for a thread block
     #define BLK_M_nt  16
     #define BLK_N_nt  24
@@ -147,7 +147,7 @@
 
 // =============================================================================
 // A^T x B^T
-#if defined(HAVE_CUBLAS)
+#if defined(MAGMA_HAVE_CUDA)
     // size of work for a thread block
     #define BLK_M_tt  16
     #define BLK_N_tt  24
@@ -228,7 +228,7 @@
 
 // =============================================================================
 // A^T x B
-#if defined(HAVE_CUBLAS)
+#if defined(MAGMA_HAVE_CUDA)
     // size of work for a thread block
     #define BLK_M_tn  24
     #define BLK_N_tn  16

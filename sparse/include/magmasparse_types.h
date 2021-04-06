@@ -10,7 +10,7 @@
 #define MAGMASPARSE_TYPES_H
 
 
-#if defined(HAVE_PASTIX)
+#if defined(MAGMA_HAVE_PASTIX)
 //PaStiX include
 #include <stdint.h>
 /* to access functions from the libpastix, respect this order */
@@ -40,11 +40,11 @@
 // if defined, use the cusparseSolveAnalysisInfo_t structures & functionality
 //#define MAGMA_USE_SOLVEANALYSIS
 
-#if   defined(HAVE_CUDA)
+#if   defined(MAGMA_HAVE_CUDA)
 // for now, enable, but this has been deprecated
 // eventually this should be disabled by default
 #define MAGMA_USE_SOLVEANALYSIS
-#elif defined(HAVE_HIP)
+#elif defined(MAGMA_HAVE_HIP)
 
 #define MAGMA_USE_SOLVEANALYSIS
 #endif
@@ -57,7 +57,7 @@
  *
  *
  */
-#if defined(HAVE_HIP)
+#if defined(MAGMA_HAVE_HIP)
 
 // this macro allows you to define an unsupported function (primarily from hipSPARSE)
 // which will become a NOOP, and print an error message
@@ -609,7 +609,7 @@ typedef struct magma_s_solver_par
 #else
     #define magma_solve_info_t csrsm2Info_t
 #endif
-#if defined(HAVE_HIP)
+#if defined(MAGMA_HAVE_HIP)
     #define hipsparseSolveAnalysisInfo_t csrsm2Info_t
 #endif
 
@@ -667,7 +667,7 @@ typedef struct magma_z_preconditioner
     magma_solve_info_t cuinfoUT;
     
     magma_bool_t            transpose;                 // need the transpose for the solver?
-#if defined(HAVE_PASTIX)
+#if defined(MAGMA_HAVE_PASTIX)
     pastix_data_t*          pastix_data;
     magma_int_t*            iparm;
     double*                 dparm;
@@ -729,7 +729,7 @@ typedef struct magma_c_preconditioner
     
     
     magma_bool_t            transpose;                 // need the transpose for the solver?
-#if defined(HAVE_PASTIX)
+#if defined(MAGMA_HAVE_PASTIX)
     pastix_data_t*          pastix_data;
     magma_int_t*            iparm;
     float*                  dparm;
@@ -790,7 +790,7 @@ typedef struct magma_d_preconditioner
     magma_solve_info_t cuinfoUT;
     
     magma_bool_t            transpose;                 // need the transpose for the solver?
-#if defined(HAVE_PASTIX)
+#if defined(MAGMA_HAVE_PASTIX)
     pastix_data_t*          pastix_data;
     magma_int_t*            iparm;
     double*                 dparm;
@@ -851,7 +851,7 @@ typedef struct magma_s_preconditioner
     magma_solve_info_t cuinfoUT;
     
     magma_bool_t            transpose;                 // need the transpose for the solver?
-#if defined(HAVE_PASTIX)
+#if defined(MAGMA_HAVE_PASTIX)
     pastix_data_t*          pastix_data;
     magma_int_t*            iparm;
     float*                  dparm;

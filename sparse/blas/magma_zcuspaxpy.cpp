@@ -170,7 +170,7 @@ magma_zcuspaxpy(
         }
         CHECK( magma_index_malloc( &C.dcol, C.nnz ));
         CHECK( magma_zmalloc( &C.dval, C.nnz ));
-        #ifdef HAVE_HIP
+        #ifdef MAGMA_HAVE_HIP
         hipsparseZcsrgeam( handle, A.num_rows, A.num_cols,
                           (const hipDoubleComplex*)alpha,
                           descrA, A.nnz,

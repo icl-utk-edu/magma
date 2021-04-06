@@ -176,7 +176,7 @@ int main( int argc, char** argv)
             cublas_time = magma_sync_wtime( opts.queue );
 
             if(opts.version == 1){
-                #ifdef HAVE_CUBLAS
+                #ifdef MAGMA_HAVE_CUDA
                   cublasZgemmBatched(
                                    opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                    int(M), int(N), int(K),
@@ -197,7 +197,7 @@ int main( int argc, char** argv)
                 #endif
             }
             else{
-                #ifdef HAVE_CUBLAS
+                #ifdef MAGMA_HAVE_CUDA
                 cublasZgemmStridedBatched(
                                    opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                    int(M), int(N), int(K),

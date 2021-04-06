@@ -150,7 +150,7 @@ magma_zhetrd_he2hb(
     magmaDoubleComplex_ptr dT,
     magma_int_t *info)
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(a_1,a_2)  (dA, (dA_offset + ((a_2)-1)*(ldda) + (a_1)-1))
     #define dT(a_1)      (dT, (dT_offset + ((a_1)-1)*(lddt)))
     #else

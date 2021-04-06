@@ -83,7 +83,7 @@ magma_zpotrf_LL_expert_gpu(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *info, magma_mode_t mode )
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_, j_)  dA, ((i_) + (j_)*ldda + dA_offset)
     #else
     #define dA(i_, j_) (dA + (i_) + (j_)*ldda)

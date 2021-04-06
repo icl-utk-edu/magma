@@ -14,11 +14,11 @@
 #include <string.h>
 #include <math.h>
 
-#if HAVE_CUDA
+#ifdef MAGMA_HAVE_CUDA
 #include <cuda_fp16.h>
 #endif
 
-#if HAVE_HIP
+#ifdef MAGMA_HAVE_HIP
 #include <hip/hip_fp16.h>
 #endif
 
@@ -29,7 +29,7 @@
 #include "magma_operators.h"
 #include "testings.h"
 
-#if CUDA_VERSION < 9020 // or HAVE_HIP 
+#if CUDA_VERSION < 9020 // or MAGMA_HAVE_HIP 
 // conversion float to half are not defined for host in CUDA version <9.2
 // thus uses the conversion below when CUDA VERSION is < 9.2.
 #include <string.h>
@@ -306,7 +306,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Performs operation using GPU
                =================================================================== */
-            #if defined(HAVE_CUBLAS)
+            #if defined(MAGMA_HAVE_CUDA)
                 /* TODO: add support for HIP platform */
                 magma_flush_cache( opts.cache );
                 dev_time = magma_sync_wtime( opts.queue );
@@ -330,7 +330,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Check the result
                =================================================================== */
-            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
             if ( opts.lapack || opts.check ) {
                 /* =====================================================================
                    Performs operation using CPU BLAS

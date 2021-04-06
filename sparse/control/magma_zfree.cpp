@@ -12,7 +12,7 @@
 
 // todo: see how to destroy info
 // there are different, e.g., cusparseDestroyCsrsv2Info(info), etc.
-#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
+#if CUDA_VERSION >= 11000 || defined(MAGMA_HAVE_HIP)
 #define cusparseDestroySolveAnalysisInfo(info) {;}
 #endif
 

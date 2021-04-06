@@ -26,7 +26,7 @@
 */
 int main( int argc, char** argv)
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_, j_)  dA, ((i_) + (j_)*ldda)
     #define dB(i_, j_)  dB, ((i_) + (j_)*lddb)
     #else
@@ -129,7 +129,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Performs operation using MAGMABLAS (only with CUDA)
                =================================================================== */
-            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
                 magma_zsetmatrix( M, N, hB, ldb, dB(0,0), lddb, opts.queue );
 
                 magma_time = magma_sync_wtime( opts.queue );
@@ -191,7 +191,7 @@ int main( int argc, char** argv)
                                       lapack_diag_const(opts.diag),
                                       &Ak, &Ak, hA, &lda, work );
 
-            #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
                 // check magma
                 memcpy( hX, hBmagma, sizeB*sizeof(magmaDoubleComplex) );
                 blasf77_ztrmm( lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),

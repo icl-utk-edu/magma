@@ -128,7 +128,7 @@ magma_zgeqrf_gpu(
     magmaDoubleComplex_ptr dT,
     magma_int_t *info )
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_, j_)  dA, (dA_offset + (i_) + (j_)*(ldda))
     #define dT(i_)      dT, (dT_offset + (i_)*nb)
     #define dR(i_)      dT, (dT_offset + (  minmn + (i_))*nb)

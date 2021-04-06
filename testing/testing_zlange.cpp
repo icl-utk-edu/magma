@@ -28,7 +28,7 @@ int main( int argc, char** argv)
 {
     #define h_A(i_, j_) (h_A + (i_) + (j_)*lda)
     
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define d_A(i_, j_)  d_A, ((i_) + (j_)*ldda)
     #else
     #define d_A(i_, j_) (d_A + (i_) + (j_)*ldda)

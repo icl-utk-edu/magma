@@ -12,7 +12,7 @@
 
 #include <cuda_runtime.h>
 
-#if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
 
 // Generic, type-independent routines to copy data.
 // Type-safe versions which avoid the user needing sizeof(...) are in headers;
@@ -727,4 +727,4 @@ magma_copymatrix_async_internal(
     MAGMA_UNUSED( status );
 }
 
-#endif // HAVE_CUBLAS
+#endif // MAGMA_HAVE_CUDA

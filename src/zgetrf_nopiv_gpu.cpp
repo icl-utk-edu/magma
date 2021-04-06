@@ -64,7 +64,7 @@ magma_zgetrf_nopiv_gpu(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *info )
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define  dA(i_, j_) dA,  (dA_offset  + (i_)*nb       + (j_)*nb*ldda)
     #else
     #define  dA(i_, j_) (dA  + (i_)*nb       + (j_)*nb*ldda)

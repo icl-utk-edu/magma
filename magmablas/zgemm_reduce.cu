@@ -33,7 +33,7 @@ void zgemm_reduce_kernel(
     magmaDoubleComplex beta,
     magmaDoubleComplex      * __restrict__ dC, int ldc)
 {
-#if (__CUDA_ARCH__ >= 200) || defined(HAVE_HIP)
+#if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
     const int tx = threadIdx.x;
     
     if (blockIdx.x*BLK_M + threadIdx.y < m && blockIdx.y*BLK_N + threadIdx.z < n) {
@@ -115,7 +115,7 @@ magmablas_zgemm_reduce(
     magma_int_t arch = magma_getdevice_arch();
 
     // if HIP, always assume other method
-    #ifndef HAVE_HIP
+    #ifndef MAGMA_HAVE_HIP
     if ( arch < 200  ) {
         // --------------------
         // call CUDA ARCH 1.x -- maximum 512 threads
@@ -127,7 +127,7 @@ magmablas_zgemm_reduce(
             ( m, n, k, alpha, dA, ldda, dB, lddb, beta, dC, lddc );
     }
     else 
-    #endif /* HAVE_HIP */
+    #endif /* MAGMA_HAVE_HIP */
     {
         // --------------------
         // call CUDA ARCH 2.x -- maximum 1024 threads

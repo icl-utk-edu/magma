@@ -424,7 +424,7 @@ int main( int argc, char** argv )
     printf( "LAPACK -> magma_xxxxx_const     %s\n", (s == gStatus ? "ok" : "failed"));
 
     // ------------------------------------------------------------
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     s = gStatus;
     check( clblas_order_const( MagmaRowMajor      ) == clblasRowMajor    );
     check( clblas_order_const( MagmaColMajor      ) == clblasColumnMajor );

@@ -110,7 +110,7 @@ magma_zgetrf_batched(
 
     /* Special case for tiny square matrices */
     if( m == n && m <= 32 ){
-        #ifdef HAVE_CUBLAS
+        #ifdef MAGMA_HAVE_CUDA
         magma_int_t arch = magma_getdevice_arch();
         if(arch >= 700){
             return magma_zgetrf_batched_smallsq_noshfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );

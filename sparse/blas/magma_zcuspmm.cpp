@@ -175,7 +175,7 @@ magma_zcuspmm(
         }
         CHECK( magma_index_malloc( &C.dcol, C.nnz ));
         CHECK( magma_zmalloc( &C.dval, C.nnz ));
-        #ifdef HAVE_HIP
+        #ifdef MAGMA_HAVE_HIP
         hipsparseZcsrgemm( handle, HIPSPARSE_OPERATION_NON_TRANSPOSE,
                           HIPSPARSE_OPERATION_NON_TRANSPOSE,
                           A.num_rows, B.num_cols, A.num_cols,

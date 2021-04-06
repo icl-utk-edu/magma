@@ -80,7 +80,7 @@ magma_zposv(
     magmaDoubleComplex *B, magma_int_t ldb,
     magma_int_t *info )
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define  dA(i_, j_)  dA, ((i_) + (j_)*ldda)
     #define  dB(i_, j_)  dB, ((i_) + (j_)*lddb)
     #else

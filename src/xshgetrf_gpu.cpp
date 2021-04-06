@@ -90,8 +90,8 @@ magma_xshgetrf_gpu(
     magma_mp_type_t enable_tc,
     magma_mp_type_t mp_algo_type )
 {
-#if defined(HAVE_CUDA) && defined(HAVE_CUBLAS) && CUDA_VERSION >= 9000
-    #ifdef HAVE_clBLAS
+#if defined(MAGMA_HAVE_CUDA) && defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 9000
+    #ifdef MAGMA_HAVE_OPENCL
     #define  dA(i_, j_) dA,  (dA_offset  + (i_)       + (j_)*ldda)
     #define dAT(i_, j_) dAT, (dAT_offset + (i_)*lddat + (j_))
     #define dAP(i_, j_) dAP, (             (i_)          + (j_)*maxm)

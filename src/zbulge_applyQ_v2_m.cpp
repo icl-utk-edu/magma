@@ -17,7 +17,7 @@
 #include "magma_zbulgeinc.h"
 
 // =============================================================================
-#ifdef HAVE_clBLAS
+#ifdef MAGMA_HAVE_OPENCL
 #define dE(dev,i,j)  (dE[dev], (dE_offset + (i) + ldde*(j)))
 #else
 #define dE(dev,i,j)  (dE[dev] + (i) + ldde*(j))

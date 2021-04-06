@@ -25,8 +25,8 @@ grep -P "\t" `grep -v "ReleaseChecklist|Make|Doxy|\.py|\.pl|\.sh|\.F90" files.tx
 echo
 
 # fixed
-echo "========== don't use MIN_CUDA_ARCH; use __CUDA_ARCH__ and magma_getdevice_arch  *** required fix ***"
-egrep MIN_CUDA_ARCH $FILES | egrep -v 'CMakeLists.txt|Makefile|interface.cpp'
+echo "========== don't use MAGMA_CUDA_ARCH_MIN; use __CUDA_ARCH__ and magma_getdevice_arch  *** required fix ***"
+egrep MAGMA_CUDA_ARCH_MIN $FILES | egrep -v 'CMakeLists.txt|Makefile|interface.cpp'
 echo
 
 # fixed

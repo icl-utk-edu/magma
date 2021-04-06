@@ -172,7 +172,7 @@ int main( int argc, char** argv)
 
             cublas_time = magma_sync_wtime( opts.queue );
             if (M == N ) {
-                #ifdef HAVE_CUBLAS
+                #ifdef MAGMA_HAVE_CUDA
                 cublasZgetrfBatched( opts.handle, int(N),
                                      dA_array, int(ldda), dipiv_cublas,
                                      dinfo_cublas, int(batchCount) );

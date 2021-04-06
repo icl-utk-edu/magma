@@ -54,7 +54,7 @@ int main( int argc, char** argv)
     double eps = lapackf77_dlamch("E");
     double tol = 3*eps;
 
-    #ifdef HAVE_CUBLAS
+    #ifdef MAGMA_HAVE_CUDA
     // for CUDA, we can check MAGMA vs. CUBLAS, without running LAPACK
     printf("%% If running lapack (option --lapack), MAGMA and %s errors are both computed\n"
            "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to %s result.\n\n",
@@ -136,7 +136,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Performs operation using device BLAS (if available)
                =================================================================== */
-            #ifdef HAVE_CUBLAS
+            #ifdef MAGMA_HAVE_CUDA
             magma_zsetmatrix( M, N, hC, ldc, dC, lddc, opts.queue );
 
             dev_time = magma_sync_wtime( opts.queue );
@@ -172,7 +172,7 @@ int main( int argc, char** argv)
                 if (normalize == 0) normalize = 1;
                 magma_error = lapackf77_zlange( "F", &M, &N, hCmagma, &ldc, work ) / normalize;
 
-                #if HAVE_CUBLAS
+                #ifdef MAGMA_HAVE_CUDA
                 blasf77_zaxpy( &sizeC, &c_neg_one, hC, &ione, hCdev, &ione );
                 dev_error = lapackf77_zlange( "F", &M, &N, hCdev, &ldc, work ) / normalize;
 
@@ -195,7 +195,7 @@ int main( int argc, char** argv)
                 #endif
             }
             else {
-                #if HAVE_CUBLAS
+                #ifdef MAGMA_HAVE_CUDA
                 // compute MAGMABLAS error relative to CUBLAS
                 blasf77_zaxpy( &sizeC, &c_neg_one, hCdev, &ione, hCmagma, &ione );
                 normalize = sqrt(double(An+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm;

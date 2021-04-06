@@ -185,7 +185,7 @@ magma_zhetrd_he2hb_mgpu(
     magma_queue_t queues[][20], magma_int_t nqueue,
     magma_int_t *info)
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dT(a_0, a_1, a_2) (dTmgpu[a_0], (dTmgpu_offset + ((a_2)-1)*(lddt) + (a_1)-1)
     #define dA(a_0, a_1, a_2) (dAmgpu[a_0], (dAmgpu_offset + ((a_2)-1)*(ldda) + (a_1)-1)
     #else

@@ -15,15 +15,15 @@
 
 // for backwards compatability
 #ifdef HAVE_clAmdBlas
-#define HAVE_clBLAS
+#define MAGMA_HAVE_OPENCL
 #endif
 
 
 // each implementation of MAGMA defines HAVE_* appropriately.
-#if ! defined(HAVE_CUBLAS) && ! defined(HAVE_clBLAS) && ! defined(HAVE_MIC) && ! defined(HAVE_HIP)
-// Pytorch requires that the error commented out below is not produced and that HAVE_CUBLAS is defined:
+#if ! defined(MAGMA_HAVE_CUDA) && ! defined(MAGMA_HAVE_OPENCL) && ! defined(HAVE_MIC) && ! defined(MAGMA_HAVE_HIP)
+// Pytorch requires that the error commented out below is not produced and that MAGMA_HAVE_CUDA is defined:
 // #error No 'HAVE_*' macros were set! (defaulting to CUBLAS)
-#define HAVE_CUBLAS
+#define MAGMA_HAVE_CUDA
 #endif
 
 
@@ -60,8 +60,8 @@ typedef double real_Double_t;
 // =============================================================================
 // define types specific to implementation (CUDA, OpenCL, MIC)
 // define macros to deal with complex numbers
-// Pytorch does not define HAVE_CUDA. However HAVE_CUBLAS must be defined:
-#if defined(HAVE_CUBLAS)
+// Pytorch does not define MAGMA_HAVE_CUDA. However MAGMA_HAVE_CUDA must be defined:
+#if defined(MAGMA_HAVE_CUDA)
     // include cublas_v2.h, unless cublas.h has already been included, e.g., via magma.h
     #ifndef CUBLAS_H_
     #include <cuda.h>    // for CUDA_VERSION
@@ -131,7 +131,7 @@ typedef double real_Double_t;
     #ifdef __cplusplus
     }
     #endif
-#elif defined(HAVE_HIP)
+#elif defined(MAGMA_HAVE_HIP)
 
     // default to HCC
     #if !defined(__HIP_PLATFORM_HCC__) && !defined(__HIP_PLATFORM_NVCC)
@@ -385,7 +385,7 @@ typedef double real_Double_t;
     }
     #endif 
 
-#elif defined(HAVE_clBLAS)
+#elif defined(MAGMA_HAVE_OPENCL)
     #include <clBLAS.h>
 
     #ifdef __cplusplus
@@ -468,7 +468,7 @@ typedef double real_Double_t;
     }
     #endif
 #else
-    #error "One of HAVE_CUBLAS, HAVE_HIP, HAVE_clBLAS, or HAVE_MIC must be defined. For example, add -DHAVE_CUBLAS to CFLAGS, or #define HAVE_CUBLAS before #include <magma.h>. In MAGMA, this happens in Makefile."
+    #error "One of MAGMA_HAVE_CUDA, MAGMA_HAVE_HIP, MAGMA_HAVE_OPENCL, or HAVE_MIC must be defined. For example, add -DMAGMA_HAVE_CUDA to CFLAGS, or #define MAGMA_HAVE_CUDA before #include <magma.h>. In MAGMA, this happens in Makefile."
 #endif
 
 #ifdef __cplusplus
@@ -539,7 +539,7 @@ extern "C" {
 double magma_cabs ( magmaDoubleComplex x );
 float  magma_cabsf( magmaFloatComplex  x );
 
-#if defined(HAVE_clBLAS)
+#if defined(MAGMA_HAVE_OPENCL)
     // OpenCL uses opaque memory references on GPU
     typedef cl_mem magma_ptr;
     typedef cl_mem magmaInt_ptr;
@@ -1080,7 +1080,7 @@ static inline char lapacke_storev_const( magma_storev_t magma_const ) { return *
 
 // -----------------------------------------------------------------------------
 // Convert MAGMA constants to clBLAS constants.
-#if defined(HAVE_clBLAS)
+#if defined(MAGMA_HAVE_OPENCL)
 clblasOrder          clblas_order_const( magma_order_t order );
 clblasTranspose      clblas_trans_const( magma_trans_t trans );
 clblasUplo           clblas_uplo_const ( magma_uplo_t  uplo  );
@@ -1106,7 +1106,7 @@ cublasSideMode_t     cublas_side_const  ( magma_side_t  side  );
 
 // -----------------------------------------------------------------------------
 // Convert MAGMA constants to hipBLAS constants
-#if defined(HAVE_HIP)
+#if defined(MAGMA_HAVE_HIP)
 hipblasOperation_t   hipblas_trans_const( magma_trans_t trans );
 hipblasFillMode_t    hipblas_uplo_const (magma_uplo_t uplo    );
 hipblasDiagType_t    hipblas_diag_const (magma_diag_t diag    );

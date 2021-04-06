@@ -25,16 +25,16 @@
 
 // --------------------
 // global variable
-#if   defined(HAVE_CUBLAS)
+#if   defined(MAGMA_HAVE_CUDA)
     const char* g_platform_str = "cuBLAS";
 
-#elif defined(HAVE_clBLAS)
+#elif defined(MAGMA_HAVE_OPENCL)
     const char* g_platform_str = "clBLAS";
 
 #elif defined(HAVE_MIC)
     const char* g_platform_str = "Xeon Phi";
 
-#elif defined(HAVE_HIP)
+#elif defined(MAGMA_HAVE_HIP)
     const char* g_platform_str = "HIP";
 
 #else
@@ -632,7 +632,7 @@ void magma_opts::parse_opts( int argc, char** argv )
     }
     assert( this->ntest <= MAX_NTEST );
 
-    #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+    #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
     magma_setdevice( this->device );
     #endif
 
@@ -644,10 +644,10 @@ void magma_opts::parse_opts( int argc, char** argv )
 
     this->queue = this->queues2[ 0 ];
 
-    #if defined(HAVE_HIP)
+    #if defined(MAGMA_HAVE_HIP)
         // handle for directly calling hipblas
         this->handle = magma_queue_get_hipblas_handle( this->queue );
-    #elif defined(HAVE_CUBLAS)
+    #elif defined(MAGMA_HAVE_CUDA)
         // handle for directly calling cublas
         this->handle = magma_queue_get_cublas_handle( this->queue );
     #else
@@ -713,7 +713,7 @@ void magma_opts::cleanup()
     this->queues2[0] = NULL;
     this->queues2[1] = NULL;
 
-    #if defined(HAVE_CUBLAS) || defined(HAVE_HIP)
+    #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
     this->handle = NULL;
     #endif
 }

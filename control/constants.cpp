@@ -562,11 +562,11 @@ const char* lapack_storev_const( magma_storev_t magma_const )
 // end group lapack_const
 
 
-#ifdef HAVE_clBLAS
+#ifdef MAGMA_HAVE_clBLAS
 // =============================================================================
 /// @addtogroup clblas_const
 /// Convert MAGMA constants to AMD clBLAS constants.
-/// Available if HAVE_clBLAS was defined when MAGMA was compiled.
+/// Available if MAGMA_HAVE_OPENCL was defined when MAGMA was compiled.
 /// TODO: we do not currently provide inverse converters (clBLAS => MAGMA).
 /// @{
 
@@ -663,14 +663,14 @@ clblasSide        clblas_side_const ( magma_side_t magma_const )
 // =============================================================================
 /// @}
 // end group clblas_const
-#endif  // HAVE_clBLAS
+#endif  // MAGMA_HAVE_OPENCL
 
 
-#ifdef HAVE_CUBLAS
+#ifdef MAGMA_HAVE_CUDA
 // =============================================================================
 /// @addtogroup cublas_const
 /// Convert MAGMA constants to NVIDIA cuBLAS constants.
-/// Available if HAVE_CUBLAS was defined when MAGMA was compiled.
+/// Available if MAGMA_HAVE_CUDA was defined when MAGMA was compiled.
 /// TODO: we do not currently provide inverse converters (cuBLAS => MAGMA).
 /// @{
 
@@ -755,11 +755,11 @@ cublasSideMode_t     cublas_side_const  ( magma_side_t magma_const )
 
 // =============================================================================
 /// @}
-#endif  // HAVE_CUBLAS
+#endif  // MAGMA_HAVE_CUDA
 
 
 
-#ifdef HAVE_HIP
+#ifdef MAGMA_HAVE_HIP
 
 const int magma2hipblas_constants[] =
 {
@@ -825,7 +825,7 @@ hipblasSideMode_t     hipblas_side_const  ( magma_side_t magma_const )
 }
 
 
-#endif // HAVE_HIP
+#endif // MAGMA_HAVE_HIP
 
 #ifdef HAVE_CBLAS
 // =============================================================================

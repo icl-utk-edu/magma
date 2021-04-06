@@ -17,7 +17,7 @@
 // __host__ and __device__ are defined in CUDA headers.
 #include "magma_types.h"
 
-#ifdef HAVE_clBLAS
+#ifdef MAGMA_HAVE_OPENCL
 #define __host__
 #define __device__
 #endif
@@ -45,7 +45,6 @@
 
 
 // hip_complex.h manually uses the function name 'real' and 'imag' in the GLOBAL namespace (why they claim the name 'real' is beyond me...), but it should work the same as ours
-//#ifndef HAVE_HIP_COMPLEX
 __host__ __device__ static inline double real(const magmaDoubleComplex &x) { return MAGMA_Z_REAL(x); }
 __host__ __device__ static inline float  real(const magmaFloatComplex  &x) { return MAGMA_C_REAL(x); }
 
@@ -89,7 +88,6 @@ __host__ __device__ static inline float  abs1(const float              &x) { ret
 // magmaDoubleComplex
 
 // hip_complex.h also defines oeprators
-//#ifndef HAVE_HIP_COMPLEX
 
 // ---------- negate
 __host__ __device__ static inline magmaDoubleComplex
@@ -590,10 +588,8 @@ operator != (const float s, const magmaFloatComplex a)
     return ! (a == s);
 }
 
-//#endif /* HAVE_HIP_COMPLEX */
 
-
-#ifdef HAVE_clBLAS
+#ifdef MAGMA_HAVE_OPENCL
 #undef __host__
 #undef __device__
 #endif

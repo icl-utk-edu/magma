@@ -78,7 +78,7 @@ magma_zgetrf(
     magma_int_t *ipiv,
     magma_int_t *info)
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define  dA(i_, j_)     dA, ((i_)*nb  + (j_)*nb*ldda + dA_offset)
     #define dAT(i_, j_)    dAT, ((i_)*nb*lddat + (j_)*nb + dAT_offset)
     #define dwork(i_)    dwork, (i_)

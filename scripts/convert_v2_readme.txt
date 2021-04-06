@@ -114,7 +114,7 @@ In src files:
     pass "dA(0,0), ldda". In OpenCL, this is mapped to a pointer and offset, as
     two arguments. Then a simple #ifdef switches between the CUDA and OpenCL versions:
 
-        #ifdef HAVE_clBLAS
+        #ifdef MAGMA_HAVE_OPENCL
         #define dA(i_,j_)  dA, ((i_) + (j_)*ldda + dA_offset)
         #else
         #define dA(i_,j_) (dA + (i_) + (j_)*ldda)

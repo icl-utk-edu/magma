@@ -44,6 +44,46 @@ else:
 if not args.output:
     args.output = "magma_" + args.interface + '_' + args.routine.replace('magmablas_', '').replace('magma_', '') + '.tar.gz'
 
+# regex for calling a MAGMA function
+re_call = re.compile(r" *((?:magma(?:blas)?_|\w*_kernel)\w+)\s*(?:<<<.*>>>)?\s*\(")
+
+# regex for a function definition, i.e. not just a declaration (must be multiline due to how many functions are declared)
+#re_funcdef = re.compile(r"(?:extern \"C\"|static inline)? ?\n?(?:[\w\* ]+ *?)\n?(magma(?:blas)?_\w+)( \n)*\([\w\[\]\* ,\n]*\)\n? *\n?\{", re.MULTILINE)
+re_funcdef = re.compile(r"(?:extern \"C\"|static inline)? ?\n?[\w\* ]+\s+(\w+)( \n)*\([\w\[\]\* ,\n]*\)\n? *\n?\{", re.MULTILINE)
+
+# regex for a macro definition
+re_macdef = re.compile(r"#define  *(magma(?:blas)?_\w+)\(")
+
+# regex for an include statement
+re_include = re.compile(r"\#include (?:\"|\<)(magma[\w\.]+)(?:\"|\<)")
+
+
+
+# SAG==Source Analysis Graph
+class SAG:
+
+    def __init__(self, allfiles):
+        self.allfiles = {*allfiles}
+
+        # map between filename and tuples containing:
+        #  (defs, calls)
+        self.map = {}
+
+
+    def __getitem__(self, k):
+        # check if not computed yet
+        if k not in self.map:
+            # Read source from file
+            fp = open(k, 'r')
+            src = fp.read()
+            fp.close()
+
+        return self.map[k]
+
+
+
+
+
 print (f"""Packaging routine: {args.routine} and storing in: {args.output}""")
 
 # escape sequence, so it can be in an fstring
@@ -60,25 +100,28 @@ else:
 
 # -*- Regex Definitions -*-
 
-# regex for calling a MAGMA function
-re_call = re.compile(r" *((?:magma(?:blas)?_|\w*_kernel)\w+)\s*(?:<<<.*>>>)?\s*\(")
-
-# regex for a function definition, i.e. not just a declaration (must be multiline due to how many functions are declared)
-#re_funcdef = re.compile(r"(?:extern \"C\"|static inline)? ?\n?(?:[\w\* ]+ *?)\n?(magma(?:blas)?_\w+)( \n)*\([\w\[\]\* ,\n]*\)\n? *\n?\{", re.MULTILINE)
-re_funcdef = re.compile(r"(?:extern \"C\"|static inline)? ?\n?[\w\* ]+\s+(\w+)( \n)*\([\w\[\]\* ,\n]*\)\n? *\n?\{", re.MULTILINE)
-
-# regex for a macro definition
-re_macdef = re.compile(r"#define  *(magma(?:blas)?_\w+)\(")
-
-# regex for an include statement
-re_include = re.compile(r"\#include (?:\"|\<)(magma[\w\.]+)(?:\"|\<)")
-
 
 # -*- Initialization -*-
 
 
 # all files possible
-allfiles = set(glob.glob("src/*.cpp") + glob.glob("control/*.cpp") + glob.glob("include/*.h") + glob.glob(f"interface_{args.interface}/*.cpp") + (glob.glob(f"magmablas/*.cpp") + glob.glob(f"magmablas/*.cu") + glob.glob(f"magmablas/*.cuh") + glob.glob(f"magmablas/*.h")) if args.interface == "cuda" else (glob.glob(f"magmablas_hip/*.cpp") + glob.glob(f"magmablas_hip/*.hpp") + glob.glob(f"magmablas_hip/*.h")))
+allfiles = 
+
+
+sag = SAG({
+    *glob.glob("src/*.cpp"),
+    *glob.glob("control/*.cpp"),
+    *glob.glob("include/*.h"), 
+    *glob.glob(f"interface_{args.interface}/*.cpp"),
+    *glob.glob(f"magmablas/*.cpp"),
+    *glob.glob(f"magmablas/*.cu"),
+    *glob.glob(f"magmablas/*.cuh"),
+    *glob.glob(f"magmablas/*.h"),
+
+})
+    if args.interface == "cuda" else (glob.glob(f"magmablas_hip/*.cpp") + glob.glob(f"magmablas_hip/*.hpp") + glob.glob(f"magmablas_hip/*.h")))
+)
+
 
 #print (allfiles)
 
@@ -417,17 +460,23 @@ rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(
 
 # source files
 MAGMA_C    := $(call rwildcard,.,*.c)
+MAGMA_CPP  := $(call rwildcard,.,*.cpp)
+MAGMA_CU   := $(call rwildcard,.,*.cu)
 
 # object files
-MAGMA_O    := $(patsubst %.cpp,%.o,$(MAGMA_C))
+MAGMA_O    := $(patsubst %.cpp,%.o,$(MAGMA_C)) $(patsubst %.cpp,%.o,$(MAGMA_CPP)) $(patsubst %.cu,%.o,$(MAGMA_CU))
 
-MAGMA_CFLAGS := -std=c++11 -DADD_ -DMIN_CUDA_ARCH=600 { {'hip': '-DHAVE_HIP', 'cuda': '-DHAVE_CUDA -DHAVE_CUBLAS'}[args.interface] }
+MAGMA_CFLAGS := -std=c++11 -DADD_ -DMAGMA_CUDA_ARCH_MIN=600 { {'hip': '-DHAVE_HIP', 'cuda': '-DHAVE_CUDA'}[args.interface] }
 
 
 default: libmagma_pkg.so test
 
 # single file
 %.o: %.cpp
+\t$(CXX) $(CFLAGS) -I./include -I./control $(MAGMA_CFLAGS) $< -fPIC -c -o $@
+%.o: %.c
+\t$(CC) $(CFLAGS) -I./include -I./control $(MAGMA_CFLAGS) $< -fPIC -c -o $@
+%.o: %.cu
 \t$(NVCC) $(CFLAGS) -I./include -I./control $(MAGMA_CFLAGS) $< -Xcompiler "-fPIC" -c -o $@
 
 # compile magma embedded

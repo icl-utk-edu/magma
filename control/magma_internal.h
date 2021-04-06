@@ -94,7 +94,7 @@ public:
     /// @return device associated with this queue
     magma_device_t   device()          { return device__;   }
 
-    #ifdef HAVE_CUBLAS
+    #ifdef MAGMA_HAVE_CUDA
     /// @return CUDA stream associated with this queue; requires CUDA.
     cudaStream_t     cuda_stream()     { return stream__;   }
 
@@ -119,7 +119,7 @@ public:
         }
     }
     
-    #ifdef HAVE_HIP
+    #ifdef MAGMA_HAVE_HIP
     
     hipStream_t      hip_stream()      { return stream__; };
 
@@ -157,7 +157,7 @@ protected:
         magma_device_t device, magma_queue_t* queuePtr,
         const char* func, const char* file, int line );
 
-    #ifdef HAVE_CUBLAS
+    #ifdef MAGMA_HAVE_CUDA
     friend
     void magma_queue_create_from_cuda_internal(
         magma_device_t   device,
@@ -168,7 +168,7 @@ protected:
         const char* func, const char* file, int line );
     #endif
 
-    #ifdef HAVE_HIP
+    #ifdef MAGMA_HAVE_HIP
     friend
     void magma_queue_create_from_hip_internal(
         magma_device_t    device,
@@ -196,13 +196,13 @@ protected:
     void**           dBarray__;     // pointer array (assigned from ptrArray, not allocated/freed)
     void**           dCarray__;     // pointer array (assigned from ptrArray, not allocated/freed)
 
-    #ifdef HAVE_CUBLAS
+    #ifdef MAGMA_HAVE_CUDA
     cudaStream_t     stream__;      // associated CUDA stream; may be NULL
     cublasHandle_t   cublas__;      // associated cuBLAS handle
     cusparseHandle_t cusparse__;    // associated cuSparse handle
-    #endif // HAVE_CUBLAS
+    #endif // MAGMA_HAVE_CUDA
 
-    #ifdef HAVE_HIP
+    #ifdef MAGMA_HAVE_HIP
     hipStream_t      stream__;
     //rocblas_handle rocblas__;
     hipblasHandle_t  hipblas__;

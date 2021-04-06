@@ -126,7 +126,7 @@ magma_zgehrd2(
 {
     #define  A(i_,j_) ( A + (i_) + (j_)*lda)
 
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_,j_)  dwork, ((i_) + (j_)*ldda + nb*ldda*2)
     #define dT(i_,j_)  dT,    ((i_) + (j_)*nb   + dT_offset)
     #define dV(i_,j_)  dwork, ((i_) + (j_)*ldda + nb*ldda)

@@ -9,7 +9,7 @@
 #endif
 
 // ignore/replace some cuBLAS calls
-#ifdef HAVE_HIP
+#ifdef MAGMA_HAVE_HIP
 #define cublasSetAtomicsMode(...)
 
 #endif
@@ -21,7 +21,7 @@
 
 
 // special region to replace certain functions
-#ifdef HAVE_HIP
+#ifdef MAGMA_HAVE_HIP
 #define cublas_trans_const hipblas_trans_const
 #define cublas_diag_const hipblas_diag_const
 #define cublas_uplo_const hipblas_uplo_const
@@ -252,10 +252,10 @@ public:
     magma_queue_t   queue;
     magma_queue_t   queues2[3];  // 2 queues + 1 extra NULL entry to catch errors
     
-    #ifdef HAVE_CUBLAS
+    #ifdef MAGMA_HAVE_CUDA
     // handle for directly calling cublas
     cublasHandle_t  handle;
-    #elif defined(HAVE_HIP)
+    #elif defined(MAGMA_HAVE_HIP)
     hipblasHandle_t handle;
     #endif
 };

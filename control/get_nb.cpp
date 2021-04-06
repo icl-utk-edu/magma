@@ -18,7 +18,7 @@ extern "C" {
 
 // TODO: also add some for AMD cards
 // Definition of blocking sizes for NVIDIA cards
-//#ifdef HAVE_CUBLAS
+//#ifdef MAGMA_HAVE_CUDA
 
 // =============================================================================
 /// @addtogroup magma_tuning
@@ -1499,7 +1499,7 @@ magma_int_t magma_get_zbulge_mgpu_nb( magma_int_t n )
 /// @}
 // end group magma_tuning
 
-//#endif  // HAVE_CUBLAS
+//#endif  // MAGMA_HAVE_CUDA
 
 #ifdef __cplusplus
 } // extern "C"

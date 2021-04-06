@@ -13,7 +13,7 @@
 
 #define PRECISION_z
 
-#if CUDA_VERSION >= 11000 || defined(HAVE_HIP)
+#if CUDA_VERSION >= 11000 || defined(MAGMA_HAVE_HIP)
 #define cusparseCreateSolveAnalysisInfo(info) cusparseCreateCsrsm2Info(info)
 #else
 #define cusparseCreateSolveAnalysisInfo(info)                                                   \
@@ -37,7 +37,7 @@
         if (bufsize > 0)                                                                        \
            magma_free(buf);                                                                     \
     }
-#elif defined(HAVE_HIP)
+#elif defined(MAGMA_HAVE_HIP)
 #define cusparseZcsrsv_analysis(handle, trans, m, nnz, descr, val, row, col, info)              \
     {                                                                                           \
         csrsv2Info_t linfo = 0;                                                                 \

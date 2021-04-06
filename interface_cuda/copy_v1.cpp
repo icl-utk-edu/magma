@@ -15,7 +15,7 @@
 
 #include <cuda_runtime.h>
 
-#ifdef HAVE_CUBLAS
+#ifdef MAGMA_HAVE_CUDA
 
 // These MAGMA v1 routines are all deprecated.
 // See copy_v2.cpp for documentation.
@@ -128,6 +128,6 @@ magma_copymatrix_v1_internal(
     MAGMA_UNUSED( status );
 }
 
-#endif // HAVE_CUBLAS
+#endif // MAGMA_HAVE_CUDA
 
 #endif // MAGMA_NO_V1
