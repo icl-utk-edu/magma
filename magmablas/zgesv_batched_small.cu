@@ -229,43 +229,47 @@ magma_zgesv_batched_small(
      *
      */
 
+    magma_int_t nrhs,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t** dipiv_array,
+    magmaDoubleComplex **dB_array, magma_int_t lddb,
+    magma_int_t* dinfo_array, magma_int_t batchCount )
     switch(m){
-        case  1: zgesv_batched_small_kernel< 1, magma_ceilpow2( 1)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case  2: zgesv_batched_small_kernel< 2, magma_ceilpow2( 2)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case  3: zgesv_batched_small_kernel< 3, magma_ceilpow2( 3)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case  4: zgesv_batched_small_kernel< 4, magma_ceilpow2( 4)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case  5: zgesv_batched_small_kernel< 5, magma_ceilpow2( 5)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case  6: zgesv_batched_small_kernel< 6, magma_ceilpow2( 6)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case  7: zgesv_batched_small_kernel< 7, magma_ceilpow2( 7)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case  8: zgesv_batched_small_kernel< 8, magma_ceilpow2( 8)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case  9: zgesv_batched_small_kernel< 9, magma_ceilpow2( 9)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 10: zgesv_batched_small_kernel<10, magma_ceilpow2(10)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 11: zgesv_batched_small_kernel<11, magma_ceilpow2(11)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+        case  1: zgesv_batched_small_kernel< 1, magma_ceilpow2( 1)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case  2: zgesv_batched_small_kernel< 2, magma_ceilpow2( 2)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case  3: zgesv_batched_small_kernel< 3, magma_ceilpow2( 3)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case  4: zgesv_batched_small_kernel< 4, magma_ceilpow2( 4)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case  5: zgesv_batched_small_kernel< 5, magma_ceilpow2( 5)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case  6: zgesv_batched_small_kernel< 6, magma_ceilpow2( 6)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case  7: zgesv_batched_small_kernel< 7, magma_ceilpow2( 7)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case  8: zgesv_batched_small_kernel< 8, magma_ceilpow2( 8)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case  9: zgesv_batched_small_kernel< 9, magma_ceilpow2( 9)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 10: zgesv_batched_small_kernel<10, magma_ceilpow2(10)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 11: zgesv_batched_small_kernel<11, magma_ceilpow2(11)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
 
 
 // here are the offending cases
-        case 12: zgesv_batched_small_kernel<12, magma_ceilpow2(12)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 13: zgesv_batched_small_kernel<13, magma_ceilpow2(13)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 14: zgesv_batched_small_kernel<14, magma_ceilpow2(14)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 15: zgesv_batched_small_kernel<15, magma_ceilpow2(15)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 16: zgesv_batched_small_kernel<16, magma_ceilpow2(16)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 17: zgesv_batched_small_kernel<17, magma_ceilpow2(17)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 18: zgesv_batched_small_kernel<18, magma_ceilpow2(18)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 19: zgesv_batched_small_kernel<19, magma_ceilpow2(19)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 20: zgesv_batched_small_kernel<20, magma_ceilpow2(20)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 21: zgesv_batched_small_kernel<21, magma_ceilpow2(21)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 22: zgesv_batched_small_kernel<22, magma_ceilpow2(22)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 23: zgesv_batched_small_kernel<23, magma_ceilpow2(23)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 24: zgesv_batched_small_kernel<24, magma_ceilpow2(24)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 25: zgesv_batched_small_kernel<25, magma_ceilpow2(25)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 26: zgesv_batched_small_kernel<26, magma_ceilpow2(26)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+        case 12: zgesv_batched_small_kernel<12, magma_ceilpow2(12)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 13: zgesv_batched_small_kernel<13, magma_ceilpow2(13)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 14: zgesv_batched_small_kernel<14, magma_ceilpow2(14)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 15: zgesv_batched_small_kernel<15, magma_ceilpow2(15)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 16: zgesv_batched_small_kernel<16, magma_ceilpow2(16)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 17: zgesv_batched_small_kernel<17, magma_ceilpow2(17)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 18: zgesv_batched_small_kernel<18, magma_ceilpow2(18)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 19: zgesv_batched_small_kernel<19, magma_ceilpow2(19)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 20: zgesv_batched_small_kernel<20, magma_ceilpow2(20)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 21: zgesv_batched_small_kernel<21, magma_ceilpow2(21)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 22: zgesv_batched_small_kernel<22, magma_ceilpow2(22)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 23: zgesv_batched_small_kernel<23, magma_ceilpow2(23)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 24: zgesv_batched_small_kernel<24, magma_ceilpow2(24)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 25: zgesv_batched_small_kernel<25, magma_ceilpow2(25)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 26: zgesv_batched_small_kernel<26, magma_ceilpow2(26)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
 
-        case 27: zgesv_batched_small_kernel<27, magma_ceilpow2(27)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 28: zgesv_batched_small_kernel<28, magma_ceilpow2(28)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 29: zgesv_batched_small_kernel<29, magma_ceilpow2(29)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 30: zgesv_batched_small_kernel<30, magma_ceilpow2(30)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 31: zgesv_batched_small_kernel<31, magma_ceilpow2(31)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        case 32: zgesv_batched_small_kernel<32, magma_ceilpow2(32)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+        case 27: zgesv_batched_small_kernel<27, magma_ceilpow2(27)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 28: zgesv_batched_small_kernel<28, magma_ceilpow2(28)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 29: zgesv_batched_small_kernel<29, magma_ceilpow2(29)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 30: zgesv_batched_small_kernel<30, magma_ceilpow2(30)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 31: zgesv_batched_small_kernel<31, magma_ceilpow2(31)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        case 32: zgesv_batched_small_kernel<32, magma_ceilpow2(32)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
 /**/
 
         // replace the default error message with something so people can contact me
