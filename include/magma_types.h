@@ -140,31 +140,6 @@ typedef double real_Double_t;
     // the standard HIP header, similar to CUDA's 'cuda.h'
     #include <hip/hip_runtime.h> 
 
-
-    /* HIP Complex numbers:
-     * There have been many problems with HIP's complex numbers, so for now we define our own
-     * (see down in this file, we declare as a struct, which should be a compatible data layout)
-     *
-     * So, for now, we don't include complex numbers, because that causes a compilation failure.
-     *
-     * A 2 line file can be done to check:
-     * ```
-     * #include <hip/hip_complex.h>
-     * #include <hipblas.h>
-     * ```
-     *
-     * This causes a type redefinition error due to inconsistent naming schemes. So, don't include both of
-     * these headers!
-     * 
-     * See commits:
-     *   * https://github.com/ROCmSoftwarePlatform/hipBLAS/tree/03f44bd4012268b0fb4882002be64327b6803ad7
-     *
-     */
-    //#define HAVE_HIP_COMPLEX
-    //#include <hip/hip_complex.h>
-    // instead, use this fix:
-    //#include "magma_hip_complex.h"
-    
     // hipBLAS & hipSPARSE LA library headers
     #include <hipblas.h>
     #include <hipsparse.h>
@@ -180,10 +155,10 @@ typedef double real_Double_t;
      * But, it will still have the same effect, and so the result will still be correct
      * TODO: Perhaps also emit a warning?
      */
-    #define hipblasGetVectorAsync(a, b, c, d, e, f, stream) hipblasGetVector(a, b, c, d, e, f)
-    #define hipblasSetVectorAsync(a, b, c, d, e, f, stream) hipblasSetVector(a, b, c, d, e, f)
-    #define hipblasGetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasGetMatrix(a, b, c ,d, e, f, g)
-    #define hipblasSetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasSetMatrix(a, b, c, d, e, f, g)
+    //#define hipblasGetVectorAsync(a, b, c, d, e, f, stream) hipblasGetVector(a, b, c, d, e, f)
+    //#define hipblasSetVectorAsync(a, b, c, d, e, f, stream) hipblasSetVector(a, b, c, d, e, f)
+    //#define hipblasGetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasGetMatrix(a, b, c ,d, e, f, g)
+    //#define hipblasSetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasSetMatrix(a, b, c, d, e, f, g)
    
     /* Unsupported hipBLAS functionality 
      * Everything here is currently unsupported by hipBLAS, and as such, is a no-op,
@@ -209,12 +184,12 @@ typedef double real_Double_t;
     //#define hipblasCgemmBatched(...) magma_unsupported(hipblasCgemmBatched)
     //#define hipblasCgemmStridedBatched(...) magma_unsupported(hipblasCgemmStridedBatched)
     
-    #define hipblasSetAtomicsMode(...) magma_unsupported(hipblasSetAtomicsMode)   
+    //#define hipblasSetAtomicsMode(...) magma_unsupported(hipblasSetAtomicsMode)   
 
-    #define hipblasStrmm(...)    magma_unsupported(hipblasStrmm)
-    #define hipblasDtrmm(...)    magma_unsupported(hipblasDtrmm)
-    #define hipblasCtrmm(...)    magma_unsupported(hipblasCtrmm)
-    #define hipblasZtrmm(...)    magma_unsupported(hipblasZtrmm)
+    //#define hipblasStrmm(...)    magma_unsupported(hipblasStrmm)
+    //#define hipblasDtrmm(...)    magma_unsupported(hipblasDtrmm)
+    //#define hipblasCtrmm(...)    magma_unsupported(hipblasCtrmm)
+    //#define hipblasZtrmm(...)    magma_unsupported(hipblasZtrmm)
     
     //#define hipblasZgetrfBatched(...) magma_unsupported(hipblasZgetrfBatched) 
     //#define hipblasZgerc(...)    magma_unsupported(hipblasZgerc)
