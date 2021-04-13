@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     nrhs = opts.nrhs;
     batchCount = opts.batchcount;
 
-    printf("%% BatchCount   N  NRHS   CPU Gflop/s (sec)   GPU Gflop/s (sec)   ||B - AX|| / N*||A||*||X||\n");
+    printf("%% BatchCount   N  NRHS   CPU Gflop/s (ms)   GPU Gflop/s (ms)   ||B - AX|| / N*||A||*||X||\n");
     printf("%%============================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -117,16 +117,17 @@ int main(int argc, char **argv)
             gpu_perf = gflops / gpu_time;
             // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_array, 1, cpu_info, 1, opts.queue );
-            for (int i=0; i < batchCount; i++)
-            {
-                if (cpu_info[i] != 0 ) {
-                    printf("magma_zgesv_batched matrix %lld returned internal error %lld\n",
-                            (long long) i, (long long) cpu_info[i] );
-                }
-            }
             if (info != 0) {
                 printf("magma_zgesv_batched returned argument error %lld: %s.\n",
                         (long long) info, magma_strerror( info ));
+            }
+            else {
+                for (int i=0; i < batchCount; i++) {
+                    if (cpu_info[i] != 0 ) {
+                        printf("magma_zgesv_batched matrix %lld returned internal error %lld\n",
+                                (long long) i, (long long) cpu_info[i] );
+                    }
+                }
             }
 
             //=====================================================================
@@ -135,8 +136,7 @@ int main(int argc, char **argv)
             magma_zgetmatrix( N, nrhs*batchCount, d_B, lddb, h_X, ldb, opts.queue );
 
             error = 0;
-            for (magma_int_t s=0; s < batchCount; s++)
-            {
+            for (magma_int_t s=0; s < batchCount; s++) {
                 Anorm = lapackf77_zlange("I", &N, &N,    h_A + s * lda * N, &lda, work);
                 Xnorm = lapackf77_zlange("I", &N, &nrhs, h_X + s * ldb * nrhs, &ldb, work);
 
@@ -185,13 +185,13 @@ int main(int argc, char **argv)
                 cpu_perf = gflops / cpu_time;
                 printf( "%10lld %5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %s\n",
                         (long long) batchCount, (long long) N, (long long) nrhs,
-                        cpu_perf, cpu_time, gpu_perf, gpu_time,
+                        cpu_perf, 1000.*cpu_time, gpu_perf, 1000.*gpu_time,
                         error, (okay ? "ok" : "failed"));
             }
             else {
                 printf( "%10lld %5lld %5lld     ---   (  ---  )   %7.2f (%7.2f)   %8.2e   %s\n",
                         (long long) batchCount, (long long) N, (long long) nrhs,
-                        gpu_perf, gpu_time,
+                        gpu_perf, 1000.*gpu_time,
                         error, (okay ? "ok" : "failed"));
             }
 
