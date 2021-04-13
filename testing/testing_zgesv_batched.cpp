@@ -107,12 +107,7 @@ int main(int argc, char **argv)
             magma_iset_pointer( dipiv_array, dipiv, 1, 0, 0, N, batchCount, opts.queue );
 
             gpu_time = magma_sync_wtime( opts.queue );
-            if(opts.version == 1) {
-                info = magma_zgesv_batched(N, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, opts.queue);
-            }
-            else{
-                info = magma_zgesv_batched_small(N, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, opts.queue);
-            }
+            info = magma_zgesv_batched(N, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, opts.queue);
             gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             gpu_perf = gflops / gpu_time;
             // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
