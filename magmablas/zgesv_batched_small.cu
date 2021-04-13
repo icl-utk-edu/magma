@@ -25,39 +25,42 @@
 // the switch case that causes compilation failure
 #define PRECISION_z
 
+#ifdef PRECISION_z
+#define MAX_N    (53)
+#else
+#define MAX_N    (60)
+#endif
+
+#define SLDA(n)  ( (n == 7 || n == 15 || n == 23 || n == 31) ? (n) : (n+1) )
+#define sA(i,j)  sA[(j)*slda + (i)]
+#define sB(i,j)  sB[(j)*sldb + (i)]
 
 template<int N, int NPOW2>
 __global__ void
 zgesv_batched_small_kernel(
-    magma_int_t nrhs,
     magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t** dipiv_array,
     magmaDoubleComplex **dB_array, magma_int_t lddb,
-    magma_int_t* dinfo_array, magma_int_t batchCount )
+    magma_int_t* dinfo_array )
 {
     extern __shared__ magmaDoubleComplex zdata[];
     const int tx = threadIdx.x;
-    const int ty = threadIdx.y;
-    const int batchid = blockIdx.x * blockDim.y + ty;
-    if(batchid >= batchCount) return;
+    const int batchid = blockIdx.x ;
 
     magmaDoubleComplex* dA = dA_array[batchid];
+    magmaDoubleComplex* dB = dB_array[batchid];
     magma_int_t* ipiv = dipiv_array[batchid];
-    magma_int_t* info = &dinfo_array[batchid];
 
     magmaDoubleComplex rA[N]  = {MAGMA_Z_ZERO};
     magmaDoubleComplex reg    = MAGMA_Z_ZERO;
-    magmaDoubleComplex update = MAGMA_Z_ZERO;
 
     int max_id, rowid = tx;
     int linfo = 0;
-    double rx_abs_max = MAGMA_D_ZERO;
 
-    magmaDoubleComplex *sx = (magmaDoubleComplex*)(zdata);
-    double* dsx = (double*)(sx + blockDim.y * NPOW2);
-    int* sipiv = (int*)(dsx + blockDim.y * NPOW2);
-    sx    += ty * NPOW2;
-    dsx   += ty * NPOW2;
-    sipiv += ty * NPOW2;
+    magmaDoubleComplex rB  = MAGMA_Z_ZERO;
+    magmaDoubleComplex *sB = (magmaDoubleComplex*)(zdata);
+    magmaDoubleComplex *sx = sB + N;
+    double* dsx = (double*)(sx + NPOW2);
+    int* sipiv = (int*)(dsx + NPOW2);
 
     // read
     if( tx < N ){
@@ -65,10 +68,14 @@ zgesv_batched_small_kernel(
         for(int i = 0; i < N; i++){
             rA[i] = dA[ i * ldda + tx ];
         }
+
+        rB = dB[tx];
     }
 
     #pragma unroll
     for(int i = 0; i < N; i++){
+        double rx_abs_max = MAGMA_D_ZERO;
+        double update = MAGMA_D_ZERO;
         // izamax and find pivot
         dsx[ rowid ] = fabs(MAGMA_Z_REAL( rA[i] )) + fabs(MAGMA_Z_IMAG( rA[i] ));
         magmablas_syncwarp();
@@ -81,8 +88,9 @@ zgesv_batched_small_kernel(
                 rx_abs_max = dsx[j];
             }
         }
-        linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (i+1) : linfo;
-        update = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
+        bool zero_pivot = (rx_abs_max == MAGMA_D_ZERO);
+        linfo  = ( zero_pivot && linfo == 0) ? (i+1) : linfo;
+        update = ( zero_pivot ) ? MAGMA_D_ZERO : MAGMA_D_ONE;
 
         if(rowid == max_id){
             sipiv[i] = max_id;
@@ -91,60 +99,203 @@ zgesv_batched_small_kernel(
             for(int j = i; j < N; j++){
                 sx[j] = update * rA[j];
             }
+            sB[0] = rB;
         }
         else if(rowid == i){
             rowid = max_id;
         }
         magmablas_syncwarp();
 
-        reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] );
+        reg = ( zero_pivot ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] );
         // scal and ger
         if( rowid > i ){
             rA[i] *= reg;
             #pragma unroll
-            for(int j = i+1; j < N; j++){
+            for(int j = i+1; j < N; j++) {
                 rA[j] -= rA[i] * sx[j];
             }
+            rB -= rA[i] * sB[0];
         }
         magmablas_syncwarp();
     }
 
     if(tx == 0){
-        (*info) = (magma_int_t)( linfo );
+        dinfo_array[batchid] = (magma_int_t)( linfo );
     }
-    // write
+
+    // shuffle rB, write A and pivot
     if(tx < N) {
+        sB[rowid] = rB;
         ipiv[ tx ] = (magma_int_t)(sipiv[tx] + 1);    // fortran indexing
         #pragma unroll
         for(int i = 0; i < N; i++){
             dA[ i * ldda + rowid ] = rA[i];
         }
     }
+
+    #pragma unroll
+    for(int i = N-1; i >= 0; i--) {
+        sx[rowid] = rA[i];
+        magmablas_syncwarp();
+        reg      = MAGMA_Z_DIV(sB[ i ], sx[ i ]);
+        sB[ tx ] = (tx <  i) ? sB[ tx ] - reg * sx[ tx ]: sB[ tx ];
+        sB[ tx ] = (tx == i) ? reg : sB[ tx ];
+        magmablas_syncwarp();
+    }
+
+    // write
+    if(tx < N) {
+        dB[tx] = sB[tx];
+    }
 }
+
+
+__global__ void
+zgesv_batched_small_sm_kernel(
+    magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t** dipiv_array,
+    magmaDoubleComplex **dB_array, magma_int_t lddb,
+    magma_int_t* dinfo_array )
+{
+    extern __shared__ magmaDoubleComplex zdata[];
+    const int tx = threadIdx.x;
+    const int batchid = blockIdx.x ;
+
+    magmaDoubleComplex* dA = dA_array[batchid];
+    magmaDoubleComplex* dB = dB_array[batchid];
+    magma_int_t* ipiv      = dipiv_array[batchid];
+    magma_int_t* info      = &dinfo_array[batchid];
+
+    magmaDoubleComplex reg    = MAGMA_Z_ZERO;
+    magmaDoubleComplex update = MAGMA_Z_ZERO;
+
+    int max_id;
+    int linfo = 0;
+    double rx_abs_max = MAGMA_D_ZERO;
+
+    const int slda = SLDA(n);
+    const int sldb = SLDA(n);
+    magmaDoubleComplex *sA = (magmaDoubleComplex*)(zdata);
+    magmaDoubleComplex *sB = sA + slda * n;
+    magmaDoubleComplex *sx = sB + sldb * nrhs;
+    double* dsx = (double*)(sx + n);
+    int* sipiv  = (int*)(dsx + n);
+
+    for(int i = 0; i < n; i++){
+        sA(tx,i) = dA[ i * ldda + tx ];
+    }
+
+    for(int i = 0; i < nrhs; i++) {
+        sB(tx,i) = dB[ i * lddb + tx ];
+    }
+    __syncthreads();
+
+    #pragma unroll
+    for(int i = 0; i < n; i++) {
+        // izamax and find pivot
+        dsx[ tx ] = fabs(MAGMA_Z_REAL( sA(tx,i) )) + fabs(MAGMA_Z_IMAG( sA(tx,i) ));
+        __syncthreads();
+        rx_abs_max = dsx[i];
+        max_id = i;
+        for(int j = i+1; j < n; j++){
+            if( dsx[j] > rx_abs_max){
+                max_id = j;
+                rx_abs_max = dsx[j];
+            }
+        }
+        linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (i+1) : linfo;
+        update = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
+
+        // write pivot index
+        if(tx == 0){
+            sipiv[i] = max_id;
+        }
+
+        // swap
+        if( max_id != i) {
+            reg            = sA(i, tx);
+            sA(i, tx)      = sA(max_id, tx);
+            sA(max_id, tx) = reg;
+
+            for(int itx = tx; itx < nrhs; itx+=blockDim.x) {
+                reg             = sB(i, itx);
+                sB(i, itx)      = sB(max_id, itx);
+                sB(max_id, itx) = reg;
+            }
+        }
+        __syncthreads();
+
+        reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sA(i,i) );
+        // scal and ger
+        if( tx > i ){
+            sA(tx,i) *= reg;
+            for(int j = i+1; j < n; j++) {
+                sA(tx, j) -= sA(tx, i) * ( update * sA(i, j) );
+            }
+
+            for(int j = 0; j < nrhs; j++) {
+                sB(tx, j) -= sA(tx, i) * ( update * sB(i, j) );
+            }
+        }
+        __syncthreads();
+    }
+
+    if(tx == 0){
+        (*info) = (magma_int_t)( linfo );
+    }
+
+    // write A and pivot
+    ipiv[ tx ] = (magma_int_t)(sipiv[tx] + 1);    // fortran indexing
+    for(int i = 0; i < n; i++){
+        dA[ i * ldda + tx ] = sA(tx, i);
+    }
+
+    for(int i = n-1; i >= 0; i--) {
+        for(int j = 0; j < nrhs; j++) {
+            reg       = MAGMA_Z_DIV(sB(i, j), sA(i,i));
+            __syncthreads();
+            sB(tx, j) = (tx <  i) ? sB(tx, j) - reg * sA(tx,i): sB(tx, j);
+            sB(tx, j) = (tx == i) ? reg : sB(tx, j);
+            __syncthreads();
+        }
+    }
+
+    // write
+    __syncthreads();
+    for(int j = 0; j < nrhs; j++) {
+        dB[j * lddb + tx] = sB(tx, j);
+    }
+}
+
+#undef sA
+#undef sB
 
 /***************************************************************************//**
     Purpose
     -------
-    zgetrf_batched_smallsq_noshfl computes the LU factorization of a square N-by-N matrix A
-    using partial pivoting with row interchanges.
-    This routine can deal only with square matrices of size up to 32
+    ZGESV solves a system of linear equations
+       A * X = B
+    where A is a general N-by-N matrix and X and B are N-by-NRHS matrices.
+    The LU decomposition with partial pivoting and row interchanges is
+    used to factor A as
+       A = P * L * U,
+    where P is a permutation matrix, L is unit lower triangular, and U is
+    upper triangular.  The factored form of A is then used to solve the
+    system of equations A * X = B.
 
-    The factorization has the form
-        A = P * L * U
-    where P is a permutation matrix, L is lower triangular with unit
-    diagonal elements (lower trapezoidal if m > n), and U is upper
-    triangular (upper trapezoidal if m < n).
-
-    This is the right-looking Level 3 BLAS version of the algorithm.
-
-    This is a batched version that factors batchCount M-by-N matrices in parallel.
-    dA, ipiv, and info become arrays with one entry per matrix.
+    This is a batched version that solves batchCount N-by-N matrices in parallel.
+    dA, dB, ipiv, and info become arrays with one entry per matrix.
 
     Arguments
     ---------
     @param[in]
     n       INTEGER
-            The size of each matrix A.  N >= 0.
+            The order of the matrix A.  N >= 0.
+
+    @param[in]
+    nrhs    INTEGER
+            The number of right hand sides, i.e., the number of columns
+            of the matrix B.  NRHS >= 0.
 
     @param[in,out]
     dA_array    Array of pointers, dimension (batchCount).
@@ -162,6 +313,19 @@ zgesv_batched_small_kernel(
             Each is an INTEGER array, dimension (min(M,N))
             The pivot indices; for 1 <= i <= min(M,N), row i of the
             matrix was interchanged with row IPIV(i).
+
+
+    @param[in,out]
+    dB_array   Array of pointers, dimension (batchCount).
+            Each is a COMPLEX_16 array on the GPU, dimension (LDDB,NRHS).
+            On entry, each pointer is an right hand side matrix B.
+            On exit, each pointer is the solution matrix X.
+
+
+    @param[in]
+    lddb    INTEGER
+            The leading dimension of the array B.  LDB >= max(1,N).
+
 
     @param[out]
     dinfo_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
@@ -181,7 +345,7 @@ zgesv_batched_small_kernel(
     queue   magma_queue_t
             Queue to execute in.
 
-    @ingroup magma_getrf_batched
+    @ingroup magma_gesv_batched
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zgesv_batched_small(
@@ -193,10 +357,12 @@ magma_zgesv_batched_small(
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
-    magma_int_t m = n;
 
-    if( (m < 0) || ( m > 32 ) ){
+    if( n < 0 ) {
         arginfo = -1;
+    }
+    else if (nrhs < 0) {
+        arginfo = -2;
     }
 
     if (arginfo != 0) {
@@ -204,74 +370,102 @@ magma_zgesv_batched_small(
         return arginfo;
     }
 
-    if( m == 0) return 0;
+    if( n == 0 || nrhs == 0) return 0;
 
-    const magma_int_t ntcol = 1;
-    magma_int_t shmem  = ntcol * magma_ceilpow2(m) * sizeof(int);
-                shmem += ntcol * magma_ceilpow2(m) * sizeof(double);
-                shmem += ntcol * magma_ceilpow2(m) * sizeof(magmaDoubleComplex);
-    dim3 threads(magma_ceilpow2(m), ntcol, 1);
-    const magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
-    dim3 grid(gridx, 1, 1);
+    if( n > MAX_N || nrhs > 1 ) {
+        arginfo = -100;
+        return arginfo;
+    }
 
-    /* @author: Cade Brown <cbrow216@vols.utk.edu>
-     * @date  : 2020-01-31
-     *
-     * Something very odd is happening with this file. The file never finishes compiling,
-     * causing compilation to hang indefinitely. I've only see it apply to  It is likely a bug in either:
-     *   * clang/clang++ compiler (C++ templating). I think it may be hanging on an invalid template parameter
-     *       or searching through template matches in an infinite loop
-     *   * LLVM code generation (specifically, the AMDGPU backend, as it seems that the compilation crashes
-     *       during code generation in LL IR).
-     *
-     * I've only observed this when the file `magmablas_hip/sgetrf_batched_smallsq_noshfl.hip.cpp` is generated,
-     * never zgetrf or other precisions.
-     *
-     */
+    const int use_shmem_kernel = (n > 32) ? 1 : 0;
+    const magma_int_t slda  = SLDA(n);
+    const magma_int_t sldb  = SLDA(n);
+    magma_int_t shmem  = 0;
+    if(use_shmem_kernel == 1) {
+        shmem += (slda * n)    * sizeof(magmaDoubleComplex);    // A
+        shmem += (sldb * nrhs) * sizeof(magmaDoubleComplex);    // B
+        shmem += n             * sizeof(magmaDoubleComplex);    // sx
+        shmem += n             * sizeof(double);                // dsx
+        shmem += n             * sizeof(int);                   // pivot
+    }
+    else {
+        shmem += (sldb * nrhs)     * sizeof(magmaDoubleComplex); // B
+        shmem += magma_ceilpow2(n) * sizeof(magmaDoubleComplex); // sx
+        shmem += magma_ceilpow2(n) * sizeof(double);             // dsx
+        shmem += magma_ceilpow2(n) * sizeof(int);                // pivot
+    }
 
-    switch(m){
-        case  1: zgesv_batched_small_kernel< 1, magma_ceilpow2( 1)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case  2: zgesv_batched_small_kernel< 2, magma_ceilpow2( 2)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case  3: zgesv_batched_small_kernel< 3, magma_ceilpow2( 3)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case  4: zgesv_batched_small_kernel< 4, magma_ceilpow2( 4)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case  5: zgesv_batched_small_kernel< 5, magma_ceilpow2( 5)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case  6: zgesv_batched_small_kernel< 6, magma_ceilpow2( 6)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case  7: zgesv_batched_small_kernel< 7, magma_ceilpow2( 7)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case  8: zgesv_batched_small_kernel< 8, magma_ceilpow2( 8)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case  9: zgesv_batched_small_kernel< 9, magma_ceilpow2( 9)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 10: zgesv_batched_small_kernel<10, magma_ceilpow2(10)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 11: zgesv_batched_small_kernel<11, magma_ceilpow2(11)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+    const magma_int_t thread_x = (use_shmem_kernel == 1) ? n : magma_ceilpow2(n);
+    dim3 threads(thread_x, 1, 1);
+    dim3 grid(batchCount, 1, 1);
 
+    cudaError_t e = cudaErrorInvalidValue;
+    if(use_shmem_kernel == 1) {
+        magma_device_t device;
+        magma_int_t nthreads_max, shmem_max;
+        magma_getdevice( &device );
+        cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
+        #if CUDA_VERSION >= 9000
+        cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
+        if (shmem <= shmem_max) {
+            cudaFuncSetAttribute(zgesv_batched_small_sm_kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+        }
+        #else
+        cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
+        #endif    // CUDA_VERSION >= 9000
 
-// here are the offending cases
-        case 12: zgesv_batched_small_kernel<12, magma_ceilpow2(12)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 13: zgesv_batched_small_kernel<13, magma_ceilpow2(13)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 14: zgesv_batched_small_kernel<14, magma_ceilpow2(14)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 15: zgesv_batched_small_kernel<15, magma_ceilpow2(15)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 16: zgesv_batched_small_kernel<16, magma_ceilpow2(16)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 17: zgesv_batched_small_kernel<17, magma_ceilpow2(17)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 18: zgesv_batched_small_kernel<18, magma_ceilpow2(18)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 19: zgesv_batched_small_kernel<19, magma_ceilpow2(19)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 20: zgesv_batched_small_kernel<20, magma_ceilpow2(20)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 21: zgesv_batched_small_kernel<21, magma_ceilpow2(21)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 22: zgesv_batched_small_kernel<22, magma_ceilpow2(22)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 23: zgesv_batched_small_kernel<23, magma_ceilpow2(23)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 24: zgesv_batched_small_kernel<24, magma_ceilpow2(24)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 25: zgesv_batched_small_kernel<25, magma_ceilpow2(25)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 26: zgesv_batched_small_kernel<26, magma_ceilpow2(26)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
+        if ( thread_x > nthreads_max || shmem > shmem_max ) {
+            arginfo = -100;
+        }
+        else {
+            void *kernel_args[] = {&n, &nrhs, &dA_array, &ldda, &dipiv_array, &dB_array, &lddb, &dinfo_array};
+            e = cudaLaunchKernel((void*)zgesv_batched_small_sm_kernel, grid, threads, kernel_args, shmem, queue->cuda_stream());
+        }
+    }
+    else {
+        void *kernel_args[] = {&dA_array, &ldda, &dipiv_array, &dB_array, &lddb, &dinfo_array};
+        switch(n){
+            case  1: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel< 1, magma_ceilpow2( 1)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case  2: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel< 2, magma_ceilpow2( 2)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case  3: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel< 3, magma_ceilpow2( 3)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case  4: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel< 4, magma_ceilpow2( 4)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case  5: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel< 5, magma_ceilpow2( 5)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case  6: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel< 6, magma_ceilpow2( 6)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case  7: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel< 7, magma_ceilpow2( 7)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case  8: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel< 8, magma_ceilpow2( 8)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case  9: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel< 9, magma_ceilpow2( 9)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 10: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<10, magma_ceilpow2(10)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 11: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<11, magma_ceilpow2(11)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 12: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<12, magma_ceilpow2(12)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 13: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<13, magma_ceilpow2(13)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 14: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<14, magma_ceilpow2(14)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 15: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<15, magma_ceilpow2(15)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 16: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<16, magma_ceilpow2(16)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 17: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<17, magma_ceilpow2(17)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 18: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<18, magma_ceilpow2(18)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 19: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<19, magma_ceilpow2(19)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 20: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<20, magma_ceilpow2(20)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 21: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<21, magma_ceilpow2(21)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 22: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<22, magma_ceilpow2(22)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 23: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<23, magma_ceilpow2(23)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 24: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<24, magma_ceilpow2(24)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 25: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<25, magma_ceilpow2(25)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 26: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<26, magma_ceilpow2(26)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 27: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<27, magma_ceilpow2(27)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 28: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<28, magma_ceilpow2(28)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 29: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<29, magma_ceilpow2(29)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 30: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<30, magma_ceilpow2(30)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 31: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<31, magma_ceilpow2(31)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            case 32: e = cudaLaunchKernel((void*)zgesv_batched_small_kernel<32, magma_ceilpow2(32)>, grid, threads, kernel_args, shmem, queue->cuda_stream()); break;
+            default: e = cudaErrorInvalidValue;
+        }
+    }
 
-        case 27: zgesv_batched_small_kernel<27, magma_ceilpow2(27)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 28: zgesv_batched_small_kernel<28, magma_ceilpow2(28)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 29: zgesv_batched_small_kernel<29, magma_ceilpow2(29)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 30: zgesv_batched_small_kernel<30, magma_ceilpow2(30)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 31: zgesv_batched_small_kernel<31, magma_ceilpow2(31)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-        case 32: zgesv_batched_small_kernel<32, magma_ceilpow2(32)><<<grid, threads, shmem, queue->cuda_stream()>>>(nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount); break;
-/**/
-
-        // replace the default error message with something so people can contact me
-        //default: printf("error: size %lld is not supported\n", (long long) m);
-        default: fprintf(stderr, "MAGMA: error in *getrf_batched_smallsq_noshfl, unsupported size '%lld'. Please contact Cade Brown <cbrow216@vols.utk.edu>, or some member of the MAGMA team with details about this application.\n", (long long)m);
-
+    if( e != cudaSuccess ) {
+        arginfo = -100;
     }
     return arginfo;
 }
+
+#undef SLDA
+
