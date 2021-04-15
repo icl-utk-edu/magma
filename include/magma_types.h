@@ -9,6 +9,10 @@
 #ifndef MAGMA_TYPES_H
 #define MAGMA_TYPES_H
 
+//// MAGMA config
+#include "magma_config.h"
+
+
 #include <stdint.h>
 #include <assert.h>
 
