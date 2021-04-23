@@ -1,4 +1,4 @@
-# ------------------------------------------------------------------------------
+#--------------------------------------------------------------------
 # build process
 #
 # 
@@ -475,24 +475,22 @@ CONFIGDEPS := include/magma_config.h.in Makefile make.inc
 ALLFLAGS := $(CFLAGS) $(CXXFLAGS) $(DEVCCFLAGS)
 
 # Configuration header
-$(CONFIG):: $(CONFIGDEPS) 
+ifneq (,$(HAVE_CUDA))
+
+$(CONFIG): $(CONFIGDEPS) 
 	cp $< $@
 	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
-
-ifneq (,$(HAVE_CUDA))
-$(CONFIG):: $(CONFIGDEPS) 
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#define MAGMA_HAVE_CUDA/g' $@
-else
-$(CONFIG):: $(CONFIGDEPS) 
-	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#undef MAGMA_HAVE_CUDA/g' $@
-endif
-
-ifneq (,$(HAVE_HIP))
-$(CONFIG):: $(CONFIGDEPS) 
-	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#define MAGMA_HAVE_HIP/g' $@
-else
-$(CONFIG):: $(CONFIGDEPS) 
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#undef MAGMA_HAVE_HIP/g' $@
+
+else
+
+$(CONFIG): $(CONFIGDEPS) 
+	cp $< $@
+	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#undef MAGMA_HAVE_CUDA/g' $@
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#define MAGMA_HAVE_HIP/g' $@
+
 endif
 
 
@@ -517,6 +515,7 @@ liblapacktest_a := testing/lin/liblapacktest.a
 libsparse_a     := lib/libmagma_sparse.a
 libsparse_so    := lib/libmagma_sparse.so
 
+
 # static libraries
 libs_a := \
 	$(libmagma_a)		\
@@ -533,13 +532,15 @@ libs_so := \
 #$(info $$libmagma_obj=$(libmagma_obj))
 
 # add objects to libraries
-$(libmagma_a):      $(CONFIG) $(libmagma_obj) 
-$(libmagma_so):     $(CONFIG) $(libmagma_obj) 
+$(libmagma_a):      $(libmagma_obj)
+$(libmagma_so):     $(libmagma_obj)
 $(libblas_fix_a):   $(libblas_fix_obj)
 $(libtest_a):       $(libtest_obj)
 $(liblapacktest_a): $(liblapacktest_obj)
 $(libsparse_a):     $(libsparse_obj)
 $(libsparse_so):    $(libsparse_obj)
+
+
 
 # sparse requires libmagma
 $(libsparse_so): | $(libmagma_so)
@@ -840,21 +841,21 @@ endif
 
 ifeq ($(BACKEND),cuda)
 
-%.i: %.$(d_ext)
+%.i: %.$(d_ext) | $(CONFIG)
 	$(DEVCC) -E $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-%.$(o_ext): %.$(d_ext)
+%.$(o_ext): %.$(d_ext) | $(CONFIG)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS)  -c -o $@ $<
 
-%.o: %.cpp
+%.o: %.cpp | $(CONFIG)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 else ifeq ($(BACKEND),hip)
 
-%.hip.o: %.hip.cpp
+%.hip.o: %.hip.cpp | $(CONFIG)
 	$(DEVCC) $(DEVCCFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-%.o: %.cpp
+%.o: %.cpp | $(CONFIG)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 # use `hipcc` for all .cpp's. It may be a bit slower (althought I haven't tested it)
@@ -866,41 +867,41 @@ else ifeq ($(BACKEND),hip)
 endif
 
 # assume C++ for headers; needed for Fortran wrappers
-%.i: %.h
+%.i: %.h | $(CONFIG)
 	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-%.i: %.c
+%.i: %.c | $(CONFIG)
 	$(CC) -E $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-%.i: %.cpp
+%.i: %.cpp | $(CONFIG)
 	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
 ifeq ($(BACKEND),cuda)
-$(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext)
+$(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext) | $(CONFIG)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -dc -o $@ $<
 
-$(libmagma_dlink_obj): $(libmagma_dynamic_obj)
+$(libmagma_dlink_obj): $(libmagma_dynamic_obj) | $(CONFIG)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
 
-$(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext)
+$(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext) | $(CONFIG)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -dc -o $@ $<
 
-$(libsparse_dlink_obj): $(libsparse_dynamic_obj)
+$(libsparse_dlink_obj): $(libsparse_dynamic_obj) | $(CONFIG)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
 
 else ifeq ($(BACKEND),hip)
 
-$(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext)
+$(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext) | $(CONFIG)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -c -o $@ $<
 
-$(libmagma_dlink_obj): $(libmagma_dynamic_obj)
+$(libmagma_dlink_obj): $(libmagma_dynamic_obj) | $(CONFIG)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
 
-$(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext)
+$(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext) | $(CONFIG)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -c -o $@ $<
 
-$(libsparse_dlink_obj): $(libsparse_dynamic_obj)
+$(libsparse_dlink_obj): $(libsparse_dynamic_obj) | $(CONFIG)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -c -o $@ $^
 
 endif
