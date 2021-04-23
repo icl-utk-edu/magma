@@ -171,6 +171,15 @@ magma_zpbicgstab(
                    / magma_zdotc( dofs, t.dval, 1, t.dval, 1, queue );
 
         magma_zaxpy( dofs, alpha, y.dval, 1 , x->dval, 1, queue );     // x=x+alpha*p
+        if( magma_z_isnan_inf( omega ) ){
+                res = magma_dznrm2( dofs, r->dval, 1, queue );
+            if ( res/nomb <= solver_par->rtol || res <= solver_par->atol ){
+                info = MAGMA_SUCCESS;
+            } else {
+                info = MAGMA_DIVERGENCE;
+            }
+            break;
+        }
         magma_zaxpy( dofs, omega, z.dval, 1 , x->dval, 1, queue );     // x=x+omega*s
 
         magma_zcopy( dofs, s.dval, 1 , r.dval, 1, queue );             // r=s
