@@ -172,7 +172,7 @@ magma_zpbicgstab(
 
         magma_zaxpy( dofs, alpha, y.dval, 1 , x->dval, 1, queue );     // x=x+alpha*p
         if( magma_z_isnan_inf( omega ) ){
-                res = magma_dznrm2( dofs, r->dval, 1, queue );
+                res = magma_dznrm2( dofs, r.dval, 1, queue );
             if ( res/nomb <= solver_par->rtol || res <= solver_par->atol ){
                 info = MAGMA_SUCCESS;
             } else {
