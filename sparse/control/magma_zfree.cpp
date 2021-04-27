@@ -612,7 +612,7 @@ magma_zprecondfree(
             cusparseDestroySolveAnalysisInfo( precond_par->cuinfoL ); 
         if( precond_par->cuinfoU != NULL )
             cusparseDestroySolveAnalysisInfo( precond_par->cuinfoU ); 
-        // todo: error: invalid conversion from ‘long int’ to ‘cusparseSolvePolicy_t’ 
+        // todo: error: invalid conversion from 'long int' to 'cusparseSolvePolicy_t' 
         //precond_par->cuinfoL = NULL;
         //precond_par->cuinfoU = NULL;
         if( precond_par->cuinfoLT != NULL )
