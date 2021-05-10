@@ -74,7 +74,8 @@ magma_zgetrf_gpu_expert(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *ipiv,
-    magma_int_t *info, magma_mode_t mode)
+    magma_int_t *info,
+    magma_int_t nb, magma_mode_t mode)
 {
     #ifdef HAVE_clBLAS
     #define  dA(i_, j_) dA,  (dA_offset  + (i_)       + (j_)*ldda)
@@ -89,7 +90,7 @@ magma_zgetrf_gpu_expert(
     magmaDoubleComplex c_one     = MAGMA_Z_ONE;
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
 
-    magma_int_t iinfo, nb;
+    magma_int_t iinfo;
     magma_int_t maxm, maxn, minmn, liwork;
     magma_int_t i, j, jb, rows, lddat, ldwork;
     magmaDoubleComplex_ptr dAT=NULL, dAP=NULL;
@@ -116,7 +117,6 @@ magma_zgetrf_gpu_expert(
 
     /* Function Body */
     minmn = min( m, n );
-    nb    = (mode == MagmaHybrid) ? magma_get_zgetrf_nb( m, n ) : magma_get_zgetrf_native_nb( m, n );
 
     magma_queue_t queues[2] = { NULL };
     magma_device_t cdev;
@@ -362,7 +362,8 @@ magma_zgetrf_gpu(
     magma_int_t *ipiv,
     magma_int_t *info )
 {
-    magma_zgetrf_gpu_expert(m, n, dA, ldda, ipiv, info, MagmaHybrid);
+    magma_int_t nb = magma_get_zgetrf_nb( m, n );
+    magma_zgetrf_gpu_expert(m, n, dA, ldda, ipiv, info, nb, MagmaHybrid);
     return *info;
 } /* magma_zgetrf_gpu */
 
@@ -379,6 +380,7 @@ magma_zgetrf_native(
     magma_int_t *ipiv,
     magma_int_t *info )
 {
-    magma_zgetrf_gpu_expert(m, n, dA, ldda, ipiv, info, MagmaNative);
+    magma_int_t nb = magma_get_zgetrf_native_nb( m, n );
+    magma_zgetrf_gpu_expert(m, n, dA, ldda, ipiv, info, nb, MagmaNative);
     return *info;
 } /* magma_zgetrf_native */
