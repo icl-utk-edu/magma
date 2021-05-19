@@ -297,6 +297,7 @@ endif()
 
 if (MAGMA_ENABLE_HIP)
   set( GPU_TARGET "gfx900" CACHE STRING "HIP architectures to compile for" )
+  list(APPEND CMAKE_PREFIX_PATH /opt/rocm/hip /opt/rocm)
   find_package( HIP )
   if (HIP_FOUND)
     message( STATUS "Found HIP ${HIP_VERSION}" )
