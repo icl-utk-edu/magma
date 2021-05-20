@@ -372,7 +372,7 @@ if (MAGMA_ENABLE_HIP)
     set_property(TARGET hip::device PROPERTY INTERFACE_HIP_DEVICE_COMPILE ON)
     set(GPU_ARCH_FLAGS ${DEVCCFLAGS})
     
-    add_compile_options(${GPU_ARCH_FLAGS})
+    #add_compile_options(${GPU_ARCH_FLAGS})
   else()
     message( STATUS "Could not find HIP" )
   endif()
@@ -573,7 +573,7 @@ else()
       endif()
       add_library( magma ${libmagma_all} )
       target_link_libraries( magma
-	hip::device
+	hip::host
         ${blas_fix}
         ${LAPACK_LIBRARIES}
 	roc::hipblas
