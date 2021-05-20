@@ -171,6 +171,7 @@ lapack = [
     ('sbdt01',         'dbdt01',         'cbdt01',         'zbdt01'          ),
     ('sdiinertia',     'ddiinertia',     'cdiinertia',     'zdiinertia'      ),
     ('ssidi',          'dsidi',          'ssidi',          'dsidi'           ),
+    ('ssiinertia',     'dsiinertia',     'ssiinertia',     'dsiinertia'      ),
     ('sgbbrd',         'dgbbrd',         'cgbbrd',         'zgbbrd'          ),
     ('sgbsv',          'dgbsv',          'cgbsv',          'zgbsv'           ),
     ('sgebak',         'dgebak',         'cgebak',         'zgebak'          ),

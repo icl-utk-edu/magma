@@ -71,7 +71,8 @@ libmagma_src += \
 	$(cdir)/zlat2c.cu		\
 	$(cdir)/clat2z.cu		\
 	$(cdir)/dznrm2.cu		\
-	$(cdir)/zsetmatrix_transpose.cpp	\
+	$(cdir)/zsetmatrix_transpose.cpp\
+        $(cdir)/dsiinertia.cu           \
 	$(cdir)/zswap.cu		\
 	$(cdir)/zswapblk.cu		\
 	$(cdir)/zswapdblk.cu		\
