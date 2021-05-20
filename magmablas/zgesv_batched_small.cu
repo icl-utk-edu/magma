@@ -51,7 +51,7 @@ zgesv_batched_small_device(
     magmaDoubleComplex rA[N], int* sipiv,
     magmaDoubleComplex &rB, magmaDoubleComplex *sB,
     magmaDoubleComplex *sx, double *dsx,
-    int &rowid, magma_int_t &linfo )
+    int &rowid, int &linfo )
 {
     magmaDoubleComplex reg    = MAGMA_Z_ZERO;
     int max_id;
@@ -414,7 +414,7 @@ magma_zgesv_batched_small(
     cudaError_t e = cudaErrorInvalidValue;
     if(use_shmem_kernel == 1) {
         magma_device_t device;
-        magma_int_t nthreads_max, shmem_max;
+        int nthreads_max, shmem_max;
         magma_getdevice( &device );
         cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
         #if CUDA_VERSION >= 9000
