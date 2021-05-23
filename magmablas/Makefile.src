@@ -36,7 +36,8 @@ libmagma_src += \
 	$(cdir)/zgemv_fermi.cu		\
 	$(cdir)/zgerbt.cu		\
 	$(cdir)/zgerbt_kernels.cu	\
-	$(cdir)/zgetmatrix_transpose.cpp	\
+	$(cdir)/zgetmatrix_transpose.cpp\
+        $(cdir)/zheinertia.cu           \
 	$(cdir)/zhemm.cu		\
 	$(cdir)/zhemv.cu		\
 	$(cdir)/zhemv_upper.cu		\
@@ -72,7 +73,6 @@ libmagma_src += \
 	$(cdir)/clat2z.cu		\
 	$(cdir)/dznrm2.cu		\
 	$(cdir)/zsetmatrix_transpose.cpp\
-        $(cdir)/dsiinertia.cu           \
 	$(cdir)/zswap.cu		\
 	$(cdir)/zswapblk.cu		\
 	$(cdir)/zswapdblk.cu		\
