@@ -5,10 +5,10 @@
        Univ. of Colorado, Denver
        @date                                                                        
 
-       @precisions d -> s
-
        @author Hadeer Farahat
        @author Stan Tomov
+
+       @precisions normal z -> s d c 
 */
 #include "magma_internal.h"
 #include "commonblas_d.h"
@@ -18,7 +18,7 @@
 #define NBLOCKS      40
 
 __global__ void
-dsiinertia_kernel(int n, magmaDouble_const_ptr dA, int ldda, magma_int_t *ipiv, int *dneig)
+zheinertia_kernel(int n, magmaDoubleComplex_const_ptr dA, int ldda, magma_int_t *ipiv, int *dneig)
 {
     const int tx  = threadIdx.x;
     const int blk = blockIdx.x;
@@ -41,7 +41,7 @@ dsiinertia_kernel(int n, magmaDouble_const_ptr dA, int ldda, magma_int_t *ipiv, 
             }
             // if count is odd, it means that the current pivot is a second element of a 2-by-2 diagonal block
             if ( count%2 == 1 ){
-                diag = fabs(dA[(k-1)+k*ldda]);
+                diag = MAGMA_Z_ABS(dA[(k-1)+k*ldda]);
                 t=0.0;
                 if (diag > 0.) 
                     peig++;
@@ -49,23 +49,24 @@ dsiinertia_kernel(int n, magmaDouble_const_ptr dA, int ldda, magma_int_t *ipiv, 
                     neig++;
                 else
                     zeig++;
+                i = 1;
             }
         }
     
     // Each thread computes its part of the intertia (sc columns)
     #pragma unroll
-    for(i=1; i<sc; i++){
+    for(i=i; i<sc; i++){
         k=((tx + blk*NTHREADS)*sc)+i;
         if (k>=n)
             break;
-        diag = MAGMA_S_REAL(dA[k+k*ldda]);
+        diag = MAGMA_Z_REAL(dA[k+k*ldda]);
         if (ipiv[k]-1 < 0){   
             if (t != 0.) {
                 diag = t;
                 t = 0.;
             } else {
-                t = fabs(dA[k+(k+1)*ldda]); 
-                diag = (diag/t) * (dA[(k+1)*(1+ldda)]) - t; 
+                t = MAGMA_Z_ABS( dA[k+(k+1)*ldda] ); 
+                diag = (diag/t) * MAGMA_Z_REAL( dA[(k+1)*(1+ldda)] ) - t; 
             }
         }
 
@@ -99,10 +100,10 @@ dsiinertia_kernel(int n, magmaDouble_const_ptr dA, int ldda, magma_int_t *ipiv, 
 /***************************************************************************//**
     Purpose
     -------
-    magmablas_dsiinertia computes the inertia of a real symmetric and block 
+    magmablas_zheinertia computes the inertia of a hermitian and block 
     diagonal matrix with 1-by-1 and 2-by-2 diagonal blocks. These are matrices
     comming from the Bunch-Kaufman with diagonal pivoting factorizations 
-    (the DSYTRF routine). 
+    (the ZHETRF routine). 
                         
     Arguments
     ----------
@@ -112,7 +113,7 @@ dsiinertia_kernel(int n, magmaDouble_const_ptr dA, int ldda, magma_int_t *ipiv, 
             N must be at least zero.
     
     @param[in]
-    dA      DOUBLE PRECISION array of DIMENSION ( LDDA, n ).
+    dA      COMPLEX_16 array of DIMENSION ( LDDA, n ).
             The input matrix A with 1-by-1 and 2-by-2 diagonal block entries 
             for which the inertia is computed. 
  
@@ -139,9 +140,9 @@ dsiinertia_kernel(int n, magmaDouble_const_ptr dA, int ldda, magma_int_t *ipiv, 
 
 extern "C"
 magma_int_t
-magmablas_dsiinertia(
+magmablas_zheinertia(
     magma_int_t n,
-    magmaDouble_const_ptr dA, magma_int_t ldda, 
+    magmaDoubleComplex_const_ptr dA, magma_int_t ldda, 
     magma_int_t *ipiv,
     int *dneig, 
     magma_queue_t queue )
@@ -174,10 +175,10 @@ magmablas_dsiinertia(
     // Set itertia to zero
     cudaMemsetAsync(dneig, 0, 3*sizeof(int), queue->cuda_stream() );
 
-    dsiinertia_kernel<<<grid, threads, 0, queue->cuda_stream() >>>
+    zheinertia_kernel<<<grid, threads, 0, queue->cuda_stream() >>>
         (n, dA, ldda, ipiv, dneig);
     
     return info;
 }
 
-// end magmablas_dsiinertia
+// end magmablas_zheinertia
