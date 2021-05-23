@@ -909,6 +909,17 @@ int main( int argc, char** argv)
                                               h_A, lda, d_A, ldda, ipiv, solve_time );
                     magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
                 }
+                
+                magma_int_t *dinert, inert[3];
+                //for(int kk=0; kk<N; kk++)
+                //    h_A[kk+(N-1)*lda] = h_A[N-1+kk*lda] = 0.;
+                TESTING_CHECK( magma_malloc( (void**)&dinert, 3*sizeof(int)) ); 
+                magmablas_zheinertia(N, d_A, ldda, ipiv, dinert, opts.queue);
+                magma_getvector( 3, sizeof(int), dinert, 1, inert, 1, opts.queue );
+                magma_igetmatrix(3, 1, dinert, 3, inert, 3, opts.queue );
+                printf("inertia: positive / negative / zero = %d / %d / %d\n",
+                       inert[0], inert[1], inert[2]);
+                magma_free(dinert);
 
                 magma_free( d_A );
             }
