@@ -317,6 +317,14 @@ magmablas_zgeam(
     magmaDoubleComplex_ptr dC, magma_int_t lddc,
     magma_queue_t queue );
 
+magma_int_t
+magmablas_zheinertia(
+    magma_int_t n,
+    magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
+    magma_int_t *ipiv,
+    int *dneig,
+    magma_queue_t queue );
+
 void
 magmablas_zlacpy(
     magma_uplo_t uplo,
