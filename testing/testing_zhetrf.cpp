@@ -916,7 +916,6 @@ int main( int argc, char** argv)
                 TESTING_CHECK( magma_malloc( (void**)&dinert, 3*sizeof(int)) ); 
                 magmablas_zheinertia(N, d_A, ldda, ipiv, dinert, opts.queue);
                 magma_getvector( 3, sizeof(int), dinert, 1, inert, 1, opts.queue );
-                magma_igetmatrix(3, 1, dinert, 3, inert, 3, opts.queue );
                 printf("inertia: positive / negative / zero = %d / %d / %d\n",
                        inert[0], inert[1], inert[2]);
                 magma_free(dinert);
