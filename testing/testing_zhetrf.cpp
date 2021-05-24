@@ -910,7 +910,7 @@ int main( int argc, char** argv)
                     magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
                 }
                 
-                magma_int_t *dinert, inert[3];
+                int *dinert, inert[3];
                 //for(int kk=0; kk<N; kk++)
                 //    h_A[kk+(N-1)*lda] = h_A[N-1+kk*lda] = 0.;
                 TESTING_CHECK( magma_malloc( (void**)&dinert, 3*sizeof(int)) ); 
