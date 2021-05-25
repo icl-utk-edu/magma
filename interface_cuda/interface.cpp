@@ -1370,4 +1370,4 @@ magma_queue_wait_event( magma_queue_t queue, magma_event_t event )
     MAGMA_UNUSED( err );
 }
 
-#endif // HAVE_CUBLAS
+#endif // HAVE_CUDA or HAVE_HIP
