@@ -289,9 +289,9 @@ if (MAGMA_ENABLE_CUDA)
         message( FATAL_ERROR "GPU_TARGET must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
     endif()
 
-    set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -fPIC -DHAVE_CUBLAS ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )
-    add_definitions( "-DHAVE_CUBLAS -DMIN_CUDA_ARCH=${MIN_ARCH}" )
-    message( STATUS "Define -DHAVE_CUBLAS -DMIN_CUDA_ARCH=${MIN_ARCH}" )
+    set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -fPIC -DHAVE_CUDA ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )
+    add_definitions( "-DHAVE_CUDA -DMIN_CUDA_ARCH=${MIN_ARCH}" )
+    message( STATUS "Define -DHAVE_CUDA -DMIN_CUDA_ARCH=${MIN_ARCH}" )
   endif()
 endif()
 
