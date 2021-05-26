@@ -172,7 +172,7 @@ int main( int argc, char** argv)
                 if (normalize == 0) normalize = 1;
                 magma_error = lapackf77_zlange( "F", &M, &N, hCmagma, &ldc, work ) / normalize;
 
-                #if HAVE_CUBLAS
+                #ifdef HAVE_CUBLAS
                 blasf77_zaxpy( &sizeC, &c_neg_one, hC, &ione, hCdev, &ione );
                 dev_error = lapackf77_zlange( "F", &M, &N, hCdev, &ldc, work ) / normalize;
 
@@ -195,7 +195,7 @@ int main( int argc, char** argv)
                 #endif
             }
             else {
-                #if HAVE_CUBLAS
+                #ifdef HAVE_CUBLAS
                 // compute MAGMABLAS error relative to CUBLAS
                 blasf77_zaxpy( &sizeC, &c_neg_one, hCdev, &ione, hCmagma, &ione );
                 normalize = sqrt(double(An+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm;
