@@ -276,8 +276,10 @@ if (CUDA_FOUND)
         message( FATAL_ERROR "GPU_TARGET must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
     endif()
 
-    set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -fPIC -DMAGMA_HAVE_CUDA ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )
-    add_definitions( "-DMAGMA_HAVE_CUDA -DMAGMA_CUDA_ARCH_MIN=${MIN_ARCH}" )
+    set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -fPIC ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )
+    #add_definitions( "-DMAGMA_HAVE_CUDA -DMAGMA_CUDA_ARCH_MIN=${MIN_ARCH}" )
+    set(MAGMA_HAVE_CUDA "1")
+    set(MAGMA_CUDA_ARCH_MIN "${MIN_ARCH}")
     message( STATUS "Define -DMAGMA_HAVE_CUDA -DMAGMA_CUDA_ARCH_MIN=${MIN_ARCH}" )
 endif()
 
@@ -398,6 +400,8 @@ if (CMAKE_HOST_APPLE)
     ## set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -m32" )
     ## set( CUDA_64_BIT_DEVICE_CODE OFF )
 endif()
+
+include_directories( "${CMAKE_BINARY_DIR}/include" )
 
 include_directories( include )
 include_directories( control )
@@ -580,7 +584,7 @@ install( TARGETS magma magma_sparse ${blas_fix}
          RUNTIME DESTINATION bin
          LIBRARY DESTINATION lib
          ARCHIVE DESTINATION lib )
-file( GLOB headers include/*.h sparse/include/*.h )
+file( GLOB headers include/*.h sparse/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
 if (USE_FORTRAN)
     install( FILES ${headers} ${modules}
              DESTINATION include )
