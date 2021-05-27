@@ -36,7 +36,8 @@ libmagma_src += \
 	$(cdir)/zgemv_fermi.cu		\
 	$(cdir)/zgerbt.cu		\
 	$(cdir)/zgerbt_kernels.cu	\
-	$(cdir)/zgetmatrix_transpose.cpp	\
+	$(cdir)/zgetmatrix_transpose.cpp\
+        $(cdir)/zheinertia.cu           \
 	$(cdir)/zhemm.cu		\
 	$(cdir)/zhemv.cu		\
 	$(cdir)/zhemv_upper.cu		\
@@ -71,7 +72,7 @@ libmagma_src += \
 	$(cdir)/zlat2c.cu		\
 	$(cdir)/clat2z.cu		\
 	$(cdir)/dznrm2.cu		\
-	$(cdir)/zsetmatrix_transpose.cpp	\
+	$(cdir)/zsetmatrix_transpose.cpp\
 	$(cdir)/zswap.cu		\
 	$(cdir)/zswapblk.cu		\
 	$(cdir)/zswapdblk.cu		\
@@ -136,6 +137,7 @@ libmagma_src += \
 	$(cdir)/zgeqr2_batched.cu		\
 	$(cdir)/zgeqrf_batched_smallsq.cu		\
 	$(cdir)/zgerbt_func_batched.cu		\
+	$(cdir)/zgesv_batched_small.cu		\
 	$(cdir)/zgetf2_kernels.cu		\
 	$(cdir)/zgetrf_batched_smallsq_noshfl.cu		\
 	$(cdir)/zgetrf_batched_smallsq_shfl.cu		\

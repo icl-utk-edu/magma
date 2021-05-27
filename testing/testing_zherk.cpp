@@ -147,7 +147,7 @@ int main( int argc, char** argv)
                =================================================================== */
             magma_zsetmatrix( N, N, hC, ldc, dC(0,0), lddc, opts.queue );
 
-            #if HAVE_CUBLAS
+            #ifdef HAVE_CUBLAS
             dev_time = magma_sync_wtime( opts.queue );
             magma_zherk( opts.uplo, opts.transA, N, K,
                          alpha, dA(0,0), ldda,

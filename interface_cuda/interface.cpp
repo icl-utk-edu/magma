@@ -1095,6 +1095,12 @@ magma_queue_create_from_hip_internal(
     queue->own__      = own_none;
     queue->device__   = device;
     queue->stream__   = NULL;
+
+    queue->ptrArray__ = NULL;
+    queue->dAarray__  = NULL;
+    queue->dBarray__  = NULL;
+    queue->dCarray__  = NULL;
+
     queue->hipblas__  = NULL;
     queue->hipsparse__= NULL;
     queue->maxbatch__ = MAX_BATCHCOUNT;
@@ -1364,4 +1370,4 @@ magma_queue_wait_event( magma_queue_t queue, magma_event_t event )
     MAGMA_UNUSED( err );
 }
 
-#endif // HAVE_CUBLAS
+#endif // HAVE_CUDA or HAVE_HIP

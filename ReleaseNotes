@@ -25,7 +25,10 @@ Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
  2.x.x - xxx xx, xxxx
-    *
+    * Performance improvement for magma_Xgesv_batched for small sizes
+    * Added expert interfaces for magma_Xgetrf_gpu and magma_Xpotrf_gpu. These 
+      interfaces allow the user to specify the factorization mode; hybrid (CPU+GPU)
+      vs. native (GPU only), as well as the blocking size (nb). 
 
  2.5.4 - Oct 8, 2020
     * Support for CUDA 11
