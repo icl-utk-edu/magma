@@ -897,14 +897,14 @@ magma_queue_create_internal(
     queue->own__      = own_none;
     queue->device__   = device;
     queue->stream__   = NULL;
-#if defined(MAGMA_HAVE_CUDA)
-    queue->cublas__   = NULL;
-    queue->cusparse__ = NULL;
-    
     queue->ptrArray__ = NULL;
     queue->dAarray__  = NULL;
     queue->dBarray__  = NULL;
     queue->dCarray__  = NULL;
+
+#if defined(MAGMA_HAVE_CUDA)
+    queue->cublas__   = NULL;
+    queue->cusparse__ = NULL;
 #elif defined(MAGMA_HAVE_HIP)
     queue->hipblas__  = NULL;
     queue->hipsparse__ = NULL;
@@ -986,6 +986,7 @@ magma_queue_create_internal(
 
     @ingroup magma_queue
 *******************************************************************************/
+#ifdef MAGMA_HAVE_CUDA
 extern "C" void
 magma_queue_create_from_cuda_internal(
     magma_device_t   device,
@@ -995,7 +996,6 @@ magma_queue_create_from_cuda_internal(
     magma_queue_t*   queue_ptr,
     const char* func, const char* file, int line )
 {
-#ifdef MAGMA_HAVE_CUDA
     magma_queue_t queue;
     magma_malloc_cpu( (void**)&queue, sizeof(*queue) );
     assert( queue != NULL );
@@ -1042,8 +1042,8 @@ magma_queue_create_from_cuda_internal(
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
 
-#endif
 }
+#endif
 
 
 /***************************************************************************//**
@@ -1094,6 +1094,12 @@ magma_queue_create_from_hip_internal(
     queue->own__      = own_none;
     queue->device__   = device;
     queue->stream__   = NULL;
+
+    queue->ptrArray__ = NULL;
+    queue->dAarray__  = NULL;
+    queue->dBarray__  = NULL;
+    queue->dCarray__  = NULL;
+
     queue->hipblas__  = NULL;
     queue->hipsparse__= NULL;
     queue->maxbatch__ = MAX_BATCHCOUNT;
@@ -1195,13 +1201,14 @@ magma_queue_destroy_internal(
         queue->own__      = own_none;
         queue->device__   = -1;
         queue->stream__   = NULL;
-    #if defined(MAGMA_HAVE_CUDA)
-        queue->cublas__   = NULL;
-        queue->cusparse__ = NULL;
         queue->ptrArray__ = NULL;
         queue->dAarray__  = NULL;
         queue->dBarray__  = NULL;
         queue->dCarray__  = NULL;
+
+    #if defined(MAGMA_HAVE_CUDA)
+        queue->cublas__   = NULL;
+        queue->cusparse__ = NULL;
     #elif defined(MAGMA_HAVE_HIP)
         queue->hipblas__  = NULL;
         queue->hipsparse__= NULL;
