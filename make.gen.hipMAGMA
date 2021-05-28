@@ -281,8 +281,9 @@ sparse_hip/blas: $(patsubst sparse/blas/%,sparse_hip/blas/%,$(wildcard sparse/bl
 sparse_hip/blas/%.cpp: sparse/blas/%.cpp
 	@mkdir -p $(dir $@)
 	$(HIPIFY) $< > $@
-	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
 	sed -i -e "s/CUBLAS/hipBLAS/g" $@
+	sed -i -e "s/cusparse/hipsparse/g" $@
 
 sparse_hip/blas/%.h: sparse/blas/%.h
 	@mkdir -p $(dir $@)
@@ -333,6 +334,8 @@ sparse_hip/testing/%.cpp: sparse/testing/%.cpp
 	$(HIPIFY) $< > $@
 	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
 	sed -i -e "s/CUBLAS/hipBLAS/g" $@
+	sed -i -e "s/cusparse/hipsparse/g" $@
+	sed -i -e "s/cuda/hip/g" $@
 
 sparse_hip/testing/%.h: sparse/testing/%.h
 	@mkdir -p $(dir $@)

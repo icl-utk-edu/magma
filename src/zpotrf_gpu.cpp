@@ -9,7 +9,7 @@
        @author Mark Gates
        @author Azzam Haidar
        @author Ahmad Abdelfattah
-       
+
        @precisions normal z -> s d c
 */
 #include "magma_internal.h"
@@ -31,6 +31,7 @@
     where U is an upper triangular matrix and L is lower triangular.
 
     This is the block version of the algorithm, calling Level 3 BLAS.
+    This algorithm uses left-looking Cholesky factorization
 
     Arguments
     ---------
@@ -78,10 +79,11 @@
     @ingroup magma_potrf
 *******************************************************************************/
 extern "C" magma_int_t
-magma_zpotrf_LL_expert_gpu(
+magma_zpotrf_expert_gpu(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
-    magma_int_t *info, magma_mode_t mode )
+    magma_int_t *info,
+    magma_int_t nb, magma_mode_t mode )
 {
     #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_, j_)  dA, ((i_) + (j_)*ldda + dA_offset)
@@ -94,9 +96,9 @@ magma_zpotrf_LL_expert_gpu(
     const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     const double d_one     =  1.0;
     const double d_neg_one = -1.0;
-    
+
     /* Local variables */
-    magma_int_t j, jb, nb, recnb;
+    magma_int_t j, jb, recnb;
     magmaDoubleComplex *work;
     magma_int_t *dinfo;
 
@@ -112,10 +114,9 @@ magma_zpotrf_LL_expert_gpu(
         magma_xerbla( __func__, -(*info) );
         return *info;
     }
-    
-    nb = magma_get_zpotrf_nb( n );
+
     recnb = 128;
-    
+
     if (mode == MagmaHybrid) {
         if (MAGMA_SUCCESS != magma_zmalloc_pinned( &work, nb*nb )) {
             *info = MAGMA_ERR_HOST_ALLOC;
@@ -129,7 +130,7 @@ magma_zpotrf_LL_expert_gpu(
             goto cleanup;
         }
     }
-    
+
     magma_queue_t queues[2];
     magma_event_t events[2];
     magma_device_t cdev;
@@ -140,7 +141,7 @@ magma_zpotrf_LL_expert_gpu(
     magma_event_create(&events[1]);
     if (mode == MagmaNative)
         magma_setvector( 1, sizeof(magma_int_t), info, 1, dinfo, 1, queues[0]);
-    
+
     if (uplo == MagmaUpper) {
         //=========================================================
         /* Compute the Cholesky factorization A = U'*U. */
@@ -151,7 +152,7 @@ magma_zpotrf_LL_expert_gpu(
             magma_zherk( MagmaUpper, MagmaConjTrans, jb, j,
                          d_neg_one, dA(0, j), ldda,
                          d_one,     dA(j, j), ldda, queues[1] );
-            
+
             if (mode == MagmaHybrid) {
                 magma_queue_sync( queues[1] );
                 magma_zgetmatrix_async( jb, jb,
@@ -165,7 +166,7 @@ magma_zpotrf_LL_expert_gpu(
                                             dinfo, info, queues[1] );
             }
 
-            
+
             // apply all previous updates to block row right of diagonal block
             if (j+jb < n) {
                 magma_zgemm( MagmaConjTrans, MagmaNoTrans,
@@ -174,7 +175,7 @@ magma_zpotrf_LL_expert_gpu(
                                         dA(0, j+jb), ldda,
                              c_one,     dA(j, j+jb), ldda, queues[1] );
             }
-            
+
             // simultaneous with above zgemm, transfer diagonal block,
             // factor it on CPU, and test for positive definiteness
             if (mode == MagmaHybrid) {
@@ -188,7 +189,7 @@ magma_zpotrf_LL_expert_gpu(
                     break;
                 }
             }
-            
+
             // apply diagonal block to block row right of diagonal block
             if (j+jb < n) {
                 magma_ztrsm( MagmaLeft, MagmaUpper, MagmaConjTrans, MagmaNonUnit,
@@ -219,7 +220,7 @@ magma_zpotrf_LL_expert_gpu(
                                             dA(j, j), ldda, j,
                                             dinfo, info, queues[0] );
             }
-            
+
             // apply all previous updates to block column below diagonal block
             if (j+jb < n) {
                 magma_queue_wait_event(queues[1], events[0]);
@@ -230,7 +231,7 @@ magma_zpotrf_LL_expert_gpu(
                              c_one,     dA(j+jb, j), ldda, queues[1] );
                 magma_event_record(events[1], queues[1]);
             }
-            
+
             // simultaneous with above zgemm, transfer diagonal block,
             // factor it on CPU, and test for positive definiteness
             // Azzam: The above section can be moved here the code will look cleaner.
@@ -245,7 +246,7 @@ magma_zpotrf_LL_expert_gpu(
                     break;
                 }
             }
-            
+
             // apply diagonal block to block column below diagonal
             if (j+jb < n) {
                 magma_queue_wait_event(queues[0], events[1]);
@@ -267,21 +268,21 @@ cleanup:
     magma_event_destroy( events[1] );
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
-    
+
     if (mode == MagmaHybrid) {
         magma_free_pinned( work );
     }
     else {
         magma_free( dinfo );
     }
-    
+
     return *info;
-} /* magma_zpotrf_LL_expert_gpu */
+} /* magma_zpotrf_expert_gpu */
 
 /***************************************************************************//**
-    magma_zpotrf_LL_expert_gpu with mode = MagmaHybrid.
+    magma_zpotrf_expert_gpu with mode = MagmaHybrid.
     Computation is hybrid, part on CPU (panels), part on GPU (matrix updates).
-    @see magma_zpotrf_LL_expert_gpu
+    @see magma_zpotrf_expert_gpu
     @ingroup magma_potrf
 *******************************************************************************/
 extern "C" magma_int_t
@@ -291,14 +292,15 @@ magma_zpotrf_gpu(
     magma_int_t *info )
 {
     magma_mode_t mode = MagmaHybrid;
-    magma_zpotrf_LL_expert_gpu(uplo, n, dA, ldda, info, mode);
+    magma_int_t nb = magma_get_zpotrf_nb( n );
+    magma_zpotrf_expert_gpu(uplo, n, dA, ldda, info, nb, mode);
     return *info;
 }
 
 /***************************************************************************//**
-    magma_zpotrf_LL_expert_gpu with mode = MagmaNative.
+    magma_zpotrf_expert_gpu with mode = MagmaNative.
     Computation is done only on the GPU, not on the CPU.
-    @see magma_zpotrf_LL_expert_gpu
+    @see magma_zpotrf_expert_gpu
     @ingroup magma_potrf
 *******************************************************************************/
 extern "C" magma_int_t
@@ -308,6 +310,7 @@ magma_zpotrf_native(
     magma_int_t *info )
 {
     magma_mode_t mode = MagmaNative;
-    magma_zpotrf_LL_expert_gpu(uplo, n, dA, ldda, info, mode);
+    magma_int_t nb = magma_get_zpotrf_nb( n );
+    magma_zpotrf_expert_gpu(uplo, n, dA, ldda, info, nb, mode);
     return *info;
 }

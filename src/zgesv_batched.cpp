@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Azzam Haidar
 
        @precisions normal z -> s d c
@@ -93,7 +93,7 @@ extern "C" magma_int_t
 magma_zgesv_batched(
                   magma_int_t n, magma_int_t nrhs,
                   magmaDoubleComplex **dA_array, magma_int_t ldda,
-                  magma_int_t **dipiv_array, 
+                  magma_int_t **dipiv_array,
                   magmaDoubleComplex **dB_array, magma_int_t lddb,
                   magma_int_t *dinfo_array,
                   magma_int_t batchCount, magma_queue_t queue)
@@ -119,6 +119,13 @@ magma_zgesv_batched(
     if (n == 0 || nrhs == 0) {
         return info;
     }
+
+    /* check for small sizes */
+    info = magma_zgesv_batched_small(n, nrhs, dA_array, ldda, dipiv_array, dB_array, lddb, dinfo_array, batchCount, queue);
+    if( info == 0 ) {
+        return info;
+    }
+
     info = magma_zgetrf_batched( n, n, dA_array, ldda, dipiv_array, dinfo_array, batchCount, queue);
     if ( info != MAGMA_SUCCESS ) {
         return info;

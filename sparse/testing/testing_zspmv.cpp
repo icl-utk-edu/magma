@@ -64,6 +64,16 @@
     }
 #endif
 
+#define PRECISION_z
+
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#if defined(HAVE_HIP)
+  #ifdef PRECISION_z
+    #define hipblasDoubleComplex hipDoubleComplex
+#elif defined(PRECISION_c)
+    #define hipblasComplex hipComplex
+  #endif
+#endif
 
 /* ////////////////////////////////////////////////////////////////////////////
    -- testing sparse matrix vector product
@@ -341,8 +351,9 @@ int main(  int argc, char** argv )
         start = magma_sync_wtime( queue );
         for (j=0; j < 200; j++) {
             cusparseZcsrmv(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                        hA.num_rows, hA.num_cols, hA.nnz, &alpha, descr,
-                        dA.dval, dA.drow, dA.dcol, dx.dval, &beta, dy.dval);
+                               hA.num_rows, hA.num_cols, hA.nnz, (cuDoubleComplex*)&alpha, descr,
+                               (cuDoubleComplex*)dA.dval, dA.drow, dA.dcol, (cuDoubleComplex*)dx.dval, 
+                               (cuDoubleComplex*)&beta, (cuDoubleComplex*)dy.dval);
         }
         end = magma_sync_wtime( queue );
 
@@ -370,7 +381,7 @@ int main(  int argc, char** argv )
         magma_zmfree( &dy, queue );
 
 
-#if CUDA_VERSION < 11000
+#if defined(HAVE_CUDA) && CUDA_VERSION < 11000
         // Test hybrid matix format for CUDA before version 11 ===
         cusparseHybMat_t hybA=NULL;
         TESTING_CHECK( cusparseCreateMatDescr( &descrA ));
