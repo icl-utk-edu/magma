@@ -62,6 +62,17 @@
     }
 #endif
 
+#define PRECISION_z
+
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#if defined(HAVE_HIP)
+  #ifdef PRECISION_z
+    #define hipblasDoubleComplex hipDoubleComplex
+#elif defined(PRECISION_c)
+    #define hipblasComplex hipComplex
+  #endif
+#endif
+
 /* ////////////////////////////////////////////////////////////////////////////
    -- testing sparse matrix vector product
 */
@@ -283,10 +294,11 @@ int main(  int argc, char** argv )
 
         for (j=0; j < 10; j++) {
             cusparseZcsrmm(cusparseHandle,
-                               CUSPARSE_OPERATION_NON_TRANSPOSE,
-                               dA.num_rows,   n, dA.num_cols, dA.nnz,
-                               &alpha, descr, dA.dval, dA.drow, dA.dcol,
-                               dx.dval, dA.num_cols, &beta, dy.dval, dA.num_cols);
+                           CUSPARSE_OPERATION_NON_TRANSPOSE,
+                           dA.num_rows,   n, dA.num_cols, dA.nnz,
+                           (cuDoubleComplex*)&alpha, descr, (cuDoubleComplex*)dA.dval, dA.drow, dA.dcol,
+                           (cuDoubleComplex*)dx.dval, dA.num_cols, (cuDoubleComplex*)&beta, 
+                           (cuDoubleComplex*)dy.dval, dA.num_cols);
         }
         end = magma_sync_wtime( queue );
         printf( " > CUSPARSE: %.2e seconds %.2e GFLOP/s    (CSR).\n",
