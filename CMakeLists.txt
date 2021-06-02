@@ -294,6 +294,10 @@ if (MAGMA_ENABLE_CUDA)
     set(MAGMA_HAVE_CUDA "1")
     set(MAGMA_CUDA_ARCH_MIN "${MIN_ARCH}")
     message( STATUS "Define -DMAGMA_HAVE_CUDA -DMAGMA_CUDA_ARCH_MIN=${MIN_ARCH}" )
+  else()
+    message( STATUS "Could not find CUDA" )
+  endif()
+
 endif()
 
 if (MAGMA_ENABLE_HIP)
