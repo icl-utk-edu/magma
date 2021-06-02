@@ -65,7 +65,7 @@
 #define PRECISION_z
 
 /* For hipSPARSE, they use a separate complex type than for hipBLAS */
-#if defined(HAVE_HIP)
+#if defined(MAGMA_HAVE_HIP)
   #ifdef PRECISION_z
     #define hipblasDoubleComplex hipDoubleComplex
 #elif defined(PRECISION_c)

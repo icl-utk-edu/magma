@@ -364,10 +364,10 @@ if (MAGMA_ENABLE_HIP)
 	set( DEVCCFLAGS ${DEVCCFLAGS} --amdgpu-target=gfx${GFX} )
       endif()
     endforeach()
-    
+
     set( DEVCCFLAGS ${DEVCCFLAGS} -fPIC ${FORTRAN_CONVENTION} )
     set(MAGMA_HAVE_HIP "1")
-    message( STATUS "Define -DHAVE_HIP" )
+    message( STATUS "Define -DMAGMA_HAVE_HIP" )
 
     set_property(TARGET hip::device APPEND PROPERTY COMPATIBLE_INTERFACE_BOOL INTERFACE_HIP_DEVICE_COMPILE)
     set_property(TARGET hip::device PROPERTY INTERFACE_HIP_DEVICE_COMPILE ON)

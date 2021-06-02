@@ -67,7 +67,7 @@
 #define PRECISION_z
 
 /* For hipSPARSE, they use a separate complex type than for hipBLAS */
-#if defined(HAVE_HIP)
+#if defined(MAGMA_HAVE_HIP)
   #ifdef PRECISION_z
     #define hipblasDoubleComplex hipDoubleComplex
 #elif defined(PRECISION_c)
@@ -381,7 +381,7 @@ int main(  int argc, char** argv )
         magma_zmfree( &dy, queue );
 
 
-#if defined(HAVE_CUDA) && CUDA_VERSION < 11000
+#if defined(MAGMA_HAVE_CUDA) && CUDA_VERSION < 11000
         // Test hybrid matix format for CUDA before version 11 ===
         cusparseHybMat_t hybA=NULL;
         TESTING_CHECK( cusparseCreateMatDescr( &descrA ));
