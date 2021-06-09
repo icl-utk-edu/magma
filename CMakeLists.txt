@@ -706,11 +706,19 @@ add_custom_target( testing DEPENDS ${testing} )
 
 # ----------------------------------------
 # compile each sparse tester
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY sparse/testing )
+
+if (MAGMA_ENABLE_CUDA)
+  set(SPARSE_TEST_DIR "sparse/testing")
+else()
+  set(SPARSE_TEST_DIR "sparse_hip/testing")
+endif()
+
+
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${SPARSE_TEST_DIR}" )
 cmake_policy( SET CMP0037 OLD)
 foreach( TEST ${sparse_testing_all} )
     string( REGEX REPLACE "\\.(cpp|f90|F90)"     "" EXE ${TEST} )
-    string( REGEX REPLACE "sparse/testing/" "" EXE ${EXE} )
+    string( REGEX REPLACE "${SPARSE_TEST_DIR}/" "" EXE ${EXE} )
     #message( "${TEST} --> ${EXE}" )
     add_executable( ${EXE} ${TEST} )
     target_link_libraries( ${EXE} magma_sparse magma )
