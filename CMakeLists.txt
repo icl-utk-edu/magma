@@ -440,8 +440,11 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY lib )
 
 # ----------------------------------------
 # list of sources
-include( ${CMAKE_SOURCE_DIR}/CMake.src )
-
+if (MAGMA_ENABLE_CUDA)
+  include( ${CMAKE_SOURCE_DIR}/CMake.src.cuda )
+else()
+  include( ${CMAKE_SOURCE_DIR}/CMake.src.hip )
+endif()
 
 # ----------------------------------------
 # common flags

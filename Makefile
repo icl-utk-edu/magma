@@ -46,7 +46,7 @@ FORT        ?= gfortran
 HIPCC       ?= hipcc
 NVCC        ?= nvcc
 DEVCC       ?= NONE
-
+CMAKESRC     = CMake.src.$(BACKEND)
 
 # set from 'BACKEND'
 ifeq ($(BACKEND),cuda)
@@ -1055,6 +1055,8 @@ echo:
 	@echo "sparse_testing_all $(sparse_testing_all)\n"
 	@echo "sparse_testing_obj $(sparse_testing_obj)\n"
 	@echo "sparse_testers     $(sparse_testers)\n"
+	@echo "====="
+	@echo "CMake.src $(CMAKESRC)\n"
 	@echo "====="
 	@echo "dep     $(dep)"
 	@echo "deps    $(deps)\n"
