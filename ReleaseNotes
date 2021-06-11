@@ -3,8 +3,9 @@
 
 -----------------------------------------------------
 
-MAGMA is intended for CUDA enabled NVIDIA GPUs.
-It supports Fermi, Kepler, Maxwell, Pascal, Volta, Turing, and Ampere GPUs.
+MAGMA is intended for CUDA enabled NVIDIA GPUs and HIP enabled AMD GPUs.
+It supports NVIDIA's Kepler, Maxwell, Pascal, Volta, Turing, and Ampere GPUs,
+and AMD's HIP GPUs.
 
 Included are routines for the following algorithms:
 
