@@ -214,7 +214,6 @@ EOT
     print "Generate the different precisions\n";
     myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc"); 
     myCmd("make -j generate");
-    myCmd("cp CMake.src CMake.src.cuda");
 
     # Compile the documentation
     print "Compile the documentation\n";
@@ -223,8 +222,6 @@ EOT
     # Generate hip files
     myCmd("echo -e 'GPU_TARGET = gfx700\nBACKEND = hip\nFORT = true' > make.inc");
     myCmd("make generate");
-    myCmd("cp CMake.src CMake.src.hip");
-    myCmd("cp CMake.src.cuda CMake.src");
 
     myCmd("rm -f make.inc");
 
