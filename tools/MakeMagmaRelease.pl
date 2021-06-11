@@ -155,7 +155,7 @@ EOT
                 myCmd("git commit -m 'version $major.$minor.$micro' include/magma_types.h docs/Doxyfile COPYRIGHT");
             }
 
-            print "Tag release in Mercurial (y/n)? ";
+            print "Tag release in Git (y/n)? ";
             $_ = <STDIN>;
             if ( m/\b(y|yes)\b/ ) {
                 myCmd("git tag v$version");
@@ -179,7 +179,7 @@ EOT
         }
     }
 
-    $cmd = "git archive --format=tar.gz v$major.$minor.$micro > $RELEASE_PATH/magma-$major.$minor.$micro.tar.gz";
+    $cmd = "git archive --format tar.gz HEAD > $RELEASE_PATH/magma-$major.$minor.$micro.tar.gz";
     myCmd($cmd);
 
     print "cd $RELEASE_PATH\n";
@@ -212,12 +212,17 @@ EOT
     # Need to define Fortran compiler to something that exists (true),
     # in order to include all Fortran files in CMake.src.
     print "Generate the different precisions\n";
-    myCmd("echo 'FORT = true' > make.inc");
+    myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc"); 
     myCmd("make -j generate");
 
     # Compile the documentation
     print "Compile the documentation\n";
     myCmd("make docs");
+
+    # Generate hip files
+    myCmd("echo -e 'GPU_TARGET = gfx700\nBACKEND = hip\nFORT = true' > make.inc");
+    myCmd("make generate");
+
     myCmd("rm -f make.inc");
 
     # Remove non-required files (e.g., Makefile.gen)

@@ -11,8 +11,6 @@ MAGMA README FILE
     libraries and operating systems. The examples rely on paths such as $CUDADIR, $HIPDIR,
     and $MKLROOT being set in your environment. There are some examples in `make.inc-examples`
 
-    For help building on HIP/ROCm, see README-HIP
-
     To compile shared and static libraries in lib, and testers in testing and
     sparse/testing:
         make
@@ -22,6 +20,13 @@ MAGMA README FILE
         make sparse-lib
         make sparse-testing
         make install prefix=/usr/local/magma
+
+    To compile for AMD GPUs shared and static libraries in lib, and testers in testing and
+    sparse_hp/testing:
+        make lib
+        make sparse
+        make sparse/testing
+
 
 * Quick start (CMake)
 
@@ -93,7 +98,7 @@ MAGMA README FILE
     For more information, please refer to the MAGMA homepage and user forum:
 
         http://icl.utk.edu/magma/
-        http://icl.utk.edu/magma/forum/
+        https://groups.google.com/a/icl.utk.edu/g/magma-user
 
     The MAGMA project supports the package in the sense that reports of
     errors or poor performance will gain immediate attention from the

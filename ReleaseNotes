@@ -3,8 +3,9 @@
 
 -----------------------------------------------------
 
-MAGMA is intended for CUDA enabled NVIDIA GPUs.
-It supports Fermi, Kepler, Maxwell, Pascal, Volta, Turing, and Ampere GPUs.
+MAGMA is intended for CUDA enabled NVIDIA GPUs and HIP enabled AMD GPUs.
+It supports NVIDIA's Kepler, Maxwell, Pascal, Volta, Turing, and Ampere GPUs,
+and AMD's HIP GPUs.
 
 Included are routines for the following algorithms:
 
@@ -24,8 +25,12 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
- 2.x.x - xxx xx, xxxx
+ 2.6.0 - June 11, 2021
+    * Added HIP support for AMD GPUs (former hipMAGMA) as part of MAGMA
+    * Added inertia computational routines for GPUs 
+    * Performance improvements for AMD GPUs
     * Performance improvement for magma_Xgesv_batched for small sizes
+    * Added Bunch-Kaufman GPU-only sover using BLAS calls (magma_zhetrs_gpu)
     * Added expert interfaces for magma_Xgetrf_gpu and magma_Xpotrf_gpu. These 
       interfaces allow the user to specify the factorization mode; hybrid (CPU+GPU)
       vs. native (GPU only), as well as the blocking size (nb). 
