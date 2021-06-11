@@ -180,10 +180,10 @@ typedef double real_Double_t;
      * But, it will still have the same effect, and so the result will still be correct
      * TODO: Perhaps also emit a warning?
      */
-    #define hipblasGetVectorAsync(a, b, c, d, e, f, stream) hipblasGetVector(a, b, c, d, e, f)
-    #define hipblasSetVectorAsync(a, b, c, d, e, f, stream) hipblasSetVector(a, b, c, d, e, f)
-    #define hipblasGetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasGetMatrix(a, b, c ,d, e, f, g)
-    #define hipblasSetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasSetMatrix(a, b, c, d, e, f, g)
+    //#define hipblasGetVectorAsync(a, b, c, d, e, f, stream) hipblasGetVector(a, b, c, d, e, f)
+    //#define hipblasSetVectorAsync(a, b, c, d, e, f, stream) hipblasSetVector(a, b, c, d, e, f)
+    //#define hipblasGetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasGetMatrix(a, b, c ,d, e, f, g)
+    //#define hipblasSetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasSetMatrix(a, b, c, d, e, f, g)
    
     /* Unsupported hipBLAS functionality 
      * Everything here is currently unsupported by hipBLAS, and as such, is a no-op,
@@ -204,67 +204,8 @@ typedef double real_Double_t;
      */
     
     //#define hipblasZgemmStridedBatched(...) magma_unsupported(hipblasZgemmStridedBatched)
-    //#define hipblasZgemmBatched(...) magma_unsupported(hipblasZgemmBatched)
     
-    //#define hipblasCgemmBatched(...) magma_unsupported(hipblasCgemmBatched)
-    //#define hipblasCgemmStridedBatched(...) magma_unsupported(hipblasCgemmStridedBatched)
-    
-    #define hipblasSetAtomicsMode(...) magma_unsupported(hipblasSetAtomicsMode)   
-
-    #define hipblasStrmm(...)    magma_unsupported(hipblasStrmm)
-    #define hipblasDtrmm(...)    magma_unsupported(hipblasDtrmm)
-    #define hipblasCtrmm(...)    magma_unsupported(hipblasCtrmm)
-    #define hipblasZtrmm(...)    magma_unsupported(hipblasZtrmm)
-    
-    //#define hipblasZgetrfBatched(...) magma_unsupported(hipblasZgetrfBatched) 
-    //#define hipblasZgerc(...)    magma_unsupported(hipblasZgerc)
-    //#define hipblasZgeru(...)    magma_unsupported(hipblasZgeru)
-    //#define hipblasZhemv(...)    magma_unsupported(hipblasZhemv)
-    //#define hipblasZher(...)     magma_unsupported(hipblasZher)
-    //#define hipblasZsyr(...)     magma_unsupported(hipblasZsyr)
-    //#define hipblasZsyr2(...)    magma_unsupported(hipblasZsyr2)
-    //#define hipblasZher2(...)    magma_unsupported(hipblasZher2)
-    //#define hipblasZsymv(...)    magma_unsupported(hipblasZsymv)
-    //#define hipblasZtrmv(...)    magma_unsupported(hipblasZtrmv)
-    //#define hipblasZtrsv(...)    magma_unsupported(hipblasZtrsv)
-    //#define hipblasZhemm(...)    magma_unsupported(hipblasZhemm)
-    //#define hipblasZherk(...)    magma_unsupported(hipblasZherk)
-    //#define hipblasZher2k(...)   magma_unsupported(hipblasZher2k)
-    //#define hipblasZsymm(...)    magma_unsupported(hipblasZsymm)
-    /*#define hipblasZsyrk(...)    magma_unsupported(hipblasZsyrk)
-    #define hipblasZsyr2k(...)   magma_unsupported(hipblasZsyr2k)
-    #define hipblasZtrsm(...)    magma_unsupported(hipblasZtrsm)
-    #define hipblasSsymv(...)    magma_unsupported(hipblasSsymv)
-    #define hipblasSsyr2(...)    magma_unsupported(hipblasSsyr2)
-    #define hipblasStrmv(...)    magma_unsupported(hipblasStrmv)
-    #define hipblasCgerc(...)    magma_unsupported(hipblasCgerc)
-    #define hipblasCgeru(...)    magma_unsupported(hipblasCgeru)
-    #define hipblasChemv(...)    magma_unsupported(hipblasChemv)
-    #define hipblasCher(...)     magma_unsupported(hipblasCher)
-    #define hipblasDsymv(...)    magma_unsupported(hipblasDsymv)
-    #define hipblasDsyr2(...)    magma_unsupported(hipblasDsyr2)
-    #define hipblasDtrmv(...)    magma_unsupported(hipblasDtrmv)
-    #define hipblasDsymm(...)    magma_unsupported(hipblasDsymm)
-    #define hipblasDsyrk(...)    magma_unsupported(hipblasDsyrk)
-    #define hipblasSsymm(...)    magma_unsupported(hipblasSsymm)
-    #define hipblasSsyrk(...)    magma_unsupported(hipblasSsyrk)
-    #define hipblasCher2(...)    magma_unsupported(hipblasCher2)
-    #define hipblasCsymv(...)    magma_unsupported(hipblasCsymv)
-    #define hipblasCsyr(...)     magma_unsupported(hipblasCsyr)
-    #define hipblasCsyr2(...)    magma_unsupported(hipblasCsyr2)
-    #define hipblasSsyr2k(...)   magma_unsupported(hipblasSsyr2k)
-    #define hipblasCtrmv(...)    magma_unsupported(hipblasCtrmv)
-    #define hipblasCtrsv(...)    magma_unsupported(hipblasCtrsv)
-    #define hipblasChemm(...)    magma_unsupported(hipblasChemm)
-    #define hipblasDsyr2k(...)   magma_unsupported(hipblasDsyr2k)
-    #define hipblasCtrsm(...)    magma_unsupported(hipblasCtrsm)
-    #define hipblasCsymm(...)    magma_unsupported(hipblasCsymm)
-    #define hipblasCherk(...)    magma_unsupported(hipblasCherk)
-    #define hipblasCher2k(...)   magma_unsupported(hipblasCher2k)
-    #define hipblasCsyrk(...)    magma_unsupported(hipblasCsyrk)
-    #define hipblasCsyr2k(...)    magma_unsupported(hipblasCsyr2k)
-    */
-
+    //#define hipblasSetAtomicsMode(...) magma_unsupported(hipblasSetAtomicsMode)
 
     #ifdef __cplusplus
     extern "C" {
