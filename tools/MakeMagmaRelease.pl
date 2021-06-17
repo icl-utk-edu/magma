@@ -213,7 +213,7 @@ EOT
     # in order to include all Fortran files in CMake.src.
     print "Generate the different precisions\n";
     myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc"); 
-    myCmd("make -j generate");
+    #myCmd("make -j generate");
 
     # Compile the documentation
     print "Compile the documentation\n";
@@ -221,7 +221,12 @@ EOT
 
     # Generate hip files
     myCmd("echo -e 'GPU_TARGET = gfx700\nBACKEND = hip\nFORT = true' > make.inc");
+    #myCmd("make -f make.gen.hipMAGMA");
     myCmd("make generate");
+
+    myCmd("rm Makefile.gen");
+    myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc");
+    myCmd("make -j generate");
 
     myCmd("rm -f make.inc");
 
