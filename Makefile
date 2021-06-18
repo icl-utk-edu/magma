@@ -603,13 +603,9 @@ test: testing
 
 testers_f: $(testers_f)
 
-ifeq ($(BACKEND),cuda)
-sparse-test: sparse/testing
-sparse-testing: sparse/testing
-else ifeq ($(BACKEND),hip)
 sparse-test: $(SPARSE_DIR)/testing
 sparse-testing: $(SPARSE_DIR)/testing
-endif
+
 # cleangen is defined in Makefile.gen; cleanall also does cleanmake in Makefile.internal
 cleanall: clean cleangen
 
@@ -740,6 +736,7 @@ sparse/control: $(sparse_control_obj)
 sparse/src:     $(sparse_src_obj)
 
 sparse/testing: $(sparse_testers)
+$(SPARSE_DIR)/testing: $(sparse_testers)
 
 run_test: test
 	cd testing && ./run_tests.py
