@@ -21,12 +21,9 @@ MAGMA README FILE
         make sparse-testing
         make install prefix=/usr/local/magma
 
-    To compile for AMD GPUs shared and static libraries in lib, and testers in testing and
-    sparse_hp/testing:
-        make lib
-        make sparse
-        make sparse/testing
-
+    MAGMA uses HIP code generation to compile for AMD GPUs.  MAGMA HIP sources will be
+    generated from interface_cuda, magmablas, and sparse into interface_hip, magmablas_hip, 
+    and sparse_hip, respectively.
 
 * Quick start (CMake)
 
@@ -35,15 +32,15 @@ MAGMA README FILE
     On Unix & MacOS:
 
     Step 0: setup
-    If you downloaded an official release (e.g., magma-2.5.0.tar.gz), you can
+    If you downloaded an official release (e.g., magma-2.6.0.tar.gz), you can
     skip this step.
     If you checked out MAGMA from bitbucket, you first need to generate all
     the precisions. Currently this is done only by the Makefile, not by CMake.
-    Using a minimal make.inc configuration:
-        echo "FORT = true" > make.inc
+    Using a minimal make.inc configuration (with BACKEND=hip or cuda), e.g.,
+        echo -e 'BACKEND = hip\nFORT = true' > make.inc
         make generate
     That should run `python tools/codegen.py` on all the src files and
-    create CMake.src.
+    create CMake.src.{hip|cuda}
 
     Step 1: compile
         mkdir build
@@ -60,12 +57,19 @@ MAGMA README FILE
         make install
 
     Options include:
+        -DMAGMA_ENABLE_CUDA=ON to install MAGMA for CUDA. This is default. 
+        -DMAGMA_ENABLE_HIP=ON to install MAGMA for HIP. This option requires 
+            to specify the hipcc compiler, e.g.,
+            cmake -DMAGMA_ENABLE_HIP=ON -DCMAKE_CXX_COMPILER=hipcc ..
+
         -DCMAKE_INSTALL_PREFIX=/path/to/magma, directory to install MAGMA's
             headers and libraries, default /usr/local/magma.
 
         -DGPU_TARGET='target', where target includes one or more of:
-            Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere
-            or valid sm_[0-9][0-9].
+            Kepler, Maxwell, Pascal, Volta, Turing, Ampere
+            or valid sm_[0-9][0-9] for NVIDIA GPUs.
+            For AMD GPUs include one or more valid GPU gfx numbers
+            (https://llvm.org/docs/AMDGPUUsage.html#target-triples). 
 
         -DBLA_VENDOR=vendor, where vendor is one of:
             Intel10_64lp, Intel10_64lp_seq, Intel10_64ilp, Intel10_64ilp_seq,
