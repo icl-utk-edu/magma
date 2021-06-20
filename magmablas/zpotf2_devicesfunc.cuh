@@ -91,7 +91,7 @@ static inline __device__ void zpotf2_sminout_fixsize_device(const int m, magmaDo
         {
         #endif
             double xreal = MAGMA_Z_REAL(A[iter + iter * lda]);
-            linfo = ( linfo == 0 && (xreal <= MAGMA_D_ZERO || isnan(xreal)) ) ? (iter+1) : linfo;
+            linfo = ( linfo == 0 && (xreal <= MAGMA_D_ZERO || ::isnan(xreal)) ) ? (iter+1) : linfo;
             xreal = sqrt(xreal);
             factor = MAGMA_Z_MAKE(1.0/xreal, 0.0);
         #ifdef ENABLE_COND2
