@@ -595,7 +595,7 @@ magma_zsolverinfo_init(
     precond_par->UDT.row = NULL;
     precond_par->UDT.blockinfo = NULL;
     
-    // todo: error: invalid conversion from ‘long int’ to ‘cusparseSolvePolicy_t’
+    // todo: error: invalid conversion from 'long int' to 'cusparseSolvePolicy_t'
     //precond_par->cuinfoL = NULL;
     //precond_par->cuinfoU = NULL;
     //precond_par->cuinfoLT = NULL;
