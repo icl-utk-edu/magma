@@ -655,7 +655,8 @@ magma_int_t magma_get_dgetrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
     if ( arch >= 300 ) {       // 3.x Kepler
-        if      (minmn <  3072) nb = 128;
+        if      (minmn <  2048) nb =  64;
+        else if (minmn <  3072) nb = 128;
         else if (minmn <  8192) nb = 256;
         else                    nb = 512;
     }
