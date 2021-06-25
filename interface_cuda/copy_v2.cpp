@@ -59,13 +59,17 @@ magma_setvector_internal(
     magma_queue_t queue,
     const char* func, const char* file, int line )
 {
-    assert( queue != NULL );
+    cudaStream_t stream = NULL;
+    if ( queue != NULL ) {
+        stream = queue->cuda_stream();
+    }
     cublasStatus_t status;
     status = cublasSetVectorAsync(
         int(n), int(elemSize),
         hx_src, int(incx),
-        dy_dst, int(incy), queue->cuda_stream() );
-    cudaStreamSynchronize( queue->cuda_stream() );
+        dy_dst, int(incy), stream );
+    if ( queue != NULL )
+        cudaStreamSynchronize( stream );
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -172,12 +176,17 @@ magma_getvector_internal(
     magma_queue_t queue,
     const char* func, const char* file, int line )
 {
+    cudaStream_t stream = NULL;
+    if ( queue != NULL ) {
+        stream = queue->cuda_stream();
+    }
     cublasStatus_t status;
     status = cublasGetVectorAsync(
         int(n), int(elemSize),
         dx_src, int(incx),
-        hy_dst, int(incy), queue->cuda_stream() );
-    cudaStreamSynchronize( queue->cuda_stream() );
+        hy_dst, int(incy), stream );
+    if ( queue != NULL )
+        cudaStreamSynchronize( stream );
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -287,14 +296,18 @@ magma_copyvector_internal(
     magma_queue_t queue,
     const char* func, const char* file, int line )
 {
-    assert( queue != NULL );
+    cudaStream_t stream = NULL;
+    if ( queue != NULL ) {
+        stream = queue->cuda_stream();
+    }
     if ( incx == 1 && incy == 1 ) {
         cudaError_t status;
         status = cudaMemcpyAsync(
             dy_dst,
             dx_src,
-            int(n*elemSize), cudaMemcpyDeviceToDevice, queue->cuda_stream() );
-        cudaStreamSynchronize( queue->cuda_stream() );
+            int(n*elemSize), cudaMemcpyDeviceToDevice, stream );
+        if ( queue != NULL )
+            cudaStreamSynchronize( stream );
         check_xerror( status, func, file, line );
         MAGMA_UNUSED( status );
     }
@@ -415,13 +428,17 @@ magma_setmatrix_internal(
     magma_queue_t queue,
     const char* func, const char* file, int line )
 {
-    assert( queue != NULL );
+    cudaStream_t stream = NULL;
+    if ( queue != NULL ) {
+        stream = queue->cuda_stream();
+    }
     cublasStatus_t status;
     status = cublasSetMatrixAsync(
         int(m), int(n), int(elemSize),
         hA_src, int(lda),
-        dB_dst, int(lddb), queue->cuda_stream() );
-    cudaStreamSynchronize( queue->cuda_stream() );
+        dB_dst, int(lddb), stream );
+    if ( queue != NULL )
+        cudaStreamSynchronize( stream );
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -534,13 +551,17 @@ magma_getmatrix_internal(
     magma_queue_t queue,
     const char* func, const char* file, int line )
 {
-    assert( queue != NULL );
+    cudaStream_t stream = NULL;
+    if ( queue != NULL ) {
+        stream = queue->cuda_stream();
+    }
     cublasStatus_t status;
     status = cublasGetMatrixAsync(
         int(m), int(n), int(elemSize),
         dA_src, int(ldda),
-        hB_dst, int(ldb), queue->cuda_stream() );
-    cudaStreamSynchronize( queue->cuda_stream() );
+        hB_dst, int(ldb), stream );
+    if ( queue != NULL )
+        cudaStreamSynchronize( stream );
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -653,13 +674,17 @@ magma_copymatrix_internal(
     magma_queue_t queue,
     const char* func, const char* file, int line )
 {
-    assert( queue != NULL );
+    cudaStream_t stream = NULL;
+    if ( queue != NULL ) {
+        stream = queue->cuda_stream();
+    }
     cudaError_t status;
     status = cudaMemcpy2DAsync(
         dB_dst, int(lddb*elemSize),
         dA_src, int(ldda*elemSize),
-        int(m*elemSize), int(n), cudaMemcpyDeviceToDevice, queue->cuda_stream() );
-    cudaStreamSynchronize( queue->cuda_stream() );
+        int(m*elemSize), int(n), cudaMemcpyDeviceToDevice, stream );
+    if ( queue != NULL )
+        cudaStreamSynchronize( stream );
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
