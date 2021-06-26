@@ -11,8 +11,8 @@
 #include "magma_internal.h"
 
 // === Define what BLAS to use ============================================
-    #undef  magma_ztrsm
-    #define magma_ztrsm magmablas_ztrsm
+//#undef  magma_ztrsm
+//#define magma_ztrsm magmablas_ztrsm
 // === End defining what BLAS to use ======================================
 
 /***************************************************************************//**
@@ -121,7 +121,7 @@ magma_zpotrf(
     
     nb = magma_get_zpotrf_nb( n );
     
-    if (nb <= 1 || nb >= n) {
+    if (nb <= 1 || 2*nb >= n) {
         lapackf77_zpotrf( uplo_, &n, A, &lda, info );
     }
     else {

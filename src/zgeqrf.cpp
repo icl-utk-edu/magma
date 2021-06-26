@@ -148,6 +148,12 @@ magma_zgeqrf(
         return *info;
     }
     
+    if (nb <= 1 || 4*nb >= min(m,n) ) {
+        /* Use CPU code. */
+        lapackf77_zgeqrf( &m, &n, A, &lda, tau, work, &lwork, info );
+        return *info;
+    }
+    
     // largest N for larfb is n-nb (trailing matrix lacks 1st panel)
     lddwork = magma_roundup( n, 32 ) - nb;
     ldda    = magma_roundup( m, 32 );

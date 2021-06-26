@@ -15,8 +15,8 @@
 #include "magma_internal.h"
 
 // === Define what BLAS to use ============================================
-    #undef  magma_ztrsm
-    #define magma_ztrsm magmablas_ztrsm
+//    #undef  magma_ztrsm
+//    #define magma_ztrsm magmablas_ztrsm
 // === End defining what BLAS to use =======================================
 
 /***************************************************************************//**
@@ -118,7 +118,20 @@ magma_zpotrf_expert_gpu(
     recnb = 128;
 
     if (mode == MagmaHybrid) {
-        if (MAGMA_SUCCESS != magma_zmalloc_pinned( &work, nb*nb )) {
+        if (nb <= 1 || 4*nb >= n ) {
+            /* Use CPU code. */
+            if ( MAGMA_SUCCESS != magma_zmalloc_cpu( &work, n*n )) {
+                *info = MAGMA_ERR_HOST_ALLOC;
+                return *info;
+            }
+            magma_zgetmatrix( n, n, dA(0,0), ldda, work, n, NULL);
+            lapackf77_zpotrf(lapack_uplo_const(uplo), &n, work, &n, info );
+            magma_zsetmatrix( n, n, work, n, dA(0,0), ldda, NULL);
+            magma_free_cpu( work );  work=NULL;
+
+            return *info;
+        }
+        else if (MAGMA_SUCCESS != magma_zmalloc_pinned( &work, nb*nb )) {
             *info = MAGMA_ERR_HOST_ALLOC;
             goto cleanup;
         }

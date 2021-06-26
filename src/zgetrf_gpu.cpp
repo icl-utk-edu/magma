@@ -118,12 +118,27 @@ magma_zgetrf_gpu_expert(
     /* Function Body */
     minmn = min( m, n );
 
+    if (nb <= 1 || 4*nb >= min(m,n) )
+        if (mode == MagmaHybrid) {
+            /* Use CPU code. */
+            if ( MAGMA_SUCCESS != magma_zmalloc_cpu( &work, m*n )) {
+                *info = MAGMA_ERR_HOST_ALLOC;
+                return *info;
+            }
+            magma_zgetmatrix( m, n, dA(0,0), ldda, work, m, NULL);
+            lapackf77_zgetrf( &m, &n, work, &m, ipiv, info );
+            magma_zsetmatrix( m, n, work, m, dA(0,0), ldda, NULL);
+            magma_free_cpu( work );  work=NULL;
+
+            return *info;
+        }
+
     magma_queue_t queues[2] = { NULL };
     magma_device_t cdev;
     magma_getdevice( &cdev );
     magma_queue_create( cdev, &queues[0] );
     magma_queue_create( cdev, &queues[1] );
-
+    
     if (mode == MagmaNative) {
         liwork = m + minmn + 1;
         if (MAGMA_SUCCESS != magma_imalloc(&diwork, liwork)) {
@@ -135,23 +150,11 @@ magma_zgetrf_gpu_expert(
             dipiv = dipivinfo + m;  // dipiv size = minmn
             dinfo = dipiv + minmn;  // dinfo size = 1
             magma_memset_async(dinfo, 0, sizeof(magma_int_t), queues[0]);
-            //cudaMemsetAsync( dinfo, 0, sizeof(magma_int_t), queues[0]->cuda_stream() );
         }
     }
 
     if (nb <= 1 || nb >= min(m,n) ) {
-        if (mode == MagmaHybrid) {
-            /* Use CPU code. */
-            if ( MAGMA_SUCCESS != magma_zmalloc_cpu( &work, m*n )) {
-                *info = MAGMA_ERR_HOST_ALLOC;
-                goto cleanup;
-            }
-            magma_zgetmatrix( m, n, dA(0,0), ldda, work, m, queues[0] );
-            lapackf77_zgetrf( &m, &n, work, &m, ipiv, info );
-            magma_zsetmatrix( m, n, work, m, dA(0,0), ldda, queues[0] );
-            magma_free_cpu( work );  work=NULL;
-        }
-        else {
+        if (mode == MagmaNative) {
             /* Use GPU code (native mode). */
             magma_zgetrf_recpanel_native( m, n, dA(0,0), ldda, dipiv, dipivinfo, dinfo, 0, queues[0], queues[1]);
             magma_igetvector( minmn, dipiv, 1, ipiv, 1, queues[0] );

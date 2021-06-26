@@ -164,6 +164,20 @@ magma_zgeqrf_gpu(
     // TODO: use min(m,n), but that affects dT
     nb = magma_get_zgeqrf_nb( m, n );
     
+    if (nb <= 1 || nb >= minmn) {
+        /* Use CPU code. */
+        if ( MAGMA_SUCCESS != magma_zmalloc_cpu( &work, 2*m*n )) {
+            *info = MAGMA_ERR_HOST_ALLOC;
+            return *info;
+        }
+        magma_zgetmatrix(m, n, dA, ldda, work, m, NULL );                                                              
+        lhwork = m*n;
+        lapackf77_zgeqrf( &m, &n, work, &m, tau, work+m*n, &lhwork, info );
+        magma_zsetmatrix( m, n, work, m, dA, ldda, NULL );
+
+        return *info;
+    }
+
     // dT contains 3 blocks:
     // dT    is minmn*nb
     // dR    is minmn*nb
