@@ -56,7 +56,8 @@ magma_int_t magma_get_dpotrf_nb( magma_int_t n )
     magma_int_t nb;
     magma_int_t arch = magma_getdevice_arch();
     if ( arch >= 300 ) {       // 3.x Kepler
-        if      (n <  3072) nb = 256;
+        if      (n <  2048) nb = 128;
+        else if (n <  3072) nb = 256;
         else                nb = 512;
     }
     else if ( arch >= 200 ) {  // 2.x Fermi
@@ -192,7 +193,8 @@ magma_int_t magma_get_dgeqrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
     if ( arch >= 300 ) {       // 3.x Kepler
-        if      (minmn <  3072) nb = 64;
+        if      (minmn <   256) nb =  64;
+        else if (minmn <  3072) nb = 128;
         else if (minmn < 10240) nb = 128;
         else                    nb = 256;
     }
