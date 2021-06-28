@@ -18,6 +18,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB>
 static __global__
+__launch_bounds__(NB * NB * 1)
 void trmm_template_lNx_kernel(
         magma_uplo_t uplo, magma_diag_t diag, 
         int m, int n, 
@@ -31,6 +32,7 @@ void trmm_template_lNx_kernel(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int CONJA>
 static __global__
+__launch_bounds__(NB * NB * 1)
 void trmm_template_lTx_kernel(
         magma_uplo_t uplo, magma_diag_t diag, 
         int m, int n, 
