@@ -18,8 +18,8 @@
 
 // TODO get rid of global variable!
 // Static also doesn't work for HIP
-// static __device__ int magma_flag = 0;
-__device__ int magma_flag = 0;
+// static __device__ int magma_zlag2c_flag = 0;
+__device__ int magma_zlag2c_flag = 0;
 
 /*
     Divides matrix into ceil( m/BLK_X ) x ceil( n/BLK_Y ) blocks.
@@ -57,7 +57,7 @@ void zlag2c_kernel(
                     #endif
                     )
                 {
-                    magma_flag = 1;
+                    magma_zlag2c_flag = 1;
                 }
                 SA[j*ldsa] = MAGMA_C_MAKE( MAGMA_Z_REAL(tmp), MAGMA_Z_IMAG(tmp) );
             }
@@ -72,7 +72,7 @@ void zlag2c_kernel(
                     #endif
                     )
                 {
-                    magma_flag = 1;
+                    magma_zlag2c_flag = 1;
                 }
                 SA[j*ldsa] = MAGMA_C_MAKE( MAGMA_Z_REAL(tmp), MAGMA_Z_IMAG(tmp) );
             }
@@ -89,7 +89,7 @@ void zlag2c_kernel(
     
     RMAX is the overflow for the single-complex arithmetic.
     ZLAG2C checks that all the entries of A are between -RMAX and
-    RMAX. If not, the conversion is aborted and a magma_flag is raised.
+    RMAX. If not, the conversion is aborted and a magma_zlag2c_flag is raised.
     
     Arguments
     ---------
@@ -164,9 +164,9 @@ magmablas_zlag2c(
 
     dim3 threads( BLK_X, 1 );
     dim3 grid( magma_ceildiv( m, BLK_X ), magma_ceildiv( n, BLK_Y ) );
-    cudaMemcpyToSymbol( magma_flag, info, sizeof(magma_flag) );    // magma_flag = 0
+    cudaMemcpyToSymbol( magma_zlag2c_flag, info, sizeof(magma_zlag2c_flag) );    // magma_zlag2c_flag = 0
     
     zlag2c_kernel<<< grid, threads, 0, queue->cuda_stream() >>>( m, n, A, lda, SA, ldsa, rmax );
     
-    cudaMemcpyFromSymbol( info, magma_flag, sizeof(magma_flag) );  // info = magma_flag
+    cudaMemcpyFromSymbol( info, magma_zlag2c_flag, sizeof(magma_zlag2c_flag) );  // info = magma_zlag2c_flag
 }
