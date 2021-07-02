@@ -17,8 +17,9 @@
 #define BLK_Y 32
 
 // TODO get rid of global variable!
-static __device__ int flag = 0;
-
+// Static also doesn't work for HIP   
+//static __device__ int magma_flag = 0;
+__device__ int magma_flag = 0;
 
 /*
     Divides matrix into ceil( n/BLK_X ) x ceil( n/BLK_Y ) blocks.
@@ -58,7 +59,7 @@ void zlat2c_lower(
                     #endif
                     )
                 {
-                    flag = 1;
+                    magma_flag = 1;
                 }
                 SA[j*ldsa] = MAGMA_C_MAKE( MAGMA_Z_REAL(tmp),
                                            MAGMA_Z_IMAG(tmp) );
@@ -74,7 +75,7 @@ void zlat2c_lower(
                     #endif
                     )
                 {
-                    flag = 1;
+                    magma_flag = 1;
                 }
                 SA[j*ldsa] = MAGMA_C_MAKE( MAGMA_Z_REAL(tmp),
                                            MAGMA_Z_IMAG(tmp) );
@@ -119,7 +120,7 @@ void zlat2c_upper(
                     #endif
                     )
                 {
-                    flag = 1;
+                    magma_flag = 1;
                 }
                 SA[j*ldsa] = MAGMA_C_MAKE( MAGMA_Z_REAL(tmp),
                                            MAGMA_Z_IMAG(tmp) );
@@ -136,7 +137,7 @@ void zlat2c_upper(
                          #endif
                         )
                     {
-                        flag = 1;
+                        magma_flag = 1;
                     }
                     SA[j*ldsa] = MAGMA_C_MAKE( MAGMA_Z_REAL(tmp),
                                                MAGMA_Z_IMAG(tmp) );
@@ -155,7 +156,7 @@ void zlat2c_upper(
     
     RMAX is the overflow for the single-complex arithmetic.
     ZLAT2C checks that all the entries of A are between -RMAX and
-    RMAX. If not, the conversion is aborted and a flag is raised.
+    RMAX. If not, the conversion is aborted and a magma_flag is raised.
         
     Arguments
     ---------
@@ -232,7 +233,7 @@ magmablas_zlat2c(
 
     dim3 threads( BLK_X, 1 );
     dim3    grid( magma_ceildiv( n, BLK_X ), magma_ceildiv( n, BLK_Y ) );
-    cudaMemcpyToSymbol( flag, info, sizeof(flag) );    // flag = 0
+    cudaMemcpyToSymbol( magma_flag, info, sizeof(magma_flag) );    // magma_flag = 0
     
     if (uplo == MagmaLower) {
         zlat2c_lower<<< grid, threads, 0, queue->cuda_stream() >>> (n, A, lda, SA, ldsa, rmax);
@@ -241,5 +242,5 @@ magmablas_zlat2c(
         zlat2c_upper<<< grid, threads, 0, queue->cuda_stream() >>> (n, A, lda, SA, ldsa, rmax);
     }
     
-    cudaMemcpyFromSymbol( info, flag, sizeof(flag) );  // info = flag
+    cudaMemcpyFromSymbol( info, magma_flag, sizeof(magma_flag) );  // info = magma_flag
 }

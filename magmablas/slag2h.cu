@@ -15,8 +15,9 @@
 #define BLK_Y 4
 #define MAX_BATCH    65000
 
-static __device__ magma_int_t flag = 0;
-static __device__ magma_int_t flag_array[ MAX_BATCH ] = { 0 };
+// TODO: static is not working for HIP; removed from cuda as well
+__device__ magma_int_t magma_flag = 0;
+__device__ magma_int_t magma_flag_array[ MAX_BATCH ] = { 0 };
 /******************************************************************************/
 __device__
 void slag2h_device(
@@ -102,7 +103,7 @@ magmablas_slag2h(
         return;
     }
 
-    cudaMemcpyToSymbol( flag, info, sizeof(flag) );    // flag = 0
+    cudaMemcpyToSymbol( magma_flag, info, sizeof(magma_flag) );    // magma_flag = 0
 
     // there is no lapackf77_hlamch, please visit:
     // https://blogs.mathworks.com/cleve/2017/05/08/half-precision-16-bit-floating-point-arithmetic/
@@ -112,9 +113,9 @@ magmablas_slag2h(
     dim3 grid( magma_ceildiv(m, BLK_X), min(65000, magma_ceildiv(n, BLK_Y)), 1);
 
     slag2h_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
-    ( m, n, dA, lda, dHA, ldha, rmax, &flag );
+    ( m, n, dA, lda, dHA, ldha, rmax, &magma_flag );
 
-    cudaMemcpyFromSymbol( info, flag, sizeof(flag) );  // info = flag
+    cudaMemcpyFromSymbol( info, magma_flag, sizeof(magma_flag) );  // info = magma_flag
 
 }
 
@@ -158,12 +159,12 @@ magmablas_slag2h_batched(
     const int maxBatch = MAX_BATCH;
     for(int i = 0; i < batchCount; i+=maxBatch){
         magma_int_t batch = min(maxBatch, batchCount-i);
-        cudaMemcpyToSymbol( flag_array, info_array + i, sizeof(magma_int_t) );
+        cudaMemcpyToSymbol( magma_flag_array, info_array + i, sizeof(magma_int_t) );
 
         dim3 grid( magma_ceildiv(m, BLK_X), magma_ceildiv(n, BLK_Y), batch);
         slag2h_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
-        ( m, n, dAarray + i, lda, dHAarray + i, ldha, rmax, flag_array, queue);
+        ( m, n, dAarray + i, lda, dHAarray + i, ldha, rmax, magma_flag_array, queue);
 
-        cudaMemcpyFromSymbol( info_array + i, flag_array, sizeof(magma_int_t) );
+        cudaMemcpyFromSymbol( info_array + i, magma_flag_array, sizeof(magma_int_t) );
     }
 }
