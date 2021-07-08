@@ -19,6 +19,12 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
+extern "C" magma_int_t
+magma_zpotrf_expert(magma_uplo_t uplo, magma_int_t n,
+                    magmaDoubleComplex  *A, magma_int_t lda,
+                    magmaDoubleComplex *dA, magma_int_t ldda,
+                    magma_int_t *info, magma_queue_t *queues);
+
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zpotrf
 */
@@ -69,9 +75,32 @@ int main( int argc, char** argv)
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
-            gpu_time = magma_wtime();
-            magma_zpotrf( opts.uplo, N, h_R, lda, &info );
-            gpu_time = magma_wtime() - gpu_time;
+            if (opts.version == 1) {
+                gpu_time = magma_wtime();
+                magma_zpotrf( opts.uplo, N, h_R, lda, &info );
+                gpu_time = magma_wtime() - gpu_time;
+            } 
+            else {
+                magmaDoubleComplex_ptr dA = NULL;
+                magma_int_t ldda = magma_roundup( N, 32 );
+                if (MAGMA_SUCCESS != magma_zmalloc( &dA, N*ldda ))
+                    printf("Can not allocate GPU memory\n");
+                
+                magma_queue_t queues[2] = { NULL, NULL };
+                magma_device_t cdev;
+                magma_getdevice( &cdev );
+                magma_queue_create( cdev, &queues[0] );
+                magma_queue_create( cdev, &queues[1] );
+                
+                gpu_time = magma_wtime();
+                magma_zpotrf_expert(opts.uplo, N, h_R, lda, dA, ldda, &info, queues );
+                gpu_time = magma_wtime() - gpu_time;
+
+                magma_queue_destroy( queues[0] );
+                magma_queue_destroy( queues[1] );
+
+                magma_free( dA );
+            }
             gpu_perf = gflops / gpu_time;
             if (info != 0) {
                 printf("magma_zpotrf returned error %lld: %s.\n",
