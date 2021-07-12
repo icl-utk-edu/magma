@@ -9,7 +9,7 @@
        
 
 */
-#include "magma_internal.h"
+#include "magma_config.h"
 
 #ifdef MAGMA_HAVE_CUDA
 
