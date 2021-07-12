@@ -25,6 +25,14 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+ 2.6.1 - July 12, 2021
+    * Bug fix for installing MAGMA with spack on CUDA 9 and older
+    * Expert interface for Cholesky factorization to improve performance 
+      for small problems
+    * Define some magma_blas routines to call AMD BLAS for HIP installation
+      (these routines were previously either not present or were underperforming 
+       underperforming in AMD BLAS, and were therefore defined through magmablas)
+
  2.6.0 - June 26, 2021
     * Added HIP support for AMD GPUs (former hipMAGMA) as part of MAGMA
     * Added inertia computational routines for GPUs 
