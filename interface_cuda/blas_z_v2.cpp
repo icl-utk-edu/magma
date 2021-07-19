@@ -1851,10 +1851,15 @@ magma_ztrmm(
 {
     #ifdef MAGMA_HAVE_HIP
         // TODO: remove fallback when hipblas provides this routine
-        magmablas_ztrmm(
-                        side, uplo, trans, diag, m, n,
-                        alpha, (magmaDoubleComplex_ptr)dA, ldda,
-                        (magmaDoubleComplex_ptr)dB, lddb, queue );
+        cublasZtrmm(
+		    queue->cublas_handle(),
+		    cublas_side_const( side ),
+                    cublas_uplo_const( uplo ),
+                    cublas_trans_const( trans ),
+                    cublas_diag_const( diag ),
+		    int(m), int(n),
+		    (cuDoubleComplex*)&alpha, (const cuDoubleComplex*)dA, int(ldda),
+		    (cuDoubleComplex*)dB, int(lddb) );
     #else
         cublasZtrmm(
                     queue->cublas_handle(),
