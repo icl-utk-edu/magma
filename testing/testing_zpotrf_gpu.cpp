@@ -52,9 +52,9 @@ int main( int argc, char** argv)
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
             N   = opts.nsize[itest];
-            lda = N;
+            lda = max(1, N);
             n2  = lda*N;
-            ldda = magma_roundup( N, opts.align );  // multiple of 32 by default
+            ldda = max(1, magma_roundup( N, opts.align ));  // multiple of 32 by default
             gflops = FLOPS_ZPOTRF( N ) / 1e9;
             
             TESTING_CHECK( magma_zmalloc_cpu( &h_A, n2 ));
@@ -112,6 +112,9 @@ int main( int argc, char** argv)
                 Anorm = safe_lapackf77_zlanhe( "f", lapack_uplo_const(opts.uplo), &N, h_A, &lda, work );
                 error = safe_lapackf77_zlanhe( "f", lapack_uplo_const(opts.uplo), &N, h_R, &lda, work ) / Anorm;
                 #endif
+
+                if (N == 0)
+                    error = 0.0;
 
                 printf("%5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %s\n",
                        (long long) N, cpu_perf, cpu_time, gpu_perf, gpu_time,
