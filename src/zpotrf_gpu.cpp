@@ -115,6 +115,10 @@ magma_zpotrf_expert_gpu(
         return *info;
     }
 
+    /* Quick return if possible */
+    if (n == 0)
+        return *info;
+
     recnb = 128;
 
     if (mode == MagmaHybrid) {
