@@ -236,8 +236,8 @@ EOT
     # Remove the lines relative to include directory in root Makefile
     myCmd("perl -ni -e 'print unless /cd include/' $RELEASE_PATH/Makefile");
 
-    # Remove '.Makefile.gen files'
-    myCmd("find $RELEASE_PATH -name .Makefile.gen -exec rm -f {} \\;");
+    # Remove 'Makefile.gen files'
+    myCmd("find $RELEASE_PATH -name Makefile.gen -exec rm -f {} \\;");
 
     chdir $dir;
 
