@@ -58,7 +58,7 @@ ifeq ($(BACKEND),cuda)
     #GPU_TARGET = Pascal Volta Turing Ampere
     GPU_TARGET = Kepler Maxwell Pascal
 else ifeq ($(BACKEND),hip)
-    GPU_TARGET = gfx803 gfx900 gfx901
+    GPU_TARGET = gfx900 gfx901
 endif
 
 # Use -fPIC to make shared (.so) and static (.a) library;

@@ -79,7 +79,7 @@ else ifeq ($(BACKEND),hip)
     # note: provided by LLVM, so not technically from the vendor.
     # Here's ROCm's source: https://rocm.github.io/hardware.html , but it is 
     # not specific enough. TODO: find better link?
-    GPU_TARGET ?= gfx803 gfx900 gfx906 gfx908
+    GPU_TARGET ?= gfx900 gfx906 gfx908
 endif
 
 # Use -fPIC to make shared (.so) and static (.a) library;
