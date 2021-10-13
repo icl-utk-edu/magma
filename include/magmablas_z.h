@@ -319,6 +319,7 @@ magmablas_zgeam(
 
 magma_int_t
 magmablas_zheinertia(
+    magma_uplo_t uplo,
     magma_int_t n,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magma_int_t *ipiv,
