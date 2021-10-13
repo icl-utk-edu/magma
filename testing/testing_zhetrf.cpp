@@ -805,6 +805,17 @@ int main( int argc, char** argv)
                 lapackf77_zhetrf( lapack_uplo_const(opts.uplo), &N, h_A, &lda, ipiv, work, &lwork, &info);
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;
+
+                #ifdef REAL
+                double det[2] = {0., 0.};
+                magma_int_t inert[3];
+                magma_dsidi(opts.uplo, h_A, lda, N, ipiv, det, inert,
+                            work, 100, &info);
+                printf("det[0] = %e, det[1] = %e\n", det[0], det[1]);
+                printf("inertia: positive / negative / zero = %d / %d / %d\n",
+                       inert[0], inert[1], inert[2]);
+                #endif
+
                 if (info != 0) {
                     printf("lapackf77_zhetrf returned error %lld: %s.\n",
                            (long long) info, magma_strerror( info ));
@@ -834,13 +845,13 @@ int main( int argc, char** argv)
                 gpu_time = magma_wtime() - gpu_time;
 
                 // To do: extend to test inertia for real case; 
-                #ifdef REALNO
+                #ifdef REAL
                 double det[2];
                 magma_int_t inert[3];
                 //for(int kk=0; kk<N; kk++)
                 //    h_A[kk+(N-1)*lda] = h_A[N-1+kk*lda] = 0.;
                 TESTING_CHECK( magma_zmalloc_cpu( &work, N ));
-                magma_dsidi(h_A, lda, N, ipiv, det, inert,
+                magma_dsidi(opts.uplo, h_A, lda, N, ipiv, det, inert,
                             work, 110, &info);
                 printf("det[0] = %e, det[1] = %e\n", det[0], det[1]);
                 printf("inertia: positive / negative / zero = %d / %d / %d\n",
@@ -914,7 +925,7 @@ int main( int argc, char** argv)
                 //for(int kk=0; kk<N; kk++)
                 //    h_A[kk+(N-1)*lda] = h_A[N-1+kk*lda] = 0.;
                 TESTING_CHECK( magma_malloc( (void**)&dinert, 3*sizeof(int)) ); 
-                magmablas_zheinertia(N, d_A, ldda, ipiv, dinert, opts.queue);
+                magmablas_zheinertia(opts.uplo, N, d_A, ldda, ipiv, dinert, opts.queue);
                 magma_getvector( 3, sizeof(int), dinert, 1, inert, 1, opts.queue );
                 printf("inertia: positive / negative / zero = %d / %d / %d\n",
                        inert[0], inert[1], inert[2]);
