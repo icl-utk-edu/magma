@@ -75,6 +75,7 @@ magma_int_t magma_get_zbulge_gcperf();
 // only applicable to real [sd] precisions
 magma_int_t
 magma_dsidi(
+    magma_uplo_t uplo,
     double *A, magma_int_t lda, magma_int_t n, magma_int_t *ipiv,
     double *det, magma_int_t *inert,
     double *work, magma_int_t job,
