@@ -50,6 +50,11 @@ blasf77_ddot(   const magma_int_t *n,
 
     Arguments
     ---------
+    @param[in]
+    uplo    magma_uplo_t
+      -     = MagmaUpper:  Upper triangle of A is stored;
+      -     = MagmaLower:  Lower triangle of A is stored.
+
     @param[in,out]
     A       DOUBLE PRECISION array, dimension (LDA,N)
             On entry, the output from dsytrf.
@@ -107,6 +112,7 @@ blasf77_ddot(   const magma_int_t *n,
 *******************************************************************************/
 extern "C" magma_int_t
 magma_dsidi(
+    magma_uplo_t uplo,
     double *A, magma_int_t lda, magma_int_t n, magma_int_t *ipiv, 
     double *det, magma_int_t *inert, 
     double *work, magma_int_t job,
@@ -120,12 +126,16 @@ magma_dsidi(
     magma_int_t j, jb, k, ks, kstep, ione = 1;
     bool noinv, nodet, noert;
 
+    bool upper = (uplo == MagmaUpper);
+
     /* Test the input parameters. */
     *info = 0;
-    if ( lda < 0 ) {
-        *info = -2; 
+    if (! upper && uplo != MagmaLower) {
+        *info = -1;
+    } else if ( lda < 0 ) {
+        *info = -3; 
     } else if ( n < 0 ) {
-        *info = -3;
+        *info = -4;
     }
     if ( *info != 0 ) {
         magma_xerbla( __func__, -(*info) );
@@ -161,7 +171,10 @@ magma_dsidi(
                     d = t;
                     t = 0.;
                 } else {
-                    t = fabs(*A(k,k+1));
+                    if (upper)
+                        t = fabs(*A(k,k+1));
+                    else
+                        t = fabs(*A(k+1,k));
                     d = (d/t)*(*A(k+1,k+1)) - t;
                 }
             }
