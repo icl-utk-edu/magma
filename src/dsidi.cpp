@@ -7,7 +7,7 @@
 
        @author Stan Tomov
 
-       @precisions d -> s
+       @precisions normal d -> s
 */
 #include "magma_internal.h"
 
