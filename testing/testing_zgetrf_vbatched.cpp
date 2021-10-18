@@ -134,7 +134,7 @@ int main( int argc, char** argv)
 
             for(int s = 0; s < batchCount; s++) {
                 h_M[s]      = 1 + (rand() % max_M);
-                h_N[s]      = max(1, (magma_int_t) (NbyM * real_Double_t(M)) ); // try to keep the M/N ratio
+                h_N[s]      = max(1, (magma_int_t) (NbyM * real_Double_t(h_M[s])) ); // try to keep the M/N ratio
                 h_lda[s]    = h_M[s];
                 h_ldda[s]   = magma_roundup( h_M[s], opts.align );  // multiple of 32 by default
                 h_min_mn[s] = min( h_M[s], h_N[s] );
@@ -265,7 +265,7 @@ int main( int argc, char** argv)
                 hTmp = hA_magma;
                 for (int s=0; s < batchCount; s++) {
                     for (int k=0; k < h_min_mn[s]; k++) {
-                        if (hipiv_array[s][k] < 1 || hipiv_array[s][k] > M ) {
+                        if (hipiv_array[s][k] < 1 || hipiv_array[s][k] > h_M[s] ) {
                             printf("error for matrix %lld ipiv @ %lld = %lld\n",
                                     (long long) s, (long long) k, (long long) hipiv_array[s][k] );
                             error = -1;
