@@ -130,14 +130,14 @@ int main( int argc, char** argv)
         for( int iter = 0; iter < opts.niter; ++iter ) {
             iM = opts.msize[itest];
             iN = opts.nsize[itest];
-            NbyM  = (real_Double_t)max_N / (real_Double_t)max_M;
+            NbyM  = (real_Double_t)iN / (real_Double_t)iM;
 
             hA_size  = 0;
             dA_size  = 0;
             piv_size = 0;
             gflops   = 0;
             for(int s = 0; s < batchCount; s++) {
-                h_M[s]      = 1 + (rand() % max_M);
+                h_M[s]      = 1 + (rand() % iM);
                 h_N[s]      = max(1, (magma_int_t) (NbyM * real_Double_t(h_M[s])) ); // try to keep the M/N ratio
                 max_M       = (s == 0) ? h_M[s] : max(h_M[s], max_M);
                 max_N       = (s == 0) ? h_N[s] : max(h_N[s], max_N);
