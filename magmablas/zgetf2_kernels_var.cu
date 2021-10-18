@@ -16,6 +16,6 @@
 #include "batched_kernel_param.h"
 #include "magma_templates.h"
 #include "shuffle.cuh"
-#include "zgetf2_devicefunc.h"
+#include "zgetf2_devicefunc.cuh"
 
 #define PRECISION_z
