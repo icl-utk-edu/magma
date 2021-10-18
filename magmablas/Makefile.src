@@ -21,7 +21,7 @@ hdr += \
 	$(cdir)/zpotf2_devicesfunc.cuh		\
 	$(cdir)/zlarfg_devicesfunc.cuh		\
 	$(cdir)/ztrsv_template_device.cuh	\
-	$(cdir)/zpotf2_devicefunc.cuh		\
+	$(cdir)/zgetf2_devicefunc.cuh		\
 
 # alphabetic order by base name (ignoring precision)
 libmagma_src += \
