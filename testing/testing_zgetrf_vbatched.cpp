@@ -80,9 +80,9 @@ int main( int argc, char** argv)
     real_Double_t   NbyM;
     double          error;
     magma_int_t     hA_size = 0, dA_size = 0, piv_size = 0;
-    magmaDoubleComplex *hA, *h_R, *hA_magma, *hTmp;
+    magmaDoubleComplex *hA, *hR, *hA_magma, *hTmp;
     magmaDoubleComplex *dA;
-    magmaDoubleComplex **dA_array = NULL, **hA_array = NULL, **hR_array = NULL, hdA_array = NULL;
+    magmaDoubleComplex **dA_array = NULL, **hA_array = NULL, **hR_array = NULL, **hdA_array = NULL;
 
     magma_int_t     **hipiv_array = NULL, **hdipiv_array = NULL, **dipiv_array = NULL;
     magma_int_t     *ipiv, *hinfo;
@@ -123,13 +123,14 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_malloc_cpu((void**)&hdipiv_array, batchCount * sizeof(magma_int_t*) ));
     TESTING_CHECK( magma_malloc(    (void**)&dipiv_array,  batchCount * sizeof(magma_int_t*) ));
 
+    printf("%%             max   max\n");
     printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   CUBLAS Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
     printf("%%==========================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
             max_M = opts.msize[itest];
             max_N = opts.nsize[itest];
-            NbyM  = (real_Double_t)N / (real_Double_t)M;
+            NbyM  = (real_Double_t)max_N / (real_Double_t)max_M;
 
             for(int s = 0; s < batchCount; s++) {
                 h_M[s]      = 1 + (rand() % max_M);
@@ -146,7 +147,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_imalloc_cpu( &ipiv,     piv_size ));
             TESTING_CHECK( magma_zmalloc_cpu( &hA,       hA_size  ));
             TESTING_CHECK( magma_zmalloc_cpu( &hA_magma, hA_size  ));
-            TESTING_CHECK( magma_zmalloc_pinned( &h_R,   hA_size  ));
+            TESTING_CHECK( magma_zmalloc_pinned( &hR,   hA_size  ));
 
             TESTING_CHECK( magma_zmalloc( &dA,    dA_size ));
             TESTING_CHECK( magma_imalloc( &dipiv, piv_size ));
@@ -190,7 +191,7 @@ int main( int argc, char** argv)
 
             magma_time = magma_sync_wtime( opts.queue );
             for(int s = 0; s < batchCount; s++) {
-                info = magma_zgetrf_batched( h_M[s], h_N[s], dA_array+s, h_ldda[s], hdipiv_array[s],  dinfo[s], 1, opts.queue);
+                info = magma_zgetrf_batched( h_M[s], h_N[s], dA_array+s, h_ldda[s], hdipiv_array+s,  dinfo+s, 1, opts.queue);
             }
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
@@ -229,7 +230,7 @@ int main( int argc, char** argv)
                 #endif
                 for (magma_int_t s=0; s < batchCount; s++) {
                     magma_int_t locinfo;
-                    lapackf77_zgetrf(&h_M[s], &h_N[s], hA_array[s], &h_lda, hipiv_array[s], &locinfo);
+                    lapackf77_zgetrf(&h_M[s], &h_N[s], hA_array[s], &h_lda[s], hipiv_array[s], &locinfo);
                     if (locinfo != 0) {
                         printf("lapackf77_zgetrf matrix %lld returned error %lld: %s.\n",
                                (long long) s, (long long) locinfo, magma_strerror( locinfo ));
@@ -266,7 +267,7 @@ int main( int argc, char** argv)
                     for (int k=0; k < h_min_mn[s]; k++) {
                         if (hipiv_array[s][k] < 1 || hipiv_array[s][k] > M ) {
                             printf("error for matrix %lld ipiv @ %lld = %lld\n",
-                                    (long long) i, (long long) k, (long long) hipiv_array[s][k] );
+                                    (long long) s, (long long) k, (long long) hipiv_array[s][k] );
                             error = -1;
                         }
                     }
@@ -294,7 +295,7 @@ int main( int argc, char** argv)
             magma_free_cpu( ipiv );
             magma_free_cpu( hA );
             magma_free_cpu( hA_magma );
-            magma_free_pinned( h_R );
+            magma_free_pinned( hR );
 
             magma_free( dA );
             magma_free( dipiv );
