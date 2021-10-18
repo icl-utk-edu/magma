@@ -90,7 +90,7 @@ int main( int argc, char** argv)
 
     magma_int_t *h_M = NULL, *h_N = NULL, *h_lda  = NULL, *h_ldda = NULL, *h_min_mn = NULL;
     magma_int_t *d_M = NULL, *d_N = NULL, *d_ldda = NULL;
-    magma_int_t max_M, max_N, info, n2;
+    magma_int_t iM, iN, max_M, max_N, info, n2;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t batchCount;
@@ -128,8 +128,8 @@ int main( int argc, char** argv)
     printf("%%==========================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
-            max_M = opts.msize[itest];
-            max_N = opts.nsize[itest];
+            iM = opts.msize[itest];
+            iN = opts.nsize[itest];
             NbyM  = (real_Double_t)max_N / (real_Double_t)max_M;
 
             hA_size  = 0;
@@ -139,6 +139,8 @@ int main( int argc, char** argv)
             for(int s = 0; s < batchCount; s++) {
                 h_M[s]      = 1 + (rand() % max_M);
                 h_N[s]      = max(1, (magma_int_t) (NbyM * real_Double_t(h_M[s])) ); // try to keep the M/N ratio
+                max_M       = (s == 0) ? h_M[s] : max(h_M[s], max_M);
+                max_N       = (s == 0) ? h_N[s] : max(h_N[s], max_N);
                 h_lda[s]    = h_M[s];
                 h_ldda[s]   = magma_roundup( h_M[s], opts.align );  // multiple of 32 by default
                 h_min_mn[s] = min( h_M[s], h_N[s] );
