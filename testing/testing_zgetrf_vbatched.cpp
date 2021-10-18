@@ -132,6 +132,10 @@ int main( int argc, char** argv)
             max_N = opts.nsize[itest];
             NbyM  = (real_Double_t)max_N / (real_Double_t)max_M;
 
+            hA_size  = 0;
+            dA_size  = 0;
+            piv_size = 0;
+            gflops   = 0;
             for(int s = 0; s < batchCount; s++) {
                 h_M[s]      = 1 + (rand() % max_M);
                 h_N[s]      = max(1, (magma_int_t) (NbyM * real_Double_t(h_M[s])) ); // try to keep the M/N ratio
@@ -147,7 +151,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_imalloc_cpu( &ipiv,     piv_size ));
             TESTING_CHECK( magma_zmalloc_cpu( &hA,       hA_size  ));
             TESTING_CHECK( magma_zmalloc_cpu( &hA_magma, hA_size  ));
-            TESTING_CHECK( magma_zmalloc_pinned( &hR,   hA_size  ));
+            TESTING_CHECK( magma_zmalloc_pinned( &hR,    hA_size  ));
 
             TESTING_CHECK( magma_zmalloc( &dA,    dA_size ));
             TESTING_CHECK( magma_imalloc( &dipiv, piv_size ));
@@ -159,9 +163,9 @@ int main( int argc, char** argv)
             hipiv_array [0] = ipiv;
             hdipiv_array[0] = dipiv;
             for(int s = 1; s < batchCount; s++) {
-                hA_array[s]     = hA_array[s-1]  + h_lda[s-1] * h_N[s-1];
-                hR_array[s]     = hR_array[s-1]  + h_lda[s-1] * h_N[s-1];
-                hdA_array[s]    = hdA_array[s-1] + h_lda[s-1] * h_N[s-1];
+                hA_array[s]     = hA_array[s-1]  + h_lda[s-1]  * h_N[s-1];
+                hR_array[s]     = hR_array[s-1]  + h_lda[s-1]  * h_N[s-1];
+                hdA_array[s]    = hdA_array[s-1] + h_ldda[s-1] * h_N[s-1];
                 hipiv_array[s]  = hipiv_array[s-1]  + h_min_mn[s-1];
                 hdipiv_array[s] = hdipiv_array[s-1] + h_min_mn[s-1];
             }
@@ -178,27 +182,28 @@ int main( int argc, char** argv)
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
+            magma_setvector(batchCount, sizeof(magmaDoubleComplex*), hdA_array, 1, dA_array, 1, opts.queue);
+            magma_setvector(batchCount, sizeof(magma_int_t*), hdipiv_array, 1, dipiv_array, 1, opts.queue);
+            magma_isetvector(batchCount, h_M,    1, d_M,    1, opts.queue);
+            magma_isetvector(batchCount, h_N,    1, d_N,    1, opts.queue);
+            magma_isetvector(batchCount, h_ldda, 1, d_ldda, 1, opts.queue);
+
             for(int s = 0; s < batchCount; s++) {
                 magma_zsetmatrix( h_M[s], h_N[s],
-                                  hR_array[s], h_lda[s],
-                                  dA_array[s], h_ldda[s], opts.queue );
+                                  hR_array[s],  h_lda[s],
+                                  hdA_array[s], h_ldda[s], opts.queue );
             }
-            magma_setvector(batchCount, sizeof(magmaDoubleComplex*), hA_array, 1, dA_array, 1, opts.queue);
-            magma_setvector(batchCount, sizeof(magma_int_t), h_M, 1, d_M, 1, opts.queue);
-            magma_setvector(batchCount, sizeof(magma_int_t), h_N, 1, d_N, 1, opts.queue);
-            magma_setvector(batchCount, sizeof(magma_int_t), h_ldda, 1, d_ldda, 1, opts.queue);
-            magma_setvector(batchCount, sizeof(magma_int_t*), hdipiv_array, 1, dipiv_array, 1, opts.queue);
 
             magma_time = magma_sync_wtime( opts.queue );
             for(int s = 0; s < batchCount; s++) {
-                info = magma_zgetrf_batched( h_M[s], h_N[s], dA_array+s, h_ldda[s], hdipiv_array+s,  dinfo+s, 1, opts.queue);
+                info = magma_zgetrf_batched( h_M[s], h_N[s], dA_array+s, h_ldda[s], dipiv_array+s,  dinfo+s, 1, opts.queue);
             }
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
 
             hTmp = hA_magma;
             for(int s = 0; s < batchCount; s++) {
-                magma_zgetmatrix( h_M[s], h_N[s], dA_array[s], h_ldda[s], hTmp, h_lda[s], opts.queue );
+                magma_zgetmatrix( h_M[s], h_N[s], hdA_array[s], h_ldda[s], hTmp, h_lda[s], opts.queue );
                 hTmp += h_lda[s] * h_N[s];
             }
 
@@ -299,8 +304,6 @@ int main( int argc, char** argv)
 
             magma_free( dA );
             magma_free( dipiv );
-            magma_free( dipiv_array );
-            magma_free( dA_array );
             fflush( stdout );
         }
         if ( opts.niter > 1 ) {
