@@ -138,7 +138,7 @@ int main( int argc, char** argv)
             gflops   = 0;
             for(int s = 0; s < batchCount; s++) {
                 h_M[s]      = 1 + (rand() % iM);
-                h_N[s]      = max(1, (magma_int_t) (NbyM * real_Double_t(h_M[s])) ); // try to keep the M/N ratio
+                h_N[s]      = max(1, (magma_int_t) round(NbyM * real_Double_t(h_M[s])) ); // try to keep the M/N ratio
                 max_M       = (s == 0) ? h_M[s] : max(h_M[s], max_M);
                 max_N       = (s == 0) ? h_N[s] : max(h_N[s], max_N);
                 h_lda[s]    = h_M[s];
