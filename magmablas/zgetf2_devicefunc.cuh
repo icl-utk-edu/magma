@@ -18,7 +18,7 @@
 #define MAGMABLAS_ZGETF2_DEVICES_Z_H
 
 /******************************************************************************/
-__device__ int
+static __device__ __inline__ int
 izamax_devfunc(int length, const magmaDoubleComplex *x, int incx, double *shared_x, int *shared_idx)
 {
     int tx = threadIdx.x;
@@ -56,7 +56,7 @@ izamax_devfunc(int length, const magmaDoubleComplex *x, int incx, double *shared
 }
 
 /******************************************************************************/
-__device__
+static __device__ __inline__
 void zswap_device( magma_int_t n,
                    magmaDoubleComplex_ptr x, magma_int_t incx,
                    magma_int_t step, magma_int_t* ipiv)
@@ -81,7 +81,7 @@ void zswap_device( magma_int_t n,
 
 /******************************************************************************/
 template<int N>
-__device__
+static __device__ __inline__
 void zscal_zgeru_device( int m, int step,
                          magmaDoubleComplex_ptr dA, int lda,
                          magma_int_t *info, int gbstep)
@@ -125,7 +125,7 @@ void zscal_zgeru_device( int m, int step,
 }
 
 /******************************************************************************/
-__device__
+static __device__ __inline__
 void zscal_zgeru_generic_device( int m, int n, int step,
                          magmaDoubleComplex_ptr dA, int lda,
                          magma_int_t *info, int gbstep)
@@ -156,7 +156,8 @@ void zscal_zgeru_generic_device( int m, int n, int step,
 }
 
 /******************************************************************************/
-static __device__ void
+static __device__ __inline__
+void
 zupdate_device(int m, int step, magmaDoubleComplex* x, int ldx,  magmaDoubleComplex *A, int lda)
 {
     int tid = threadIdx.x;
@@ -183,7 +184,8 @@ zupdate_device(int m, int step, magmaDoubleComplex* x, int ldx,  magmaDoubleComp
 
 
 /******************************************************************************/
-static __device__ void
+static __device__ __inline__
+void
 zscal5_device(int m, magmaDoubleComplex* x, magmaDoubleComplex alpha)
 {
     int tid = threadIdx.x;
@@ -204,7 +206,8 @@ zscal5_device(int m, magmaDoubleComplex* x, magmaDoubleComplex alpha)
 
 /******************************************************************************/
 template<int WIDTH>
-__device__ void
+static __device__ __inline__
+void
 zgetf2_fused_device( int m, magmaDoubleComplex* dA, int ldda, magma_int_t* dipiv,
                    magmaDoubleComplex* swork, magma_int_t *info, int gbstep)
 {
