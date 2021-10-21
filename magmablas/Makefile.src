@@ -197,6 +197,7 @@ libmagma_src += \
 
 libmagma_src += \
 	$(cdir)/zpotf2_kernels_var.cu		\
+	$(cdir)/zgetf2_kernels_var.cu		\
 
 # aux vbatched files
 libmagma_src += \
