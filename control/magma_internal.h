@@ -133,7 +133,6 @@ public:
         return ptrArray__;
     }
 
-    /// @return the pointer array dCarray__.
     magma_int_t get_maxBatch() {return (magma_int_t)maxbatch__; }
 
 protected:
