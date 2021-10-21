@@ -27,10 +27,17 @@ extern "C" {
    */
 magma_int_t
 magma_izamax_vbatched(
-        magma_int_t length, magma_int_t *N,
-        magmaDoubleComplex **x_array, magma_int_t xi, magma_int_t xj, magma_int_t incx, magma_int_t* lda,
+        magma_int_t *M, magma_int_t *N,
+        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* lda,
         magma_int_t step, magma_int_t** ipiv_array, magma_int_t *info_array,
         magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue);
+
+magma_int_t
+magma_zswap_vbatched(
+        magma_int_t *M, magma_int_t *N,
+        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
+        magma_int_t step, magma_int_t** ipiv_array,
+        magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t
 magma_zpotrf_lpout_vbatched(
