@@ -39,7 +39,7 @@ izamax_kernel_vbatched(
     if( my_M < (Ai+step) || my_N < (Aj+step) ) return;
 
     // compute the length of the vector for each matrix
-    my_M -= (Ai+step)
+    my_M -= (Ai+step);
 
     // check the length
     if(my_M <= 0) return;
@@ -69,8 +69,6 @@ magma_izamax_vbatched(
         magma_int_t step, magma_int_t** ipiv_array, magma_int_t *info_array,
         magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue)
 {
-    if (length == 0 ) return 0;
-
     dim3 grid(batchCount, 1, 1);
     dim3 threads(zamax, 1, 1);
 
