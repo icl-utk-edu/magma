@@ -898,9 +898,6 @@ magma_queue_create_internal(
     queue->device__   = device;
     queue->stream__   = NULL;
     queue->ptrArray__ = NULL;
-    queue->dAarray__  = NULL;
-    queue->dBarray__  = NULL;
-    queue->dCarray__  = NULL;
 
 #if defined(MAGMA_HAVE_CUDA)
     queue->cublas__   = NULL;
@@ -1007,9 +1004,6 @@ magma_queue_create_from_cuda_internal(
     queue->cublas__   = NULL;
     queue->cusparse__ = NULL;
     queue->ptrArray__ = NULL;
-    queue->dAarray__  = NULL;
-    queue->dBarray__  = NULL;
-    queue->dCarray__  = NULL;
     queue->maxbatch__ = MAX_BATCHCOUNT;
 
     magma_setdevice( device );
@@ -1096,9 +1090,6 @@ magma_queue_create_from_hip_internal(
     queue->stream__   = NULL;
 
     queue->ptrArray__ = NULL;
-    queue->dAarray__  = NULL;
-    queue->dBarray__  = NULL;
-    queue->dCarray__  = NULL;
 
     queue->hipblas__  = NULL;
     queue->hipsparse__= NULL;
@@ -1130,13 +1121,6 @@ magma_queue_create_from_hip_internal(
     queue->hipsparse__ = hipsparse_handle;
     stat2 = hipsparseSetStream( queue->hipsparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
-
-    magma_malloc((void**)&queue->dAarray__, queue->maxbatch__ * sizeof(void*));
-    assert( queue->dAarray__ != NULL);
-    magma_malloc((void**)&queue->dBarray__, queue->maxbatch__ * sizeof(void*));
-    assert( queue->dBarray__ != NULL);
-    magma_malloc((void**)&queue->dCarray__, queue->maxbatch__ * sizeof(void*));
-    assert( queue->dCarray__ != NULL);
 
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
@@ -1202,9 +1186,6 @@ magma_queue_destroy_internal(
         queue->device__   = -1;
         queue->stream__   = NULL;
         queue->ptrArray__ = NULL;
-        queue->dAarray__  = NULL;
-        queue->dBarray__  = NULL;
-        queue->dCarray__  = NULL;
 
     #if defined(MAGMA_HAVE_CUDA)
         queue->cublas__   = NULL;

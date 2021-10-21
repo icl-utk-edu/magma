@@ -113,9 +113,6 @@ public:
         if(ptrArray__ == NULL) {
             magma_malloc((void**)&(ptrArray__), 3 * maxbatch__ * sizeof(void*));
             assert( ptrArray__ != NULL);
-            dAarray__ = ptrArray__;
-            dBarray__ = dAarray__ + maxbatch__;
-            dCarray__ = dBarray__ + maxbatch__;
         }
     }
     
@@ -130,22 +127,10 @@ public:
     #endif
 
 
-    /// @return the pointer array dAarray__.
-    void** get_dAarray() {
+    /// @return the pointer array ptrArray__.
+    void** get_ptrArray() {
         if(ptrArray__ == NULL) setup_ptrArray();
-        return dAarray__;
-    }
-
-    /// @return the pointer array dBarray__.
-    void** get_dBarray() {
-        if(ptrArray__ == NULL) setup_ptrArray();
-        return dBarray__;
-    }
-
-    /// @return the pointer array dCarray__.
-    void** get_dCarray() {
-        if(ptrArray__ == NULL) setup_ptrArray();
-        return dCarray__;
+        return ptrArray__;
     }
 
     /// @return the pointer array dCarray__.
