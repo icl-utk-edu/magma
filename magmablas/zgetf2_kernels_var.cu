@@ -41,8 +41,8 @@ izamax_kernel_vbatched(
     // check the length
     if(my_N <= 0) return;
 
-    magmaDoubleComplex *x_start = x_array[batchid] + xj * lda + xi;
-    const magmaDoubleComplex *x = &(x_start[step + step * lda]);
+    magmaDoubleComplex *x_start = x_array[batchid] + xj * my_lda + xi;
+    const magmaDoubleComplex *x = &(x_start[step + step * my_lda]);
 
     magma_int_t *ipiv = ipiv_array[batchid] + xi;
     int tx = threadIdx.x;
