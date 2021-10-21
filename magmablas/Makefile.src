@@ -285,6 +285,16 @@ $(cdir)/dpotf2_kernels_var.$(o_ext): $(cdir)/dpotf2_devicesfunc.cuh
 $(cdir)/cpotf2_kernels_var.$(o_ext): $(cdir)/cpotf2_devicesfunc.cuh
 $(cdir)/zpotf2_kernels_var.$(o_ext): $(cdir)/zpotf2_devicesfunc.cuh
 
+$(cdir)/sgetf2_kernels.$(o_ext): $(cdir)/sgetf2_devicefunc.cuh
+$(cdir)/dgetf2_kernels.$(o_ext): $(cdir)/dgetf2_devicefunc.cuh
+$(cdir)/cgetf2_kernels.$(o_ext): $(cdir)/cgetf2_devicefunc.cuh
+$(cdir)/zgetf2_kernels.$(o_ext): $(cdir)/zgetf2_devicefunc.cuh
+
+$(cdir)/sgetf2_kernels_var.$(o_ext): $(cdir)/sgetf2_devicefunc.cuh
+$(cdir)/dgetf2_kernels_var.$(o_ext): $(cdir)/dgetf2_devicefunc.cuh
+$(cdir)/cgetf2_kernels_var.$(o_ext): $(cdir)/cgetf2_devicefunc.cuh
+$(cdir)/zgetf2_kernels_var.$(o_ext): $(cdir)/zgetf2_devicefunc.cuh
+
 $(cdir)/ztrsv_batched.$(o_ext): $(cdir)/ztrsv_template_device.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/ctrsv_batched.$(o_ext): $(cdir)/ctrsv_template_device.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/dtrsv_batched.$(o_ext): $(cdir)/dtrsv_template_device.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
