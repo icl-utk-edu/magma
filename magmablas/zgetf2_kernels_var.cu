@@ -118,3 +118,54 @@ magma_zswap_vbatched(
     (M, N, dA_array, Ai, Aj, ldda, step, ipiv_array);
     return 0;
 }
+
+/******************************************************************************/
+__global__
+void zscal_zgeru_1d_generic_kernel_vbatched(
+        magma_int_t *M, magma_int_t *N, int step,
+        magmaDoubleComplex **dA_array, int Ai, int Aj, magma_int_t *ldda,
+        magma_int_t *info_array, int gbstep)
+{
+    const int batchid = blockIdx.z;
+    int my_M    = (int)M[batchid];
+    int my_N    = (int)N[batchid];
+    int my_ldda = (int)ldda[batchid];
+
+    if( my_M <= (Ai+step) || my_N <= (Aj+step) ) return;
+    my_M -= Ai;
+    my_N -= Aj;
+
+    magmaDoubleComplex* dA = dA_array[batchid] + Aj * my_ldda + Ai;
+    magma_int_t *info = &info_array[batchid];
+    zscal_zgeru_generic_device(my_M, my_N, step, dA, my_ldda, info, gbstep);
+}
+
+
+/******************************************************************************/
+extern "C"
+magma_int_t magma_zscal_zgeru_vbatched(
+        magma_int_t *M, magma_int_t *N, magma_int_t step,
+        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
+        magma_int_t *info_array, magma_int_t gbstep,
+        magma_int_t batchCount, magma_queue_t queue)
+{
+    /*
+    Specialized kernel which merged zscal and zgeru the two kernels
+    1) zscale the first column vector A(1:M-1,0) with 1/A(0,0);
+    2) Performe a zgeru Operation for trailing matrix of A(1:M-1,1:N-1) += alpha*x*y**T, where
+       alpha := -1.0; x := A(1:M-1,0) and y:= A(0,1:N-1);
+    */
+
+    magma_int_t max_batchCount = queue->get_maxBatch();
+    const int tbx = 256;
+    dim3 threads(tbx, 1, 1);
+
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid(magma_ceildiv(m,tbx), 1, ibatch);
+
+        zscal_zgeru_1d_generic_kernel_vbatched<<<grid, threads, 0, queue->cuda_stream()>>>
+        (M+i, N+i, step, dA_array+i, Ai, Aj, ldda+i, info_array+i, gbstep);
+    }
+    return 0;
+}
