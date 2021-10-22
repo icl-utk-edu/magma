@@ -144,7 +144,7 @@ void zscal_zgeru_1d_generic_kernel_vbatched(
 /******************************************************************************/
 extern "C"
 magma_int_t magma_zscal_zgeru_vbatched(
-        magma_int_t *M, magma_int_t *N, magma_int_t step,
+        magma_int_t *M, magma_int_t *N, magma_int_t max_M, magma_int_t step,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
         magma_int_t *info_array, magma_int_t gbstep,
         magma_int_t batchCount, magma_queue_t queue)
@@ -162,7 +162,7 @@ magma_int_t magma_zscal_zgeru_vbatched(
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
-        dim3 grid(magma_ceildiv(m,tbx), 1, ibatch);
+        dim3 grid(magma_ceildiv(max_M,tbx), 1, ibatch);
 
         zscal_zgeru_1d_generic_kernel_vbatched<<<grid, threads, 0, queue->cuda_stream()>>>
         (M+i, N+i, step, dA_array+i, Ai, Aj, ldda+i, info_array+i, gbstep);
