@@ -78,10 +78,10 @@ magma_zgemm_batched_core(
                     (BackendFloat_t*)&beta,  (BackendFloat_t**)dC_array, int(lddc), int(batchCount) );
         }
         else{
+            magmaDoubleComplex** dAarray = (magmaDoubleComplex**)queue->get_dAarray();
+            magmaDoubleComplex** dBarray = (magmaDoubleComplex**)queue->get_dBarray();
+            magmaDoubleComplex** dCarray = (magmaDoubleComplex**)queue->get_dCarray();
             magma_int_t max_batchCount   = queue->get_maxBatch();
-            magmaDoubleComplex** dAarray = (magmaDoubleComplex**)queue->get_ptrArray();
-            magmaDoubleComplex** dBarray = dAarray + max_batchCount;
-            magmaDoubleComplex** dCarray = dBarray + max_batchCount;
             for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
                 magma_int_t batch = min(max_batchCount, batchCount-i);
                 magma_zdisplace_pointers(dAarray, (magmaDoubleComplex**)dA_array + i, ldda, Ai, Aj, batch, queue);
@@ -254,10 +254,10 @@ magmablas_zgemm_batched_strided( magma_trans_t transA, magma_trans_t transB,
                      magmaDoubleComplex       * dC, magma_int_t lddc, magma_int_t strideC,  
                      magma_int_t batchCount, magma_queue_t queue )
 {
+    magmaDoubleComplex** dAarray = (magmaDoubleComplex**)queue->get_dAarray();
+    magmaDoubleComplex** dBarray = (magmaDoubleComplex**)queue->get_dBarray();
+    magmaDoubleComplex** dCarray = (magmaDoubleComplex**)queue->get_dCarray();
     magma_int_t max_batchCount   = queue->get_maxBatch();
-    magmaDoubleComplex** dAarray = (magmaDoubleComplex**)queue->get_ptrArray();
-    magmaDoubleComplex** dBarray = dAarray + max_batchCount;
-    magmaDoubleComplex** dCarray = dBarray + max_batchCount;
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
         magma_int_t batch = min(max_batchCount, batchCount-i);
         magma_zset_pointer(dAarray, (magmaDoubleComplex*)(dA + i * strideA), ldda, 0, 0, strideA, batch, queue);

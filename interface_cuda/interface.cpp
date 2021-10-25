@@ -898,6 +898,9 @@ magma_queue_create_internal(
     queue->device__   = device;
     queue->stream__   = NULL;
     queue->ptrArray__ = NULL;
+    queue->dAarray__  = NULL;
+    queue->dBarray__  = NULL;
+    queue->dCarray__  = NULL;
 
 #if defined(MAGMA_HAVE_CUDA)
     queue->cublas__   = NULL;
@@ -1004,6 +1007,9 @@ magma_queue_create_from_cuda_internal(
     queue->cublas__   = NULL;
     queue->cusparse__ = NULL;
     queue->ptrArray__ = NULL;
+    queue->dAarray__  = NULL;
+    queue->dBarray__  = NULL;
+    queue->dCarray__  = NULL;
     queue->maxbatch__ = MAX_BATCHCOUNT;
 
     magma_setdevice( device );
@@ -1090,6 +1096,9 @@ magma_queue_create_from_hip_internal(
     queue->stream__   = NULL;
 
     queue->ptrArray__ = NULL;
+    queue->dAarray__  = NULL;
+    queue->dBarray__  = NULL;
+    queue->dCarray__  = NULL;
 
     queue->hipblas__  = NULL;
     queue->hipsparse__= NULL;
@@ -1186,6 +1195,9 @@ magma_queue_destroy_internal(
         queue->device__   = -1;
         queue->stream__   = NULL;
         queue->ptrArray__ = NULL;
+        queue->dAarray__  = NULL;
+        queue->dBarray__  = NULL;
+        queue->dCarray__  = NULL;
 
     #if defined(MAGMA_HAVE_CUDA)
         queue->cublas__   = NULL;
