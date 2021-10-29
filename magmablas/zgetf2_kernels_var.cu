@@ -132,8 +132,8 @@ void zscal_zgeru_1d_generic_kernel_vbatched(
     int my_ldda = (int)ldda[batchid];
 
     if( my_M <= (Ai+step) || my_N <= (Aj+step) ) return;
-    my_M -= Ai;
-    my_N -= Aj;
+    my_M -= (Ai+step);
+    my_N -= (Aj+step);
 
     magmaDoubleComplex* dA = dA_array[batchid] + Aj * my_ldda + Ai;
     magma_int_t *info = &info_array[batchid];
