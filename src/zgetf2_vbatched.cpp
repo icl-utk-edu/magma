@@ -107,9 +107,9 @@ magma_zgetf2_vbatched(
     magmaDoubleComplex c_one     = MAGMA_Z_ONE;
     magma_int_t nb = BATF2_NB;
 
-    magma_int_t gbj, panelj, step, ib;
+    magma_int_t gbj, panelj, step, ib, j;
 
-    for( j=0; j < max_minmn; j++) {
+    for(j=0; j < max_minmn; j++) {
         // izamax (internally offset dA_array by (Ai+j, Aj+j) and ipiv_array by Ai)
         magma_izamax_vbatched(m, n, dA_array, Ai, Aj, ldda, j, ipiv_array, info_array, gbstep, batchCount, queue);
 

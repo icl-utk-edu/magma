@@ -36,7 +36,7 @@ izamax_kernel_vbatched(
     int my_N    = (int)N[batchid];
     int my_ldda = (int)ldda[batchid];
     // check if offsets produce out-of-bound pointers
-    if( my_M < (Ai+step) || my_N < (Aj+step) ) return;
+    if( my_M <= (Ai+step) || my_N <= (Aj+step) ) return;
 
     // compute the length of the vector for each matrix
     my_M -= (Ai+step);
@@ -89,11 +89,12 @@ void zswap_kernel_vbatched(
     const int my_ldda = (int)ldda[batchid];
     int my_M          = (int)M[batchid];
     int my_N          = (int)N[batchid];
+    int my_minmn      = min(my_M, my_N);
 
     // check if offsets produce out-of-bound pointers
     // Here, 'step' account only for my_M, not my_N
     // (step = the row that is about to be swapped with the row having the pivot)
-    if( my_M < (Ai+step) || my_N < Aj ) return;
+    if( my_M <= (Ai+step) || my_N <= Aj || my_minmn <= step) return;
 
     my_N -= Aj;
 
