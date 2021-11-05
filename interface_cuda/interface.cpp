@@ -1131,13 +1131,6 @@ magma_queue_create_from_hip_internal(
     stat2 = hipsparseSetStream( queue->hipsparse__, queue->stream__ );
     check_xerror( stat2, func, file, line );
 
-    magma_malloc((void**)&queue->dAarray__, queue->maxbatch__ * sizeof(void*));
-    assert( queue->dAarray__ != NULL);
-    magma_malloc((void**)&queue->dBarray__, queue->maxbatch__ * sizeof(void*));
-    assert( queue->dBarray__ != NULL);
-    magma_malloc((void**)&queue->dCarray__, queue->maxbatch__ * sizeof(void*));
-    assert( queue->dCarray__ != NULL);
-
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
 }
