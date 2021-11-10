@@ -133,11 +133,6 @@ magma_zlaswp_left_rowserial_batched(
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3  grid(blocks, 1, ibatch);
 
-        zlaswp_rowserial_kernel_vbatched
-        <<< grid, max_BLK_SIZE__n, 0, queue->cuda_stream() >>>
-        (n, dA_array+i, ldda, k1, k2, ipiv_array+i);
-
-
         zlaswp_left_rowserial_kernel_vbatched
         <<< grid, max_BLK_SIZE__n, 0, queue->cuda_stream() >>>
         (n, nb, M, N, dA_array, Ai, Aj, ldda,k1, k2, ipiv_array);
@@ -165,11 +160,6 @@ magma_zlaswp_right_rowserial_batched(
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3  grid(blocks, 1, ibatch);
-
-        zlaswp_rowserial_kernel_vbatched
-        <<< grid, max_BLK_SIZE__n, 0, queue->cuda_stream() >>>
-        (n, dA_array+i, ldda, k1, k2, ipiv_array+i);
-
 
         zlaswp_right_rowserial_kernel_vbatched
         <<< grid, max_BLK_SIZE__n, 0, queue->cuda_stream() >>>
