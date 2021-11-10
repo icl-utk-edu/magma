@@ -118,7 +118,7 @@ __global__ void zlaswp_left_rowserial_kernel_vbatched(
 extern "C" void
 magma_zlaswp_left_rowserial_batched(
         magma_int_t n, magma_int_t nb,
-        magma_int_t *M, magma_int_t *N, magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+        magma_int_t *M, magma_int_t *N, magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
         magma_int_t k1, magma_int_t k2,
         magma_int_t **ipiv_array,
         magma_int_t batchCount, magma_queue_t queue)
@@ -146,7 +146,7 @@ magma_zlaswp_left_rowserial_batched(
 extern "C" void
 magma_zlaswp_right_rowserial_batched(
         magma_int_t n,
-        magma_int_t *M, magma_int_t *N, magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+        magma_int_t *M, magma_int_t *N, magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
         magma_int_t k1, magma_int_t k2,
         magma_int_t **ipiv_array,
         magma_int_t batchCount, magma_queue_t queue)
