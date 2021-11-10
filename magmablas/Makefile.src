@@ -196,8 +196,9 @@ libmagma_src += \
 	$(cdir)/ztrsm_vbatched.cpp		\
 
 libmagma_src += \
-	$(cdir)/zpotf2_kernels_var.cu		\
-	$(cdir)/zgetf2_kernels_var.cu		\
+	$(cdir)/zgetf2_kernels_var.cu	\
+	$(cdir)/zlaswp_vbatched.cu		\
+	$(cdir)/zpotf2_kernels_var.cu	\
 
 # aux vbatched files
 libmagma_src += \
