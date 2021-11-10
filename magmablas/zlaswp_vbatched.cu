@@ -56,9 +56,9 @@ __global__ void zlaswp_left_rowserial_kernel_vbatched(
         for (int i1 = k1; i1 < k2; i1++) {
             int i2 = dipiv[i1] - 1;  // Fortran index, switch i1 and i2
             if ( i2 != i1 ) {
-                A1 = dA[i1 + tid * ldda];
-                dA[i1 + tid * ldda] = dA[i2 + tid * ldda];
-                dA[i2 + tid * ldda] = A1;
+                A1 = dA[i1 + tid * my_ldda];
+                dA[i1 + tid * my_ldda] = dA[i2 + tid * my_ldda];
+                dA[i2 + tid * my_ldda] = A1;
             }
         }
     }
@@ -104,9 +104,9 @@ __global__ void zlaswp_left_rowserial_kernel_vbatched(
         for (int i1 = k1; i1 < k2; i1++) {
             int i2 = dipiv[i1] - 1;  // Fortran index, switch i1 and i2
             if ( i2 != i1 ) {
-                A1 = dA[i1 + tid * ldda];
-                dA[i1 + tid * ldda] = dA[i2 + tid * ldda];
-                dA[i2 + tid * ldda] = A1;
+                A1 = dA[i1 + tid * my_ldda];
+                dA[i1 + tid * my_ldda] = dA[i2 + tid * my_ldda];
+                dA[i2 + tid * my_ldda] = A1;
             }
         }
     }
