@@ -67,7 +67,7 @@ __global__ void zlaswp_left_rowserial_kernel_vbatched(
 /******************************************************************************/
 // serial swap that does swapping one row by one row
 // this is the vbatched routine, for swapping to the right of the panel
-__global__ void zlaswp_left_rowserial_kernel_vbatched(
+__global__ void zlaswp_right_rowserial_kernel_vbatched(
                 int n,
                 magma_int_t *M, magma_int_t *N,
                 magmaDoubleComplex **dA_array, int Ai, int Aj, magma_int_t *ldda,
