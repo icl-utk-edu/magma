@@ -173,7 +173,7 @@ magma_int_t magma_zscal_zgeru_vbatched(
         dim3 grid(magma_ceildiv(max_M,tbx), 1, ibatch);
 
         zscal_zgeru_1d_generic_kernel_vbatched<<<grid, threads, 0, queue->cuda_stream()>>>
-        (max_m, max_n, M+i, N+i, step, dA_array+i, Ai, Aj, ldda+i, info_array+i, gbstep);
+        (max_M, max_N, M+i, N+i, step, dA_array+i, Ai, Aj, ldda+i, info_array+i, gbstep);
     }
     return 0;
 }
