@@ -81,6 +81,7 @@ magma_izamax_vbatched(
 /******************************************************************************/
 __global__
 void zswap_kernel_vbatched(
+        int max_n;
         magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
         magma_int_t step, magma_int_t** ipiv_array )
@@ -96,7 +97,8 @@ void zswap_kernel_vbatched(
     // (step = the row that is about to be swapped with the row having the pivot)
     if( my_M <= (Ai+step) || my_N <= Aj || my_minmn <= step) return;
 
-    my_N -= Aj;
+    my_N -= Aj; // this is the maximum possible width
+    my_N = min(my_N, max_n);
 
     magmaDoubleComplex *dA = dA_array[batchid] + Aj * my_ldda + Ai;
     magma_int_t *ipiv = ipiv_array[batchid] + Ai;
@@ -107,7 +109,7 @@ void zswap_kernel_vbatched(
 /******************************************************************************/
 extern "C" magma_int_t
 magma_zswap_vbatched(
-        magma_int_t *M, magma_int_t *N,
+        magma_int_t max_n, magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
         magma_int_t step, magma_int_t** ipiv_array,
         magma_int_t batchCount, magma_queue_t queue)
@@ -116,13 +118,14 @@ magma_zswap_vbatched(
     dim3 threads(zamax, 1, 1);
 
     zswap_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>>
-    (M, N, dA_array, Ai, Aj, ldda, step, ipiv_array);
+    (max_n, M, N, dA_array, Ai, Aj, ldda, step, ipiv_array);
     return 0;
 }
 
 /******************************************************************************/
 __global__
 void zscal_zgeru_1d_generic_kernel_vbatched(
+        int max_m, int max_n,
         magma_int_t *M, magma_int_t *N, int step,
         magmaDoubleComplex **dA_array, int Ai, int Aj, magma_int_t *ldda,
         magma_int_t *info_array, int gbstep)
@@ -133,8 +136,11 @@ void zscal_zgeru_1d_generic_kernel_vbatched(
     int my_ldda = (int)ldda[batchid];
 
     if( my_M <= (Ai+step) || my_N <= (Aj+step) ) return;
-    my_M -= (Ai+step);
-    my_N -= (Aj+step);
+    my_M -= (Ai+step); // this is the largest possible m per matrix
+    my_N -= (Aj+step); // this is the largest possible n per matrix
+
+    my_M = min(my_M, max_m);
+    my_N = min(my_N, max_n);
 
     magmaDoubleComplex* dA = dA_array[batchid] + Aj * my_ldda + Ai;
     magma_int_t *info = &info_array[batchid];
@@ -145,7 +151,8 @@ void zscal_zgeru_1d_generic_kernel_vbatched(
 /******************************************************************************/
 extern "C"
 magma_int_t magma_zscal_zgeru_vbatched(
-        magma_int_t *M, magma_int_t *N, magma_int_t max_M, magma_int_t step,
+        magma_int_t max_M, magma_int_t max_N,
+        magma_int_t *M, magma_int_t *N, magma_int_t step,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
         magma_int_t *info_array, magma_int_t gbstep,
         magma_int_t batchCount, magma_queue_t queue)
@@ -166,7 +173,7 @@ magma_int_t magma_zscal_zgeru_vbatched(
         dim3 grid(magma_ceildiv(max_M,tbx), 1, ibatch);
 
         zscal_zgeru_1d_generic_kernel_vbatched<<<grid, threads, 0, queue->cuda_stream()>>>
-        (M+i, N+i, step, dA_array+i, Ai, Aj, ldda+i, info_array+i, gbstep);
+        (max_m, max_n, M+i, N+i, step, dA_array+i, Ai, Aj, ldda+i, info_array+i, gbstep);
     }
     return 0;
 }

@@ -114,10 +114,10 @@ magma_zgetf2_vbatched(
         magma_izamax_vbatched(m, n, dA_array, Ai, Aj, ldda, j, ipiv_array, info_array, gbstep, batchCount, queue);
 
         // zswap
-        magma_zswap_vbatched(m, n, dA_array, Ai, Aj, ldda, j, ipiv_array, batchCount, queue);
+        magma_zswap_vbatched(max_n, m, n, dA_array, Ai, Aj, ldda, j, ipiv_array, batchCount, queue);
 
         // scal+ger
-        magma_zscal_zgeru_vbatched( m, n, max_m, j, dA_array, Ai, Aj, ldda, info_array, gbstep, batchCount, queue);
+        magma_zscal_zgeru_vbatched( max_m, max_n, m, n, j, dA_array, Ai, Aj, ldda, info_array, gbstep, batchCount, queue);
     }
 
     return 0;
