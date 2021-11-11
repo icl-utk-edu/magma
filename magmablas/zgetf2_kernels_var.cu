@@ -81,7 +81,7 @@ magma_izamax_vbatched(
 /******************************************************************************/
 __global__
 void zswap_kernel_vbatched(
-        int max_n;
+        int max_n,
         magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
         magma_int_t step, magma_int_t** ipiv_array )
