@@ -1052,9 +1052,8 @@ magma_int_t
 magma_izamax_native(
     magma_int_t length,
     magmaDoubleComplex_ptr x, magma_int_t incx,
-    magma_int_t step,  magma_int_t lda,
     magma_int_t* ipiv, magma_int_t *info,
-    magma_int_t gbstep, magma_queue_t queue);
+    magma_int_t step, magma_int_t gbstep, magma_queue_t queue);
 
 magma_int_t
 magma_izamin(

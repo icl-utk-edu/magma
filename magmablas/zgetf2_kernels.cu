@@ -52,20 +52,20 @@ izamax_kernel_batched(
 
 /******************************************************************************/
 __global__ void
-izamax_kernel_native(int length, int chunk, magmaDoubleComplex_ptr x, int incx,
-                     int step, int lda, magma_int_t* ipiv, magma_int_t *info, int gbstep)
+izamax_kernel_native(
+        int length, magmaDoubleComplex_ptr x, int incx,
+        magma_int_t* ipiv, magma_int_t *info,
+        int step, int gbstep)
 {
     extern __shared__ double sdata[];
-
     const int tx = threadIdx.x;
-    x += step * lda + step;
 
     double *shared_x = sdata;
     int *shared_idx = (int*)(shared_x + zamax);
 
     izamax_devfunc(length, x, incx, shared_x, shared_idx);
     if (tx == 0) {
-        ipiv[step]  = shared_idx[0] + step + 1; // Fortran Indexing
+        *ipiv  = shared_idx[0] + step + 1; // Fortran Indexing
         if (shared_x[0] == MAGMA_D_ZERO) {
             (*info) = shared_idx[0] + step + gbstep + 1;
         }
@@ -179,11 +179,12 @@ __global__ void magma_zpivcast(magma_int_t* dipiv)
 
 /******************************************************************************/
 extern "C" magma_int_t
-magma_izamax_native( magma_int_t length,
-                     magmaDoubleComplex_ptr x, magma_int_t incx,
-                     magma_int_t step,  magma_int_t lda,
-                     magma_int_t* ipiv, magma_int_t *info,
-                     magma_int_t gbstep, magma_queue_t queue)
+magma_int_t
+magma_izamax_native(
+    magma_int_t length,
+    magmaDoubleComplex_ptr x, magma_int_t incx,
+    magma_int_t* ipiv, magma_int_t *info,
+    magma_int_t step, magma_int_t gbstep, magma_queue_t queue)
 {
     if (length == 0 ) return 0;
 
@@ -192,9 +193,8 @@ magma_izamax_native( magma_int_t length,
         dim3 grid(1, 1, 1);
         dim3 threads(zamax, 1, 1);
 
-        int chunk = magma_ceildiv( length, zamax );
         izamax_kernel_native<<< grid, threads, zamax * (sizeof(double) + sizeof(int)), queue->cuda_stream() >>>
-            (length, chunk, x, incx, step, lda, ipiv, info, gbstep);
+        (length, x, incx, ipiv, info, step, gbstep)
     }
     else {
     #ifdef MAGMA_HAVE_CUDA
@@ -202,8 +202,8 @@ magma_izamax_native( magma_int_t length,
         cublasGetPointerMode(queue->cublas_handle(), &ptr_mode);
         cublasSetPointerMode(queue->cublas_handle(), CUBLAS_POINTER_MODE_DEVICE);
 
-        cublasIzamax(queue->cublas_handle(), length, x + step * lda + step, 1, (int*)(ipiv+step));
-        magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv+step );
+        cublasIzamax(queue->cublas_handle(), length, x, 1, (int*)(ipiv));
+        magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv );
 
         cublasSetPointerMode(queue->cublas_handle(), ptr_mode);
     #elif defined(MAGMA_HAVE_HIP)
@@ -211,14 +211,13 @@ magma_izamax_native( magma_int_t length,
         hipblasGetPointerMode(queue->hipblas_handle(), &ptr_mode);
         hipblasSetPointerMode(queue->hipblas_handle(), CUBLAS_POINTER_MODE_DEVICE);
 
-        hipblasIzamax(queue->hipblas_handle(), length, (const hipblasDoubleComplex*)(x + step * lda + step), 1, (int*)(ipiv+step));
-        magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv+step );
+        hipblasIzamax(queue->hipblas_handle(), length, (const hipblasDoubleComplex*)x, 1, (int*)(ipiv));
+        magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv );
 
         hipblasSetPointerMode(queue->hipblas_handle(), ptr_mode);
     #endif
 
-
-        adjust_ipiv( ipiv+step, 1, step, queue);
+        adjust_ipiv( ipiv, 1, step, queue);
     }
     return 0;
 }

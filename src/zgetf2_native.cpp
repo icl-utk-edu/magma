@@ -54,7 +54,7 @@ magma_zgetf2_native_blocked(
         for (step=0; step < ib; step++) {
             gbj = j+step;
             // find the max of the column gbj
-            arginfo = magma_izamax_native( m-gbj, dA, 1, gbj, ldda, dipiv, dinfo, gbstep, queue);
+            arginfo = magma_izamax_native( m-gbj, dA(gbj,gbj), 1, dipiv+gbj, dinfo, gbj, gbstep, queue);
 
             if (arginfo != 0 ) return arginfo;
             // Apply the interchange to columns 1:N. swap the whole row
