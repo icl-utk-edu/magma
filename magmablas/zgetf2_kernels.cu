@@ -179,7 +179,6 @@ __global__ void magma_zpivcast(magma_int_t* dipiv)
 
 /******************************************************************************/
 extern "C" magma_int_t
-magma_int_t
 magma_izamax_native(
     magma_int_t length,
     magmaDoubleComplex_ptr x, magma_int_t incx,
