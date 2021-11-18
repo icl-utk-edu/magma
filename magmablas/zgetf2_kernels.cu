@@ -193,7 +193,7 @@ magma_izamax_native(
         dim3 threads(zamax, 1, 1);
 
         izamax_kernel_native<<< grid, threads, zamax * (sizeof(double) + sizeof(int)), queue->cuda_stream() >>>
-        (length, x, incx, ipiv, info, step, gbstep)
+        (length, x, incx, ipiv, info, step, gbstep);
     }
     else {
     #ifdef MAGMA_HAVE_CUDA
