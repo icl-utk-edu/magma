@@ -24,20 +24,17 @@
 
 /******************************************************************************/
 __global__ void
-izamax_kernel_batched(int length, int chunk, magmaDoubleComplex **x_array, int xi, int xj, int incx,
-                   int step, int lda, magma_int_t** ipiv_array, magma_int_t *info_array, int gbstep)
+izamax_kernel_batched(
+        int length, magmaDoubleComplex **x_array, int xi, int xj, int lda, int incx,
+        magma_int_t** ipiv_array, int ipiv_i,
+        magma_int_t *info_array, int step, int gbstep)
 {
-    /* MERGE: different branches used .x and .z as batch ID  */
     extern __shared__ double sdata[];
-
     const int batchid = blockIdx.x;
-   // const int batchid = blockIdx.z;
 
-    magmaDoubleComplex *x_start = x_array[batchid] + xj * lda + xi;
-    const magmaDoubleComplex *x = &(x_start[step + step * lda]);
-
-    magma_int_t *ipiv = ipiv_array[batchid] + xi;
     int tx = threadIdx.x;
+    const magmaDoubleComplex *x = x_array[batchid] + xj * lda + xi;
+    magma_int_t *ipiv           = ipiv_array[batchid] + ipiv_i;
 
     double *shared_x = sdata;
     int *shared_idx = (int*)(shared_x + zamax);
@@ -45,7 +42,7 @@ izamax_kernel_batched(int length, int chunk, magmaDoubleComplex **x_array, int x
     izamax_devfunc(length, x, incx, shared_x, shared_idx);
 
     if (tx == 0) {
-        ipiv[step]  = shared_idx[0] + step + 1; // Fortran Indexing
+        *ipiv  = shared_idx[0] + step + 1; // Fortran Indexing & adjust ipiv
         if (shared_x[0] == MAGMA_D_ZERO) {
             info_array[batchid] = shared_idx[0] + step + gbstep + 1;
         }
@@ -148,11 +145,12 @@ izamax_kernel_native(int length, int chunk, magmaDoubleComplex_ptr x, int incx,
     @ingroup magma_iamax_batched
 *******************************************************************************/
 extern "C" magma_int_t
-magma_izamax_batched(magma_int_t length,
-                     magmaDoubleComplex **x_array, magma_int_t xi, magma_int_t xj, magma_int_t incx,
-                     magma_int_t step,  magma_int_t lda,
-                     magma_int_t** ipiv_array, magma_int_t *info_array,
-                     magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue)
+magma_izamax_batched(
+        magma_int_t length,
+        magmaDoubleComplex **x_array, magma_int_t xi, magma_int_t xj, magma_int_t lda, magma_int_t incx,
+        magma_int_t** ipiv_array, magma_int_t ipiv_i,
+        magma_int_t step, magma_int_t gbstep, magma_int_t *info_array,
+        magma_int_t batchCount, magma_queue_t queue)
 {
     if (length == 0 ) return 0;
 
@@ -160,8 +158,9 @@ magma_izamax_batched(magma_int_t length,
     dim3 threads(zamax, 1, 1);
 
     int chunk = magma_ceildiv( length, zamax );
+
     izamax_kernel_batched<<< grid, threads, zamax * (sizeof(double) + sizeof(int)), queue->cuda_stream() >>>
-        (length, chunk, x_array, xi, xj, incx, step, lda, ipiv_array, info_array, gbstep);
+    (length, x_array, xi, xj, lda, incx, ipiv_array, ipiv_i, info_array, step, gbstep);
 
     return 0;
 }
