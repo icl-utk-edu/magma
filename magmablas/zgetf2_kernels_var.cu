@@ -23,9 +23,10 @@
 /******************************************************************************/
 __global__ void
 izamax_kernel_vbatched(
-        magma_int_t *M, magma_int_t *N,
+        int length, magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, int Ai, int Aj, magma_int_t *ldda,
-        int step, magma_int_t** ipiv_array, magma_int_t *info_array, int gbstep )
+        magma_int_t** ipiv_array, int ipiv_i,
+        magma_int_t *info_array, int step, int gbstep )
 {
     extern __shared__ double sdata[];
 
@@ -36,16 +37,14 @@ izamax_kernel_vbatched(
     int my_N    = (int)N[batchid];
     int my_ldda = (int)ldda[batchid];
     // check if offsets produce out-of-bound pointers
-    if( my_M <= (Ai+step) || my_N <= (Aj+step) ) return;
+    if( my_M <= Ai || my_N <= Aj ) return;
 
     // compute the length of the vector for each matrix
-    my_M -= (Ai+step);
+    my_M -= Ai;
+    my_M  = min(my_M, length);
 
-    // check the length
-    if(my_M <= 0) return;
-
-    magmaDoubleComplex *dA = dA_array[batchid] + (Aj+step) * my_ldda + (Ai+step);
-    magma_int_t *ipiv = ipiv_array[batchid] + Ai;
+    magmaDoubleComplex *dA = dA_array[batchid] + Aj * my_ldda + Ai;
+    magma_int_t *ipiv = ipiv_array[batchid] + ipiv_i;
     int tx = threadIdx.x;
 
     double *shared_x = sdata;
@@ -54,7 +53,7 @@ izamax_kernel_vbatched(
     izamax_devfunc(my_M, dA, 1, shared_x, shared_idx);
 
     if (tx == 0) {
-        ipiv[step]  = shared_idx[0] + step + 1; // Fortran Indexing
+        *ipiv = shared_idx[0] + step + 1; // Fortran Indexing & adjust pivot
         if (shared_x[0] == MAGMA_D_ZERO) {
             info_array[batchid] = shared_idx[0] + step + gbstep + 1;
         }
@@ -64,16 +63,17 @@ izamax_kernel_vbatched(
 /******************************************************************************/
 extern "C" magma_int_t
 magma_izamax_vbatched(
-        magma_int_t *M, magma_int_t *N,
+        magma_int_t length, magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
-        magma_int_t step, magma_int_t** ipiv_array, magma_int_t *info_array,
-        magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue)
+        magma_int_t** ipiv_array, magma_int_t ipiv_i,
+        magma_int_t *info_array, magma_int_t step, magma_int_t gbstep,
+        magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 grid(batchCount, 1, 1);
     dim3 threads(zamax, 1, 1);
 
     izamax_kernel_vbatched<<< grid, threads, zamax * (sizeof(double) + sizeof(int)), queue->cuda_stream() >>>
-    (M, N, dA_array, Ai, Aj, ldda, step, ipiv_array, info_array, gbstep);
+    (length, M, N, dA_array, Ai, Aj, ldda, ipiv_array, ipiv_i, info_array, step, gbstep );
 
     return 0;
 }
