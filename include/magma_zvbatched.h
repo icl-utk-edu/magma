@@ -31,13 +31,13 @@ magma_izamax_vbatched(
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
         magma_int_t** ipiv_array, magma_int_t ipiv_i,
         magma_int_t *info_array, magma_int_t step, magma_int_t gbstep,
-        magma_int_t batchCount, magma_queue_t queue);
+        magma_int_t batchCount, magma_queue_t queue)s
 
 magma_int_t
 magma_zswap_vbatched(
-        magma_int_t n, magma_int_t *M, magma_int_t *N,
+        magma_int_t max_n, magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
-        magma_int_t step, magma_int_t** ipiv_array,
+        magma_int_t** ipiv_array,
         magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t magma_zscal_zgeru_vbatched(

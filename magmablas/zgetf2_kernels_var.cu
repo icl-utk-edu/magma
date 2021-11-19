@@ -80,7 +80,7 @@ magma_izamax_vbatched(
 
 /******************************************************************************/
 __global__
-void zswap_kernel_vbatched(
+void zswap_kernel_vbatched_org(
         int max_n,
         magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
@@ -107,18 +107,56 @@ void zswap_kernel_vbatched(
 }
 
 /******************************************************************************/
+__global__
+void zswap_kernel_vbatched(
+        int n, magma_int_t *M, magma_int_t *N,
+        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
+        magma_int_t** ipiv_array )
+{
+    const int batchid = blockIdx.x;
+    const int my_ldda = (int)ldda[batchid];
+    int my_M          = (int)M[batchid];
+    int my_N          = (int)N[batchid];
+    int my_minmn      = min(my_M, my_N);
+
+    // check if offsets produce out-of-bound pointers
+    // Here, 'step' account only for my_M, not my_N
+    // (step = the row that is about to be swapped with the row having the pivot)
+    if( my_M <= Ai || my_N <= Aj || my_minmn <= Ai ) return;
+
+    my_N -= Aj; // this is the maximum possible width
+    my_N = min(my_N, max_n);
+
+    // read the pivot entry at Ai
+    magma_int_t *ipiv = ipiv_array[batchid] + Ai;
+    __shared__ int jp;
+    if (tx == 0){
+        jp = ipiv[Ai] - 1; // roll-back Fortran indexing
+    }
+    __syncthreads();
+
+    if (jp == Ai) return; // no swapping required
+
+    magmaDoubleComplex *dA1 = dA_array[batchid] + Aj * my_ldda + Ai;
+    magmaDoubleComplex *dA2 = dA_array[batchid] + Aj * my_ldda + jp;
+
+    zswap_device_v2(my_N, dA1, my_ldda, dA2, my_ldda );
+}
+
+/******************************************************************************/
 extern "C" magma_int_t
 magma_zswap_vbatched(
         magma_int_t max_n, magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
-        magma_int_t step, magma_int_t** ipiv_array,
+        magma_int_t** ipiv_array,
         magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 grid(batchCount, 1, 1);
     dim3 threads(zamax, 1, 1);
 
     zswap_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>>
-    (max_n, M, N, dA_array, Ai, Aj, ldda, step, ipiv_array);
+    (max_n, M, N, dA_array, Ai, Aj, ldda, ipiv_array);
+
     return 0;
 }
 
