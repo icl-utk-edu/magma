@@ -165,7 +165,7 @@ void zscal_zgeru_generic_device( int m, int n,
     rA  = dA[ gtx ];
     rA *= reg;
 
-    A[ gtx ] = rA;
+    dA[ gtx ] = rA;
     #pragma unroll
     for(int i = 1; i < n; i++)
         dA[i * lda + gtx] -= rA * dA[i * lda + 0];

@@ -349,9 +349,9 @@ magma_zswap_native( magma_int_t n, magmaDoubleComplex_ptr x, magma_int_t incx,
 /******************************************************************************/
 template<int N>
 __global__
-void zscal_zgeru_1d_kernel_native( int m, int step,
+void zscal_zgeru_1d_kernel_native( int m,
                                 magmaDoubleComplex_ptr dA, int lda,
-                                magma_int_t *info, int gbstep)
+                                magma_int_t *info, int step, int gbstep)
 {
     // This dev function has a return statement inside, be sure
     // not to merge it with another dev function. Otherwise, the
@@ -362,9 +362,9 @@ void zscal_zgeru_1d_kernel_native( int m, int step,
 
 /******************************************************************************/
 __global__
-void zscal_zgeru_1d_generic_kernel_native( int m, int n, int step,
+void zscal_zgeru_1d_generic_kernel_native( int m, int n,
                                 magmaDoubleComplex_ptr dA, int lda,
-                                magma_int_t *info, int gbstep)
+                                magma_int_t *info, int step, int gbstep)
 {
     // This dev function has a return statement inside, be sure
     // not to merge it with another dev function. Otherwise, the
