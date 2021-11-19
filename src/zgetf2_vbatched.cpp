@@ -119,7 +119,7 @@ magma_zgetf2_vbatched(
         magma_zswap_vbatched(max_n, m, n, dA_array(Ai+j, Aj), ldda, ipiv_array, batchCount, queue);
 
         // scal+ger
-        magma_zscal_zgeru_vbatched( max_m, max_n, m, n, j, dA_array, Ai, Aj, ldda, info_array, gbstep, batchCount, queue);
+        magma_zscal_zgeru_vbatched( max_m, max_n, m, n, dA_array(Ai+j, Aj+j), ldda, info_array, j, gbstep, batchCount, queue);
     }
     #else
     magma_int_t nb = 8;
