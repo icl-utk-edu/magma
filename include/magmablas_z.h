@@ -1161,9 +1161,9 @@ magma_zdscal(
 
 magma_int_t
 magma_zscal_zgeru_native(
-    magma_int_t m, magma_int_t n, magma_int_t step,
+    magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t lda,
-    magma_int_t *info, magma_int_t gbstep,
+    magma_int_t *info, magma_int_t step, magma_int_t gbstep,
     magma_queue_t queue);
 
 void

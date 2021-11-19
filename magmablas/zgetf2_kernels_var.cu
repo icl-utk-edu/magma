@@ -182,7 +182,7 @@ void zscal_zgeru_1d_generic_kernel_vbatched(
 
     magmaDoubleComplex* dA = dA_array[batchid] + Aj * my_ldda + Ai;
     magma_int_t *info = &info_array[batchid];
-    zscal_zgeru_generic_device(my_M, my_N, step, dA, my_ldda, info, gbstep);
+    zscal_zgeru_generic_device(my_M, my_N, dA, my_ldda, info, step, gbstep);
 }
 
 

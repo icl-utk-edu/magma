@@ -599,9 +599,9 @@ magma_zswap_batched(
 
 magma_int_t
 magma_zscal_zgeru_batched(
-    magma_int_t m, magma_int_t n, magma_int_t step,
+    magma_int_t m, magma_int_t n,
     magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t lda,
-    magma_int_t *info_array, magma_int_t gbstep,
+    magma_int_t *info_array, magma_int_t step, magma_int_t gbstep,
     magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t

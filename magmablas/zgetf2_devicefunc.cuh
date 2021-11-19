@@ -101,21 +101,20 @@ void zswap_device_v2(
 /******************************************************************************/
 template<int N>
 static __device__ __inline__
-void zscal_zgeru_device( int m, int step,
+void zscal_zgeru_device( int m,
                          magmaDoubleComplex_ptr dA, int lda,
-                         magma_int_t *info, int gbstep)
+                         magma_int_t *info, int step, int gbstep)
 {
     const int tx  = threadIdx.x;
     const int gtx = blockIdx.x * blockDim.x + tx;
     // checkinfo to avoid computation of the singular matrix
     if( (*info) != 0 ) return;
 
-    magmaDoubleComplex_ptr A = dA + step + step * lda;
     magmaDoubleComplex rA[N], reg;
     __shared__ magmaDoubleComplex shared_y[N];
 
     if (tx < N) {
-        shared_y[tx] = A[lda * tx];
+        shared_y[tx] = dA[lda * tx];
     }
     __syncthreads();
 
@@ -130,7 +129,7 @@ void zscal_zgeru_device( int m, int step,
     reg = MAGMA_Z_DIV(MAGMA_Z_ONE, shared_y[0]);
     #pragma unroll
     for(int i = 0; i < N; i++)
-        rA[i] = A[ i* lda + gtx ];
+        rA[i] = dA[ i* lda + gtx ];
 
     rA[0] *= reg;
 
@@ -140,14 +139,14 @@ void zscal_zgeru_device( int m, int step,
 
     #pragma unroll
     for(int i = 0; i < N; i++)
-        A[gtx + i * lda] = rA[i];
+        dA[gtx + i * lda] = rA[i];
 }
 
 /******************************************************************************/
 static __device__ __inline__
-void zscal_zgeru_generic_device( int m, int n, int step,
+void zscal_zgeru_generic_device( int m, int n,
                          magmaDoubleComplex_ptr dA, int lda,
-                         magma_int_t *info, int gbstep)
+                         magma_int_t *info, int step, int gbstep)
 {
     const int tx  = threadIdx.x;
     const int gtx = blockIdx.x * blockDim.x + tx;
@@ -155,22 +154,21 @@ void zscal_zgeru_generic_device( int m, int n, int step,
     if( (*info) != 0 ) return;
     if (gtx == 0 || gtx >= m) return;
 
-    magmaDoubleComplex_ptr A = dA + step + step * lda;
     magmaDoubleComplex rA, reg;
 
-    if (A[0] == MAGMA_Z_ZERO) {
+    if (dA[0] == MAGMA_Z_ZERO) {
         (*info) = step + gbstep + 1;
         return;
     }
 
-    reg = MAGMA_Z_DIV(MAGMA_Z_ONE, A[0]);
-    rA  = A[ gtx ];
+    reg = MAGMA_Z_DIV(MAGMA_Z_ONE, dA[0]);
+    rA  = dA[ gtx ];
     rA *= reg;
 
     A[ gtx ] = rA;
     #pragma unroll
     for(int i = 1; i < n; i++)
-        A[i * lda + gtx] -= rA * A[i * lda + 0];
+        dA[i * lda + gtx] -= rA * dA[i * lda + 0];
 
 }
 

@@ -356,7 +356,7 @@ void zscal_zgeru_1d_kernel_native( int m, int step,
     // This dev function has a return statement inside, be sure
     // not to merge it with another dev function. Otherwise, the
     // return statement should be converted into an if-statement
-    zscal_zgeru_device<N>(m, step, dA, lda, info, gbstep);
+    zscal_zgeru_device<N>(m, dA, lda, info, step, gbstep);
 }
 
 
@@ -369,39 +369,41 @@ void zscal_zgeru_1d_generic_kernel_native( int m, int n, int step,
     // This dev function has a return statement inside, be sure
     // not to merge it with another dev function. Otherwise, the
     // return statement should be converted into an if-statement
-    zscal_zgeru_generic_device(m, n, step, dA, lda, info, gbstep);
+    zscal_zgeru_generic_device(m, n, dA, lda, info, step, gbstep);
 }
 
 
 /******************************************************************************/
 template<int N>
 __global__
-void zscal_zgeru_1d_kernel_batched(int m, int step, magmaDoubleComplex **dA_array, int ai, int aj, int lda, magma_int_t *info_array, int gbstep)
+void zscal_zgeru_1d_kernel_batched(int m, magmaDoubleComplex **dA_array, int ai, int aj, int lda, magma_int_t *info_array, int step, int gbstep)
 {
     const int batchid = blockIdx.z;
     magmaDoubleComplex* dA = dA_array[batchid] + aj * lda + ai;
     magma_int_t *info = &info_array[batchid];
-    zscal_zgeru_device<N>(m, step, dA, lda, info, gbstep);
+    zscal_zgeru_device<N>(m, dA, lda, info, step, gbstep);
 }
 
 
 /******************************************************************************/
 __global__
-void zscal_zgeru_1d_generic_kernel_batched(int m, int n, int step, magmaDoubleComplex **dA_array, int ai, int aj, int lda, magma_int_t *info_array, int gbstep)
+void zscal_zgeru_1d_generic_kernel_batched(int m, int n, magmaDoubleComplex **dA_array, int ai, int aj, int lda, magma_int_t *info_array, int step, int gbstep)
 {
     const int batchid = blockIdx.z;
     magmaDoubleComplex* dA = dA_array[batchid] + aj * lda + ai;
     magma_int_t *info = &info_array[batchid];
-    zscal_zgeru_generic_device(m, n, step, dA, lda, info, gbstep);
+    zscal_zgeru_generic_device(m, n, dA, lda, info, step, gbstep);
 }
 
 
 /******************************************************************************/
 extern "C"
-magma_int_t magma_zscal_zgeru_batched(magma_int_t m, magma_int_t n, magma_int_t step,
-                                      magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t lda,
-                                      magma_int_t *info_array, magma_int_t gbstep,
-                                      magma_int_t batchCount, magma_queue_t queue)
+magma_int_t
+magma_zscal_zgeru_batched(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t lda,
+    magma_int_t *info_array, magma_int_t step, magma_int_t gbstep,
+    magma_int_t batchCount, magma_queue_t queue)
 {
     /*
     Specialized kernel which merged zscal and zgeru the two kernels
@@ -424,15 +426,15 @@ magma_int_t magma_zscal_zgeru_batched(magma_int_t m, magma_int_t n, magma_int_t 
         dim3 grid(magma_ceildiv(m,tbx), 1, ibatch);
 
         switch(n){
-            case  1: zscal_zgeru_1d_kernel_batched< 1><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  2: zscal_zgeru_1d_kernel_batched< 2><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  3: zscal_zgeru_1d_kernel_batched< 3><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  4: zscal_zgeru_1d_kernel_batched< 4><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  5: zscal_zgeru_1d_kernel_batched< 5><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  6: zscal_zgeru_1d_kernel_batched< 6><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  7: zscal_zgeru_1d_kernel_batched< 7><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  8: zscal_zgeru_1d_kernel_batched< 8><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            default: zscal_zgeru_1d_generic_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>(m, n, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);
+            case  1: zscal_zgeru_1d_kernel_batched< 1><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  2: zscal_zgeru_1d_kernel_batched< 2><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  3: zscal_zgeru_1d_kernel_batched< 3><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  4: zscal_zgeru_1d_kernel_batched< 4><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  5: zscal_zgeru_1d_kernel_batched< 5><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  6: zscal_zgeru_1d_kernel_batched< 6><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  7: zscal_zgeru_1d_kernel_batched< 7><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  8: zscal_zgeru_1d_kernel_batched< 8><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            default: zscal_zgeru_1d_generic_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>(m, n, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);
         }
     }
     return 0;
@@ -443,9 +445,9 @@ magma_int_t magma_zscal_zgeru_batched(magma_int_t m, magma_int_t n, magma_int_t 
 extern "C"
 magma_int_t
 magma_zscal_zgeru_native(
-    magma_int_t m, magma_int_t n, magma_int_t step,
+    magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t lda,
-    magma_int_t *info, magma_int_t gbstep,
+    magma_int_t *info, magma_int_t step, magma_int_t gbstep,
     magma_queue_t queue)
 {
     /*
@@ -463,15 +465,15 @@ magma_zscal_zgeru_native(
     dim3 grid(magma_ceildiv(m,tbx), 1, 1);
     dim3 threads(tbx, 1, 1);
     switch(n){
-        case 1: zscal_zgeru_1d_kernel_native<1><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 2: zscal_zgeru_1d_kernel_native<2><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 3: zscal_zgeru_1d_kernel_native<3><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 4: zscal_zgeru_1d_kernel_native<4><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 5: zscal_zgeru_1d_kernel_native<5><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 6: zscal_zgeru_1d_kernel_native<6><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 7: zscal_zgeru_1d_kernel_native<7><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 8: zscal_zgeru_1d_kernel_native<8><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        default: zscal_zgeru_1d_generic_kernel_native<<<grid, threads, 0, queue->cuda_stream()>>>( m, n, step, dA, lda, info, gbstep);
+        case 1: zscal_zgeru_1d_kernel_native<1><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 2: zscal_zgeru_1d_kernel_native<2><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 3: zscal_zgeru_1d_kernel_native<3><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 4: zscal_zgeru_1d_kernel_native<4><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 5: zscal_zgeru_1d_kernel_native<5><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 6: zscal_zgeru_1d_kernel_native<6><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 7: zscal_zgeru_1d_kernel_native<7><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 8: zscal_zgeru_1d_kernel_native<8><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        default: zscal_zgeru_1d_generic_kernel_native<<<grid, threads, 0, queue->cuda_stream()>>>( m, n, dA, lda, info, step, gbstep);
     }
     return 0;
 }

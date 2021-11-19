@@ -126,7 +126,7 @@ magma_zgetf2_batched_v1(
                 if (arginfo != 0 ) return arginfo;
                 // Compute elements J+1:M of J-th column.
                 if (gbj < m) {
-                    arginfo = magma_zscal_zgeru_batched( m-gbj, ib-step, gbj, dA_array, ai, aj, ldda, info_array, gbstep, batchCount, queue );
+                    arginfo = magma_zscal_zgeru_batched( m-gbj, ib-step, dA_array, ai+gbj, aj+gbj, ldda, info_array, gbj, gbstep, batchCount, queue );
                     if (arginfo != 0 ) return arginfo;
                 }
             }

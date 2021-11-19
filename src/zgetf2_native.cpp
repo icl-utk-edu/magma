@@ -62,7 +62,7 @@ magma_zgetf2_native_blocked(
             if (arginfo != 0 ) return arginfo;
             // Compute elements J+1:M of J-th column.
             if (gbj < m) {
-                arginfo = magma_zscal_zgeru_native( m-gbj, ib-step, gbj, dA, ldda, dinfo, gbstep, queue );
+                arginfo = magma_zscal_zgeru_native( m-gbj, ib-step, dA(gbj,gbj), ldda, dinfo, gbj, gbstep, queue );
                 if (arginfo != 0 ) return arginfo;
             }
         }
