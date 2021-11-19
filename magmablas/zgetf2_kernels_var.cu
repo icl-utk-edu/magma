@@ -109,7 +109,7 @@ void zswap_kernel_vbatched_org(
 /******************************************************************************/
 __global__
 void zswap_kernel_vbatched(
-        int n, magma_int_t *M, magma_int_t *N,
+        int max_n, magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
         magma_int_t** ipiv_array )
 {

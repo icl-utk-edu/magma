@@ -80,6 +80,25 @@ void zswap_device( magma_int_t n,
 }
 
 /******************************************************************************/
+// This version swaps two rows that are specified at the input
+// the logic deciding these two rows is assumed to be at the
+// kernel level (unlike zswap_device)
+static __device__ __inline__
+void zswap_device_v2(
+            magma_int_t n,
+            magmaDoubleComplex_ptr x1, magma_int_t incx1,
+            magmaDoubleComplex_ptr x2, magma_int_t incx2 )
+{
+    const int tx = threadIdx.x;
+
+    if (tx < n) {
+        magmaDoubleComplex tmp = x1[tx * incx];
+        x1[tx * incx]          = x2[tx * incx];
+        x2[tx * incx]          = tmp;
+    }
+}
+
+/******************************************************************************/
 template<int N>
 static __device__ __inline__
 void zscal_zgeru_device( int m, int step,
