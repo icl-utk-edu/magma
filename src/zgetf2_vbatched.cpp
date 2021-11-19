@@ -112,7 +112,7 @@ magma_zgetf2_vbatched(
     #if 1
     for(j=0; j < max_minmn; j++) {
         // izamax
-        magma_izamax_vbatched(max_m-j, M, N, dA_array, Ai+j, Aj+j, ldda, ipiv_array, ai+j, info_array, j, gbstep, batchCount, queue);
+        magma_izamax_vbatched(max_m-j, m, n, dA_array, Ai+j, Aj+j, ldda, ipiv_array, ai+j, info_array, j, gbstep, batchCount, queue);
 
         // zswap
         magma_zswap_vbatched(max_n, m, n, dA_array, Ai, Aj, ldda, j, ipiv_array, batchCount, queue);
