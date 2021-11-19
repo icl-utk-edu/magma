@@ -31,7 +31,7 @@ magma_izamax_vbatched(
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
         magma_int_t** ipiv_array, magma_int_t ipiv_i,
         magma_int_t *info_array, magma_int_t step, magma_int_t gbstep,
-        magma_int_t batchCount, magma_queue_t queue)s
+        magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t
 magma_zswap_vbatched(
