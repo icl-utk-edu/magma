@@ -130,7 +130,7 @@ void zswap_kernel_vbatched(
     // read the pivot entry at Ai
     magma_int_t *ipiv = ipiv_array[batchid] + Ai;
     __shared__ int jp;
-    if (tx == 0){
+    if (threadIdx.x == 0){
         jp = ipiv[Ai] - 1; // roll-back Fortran indexing
     }
     __syncthreads();

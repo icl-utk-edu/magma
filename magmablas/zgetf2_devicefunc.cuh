@@ -92,9 +92,9 @@ void zswap_device_v2(
     const int tx = threadIdx.x;
 
     if (tx < n) {
-        magmaDoubleComplex tmp = x1[tx * incx];
-        x1[tx * incx]          = x2[tx * incx];
-        x2[tx * incx]          = tmp;
+        magmaDoubleComplex tmp = x1[tx * incx1];
+        x1[tx * incx1]          = x2[tx * incx1];
+        x2[tx * incx1]          = tmp;
     }
 }
 
