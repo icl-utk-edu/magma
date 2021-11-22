@@ -410,7 +410,7 @@ magmablas_ztrmm_vbatched(
         magmaDoubleComplex **dB_array, magma_int_t* lddb,
         magma_int_t batchCount, magma_queue_t queue );
 
-void magmablas_ztrsm_outofplace_vbatched(
+void magmablas_ztrsm_inv_outofplace_vbatched(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t flag,
     magma_int_t *m, magma_int_t* n,
@@ -426,7 +426,7 @@ void magmablas_ztrsm_outofplace_vbatched(
     magma_int_t max_m, magma_int_t max_n,
     magma_queue_t queue);
 
-void magmablas_ztrsm_work_vbatched(
+void magmablas_ztrsm_inv_work_vbatched(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t flag,
     magma_int_t* m, magma_int_t* n,
@@ -442,7 +442,7 @@ void magmablas_ztrsm_work_vbatched(
     magma_int_t max_m, magma_int_t max_n,
     magma_queue_t queue);
 
-void magmablas_ztrsm_vbatched_max_nocheck(
+void magmablas_ztrsm_inv_vbatched_max_nocheck(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex alpha,
@@ -453,7 +453,7 @@ void magmablas_ztrsm_vbatched_max_nocheck(
     magma_queue_t queue);
 
 void
-magmablas_ztrsm_vbatched_max(
+magmablas_ztrsm_inv_vbatched_max(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex alpha,
@@ -464,7 +464,7 @@ magmablas_ztrsm_vbatched_max(
     magma_queue_t queue);
 
 void
-magmablas_ztrsm_vbatched_nocheck(
+magmablas_ztrsm_inv_vbatched_nocheck(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex alpha,
@@ -474,7 +474,7 @@ magmablas_ztrsm_vbatched_nocheck(
     magma_queue_t queue);
 
 void
-magmablas_ztrsm_vbatched(
+magmablas_ztrsm_inv_vbatched(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex alpha,
