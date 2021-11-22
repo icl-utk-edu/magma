@@ -110,7 +110,7 @@ magma_zgetf2_vbatched(
 
     magma_int_t gbj, panelj, step, ib, j;
 
-    #if 1
+    #if 0
     for(j=0; j < max_minmn; j++) {
         // izamax
         magma_izamax_vbatched(max_m-j, m, n, dA_array(Ai+j, Aj+j), ldda, ipiv_array(Ai+j), info_array, j, gbstep, batchCount, queue);
@@ -125,17 +125,21 @@ magma_zgetf2_vbatched(
     magma_int_t nb = 8;
     for(j=0; j < max_minmn; j+=nb) {
         magma_int_t ib = min(nb, max_minmn-j);
-
         for(magma_int_t jj = 0; jj < ib; jj++) {
-            // izamax (internally offset dA_array by (Ai+j+jj, Aj+j+jj) and ipiv_array by Ai)
-            magma_izamax_vbatched(m, n, dA_array, Ai, Aj, ldda, jj+j, ipiv_array, info_array, gbstep, batchCount, queue);
+            magma_int_t gbj = j+jj;
+            // izamax
+            magma_izamax_vbatched(max_m-gbj, M, N, dA_array(Ai+gbj, Aj+gbj), ldda, ipiv_array(Ai+gbj), info_array, gbj, gbstep, batchCount, queue);
 
             // zswap
-            magma_zswap_vbatched(max_n, m, n, dA_array, Ai, Aj, ldda, j+jj, ipiv_array, batchCount, queue);
+            magma_zswap_vbatched(max_n, M, N, dA_array(Ai+gbj, Aj), ldda, ipiv_array, batchCount, queue);
 
             // scal+ger
-            magma_zscal_zgeru_vbatched( max_m, max_n, m, n, jj+j, dA_array, Ai, Aj, ldda, info_array, gbstep, batchCount, queue);
+            magma_zscal_zgeru_vbatched( max_m-gbj, ib-jj, M, N, dA_array(Ai+gbj, Aj+gbj), ldda, info_array, gbj, gbstep, batchCount, queue);
         }
+
+        // trsm
+
+        // gemm
 
     }
     #endif

@@ -57,6 +57,9 @@ izamax_kernel_vbatched(
         if (shared_x[0] == MAGMA_D_ZERO) {
             info_array[batchid] = shared_idx[0] + step + gbstep + 1;
         }
+        //#ifdef 0 //PRECISION_d
+        //printf("found pivot at %d = %f\n", shared_idx[0], shared_x[0]);
+        //#endif
     }
 }
 
@@ -120,8 +123,6 @@ void zswap_kernel_vbatched(
     int my_minmn      = min(my_M, my_N);
 
     // check if offsets produce out-of-bound pointers
-    // Here, 'step' account only for my_M, not my_N
-    // (step = the row that is about to be swapped with the row having the pivot)
     if( my_M <= Ai || my_N <= Aj || my_minmn <= Ai ) return;
 
     my_N -= Aj; // this is the maximum possible width
@@ -131,7 +132,7 @@ void zswap_kernel_vbatched(
     magma_int_t *ipiv = ipiv_array[batchid] + Ai;
     __shared__ int jp;
     if (threadIdx.x == 0){
-        jp = ipiv[Ai] - 1; // roll-back Fortran indexing
+        jp = ipiv[0] - 1; // roll-back Fortran indexing
     }
     __syncthreads();
 
