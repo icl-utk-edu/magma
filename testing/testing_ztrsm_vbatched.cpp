@@ -270,7 +270,7 @@ int main( int argc, char** argv)
                     d_M, d_N, alpha,
                     d_A_array, d_ldda,
                     d_B_array, d_lddb,
-                    batchCount, queue);
+                    batchCount, opts.queue);
             }
             else if (opts.version == 2) {
                 magmablas_ztrsm_inv_outofplace_vbatched(
