@@ -265,6 +265,14 @@ int main( int argc, char** argv)
 
             magma_time = magma_sync_wtime( opts.queue );
             if (opts.version == 1) {
+                magmablas_ztrsm_vbatched(
+                    opts.side, opts.uplo, opts.transA, opts.diag,
+                    d_M, d_N, alpha,
+                    d_A_array, d_ldda,
+                    d_B_array, d_lddb,
+                    batchCount, queue);
+            }
+            else if (opts.version == 2) {
                 magmablas_ztrsm_inv_outofplace_vbatched(
                     opts.side, opts.uplo, opts.transA, opts.diag, 1,
                     d_M, d_N, alpha,

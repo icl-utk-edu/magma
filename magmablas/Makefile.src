@@ -180,6 +180,7 @@ libmagma_src += \
 	$(cdir)/ssyrk_vbatched_core.cu	\
 	$(cdir)/dsyrk_vbatched_core.cu	\
 	$(cdir)/ztrmm_vbatched_core.cu	\
+	$(cdir)/ztrsm_vbatched_core.cu	\
 	$(cdir)/ztrsm_inv_vbatched_core.cu	\
 	$(cdir)/ztrtri_diag_vbatched.cu	\
 
@@ -193,6 +194,7 @@ libmagma_src += \
 	$(cdir)/zsyr2k_vbatched.cpp		\
 	$(cdir)/zsyrk_vbatched.cpp		\
 	$(cdir)/ztrmm_vbatched.cpp		\
+	$(cdir)/ztrsm_vbatched.cpp		\
 	$(cdir)/ztrsm_inv_vbatched.cpp		\
 
 libmagma_src += \
