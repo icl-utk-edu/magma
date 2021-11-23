@@ -411,6 +411,18 @@ magmablas_ztrmm_vbatched(
         magma_int_t batchCount, magma_queue_t queue );
 
 void
+magmablas_ztrsm_small_vbatched(
+        magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
+        magma_int_t* m, magma_int_t* n,
+        magmaDoubleComplex alpha,
+        magmaDoubleComplex **dA_array, magma_int_t* ldda,
+        magmaDoubleComplex **dB_array, magma_int_t* lddb,
+        magma_int_t max_m, magma_int_t max_n,
+        magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB,
+        magma_int_t spec_m, magma_int_t spec_n,
+        magma_int_t batchCount, magma_queue_t queue );
+
+void
 magmablas_ztrsm_vbatched_max_nocheck(
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
         magma_int_t* m, magma_int_t* n,
