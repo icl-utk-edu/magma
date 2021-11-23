@@ -265,14 +265,6 @@ int main( int argc, char** argv)
 
             magma_time = magma_sync_wtime( opts.queue );
             if (opts.version == 1) {
-                magmablas_ztrsm_vbatched(
-                    opts.side, opts.uplo, opts.transA, opts.diag,
-                    d_M, d_N, alpha,
-                    d_A_array, d_ldda,
-                    d_B_array, d_lddb,
-                    batchCount, opts.queue);
-            }
-            else if (opts.version == 2) {
                 magmablas_ztrsm_inv_outofplace_vbatched(
                     opts.side, opts.uplo, opts.transA, opts.diag, 1,
                     d_M, d_N, alpha,
@@ -295,7 +287,7 @@ int main( int argc, char** argv)
                     work_tmp += h_N[k] * h_lddb[k];
                 }
             }
-            else {
+            else if ( opts.version == 2 ) {
                 magmablas_ztrsm_inv_vbatched(
                     opts.side, opts.uplo, opts.transA, opts.diag,
                     d_M, d_N, alpha,
@@ -313,6 +305,26 @@ int main( int argc, char** argv)
                     d_B_tmp  += h_N[k] * h_lddb[k];
                 }
             }
+            else if (opts.version == 3) {
+                magmablas_ztrsm_vbatched(
+                    opts.side, opts.uplo, opts.transA, opts.diag,
+                    d_M, d_N, alpha,
+                    d_A_array, d_ldda,
+                    d_B_array, d_lddb,
+                    batchCount, opts.queue);
+
+                    magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+                    magma_perf = gflops / magma_time;
+
+                    h_B_tmp = h_Bmagma;
+                    magmaDoubleComplex *d_B_tmp = d_B;
+                    for(int k = 0; k < batchCount; k++) {
+                        magma_zgetmatrix( h_M[k], h_N[k], d_B_tmp, h_lddb[k], h_B_tmp, h_ldb[k], opts.queue);
+                        h_B_tmp  += h_N[k] * h_ldb[k];
+                        d_B_tmp  += h_N[k] * h_lddb[k];
+                    }
+            }
+
 
             if ( opts.lapack ) {
                 /* =====================================================================
