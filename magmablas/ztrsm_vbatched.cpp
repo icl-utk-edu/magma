@@ -37,10 +37,9 @@ magmablas_ztrsm_vbatched_max(
     magmablas_ztrsm_vbatched_max_nocheck(
             side, uplo, transA, diag,
             m, n, alpha,
-            dA_array, ldda,
-            dB_array, lddb,
+            dA_array, 0, 0, ldda,
+            dB_array, 0, 0, lddb,
             max_m, max_n,
-            0, 0, 0, 0,
             0, 0,
             batchCount, queue);
 }
@@ -64,10 +63,9 @@ magmablas_ztrsm_vbatched_nocheck(
     magmablas_ztrsm_vbatched_max_nocheck(
             side, uplo, transA, diag,
             m, n, alpha,
-            dA_array, ldda,
-            dB_array, lddb,
+            dA_array, 0, 0, ldda,
+            dB_array, 0, 0, lddb,
             max_m, max_n,
-            0, 0, 0, 0,
             0, 0,
             batchCount, queue);
 }
@@ -210,10 +208,9 @@ magmablas_ztrsm_vbatched(
     magmablas_ztrsm_vbatched_max_nocheck(
             side, uplo, transA, diag,
             m, n, alpha,
-            dA_array, ldda,
-            dB_array, lddb,
+            dA_array, 0, 0, ldda,
+            dB_array, 0, 0, lddb,
             max_m, max_n,
-            0, 0, 0, 0,
             0, 0,
             batchCount, queue);
 }
