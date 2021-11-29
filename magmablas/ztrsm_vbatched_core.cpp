@@ -251,7 +251,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                         side, uplo, transA, diag,
                         m, n, alpha,
                         dA_array(Ai, Aj), ldda,
-                        dB_arrayBi, Bj,   lddb,
+                        dB_array(Bi, Bj), lddb,
                         max_m, n1,
                         0, n1,
                         batchCount, queue );
