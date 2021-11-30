@@ -355,10 +355,10 @@ $(cdir)/ctrmm_vbatched_core.$(o_ext): $(cdir)/trmm_template_kernel_vbatched.cuh 
 $(cdir)/dtrmm_vbatched_core.$(o_ext): $(cdir)/trmm_template_kernel_vbatched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 $(cdir)/strmm_vbatched_core.$(o_ext): $(cdir)/trmm_template_kernel_vbatched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 
-$(cdir)/ztrsm_vbatched_core.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
-$(cdir)/ctrsm_vbatched_core.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
-$(cdir)/dtrsm_vbatched_core.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
-$(cdir)/strsm_vbatched_core.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/ztrsm_small_vbatched.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/ctrsm_small_vbatched.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/dtrsm_small_vbatched.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/strsm_small_vbatched.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 
 $(cdir)/zhemm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 $(cdir)/chemm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
