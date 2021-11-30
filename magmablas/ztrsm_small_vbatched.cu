@@ -33,28 +33,28 @@ magmablas_ztrsm_small_vbatched(
 
     if( side == MagmaLeft ){
         if     ( nrowA <=  2 )
-            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_LEFT_NB2>(side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, max_m, max_n, Ai, Aj, Bi, Bj, spec_m, spec_n, batchCount, queue );
+            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_LEFT_NB2>(side, uplo, transA, diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n, spec_m, spec_n, batchCount, queue );
         else if( nrowA <=  4 )
-            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_LEFT_NB4>(side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, max_m, max_n, Ai, Aj, Bi, Bj, spec_m, spec_n, batchCount, queue );
+            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_LEFT_NB4>(side, uplo, transA, diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n, spec_m, spec_n, batchCount, queue );
         else if( nrowA <=  8 )
-            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_LEFT_NB8>(side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, max_m, max_n, Ai, Aj, Bi, Bj, spec_m, spec_n, batchCount, queue );
+            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_LEFT_NB8>(side, uplo, transA, diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n, spec_m, spec_n, batchCount, queue );
         else if( nrowA <= 16 )
-            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_LEFT_NB16>(side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, max_m, max_n, Ai, Aj, Bi, Bj, spec_m, spec_n, batchCount, queue );
+            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_LEFT_NB16>(side, uplo, transA, diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n, spec_m, spec_n, batchCount, queue );
         else if( nrowA <= 32 )
-            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_LEFT_NB32>(side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, max_m, max_n, Ai, Aj, Bi, Bj, spec_m, spec_n, batchCount, queue );
+            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_LEFT_NB32>(side, uplo, transA, diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n, spec_m, spec_n, batchCount, queue );
         else
             printf("error in function %s: nrowA must be less than 32\n", __func__);
     }else{
         if     ( nrowA <=  2 )
-            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_RIGHT_NB2>(side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, max_m, max_n, Ai, Aj, Bi, Bj, spec_m, spec_n, batchCount, queue );
+            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_RIGHT_NB2>(side, uplo, transA, diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n, spec_m, spec_n, batchCount, queue );
         else if( nrowA <=  4 )
-            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_RIGHT_NB4>(side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, max_m, max_n, Ai, Aj, Bi, Bj, spec_m, spec_n, batchCount, queue );
+            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_RIGHT_NB4>(side, uplo, transA, diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n, spec_m, spec_n, batchCount, queue );
         else if( nrowA <=  8 )
-            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_RIGHT_NB8>(side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, max_m, max_n, Ai, Aj, Bi, Bj, spec_m, spec_n, batchCount, queue );
+            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_RIGHT_NB8>(side, uplo, transA, diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n, spec_m, spec_n, batchCount, queue );
         else if( nrowA <= 16 )
-            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_RIGHT_NB16>(side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, max_m, max_n, Ai, Aj, Bi, Bj, spec_m, spec_n, batchCount, queue );
+            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_RIGHT_NB16>(side, uplo, transA, diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n, spec_m, spec_n, batchCount, queue );
         else if( nrowA <= 32 )
-            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_RIGHT_NB32>(side, uplo, transA, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, max_m, max_n, Ai, Aj, Bi, Bj, spec_m, spec_n, batchCount, queue );
+            trsm_small_vbatched<magmaDoubleComplex, ZTRSM_BATCHED_RIGHT_NB32>(side, uplo, transA, diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n, spec_m, spec_n, batchCount, queue );
         else
             printf("error in function %s: nrowA must be less than 32\n", __func__);
     }
