@@ -215,15 +215,15 @@ int main( int argc, char** argv)
                     hinvA_array[k] = hinvA_array[k-1] + h_invA_size[k-1];
                     hwork_array[k] = hwork_array[k-1] + h_lddb[k-1]*h_N[k-1];
                 }
+
+                for(int k = 0; k < batchCount; k++) {
+                    magmablas_zlaset( MagmaFull, h_lddb[k], h_N[k], c_zero, c_zero, hwork_array[k], h_lddb[k], opts.queue);
+                }
                 magma_setvector(batchCount, sizeof(magmaDoubleComplex*), hinvA_array, 1, dinvA_array, 1, opts.queue);
                 magma_setvector(batchCount, sizeof(magmaDoubleComplex*), hwork_array, 1, dwork_array, 1, opts.queue);
             }
 
             memset(h_Bmagma, 0, total_size_B_cpu*sizeof(magmaDoubleComplex));
-            for(int k = 0; k < batchCount; k++) {
-                magmablas_zlaset( MagmaFull, h_lddb[k], h_N[k], c_zero, c_zero, hwork_array[k], h_lddb[k], opts.queue);
-            }
-
             /* Initialize the matrices */
             /* Factor A into LU to get well-conditioned triangular matrix.
              * Copy L to U, since L seems okay when used with non-unit diagonal
