@@ -40,7 +40,6 @@ magmablas_ztrsm_vbatched_max(
             dA_array, 0, 0, ldda,
             dB_array, 0, 0, lddb,
             max_m, max_n,
-            0, 0,
             batchCount, queue);
 }
 
@@ -66,7 +65,6 @@ magmablas_ztrsm_vbatched_nocheck(
             dA_array, 0, 0, ldda,
             dB_array, 0, 0, lddb,
             max_m, max_n,
-            0, 0,
             batchCount, queue);
 }
 
@@ -211,7 +209,6 @@ magmablas_ztrsm_vbatched(
             dA_array, 0, 0, ldda,
             dB_array, 0, 0, lddb,
             max_m, max_n,
-            0, 0,
             batchCount, queue);
 }
 

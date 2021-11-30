@@ -418,7 +418,6 @@ magmablas_ztrsm_small_vbatched(
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
         magmaDoubleComplex **dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t* lddb,
         magma_int_t max_m, magma_int_t max_n,
-        magma_int_t spec_m, magma_int_t spec_n,
         magma_int_t batchCount, magma_queue_t queue );
 
 void
@@ -429,7 +428,6 @@ magmablas_ztrsm_vbatched_max_nocheck(
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
         magmaDoubleComplex **dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t* lddb,
         magma_int_t max_m, magma_int_t max_n,
-        magma_int_t spec_m, magma_int_t spec_n,
         magma_int_t batchCount, magma_queue_t queue );
 
 void
