@@ -21,7 +21,8 @@ static __global__
 void trsm_template_vbatched_lNL_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
-                 T** Barray, int Bi, int Bj, magma_int_t* lddb )
+                 T** Barray, int Bi, int Bj, magma_int_t* lddb,
+        int max_m, int max_n )
 {
     const int batchid = blockIdx.z;
     int my_m = (int)m[batchid];
@@ -32,9 +33,9 @@ void trsm_template_vbatched_lNL_kernel(
     // compute the maximum allowed value for m, n based on the input offsets
     my_m -= max( Ai, max( Aj, Bi ) );
     my_n -= Bj;
-    // check if the user forces values for m, n, and k
-    //my_m = ( spec_m <= 0 ) ? my_m : min( my_m, spec_m );
-    //my_n = ( spec_n <= 0 ) ? my_n : min( my_n, spec_n );
+
+    my_m = min( my_m, max_m );
+    my_n = min( my_n, max_n );
 
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_n, NRHS) ) return;
@@ -50,7 +51,8 @@ static __global__
 void trsm_template_vbatched_lNU_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
-                 T** Barray, int Bi, int Bj, magma_int_t* lddb )
+                 T** Barray, int Bi, int Bj, magma_int_t* lddb,
+        int max_m, int max_n )
 {
     int batchid = blockIdx.z;
     int my_m = (int)m[batchid];
@@ -61,9 +63,9 @@ void trsm_template_vbatched_lNU_kernel(
     // compute the maximum allowed value for m, n based on the input offsets
     my_m -= max( Ai, max( Aj, Bi ) );
     my_n -= Bj;
-    // check if the user forces values for m, n, and k
-    //my_m = ( spec_m <= 0 ) ? my_m : min( my_m, spec_m );
-    //my_n = ( spec_n <= 0 ) ? my_n : min( my_n, spec_n );
+
+    my_m = min( my_m, max_m );
+    my_n = min( my_n, max_n );
 
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_n, NRHS) ) return;
@@ -79,7 +81,8 @@ static __global__
 void trsm_template_vbatched_lTL_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
-                 T** Barray, int Bi, int Bj, magma_int_t* lddb )
+                 T** Barray, int Bi, int Bj, magma_int_t* lddb,
+        int max_m, int max_n )
 {
     int batchid = blockIdx.z;
     int my_m = (int)m[batchid];
@@ -90,9 +93,9 @@ void trsm_template_vbatched_lTL_kernel(
     // compute the maximum allowed value for m, n based on the input offsets
     my_m -= max( Ai, max( Aj, Bi ) );
     my_n -= Bj;
-    // check if the user forces values for m, n, and k
-    //my_m = ( spec_m <= 0 ) ? my_m : min( my_m, spec_m );
-    //my_n = ( spec_n <= 0 ) ? my_n : min( my_n, spec_n );
+
+    my_m = min( my_m, max_m );
+    my_n = min( my_n, max_n );
 
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_n, NRHS) ) return;
@@ -108,7 +111,8 @@ static __global__
 void trsm_template_vbatched_lTU_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
-                 T** Barray, int Bi, int Bj, magma_int_t* lddb )
+                 T** Barray, int Bi, int Bj, magma_int_t* lddb,
+        int max_m, int max_n )
 {
     int batchid = blockIdx.z;
     int my_m = (int)m[batchid];
@@ -119,9 +123,9 @@ void trsm_template_vbatched_lTU_kernel(
     // compute the maximum allowed value for m, n based on the input offsets
     my_m -= max( Ai, max( Aj, Bi ) );
     my_n -= Bj;
-    // check if the user forces values for m, n, and k
-    //my_m = ( spec_m <= 0 ) ? my_m : min( my_m, spec_m );
-    //my_n = ( spec_n <= 0 ) ? my_n : min( my_n, spec_n );
+
+    my_m = min( my_m, max_m );
+    my_n = min( my_n, max_n );
 
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_n, NRHS) ) return;
@@ -137,7 +141,8 @@ static __global__
 void trsm_template_vbatched_rNL_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
-                 T** Barray, int Bi, int Bj, magma_int_t* lddb )
+                 T** Barray, int Bi, int Bj, magma_int_t* lddb,
+        int max_m, int max_n )
 {
     const int batchid = blockIdx.z;
     int my_m = (int)m[batchid];
@@ -148,9 +153,9 @@ void trsm_template_vbatched_rNL_kernel(
     // compute the maximum allowed value for m, n based on the input offsets
     my_n -= max( Bj, max( Ai, Aj ) );
     my_m -= Bi;
-    // check if the user forces values for m, n, and k
-    //my_m = ( spec_m <= 0 ) ? my_m : min( my_m, spec_m );
-    //my_n = ( spec_n <= 0 ) ? my_n : min( my_n, spec_n );
+
+    my_m = min( my_m, max_m );
+    my_n = min( my_n, max_n );
 
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_m, NRHS) ) return;
@@ -166,7 +171,8 @@ static __global__
 void trsm_template_vbatched_rNU_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
-                 T** Barray, int Bi, int Bj, magma_int_t* lddb )
+                 T** Barray, int Bi, int Bj, magma_int_t* lddb,
+        int max_m, int max_n )
 {
     const int batchid = blockIdx.z;
     int my_m = (int)m[batchid];
@@ -177,9 +183,9 @@ void trsm_template_vbatched_rNU_kernel(
     // compute the maximum allowed value for m, n based on the input offsets
     my_n -= max( Bj, max( Ai, Aj ) );
     my_m -= Bi;
-    // check if the user forces values for m, n, and k
-    //my_m = ( spec_m <= 0 ) ? my_m : min( my_m, spec_m );
-    //my_n = ( spec_n <= 0 ) ? my_n : min( my_n, spec_n );
+
+    my_m = min( my_m, max_m );
+    my_n = min( my_n, max_n );
 
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_m, NRHS) ) return;
@@ -195,7 +201,8 @@ static __global__
 void trsm_template_vbatched_rTL_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
-                 T** Barray, int Bi, int Bj, magma_int_t* lddb )
+                 T** Barray, int Bi, int Bj, magma_int_t* lddb,
+        int max_m, int max_n )
 {
     const int batchid = blockIdx.z;
     int my_m = (int)m[batchid];
@@ -206,9 +213,9 @@ void trsm_template_vbatched_rTL_kernel(
     // compute the maximum allowed value for m, n based on the input offsets
     my_n -= max( Bj, max( Ai, Aj ) );
     my_m -= Bi;
-    // check if the user forces values for m, n, and k
-    //my_m = ( spec_m <= 0 ) ? my_m : min( my_m, spec_m );
-    //my_n = ( spec_n <= 0 ) ? my_n : min( my_n, spec_n );
+
+    my_m = min( my_m, max_m );
+    my_n = min( my_n, max_n );
 
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_m, NRHS) ) return;
@@ -224,7 +231,8 @@ static __global__
 void trsm_template_vbatched_rTU_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
-                 T** Barray, int Bi, int Bj, magma_int_t* lddb )
+                 T** Barray, int Bi, int Bj, magma_int_t* lddb,
+        int max_m, int max_n )
 {
     const int batchid = blockIdx.z;
     int my_m = (int)m[batchid];
@@ -235,9 +243,9 @@ void trsm_template_vbatched_rTU_kernel(
     // compute the maximum allowed value for m, n based on the input offsets
     my_n -= max( Bj, max( Ai, Aj ) );
     my_m -= Bi;
-    // check if the user forces values for m, n, and k
-    //my_m = ( spec_m <= 0 ) ? my_m : min( my_m, spec_m );
-    //my_n = ( spec_n <= 0 ) ? my_n : min( my_n, spec_n );
+
+    my_m = min( my_m, max_m );
+    my_n = min( my_n, max_n );
 
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_m, NRHS) ) return;
@@ -266,11 +274,11 @@ void trsm_template_vbatched_lNx(
     if(uplo == MagmaLower){
         trsm_template_vbatched_lNL_kernel<T, NB, NRHS>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb);
+            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n);
     }else{
         trsm_template_vbatched_lNU_kernel<T, NB, NRHS>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb);
+            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -290,11 +298,11 @@ void trsm_template_vbatched_lTx(
     if(uplo == MagmaLower){
         trsm_template_vbatched_lTL_kernel<T, NB, NRHS, CONJA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb);
+            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n);
     }else{
         trsm_template_vbatched_lTU_kernel<T, NB, NRHS, CONJA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb);
+            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -314,11 +322,11 @@ void trsm_template_vbatched_rNx(
     if(uplo == MagmaLower){
         trsm_template_vbatched_rNL_kernel<T, NB, NRHS>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb);
+            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n);
     }else{
         trsm_template_vbatched_rNU_kernel<T, NB, NRHS>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb);
+            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -338,11 +346,11 @@ void trsm_template_vbatched_rTx(
     if(uplo == MagmaLower){
         trsm_template_vbatched_rTL_kernel<T, NB, NRHS, CONJA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb);
+            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n);
     }else{
         trsm_template_vbatched_rTU_kernel<T, NB, NRHS, CONJA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
-            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb);
+            (diag, m, n, alpha, dA_array, Ai, Aj, ldda, dB_array, Bi, Bj, lddb, max_m, max_n);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
