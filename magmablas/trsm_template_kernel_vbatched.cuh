@@ -275,7 +275,7 @@ void trsm_template_vbatched_lNx(
     if(uplo == MagmaLower){
         for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
-            dim3 grid( magma_ceildiv(n, NRHS), 1, ibatch );
+            dim3 grid( magma_ceildiv( max_n, NRHS), 1, ibatch );
 
             trsm_template_vbatched_lNL_kernel<T, NB, NRHS>
             <<< grid, threads, 0, queue->cuda_stream() >>>
@@ -284,7 +284,7 @@ void trsm_template_vbatched_lNx(
     }else{
         for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
-            dim3 grid( magma_ceildiv(n, NRHS), 1, ibatch );
+            dim3 grid( magma_ceildiv( max_n, NRHS), 1, ibatch );
 
             trsm_template_vbatched_lNU_kernel<T, NB, NRHS>
             <<< grid, threads, 0, queue->cuda_stream() >>>
