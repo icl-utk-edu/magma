@@ -19,11 +19,10 @@
 extern "C" void
 magmablas_ztrsm_vbatched_max(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
-    magma_int_t* m, magma_int_t* n,
+    magma_int_t max_m, magma_int_t max_n, magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex alpha,
     magmaDoubleComplex** dA_array,    magma_int_t* ldda,
     magmaDoubleComplex** dB_array,    magma_int_t* lddb,
-    magma_int_t max_m, magma_int_t max_n,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t info = 0;
@@ -36,10 +35,9 @@ magmablas_ztrsm_vbatched_max(
 
     magmablas_ztrsm_vbatched_max_nocheck(
             side, uplo, transA, diag,
-            m, n, alpha,
+            max_m, max_n, m, n, alpha,
             dA_array, 0, 0, ldda,
             dB_array, 0, 0, lddb,
-            max_m, max_n,
             batchCount, queue);
 }
 
@@ -61,10 +59,9 @@ magmablas_ztrsm_vbatched_nocheck(
 
     magmablas_ztrsm_vbatched_max_nocheck(
             side, uplo, transA, diag,
-            m, n, alpha,
+            max_m, max_n, m, n, alpha,
             dA_array, 0, 0, ldda,
             dB_array, 0, 0, lddb,
-            max_m, max_n,
             batchCount, queue);
 }
 
@@ -205,10 +202,9 @@ magmablas_ztrsm_vbatched(
 
     magmablas_ztrsm_vbatched_max_nocheck(
             side, uplo, transA, diag,
-            m, n, alpha,
+            max_m, max_n, m, n, alpha,
             dA_array, 0, 0, ldda,
             dB_array, 0, 0, lddb,
-            max_m, max_n,
             batchCount, queue);
 }
 

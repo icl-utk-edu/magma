@@ -21,11 +21,10 @@
 extern "C" void
 magmablas_ztrsm_small_vbatched(
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
-        magma_int_t* m, magma_int_t* n,
+        magma_int_t max_m, magma_int_t max_n, magma_int_t* m, magma_int_t* n,
         magmaDoubleComplex alpha,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
         magmaDoubleComplex **dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t* lddb,
-        magma_int_t max_m, magma_int_t max_n,
         magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t nrowA = (side == MagmaLeft ? max_m : max_n);
