@@ -358,7 +358,7 @@ include $(Makefiles)
 
 -include Makefile.internal
 -include Makefile.local
--include Makefile.gen
+-include Makefile.gen.$(BACKEND)
 
 #$(info $$libmagma_src=$(libmagma_src))
 #$(info $$libmagma_all=$(libmagma_all))

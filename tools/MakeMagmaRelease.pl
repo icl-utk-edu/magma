@@ -212,8 +212,7 @@ EOT
     # Need to define Fortran compiler to something that exists (true),
     # in order to include all Fortran files in CMake.src.
     print "Generate the different precisions\n";
-    myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc"); 
-    #myCmd("make -j generate");
+    myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc");
 
     # Compile the documentation
     print "Compile the documentation\n";
@@ -221,10 +220,9 @@ EOT
 
     # Generate hip files
     myCmd("echo -e 'GPU_TARGET = gfx700\nBACKEND = hip\nFORT = true' > make.inc");
-    #myCmd("make -f make.gen.hipMAGMA");
     myCmd("make generate");
 
-    myCmd("rm Makefile.gen");
+    # Generate cuda files
     myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc");
     myCmd("make -j generate");
 
@@ -236,8 +234,8 @@ EOT
     # Remove the lines relative to include directory in root Makefile
     myCmd("perl -ni -e 'print unless /cd include/' $RELEASE_PATH/Makefile");
 
-    # Remove 'Makefile.gen files'
-    myCmd("find $RELEASE_PATH -name Makefile.gen -exec rm -f {} \\;");
+    # Remove 'Makefile.gen files'? Looks like we need them (Makefile.gen.cuda or Makefile.gen.hip)
+    # myCmd("find $RELEASE_PATH -name Makefile.gen -exec rm -f {} \\;");
 
     chdir $dir;
 

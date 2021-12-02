@@ -25,6 +25,13 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+ 2.6.2 - Nov 23, 2021
+    * Caling more hipBLAS functions
+    * Bug fixes (n==0 in Cholesky factorization; synchronization in LQ; installation)
+    * Remove gfx803 target for AMD GPUs
+    * Add uplo argument in inertia compuattion routines (only upper was supported before)
+    * Fix memory leak in magma_queue for hip functions
+
  2.6.1 - July 12, 2021
     * Bug fix for installing MAGMA with spack on CUDA 9 and older
     * Expert interface for Cholesky factorization to improve performance 
