@@ -198,7 +198,7 @@ template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const i
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
 void gemm_template_vbatched_nn(
-    magma_int_t max_m, magma_int_t max_n,
+    magma_int_t max_m, magma_int_t max_n, magma_int_t max_k
     magma_int_t* m, magma_int_t* n, magma_int_t* k,
     T alpha, T const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
              T const * const * dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t* lddb,
@@ -224,7 +224,7 @@ template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const i
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
 void gemm_template_vbatched_nt(
-    magma_int_t max_m, magma_int_t max_n,
+    magma_int_t max_m, magma_int_t max_n, magma_int_t max_k
     magma_int_t* m, magma_int_t* n, magma_int_t* k,
     T alpha, T const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
              T const * const * dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t* lddb,
@@ -251,7 +251,7 @@ template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const i
          const int CONJA, const int CONJB>
 void gemm_template_vbatched_tn(
     magma_int_t* m, magma_int_t* n, magma_int_t* k,
-    magma_int_t max_m, magma_int_t max_n,
+    magma_int_t max_m, magma_int_t max_n, magma_int_t max_k
     T alpha, T const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
              T const * const * dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t* lddb,
     T beta,  T              ** dC_array, magma_int_t Ci, magma_int_t Cj, magma_int_t* lddc,
@@ -277,7 +277,7 @@ template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const i
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
 void gemm_template_vbatched_tt(
-    magma_int_t max_m, magma_int_t max_n,
+    magma_int_t max_m, magma_int_t max_n, magma_int_t max_k
     magma_int_t* m, magma_int_t* n, magma_int_t* k,
     T alpha, T const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
              T const * const * dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t* lddb,
