@@ -113,15 +113,13 @@ magma_zpotrf_vbatched(
 void
 magmablas_zgemm_vbatched_core(
     magma_trans_t transA, magma_trans_t transB,
+    magma_int_t max_m, magma_int_t max_n, magma_int_t max_k,
     magma_int_t* m, magma_int_t* n, magma_int_t* k,
     magmaDoubleComplex alpha,
-    magmaDoubleComplex const * const * dA_array, magma_int_t* ldda,
-    magmaDoubleComplex const * const * dB_array, magma_int_t* lddb,
+    magmaDoubleComplex const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
+    magmaDoubleComplex const * const * dB_array, magma_int_t Bi, magma_int_t Bj, magma_int_t* lddb,
     magmaDoubleComplex beta,
-    magmaDoubleComplex **dC_array, magma_int_t* lddc,
-    magma_int_t max_m, magma_int_t max_n, magma_int_t max_k,
-    magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, magma_int_t roffC, magma_int_t coffC,
-    magma_int_t spec_m, magma_int_t spec_n, magma_int_t spec_k,
+    magmaDoubleComplex              ** dC_array, magma_int_t Ci, magma_int_t Cj, magma_int_t* lddc,
     magma_int_t batchCount, magma_queue_t queue );
 
 void
