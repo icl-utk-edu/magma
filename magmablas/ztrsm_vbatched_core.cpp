@@ -88,13 +88,11 @@ magmablas_ztrsm_vbatched_core(
 
                 magmablas_zgemm_vbatched_core(
                         MagmaNoTrans, MagmaNoTrans,
-                        m, n, m,
-                        c_negone, dA_array, ldda,
-                                  dB_array, lddb,
-                        alpha   , dB_array, lddb,
                         m2, max_n, m1,
-                        Ai+m1, Aj, Bi, Bj, Bi+m1, Bj,
-                        m2, 0, m1,
+                        m, n, m,
+                        c_negone, dA_array, Ai+m1, Aj, ldda,
+                                  dB_array, Bi,    Bj, lddb,
+                        alpha   , dB_array, Bi+m1, Bj, lddb,
                         batchCount, queue );
 
                 //printf("trsm2: m1 = %d, m2 = %d\n", m1, m2);
@@ -121,13 +119,11 @@ magmablas_ztrsm_vbatched_core(
 
                 magmablas_zgemm_vbatched_core(
                         MagmaNoTrans, MagmaNoTrans,
-                        m, n, m,
-                        c_neg_ialpha, dA_array, ldda,
-                                      dB_array, lddb,
-                        c_one       , dB_array, lddb,
                         m1, max_n, m2,
-                        Ai, Aj+m1, Bi+m1, Bj, Bi, Bj,
-                        m1, 0, m2,
+                        m, n, m,
+                        c_neg_ialpha, dA_array, Ai, Aj+m1, ldda,
+                                      dB_array, Bi+m1, Bj, lddb,
+                        c_one       , dB_array, Bi,    Bj, lddb,
                         batchCount, queue );
 
                 //printf("trsm2: m1 = %d, m2 = %d\n", m1, m2);
@@ -154,13 +150,11 @@ magmablas_ztrsm_vbatched_core(
 
                 magmablas_zgemm_vbatched_core(
                         transA, MagmaNoTrans,
-                        m, n, m,
-                        c_neg_ialpha, dA_array, ldda,
-                                      dB_array, lddb,
-                        c_one,        dB_array, lddb,
                         m1, max_n, m2,
-                        Ai+m1, Aj, Bi+m1, Bj, Bi, Bj,
-                        m1, 0, m2,
+                        m, n, m,
+                        c_neg_ialpha, dA_array, Ai+m1, Aj, ldda,
+                                      dB_array, Bi+m1, Bj, lddb,
+                        c_one,        dB_array, Bi,    Bj, lddb,
                         batchCount, queue );
 
                 magmablas_ztrsm_vbatched_core(
@@ -185,13 +179,11 @@ magmablas_ztrsm_vbatched_core(
 
                 magmablas_zgemm_vbatched_core(
                         transA, MagmaNoTrans,
-                        m, n, m,
-                        c_negone, dA_array, ldda,
-                                  dB_array, lddb,
-                        alpha   , dB_array, lddb,
                         m2, max_n, m1,
-                        Ai, Aj+m1, Bi, Bj, Bi+m1, Bj,
-                        m2, 0, m1,
+                        m, n, m,
+                        c_negone, dA_array, Ai,    Aj+m1, ldda,
+                                  dB_array, Bi,    Bj,    lddb,
+                        alpha   , dB_array, Bi+m1, Bj,    lddb,
                         batchCount, queue );
 
                 magmablas_ztrsm_vbatched_core(
@@ -216,13 +208,11 @@ magmablas_ztrsm_vbatched_core(
 
                 magmablas_zgemm_vbatched_core(
                         MagmaNoTrans, transA,
-                        m, n, n,
-                        c_neg_ialpha, dB_array, lddb,
-                                      dA_array, ldda,
-                        c_one       , dB_array, lddb,
                         max_m, n1, n2,
-                        Bi, Bj+n1, Ai+n1, Aj, Bi, Bj,
-                        0, n1, n2,
+                        m, n, n,
+                        c_neg_ialpha, dB_array, Bi,    Bj+n1, lddb,
+                                      dA_array, Ai+n1, Aj,    ldda,
+                        c_one       , dB_array, Bi,    Bj,    lddb,
                         batchCount, queue );
 
                 magmablas_ztrsm_vbatched_core(
@@ -247,13 +237,11 @@ magmablas_ztrsm_vbatched_core(
 
                 magmablas_zgemm_vbatched_core(
                         MagmaNoTrans, transA,
-                        m, n, n,
-                        c_negone, dB_array, lddb,
-                                  dA_array, ldda,
-                        alpha   , dB_array, lddb,
                         max_m, n2, n1,
-                        Bi, Bj, Ai, Aj+n1, Bi, Bj+n1,
-                        0, n2, n1,
+                        m, n, n,
+                        c_negone, dB_array, Bi, Bj,    lddb,
+                                  dA_array, Ai, Aj+n1, ldda,
+                        alpha   , dB_array, Bi, Bj+n1, lddb,
                         batchCount, queue );
 
                 magmablas_ztrsm_vbatched_core(
@@ -278,13 +266,11 @@ magmablas_ztrsm_vbatched_core(
 
                 magmablas_zgemm_vbatched_core(
                         MagmaNoTrans, transA,
-                        m, n, n,
-                        c_negone, dB_array, lddb,
-                                  dA_array, ldda,
-                        alpha   , dB_array, lddb,
                         max_m, n2, n1,
-                        Bi, Bj, Ai+n1, Aj, Bi, Bj+n1,
-                        0, n2, n1,
+                        m, n, n,
+                        c_negone, dB_array, Bi,    Bj,    lddb,
+                                  dA_array, Ai+n1, Aj,    ldda,
+                        alpha   , dB_array, Bi,    Bj+n1, lddb,
                         batchCount, queue );
 
                 magmablas_ztrsm_vbatched_core(
@@ -309,13 +295,11 @@ magmablas_ztrsm_vbatched_core(
 
                 magmablas_zgemm_vbatched_core(
                         MagmaNoTrans, transA,
-                        m, n, n,
-                        c_neg_ialpha, dB_array, lddb,
-                                      dA_array, ldda,
-                        c_one       , dB_array, lddb,
                         max_m, n1, n2,
-                        Bi, Bj+n1, Ai, Aj+n1, Bi, Bj,
-                        0, n1, n2,
+                        m, n, n,
+                        c_neg_ialpha, dB_array, Bi, Bj+n1, lddb,
+                                      dA_array, Ai, Aj+n1, ldda,
+                        c_one       , dB_array, Bi, Bj,    lddb,
                         batchCount, queue );
 
                 magmablas_ztrsm_vbatched_core(
