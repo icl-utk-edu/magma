@@ -32,7 +32,7 @@ magma_int_t magma_get_ztrsm_vbatched_nb(magma_int_t max_n)
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 extern "C" void
-magmablas_ztrsm_vbatched_max_nocheck(
+magmablas_ztrsm_vbatched_core(
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
         magma_int_t max_m, magma_int_t max_n, magma_int_t* m, magma_int_t* n,
         magmaDoubleComplex alpha,
@@ -79,7 +79,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                 const int m1 = max_m - m2;
 
                 //printf("trsm1: m1 = %d, m2 = %d\n", m1, m2);
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         m1, max_n, m, n, alpha,
                         dA_array(Ai, Aj), ldda,
@@ -98,7 +98,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                         batchCount, queue );
 
                 //printf("trsm2: m1 = %d, m2 = %d\n", m1, m2);
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         m2, max_n, m, n, c_one,
                         dA_array(Ai+m1, Aj+m1), ldda,
@@ -112,7 +112,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                 const int m2 = max_m - m1;
 
                 //printf("trsm1: m1 = %d, m2 = %d\n", m1, m2);
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         m2, max_n, m, n, alpha,
                         dA_array(Ai+m1, Aj+m1), ldda,
@@ -131,7 +131,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                         batchCount, queue );
 
                 //printf("trsm2: m1 = %d, m2 = %d\n", m1, m2);
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         m1, max_n, m, n, alpha,
                         dA_array(Ai, Aj), ldda,
@@ -145,7 +145,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                 const int m2 = magma_get_ztrsm_vbatched_nb(max_m);
                 const int m1 = max_m - m2;
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         m2, max_n, m, n, alpha,
                         dA_array(Ai+m1, Aj+m1), ldda,
@@ -163,7 +163,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                         m1, 0, m2,
                         batchCount, queue );
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         m1, max_n, m, n, alpha,
                         dA_array(Ai, Aj), ldda,
@@ -176,7 +176,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                 const int m1 = magma_get_ztrsm_vbatched_nb(max_m);
                 const int m2 = max_m - m1;
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         m1, max_n, m, n, alpha,
                         dA_array(Ai, Aj), ldda,
@@ -194,7 +194,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                         m2, 0, m1,
                         batchCount, queue );
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         m2, max_n, m, n, c_one,
                         dA_array(Ai+m1, Aj+m1), ldda,
@@ -207,7 +207,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                 const int n2 = magma_get_ztrsm_vbatched_nb(max_n);
                 const int n1 = max_n - n2;
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         max_m, n2, m, n, alpha,
                         dA_array(Ai+n1, Aj+n1), ldda,
@@ -225,7 +225,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                         0, n1, n2,
                         batchCount, queue );
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         max_m, n1, m, n, alpha,
                         dA_array(Ai, Aj), ldda,
@@ -238,7 +238,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                 const int n1 = magma_get_ztrsm_vbatched_nb(max_n);
                 const int n2 = max_n - n1;
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         max_m, n1, m, n, alpha,
                         dA_array(Ai, Aj), ldda,
@@ -256,7 +256,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                         0, n2, n1,
                         batchCount, queue );
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         max_m, n2, m, n, c_one,
                         dA_array(Ai+n1, Aj+n1), ldda,
@@ -269,7 +269,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                 const int n1 = magma_get_ztrsm_vbatched_nb(max_n);
                 const int n2 = max_n - n1;
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         max_m, n1, m, n, alpha,
                         dA_array(Ai, Aj), ldda,
@@ -287,7 +287,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                         0, n2, n1,
                         batchCount, queue );
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         max_m, n2, m, n, c_one,
                         dA_array(Ai+n1, Aj+n1), ldda,
@@ -300,7 +300,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                 const int n2 = magma_get_ztrsm_vbatched_nb(max_n);
                 const int n1 = max_n - n2;
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         max_m, n2, m, n, alpha,
                         dA_array(Ai+n1, Aj+n1), ldda,
@@ -318,7 +318,7 @@ magmablas_ztrsm_vbatched_max_nocheck(
                         0, n1, n2,
                         batchCount, queue );
 
-                magmablas_ztrsm_vbatched_max_nocheck(
+                magmablas_ztrsm_vbatched_core(
                         side, uplo, transA, diag,
                         max_m, n1, m, n, alpha,
                         dA_array(Ai, Aj), ldda,
