@@ -152,7 +152,7 @@ magma_zgetf2_vbatched(
         // gemm
         magmablas_zgemm_vbatched_core(
             MagmaNoTrans, MagmaNoTrans,
-            max_m-j-ib, max_n-j-ib, max_minmn-,
+            max_m-j-ib, max_n-j-ib, ib,
             m, n, minmn_vec,
             MAGMA_Z_NEG_ONE, dA_array, Ai+j+ib, Aj+j,    ldda,
                              dA_array, Ai+j,    Aj+j+ib, ldda,
