@@ -121,7 +121,7 @@ magma_zgetf2_vbatched(
         magma_zscal_zgeru_vbatched( max_m, max_n, m, n, dA_array(Ai+j, Aj+j), ldda, info_array, j, gbstep, batchCount, queue);
     }
     #else
-    magma_int_t minmn_vec;
+    magma_int_t *minmn_vec;
     magma_imalloc(&minmn_vec, batchCount);
     magma_ivec_min_vv( batchCount, m, n, minmn_vec, queue);
 
