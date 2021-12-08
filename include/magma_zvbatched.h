@@ -35,33 +35,35 @@ magma_izamax_vbatched(
 
 magma_int_t
 magma_zswap_vbatched(
-        magma_int_t max_n, magma_int_t *M, magma_int_t *N,
-        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
-        magma_int_t** ipiv_array,
-        magma_int_t batchCount, magma_queue_t queue);
+    magma_int_t max_n, magma_int_t *M, magma_int_t *N,
+    magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
+    magma_int_t** ipiv_array,
+    magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t magma_zscal_zgeru_vbatched(
-        magma_int_t max_M, magma_int_t max_N,
-        magma_int_t *M, magma_int_t *N,
-        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
-        magma_int_t *info_array, magma_int_t step, magma_int_t gbstep,
-        magma_int_t batchCount, magma_queue_t queue);
+    magma_int_t max_M, magma_int_t max_N,
+    magma_int_t *M, magma_int_t *N,
+    magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
+    magma_int_t *info_array, magma_int_t step, magma_int_t gbstep,
+    magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t
 magma_zgetf2_vbatched(
-    magma_int_t *m, magma_int_t *n,
+    magma_int_t *m, magma_int_t *n, magma_int_t minmn,
     magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn,
     magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
     magma_int_t **ipiv_array, magma_int_t *info_array,
     magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t
-magma_zgetf2_vbatched(
-    magma_int_t *m, magma_int_t *n,
-    magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn,
-    magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
-    magma_int_t **ipiv_array, magma_int_t *info_array,
-    magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue);
+magma_zgetrf_recpanel_vbatched(
+    magma_int_t* m, magma_int_t* n,
+    magma_int_t max_m, magma_int_t max_n,
+    magma_int_t max_minmn, magma_int_t max_mxn, magma_int_t min_recpnb,
+    magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+    magma_int_t** dipiv_array, magma_int_t dipiv_i, magma_int_t** dpivinfo_array,
+    magma_int_t *info_array, magma_int_t gbstep,
+    magma_int_t batchCount,  magma_queue_t queue);
 
 magma_int_t
 magma_zpotrf_lpout_vbatched(

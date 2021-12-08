@@ -206,7 +206,7 @@ int main( int argc, char** argv)
             magma_time = magma_sync_wtime( opts.queue );
             if(opts.version == 1) {
                 magma_memset(dinfo, 0, batchCount*sizeof(magma_int_t));
-                info = magma_zgetf2_vbatched(d_M, d_N, max_M, max_N, max_minmn, dA_array, 0, 0, d_ldda, dipiv_array, dinfo, 0, batchCount, opts.queue);
+                info = magma_zgetrf_recpanel_vbatched(d_M, d_N, max_M, max_N, max_minmn, 0, 0, dA_array, 0, 0, ldda, dipiv_array, 0, NULL, dinfo, 0, batchCount,  opts.queue);
             }
             else if(opts.version == 2) {
                 for(int s = 0; s < batchCount; s++) {
