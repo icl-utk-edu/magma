@@ -94,7 +94,7 @@
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zgetf2_vbatched(
-    magma_int_t *m, magma_int_t *n,
+    magma_int_t *m, magma_int_t *n, magma_int_t minmn,
     magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn,
     magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
     magma_int_t **ipiv_array, magma_int_t *info_array,
@@ -121,10 +121,6 @@ magma_zgetf2_vbatched(
         magma_zscal_zgeru_vbatched( max_m, max_n, m, n, dA_array(Ai+j, Aj+j), ldda, info_array, j, gbstep, batchCount, queue);
     }
     #else
-    magma_int_t *minmn_vec;
-    magma_imalloc(&minmn_vec, batchCount);
-    magma_ivec_min_vv( batchCount, m, n, minmn_vec, queue);
-
     magma_int_t nb = 8;
     for(j=0; j < max_minmn; j+=nb) {
 
@@ -153,14 +149,14 @@ magma_zgetf2_vbatched(
         magmablas_zgemm_vbatched_core(
             MagmaNoTrans, MagmaNoTrans,
             max_m-j-ib, max_n-j-ib, ib,
-            m, n, minmn_vec,
+            m, n, minmn,
             MAGMA_Z_NEG_ONE, dA_array, Ai+j+ib, Aj+j,    ldda,
                              dA_array, Ai+j,    Aj+j+ib, ldda,
             MAGMA_Z_ONE,     dA_array, Ai+j+ib, Aj+j+ib, ldda,
             batchCount, queue );
     }
 
-    magma_free( minmn_vec );
+    magma_free( minmn );
     #endif
 
     return 0;
