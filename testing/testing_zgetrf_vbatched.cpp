@@ -207,9 +207,9 @@ int main( int argc, char** argv)
             if(opts.version == 1) {
                 magma_int_t *minmn;
                 magma_imalloc(&minmn, batchCount);
-                magma_ivec_min_vv( batchCount, d_M, d_N, minmn, queue);
+                magma_ivec_min_vv( batchCount, d_M, d_N, minmn, opts.queue);
                 magma_memset(dinfo, 0, batchCount*sizeof(magma_int_t));
-                info = magma_zgetrf_recpanel_vbatched(d_M, d_N, max_M, max_N, max_minmn, 0, 0, dA_array, 0, 0, d_ldda, dipiv_array, 0, NULL, dinfo, 0, batchCount,  opts.queue);
+                info = magma_zgetrf_recpanel_vbatched(d_M, d_N, minmn, max_M, max_N, max_minmn, 0, 0, dA_array, 0, 0, d_ldda, dipiv_array, 0, NULL, dinfo, 0, batchCount,  opts.queue);
                 magmafree(minmn);
             }
             else if(opts.version == 2) {
