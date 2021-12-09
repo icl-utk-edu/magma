@@ -49,7 +49,7 @@ magma_zgetrf_recpanel_vbatched(
             info_array, gbstep, batchCount, queue);
 
         // swap right
-        magma_zlaswp_right_rowserial_batched(
+        magma_zlaswp_right_rowserial_vbatched(
             max_n2,
             m, n,
             dA_array(Ai, Aj+max_n1), ldda,
@@ -83,7 +83,7 @@ magma_zgetrf_recpanel_vbatched(
             info_array, gbstep+max_n1, batchCount, queue);
 
         // swap left
-        magma_zlaswp_left_rowserial_batched(
+        magma_zlaswp_left_rowserial_vbatched(
             max_n1, max_n2,
             m, n, dA_array(Ai+max_n1, Aj), ldda,
             Ai+max_n1, Ai+max_n,
