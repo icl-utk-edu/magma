@@ -24,7 +24,7 @@ magma_zgetrf_recpanel_vbatched(
     magma_int_t *info_array, magma_int_t gbstep,
     magma_int_t batchCount,  magma_queue_t queue)
 {
-#define dAarray(i,j)    dA_array, i, j
+#define dA_array(i,j)    dA_array, i, j
 #define dipiv_array(i)   dipiv_array, i
 
 
@@ -95,6 +95,6 @@ magma_zgetrf_recpanel_vbatched(
 
     return 0;
 
-    #undef dAarray
+    #undef dA_array
     #undef dipiv_array
 }
