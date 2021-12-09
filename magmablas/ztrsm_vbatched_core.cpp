@@ -47,6 +47,8 @@ magmablas_ztrsm_vbatched_core(
     const magmaDoubleComplex c_negone     = MAGMA_Z_NEG_ONE;
     const magmaDoubleComplex c_neg_ialpha = MAGMA_Z_DIV(c_negone, alpha);
 
+    if(max_m == 0 || max_n == 0) return;
+
     magma_int_t max_nrowA = (side == MagmaLeft ? max_m : max_n);
     magma_int_t shape = 0;
     if      (side == MagmaLeft   && transA == MagmaNoTrans  && uplo == MagmaLower) { shape = 0; } // lNL
