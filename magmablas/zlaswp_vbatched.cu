@@ -39,8 +39,8 @@ __global__ void zlaswp_left_rowserial_kernel_vbatched(
     // check if offsets produce out-of-bound pointers
     if( my_M <= Ai || my_N <= Aj ) return;
 
-    k1--;
-    k2--;
+    //k1--;
+    //k2--;
 
     // check the offsets k1, k2
     if( k1 >= my_minmn ) return;
@@ -87,8 +87,8 @@ __global__ void zlaswp_right_rowserial_kernel_vbatched(
     // check if offsets produce out-of-bound pointers
     if( my_M <= Ai || my_N <= Aj ) return;
 
-    k1--;
-    k2--;
+    //k1--;
+    //k2--;
 
     // check the offsets k1, k2
     if( k1 >= my_minmn ) return;
