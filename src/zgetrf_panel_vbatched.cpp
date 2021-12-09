@@ -34,7 +34,7 @@ magma_zgetrf_recpanel_vbatched(
     magma_malloc_cpu((void**)&hA_array, batchCount * sizeof(magmaDoubleComplex*));
     magma_imalloc_cpu(&h_M,     batchCount);
     magma_imalloc_cpu(&h_N,     batchCount);
-    magma_imalloc_cpu(&h_lddaa, batchCount);
+    magma_imalloc_cpu(&h_ldda, batchCount);
     magma_getvector( batchCount, sizeof(magmaDoubleComplex), dA_array, 1, hA_array, 1, queue );
     magma_igetvector( batchCount, m,    1, h_M,    1, queue );
     magma_igetvector( batchCount, n,    1, h_N,    1, queue );
