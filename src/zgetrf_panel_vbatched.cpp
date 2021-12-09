@@ -118,7 +118,7 @@ magma_zgetrf_recpanel_vbatched(
         // swap left
         magma_zlaswp_left_rowserial_vbatched(
             max_n1, max_n2,
-            m, n, dA_array(Ai+max_n1, Aj), ldda,
+            m, n, dA_array(Ai, Aj), ldda,     // not dA_array(Ai+max_n1, Aj), because pivot is already adjusted
             Ai+max_n1, Ai+max_n,
             dipiv_array,
             batchCount, queue);
