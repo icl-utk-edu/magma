@@ -156,7 +156,6 @@ magma_zgetf2_vbatched(
             batchCount, queue );
     }
 
-    magma_free( minmn );
     #endif
 
     return 0;
