@@ -62,7 +62,7 @@ magma_zgetrf_recpanel_vbatched(
             info_array, gbstep, batchCount, queue);
         #ifdef DBG
         printf("panel 1");
-        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0]);
+        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0], queue);
         #endif
 
         // swap right
@@ -74,7 +74,7 @@ magma_zgetrf_recpanel_vbatched(
             dipiv_array, batchCount, queue);
         #ifdef DBG
         printf("swap right");
-        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0]);
+        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0], queue);
         #endif
 
         // trsm
@@ -86,7 +86,7 @@ magma_zgetrf_recpanel_vbatched(
             batchCount, queue );
         #ifdef DBG
         printf("trsm");
-        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0]);
+        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0], queue);
         #endif
 
         // gemm
@@ -100,7 +100,7 @@ magma_zgetrf_recpanel_vbatched(
             batchCount, queue );
         #ifdef DBG
         printf("gemm");
-        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0]);
+        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0], queue);
         #endif
 
         // panel 2
@@ -112,7 +112,7 @@ magma_zgetrf_recpanel_vbatched(
             info_array, gbstep+max_n1, batchCount, queue);
         #ifdef DBG
         printf("panel 2");
-        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0]);
+        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0], queue);
         #endif
 
         // swap left
@@ -124,7 +124,7 @@ magma_zgetrf_recpanel_vbatched(
             batchCount, queue);
         #ifdef DBG
         printf("swap left");
-        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0]);
+        magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0], queue);
         #endif
 
 
