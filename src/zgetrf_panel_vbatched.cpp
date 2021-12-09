@@ -12,6 +12,8 @@
 */
 #include "magma_internal.h"
 
+// always assume for every matrix m >= n
+// then max_minmn = max_n
 magma_int_t
 magma_zgetrf_recpanel_vbatched(
     magma_int_t* m, magma_int_t* n, magma_int_t* minmn,
@@ -23,18 +25,76 @@ magma_zgetrf_recpanel_vbatched(
     magma_int_t batchCount,  magma_queue_t queue)
 {
 #define dAarray(i,j)    dA_array, i, j
-#define ipiv_array(i)   dipiv_array, i
+#define dipiv_array(i)   dipiv_array, i
 
 
-    magma_zgetf2_vbatched(
-        m, n, minmn,
-        max_m, max_n, max_minmn,
-        dA_array, Ai, Aj, ldda,
-        dipiv_array, info_array,
-        0, batchCount, queue);
+    if( max_n <= min_recpnb ) {
+        magma_zgetf2_vbatched(
+            m, n, minmn,
+            max_m, max_n, max_minmn,
+            dA_array, Ai, Aj, ldda,
+            dipiv_array, info_array,
+            gbstep, batchCount, queue);
+    }
+    else {
+        magma_int_t max_n1 = max_n / 2;
+        magma_int_t max_n2 = max_n - max_n1;
+
+        // panel
+        magma_zgetrf_recpanel_vbatched(
+            m, n, minmn,
+            max_m, max_n1, max_n1, 0, min_recpnb,
+            dA_array(Ai, Aj), ldda,
+            dipiv_array, Ai, NULL,
+            info_array, gbstep, batchCount, queue);
+
+        // swap right
+        magma_zlaswp_right_rowserial_batched(
+            max_n2,
+            m, n,
+            dA_array(Ai, Aj+max_n1), ldda,
+            Ai, Ai+max_n1,
+            dipiv_array, batchCount, queue);
+
+        // trsm
+        magmablas_ztrsm_vbatched_core(
+            MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit,
+            max_n1, max_n2, m, n, MAGMA_Z_ONE,
+            dA_array(Ai, Aj       ), ldda,
+            dA_array(Ai, Aj+max_n1), ldda,
+            batchCount, queue );
+
+        // gemm
+        magmablas_zgemm_vbatched_core(
+            MagmaNoTrans, MagmaNoTrans,
+            max_m-max_n1, max_n2, max_n1,
+            m, n, minmn,
+            MAGMA_Z_NEG_ONE, dA_array(Ai+max_n1, Aj       ), ldda,
+                             dA_array(Ai       , Aj+max_n1), ldda,
+            MAGMA_Z_ONE,     dA_array(Ai+max_n1, Aj+max_n1), ldda,
+            batchCount, queue );
+
+        // panel 2
+        magma_zgetrf_recpanel_vbatched(
+            m, n, minmn,
+            max_m-max_n1, max_n2, max_n2, 0, min_recpnb,
+            dA_array(Ai+max_n1, Aj+max_n1), ldda,
+            dipiv_array, Ai+max_n1, NULL,
+            info_array, gbstep+max_n1, batchCount, queue);
+
+        // swap left
+        magma_zlaswp_left_rowserial_batched(
+            max_n1, max_n2,
+            m, n, dA_array(Ai+max_n1, Aj), ldda,
+            Ai+max_n1, Ai+max_n,
+            dipiv_array,
+            batchCount, queue);
+
+
+    }
 
     return 0;
 
     #undef dAarray
-    #undef ipiv_array
+    #undef dipiv_array
 }
