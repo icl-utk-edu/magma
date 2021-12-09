@@ -123,7 +123,7 @@ magma_zgetrf_recpanel_vbatched(
             dipiv_array,
             batchCount, queue);
         #ifdef DBG
-        printf("swap left - (k1, k2) = (%d, %d)\n");
+        printf("swap left - (k1, k2) = (%d, %d)\n", Ai+max_n1, Ai+max_n);
         magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0], queue);
         #endif
 
