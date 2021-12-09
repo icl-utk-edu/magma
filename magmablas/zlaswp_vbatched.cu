@@ -44,7 +44,9 @@ __global__ void zlaswp_left_rowserial_kernel_vbatched(
 
     // check the offsets k1, k2
     if( k1 >= my_minmn ) return;
-    k2 = min(k2, my_minmn-1);
+    k2 = min(k2, my_minmn);
+    // if we use k2 = min(k2, my_minmn-1),
+    // then the for loop below should be until i1 <= k2, not i1 < k2
 
     // check the input scalar 'n'
     const int my_max_n = (magma_ceildiv(my_minmn, nb) - 1) * nb;
