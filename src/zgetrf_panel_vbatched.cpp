@@ -120,7 +120,7 @@ magma_zgetrf_recpanel_vbatched(
         magma_zprint_gpu(h_M[0], h_N[0], hA_array[0], h_ldda[0], queue);
         #endif
 
-        adjust_ipiv_vbatched(dipiv_array, max_n1, m, max_n2, max_n1, batchCount, queue);
+        adjust_ipiv_vbatched(dipiv_array, Ai+max_n1, m, max_n2, max_n1, batchCount, queue);
 
         // swap left
         magma_zlaswp_left_rowserial_vbatched(
