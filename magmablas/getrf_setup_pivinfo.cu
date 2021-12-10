@@ -223,13 +223,13 @@ adjust_ipiv_vbatched(    magma_int_t **ipiv_array, magma_int_t ipiv_offset,
                          magma_int_t batchCount, magma_queue_t queue)
 {
     if (offset == 0 ) return;
-    if ( m  > MAX_NTHREADS)
+    if ( max_m  > MAX_NTHREADS)
     {
         fprintf( stderr, "%s: m=%lld > %lld, not supported\n",
-                 __func__, (long long) m, (long long) MAX_NTHREADS );
+                 __func__, (long long) max_m, (long long) MAX_NTHREADS );
         return;
     }
     adjust_ipiv_kernel_vbatched
-        <<< batchCount, m, 0, queue->cuda_stream() >>>
+        <<< batchCount, max_m, 0, queue->cuda_stream() >>>
         (ipiv_array, ipiv_offset, m, max_m, offset);
 }
