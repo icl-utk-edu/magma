@@ -23,6 +23,13 @@
 extern "C" {
 #endif
 
+// adjust pivot for LU
+void
+adjust_ipiv_vbatched(
+        magma_int_t **ipiv_array, magma_int_t ipiv_offset,
+        magma_int_t *m, magma_int_t max_m, magma_int_t offset,
+        magma_int_t batchCount, magma_queue_t queue);
+
 // checker routines - LAPACK
 magma_int_t
 magma_potrf_vbatched_checker(
