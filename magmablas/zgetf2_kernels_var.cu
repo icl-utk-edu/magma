@@ -57,8 +57,8 @@ izamax_kernel_vbatched(
         if (shared_x[0] == MAGMA_D_ZERO) {
             info_array[batchid] = shared_idx[0] + step + gbstep + 1;
         }
-        //#ifdef 0 //PRECISION_d
-        //printf("found pivot at %d = %f\n", shared_idx[0], shared_x[0]);
+        //#ifdef PRECISION_d
+        //printf("found pivot %f - written pivot = %d\n", shared_x[0], shared_idx[0] + step + 1);
         //#endif
     }
 }
@@ -132,7 +132,8 @@ void zswap_kernel_vbatched(
     magma_int_t *ipiv = ipiv_array[batchid] + Ai;
     __shared__ int jp;
     if (threadIdx.x == 0){
-        jp = ipiv[0] - 1; // roll-back Fortran indexing
+        jp  = ipiv[0] - 1; // roll-back Fortran indexing
+        if(batchid == 0) printf("Ai = %d, jp = %d\n", Ai, jp);
     }
     __syncthreads();
 
