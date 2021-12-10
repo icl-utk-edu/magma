@@ -26,7 +26,7 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (iM == 32 && iN == 32 && s == 0 && batchCount == 1)
+#define cond (iM == 16 && iN == 8 && s == 0 && batchCount == 1)
 
 double get_LU_error(magma_int_t M, magma_int_t N,
                     magmaDoubleComplex *A,  magma_int_t lda,
@@ -209,7 +209,7 @@ int main( int argc, char** argv)
                 magma_imalloc(&minmn, batchCount);
                 magma_ivec_min_vv( batchCount, d_M, d_N, minmn, opts.queue);
                 magma_memset(dinfo, 0, batchCount*sizeof(magma_int_t));
-                info = magma_zgetrf_recpanel_vbatched(d_M, d_N, minmn, max_M, max_N, max_minmn, 0, 8, dA_array, 0, 0, d_ldda, dipiv_array, 0, NULL, dinfo, 0, batchCount,  opts.queue);
+                info = magma_zgetrf_recpanel_vbatched(d_M, d_N, minmn, max_M, max_N, max_minmn, 0, 4, dA_array, 0, 0, d_ldda, dipiv_array, 0, NULL, dinfo, 0, batchCount,  opts.queue);
                 magma_free(minmn);
             }
             else if(opts.version == 2) {
