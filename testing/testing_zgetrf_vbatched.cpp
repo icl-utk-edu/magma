@@ -206,7 +206,7 @@ int main( int argc, char** argv)
             magma_time = magma_sync_wtime( opts.queue );
             if(opts.version == 1) {
                 magma_zgetrf_vbatched_max_nocheck(
-                    max_m, max_n, max_minmn,
+                    max_M, max_N, max_minmn,
                     d_M, d_N,
                     dA_array, d_ldda,
                     dipiv_array, dinfo, batchCount, opts.queue);
