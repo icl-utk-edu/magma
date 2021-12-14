@@ -95,14 +95,14 @@ magma_zgetrf_vbatched_max_nocheck(
     magma_int_t recnb = 32;
     magma_int_t *minmn;
     magma_imalloc(&minmn, batchCount);
-    magma_ivec_min_vv( batchCount, d_M, d_N, minmn, queue);
-    magma_memset(dinfo, 0, batchCount*sizeof(magma_int_t));
+    magma_ivec_min_vv( batchCount, m, n, minmn, queue);
+    magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
     arginfo = magma_zgetrf_recpanel_vbatched(
-                    d_M, d_N, minmn,
+                    m, n, minmn,
                     max_m, max_n, max_minmn, 0, recnb,
                     dA_array, 0, 0, ldda,
-                    dipiv_array, 0, NULL,
-                    dinfo, 0, batchCount, queue);
+                    ipiv_array, 0, NULL,
+                    info_array, 0, batchCount, queue);
     magma_free(minmn);
 #else
     magma_int_t min_mn = min(m, n);
