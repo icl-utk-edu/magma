@@ -57,9 +57,11 @@ izamax_kernel_vbatched(
         if (shared_x[0] == MAGMA_D_ZERO) {
             info_array[batchid] = shared_idx[0] + step + gbstep + 1;
         }
-        //#ifdef PRECISION_d
-        //printf("found pivot %f - written pivot = %d\n", shared_x[0], shared_idx[0] + step + 1);
-        //#endif
+        #ifdef DBG
+        #ifdef PRECISION_d
+        if(batchid == 1)printf("\n step = %d, found pivot %f - written pivot = %d\n", step, shared_x[0], shared_idx[0] + step + 1);
+        #endif
+        #endif
     }
 }
 
@@ -113,8 +115,8 @@ void zswap_kernel_vbatched_org(
 __global__
 void zswap_kernel_vbatched(
         int max_n, magma_int_t *M, magma_int_t *N,
-        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
-        magma_int_t** ipiv_array )
+        magmaDoubleComplex **dA_array, int Ai, int Aj, magma_int_t* ldda,
+        magma_int_t** ipiv_array, int piv_adjustment)
 {
     const int batchid = blockIdx.x;
     const int my_ldda = (int)ldda[batchid];
@@ -133,14 +135,23 @@ void zswap_kernel_vbatched(
     __shared__ int jp;
     if (threadIdx.x == 0){
         jp  = ipiv[0] - 1; // roll-back Fortran indexing
-        if(batchid == 0) printf("Ai = %d, jp = %d\n", Ai, jp);
+        #ifdef DBG
+        if(batchid == 0) printf("swap[%d]: Ai = %d, jp = %d\n", piv_adjustment, Ai, jp);
+        #endif
+        // magma_izamax_vbatched adjusts the pivot, so roll it back
+        // because Ai and Aj are offsets that already take care of that
+        jp -= piv_adjustment;
+        #ifdef DBG
+        if(batchid == 0) printf("swap[%d]: Ai = %d, jp = %d\n", piv_adjustment, Ai, jp);
+        #endif
     }
     __syncthreads();
 
-    if (jp == Ai) return; // no swapping required
+    if (jp == 0) return; // no swapping required
 
-    magmaDoubleComplex *dA1 = dA_array[batchid] + Aj * my_ldda + Ai;
-    magmaDoubleComplex *dA2 = dA_array[batchid] + Aj * my_ldda + jp;
+    magmaDoubleComplex *dA  = dA_array[batchid] + Aj * my_ldda + Ai;
+    magmaDoubleComplex *dA1 = dA;
+    magmaDoubleComplex *dA2 = dA + jp;
 
     zswap_device_v2(my_N, dA1, my_ldda, dA2, my_ldda );
 }
@@ -150,14 +161,14 @@ extern "C" magma_int_t
 magma_zswap_vbatched(
         magma_int_t max_n, magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
-        magma_int_t** ipiv_array,
+        magma_int_t** ipiv_array, magma_int_t piv_adjustment,
         magma_int_t batchCount, magma_queue_t queue)
 {
     dim3 grid(batchCount, 1, 1);
     dim3 threads(zamax, 1, 1);
 
     zswap_kernel_vbatched<<< grid, threads, 0, queue->cuda_stream() >>>
-    (max_n, M, N, dA_array, Ai, Aj, ldda, ipiv_array);
+    (max_n, M, N, dA_array, Ai, Aj, ldda, ipiv_array, piv_adjustment);
 
     return 0;
 }
