@@ -168,16 +168,27 @@ __global__ void adjust_ipiv_kernel_batched(magma_int_t **ipiv_array, int ipiv_of
 /******************************************************************************/
 __global__ void adjust_ipiv_kernel_vbatched(
                     magma_int_t **ipiv_array, int ipiv_offset,
-                    magma_int_t *m, int max_m, int offset)
+                    magma_int_t *minmn, int max_minmn, int offset)
 {
     int batchid = blockIdx.x;
-    int my_m = (int)m[batchid];
+    int my_minmn = (int)minmn[batchid];
 
-    if(ipiv_offset >= my_m) return;
-    my_m -= ipiv_offset;
-    my_m  = min(my_m, max_m);
+    if(ipiv_offset >= my_minmn) return;
+    my_minmn -= ipiv_offset;
+    my_minmn  = min(my_minmn, max_minmn);
 
-    adjust_ipiv_devfunc(ipiv_array[batchid] + ipiv_offset, my_m, offset);
+    #ifdef DBG
+    if(batchid < 2 && threadIdx.x == 0) {
+        magma_int_t* tt = ipiv_array[batchid] + ipiv_offset;
+        printf("[%d] minmn = %d\n", batchid, minmn[batchid]);
+        printf("[%d] my_minmn = %d\n", batchid, my_minmn);
+        for(int i = 0; i < my_minmn; i++) {
+            printf("[%d] piv [%d] = %d\n", batchid, i, tt[i]);
+        }
+    }
+    #endif
+
+    adjust_ipiv_devfunc(ipiv_array[batchid] + ipiv_offset, my_minmn, offset);
 }
 
 /******************************************************************************/
@@ -219,17 +230,17 @@ adjust_ipiv_batched( magma_int_t **ipiv_array, magma_int_t ipiv_offset,
 /******************************************************************************/
 extern "C" void
 adjust_ipiv_vbatched(    magma_int_t **ipiv_array, magma_int_t ipiv_offset,
-                         magma_int_t *m, magma_int_t max_m, magma_int_t offset,
+                         magma_int_t *minmn, magma_int_t max_minmn, magma_int_t offset,
                          magma_int_t batchCount, magma_queue_t queue)
 {
     if (offset == 0 ) return;
-    if ( max_m  > MAX_NTHREADS)
+    if ( max_minmn  > MAX_NTHREADS)
     {
         fprintf( stderr, "%s: m=%lld > %lld, not supported\n",
-                 __func__, (long long) max_m, (long long) MAX_NTHREADS );
+                 __func__, (long long) max_minmn, (long long) MAX_NTHREADS );
         return;
     }
     adjust_ipiv_kernel_vbatched
-        <<< batchCount, max_m, 0, queue->cuda_stream() >>>
-        (ipiv_array, ipiv_offset, m, max_m, offset);
+        <<< batchCount, max_minmn, 0, queue->cuda_stream() >>>
+        (ipiv_array, ipiv_offset, minmn, max_minmn, offset);
 }
