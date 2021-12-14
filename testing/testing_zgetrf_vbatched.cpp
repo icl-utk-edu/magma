@@ -141,7 +141,7 @@ int main( int argc, char** argv)
             for(int s = 0; s < batchCount; s++) {
                 h_M[s]      = 1 + (rand() % iM);
                 h_N[s]      = max(1, (magma_int_t) round(NbyM * real_Double_t(h_M[s])) ); // try to keep the M/N ratio
-                if(opts.nb == 100) printf("problem %lld: (%lld, %lld)\n", (long long)s, (long long)h_M[s], (long long)h_N[s]);
+                if(opts.nrhs == 100) printf("problem %lld: (%lld, %lld)\n", (long long)s, (long long)h_M[s], (long long)h_N[s]);
                 max_M       = (s == 0) ? h_M[s] : max(h_M[s], max_M);
                 max_N       = (s == 0) ? h_N[s] : max(h_N[s], max_N);
                 h_lda[s]    = h_M[s];
@@ -205,11 +205,12 @@ int main( int argc, char** argv)
 
             magma_time = magma_sync_wtime( opts.queue );
             if(opts.version == 1) {
+				magma_int_t nnb = (opts.nb <= 0) ? 4 : opts.nb;
                 magma_int_t *minmn;
                 magma_imalloc(&minmn, batchCount);
                 magma_ivec_min_vv( batchCount, d_M, d_N, minmn, opts.queue);
                 magma_memset(dinfo, 0, batchCount*sizeof(magma_int_t));
-                info = magma_zgetrf_recpanel_vbatched(d_M, d_N, minmn, max_M, max_N, max_minmn, 0, 4, dA_array, 0, 0, d_ldda, dipiv_array, 0, NULL, dinfo, 0, batchCount,  opts.queue);
+                info = magma_zgetrf_recpanel_vbatched(d_M, d_N, minmn, max_M, max_N, max_minmn, 0, nnb, dA_array, 0, 0, d_ldda, dipiv_array, 0, NULL, dinfo, 0, batchCount,  opts.queue);
                 magma_free(minmn);
             }
             else if(opts.version == 2) {
@@ -259,6 +260,12 @@ int main( int argc, char** argv)
                         printf("lapackf77_zgetrf matrix %lld returned error %lld: %s.\n",
                                (long long) s, (long long) locinfo, magma_strerror( locinfo ));
                     }
+
+                    //if( s == 1 ) {
+                    //    for(int ii = 0; ii < h_min_mn[s]; ii++){printf("%d\n", hipiv_array[s][ii]);}
+                    //}
+
+
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);
@@ -288,6 +295,12 @@ int main( int argc, char** argv)
                 error = 0;
                 hTmp = hA_magma;
                 for (int s=0; s < batchCount; s++) {
+
+                    //if( s == 1 ) {
+                    //    for(int ii = 0; ii < h_min_mn[s]; ii++){printf("%d\n", hipiv_array[s][ii]);}
+                    //}
+
+
                     for (int k=0; k < h_min_mn[s]; k++) {
                         if (hipiv_array[s][k] < 1 || hipiv_array[s][k] > h_M[s] ) {
                             printf("error for matrix %lld ipiv @ %lld = %lld\n",
@@ -311,7 +324,7 @@ int main( int argc, char** argv)
                         break;
                     }
 
-                    if(opts.nb == 100) printf("problem %lld: (%lld, %lld) -- %.2e\n",
+                    if(opts.nrhs == 100) printf("problem %lld: (%lld, %lld) -- %.2e\n",
                     (long long)s, (long long)h_M[s], (long long)h_N[s], err);
 
                     error = max( err, error );
