@@ -320,6 +320,7 @@ libmagma_src += \
 libmagma_src += \
 	$(cdir)/zgetf2_vbatched.cpp		\
 	$(cdir)/zgetrf_panel_vbatched.cpp		\
+	$(cdir)/zgetrf_vbatched.cpp		\
 	$(cdir)/zpotf2_vbatched.cpp		\
 	$(cdir)/zpotrf_panel_vbatched.cpp		\
 	$(cdir)/zpotrf_vbatched.cpp		\
