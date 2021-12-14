@@ -205,13 +205,11 @@ int main( int argc, char** argv)
 
             magma_time = magma_sync_wtime( opts.queue );
             if(opts.version == 1) {
-				magma_int_t nnb = (opts.nb <= 0) ? 4 : opts.nb;
-                magma_int_t *minmn;
-                magma_imalloc(&minmn, batchCount);
-                magma_ivec_min_vv( batchCount, d_M, d_N, minmn, opts.queue);
-                magma_memset(dinfo, 0, batchCount*sizeof(magma_int_t));
-                info = magma_zgetrf_recpanel_vbatched(d_M, d_N, minmn, max_M, max_N, max_minmn, 0, nnb, dA_array, 0, 0, d_ldda, dipiv_array, 0, NULL, dinfo, 0, batchCount,  opts.queue);
-                magma_free(minmn);
+                magma_zgetrf_vbatched_max_nocheck(
+                    max_m, max_n, max_minmn,
+                    d_M, d_N,
+                    dA_array, d_ldda,
+                    dipiv_array, dinfo, batchCount, opts.queue);
             }
             else if(opts.version == 2) {
                 for(int s = 0; s < batchCount; s++) {
