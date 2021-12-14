@@ -100,8 +100,24 @@ magma_zgetf2_vbatched(
     magma_int_t **ipiv_array, magma_int_t *info_array,
     magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue)
 {
-#define dA_array(i,j) dA_array, i, j
-#define ipiv_array(i) ipiv_array, i
+#define dA_array(i,j) dA_array, (i), (j)
+#define ipiv_array(i) ipiv_array, (i)
+
+//#define DBG
+#ifdef DBG
+    magma_int_t ii = 1;
+    magma_int_t *h_M, *h_N, *h_ldda;
+    magmaDoubleComplex **hA_array;
+    magma_malloc_cpu((void**)&hA_array, batchCount * sizeof(magmaDoubleComplex*));
+    magma_imalloc_cpu(&h_M,     batchCount);
+    magma_imalloc_cpu(&h_N,     batchCount);
+    magma_imalloc_cpu(&h_ldda, batchCount);
+    magma_getvector( batchCount, sizeof(magmaDoubleComplex), dA_array, 1, hA_array, 1, queue );
+    magma_igetvector( batchCount, m,    1, h_M,    1, queue );
+    magma_igetvector( batchCount, n,    1, h_N,    1, queue );
+    magma_igetvector( batchCount, ldda, 1, h_ldda, 1, queue );
+#endif
+
 
     magma_int_t arginfo = 0;
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
@@ -130,12 +146,25 @@ magma_zgetf2_vbatched(
             magma_int_t gbj = j+jj;
             // izamax
             magma_izamax_vbatched(max_m-gbj, m, n, dA_array(Ai+gbj, Aj+gbj), ldda, ipiv_array(Ai+gbj), info_array, gbj, gbstep, batchCount, queue);
+            #ifdef DBG
+            printf("izamax");
+            magma_zprint_gpu(h_M[ii], h_N[ii], hA_array[ii], h_ldda[ii], queue);
+            #endif
 
             // zswap
-            magma_zswap_vbatched(max_n, m, n, dA_array(Ai+gbj, Aj), ldda, ipiv_array, batchCount, queue);
+            magma_zswap_vbatched(max_n, m, n, dA_array(Ai+gbj, Aj), ldda, ipiv_array, gbj, batchCount, queue);
+            #ifdef DBG
+            printf("swap");
+            magma_zprint_gpu(h_M[ii], h_N[ii], hA_array[ii], h_ldda[ii], queue);
+            #endif
 
             // scal+ger
             magma_zscal_zgeru_vbatched( max_m-gbj, ib-jj, m, n, dA_array(Ai+gbj, Aj+gbj), ldda, info_array, gbj, gbstep, batchCount, queue);
+            #ifdef DBG
+            printf("scal/ger");
+            magma_zprint_gpu(h_M[ii], h_N[ii], hA_array[ii], h_ldda[ii], queue);
+            #endif
+
         }
 
         // trsm
@@ -157,6 +186,14 @@ magma_zgetf2_vbatched(
     }
 
     #endif
+
+#ifdef DBG
+    magma_free_cpu( hA_array );
+    magma_free_cpu( h_M );
+    magma_free_cpu( h_N );
+    magma_free_cpu( h_ldda );
+#endif
+
 
     return 0;
 #undef dA_array
