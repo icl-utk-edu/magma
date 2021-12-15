@@ -124,7 +124,7 @@ magma_zgetrf_recpanel_vbatched(
 
         // swap left
         magma_zlaswp_left_rowserial_vbatched(
-            max_n1, min_recpnb,
+            max_n1,
             m, n, dA_array(Ai+max_n1, Aj), ldda,
             dipiv_array(Ai+max_n1),
             0, max_n2,
