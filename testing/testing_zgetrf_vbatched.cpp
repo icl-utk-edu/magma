@@ -26,8 +26,6 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (iM == 16 && iN == 8 && s == 0 && batchCount == 1)
-
 double get_LU_error(magma_int_t M, magma_int_t N,
                     magmaDoubleComplex *A,  magma_int_t lda,
                     magmaDoubleComplex *LU, magma_int_t *IPIV)
@@ -109,7 +107,7 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_imalloc_cpu(&h_lda,    batchCount) );
     TESTING_CHECK( magma_imalloc_cpu(&h_ldda,   batchCount) );
     TESTING_CHECK( magma_imalloc_cpu(&h_min_mn, batchCount) );
-    TESTING_CHECK( magma_imalloc_cpu(&hinfo, batchCount ));
+    TESTING_CHECK( magma_imalloc_cpu(&hinfo,    batchCount ));
 
     TESTING_CHECK( magma_imalloc(&d_M,    batchCount) );
     TESTING_CHECK( magma_imalloc(&d_N,    batchCount) );
@@ -141,11 +139,10 @@ int main( int argc, char** argv)
             for(int s = 0; s < batchCount; s++) {
                 h_M[s]      = 1 + (rand() % iM);
                 h_N[s]      = max(1, (magma_int_t) round(NbyM * real_Double_t(h_M[s])) ); // try to keep the M/N ratio
-                if(opts.nrhs == 100) printf("problem %lld: (%lld, %lld)\n", (long long)s, (long long)h_M[s], (long long)h_N[s]);
                 max_M       = (s == 0) ? h_M[s] : max(h_M[s], max_M);
                 max_N       = (s == 0) ? h_N[s] : max(h_N[s], max_N);
                 h_lda[s]    = h_M[s];
-                h_ldda[s]   = magma_roundup( h_M[s], opts.align );  // multiple of 32 by default
+                h_ldda[s]   = h_lda[s]; //magma_roundup( h_M[s], opts.align );  // multiple of 32 by default
                 h_min_mn[s] = min( h_M[s], h_N[s] );
                 max_minmn   = (s == 0) ? h_min_mn[s] : max(h_min_mn[s], max_minmn);
                 hA_size    += h_lda[s]  * h_N[s];
@@ -176,17 +173,9 @@ int main( int argc, char** argv)
                 hdipiv_array[s] = hdipiv_array[s-1] + h_min_mn[s-1];
             }
 
-            /* Initialize the matrices */
-            for(int s = 0; s < batchCount; s++) {
-                n2 = h_lda[s] * h_N[s];
-                lapackf77_zlarnv( &ione, ISEED, &n2, hA_array[s] );
-                lapackf77_zlacpy( MagmaFullStr, &h_M[s], &h_N[s],
-                                  hA_array[s], &h_lda[s],
-                                  hR_array[s], &h_lda[s] );
-                if( cond ) {
-                    magma_zprint(h_M[s], h_N[s], hA_array[s], h_lda[s]);
-                }
-            }
+            /* Initialize hA and copy to hR */
+            lapackf77_zlarnv( &ione, ISEED, &hA_size, hA );
+            memcpy(hR, hA, hA_size * sizeof(magmaDoubleComplex));
 
             /* ====================================================================
                Performs operation using MAGMA
@@ -204,18 +193,11 @@ int main( int argc, char** argv)
             }
 
             magma_time = magma_sync_wtime( opts.queue );
-            if(opts.version == 1) {
-                info = magma_zgetrf_vbatched_max_nocheck(
+            info = magma_zgetrf_vbatched_max_nocheck(
                     max_M, max_N, max_minmn,
                     d_M, d_N,
                     dA_array, d_ldda,
                     dipiv_array, dinfo, batchCount, opts.queue);
-            }
-            else if(opts.version == 2) {
-                for(int s = 0; s < batchCount; s++) {
-                    info = magma_zgetrf_batched( h_M[s], h_N[s], dA_array+s, h_ldda[s], dipiv_array+s,  dinfo+s, 1, opts.queue);
-                }
-            }
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
 
@@ -225,9 +207,8 @@ int main( int argc, char** argv)
                 hTmp += h_lda[s] * h_N[s];
             }
 
-            // check correctness of results throught "dinfo" and correctness of argument throught "info"
+            // check info
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo, 1, hinfo, 1, opts.queue );
-
             for (int i=0; i < batchCount; i++) {
                 if (hinfo[i] != 0 ) {
                     printf("magma_zgetrf_batched matrix %lld returned internal error %lld\n",
@@ -258,12 +239,6 @@ int main( int argc, char** argv)
                         printf("lapackf77_zgetrf matrix %lld returned error %lld: %s.\n",
                                (long long) s, (long long) locinfo, magma_strerror( locinfo ));
                     }
-
-                    //if( s == 1 ) {
-                    //    for(int ii = 0; ii < h_min_mn[s]; ii++){printf("%d\n", hipiv_array[s][ii]);}
-                    //}
-
-
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);
@@ -290,43 +265,33 @@ int main( int argc, char** argv)
 
             if ( opts.check ) {
                 magma_getvector( piv_size, sizeof(magma_int_t), dipiv, 1, ipiv, 1, opts.queue );
+                hA_array[0] = hA_magma;
+                for(int s = 1; s < batchCount; s++) {
+                    hA_array[s] = hA_array[s-1] + h_lda[s-1] * h_N[s-1];
+                }
+
                 error = 0;
-                hTmp = hA_magma;
+                #pragma omp parallel for reduction(max:error)
                 for (int s=0; s < batchCount; s++) {
-
-                    //if( s == 1 ) {
-                    //    for(int ii = 0; ii < h_min_mn[s]; ii++){printf("%d\n", hipiv_array[s][ii]);}
-                    //}
-
-
+                    double err;
                     for (int k=0; k < h_min_mn[s]; k++) {
                         if (hipiv_array[s][k] < 1 || hipiv_array[s][k] > h_M[s] ) {
-                            printf("error for matrix %lld ipiv @ %lld = %lld\n",
+                            printf("error for matrix %lld ipiv @ %lld = %lld (terminated on first detection)\n",
                                     (long long) s, (long long) k, (long long) hipiv_array[s][k] );
-                            error = -1;
+                            err = 1;
+                            break;
                         }
                     }
 
-                    if (error == -1) {
-                        break;
+                    // if a pivot entry is invalid for a matrix, skip its error checking
+                    if (err == 1) {
+                        continue;
                     }
 
-                    if( cond ) {
-                        magma_zprint(h_M[s], h_N[s], hTmp, h_lda[s]);
-                    }
-
-                    double err = get_LU_error( h_M[s], h_N[s], hR_array[s], h_lda[s], hTmp, hipiv_array[s]);
-                    hTmp += h_lda[s] * h_N[s];
-                    if (std::isnan(err) || std::isinf(err)) {
-                        error = err;
-                        break;
-                    }
-
-                    if(opts.nrhs == 100) printf("problem %lld: (%lld, %lld) -- %.2e\n",
-                    (long long)s, (long long)h_M[s], (long long)h_N[s], err);
-
-                    error = max( err, error );
+                    err = get_LU_error( h_M[s], h_N[s], hR_array[s], h_lda[s], hA_array[s], hipiv_array[s]);
+                    error = magma_max_nan( err, error );
                 }
+
                 bool okay = (error < tol);
                 status += ! okay;
                 printf("   %8.2e   %s\n", error, (okay ? "ok" : "failed") );

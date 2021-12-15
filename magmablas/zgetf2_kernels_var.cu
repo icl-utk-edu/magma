@@ -57,11 +57,6 @@ izamax_kernel_vbatched(
         if (shared_x[0] == MAGMA_D_ZERO) {
             info_array[batchid] = shared_idx[0] + step + gbstep + 1;
         }
-        #ifdef DBG
-        #ifdef PRECISION_d
-        if(batchid == 1)printf("\n step = %d, found pivot %f - written pivot = %d\n", step, shared_x[0], shared_idx[0] + step + 1);
-        #endif
-        #endif
     }
 }
 
@@ -135,15 +130,9 @@ void zswap_kernel_vbatched(
     __shared__ int jp;
     if (threadIdx.x == 0){
         jp  = ipiv[0] - 1; // roll-back Fortran indexing
-        #ifdef DBG
-        if(batchid == 0) printf("swap[%d]: Ai = %d, jp = %d\n", piv_adjustment, Ai, jp);
-        #endif
         // magma_izamax_vbatched adjusts the pivot, so roll it back
         // because Ai and Aj are offsets that already take care of that
         jp -= piv_adjustment;
-        #ifdef DBG
-        if(batchid == 0) printf("swap[%d]: Ai = %d, jp = %d\n", piv_adjustment, Ai, jp);
-        #endif
     }
     __syncthreads();
 

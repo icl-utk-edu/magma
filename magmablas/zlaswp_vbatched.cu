@@ -62,23 +62,11 @@ __global__ void zlaswp_left_rowserial_kernel_vbatched(
     const int my_max_n = Ai - Aj;
     const int my_n     = min(n, my_max_n);
 
-    #ifdef DBG
-    if(batchid == 1 && tid == 0) {
-        printf("swap-left [%d] --> (M, N) = (%2d, %2d), (Ai, Aj) = (%2d, %2d), ipiv_offset = %d, my_max_n = %2d, my_n = %2d\n",
-                batchid, my_M, my_N, Ai, Aj, ipiv_i, my_max_n, my_n);
-    }
-    #endif
-
     if (tid < my_n) {
         magmaDoubleComplex A1;
 
         for (int i1 = k1; i1 < k2; i1++) {
             int i2 = dipiv[i1] - 1;  // Fortran index, switch i1 and i2
-
-            #ifdef DBG
-            if(batchid == 1 && tid == 0) {printf("(i1, i2) = (%d, %d)\n", i1, i2);}
-            #endif
-
             if ( i2 != i1 ) {
                 A1 = dA[i1 + tid * my_ldda];
                 dA[i1 + tid * my_ldda] = dA[i2 + tid * my_ldda];
@@ -128,24 +116,12 @@ __global__ void zlaswp_right_rowserial_kernel_vbatched(
     const int my_max_n = my_N - Aj;
     const int my_n     = min(n, my_max_n);
 
-    #ifdef DBG
-    if(tid == 0) {
-        printf("swap-right [%d] --> (M, N) = (%2d, %2d), (Ai, Aj) = (%2d, %2d), my_max_n = %2d, my_n = %2d\n",
-                batchid, my_M, my_N, Ai, Aj, my_max_n, my_n);
-    }
-    #endif
-
     if (tid < my_n) {
         magmaDoubleComplex A1;
 
         for (int i1 = k1; i1 < k2; i1++) {
             int i2 = dipiv[i1] - 1;  // Fortran index, switch i1 and i2
             if ( i2 != i1 ) {
-
-                #ifdef DBG
-                if(batchid == 1 && tid == 0) {printf("[%d]: (i1, i2) = (%d, %d)\n", batchid, i1, i2);}
-                #endif
-
                 A1 = dA[i1 + tid * my_ldda];
                 dA[i1 + tid * my_ldda] = dA[i2 + tid * my_ldda];
                 dA[i2 + tid * my_ldda] = A1;

@@ -27,21 +27,6 @@ magma_zgetrf_recpanel_vbatched(
 #define dA_array(i,j)    dA_array, i, j
 #define dipiv_array(i)   dipiv_array, i
 
-//#define DBG
-#ifdef DBG
-    magma_int_t ii = 1;
-    magma_int_t *h_M, *h_N, *h_ldda;
-    magmaDoubleComplex **hA_array;
-    magma_malloc_cpu((void**)&hA_array, batchCount * sizeof(magmaDoubleComplex*));
-    magma_imalloc_cpu(&h_M,     batchCount);
-    magma_imalloc_cpu(&h_N,     batchCount);
-    magma_imalloc_cpu(&h_ldda, batchCount);
-    magma_getvector( batchCount, sizeof(magmaDoubleComplex), dA_array, 1, hA_array, 1, queue );
-    magma_igetvector( batchCount, m,    1, h_M,    1, queue );
-    magma_igetvector( batchCount, n,    1, h_N,    1, queue );
-    magma_igetvector( batchCount, ldda, 1, h_ldda, 1, queue );
-#endif
-
     if( max_n <= min_recpnb ) {
         magma_zgetf2_vbatched(
             m, n, minmn,
@@ -62,11 +47,6 @@ magma_zgetrf_recpanel_vbatched(
             dipiv_array, Ai, NULL,
             info_array, gbstep, batchCount, queue);
 
-        #ifdef DBG
-        printf("panel 1");
-        magma_zprint_gpu(h_M[ii], h_N[ii], hA_array[ii], h_ldda[ii], queue);
-        #endif
-
         // swap right
         magma_zlaswp_right_rowserial_vbatched(
             max_n2,
@@ -76,11 +56,6 @@ magma_zgetrf_recpanel_vbatched(
             0, max_n1,
             batchCount, queue);
 
-        #ifdef DBG
-        printf("swap right, width = %d, dA offsets (%d, %d), (k1, k2) = (%d, %d)\n", max_n2, Ai, Aj+max_n1, Ai, Ai+max_n1 );
-        magma_zprint_gpu(h_M[ii], h_N[ii], hA_array[ii], h_ldda[ii], queue);
-        #endif
-
         // trsm
         magmablas_ztrsm_vbatched_core(
             MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit,
@@ -88,11 +63,6 @@ magma_zgetrf_recpanel_vbatched(
             dA_array(Ai, Aj       ), ldda,
             dA_array(Ai, Aj+max_n1), ldda,
             batchCount, queue );
-
-        #ifdef DBG
-        printf("trsm");
-        magma_zprint_gpu(h_M[ii], h_N[ii], hA_array[ii], h_ldda[ii], queue);
-        #endif
 
         // gemm
         magmablas_zgemm_vbatched_core(
@@ -104,11 +74,6 @@ magma_zgetrf_recpanel_vbatched(
             MAGMA_Z_ONE,     dA_array(Ai+max_n1, Aj+max_n1), ldda,
             batchCount, queue );
 
-        #ifdef DBG
-        printf("gemm");
-        magma_zprint_gpu(h_M[ii], h_N[ii], hA_array[ii], h_ldda[ii], queue);
-        #endif
-
         // panel 2
         magma_zgetrf_recpanel_vbatched(
             m, n, minmn,
@@ -117,11 +82,6 @@ magma_zgetrf_recpanel_vbatched(
             dipiv_array, Ai+max_n1, NULL,
             info_array, gbstep+max_n1, batchCount, queue);
 
-        #ifdef DBG
-        printf("panel 2");
-        magma_zprint_gpu(h_M[ii], h_N[ii], hA_array[ii], h_ldda[ii], queue);
-        #endif
-
         // swap left
         magma_zlaswp_left_rowserial_vbatched(
             max_n1,
@@ -129,27 +89,13 @@ magma_zgetrf_recpanel_vbatched(
             dipiv_array(Ai+max_n1),
             0, max_n2,
             batchCount, queue);
-        #ifdef DBG
-        printf("swap left - (k1, k2) = (%d, %d)\n", max_n1, max_n);
-        magma_zprint_gpu(h_M[ii], h_N[ii], hA_array[ii], h_ldda[ii], queue);
-        #endif
 
         // adjust pivot
-        #ifdef DBG
-        printf("adjust piv - ipiv_offset = %d, max_m = %d, offset = %d\n", Ai+max_n1, max_n2, max_n1);
-        magma_zprint_gpu(h_M[ii], h_N[ii], hA_array[ii], h_ldda[ii], queue);
-        #endif
         adjust_ipiv_vbatched(dipiv_array, Ai+max_n1, minmn, max_n2, max_n1, batchCount, queue);
     }
 
-#ifdef DBG
-    magma_free_cpu( hA_array );
-    magma_free_cpu( h_M );
-    magma_free_cpu( h_N );
-    magma_free_cpu( h_ldda );
-#endif
     return 0;
 
-    #undef dA_array
-    #undef dipiv_array
+#undef dA_array
+#undef dipiv_array
 }

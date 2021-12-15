@@ -144,9 +144,7 @@ setup_pivinfo( magma_int_t *pivinfo, magma_int_t *ipiv,
 static __device__ void adjust_ipiv_devfunc(magma_int_t *ipiv, int m, int offset)
 {
     int tid = threadIdx.x;
-    if (tid < m)
-    {
-        //printf("ipiv[%d]: %d -> %d\n", tid, ipiv[tid], ipiv[tid]+offset);
+    if (tid < m) {
         ipiv[tid] += offset;
     }
 }
@@ -176,17 +174,6 @@ __global__ void adjust_ipiv_kernel_vbatched(
     if(ipiv_offset >= my_minmn) return;
     my_minmn -= ipiv_offset;
     my_minmn  = min(my_minmn, max_minmn);
-
-    #ifdef DBG
-    if(batchid < 2 && threadIdx.x == 0) {
-        magma_int_t* tt = ipiv_array[batchid] + ipiv_offset;
-        printf("[%d] minmn = %d\n", batchid, minmn[batchid]);
-        printf("[%d] my_minmn = %d\n", batchid, my_minmn);
-        for(int i = 0; i < my_minmn; i++) {
-            printf("[%d] piv [%d] = %d\n", batchid, i, tt[i]);
-        }
-    }
-    #endif
 
     adjust_ipiv_devfunc(ipiv_array[batchid] + ipiv_offset, my_minmn, offset);
 }
