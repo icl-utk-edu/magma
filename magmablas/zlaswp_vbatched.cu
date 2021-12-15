@@ -20,7 +20,7 @@
 // serial swap that does swapping one row by one row
 // this is the vbatched routine, for swapping to the left of the panel
 __global__ void zlaswp_left_rowserial_kernel_vbatched(
-                int n, int nb,
+                int n,
                 magma_int_t *M, magma_int_t *N,
                 magmaDoubleComplex **dA_array, int Ai, int Aj, magma_int_t *ldda,
                 magma_int_t** ipiv_array, int ipiv_i,
@@ -59,7 +59,7 @@ __global__ void zlaswp_left_rowserial_kernel_vbatched(
     // distance between (Ai, Aj) and (Ai, Ai). If (Ai, Ai) is outside a given matrix, we
     // terminate the thread-block(s) for this matrix only
     if(my_M < Ai || my_N < Ai) return;
-    const int my_max_n = Ai - Aj; //(magma_ceildiv(my_minmn, nb) - 1) * nb;
+    const int my_max_n = Ai - Aj;
     const int my_n     = min(n, my_max_n);
 
     #ifdef DBG
@@ -159,7 +159,7 @@ __global__ void zlaswp_right_rowserial_kernel_vbatched(
 // K1, K2 are in Fortran indexing
 extern "C" void
 magma_zlaswp_left_rowserial_vbatched(
-        magma_int_t n, magma_int_t nb,
+        magma_int_t n,
         magma_int_t *M, magma_int_t *N, magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
         magma_int_t **ipiv_array, magma_int_t ipiv_offset,
         magma_int_t k1, magma_int_t k2,
@@ -177,7 +177,7 @@ magma_zlaswp_left_rowserial_vbatched(
 
         zlaswp_left_rowserial_kernel_vbatched
         <<< grid, max_BLK_SIZE__n, 0, queue->cuda_stream() >>>
-        (n, nb, M, N, dA_array, Ai, Aj, ldda, ipiv_array, ipiv_offset, k1, k2);
+        (n, M, N, dA_array, Ai, Aj, ldda, ipiv_array, ipiv_offset, k1, k2);
     }
 }
 

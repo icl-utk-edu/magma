@@ -75,7 +75,7 @@ magma_zgetrf_recpanel_vbatched(
 
 void
 magma_zlaswp_left_rowserial_vbatched(
-        magma_int_t n, magma_int_t nb,
+        magma_int_t n,
         magma_int_t *M, magma_int_t *N, magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
         magma_int_t **ipiv_array, magma_int_t ipiv_offset,
         magma_int_t k1, magma_int_t k2,
