@@ -90,22 +90,6 @@ magma_zgetrf_vbatched_max_nocheck(
 #define ipiv_array(i_)    ipiv_array, i_
 
     magma_int_t arginfo = 0;
-
-#if 0
-    magma_int_t recnb = 32;
-    magma_int_t *minmn;
-    magma_imalloc(&minmn, batchCount);
-    magma_ivec_min_vv( batchCount, m, n, minmn, queue);
-    magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
-    arginfo = magma_zgetrf_recpanel_vbatched(
-                    m, n, minmn,
-                    max_m, max_n, max_minmn, 0, recnb,
-                    dA_array, 0, 0, ldda,
-                    ipiv_array, 0, NULL,
-                    info_array, 0, batchCount, queue);
-    magma_free(minmn);
-#else
-
     magma_int_t *minmn;
     magma_imalloc(&minmn, batchCount);
     magma_ivec_min_vv( batchCount, m, n, minmn, queue);
@@ -126,9 +110,9 @@ magma_zgetrf_vbatched_max_nocheck(
         // panel
         arginfo = magma_zgetrf_recpanel_vbatched(
                     m, n, minmn,
-                    pm, ib, max_minmn-i, 0, recnb,
-                    dA_array(0, 0), ldda,
-                    ipiv_array(0), NULL,
+                    pm, ib, ib, 0, recnb,
+                    dA_array(i, i), ldda,
+                    ipiv_array(i), NULL,
                     info_array, i, batchCount, queue);
 
         if (arginfo != 0 ) goto fin;
@@ -168,21 +152,21 @@ magma_zgetrf_vbatched_max_nocheck(
                                          dA_array(i   , i+ib), ldda,
                         MAGMA_Z_ONE,     dA_array(i+ib, i+ib), ldda,
                         batchCount, queue );
-
             } // end of  if ( (i + ib) < max_m)
+
         } // end of if ( (i + ib) < max_n)
 
         // adjust pivot
-        adjust_ipiv_vbatched(ipiv_array(i), minmn, max_minmn-i, i, batchCount, queue);
+        adjust_ipiv_vbatched(ipiv_array(i), minmn, ib, i, batchCount, queue);
 
     }// end of for
 
 fin:
     magma_queue_sync(queue);
     magma_free(minmn);
-#endif
+
     return arginfo;
 
-    #undef dA_array
-    #undef ipiv_array
+#undef dA_array
+#undef ipiv_array
 }
