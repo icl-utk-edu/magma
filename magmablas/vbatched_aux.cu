@@ -29,7 +29,7 @@ void magma_getrf_vbatched_setup_kernel( magma_int_t *m, magma_int_t *n, magma_in
     extern __shared__ int sdata[];
     const int tx  = threadIdx.x;
     const int ntx = blockDim.x;
-    int im = 0, in = 0, max_m = 0, max_n = 0, max_min_mn = 0, max_min_mn = 0;
+    int im = 0, in = 0, max_m = 0, max_n = 0, max_min_mn = 0, max_mxn = 0;
 
     // shared ptr's
     int* smax_m      = (int*)sdata;
