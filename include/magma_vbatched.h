@@ -23,6 +23,11 @@
 extern "C" {
 #endif
 
+// getrf vbatched setup
+void magma_getrf_vbatched_setup(
+            magma_int_t *m, magma_int_t *n, magma_int_t *stats,
+            magma_int_t batchCount, magma_queue_t queue );
+
 // adjust pivot for LU
 void
 adjust_ipiv_vbatched(

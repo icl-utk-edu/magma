@@ -193,11 +193,11 @@ int main( int argc, char** argv)
             }
 
             magma_time = magma_sync_wtime( opts.queue );
-            info = magma_zgetrf_vbatched_max_nocheck(
-                    max_M, max_N, max_minmn,
+            info = magma_zgetrf_vbatched(
                     d_M, d_N,
                     dA_array, d_ldda,
-                    dipiv_array, dinfo, batchCount, opts.queue);
+                    dipiv_array, dinfo,
+                    batchCount, opts.queue);
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
 
@@ -283,7 +283,7 @@ int main( int argc, char** argv)
                         }
                     }
 
-                    // if a pivot entry is invalid for a matrix, skip its error checking
+                    // if a pivot entry is invalid for a matrix, skip error checking
                     if (err == 1) {
                         continue;
                     }
@@ -300,10 +300,10 @@ int main( int argc, char** argv)
                 printf("     ---\n");
             }
 
-            magma_free_cpu( ipiv );
             magma_free_cpu( hA );
             magma_free_cpu( hA_magma );
             magma_free_pinned( hR );
+            magma_free_cpu( ipiv );
 
             magma_free( dA );
             magma_free( dipiv );
