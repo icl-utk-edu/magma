@@ -183,7 +183,7 @@ magma_zgetrf_vbatched(
     arginfo = magma_getrf_vbatched_checker( m, n, ldda, stats, batchCount, queue );
 
     if (arginfo != 0) {
-        magma_xerbla( __func__, -(info) );
+        magma_xerbla( __func__, -(arginfo) );
         goto fin;
     }
 
