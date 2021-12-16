@@ -29,7 +29,7 @@ void magma_getrf_vbatched_setup_kernel( magma_int_t *m, magma_int_t *n, magma_in
     extern __shared__ int sdata[];
     const int tx  = threadIdx.x;
     const int ntx = blockDim.x;
-    int im = 0, in = 0, max_m = 0, max_n = 0, max_min_mn = 0;
+    int im = 0, in = 0, max_m = 0, max_n = 0, max_min_mn = 0, max_min_mn = 0;
 
     // shared ptr's
     int* smax_m      = (int*)sdata;
@@ -56,7 +56,7 @@ void magma_getrf_vbatched_setup_kernel( magma_int_t *m, magma_int_t *n, magma_in
     #pragma unroll
     for(int i = 1024; i > 0; i >>= 1) {
         if(ntx > i) {
-            if ( tx < step && tx + step < n ) {
+            if ( tx < i && tx + i < n ) {
                 smax_m[tx]      = max( smax_m[tx], smax_m[tx+i] );
                 smax_n[tx]      = max( smax_n[tx], smax_n[tx+i] );
                 smax_min_mn[tx] = max( smax_min_mn[tx], smax_min_mn[tx+i] );
@@ -66,10 +66,10 @@ void magma_getrf_vbatched_setup_kernel( magma_int_t *m, magma_int_t *n, magma_in
         __syncthreads();
     }
 
-    stats[0] = (magma_int_t)smax_m;
-    stats[1] = (magma_int_t)smax_n;
-    stats[2] = (magma_int_t)smax_min_mn;
-    stats[3] = (magma_int_t)smax_mxn;
+    stats[0] = (magma_int_t)smax_m[0];
+    stats[1] = (magma_int_t)smax_n[0];
+    stats[2] = (magma_int_t)smax_min_mn[0];
+    stats[3] = (magma_int_t)smax_mxn[0];
 }
 
 //----------------
