@@ -41,7 +41,6 @@ magma_getrf_vbatched_checker(
         magma_int_t* errors, magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t info = 0;
-    magma_int_t m_err = 0, n_err = 0, ldda_err = 0;
     magma_int_t h_errors[3];
 
     // Assume no error
