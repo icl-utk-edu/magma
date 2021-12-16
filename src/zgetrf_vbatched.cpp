@@ -171,17 +171,28 @@ magma_zgetrf_vbatched(
         magma_int_t **ipiv_array, magma_int_t *info_array,
         magma_int_t batchCount, magma_queue_t queue)
 {
+    // error checker needs 3 integers, while the setup kernel requires 4
+    // so allocate 4
     const magma_int_t stats_length = 4;
+
     magma_int_t arginfo = 0, hstats[stats_length];
     magma_int_t *minmn, *stats;
-    magma_imalloc(&minmn, batchCount);
     magma_imalloc(&stats, stats_length);    // max_m, max_n, max_minmn, max_mxn
 
+    // the checker requires that stats contains at least 3 integers
+    arginfo = magma_getrf_vbatched_checker( m, n, ldda, stats, batchCount, queue );
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(info) );
+        goto fin;
+    }
+
     // min_mn
+    magma_imalloc(&minmn, batchCount);
     magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
     magma_ivec_min_vv( batchCount, m, n, minmn, queue);
 
-    // collect stats
+    // collect stats (requires at least 4 integers)
     magma_getrf_vbatched_setup( m, n, stats, batchCount, queue );
     magma_igetvector(stats_length, stats, 1, hstats, 1, queue);
     const magma_int_t max_m     = hstats[0];
@@ -196,8 +207,10 @@ magma_zgetrf_vbatched(
                 ipiv_array, info_array,
                 batchCount, queue);
 
-    magma_free(minmn);
-    magma_free(stats);
     magma_queue_sync(queue);
+    magma_free(minmn);
+
+fin:
+    magma_free(stats);
     return arginfo;
 }
