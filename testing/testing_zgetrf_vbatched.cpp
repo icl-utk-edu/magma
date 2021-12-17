@@ -80,6 +80,7 @@ int main( int argc, char** argv)
     real_Double_t   NbyM;
     double          error;
     magma_int_t     hA_size = 0, dA_size = 0, piv_size = 0;
+    magma_int_t     seed = 0, iseed = 0;
     magmaDoubleComplex *hA, *hR, *hA_magma, *hTmp;
     magmaDoubleComplex *dA;
     magmaDoubleComplex **dA_array = NULL, **hA_array = NULL, **hR_array = NULL, **hdA_array = NULL;
@@ -127,7 +128,10 @@ int main( int argc, char** argv)
     printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   CUBLAS Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
     printf("%%==========================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
+        seed = rand();
         for( int iter = 0; iter < opts.niter; ++iter ) {
+            iseed = seed;    // necessary to have the same sizes across different iterations
+
             iM = opts.msize[itest];
             iN = opts.nsize[itest];
             NbyM  = (real_Double_t)iN / (real_Double_t)iM;
@@ -137,7 +141,7 @@ int main( int argc, char** argv)
             piv_size = 0;
             gflops   = 0;
             for(int s = 0; s < batchCount; s++) {
-                h_M[s]      = 1 + (rand() % iM);
+                h_M[s]      = 1 + (srand(seed) % iM);
                 h_N[s]      = max(1, (magma_int_t) round(NbyM * real_Double_t(h_M[s])) ); // try to keep the M/N ratio
                 max_M       = (s == 0) ? h_M[s] : max(h_M[s], max_M);
                 max_N       = (s == 0) ? h_N[s] : max(h_N[s], max_N);
