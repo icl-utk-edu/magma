@@ -184,33 +184,32 @@ magma_zgetrf_vbatched(
 
     if (arginfo != 0) {
         magma_xerbla( __func__, -(arginfo) );
-        goto fin;
+    }
+    else {
+        // min_mn
+        magma_imalloc(&minmn, batchCount);
+        magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
+        magma_ivec_min_vv( batchCount, m, n, minmn, queue);
+
+        // collect stats (requires at least 4 integers)
+        magma_getrf_vbatched_setup( m, n, stats, batchCount, queue );
+        magma_igetvector(stats_length, stats, 1, hstats, 1, queue);
+        const magma_int_t max_m     = hstats[0];
+        const magma_int_t max_n     = hstats[1];
+        const magma_int_t max_minmn = hstats[2];
+        const magma_int_t max_mxn   = hstats[3];
+
+        arginfo = magma_zgetrf_vbatched_max_nocheck(
+                    m, n, minmn,
+                    max_m, max_n, max_minmn, max_mxn,
+                    dA_array, ldda,
+                    ipiv_array, info_array,
+                    batchCount, queue);
+
+        magma_queue_sync(queue);
+        magma_free(minmn);
     }
 
-    // min_mn
-    magma_imalloc(&minmn, batchCount);
-    magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
-    magma_ivec_min_vv( batchCount, m, n, minmn, queue);
-
-    // collect stats (requires at least 4 integers)
-    magma_getrf_vbatched_setup( m, n, stats, batchCount, queue );
-    magma_igetvector(stats_length, stats, 1, hstats, 1, queue);
-    const magma_int_t max_m     = hstats[0];
-    const magma_int_t max_n     = hstats[1];
-    const magma_int_t max_minmn = hstats[2];
-    const magma_int_t max_mxn   = hstats[3];
-
-    arginfo = magma_zgetrf_vbatched_max_nocheck(
-                m, n, minmn,
-                max_m, max_n, max_minmn, max_mxn,
-                dA_array, ldda,
-                ipiv_array, info_array,
-                batchCount, queue);
-
-    magma_queue_sync(queue);
-    magma_free(minmn);
-
-fin:
     magma_free(stats);
     return arginfo;
 }
