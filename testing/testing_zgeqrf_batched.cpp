@@ -113,7 +113,7 @@ int main( int argc, char** argv)
 
     double tol = opts.tolerance * lapackf77_dlamch("E");
 
-    printf("%% BatchCount   M     N   MAGMA Gflop/s (ms)   %s Gflop/s (ms)    CPU Gflop/s (ms)   |R - Q^H*A|_mag   |I - Q^H*Q|_mag   |R - Q^H*A|_cub   |I - Q^H*Q|_cub\n", g_platform_string);
+    printf("%% BatchCount   M     N   MAGMA Gflop/s (ms)   %s Gflop/s (ms)    CPU Gflop/s (ms)   |R - Q^H*A|_mag   |I - Q^H*Q|_mag   |R - Q^H*A|_cub   |I - Q^H*Q|_cub\n", g_platform_str);
     printf("%%============================================================================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {

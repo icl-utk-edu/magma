@@ -74,7 +74,7 @@ int main( int argc, char** argv)
            lapack_trans_const(opts.transA),
            lapack_trans_const(opts.transB));
     printf("%% version = %lld, %s\n", (long long)opts.version, opts.version == 1 ? "regular batch GEMM" : "strided batch GEMM");
-    printf("%% BatchCount     M     N     K   MAGMA Gflop/s (ms)   %s Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error   CUBLAS error\n", g_platform_string);
+    printf("%% BatchCount     M     N     K   MAGMA Gflop/s (ms)   %s Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error   CUBLAS error\n", g_platform_str);
     printf("%%========================================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {

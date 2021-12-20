@@ -102,7 +102,7 @@ int main( int argc, char** argv)
     batchCount = opts.batchcount;
     magma_int_t columns;
 
-    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   %s Gflop/s (ms)   ||PA-LU||/(||A||*N)\n", g_platform_string);
+    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   %s Gflop/s (ms)   ||PA-LU||/(||A||*N)\n", g_platform_str);
     printf("%%==========================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
