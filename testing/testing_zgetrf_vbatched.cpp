@@ -277,7 +277,7 @@ int main( int argc, char** argv)
                 error = 0;
                 #pragma omp parallel for reduction(max:error)
                 for (int s=0; s < batchCount; s++) {
-                    double err;
+                    double err = 0;
                     for (int k=0; k < h_min_mn[s]; k++) {
                         if (hipiv_array[s][k] < 1 || hipiv_array[s][k] > h_M[s] ) {
                             printf("error for matrix %lld ipiv @ %lld = %lld (terminated on first detection)\n",
