@@ -80,9 +80,9 @@ void magma_getrf_vbatched_setup(
             magma_int_t *m, magma_int_t *n, magma_int_t *stats,
             magma_int_t batchCount, magma_queue_t queue )
 {
-    const int nthreads = 512;
+    const int nthreads =  min(batchCount, 512);
     const int shmem    = nthreads * 4 * sizeof(int);
-    magma_getrf_vbatched_setup_kernel<<<1, min(batchCount, 512), shmem, queue->cuda_stream()>>>
+    magma_getrf_vbatched_setup_kernel<<<1, nthreads, shmem, queue->cuda_stream()>>>
     ( m, n, stats, batchCount );
 }
 
