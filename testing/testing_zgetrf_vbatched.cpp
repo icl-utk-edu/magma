@@ -80,7 +80,7 @@ int main( int argc, char** argv)
     real_Double_t   NbyM;
     double          error;
     magma_int_t     hA_size = 0, dA_size = 0, piv_size = 0;
-    magma_int_t     seed = 0, iseed = 0;
+    magma_int_t     seed = 0;
     magmaDoubleComplex *hA, *hR, *hA_magma, *hTmp;
     magmaDoubleComplex *dA;
     magmaDoubleComplex **dA_array = NULL, **hA_array = NULL, **hR_array = NULL, **hdA_array = NULL;
@@ -91,7 +91,7 @@ int main( int argc, char** argv)
 
     magma_int_t *h_M = NULL, *h_N = NULL, *h_lda  = NULL, *h_ldda = NULL, *h_min_mn = NULL;
     magma_int_t *d_M = NULL, *d_N = NULL, *d_ldda = NULL;
-    magma_int_t iM, iN, max_M, max_N, max_minmn, info, n2;
+    magma_int_t iM, iN, max_M, max_N, max_minmn, info;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t batchCount;
@@ -283,6 +283,7 @@ int main( int argc, char** argv)
                             printf("error for matrix %lld ipiv @ %lld = %lld (terminated on first detection)\n",
                                     (long long) s, (long long) k, (long long) hipiv_array[s][k] );
                             err = 1;
+                            error = magma_max_nan( err, error );
                             break;
                         }
                     }
