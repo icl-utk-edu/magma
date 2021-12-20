@@ -125,7 +125,7 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_malloc(    (void**)&dipiv_array,  batchCount * sizeof(magma_int_t*) ));
 
     printf("%%             max   max\n");
-    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   CUBLAS Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
+    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
     printf("%%==========================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         seed = rand();

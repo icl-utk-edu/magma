@@ -33,7 +33,7 @@ double get_LU_error(magma_int_t M, magma_int_t N,
     magmaDoubleComplex beta  = MAGMA_Z_ZERO;
     magmaDoubleComplex *L, *U;
     double work[1], matnorm, residual;
-    
+
     TESTING_CHECK( magma_zmalloc_cpu( &L, M*min_mn ));
     TESTING_CHECK( magma_zmalloc_cpu( &U, min_mn*N ));
     memset( L, 0, M*min_mn*sizeof(magmaDoubleComplex) );
@@ -45,7 +45,7 @@ double get_LU_error(magma_int_t M, magma_int_t N,
 
     for (j=0; j < min_mn; j++)
         L[j+j*M] = MAGMA_Z_MAKE( 1., 0. );
-    
+
     matnorm = lapackf77_zlange("f", &M, &N, A, &lda, work);
 
     blasf77_zgemm("N", "N", &M, &N, &min_mn,
@@ -82,7 +82,7 @@ int main( int argc, char** argv)
     magma_int_t     **dipiv_array = NULL;
     magma_int_t     *ipiv, *cpu_info;
     magma_int_t     *dipiv_magma, *dinfo_magma;
-    
+
     magma_int_t M, N, n2, lda, ldda, min_mn, info;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
@@ -95,10 +95,10 @@ int main( int argc, char** argv)
 
     batchCount = opts.batchcount;
     magma_int_t columns;
-    
+
     double tol = opts.tolerance * lapackf77_dlamch("E");
 
-    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   CUBLAS Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
+    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   %s Gflop/s (ms)   ||PA-LU||/(||A||*N)\n", g_platform_string);
     printf("%%==========================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -109,12 +109,12 @@ int main( int argc, char** argv)
             n2     = lda*N * batchCount;
             ldda   = magma_roundup( M, opts.align );  // multiple of 32 by default
             gflops = FLOPS_ZGETRF( M, N ) / 1e9 * batchCount;
-            
+
             TESTING_CHECK( magma_imalloc_cpu( &cpu_info, batchCount ));
             TESTING_CHECK( magma_imalloc_cpu( &ipiv, min_mn * batchCount ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_A,  n2 ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_R,  n2 ));
-            
+
             TESTING_CHECK( magma_zmalloc( &dA_magma,  ldda*N * batchCount ));
             TESTING_CHECK( magma_imalloc( &dipiv_magma,  min_mn * batchCount ));
             TESTING_CHECK( magma_imalloc( &dinfo_magma,  batchCount ));
@@ -135,7 +135,7 @@ int main( int argc, char** argv)
             columns = N * batchCount;
             lapackf77_zlacpy( MagmaFullStr, &M, &columns, h_A, &lda, h_R, &lda );
             magma_zsetmatrix( M, columns, h_R, lda, dA_magma, ldda, opts.queue );
-            
+
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
@@ -173,7 +173,7 @@ int main( int argc, char** argv)
                            (long long) info, magma_strerror( info ));
                 }
             }
-            
+
             /* =====================================================================
                Check the factorization
                =================================================================== */
@@ -219,7 +219,7 @@ int main( int argc, char** argv)
             else {
                 printf("     ---  \n");
             }
-            
+
             magma_free_cpu( cpu_info );
             magma_free_cpu( ipiv );
             magma_free_cpu( h_A );
@@ -236,7 +236,7 @@ int main( int argc, char** argv)
             printf( "\n" );
         }
     }
-    
+
     opts.cleanup();
     TESTING_CHECK( magma_finalize() );
     return status;

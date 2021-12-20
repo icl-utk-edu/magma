@@ -80,7 +80,7 @@ int main( int argc, char** argv)
     printf("%% side = %s, uplo = %s, transA = %s, diag = %s \n",
            lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),
            lapack_trans_const(opts.transA), lapack_diag_const(opts.diag) );
-    printf("%% BatchCount   M     N   MAGMA Gflop/s (ms)   CUBLAS Gflop/s (ms)    CPU Gflop/s (ms)      MAGMA     CUBLAS   LAPACK error\n");
+    printf("%% BatchCount   M     N   MAGMA Gflop/s (ms)   %s Gflop/s (ms)    CPU Gflop/s (ms)      MAGMA     CUBLAS   LAPACK error\n", g_platform_string);
     printf("%%=========================================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -221,7 +221,7 @@ int main( int argc, char** argv)
                 int(M), int(N), (const hipblasDoubleComplex*)&alpha,
                 (hipblasDoubleComplex* const*) d_A_array, int(ldda),
                 (      hipblasDoubleComplex**) d_B_array, int(lddb), int(batchCount) );
-            #endif 
+            #endif
 
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
             cublas_perf = gflops / cublas_time;

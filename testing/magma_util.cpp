@@ -35,7 +35,7 @@
     const char* g_platform_str = "Xeon Phi";
 
 #elif defined(MAGMA_HAVE_HIP)
-    const char* g_platform_str = "HIP";
+    const char* g_platform_str = "HIPBLAS";
 
 #else
     #error "unknown platform"
