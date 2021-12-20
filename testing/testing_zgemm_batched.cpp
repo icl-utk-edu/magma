@@ -68,9 +68,10 @@ int main( int argc, char** argv)
     double eps = lapackf77_dlamch("E");
     double tol = 3*eps;
 
-    printf("%% If running lapack (option --lapack), MAGMA and CUBLAS error are both computed\n"
-           "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to CUBLAS result.\n\n"
+    printf("%% If running lapack (option --lapack), MAGMA and %s error are both computed\n"
+           "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to %s result.\n\n"
            "%% transA = %s, transB = %s\n",
+           g_platform_str, g_platform_str,
            lapack_trans_const(opts.transA),
            lapack_trans_const(opts.transB));
     printf("%% version = %lld, %s\n", (long long)opts.version, opts.version == 1 ? "regular batch GEMM" : "strided batch GEMM");
