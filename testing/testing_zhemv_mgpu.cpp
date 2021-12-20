@@ -82,7 +82,7 @@ int main(int argc, char **argv)
             lapack_uplo_const(opts.uplo), (long long) opts.ngpu, (long long) nb, (long long) offset );
     printf( "%%                 BLAS                %s              MAGMA 1 GPU         MAGMA MGPU       Error rel  Error rel\n"
             "%%   N  offset     Gflop/s (msec)      Gflop/s (msec)      Gflop/s (msec)      Gflop/s (msec)   to %s  to LAPACK\n"
-            "%%==================================================================================================================\n", g_pltform_str, g_pltform_str );
+            "%%==================================================================================================================\n", g_pltform_str, g_platform_str );
     for( int itest = 0; itest < opts.ntest; ++itest ) {
 
       // comment out these two lines & end of loop to test a specific offset
