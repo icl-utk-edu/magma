@@ -208,17 +208,16 @@ magma_init()
                 }
                 else {
                     g_magma_devices[dev].memory          = prop.totalGlobalMem;
-                    g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock; 
+                    g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock;
                     #ifdef MAGMA_HAVE_CUDA
                     g_magma_devices[dev].cuda_arch       = prop.major*100 + prop.minor*10;
-                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor; 
+                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor;
                     #elif defined(MAGMA_HAVE_HIP)
-                    // we just assume the HIP device is compatible with at least CUDA 3.3
-                    g_magma_devices[dev].cuda_arch       = 330;
-                    g_magma_devices[dev].shmem_multiproc = prop.maxSharedMemoryPerMultiProcessor; 
+                    g_magma_devices[dev].cuda_arch       = prop.gcnArch;
+                    g_magma_devices[dev].shmem_multiproc = prop.maxSharedMemoryPerMultiProcessor;
                     #endif
 
-                    g_magma_devices[dev].multiproc_count = prop.multiProcessorCount; 
+                    g_magma_devices[dev].multiproc_count = prop.multiProcessorCount;
                 }
             }
 
@@ -363,7 +362,7 @@ magma_print_environment()
 
 #if defined(MAGMA_HAVE_CUDA)
 
-    printf("Compiled with CUDA support for %.1f\n", MAGMA_CUDA_ARCH_MIN/100.);
+    printf("%% Compiled with CUDA support for %.1f\n", MAGMA_CUDA_ARCH_MIN/100.);
 
     // CUDA, OpenCL, OpenMP, MKL, ACML versions all printed on same line
     int cuda_runtime=0, cuda_driver=0;
@@ -393,7 +392,7 @@ magma_print_environment()
     }
 
     printf("%% HIP runtime %d, driver %d. ", hip_runtime, hip_driver );
-#endif    
+#endif
 
 
 /* OpenMP */
@@ -438,6 +437,8 @@ magma_print_environment()
         cudaDeviceProp prop;
         err = cudaGetDeviceProperties( &prop, dev );
         check_error( err );
+
+        #ifdef MAGMA_HAVE_CUDA
         printf( "%% device %d: %s, %.1f MHz clock, %.1f MiB memory, capability %d.%d\n",
                 dev,
                 prop.name,
@@ -445,7 +446,7 @@ magma_print_environment()
                 prop.totalGlobalMem / (1024.*1024.),
                 prop.major,
                 prop.minor );
-        #ifdef MAGMA_HAVE_CUDA
+
         int arch = prop.major*100 + prop.minor*10;
         if ( arch < MAGMA_CUDA_ARCH_MIN ) {
             printf("\n"
@@ -457,7 +458,14 @@ magma_print_environment()
         }
         #endif
 
-
+        #ifdef MAGMA_HAVE_HIP
+        printf( "%% device %d: %s, %.1f MHz clock, %.1f MiB memory, gcn arch %d\n",
+                dev,
+                prop.name,
+                prop.clockRate / 1000.,
+                prop.totalGlobalMem / (1024.*1024.),
+                prop.gcnArch );
+        #endif
     }
 
     MAGMA_UNUSED( err );
@@ -503,7 +511,7 @@ magma_is_devptr( const void* A )
         #ifdef MAGMA_HAVE_CUDA
         if ( ! err && prop.unifiedAddressing ) {
         #elif defined(MAGMA_HAVE_HIP)
-        // in HIP, assume all can. 
+        // in HIP, assume all can.
         // There's no corresponding property, and examples show no need to check any properties
         if ( ! err ) {
         #endif
