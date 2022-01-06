@@ -143,16 +143,16 @@ magma_zlaswp_left_rowserial_vbatched(
 {
     if (n == 0) return;
 
-    magma_int_t max_batchCount  = queue->get_maxBatch();
-    magma_int_t blocks          = magma_ceildiv( n, BLK_SIZE );
-    magma_int_t max_BLK_SIZE__n = max(BLK_SIZE, n);
+    magma_int_t max_batchCount = queue->get_maxBatch();
+    magma_int_t blocks         = magma_ceildiv( n, BLK_SIZE );
+    magma_int_t min_BLK_SIZE_n = min(BLK_SIZE, n);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3  grid(blocks, 1, ibatch);
 
         zlaswp_left_rowserial_kernel_vbatched
-        <<< grid, max_BLK_SIZE__n, 0, queue->cuda_stream() >>>
+        <<< grid, min_BLK_SIZE_n, 0, queue->cuda_stream() >>>
         (n, M, N, dA_array, Ai, Aj, ldda, ipiv_array, ipiv_offset, k1, k2);
     }
 }
@@ -171,16 +171,16 @@ magma_zlaswp_right_rowserial_vbatched(
 {
     if (n == 0) return;
 
-    magma_int_t max_batchCount  = queue->get_maxBatch();
-    magma_int_t blocks          = magma_ceildiv( n, BLK_SIZE );
-    magma_int_t max_BLK_SIZE__n = max(BLK_SIZE, n);
+    magma_int_t max_batchCount = queue->get_maxBatch();
+    magma_int_t blocks         = magma_ceildiv( n, BLK_SIZE );
+    magma_int_t min_BLK_SIZE_n = min(BLK_SIZE, n);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3  grid(blocks, 1, ibatch);
 
         zlaswp_right_rowserial_kernel_vbatched
-        <<< grid, max_BLK_SIZE__n, 0, queue->cuda_stream() >>>
+        <<< grid, min_BLK_SIZE_n, 0, queue->cuda_stream() >>>
         (n, M, N, dA_array, Ai, Aj, ldda, ipiv_array, ipiv_offset, k1, k2);
     }
 }
