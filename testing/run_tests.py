@@ -1505,6 +1505,9 @@ vbatched = (
 	# ----- Cholesky
 	('testing_zpotrf_vbatched',    batch + '         -L    -c2', n,    ''),
 	('#testing_zposv_vbatched',    batch + '         -U    -c2', n,    'upper not implemented'),
+
+	# ----- LU
+	('testing_zgetrf_vbatched',    batch + '          -c2',  mn,   ''),
 )
 if (opts.vbatched):
 	tests += vbatched
