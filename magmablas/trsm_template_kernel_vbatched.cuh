@@ -18,6 +18,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS>
 static __global__
+__launch_bounds__(NRHS)
 void trsm_template_vbatched_lNL_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
@@ -48,6 +49,7 @@ void trsm_template_vbatched_lNL_kernel(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS>
 static __global__
+__launch_bounds__(NRHS)
 void trsm_template_vbatched_lNU_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
@@ -78,6 +80,7 @@ void trsm_template_vbatched_lNU_kernel(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS, const int CONJA>
 static __global__
+__launch_bounds__(NRHS)
 void trsm_template_vbatched_lTL_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
@@ -108,6 +111,7 @@ void trsm_template_vbatched_lTL_kernel(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS, const int CONJA>
 static __global__
+__launch_bounds__(NRHS)
 void trsm_template_vbatched_lTU_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
@@ -138,6 +142,7 @@ void trsm_template_vbatched_lTU_kernel(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS>
 static __global__
+__launch_bounds__(NRHS)
 void trsm_template_vbatched_rNL_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
@@ -168,6 +173,7 @@ void trsm_template_vbatched_rNL_kernel(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS>
 static __global__
+__launch_bounds__(NRHS)
 void trsm_template_vbatched_rNU_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
@@ -198,6 +204,7 @@ void trsm_template_vbatched_rNU_kernel(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS, const int CONJA>
 static __global__
+__launch_bounds__(NRHS)
 void trsm_template_vbatched_rTL_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
@@ -228,6 +235,7 @@ void trsm_template_vbatched_rTL_kernel(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int NRHS, const int CONJA>
 static __global__
+__launch_bounds__(NRHS)
 void trsm_template_vbatched_rTU_kernel(
         magma_diag_t diag, magma_int_t* m, magma_int_t* n,
         T alpha, T** Aarray, int Ai, int Aj, magma_int_t* ldda,
