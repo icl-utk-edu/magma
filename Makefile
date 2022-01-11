@@ -1,7 +1,7 @@
 #--------------------------------------------------------------------
 # build process
 #
-# 
+#
 
 
 
@@ -41,8 +41,8 @@ NVCC        ?= nvcc
 DEVCC       ?= NONE
 
 # Configuration variables
-HAVE_CUDA  = 
-HAVE_HIP   = 
+HAVE_CUDA  =
+HAVE_HIP   =
 CUDA_ARCH_MIN =
 
 # CMake.src file, which depends on the backend
@@ -60,7 +60,7 @@ else ifeq ($(BACKEND),hip)
     # if we are using HIP, make sure generated sources are up to date
     # Technically, this 'recursive' make which we don't like to do, but also this is a simple solution
     #   that allows that file to handle all code generation
-    # Another reason is that I don't want to flood the namespace (for example, that file also 
+    # Another reason is that I don't want to flood the namespace (for example, that file also
     #   defines an 'all' and 'clean' target as phonies)
     # So, in the future that whole file may be integrated, but for now this seems simplest
 	# Detect number of jobs here, so it runs at an appropriate speed
@@ -126,7 +126,7 @@ ifeq ($(BACKEND),cuda)
 
 	# Add legacy flags
 	DEVCCFLAGS += $(NVCCFLAGS)
-	
+
 	# ------------------------------------------------------------------------------
 	# NVCC options for the different cards
 	# First, add smXX for architecture names
@@ -258,7 +258,7 @@ else ifeq ($(BACKEND),hip)
     ## Suggestion by Mark (from SLATE)
     # Valid architecture numbers
     # TODO: remove veryold ones?
-    VALID_GFXS = 600 601 602 700 701 702 703 704 705 801 802 803 805 810 900 902 904 906 908 909 90c 1010 1011 1012 1030 1031 1032 1033
+    VALID_GFXS = 600 601 602 700 701 702 703 704 705 801 802 803 805 810 900 902 904 906 908 909 90a 90c 1010 1011 1012 1030 1031 1032 1033
 
 
 	# Generated GFX option
@@ -452,7 +452,7 @@ $(libmagma_obj):       MAGMA_INC += -I./control
 $(libtest_obj):        MAGMA_INC += -I./testing
 $(testing_obj):        MAGMA_INC += -I./testing
 
-ifeq ($(BACKEND),cuda) 
+ifeq ($(BACKEND),cuda)
 $(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas -I./sparse/include -I./sparse/control
 $(sparse_testing_obj): MAGMA_INC += -I./sparse/include -I./sparse/control -I./testing
 else ifeq ($(BACKEND),hip)
@@ -480,7 +480,7 @@ ALLFLAGS := $(CFLAGS) $(CXXFLAGS) $(DEVCCFLAGS)
 # Configuration header
 ifneq (,$(HAVE_CUDA))
 
-$(CONFIG): $(CONFIGDEPS) 
+$(CONFIG): $(CONFIGDEPS)
 	cp $< $@
 	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#define MAGMA_HAVE_CUDA/g' $@
@@ -488,7 +488,7 @@ $(CONFIG): $(CONFIGDEPS)
 
 else
 
-$(CONFIG): $(CONFIGDEPS) 
+$(CONFIG): $(CONFIGDEPS)
 	cp $< $@
 	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#undef MAGMA_HAVE_CUDA/g' $@
@@ -821,7 +821,7 @@ sparse/testing/clean:
 %.$(o_ext): %.F90 $(PTREXEC)
 	$(FORT) $(F90FLAGS) $(CPPFLAGS) $(PTROPT) -c -o $@ $<
 	-mv $(notdir $(basename $@)).mod include/
- 
+
 %.$(o_ext): %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
