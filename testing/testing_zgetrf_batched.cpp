@@ -38,7 +38,7 @@ double get_LU_error(magma_int_t M, magma_int_t N,
     magmaDoubleComplex beta  = MAGMA_Z_ZERO;
     magmaDoubleComplex *L, *U;
     double work[1], matnorm, residual;
-    
+
     TESTING_CHECK( magma_zmalloc_cpu( &L, M*min_mn ));
     TESTING_CHECK( magma_zmalloc_cpu( &U, min_mn*N ));
     memset( L, 0, M*min_mn*sizeof(magmaDoubleComplex) );
@@ -50,7 +50,7 @@ double get_LU_error(magma_int_t M, magma_int_t N,
 
     for (j=0; j < min_mn; j++)
         L[j+j*M] = MAGMA_Z_MAKE( 1., 0. );
-    
+
     matnorm = lapackf77_zlange("f", &M, &N, A, &lda, work);
 
     blasf77_zgemm("N", "N", &M, &N, &min_mn,
@@ -87,7 +87,7 @@ int main( int argc, char** argv)
     magma_int_t     *ipiv, *cpu_info;
     magma_int_t     *dipiv_magma, *dinfo_magma;
     int             *dipiv_cublas, *dinfo_cublas;  // not magma_int_t
-    
+
     magma_int_t M, N, n2, lda, ldda, min_mn, info;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
@@ -101,8 +101,8 @@ int main( int argc, char** argv)
 
     batchCount = opts.batchcount;
     magma_int_t columns;
-    
-    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   CUBLAS Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
+
+    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   %s Gflop/s (ms)   ||PA-LU||/(||A||*N)\n", g_platform_str);
     printf("%%==========================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -113,13 +113,13 @@ int main( int argc, char** argv)
             n2     = lda*N * batchCount;
             ldda   = magma_roundup( M, opts.align );  // multiple of 32 by default
             gflops = FLOPS_ZGETRF( M, N ) / 1e9 * batchCount;
-            
+
             TESTING_CHECK( magma_imalloc_cpu( &cpu_info, batchCount ));
             TESTING_CHECK( magma_imalloc_cpu( &ipiv, min_mn * batchCount ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_A,  n2     ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_Amagma,  n2     ));
             TESTING_CHECK( magma_zmalloc_pinned( &h_R,  n2     ));
-            
+
             TESTING_CHECK( magma_zmalloc( &dA,  ldda*N * batchCount ));
             TESTING_CHECK( magma_imalloc( &dipiv_magma,  min_mn * batchCount ));
             TESTING_CHECK( magma_imalloc( &dinfo_magma,  batchCount ));
@@ -133,24 +133,24 @@ int main( int argc, char** argv)
             lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
             columns = N * batchCount;
             lapackf77_zlacpy( MagmaFullStr, &M, &columns, h_A, &lda, h_R, &lda );
-            
+
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
             magma_zsetmatrix( M, columns, h_R, lda, dA, ldda, opts.queue );
             magma_zset_pointer( dA_array, dA, ldda, 0, 0, ldda*N, batchCount, opts.queue );
             magma_iset_pointer( dipiv_array, dipiv_magma, 1, 0, 0, min_mn, batchCount, opts.queue );
-            
+
             magma_time = magma_sync_wtime( opts.queue );
             info = magma_zgetrf_batched( M, N, dA_array, ldda, dipiv_array,  dinfo_magma, batchCount, opts.queue);
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
-            
+
             magma_zgetmatrix( M, N*batchCount, dA, ldda, h_Amagma, lda, opts.queue );
-            
+
             // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_magma, 1, cpu_info, 1, opts.queue );
-            
+
             for (int i=0; i < batchCount; i++)
             {
                 if (cpu_info[i] != 0 ) {
@@ -158,12 +158,12 @@ int main( int argc, char** argv)
                             (long long) i, (long long) cpu_info[i] );
                 }
             }
-            
+
             if (info != 0) {
                 printf("magma_zgetrf_batched returned argument error %lld: %s.\n",
                         (long long) info, magma_strerror( info ));
             }
-            
+
             /* ====================================================================
                Performs operation using CUBLAS
                =================================================================== */
@@ -180,14 +180,14 @@ int main( int argc, char** argv)
                 hipblasZgetrfBatched( opts.handle, int(N),
                                      (hipblasDoubleComplex**)dA_array, int(ldda), dipiv_cublas,
                                      dinfo_cublas, int(batchCount) );
-                #endif    
+                #endif
             }
             else {
                 printf("M != N, CUBLAS required M == N; CUBLAS is disabled\n");
             }
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
             cublas_perf = gflops / cublas_time;
-            
+
             /* =====================================================================
                Performs operation using LAPACK
                =================================================================== */
@@ -212,11 +212,11 @@ int main( int argc, char** argv)
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);
                 #endif
-                
+
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;
             }
-            
+
             /* =====================================================================
                Check the factorization
                =================================================================== */
@@ -248,7 +248,7 @@ int main( int argc, char** argv)
                     if (error == -1) {
                         break;
                     }
-                    
+
                     double err = get_LU_error( M, N, h_R + i * lda*N, lda, h_Amagma + i * lda*N, ipiv + i * min_mn);
                     if (std::isnan(err) || std::isinf(err)) {
                         error = err;
@@ -263,7 +263,7 @@ int main( int argc, char** argv)
             else {
                 printf("     ---\n");
             }
-            
+
             magma_free_cpu( cpu_info );
             magma_free_cpu( ipiv );
             magma_free_cpu( h_A );
@@ -283,7 +283,7 @@ int main( int argc, char** argv)
             printf( "\n" );
         }
     }
-    
+
     opts.cleanup();
     TESTING_CHECK( magma_finalize() );
     return status;

@@ -215,15 +215,15 @@ int main( int argc, char** argv)
                     hinvA_array[k] = hinvA_array[k-1] + h_invA_size[k-1];
                     hwork_array[k] = hwork_array[k-1] + h_lddb[k-1]*h_N[k-1];
                 }
+
+                for(int k = 0; k < batchCount; k++) {
+                    magmablas_zlaset( MagmaFull, h_lddb[k], h_N[k], c_zero, c_zero, hwork_array[k], h_lddb[k], opts.queue);
+                }
                 magma_setvector(batchCount, sizeof(magmaDoubleComplex*), hinvA_array, 1, dinvA_array, 1, opts.queue);
                 magma_setvector(batchCount, sizeof(magmaDoubleComplex*), hwork_array, 1, dwork_array, 1, opts.queue);
             }
 
             memset(h_Bmagma, 0, total_size_B_cpu*sizeof(magmaDoubleComplex));
-            for(int k = 0; k < batchCount; k++) {
-                magmablas_zlaset( MagmaFull, h_lddb[k], h_N[k], c_zero, c_zero, hwork_array[k], h_lddb[k], opts.queue);
-            }
-
             /* Initialize the matrices */
             /* Factor A into LU to get well-conditioned triangular matrix.
              * Copy L to U, since L seems okay when used with non-unit diagonal
@@ -265,7 +265,7 @@ int main( int argc, char** argv)
 
             magma_time = magma_sync_wtime( opts.queue );
             if (opts.version == 1) {
-                magmablas_ztrsm_outofplace_vbatched(
+                magmablas_ztrsm_inv_outofplace_vbatched(
                     opts.side, opts.uplo, opts.transA, opts.diag, 1,
                     d_M, d_N, alpha,
                     d_A_array,    d_ldda, // dA
@@ -287,8 +287,8 @@ int main( int argc, char** argv)
                     work_tmp += h_N[k] * h_lddb[k];
                 }
             }
-            else {
-                magmablas_ztrsm_vbatched(
+            else if ( opts.version == 2 ) {
+                magmablas_ztrsm_inv_vbatched(
                     opts.side, opts.uplo, opts.transA, opts.diag,
                     d_M, d_N, alpha,
                     d_A_array, d_ldda,
@@ -305,6 +305,26 @@ int main( int argc, char** argv)
                     d_B_tmp  += h_N[k] * h_lddb[k];
                 }
             }
+            else if (opts.version == 3) {
+                magmablas_ztrsm_vbatched(
+                    opts.side, opts.uplo, opts.transA, opts.diag,
+                    d_M, d_N, alpha,
+                    d_A_array, d_ldda,
+                    d_B_array, d_lddb,
+                    batchCount, opts.queue);
+
+                    magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+                    magma_perf = gflops / magma_time;
+
+                    h_B_tmp = h_Bmagma;
+                    magmaDoubleComplex *d_B_tmp = d_B;
+                    for(int k = 0; k < batchCount; k++) {
+                        magma_zgetmatrix( h_M[k], h_N[k], d_B_tmp, h_lddb[k], h_B_tmp, h_ldb[k], opts.queue);
+                        h_B_tmp  += h_N[k] * h_ldb[k];
+                        d_B_tmp  += h_N[k] * h_lddb[k];
+                    }
+            }
+
 
             if ( opts.lapack ) {
                 /* =====================================================================

@@ -226,6 +226,7 @@ testing_src += \
 	$(cdir)/testing_ztrsm_vbatched.cpp	\
 	\
 	$(cdir)/testing_zpotrf_vbatched.cpp	\
+	$(cdir)/testing_zgetrf_vbatched.cpp	\
 
 # ----------
 # half precision files

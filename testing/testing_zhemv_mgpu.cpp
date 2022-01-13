@@ -6,7 +6,7 @@
        @date
 
        @precisions normal z -> c d s
-       
+
        @author Mark Gates
 */
 
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     #define dX(i_)     (dX + (i_))
     #define dY(i_)     (dY + (i_))
     #endif
-    
+
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
@@ -59,11 +59,11 @@ int main(int argc, char **argv)
     magma_device_t dev;
     magma_queue_t queues[MagmaMaxGPUs];
     int status = 0;
-    
+
     magma_opts opts;
     opts.parse_opts( argc, argv );
     opts.ngpu = abs( opts.ngpu );  // always uses multi-GPU code
-    
+
     double tol = opts.tolerance * lapackf77_dlamch("E");
 
     magma_int_t nb = 64;  // required by magmablas_zhemv_mgpu implementation
@@ -71,24 +71,24 @@ int main(int argc, char **argv)
     for( dev=0; dev < opts.ngpu; ++dev ) {
         magma_queue_create( dev, &queues[dev] );
     }
-    
+
     // currently, tests all offsets in the offsets array;
     // comment out loop below to test a specific offset.
     magma_int_t offset = opts.offset;
     magma_int_t offsets[] = { 0, 1, 31, 32, 33, 63, 64, 65, 100, 200 };
     magma_int_t noffsets = sizeof(offsets) / sizeof(*offsets);
-    
+
     printf("%% uplo = %s, ngpu %lld, block size = %lld, offset %lld\n",
             lapack_uplo_const(opts.uplo), (long long) opts.ngpu, (long long) nb, (long long) offset );
-    printf( "%%                 BLAS                CUBLAS              MAGMA 1 GPU         MAGMA MGPU       Error rel  Error rel\n"
-            "%%   N  offset     Gflop/s (msec)      Gflop/s (msec)      Gflop/s (msec)      Gflop/s (msec)   to CUBLAS  to LAPACK\n"
-            "%%==================================================================================================================\n" );
+    printf( "%%                 BLAS                %s              MAGMA 1 GPU         MAGMA MGPU       Error rel  Error rel\n"
+            "%%   N  offset     Gflop/s (msec)      Gflop/s (msec)      Gflop/s (msec)      Gflop/s (msec)   to %s  to LAPACK\n"
+            "%%==================================================================================================================\n", g_platform_str, g_platform_str );
     for( int itest = 0; itest < opts.ntest; ++itest ) {
-      
+
       // comment out these two lines & end of loop to test a specific offset
       for( int ioffset=0; ioffset < noffsets; ioffset += 1 ) {
         offset = offsets[ioffset];
-        
+
         for( int iter = 0; iter < opts.niter; ++iter ) {
             N       = opts.nsize[itest];
             Noffset = N + offset;
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
             matsize = Noffset*ldda;
             vecsize = (Noffset-1)*incx + 1;
             gflops  = FLOPS_ZHEMV( N ) / 1e9;
-            
+
             blocks = magma_ceildiv( N + (offset % nb), nb );
             lhwork = N*opts.ngpu;
             ldwork = ldda*(blocks + 1);
@@ -111,12 +111,12 @@ int main(int argc, char **argv)
 
             TESTING_CHECK( magma_zmalloc_pinned( &X,       vecsize ));
             TESTING_CHECK( magma_zmalloc_pinned( &hwork,   lhwork  ));
-            
+
             magma_setdevice( opts.device );
             TESTING_CHECK( magma_zmalloc( &dA, matsize ));
             TESTING_CHECK( magma_zmalloc( &dX, vecsize ));
             TESTING_CHECK( magma_zmalloc( &dY, vecsize ));
-            
+
             // TODO make magma_zmalloc_bcyclic helper function?
             for( dev=0; dev < opts.ngpu; dev++ ) {
                 n_local[dev] = ((Noffset/nb)/opts.ngpu)*nb;
@@ -124,21 +124,21 @@ int main(int argc, char **argv)
                     n_local[dev] += nb;
                 else if (dev == (Noffset/nb) % opts.ngpu)
                     n_local[dev] += Noffset % nb;
-                
+
                 magma_setdevice( dev );
                 TESTING_CHECK( magma_zmalloc( &d_lA[dev],  ldda*n_local[dev] ));
                 TESTING_CHECK( magma_zmalloc( &dwork[dev], ldwork ));
             }
-            
+
             //////////////////////////////////////////////////////////////////////////
-            
+
             /* Initialize the matrix */
             lapackf77_zlarnv( &ione, ISEED, &matsize, A );
             magma_zmake_hermitian( Noffset, A, lda );
-            
+
             lapackf77_zlarnv( &ione, ISEED, &vecsize, X );
             lapackf77_zlarnv( &ione, ISEED, &vecsize, Y );
-            
+
             /* =====================================================================
                Performs operation using cuBLAS / clBLAS
                =================================================================== */
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
             magma_zsetmatrix( Noffset, Noffset, A, lda, dA, ldda, opts.queue );
             magma_zsetvector( Noffset, X, incx, dX, incx, opts.queue );
             magma_zsetvector( Noffset, Y, incx, dY, incx, opts.queue );
-            
+
             dev_time = magma_sync_wtime(0);
             magma_zhemv( opts.uplo, N,
                          alpha, dA(offset, offset), ldda,
@@ -154,42 +154,42 @@ int main(int argc, char **argv)
                          beta,  dY(offset), incx, opts.queue );
             dev_time = magma_sync_wtime(0) - dev_time;
             dev_perf = gflops / dev_time;
-            
+
             magma_zgetvector( Noffset, dY, incx, Ydev, incx, opts.queue );
-            
+
             /* =====================================================================
                Performs operation using MAGMABLAS (1 GPU)
                =================================================================== */
             magma_setdevice( opts.device );
             magma_zsetvector( Noffset, Y, incx, dY, incx, opts.queue );
-            
+
             gpu_time = magma_sync_wtime( opts.queue );
-            
+
             magmablas_zhemv_work( opts.uplo, N,
                                   alpha, dA(offset, offset), ldda,
                                          dX(offset), incx,
                                   beta,  dY(offset), incx, dwork[ opts.device ], ldwork,
                                   opts.queue );
-            
+
             gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             gpu_perf = gflops / gpu_time;
             magma_zgetvector( Noffset, dY, incx, Ymagma1, incx, opts.queue );
-            
+
             /* =====================================================================
                Performs operation using MAGMABLAS (multi-GPU)
                =================================================================== */
             magma_zsetmatrix_1D_col_bcyclic( opts.ngpu, Noffset, Noffset, nb, A, lda, d_lA, ldda, queues );
             blasf77_zcopy( &Noffset, Y, &incx, Ymagma, &incx );
-            
+
             // workspaces do NOT need to be zero -- set to NAN to prove
             for( dev=0; dev < opts.ngpu; ++dev ) {
                 magma_setdevice( dev );
                 magmablas_zlaset( MagmaFull, ldwork, 1, MAGMA_Z_NAN, MAGMA_Z_NAN, dwork[dev], ldwork, opts.queue );
             }
             lapackf77_zlaset( "Full", &lhwork, &ione, &MAGMA_Z_NAN, &MAGMA_Z_NAN, hwork, &lhwork );
-            
+
             mgpu_time = magma_sync_wtime(0);
-            
+
             magma_int_t info;
             info = magmablas_zhemv_mgpu(
                 opts.uplo, N,
@@ -205,7 +205,7 @@ int main(int argc, char **argv)
                 printf("magmablas_zhemv_mgpu returned error %lld: %s.\n",
                        (long long) info, magma_strerror( info ));
             }
-            
+
             info = magmablas_zhemv_mgpu_sync(
                 opts.uplo, N,
                 alpha,
@@ -220,16 +220,16 @@ int main(int argc, char **argv)
                 printf("magmablas_zhemv_sync returned error %lld: %s.\n",
                        (long long) info, magma_strerror( info ));
             }
-            
+
             mgpu_time = magma_sync_wtime(0) - mgpu_time;
             mgpu_perf = gflops / mgpu_time;
-            
+
             /* =====================================================================
                Performs operation using LAPACK
                =================================================================== */
             if ( opts.lapack ) {
                 blasf77_zcopy( &Noffset, Y, &incx, Ylapack, &incx );
-                
+
                 cpu_time = magma_wtime();
                 blasf77_zhemv( lapack_uplo_const(opts.uplo), &N,
                                &alpha, A + offset + offset*lda, &lda,
@@ -237,7 +237,7 @@ int main(int argc, char **argv)
                                &beta,  Ylapack + offset, &incx );
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;
-    
+
                 /* =====================================================================
                    Compute the Difference LAPACK vs. Magma
                    =================================================================== */
@@ -245,14 +245,14 @@ int main(int argc, char **argv)
                 blasf77_zaxpy( &Noffset, &c_neg_one, Ymagma, &incx, Ylapack, &incx );
                 error2 = lapackf77_zlange( "F", &Noffset, &ione, Ylapack, &Noffset, work ) / Ynorm;
             }
-            
+
             /* =====================================================================
                Compute the Difference cuBLAS vs. Magma
                =================================================================== */
             Ynorm = lapackf77_zlange( "F", &Noffset, &ione, Ydev, &Noffset, work );
             blasf77_zaxpy( &Noffset, &c_neg_one, Ymagma, &incx, Ydev, &incx );
             error = lapackf77_zlange( "F", &Noffset, &ione, Ydev, &Noffset, work ) / Ynorm;
-            
+
             bool okay = (error < tol && error2 < tol);
             status += ! okay;
             if ( opts.lapack ) {
@@ -272,7 +272,7 @@ int main(int argc, char **argv)
                         mgpu_perf, mgpu_time*1000.,
                         error, (okay ? "ok" : "failed") );
             }
-            
+
             /* Free Memory */
             magma_free_cpu( A );
             magma_free_cpu( Y );
@@ -283,12 +283,12 @@ int main(int argc, char **argv)
 
             magma_free_pinned( X );
             magma_free_pinned( hwork   );
-            
+
             magma_setdevice( opts.device );
             magma_free( dA );
             magma_free( dX );
             magma_free( dY );
-            
+
             for( dev=0; dev < opts.ngpu; dev++ ) {
                 magma_setdevice( dev );
                 magma_free( d_lA[dev]  );
@@ -299,16 +299,16 @@ int main(int argc, char **argv)
         if ( opts.niter > 1 ) {
             printf( "\n" );
         }
-        
+
       // comment out these two lines line & top of loop test a specific offset
       }  // end for ioffset
       printf( "\n" );
     }
-    
+
     for( dev=0; dev < opts.ngpu; ++dev ) {
         magma_queue_destroy( queues[dev] );
     }
-    
+
     opts.cleanup();
     TESTING_CHECK( magma_finalize() );
     return status;

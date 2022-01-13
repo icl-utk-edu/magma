@@ -79,7 +79,7 @@ int main( int argc, char** argv)
 
     printf("%% uplo = %s, transA = %s\n",
            lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA) );
-    printf("%%   N     K   MAGMA Gflop/s (ms)  CUBLAS Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error   CUBLAS error\n");
+    printf("%%   N     K   MAGMA Gflop/s (ms)  %s Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error   %s error\n", g_platform_str, g_platform_str);
    #else
     // for others, we need LAPACK for check
     opts.lapack |= opts.check;  // check (-c) implies lapack (-l)

@@ -505,22 +505,22 @@ blas = (
 	('testing_zgemm',   '-l -NT         -c',  mnk,  ''),
 	('testing_zgemm',   '-l -TN         -c',  mnk,  ''),
 	('testing_zgemm',   '-l -TT         -c',  mnk,  ''),
-	
+
 	# no-trans/trans/conj-trans
 	('testing_zgemv',                  '-c',  mn,   ''),
 	('testing_zgemv',   '-T             -c',  mn,   ''),
 	('testing_zgemv',   '-C             -c',  mn,   ''),
-	
+
 	# left/right, lower/upper
 	('testing_zhemm',   '-SL -L         -c',  mn,    ''),
 	('testing_zhemm',   '-SL -U         -c',  mn,    ''),
 	('testing_zhemm',   '-SR -L         -c',  mn,    ''),
 	('testing_zhemm',   '-SR -U         -c',  mn,    ''),
-    
+
 	# lower/upper
 	('testing_zhemv',   '-L             -c',  n,    ''),
 	('testing_zhemv',   '-U             -c',  n,    ''),
-	
+
 	# lower/upper, no-trans/conj-trans
 	('testing_zherk',   '-L             -c',  nk,   'cublas only'),
 	('testing_zherk',   '-L -C          -c',  nk,   'cublas only'),
@@ -529,7 +529,7 @@ blas = (
 	# real trans
 	('testing_dsyrk',   '-L -T          -c',  nk,   'cublas only'),
 	('testing_dsyrk',   '-U -T          -c',  nk,   'cublas only'),
-	
+
 	# lower/upper, no-trans/conj-trans
 	('testing_zher2k',  '-L             -c',  nk,   'cublas only'),
 	('testing_zher2k',  '-L -C          -c',  nk,   'cublas only'),
@@ -538,11 +538,11 @@ blas = (
 	# real trans
 	('testing_dsyr2k',  '-L -T          -c',  nk,   'cublas only'),
 	('testing_dsyr2k',  '-U -T          -c',  nk,   'cublas only'),
-	
+
 	# lower/upper
 	('testing_zsymv',   '-L             -c',  n,    ''),
 	('testing_zsymv',   '-U             -c',  n,    ''),
-	
+
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrmm',   '-SL -L    -DN  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -L    -DU  -c',  n + wide,   'cublas only'),
@@ -550,28 +550,28 @@ blas = (
 	('testing_ztrmm',   '-SL -L -C -DU  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -L -T -DN  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -L -T -DU  -c',  n + wide,   'cublas only'),
-	
+
 	('testing_ztrmm',   '-SL -U    -DN  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -U    -DU  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -U -C -DN  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -U -C -DU  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -U -T -DN  -c',  n + wide,   'cublas only'),
 	('testing_ztrmm',   '-SL -U -T -DU  -c',  n + wide,   'cublas only'),
-	
+
 	('testing_ztrmm',   '-SR -L    -DN  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -L    -DU  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -L -C -DN  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -L -C -DU  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -L -T -DN  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -L -T -DU  -c',  n + tall,   'cublas only'),
-	
+
 	('testing_ztrmm',   '-SR -U    -DN  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -U    -DU  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -U -C -DN  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -U -C -DU  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -U -T -DN  -c',  n + tall,   'cublas only'),
 	('testing_ztrmm',   '-SR -U -T -DU  -c',  n + tall,   'cublas only'),
-	
+
 	# lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrmv',       '-L    -DN  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-L    -DU  -c',  n,    'cublas only'),
@@ -579,14 +579,14 @@ blas = (
 	('testing_ztrmv',       '-L -C -DU  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-L -T -DN  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-L -T -DU  -c',  n,    'cublas only'),
-	
+
 	('testing_ztrmv',       '-U    -DN  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-U    -DU  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-U -C -DN  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-U -C -DU  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-U -T -DN  -c',  n,    'cublas only'),
 	('testing_ztrmv',       '-U -T -DU  -c',  n,    'cublas only'),
-	
+
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsm',   '-SL -L    -DN  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -L    -DU  -c',  n + wide,   ''),
@@ -594,28 +594,28 @@ blas = (
 	('testing_ztrsm',   '-SL -L -C -DU  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -L -T -DN  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -L -T -DU  -c',  n + wide,   ''),
-	
+
 	('testing_ztrsm',   '-SL -U    -DN  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -U    -DU  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -U -C -DN  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -U -C -DU  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -U -T -DN  -c',  n + wide,   ''),
 	('testing_ztrsm',   '-SL -U -T -DU  -c',  n + wide,   ''),
-	
+
 	('testing_ztrsm',   '-SR -L    -DN  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -L    -DU  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -L -C -DN  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -L -C -DU  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -L -T -DN  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -L -T -DU  -c',  n + tall,   ''),
-	
+
 	('testing_ztrsm',   '-SR -U    -DN  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -U    -DU  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -U -C -DN  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -U -C -DU  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -U -T -DN  -c',  n + tall,   ''),
 	('testing_ztrsm',   '-SR -U -T -DU  -c',  n + tall,   ''),
-	
+
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsm', ngpu + '-SL -L    -DN  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -L    -DU  -c',  n + wide,  ''),
@@ -623,28 +623,28 @@ blas = (
 	('testing_ztrsm', ngpu + '-SL -L -C -DU  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -L -T -DN  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -L -T -DU  -c',  n + wide,  ''),
-	
+
 	('testing_ztrsm', ngpu + '-SL -U    -DN  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -U    -DU  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -U -C -DN  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -U -C -DU  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -U -T -DN  -c',  n + wide,  ''),
 	('testing_ztrsm', ngpu + '-SL -U -T -DU  -c',  n + wide,  ''),
-	
+
 	('testing_ztrsm', ngpu + '-SR -L    -DN  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -L    -DU  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -L -C -DN  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -L -C -DU  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -L -T -DN  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -L -T -DU  -c',  n + tall,  ''),
-	
+
 	('testing_ztrsm', ngpu + '-SR -U    -DN  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -U    -DU  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -U -C -DN  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -U -C -DU  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -U -T -DN  -c',  n + tall,  ''),
 	('testing_ztrsm', ngpu + '-SR -U -T -DU  -c',  n + tall,  ''),
-	
+
 	# lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsv',       '-L    -DN  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-L    -DU  -c',  n,    'cublas only'),
@@ -652,23 +652,23 @@ blas = (
 	('testing_ztrsv',       '-L -C -DU  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-L -T -DN  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-L -T -DU  -c',  n,    'cublas only'),
-	
+
 	('testing_ztrsv',       '-U    -DN  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-U    -DU  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-U -C -DN  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-U -C -DU  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-U -T -DN  -c',  n,    'cublas only'),
 	('testing_ztrsv',       '-U -T -DU  -c',  n,    'cublas only'),
-	
+
 	('testing_zhemm_mgpu',   ngpu + '-L -c',  n,    ''),
 	('#testing_zhemm_mgpu',  ngpu + '-U -c',  n,    'upper not implemented'),
-	
+
 	('testing_zhemv_mgpu',   ngpu + '-L -c',  n,    ''),
 	('testing_zhemv_mgpu',   ngpu + '-U -c',  n,    ''),
-	
+
 	('testing_zher2k_mgpu',  ngpu + '-L -c',  nk,   ''),
 	('testing_zher2k_mgpu',  ngpu + '-U -c',  nk,   ''),
-	
+
 	('#testing_blas_z',                '-c',  mnk,  'takes long time; cublas only'),
 	('testing_cblas_z',                '-c',  n,    ''),
 )
@@ -683,10 +683,10 @@ aux = (
 	('testing_zlacpy',                 '-c',  mn,   ''),
 	('testing_zlag2c',                 '-c',  mn,   ''),
 	('testing_zlange',                 '-c',  mn,   ''),
-	
+
 	# lower/upper handled internally in one call
 	('testing_zlanhe',                 '-c',  n,    ''),
-	
+
 	('testing_zlarfg',                 '-c',  n,    ''),
 	('testing_zlascl',                 '-c',  mn,   ''),
 	('testing_zlaset',                 '-c',  mn,   ''),
@@ -694,22 +694,22 @@ aux = (
 	('testing_zlat2c',                 '-c',  n,    ''),
 	('testing_znan_inf',               '-c',  mn,   ''),
 	('testing_zprint',                 '-c',  '-n 10 -n 5,100 -n 100,5',  ''),
-	
+
 	# lower/upper
 	('testing_zsymmetrize',  '-L        -c',  n,    ''),
 	('testing_zsymmetrize',  '-U        -c',  n,    ''),
-	
+
 	# lower/upper
 	('testing_zsymmetrize_tiles',  '-L  -c',  n,    ''),
 	('testing_zsymmetrize_tiles',  '-U  -c',  n,    ''),
-	
+
 	('testing_zswap',                  '-c',  n,    ''),
 	('testing_ztranspose',             '-c',  mn,   ''),
-	
+
 	# lower/upper
 	('testing_ztrtri_diag',         '-L -c',  n,    ''),
 	('testing_ztrtri_diag',         '-U -c',  n,    ''),
-	
+
 	#('testing_auxiliary',             '-c',  '',   ''),  # run_tests misinterprets output as errors
 	('testing_constants',              '-c',  '',   ''),
 	('testing_operators',              '-c',  '',   ''),
@@ -723,40 +723,40 @@ chol = (
 	# Cholesky, GPU interface
 	('testing_zcposv_gpu',       '-L    -c',  n,    ''),
 	('testing_zcposv_gpu',       '-U    -c',  n,    ''),
-	
+
 	('testing_zposv_gpu',        '-L    -c',  n,    ''),
 	('testing_zposv_gpu',        '-U    -c',  n,    ''),
-	
+
 	('testing_zpotrf_gpu', '--version 1 -L   -c2',  n,    ''),
 	('testing_zpotrf_gpu', '--version 1 -U   -c2',  n,    ''),
 	('testing_zpotrf_gpu', '--version 2 -L   -c2',  n,    ''), # zpotrf_native, lower only
-	
+
 	('testing_zpotf2_gpu',       '-L    -c',  n + tall,  ''),
 	('testing_zpotf2_gpu',       '-U    -c',  n + tall,  ''),
-	
+
 	('testing_zpotri_gpu',       '-L    -c',  n,    ''),
 	('testing_zpotri_gpu',       '-U    -c',  n,    ''),
-	
+
 	# lower/upper, unit/non-unit
 	('testing_ztrtri_gpu',      '-L -DU -c',  n,    ''),
 	('testing_ztrtri_gpu',      '-L -DN -c',  n,    ''),
 	('testing_ztrtri_gpu',      '-U -DU -c',  n,    ''),
 	('testing_ztrtri_gpu',      '-U -DN -c',  n,    ''),
-	
+
 	('testing_zpotrf_mgpu', ngpu + '-L    -c',  n,    ''),
 	('testing_zpotrf_mgpu', ngpu + '-U    -c',  n,    ''),
-	
+
 	# ----------
 	# Cholesky, CPU interface
 	('testing_zposv',            '-L    -c',  n,    ''),
 	('testing_zposv',            '-U    -c',  n,    ''),
-	
+
 	('testing_zpotrf',           '-L    -c',  n,    ''),
 	('testing_zpotrf',           '-U    -c',  n,    ''),
-	
+
 	('testing_zpotri',           '-L    -c',  n,    ''),
 	('testing_zpotri',           '-U    -c',  n,    ''),
-	
+
 	# lower/upper, unit/non-unit
 	('testing_ztrtri',          '-L -DU -c',  n,    ''),
 	('testing_ztrtri',          '-L -DN -c',  n,    ''),
@@ -771,25 +771,25 @@ hesv = (
 	# Symmetric Indefinite
 	('testing_zhesv',               '-L -c',  n,    ''),
 	('testing_zhesv',               '-U -c',  n,    ''),
-	
+
 	('testing_zhesv_nopiv_gpu',     '-L -c',  n,    ''),
 	('testing_zhesv_nopiv_gpu',     '-U -c',  n,    ''),
-	
+
 	('testing_zsysv_nopiv_gpu',     '-L -c',  n,    ''),
 	('testing_zsysv_nopiv_gpu',     '-U -c',  n,    ''),
-	
+
 	# Bunch-Kauffman
 	('testing_zhetrf', '-L --version 1 -c2',  n,    ''),
 	('testing_zhetrf', '-U --version 1 -c2',  n,    ''),
-	
+
 	# no-pivot LDLt, CPU interface
 	('testing_zhetrf', '-L --version 3 -c2',  n,    ''),
 	('testing_zhetrf', '-U --version 3 -c2',  n,    ''),
-	
+
 	# no-pivot LDLt, GPU interface
 	('testing_zhetrf', '-L --version 4 -c2',  n,    ''),
 	('testing_zhetrf', '-U --version 4 -c2',  n,    ''),
-	
+
 	# Aasen's
 	('testing_zhetrf', '-L --version 6 -c2',  n,    ''),
 	('#testing_zhetrf','-U --version 6 -c2',  n,    'upper not implemented'),
@@ -808,7 +808,7 @@ lu = (
 	('testing_zgetf2_gpu',             '-c',  n + tall,  ''),
 	('testing_zgetri_gpu',             '-c',  n,    ''),
 	('testing_zgetrf_mgpu',    ngpu + '-c2',  n,    ''),
-	
+
 	# ----------
 	# LU, CPU interface
 	('testing_zgesv',                  '-c',  n,    ''),
@@ -824,28 +824,28 @@ qr = (
 	# ----------
 	# QR and least squares, GPU interface
 	('testing_zcgeqrsv_gpu',           '-c',  mn,   ''),
-	
+
 	('testing_zgegqr_gpu', '--version 1 -c',  mn,   ''),
 	('testing_zgegqr_gpu', '--version 2 -c',  mn,   ''),
 	('testing_zgegqr_gpu', '--version 3 -c',  mn,   ''),
 	('testing_zgegqr_gpu', '--version 4 -c',  mn,   ''),
-	
+
 	('testing_zgelqf_gpu',             '-c',  mn,   ''),
 	('testing_zgels_gpu',              '-c',  mn,   ''),
 	('testing_zgels3_gpu',             '-c',  mn,   ''),
-	
+
 	('testing_zgeqp3_gpu',             '-c',  mn,   ''),
 	('testing_zgeqr2_gpu',             '-c',  mn,   ''),
-	
+
 	('testing_zgeqr2x_gpu', '--version 1 -c', mn,   ''),
 	('testing_zgeqr2x_gpu', '--version 2 -c', mn,   ''),
 	('testing_zgeqr2x_gpu', '--version 3 -c', mn,   ''),
 	('testing_zgeqr2x_gpu', '--version 4 -c', mn,   ''),
-	
+
 	('testing_zgeqrf_gpu', '--version 1 -c2', mn,   ''),  # version 1 requires check=2
 	('testing_zgeqrf_gpu', '--version 2 -c',  mn,   ''),  # check=1 allows any M, N
 	('testing_zgeqrf_gpu', '--version 3 -c',  mn,   ''),
-	
+
 	('testing_zlarfb_gpu', '--version 1 -c',  mnk,  ''),
 	('testing_zlarfb_gpu', '--version 2 -c',  mnk,  ''),
 	('testing_zungqr_gpu',             '-c',  mnk,  ''),
@@ -853,7 +853,7 @@ qr = (
 	('testing_zunmqr_gpu', '--version 1 -c',  mnk,  ''),
 	('testing_zunmqr_gpu', '--version 2 -c',  mnk,  ''),
 	('testing_zgeqrf_mgpu',    ngpu + '-c2',  mn,   ''),
-	
+
 	# ----------
 	# QR, CPU interface
 	('testing_zgelqf',                 '-c',  mn,   ''),
@@ -882,38 +882,38 @@ syev = (
 	('testing_zheevd_gpu',        '--version 1 -U -JN -c',  n,    ''),
 	('testing_zheevd_gpu',        '--version 1 -L -JV -c',  n,    ''),
 	('testing_zheevd_gpu',        '--version 1 -U -JV -c',  n,    ''),
-	
+
 	# version 2 is zheevdx_gpu
 	# TODO test with --fraction < 1; checks don't seem to work.
 	('testing_zheevd_gpu',        '--version 2 --fraction 1.0 -L -JN -c',  n,    ''),
 	('testing_zheevd_gpu',        '--version 2 --fraction 1.0 -U -JN -c',  n,    ''),
 	('testing_zheevd_gpu',        '--version 2 --fraction 1.0 -L -JV -c',  n,    ''),
 	('testing_zheevd_gpu',        '--version 2 --fraction 1.0 -U -JV -c',  n,    ''),
-	
+
 	# version 3 is zheevr_gpu
 	# TODO test with --fraction < 1; checks don't seem to work.
 	('testing_zheevd_gpu',        '--version 3 --fraction 1.0 -L -JN -c',  n,    ''),
 	('testing_zheevd_gpu',        '--version 3 --fraction 1.0 -U -JN -c',  n,    ''),
 	('testing_zheevd_gpu',        '--version 3 --fraction 1.0 -L -JV -c',  n,    ''),
 	('testing_zheevd_gpu',        '--version 3 --fraction 1.0 -U -JV -c',  n,    ''),
-	
+
 	# version 4 is zheevx_gpu
 	# TODO test with --fraction < 1; checks don't seem to work.
 	('testing_zheevd_gpu',        '--version 4 --fraction 1.0 -L -JN -c',  n,    ''),
 	('testing_zheevd_gpu',        '--version 4 --fraction 1.0 -U -JN -c',  n,    ''),
 	('testing_zheevd_gpu',        '--version 4 --fraction 1.0 -L -JV -c',  n,    ''),
 	('testing_zheevd_gpu',        '--version 4 --fraction 1.0 -U -JV -c',  n,    ''),
-	
+
 	# lower/upper, version 1 (cublas_hemv)/2 (fast_hemv)
 	('testing_zhetrd_gpu',  '--version 1 -L -c',  n,    ''),
 	('testing_zhetrd_gpu',  '--version 1 -U -c',  n,    ''),
 	('testing_zhetrd_gpu',  '--version 2 -L -c',  n,    ''),
 	('testing_zhetrd_gpu',  '--version 2 -U -c',  n,    ''),
-	
+
 	# multi-gpu
 	('testing_zhetrd_mgpu', ngpu + '-L     -c',  n,    ''),
 	('testing_zhetrd_mgpu', ngpu + '-U     -c',  n,    ''),
-	
+
 	# ----------
 	# symmetric eigenvalues, CPU interface
 	# no vectors/vectors, lower/upper
@@ -922,42 +922,42 @@ syev = (
 	('testing_zheevd',        '--version 1 -U -JN -c',  n,    ''),
 	('testing_zheevd',        '--version 1 -L -JV -c',  n,    ''),
 	('testing_zheevd',        '--version 1 -U -JV -c',  n,    ''),
-	
+
 	('testing_zheevd', ngpu + '--version 1 -L -JN -c',  n,    ''),
 	('testing_zheevd', ngpu + '--version 1 -U -JN -c',  n,    ''),
 	('testing_zheevd', ngpu + '--version 1 -L -JV -c',  n,    ''),
 	('testing_zheevd', ngpu + '--version 1 -U -JV -c',  n,    ''),
-	
+
 	# version 2 is zheevdx
 	# TODO test with --fraction < 1; checks don't seem to work.
 	('testing_zheevd',        '--version 2 --fraction 1.0 -L -JN -c',  n,    ''),
 	('testing_zheevd',        '--version 2 --fraction 1.0 -U -JN -c',  n,    ''),
 	('testing_zheevd',        '--version 2 --fraction 1.0 -L -JV -c',  n,    ''),
 	('testing_zheevd',        '--version 2 --fraction 1.0 -U -JV -c',  n,    ''),
-	
+
 	('testing_zheevd', ngpu + '--version 2 --fraction 1.0 -L -JN -c',  n,    ''),
 	('testing_zheevd', ngpu + '--version 2 --fraction 1.0 -U -JN -c',  n,    ''),
 	('testing_zheevd', ngpu + '--version 2 --fraction 1.0 -L -JV -c',  n,    ''),
 	('testing_zheevd', ngpu + '--version 2 --fraction 1.0 -U -JV -c',  n,    ''),
-	
+
 	# version 3 is zheevr
 	# TODO test with --fraction < 1; checks don't seem to work.
 	('testing_zheevd',        '--version 3 --fraction 1.0 -L -JN -c',  n,    ''),
 	('testing_zheevd',        '--version 3 --fraction 1.0 -U -JN -c',  n,    ''),
 	('testing_zheevd',        '--version 3 --fraction 1.0 -L -JV -c',  n,    ''),
 	('testing_zheevd',        '--version 3 --fraction 1.0 -U -JV -c',  n,    ''),
-	
+
 	# version 4 is zheevx
 	# TODO test with --fraction < 1; checks don't seem to work.
 	('testing_zheevd',        '--version 4 --fraction 1.0 -L -JN -c',  n,    ''),
 	('testing_zheevd',        '--version 4 --fraction 1.0 -U -JN -c',  n,    ''),
 	('testing_zheevd',        '--version 4 --fraction 1.0 -L -JV -c',  n,    ''),
 	('testing_zheevd',        '--version 4 --fraction 1.0 -U -JV -c',  n,    ''),
-	
+
 	# lower/upper
 	('testing_zhetrd',          '-L     -c',  n,    ''),
 	('testing_zhetrd',          '-U     -c',  n,    ''),
-	
+
 	# ----------
 	# symmetric eigenvalues, 2-stage
 	# TODO test with --fraction < 1; checks don't seem to work.
@@ -965,7 +965,7 @@ syev = (
 	('testing_zheevdx_2stage',  '--fraction 1.0 -L -JV -c',  n,    ''),
 	('#testing_zheevdx_2stage', '--fraction 1.0 -U -JN -c',  n,    'upper not implemented'),
 	('#testing_zheevdx_2stage', '--fraction 1.0 -U -JV -c',  n,    'upper not implemented'),
-	
+
 	# same tester for multi-GPU version
 	# TODO test multi-GPU version with ngpu=1
 	# TODO test with --fraction < 1; checks don't seem to work.
@@ -983,152 +983,152 @@ sygv = (
 	('testing_zhegst',               '-L --itype 1 -c',  n,  ''),
 	('testing_zhegst',               '-L --itype 2 -c',  n,  ''),
 	# itype 2 == itype 3 for hegst
-	
+
 	('testing_zhegst',               '-U --itype 1 -c',  n,  ''),
 	('testing_zhegst',               '-U --itype 2 -c',  n,  ''),
-	
+
 	('testing_zhegst_gpu',           '-L --itype 1 -c',  n,  ''),
 	('testing_zhegst_gpu',           '-L --itype 2 -c',  n,  ''),
-	
+
 	('testing_zhegst_gpu',           '-U --itype 1 -c',  n,  ''),
 	('testing_zhegst_gpu',           '-U --itype 2 -c',  n,  ''),
-	
+
 	# no-vector/vector, lower/upper, itypes
 	('testing_zhegvd',           '-L -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvd',           '-L -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvd',           '-L -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvd',           '-U -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvd',           '-U -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvd',           '-U -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvd',           '-L -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvd',           '-L -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvd',           '-L -JV --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvd',           '-U -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvd',           '-U -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvd',           '-U -JV --itype 3 -c',  n,  ''),
-	
+
 	# lower/upper, no-vector/vector, itypes, add ngpu to call zhegvd_m
 	('testing_zhegvd',    ngpu + '-L -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvd',    ngpu + '-L -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvd',    ngpu + '-L -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvd',    ngpu + '-U -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvd',    ngpu + '-U -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvd',    ngpu + '-U -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvd',    ngpu + '-L -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvd',    ngpu + '-L -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvd',    ngpu + '-L -JV --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvd',    ngpu + '-U -JV --itype 1 -c',  n,  'upper not implemented ??'),
 	('testing_zhegvd',    ngpu + '-U -JV --itype 2 -c',  n,  'upper not implemented ??'),
 	('testing_zhegvd',    ngpu + '-U -JV --itype 3 -c',  n,  'upper not implemented ??'),
-	
+
 	# lower/upper, no-vector/vector, itypes
 	# TODO fraction
 	('testing_zhegvdx',          '--version 1 -L -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvdx',          '--version 1 -L -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvdx',          '--version 1 -L -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx',          '--version 1 -U -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvdx',          '--version 1 -U -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvdx',          '--version 1 -U -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx',          '--version 1 -L -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvdx',          '--version 1 -L -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvdx',          '--version 1 -L -JV --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx',          '--version 1 -U -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvdx',          '--version 1 -U -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvdx',          '--version 1 -U -JV --itype 3 -c',  n,  ''),
-	
+
 	# lower/upper, no-vector/vector, itypes, add ngpu to call zhegvdx_m
 	# TODO fraction
 	('testing_zhegvdx',   ngpu + '--version 1 -L -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvdx',   ngpu + '--version 1 -L -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvdx',   ngpu + '--version 1 -L -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx',   ngpu + '--version 1 -U -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvdx',   ngpu + '--version 1 -U -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvdx',   ngpu + '--version 1 -U -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx',   ngpu + '--version 1 -L -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvdx',   ngpu + '--version 1 -L -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvdx',   ngpu + '--version 1 -L -JV --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx',   ngpu + '--version 1 -U -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvdx',   ngpu + '--version 1 -U -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvdx',   ngpu + '--version 1 -U -JV --itype 3 -c',  n,  ''),
-	
+
 	# version 2 is zhegvx
 	# TODO fraction
 	('testing_zhegvdx', '--version 2 -L -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvdx', '--version 2 -L -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvdx', '--version 2 -L -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx', '--version 2 -U -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvdx', '--version 2 -U -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvdx', '--version 2 -U -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx', '--version 2 -L -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvdx', '--version 2 -L -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvdx', '--version 2 -L -JV --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx', '--version 2 -U -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvdx', '--version 2 -U -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvdx', '--version 2 -U -JV --itype 3 -c',  n,  ''),
-	
+
 	# version 2 is zhegvr
 	# TODO fraction
 	('testing_zhegvdx', '--version 3 -L -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvdx', '--version 3 -L -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvdx', '--version 3 -L -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx', '--version 3 -U -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvdx', '--version 3 -U -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvdx', '--version 3 -U -JN --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx', '--version 3 -L -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvdx', '--version 3 -L -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvdx', '--version 3 -L -JV --itype 3 -c',  n,  ''),
-	
+
 	('testing_zhegvdx', '--version 3 -U -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvdx', '--version 3 -U -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvdx', '--version 3 -U -JV --itype 3 -c',  n,  ''),
-	
+
 	# lower/upper, no-vector/vector, itypes
 	('testing_zhegvdx_2stage',   '-L -JN --itype 1 -c',  n,  ''),
 	('testing_zhegvdx_2stage',   '-L -JN --itype 2 -c',  n,  ''),
 	('testing_zhegvdx_2stage',   '-L -JN --itype 3 -c',  n,  ''),
-	
+
 	('#testing_zhegvdx_2stage',  '-U -JN --itype 1 -c',  n,  'upper not implemented'),
 	('#testing_zhegvdx_2stage',  '-U -JN --itype 2 -c',  n,  'upper not implemented'),
 	('#testing_zhegvdx_2stage',  '-U -JN --itype 3 -c',  n,  'upper not implemented'),
-	
+
 	('testing_zhegvdx_2stage',   '-L -JV --itype 1 -c',  n,  ''),
 	('testing_zhegvdx_2stage',   '-L -JV --itype 2 -c',  n,  ''),
 	('testing_zhegvdx_2stage',   '-L -JV --itype 3 -c',  n,  ''),
-	
+
 	('#testing_zhegvdx_2stage',  '-U -JV --itype 1 -c',  n,  'upper not implemented'),
 	('#testing_zhegvdx_2stage',  '-U -JV --itype 2 -c',  n,  'upper not implemented'),
 	('#testing_zhegvdx_2stage',  '-U -JV --itype 3 -c',  n,  'upper not implemented'),
-	
+
 	# lower/upper, no-vector/vector, itypes
 	('testing_zhegvdx_2stage',  ngpu + '-L -JN --itype 1 -c', n,  ''),
 	('testing_zhegvdx_2stage',  ngpu + '-L -JN --itype 2 -c', n,  ''),
 	('testing_zhegvdx_2stage',  ngpu + '-L -JN --itype 3 -c', n,  ''),
-	
+
 	('#testing_zhegvdx_2stage', ngpu + '-U -JN --itype 1 -c', n,  'upper not implemented'),
 	('#testing_zhegvdx_2stage', ngpu + '-U -JN --itype 2 -c', n,  'upper not implemented'),
 	('#testing_zhegvdx_2stage', ngpu + '-U -JN --itype 3 -c', n,  'upper not implemented'),
-	
+
 	('testing_zhegvdx_2stage',  ngpu + '-L -JV --itype 1 -c', n,  ''),
 	('testing_zhegvdx_2stage',  ngpu + '-L -JV --itype 2 -c', n,  ''),
 	('testing_zhegvdx_2stage',  ngpu + '-L -JV --itype 3 -c', n,  ''),
-	
+
 	('#testing_zhegvdx_2stage', ngpu + '-U -JV --itype 1 -c', n,  'upper not implemented'),
 	('#testing_zhegvdx_2stage', ngpu + '-U -JV --itype 2 -c', n,  'upper not implemented'),
 	('#testing_zhegvdx_2stage', ngpu + '-U -JV --itype 3 -c', n,  'upper not implemented'),
@@ -1145,7 +1145,7 @@ geev = (
 	('testing_zgeev',          '-RV -LV -c',  n,    ''),
 	('testing_zgeev',   ngpu + '-RN -LN -c',  n,    ''),
 	('testing_zgeev',   ngpu + '-RV -LV -c',  n,    ''),
-	
+
 	('testing_zgehrd',     '--version 1 -c',  n,    ''),
 	('testing_zgehrd',     '--version 2 -c',  n,    ''),
 	('testing_zgehrd',          ngpu + '-c',  n,    ''),
@@ -1163,12 +1163,12 @@ svd = (
 	('testing_zgesdd',      '--jobu s     -c',  mn,   ''),
 	('testing_zgesdd',      '--jobu o     -c',  mn,   ''),
 	('testing_zgesdd',      '--jobu a     -c',  n,    ''),  # todo: do tall & wide, but avoid excessive sizes
-	
+
 	('testing_zgesvd', '--jobu n --jobv n -c',  mn,   ''),
 	('testing_zgesvd', '--jobu s --jobv s -c',  mn,   ''),
 	('testing_zgesvd', '--jobu o --jobv s -c',  mn,   ''),
 	('testing_zgesvd', '--jobu a --jobv a -c',  n,    ''),  # todo: do tall & wide, but avoid excessive sizes
-	
+
 	('testing_zgebrd',                 '-c',  mn,   ''),
 	('testing_zungbr',                 '-c',  mnk,  ''),
 	('testing_zunmbr',                 '-c',  mnk,  ''),
@@ -1180,7 +1180,7 @@ batched = (
 	# ----------
 	# batched (BLAS, LU, etc.)
 	('testing_zgeadd_batched',    batch + '               -c',  mn,   ''),
-	
+
 	# no-trans/conj-trans; there are other combinations with trans
 	('testing_zgemm_batched',     batch + '-NN            -c',  mn,   ''),
 	('testing_zgemm_batched',     batch + '-NC            -c',  mn,   ''),
@@ -1189,22 +1189,22 @@ batched = (
 	('testing_zgemm_batched',     batch + '-NT            -c',  mn,   ''),
 	('testing_zgemm_batched',     batch + '-TN            -c',  mn,   ''),
 	('testing_zgemm_batched',     batch + '-TT            -c',  mn,   ''),
-	
+
 	# no-trans/trans/conj-trans
 	('testing_zgemv_batched',     batch + '               -c',  mn,   ''),
 	('testing_zgemv_batched',     batch + '-T             -c',  mn,   ''),
 	('testing_zgemv_batched',     batch + '-C             -c',  mn,   ''),
-	
+
 	# left/right lower/upper
 	('testing_zhemm_batched',     batch + '-SL      -L    -c',  mn,   ''),
 	('testing_zhemm_batched',     batch + '-SL      -U    -c',  mn,   ''),
 	('testing_zhemm_batched',     batch + '-SR      -L    -c',  mn,   ''),
 	('testing_zhemm_batched',     batch + '-SR      -U    -c',  mn,   ''),
-	
+
 	# lower/upper
 	('testing_zhemv_batched',     batch + '         -L    -c',  n,   ''),
 	('testing_zhemv_batched',     batch + '         -U    -c',  n,   ''),
-	
+
 	# lower/upper, no-trans/conj-trans
 	('testing_zherk_batched',     batch + '         -L    -c',  nk,   ''),
 	('testing_zherk_batched',     batch + '         -L -C -c',  nk,   ''),
@@ -1213,7 +1213,7 @@ batched = (
 	# real trans
 	('testing_dsyrk_batched',     batch + '         -L -T -c',  nk,   ''),
 	('testing_dsyrk_batched',     batch + '         -U -T -c',  nk,   ''),
-	
+
 	# lower/upper, no-trans/conj-trans
 	('testing_zher2k_batched',    batch + '         -L    -c',  nk,   ''),
 	('testing_zher2k_batched',    batch + '         -L -C -c',  nk,   ''),
@@ -1222,15 +1222,15 @@ batched = (
 	# real trans
 	('testing_dsyr2k_batched',    batch + '         -L -T -c',  nk,   ''),
 	('testing_dsyr2k_batched',    batch + '         -U -T -c',  nk,   ''),
-	
+
 	('testing_zlacpy_batched',    batch + '               -c',  mn,   ''),
-	
+
 	# lower/upper, no-trans/trans
 	('testing_zsyr2k_batched',    batch + '         -L    -c',  nk,   ''),
 	('testing_zsyr2k_batched',    batch + '         -L -T -c',  nk,   ''),
 	('testing_zsyr2k_batched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zsyr2k_batched',    batch + '         -U -T -c',  nk,   ''),
-	
+
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrmm_batched',     batch + '-SL -L    -DN  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -L    -DU  -c',  n + wide, ''),
@@ -1238,28 +1238,28 @@ batched = (
 	('testing_ztrmm_batched',     batch + '-SL -L -C -DU  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -L -T -DN  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -L -T -DU  -c',  n + wide, ''),
-	
+
 	('testing_ztrmm_batched',     batch + '-SL -U    -DN  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -U    -DU  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -U -C -DN  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -U -C -DU  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -U -T -DN  -c',  n + wide, ''),
 	('testing_ztrmm_batched',     batch + '-SL -U -T -DU  -c',  n + wide, ''),
-	
+
 	('testing_ztrmm_batched',     batch + '-SR -L    -DN  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -L    -DU  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -L -C -DN  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -L -C -DU  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -L -T -DN  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -L -T -DU  -c',  n + tall, ''),
-	
+
 	('testing_ztrmm_batched',     batch + '-SR -U    -DN  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -U    -DU  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -U -C -DN  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -U -C -DU  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -U -T -DN  -c',  n + tall, ''),
 	('testing_ztrmm_batched',     batch + '-SR -U -T -DU  -c',  n + tall, ''),
-	
+
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsm_batched',     batch + '-SL -L    -DN  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -L    -DU  -c',  n + wide, ''),
@@ -1267,28 +1267,28 @@ batched = (
 	('testing_ztrsm_batched',     batch + '-SL -L -C -DU  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -L -T -DN  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -L -T -DU  -c',  n + wide, ''),
-	
+
 	('testing_ztrsm_batched',     batch + '-SL -U    -DN  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -U    -DU  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -U -C -DN  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -U -C -DU  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -U -T -DN  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -U -T -DU  -c',  n + wide, ''),
-	
+
 	('testing_ztrsm_batched',     batch + '-SR -L    -DN  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -L    -DU  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -L -C -DN  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -L -C -DU  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -L -T -DN  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -L -T -DU  -c',  n + tall, ''),
-	
+
 	('testing_ztrsm_batched',     batch + '-SR -U    -DN  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -U    -DU  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -U -C -DN  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -U -C -DU  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -U -T -DN  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -U -T -DU  -c',  n + tall, ''),
-	
+
 	# lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsv_batched',     batch + '    -L    -DN  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -L    -DU  -c',  n,    ''),
@@ -1296,28 +1296,28 @@ batched = (
 	('testing_ztrsv_batched',     batch + '    -L -C -DU  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -L -T -DN  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -L -T -DU  -c',  n,    ''),
-	
+
 	('testing_ztrsv_batched',     batch + '    -U    -DN  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -U    -DU  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -U -C -DN  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -U -C -DU  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -U -T -DN  -c',  n,    ''),
 	('testing_ztrsv_batched',     batch + '    -U -T -DU  -c',  n,    ''),
-	
+
 	# ----- QR
 	('testing_zgeqrf_batched',    batch + '               -c',  mn,   ''),
-	
+
 	# ----- LU
 	('testing_zgesv_batched',         batch + '           -c',  mn,   ''),
 	('testing_zgesv_nopiv_batched',   batch + '           -c',  mn,   ''),
 	('testing_zgetrf_batched',        batch + '          -c2',  mn,   ''),
 	('testing_zgetrf_nopiv_batched',  batch + '          -c2',  mn,   ''),
 	('testing_zgetri_batched',        batch + '           -c',  n,    ''),
-	
+
 	# ----- Cholesky
 	('testing_zposv_batched',     batch + '         -L    -c',  n,    ''),
 	('#testing_zposv_batched',    batch + '         -U    -c',  n,    'upper not implemented'),
-	
+
 	('testing_zpotrf_batched',    batch + '         -L    -c2', n,    ''),
 	('#testing_zpotrf_batched',   batch + '         -U    -c2', n,    'upper not implemented'),
 )
@@ -1328,7 +1328,7 @@ if (opts.batched):
 vbatched = (
 	# ----------
 	# vbatched (BLAS, LU, etc.)
-	
+
 	# no-trans/conj-trans; there are other combinations with trans
 	('testing_zgemm_vbatched',     batch + '-NN            -c',  mn,   ''),
 	('testing_zgemm_vbatched',     batch + '-NC            -c',  mn,   ''),
@@ -1337,22 +1337,22 @@ vbatched = (
 	('testing_zgemm_vbatched',     batch + '-NC            -c',  mn,   ''),
 	('testing_zgemm_vbatched',     batch + '-CN            -c',  mn,   ''),
 	('testing_zgemm_vbatched',     batch + '-CC            -c',  mn,   ''),
-	
+
 	# no-trans/trans/conj-trans
 	('testing_zgemv_vbatched',     batch + '               -c',  mn,   ''),
 	('testing_zgemv_vbatched',     batch + '-T             -c',  mn,   ''),
 	('testing_zgemv_vbatched',     batch + '-C             -c',  mn,   ''),
-	
+
 	# left/right lower/upper
 	('testing_zhemm_vbatched',     batch + '-SL      -L    -c',  mn,   ''),
 	('testing_zhemm_vbatched',     batch + '-SL      -U    -c',  mn,   ''),
 	('testing_zhemm_vbatched',     batch + '-SR      -L    -c',  mn,   ''),
 	('testing_zhemm_vbatched',     batch + '-SR      -U    -c',  mn,   ''),
-	
+
 	# lower/upper
 	('testing_zhemv_vbatched',     batch + '         -L    -c',  n,   ''),
 	('testing_zhemv_vbatched',     batch + '         -U    -c',  n,   ''),
-	
+
 	# lower/upper, no-trans/conj-trans
 	('testing_zherk_vbatched',     batch + '         -L    -c',  nk,   ''),
 	('testing_zherk_vbatched',     batch + '         -L -C -c',  nk,   ''),
@@ -1361,7 +1361,7 @@ vbatched = (
 	# real trans
 	('testing_dsyrk_vbatched',     batch + '         -L -T -c',  nk,   ''),
 	('testing_dsyrk_vbatched',     batch + '         -U -T -c',  nk,   ''),
-	
+
 	# lower/upper, no-trans/conj-trans
 	('testing_zher2k_vbatched',    batch + '         -L    -c',  nk,   ''),
 	('testing_zher2k_vbatched',    batch + '         -L -C -c',  nk,   ''),
@@ -1370,19 +1370,19 @@ vbatched = (
 	# real trans
 	('testing_dsyr2k_vbatched',    batch + '         -L -T -c',  nk,   ''),
 	('testing_dsyr2k_vbatched',    batch + '         -U -T -c',  nk,   ''),
-	
+
 	# lower/upper, no-trans/trans
 	('testing_zsyrk_vbatched',     batch + '         -L    -c',  nk,   ''),
 	('testing_zsyrk_vbatched',     batch + '         -L -T -c',  nk,   ''),
 	('testing_zsyrk_vbatched',     batch + '         -U    -c',  nk,   ''),
 	('testing_zsyrk_vbatched',     batch + '         -U -T -c',  nk,   ''),
-	
+
 	# lower/upper, no-trans/trans
 	('testing_zsyr2k_vbatched',    batch + '         -L    -c',  nk,   ''),
 	('testing_zsyr2k_vbatched',    batch + '         -L -T -c',  nk,   ''),
 	('testing_zsyr2k_vbatched',    batch + '         -U    -c',  nk,   ''),
 	('testing_zsyr2k_vbatched',    batch + '         -U -T -c',  nk,   ''),
-	
+
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrmm_vbatched',     batch + '-SL -L    -DN  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -L    -DU  -c',  n + wide, ''),
@@ -1390,28 +1390,28 @@ vbatched = (
 	('testing_ztrmm_vbatched',     batch + '-SL -L -C -DU  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -L -T -DN  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -L -T -DU  -c',  n + wide, ''),
-	
+
 	('testing_ztrmm_vbatched',     batch + '-SL -U    -DN  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -U    -DU  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -U -C -DN  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -U -C -DU  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -U -T -DN  -c',  n + wide, ''),
 	('testing_ztrmm_vbatched',     batch + '-SL -U -T -DU  -c',  n + wide, ''),
-	
+
 	('testing_ztrmm_vbatched',     batch + '-SR -L    -DN  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -L    -DU  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -L -C -DN  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -L -C -DU  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -L -T -DN  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -L -T -DU  -c',  n + tall, ''),
-	
+
 	('testing_ztrmm_vbatched',     batch + '-SR -U    -DN  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -U    -DU  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -U -C -DN  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -U -C -DU  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -U -T -DN  -c',  n + tall, ''),
 	('testing_ztrmm_vbatched',     batch + '-SR -U -T -DU  -c',  n + tall, ''),
-	
+
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	# out-of-place
 	('testing_ztrsm_vbatched',     batch + '-SL -L    -DN  -c --version 1',  n + wide, ''),
@@ -1420,28 +1420,28 @@ vbatched = (
 	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DU  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -L -T -DN  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -L -T -DU  -c --version 1',  n + wide, ''),
-	
+
 	('testing_ztrsm_vbatched',     batch + '-SL -U    -DN  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U    -DU  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DN  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DU  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -T -DN  -c --version 1',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -T -DU  -c --version 1',  n + wide, ''),
-	
+
 	('testing_ztrsm_vbatched',     batch + '-SR -L    -DN  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L    -DU  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DN  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DU  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -T -DN  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -T -DU  -c --version 1',  n + tall, ''),
-	
+
 	('testing_ztrsm_vbatched',     batch + '-SR -U    -DN  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U    -DU  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DN  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DU  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -T -DN  -c --version 1',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -T -DU  -c --version 1',  n + tall, ''),
-	
+
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
 	# in-place
 	('testing_ztrsm_vbatched',     batch + '-SL -L    -DN  -c --version 2',  n + wide, ''),
@@ -1450,31 +1450,64 @@ vbatched = (
 	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DU  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -L -T -DN  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -L -T -DU  -c --version 2',  n + wide, ''),
-	
+
 	('testing_ztrsm_vbatched',     batch + '-SL -U    -DN  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U    -DU  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DN  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DU  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -T -DN  -c --version 2',  n + wide, ''),
 	('testing_ztrsm_vbatched',     batch + '-SL -U -T -DU  -c --version 2',  n + wide, ''),
-	
+
 	('testing_ztrsm_vbatched',     batch + '-SR -L    -DN  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L    -DU  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DN  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DU  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -T -DN  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -L -T -DU  -c --version 2',  n + tall, ''),
-	
+
 	('testing_ztrsm_vbatched',     batch + '-SR -U    -DN  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U    -DU  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DN  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DU  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -T -DN  -c --version 2',  n + tall, ''),
 	('testing_ztrsm_vbatched',     batch + '-SR -U -T -DU  -c --version 2',  n + tall, ''),
-	
+
+	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
+	# in-place
+	('testing_ztrsm_vbatched',     batch + '-SL -L    -DN  -c --version 3',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L    -DU  -c --version 3',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DN  -c --version 3',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -C -DU  -c --version 3',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -T -DN  -c --version 3',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -L -T -DU  -c --version 3',  n + wide, ''),
+
+	('testing_ztrsm_vbatched',     batch + '-SL -U    -DN  -c --version 3',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U    -DU  -c --version 3',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DN  -c --version 3',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -C -DU  -c --version 3',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -T -DN  -c --version 3',  n + wide, ''),
+	('testing_ztrsm_vbatched',     batch + '-SL -U -T -DU  -c --version 3',  n + wide, ''),
+
+	('testing_ztrsm_vbatched',     batch + '-SR -L    -DN  -c --version 3',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L    -DU  -c --version 3',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DN  -c --version 3',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -C -DU  -c --version 3',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -T -DN  -c --version 3',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -L -T -DU  -c --version 3',  n + tall, ''),
+
+	('testing_ztrsm_vbatched',     batch + '-SR -U    -DN  -c --version 3',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U    -DU  -c --version 3',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DN  -c --version 3',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -C -DU  -c --version 3',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -T -DN  -c --version 3',  n + tall, ''),
+	('testing_ztrsm_vbatched',     batch + '-SR -U -T -DU  -c --version 3',  n + tall, ''),
+
 	# ----- Cholesky
-	('testing_zpotrf_vbatched',    batch + '         -L    -c2', n,    ''),	
+	('testing_zpotrf_vbatched',    batch + '         -L    -c2', n,    ''),
 	('#testing_zposv_vbatched',    batch + '         -U    -c2', n,    'upper not implemented'),
+
+	# ----- LU
+	('testing_zgetrf_vbatched',    batch + '          -c2',  mn,   ''),
 )
 if (opts.vbatched):
 	tests += vbatched
@@ -1597,10 +1630,10 @@ def substitute( txt, pfrom, pto ):
 # status is exit status of the command.
 def run( cmd ):
 	words = re.split( ' +', cmd.strip() )
-	
+
 	# stdout & stderr are merged
 	p = subprocess.Popen( words, bufsize=1, stdout=PIPE, stderr=STDOUT )
-	
+
 	okay  = 0
 	fail  = 0
 	error = 0
@@ -1618,7 +1651,7 @@ def run( cmd ):
 		if re.search( 'exit|memory leak|memory mapping error|CUDA runtime error|CL_INVALID|illegal value|ERROR SUMMARY: [1-9]', line ):
 			error += 1
 	# end
-	
+
 	status = p.wait()
 	return (okay, fail, error, status)
 # end
@@ -1657,24 +1690,24 @@ for test in tests:
 		cmdp = substitute( cmd, 'z', precision )
 		if (not re.match( 'testing_', cmdp )):
 			continue
-		
+
 		disabled = (cmdp[0] == '#')
 		if (disabled):
 			cmdp = cmdp[1:]
-		
+
 		# command to run
 		cmd_args = './' + cmdp +' '+ options +' '+ global_options + sizes
 		cmd_args = re.sub( '  +', ' ', cmd_args )  # compress spaces
-		
+
 		# command to print on console, lacks sizes
 		cmd_opts = cmdp +' '+ options
 		cmd_opts = re.sub( '  +', ' ', cmd_opts )  # compress spaces
-		
+
 		# skip tests before start
 		if (start and not start.search( cmdp )):
 			continue
 		start = None
-		
+
 		# skip tests not in args, or duplicates
 		# skip and warn about non-existing
 		if (    (args and not cmdp in args)
@@ -1686,20 +1719,20 @@ for test in tests:
 			continue
 		# end
 		seen[ cmd_opts ] = True
-		
+
 		if (opts.memcheck):
 			cmd_args = 'cuda-memcheck ' + cmd_args
-		
+
 		repeat_test = True
 		while repeat_test:
 			repeat_test = False
-			
+
 			print()
 			print('*'*100)
 			print(cmd_args)
 			print('*'*100)
 			sys.stdout.flush()
-			
+
 			if (output_to_file):
 				if (last_cmd and cmd != last_cmd):
 					sys.stderr.write( '\n' )            # to console
@@ -1707,7 +1740,7 @@ for test in tests:
 				sys.stderr.write( '%-48s' % cmd_opts )  # to console
 				sys.stderr.flush()
 			# end
-			
+
 			if (disabled):
 				if (comments):
 					sys.stderr.write( '  (disabled: ' + comments + ')\n' )
@@ -1715,17 +1748,17 @@ for test in tests:
 					sys.stderr.write( '  (disabled)\n' )
 				break
 			# end
-			
+
 			t = time.time()
 			(okay, fail, error, status) = run( cmd_args )
 			t = time.time() - t
-			
+
 			# count stats
 			ntest  += 1
 			nokay  += okay
 			nfail  += fail
 			nerror += error
-			
+
 			errmsg = ''
 			if (fail > 0):
 				errmsg += '  ** %d tests failed' % (fail)
@@ -1734,7 +1767,7 @@ for test in tests:
 			if (status < 0):
 				errmsg += '  ** exit with signal %d' % (-status)
 				nerror += 1  # count crash as an error
-			
+
 			if (errmsg != ''):
 				if (output_to_file):
 					sys.stderr.write( errmsg + '\n' )  # to console
@@ -1743,7 +1776,7 @@ for test in tests:
 			else:
 				sys.stderr.write( '  ok\n' )
 			# end
-			
+
 			if (opts.interactive):
 				x = raw_input( '[enter to continue; M to make and re-run] ' )
 				if (x in ('m','M')):

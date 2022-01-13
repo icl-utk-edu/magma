@@ -30,28 +30,30 @@
 // It also uses lazy swap.
 //extern __shared__ magmaDoubleComplex zdata[];
 template<int N, int NPOW2>
-__global__ void
-zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda, 
+__global__
+__launch_bounds__(NPOW2)
+void
+zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda,
                                 magma_int_t** ipiv_array, magma_int_t *info_array, int batchCount)
 {
 extern __shared__ magmaDoubleComplex zdata[];
     const int tx = threadIdx.x;
-    const int ty = threadIdx.y; 
+    const int ty = threadIdx.y;
     const int batchid = blockIdx.x * blockDim.y + ty;
     if(batchid >= batchCount) return;
-    
+
     magmaDoubleComplex* dA = dA_array[batchid];
     magma_int_t* ipiv = ipiv_array[batchid];
     magma_int_t* info = &info_array[batchid];
-    
+
     magmaDoubleComplex rA[N]  = {MAGMA_Z_ZERO};
-    magmaDoubleComplex reg    = MAGMA_Z_ZERO; 
+    magmaDoubleComplex reg    = MAGMA_Z_ZERO;
     magmaDoubleComplex update = MAGMA_Z_ZERO;
-    
+
     int max_id, rowid = tx;
     int linfo = 0;
     double rx_abs_max = MAGMA_D_ZERO;
-    
+
     magmaDoubleComplex *sx = (magmaDoubleComplex*)(zdata);
     double* dsx = (double*)(sx + blockDim.y * NPOW2);
     int* sipiv = (int*)(dsx + blockDim.y * NPOW2);
@@ -59,21 +61,21 @@ extern __shared__ magmaDoubleComplex zdata[];
     dsx   += ty * NPOW2;
     sipiv += ty * NPOW2;
 
-    // read 
+    // read
     if( tx < N ){
         #pragma unroll
         for(int i = 0; i < N; i++){
             rA[i] = dA[ i * ldda + tx ];
         }
     }
-        
+
     #pragma unroll
     for(int i = 0; i < N; i++){
         // izamax and find pivot
         dsx[ rowid ] = fabs(MAGMA_Z_REAL( rA[i] )) + fabs(MAGMA_Z_IMAG( rA[i] ));
         magmablas_syncwarp();
         rx_abs_max = dsx[i];
-        max_id = i; 
+        max_id = i;
         #pragma unroll
         for(int j = i+1; j < N; j++){
             if( dsx[j] > rx_abs_max){
@@ -83,7 +85,7 @@ extern __shared__ magmaDoubleComplex zdata[];
         }
         linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (i+1) : linfo;
         update = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
-        
+
         if(rowid == max_id){
             sipiv[i] = max_id;
             rowid = i;
@@ -93,10 +95,10 @@ extern __shared__ magmaDoubleComplex zdata[];
             }
         }
         else if(rowid == i){
-            rowid = max_id; 
+            rowid = max_id;
         }
         magmablas_syncwarp();
-        
+
         reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] );
         // scal and ger
         if( rowid > i ){
@@ -126,7 +128,7 @@ extern __shared__ magmaDoubleComplex zdata[];
     Purpose
     -------
     zgetrf_batched_smallsq_noshfl computes the LU factorization of a square N-by-N matrix A
-    using partial pivoting with row interchanges. 
+    using partial pivoting with row interchanges.
     This routine can deal only with square matrices of size up to 32
 
     The factorization has the form
@@ -183,27 +185,27 @@ extern __shared__ magmaDoubleComplex zdata[];
 
     @ingroup magma_getrf_batched
 *******************************************************************************/
-extern "C" magma_int_t 
-magma_zgetrf_batched_smallsq_noshfl( 
-    magma_int_t n, 
-    magmaDoubleComplex** dA_array, magma_int_t ldda, 
-    magma_int_t** ipiv_array, magma_int_t* info_array, 
+extern "C" magma_int_t
+magma_zgetrf_batched_smallsq_noshfl(
+    magma_int_t n,
+    magmaDoubleComplex** dA_array, magma_int_t ldda,
+    magma_int_t** ipiv_array, magma_int_t* info_array,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
     magma_int_t m = n;
-    
+
     if( (m < 0) || ( m > 32 ) ){
         arginfo = -1;
     }
-    
+
     if (arginfo != 0) {
         magma_xerbla( __func__, -(arginfo) );
         return arginfo;
     }
-    
+
     if( m == 0) return 0;
-    
+
     const magma_int_t ntcol = magma_get_zgetrf_batched_ntcol(m, n);
     magma_int_t shmem  = ntcol * magma_ceilpow2(m) * sizeof(int);
                 shmem += ntcol * magma_ceilpow2(m) * sizeof(double);
@@ -225,7 +227,7 @@ magma_zgetrf_batched_smallsq_noshfl(
      * I've only observed this when the file `magmablas_hip/sgetrf_batched_smallsq_noshfl.hip.cpp` is generated,
      * never zgetrf or other precisions.
      *
-     */ 
+     */
 
     switch(m){
         case  1: zgetrf_batched_smallsq_noshfl_kernel< 1, magma_ceilpow2( 1)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;

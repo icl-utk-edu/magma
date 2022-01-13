@@ -15,36 +15,18 @@
 #include "commonblas_z.h"
 
 #define PRECISION_z
-/******************************************************************************/
-extern "C" void
-magmablas_ztrsm_vbatched_max_nocheck(
-        magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
-        magma_int_t max_m, magma_int_t max_n, magma_int_t* m, magma_int_t* n,
-        magmaDoubleComplex alpha,
-        magmaDoubleComplex **dA_array, magma_int_t* ldda,
-        magmaDoubleComplex **dB_array, magma_int_t* lddb,
-        magma_int_t batchCount, magma_queue_t queue )
-{
-    if ( max_m <= 0 || max_n <= 0 )
-        return;
-
-    magmablas_ztrsm_vbatched_core(
-            side, uplo, transA, diag,
-            max_m, max_n, m, n,
-            alpha, dA_array, 0, 0, ldda,
-                   dB_array, 0, 0, lddb,
-            batchCount, queue );
-}
 
 /******************************************************************************/
 extern "C" void
-magmablas_ztrsm_vbatched_max(
+magmablas_ztrsm_inv_vbatched_max(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
-    magma_int_t max_m, magma_int_t max_n, magma_int_t* m, magma_int_t* n,
+    magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex alpha,
     magmaDoubleComplex** dA_array,    magma_int_t* ldda,
     magmaDoubleComplex** dB_array,    magma_int_t* lddb,
-    magma_int_t batchCount, magma_queue_t queue)
+    magma_int_t batchCount,
+    magma_int_t max_m, magma_int_t max_n,
+    magma_queue_t queue)
 {
     magma_int_t info = 0;
     info =  magma_trsm_vbatched_checker(side, uplo, transA, diag, m, n, ldda, lddb, batchCount, queue);
@@ -54,36 +36,40 @@ magmablas_ztrsm_vbatched_max(
         return;
     }
 
-    magmablas_ztrsm_vbatched_max_nocheck(
+    magmablas_ztrsm_inv_vbatched_max_nocheck(
             side, uplo, transA, diag,
-            max_m, max_n, m, n, alpha,
+            m, n, alpha,
             dA_array, ldda,
             dB_array, lddb,
-            batchCount, queue);
+            batchCount,
+            max_m, max_n, queue);
 }
 
 /******************************************************************************/
 extern "C" void
-magmablas_ztrsm_vbatched_nocheck(
+magmablas_ztrsm_inv_vbatched_nocheck(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex alpha,
     magmaDoubleComplex** dA_array,    magma_int_t* ldda,
     magmaDoubleComplex** dB_array,    magma_int_t* lddb,
-    magma_int_t batchCount, magma_queue_t queue)
+    magma_int_t batchCount,
+    magma_queue_t queue)
 {
     // compute the max. dimensions
     magma_imax_size_2(m, n, batchCount, queue);
     magma_int_t max_m, max_n;
-    magma_getvector(1, sizeof(magma_int_t), &m[batchCount], 1, &max_m, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount], 1, &max_n, 1, queue);
+    magma_igetvector_async(1, &m[batchCount], 1, &max_m, 1, queue);
+    magma_igetvector_async(1, &n[batchCount], 1, &max_n, 1, queue);
+    magma_queue_sync( queue );
 
-    magmablas_ztrsm_vbatched_max_nocheck(
+    magmablas_ztrsm_inv_vbatched_max_nocheck(
             side, uplo, transA, diag,
-            max_m, max_n, m, n, alpha,
+            m, n, alpha,
             dA_array, ldda,
             dB_array, lddb,
-            batchCount, queue);
+            batchCount,
+            max_m, max_n, queue);
 }
 
 /***************************************************************************//**
@@ -196,9 +182,9 @@ magmablas_ztrsm_vbatched_nocheck(
             Queue to execute in.
 
     @ingroup magma_trsm_batched
-    *******************************************************************************/
+*******************************************************************************/
 extern "C" void
-magmablas_ztrsm_vbatched(
+magmablas_ztrsm_inv_vbatched(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex alpha,
@@ -218,15 +204,15 @@ magmablas_ztrsm_vbatched(
     // compute the max. dimensions
     magma_imax_size_2(m, n, batchCount, queue);
     magma_int_t max_m, max_n;
-    magma_getvector(1, sizeof(magma_int_t), &m[batchCount], 1, &max_m, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t), &n[batchCount], 1, &max_n, 1, queue);
+    magma_igetvector_async(1, &m[batchCount], 1, &max_m, 1, queue);
+    magma_igetvector_async(1, &n[batchCount], 1, &max_n, 1, queue);
+    magma_queue_sync( queue );
 
-    magmablas_ztrsm_vbatched_max_nocheck(
+    magmablas_ztrsm_inv_vbatched_max_nocheck(
             side, uplo, transA, diag,
-            max_m, max_n, m, n, alpha,
+            m, n, alpha,
             dA_array, ldda,
             dB_array, lddb,
-            batchCount, queue);
+            batchCount,
+            max_m, max_n, queue);
 }
-
-/******************************************************************************/

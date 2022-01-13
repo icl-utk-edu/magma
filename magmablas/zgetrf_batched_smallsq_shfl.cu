@@ -21,26 +21,28 @@
 // It also uses lazy swap.
 //extern __shared__ double ddata[];
 template<int N, int NSHFL>
-__global__ void
-zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda, 
+__global__
+__launch_bounds__(NSHFL)
+void
+zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda,
                                 magma_int_t** ipiv_array, magma_int_t *info_array, int batchCount)
 {
     extern __shared__ double ddata[];
 
     const int tx = threadIdx.x;
-    const int ty = threadIdx.y; 
+    const int ty = threadIdx.y;
     const int batchid = blockIdx.x * blockDim.y + ty;
     if(batchid >= batchCount) return;
-    
+
     magmaDoubleComplex* dA = dA_array[batchid];
     magma_int_t* ipiv = ipiv_array[batchid];
     magma_int_t* info = &info_array[batchid];
-    
+
     magmaDoubleComplex rA[N]  = {MAGMA_Z_ZERO};
     magmaDoubleComplex  y[N]  = {MAGMA_Z_ZERO};
-    magmaDoubleComplex reg    = MAGMA_Z_ZERO; 
+    magmaDoubleComplex reg    = MAGMA_Z_ZERO;
     magmaDoubleComplex update = MAGMA_Z_ZERO;
- 
+
     int max_id, current_piv_tx, rowid = tx, linfo = 0;
     double rx_abs_max = MAGMA_D_ZERO;
     // shared memory pointers
@@ -48,22 +50,22 @@ zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda,
     int* sipiv = (int*)(sx + blockDim.y * NSHFL);
     sx += ty * NSHFL;
     sipiv += ty * (NSHFL+1);
-    volatile int* scurrent_piv_tx = (volatile int*)(sipiv + NSHFL);    
-    
-    // read 
+    volatile int* scurrent_piv_tx = (volatile int*)(sipiv + NSHFL);
+
+    // read
     if( tx < N ){
         #pragma unroll
         for(int i = 0; i < N; i++){
             rA[i] = dA[ i * ldda + tx ];
         }
     }
-        
+
     #pragma unroll
     for(int i = 0; i < N; i++){
         sx[ rowid ] = fabs(MAGMA_Z_REAL( rA[i] )) + fabs(MAGMA_Z_IMAG( rA[i] ));
         magmablas_syncwarp();
         rx_abs_max = sx[i];
-        max_id = i; 
+        max_id = i;
         #pragma unroll
         for(int j = i; j < N; j++){
             if( sx[j] > rx_abs_max){
@@ -77,19 +79,19 @@ zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda,
         if(rowid == max_id){
             sipiv[i] = max_id;
             rowid = i;
-            (*scurrent_piv_tx) = tx; 
+            (*scurrent_piv_tx) = tx;
         }
         else if(rowid == i){
-            rowid = max_id; 
+            rowid = max_id;
         }
         current_piv_tx = (*scurrent_piv_tx);
         magmablas_syncwarp();
-        
+
         #pragma unroll
         for(int j = i; j < N; j++){
             y[j] = update * magmablas_zshfl( rA[j], current_piv_tx, NSHFL);
         }
-        reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, y[i] ); 
+        reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, y[i] );
         // scal and ger
         if( rowid > i ){
             rA[i] *= reg;
@@ -99,7 +101,7 @@ zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda,
             }
         }
     }
-    
+
     // write
     if( tx == 0 ){
         (*info) = (magma_int_t)linfo;
@@ -117,7 +119,7 @@ zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda,
     Purpose
     -------
     zgetrf_batched_smallsq_noshfl computes the LU factorization of a square N-by-N matrix A
-    using partial pivoting with row interchanges. 
+    using partial pivoting with row interchanges.
     This routine can deal only with square matrices of size up to 32
 
     The factorization has the form
@@ -174,27 +176,27 @@ zgetrf_batched_smallsq_shfl_kernel( magmaDoubleComplex** dA_array, int ldda,
 
     @ingroup magma_getrf_batched
 *******************************************************************************/
-extern "C" magma_int_t 
-magma_zgetrf_batched_smallsq_shfl( 
-    magma_int_t n, 
-    magmaDoubleComplex** dA_array, magma_int_t ldda, 
-    magma_int_t** ipiv_array, magma_int_t* info_array, 
+extern "C" magma_int_t
+magma_zgetrf_batched_smallsq_shfl(
+    magma_int_t n,
+    magmaDoubleComplex** dA_array, magma_int_t ldda,
+    magma_int_t** ipiv_array, magma_int_t* info_array,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
     magma_int_t m = n;
-    
+
     if( (m < 0) || ( m > 32 ) ){
         arginfo = -1;
     }
-    
+
     if (arginfo != 0) {
         magma_xerbla( __func__, -(arginfo) );
         return arginfo;
     }
-    
+
     if( m == 0) return 0;
-    
+
     const magma_int_t ntcol = magma_get_zgetrf_batched_ntcol(m, n);
     magma_int_t shmem  = ntcol * magma_ceilpow2(m) * sizeof(int);
                 shmem += ntcol * magma_ceilpow2(m) * sizeof(double);

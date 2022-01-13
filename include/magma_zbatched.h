@@ -584,11 +584,12 @@ magmablas_izamax(
     magma_int_t *max_id);
 
 magma_int_t
-magma_izamax_batched(magma_int_t length,
-                     magmaDoubleComplex **x_array, magma_int_t xi, magma_int_t xj, magma_int_t incx,
-                     magma_int_t step,  magma_int_t lda,
-                     magma_int_t** ipiv_array, magma_int_t *info_array,
-                     magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue);
+magma_izamax_batched(
+        magma_int_t length,
+        magmaDoubleComplex **x_array, magma_int_t xi, magma_int_t xj, magma_int_t lda, magma_int_t incx,
+        magma_int_t** ipiv_array, magma_int_t ipiv_i,
+        magma_int_t step, magma_int_t gbstep, magma_int_t *info_array,
+        magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t
 magma_zswap_batched(
@@ -598,9 +599,9 @@ magma_zswap_batched(
 
 magma_int_t
 magma_zscal_zgeru_batched(
-    magma_int_t m, magma_int_t n, magma_int_t step,
+    magma_int_t m, magma_int_t n,
     magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t lda,
-    magma_int_t *info_array, magma_int_t gbstep,
+    magma_int_t *info_array, magma_int_t step, magma_int_t gbstep,
     magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t

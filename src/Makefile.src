@@ -192,7 +192,7 @@ libmagma_src += \
 	$(cdir)/zungtr.cpp		\
 	$(cdir)/zunmtr.cpp		\
 
-# symmetric eigenvalues, multi-GPU 
+# symmetric eigenvalues, multi-GPU
 libmagma_src += \
 	$(cdir)/zhetrd_mgpu.cpp		\
 	$(cdir)/zlatrd_mgpu.cpp		\
@@ -318,6 +318,9 @@ libmagma_src += \
 # ----------
 # vbatched, GPU interface
 libmagma_src += \
+	$(cdir)/zgetf2_vbatched.cpp		\
+	$(cdir)/zgetrf_panel_vbatched.cpp		\
+	$(cdir)/zgetrf_vbatched.cpp		\
 	$(cdir)/zpotf2_vbatched.cpp		\
 	$(cdir)/zpotrf_panel_vbatched.cpp		\
 	$(cdir)/zpotrf_vbatched.cpp		\
@@ -334,12 +337,12 @@ $(cdir)/spotrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/dpotrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cpotrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/zpotrf_batched.$(o_ext): control/batched_kernel_param.h
-                                 
+
 $(cdir)/sgetrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/dgetrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cgetrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/zgetrf_batched.$(o_ext): control/batched_kernel_param.h
-                                 
+
 $(cdir)/sgeqrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/dgeqrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cgeqrf_batched.$(o_ext): control/batched_kernel_param.h

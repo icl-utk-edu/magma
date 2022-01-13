@@ -69,7 +69,7 @@ int main( int argc, char** argv)
            lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),
            lapack_trans_const(opts.transA), lapack_diag_const(opts.diag), (long long) abs_ngpu);
 
-    printf("%%   M     N  MAGMA Gflop/s (ms)  CUBLAS Gflop/s (ms)   CPU Gflop/s (ms)      MAGMA     CUBLAS   LAPACK error\n");
+    printf("%%   M     N  MAGMA Gflop/s (ms)  %s Gflop/s (ms)   CPU Gflop/s (ms)      MAGMA     %s   LAPACK error\n", g_platform_str, g_platform_str);
     printf("%%============================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {

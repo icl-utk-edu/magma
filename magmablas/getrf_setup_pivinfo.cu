@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Azzam Haidar
        @author Tingxing Dong
 
@@ -18,9 +18,9 @@
 /******************************************************************************/
 static __device__ void setup_pivinfo_devfunc(magma_int_t *pivinfo, magma_int_t *ipiv, int m, int nb)
 {
-    int tid = threadIdx.x;   
+    int tid = threadIdx.x;
     int nchunk = magma_ceildiv( m, MAX_NTHREADS );
-    
+
     // initialize pivinfo (could be done in a separate kernel using multiple thread block
     for (int s =0; s < nchunk; s++)
     {
@@ -30,7 +30,7 @@ static __device__ void setup_pivinfo_devfunc(magma_int_t *pivinfo, magma_int_t *
     __syncthreads();
 
     if (tid == 0)
-    {   
+    {
         int i, itsreplacement, mynewrowid;
         for (i=0; i < nb; i++) {
             mynewrowid          = ipiv[i]-1; //-1 to get the index in C
@@ -45,14 +45,14 @@ static __device__ void setup_pivinfo_devfunc(magma_int_t *pivinfo, magma_int_t *
 /******************************************************************************/
 static __device__ void setup_pivinfo_sm_devfunc(magma_int_t *pivinfo, magma_int_t *ipiv, int m, int nb)
 {
-    const int tx  = threadIdx.x;   
+    const int tx  = threadIdx.x;
     const int nth = blockDim.x;
     __shared__ int spivinfo[10240];    // 40 KB of shared memory
-    
+
     int nchunk = magma_ceildiv( m, nth);
     int m_ = m - (nchunk-1) * nth;
-    
-    // initialize spivinfo 
+
+    // initialize spivinfo
     for(int s = 0; s < m-nth; s+= nth){
         spivinfo[ s + tx ] = s + tx + 1;
     }
@@ -62,7 +62,7 @@ static __device__ void setup_pivinfo_sm_devfunc(magma_int_t *pivinfo, magma_int_
     __syncthreads();
 
     if (tx == 0)
-    {   
+    {
         int i, itsreplacement, mynewrowid;
         for (i=0; i < nb; i++) {
             mynewrowid           = ipiv[i]-1; //-1 to get the index in C
@@ -72,7 +72,7 @@ static __device__ void setup_pivinfo_sm_devfunc(magma_int_t *pivinfo, magma_int_
         }
     }
     __syncthreads();
-    // write pivinfo 
+    // write pivinfo
     for(int s = 0; s < m-nth; s+= nth){
         pivinfo[ s + tx] = spivinfo[ s + tx ];
     }
@@ -106,8 +106,8 @@ __global__ void setup_pivinfo_sm_kernel(magma_int_t *pivinfo, magma_int_t *ipiv,
 
 /******************************************************************************/
 extern "C" void
-setup_pivinfo_batched( magma_int_t **pivinfo_array, magma_int_t **ipiv_array, magma_int_t ipiv_offset, 
-                         magma_int_t m, magma_int_t nb, 
+setup_pivinfo_batched( magma_int_t **pivinfo_array, magma_int_t **ipiv_array, magma_int_t ipiv_offset,
+                         magma_int_t m, magma_int_t nb,
                          magma_int_t batchCount,
                          magma_queue_t queue)
 {
@@ -122,8 +122,8 @@ setup_pivinfo_batched( magma_int_t **pivinfo_array, magma_int_t **ipiv_array, ma
 
 /******************************************************************************/
 extern "C" void
-setup_pivinfo( magma_int_t *pivinfo, magma_int_t *ipiv, 
-                 magma_int_t m, magma_int_t nb, 
+setup_pivinfo( magma_int_t *pivinfo, magma_int_t *ipiv,
+                 magma_int_t m, magma_int_t nb,
                  magma_queue_t queue)
 {
     if (nb == 0 ) return;
@@ -144,19 +144,9 @@ setup_pivinfo( magma_int_t *pivinfo, magma_int_t *ipiv,
 static __device__ void adjust_ipiv_devfunc(magma_int_t *ipiv, int m, int offset)
 {
     int tid = threadIdx.x;
-    if (tid < m)
-    {
-        //printf("ipiv[%d]: %d -> %d\n", tid, ipiv[tid], ipiv[tid]+offset);
+    if (tid < m) {
         ipiv[tid] += offset;
     }
-}
-
-
-/******************************************************************************/
-__global__ void adjust_ipiv_kernel_batched(magma_int_t **ipiv_array, int ipiv_offset, int m, int offset)
-{
-    int batchid = blockIdx.x;
-    adjust_ipiv_devfunc(ipiv_array[batchid] + ipiv_offset, m, offset);
 }
 
 
@@ -166,15 +156,54 @@ __global__ void adjust_ipiv_kernel(magma_int_t *ipiv, int m, int offset)
     adjust_ipiv_devfunc(ipiv, m, offset);
 }
 
+/******************************************************************************/
+__global__ void adjust_ipiv_kernel_batched(magma_int_t **ipiv_array, int ipiv_offset, int m, int offset)
+{
+    int batchid = blockIdx.x;
+    adjust_ipiv_devfunc(ipiv_array[batchid] + ipiv_offset, m, offset);
+}
+
+/******************************************************************************/
+__global__ void adjust_ipiv_kernel_vbatched(
+                    magma_int_t **ipiv_array, int ipiv_offset,
+                    magma_int_t *minmn, int max_minmn, int offset)
+{
+    int batchid = blockIdx.x;
+    int my_minmn = (int)minmn[batchid];
+
+    if(ipiv_offset >= my_minmn) return;
+    my_minmn -= ipiv_offset;
+    my_minmn  = min(my_minmn, max_minmn);
+
+    adjust_ipiv_devfunc(ipiv_array[batchid] + ipiv_offset, my_minmn, offset);
+}
 
 /******************************************************************************/
 extern "C" void
-adjust_ipiv_batched( magma_int_t **ipiv_array, magma_int_t ipiv_offset, 
-                         magma_int_t m, magma_int_t offset, 
+adjust_ipiv( magma_int_t *ipiv,
+                 magma_int_t m, magma_int_t offset,
+                 magma_queue_t queue)
+{
+    if (offset == 0 ) return;
+    if ( m  > 1024)
+    {
+        fprintf( stderr, "%s: m=%lld > %lld, not supported\n",
+                 __func__, (long long) m, (long long) MAX_NTHREADS );
+        return;
+    }
+    adjust_ipiv_kernel
+        <<< 1, m, 0, queue->cuda_stream() >>>
+        (ipiv, m, offset);
+}
+
+/******************************************************************************/
+extern "C" void
+adjust_ipiv_batched( magma_int_t **ipiv_array, magma_int_t ipiv_offset,
+                         magma_int_t m, magma_int_t offset,
                          magma_int_t batchCount, magma_queue_t queue)
 {
     if (offset == 0 ) return;
-    if ( m  > MAX_NTHREADS) 
+    if ( m  > MAX_NTHREADS)
     {
         fprintf( stderr, "%s: m=%lld > %lld, not supported\n",
                  __func__, (long long) m, (long long) MAX_NTHREADS );
@@ -185,21 +214,20 @@ adjust_ipiv_batched( magma_int_t **ipiv_array, magma_int_t ipiv_offset,
         (ipiv_array, ipiv_offset, m, offset);
 }
 
-
 /******************************************************************************/
 extern "C" void
-adjust_ipiv( magma_int_t *ipiv, 
-                 magma_int_t m, magma_int_t offset, 
-                 magma_queue_t queue)
+adjust_ipiv_vbatched(    magma_int_t **ipiv_array, magma_int_t ipiv_offset,
+                         magma_int_t *minmn, magma_int_t max_minmn, magma_int_t offset,
+                         magma_int_t batchCount, magma_queue_t queue)
 {
     if (offset == 0 ) return;
-    if ( m  > 1024) 
+    if ( max_minmn  > MAX_NTHREADS)
     {
         fprintf( stderr, "%s: m=%lld > %lld, not supported\n",
-                 __func__, (long long) m, (long long) MAX_NTHREADS );
+                 __func__, (long long) max_minmn, (long long) MAX_NTHREADS );
         return;
     }
-    adjust_ipiv_kernel
-        <<< 1, m, 0, queue->cuda_stream() >>>
-        (ipiv, m, offset);
+    adjust_ipiv_kernel_vbatched
+        <<< batchCount, max_minmn, 0, queue->cuda_stream() >>>
+        (ipiv_array, ipiv_offset, minmn, max_minmn, offset);
 }
