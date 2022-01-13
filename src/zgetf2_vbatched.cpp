@@ -104,10 +104,8 @@ magma_zgetf2_vbatched(
 #define ipiv_array(i) ipiv_array, (i)
 
     magma_int_t arginfo = 0;
-    magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
-    magmaDoubleComplex c_one     = MAGMA_Z_ONE;
 
-    magma_int_t panelj, step, j;
+    magma_int_t j;
     magma_int_t nb = 8;
 
     for(j=0; j < max_minmn; j+=nb) {
@@ -143,7 +141,7 @@ magma_zgetf2_vbatched(
             batchCount, queue );
     }
 
-    return 0;
+    return arginfo;
 
 #undef dA_array
 #undef ipiv_array

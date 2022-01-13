@@ -26,8 +26,6 @@ magma_zgetrf_vbatched_max_nocheck(
 #define ipiv_array(i_)    ipiv_array, i_
 
     magma_int_t arginfo = 0;
-    magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
-    magmaDoubleComplex c_one     = MAGMA_Z_ONE;
     magma_int_t nb, recnb, ib, i, pm;
 
     // TODO: tuning

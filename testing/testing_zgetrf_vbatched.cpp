@@ -91,7 +91,7 @@ int main( int argc, char** argv)
 
     magma_int_t *h_M = NULL, *h_N = NULL, *h_lda  = NULL, *h_ldda = NULL, *h_min_mn = NULL;
     magma_int_t *d_M = NULL, *d_N = NULL, *d_ldda = NULL;
-    magma_int_t iM, iN, max_M, max_N, max_minmn, info;
+    magma_int_t iM, iN, max_M=0, max_N=0, max_minmn, info;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t batchCount;
