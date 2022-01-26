@@ -80,34 +80,6 @@ magma_izamax_vbatched(
 
 /******************************************************************************/
 __global__
-void zswap_kernel_vbatched_org(
-        int max_n,
-        magma_int_t *M, magma_int_t *N,
-        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
-        magma_int_t step, magma_int_t** ipiv_array )
-{
-    const int batchid = blockIdx.x;
-    const int my_ldda = (int)ldda[batchid];
-    int my_M          = (int)M[batchid];
-    int my_N          = (int)N[batchid];
-    int my_minmn      = min(my_M, my_N);
-
-    // check if offsets produce out-of-bound pointers
-    // Here, 'step' account only for my_M, not my_N
-    // (step = the row that is about to be swapped with the row having the pivot)
-    if( my_M <= (Ai+step) || my_N <= Aj || my_minmn <= step) return;
-
-    my_N -= Aj; // this is the maximum possible width
-    my_N = min(my_N, max_n);
-
-    magmaDoubleComplex *dA = dA_array[batchid] + Aj * my_ldda + Ai;
-    magma_int_t *ipiv = ipiv_array[batchid] + Ai;
-
-    zswap_device(my_N, dA, my_ldda, step, ipiv);
-}
-
-/******************************************************************************/
-__global__
 void zswap_kernel_vbatched(
         int max_n, magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, int Ai, int Aj, magma_int_t* ldda,
