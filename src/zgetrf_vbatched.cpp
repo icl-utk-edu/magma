@@ -37,7 +37,8 @@ magma_zgetrf_vbatched_max_nocheck(
                     max_m, max_n, max_minmn, max_mxn,
                     m, n,
                     dA_array, 0, 0, ldda,
-                    ipiv_array, 0, info_array,
+                    ipiv_array, 0,
+                    info_array, 0,
                     64, 0,
                     batchCount, queue );
 

@@ -32,7 +32,7 @@ magma_zgetf2_fused_sm_vbatched(
     magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
     magma_int_t** dipiv_array, magma_int_t ipiv_i,
-    magma_int_t* info_array,
+    magma_int_t* info_array, magma_int_t gbstep,
     magma_int_t nthreads, magma_int_t check_launch_only,
     magma_int_t batchCount, magma_queue_t queue );
 

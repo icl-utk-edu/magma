@@ -5,8 +5,6 @@
        Univ. of Colorado, Denver
        @date
 
-       @author Azzam Haidar
-       @author Tingxing Dong
        @author Ahmad Abdelfattah
 
        @precisions normal z -> s d c
@@ -191,7 +189,7 @@ magma_int_t magma_zscal_zgeru_vbatched(
 }
 
 /******************************************************************************/
-#define dA(i,j)              sA[(j) * my_ldda + (i)]
+#define dA(i,j)              dA[(j) * my_ldda + (i)]
 #define sA(i,j)              sA[(j) * my_M + (i)]
 __global__
 void
@@ -202,7 +200,7 @@ zgetf2_fused_sm_kernel_vbatched(
         magma_int_t** dipiv_array, int ipiv_i,
         magma_int_t *info,  int gbstep, int batchCount )
 {
-    extern __shared__ magmaDoubleComplex sdata[];
+    extern __shared__ magmaDoubleComplex zdata[];
     const int tx      = threadIdx.x;
     const int ty      = threadIdx.y;
     const int ntx     = blockDim.x;
@@ -210,10 +208,10 @@ zgetf2_fused_sm_kernel_vbatched(
     if(batchid >= batchCount) return;
 
     // read data of assigned problem
-    const int my_m         = (int)M[batchid];
-    const int my_N         = (int)N[batchid];
-    const int my_ldda      = (int)ldda[batchid];
-    const int my_minmn     = min(my_M, my_N);
+    int my_M         = (int)M[batchid];
+    int my_N         = (int)N[batchid];
+    int my_ldda      = (int)ldda[batchid];
+    int my_minmn     = min(my_M, my_N);
     magmaDoubleComplex* dA = dA_array[batchid] + Aj * my_ldda + Ai;
     magma_int_t* dipiv     = dipiv_array[batchid] + ipiv_i;
 
@@ -223,7 +221,7 @@ zgetf2_fused_sm_kernel_vbatched(
     my_N     -= Aj;
     my_minmn  = min(my_M, my_N);
 
-    magmaDoubleComplex *sA = (magmaDoubleComplex*)(sdata);
+    magmaDoubleComplex *sA = (magmaDoubleComplex*)(zdata);
     double* dsx = (double*)(sA + blockDim.y * max_MxN);
     int* isx    = (int*)(dsx + blockDim.y * max_M);
     int* sipiv  = (int*)(isx + blockDim.y * max_M);
@@ -234,7 +232,7 @@ zgetf2_fused_sm_kernel_vbatched(
     magmaDoubleComplex reg  = MAGMA_Z_ZERO;
     magmaDoubleComplex rTmp = MAGMA_Z_ZERO;
 
-    int max_id, rowid = tx;
+    int max_id;
     int linfo = (gbstep == 0) ? 0 : *info;
     double rx_abs_max = MAGMA_D_ZERO;
 
@@ -313,7 +311,7 @@ magma_zgetf2_fused_sm_vbatched(
     magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
     magma_int_t** dipiv_array, magma_int_t ipiv_i,
-    magma_int_t* info_array,
+    magma_int_t* info_array, magma_int_t gbstep,
     magma_int_t nthreads, magma_int_t check_launch_only,
     magma_int_t batchCount, magma_queue_t queue )
 {
@@ -363,7 +361,7 @@ magma_zgetf2_fused_sm_vbatched(
 
     if( check_launch_only == 1 ) return arginfo;
 
-    void *kernel_args[] = {&max_M, &max_N, &max_minMN, &max_MxN, &m, &n, &dA_array, &Ai, &Aj, &ldda, &dipiv_array, &ipiv_i, &info, &gbstep, &batchCount};
+    void *kernel_args[] = {&max_M, &max_N, &max_minMN, &max_MxN, &m, &n, &dA_array, &Ai, &Aj, &ldda, &dipiv_array, &ipiv_i, &info_array, &gbstep, &batchCount};
     cudaError_t e = cudaLaunchKernel((void*)zgetf2_fused_sm_kernel_vbatched, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
         // printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
