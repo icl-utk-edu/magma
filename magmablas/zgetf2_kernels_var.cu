@@ -189,3 +189,188 @@ magma_int_t magma_zscal_zgeru_vbatched(
     }
     return 0;
 }
+
+/******************************************************************************/
+#define dA(i,j)              sA[(j) * my_ldda + (i)]
+#define sA(i,j)              sA[(j) * my_M + (i)]
+__global__
+void
+zgetf2_fused_sm_kernel_vbatched(
+        int max_M, int max_N, int max_minMN, int max_MxN,
+        magma_int_t *M, magma_int_t *N,
+        magmaDoubleComplex** dA_array, int Ai, int Aj, magma_int_t* ldda,
+        magma_int_t** dipiv_array, int ipiv_i,
+        magma_int_t *info,  int gbstep, int batchCount )
+{
+    extern __shared__ magmaDoubleComplex sdata[];
+    const int tx      = threadIdx.x;
+    const int ty      = threadIdx.y;
+    const int ntx     = blockDim.x;
+    const int batchid = (blockIdx.x * blockDim.y) + ty;
+    if(batchid >= batchCount) return;
+
+    // read data of assigned problem
+    const int my_m         = (int)M[batchid];
+    const int my_N         = (int)N[batchid];
+    const int my_ldda      = (int)ldda[batchid];
+    const int my_minmn     = min(my_M, my_N);
+    magmaDoubleComplex* dA = dA_array[batchid] + Aj * my_ldda + Ai;
+    magma_int_t* dipiv     = dipiv_array[batchid] + ipiv_i;
+
+    // check offsets
+    if( my_M <= Ai || my_N <= Aj || my_minmn <= ipiv_i ) return;
+    my_M     -= Ai;
+    my_N     -= Aj;
+    my_minmn  = min(my_M, my_N);
+
+    magmaDoubleComplex *sA = (magmaDoubleComplex*)(sdata);
+    double* dsx = (double*)(sA + blockDim.y * max_MxN);
+    int* isx    = (int*)(dsx + blockDim.y * max_M);
+    int* sipiv  = (int*)(isx + blockDim.y * max_M);
+    dsx   += ty * max_M;
+    isx   += ty * max_M;
+    sipiv += ty * max_minMN;
+
+    magmaDoubleComplex reg  = MAGMA_Z_ZERO;
+    magmaDoubleComplex rTmp = MAGMA_Z_ZERO;
+
+    int max_id, rowid = tx;
+    int linfo = (gbstep == 0) ? 0 : *info;
+    double rx_abs_max = MAGMA_D_ZERO;
+
+    // init sipiv
+    for(int i = tx; i < my_minmn; i+=ntx) {
+        sipiv[i] = 0;
+    }
+
+    // read
+    for(int j = 0; j < my_N; j++){
+        for(int i = tx; i < my_M; i+=ntx) {
+            sA(i,j) = dA(i,j);
+        }
+    }
+    __syncthreads();
+
+    for(int j = 0; j < my_minmn; j++){
+        // izamax and find pivot
+        for(int i = tx; i < my_M-j; i+=ntx) {
+            dsx[ i ] = fabs(MAGMA_Z_REAL( sA(i,j) )) + fabs(MAGMA_Z_IMAG( sA(i,j) ));
+            isx[ i ] = i;
+        }
+        __syncthreads();
+        magma_getidmax_n(my_M-j, tx, dsx, isx);
+        // the above devfunc has syncthreads at the end
+        rx_abs_max = dsx[0];
+        max_id     = isx[0];
+        linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbstep+j+1) : linfo;
+        if( tx == 0 ) sipiv[ j ] = max_id;
+        __syncthreads();
+
+        // swap
+        if(max_id != j) {
+            for(int i = tx; i < my_N; i+=ntx) {
+                reg          = sA(j     ,i);
+                sA(i,j)      = sA(max_id,i);
+                sA(max_id,i) = reg;
+            }
+        }
+        __syncthreads();
+
+        if( linfo == 0 ) {
+            reg = MAGMA_Z_DIV( MAGMA_Z_ONE, sA(j,j) );
+            for(int i = (tx+j+1); i < my_M; i+=ntx) {
+                rTmp    = reg * sA(i,j);
+                sA(i,j) = rTmp;
+                for(int jj = j+1; jj < my_N; jj++) {
+                    sA(i,jj) -= rTmp * sA(j,jj);
+                }
+            }
+        }
+        __syncthreads();
+    }
+
+    if(tx == 0){
+        (*info) = (magma_int_t)( linfo );
+    }
+
+    // write pivot
+    for(int i = tx; i < my_minmn; i+=ntx) {
+        dipiv[i] = (magma_int_t)(sipiv[i]);
+    }
+
+    // write A
+    for(int j = 0; j < my_N; j++) {
+        for(int i = tx; i < my_M; i+=ntx) {
+            dA(i,j) = sA(i,j);
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+extern "C" magma_int_t
+magma_zgetf2_fused_sm_vbatched(
+    magma_int_t max_M, magma_int_t max_N, magma_int_t max_minMN, magma_int_t max_MxN,
+    magma_int_t* m, magma_int_t* n,
+    magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
+    magma_int_t** dipiv_array, magma_int_t ipiv_i,
+    magma_int_t* info_array,
+    magma_int_t nthreads, magma_int_t check_launch_only,
+    magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_int_t arginfo = 0;
+    magma_device_t device;
+    magma_getdevice( &device );
+
+    nthreads = nthreads <= 0 ? (max_M/2) : nthreads;
+    #ifdef MAGMA_HAVE_CUDA
+    nthreads = magma_roundup(nthreads, 32);
+    #else
+    nthreads = magma_roundup(nthreads, 64);
+    #endif
+    nthreads = min(nthreads, 1024);
+
+    // in a variable-size setting, setting ntcol > 1 may lead to
+    // kernel deadlocks due to different thread-groups calling
+    // syncthreads at different points
+    const magma_int_t ntcol = 1;
+    magma_int_t shmem = ( max_MxN   * sizeof(magmaDoubleComplex) );
+    shmem            += ( max_M     * sizeof(double) );
+    shmem            += ( max_M     * sizeof(int) );
+    shmem            += ( max_minMN * sizeof(int) );
+    shmem            *= ntcol;
+    magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
+    dim3 grid(gridx, 1, 1);
+    dim3 threads( nthreads, ntcol, 1);
+
+    // get max. dynamic shared memory on the GPU
+    magma_int_t nthreads_max, shmem_max = 0;
+    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
+    #if CUDA_VERSION >= 9000
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
+    if (shmem <= shmem_max) {
+        cudaFuncSetAttribute(zgetf2_fused_sm_kernel_vbatched, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    }
+    #else
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
+    #endif    // CUDA_VERSION >= 9000
+
+    magma_int_t total_threads = nthreads * ntcol;
+    if ( total_threads > nthreads_max || shmem > shmem_max ) {
+        // printf("error: kernel %s requires too many threads or too much shared memory\n", __func__);
+        arginfo = -100;
+        return arginfo;
+    }
+
+    if( check_launch_only == 1 ) return arginfo;
+
+    void *kernel_args[] = {&max_M, &max_N, &max_minMN, &max_MxN, &m, &n, &dA_array, &Ai, &Aj, &ldda, &dipiv_array, &ipiv_i, &info, &gbstep, &batchCount};
+    cudaError_t e = cudaLaunchKernel((void*)zgetf2_fused_sm_kernel_vbatched, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    if( e != cudaSuccess ) {
+        // printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
+        arginfo = -100;
+    }
+
+    return arginfo;
+}
+
+

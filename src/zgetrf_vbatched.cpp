@@ -32,6 +32,17 @@ magma_zgetrf_vbatched_max_nocheck(
     nb    = 128;
     recnb = 32;
 
+    // try a fused kernel for small sizes
+    arginfo = magma_zgetf2_fused_sm_vbatched(
+                    max_m, max_n, max_minmn, max_mxn,
+                    m, n,
+                    dA_array, 0, 0, ldda,
+                    ipiv_array, 0, info_array,
+                    64, 0,
+                    batchCount, queue );
+
+    if(arginfo == 0) goto fin;
+
     for (i = 0; i < max_minmn; i += nb) {
         ib = min(nb, max_minmn-i);
         pm = max_m-i;
