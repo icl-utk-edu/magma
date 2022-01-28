@@ -251,24 +251,25 @@ zgetf2_fused_sm_kernel_vbatched(
 
     for(int j = 0; j < my_minmn; j++){
         // izamax and find pivot
-        for(int i = tx; i < my_M-j; i+=ntx) {
+        for(int i = j+tx; i < my_M; i+=ntx) {
             dsx[ i ] = fabs(MAGMA_Z_REAL( sA(i,j) )) + fabs(MAGMA_Z_IMAG( sA(i,j) ));
-            isx[ i ] = i;
+            isx[ i ] = i-j;
         }
         __syncthreads();
-        magma_getidmax_n(my_M-j, tx, dsx, isx);
+        magma_getidmax_n(my_M-j, tx, dsx+j, isx+j);
         // the above devfunc has syncthreads at the end
-        rx_abs_max = dsx[0];
-        max_id     = isx[0];
+        rx_abs_max = dsx[j];
+        max_id     = j + isx[j];
         linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbstep+j+1) : linfo;
         if( tx == 0 ) sipiv[ j ] = max_id;
         __syncthreads();
+
 
         // swap
         if(max_id != j) {
             for(int i = tx; i < my_N; i+=ntx) {
                 reg          = sA(j     ,i);
-                sA(i,j)      = sA(max_id,i);
+                sA(j,i)      = sA(max_id,i);
                 sA(max_id,i) = reg;
             }
         }
@@ -285,6 +286,7 @@ zgetf2_fused_sm_kernel_vbatched(
             }
         }
         __syncthreads();
+
     }
 
     if(tx == 0){
@@ -293,7 +295,7 @@ zgetf2_fused_sm_kernel_vbatched(
 
     // write pivot
     for(int i = tx; i < my_minmn; i+=ntx) {
-        dipiv[i] = (magma_int_t)(sipiv[i]);
+        dipiv[i] = (magma_int_t)(sipiv[i] + 1);
     }
 
     // write A
