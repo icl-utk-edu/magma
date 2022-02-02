@@ -225,8 +225,8 @@ zscal5_device(int m, magmaDoubleComplex* x, magmaDoubleComplex alpha)
 template<int WIDTH>
 static __device__ __inline__
 void
-zgetf2_fused_device( int m, magmaDoubleComplex* dA, int ldda, magma_int_t* dipiv,
-                   magmaDoubleComplex* swork, magma_int_t *info, int gbstep)
+zgetf2_fused_device( int m, magmaDoubleComplex rA[WIDTH], int ldda, magma_int_t* dipiv,
+                     magmaDoubleComplex* swork, magma_int_t *info, int gbstep)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
@@ -254,12 +254,6 @@ zgetf2_fused_device( int m, magmaDoubleComplex* dA, int ldda, magma_int_t* dipiv
     // init sipiv
     if(tx < WIDTH){
         sipiv[tx] = 0;
-    }
-
-    // read
-    #pragma unroll
-    for(int i = 0; i < WIDTH; i++){
-        rA[i] = dA[ i * ldda + tx ];
     }
 
     #pragma unroll

@@ -823,16 +823,23 @@ zgetf2_fused_batched_kernel( int m,
                            magmaDoubleComplex** dA_array, int ai, int aj, int ldda,
                            magma_int_t** dipiv_array, magma_int_t* info_array, int batchCount)
 {
-    // different indices per branch
+    const int tx = threadIdx.x;
     const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
-    //const int batchid = blockIdx.z * blockDim.y + threadIdx.y;
+    if(batchid >= batchCount)return;
 
+    // shared memory workspace
     extern __shared__ magmaDoubleComplex zdata[];
-
     magmaDoubleComplex* swork = (magmaDoubleComplex*)zdata;
-     if(batchid >= batchCount)return;
+
+    // read
+    magmaDoubleComplex* dA = dA_array[batchid] + aj * ldda + ai;
+    #pragma unroll
+    for(int i = 0; i < WIDTH; i++){
+        rA[i] = dA[ i * ldda + tx ];
+    }
+
      zgetf2_fused_device<WIDTH>(
-             m, dA_array[batchid] + aj * ldda + ai, ldda,
+             m, rA, ldda,
              dipiv_array[batchid] + ai,
              swork, &info_array[batchid], aj);
 }
