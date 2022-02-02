@@ -827,6 +827,9 @@ zgetf2_fused_batched_kernel( int m,
     const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
     if(batchid >= batchCount)return;
 
+    // rowid
+    int rowid;
+
     // shared memory workspace
     extern __shared__ magmaDoubleComplex zdata[];
     magmaDoubleComplex* swork = (magmaDoubleComplex*)zdata;
@@ -842,7 +845,7 @@ zgetf2_fused_batched_kernel( int m,
      zgetf2_fused_device<WIDTH>(
              m, rA, ldda,
              dipiv_array[batchid] + ai,
-             swork, &info_array[batchid], aj);
+             swork, &info_array[batchid], aj, rowid);
 
     // write
     #pragma unroll

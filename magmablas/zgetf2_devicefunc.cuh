@@ -226,7 +226,7 @@ template<int WIDTH>
 static __device__ __inline__
 void
 zgetf2_fused_device( int m, magmaDoubleComplex rA[WIDTH], int ldda, magma_int_t* dipiv,
-                     magmaDoubleComplex* swork, magma_int_t *info, int gbstep)
+                     magmaDoubleComplex* swork, magma_int_t *info, int gbstep, int &rowid)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
