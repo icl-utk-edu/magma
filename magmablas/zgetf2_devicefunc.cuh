@@ -301,11 +301,6 @@ zgetf2_fused_device( int m, magmaDoubleComplex rA[WIDTH], int ldda, magma_int_t*
         dipiv[tx] = (magma_int_t)(sipiv[tx] + 1); // fortran indexing
         //printf("--- ipiv[%d] --- = %d\n", tx, dipiv[tx]);
     }
-
-    #pragma unroll
-    for(int i = 0; i < WIDTH; i++){
-        dA[ i * ldda + rowid ] = rA[i];
-    }
 }
 
 

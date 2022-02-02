@@ -833,6 +833,7 @@ zgetf2_fused_batched_kernel( int m,
 
     // read
     magmaDoubleComplex* dA = dA_array[batchid] + aj * ldda + ai;
+    magmaDoubleComplex  rA[WIDTH] = {MAGMA_Z_ZERO};
     #pragma unroll
     for(int i = 0; i < WIDTH; i++){
         rA[i] = dA[ i * ldda + tx ];
@@ -842,6 +843,13 @@ zgetf2_fused_batched_kernel( int m,
              m, rA, ldda,
              dipiv_array[batchid] + ai,
              swork, &info_array[batchid], aj);
+
+    // write
+    #pragma unroll
+    for(int i = 0; i < WIDTH; i++){
+        dA[ i * ldda + rowid ] = rA[i];
+    }
+
 }
 
 
