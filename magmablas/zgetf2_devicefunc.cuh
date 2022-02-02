@@ -231,7 +231,6 @@ zgetf2_fused_device( int m, magmaDoubleComplex rA[WIDTH], int ldda, magma_int_t*
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
 
-    magmaDoubleComplex rA[WIDTH] = {MAGMA_Z_ZERO};
     magmaDoubleComplex reg       = MAGMA_Z_ZERO;
     magmaDoubleComplex update    = MAGMA_Z_ZERO;
 
