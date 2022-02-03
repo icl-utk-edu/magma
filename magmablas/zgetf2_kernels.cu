@@ -866,7 +866,7 @@ magma_zgetf2_fused_kernel_driver_batched(
     magma_queue_t queue )
 {
 
-    magma_int_t ntcol = (m >= 32)? 1 : (32/m));
+    magma_int_t ntcol = (m >= 32)? 1 : (32/m);
     magma_int_t shmem = 0;
     shmem += n * sizeof(magmaDoubleComplex);
     shmem += m * sizeof(double);
@@ -1002,7 +1002,6 @@ magma_zgetf2_fused_batched(
 
     if(info < 0) return info;
 
-    magma_int_t ntcol = (m > 32)? 1 : (2 * (32/m));
     switch(n) {
         case  1: magma_zgetf2_fused_kernel_driver_batched< 1>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
         case  2: magma_zgetf2_fused_kernel_driver_batched< 2>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
@@ -1036,7 +1035,7 @@ magma_zgetf2_fused_batched(
         case 30: magma_zgetf2_fused_kernel_driver_batched<30>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
         case 31: magma_zgetf2_fused_kernel_driver_batched<31>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
         case 32: magma_zgetf2_fused_kernel_driver_batched<32>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
-        default: info = -100;;
+        default: info = -100;
     }
 
     return info;
