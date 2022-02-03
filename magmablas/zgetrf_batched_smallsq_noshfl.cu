@@ -25,18 +25,22 @@
 // the switch case that causes compilation failure
 #define PRECISION_z
 
+#ifdef MAGMA_HAVE_HIP
+#define NTCOL(M)             (max(1,64/M))
+#endif
 
 // This kernel uses registers for matrix storage, shared mem. for communication.
 // It also uses lazy swap.
-//extern __shared__ magmaDoubleComplex zdata[];
 template<int N, int NPOW2>
 __global__
-__launch_bounds__(NPOW2)
+#ifdef MAGMA_HAVE_HIP
+__launch_bounds__(NTCOL(N)*NPOW2)
+#endif
 void
 zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda,
                                 magma_int_t** ipiv_array, magma_int_t *info_array, int batchCount)
 {
-extern __shared__ magmaDoubleComplex zdata[];
+    extern __shared__ magmaDoubleComplex zdata[];
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
     const int batchid = blockIdx.x * blockDim.y + ty;
@@ -206,7 +210,11 @@ magma_zgetrf_batched_smallsq_noshfl(
 
     if( m == 0) return 0;
 
+    #ifdef MAGMA_HAVE_HIP
+    const magma_int_t ntcol = NTCOL(n);
+    #else
     const magma_int_t ntcol = magma_get_zgetrf_batched_ntcol(m, n);
+    #endif
     magma_int_t shmem  = ntcol * magma_ceilpow2(m) * sizeof(int);
                 shmem += ntcol * magma_ceilpow2(m) * sizeof(double);
                 shmem += ntcol * magma_ceilpow2(m) * sizeof(magmaDoubleComplex);
