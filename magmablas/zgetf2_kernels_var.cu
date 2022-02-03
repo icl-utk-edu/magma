@@ -383,7 +383,7 @@ zgetf2_fused_kernel_vbatched(
         magma_int_t* M, magma_int_t* N,
         magmaDoubleComplex** dA_array, int Ai, int Aj, magma_int_t* ldda,
         magma_int_t** dipiv_array, int ipiv_i,
-        magma_int_t* info, int batchCount)
+        magma_int_t* info_array, int batchCount)
 {
     extern __shared__ magmaDoubleComplex data[];
     const int tx = threadIdx.x;
@@ -407,7 +407,7 @@ zgetf2_fused_kernel_vbatched(
     // rowid
     int rowid;
     const int slda = SLDA(max_M);
-    magmaDoubleComplex  rA[N] = {MAGMA_Z_ZERO};
+    magmaDoubleComplex  rA[max_N] = {MAGMA_Z_ZERO};
 
     // init sA into identity
     magmaDoubleComplex* sA = (magmaDoubleComplex*)data;
@@ -437,8 +437,8 @@ zgetf2_fused_kernel_vbatched(
 
     zgetf2_fused_device<max_N>(
              my_M, my_minmn, rA,
-             dipiv_array[batchid] + ai,
-             sA, &info_array[batchid], aj, rowid);
+             dipiv,
+             sA, &info_array[batchid], Aj, rowid);
 
     __syncthreads();
 
@@ -529,12 +529,12 @@ magma_zgetf2_fused_vbatched(
     magma_int_t max_rows = 1024; //ZGETF2_FUSED_BATCHED_MAX_ROWS;
     if(max_M < 0 || max_M > max_rows) {
         fprintf( stderr, "%s: m = %4lld not supported, must be between 0 and %4lld\n",
-                 __func__, (long long) m, (long long) max_rows);
+                 __func__, (long long) max_M, (long long) max_rows);
         info = -1;
     }
     else if(max_N < 0 || max_N > 32){
         fprintf( stderr, "%s: n = %4lld not supported, must be between 0 and %4lld\n",
-                 __func__, (long long) m, (long long) 32);
+                 __func__, (long long) max_N, (long long) 32);
         info = -2;
     }
 
