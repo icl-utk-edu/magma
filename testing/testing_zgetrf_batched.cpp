@@ -183,7 +183,7 @@ int main( int argc, char** argv)
                 #endif
             }
             else {
-                printf("M != N, CUBLAS required M == N; CUBLAS is disabled\n");
+                printf("M != N, %s required M == N; %s is disabled\n", g_platform_str, g_platform_str);
             }
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
             cublas_perf = gflops / cublas_time;
