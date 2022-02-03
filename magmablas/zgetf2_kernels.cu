@@ -843,7 +843,7 @@ zgetf2_fused_kernel_batched( int m,
     }
 
      zgetf2_fused_device<N>(
-             m, rA, ldda,
+             m, min(m,N), rA,
              dipiv_array[batchid] + ai,
              swork, &info_array[batchid], aj, rowid);
 
