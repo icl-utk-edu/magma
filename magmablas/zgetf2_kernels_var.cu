@@ -374,3 +374,207 @@ magma_zgetf2_fused_sm_vbatched(
 }
 
 
+/******************************************************************************/
+#define SLDA(n)              ( (((n)+1)%4) == 0 ? (n) : (n+1) )
+template<int max_N>
+__global__ void
+zgetf2_fused_kernel_vbatched(
+        int max_M,
+        magma_int_t* M, magma_int_t* N,
+        magmaDoubleComplex** dA_array, int Ai, int Aj, magma_int_t* ldda,
+        magma_int_t** dipiv_array, int ipiv_i,
+        magma_int_t* info, int batchCount)
+{
+    extern __shared__ magmaDoubleComplex data[];
+    const int tx = threadIdx.x;
+    const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
+    if(batchid >= batchCount)return;
+
+    // read data of assigned problem
+    int my_M         = (int)M[batchid];
+    int my_N         = (int)N[batchid];
+    int my_ldda      = (int)ldda[batchid];
+    int my_minmn     = (int)min(my_M, my_N);
+    magmaDoubleComplex* dA = dA_array[batchid] + Aj * my_ldda + Ai;
+    magma_int_t* dipiv     = dipiv_array[batchid] + ipiv_i;
+
+    // check offsets
+    if( my_M <= Ai || my_N <= Aj || my_minmn <= ipiv_i ) return;
+    my_M     -= Ai;
+    my_N     -= Aj;
+    my_minmn  = min(my_M, my_N);
+
+    // rowid
+    int rowid;
+    const int slda = SLDA(max_M);
+    magmaDoubleComplex  rA[N] = {MAGMA_Z_ZERO};
+
+    // init sA into identity
+    magmaDoubleComplex* sA = (magmaDoubleComplex*)data;
+    #pragma unroll
+    for(int j = 0; j < max_N; j++) {
+        sA[j * slda + tx] = MAGMA_Z_ZERO;
+    }
+
+    if(tx < max_N) {
+        sA[tx * slda + tx] = MAGMA_Z_ONE;
+    }
+    // no sync required here
+
+    // read A into sm then mv to reg
+    if(tx < my_M) {
+        for(int j = 0; j < my_N; j++) {
+            sA[j * slda + tx] = dA[j * my_ldda + tx];
+        }
+    }
+    __syncthreads();
+
+    #pragma unroll
+    for(int j = 0; j < max_N; j++){
+        rA[j] = sA[ j * slda + tx ];
+    }
+    __syncthreads();
+
+    zgetf2_fused_device<max_N>(
+             my_M, my_minmn, rA,
+             dipiv_array[batchid] + ai,
+             sA, &info_array[batchid], aj, rowid);
+
+    __syncthreads();
+
+    // write to shared
+    #pragma unroll
+    for(int j = 0; j < max_N; j++){
+        sA[ j * slda + tx ] = rA[j];
+    }
+    __syncthreads();
+
+    // write to global
+    if(tx < my_M) {
+        for(int j = 0; j < my_N; j++) {
+            dA[j * my_ldda + tx] = sA[j * slda + tx];
+        }
+    }
+}
+
+/******************************************************************************/
+template<int max_N>
+static magma_int_t
+magma_zgetf2_fused_kernel_driver_vbatched(
+    magma_int_t max_M,
+    magma_int_t* M, magma_int_t* N,
+    magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
+    magma_int_t **dipiv_array, magma_int_t ipiv_i,
+    magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_int_t arginfo = 0;
+    magma_device_t device;
+    magma_getdevice( &device );
+
+    magma_int_t ntcol = 1;
+    magma_int_t shmem = 0, shmem_1 = 0, shmem_2 = 0;
+    shmem_1 += max_N * sizeof(magmaDoubleComplex);
+    shmem_1 += max_M * sizeof(double);
+    shmem_1 += max_M * sizeof(int);    // not magma_int_t
+    shmem_1 += max_N * sizeof(int);    // not magma_int_t
+
+    shmem_2 += max_M * max_N * sizeof(magmaDoubleComplex);
+
+    shmem  = max(shmem_1, shmem_2);
+    shmem *= ntcol;
+
+    dim3 grid(magma_ceildiv(batchCount,ntcol), 1, 1);
+    dim3 threads(max_M, ntcol, 1);
+
+    // get max. dynamic shared memory on the GPU
+    magma_int_t nthreads_max, nthreads = m * ntcol, shmem_max = 0;
+    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
+    #if CUDA_VERSION >= 9000
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
+    if (shmem <= shmem_max) {
+        cudaFuncSetAttribute(zgetf2_fused_kernel_vbatched<max_N>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    }
+    #else
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
+    #endif    // CUDA_VERSION >= 9000
+
+    magma_int_t total_threads = nthreads * ntcol;
+    if ( total_threads > nthreads_max || shmem > shmem_max ) {
+        //printf("error: kernel %s requires too many threads or too much shared memory\n", __func__);
+        arginfo = -100;
+        return arginfo;
+    }
+
+    void *kernel_args[] = {&max_M, &M, &N, &dA_array, &Ai, &Aj, &ldda, &dipiv_array, &ipiv_i, &info_array, &batchCount};
+    cudaError_t e = cudaLaunchKernel((void*)zgetf2_fused_kernel_vbatched<max_N>, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    if( e != cudaSuccess ) {
+        //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
+        arginfo = -100;
+    }
+
+    return arginfo;
+}
+
+/******************************************************************************/
+extern "C" magma_int_t
+magma_zgetf2_fused_vbatched(
+    magma_int_t max_M, magma_int_t max_N,
+    magma_int_t* M, magma_int_t* N,
+    magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
+    magma_int_t **dipiv_array,
+    magma_int_t *info_array, magma_int_t batchCount,
+    magma_queue_t queue)
+{
+    magma_int_t info = 0;
+    magma_int_t max_rows = 1024; //ZGETF2_FUSED_BATCHED_MAX_ROWS;
+    if(m < 0 || m > max_rows) {
+        fprintf( stderr, "%s: m = %4lld not supported, must be between 0 and %4lld\n",
+                 __func__, (long long) m, (long long) max_rows);
+        info = -1;
+    }
+    else if(n < 0 || n > 32){
+        fprintf( stderr, "%s: n = %4lld not supported, must be between 0 and %4lld\n",
+                 __func__, (long long) m, (long long) 32);
+        info = -2;
+    }
+
+    if(info < 0) return info;
+
+    switch(max_N) {
+        case  1: magma_zgetf2_fused_kernel_driver_vbatched< 1>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case  2: magma_zgetf2_fused_kernel_driver_vbatched< 2>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case  3: magma_zgetf2_fused_kernel_driver_vbatched< 3>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case  4: magma_zgetf2_fused_kernel_driver_vbatched< 4>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case  5: magma_zgetf2_fused_kernel_driver_vbatched< 5>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case  6: magma_zgetf2_fused_kernel_driver_vbatched< 6>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case  7: magma_zgetf2_fused_kernel_driver_vbatched< 7>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case  8: magma_zgetf2_fused_kernel_driver_vbatched< 8>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case  9: magma_zgetf2_fused_kernel_driver_vbatched< 9>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 10: magma_zgetf2_fused_kernel_driver_vbatched<10>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 11: magma_zgetf2_fused_kernel_driver_vbatched<11>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 12: magma_zgetf2_fused_kernel_driver_vbatched<12>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 13: magma_zgetf2_fused_kernel_driver_vbatched<13>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 14: magma_zgetf2_fused_kernel_driver_vbatched<14>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 15: magma_zgetf2_fused_kernel_driver_vbatched<15>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 16: magma_zgetf2_fused_kernel_driver_vbatched<16>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 17: magma_zgetf2_fused_kernel_driver_vbatched<17>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 18: magma_zgetf2_fused_kernel_driver_vbatched<18>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 19: magma_zgetf2_fused_kernel_driver_vbatched<19>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 20: magma_zgetf2_fused_kernel_driver_vbatched<20>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 21: magma_zgetf2_fused_kernel_driver_vbatched<21>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 22: magma_zgetf2_fused_kernel_driver_vbatched<22>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 23: magma_zgetf2_fused_kernel_driver_vbatched<23>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 24: magma_zgetf2_fused_kernel_driver_vbatched<24>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 25: magma_zgetf2_fused_kernel_driver_vbatched<25>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 26: magma_zgetf2_fused_kernel_driver_vbatched<26>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 27: magma_zgetf2_fused_kernel_driver_vbatched<27>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 28: magma_zgetf2_fused_kernel_driver_vbatched<28>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 29: magma_zgetf2_fused_kernel_driver_vbatched<29>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 30: magma_zgetf2_fused_kernel_driver_vbatched<30>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 31: magma_zgetf2_fused_kernel_driver_vbatched<31>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        case 32: magma_zgetf2_fused_kernel_driver_vbatched<32>(max_M, m, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
+        default: info = -100;
+    }
+
+    return info;
+}
