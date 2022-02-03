@@ -988,18 +988,21 @@ magma_zgetf2_fused_batched(
     magma_int_t *info_array, magma_int_t batchCount,
     magma_queue_t queue)
 {
+    magma_int_t info = 0;
     if(m < 0 || m > ZGETF2_FUSED_BATCHED_MAX_ROWS) {
         fprintf( stderr, "%s: m = %4lld not supported, must be between 0 and %4lld\n",
                  __func__, (long long) m, (long long) ZGETF2_FUSED_BATCHED_MAX_ROWS);
-        return -1;
+        info = -1;
     }
     else if(n < 0 || n > 32){
         fprintf( stderr, "%s: n = %4lld not supported, must be between 0 and %4lld\n",
                  __func__, (long long) m, (long long) 32);
-        return -2;
+        info = -2;
     }
-    magma_int_t ntcol = (m > 32)? 1 : (2 * (32/m));
 
+    if(info < 0) return info;
+
+    magma_int_t ntcol = (m > 32)? 1 : (2 * (32/m));
     switch(n) {
         case  1: magma_zgetf2_fused_kernel_driver_batched< 1>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
         case  2: magma_zgetf2_fused_kernel_driver_batched< 2>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
@@ -1033,8 +1036,8 @@ magma_zgetf2_fused_batched(
         case 30: magma_zgetf2_fused_kernel_driver_batched<30>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
         case 31: magma_zgetf2_fused_kernel_driver_batched<31>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
         case 32: magma_zgetf2_fused_kernel_driver_batched<32>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
-        default: arginfo = -100;;
+        default: info = -100;;
     }
 
-    return arginfo;
+    return info;
 }
