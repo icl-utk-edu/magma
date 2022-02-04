@@ -406,7 +406,7 @@ zgetf2_fused_kernel_vbatched(
     my_N     -= Aj;
     my_minmn  = min(my_M, my_N);
 
-    int rowid, gbstep = aj;
+    int rowid, gbstep = Aj;
     int orginfo = (gbstep == 0) ? 0 : info_array[batchid];
     int linfo   = 0;
     const int slda = SLDA(max_M);
