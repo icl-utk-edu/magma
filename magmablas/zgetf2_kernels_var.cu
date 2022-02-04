@@ -406,7 +406,7 @@ zgetf2_fused_kernel_vbatched(
     my_N     -= Aj;
     my_minmn  = min(my_M, my_N);
 
-    int rowid;
+    int rowid, gbstep = aj;
     int orginfo = (gbstep == 0) ? 0 : info_array[batchid];
     int linfo   = 0;
     const int slda = SLDA(max_M);
@@ -461,7 +461,7 @@ zgetf2_fused_kernel_vbatched(
     zgetf2_fused_device<max_N>(
              max_M, my_minmn, rA,
              dipiv,
-             sA, linfo, Aj, rowid);
+             sA, linfo, gbstep, rowid);
 
     __syncthreads();
 
