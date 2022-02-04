@@ -197,11 +197,21 @@ int main( int argc, char** argv)
             }
 
             magma_time = magma_sync_wtime( opts.queue );
-            info = magma_zgetrf_vbatched(
-                    d_M, d_N,
-                    dA_array, d_ldda,
-                    dipiv_array, dinfo,
-                    batchCount, opts.queue);
+            if(opts.version == 1) {
+                info = magma_zgetrf_vbatched(
+                        d_M, d_N,
+                        dA_array, d_ldda,
+                        dipiv_array, dinfo,
+                        batchCount, opts.queue);
+            }
+            else if(opts.version == 2) {
+                info = magma_zgetf2_fused_vbatched(
+                        max_M, max_N,
+                        d_M, d_N,
+                        dA_array, 0, 0, d_ldda,
+                        dipiv_array, 0,
+                        dinfo, batchCount, opts.queue );
+            }
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
 
