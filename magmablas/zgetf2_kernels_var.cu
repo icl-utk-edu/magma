@@ -445,7 +445,7 @@ zgetf2_fused_kernel_vbatched(
     // write to shared
     #pragma unroll
     for(int j = 0; j < max_N; j++){
-        sA[ j * slda + tx ] = rA[j];
+        sA[ j * slda + rowid ] = rA[j];
     }
     __syncthreads();
 
@@ -478,7 +478,7 @@ magma_zgetf2_fused_kernel_driver_vbatched(
     shmem_1 += max_M * sizeof(int);    // not magma_int_t
     shmem_1 += max_N * sizeof(int);    // not magma_int_t
 
-    shmem_2 += max_M * max_N * sizeof(magmaDoubleComplex);
+    shmem_2 += SLDA(max_M) * max_N * sizeof(magmaDoubleComplex);
 
     shmem  = max(shmem_1, shmem_2);
     shmem *= ntcol;
