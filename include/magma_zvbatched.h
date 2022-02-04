@@ -27,6 +27,15 @@ extern "C" {
    */
 
 magma_int_t
+magma_zgetf2_fused_vbatched(
+    magma_int_t max_M, magma_int_t max_N,
+    magma_int_t* M, magma_int_t* N,
+    magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
+    magma_int_t **dipiv_array, magma_int_t ipiv_i,
+    magma_int_t *info_array, magma_int_t batchCount,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zgetf2_fused_sm_vbatched(
     magma_int_t max_M, magma_int_t max_N, magma_int_t max_minMN, magma_int_t max_MxN,
     magma_int_t* m, magma_int_t* n,
