@@ -226,7 +226,7 @@ template<int WIDTH>
 static __device__ __inline__
 void
 zgetf2_fused_device( int m, int minmn, magmaDoubleComplex rA[WIDTH], magma_int_t* dipiv,
-                     magmaDoubleComplex* swork, magma_int_t *info, int gbstep, int &rowid)
+                     magmaDoubleComplex* swork, int &linfo, int gbstep, int &rowid)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
@@ -235,11 +235,7 @@ zgetf2_fused_device( int m, int minmn, magmaDoubleComplex rA[WIDTH], magma_int_t
     magmaDoubleComplex update    = MAGMA_Z_ZERO;
 
     int max_id;
-    int linfo = (gbstep == 0) ? 0 : *info;
     double rx_abs_max = MAGMA_D_ZERO;
-    // check from previous calls if the panel factorization failed previously
-    // this is necessary to report the correct info value
-    //if(gbstep > 0 && *info != 0) return;
 
     magmaDoubleComplex *sx = (magmaDoubleComplex*)(swork);
     double* dsx = (double*)(sx + blockDim.y * WIDTH);
@@ -294,9 +290,6 @@ zgetf2_fused_device( int m, int minmn, magmaDoubleComplex rA[WIDTH], magma_int_t
         }
     }
 
-    if(tx == 0){
-        (*info) = (magma_int_t)( linfo );
-    }
     // write
     if(tx < minmn){
         dipiv[tx] = (magma_int_t)(sipiv[tx] + 1); // fortran indexing

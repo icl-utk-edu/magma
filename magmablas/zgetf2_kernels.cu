@@ -827,8 +827,9 @@ zgetf2_fused_kernel_batched( int m,
     const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
     if(batchid >= batchCount)return;
 
-    // rowid
     int rowid;
+    int linfo = (gbstep == 0) ? 0 : info_array[batchid];
+
 
     // shared memory workspace
     extern __shared__ magmaDoubleComplex zdata[];
@@ -845,9 +846,13 @@ zgetf2_fused_kernel_batched( int m,
      zgetf2_fused_device<N>(
              m, min(m,N), rA,
              dipiv_array[batchid] + ai,
-             swork, &info_array[batchid], aj, rowid);
+             swork, linfo, aj, rowid);
 
     // write
+    if(tx == 0){
+        info_array[batchid] = (magma_int_t)( linfo );
+    }
+
     #pragma unroll
     for(int i = 0; i < N; i++){
         dA[ i * ldda + rowid ] = rA[i];
