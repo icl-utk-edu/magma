@@ -22,6 +22,7 @@ hdr += \
 	$(cdir)/zlarfg_devicesfunc.cuh		\
 	$(cdir)/ztrsv_template_device.cuh	\
 	$(cdir)/zgetf2_devicefunc.cuh		\
+	$(cdir)/zlaswp_device.cuh		\
 
 # alphabetic order by base name (ignoring precision)
 libmagma_src += \
@@ -390,6 +391,15 @@ $(cdir)/cgemm_fermi.$(o_ext): $(cdir)/cgemm_fermi_kernels.h $(cdir)/gemm_stencil
 $(cdir)/dgemm_fermi.$(o_ext): $(cdir)/dgemm_fermi_kernels.h $(cdir)/gemm_stencil.cuh $(cdir)/gemm_kernel.cuh $(cdir)/gemm_stencil_defs.h
 $(cdir)/sgemm_fermi.$(o_ext): $(cdir)/sgemm_fermi_kernels.h $(cdir)/gemm_stencil.cuh $(cdir)/gemm_kernel.cuh $(cdir)/gemm_stencil_defs.h
 
+$(cdir)/zlaswp_batched.$(o_ext): $(cdir)/zlaswp_device.cuh
+$(cdir)/claswp_batched.$(o_ext): $(cdir)/claswp_device.cuh
+$(cdir)/dlaswp_batched.$(o_ext): $(cdir)/dlaswp_device.cuh
+$(cdir)/slaswp_batched.$(o_ext): $(cdir)/slaswp_device.cuh
+
+$(cdir)/zlaswp_vbatched.$(o_ext): $(cdir)/zlaswp_device.cuh
+$(cdir)/claswp_vbatched.$(o_ext): $(cdir)/claswp_device.cuh
+$(cdir)/dlaswp_vbatched.$(o_ext): $(cdir)/dlaswp_device.cuh
+$(cdir)/slaswp_vbatched.$(o_ext): $(cdir)/slaswp_device.cuh
 
 # ----------------------------------------------------------------------
 # pop first directory

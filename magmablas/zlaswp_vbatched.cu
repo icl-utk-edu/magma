@@ -11,10 +11,7 @@
 */
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
-
-#define BLK_SIZE 256
-#define ZLASWP_COL_NTH 32
-
+#include "zlaswp_device.cuh"
 
 /******************************************************************************/
 // serial swap that does swapping one row by one row
