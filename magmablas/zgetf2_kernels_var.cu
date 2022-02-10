@@ -376,7 +376,7 @@ magma_zgetf2_fused_sm_vbatched(
 
 /******************************************************************************/
 #define SLDA(n)              ( (((n)+1)%4) == 0 ? (n) : (n+1) )
-#define DBG
+//#define DBG
 #define ibatch    (2)
 template<int max_N>
 __global__ void
@@ -601,9 +601,6 @@ magma_zgetf2_fused_vbatched(
     if(info < 0) return info;
 
     switch(max_N) {
-#if 1
-        case  8: magma_zgetf2_fused_kernel_driver_vbatched< 8>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
-#else
         case  1: magma_zgetf2_fused_kernel_driver_vbatched< 1>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case  2: magma_zgetf2_fused_kernel_driver_vbatched< 2>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case  3: magma_zgetf2_fused_kernel_driver_vbatched< 3>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
@@ -636,7 +633,6 @@ magma_zgetf2_fused_vbatched(
         case 30: magma_zgetf2_fused_kernel_driver_vbatched<30>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case 31: magma_zgetf2_fused_kernel_driver_vbatched<31>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case 32: magma_zgetf2_fused_kernel_driver_vbatched<32>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
-#endif
         default: info = -100;
     }
 
