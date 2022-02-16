@@ -15,7 +15,8 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
-#define BLK_SIZE 256
+#define SWP_WIDTH      4
+#define BLK_SIZE       256
 #define ZLASWP_COL_NTH 32
 // SWP_WIDTH is number of threads in a block
 
