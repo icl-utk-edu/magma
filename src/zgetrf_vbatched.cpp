@@ -19,8 +19,9 @@ magma_zgetrf_vbatched_max_nocheck(
         magma_int_t* m, magma_int_t* n, magma_int_t* minmn,
         magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn, magma_int_t max_mxn,
         magmaDoubleComplex **dA_array, magma_int_t *ldda,
-        magma_int_t **ipiv_array, magma_int_t *info_array,
-        magma_int_t batchCount, magma_queue_t queue)
+        magma_int_t **ipiv_array, magma_int_t** pivinfo_array,
+        magma_int_t *info_array, magma_int_t batchCount,
+        magma_queue_t queue)
 {
 #define dA_array(i_, j_)  dA_array, i_, j_
 #define ipiv_array(i_)    ipiv_array, i_
@@ -53,7 +54,7 @@ magma_zgetrf_vbatched_max_nocheck(
                     m, n, minmn,
                     pm, ib, ib, 0, recnb,
                     dA_array(i, i), ldda,
-                    ipiv_array(i), NULL,
+                    ipiv_array(i), pivinfo_array,
                     info_array, i, batchCount, queue);
 
         if (arginfo != 0 ) goto fin;
@@ -186,7 +187,8 @@ magma_zgetrf_vbatched(
     const magma_int_t stats_length = 4;
 
     magma_int_t arginfo = 0, hstats[stats_length];
-    magma_int_t *minmn, *stats;
+    magma_int_t *minmn, *stats, *pivinfo;
+    magma_int_t **pivinfo_array;
     magma_imalloc(&stats, stats_length);    // max_m, max_n, max_minmn, max_mxn
 
     // the checker requires that stats contains at least 3 integers
@@ -209,15 +211,22 @@ magma_zgetrf_vbatched(
         const magma_int_t max_minmn = hstats[2];
         const magma_int_t max_mxn   = hstats[3];
 
+        // pivinfo
+        magma_imalloc(&pivinfo, max_m * batchCount);
+        magma_malloc((void**)&pivinfo_array, batchCount * sizeof(magma_int_t*));
+        magma_iset_pointer(pivinfo_array, pivinfo, 1, 0, 0, max_m, batchCount, queue );
+
         arginfo = magma_zgetrf_vbatched_max_nocheck(
                     m, n, minmn,
                     max_m, max_n, max_minmn, max_mxn,
                     dA_array, ldda,
-                    ipiv_array, info_array,
+                    ipiv_array, pivinfo_array, info_array,
                     batchCount, queue);
 
         magma_queue_sync(queue);
         magma_free(minmn);
+        magma_free(pivinfo);
+        magma_free(pivinfo_array);
     }
 
     magma_free(stats);

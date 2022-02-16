@@ -44,7 +44,7 @@ magma_zgetrf_recpanel_vbatched(
             m, n, minmn,
             max_m, max_n1, max_n1, 0, min_recpnb,
             dA_array(Ai, Aj), ldda,
-            dipiv_array, Ai, NULL,
+            dipiv_array, Ai, dpivinfo_array,
             info_array, gbstep, batchCount, queue);
 
         // swap right
@@ -79,7 +79,7 @@ magma_zgetrf_recpanel_vbatched(
             m, n, minmn,
             max_m-max_n1, max_n2, max_n2, 0, min_recpnb,
             dA_array(Ai+max_n1, Aj+max_n1), ldda,
-            dipiv_array, Ai+max_n1, NULL,
+            dipiv_array, Ai+max_n1, dpivinfo_array,
             info_array, gbstep+max_n1, batchCount, queue);
 
         // swap left
