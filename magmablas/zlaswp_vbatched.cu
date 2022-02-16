@@ -128,6 +128,48 @@ __global__ void zlaswp_right_rowserial_kernel_vbatched(
 }
 
 /******************************************************************************/
+__global__
+void zlaswp_left_rowparallel_kernel_vbatched(
+                                int n, int width,
+                                magma_int_t* M, magma_int_t* N,
+                                magmaDoubleComplex **dA_array,  int Ai,  int Aj,  magma_int_t* ldda,
+                                magma_int_t** pivinfo_array, int pivinfo_i,
+                                int k1, int k2)
+{
+    const int batchid = blockIdx.z;
+
+    int my_M     = (int)M[batchid];
+    int my_N     = (int)N[batchid];
+    int my_ldda  = (int)ldda[batchid];
+    int my_minmn = min(my_M, my_N);
+
+    magmaDoubleComplex* dA = dA_array[batchid]  + Aj  * my_ldda + Ai;
+    magma_int_t *pivinfo   = pivinfo_array[batchid] + pivinfo_i;
+
+    // check if offsets produce out-of-bound pointers
+    if( my_M <= Ai || my_N <= Aj ) return;
+    if( k1 >= my_minmn ) return;
+    k2 = min(k2, my_minmn);
+    const int my_height = k2-k1;
+
+    // the following explanation is based on the assumption m >= n for all matrices
+    // since this is a separate kernel for left-swap, we can calculate the maximum
+    // affordable n based on (Ai, Aj).
+    // In a left swap, Ai > Aj, which means (Ai, Aj) is on the left of the diagonal element
+    // If the diagonal (Ai, Ai) is inside the matrix, then my_max_n is the horizontal
+    // distance between (Ai, Aj) and (Ai, Ai). If (Ai, Ai) is outside a given matrix, we
+    // terminate the thread-block(s) for this matrix only
+    if(my_M < Ai || my_N < Ai) return;
+    const int my_max_n = Ai - Aj;
+    const int my_n     = min(n, my_max_n);
+
+    zlaswp_rowparallel_devfunc( my_n, width, my_height,
+                                dA, my_ldda,
+                                dA, my_ldda,
+                                pivinfo);
+}
+
+/******************************************************************************/
 // serial swap that does swapping one row by one row, similar to LAPACK
 // K1, K2 are in Fortran indexing
 extern "C" void
