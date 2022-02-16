@@ -34,7 +34,7 @@ setup_pivinfo_vbatched(
             magma_int_t **pivinfo_array, magma_int_t **ipiv_array, magma_int_t ipiv_offset,
             magma_int_t* m, magma_int_t* n,
             magma_int_t max_m, magma_int_t nb, magma_int_t batchCount,
-            magma_queue_t queue)
+            magma_queue_t queue);
 
 // adjust pivot for LU
 void
