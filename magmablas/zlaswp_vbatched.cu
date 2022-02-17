@@ -223,3 +223,35 @@ magma_zlaswp_right_rowserial_vbatched(
         (n, M, N, dA_array, Ai, Aj, ldda, ipiv_array, ipiv_offset, k1, k2);
     }
 }
+
+/******************************************************************************/
+extern "C" void
+magma_zlaswp_left_rowparallel_vbatched(
+        magma_int_t n,
+        magma_int_t* M, magma_int_t* N,
+        magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
+        magma_int_t k1, magma_int_t k2,
+        magma_int_t **pivinfo_array,
+        magma_int_t batchCount, magma_queue_t queue)
+{
+    if (n == 0 ) return;
+    int height = k2-k1;
+    if ( height  > 1024) {
+        fprintf( stderr, "%s: n=%lld > 1024, not supported\n", __func__, (long long) n );
+    }
+
+    int blocks = magma_ceildiv( n, SWP_WIDTH );
+    magma_int_t max_batchCount = queue->get_maxBatch();
+    magma_int_t width = min(n, SWP_WIDTH);
+
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3  grid(blocks, 1, ibatch);
+
+        size_t shmem = sizeof(magmaDoubleComplex) * height * width;
+        zlaswp_left_rowparallel_kernel_vbatched
+        <<< grid, height, shmem, queue->cuda_stream() >>>
+        ( n, width, M, N, dA_array, Ai, Aj, ldda, pivinfo_array, 0, k1, k2);
+    }
+}
+
