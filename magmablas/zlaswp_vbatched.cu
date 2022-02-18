@@ -13,6 +13,10 @@
 #include "batched_kernel_param.h"
 #include "zlaswp_device.cuh"
 
+#define PRECISION_z
+#define DBG
+#define ib    (1)
+
 /******************************************************************************/
 // serial swap that does swapping one row by one row
 // this is the vbatched routine, for swapping to the left of the panel
@@ -58,6 +62,14 @@ __global__ void zlaswp_left_rowserial_kernel_vbatched(
     if(my_M < Ai || my_N < Ai) return;
     const int my_max_n = Ai - Aj;
     const int my_n     = min(n, my_max_n);
+
+    #if defined(DBG) && defined(PRECISION_d)
+    __syncthreads();
+    if(batchid == ib && threadIdx.x == 0) {
+        printf("matrix %d: k1 = %d, k2 = %d, my_n = %d\n", ib, k1, k2, my_n);
+    }
+    __syncthreads();
+    #endif
 
     if (tid < my_n) {
         magmaDoubleComplex A1;
@@ -141,13 +153,28 @@ void zlaswp_left_rowparallel_kernel_vbatched(
     int my_M     = (int)M[batchid];
     int my_N     = (int)N[batchid];
     int my_ldda  = (int)ldda[batchid];
-    int my_minmn = min(my_M, my_N);
+
+    #if defined(DBG) && defined(PRECISION_d)
+    __syncthreads();
+    if(batchid == ib && threadIdx.x == 0) {
+        printf("matrix %d: (%d, %d)\n", ib, my_M, my_N);
+    }
+    __syncthreads();
+    #endif
 
     magmaDoubleComplex* dA = dA_array[batchid]  + Aj  * my_ldda + Ai;
     magma_int_t *pivinfo   = pivinfo_array[batchid] + pivinfo_i;
 
     // check if offsets produce out-of-bound pointers
     if( my_M <= Ai || my_N <= Aj ) return;
+
+    my_M -= Ai;
+    my_N -= Aj;
+    int my_minmn = min(my_M, my_N);
+
+    // reduce minmn by the pivot offset
+    my_minmn -= pivinfo_i;
+    if( my_minmn <= 0  ) return;
     if( k1 >= my_minmn ) return;
     k2 = min(k2, my_minmn);
     const int my_height = k2-k1;
@@ -159,9 +186,16 @@ void zlaswp_left_rowparallel_kernel_vbatched(
     // If the diagonal (Ai, Ai) is inside the matrix, then my_max_n is the horizontal
     // distance between (Ai, Aj) and (Ai, Ai). If (Ai, Ai) is outside a given matrix, we
     // terminate the thread-block(s) for this matrix only
-    if(my_M < Ai || my_N < Ai) return;
     const int my_max_n = Ai - Aj;
     const int my_n     = min(n, my_max_n);
+
+    #if defined(DBG) && defined(PRECISION_d)
+    __syncthreads();
+    if(batchid == ib && threadIdx.x == 0) {
+        printf("matrix %d: height = %d, my_n = %d\n", ib, my_height, my_n);
+    }
+    __syncthreads();
+    #endif
 
     zlaswp_rowparallel_devfunc( my_n, width, my_height,
                                 dA, my_ldda,
@@ -231,7 +265,7 @@ magma_zlaswp_left_rowparallel_vbatched(
         magma_int_t* M, magma_int_t* N,
         magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
         magma_int_t k1, magma_int_t k2,
-        magma_int_t **pivinfo_array,
+        magma_int_t **pivinfo_array, magma_int_t pivinfo_i,
         magma_int_t batchCount, magma_queue_t queue)
 {
     if (n == 0 ) return;
@@ -251,7 +285,7 @@ magma_zlaswp_left_rowparallel_vbatched(
         size_t shmem = sizeof(magmaDoubleComplex) * height * width;
         zlaswp_left_rowparallel_kernel_vbatched
         <<< grid, height, shmem, queue->cuda_stream() >>>
-        ( n, width, M, N, dA_array, Ai, Aj, ldda, pivinfo_array, 0, k1, k2);
+        ( n, width, M, N, dA_array, Ai, Aj, ldda, pivinfo_array, pivinfo_i, k1, k2);
     }
 }
 

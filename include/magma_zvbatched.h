@@ -122,7 +122,7 @@ magma_zlaswp_left_rowparallel_vbatched(
         magma_int_t* M, magma_int_t* N,
         magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
         magma_int_t k1, magma_int_t k2,
-        magma_int_t **pivinfo_array,
+        magma_int_t **pivinfo_array, magma_int_t pivinfo_i,
         magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t

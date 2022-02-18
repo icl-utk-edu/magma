@@ -12,7 +12,7 @@
 */
 #include "magma_internal.h"
 
-#define ZGETRF2_VBATCHED_PAR_SWAP
+//#define ZGETRF2_VBATCHED_PAR_SWAP
 
 // always assume for every matrix m >= n
 // then max_minmn = max_n
@@ -86,12 +86,13 @@ magma_zgetrf_recpanel_vbatched(
 
         // swap left
         #ifdef ZGETRF2_VBATCHED_PAR_SWAP
-        setup_pivinfo_vbatched(pivinfo_array, ipiv_array, Ai+max_n1, m, n, max_m-max_n1, max_n2, batchCount, queue);
+        setup_pivinfo_vbatched(dpivinfo_array, Ai+max_n1, dipiv_array, Ai+max_n1, m, n, max_m-max_n1, max_n2, batchCount, queue);
         magma_zlaswp_left_rowparallel_vbatched(
             max_n1,
             m, n, dA_array(Ai+max_n1, Aj), ldda,
             0, max_n2,
-            pivinfo_array, batchCount, queue);
+            dpivinfo_array, Ai+max_n1,
+            batchCount, queue);
         #else
         magma_zlaswp_left_rowserial_vbatched(
             max_n1,

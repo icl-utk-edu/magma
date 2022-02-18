@@ -98,8 +98,9 @@ __global__ void setup_pivinfo_kernel_batched(magma_int_t **pivinfo_array, magma_
 /******************************************************************************/
 __global__ void setup_pivinfo_kernel_vbatched(
                     magma_int_t* M, magma_int_t* N,
-                    magma_int_t **pivinfo_array, magma_int_t **ipiv_array,
-                    int ipiv_offset, int nb)
+                    magma_int_t **pivinfo_array, int pivinfo_offset,
+                    magma_int_t **ipiv_array,    int ipiv_offset,
+                    int nb)
 {
     const int batchid = blockIdx.x;
     int my_m = (int)M[batchid];
@@ -109,7 +110,7 @@ __global__ void setup_pivinfo_kernel_vbatched(
     // check for early termination
     if(ipiv_offset >= my_minmn) return;
 
-    setup_pivinfo_devfunc(pivinfo_array[batchid], ipiv_array[batchid]+ipiv_offset, my_m, nb);
+    setup_pivinfo_devfunc(pivinfo_array[batchid] + pivinfo_offset, ipiv_array[batchid]+ipiv_offset, my_m, nb);
 }
 
 
@@ -153,7 +154,8 @@ setup_pivinfo_batched( magma_int_t **pivinfo_array, magma_int_t **ipiv_array, ma
 
 /******************************************************************************/
 extern "C" void
-setup_pivinfo_vbatched(  magma_int_t **pivinfo_array, magma_int_t **ipiv_array, magma_int_t ipiv_offset,
+setup_pivinfo_vbatched(  magma_int_t **pivinfo_array, magma_int_t pivinfo_offset,
+                         magma_int_t **ipiv_array,    magma_int_t ipiv_offset,
                          magma_int_t* m, magma_int_t* n,
                          magma_int_t max_m, magma_int_t nb, magma_int_t batchCount,
                          magma_queue_t queue)
@@ -163,7 +165,7 @@ setup_pivinfo_vbatched(  magma_int_t **pivinfo_array, magma_int_t **ipiv_array, 
     size_t min_m_MAX_NTHREADS = min(max_m, MAX_NTHREADS);
     setup_pivinfo_kernel_vbatched
     <<< batchCount, min_m_MAX_NTHREADS, 0, queue->cuda_stream() >>>
-    (m, n, pivinfo_array, ipiv_array, ipiv_offset, nb);
+    (m, n, pivinfo_array, pivinfo_offset, ipiv_array, ipiv_offset, nb);
 }
 
 // =============================================================================
