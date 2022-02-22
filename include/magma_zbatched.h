@@ -482,23 +482,6 @@ magma_zgetf2_batched(
     magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t
-magma_zgetf2_batched_v1(
-    magma_int_t m, magma_int_t n,
-    magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
-    magma_int_t **ipiv_array,
-    magma_int_t *info_array,
-    magma_int_t gbstep,
-    magma_int_t batchCount,
-    magma_queue_t queue);
-
-magma_int_t
-magma_zgetf2_batched_v2(
-    magma_int_t m, magma_int_t n,
-    magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
-    magma_int_t **ipiv_array, magma_int_t** dpivinfo_array,
-    magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue);
-
-magma_int_t
 magma_zgetrf_recpanel_batched(
     magma_int_t m, magma_int_t n, magma_int_t min_recpnb,
     magmaDoubleComplex** dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
