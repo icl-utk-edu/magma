@@ -42,7 +42,7 @@ zgetf2_update_kernel_batched(
 
     magmaDoubleComplex* dpA      = dA_array[batchid] + Aj * ldda + Ai;
     magmaDoubleComplex* dA       = dpA + PN * ldda;
-    magmaDoubleComplex* dpivinfo = pivinfo_array[batchid] + pivinfo_i;
+    magma_int_t* dpivinfo        = pivinfo_array[batchid] + pivinfo_i;
 
     magmaDoubleComplex rA[NB] = {MAGMA_Z_ZERO};
     const int slda = SLDA(m);
@@ -57,7 +57,7 @@ zgetf2_update_kernel_batched(
     magmaDoubleComplex reg;
 
     // read panel into spA, and pivinfo
-    rowid = dpivinfo[tx];
+    rowid = (int)dpivinfo[tx];
     #pragma unroll
     for(int j = 0; j < PN; j++) {
         spA(tx,j) = dpA[j * ldda + i];
