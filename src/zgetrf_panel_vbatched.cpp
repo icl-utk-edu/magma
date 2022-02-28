@@ -12,7 +12,10 @@
 */
 #include "magma_internal.h"
 
-//#define ZGETRF2_VBATCHED_PAR_SWAP
+#define PRECISION_z
+
+//#define DBG
+#define ZGETRF2_VBATCHED_PAR_SWAP
 
 // always assume for every matrix m >= n
 // then max_minmn = max_n
@@ -29,7 +32,37 @@ magma_zgetrf_recpanel_vbatched(
 #define dA_array(i,j)    dA_array, i, j
 #define dipiv_array(i)   dipiv_array, i
 
+#if defined(DBG) && defined(PRECISION_d)
+    const int ib = 3;
+    magmaDoubleComplex** hA_array=NULL;
+    magma_int_t **hpiv_array, **hpiv2_array;
+    magma_int_t *hM=NULL, *hN=NULL, *hldda=NULL;
+    magma_malloc_cpu((void**)&hA_array, batchCount*sizeof(magmaDoubleComplex*));
+    magma_malloc_cpu((void**)&hpiv_array,  batchCount*sizeof(magma_int_t*));
+    magma_malloc_cpu((void**)&hpiv2_array, batchCount*sizeof(magma_int_t*));
+    magma_imalloc_cpu(&hM, batchCount);
+    magma_imalloc_cpu(&hN, batchCount);
+    magma_imalloc_cpu(&hldda, batchCount);
+    magma_getvector(batchCount, sizeof(magmaDoubleComplex*), dA_array, 1, hA_array, 1, queue);
+    magma_getvector(batchCount, sizeof(magma_int_t*), dipiv_array,  1, hpiv_array, 1, queue);
+    magma_getvector(batchCount, sizeof(magma_int_t*), dpivinfo_array, 1, hpiv2_array, 1, queue);
+    magma_igetvector(batchCount, m, 1, hM, 1, queue);
+    magma_igetvector(batchCount, n, 1, hN, 1, queue);
+    magma_igetvector(batchCount, ldda, 1, hldda, 1, queue);
+    #endif
+
+#if defined(DBG) && defined(PRECISION_d)
+    printf("org -- (Ai, Aj) = (%d, %d)\n", Ai, Aj);
+    const int iminmn = min(hM[ib], hN[ib]);
+    magma_int_t* hpiv  = new magma_int_t[iminmn];
+    magma_int_t* hpiv2 = new magma_int_t[hM[ib]];
+    magma_dprint_gpu(hM[ib], hN[ib], hA_array[ib], hldda[ib], queue);
+#endif
+
     if( max_n <= min_recpnb ) {
+        #if defined(DBG) && defined(PRECISION_d)
+        printf("stop condition -- (Ai, Aj) = (%d, %d)\n", Ai, Aj);
+        #endif
         magma_zgetf2_vbatched(
             m, n, minmn,
             max_m, max_n, max_minmn,
@@ -49,7 +82,25 @@ magma_zgetrf_recpanel_vbatched(
             dipiv_array, Ai, dpivinfo_array,
             info_array, gbstep, batchCount, queue);
 
+#if defined(DBG) && defined(PRECISION_d)
+    printf("panel -- (Ai, Aj) = (%d, %d)\n", Ai, Aj);
+    magma_dprint_gpu(hM[ib], hN[ib], hA_array[ib], hldda[ib], queue);
+    magma_igetvector(iminmn, hpiv_array[ib], 1, hpiv, 1, queue);
+    magma_igetvector(hM[ib], hpiv2_array[ib], 1, hpiv2, 1, queue);
+    for(int s = 0; s < iminmn; s++){printf("piv[%2d]     = %2d\n", s, hpiv[s]);}
+    for(int s = 0; s < hM[ib]; s++){printf("pivinfo[%2d] = %2d\n", s, hpiv2[s]);}
+#endif
         // swap right
+        #ifdef ZGETRF2_VBATCHED_PAR_SWAP
+        setup_pivinfo_vbatched(dpivinfo_array, Ai, dipiv_array, Ai, m, n, max_m, max_n1, batchCount, queue);
+        magma_zlaswp_right_rowparallel_vbatched(
+            max_n2,
+            m, n,
+            dA_array(Ai, Aj+max_n1), ldda,
+            0, max_n1,
+            dpivinfo_array, Ai,
+            batchCount, queue);
+        #else
         magma_zlaswp_right_rowserial_vbatched(
             max_n2,
             m, n,
@@ -57,7 +108,16 @@ magma_zgetrf_recpanel_vbatched(
             dipiv_array(Ai),
             0, max_n1,
             batchCount, queue);
+        #endif
 
+#if defined(DBG) && defined(PRECISION_d)
+    printf("swap right\n");
+    magma_dprint_gpu(hM[ib], hN[ib], hA_array[ib], hldda[ib], queue);
+    magma_igetvector(iminmn, hpiv_array[ib], 1, hpiv, 1, queue);
+    magma_igetvector(hM[ib], hpiv2_array[ib], 1, hpiv2, 1, queue);
+    for(int s = 0; s < iminmn; s++){printf("piv[%2d]     = %2d\n", s, hpiv[s]);}
+    for(int s = 0; s < hM[ib]; s++){printf("pivinfo[%2d] = %2d\n", s, hpiv2[s]);}
+#endif
         // trsm
         magmablas_ztrsm_vbatched_core(
             MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit,
@@ -66,6 +126,14 @@ magma_zgetrf_recpanel_vbatched(
             dA_array(Ai, Aj+max_n1), ldda,
             batchCount, queue );
 
+#if defined(DBG) && defined(PRECISION_d)
+    printf("trsm\n");
+    magma_dprint_gpu(hM[ib], hN[ib], hA_array[ib], hldda[ib], queue);
+    magma_igetvector(iminmn, hpiv_array[ib], 1, hpiv, 1, queue);
+    magma_igetvector(hM[ib], hpiv2_array[ib], 1, hpiv2, 1, queue);
+    for(int s = 0; s < iminmn; s++){printf("piv[%2d]     = %2d\n", s, hpiv[s]);}
+    for(int s = 0; s < hM[ib]; s++){printf("pivinfo[%2d] = %2d\n", s, hpiv2[s]);}
+#endif
         // gemm
         magmablas_zgemm_vbatched_core(
             MagmaNoTrans, MagmaNoTrans,
@@ -76,6 +144,14 @@ magma_zgetrf_recpanel_vbatched(
             MAGMA_Z_ONE,     dA_array(Ai+max_n1, Aj+max_n1), ldda,
             batchCount, queue );
 
+#if defined(DBG) && defined(PRECISION_d)
+    printf("gemm\n");
+    magma_dprint_gpu(hM[ib], hN[ib], hA_array[ib], hldda[ib], queue);
+    magma_igetvector(iminmn, hpiv_array[ib], 1, hpiv, 1, queue);
+    magma_igetvector(hM[ib], hpiv2_array[ib], 1, hpiv2, 1, queue);
+    for(int s = 0; s < iminmn; s++){printf("piv[%2d]     = %2d\n", s, hpiv[s]);}
+    for(int s = 0; s < hM[ib]; s++){printf("pivinfo[%2d] = %2d\n", s, hpiv2[s]);}
+#endif
         // panel 2
         magma_zgetrf_recpanel_vbatched(
             m, n, minmn,
@@ -84,6 +160,14 @@ magma_zgetrf_recpanel_vbatched(
             dipiv_array, Ai+max_n1, dpivinfo_array,
             info_array, gbstep+max_n1, batchCount, queue);
 
+#if defined(DBG) && defined(PRECISION_d)
+    printf("panel 2 -- offsets (%d, %d)\n", Ai+max_n1, Aj+max_n1);
+    magma_dprint_gpu(hM[ib], hN[ib], hA_array[ib], hldda[ib], queue);
+    magma_igetvector(iminmn, hpiv_array[ib], 1, hpiv, 1, queue);
+    magma_igetvector(hM[ib], hpiv2_array[ib], 1, hpiv2, 1, queue);
+    for(int s = 0; s < iminmn; s++){printf("piv[%2d]     = %2d\n", s, hpiv[s]);}
+    for(int s = 0; s < hM[ib]; s++){printf("pivinfo[%2d] = %2d\n", s, hpiv2[s]);}
+#endif
         // swap left
         #ifdef ZGETRF2_VBATCHED_PAR_SWAP
         setup_pivinfo_vbatched(dpivinfo_array, Ai+max_n1, dipiv_array, Ai+max_n1, m, n, max_m-max_n1, max_n2, batchCount, queue);
@@ -101,10 +185,39 @@ magma_zgetrf_recpanel_vbatched(
             0, max_n2,
             batchCount, queue);
         #endif
+#if defined(DBG) && defined(PRECISION_d)
+    printf("swap left\n");
+    magma_dprint_gpu(hM[ib], hN[ib], hA_array[ib], hldda[ib], queue);
+    magma_igetvector(iminmn, hpiv_array[ib], 1, hpiv, 1, queue);
+    magma_igetvector(hM[ib], hpiv2_array[ib], 1, hpiv2, 1, queue);
+    for(int s = 0; s < iminmn; s++){printf("piv[%2d]     = %2d\n", s, hpiv[s]);}
+    for(int s = 0; s < hM[ib]; s++){printf("pivinfo[%2d] = %2d\n", s, hpiv2[s]);}
+#endif
 
         // adjust pivot
         adjust_ipiv_vbatched(dipiv_array, Ai+max_n1, minmn, max_n2, max_n1, batchCount, queue);
     }
+
+#if defined(DBG) && defined(PRECISION_d)
+    printf("end\n");
+    magma_dprint_gpu(hM[ib], hN[ib], hA_array[ib], hldda[ib], queue);
+    magma_igetvector(iminmn, hpiv_array[ib], 1, hpiv, 1, queue);
+    magma_igetvector(hM[ib], hpiv2_array[ib], 1, hpiv2, 1, queue);
+    for(int s = 0; s < iminmn; s++){printf("piv[%2d]     = %2d\n", s, hpiv[s]);}
+    for(int s = 0; s < hM[ib]; s++){printf("pivinfo[%2d] = %2d\n", s, hpiv2[s]);}
+#endif
+
+#if defined(DBG) && defined(PRECISION_d)
+    magma_free_cpu(hA_array);
+    magma_free_cpu(hM);
+    magma_free_cpu(hN);
+    magma_free_cpu(hldda);
+    magma_free_cpu(hpiv_array);
+    magma_free_cpu(hpiv2_array);
+
+    delete[] hpiv;
+    delete[] hpiv2;
+#endif
 
     return 0;
 
