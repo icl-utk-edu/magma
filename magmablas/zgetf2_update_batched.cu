@@ -143,8 +143,9 @@ magma_zgetf2_update_kernel_batched_driver(
     shmem += SLDA(m) * (n%NB)  * sizeof(magmaDoubleComplex);  // sA (cleanup)
     shmem *= ntcol;
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
+    magma_int_t nthreads = m;
     dim3 grid(gridx, 1, 1);
-    dim3 threads( m, ntcol, 1);
+    dim3 threads(nthreads, ntcol, 1);
 
     // get max. dynamic shared memory on the GPU
     magma_int_t nthreads_max, shmem_max = 0;
