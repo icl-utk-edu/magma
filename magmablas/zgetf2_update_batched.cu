@@ -30,7 +30,7 @@ void
 zgetf2_update_kernel_batched(
     int m, int n,
     magmaDoubleComplex **dA_array, int  Ai, int Aj, int ldda,
-    magmaDoubleComplex **pivinfo_array, magma_int_t pivinfo_i,
+    magma_int_t **dpivinfo_array, magma_int_t pivinfo_i,
     magma_int_t batchCount )
 {
     extern __shared__ magmaDoubleComplex zdata[];
@@ -42,7 +42,7 @@ zgetf2_update_kernel_batched(
 
     magmaDoubleComplex* dpA      = dA_array[batchid] + Aj * ldda + Ai;
     magmaDoubleComplex* dA       = dpA + PN * ldda;
-    magma_int_t* dpivinfo        = pivinfo_array[batchid] + pivinfo_i;
+    magma_int_t* dpivinfo        = dpivinfo_array[batchid] + pivinfo_i;
 
     magmaDoubleComplex rA[NB] = {MAGMA_Z_ZERO};
     const int slda = SLDA(m);
@@ -130,7 +130,7 @@ static magma_int_t
 magma_zgetf2_update_kernel_batched_driver(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
-    magmaDoubleComplex **dpivinfo_array, magma_int_t pivinfo_i,
+    magma_int_t **dpivinfo_array, magma_int_t pivinfo_i,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_device_t device;
@@ -185,7 +185,7 @@ static magma_int_t
 magma_zgetf2_update_NB_batched(
     magma_int_t m, magma_int_t n, magma_int_t nb,
     magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
-    magmaDoubleComplex **dpivinfo_array, magma_int_t pivinfo_i,
+    magma_int_t **dpivinfo_array, magma_int_t pivinfo_i,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
@@ -208,7 +208,7 @@ extern "C" magma_int_t
 magma_zgetf2_update_batched(
     magma_int_t m, magma_int_t panel_n, magma_int_t n, magma_int_t nb,
     magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
-    magmaDoubleComplex **dpivinfo_array, magma_int_t pivinfo_i,
+    magma_int_t **dpivinfo_array, magma_int_t pivinfo_i,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
