@@ -195,29 +195,39 @@ magma_zgetf2_batched_v2(
 
         // swap right
         setup_pivinfo_batched(dpivinfo_array, ipiv_array(ai), m, n1, batchCount, queue);
-        magma_zlaswp_rowparallel_batched(
+        if(1) {
+            magma_zgetf2_update_batched(
+                m, n1, n2, 8,
+                dA_array, ai, aj, ldda,
+                dpivinfo_array, 0,
+                batchCount, queue );
+        }
+        else {
+
+            magma_zlaswp_rowparallel_batched(
                 n2,
                 dA_array(ai,aj+n1), ldda,
                 dA_array(ai,aj+n1), ldda,
                 0, n1, dpivinfo_array,
                 batchCount, queue);
 
-        // trsm
-        magmablas_ztrsm_recursive_batched(
+            // trsm
+            magmablas_ztrsm_recursive_batched(
                 MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit,
                 n1, n2, MAGMA_Z_ONE,
                 dA_array(ai,   aj), ldda,
                 dA_array(ai,aj+n1), ldda,
                 batchCount, queue );
 
-        // gemm
-        magma_zgemm_batched_core(
+            // gemm
+            magma_zgemm_batched_core(
                 MagmaNoTrans, MagmaNoTrans,
                 m-n1, n2, n1,
                 MAGMA_Z_NEG_ONE, dA_array(ai+n1,    aj), ldda,
                                  dA_array(ai   , aj+n1), ldda,
                 MAGMA_Z_ONE,     dA_array(ai+n1, aj+n1), ldda,
                 batchCount, queue );
+        }
 
         // panel 2
         magma_zgetf2_batched_v2(

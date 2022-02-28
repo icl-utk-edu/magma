@@ -499,6 +499,13 @@ magma_zgetrf_batched(
     magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t
+magma_zgetf2_update_batched(
+    magma_int_t m, magma_int_t panel_n, magma_int_t n, magma_int_t nb,
+    magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+    magma_int_t **dpivinfo_array, magma_int_t pivinfo_i,
+    magma_int_t batchCount, magma_queue_t queue );
+
+magma_int_t
 magma_zgetf2_fused_batched(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
@@ -519,9 +526,6 @@ magma_zgetrf_batched_smallsq_shfl(
     magmaDoubleComplex** dA_array, magma_int_t ldda,
     magma_int_t** ipiv_array, magma_int_t* info_array,
     magma_int_t batchCount, magma_queue_t queue );
-
-
-
 
 magma_int_t
 magma_zgetri_outofplace_batched(
