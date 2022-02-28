@@ -26,6 +26,9 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
+//#define DBG
+#define ib    (4)
+
 double get_LU_error(magma_int_t M, magma_int_t N,
                     magmaDoubleComplex *A,  magma_int_t lda,
                     magmaDoubleComplex *LU, magma_int_t *IPIV)
@@ -287,8 +290,25 @@ int main( int argc, char** argv)
                 error = 0;
                 #pragma omp parallel for reduction(max:error)
                 for (int s=0; s < batchCount; s++) {
+
+                    #if defined(DBG)
+                    if(s == ib) {
+                        magma_zprint(h_M[s], h_N[s], hA_array[s], h_lda[s]);
+                    }
+                    #endif
+
+
+
                     double err = 0;
                     for (int k=0; k < h_min_mn[s]; k++) {
+
+                        #ifdef DBG
+                        if(s == ib) {
+                            printf("ipiv[%d] = %d\n", k, hipiv_array[s][k]);
+                        }
+                        #endif
+
+
                         if (hipiv_array[s][k] < 1 || hipiv_array[s][k] > h_M[s] ) {
                             printf("error for matrix %lld ipiv @ %lld = %lld (terminated on first detection)\n",
                                     (long long) s, (long long) k, (long long) hipiv_array[s][k] );
@@ -304,6 +324,9 @@ int main( int argc, char** argv)
                     }
 
                     err = get_LU_error( h_M[s], h_N[s], hR_array[s], h_lda[s], hA_array[s], hipiv_array[s]);
+                    #ifdef DBG
+                    printf("[%2d]:(%2d,%2d), error = %.4e\n", s, h_M[s], h_N[s], err);
+                    #endif
                     error = magma_max_nan( err, error );
                 }
 
