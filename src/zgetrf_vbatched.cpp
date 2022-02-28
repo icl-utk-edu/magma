@@ -14,24 +14,26 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
+#define ZGETRF2_VBATCHED_PAR_SWAP
+
 extern "C" magma_int_t
 magma_zgetrf_vbatched_max_nocheck(
         magma_int_t* m, magma_int_t* n, magma_int_t* minmn,
         magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn, magma_int_t max_mxn,
         magmaDoubleComplex **dA_array, magma_int_t *ldda,
-        magma_int_t **ipiv_array, magma_int_t** pivinfo_array,
+        magma_int_t **dipiv_array, magma_int_t** dpivinfo_array,
         magma_int_t *info_array, magma_int_t batchCount,
         magma_queue_t queue)
 {
 #define dA_array(i_, j_)  dA_array, i_, j_
-#define ipiv_array(i_)    ipiv_array, i_
+#define dipiv_array(i_)    dipiv_array, i_
 
     magma_int_t arginfo = 0;
     magma_int_t nb, recnb, ib, i, pm;
 
     // TODO: tuning
-    nb    = 16;//128;
-    recnb = 8;//32;
+    nb    = 128;
+    recnb = 32;
 
     // try a fused kernel for small sizes
     #if 0
@@ -39,7 +41,7 @@ magma_zgetrf_vbatched_max_nocheck(
                     max_m, max_n, max_minmn, max_mxn,
                     m, n,
                     dA_array, 0, 0, ldda,
-                    ipiv_array, 0,
+                    dipiv_array, 0,
                     info_array, 0,
                     max_m/2, 0,
                     batchCount, queue );
@@ -56,27 +58,46 @@ magma_zgetrf_vbatched_max_nocheck(
                     m, n, minmn,
                     pm, ib, ib, 0, recnb,
                     dA_array(i, i), ldda,
-                    ipiv_array(i), pivinfo_array,
+                    dipiv_array(i), dpivinfo_array,
                     info_array, i, batchCount, queue);
 
         if (arginfo != 0 ) goto fin;
 
         // swap left
+        #ifdef ZGETRF2_VBATCHED_PAR_SWAP
+        setup_pivinfo_vbatched(dpivinfo_array, i, dipiv_array, i, m, n, max_m-i, ib, batchCount, queue);
+        magma_zlaswp_left_rowparallel_vbatched(
+            i,
+            m, n, dA_array(i, 0), ldda,
+            0, ib,
+            dpivinfo_array, i,
+            batchCount, queue);
+        #else
         magma_zlaswp_left_rowserial_vbatched(
                 i,
                 m, n, dA_array(i, 0), ldda,
-                ipiv_array(i),
+                dipiv_array(i),
                 0, ib,
                 batchCount, queue);
+        #endif
 
         if ( (i + ib) < max_n){
             // swap right
+            #ifdef ZGETRF2_VBATCHED_PAR_SWAP
+            magma_zlaswp_right_rowparallel_vbatched(
+                    max_n-(i+ib),
+                    m, n, dA_array(i,i+ib), ldda,
+                    0, ib,
+                    dpivinfo_array, i,
+                    batchCount, queue);
+            #else
             magma_zlaswp_right_rowserial_vbatched(
                     max_n-(i+ib),
                     m, n, dA_array(i,i+ib), ldda,
-                    ipiv_array(i),
+                    dipiv_array(i),
                     0, ib,
                     batchCount, queue);
+            #endif
 
             // trsm
             magmablas_ztrsm_vbatched_core(
@@ -101,7 +122,7 @@ magma_zgetrf_vbatched_max_nocheck(
         } // end of if ( (i + ib) < max_n)
 
         // adjust pivot
-        adjust_ipiv_vbatched(ipiv_array(i), minmn, ib, i, batchCount, queue);
+        adjust_ipiv_vbatched(dipiv_array(i), minmn, ib, i, batchCount, queue);
 
     }// end of for
 
@@ -109,7 +130,7 @@ fin:
     return arginfo;
 
 #undef dA_array
-#undef ipiv_array
+#undef dipiv_array
 }
 
 /***************************************************************************//**
@@ -152,7 +173,7 @@ fin:
             Each is the leading dimension of each array A.  LDDA[i] >= max(1,M[i]).
 
     @param[out]
-    ipiv_array  Array of pointers, dimension (batchCount), for corresponding matrices.
+    dipiv_array  Array of pointers, dimension (batchCount), for corresponding matrices.
             Each is an INTEGER array, dimension (min(M[i],N[i]))
             The pivot indices; for 1 <= p <= min(M[i],N[i]), row p of the
             matrix was interchanged with row IPIV(p).
@@ -181,7 +202,7 @@ extern "C" magma_int_t
 magma_zgetrf_vbatched(
         magma_int_t* m, magma_int_t* n,
         magmaDoubleComplex **dA_array, magma_int_t *ldda,
-        magma_int_t **ipiv_array, magma_int_t *info_array,
+        magma_int_t **dipiv_array, magma_int_t *info_array,
         magma_int_t batchCount, magma_queue_t queue)
 {
     // error checker needs 3 integers, while the setup kernel requires 4
@@ -190,7 +211,7 @@ magma_zgetrf_vbatched(
 
     magma_int_t arginfo = 0, hstats[stats_length];
     magma_int_t *minmn, *stats, *pivinfo;
-    magma_int_t **pivinfo_array;
+    magma_int_t **dpivinfo_array;
     magma_imalloc(&stats, stats_length);    // max_m, max_n, max_minmn, max_mxn
 
     // the checker requires that stats contains at least 3 integers
@@ -215,20 +236,20 @@ magma_zgetrf_vbatched(
 
         // pivinfo
         magma_imalloc(&pivinfo, max_m * batchCount);
-        magma_malloc((void**)&pivinfo_array, batchCount * sizeof(magma_int_t*));
-        magma_iset_pointer(pivinfo_array, pivinfo, 1, 0, 0, max_m, batchCount, queue );
+        magma_malloc((void**)&dpivinfo_array, batchCount * sizeof(magma_int_t*));
+        magma_iset_pointer(dpivinfo_array, pivinfo, 1, 0, 0, max_m, batchCount, queue );
 
         arginfo = magma_zgetrf_vbatched_max_nocheck(
                     m, n, minmn,
                     max_m, max_n, max_minmn, max_mxn,
                     dA_array, ldda,
-                    ipiv_array, pivinfo_array, info_array,
+                    dipiv_array, dpivinfo_array, info_array,
                     batchCount, queue);
 
         magma_queue_sync(queue);
         magma_free(minmn);
         magma_free(pivinfo);
-        magma_free(pivinfo_array);
+        magma_free(dpivinfo_array);
     }
 
     magma_free(stats);
