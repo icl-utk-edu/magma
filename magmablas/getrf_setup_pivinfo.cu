@@ -106,9 +106,14 @@ __global__ void setup_pivinfo_kernel_vbatched(
     int my_m = (int)M[batchid];
     int my_n = (int)N[batchid];
     int my_minmn = min(my_m, my_n);
+    my_m     -= ipiv_offset;
+    my_minmn -= ipiv_offset;
 
     // check for early termination
-    if(ipiv_offset >= my_minmn) return;
+    if(my_minmn <= 0) return;
+
+    nb = min(nb, my_minmn);
+
 
     setup_pivinfo_devfunc(pivinfo_array[batchid] + pivinfo_offset, ipiv_array[batchid]+ipiv_offset, my_m, nb);
 }
