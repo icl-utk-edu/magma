@@ -33,15 +33,30 @@ void zlaswp_rowparallel_devfunc(
 
     //int height = k2- k1;
     //int height = blockDim.x;
-    unsigned int tid = threadIdx.x;
-    dA   += SWP_WIDTH * blockIdx.x * lda;
-    dout += SWP_WIDTH * blockIdx.x * ldo;
+    const int tid = threadIdx.x;
+    const int bx  = blockIdx.x;
+    dA   += SWP_WIDTH * bx * lda;
+    dout += SWP_WIDTH * bx * ldo;
     magmaDoubleComplex *sdata = shared_data;
 
-    if (blockIdx.x == gridDim.x -1)
-    {
-        width = n - blockIdx.x * SWP_WIDTH;
+    //if (bx == gridDim.x -1)
+    //{
+    //    width = n - bx * SWP_WIDTH;
+    //}
+    const int nblocks = magma_ceildiv(n, SWP_WIDTH);
+    if(bx >= nblocks) return;
+    width = (bx < nblocks-1) ? SWP_WIDTH : n - (nblocks-1)*SWP_WIDTH;
+
+    #if 0
+    __syncthreads();
+    if(blockIdx.z == 3 && tid == 0) {
+        printf("(%d, %d, %d) - (%d, %d, %d): n = %d, width = %d\n",
+                blockIdx.x, blockIdx.y, blockIdx.z,
+                threadIdx.x, threadIdx.y, threadIdx.z,
+                n, width);
     }
+    __syncthreads();
+    #endif
 
     if (tid < height)
     {
