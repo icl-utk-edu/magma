@@ -85,7 +85,7 @@ magma_int_t magma_zscal_zgeru_vbatched(
 magma_int_t
 magma_zgetf2_vbatched(
     magma_int_t *m, magma_int_t *n, magma_int_t *minmn,
-    magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn,
+    magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn, magma_int_t max_mxn,
     magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
     magma_int_t **ipiv_array, magma_int_t *info_array,
     magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue);
@@ -118,6 +118,15 @@ magma_zlaswp_right_rowserial_vbatched(
 
 void
 magma_zlaswp_left_rowparallel_vbatched(
+        magma_int_t n,
+        magma_int_t* M, magma_int_t* N,
+        magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
+        magma_int_t k1, magma_int_t k2,
+        magma_int_t **pivinfo_array, magma_int_t pivinfo_i,
+        magma_int_t batchCount, magma_queue_t queue);
+
+void
+magma_zlaswp_right_rowparallel_vbatched(
         magma_int_t n,
         magma_int_t* M, magma_int_t* N,
         magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
