@@ -64,8 +64,8 @@ magma_zgetrf_recpanel_vbatched(
         printf("stop condition -- (Ai, Aj) = (%d, %d)\n", Ai, Aj);
         #endif
         magma_zgetf2_vbatched(
-            m, n, minmn, max_mxn,
-            max_m, max_n, max_minmn,
+            m, n, minmn,
+            max_m, max_n, max_minmn, max_mxn,
             dA_array, Ai, Aj, ldda,
             dipiv_array, info_array,
             gbstep, batchCount, queue);
