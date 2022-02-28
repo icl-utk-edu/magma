@@ -57,7 +57,7 @@ zgetf2_update_kernel_batched(
     magmaDoubleComplex reg;
 
     // read panel into spA, and pivinfo
-    rowid = pivinfo[tx];
+    rowid = dpivinfo[tx];
     #pragma unroll
     for(int j = 0; j < PN; j++) {
         spA(tx,j) = dpA[j * ldda + i];
@@ -139,12 +139,12 @@ magma_zgetf2_update_kernel_batched_driver(
     const magma_int_t ntcol = max(1, 64/m);
 
     magma_int_t shmem = 0;
-    shmem += SLDA(m) * panel_n * sizeof(magmaDoubleComplex);  // spA
-    shmem += SLDA(m) * (n%nb)  * sizeof(magmaDoubleComplex);  // sA (cleanup)
+    shmem += SLDA(m) * PN      * sizeof(magmaDoubleComplex);  // spA
+    shmem += SLDA(m) * (n%NB)  * sizeof(magmaDoubleComplex);  // sA (cleanup)
     shmem *= ntcol;
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
     dim3 grid(gridx, 1, 1);
-    dim3 threads( nthreads, ntcol, 1);
+    dim3 threads( m, ntcol, 1);
 
     // get max. dynamic shared memory on the GPU
     magma_int_t nthreads_max, shmem_max = 0;
@@ -165,7 +165,7 @@ magma_zgetf2_update_kernel_batched_driver(
         return arginfo;
     }
 
-    void *kernel_args[] = {&m, &n, &dA_array, &Ai, &Aj, &ldda, &pivinfo_array, &pivinfo_i, &batchCount};
+    void *kernel_args[] = {&m, &n, &dA_array, &Ai, &Aj, &ldda, &dpivinfo_array, &pivinfo_i, &batchCount};
     cudaError_t e = cudaLaunchKernel((void*)zgetf2_update_kernel_batched<PN, NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
         //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
@@ -212,7 +212,7 @@ magma_zgetf2_update_batched(
 {
     magma_int_t arginfo = 0;
 
-    if (m < nb || m < panl_n)
+    if (m < nb || m < panel_n)
         arginfo = -1;
     else if (n < 0)
         arginfo = -2;
