@@ -194,11 +194,8 @@ magma_zgetf2_batched_v2(
         arginfo = magma_zgetf2_fused_batched(m, n, dA_array(ai,aj), ldda, ipiv_array, info_array, batchCount, queue);
     }
     else{
-        magma_int_t n1 = stop_nb, n2;
-        for(magma_int_t i = 1024; i >= stop_nb; i/=2) {
-            if(n >= i) { n1 = i; break; }
-        }
-
+        magma_int_t n1, n2;
+        n1 = stop_nb; // n1 = n/2
         n2 = n - n1;
 
         // panel 1
