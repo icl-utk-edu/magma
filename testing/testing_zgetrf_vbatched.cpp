@@ -94,7 +94,7 @@ int main( int argc, char** argv)
 
     magma_int_t *h_M = NULL, *h_N = NULL, *h_lda  = NULL, *h_ldda = NULL, *h_min_mn = NULL;
     magma_int_t *d_M = NULL, *d_N = NULL, *d_ldda = NULL;
-    magma_int_t iM, iN, max_M=0, max_N=0, max_minmn, info=0;
+    magma_int_t iM, iN, max_M=0, max_N=0, max_minMN, max_MxN, info=0;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t batchCount;
@@ -151,7 +151,8 @@ int main( int argc, char** argv)
                 h_lda[s]    = h_M[s];
                 h_ldda[s]   = h_lda[s]; //magma_roundup( h_M[s], opts.align );  // multiple of 32 by default
                 h_min_mn[s] = min( h_M[s], h_N[s] );
-                max_minmn   = (s == 0) ? h_min_mn[s] : max(h_min_mn[s], max_minmn);
+                max_minMN   = (s == 0) ? h_min_mn[s] : max(h_min_mn[s], max_minMN);
+                max_MxN     = (s == 0) ? h_M[s] * h_N[s] : max(h_M[s] * h_N[s], max_MxN);
                 hA_size    += h_lda[s]  * h_N[s];
                 dA_size    += h_ldda[s] * h_N[s];
                 piv_size   += h_min_mn[s];
@@ -210,6 +211,7 @@ int main( int argc, char** argv)
             else if(opts.version == 2) {
                 info = magma_zgetf2_fused_vbatched(
                         max_M, max_N,
+                        max_minMN, max_MxN,
                         d_M, d_N,
                         dA_array, 0, 0, d_ldda,
                         dipiv_array, 0,
