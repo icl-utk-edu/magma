@@ -587,15 +587,10 @@ magma_zgetf2_fused_vbatched(
     magma_queue_t queue)
 {
     magma_int_t info = 0;
-    magma_int_t max_rows = 1024; //ZGETF2_FUSED_BATCHED_MAX_ROWS;
-    if(max_M < 0 || max_M > max_rows) {
-        fprintf( stderr, "%s: m = %4lld not supported, must be between 0 and %4lld\n",
-                 __func__, (long long) max_M, (long long) max_rows);
+    if(max_M < 0 ) {
         info = -1;
     }
-    else if(max_N < 0 || max_N > 32){
-        fprintf( stderr, "%s: n = %4lld not supported, must be between 0 and %4lld\n",
-                 __func__, (long long) max_N, (long long) 32);
+    else if(max_N < 0){
         info = -2;
     }
 
