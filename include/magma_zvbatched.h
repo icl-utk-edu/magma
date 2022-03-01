@@ -26,6 +26,7 @@ extern "C" {
    *  LAPACK vbatched routines
    */
 
+magma_int_t
 magma_zgetf2_fused_vbatched(
     magma_int_t max_M, magma_int_t max_N,
     magma_int_t max_minMN, magma_int_t max_MxN,
