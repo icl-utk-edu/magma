@@ -50,17 +50,20 @@ zgetf2_update_kernel_batched(
     // shared memory pointers
     magmaDoubleComplex* spA  = (magmaDoubleComplex*)(zdata);
     magmaDoubleComplex* sA   = spA + nty * slda * PN;
+    magmaDoubleComplex* sU   = sA  + nty * slda * NB;
+
     spA += ty * slda * PN;
     sA  += ty * slda * NB;
+    sU  += ty * NB;
 
-    int i, ib, rowid;
+    int ib, rowid;
     magmaDoubleComplex reg;
 
     // read panel into spA, and pivinfo
-    rowid = (int)dpivinfo[tx];
+    rowid = (int)(dpivinfo[tx] - 1);
     #pragma unroll
     for(int j = 0; j < PN; j++) {
-        spA(tx,j) = dpA[j * ldda + i];
+        spA(tx,j) = dpA[j * ldda + tx];
     }
     __syncthreads();
 
@@ -72,16 +75,34 @@ zgetf2_update_kernel_batched(
             rA[j] = dA[ j * ldda + rowid ];
         }
 
+        #if 0
+        __syncthreads();
+        printf("[%2d]: %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f  %.4f\n",
+                 tx, rA[0], rA[1], rA[2], rA[3], rA[4], rA[5], rA[6], rA[7], rA[8], rA[9], rA[10],
+                 rA[11], rA[12], rA[13], rA[14], rA[15]);
+        __syncthreads();
+        #endif
+
         // apply loop
         #pragma unroll
         for(int j = 0; j < PN; j++) {
             reg = (tx <= j) ? MAGMA_Z_ZERO : spA(tx,j);
 
+            if(tx == j) {
+                #pragma unroll
+                for(int jj = 0; jj < NB; jj++) {
+                    sU[jj] = rA[jj];
+                }
+            }
+            __syncthreads();
+
             // rank update
             #pragma unroll
             for(int jj = 0; jj < NB; jj++) {
-                rA[jj] -= reg * rA[j];
+                rA[jj] -= reg * sU[jj];
             }
+            __syncthreads();
+
         }    // end of apply loop
 
         // write rA
@@ -139,8 +160,9 @@ magma_zgetf2_update_kernel_batched_driver(
     const magma_int_t ntcol = max(1, 64/m);
 
     magma_int_t shmem = 0;
-    shmem += SLDA(m) * PN      * sizeof(magmaDoubleComplex);  // spA
-    shmem += SLDA(m) * (n%NB)  * sizeof(magmaDoubleComplex);  // sA (cleanup)
+    shmem += SLDA(m) * PN  * sizeof(magmaDoubleComplex);  // spA
+    shmem += SLDA(m) * NB  * sizeof(magmaDoubleComplex);  // sA (cleanup)
+    shmem += NB            * sizeof(magmaDoubleComplex);  // sU
     shmem *= ntcol;
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
     magma_int_t nthreads = m;
@@ -230,38 +252,42 @@ magma_zgetf2_update_batched(
     }
 
     switch( panel_n ) {
+        #if 0
+        case  8: arginfo = magma_zgetf2_update_NB_batched< 8>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        #else
         case  1: arginfo = magma_zgetf2_update_NB_batched< 1>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
         case  2: arginfo = magma_zgetf2_update_NB_batched< 2>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case  3: arginfo = magma_zgetf2_update_NB_batched< 3>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case  3: arginfo = magma_zgetf2_update_NB_batched< 3>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
         case  4: arginfo = magma_zgetf2_update_NB_batched< 4>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case  5: arginfo = magma_zgetf2_update_NB_batched< 5>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case  6: arginfo = magma_zgetf2_update_NB_batched< 6>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case  7: arginfo = magma_zgetf2_update_NB_batched< 7>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case  5: arginfo = magma_zgetf2_update_NB_batched< 5>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case  6: arginfo = magma_zgetf2_update_NB_batched< 6>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case  7: arginfo = magma_zgetf2_update_NB_batched< 7>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
         case  8: arginfo = magma_zgetf2_update_NB_batched< 8>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case  9: arginfo = magma_zgetf2_update_NB_batched< 9>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 10: arginfo = magma_zgetf2_update_NB_batched<10>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 11: arginfo = magma_zgetf2_update_NB_batched<11>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 12: arginfo = magma_zgetf2_update_NB_batched<12>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 13: arginfo = magma_zgetf2_update_NB_batched<13>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 14: arginfo = magma_zgetf2_update_NB_batched<14>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 15: arginfo = magma_zgetf2_update_NB_batched<15>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case  9: arginfo = magma_zgetf2_update_NB_batched< 9>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 10: arginfo = magma_zgetf2_update_NB_batched<10>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 11: arginfo = magma_zgetf2_update_NB_batched<11>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 12: arginfo = magma_zgetf2_update_NB_batched<12>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 13: arginfo = magma_zgetf2_update_NB_batched<13>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 14: arginfo = magma_zgetf2_update_NB_batched<14>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 15: arginfo = magma_zgetf2_update_NB_batched<15>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
         case 16: arginfo = magma_zgetf2_update_NB_batched<16>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 17: arginfo = magma_zgetf2_update_NB_batched<17>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 18: arginfo = magma_zgetf2_update_NB_batched<18>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 19: arginfo = magma_zgetf2_update_NB_batched<19>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 20: arginfo = magma_zgetf2_update_NB_batched<20>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 21: arginfo = magma_zgetf2_update_NB_batched<21>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 22: arginfo = magma_zgetf2_update_NB_batched<22>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 23: arginfo = magma_zgetf2_update_NB_batched<23>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 24: arginfo = magma_zgetf2_update_NB_batched<24>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 25: arginfo = magma_zgetf2_update_NB_batched<25>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 26: arginfo = magma_zgetf2_update_NB_batched<26>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 27: arginfo = magma_zgetf2_update_NB_batched<27>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 28: arginfo = magma_zgetf2_update_NB_batched<28>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 29: arginfo = magma_zgetf2_update_NB_batched<29>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 30: arginfo = magma_zgetf2_update_NB_batched<30>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
-        case 31: arginfo = magma_zgetf2_update_NB_batched<31>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 17: arginfo = magma_zgetf2_update_NB_batched<17>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 18: arginfo = magma_zgetf2_update_NB_batched<18>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 19: arginfo = magma_zgetf2_update_NB_batched<19>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 20: arginfo = magma_zgetf2_update_NB_batched<20>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 21: arginfo = magma_zgetf2_update_NB_batched<21>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 22: arginfo = magma_zgetf2_update_NB_batched<22>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 23: arginfo = magma_zgetf2_update_NB_batched<23>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 24: arginfo = magma_zgetf2_update_NB_batched<24>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 25: arginfo = magma_zgetf2_update_NB_batched<25>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 26: arginfo = magma_zgetf2_update_NB_batched<26>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 27: arginfo = magma_zgetf2_update_NB_batched<27>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 28: arginfo = magma_zgetf2_update_NB_batched<28>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 29: arginfo = magma_zgetf2_update_NB_batched<29>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 30: arginfo = magma_zgetf2_update_NB_batched<30>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        //case 31: arginfo = magma_zgetf2_update_NB_batched<31>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
         case 32: arginfo = magma_zgetf2_update_NB_batched<32>(m, n, nb, dA_array, Ai, Aj, ldda, dpivinfo_array, pivinfo_i, batchCount, queue ); break;
+        #endif
         default: arginfo = -100;
     }
 
