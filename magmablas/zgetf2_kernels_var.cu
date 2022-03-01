@@ -356,7 +356,7 @@ magma_zgetf2_fused_sm_vbatched(
 
     magma_int_t total_threads = nthreads * ntcol;
     if ( total_threads > nthreads_max || shmem > shmem_max ) {
-        // printf("error: kernel %s requires too many threads or too much shared memory\n", __func__);
+        //printf("error: kernel %s requires too many threads or too much shared memory\n", __func__);
         arginfo = -100;
         return arginfo;
     }
@@ -366,7 +366,7 @@ magma_zgetf2_fused_sm_vbatched(
     void *kernel_args[] = {&max_M, &max_N, &max_minMN, &max_MxN, &m, &n, &dA_array, &Ai, &Aj, &ldda, &dipiv_array, &ipiv_i, &info_array, &gbstep, &batchCount};
     cudaError_t e = cudaLaunchKernel((void*)zgetf2_fused_sm_kernel_vbatched, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
-        // printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
+        //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         arginfo = -100;
     }
 
@@ -596,6 +596,8 @@ magma_zgetf2_fused_vbatched(
 
     if(info < 0) return info;
 
+
+    info = -1; // init a negative value
     switch(max_N) {
         case  1: info = magma_zgetf2_fused_kernel_driver_vbatched< 1>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case  2: info = magma_zgetf2_fused_kernel_driver_vbatched< 2>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
