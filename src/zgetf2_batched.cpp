@@ -195,7 +195,7 @@ magma_zgetf2_batched_v2(
     }
     else{
         magma_int_t n1, n2;
-        n1 = stop_nb; // n1 = n/2
+        n1 = n1 = n/2;
         n2 = n - n1;
 
         // panel 1
