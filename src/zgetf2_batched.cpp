@@ -13,6 +13,9 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
+//#define DBG
+//#define ZGETF2_BATCHED_FUSED_UPDATE
+
 /***************************************************************************//**
     Purpose
     -------
@@ -177,13 +180,27 @@ magma_zgetf2_batched_v2(
 {
 #define dA_array(i,j) dA_array, i, j
 #define ipiv_array(i) ipiv_array, i
+
+    #ifdef DBG
+    magmaDoubleComplex* a;
+    magma_getvector(1, sizeof(magmaDoubleComplex*), dA_array, 1, &a, 1, queue);
+    magma_zprint_gpu(m, n, a, ldda, queue);
+    #endif
+
+    //printf("(%d, %d) -- %d\n", m, n, stop_nb);
     magma_int_t arginfo = 0;
     if(n <= stop_nb){
+        //printf("(%d, %d) -- %d\n", m, n, stop_nb);
         arginfo = magma_zgetf2_fused_batched(m, n, dA_array(ai,aj), ldda, ipiv_array, info_array, batchCount, queue);
     }
     else{
-        magma_int_t n1 = n / 2;
-        magma_int_t n2 = n - n1;
+        magma_int_t n1 = stop_nb, n2;
+        for(magma_int_t i = 1024; i >= stop_nb; i/=2) {
+            if(n >= i) { n1 = i; break; }
+        }
+
+        n2 = n - n1;
+
         // panel 1
         arginfo = magma_zgetf2_batched_v2(
                     m, n1, stop_nb,
@@ -195,15 +212,21 @@ magma_zgetf2_batched_v2(
 
         // swap right
         setup_pivinfo_batched(dpivinfo_array, ipiv_array(ai), m, n1, batchCount, queue);
-        if(1) {
-            magma_zgetf2_update_batched(
-                m, n1, n2, 8,
-                dA_array, ai, aj, ldda,
-                dpivinfo_array, 0,
-                batchCount, queue );
-        }
-        else {
 
+        #ifdef ZGETF2_BATCHED_FUSED_UPDATE
+        arginfo = -1;
+        for(int inb = 32; inb >= 2; inb /= 2) {
+            arginfo = magma_zgetf2_update_batched(
+                        m, n1, n2, min(n2,inb),
+                        dA_array, ai, aj, ldda,
+                        dpivinfo_array, 0,
+                        batchCount, queue );
+            if(arginfo == 0) break;
+        }
+
+        if(arginfo != 0) {
+        #endif
+            // fused update failed to launch, use classic update
             magma_zlaswp_rowparallel_batched(
                 n2,
                 dA_array(ai,aj+n1), ldda,
@@ -227,7 +250,18 @@ magma_zgetf2_batched_v2(
                                  dA_array(ai   , aj+n1), ldda,
                 MAGMA_Z_ONE,     dA_array(ai+n1, aj+n1), ldda,
                 batchCount, queue );
+
+        #ifdef ZGETF2_BATCHED_FUSED_UPDATE
+            arginfo = 0;
         }
+        #endif
+
+        #ifdef DBG
+        magmaDoubleComplex* aa;
+        magma_getvector(1, sizeof(magmaDoubleComplex*), dA_array, 1, &aa, 1, queue);
+        magma_zprint_gpu(m, n, aa, ldda, queue);
+        #endif
+
 
         // panel 2
         magma_zgetf2_batched_v2(
