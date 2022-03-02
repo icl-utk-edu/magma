@@ -166,7 +166,7 @@ magma_zgetf2_vbatched(
                 dA_array, Ai, Aj, ldda,
                 ipiv_array, Ai, info_array,
                 batchCount, queue);
-    if(arginfo == 0) return;
+    if(arginfo == 0) return arginfo;
 
     magma_zgetf2_vbatched_v1(
         m, n,
