@@ -174,5 +174,7 @@ magma_zgetf2_vbatched(
         dA_array, Ai, Aj, ldda,
         ipiv_array, info_array, gbstep,
         batchCount, queue);
+
+    return 0;
 }
 
