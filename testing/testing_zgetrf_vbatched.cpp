@@ -207,6 +207,8 @@ int main( int argc, char** argv)
 
             magma_time = magma_sync_wtime( opts.queue );
             if(opts.version == 1) {
+                // main API, with error checking and
+                // workspace allocation
                 info = magma_zgetrf_vbatched(
                         d_M, d_N,
                         dA_array, d_ldda,
@@ -214,6 +216,8 @@ int main( int argc, char** argv)
                         batchCount, opts.queue);
             }
             else if(opts.version == 2) {
+                // advanced API, totally asynchronous,
+                // but requires some setup
                 info = magma_zgetrf_vbatched_max_nocheck(
                         d_M, d_N, d_min_mn,
                         max_M, max_N, max_minMN, max_MxN,

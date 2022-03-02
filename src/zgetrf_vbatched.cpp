@@ -217,8 +217,11 @@ magma_zgetrf_vbatched(
         magma_xerbla( __func__, -(arginfo) );
     }
     else {
-        // min_mn
+        // min_mn and pivinfo setup
         magma_imalloc(&minmn, batchCount);
+        magma_imalloc(&pivinfo, max_m * batchCount);
+        magma_malloc((void**)&dpivinfo_array, batchCount * sizeof(magma_int_t*));
+
         magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
         magma_ivec_min_vv( batchCount, m, n, minmn, queue);
 
@@ -231,8 +234,6 @@ magma_zgetrf_vbatched(
         const magma_int_t max_mxn   = hstats[3];
 
         // pivinfo
-        magma_imalloc(&pivinfo, max_m * batchCount);
-        magma_malloc((void**)&dpivinfo_array, batchCount * sizeof(magma_int_t*));
         magma_iset_pointer(dpivinfo_array, pivinfo, 1, 0, 0, max_m, batchCount, queue );
 
         arginfo = magma_zgetrf_vbatched_max_nocheck(
