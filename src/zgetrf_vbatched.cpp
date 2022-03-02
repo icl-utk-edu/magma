@@ -52,7 +52,7 @@ magma_zgetrf_vbatched_max_nocheck(
         // panel
         arginfo = magma_zgetrf_recpanel_vbatched(
                     m, n, minmn,
-                    pm, ib, ib, 0, recnb,
+                    pm, ib, ib, max_mxn, recnb,
                     dA_array(i, i), ldda,
                     dipiv_array(i), dpivinfo_array,
                     info_array, i, batchCount, queue);
