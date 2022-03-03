@@ -218,6 +218,7 @@ int main( int argc, char** argv)
             else if(opts.version == 2) {
                 // advanced API, totally asynchronous,
                 // but requires some setup
+                magma_int_t nb = ( opts.nb == 0 ) ? 32 : opts.nb;
                 info = magma_zgetrf_vbatched_max_nocheck(
                         d_M, d_N, d_min_mn,
                         max_M, max_N, max_minMN, max_MxN,

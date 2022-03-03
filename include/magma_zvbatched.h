@@ -56,7 +56,7 @@ magma_zgetrf_vbatched(
 magma_int_t
 magma_zgetrf_vbatched_max_nocheck(
         magma_int_t* m, magma_int_t* n, magma_int_t* minmn,
-        magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn, magma_int_t max_mxn,
+        magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn, magma_int_t max_mxn, magma_int_t nb,
         magmaDoubleComplex **dA_array, magma_int_t *ldda,
         magma_int_t **ipiv_array, magma_int_t** pivinfo_array,
         magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue);
