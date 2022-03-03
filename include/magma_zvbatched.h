@@ -22,6 +22,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+  /*
+   *  control and tuning
+   */
+void magma_get_zgetrf_vbatched_nbparam(magma_int_t max_m, magma_int_t max_n, magma_int_t *nb, magma_int_t *recnb);
+
+
   /*
    *  LAPACK vbatched routines
    */

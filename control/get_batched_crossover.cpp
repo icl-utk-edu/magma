@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Azzam Haidar
        @author Ahmad Abdelfattah
 */
@@ -57,7 +57,7 @@ void magma_get_cpotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
         *recnb = CPOTRF_SWITCH;
         return;
     }
-    
+
     if (n <= 256)
     {
         *nb    = 256;
@@ -114,7 +114,7 @@ void magma_get_spotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
 
 
 /***************************************************************************//**
-    Returns in nb and recnb the crossover points for potrf based on m
+    Returns in nb and recnb the crossover points for getrf
 *******************************************************************************/
 void magma_get_zgetrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_t *recnb)
 {
@@ -147,6 +147,43 @@ void magma_get_sgetrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
     return;
 }
 
+/***************************************************************************//**
+    Returns in nb and recnb the crossover points for getrf
+*******************************************************************************/
+void magma_get_zgetrf_vbatched_nbparam(magma_int_t max_m, magma_int_t max_n, magma_int_t *nb, magma_int_t *recnb)
+{
+    *nb    = (max_m <= 192) ? 32 :
+             (max_m <= 384) ? 64 : 128;
+    *recnb = 32;
+    return;
+}
+
+/// @see magma_get_zgetrf_batched_nbparam
+void magma_get_cgetrf_vbatched_nbparam(magma_int_t max_m, magma_int_t max_n, magma_int_t *nb, magma_int_t *recnb)
+{
+    *nb    = (max_m <= 192) ? 32 :
+             (max_m <= 384) ? 64 : 128;
+    *recnb =  32;
+    return;
+}
+
+/// @see magma_get_zgetrf_batched_nbparam
+void magma_get_dgetrf_vbatched_nbparam(magma_int_t max_m, magma_int_t max_n, magma_int_t *nb, magma_int_t *recnb)
+{
+    *nb    = (max_m <= 192) ? 32 :
+             (max_m <= 384) ? 64 : 128;
+    *recnb =  32;
+    return;
+}
+
+/// @see magma_get_zgetrf_batched_nbparam
+void magma_get_sgetrf_vbatched_nbparam(magma_int_t max_m, magma_int_t max_n, magma_int_t *nb, magma_int_t *recnb)
+{
+    *nb    = (max_m <= 192) ? 32 :
+             (max_m <= 384) ? 64 : 128;
+    *recnb =  32;
+    return;
+}
 
 /***************************************************************************//**
     @return nb for geqrf_batched based on n
@@ -270,10 +307,10 @@ magma_int_t magma_get_spotrf_vbatched_crossover()
 magma_int_t magma_get_zgetri_batched_ntcol(magma_int_t m, magma_int_t n)
 {
     magma_int_t ntcol = 1;
-    
+
     // TODO: conduct tuning experiment for ntcol in z precision
     if(m == n){
-        if( m < 16) 
+        if( m < 16)
             ntcol =  2;
         else
             ntcol = 1;
@@ -285,10 +322,10 @@ magma_int_t magma_get_zgetri_batched_ntcol(magma_int_t m, magma_int_t n)
 magma_int_t magma_get_cgetri_batched_ntcol(magma_int_t m, magma_int_t n)
 {
     magma_int_t ntcol = 1;
-    
+
     // TODO: conduct tuning experiment for ntcol in z precision
     if(m == n){
-        if( m < 16) 
+        if( m < 16)
             ntcol =  2;
         else
             ntcol = 1;
@@ -299,7 +336,7 @@ magma_int_t magma_get_cgetri_batched_ntcol(magma_int_t m, magma_int_t n)
 /// @see magma_get_zgetri_batched_ntcol
 magma_int_t magma_get_dgetri_batched_ntcol(magma_int_t m, magma_int_t n)
 {
-    
+
     // TODO: conduct tuning experiment for ntcol on Kepler
     magma_int_t arch = magma_getdevice_arch();
     magma_int_t ntcol = 1;
@@ -395,18 +432,18 @@ magma_int_t magma_get_sgetri_batched_ntcol(magma_int_t m, magma_int_t n)
 magma_int_t magma_get_ztrsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n)
 {
     if(side == MagmaLeft){
-         if     (m <= 2) return 2; 
+         if     (m <= 2) return 2;
          else if(m <= 4) return 4;
          else if(m <= 8) return 8;
          else{
              if(n <= 32) return 16;
-             else return 8; 
+             else return 8;
          }
     }else{    // side = MagmaRight
         if(n <= 2) return 2;
         else return 8;
     }
-} 
+}
 
 /// @see magma_get_ztrsm_batched_stop_nb
 magma_int_t magma_get_ctrsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n)
@@ -418,7 +455,7 @@ magma_int_t magma_get_ctrsm_batched_stop_nb(magma_side_t side, magma_int_t m, ma
         if(n <= 4) return 4;
         else return 16;
     }
-} 
+}
 
 /// @see magma_get_ztrsm_batched_stop_nb
 magma_int_t magma_get_dtrsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n)
@@ -431,7 +468,7 @@ magma_int_t magma_get_dtrsm_batched_stop_nb(magma_side_t side, magma_int_t m, ma
         if(n <= 4) return 4;
         else return 32;
     }
-} 
+}
 
 /// @see magma_get_ztrsm_batched_stop_nb
 magma_int_t magma_get_strsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n)
@@ -443,7 +480,7 @@ magma_int_t magma_get_strsm_batched_stop_nb(magma_side_t side, magma_int_t m, ma
         else if(n <= 8) return 8;
         else return 32;
     }
-} 
+}
 
 // =============================================================================
 /// @}
