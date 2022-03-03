@@ -56,7 +56,7 @@ magma_zgetrf_vbatched_max_nocheck(
                     dipiv_array(i), dpivinfo_array,
                     info_array, i, batchCount, queue);
 
-        if (arginfo != 0 ) goto fin;
+        if (arginfo != 0 ) return arginfo;
 
         // swap left
         #ifdef ZGETRF2_VBATCHED_PAR_SWAP
