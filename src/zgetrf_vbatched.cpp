@@ -29,7 +29,7 @@ magma_zgetrf_vbatched_max_nocheck(
 #define dipiv_array(i_)    dipiv_array, i_
 
     magma_int_t arginfo = 0;
-    magma_int_t nb, recnb, ib, i, pm;
+    magma_int_t recnb, ib, i, pm;
 
     recnb = 32;
 
