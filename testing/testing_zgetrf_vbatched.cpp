@@ -221,7 +221,7 @@ int main( int argc, char** argv)
                 magma_int_t nb = ( opts.nb == 0 ) ? 32 : opts.nb;
                 info = magma_zgetrf_vbatched_max_nocheck(
                         d_M, d_N, d_min_mn,
-                        max_M, max_N, max_minMN, max_MxN,
+                        max_M, max_N, max_minMN, max_MxN, nb,
                         dA_array, d_ldda,
                         dipiv_array, dpivinfo_array, dinfo,
                         batchCount, opts.queue);
