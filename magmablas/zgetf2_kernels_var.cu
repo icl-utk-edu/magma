@@ -14,9 +14,9 @@
 #include "batched_kernel_param.h"
 #include "magma_templates.h"
 #include "shuffle.cuh"
-#include "zgetf2_devicefunc.cuh"
 
 #define PRECISION_z
+#include "zgetf2_devicefunc.cuh"
 
 /******************************************************************************/
 __global__ void
@@ -547,6 +547,11 @@ magma_zgetf2_fused_kernel_driver_vbatched(
     magma_int_t arginfo = 0;
     magma_device_t device;
     magma_getdevice( &device );
+
+    // this kernel works only if m <= n for every matrix
+    // this is only for short-wide sizes that fit in shared memory
+    // should not affect performance for other shapes
+    max_M = max(max_M, max_N);
 
     magma_int_t ntcol = 1;
     magma_int_t shmem = 0, shmem_1 = 0, shmem_2 = 0;
