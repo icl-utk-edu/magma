@@ -91,18 +91,12 @@ void gemm_template_device_nn(
 
     __syncthreads();
 
-    for (kk = 0; kk < K-BLK_K; kk += BLK_K)
-    {
-        #ifdef TEXTURE_1D
-            coord_A += BLK_K*LDA;
-            coord_B += BLK_K;
-        #else
-            offs_dA += BLK_K*LDA;
-            boundA  -= BLK_K*LDA;
+    for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
+        offs_dA += BLK_K*LDA;
+        boundA  -= BLK_K*LDA;
 
-            offs_dB += BLK_K;
-            boundB  -= BLK_K;
-        #endif
+        offs_dB += BLK_K;
+        boundB  -= BLK_K;
 
         #pragma unroll
         for (n = 0; n < BLK_K/DIM_YA; n++)
@@ -118,8 +112,7 @@ void gemm_template_device_nn(
 
         // Multiply
         #pragma unroll
-        for (k = 0; k < BLK_K; k++)
-        {
+        for (k = 0; k < BLK_K; k++) {
             // Load A shmem->regs
             #pragma unroll
             for (m = 0; m < THR_M; m++)
@@ -294,18 +287,12 @@ void gemm_template_device_nt(
 
     __syncthreads();
 
-    for (kk = 0; kk < K-BLK_K; kk += BLK_K)
-    {
-        #ifdef TEXTURE_1D
-            coord_A += BLK_K*LDA;
-            coord_B += BLK_K*LDB;
-        #else
-            offs_dA += BLK_K*LDA;
-            boundA  -= BLK_K*LDA;
+    for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
+        offs_dA += BLK_K*LDA;
+        boundA  -= BLK_K*LDA;
 
-            offs_dB += BLK_K*LDB;
-            boundB  -= BLK_K*LDB;
-        #endif
+        offs_dB += BLK_K*LDB;
+        boundB  -= BLK_K*LDB;
 
         // Load A dev->regs
         #pragma unroll
@@ -323,8 +310,7 @@ void gemm_template_device_nt(
 
         // Multiply
         #pragma unroll
-        for (k = 0; k < BLK_K; k++)
-        {
+        for (k = 0; k < BLK_K; k++) {
             // Load A shmem->regs
             #pragma unroll
             for (m = 0; m < THR_M; m++)
@@ -502,18 +488,12 @@ void gemm_template_device_tn(
 
     __syncthreads();
 
-    for (kk = 0; kk < K-BLK_K; kk += BLK_K)
-    {
-        #ifdef TEXTURE_1D
-            coord_A += BLK_K;
-            coord_B += BLK_K;
-        #else
-            offs_dA += BLK_K;
-            boundA  -= BLK_K;
+    for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
+        offs_dA += BLK_K;
+        boundA  -= BLK_K;
 
-            offs_dB += BLK_K;
-            boundB  -= BLK_K;
-        #endif
+        offs_dB += BLK_K;
+        boundB  -= BLK_K;
 
         // Load A dev->regs
         #pragma unroll
@@ -531,8 +511,7 @@ void gemm_template_device_tn(
 
         // Multiply
         #pragma unroll
-        for (k = 0; k < BLK_K; k++)
-        {
+        for (k = 0; k < BLK_K; k++) {
             // Load A shmem->regs
             #pragma unroll
             for (m = 0; m < THR_M; m++)
@@ -712,18 +691,12 @@ void gemm_template_device_tt(
 
     __syncthreads();
 
-    for (kk = 0; kk < K-BLK_K; kk += BLK_K)
-    {
-        #ifdef TEXTURE_1D
-            coord_A += BLK_K;
-            coord_B += BLK_K*LDB;
-        #else
-            offs_dA += BLK_K;
-            boundA  -= BLK_K;
+    for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
+        offs_dA += BLK_K;
+        boundA  -= BLK_K;
 
-            offs_dB += BLK_K*LDB;
-            boundB  -= BLK_K*LDB;
-        #endif
+        offs_dB += BLK_K*LDB;
+        boundB  -= BLK_K*LDB;
 
         // Load A dev->regs
         #pragma unroll
@@ -741,8 +714,7 @@ void gemm_template_device_tt(
 
         // Multiply
         #pragma unroll
-        for (k = 0; k < BLK_K; k++)
-        {
+        for (k = 0; k < BLK_K; k++) {
             // Load A shmem->regs
             #pragma unroll
             for (m = 0; m < THR_M; m++)
