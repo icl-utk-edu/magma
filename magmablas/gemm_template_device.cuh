@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Jakub Kurzak
        @author Stan Tomov
        @author Mark Gates
@@ -19,23 +19,15 @@
 
 /******************************************************************************/
 // op<trans>( x ) returns x or conj(x).
-template< const int conjugate, typename T >
-__host__ __device__ static inline
-T op( T& x )
-{
-    if (conjugate == 1) {
-        return conj(x);
-    } else {
-        return x;
-    }
-}
-
+template<const int conjugate, typename T>
+__device__ static inline
+T op( T& x) {return conj<conjugate>(x);}
 
 /******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, 
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB, 
+template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
+         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int THR_M, const int THR_N, const int CONJA, const int CONJB>
-static __device__ 
+static __device__
 void gemm_template_device_nn(
     int M, int N, int K,
     const T* __restrict__ A, int LDA,
@@ -68,13 +60,13 @@ void gemm_template_device_nn(
 
     T ra[BLK_K/DIM_YA][BLK_M/DIM_XA];
     T rb[BLK_N/DIM_YB][BLK_K/DIM_XB];
-    
+
     const T *offs_dA = A + blx*BLK_M     + idyA*LDA + idxA;
     ptrdiff_t boundA = (LDA*(K-1) + M) - ( blx*BLK_M  + idyA*LDA + idxA ) -1;
-        
+
     const T *offs_dB = B + bly*BLK_N*LDB + idyB*LDB + idxB;
     ptrdiff_t boundB = (LDB*(N-1) + K) - ( bly*BLK_N*LDB + idyB*LDB + idxB ) -1;
-    
+
     int m, n, k, kk;
 
 
@@ -90,13 +82,13 @@ void gemm_template_device_nn(
         #pragma unroll
         for (m = 0; m < BLK_M; m += DIM_XA)
             sA[n+idyA][m+idxA] = fetch(A, m, n, boundA);
-    
+
     #pragma unroll
     for (n = 0; n < BLK_N; n += DIM_YB)
         #pragma unroll
         for (m = 0; m < BLK_K; m += DIM_XB)
             sB[n+idyB][m+idxB] = fetch(B, m, n, boundB);
-    
+
     __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K)
@@ -123,7 +115,7 @@ void gemm_template_device_nn(
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XB; m++)
                 rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
-        
+
         // Multiply
         #pragma unroll
         for (k = 0; k < BLK_K; k++)
@@ -155,13 +147,13 @@ void gemm_template_device_nn(
             #pragma unroll
             for (m = 0; m < BLK_M/DIM_XA; m++)
                 sA[n*DIM_YA+idyA][m*DIM_XA+idxA] = ra[n][m];
-        
+
         #pragma unroll
         for (n = 0; n < BLK_N/DIM_YB; n++)
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XB; m++)
                 sB[n*DIM_YB+idyB][m*DIM_XB+idxB] = rb[n][m];
-        
+
         __syncthreads();
     }
 
@@ -234,8 +226,8 @@ void gemm_template_device_nn(
 
 
 /******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, 
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB, 
+template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
+         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int THR_M, const int THR_N, const int CONJA, const int CONJB>
 static __device__
 void gemm_template_device_nt(
@@ -273,10 +265,10 @@ void gemm_template_device_nt(
 
     const T *offs_dA = A + blx*BLK_M     + idyA*LDA + idxA;
     ptrdiff_t boundA = (LDA*(K-1) + M) - ( blx*BLK_M  + idyA*LDA + idxA ) -1;
-        
+
     const T *offs_dB = B + bly*BLK_N     + idyB*LDB + idxB;
     ptrdiff_t boundB = (LDB*(K-1) + N) - ( bly*BLK_N     + idyB*LDB + idxB ) -1;
-    
+
     int m, n, k, kk;
 
 
@@ -292,7 +284,7 @@ void gemm_template_device_nt(
         #pragma unroll
         for (m = 0; m < BLK_M; m += DIM_XA)
             sA[n+idyA][m+idxA] = fetch(A, m, n, boundA);
-    
+
     // Load B dev->shmem
     #pragma unroll
     for (n = 0; n < BLK_K; n += DIM_YB)
@@ -440,8 +432,8 @@ void gemm_template_device_nt(
 
 
 /******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, 
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB, 
+template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
+         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int THR_M, const int THR_N, const int CONJA, const int CONJB>
 static __device__
 void gemm_template_device_tn(
@@ -477,7 +469,7 @@ void gemm_template_device_tn(
     // Registers for the dev->shmem copy
     T ra[BLK_M/DIM_YA][BLK_K/DIM_XA];
     T rb[BLK_N/DIM_YB][BLK_K/DIM_XB];
-    
+
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
     const T *offs_dA = A + blx*BLK_M*LDA + idyA*LDA + idxA;
@@ -507,7 +499,7 @@ void gemm_template_device_tn(
         #pragma unroll
         for (m = 0; m < BLK_K; m += DIM_XB)
             sB[n+idyB][m+idxB] = fetch(B, m, n, boundB);
-    
+
     __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K)
@@ -529,14 +521,14 @@ void gemm_template_device_tn(
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XA; m++)
                 ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
-        
+
         // Load B dev->regs
         #pragma unroll
         for (n = 0; n < BLK_N/DIM_YB; n++)
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XB; m++)
                 rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
-        
+
         // Multiply
         #pragma unroll
         for (k = 0; k < BLK_K; k++)
@@ -569,14 +561,14 @@ void gemm_template_device_tn(
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XA; m++)
                 sA[m*DIM_XA+idxA][n*DIM_YA+idyA] = ra[n][m];
-        
+
         // Load B regs->shmem
         #pragma unroll
         for (n = 0; n < BLK_N/DIM_YB; n++)
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XB; m++)
                 sB[n*DIM_YB+idyB][m*DIM_XB+idxB] = rb[n][m];
-        
+
         __syncthreads();
     }
 
@@ -649,8 +641,8 @@ void gemm_template_device_tn(
 
 
 /******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, 
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB, 
+template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
+         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int THR_M, const int THR_N, const int CONJA, const int CONJB>
 static __device__
 void gemm_template_device_tt(
@@ -686,15 +678,15 @@ void gemm_template_device_tt(
     // Registers for the dev->shmem copy
     T ra[BLK_M/DIM_YA][BLK_K/DIM_XA];
     T rb[BLK_K/DIM_YB][BLK_N/DIM_XB];
-    
+
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
     const T *offs_dA = A + blx*BLK_M*LDA + idyA*LDA + idxA;
     ptrdiff_t boundA = (LDA*(M-1) + K) - ( blx*BLK_M*LDA + idyA*LDA + idxA ) -1;
-        
+
     const T *offs_dB = B + bly*BLK_N     + idyB*LDB + idxB;
     ptrdiff_t boundB = (LDB*(K-1) + N) - ( bly*BLK_N     + idyB*LDB + idxB ) -1;
-    
+
     int m, n, k, kk;
 
     // Zero C
@@ -710,14 +702,14 @@ void gemm_template_device_tt(
         #pragma unroll
         for (m = 0; m < BLK_K; m += DIM_XA)
             sA[m+idxA][n+idyA] = fetch(A, m, n, boundA);
-    
+
     // Load B dev->shmem
     #pragma unroll
     for (n = 0; n < BLK_K; n += DIM_YB)
         #pragma unroll
         for (m = 0; m < BLK_N; m += DIM_XB)
             sB[m+idxB][n+idyB] = fetch(B, m, n, boundB);
-   
+
     __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K)
@@ -739,14 +731,14 @@ void gemm_template_device_tt(
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XA; m++)
                 ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
-        
+
         // Load B dev->regs
         #pragma unroll
         for (n = 0; n < BLK_K/DIM_YB; n++)
             #pragma unroll
             for (m = 0; m < BLK_N/DIM_XB; m++)
                 rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
-        
+
         // Multiply
         #pragma unroll
         for (k = 0; k < BLK_K; k++)
@@ -779,14 +771,14 @@ void gemm_template_device_tt(
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XA; m++)
                 sA[m*DIM_XA+idxA][n*DIM_YA+idyA] = ra[n][m];
-        
+
         // Load B regs->shmem
         #pragma unroll
         for (n = 0; n < BLK_K/DIM_YB; n++)
             #pragma unroll
             for (m = 0; m < BLK_N/DIM_XB; m++)
                 sB[m*DIM_XB+idxB][n*DIM_YB+idyB] = rb[n][m];
-                
+
         __syncthreads();
     }
 
