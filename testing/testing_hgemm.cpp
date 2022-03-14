@@ -7,6 +7,7 @@
 
        @author Ahmad Abdelfattah
        @author Mark Gates
+       @author Stan Tomov
 */
 // includes, system
 #include <stdlib.h>
@@ -14,11 +15,9 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef MAGMA_HAVE_CUDA
+#if   defined(MAGMA_HAVE_CUDA)
 #include <cuda_fp16.h>
-#endif
-
-#ifdef MAGMA_HAVE_HIP
+#elif defined(MAGMA_HAVE_HIP)
 #include <hip/hip_fp16.h>
 #endif
 
@@ -29,7 +28,7 @@
 #include "magma_operators.h"
 #include "testings.h"
 
-#if CUDA_VERSION < 9020 // or MAGMA_HAVE_HIP 
+#if CUDA_VERSION < 9020 || defined(MAGMA_HAVE_HIP) 
 // conversion float to half are not defined for host in CUDA version <9.2
 // thus uses the conversion below when CUDA VERSION is < 9.2.
 #include <string.h>
@@ -219,6 +218,7 @@ int main( int argc, char** argv)
 
     float *hA, *hB, *hC, *hCdev;
     magmaHalf_ptr dA, dB, dC;
+    float *dCf;
     float c_neg_one = MAGMA_S_NEG_ONE;
     float alpha = MAGMA_S_MAKE(  0.29, -0.86 );
     float beta  = MAGMA_S_MAKE( -0.48,  0.38 );
@@ -231,7 +231,7 @@ int main( int argc, char** argv)
     #endif
     magma_opts opts;
     opts.parse_opts( argc, argv );
-    
+
     // Allow 3*eps; real needs 2*sqrt(2) factor; see Higham, 2002, sec. 3.6.
     // For half precision, there is no lapackf77_hlamch, please visit: 
     // https://blogs.mathworks.com/cleve/2017/05/08/half-precision-16-bit-floating-point-arithmetic/
@@ -287,7 +287,8 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_malloc( (void**)&dA, ldda*An*sizeof(magmaHalf) ));
             TESTING_CHECK( magma_malloc( (void**)&dB, lddb*Bn*sizeof(magmaHalf) ));
             TESTING_CHECK( magma_malloc( (void**)&dC, lddc*N *sizeof(magmaHalf)  ));
-
+	    TESTING_CHECK( magma_malloc( (void**)&dCf, lddc*N *sizeof(float)  ));
+	    
             /* Initialize the matrices */
             lapackf77_slarnv( &ione, ISEED, &sizeA, hA );
             lapackf77_slarnv( &ione, ISEED, &sizeB, hB );
@@ -298,49 +299,56 @@ int main( int argc, char** argv)
             preprocess_matrix( Bm, Bn, hB, ldb, dB, lddb, opts.queue );
             preprocess_matrix(  M,  N, hC, ldc, dC, lddc, opts.queue );
 
+	    magma_ssetmatrix(M, N, hC, ldc, dCf, ldc, opts.queue);
+
             // for error checks
             float Anorm = lapackf77_slange( "F", &Am, &An, hA, &lda, work );
             float Bnorm = lapackf77_slange( "F", &Bm, &Bn, hB, &ldb, work );
             float Cnorm = lapackf77_slange( "F", &M,  &N,  hC, &ldc, work );
-            
+
             /* =====================================================================
                Performs operation using GPU
                =================================================================== */
-            #if defined(MAGMA_HAVE_CUDA)
-                /* TODO: add support for HIP platform */
-                magma_flush_cache( opts.cache );
-                dev_time = magma_sync_wtime( opts.queue );
+	    magma_flush_cache( opts.cache );
+	    dev_time = magma_sync_wtime( opts.queue );
 
-                magma_hgemm( opts.transA, opts.transB, M, N, K,
-                             h_alpha, dA, ldda,
-                                      dB, lddb,
-                             h_beta,  dC, lddc,
-                             opts.queue );
+	    if (opts.version == 1) {
+	        magma_hgemm( opts.transA, opts.transB, M, N, K,
+			     h_alpha, dA, ldda,
+		                      dB, lddb,
+			     h_beta,  dC, lddc,
+			     opts.queue );
 
-                dev_time = magma_sync_wtime( opts.queue ) - dev_time;
-                dev_perf = gflops / dev_time;
-                
-                postprocess_matrix( M, N, dC, lddc, hCdev, ldc, opts.queue );
-            #else
-                dev_time = 0.0;
-                dev_perf = 0.0;
-            #endif
-            
+		dev_time = magma_sync_wtime( opts.queue ) - dev_time;
+		dev_perf = gflops / dev_time;
+		
+		postprocess_matrix( M, N, dC, lddc, hCdev, ldc, opts.queue );
+	    }
+	    else {
+	        magma_hgemmx(opts.transA, opts.transB, M, N, K,
+			     alpha, dA, ldda,
+                                    dB, lddb,
+			     beta, dCf, lddc,
+			     opts.queue );
+
+		dev_time = magma_sync_wtime( opts.queue ) - dev_time;
+		dev_perf = gflops / dev_time;
+
+		magma_sgetmatrix(M, N, dCf, lddc, hCdev, ldc, opts.queue);
+	    }
             
             /* =====================================================================
                Check the result
                =================================================================== */
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
             if ( opts.lapack || opts.check ) {
                 /* =====================================================================
                    Performs operation using CPU BLAS
                    =================================================================== */
-
                 blasf77_sgemm( lapack_trans_const(opts.transA), lapack_trans_const(opts.transB), &M, &N, &K,
                                &alpha, hA, &lda,
                                        hB, &ldb,
                                &beta,  hC, &ldc );
-                
+		
                 // Compute forward error bound (see Higham, 2002, sec. 3.5),
                 // modified to include alpha, beta, and input C.
                 // ||R_magma - R_ref||_p / (gamma_{K+2} |alpha| ||A||_p ||B||_p + 2 |beta| ||C||_p ) < eps/2.
@@ -357,22 +365,17 @@ int main( int argc, char** argv)
                 
                 bool okay = (dev_error < tol);
                 status += ! okay;
-                printf("%5lld %5lld %5lld   %7.2f (%7.2f)    %8.2e   %s\n",
+                printf("%5lld %5lld %5lld   %7.0f (%7.2f)    %8.2e   %s\n",
                         (long long) M, (long long) N, (long long) K,
                         dev_perf,    1000.*dev_time,
                         dev_error,
                         (okay ? "ok" : "failed"));
             }
             else {
-                    printf("%5lld %5lld %5lld   %7.2f (%7.2f)       ---\n",
+                    printf("%5lld %5lld %5lld   %7.0f (%7.2f)       ---\n",
                            (long long) M, (long long) N, (long long) K,
                            dev_perf,    1000.*dev_time );
             }
-            #else
-                printf("%5lld %5lld %5lld   %7.2f (%7.2f)       ---\n",
-                           (long long) M, (long long) N, (long long) K,
-                           dev_perf,    1000.*dev_time );
-            #endif
             
             magma_free_cpu( hA );
             magma_free_cpu( hB );
@@ -382,6 +385,7 @@ int main( int argc, char** argv)
             magma_free( dA );
             magma_free( dB );
             magma_free( dC );
+	    magma_free( dCf);
             fflush( stdout );
         }
         if ( opts.niter > 1 ) {
