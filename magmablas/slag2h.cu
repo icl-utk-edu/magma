@@ -11,6 +11,10 @@
 #include <cuda.h>    // for CUDA_VERSION
 #include "magma_internal.h"
 
+#if defined(MAGMA_HAVE_HIP)
+#include <hip/hip_fp16.h>
+#endif
+
 #define BLK_X 32
 #define BLK_Y 4
 #define MAX_BATCH    65000
@@ -26,7 +30,7 @@ void slag2h_device(
     magmaHalf *HA,  int ldha,
     float rmax, magma_int_t* dinfo)
 {
-#if CUDA_VERSION >= 7500
+#if CUDA_VERSION >= 7500 || defined(MAGMA_HAVE_HIP)
     const int gtx = blockIdx.x * BLK_X + threadIdx.x;
     const int gty = blockIdx.y * BLK_Y + threadIdx.y;
 
