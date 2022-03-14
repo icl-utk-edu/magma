@@ -61,8 +61,17 @@ magma_hgemm(
     magmaHalf_ptr       dC, magma_int_t lddc,
     magma_queue_t queue );
 
-}
+void
+magma_hgemmx(
+    magma_trans_t transA, magma_trans_t transB,
+    magma_int_t m, magma_int_t n, magma_int_t k,
+    float alpha,
+    magmaHalf_const_ptr dA, magma_int_t ldda,
+    magmaHalf_const_ptr dB, magma_int_t lddb,
+    float beta,
+    float *dC, magma_int_t lddc,
+    magma_queue_t queue );
 #endif
 
-
+}
 #endif // MAGMABLAS_H_H
