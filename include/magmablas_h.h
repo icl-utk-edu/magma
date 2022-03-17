@@ -71,7 +71,7 @@ magma_hgemmx(
     float beta,
     float *dC, magma_int_t lddc,
     magma_queue_t queue );
-#endif
-
 }
+
+#endif
 #endif // MAGMABLAS_H_H
