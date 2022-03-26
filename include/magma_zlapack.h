@@ -1286,7 +1286,7 @@ void   lapackf77_zgetrf_batch(
                          magma_int_t *m_array, magma_int_t *n_array,
                          magmaDoubleComplex **A_array, magma_int_t *lda_array,
                          magma_int_t **ipiv_array,
-                         magma_int_t *group_size, magma_int_t group_count,
+                         magma_int_t group_count, magma_int_t *group_size,
                          magma_int_t *info_array );
 #endif
 

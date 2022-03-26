@@ -264,7 +264,7 @@ int main( int argc, char** argv)
                 lapackf77_zgetrf_batch(
                          h_M, h_N,
                          hA_array, h_lda,
-                         hipiv_array, group_size, batchCount, hinfo );
+                         hipiv_array, batchCount, group_size, hinfo );
 
                 delete[] group_size;
 
