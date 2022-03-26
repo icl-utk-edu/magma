@@ -262,11 +262,9 @@ int main( int argc, char** argv)
                 for(magma_int_t ig; ig < batchCount; ig++) group_size[ig] = 1;
 
                 lapackf77_zgetrf_batch(
-                         magma_int_t *m_array, magma_int_t *n_array,
-                         magmaDoubleComplex **A_array, magma_int_t *lda_array,
-                         magma_int_t **ipiv_array,
-                         magma_int_t *group_size, batchCount,
-                         hinfo );
+                         h_M, h_N,
+                         hA_array, h_lda,
+                         hipiv_array, group_size, batchCount, hinfo );
 
                 delete[] group_size;
 
