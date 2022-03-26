@@ -158,7 +158,7 @@ extern "C" {
 
 /* batch routines */
 #ifdef MAGMA_WITH_MKL
-#define lapackf77_zgetrf_batch   zgetrf_batch
+#define lapackf77_zgetrf_batch   FORTRAN_NAME( zgetrf_batch, ZGETRF_BATCH )
 #endif
 
 /* testing functions (alphabetical order) */
