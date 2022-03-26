@@ -255,6 +255,23 @@ int main( int argc, char** argv)
                =================================================================== */
             if ( opts.lapack ) {
                 cpu_time = magma_wtime();
+
+                #ifdef MAGMA_WITH_MKL
+                printf("testing mkl batch\n");
+                magma_int_t *group_size = new magma_int_t(batchCount);
+                for(magma_int_t ig; ig < batchCount; ig++) group_size[ig] = 1;
+
+                lapackf77_zgetrf_batch(
+                         magma_int_t *m_array, magma_int_t *n_array,
+                         magmaDoubleComplex **A_array, magma_int_t *lda_array,
+                         magma_int_t **ipiv_array,
+                         magma_int_t *group_size, batchCount,
+                         hinfo );
+
+                delete[] group_size;
+
+                #else
+                printf("testing lapack + openmp\n");
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                 magma_int_t nthreads = magma_get_lapack_numthreads();
                 magma_set_lapack_numthreads(1);
@@ -271,6 +288,8 @@ int main( int argc, char** argv)
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);
+                #endif
+
                 #endif
 
                 cpu_time = magma_wtime() - cpu_time;
