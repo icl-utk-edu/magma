@@ -259,7 +259,7 @@ int main( int argc, char** argv)
                 #ifdef MAGMA_WITH_MKL
                 printf("testing mkl batch\n");
                 magma_int_t *group_size = new magma_int_t(batchCount);
-                for(magma_int_t ig; ig < batchCount; ig++) group_size[ig] = 1;
+                for(magma_int_t ig = 0; ig < batchCount; ig++) group_size[ig] = 1;
 
                 lapackf77_zgetrf_batch(
                          h_M, h_N,
