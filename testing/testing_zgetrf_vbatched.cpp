@@ -21,6 +21,8 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
+#include <cusolverDn.h>
+
 #if defined(_OPENMP)
 #include <omp.h>
 #include "../control/magma_threadsetting.h"  // internal header
@@ -28,6 +30,47 @@
 
 //#define DBG
 #define ib    (4)
+//#define myprintf printf
+#define myprintf(...)
+
+#define PRECISION_z
+
+// cusolver interface
+#if   defined(PRECISION_z)
+#define magma_zgetrf_cusolver               cusolverDnZgetrf
+#define magma_zgetrf_cusolver_bufferSize    cusolverDnZgetrf_bufferSize
+
+#elif defined(PRECISION_c)
+#define magma_cgetrf_cusolver               cusolverDnCgetrf
+#define magma_cgetrf_cusolver_bufferSize    cusolverDnCgetrf_bufferSize
+
+#elif defined(PRECISION_d)
+#define magma_dgetrf_cusolver               cusolverDnDgetrf
+#define magma_dgetrf_cusolver_bufferSize    cusolverDnDgetrf_bufferSize
+
+#elif defined(PRECISION_s)
+#define magma_sgetrf_cusolver               cusolverDnSgetrf
+#define magma_sgetrf_cusolver_bufferSize    cusolverDnSgetrf_bufferSize
+#else
+#error "One of PRECISION_{s,d,c,z} must be defined."
+#endif
+
+void
+magma_zgetrf_cusolver_gpu(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    int *dipiv, int *dinfo,
+    magmaDoubleComplex* dwork,
+    magma_queue_t queue, cusolverDnHandle_t handle)
+{
+
+    magma_zgetrf_cusolver( handle,
+                           (int)m, (int)n,
+                           (cuDoubleComplex*)dA,    (int)ldda,
+                           (cuDoubleComplex*)dwork, (int*)dipiv,
+                           (int*)dinfo );
+}
+
 
 double get_LU_error(magma_int_t M, magma_int_t N,
                     magmaDoubleComplex *A,  magma_int_t lda,
@@ -205,19 +248,22 @@ int main( int argc, char** argv)
                                   hdA_array[s], h_ldda[s], opts.queue );
             }
 
-            magma_time = magma_sync_wtime( opts.queue );
+
             if(opts.version == 1) {
                 // main API, with error checking and
                 // workspace allocation
+                magma_time = magma_sync_wtime( opts.queue );
                 info = magma_zgetrf_vbatched(
                         d_M, d_N,
                         dA_array, d_ldda,
                         dipiv_array, dinfo,
                         batchCount, opts.queue);
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
             else if(opts.version == 2) {
                 // advanced API, totally asynchronous,
                 // but requires some setup
+                magma_time = magma_sync_wtime( opts.queue );
                 magma_int_t nb, recnb;
                 magma_get_zgetrf_vbatched_nbparam(max_M, max_N, &nb, &recnb);
                 info = magma_zgetrf_vbatched_max_nocheck(
@@ -226,8 +272,70 @@ int main( int argc, char** argv)
                         dA_array, d_ldda,
                         dipiv_array, dpivinfo_array, dinfo,
                         batchCount, opts.queue);
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
-            magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+            else if (opts.version == 3) {
+                // current
+                magma_device_t cdev;
+                magma_getdevice( &cdev );
+
+                // create queues and cusparse handles
+                const magma_int_t nqs = max(1, opts.nrhs);
+                magma_queue_t queues[nqs];
+                cusolverDnHandle_t handles[nqs];
+
+                myprintf("queues/handles\n");
+                for(magma_int_t iq = 0; iq < nqs; iq++) {
+                    magma_queue_create(cdev, &queues[iq]);
+                    cusolverDnCreate(&handles[iq]);
+                    cusolverDnSetStream(handles[iq], magma_queue_get_cuda_stream(queues[iq]));
+                }
+
+                myprintf("start timing\n");
+
+                // calculate cusolver workspace
+                myprintf("alloc workspace\n");
+                magma_int_t  lwork   = 0;
+                magma_int_t* lwork_s = new magma_int_t[batchCount];
+                for(magma_int_t s = 0; s < batchCount; s++) {
+                    magma_zgetrf_cusolver_bufferSize(handles[0], (int)h_M[s], (int)h_N[s], (cuDoubleComplex*)hdA_array[s], (int)h_ldda[s], &lwork_s[s]);
+                    lwork += lwork_s[s];
+                }
+
+                magmaDoubleComplex *devwork = NULL;
+                magma_zmalloc(&devwork, lwork);
+
+                // ===> start timing
+                magma_time = magma_sync_wtime( opts.queue );
+                myprintf("calls\n");
+                magmaDoubleComplex *devwork_s = devwork;
+                for(magma_int_t s = 0; s < batchCount; s++) {
+                    magma_int_t qid = s % nqs;
+                    magma_zgetrf_cusolver_gpu(h_M[s], h_N[s], hdA_array[s], h_ldda[s], hdipiv_array[s], dinfo + s, devwork_s, queues[qid], handles[qid]);
+                    devwork_s += lwork_s[s];
+                }
+
+                myprintf("sync\n");
+                for(magma_int_t iq = 0; iq < nqs; iq++) {
+                    magma_queue_sync(queues[iq]);
+                }
+                // ====> end timing
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+
+                myprintf("free\n");
+                magma_free(devwork);
+
+
+
+
+                for(magma_int_t iq = 0; iq < nqs; iq++) {
+                    magma_queue_destroy(queues[iq]);
+                    cusolverDnDestroy(handles[iq]);
+                }
+                delete[] lwork_s;
+
+            }
+
             magma_perf = gflops / magma_time;
 
             hTmp = hA_magma;
