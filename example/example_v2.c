@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "cublas_v2.h"
 #include "magma_v2.h"      // also includes cublas_v2.h
 #include "magma_lapack.h"  // if you need BLAS & LAPACK
 
@@ -131,7 +130,8 @@ void gpu_interface( magma_int_t n, magma_int_t nrhs )
     magma_int_t lddx = ldda;
     magma_int_t info = 0;
     magma_queue_t queue=NULL;
-    
+    magma_int_t dev = 0;
+
     // magma_*malloc routines for GPU memory are type-safe,
     // but you can use cudaMalloc if you prefer.
     magma_zmalloc( &dA, ldda*n );
@@ -142,7 +142,6 @@ void gpu_interface( magma_int_t n, magma_int_t nrhs )
         goto cleanup;
     }
     
-    magma_int_t dev = 0;
     magma_queue_create( dev, &queue );
     
     // Replace these with your code to initialize A and X

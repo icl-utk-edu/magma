@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "cublas_v2.h"     // if you need CUBLAS v2, include before magma.h
 #include "magma.h"
 #include "magma_lapack.h"  // if you need BLAS & LAPACK
 
