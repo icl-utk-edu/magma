@@ -745,7 +745,11 @@ install( TARGETS magma magma_sparse ${blas_fix}
          RUNTIME DESTINATION bin
          LIBRARY DESTINATION lib
          ARCHIVE DESTINATION lib )
-file( GLOB headers include/*.h sparse/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
+if (MAGMA_ENABLE_CUDA)
+  file( GLOB headers include/*.h sparse/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
+else()
+  file( GLOB headers include/*.h sparse_hip/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
+endif()
 if (USE_FORTRAN)
     install( FILES ${headers} ${modules}
              DESTINATION include )
@@ -755,10 +759,16 @@ endif()
 
 # ----------------------------------------
 # pkg-config
+get_target_property(MAGMA_INCLUDE magma INCLUDE_DIRECTORIES)
+foreach(dir ${MAGMA_INCLUDE})
+    string(APPEND INCLUDE_COMPILER_STRING "-I${dir} ")
+endforeach()
+set( MAGMA_INCLUDE "${INCLUDE_COMPILER_STRING}" )
 set( pkgconfig lib/pkgconfig/magma.pc )
 message( STATUS "pkgconfig ${pkgconfig}" )
 set( INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" )
 set( CFLAGS "${CMAKE_C_FLAGS}" )
+set( CXXFLAGS "${CMAKE_CXX_FLAGS}" )
 # CMake finds the Accelerate directory; we want -framework Accelerate for linking.
 string( REPLACE "/System/Library/Frameworks/Accelerate.framework" "-framework Accelerate" LAPACK_LIBS "${LAPACK_LIBRARIES}" )
 if (MAGMA_ENABLE_CUDA)
@@ -766,7 +776,8 @@ if (MAGMA_ENABLE_CUDA)
     "${blas_fix_lib} ${LAPACK_LIBS} ${CUDA_CUDART_LIBRARY} ${CUDA_CUBLAS_LIBRARIES} ${CUDA_cusparse_LIBRARY}" )
 else()
   string( REPLACE ";" " " LIBS
-    "${blas_fix_lib} ${LAPACK_LIBS} hip::device roc::hipblas roc::hipsparse" )
+     "${blas_fix_lib} ${LAPACK_LIBS} ${HIP} ${rocBLAS} ${rocSPARSE}" )
+#    "${blas_fix_lib} ${LAPACK_LIBS} hip::device roc::hipblas roc::hipsparse" )
 endif()
 set( MAGMA_REQUIRED "" )
 configure_file( "${pkgconfig}.in" "${pkgconfig}" @ONLY )
@@ -789,6 +800,7 @@ message( STATUS "    FFLAGS:                ${CMAKE_Fortran_FLAGS}" )
 message( STATUS "    LIBS:                  ${LIBS}" )
 message( STATUS "    blas_fix:              ${blas_fix}  (MacOS Accelerate only)" )
 message( STATUS "    LAPACK_LIBRARIES:      ${LAPACK_LIBRARIES}"      )
+message( STATUS "    INCLUDE_DIRECTORIES:   ${MAGMA_INCLUDE}"   )
 if (MAGMA_ENABLE_CUDA)
   message( STATUS "    CUDA_CUDART_LIBRARY:   ${CUDA_CUDART_LIBRARY}"   )
   message( STATUS "    CUDA_CUBLAS_LIBRARIES: ${CUDA_CUBLAS_LIBRARIES}" )
