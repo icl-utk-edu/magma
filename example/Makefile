@@ -66,7 +66,7 @@ clean:
 
 # ----------------------------------------
 # C example
-%.o: %.c
+%.o: %.cpp
 	$(CC) $(CFLAGS) $(MAGMA_CFLAGS) -c -o $@ $<
 
 example_v1: example_v1.o
