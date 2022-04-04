@@ -25,7 +25,7 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
- 2.6.2 - Nov 23, 2021
+ 2.6.2 - Mar 15, 2022
     * New routine: magma_{s,d,c,z}getrf_vbatched provides a variable-size batched LU
       factorization with partial pivoting. This is a reference implementation, with more
       performance optimizations planned for future releases
@@ -37,6 +37,7 @@ single (s), double (d), single-complex (c), double-complex (z).
     * Remove gfx803 target for AMD GPUs
     * Add uplo argument in inertia compuattion routines (only upper was supported before)
     * Fix memory leak in magma_queue for hip functions
+    * Add FP16 and FP16-FP32 GEMM benchmark for HIP
 
  2.6.1 - July 12, 2021
     * Bug fix for installing MAGMA with spack on CUDA 9 and older

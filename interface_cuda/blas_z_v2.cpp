@@ -1353,7 +1353,6 @@ magma_zgemm(
         (cuDoubleComplex*)&beta,  (cuDoubleComplex*)dC, int(lddc) );
 }
 
-
 #ifdef COMPLEX
 /***************************************************************************//**
     Perform Hermitian matrix-matrix product.

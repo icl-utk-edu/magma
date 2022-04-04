@@ -11,8 +11,6 @@
 #include "magma_internal.h"
 #include "error.h"
 
-#ifdef MAGMA_HAVE_CUDA
-
 // =============================================================================
 // Level 1 BLAS
 
@@ -112,9 +110,58 @@ magma_hgemm(
     else {
         printf("ERROR: unsupported architecture for %s \n", __func__ );
     }
+#elif defined(MAGMA_HAVE_HIP)
+    magma_int_t arch = magma_getdevice_arch();
+    if( arch >= 330 ) {
+        hipblasGemmEx(
+		      queue->hipblas_handle(),
+		      hipblas_trans_const( transA ),
+		      hipblas_trans_const( transB ),
+		      int(m), int(n), int(k),
+		      (void*)&alpha, (void*)dA, HIPBLAS_R_16F, int(ldda),
+		      (void*)dB, HIPBLAS_R_16F, int(lddb),
+		      (void *)&beta,  (void*)dC, HIPBLAS_R_16F, int(lddc),
+		      HIPBLAS_R_16F,
+		      HIPBLAS_GEMM_DEFAULT);
+    }
+    else {
+        printf("ERROR: unsupported architecture for %s \n", __func__ );
+    }
 #else
-    printf("ERROR: unsupported CUDA version for %s \n", __func__ );
-#endif    // CUDA_VERSION >= 7500
+    printf("ERROR: unsupported architecture version for %s \n", __func__ );
+#endif
 }
-#endif // MAGMA_HAVE_CUDA
+
+extern "C" void
+magma_hgemmx(
+    magma_trans_t transA, magma_trans_t transB,
+    magma_int_t m, magma_int_t n, magma_int_t k,
+    float alpha,
+    magmaHalf_const_ptr dA, magma_int_t ldda,
+    magmaHalf_const_ptr dB, magma_int_t lddb,
+    float beta,
+    float *dC, magma_int_t lddc,
+    magma_queue_t queue )
+{
+#if defined(MAGMA_HAVE_HIP)
+    magma_int_t arch = magma_getdevice_arch();
+    if( arch >= 330 ) {
+        hipblasGemmEx(
+		      queue->hipblas_handle(),
+		      hipblas_trans_const( transA ),
+		      hipblas_trans_const( transB ),
+		      int(m), int(n), int(k),
+		      (void*)&alpha, (void*)dA, HIPBLAS_R_16F, int(ldda),
+                                     (void*)dB, HIPBLAS_R_16F, int(lddb),
+		      (void*)&beta,  (void*)dC, HIPBLAS_R_32F, int(lddc),
+		      HIPBLAS_R_32F,
+		      HIPBLAS_GEMM_DEFAULT);
+    }
+    else {
+        printf("ERROR: unsupported architecture for %s \n", __func__ );
+    }
+#else
+    printf("ERROR: unsupported architectre version for %s \n", __func__ );
+#endif                                                         
+}
 

@@ -15,7 +15,7 @@
 
 #include <cuda_runtime.h>
 
-#ifdef MAGMA_HAVE_CUDA
+#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
 
 // These MAGMA v1 routines are all deprecated.
 // See copy_v2.cpp for documentation.
