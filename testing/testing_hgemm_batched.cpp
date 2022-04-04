@@ -22,14 +22,7 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
-#ifdef MAGMA_HAVE_HIP
-/* need typedef */
-typedef unsigned short half;
-
-#endif
-
-
-#if CUDA_VERSION < 9020
+#if defined(MAGMA_HAVE_CUDA) && (CUDA_VERSION < 9020)
 // conversion float to half are not defined for host in CUDA version <9.2
 // thus uses the conversion below when CUDA VERSION is < 9.2.
 #include <string.h>
@@ -152,7 +145,7 @@ static float half_to_float(half hf)
     o.u |= (h.u & 0x8000) << 16;    // sign bit
     return o.f;
 }
-#endif
+#endif // defined(MAGMA_HAVE_CUDA) && (CUDA_VERSION < 9020)
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -272,12 +265,12 @@ int main( int argc, char** argv)
     float *hA, *hB, *hC, *hC_magma, *hC_cublas;
     magmaHalf *dA, *dB, *dC;
     float c_neg_one = MAGMA_S_NEG_ONE;
-    #if CUDA_VERSION >= 9020
-    magmaHalf alpha = 0.29;
-    magmaHalf beta  = -0.48;
-    #else
+    #if defined(MAGMA_HAVE_CUDA) && (CUDA_VERSION < 9020)
     magmaHalf alpha = approx_float_to_half(0.29);
     magmaHalf beta  = approx_float_to_half(-0.48);
+    #else
+    magmaHalf alpha = 0.29;
+    magmaHalf beta  = -0.48;
     #endif
 
     magmaHalf **dA_array = NULL;
@@ -342,7 +335,6 @@ int main( int argc, char** argv)
             sizeA = lda*An*batchCount;
             sizeB = ldb*Bn*batchCount;
             sizeC = ldc*N*batchCount;
-
             TESTING_CHECK( magma_smalloc_cpu( &hA,  sizeA ));
             TESTING_CHECK( magma_smalloc_cpu( &hB,  sizeB ));
             TESTING_CHECK( magma_smalloc_cpu( &hC,  sizeC  ));
@@ -382,8 +374,6 @@ int main( int argc, char** argv)
             magma_hset_pointer( dC_array, dC, lddc, 0, 0, lddc*N,  batchCount, opts.queue );
 
             magma_time = magma_sync_wtime( opts.queue );
-
-            /* right now, only cuda has the 'hgemm' functionality*/
             magmablas_hgemm_batched(
                         opts.transA, opts.transB,
                         M, N, K,
@@ -414,9 +404,9 @@ int main( int argc, char** argv)
             #else
             hipblasHgemmBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                int(M), int(N), int(K),
-                               (half*)&alpha, (const half**)dA_array, int(ldda),
-                                       (const half**)dB_array, int(lddb),
-                               (half*)&beta,             (half**)dC_array, int(lddc), int(batchCount) );
+                               (hipblasHalf*)&alpha, (const hipblasHalf**)dA_array, int(ldda),
+                                                     (const hipblasHalf**)dB_array, int(lddb),
+                               (hipblasHalf*)&beta,  (      hipblasHalf**)dC_array, int(lddc), int(batchCount) );
             #endif
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
             cublas_perf = gflops / cublas_time;
@@ -426,12 +416,12 @@ int main( int argc, char** argv)
                Performs operation using CPU BLAS
                =================================================================== */
             if ( opts.lapack ) {
-                #if CUDA_VERSION >= 9020
-                float alpha_r32 = (float)alpha;
-                float beta_r32  = (float)beta;
-                #else
+                #if defined(MAGMA_HAVE_CUDA) && (CUDA_VERSION < 9020)
                 float alpha_r32 = half_to_float(alpha);
                 float beta_r32  = half_to_float(beta);
+                #else
+                float alpha_r32 = (float)alpha;
+                float beta_r32  = (float)beta;
                 #endif
                 cpu_time = magma_wtime();
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)

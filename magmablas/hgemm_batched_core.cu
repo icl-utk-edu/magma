@@ -16,15 +16,15 @@
 #include "./gemm_config/hgemm_param.h"
 #define version(v) NN_V_ ## v
 
-extern "C" magma_int_t 
+extern "C" magma_int_t
 magmablas_hgemm_batched(
-    magma_trans_t transA, magma_trans_t transB, 
-    magma_int_t m, magma_int_t n, magma_int_t k, 
+    magma_trans_t transA, magma_trans_t transB,
+    magma_int_t m, magma_int_t n, magma_int_t k,
     magmaHalf alpha,
     magmaHalf const * const * dAarray, magma_int_t ldda,
     magmaHalf const * const * dBarray, magma_int_t lddb,
     magmaHalf beta,
-    magmaHalf **dCarray, magma_int_t lddc, 
+    magmaHalf **dCarray, magma_int_t lddc,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t info = 0;
@@ -44,11 +44,22 @@ magmablas_hgemm_batched(
         info = -10;
     else if ( lddc < m )
         info = -13;
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return info;
     }
+
+#ifdef MAGMA_HAVE_HIP
+     /* for now, fall back on hipblas */
+     hipblasHgemmBatched(
+         queue->hipblas_handle(),
+        hipblas_trans_const(transA), hipblas_trans_const(transB),
+        int(m), int(n), int(k), (const hipblasHalf*)&alpha,
+        (const hipblasHalf**)dAarray, int(ldda),
+        (const hipblasHalf**)dBarray, int(lddb),
+		(const hipblasHalf*)&beta,  (hipblasHalf**)dCarray, int(lddc), int(batchCount) );
+#else
 
     magma_int_t arch = magma_getdevice_arch();
     if(arch < 700) {
@@ -205,7 +216,7 @@ magmablas_hgemm_batched(
             }
         }
         break;
-        case 1:    // nt 
+        case 1:    // nt
         case 2:    // nc
         {
             // TODO: tune for nt case (now using same tuning as nn)
@@ -624,5 +635,7 @@ magmablas_hgemm_batched(
         default:; // propose something
     }
 #endif
+
+#endif    // MAGMA_HAVE_HIP
     return 0;
 }
