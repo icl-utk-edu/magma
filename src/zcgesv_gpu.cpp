@@ -224,7 +224,8 @@ magma_zcgesv_gpu(
     }
     
     // factor dSA in single precision
-    magma_cgetrf_gpu( n, n, dSA, lddsa, ipiv, info );
+    // magma_cgetrf_gpu( n, n, dSA, lddsa, ipiv, info );
+    magma_cgetrf_native( n, n, dSA, lddsa, ipiv, info );
     if (*info != 0) {
         *iter = -3;
         goto fallback;
