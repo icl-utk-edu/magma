@@ -161,7 +161,26 @@ magma_hgemmx(
         printf("ERROR: unsupported architecture for %s \n", __func__ );
     }
 #else
-    printf("ERROR: unsupported architectre version for %s \n", __func__ );
+    #if CUDA_VERSION >= 7500
+    magma_int_t arch = magma_getdevice_arch();
+    if( arch >= 530 ) {
+        #if CUDA_VERSION >= 9000
+        // turn on tensor cores by default
+        cublasSetMathMode(queue->cublas_handle(), CUBLAS_TENSOR_OP_MATH);
+        #endif
+        cublasGemmEx( queue->cublas_handle(),
+                      cublas_trans_const( transA ), cublas_trans_const( transB ),
+                      int(m), int(n), int(k),
+                      &alpha, dA,        CUDA_R_16F, int(ldda),
+                              dB,        CUDA_R_16F, int(lddb),
+                      &beta,  dC,        CUDA_R_32F, int(lddc),
+                      CUDA_R_32F, CUBLAS_GEMM_DFALT_TENSOR_OP);
+        #if CUDA_VERSION >= 9000
+        // roll back to default
+        cublasSetMathMode(queue->cublas_handle(), CUBLAS_DEFAULT_MATH);
+        #endif
+    }
+    #endif
 #endif                                                         
 }
 
