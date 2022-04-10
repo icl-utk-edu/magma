@@ -32,6 +32,8 @@ magma_zgetrf_vbatched_max_nocheck(
     magma_int_t arginfo = 0;
     magma_int_t ib, i, pm;
 
+    magma_memset_async(info_array, 0, batchCount*sizeof(magma_int_t), queue);
+
     // try a fused kernel for small sizes
     if( max_m <= 32 && max_n <= 32) {
         arginfo = magma_zgetf2_fused_vbatched(
