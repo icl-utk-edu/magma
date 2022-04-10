@@ -220,7 +220,6 @@ magma_zgetrf_vbatched(
         // min_mn
         magma_imalloc(&minmn, batchCount);
         magma_ivec_min_vv( batchCount, m, n, minmn, queue);
-        magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
 
         // collect stats (requires at least 4 integers)
         magma_getrf_vbatched_setup( m, n, stats, batchCount, queue );
