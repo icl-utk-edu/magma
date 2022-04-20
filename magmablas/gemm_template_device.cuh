@@ -844,7 +844,7 @@ void gemm_template_device_tt(
             for (m = 0; m < THR_M; m++) {
                 int coord_dCm = blx*BLK_M + m*DIM_X + idx;
                 if (coord_dCm < M && coord_dCn < N) {
-                    ptrdiff_t offsC = coord_dCn*(ptrdiff_t)LDC + coord_dCm;
+                    ptrdiff_t offsC = (ptrdiff_t)coord_dCn*(ptrdiff_t)LDC + (ptrdiff_t)coord_dCm;
 
                     T &regC = rC[n][m];
                     T &memC = C[offsC];
