@@ -1334,9 +1334,9 @@ vbatched = (
 	('testing_zgemm_vbatched',     batch + '-NC            -c',  mn,   ''),
 	('testing_zgemm_vbatched',     batch + '-CN            -c',  mn,   ''),
 	('testing_zgemm_vbatched',     batch + '-CC            -c',  mn,   ''),
-	('testing_zgemm_vbatched',     batch + '-NC            -c',  mn,   ''),
-	('testing_zgemm_vbatched',     batch + '-CN            -c',  mn,   ''),
-	('testing_zgemm_vbatched',     batch + '-CC            -c',  mn,   ''),
+	('testing_zgemm_vbatched',     batch + '-NT            -c',  mn,   ''),
+	('testing_zgemm_vbatched',     batch + '-TN            -c',  mn,   ''),
+	('testing_zgemm_vbatched',     batch + '-TT            -c',  mn,   ''),
 
 	# no-trans/trans/conj-trans
 	('testing_zgemv_vbatched',     batch + '               -c',  mn,   ''),
