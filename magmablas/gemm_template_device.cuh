@@ -24,6 +24,12 @@ __device__ static inline
 T op( T& x) {return conj<conjugate>(x);}
 
 /******************************************************************************/
+// shared memory accesses
+#define sA(i,j)    sA[(j)*slda + (i)]
+#define sB(i,j)    sB[(j)*sldb + (i)]
+#define sC(i,j)    sC[(j)*sldc + (i)]
+
+/******************************************************************************/
 template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int THR_M, const int THR_N, const int CONJA, const int CONJB>
@@ -33,7 +39,9 @@ void gemm_template_device_nn(
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
-    T alpha, T beta )
+    T alpha, T beta,
+    T* sA, int slda,
+    T* sB, int sldb )
 {
 #if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = threadIdx.x;  // thread's m dimension
@@ -50,8 +58,8 @@ void gemm_template_device_nn(
     int blx = blockIdx.x;   // block's m dimension
     int bly = blockIdx.y;   // block's n dimension
 
-    __shared__ T sA[BLK_K][BLK_M+1];      // +1 only required if A is transposed
-    __shared__ T sB[BLK_N][BLK_K+1];      // +1 always required
+    //__shared__ T sA[BLK_K][BLK_M+1];      // +1 only required if A is transposed
+    //__shared__ T sB[BLK_N][BLK_K+1];      // +1 always required
 
     // Registers for the innermost loop
     T rC[THR_N][THR_M];
@@ -81,13 +89,13 @@ void gemm_template_device_nn(
     for (n = 0; n < BLK_K; n += DIM_YA)
         #pragma unroll
         for (m = 0; m < BLK_M; m += DIM_XA)
-            sA[n+idyA][m+idxA] = fetch(A, m, n, boundA);
+            sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
 
     #pragma unroll
     for (n = 0; n < BLK_N; n += DIM_YB)
         #pragma unroll
         for (m = 0; m < BLK_K; m += DIM_XB)
-            sB[n+idyB][m+idxB] = fetch(B, m, n, boundB);
+            sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
 
     __syncthreads();
 
@@ -116,12 +124,12 @@ void gemm_template_device_nn(
             // Load A shmem->regs
             #pragma unroll
             for (m = 0; m < THR_M; m++)
-                rA[m] = sA[k][m*DIM_X+idx];
+                rA[m] = sA(k, m*DIM_X+idx);
 
             // Load B shmem->regs
             #pragma unroll
             for (n = 0; n < THR_N; n++)
-                rB[n] = sB[n*DIM_Y+idy][k];
+                rB[n] = sB(n*DIM_Y+idy, k);
 
             // Compute
             #pragma unroll
@@ -139,13 +147,13 @@ void gemm_template_device_nn(
         for (n = 0; n < BLK_K/DIM_YA; n++)
             #pragma unroll
             for (m = 0; m < BLK_M/DIM_XA; m++)
-                sA[n*DIM_YA+idyA][m*DIM_XA+idxA] = ra[n][m];
+                sA(n*DIM_YA+idyA, m*DIM_XA+idxA) = ra[n][m];
 
         #pragma unroll
         for (n = 0; n < BLK_N/DIM_YB; n++)
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XB; m++)
-                sB[n*DIM_YB+idyB][m*DIM_XB+idxB] = rb[n][m];
+                sB(n*DIM_YB+idyB, m*DIM_XB+idxB) = rb[n][m];
 
         __syncthreads();
     }
@@ -161,12 +169,12 @@ void gemm_template_device_nn(
         // Load A shmem->regs
         #pragma unroll
         for (m = 0; m < THR_M; m++)
-            rA[m] = sA[k][m*DIM_X+idx];
+            rA[m] = sA(k, m*DIM_X+idx);
 
         // Load B shmem->regs
         #pragma unroll
         for (n = 0; n < THR_N; n++)
-            rB[n] = sB[n*DIM_Y+idy][k];
+            rB[n] = sB(n*DIM_Y+idy, k);
 
         // Compute
         #pragma unroll
@@ -228,7 +236,9 @@ void gemm_template_device_nt(
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
-    T alpha, T beta )
+    T alpha, T beta,
+    T* sA, int slda,
+    T* sB, int sldb )
 {
 #if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = threadIdx.x;  // thread's m dimension
@@ -245,8 +255,8 @@ void gemm_template_device_nt(
     int blx = blockIdx.x;   // block's m dimension
     int bly = blockIdx.y;   // block's n dimension
 
-    __shared__ T sA[BLK_K][BLK_M+1];      // +1 only required if A is transposed
-    __shared__ T sB[BLK_N][BLK_K+1];      // +1 always required
+    //__shared__ T sA[BLK_K][BLK_M+1];      // +1 only required if A is transposed
+    //__shared__ T sB[BLK_N][BLK_K+1];      // +1 always required
 
     // Registers for the innermost loop
     T rC[THR_N][THR_M];
@@ -276,14 +286,14 @@ void gemm_template_device_nt(
     for (n = 0; n < BLK_K; n += DIM_YA)
         #pragma unroll
         for (m = 0; m < BLK_M; m += DIM_XA)
-            sA[n+idyA][m+idxA] = fetch(A, m, n, boundA);
+            sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
 
     // Load B dev->shmem
     #pragma unroll
     for (n = 0; n < BLK_K; n += DIM_YB)
         #pragma unroll
         for (m = 0; m < BLK_N; m += DIM_XB)
-            sB[m+idxB][n+idyB] = fetch(B, m, n, boundB);
+            sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
 
     __syncthreads();
 
@@ -314,12 +324,12 @@ void gemm_template_device_nt(
             // Load A shmem->regs
             #pragma unroll
             for (m = 0; m < THR_M; m++)
-                rA[m] = sA[k][m*DIM_X+idx];
+                rA[m] = sA(k, m*DIM_X+idx);
 
             // Load B shmem->regs
             #pragma unroll
             for (n = 0; n < THR_N; n++)
-                rB[n] = sB[n*DIM_Y+idy][k];
+                rB[n] = sB(n*DIM_Y+idy, k);
 
             // Compute
             #pragma unroll
@@ -338,14 +348,14 @@ void gemm_template_device_nt(
         for (n = 0; n < BLK_K/DIM_YA; n++)
             #pragma unroll
             for (m = 0; m < BLK_M/DIM_XA; m++)
-                sA[n*DIM_YA+idyA][m*DIM_XA+idxA] = ra[n][m];
+                sA(n*DIM_YA+idyA, m*DIM_XA+idxA) = ra[n][m];
 
         // Load B regs->shmem
         #pragma unroll
         for (n = 0; n < BLK_K/DIM_YB; n++)
             #pragma unroll
             for (m = 0; m < BLK_N/DIM_XB; m++)
-                sB[m*DIM_XB+idxB][n*DIM_YB+idyB] = rb[n][m];
+                sB(m*DIM_XB+idxB, n*DIM_YB+idyB) = rb[n][m];
         __syncthreads();
     }
 
@@ -360,12 +370,12 @@ void gemm_template_device_nt(
         // Load A shmem->regs
         #pragma unroll
         for (m = 0; m < THR_M; m++)
-            rA[m] = sA[k][m*DIM_X+idx];
+            rA[m] = sA(k, m*DIM_X+idx);
 
         // Load B shmem->regs
         #pragma unroll
         for (n = 0; n < THR_N; n++)
-            rB[n] = sB[n*DIM_Y+idy][k];
+            rB[n] = sB(n*DIM_Y+idy, k);
 
         // Compute
         #pragma unroll
@@ -427,7 +437,11 @@ void gemm_template_device_tn(
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
-    T alpha, T beta )
+    T alpha, T beta,
+    T* sA, int slda,
+    T* sB, int sldb,
+    T* sA, int slda,
+    T* sB, int sldb )
 {
 #if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = threadIdx.x;  // thread's m dimension
@@ -444,8 +458,8 @@ void gemm_template_device_tn(
     int blx = blockIdx.x;   // block's m dimension
     int bly = blockIdx.y;   // block's n dimension
 
-    __shared__ T sA[BLK_K][BLK_M+1];      // +1 only required if A is transposed
-    __shared__ T sB[BLK_N][BLK_K+1];      // +1 always required
+    //__shared__ T sA[BLK_K][BLK_M+1];      // +1 only required if A is transposed
+    //__shared__ T sB[BLK_N][BLK_K+1];      // +1 always required
 
     // Registers for the innermost loop
     T rC[THR_N][THR_M];
@@ -478,13 +492,13 @@ void gemm_template_device_tn(
     for (n = 0; n < BLK_M; n += DIM_YA)
         #pragma unroll
         for (m = 0; m < BLK_K; m += DIM_XA)
-            sA[m+idxA][n+idyA] = fetch(A, m, n, boundA);
+            sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
 
     #pragma unroll
     for (n = 0; n < BLK_N; n += DIM_YB)
         #pragma unroll
         for (m = 0; m < BLK_K; m += DIM_XB)
-            sB[n+idyB][m+idxB] = fetch(B, m, n, boundB);
+            sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
 
     __syncthreads();
 
@@ -515,12 +529,12 @@ void gemm_template_device_tn(
             // Load A shmem->regs
             #pragma unroll
             for (m = 0; m < THR_M; m++)
-                rA[m] = sA[k][m*DIM_X+idx];
+                rA[m] = sA(k, m*DIM_X+idx);
 
             // Load B shmem->regs
             #pragma unroll
             for (n = 0; n < THR_N; n++)
-                rB[n] = sB[n*DIM_Y+idy][k];
+                rB[n] = sB(n*DIM_Y+idy, k);
 
             // Compute
             #pragma unroll
@@ -539,14 +553,14 @@ void gemm_template_device_tn(
         for (n = 0; n < BLK_M/DIM_YA; n++)
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XA; m++)
-                sA[m*DIM_XA+idxA][n*DIM_YA+idyA] = ra[n][m];
+                sA(m*DIM_XA+idxA, n*DIM_YA+idyA) = ra[n][m];
 
         // Load B regs->shmem
         #pragma unroll
         for (n = 0; n < BLK_N/DIM_YB; n++)
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XB; m++)
-                sB[n*DIM_YB+idyB][m*DIM_XB+idxB] = rb[n][m];
+                sB(n*DIM_YB+idyB, m*DIM_XB+idxB) = rb[n][m];
 
         __syncthreads();
     }
@@ -562,12 +576,12 @@ void gemm_template_device_tn(
         // Load A shmem->regs
         #pragma unroll
         for (m = 0; m < THR_M; m++)
-            rA[m] = sA[k][m*DIM_X+idx];
+            rA[m] = sA(k, m*DIM_X+idx);
 
         // Load B shmem->regs
         #pragma unroll
         for (n = 0; n < THR_N; n++)
-            rB[n] = sB[n*DIM_Y+idy][k];
+            rB[n] = sB(n*DIM_Y+idy, k);
 
         // Compute
         #pragma unroll
@@ -629,7 +643,9 @@ void gemm_template_device_tt(
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
-    T alpha, T beta )
+    T alpha, T beta,
+    T* sA, int slda,
+    T* sB, int sldb )
 {
 #if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = threadIdx.x;  // thread's m dimension
@@ -646,8 +662,8 @@ void gemm_template_device_tt(
     int blx = blockIdx.x;   // block's m dimension
     int bly = blockIdx.y;   // block's n dimension
 
-    __shared__ T sA[BLK_K][BLK_M+1];      // +1 only required if A is transposed
-    __shared__ T sB[BLK_N][BLK_K+1];      // +1 always required
+    //__shared__ T sA[BLK_K][BLK_M+1];      // +1 only required if A is transposed
+    //__shared__ T sB[BLK_N][BLK_K+1];      // +1 always required
 
     // Registers for the innermost loop
     T rC[THR_N][THR_M];
@@ -680,14 +696,14 @@ void gemm_template_device_tt(
     for (n = 0; n < BLK_M; n += DIM_YA)
         #pragma unroll
         for (m = 0; m < BLK_K; m += DIM_XA)
-            sA[m+idxA][n+idyA] = fetch(A, m, n, boundA);
+            sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
 
     // Load B dev->shmem
     #pragma unroll
     for (n = 0; n < BLK_K; n += DIM_YB)
         #pragma unroll
         for (m = 0; m < BLK_N; m += DIM_XB)
-            sB[m+idxB][n+idyB] = fetch(B, m, n, boundB);
+            sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
 
     __syncthreads();
 
@@ -718,12 +734,12 @@ void gemm_template_device_tt(
             // Load A shmem->regs
             #pragma unroll
             for (m = 0; m < THR_M; m++)
-                rA[m] = sA[k][m*DIM_X+idx];
+                rA[m] = sA(k, m*DIM_X+idx);
 
             // Load B shmem->regs
             #pragma unroll
             for (n = 0; n < THR_N; n++)
-                rB[n] = sB[n*DIM_Y+idy][k];
+                rB[n] = sB(n*DIM_Y+idy, k);
 
             // Compute
             #pragma unroll
@@ -742,14 +758,14 @@ void gemm_template_device_tt(
         for (n = 0; n < BLK_M/DIM_YA; n++)
             #pragma unroll
             for (m = 0; m < BLK_K/DIM_XA; m++)
-                sA[m*DIM_XA+idxA][n*DIM_YA+idyA] = ra[n][m];
+                sA(m*DIM_XA+idxA, n*DIM_YA+idyA) = ra[n][m];
 
         // Load B regs->shmem
         #pragma unroll
         for (n = 0; n < BLK_K/DIM_YB; n++)
             #pragma unroll
             for (m = 0; m < BLK_N/DIM_XB; m++)
-                sB[m*DIM_XB+idxB][n*DIM_YB+idyB] = rb[n][m];
+                sB(m*DIM_XB+idxB, n*DIM_YB+idyB) = rb[n][m];
 
         __syncthreads();
     }
@@ -765,12 +781,12 @@ void gemm_template_device_tt(
         // Load A shmem->regs
         #pragma unroll
         for (m = 0; m < THR_M; m++)
-            rA[m] = sA[k][m*DIM_X+idx];
+            rA[m] = sA(k, m*DIM_X+idx);
 
         // Load B shmem->regs
         #pragma unroll
         for (n = 0; n < THR_N; n++)
-            rB[n] = sB[n*DIM_Y+idy][k];
+            rB[n] = sB(n*DIM_Y+idy, k);
 
         // Compute
         #pragma unroll
