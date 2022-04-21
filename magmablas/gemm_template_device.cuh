@@ -41,7 +41,8 @@ void gemm_template_device_nn(
     T*       __restrict__ C, int LDC,
     T alpha, T beta,
     T* sA, int slda,
-    T* sB, int sldb )
+    T* sB, int sldb,
+    T* sC, int sldc )
 {
 #if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = threadIdx.x;  // thread's m dimension
@@ -238,7 +239,8 @@ void gemm_template_device_nt(
     T*       __restrict__ C, int LDC,
     T alpha, T beta,
     T* sA, int slda,
-    T* sB, int sldb )
+    T* sB, int sldb,
+    T* sC, int sldc )
 {
 #if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = threadIdx.x;  // thread's m dimension
@@ -440,8 +442,7 @@ void gemm_template_device_tn(
     T alpha, T beta,
     T* sA, int slda,
     T* sB, int sldb,
-    T* sA, int slda,
-    T* sB, int sldb )
+    T* sC, int sldc )
 {
 #if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = threadIdx.x;  // thread's m dimension
@@ -645,7 +646,8 @@ void gemm_template_device_tt(
     T*       __restrict__ C, int LDC,
     T alpha, T beta,
     T* sA, int slda,
-    T* sB, int sldb )
+    T* sB, int sldb,
+    T* sC, int sldc )
 {
 #if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = threadIdx.x;  // thread's m dimension
