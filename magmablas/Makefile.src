@@ -27,10 +27,14 @@ hdr += \
 libmagma_src += \
 	$(cdir)/zaxpycp.cu		\
 	$(cdir)/zcaxpycp.cu		\
-        $(cdir)/zdiinertia.cu           \
+    $(cdir)/zdiinertia.cu   \
 	$(cdir)/zgeadd.cu		\
 	$(cdir)/zgeadd2.cu		\
-        $(cdir)/zgeam.cu                \
+    $(cdir)/zgeam.cu        \
+	$(cdir)/sgemm.cu		\
+	$(cdir)/dgemm.cu		\
+	$(cdir)/cgemm.cu		\
+	$(cdir)/zgemm.cu		\
 	$(cdir)/zgemm_fermi.cu		\
 	$(cdir)/zgemm_reduce.cu		\
 	$(cdir)/zgemv_conj.cu		\
@@ -38,7 +42,7 @@ libmagma_src += \
 	$(cdir)/zgerbt.cu		\
 	$(cdir)/zgerbt_kernels.cu	\
 	$(cdir)/zgetmatrix_transpose.cpp\
-        $(cdir)/zheinertia.cu           \
+    $(cdir)/zheinertia.cu           \
 	$(cdir)/zhemm.cu		\
 	$(cdir)/zhemv.cu		\
 	$(cdir)/zhemv_upper.cu		\
