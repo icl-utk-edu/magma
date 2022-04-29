@@ -11,6 +11,17 @@
 */
 #include "magma_trisolve.h"
 
+#define PRECISION_z
+
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#if defined(MAGMA_HAVE_HIP)
+  #ifdef PRECISION_z
+    #define hipblasDoubleComplex hipDoubleComplex
+  #elif defined(PRECISION_c)
+    #define hipblasComplex hipComplex
+  #endif
+#endif
+
 magma_int_t magma_ztrisolve_analysis(magma_z_matrix M, magma_solve_info_t *solve_info, bool upper_triangular, bool unit_diagonal, bool transpose, magma_queue_t queue)
 {
     magma_int_t info = 0;
@@ -79,8 +90,8 @@ cleanup:
         size_t buffer_size = 0;
         CHECK_CUSPARSE(cusparseCreateCsrsm2Info(&solve_info->descr));
         CHECK_CUSPARSE(cusparseZcsrsm2_bufferSizeExt(cusparseHandle, algo, M_op, op,
-                                                     M.num_rows, 1, M.nnz, &one,
-                                                     descr, M.dval, M.drow, M.dcol,
+                                                     M.num_rows, 1, M.nnz, (const cuDoubleComplex*)&one,
+                                                     descr, (cuDoubleComplex*)M.dval, M.drow, M.dcol,
                                                      NULL, M.num_rows,
                                                      solve_info->descr,
                                                      CUSPARSE_SOLVE_POLICY_NO_LEVEL,
@@ -88,8 +99,8 @@ cleanup:
         if (buffer_size > 0)
             magma_malloc(&solve_info->buffer, buffer_size);
         CHECK_CUSPARSE(cusparseZcsrsm2_analysis(cusparseHandle, algo, M_op, op,
-                                                M.num_rows, 1, M.nnz, &one, descr,
-                                                M.dval, M.drow, M.dcol, NULL,
+                                                M.num_rows, 1, M.nnz, (const cuDoubleComplex*)&one, descr,
+                                                (cuDoubleComplex*)M.dval, M.drow, M.dcol, NULL,
                                                 M.num_rows, solve_info->descr,
                                                 CUSPARSE_SOLVE_POLICY_NO_LEVEL,
                                                 solve_info->buffer));
@@ -159,8 +170,8 @@ cleanup:
         magmablas_zlacpy(MagmaFull, M.num_rows, b.num_cols, b.dval, M.num_rows,
                          x.dval, M.num_rows, queue);
         CHECK_CUSPARSE(cusparseZcsrsm2_solve(cusparseHandle, algo, M_op, op,
-                                             M.num_rows, b.num_cols, M.nnz, &one,
-                                             descr, M.dval, M.drow, M.dcol, x.dval,
+                                             M.num_rows, b.num_cols, M.nnz, (const cuDoubleComplex*)&one,
+                                             descr, (cuDoubleComplex*)M.dval, M.drow, M.dcol, (cuDoubleComplex*)x.dval,
                                              M.num_rows, solve_info.descr,
                                              CUSPARSE_SOLVE_POLICY_NO_LEVEL,
                                              solve_info.buffer));
