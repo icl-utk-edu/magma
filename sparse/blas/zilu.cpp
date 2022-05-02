@@ -12,6 +12,8 @@
 #include "magmasparse_internal.h"
 #include <cuda.h>  // for CUDA_VERSION
 
+#include "magma_trisolve.h"
+
 #define PRECISION_z
 
 /* For hipSPARSE, they use a separate complex type than for hipBLAS */
@@ -101,49 +103,6 @@
     }
 #endif
 
-
-#if CUDA_VERSION >= 11000 
-#define cusparseZcsrsm_solve(handle, op, rows, cols, nnz, alpha, descrA, dval, drow, dcol,      \
-                             info, b, ldb, x, ldx )                                             \
-    {                                                                                           \
-        size_t bufsize;                                                                         \
-        void *buf;                                                                              \
-        cusparseSetMatType( descrA, CUSPARSE_MATRIX_TYPE_GENERAL );                             \
-        cusparseZcsrsm2_bufferSizeExt(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE,          \
-                                      rows, cols, nnz, alpha, descrA, dval, drow, dcol,         \
-                                      b, ldb, info, CUSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \
-        magma_malloc(&buf, bufsize);                                                            \
-        magmablas_zlacpy( MagmaFull, rows, cols, b, ldb, x, ldx, queue );                       \
-        cusparseZcsrsm2_solve(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE, rows, cols, nnz, \
-                              alpha, descrA, dval, drow, dcol, x, ldx, info,                    \
-                              CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                             \
-        magma_free(buf);                                                                        \
-    }
-
-#elif defined(MAGMA_HAVE_HIP) 
-#define cusparseZcsrsm_solve(handle, op, rows, cols, nnz, alpha, descrA, dval, drow, dcol,      \
-                             info, b, ldb, x, ldx )                                             \
-    {                                                                                           \
-        size_t bufsize;                                                                         \
-        void *buf;                                                                              \
-        hipsparseZcsrsm2_bufferSizeExt(handle, 0, op, HIPSPARSE_OPERATION_NON_TRANSPOSE,          \
-                                      rows, cols, nnz, (const hipDoubleComplex*)alpha, descrA, (const hipDoubleComplex*)dval, drow, dcol,         \
-                                      (hipDoubleComplex*)b, ldb, info, HIPSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);  \
-        magma_malloc(&buf, bufsize);                                                            \
-        hipsparseZcsrsm2_solve(handle, 0, op, HIPSPARSE_OPERATION_NON_TRANSPOSE, rows, cols, nnz, \
-                              (const hipDoubleComplex*)alpha, descrA, (const hipDoubleComplex*)dval, drow, dcol, (hipDoubleComplex*)b, ldb, info,                    \
-                              HIPSPARSE_SOLVE_POLICY_NO_LEVEL, buf);                             \
-        magmablas_zlacpy( MagmaFull, rows, cols, b, ldb, x, ldx, queue );                       \
-        magma_free(buf);                                                                        \
-    }
-
-#else
-#define cusparseZcsrsm_solve(handle, op, rows, cols, nnz, alpha, descrA, dval, drow, dcol,      \
-                             info, b, ldb, x, ldx )                                             \
-    CHECK_CUSPARSE( cusparseZcsrsm_solve(handle, op, rows, cols, alpha, descrA, dval,           \
-                                         drow, dcol, info, b, ldb, x, ldx ))              
-#endif 
-
 // todo: info is passed from analysis; to change info with this linfo & remove linfo from here
 #if CUDA_VERSION >= 11000
 #define cusparseZcsric0(handle, op, rows, nnz, descrA, dval, drow, dcol, info )                 \
@@ -225,8 +184,6 @@ magma_zcumilusetup(
     
     cusparseHandle_t cusparseHandle=NULL;
     cusparseMatDescr_t descrA=NULL;
-    cusparseMatDescr_t descrL=NULL;
-    cusparseMatDescr_t descrU=NULL;
 #if CUDA_VERSION >= 7000 || defined(MAGMA_HAVE_HIP)
     csrilu02Info_t info_M=NULL;
     void *pBuffer = NULL;
@@ -259,7 +216,7 @@ magma_zcumilusetup(
     CHECK_CUSPARSE( cusparseSetMatType( descrA, CUSPARSE_MATRIX_TYPE_GENERAL ));
     CHECK_CUSPARSE( cusparseSetMatDiagType( descrA, CUSPARSE_DIAG_TYPE_NON_UNIT ));
     CHECK_CUSPARSE( cusparseSetMatIndexBase( descrA, CUSPARSE_INDEX_BASE_ZERO ));
-    cusparseCreateSolveAnalysisInfo( &(precond->cuinfo) );
+    cusparseCreateSolveAnalysisInfo( &(precond->cuinfoILU) );
 
     // use kernel to manually check for zeros n the diagonal
     CHECK( magma_zdiagcheck( precond->M, queue ) );
@@ -331,13 +288,13 @@ magma_zcumilusetup(
                              CUSPARSE_OPERATION_NON_TRANSPOSE,
                              precond->M.num_rows, precond->M.nnz, descrA,
                              precond->M.dval, precond->M.drow, precond->M.dcol,
-                             precond->cuinfo );
+                             precond->cuinfoILU );
     CHECK_CUSPARSE( cusparseZcsrilu0( cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
                       precond->M.num_rows, descrA,
                       precond->M.dval,
                       precond->M.drow,
                       precond->M.dcol,
-                      precond->cuinfo ));
+                      precond->cuinfoILU ));
 #endif
 
     CHECK( magma_zmtransfer( precond->M, &hA, Magma_DEV, Magma_CPU, queue ));
@@ -356,29 +313,8 @@ magma_zcumilusetup(
     CHECK( magma_index_malloc( &(precond->U_dgraphindegree_bak), precond->M.num_rows ));
 
     if( precond->trisolver == Magma_CUSOLVE || precond->trisolver == 0 ){
-        CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
-        CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-        CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-        CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
-        CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
-        cusparseCreateSolveAnalysisInfo( &precond->cuinfoL );
-        cusparseZcsrsm_analysis( cusparseHandle,
-                                 CUSPARSE_OPERATION_NON_TRANSPOSE, precond->L.num_rows,
-                                 precond->L.nnz, descrL,
-                                 precond->L.dval, precond->L.drow, precond->L.dcol, 
-                                 precond->cuinfoL);
-    
-        CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
-        CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-        CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-        CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
-        CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_UPPER ));
-        cusparseCreateSolveAnalysisInfo( &precond->cuinfoU );
-        cusparseZcsrsm_analysis( cusparseHandle,
-                                 CUSPARSE_OPERATION_NON_TRANSPOSE, precond->U.num_rows,
-                                 precond->U.nnz, descrU,
-                                 precond->U.dval, precond->U.drow, precond->U.dcol, 
-                                 precond->cuinfoU );
+        CHECK(magma_ztrisolve_analysis(precond->L, &precond->cuinfoL, false, false, false, queue));
+        CHECK(magma_ztrisolve_analysis(precond->U, &precond->cuinfoU, true, false, false, queue));
     } else if( precond->trisolver == Magma_SYNCFREESOLVE ){
             magma_zmfree(&hL, queue );
             magma_zmfree(&hU, queue );
@@ -458,10 +394,8 @@ cleanup:
     magma_free( pBuffer );
     cusparseDestroyCsrilu02Info( info_M );
 #endif
-    cusparseDestroySolveAnalysisInfo( precond->cuinfo );
+    cusparseDestroySolveAnalysisInfo( precond->cuinfoILU );
     cusparseDestroyMatDescr( descrA );
-    cusparseDestroyMatDescr( descrL );
-    cusparseDestroyMatDescr( descrU );
     cusparseDestroy( cusparseHandle );
     magma_zmfree( &hA, queue );
     magma_zmfree( &hACSR, queue );
@@ -505,13 +439,6 @@ magma_zcumilusetup_transpose(
 {
     magma_int_t info = 0;
     magma_z_matrix Ah1={Magma_CSR}, Ah2={Magma_CSR};
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrLT=NULL;
-    cusparseMatDescr_t descrUT=NULL;
-    
-    // CUSPARSE context //
-    CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-    CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
 
     // transpose the matrix
     magma_zmtransfer( precond->L, &Ah1, Magma_DEV, Magma_CPU, queue );
@@ -538,33 +465,10 @@ magma_zcumilusetup_transpose(
     magma_zmtransfer( Ah2, &(precond->UT), Magma_CPU, Magma_DEV, queue );
     magma_zmfree(&Ah2, queue );
    
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrLT ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrLT, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrLT, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrLT, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrLT, CUSPARSE_FILL_MODE_UPPER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoLT );
-    cusparseZcsrsm_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_NON_TRANSPOSE, precond->LT.num_rows,
-                             precond->LT.nnz, descrLT,
-                             precond->LT.dval, precond->LT.drow, precond->LT.dcol, 
-                             precond->cuinfoLT );
-    
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrUT ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrUT, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrUT, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrUT, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrUT, CUSPARSE_FILL_MODE_LOWER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoUT );
-    cusparseZcsrsm_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_NON_TRANSPOSE, precond->UT.num_rows,
-                             precond->UT.nnz, descrUT,
-                             precond->UT.dval, precond->UT.drow, precond->UT.dcol, 
-                             precond->cuinfoUT );
+    CHECK(magma_ztrisolve_analysis(precond->LT, &precond->cuinfoLT, true, false, false, queue));
+    CHECK(magma_ztrisolve_analysis(precond->UT, &precond->cuinfoUT, false, false, false, queue));
+
 cleanup:
-    cusparseDestroyMatDescr( descrLT );
-    cusparseDestroyMatDescr( descrUT );
-    cusparseDestroy( cusparseHandle );
     magma_zmfree(&Ah1, queue );
     magma_zmfree(&Ah2, queue );
 
@@ -601,10 +505,6 @@ magma_zcumilugeneratesolverinfo(
 {
     magma_int_t info = 0;
     
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrL=NULL;
-    cusparseMatDescr_t descrU=NULL;
-    
     magma_z_matrix hA={Magma_CSR}, hL={Magma_CSR}, hU={Magma_CSR};
     
     if (precond->L.memory_location != Magma_DEV ){
@@ -623,35 +523,8 @@ magma_zcumilugeneratesolverinfo(
         magma_zmfree(&hU, queue );
     }
     
-    // CUSPARSE context //
-    CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-    CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
-
-
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoL );
-    cusparseZcsrsm_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_NON_TRANSPOSE, precond->L.num_rows,
-                             precond->L.nnz, descrL,
-                             precond->L.dval, precond->L.drow, precond->L.dcol, 
-                             precond->cuinfoL );
-
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_UPPER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoU );
-    cusparseZcsrsm_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_NON_TRANSPOSE, precond->U.num_rows,
-                             precond->U.nnz, descrU,
-                             precond->U.dval, precond->U.drow, precond->U.dcol, 
-                             precond->cuinfoU );
-
+    CHECK(magma_ztrisolve_analysis(precond->L, &precond->cuinfoL, false, false, false, queue));
+    CHECK(magma_ztrisolve_analysis(precond->U, &precond->cuinfoU, true, false, false, queue));
     
     if( precond->trisolver != 0 && precond->trisolver != Magma_CUSOLVE ){
         //prepare for iterative solves
@@ -665,11 +538,7 @@ magma_zcumilugeneratesolverinfo(
         CHECK( magma_zvinit( &precond->work2, Magma_DEV, precond->U.num_rows, 1, MAGMA_Z_ZERO, queue ));
     }
     
-cleanup:
-    cusparseDestroyMatDescr( descrL );
-    cusparseDestroyMatDescr( descrU );
-    cusparseDestroy( cusparseHandle );
-     
+cleanup:     
     return info;
 }
 
@@ -709,36 +578,12 @@ magma_zapplycumilu_l(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrL=NULL;
-    
+        
     magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0);
 
     // CUSPARSE context //
     if( precond->trisolver == Magma_CUSOLVE || precond->trisolver == 0 ){
-        CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-        CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
-        CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
-        CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-        CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-        CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
-        CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
-        cusparseZcsrsm_solve( cusparseHandle,
-                              CUSPARSE_OPERATION_NON_TRANSPOSE,
-                              precond->L.num_rows,
-                              b.num_rows*b.num_cols/precond->L.num_rows,
-                              precond->L.nnz,
-                              &one,
-                              descrL,
-                              precond->L.dval,
-                              precond->L.drow,
-                              precond->L.dcol,
-                              precond->cuinfoL,
-                              b.dval,
-                              precond->L.num_rows,
-                              x->dval,
-                              precond->L.num_rows );
+        CHECK(magma_ztrisolve(precond->L, precond->cuinfoL, false, false, false, b, *x, queue));
     } else if( precond->trisolver == Magma_SYNCFREESOLVE ){
         magma_zgecscsyncfreetrsm_solve( precond->L.num_rows,
             precond->L.nnz, 
@@ -748,12 +593,9 @@ magma_zapplycumilu_l(
             1, // rhs
             queue );
     }
-    
-    
+       
 
 cleanup:
-    cusparseDestroyMatDescr( descrL );
-    cusparseDestroy( cusparseHandle );
     return info;
 }
 
@@ -795,40 +637,14 @@ magma_zapplycumilu_l_transpose(
 {
     magma_int_t info = 0;
     
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrL=NULL;
-    
     magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0);
 
     // CUSPARSE context //
-    CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-    CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_UPPER ));
-    cusparseZcsrsm_solve( cusparseHandle,
-                          CUSPARSE_OPERATION_NON_TRANSPOSE,
-                          precond->LT.num_rows,
-                          b.num_rows*b.num_cols/precond->LT.num_rows,
-                          precond->LT.nnz,
-                          &one,
-                          descrL,
-                          precond->LT.dval,
-                          precond->LT.drow,
-                          precond->LT.dcol,
-                          precond->cuinfoLT,
-                          b.dval,
-                          precond->LT.num_rows,
-                          x->dval,
-                          precond->LT.num_rows );
+    CHECK(magma_ztrisolve(precond->LT, precond->cuinfoLT, true, false, false, b, *x, queue));
     
     
 
 cleanup:
-    cusparseDestroyMatDescr( descrL );
-    cusparseDestroy( cusparseHandle );
     return info;
 }
 
@@ -869,35 +685,11 @@ magma_zapplycumilu_r(
 {
     magma_int_t info = 0;
     
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrU=NULL;
-    
     magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0);
 
     // CUSPARSE context //
     if( precond->trisolver == Magma_CUSOLVE || precond->trisolver == 0 ){
-        CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-        CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
-        CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
-        CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-        CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-        CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
-        CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_UPPER ));
-        cusparseZcsrsm_solve( cusparseHandle,
-                              CUSPARSE_OPERATION_NON_TRANSPOSE,
-                              precond->U.num_rows,
-                              b.num_rows*b.num_cols/precond->U.num_rows,
-                              precond->U.nnz,
-                              &one,
-                              descrU,
-                              precond->U.dval,
-                              precond->U.drow,
-                              precond->U.dcol,
-                              precond->cuinfoU,
-                              b.dval,
-                              precond->U.num_rows,
-                              x->dval,
-                              precond->U.num_rows );
+        CHECK(magma_ztrisolve(precond->U, precond->cuinfoU, true, false, false, b, *x, queue));
     } else if( precond->trisolver == Magma_SYNCFREESOLVE ){
         magma_zgecscsyncfreetrsm_solve( precond->U.num_rows,
             precond->U.nnz,
@@ -911,8 +703,6 @@ magma_zapplycumilu_r(
     
 
 cleanup:
-    cusparseDestroyMatDescr( descrU );
-    cusparseDestroy( cusparseHandle );
     return info; 
 }
 
@@ -953,40 +743,11 @@ magma_zapplycumilu_r_transpose(
 {
     magma_int_t info = 0;
     
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrU=NULL;
-    
     magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0);
 
-    // CUSPARSE context //
-    CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-    CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_LOWER ));
-    cusparseZcsrsm_solve( cusparseHandle,
-                          CUSPARSE_OPERATION_NON_TRANSPOSE,
-                          precond->UT.num_rows,
-                          b.num_rows*b.num_cols/precond->UT.num_rows,
-                          precond->UT.nnz,
-                          &one,
-                          descrU,
-                          precond->UT.dval,
-                          precond->UT.drow,
-                          precond->UT.dcol,
-                          precond->cuinfoUT,
-                          b.dval,
-                          precond->UT.num_rows,
-                          x->dval,
-                          precond->UT.num_rows );
-
+    CHECK(magma_ztrisolve(precond->UT, precond->cuinfoUT, false, false, false, b, *x, queue));
     
-
 cleanup:
-    cusparseDestroyMatDescr( descrU );
-    cusparseDestroy( cusparseHandle );
     return info; 
 }
 
@@ -1052,7 +813,7 @@ magma_zcumiccsetup(
     CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
     CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
     CHECK_CUSPARSE( cusparseCreateMatDescr( &descrA ));
-    cusparseCreateSolveAnalysisInfo( &(precond->cuinfo) );
+    cusparseCreateSolveAnalysisInfo( &(precond->cuinfoILU) );
     // use kernel to manually check for zeros n the diagonal
     CHECK( magma_zdiagcheck( precond->M, queue ) );
  /*      
@@ -1099,13 +860,13 @@ magma_zcumiccsetup(
                              CUSPARSE_OPERATION_NON_TRANSPOSE,
                              precond->M.num_rows, precond->M.nnz, descrA,
                              precond->M.dval, precond->M.drow, precond->M.dcol,
-                             precond->cuinfo );
+                             precond->cuinfoILU );
     cusparseZcsric0( cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
                      precond->M.num_rows, precond->M.nnz, descrA,
                      precond->M.dval,
                      precond->M.drow,
                      precond->M.dcol,
-                     precond->cuinfo );
+                     precond->cuinfoILU );
 //#endif
 
     CHECK( magma_zmtransfer( precond->M, &precond->L, 
@@ -1163,7 +924,7 @@ cleanup:
     magma_free( pBuffer );
     cusparseDestroyCsric02Info( info_M );
 #endif
-    cusparseDestroySolveAnalysisInfo( precond->cuinfo );
+    cusparseDestroySolveAnalysisInfo( precond->cuinfoILU );
     cusparseDestroyMatDescr( descrL );
     cusparseDestroyMatDescr( descrU );
     cusparseDestroyMatDescr( descrA );
@@ -1202,36 +963,9 @@ magma_zcumicgeneratesolverinfo(
 {
     magma_int_t info = 0;
     
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrL=NULL;
-    cusparseMatDescr_t descrU=NULL;
+    CHECK(magma_ztrisolve_analysis(precond->M, &precond->cuinfoL, false, false, false, queue));
+    CHECK(magma_ztrisolve_analysis(precond->M, &precond->cuinfoU, false, false, true, queue));
     
-    // CUSPARSE context //
-    CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-    CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoL );
-    cusparseZcsrsm_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_NON_TRANSPOSE, precond->M.num_rows,
-                             precond->M.nnz, descrL,
-                             precond->M.dval, precond->M.drow, precond->M.dcol, 
-                             precond->cuinfoL );
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_LOWER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoU );
-    cusparseZcsrsm_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_TRANSPOSE, precond->M.num_rows,
-                             precond->M.nnz, descrU,
-                             precond->M.dval, precond->M.drow, precond->M.dcol, 
-                             precond->cuinfoU );
-
 
 /*
     // to enable also the block-asynchronous iteration for the triangular solves
@@ -1260,9 +994,6 @@ magma_zcumicgeneratesolverinfo(
 */
 
 cleanup:
-    cusparseDestroyMatDescr( descrL );
-    cusparseDestroyMatDescr( descrU );
-    cusparseDestroy( cusparseHandle );
     return info;
 }
 
@@ -1304,40 +1035,11 @@ magma_zapplycumicc_l(
 {
     magma_int_t info = 0;
     
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrL=NULL;
-    
     magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0);
 
-    // CUSPARSE context //
-    CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-    CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
-    cusparseZcsrsm_solve( cusparseHandle,
-                          CUSPARSE_OPERATION_NON_TRANSPOSE,
-                          precond->M.num_rows,
-                          b.num_rows*b.num_cols/precond->M.num_rows,
-                          precond->M.nnz,
-                          &one,
-                          descrL,
-                          precond->M.dval,
-                          precond->M.drow,
-                          precond->M.dcol,
-                          precond->cuinfoL,
-                          b.dval,
-                          precond->M.num_rows,
-                          x->dval,
-                          precond->M.num_rows );
-
-    
+    CHECK(magma_ztrisolve(precond->M, precond->cuinfoL, false, false, false, b, *x, queue));
 
 cleanup:
-    cusparseDestroyMatDescr( descrL );
-    cusparseDestroy( cusparseHandle );
     return info; 
 }
 
@@ -1378,40 +1080,13 @@ magma_zapplycumicc_r(
 {
     magma_int_t info = 0;
     
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrU=NULL;
-    
     magmaDoubleComplex one = MAGMA_Z_MAKE( 1.0, 0.0);
 
-    // CUSPARSE context //
-    CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-    CHECK_CUSPARSE( cusparseSetStream( cusparseHandle, queue->cuda_stream() ));
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_LOWER ));
-    cusparseZcsrsm_solve( cusparseHandle,
-                          CUSPARSE_OPERATION_TRANSPOSE,
-                          precond->M.num_rows,
-                          b.num_rows*b.num_cols/precond->M.num_rows,
-                          precond->M.nnz,
-                          &one,
-                          descrU,
-                          precond->M.dval,
-                          precond->M.drow,
-                          precond->M.dcol,
-                          precond->cuinfoU,
-                          b.dval,
-                          precond->M.num_rows,
-                          x->dval,
-                          precond->M.num_rows );
+    CHECK(magma_ztrisolve(precond->M, precond->cuinfoU, false, false, true, b, *x, queue));
     
     
 
 cleanup:
-    cusparseDestroyMatDescr( descrU );
-    cusparseDestroy( cusparseHandle );
     return info; 
 }
 
