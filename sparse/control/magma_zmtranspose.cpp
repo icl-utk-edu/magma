@@ -30,7 +30,7 @@
                                       valB, colB, rowB, CUDA_C_64F, action, base,              \
                                       CUSPARSE_CSR2CSC_ALG1, &bufsize);                        \
         if (bufsize > 0)                                                                       \
-           magma_malloc(&buf, bufsize);                                                        \
+           CHECK( magma_malloc(&buf, bufsize) );                                               \
         cusparseCsr2cscEx2(handle, m, n, nnz, valA, rowA, colA, valB, colB, rowB,              \
                            CUDA_C_64F, action, base, CUSPARSE_CSR2CSC_ALG1, buf);              \
         if (bufsize > 0)                                                                       \
