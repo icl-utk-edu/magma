@@ -266,63 +266,63 @@ magmablas_cgemm_2(
     {
         case 0: // nn
         {
-            gemm_template_batched_nn
+            gemm_template_nn
             <magmaFloatComplex, DIM_X, DIM_Y, BLK_M_nn, BLK_N_nn, BLK_K_nn, DIM_XA_nn, DIM_YA_nn, DIM_XB_nn, DIM_YB_nn, 0, 0>
             (m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
         }
         break;
         case 1: // nt
         {
-            gemm_template_batched_nt
+            gemm_template_nt
             <magmaFloatComplex, DIM_X, DIM_Y, BLK_M_nt, BLK_N_nt, BLK_K_nt, DIM_XA_nt, DIM_YA_nt, DIM_XB_nt, DIM_YB_nt, 0, 0>
             (m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
         }
         break;
         case 2: // nc
         {
-            gemm_template_batched_nt
-            <magmaFloatComplex, DIM_X, DIM_Y, BLK_M_nt, BLK_N_nt, BLK_K_nt, DIM_XA_nt, DIM_YA_nt, DIM_XB_nt, DIM_YB_nt, 1>
+            gemm_template_nt
+            <magmaFloatComplex, DIM_X, DIM_Y, BLK_M_nt, BLK_N_nt, BLK_K_nt, DIM_XA_nt, DIM_YA_nt, DIM_XB_nt, DIM_YB_nt, 0, 1>
             (m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
         }
         break;
         case 3: // tn
         {
-            gemm_template_batched_tn
+            gemm_template_tn
             <magmaFloatComplex, DIM_X, DIM_Y, BLK_M_tn, BLK_N_tn, BLK_K_tn, DIM_XA_tn, DIM_YA_tn, DIM_XB_tn, DIM_YB_tn, 0, 0>
             (m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
         }
         break;
         case 6: // cn
         {
-            gemm_template_batched_tn
+            gemm_template_tn
             <magmaFloatComplex, DIM_X, DIM_Y, BLK_M_tn, BLK_N_tn, BLK_K_tn, DIM_XA_tn, DIM_YA_tn, DIM_XB_tn, DIM_YB_tn, 1, 0>
             (m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
         }
         break;
         case 4: // tt
         {
-            gemm_template_batched_tt
+            gemm_template_tt
             <magmaFloatComplex, DIM_X, DIM_Y, BLK_M_tt, BLK_N_tt, BLK_K_tt, DIM_XA_tt, DIM_YA_tt, DIM_XB_tt, DIM_YB_tt, 0, 0>
             (m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
         }
         break;
         case 5: // tc
         {
-            gemm_template_batched_tt
+            gemm_template_tt
             <magmaFloatComplex, DIM_X, DIM_Y, BLK_M_tt, BLK_N_tt, BLK_K_tt, DIM_XA_tt, DIM_YA_tt, DIM_XB_tt, DIM_YB_tt, 0, 1>
             (m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
         }
         break;
         case 7: // ct
         {
-            gemm_template_batched_tt
+            gemm_template_tt
             <magmaFloatComplex, DIM_X, DIM_Y, BLK_M_tt, BLK_N_tt, BLK_K_tt, DIM_XA_tt, DIM_YA_tt, DIM_XB_tt, DIM_YB_tt, 1, 0>
             (m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
         }
         break;
         case 8: // cc
         {
-            gemm_template_batched_tt
+            gemm_template_tt
             <magmaFloatComplex, DIM_X, DIM_Y, BLK_M_tt, BLK_N_tt, BLK_K_tt, DIM_XA_tt, DIM_YA_tt, DIM_XB_tt, DIM_YB_tt, 1, 1>
             (m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta, queue);
         }
