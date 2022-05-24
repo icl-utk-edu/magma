@@ -16,7 +16,6 @@
 #include "gemm_template_device_defs.cuh"
 #include "gemm_template_device.cuh"
 
-
 /******************************************************************************/
 template <typename T, const int DIM_X, const int DIM_Y,
          const int BLK_M, const int BLK_N, const int BLK_K,
@@ -37,7 +36,7 @@ void gemm_template_nn_kernel(
     T* sA = (T*)sdata_nn;        // sA is (BLK_M+1) x (BLK_K)
     T* sB = sA + slda * BLK_K;   // sB is (BLK_K+1) x (BLK_N)
 
-    gemm_template_device_nn
+    gemm_template_device_prefetch_nn
     <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
     ( M, N, K, A, LDA, B, LDB, C, LDC, alpha, beta, sA, slda, sB, sldb, NULL, 0 );
 }
@@ -63,7 +62,7 @@ void gemm_template_nt_kernel(
     T* sA = (T*)sdata_nt;      // sA is (BLK_M+1) x (BLK_K)
     T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
 
-    gemm_template_device_nt
+    gemm_template_device_prefetch_nt
     <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
     ( M, N, K, A, LDA, B, LDB, C, LDC, alpha, beta, sA, slda, sB, sldb, NULL, 0 );
 }
@@ -89,7 +88,7 @@ void gemm_template_tn_kernel(
     T* sA = (T*)sdata_tn;      // sA is (BLK_M+1) x (BLK_K)
     T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
 
-    gemm_template_device_tn
+    gemm_template_device_prefetch_tn
     <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
     ( M, N, K, A, LDA, B, LDB, C, LDC, alpha, beta, sA, slda, sB, sldb, NULL, 0 );
 }
@@ -115,7 +114,7 @@ void gemm_template_tt_kernel(
     T* sA = (T*)sdata_tt;      // sA is (BLK_M+1) x (BLK_K)
     T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
 
-    gemm_template_device_tt
+    gemm_template_device_prefetch_tt
     <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
     ( M, N, K, A, LDA, B, LDB, C, LDC, alpha, beta, sA, slda, sB, sldb, NULL, 0 );
 }
@@ -125,10 +124,10 @@ void gemm_template_tt_kernel(
 // kernel wrappers
 // NN
 template <typename T, const int DIM_X, const int DIM_Y,
-         const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
+         const int BLK_M, const int BLK_N, const int BLK_K,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
-void gemm_template_batched_nn(
+void gemm_template_nn(
     magma_int_t m, magma_int_t n, magma_int_t k,
     T const * dA, magma_int_t ldda,
     T const * dB, magma_int_t lddb,
@@ -149,10 +148,10 @@ void gemm_template_batched_nn(
 /******************************************************************************/
 // NT, NC
 template <typename T, const int DIM_X, const int DIM_Y,
-         const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
+         const int BLK_M, const int BLK_N, const int BLK_K,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
-void gemm_template_batched_nt(
+void gemm_template_nt(
     magma_int_t m, magma_int_t n, magma_int_t k,
     T const * dA, magma_int_t ldda,
     T const * dB, magma_int_t lddb,
@@ -173,10 +172,10 @@ void gemm_template_batched_nt(
 /******************************************************************************/
 // TN, CN
 template <typename T, const int DIM_X, const int DIM_Y,
-         const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
+         const int BLK_M, const int BLK_N, const int BLK_K,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
-void gemm_template_batched_tn(
+void gemm_template_tn(
     magma_int_t m, magma_int_t n, magma_int_t k,
     T const * dA, magma_int_t ldda,
     T const * dB, magma_int_t lddb,
@@ -197,10 +196,10 @@ void gemm_template_batched_tn(
 /******************************************************************************/
 // TT, TC, CT, CC
 template <typename T, const int DIM_X, const int DIM_Y,
-         const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
+         const int BLK_M, const int BLK_N, const int BLK_K,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
-void gemm_template_batched_tt(
+void gemm_template_tt(
     magma_int_t m, magma_int_t n, magma_int_t k,
     T const * dA, magma_int_t ldda,
     T const * dB, magma_int_t lddb,
