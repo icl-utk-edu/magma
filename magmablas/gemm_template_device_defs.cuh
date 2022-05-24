@@ -46,8 +46,7 @@ float conj(float &x) {return x;}
 
 
 // =============================================================================
-#define fetch(A, m, n, bound) offs_d##A[min(n*LD##A+m, bound)]
-
+#define fetch(A, m, n, bound)  offs_d##A[min(n*LD##A+m, bound)]
 
 // =============================================================================
 #if defined(PRECISION_z)
