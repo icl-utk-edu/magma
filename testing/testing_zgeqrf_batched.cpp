@@ -88,7 +88,7 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
-    real_Double_t    gflops, magma_perf, magma_time, cublas_perf=0, cublas_time=0, cpu_perf, cpu_time;
+    real_Double_t    gflops, magma_perf, magma_time, device_perf=0, device_time=0, cpu_perf, cpu_time;
     double           magma_error, cublas_error, magma_error2, cublas_error2;
 
     magmaDoubleComplex *h_A, *h_R, *h_Amagma, *tau, *h_work, tmp[1], unused[1];
@@ -103,6 +103,8 @@ int main( int argc, char** argv)
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
+    int device_info;  // not magma_int_t
+
 
     magma_int_t batchCount;
     magma_int_t column;
@@ -148,7 +150,6 @@ int main( int argc, char** argv)
             lwork = -1;
             lapackf77_zgeqrf( &M, &N, unused, &M, unused, tmp, &lwork, &info );
             lwork = (magma_int_t)MAGMA_Z_REAL( tmp[0] );
-            lwork = max(lwork, N*N);
 
             TESTING_CHECK( magma_zmalloc_cpu( &h_work, lwork * batchCount ));
 
@@ -165,9 +166,7 @@ int main( int argc, char** argv)
             magma_zset_pointer( dtau_array, dtau_magma, 1, 0, 0, min_mn, batchCount, opts.queue );
 
             magma_time = magma_sync_wtime( opts.queue );
-
             info = magma_zgeqrf_batched(M, N, dA_array, ldda, dtau_array, dinfo_magma, batchCount, opts.queue);
-
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
 
@@ -182,27 +181,32 @@ int main( int argc, char** argv)
                Performs operation using CUBLAS
                =================================================================== */
 
-            /* cublasZgeqrfBatched is only available from CUBLAS v6.5 */
-            #if CUDA_VERSION >= 6050
             magma_zsetmatrix( M, column, h_R, lda,  d_A, ldda, opts.queue );
             magma_zset_pointer( dA_array, d_A, 1, 0, 0, ldda*N, batchCount, opts.queue );
             magma_zset_pointer( dtau_array, dtau_cublas, 1, 0, 0, min_mn, batchCount, opts.queue );
 
-            cublas_time = magma_sync_wtime( opts.queue );
-
-            int cublas_info;  // not magma_int_t
+            device_time = magma_sync_wtime( opts.queue );
+            #ifdef MAGMA_HAVE_CUDA
+            /* cublasZgeqrfBatched is only available from CUBLAS v6.5 */
+            #if CUDA_VERSION >= 6050
             cublasZgeqrfBatched( opts.handle, int(M), int(N),
                                  dA_array, int(ldda), dtau_array,
-                                 &cublas_info, int(batchCount) );
-
-            cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
-            cublas_perf = gflops / cublas_time;
-
-            if (cublas_info != 0) {
-                printf("cublasZgeqrfBatched returned error %lld: %s.\n",
-                       (long long) cublas_info, magma_strerror( cublas_info ));
-            }
+                                 &device_info, int(batchCount) );
             #endif
+            #else
+            hipblasZgeqrfBatched( opts.handle, int(M), int(N),
+                                 (hipblasDoubleComplex**)dA_array, int(ldda),
+                                 (hipblasDoubleComplex**)dtau_array,
+                                 &device_info, int(batchCount) );
+            #endif
+
+            device_time = magma_sync_wtime( opts.queue ) - device_time;
+            device_perf = gflops / device_time;
+
+            if (device_info != 0) {
+                printf("cublasZgeqrfBatched returned error %lld: %s.\n",
+                       (long long) device_info, magma_strerror( device_info ));
+            }
 
             /* =====================================================================
                Performs operation using LAPACK
@@ -239,14 +243,14 @@ int main( int argc, char** argv)
                 printf("%10lld %5lld %5lld    %7.2f (%7.2f)     %7.2f (%7.2f)   %7.2f (%7.2f)",
                        (long long) batchCount, (long long) M, (long long) N,
                        magma_perf,  1000.*magma_time,
-                       cublas_perf, 1000.*cublas_time,
+                       device_perf, 1000.*device_time,
                        cpu_perf,    1000.*cpu_time );
             }
             else {
                 printf("%10lld %5lld %5lld    %7.2f (%7.2f)     %7.2f (%7.2f)     ---  (  ---  )",
                        (long long) batchCount, (long long) M, (long long) N,
                        magma_perf,  1000.*magma_time,
-                       cublas_perf, 1000.*cublas_time );
+                       device_perf, 1000.*device_time );
             }
 
             if (opts.check) {
@@ -258,21 +262,21 @@ int main( int argc, char** argv)
                 magmaDoubleComplex *Q, *R;
                 double *work;
 
-                TESTING_CHECK( magma_zmalloc_cpu( &Q,    ldq*min_mn ));  // M by K
-                TESTING_CHECK( magma_zmalloc_cpu( &R,    ldr*N ));       // K by N
-                TESTING_CHECK( magma_dmalloc_cpu( &work, min_mn ));
+                TESTING_CHECK( magma_zmalloc_cpu( &Q,    batchCount*ldq*min_mn ));  // M by K
+                TESTING_CHECK( magma_zmalloc_cpu( &R,    batchCount*ldr*N ));       // K by N
+                TESTING_CHECK( magma_dmalloc_cpu( &work, batchCount*min_mn ));
 
                 /* check magma result */
                 magma_error  = 0;
                 magma_error2 = 0;
                 magma_zgetvector(min_mn*batchCount, dtau_magma, 1, tau, 1, opts.queue );
-                for (int i=0; i < batchCount; i++)
-                {
+                #pragma omp parallel for reduction(max:magma_error,magma_error2)
+                for (int i=0; i < batchCount; i++) {
                     double err, err2;
                     get_QR_error(M, N, min_mn,
                              h_Amagma + i*lda*N, h_R + i*lda*N, lda, tau + i*min_mn,
-                             Q, ldq, R, ldr, h_work, lwork,
-                             work, &err, &err2);
+                             Q + i*ldq*min_mn, ldq, R + i*ldr*N, ldr, h_work + i*lwork, lwork,
+                             work + i*min_mn, &err, &err2);
                     magma_error  = magma_max_nan( err,  magma_error  );
                     magma_error2 = magma_max_nan( err2, magma_error2 );
                 }
@@ -280,16 +284,16 @@ int main( int argc, char** argv)
                 /* check cublas result */
                 cublas_error  = 0;
                 cublas_error2 = 0;
-                #if CUDA_VERSION >= 6050
+                #if ((defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 6050) || defined(MAGMA_HAVE_HIP))
                 magma_zgetvector(min_mn*batchCount, dtau_cublas, 1, tau, 1, opts.queue );
                 magma_zgetmatrix( M, column, d_A, ldda, h_A, lda, opts.queue );
-                for (int i=0; i < batchCount; i++)
-                {
+                #pragma omp parallel for reduction(max:cublas_error,cublas_error2)
+                for (int i=0; i < batchCount; i++) {
                     double err, err2;
                     get_QR_error(M, N, min_mn,
                              h_A + i*lda*N, h_R + i*lda*N, lda, tau + i*min_mn,
-                             Q, ldq, R, ldr, h_work, lwork,
-                             work, &err, &err2);
+                             Q + i*ldq*min_mn, ldq, R + i*ldr*N, ldr, h_work + i*lwork, lwork,
+                             work + i*min_mn, &err, &err2);
                     cublas_error  = magma_max_nan( err,  cublas_error  );
                     cublas_error2 = magma_max_nan( err2, cublas_error2 );
                 }

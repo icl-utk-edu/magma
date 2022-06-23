@@ -39,7 +39,7 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
-    real_Double_t   gflops, magma_perf, magma_time=0, cpu_perf=0, cpu_time=0;
+    real_Double_t   gflops, magma_perf=0, magma_time=0, cpu_perf=0, cpu_time=0;
     double          error, lapack_error, magma_error, normalize, work[1];
     magma_int_t M, N, info;
     magma_int_t total_size_A_cpu, total_size_A_dev;

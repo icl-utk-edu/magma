@@ -22,6 +22,8 @@ hdr += \
 	$(cdir)/zlarfg_devicesfunc.cuh		\
 	$(cdir)/ztrsv_template_device.cuh	\
 	$(cdir)/zgetf2_devicefunc.cuh		\
+	$(cdir)/zgeqr2_batched_fused.cuh	\
+	$(cdir)/zlarf_batched_fused.cuh	\
 
 # alphabetic order by base name (ignoring precision)
 libmagma_src += \
@@ -136,6 +138,10 @@ libmagma_src += \
 	$(cdir)/zgemv_batched_core.cu		\
 	$(cdir)/zhemv_batched_core.cu		\
 	$(cdir)/zgeqr2_batched.cu		\
+	$(cdir)/zgeqr2_batched_fused_reg.cu		\
+	$(cdir)/zgeqr2_batched_fused_reg_medium.cu		\
+	$(cdir)/zgeqr2_batched_fused_reg_tall.cu		\
+	$(cdir)/zgeqr2_batched_fused_sm.cu		\
 	$(cdir)/zgeqrf_batched_smallsq.cu		\
 	$(cdir)/zgerbt_func_batched.cu		\
 	$(cdir)/zgesv_batched_small.cu		\
@@ -149,6 +155,10 @@ libmagma_src += \
 	$(cdir)/zherk_batched.cpp		\
 	$(cdir)/cherk_batched_core.cu		\
 	$(cdir)/zherk_batched_core.cu		\
+	$(cdir)/zlarf_batched_fused_reg.cu	\
+	$(cdir)/zlarf_batched_fused_reg_medium.cu	\
+	$(cdir)/zlarf_batched_fused_reg_tall.cu	\
+	$(cdir)/zlarf_batched_fused_sm.cu	\
 	$(cdir)/zlaswp_batched.cu		\
 	$(cdir)/zpotf2_kernels.cu		\
 	$(cdir)/set_pointer.cu			\
@@ -270,6 +280,26 @@ $(cdir)/dgeqr2_batched.$(o_ext): $(cdir)/dlarfg_devicesfunc.cuh
 $(cdir)/cgeqr2_batched.$(o_ext): $(cdir)/clarfg_devicesfunc.cuh
 $(cdir)/zgeqr2_batched.$(o_ext): $(cdir)/zlarfg_devicesfunc.cuh
 
+$(cdir)/sgeqr2_batched_fused_reg.$(o_ext): $(cdir)/sgeqr2_batched_fused.cuh
+$(cdir)/dgeqr2_batched_fused_reg.$(o_ext): $(cdir)/dgeqr2_batched_fused.cuh
+$(cdir)/cgeqr2_batched_fused_reg.$(o_ext): $(cdir)/cgeqr2_batched_fused.cuh
+$(cdir)/zgeqr2_batched_fused_reg.$(o_ext): $(cdir)/zgeqr2_batched_fused.cuh
+
+$(cdir)/sgeqr2_batched_fused_reg_medium.$(o_ext): $(cdir)/sgeqr2_batched_fused.cuh
+$(cdir)/dgeqr2_batched_fused_reg_medium.$(o_ext): $(cdir)/dgeqr2_batched_fused.cuh
+$(cdir)/cgeqr2_batched_fused_reg_medium.$(o_ext): $(cdir)/cgeqr2_batched_fused.cuh
+$(cdir)/zgeqr2_batched_fused_reg_medium.$(o_ext): $(cdir)/zgeqr2_batched_fused.cuh
+
+$(cdir)/sgeqr2_batched_fused_reg_tall.$(o_ext): $(cdir)/sgeqr2_batched_fused.cuh
+$(cdir)/dgeqr2_batched_fused_reg_tall.$(o_ext): $(cdir)/dgeqr2_batched_fused.cuh
+$(cdir)/cgeqr2_batched_fused_reg_tall.$(o_ext): $(cdir)/cgeqr2_batched_fused.cuh
+$(cdir)/zgeqr2_batched_fused_reg_tall.$(o_ext): $(cdir)/zgeqr2_batched_fused.cuh
+
+$(cdir)/sgeqr2_batched_fused_sm.$(o_ext): $(cdir)/sgeqr2_batched_fused.cuh
+$(cdir)/dgeqr2_batched_fused_sm.$(o_ext): $(cdir)/dgeqr2_batched_fused.cuh
+$(cdir)/cgeqr2_batched_fused_sm.$(o_ext): $(cdir)/cgeqr2_batched_fused.cuh
+$(cdir)/zgeqr2_batched_fused_sm.$(o_ext): $(cdir)/zgeqr2_batched_fused.cuh
+
 $(cdir)/sgetf2_kernels.$(o_ext): control/batched_kernel_param.h
 $(cdir)/dgetf2_kernels.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cgetf2_kernels.$(o_ext): control/batched_kernel_param.h
@@ -279,6 +309,21 @@ $(cdir)/sgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
 $(cdir)/dgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
 $(cdir)/zgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
+
+$(cdir)/slarf_batched_fused_reg.$(o_ext): $(cdir)/slarf_batched_fused.cuh
+$(cdir)/dlarf_batched_fused_reg.$(o_ext): $(cdir)/dlarf_batched_fused.cuh
+$(cdir)/clarf_batched_fused_reg.$(o_ext): $(cdir)/clarf_batched_fused.cuh
+$(cdir)/zlarf_batched_fused_reg.$(o_ext): $(cdir)/zlarf_batched_fused.cuh
+
+$(cdir)/slarf_batched_fused_reg_medium.$(o_ext): $(cdir)/slarf_batched_fused.cuh
+$(cdir)/dlarf_batched_fused_reg_medium.$(o_ext): $(cdir)/dlarf_batched_fused.cuh
+$(cdir)/clarf_batched_fused_reg_medium.$(o_ext): $(cdir)/clarf_batched_fused.cuh
+$(cdir)/zlarf_batched_fused_reg_medium.$(o_ext): $(cdir)/zlarf_batched_fused.cuh
+
+$(cdir)/slarf_batched_fused_reg_tall.$(o_ext): $(cdir)/slarf_batched_fused.cuh
+$(cdir)/dlarf_batched_fused_reg_tall.$(o_ext): $(cdir)/dlarf_batched_fused.cuh
+$(cdir)/clarf_batched_fused_reg_tall.$(o_ext): $(cdir)/clarf_batched_fused.cuh
+$(cdir)/zlarf_batched_fused_reg_tall.$(o_ext): $(cdir)/zlarf_batched_fused.cuh
 
 $(cdir)/spotf2_kernels.$(o_ext): $(cdir)/spotf2_devicesfunc.cuh
 $(cdir)/dpotf2_kernels.$(o_ext): $(cdir)/dpotf2_devicesfunc.cuh
