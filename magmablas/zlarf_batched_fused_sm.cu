@@ -29,9 +29,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 template<int NB>
 __global__
-#ifdef MAGMA_HAVE_HIP
 __launch_bounds__(MAX_THREADS)
-#endif
 void
 zlarf_fused_sm_kernel_batched(
     int m, int n, int ib,
@@ -238,9 +236,7 @@ magma_zlarf_fused_sm_kernel_driver_batched(
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
     nthreads = min(nthreads, m);           // nthreads should not be greater than m
     nthreads = max(nthreads, NB);          // nthreads should not be less than NB
-    #ifdef MAGMA_HAVE_HIP
     nthreads = min(nthreads, MAX_THREADS); // nthreads should not be greater than MAX_THREADS
-    #endif
 
     dim3 grid(gridx, 1, 1);
     dim3 threads( nthreads, ntcol, 1);
