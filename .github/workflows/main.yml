@@ -18,8 +18,8 @@ jobs:
   icl_magma:
     strategy:
       matrix:
-        maker: [make] # Add: cmake
-        device: [gpu_nvidia] #Add: gpu_amd
+        maker: [make, cmake]
+        device: [gpu_nvidia, gpu_amd]
         blas: [mkl, mkl-ilp64, openblas]
         compiler: [gcc, icc]
       fail-fast: false
@@ -27,5 +27,5 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build
-        run: .github/workflows/build.sh ${{matrix.maker}} ${{matrix.device}} ${{matrix.blas}} ${{matrix.compiler}}
+        run: .github/workflows/CI.sh ${{matrix.maker}} ${{matrix.device}} ${{matrix.blas}} ${{matrix.compiler}}
 
