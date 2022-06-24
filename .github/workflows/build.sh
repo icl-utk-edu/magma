@@ -6,7 +6,7 @@ blas=$3
 compiler=$4
 
 
-source spack_setup
+source ~/spack_setup
 GCC=gcc@8.5.0
 sload cmake %$GCC
 sload openblas@0.3.10 %$GCC
