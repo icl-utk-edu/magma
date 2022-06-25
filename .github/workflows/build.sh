@@ -8,13 +8,13 @@ blas=$3
 compiler=$4
 
 module load cmake
-if [ "$blas"="openblas" ]; then
+if [ "$blas" = "openblas" ]; then
    module load openblas
    export OPENBLASDIR=$ICL_OPENBLAS_ROOT
 else
    module load intel-oneapi-mkl
 fi
-[ "$compiler"="intel" ] && module load intel-oneapi-compilers
+[ "$compiler" = "intel" ] && module load intel-oneapi-compilers
 
 export CUDADIR=/usr/local/cuda
 export PATH=$PATH:$CUDADIR/bin
