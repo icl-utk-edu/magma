@@ -8,14 +8,17 @@ blas=$3
 compiler=$4
 
 module load cmake
-module load openblas
-module load intel-oneapi-mkl
-module load intel-oneapi-compilers
+if [ "$blas"="openblas" ]; then
+   module load openblas
+   export OPENBLASDIR=$ICL_OPENBLAS_ROOT
+else
+   module load intel-oneapi-mkl
+fi
+[ "$compiler"="intel" ] && module load intel-oneapi-compilers
 
 export CUDADIR=/usr/local/cuda
 export PATH=$PATH:$CUDADIR/bin
 export GPU_TARGET=Volta
-export OPENBLASDIR=$ICL_OPENBLAS_ROOT
 
 if [ "$maker" = "make" ]; then
    cd make.inc-examples
@@ -33,5 +36,5 @@ else # maker="cmake"
    cmake -DGPU_TARGET=$GPU_TARGET ..
 fi
 
-make -j8
+make -j8 || make -j1
 
