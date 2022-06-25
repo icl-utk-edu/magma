@@ -13,6 +13,7 @@ module load intel-oneapi-mkl
 module load intel-oneapi-compilers
 
 export CUDADIR=/usr/local/cuda
+export PATH=$PATH:$CUDADIR/bin
 export GPU_TARGET=Volta
 export OPENBLASDIR=$ICL_OPENBLAS_ROOT
 
