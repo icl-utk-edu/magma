@@ -22,6 +22,7 @@ export GPU_TARGET=Volta
 
 if [ "$maker" = "make" ]; then
    cd make.inc-examples
+   perl -pi -e 's/GPU_TARGET/#/' *
    cp make.inc.mkl-gcc-ilp64 make.inc.mkl-ilp64-gcc
    cp make.inc.mkl-icc-ilp64 make.inc.mkl-ilp64-icc
    cp make.inc.openblas make.inc.openblas-gcc
