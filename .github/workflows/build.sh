@@ -12,7 +12,7 @@ if [ "$blas" = "openblas" ]; then
    module load openblas
    export OPENBLASDIR=$ICL_OPENBLAS_ROOT
 else
-   module load intel-oneapi-mkl
+   module load intel-oneapi-mkl@2021.4.0
 fi
 [ "$compiler" = "intel" ] && module load intel-oneapi-compilers
 
