@@ -1,4 +1,6 @@
-#!/bin/bash -xe 
+#!/bin/bash -xe
+
+source /etc/profile
 
 maker=$1
 device=$2
