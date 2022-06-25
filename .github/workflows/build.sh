@@ -5,18 +5,14 @@ device=$2
 blas=$3
 compiler=$4
 
+module load cmake
+module load openblas
+module load intel-oneapi-mkl
+module load intel-oneapi-compilers
 
-source ~/spack_setup
-GCC=gcc@8.5.0
-sload cmake %$GCC
-sload openblas %$GCC
-sload cuda@11.4.3 %$GCC
-sload intel-oneapi-mkl %$GCC
-sload intel-oneapi-compilers %$GCC
-
-export CUDADIR=$CUDA_HOME
+export CUDADIR=/usr/local/cuda
 export GPU_TARGET=Volta
-export OPENBLASDIR=`slocation openblas %$GCC`
+export OPENBLASDIR=$ICL_OPENBLAS_DIR
 
 if [ "$maker" = "make" ]; then
    cd make.inc-examples
