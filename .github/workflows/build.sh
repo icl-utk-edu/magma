@@ -14,7 +14,7 @@ module load intel-oneapi-compilers
 
 export CUDADIR=/usr/local/cuda
 export GPU_TARGET=Volta
-export OPENBLASDIR=$ICL_OPENBLAS_DIR
+export OPENBLASDIR=$ICL_OPENBLAS_ROOT
 
 if [ "$maker" = "make" ]; then
    cd make.inc-examples
