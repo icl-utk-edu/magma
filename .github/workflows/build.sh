@@ -12,9 +12,9 @@ if [ "$blas" = "openblas" ]; then
    module load openblas
    export OPENBLASDIR=$ICL_OPENBLAS_ROOT
 else
-   module load intel-oneapi-mkl@2021.4.0
+   module load intel-oneapi-mkl
 fi
-[ "$compiler" = "intel" ] && module load intel-oneapi-compilers
+[ "$compiler" = "intel" ] && module load intel-oneapi-compilers@2021.4.0
 
 export CUDADIR=/usr/local/cuda
 export PATH=$PATH:$CUDADIR/bin
