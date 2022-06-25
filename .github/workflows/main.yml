@@ -21,7 +21,7 @@ jobs:
         maker: [make, cmake]
         device: [gpu_nvidia] # Add: gpu_amd
         blas: [mkl, mkl-ilp64, openblas]
-        compiler: [gcc, icc]
+        compiler: [gcc, intel]
       fail-fast: false
     runs-on: ${{ matrix.device }}
     steps:
