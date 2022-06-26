@@ -1,6 +1,8 @@
-#!/bin/bash -xe
+#!/bin/bash -e
 
+set -x
 source /etc/profile
+set +x
 
 maker=$1
 device=$2
@@ -29,7 +31,7 @@ else # device == gpu_amd
    export OPTIONS="-DCMAKE_CXX_COMPILER=hipcc"
    export ROCM=/opt/rocm
    export PATH=$PATH:$ROCM/bin
-   export LIBRARY_PATH=$LIBRARY_PATH:$ROCM/lib
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ROCM/lib
 fi
 
 rocm_agent_enumerator
