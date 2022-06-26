@@ -24,13 +24,18 @@ export GPU_TARGET=Volta
 if [ "$maker" = "make" ]; then
    cd make.inc-examples
    perl -pi -e 's/GPU_TARGET/#/' *
+   cp make.inc.mkl-icc       make.inc.mkl-intel
    cp make.inc.mkl-gcc-ilp64 make.inc.mkl-ilp64-gcc
    cp make.inc.mkl-icc-ilp64 make.inc.mkl-ilp64-intel
-   cp make.inc.openblas make.inc.openblas-gcc
-   cp make.inc.openblas make.inc.openblas-intel
+   cp make.inc.openblas      make.inc.openblas-gcc
+   cp make.inc.openblas      make.inc.openblas-intel
    cd ..
    ln -s make.inc-examples/make.inc.$blas-$compiler make.inc
 else # maker="cmake"
+   if [ "$blas" = "mkl-ilp64" ]; then
+      echo CMake needs to be configured to use ilp64
+      exit 1 
+   fi
    echo "FORT = true" > make.inc
    make generate
    mkdir build
