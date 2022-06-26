@@ -16,10 +16,18 @@ else
 fi
 [ "$compiler" = "intel" ] && module load intel-parallel-studio
 
-export CUDADIR=/usr/local/cuda
-export PATH=$PATH:$CUDADIR/bin
-export LIBRARY_PATH=$LIBRARY_PATH:$CUDADIR/lib64
-export GPU_TARGET=Volta
+if [ "$device" = "gpu_nvidia" ]; then
+   export CUDADIR=/usr/local/cuda
+   export PATH=$PATH:$CUDADIR/bin
+   export LIBRARY_PATH=$LIBRARY_PATH:$CUDADIR/lib64
+   export GPU_TARGET=Volta
+   export BACKEND=cuda
+   export GPU_ENABLE=-DMAGMA_ENABLE_CUDA=ON
+else # device == gpu_amd
+   export GPU_TARGET=gfx906
+   export BACKEND=hip
+   export OPTIONS="-DCMAKE_CXX_COMPILER=hipcc"
+fi
 
 if [ "$maker" = "make" ]; then
    cd make.inc-examples
@@ -37,10 +45,12 @@ else # maker="cmake"
       exit 1 
    fi
    echo "FORT = true" > make.inc
+   echo "GPU_TARGET = $GPU_TARGET" >> make.inc
+   echo "BACKEND = $BACKEND" >> make.inc
    make generate
    mkdir build
    cd build
-   cmake -DGPU_TARGET=$GPU_TARGET ..
+   cmake -DGPU_TARGET=$GPU_TARGET -DMAGMA_ENABLE_${BACKEND^^}=ON $OPTIONS ..
 fi
 
 make -j8 || make -j1

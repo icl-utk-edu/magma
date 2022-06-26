@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         maker: [make, cmake]
-        device: [gpu_nvidia] # Add: gpu_amd
+        device: [gpu_amd] # Add: gpu_nvidia
         blas: [mkl, mkl-ilp64, openblas]
         compiler: [gcc, intel]
       fail-fast: false
