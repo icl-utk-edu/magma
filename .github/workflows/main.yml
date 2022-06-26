@@ -18,7 +18,7 @@ jobs:
   icl_magma:
     strategy:
       matrix:
-        maker: [make, cmake]
+        maker: [cmake] # Add: make
         device: [gpu_amd] # Add: gpu_nvidia
         blas: [mkl, mkl-ilp64, openblas]
         compiler: [gcc, intel]

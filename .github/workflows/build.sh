@@ -2,6 +2,9 @@
 
 source /etc/profile
 
+/opt/rocm/bin/rocm_agent_enumerator
+exit
+
 maker=$1
 device=$2
 blas=$3
@@ -27,6 +30,8 @@ else # device == gpu_amd
    export GPU_TARGET=gfx906
    export BACKEND=hip
    export OPTIONS="-DCMAKE_CXX_COMPILER=hipcc"
+   #export ROCM=/opt/rocm
+   #export PATH=$PATH:$ROCM/bin
 fi
 
 if [ "$maker" = "make" ]; then
