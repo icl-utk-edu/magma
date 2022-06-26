@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
-set -x
-source /etc/profile
 set +x
+source /etc/profile
+set -x
 
 maker=$1
 device=$2
@@ -33,9 +33,6 @@ else # device == gpu_amd
    export PATH=$PATH:$ROCM/bin
    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ROCM/lib
 fi
-
-rocm_agent_enumerator
-exit
 
 if [ "$maker" = "make" ]; then
    cd make.inc-examples
