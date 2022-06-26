@@ -27,8 +27,9 @@ else # device == gpu_amd
    export GPU_TARGET=gfx906
    export BACKEND=hip
    export OPTIONS="-DCMAKE_CXX_COMPILER=hipcc"
-   #export ROCM=/opt/rocm
-   #export PATH=$PATH:$ROCM/bin
+   export ROCM=/opt/rocm
+   export PATH=$PATH:$ROCM/bin
+   export LIBRARY_PATH=$LIBRARY_PATH:$ROCM/lib
 fi
 
 rocm_agent_enumerator
