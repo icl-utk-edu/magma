@@ -14,7 +14,7 @@ if [ "$blas" = "openblas" ]; then
 else
    module load intel-oneapi-mkl
 fi
-[ "$compiler" = "intel" ] && module load intel-oneapi-compilers@2021.4.0
+[ "$compiler" = "intel" ] && module load intel-parallel-studio
 
 export CUDADIR=/usr/local/cuda
 export PATH=$PATH:$CUDADIR/bin
