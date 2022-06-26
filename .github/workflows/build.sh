@@ -2,9 +2,6 @@
 
 source /etc/profile
 
-/opt/rocm/bin/rocm_agent_enumerator
-exit
-
 maker=$1
 device=$2
 blas=$3
@@ -33,6 +30,9 @@ else # device == gpu_amd
    #export ROCM=/opt/rocm
    #export PATH=$PATH:$ROCM/bin
 fi
+
+rocm_agent_enumerator
+exit
 
 if [ "$maker" = "make" ]; then
    cd make.inc-examples
