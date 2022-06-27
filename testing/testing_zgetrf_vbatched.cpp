@@ -21,100 +21,12 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
-#ifdef MAGMA_HAVE_CUDA
-#include <cusolverDn.h>
-#else
-#include<rocblas.h>
-#include<rocsolver.h>
-#endif
-
-
 #if defined(_OPENMP)
 #include <omp.h>
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-//#define DBG
-#define ib    (4)
-//#define myprintf printf
-#define myprintf(...)
-
 #define PRECISION_z
-
-#ifdef MAGMA_HAVE_CUDA
-#define devsolver_handle_t  cusolverDnHandle_t
-#define devsolver_create    cusolverDnCreate
-#define devsolver_setstream cusolverDnSetStream
-#define devsolver_destroy   cusolverDnDestroy
-
-// =====> cusolver interface
-#if   defined(PRECISION_z)
-#define magma_zgetrf_cusolver               cusolverDnZgetrf
-#define magma_zgetrf_cusolver_bufferSize    cusolverDnZgetrf_bufferSize
-
-#elif defined(PRECISION_c)
-#define magma_cgetrf_cusolver               cusolverDnCgetrf
-#define magma_cgetrf_cusolver_bufferSize    cusolverDnCgetrf_bufferSize
-
-#elif defined(PRECISION_d)
-#define magma_dgetrf_cusolver               cusolverDnDgetrf
-#define magma_dgetrf_cusolver_bufferSize    cusolverDnDgetrf_bufferSize
-
-#elif defined(PRECISION_s)
-#define magma_sgetrf_cusolver               cusolverDnSgetrf
-#define magma_sgetrf_cusolver_bufferSize    cusolverDnSgetrf_bufferSize
-#else
-#error "One of PRECISION_{s,d,c,z} must be defined."
-#endif
-#else
-// =====> rocsolver interface
-#define devsolver_handle_t  rocblas_handle
-#define devsolver_create    rocblas_create_handle
-#define devsolver_setstream rocblas_set_stream
-#define devsolver_destroy   rocblas_destroy_handle
-
-#if   defined(PRECISION_z)
-#define magma_zgetrf_cusolver           rocsolver_zgetrf
-#define magma_zrocblas_complex          rocblas_double_complex
-
-#elif defined(PRECISION_c)
-#define magma_cgetrf_cusolver           rocsolver_cgetrf
-#define magma_crocblas_complex          rocblas_float_complex
-
-#elif defined(PRECISION_d)
-#define magma_dgetrf_cusolver           rocsolver_dgetrf
-#define magma_drocblas_complex          double
-
-#elif defined(PRECISION_s)
-#define magma_sgetrf_cusolver           rocsolver_sgetrf
-#define magma_srocblas_complex          float
-#else
-#error "One of PRECISION_{s,d,c,z} must be defined."
-#endif
-#endif
-
-void
-magma_zgetrf_cusolver_gpu(
-    magma_int_t m, magma_int_t n,
-    magmaDoubleComplex_ptr dA, magma_int_t ldda,
-    int *dipiv, int *dinfo,
-    magmaDoubleComplex* dwork,
-    magma_queue_t queue, devsolver_handle_t handle)
-{
-
-    #ifdef MAGMA_HAVE_CUDA
-    magma_zgetrf_cusolver( handle,
-                           (int)m, (int)n,
-                           (cuDoubleComplex*)dA,    (int)ldda,
-                           (cuDoubleComplex*)dwork, (int*)dipiv,
-                           (int*)dinfo );
-    #else
-    rocsolver_zgetrf(handle, (const int)m, (const int)n,
-                             (magma_zrocblas_complex*)dA, (const int)ldda,
-                     (rocblas_int*)dipiv, (rocblas_int*)dinfo);
-    #endif
-}
-
 
 double get_LU_error(magma_int_t M, magma_int_t N,
                     magmaDoubleComplex *A,  magma_int_t lda,
@@ -233,11 +145,8 @@ int main( int argc, char** argv)
             piv_size = 0;
             gflops   = 0;
 
-            // choose minimum #rows through opts.nb (default = 1)
-            magma_int_t minM = max(opts.nb, 1);
-
             for(int s = 0; s < batchCount; s++) {
-                h_M[s]      = minM + (rand() % iM);
+                h_M[s]      = 1 + (rand() % iM);
                 h_N[s]      = max(1, (magma_int_t) round(NbyM * real_Double_t(h_M[s])) ); // try to keep the M/N ratio
                 max_M       = (s == 0) ? h_M[s] : max(h_M[s], max_M);
                 max_N       = (s == 0) ? h_N[s] : max(h_N[s], max_N);
@@ -308,7 +217,7 @@ int main( int argc, char** argv)
                         batchCount, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
-            else if(opts.version == 2) {
+            else {
                 // advanced API, totally asynchronous,
                 // but requires some setup
                 magma_time = magma_sync_wtime( opts.queue );
@@ -322,81 +231,6 @@ int main( int argc, char** argv)
                         batchCount, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
-            else if (opts.version == 3) {
-                // current
-                magma_device_t cdev;
-                magma_getdevice( &cdev );
-
-                // create queues and cusparse handles
-                const magma_int_t nqs = max(1, opts.nrhs);
-                magma_queue_t queues[nqs];
-                devsolver_handle_t handles[nqs];
-
-                myprintf("queues/handles\n");
-                for(magma_int_t iq = 0; iq < nqs; iq++) {
-                    magma_queue_create(cdev, &queues[iq]);
-                    devsolver_create(&handles[iq]);
-                    #ifdef MAGMA_HAVE_CUDA
-                    devsolver_setstream(handles[iq], magma_queue_get_cuda_stream(queues[iq]));
-                    #else
-                    devsolver_setstream(handles[iq], magma_queue_get_hip_stream(queues[iq]));
-                    #endif
-                }
-
-                myprintf("start timing\n");
-
-                // calculate cusolver workspace
-                magmaDoubleComplex *devwork = NULL;
-                #ifdef MAGMA_HAVE_CUDA
-                myprintf("alloc workspace\n");
-                magma_int_t  lwork   = 0;
-                magma_int_t* lwork_s = new magma_int_t[batchCount];
-                for(magma_int_t s = 0; s < batchCount; s++) {
-                    magma_zgetrf_cusolver_bufferSize(handles[0], (int)h_M[s], (int)h_N[s], (cuDoubleComplex*)hdA_array[s], (int)h_ldda[s], &lwork_s[s]);
-                    lwork += lwork_s[s];
-                }
-
-                magma_zmalloc(&devwork, lwork);
-                #endif
-
-                // ===> start timing
-                magma_time = magma_sync_wtime( opts.queue );
-                myprintf("calls\n");
-                magmaDoubleComplex *devwork_s = devwork;
-                for(magma_int_t s = 0; s < batchCount; s++) {
-                    magma_int_t qid = s % nqs;
-                    magma_zgetrf_cusolver_gpu(h_M[s], h_N[s], hdA_array[s], h_ldda[s], hdipiv_array[s], dinfo + s, devwork_s, queues[qid], handles[qid]);
-                    #ifdef MAGMA_HAVE_CUDA
-                    devwork_s += lwork_s[s];
-                    #endif
-                }
-
-                myprintf("sync\n");
-                for(magma_int_t iq = 0; iq < nqs; iq++) {
-                    magma_queue_sync(queues[iq]);
-                }
-                // ====> end timing
-                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
-
-                #ifdef MAGMA_HAVE_CUDA
-                myprintf("free\n");
-                magma_free(devwork);
-                #endif
-
-
-
-
-                for(magma_int_t iq = 0; iq < nqs; iq++) {
-                    magma_queue_destroy(queues[iq]);
-                    devsolver_destroy(handles[iq]);
-                }
-
-                #ifdef MAGMA_HAVE_CUDA
-                delete[] lwork_s;
-                #endif
-
-            }
-
             magma_perf = gflops / magma_time;
 
             hTmp = hA_magma;
@@ -488,25 +322,8 @@ int main( int argc, char** argv)
                 error = 0;
                 #pragma omp parallel for reduction(max:error)
                 for (int s=0; s < batchCount; s++) {
-
-                    #if defined(DBG)
-                    if(s == ib) {
-                        magma_zprint(h_M[s], h_N[s], hA_array[s], h_lda[s]);
-                    }
-                    #endif
-
-
-
                     double err = 0;
                     for (int k=0; k < h_min_mn[s]; k++) {
-
-                        #ifdef DBG
-                        if(s == ib) {
-                            printf("ipiv[%d] = %d\n", k, hipiv_array[s][k]);
-                        }
-                        #endif
-
-
                         if (hipiv_array[s][k] < 1 || hipiv_array[s][k] > h_M[s] ) {
                             printf("error for matrix %lld ipiv @ %lld = %lld (terminated on first detection)\n",
                                     (long long) s, (long long) k, (long long) hipiv_array[s][k] );
@@ -522,9 +339,6 @@ int main( int argc, char** argv)
                     }
 
                     err = get_LU_error( h_M[s], h_N[s], hR_array[s], h_lda[s], hA_array[s], hipiv_array[s]);
-                    #ifdef DBG
-                    printf("[%2d]:(%2d,%2d), error = %.4e\n", s, h_M[s], h_N[s], err);
-                    #endif
                     error = magma_max_nan( err, error );
                 }
 
