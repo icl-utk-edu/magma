@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Jakub Kurzak
        @author Stan Tomov
        @author Mark Gates
@@ -436,7 +436,7 @@ void devfunc_name(precision) (
         for (m = 0; m < THR_M; m++) {
             int coord_dCm = blx*BLK_M + m*DIM_X + idx;
             if (coord_dCm < M && coord_dCn < N) {
-                int offsC = coord_dCn*LDC + coord_dCm;
+                ptrdiff_t offsC = (ptrdiff_t)coord_dCn*(ptrdiff_t)LDC + (ptrdiff_t)coord_dCm;
 
                 FloatingPoint_t &regC = rC[n][m];
                 FloatingPoint_t &memC = C[offsC];

@@ -25,6 +25,9 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+ 2.7.0 - XXXX, 2022
+    * Performance improvement for the batch QR factorization routine
+
  2.6.2 - Mar 15, 2022
     * New routine: magma_{s,d,c,z}getrf_vbatched provides a variable-size batched LU
       factorization with partial pivoting. This is a reference implementation, with more

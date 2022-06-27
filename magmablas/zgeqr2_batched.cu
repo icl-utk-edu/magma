@@ -97,13 +97,18 @@ void zgeqr2_device( magma_int_t m, magma_int_t n,
 
 /******************************************************************************/
 __global__
-void zgeqr2_sm_kernel_batched( int m, int n, magmaDoubleComplex** dA_array, magma_int_t lda,
-                               magmaDoubleComplex **dtau_array)
+void zgeqr2_sm_kernel_batched(
+        int m, int n,
+        magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t lda,
+        magmaDoubleComplex **dtau_array, magma_int_t taui )
 {
     extern __shared__ magmaDoubleComplex shared_data[];
-    
-    magmaDoubleComplex* dA = dA_array[blockIdx.z];
+
+    magmaDoubleComplex* dA   = dA_array[blockIdx.z];
     magmaDoubleComplex* dtau = dtau_array[blockIdx.z];
+
+    dA   += Aj * lda + Ai;
+    dtau += taui;
 
     magmaDoubleComplex *sdata = (magmaDoubleComplex*)shared_data;
 
@@ -152,16 +157,19 @@ void zgeqr2_sm_kernel_batched( int m, int n, magmaDoubleComplex** dA_array, magm
 
 /******************************************************************************/
 __global__
-void zgeqr2_column_sm_kernel_batched( int m, int n, magmaDoubleComplex** dA_array, magma_int_t lda,
-                               magmaDoubleComplex **dtau_array)
+void zgeqr2_column_sm_kernel_batched(
+        int m, int n,
+        magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t lda,
+        magmaDoubleComplex **dtau_array, magma_int_t taui )
 {
     extern __shared__ magmaDoubleComplex shared_data[];
-    
-    magmaDoubleComplex* dA = dA_array[blockIdx.z];
+
+    magmaDoubleComplex* dA   = dA_array[blockIdx.z];
     magmaDoubleComplex* dtau = dtau_array[blockIdx.z];
+    dA   += Aj * lda + Ai;
+    dtau += taui;
 
     magmaDoubleComplex *sdata = (magmaDoubleComplex*)shared_data;
-
 
     __shared__ magmaDoubleComplex scale;
     __shared__ magmaDoubleComplex sum[ BLOCK_SIZE ];
@@ -203,11 +211,15 @@ void zgeqr2_column_sm_kernel_batched( int m, int n, magmaDoubleComplex** dA_arra
 
 /******************************************************************************/
 __global__
-void zgeqr2_kernel_batched( int m, int n, magmaDoubleComplex** dA_array, magma_int_t lda,
-                               magmaDoubleComplex **dtau_array)
+void zgeqr2_kernel_batched(
+        int m, int n,
+        magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t lda,
+        magmaDoubleComplex **dtau_array, magma_int_t taui )
 {
-    magmaDoubleComplex* dA = dA_array[blockIdx.z];
+    magmaDoubleComplex* dA   = dA_array[blockIdx.z];
     magmaDoubleComplex* dtau = dtau_array[blockIdx.z];
+    dA   += Aj * lda + Ai;
+    dtau += taui;
 
     __shared__ magmaDoubleComplex scale;
     __shared__ magmaDoubleComplex sum[ BLOCK_SIZE ];
@@ -230,6 +242,45 @@ void zgeqr2_kernel_batched( int m, int n, magmaDoubleComplex** dA_array, magma_i
     }
 }
 
+
+/******************************************************************************/
+extern "C" magma_int_t
+magma_zgeqr2_fused_batched(
+        magma_int_t m, magma_int_t n,
+        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+        magmaDoubleComplex **dtau_array, magma_int_t taui,
+        magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue)
+{
+    /* Check arguments */
+    magma_int_t arginfo = 0;
+
+    if (m < 0)
+        arginfo = -1;
+    else if (n < 0 || n > 32)
+        arginfo = -2;
+    else if (ldda < max(1,m))
+        arginfo = -4;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    // try the register version
+    arginfo = magma_zgeqr2_fused_reg_batched(
+                m, n, dA_array, Ai, Aj, ldda,
+                dtau_array, taui, info_array, 0, batchCount, queue );
+    if ( arginfo == 0 ) return arginfo;
+
+    // register version did not launch kernel
+    // try shared memory version
+    magma_int_t nthreads = magma_get_zgeqr2_fused_sm_batched_nthreads(m, n);
+    arginfo = magma_zgeqr2_fused_sm_batched(
+                m, n, dA_array, Ai, Aj, ldda,
+                dtau_array, taui, info_array, nthreads, 0, batchCount, queue );
+
+    return arginfo;
+}
 
 /***************************************************************************//**
     Purpose
@@ -304,14 +355,14 @@ void zgeqr2_kernel_batched( int m, int n, magmaDoubleComplex** dA_array, magma_i
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
-                     magmaDoubleComplex **dA_array, magma_int_t ldda,
-                     magmaDoubleComplex **dtau_array,
+                     magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+                     magmaDoubleComplex **dtau_array, magma_int_t taui,
                      magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t k;
-
     /* Check arguments */
     magma_int_t arginfo = 0;
+    magma_device_t device;
+    magma_getdevice( &device );
     if (m < 0)
         arginfo = -1;
     else if (n < 0)
@@ -324,7 +375,42 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
         return arginfo;
     }
 
-    k = min(m,n);
+    magma_int_t k = min(m,n);
+
+    // first, try the fused geqr2
+    arginfo = magma_zgeqr2_fused_batched(m, n, dA_array, Ai, Aj, ldda, dtau_array, taui, info_array, batchCount, queue);
+    if ( arginfo == 0 ) return arginfo;
+
+    // reaching this point means that the fused routine does not support
+    // the size of the input panel, proceed with more generic code
+
+    // static shared memory requirement, valid for:
+    // zgeqr2_sm_kernel_batched, zgeqr2_column_sm_kernel_batched, zgeqr2_kernel_batched
+    magma_int_t static_shmem = (BLOCK_SIZE + 1 ) * ( sizeof(magmaDoubleComplex) + sizeof(double) );
+
+    // dynamic shared memory
+    magma_int_t dynamic_shmem_sm_kernel        = sizeof(magmaDoubleComplex) * m * k;
+    magma_int_t dynamic_shmem_column_sm_kernel = sizeof(magmaDoubleComplex) * m;
+
+    // total shared memory
+    magma_int_t total_shmem_sm_kernel        = static_shmem + dynamic_shmem_sm_kernel;
+    magma_int_t total_shmem_column_sm_kernel = static_shmem + dynamic_shmem_column_sm_kernel;
+
+    // max. dynamic shared memory allowed per thread-block
+    magma_int_t shmem_max = 0;
+    #if CUDA_VERSION >= 9000
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
+    if ( total_shmem_sm_kernel <= shmem_max) {
+        cudaFuncSetAttribute(zgeqr2_sm_kernel_batched, cudaFuncAttributeMaxDynamicSharedMemorySize, dynamic_shmem_sm_kernel);
+    }
+
+    if ( total_shmem_column_sm_kernel <= shmem_max) {
+        cudaFuncSetAttribute(zgeqr2_column_sm_kernel_batched, cudaFuncAttributeMaxDynamicSharedMemorySize, dynamic_shmem_column_sm_kernel);
+    }
+    #else
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
+    #endif    // CUDA_VERSION >= 9000
+
 
     magma_int_t max_batchCount = queue->get_maxBatch();
     dim3 threads(BLOCK_SIZE);
@@ -333,26 +419,22 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 grid(1, 1, ibatch);
 
-        if (sizeof(magmaDoubleComplex)*(m*k) <= 42000 /*sizeof(magmaDoubleComplex) * 128 * k*/) {
-            // there are some static shared memory besides of dynamic ones
+        if ( total_shmem_sm_kernel <= shmem_max ) {
             //load panel in shared memory and factorize it and copy back to gloabl memory
             //intend for small panel to avoid overfill of shared memory.
             //this kernel is composed of device routine and thus clean
             zgeqr2_sm_kernel_batched<<< grid, threads, sizeof(magmaDoubleComplex)*(m*k), queue->cuda_stream() >>>
-            (m, k, dA_array+i, ldda, dtau_array+i);
+            (m, k, dA_array+i, Ai, Aj, ldda, dtau_array+i, taui);
+        }
+        else if ( total_shmem_column_sm_kernel <= shmem_max ) {
+            //load one column vector in shared memory and householder it and used it to update trailing matrix which is global memory
+            zgeqr2_column_sm_kernel_batched<<< grid, threads, sizeof(magmaDoubleComplex)*(m), queue->cuda_stream() >>>
+            (m, k, dA_array+i, Ai, Aj, ldda, dtau_array+i, taui);
         }
         else {
-            //load one column vector in shared memory and householder it and used it to update trailing matrix which is global memory
-            // one vector is normally smaller than  48K shared memory
-            if (sizeof(magmaDoubleComplex)*(m) < 42000) {
-                zgeqr2_column_sm_kernel_batched<<< grid, threads, sizeof(magmaDoubleComplex)*(m), queue->cuda_stream() >>>
-                (m, k, dA_array+i, ldda, dtau_array+i);
-            }
-            else {
-                //not use dynamic shared memory at all
-                zgeqr2_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
-                (m, k, dA_array+i, ldda, dtau_array+i);
-            }
+            //not use dynamic shared memory at all
+            zgeqr2_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
+            (m, k, dA_array+i, Ai, Aj, ldda, dtau_array+i, taui);
         }
     }
 

@@ -9,7 +9,9 @@
        @author Ahmad Abdelfattah
 */
 
+#include <vector>
 #include "magma_internal.h"
+#include "geqrf_batched_panel_decision.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -212,6 +214,295 @@ magma_int_t magma_get_sgeqrf_batched_nb(magma_int_t m)
     return 32;
 }
 
+/***************************************************************************//**
+    @return recommendation (1/0) of using the panel code only (with fused
+            update) over the main blocked code
+*******************************************************************************/
+// this is a generic search routine for the lookup tables defined in
+// geqrf_batched_panel_decision.h
+#define GEQRF_BATCHED_LOOKUP_TABLE_BATCH_STEP   (100)
+#define GEQRF_BATCHED_MAX_TESTED_WIDTH          (256)
+
+static magma_int_t magma_geqrf_batched_get_cutoff_width(
+            magma_int_t m, magma_int_t n, magma_int_t batchCount,
+            std::vector<std::vector<magma_int_t>>* lookup_table )
+{
+    magma_int_t cutoff_width = 0;
+    magma_int_t batch_index  = (magma_int_t) nearbyint( (double)batchCount / (double)GEQRF_BATCHED_LOOKUP_TABLE_BATCH_STEP );
+    batch_index = (batch_index == 0) ? 1 : batch_index;  // the first column in the table is for 'm', not the cutoff-width
+    size_t table_size   = (magma_int_t) lookup_table->size();
+    size_t m_index = 0;
+    // find the closest m
+    magma_int_t dist = (magma_int_t)(INT_MAX);
+    for(size_t i = 0; i < table_size; i++) {
+        double idist = std::abs(m - (*lookup_table)[i][0]);
+        if(idist < dist) {
+            m_index = i;
+            dist    = idist;
+        }
+    }
+
+    // make sure we don't go out-of-bounds
+    batch_index = min( batch_index, (magma_int_t)((*lookup_table)[m_index].size()-1) );
+
+    cutoff_width = (*lookup_table)[m_index][batch_index];
+
+    // if the cutoff_width is equal to the maximum tested width during the tuning sweeps,
+    // this probably means to use the fused update even for larger widths
+    cutoff_width = ( cutoff_width == GEQRF_BATCHED_MAX_TESTED_WIDTH ) ? n : cutoff_width;
+
+    return cutoff_width;
+}
+
+magma_int_t magma_use_zgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, magma_int_t batchCount)
+{
+    magma_int_t use_fused_update = 0, cutoff_width = 0;
+    std::vector<std::vector<magma_int_t>>* data;
+    #ifdef MAGMA_HAVE_CUDA
+    // TODO: add more gpus
+    data = &zgeqrf_panel_decision_a100;
+    #else
+    // TODO: add more gpus
+    data = &zgeqrf_panel_decision_a100;
+    #endif
+
+    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    use_fused_update = (n <= cutoff_width) ? 1 : 0;
+    return use_fused_update;
+}
+
+magma_int_t magma_use_cgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, magma_int_t batchCount)
+{
+    magma_int_t use_fused_update = 0, cutoff_width = 0;
+    std::vector<std::vector<magma_int_t>>* data;
+    #ifdef MAGMA_HAVE_CUDA
+    // TODO: add more gpus
+    data = &cgeqrf_panel_decision_a100;
+    #else
+    // TODO: add more gpus
+    data = &cgeqrf_panel_decision_a100;
+    #endif
+
+    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    use_fused_update = (n <= cutoff_width) ? 1 : 0;
+    return use_fused_update;
+}
+
+magma_int_t magma_use_dgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, magma_int_t batchCount)
+{
+    magma_int_t use_fused_update = 0, cutoff_width = 0;
+    std::vector<std::vector<magma_int_t>>* data;
+    #ifdef MAGMA_HAVE_CUDA
+    // TODO: add more gpus
+    data = &dgeqrf_panel_decision_a100;
+    #else
+    // TODO: add more gpus
+    data = &dgeqrf_panel_decision_a100;
+    #endif
+
+    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    use_fused_update = (n <= cutoff_width) ? 1 : 0;
+    return use_fused_update;
+}
+
+magma_int_t magma_use_sgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, magma_int_t batchCount)
+{
+    magma_int_t use_fused_update = 0, cutoff_width = 0;
+    std::vector<std::vector<magma_int_t>>* data;
+    #ifdef MAGMA_HAVE_CUDA
+    // TODO: add more gpus
+    data = &sgeqrf_panel_decision_a100;
+    #else
+    // TODO: add more gpus
+    data = &sgeqrf_panel_decision_a100;
+    #endif
+
+    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    use_fused_update = (n <= cutoff_width) ? 1 : 0;
+    return use_fused_update;
+}
+
+/***************************************************************************//**
+    @return the recommended #threads for geqr2_fused_sm_batched
+*******************************************************************************/
+magma_int_t magma_get_zgeqr2_fused_sm_batched_nthreads(magma_int_t m, magma_int_t n)
+{
+    #ifdef MAGMA_HAVE_HIP
+    // based on MI100, rocm-4.5.0
+    if ( n <= 4 ) {
+        if      ( m <= 160 ) return  32;
+        else if ( m <= 288 ) return  64;
+        else if ( m <= 320 ) return  32;
+        else if ( m <= 448 ) return 128;
+        else if ( m <= 480 ) return  64;
+        else if ( m <= 480 ) return  64;
+        else                 return 128;
+    }
+    else if ( n <= 8 ) {
+        if      ( m <= 160 ) return  32;
+        else                 return 128;
+    }
+    else {
+        return 128; // panel is wide, use a large number of threads
+    }
+    #else
+    // based on A100, cuda-11.2.0
+    if ( n <= 4 ) {
+        if      ( m <= 224 ) return 32;
+        else if ( m <= 480 ) return 64;
+        else if ( m <= 800 ) return 128;
+        else                 return 256;
+    }
+    else if ( n <= 8 ) {
+        if      ( m <=  96 ) return 32;
+        else if ( m <= 224 ) return 64;
+        else if ( m <= 608 ) return 128;
+        else                 return 256;
+    }
+    else {
+        return 512; // panel is wide, use a large number of threads
+    }
+    #endif
+}
+
+magma_int_t magma_get_cgeqr2_fused_sm_batched_nthreads(magma_int_t m, magma_int_t n)
+{
+    #ifdef MAGMA_HAVE_HIP
+    // based on MI100, rocm-4.5.0
+    if ( n <= 4 ) {
+        if      ( m <= 192 ) return  32;
+        else if ( m <= 352 ) return  64;
+        else if ( m <= 384 ) return  32;
+        else if ( m <= 608 ) return 128;
+        else if ( m <= 640 ) return  64;
+        else                 return 128;
+    }
+    else if ( n <= 8 ) {
+        if      ( m <= 192 ) return  32;
+        else if ( m <= 288 ) return 128;
+        else if ( m <= 320 ) return  64;
+        else if ( m <= 640 ) return 128;
+        else                 return 256;
+    }
+    else {
+        return 512; // panel is wide, use a large number of threads
+    }
+    #else
+    // based on A100, cuda-11.2.0
+    if ( n <= 4 ) {
+        if      ( m <= 288 ) return 32;
+        else if ( m <= 448 ) return 64;
+        else if ( m <= 960 ) return 128;
+        else                 return 256;
+    }
+    else if ( n <= 8 ) {
+        if      ( m <=  160 ) return 32;
+        else if ( m <=  256 ) return 64;
+        else if ( m <=  608 ) return 128;
+        else                  return 256;
+    }
+    else if (n <= 16) {
+        if      ( m <=  288 ) return 128;
+        else if ( m <=  608 ) return 256;
+        else                  return 512;
+    }
+    else {
+        return 512; // panel is too wide, use a large number of threads
+    }
+    #endif
+}
+
+magma_int_t magma_get_dgeqr2_fused_sm_batched_nthreads(magma_int_t m, magma_int_t n)
+{
+    #ifdef MAGMA_HAVE_HIP
+    // based on MI100, rocm-4.5.0
+    if ( n <= 4 ) {
+        if      ( m <= 192 ) return  32;
+        else if ( m <= 352 ) return  64;
+        else if ( m <= 384 ) return  32;
+        else if ( m <= 608 ) return 128;
+        else if ( m <= 640 ) return  64;
+        else                 return 128;
+    }
+    else if ( n <= 8 ) {
+        if      ( m <= 192 ) return  32;
+        else if ( m <= 320 ) return  64;
+        else if ( m <= 640 ) return 128;
+        else                 return 256;
+    }
+    else {
+        return 512; // panel is wide, use a large number of threads
+    }
+    #else
+    // based on A100, cuda-11.2.0
+    if ( n <= 4 ) {
+        if      ( m <=  224 ) return 32;
+        else if ( m <=  448 ) return 64;
+        else if ( m <=  960 ) return 128;
+        else                  return 256;
+    }
+    else if ( n <= 8 ) {
+        if      ( m <=  160 ) return 32;
+        else if ( m <=  256 ) return 64;
+        else if ( m <=  608 ) return 128;
+        else                  return 256;
+    }
+    else if ( n <= 16 ) {
+        if      ( m <=  224 ) return 128;
+        else if ( m <=  608 ) return 256;
+        else                  return 512;
+    }
+    else {
+        return 512; // panel is too wide, use a large number of threads
+    }
+    #endif
+}
+
+magma_int_t magma_get_sgeqr2_fused_sm_batched_nthreads(magma_int_t m, magma_int_t n)
+{
+    #ifdef MAGMA_HAVE_HIP
+    // based on MI100, rocm-4.5.0
+    if ( n <= 4 ) {
+        if      ( m <= 192 ) return  32;
+        else if ( m <= 448 ) return  64;
+        else if ( m <= 736 ) return 128;
+        else if ( m <= 768 ) return  64;
+        else                 return 128;
+    }
+    else if ( n <= 8 ) {
+        if      ( m <=  384 ) return  64;
+        else if ( m <=  640 ) return 128;
+        else if ( m <=  960 ) return 256;
+        else if ( m <= 1024 ) return 128;
+        else                  return 256;
+    }
+    else {
+        return 512; // panel is wide, use a large number of threads
+    }
+    #else
+    // based on A100, cuda-11.2.0
+    if ( n <= 4 ) {
+        if      ( m <=  192 ) return 32;
+        else if ( m <=  960 ) return 64;
+        else                  return 128;
+    }
+    else if ( n <= 8 ) {
+        if      ( m <=  160 ) return 32;
+        else if ( m <=  480 ) return 64;
+        else if ( m <=  992 ) return 128;
+        else                  return 256;
+    }
+    else if ( n <= 16 ) {
+        if      ( m <=  224 ) return 64;
+        else if ( m <=  480 ) return 128;
+        else if ( m <= 1024 ) return 256;
+        else                  return 512;
+    }
+    else {
+        return 512; // panel is too wide, use a large number of threads
+    }
+    #endif
+}
 
 /***************************************************************************//**
     @return the crossover point between the _lg or the kernel directly

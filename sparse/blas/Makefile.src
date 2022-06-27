@@ -49,6 +49,8 @@ libsparse_src += \
 # Wrappers to cusparse functions
 libsparse_src += \
 	$(cdir)/zilu.cpp                      \
+	$(cdir)/magma_ztrisolve.cpp           \
+	$(cdir)/magma_trisolve.cpp            \
 	$(cdir)/magma_zcuspmm.cpp             \
 	$(cdir)/magma_zcuspaxpy.cpp           \
 

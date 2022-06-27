@@ -181,31 +181,40 @@ void zlacpy_upper_kernel(
 __global__
 void zlacpy_full_kernel_batched(
     int m, int n,
-    magmaDoubleComplex const * const *dAarray, int ldda,
-    magmaDoubleComplex **dBarray, int lddb )
+    magmaDoubleComplex const * const *dAarray, magma_int_t Ai, magma_int_t Aj, int ldda,
+    magmaDoubleComplex **dBarray, magma_int_t Bi, magma_int_t Bj, int lddb )
 {
     int batchid = blockIdx.z;
-    zlacpy_full_device(m, n, dAarray[batchid], ldda, dBarray[batchid], lddb);
+    zlacpy_full_device(
+            m, n,
+            dAarray[batchid] + Aj*ldda + Ai, ldda,
+            dBarray[batchid] + Bj*lddb + Bi, lddb);
 }
 
 __global__
 void zlacpy_lower_kernel_batched(
     int m, int n,
-    magmaDoubleComplex const * const *dAarray, int ldda,
-    magmaDoubleComplex **dBarray, int lddb )
+    magmaDoubleComplex const * const *dAarray, magma_int_t Ai, magma_int_t Aj, int ldda,
+    magmaDoubleComplex **dBarray, magma_int_t Bi, magma_int_t Bj, int lddb )
 {
     int batchid = blockIdx.z;
-    zlacpy_lower_device(m, n, dAarray[batchid], ldda, dBarray[batchid], lddb);
+    zlacpy_lower_device(
+            m, n,
+            dAarray[batchid] + Aj*ldda + Ai, ldda,
+            dBarray[batchid] + Bj*lddb + Bi, lddb);
 }
 
 __global__
 void zlacpy_upper_kernel_batched(
     int m, int n,
-    magmaDoubleComplex const * const *dAarray, int ldda,
-    magmaDoubleComplex **dBarray, int lddb )
+    magmaDoubleComplex const * const *dAarray, magma_int_t Ai, magma_int_t Aj, int ldda,
+    magmaDoubleComplex **dBarray, magma_int_t Bi, magma_int_t Bj, int lddb )
 {
     int batchid = blockIdx.z;
-    zlacpy_upper_device(m, n, dAarray[batchid], ldda, dBarray[batchid], lddb);
+    zlacpy_upper_device(
+            m, n,
+            dAarray[batchid] + Aj*ldda + Ai, ldda,
+            dBarray[batchid] + Bj*lddb + Bi, lddb);
 }
 
 /******************************************************************************/
@@ -396,6 +405,35 @@ magmablas_zlacpy(
     }
 }
 
+extern "C" void
+magmablas_zlacpy_internal_batched(
+    magma_uplo_t uplo, magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_const_ptr const dAarray[], magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+    magmaDoubleComplex_ptr             dBarray[], magma_int_t Bi, magma_int_t Bj, magma_int_t lddb,
+    magma_int_t batchCount, magma_queue_t queue )
+{
+    dim3 threads( BLK_X, 1, 1 );
+    magma_int_t max_batchCount = queue->get_maxBatch();
+
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv( m, BLK_X ), magma_ceildiv( n, BLK_Y ), ibatch );
+
+        if ( uplo == MagmaLower ) {
+            zlacpy_lower_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
+            ( m, n, dAarray+i, Ai, Aj, ldda, dBarray+i, Bi, Bj, lddb );
+        }
+        else if ( uplo == MagmaUpper ) {
+            zlacpy_upper_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
+            ( m, n, dAarray+i, Ai, Aj, ldda, dBarray+i, Bi, Bj, lddb );
+        }
+        else {
+            zlacpy_full_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
+            ( m, n, dAarray+i, Ai, Aj, ldda, dBarray+i, Bi, Bj, lddb );
+        }
+    }
+}
+
 /***************************************************************************//**
     Purpose
     -------
@@ -480,26 +518,11 @@ magmablas_zlacpy_batched(
         return;
     }
 
-    dim3 threads( BLK_X, 1, 1 );
-    magma_int_t max_batchCount = queue->get_maxBatch();
-
-    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
-        magma_int_t ibatch = min(max_batchCount, batchCount-i);
-        dim3 grid( magma_ceildiv( m, BLK_X ), magma_ceildiv( n, BLK_Y ), ibatch );
-
-        if ( uplo == MagmaLower ) {
-            zlacpy_lower_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
-            ( m, n, dAarray+i, ldda, dBarray+i, lddb );
-        }
-        else if ( uplo == MagmaUpper ) {
-            zlacpy_upper_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
-            ( m, n, dAarray+i, ldda, dBarray+i, lddb );
-        }
-        else {
-            zlacpy_full_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
-            ( m, n, dAarray+i, ldda, dBarray+i, lddb );
-        }
-    }
+    magmablas_zlacpy_internal_batched(
+    uplo, m, n,
+    dAarray, 0, 0, ldda,
+    dBarray, 0, 0, lddb,
+    batchCount, queue );
 }
 
 /***************************************************************************//**

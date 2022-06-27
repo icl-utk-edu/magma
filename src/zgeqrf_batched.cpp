@@ -4,9 +4,10 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Azzam Haidar
        @author Tingxing Dong
+       @author Ahmad Abdelfattah
 
        @precisions normal z -> s d c
 */
@@ -20,7 +21,7 @@
     -------
     ZGEQRF computes a QR factorization of a complex M-by-N matrix A:
     A = Q * R.
-    
+
     Arguments
     ---------
     @param[in]
@@ -87,19 +88,13 @@
 extern "C" magma_int_t
 magma_zgeqrf_batched(
     magma_int_t m, magma_int_t n,
-    magmaDoubleComplex **dA_array,
-    magma_int_t ldda,
+    magmaDoubleComplex **dA_array, magma_int_t ldda,
     magmaDoubleComplex **dtau_array,
     magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue)
 {
-    #define dA(i, j)  (dA + (i) + (j)*ldda)
-
-    /* Local Parameter */
-    magma_int_t nb = magma_get_zgeqrf_batched_nb(m);
-    magma_int_t min_mn = min(m, n);
-
     /* Check arguments */
     magma_int_t arginfo = 0;
+
     if (m < 0)
         arginfo = -1;
     else if (n < 0)
@@ -116,50 +111,89 @@ magma_zgeqrf_batched(
     if (m == 0 || n == 0)
         return arginfo;
 
-    /* Special case for tiny square matrices */
-    if( m == n && m <= 32 ){
-        return magma_zgeqrf_batched_smallsq( m, dA_array, ldda, dtau_array, info_array, batchCount, queue );
+    // To update the tuning of magma_use_zgeqrf_batched_fused_update
+    // (1) disable the for loop below
+    // (2) copy the for loop to the testing file (e.g. instead of cublas/hipblas)
+    // (3) compare the two solution for different sizes
+    // Try a shortcut that uses fused geqr2 +fused update
+    magma_int_t use_fused_update = magma_use_zgeqrf_batched_fused_update(m, n, batchCount);
+    if( use_fused_update == 1 ) {
+        for(int inb = 16; inb >= 1; inb /= 2) {
+            arginfo = magma_zgeqrf_panel_fused_update_batched(
+                    m, n, inb,
+                    dA_array, 0, 0, ldda,
+                    dtau_array, 0, NULL, 0, 0, 0,
+                    info_array, 0, batchCount, queue);
+
+            if ( arginfo == 0 ) return arginfo;
+        }
     }
 
+    /* Local Parameter */
+    magma_int_t nb = magma_get_zgeqrf_batched_nb(m);
+    magma_int_t min_mn = min(m, n);
     magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
 
+    magmaDoubleComplex *dBuffer   = NULL;
     magmaDoubleComplex *dT        = NULL;
     magmaDoubleComplex *dR        = NULL;
-    magmaDoubleComplex **dR_array = NULL;
-    magmaDoubleComplex **dT_array = NULL;
-    magma_malloc((void**)&dR_array, batchCount * sizeof(*dR_array));
-    magma_malloc((void**)&dT_array, batchCount * sizeof(*dT_array));
+    magmaDoubleComplex *dW        = NULL;
+
+    magmaDoubleComplex **dptr_array = NULL;
+    magmaDoubleComplex **dW_array   = NULL;
+    magmaDoubleComplex **dR_array   = NULL;
+    magmaDoubleComplex **dT_array   = NULL;
 
     magma_int_t lddt = min(nb, min_mn);
     magma_int_t lddr = min(nb, min_mn);
-    magma_zmalloc(&dR,  lddr * lddr * batchCount);
-    magma_zmalloc(&dT,  lddt * lddt * batchCount);
+
+    magma_int_t buffer_size = 0;
+    magma_int_t sizeR = lddr * lddr * batchCount;
+    magma_int_t sizeT = lddt * lddt * batchCount;
+    magma_int_t sizeW = 2 * nb * n  * batchCount;
+    buffer_size += sizeR; // dR
+    buffer_size += sizeT; // dT
+    buffer_size += sizeW; // dW
+    magma_zmalloc(&dBuffer,  buffer_size);
+
+    magma_int_t ptr_count = 0;
+    ptr_count += batchCount;     // dR_array
+    ptr_count += batchCount;     // dT_array
+    ptr_count += batchCount * 2; // dW_array
+    magma_malloc((void**)&dptr_array, ptr_count * sizeof(magmaDoubleComplex*));
 
     /* check allocation */
-    if ( dR_array  == NULL || dT_array  == NULL || dR == NULL || dT == NULL ) {
-        magma_free(dR_array);
-        magma_free(dT_array);
-        magma_free(dR);
-        magma_free(dT);
+    if ( dBuffer == NULL || dptr_array == NULL ) {
+        magma_free( dBuffer );
+        magma_free( dptr_array );
         magma_int_t info = MAGMA_ERR_DEVICE_ALLOC;
         magma_xerbla( __func__, -(info) );
         return info;
     }
+    dR = dBuffer;
+    dT = dR + sizeR;
+    dW = dT + sizeT;
 
-    magma_zset_pointer( dR_array, dR, lddr, 0, 0, lddr*min(nb, min_mn), batchCount, queue );
-    magma_zset_pointer( dT_array, dT, lddt, 0, 0, lddt*min(nb, min_mn), batchCount, queue );
+    dR_array = dptr_array;
+    dT_array = dR_array + batchCount;
+    dW_array = dT_array + batchCount;
 
-    arginfo = magma_zgeqrf_expert_batched(m, n,
-                                          dA_array, ldda,
-                                          dR_array, lddr,
-                                          dT_array, lddt,
-                                          dtau_array, 0,
-                                          info_array, batchCount, queue);
+    magma_zset_pointer( dR_array, dR, lddr, 0, 0, lddr*min(nb, min_mn),   batchCount, queue );
+    magma_zset_pointer( dT_array, dT, lddt, 0, 0, lddt*min(nb, min_mn),   batchCount, queue );
+    magma_zset_pointer( dW_array, dW,    1, 0, 0, nb*n,                 2*batchCount, queue );
 
-    magma_free(dR_array);
-    magma_free(dT_array);
-    magma_free(dR);
-    magma_free(dT);
+    arginfo = magma_zgeqrf_expert_batched(
+                m, n, nb,
+                dA_array, ldda,
+                dR_array, lddr,
+                dT_array, lddt,
+                dtau_array, 0,
+                dW_array,
+                info_array, batchCount, queue);
+
+    magma_queue_sync(queue);
+    magma_free(dBuffer);
+    magma_free(dptr_array);
 
     return arginfo;
 }

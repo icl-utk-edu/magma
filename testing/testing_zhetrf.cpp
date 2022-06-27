@@ -58,22 +58,22 @@ double get_residual(
     const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
     const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     const magma_int_t ione = 1;
-    
+
     magma_int_t upper = (uplo == MagmaUpper);
-    
+
     // this seed should be DIFFERENT than used in init_matrix
     // (else x is column of A, so residual can be exactly zero)
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t info = 0;
     magma_int_t i;
     magmaDoubleComplex *x, *b;
-    
+
     // initialize RHS
     TESTING_CHECK( magma_zmalloc_cpu( &x, n ));
     TESTING_CHECK( magma_zmalloc_cpu( &b, n ));
     lapackf77_zlarnv( &ione, ISEED, &n, b );
     blasf77_zcopy( &n, b, &ione, x, &ione );
-    
+
     // solve Ax = b
     if (nopiv) {
         if (upper) {
@@ -112,21 +112,21 @@ double get_residual(
     }
     // reset to original A
     init_matrix( opts, n, n, A, lda );
-    
+
     // compute r = Ax - b, saved in b
     blasf77_zhemv( lapack_uplo_const(uplo), &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
-    
+
     // compute residual |Ax - b| / (n*|A|*|x|)
     double norm_x, norm_A, norm_r, work[1];
     norm_A = lapackf77_zlanhe( "Fro", lapack_uplo_const(uplo), &n, A, &lda, work );
     norm_r = lapackf77_zlange( "Fro", &n, &ione, b, &n, work );
     norm_x = lapackf77_zlange( "Fro", &n, &ione, x, &n, work );
-    
+
     //printf( "r=\n" ); magma_zprint( 1, n, b, 1 );
-    
+
     magma_free_cpu( x );
     magma_free_cpu( b );
-    
+
     //printf( "r=%.2e, A=%.2e, x=%.2e, n=%lld\n", norm_r, norm_A, norm_x, (long long) n );
     return norm_r / (n * norm_A * norm_x);
 }
@@ -140,7 +140,7 @@ double get_residual_gpu(
     bool nopiv, magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex *A, magma_int_t lda,
     magmaDoubleComplex *dA, magma_int_t ldda,
-    magma_int_t *ipiv, 
+    magma_int_t *ipiv,
     real_Double_t *time)
 {
     const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
@@ -211,7 +211,7 @@ double get_residual_aasen(
     const magma_int_t ione = 1;
     const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
     const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
-    
+
     magmaDoubleComplex *L, *T;
     #define  A(i,j) ( A[(i) + (j)*lda])
     #define  L(i,j) ( L[(i) + (j)*n])
@@ -235,7 +235,7 @@ double get_residual_aasen(
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t info = 0;
     magmaDoubleComplex *x, *b;
-    
+
     // initialize RHS
     TESTING_CHECK( magma_zmalloc_cpu( &x, n ));
     TESTING_CHECK( magma_zmalloc_cpu( &b, n ));
@@ -307,20 +307,20 @@ double get_residual_aasen(
 
     // compute r = Ax - b, saved in b
     blasf77_zhemv( lapack_uplo_const(uplo), &n, &c_one, A, &lda, x, &ione, &c_neg_one, b, &ione );
-    
+
     // compute residual |Ax - b| / (n*|A|*|x|)
     double norm_x, norm_A, norm_r, work[1];
     norm_A = lapackf77_zlanhe( "Fro", lapack_uplo_const(uplo), &n, A, &lda, work );
     norm_r = lapackf77_zlange( "Fro", &n, &ione, b, &n, work );
     norm_x = lapackf77_zlange( "Fro", &n, &ione, x, &n, work );
-    
+
     //printf( "r=\n" ); magma_zprint( 1, n, b, 1 );
     magma_free_cpu( L );
     magma_free_cpu( T );
-    
+
     magma_free_cpu( x );
     magma_free_cpu( b );
-    
+
     #undef T
     #undef L
     #undef A
@@ -342,11 +342,11 @@ double get_LDLt_error(
 {
     const magmaDoubleComplex c_one  = MAGMA_Z_ONE;
     const magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
-    
+
     magma_int_t i, j, piv;
     magmaDoubleComplex *A, *L, *D;
     double work[1], matnorm, residual;
-    
+
     #define LD(i,j) (LD[(i) + (j)*lda])
     #define  A(i,j) ( A[(i) + (j)*N])
     #define  L(i,j) ( L[(i) + (j)*N])
@@ -575,10 +575,10 @@ double get_LTLt_error(
     magmaDoubleComplex c_one  = MAGMA_Z_ONE;
     magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
     magmaDoubleComplex *A, *L, *T;
-    
+
     #define LT(i,j) (LT[(i) + (j)*lda])
     #define  T(i,j) ( T[(i) + (j)*N])
-    
+
     TESTING_CHECK( magma_zmalloc_cpu( &A, N*N ));
     TESTING_CHECK( magma_zmalloc_cpu( &L, N*N ));
     TESTING_CHECK( magma_zmalloc_cpu( &T, N*N ));
@@ -587,7 +587,7 @@ double get_LTLt_error(
 
     magma_int_t i, j, istart, piv;
     magma_int_t nb = magma_get_zhetrf_aasen_nb(N);
-    
+
     // for debuging
     /*
     magma_int_t *p;
@@ -608,7 +608,7 @@ double get_LTLt_error(
     printf( "];\n" );
     magma_free_cpu( p );
     */
-    
+
     // extract T
     for (i=0; i < N; i++) {
         istart = max(0, i-nb);
@@ -622,7 +622,7 @@ double get_LTLt_error(
     //printf( "T=" );
     //magma_zprint(N,N, &T(0,0),N);
     // extract L
-    for (i=0; i < min(N,nb); i++) 
+    for (i=0; i < min(N,nb); i++)
     {
         L(i,i) = c_one;
     }
@@ -713,12 +713,12 @@ int main( int argc, char** argv)
 
     magmaDoubleComplex *h_A, *work, temp;
     real_Double_t   gflops, gpu_perf, gpu_time = 0.0, cpu_perf=0, cpu_time=0, solve_time[2];
-    double          error, error_lapack = 0.0;
+    double          error = 0.0, error_lapack = 0.0;
     magma_int_t     *ipiv;
     magma_int_t     cpu_panel = 1, N, n2, lda, lwork, info;
     magma_int_t     cpu = 0, gpu = 0, nopiv = 0, nopiv_gpu = 0, row = 0, aasen = 0;
     int status = 0;
-    
+
     magma_opts opts;
     opts.parse_opts( argc, argv );
     if (opts.version == 3 || opts.version == 4) {
@@ -787,10 +787,10 @@ int main( int argc, char** argv)
             lda    = N;
             n2     = lda*N;
             gflops = FLOPS_ZPOTRF( N ) / 1e9;
-            
+
             TESTING_CHECK( magma_imalloc_pinned( &ipiv, N ));
             TESTING_CHECK( magma_zmalloc_pinned( &h_A,  n2 ));
-            
+
             /* =====================================================================
                Performs operation using LAPACK
                =================================================================== */
@@ -824,7 +824,7 @@ int main( int argc, char** argv)
 
                 magma_free_cpu( work );
             }
-           
+
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
@@ -844,7 +844,7 @@ int main( int argc, char** argv)
                 magma_zhetrf( opts.uplo, N, h_A, lda, ipiv, &info);
                 gpu_time = magma_wtime() - gpu_time;
 
-                // To do: extend to test inertia for real case; 
+                // To do: extend to test inertia for real case;
                 #ifdef REAL
                 double det[2];
                 magma_int_t inert[3];
@@ -916,15 +916,15 @@ int main( int argc, char** argv)
 
                 magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
                 if ( opts.check == 2 && info == 0) {
-                    error = get_residual_gpu( opts, (nopiv | nopiv_gpu), opts.uplo, N, 
+                    error = get_residual_gpu( opts, (nopiv | nopiv_gpu), opts.uplo, N,
                                               h_A, lda, d_A, ldda, ipiv, solve_time );
                     magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
                 }
-                
+
                 int *dinert, inert[3];
                 //for(int kk=0; kk<N; kk++)
                 //    h_A[kk+(N-1)*lda] = h_A[N-1+kk*lda] = 0.;
-                TESTING_CHECK( magma_malloc( (void**)&dinert, 3*sizeof(int)) ); 
+                TESTING_CHECK( magma_malloc( (void**)&dinert, 3*sizeof(int)) );
                 magmablas_zheinertia(opts.uplo, N, d_A, ldda, ipiv, dinert, opts.queue);
                 magma_getvector( 3, sizeof(int), dinert, 1, inert, 1, opts.queue );
                 printf("inertia: positive / negative / zero = %d / %d / %d\n",
@@ -950,7 +950,7 @@ int main( int argc, char** argv)
                 printf("magma_zhetrf returned error %lld: %s.\n",
                        (long long) info, magma_strerror( info ));
             }
-            
+
             /* =====================================================================
                Check the factorization
                =================================================================== */
@@ -971,7 +971,7 @@ int main( int argc, char** argv)
                 }
                 // gpu case calls get_residual_gpu before to initialize error and timing.
                 // This is done above in a block where GPU memory is allocated, computatio is done,
-                // and the GPU memory is freed. 
+                // and the GPU memory is freed.
                 if (gpu) {
                     printf("   %8.2e (%.2f s) %s", error, solve_time[0], (error < tol ? "ok" : "failed"));
                     if (opts.lapack)
@@ -998,7 +998,7 @@ int main( int argc, char** argv)
             else {
                 printf("     ---   \n");
             }
- 
+
             magma_free_pinned( ipiv );
             magma_free_pinned( h_A  );
             fflush( stdout );
