@@ -10,6 +10,7 @@
 */
 
 #include <vector>
+#include <cmath>
 #include "magma_internal.h"
 #include "geqrf_batched_panel_decision.h"
 
