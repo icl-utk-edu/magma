@@ -397,7 +397,7 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
     magma_int_t total_shmem_column_sm_kernel = static_shmem + dynamic_shmem_column_sm_kernel;
 
     // max. dynamic shared memory allowed per thread-block
-    magma_int_t shmem_max = 0;
+    int shmem_max = 0;
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
     if ( total_shmem_sm_kernel <= shmem_max) {
