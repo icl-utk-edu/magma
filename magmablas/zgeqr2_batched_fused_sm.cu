@@ -170,7 +170,7 @@ magma_zgeqr2_fused_sm_batched(
     dim3 threads( nthreads, ntcol, 1);
 
     // get max. dynamic shared memory on the GPU
-    magma_int_t nthreads_max, shmem_max = 0;
+    int nthreads_max, shmem_max = 0;
     cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
