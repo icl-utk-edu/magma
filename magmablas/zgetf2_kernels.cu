@@ -874,7 +874,7 @@ magma_zgetf2_fused_kernel_driver_batched(
     magma_getdevice( &device );
 
     magma_int_t ntcol = (m >= 32)? 1 : (32/m);
-    magma_int_t shmem = 0;
+    int shmem = 0, shmem_max = 0;   // not magma_int_t (causes problems with 64bit builds)
     shmem += N * sizeof(magmaDoubleComplex);
     shmem += m * sizeof(double);
     shmem += m * sizeof(int);    // not magma_int_t
@@ -885,7 +885,7 @@ magma_zgetf2_fused_kernel_driver_batched(
     dim3 threads(m, ntcol, 1);
 
     // get max. dynamic shared memory on the GPU
-    magma_int_t nthreads_max, nthreads = m * ntcol, shmem_max = 0;
+    magma_int_t nthreads_max, nthreads = m * ntcol;
     cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
