@@ -159,7 +159,7 @@ magma_zgetf2_update_kernel_batched_driver(
     magma_int_t arginfo = 0;
     const magma_int_t ntcol = max(1, 64/m);
 
-    magma_int_t shmem = 0;
+    int shmem = 0;
     shmem += SLDA(m) * PN  * sizeof(magmaDoubleComplex);  // spA
     shmem += SLDA(m) * NB  * sizeof(magmaDoubleComplex);  // sA (cleanup)
     shmem += NB            * sizeof(magmaDoubleComplex);  // sU
@@ -170,7 +170,7 @@ magma_zgetf2_update_kernel_batched_driver(
     dim3 threads(nthreads, ntcol, 1);
 
     // get max. dynamic shared memory on the GPU
-    magma_int_t nthreads_max, shmem_max = 0;
+    int nthreads_max, shmem_max = 0;
     cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
