@@ -378,8 +378,6 @@ magma_zgetf2_fused_sm_vbatched(
 
 /******************************************************************************/
 #define SLDA(n)              ( (((n)+1)%4) == 0 ? (n) : (n+1) )
-//#define DBG
-//#define DBG2
 #define ibatch    (0)
 template<int max_N>
 __global__ void
@@ -420,26 +418,12 @@ zgetf2_fused_kernel_vbatched(
     const int slda = SLDA(max_M);
     magmaDoubleComplex  rA[max_N] = {MAGMA_Z_ZERO};
 
-    #if defined(DBG2) && defined(PRECISION_d)
-    __syncthreads();
-    if(batchid == ibatch) {
-        printf("(ai,aj) = (%d,%d)\n", Ai, Aj);
-        printf("(m,n) = (%d,%d)\n", my_M, my_N);
-    }
-    __syncthreads();
-    #endif
-
     // init sA into identity
     magmaDoubleComplex* sA = (magmaDoubleComplex*)data;
     #pragma unroll
     for(int j = 0; j < max_N; j++) {
         sA[j * slda + tx] = MAGMA_Z_ZERO;
     }
-
-    //if(tx < max_N) {
-    //     sA[tx * slda + tx] = MAGMA_Z_ONE;
-    //}
-    // no sync required here
 
     // read A into sm then mv to reg
     if(tx < my_M) {
@@ -448,26 +432,6 @@ zgetf2_fused_kernel_vbatched(
         }
     }
     __syncthreads();
-
-
-    #if defined(DBG) && defined(PRECISION_d)
-    __syncthreads();
-    if(batchid == ibatch && tx == 0) {
-        printf("(m,n) = (%d,%d)\n", my_M, my_N);
-        printf("[\n");
-        for(int ii = 0; ii < max_M; ii++) {
-            for(int jj=0; jj < max_N; jj++) {
-                printf("%s", sA[jj*slda+ii] > 0 ? " " : "");
-                printf("%.4f", sA[jj*slda+ii]);
-                printf("%s", (jj<max_N-1)? ", " : ";\n");
-            }
-        }
-        printf("]\n");
-    }
-    __syncthreads();
-    #endif
-
-
 
     #pragma unroll
     for(int j = 0; j < max_N; j++){
@@ -488,34 +452,6 @@ zgetf2_fused_kernel_vbatched(
         sA[ j * slda + rowid ] = rA[j];
     }
     __syncthreads();
-
-    #if defined(DBG) && defined(PRECISION_d)
-    __threadfence();
-    __syncthreads();
-    if(batchid == ibatch && tx < my_minmn) {
-        printf("%d\n", dipiv[tx]);
-    }
-    __syncthreads();
-    #endif
-
-
-    #if defined(DBG) && defined(PRECISION_d)
-    __syncthreads();
-    if(batchid == ibatch && tx == 0) {
-        printf("(m,n) = (%d,%d)\n", my_M, my_N);
-        printf("[\n");
-        for(int ii = 0; ii < max_M; ii++) {
-            for(int jj=0; jj < max_N; jj++) {
-                printf("%s", sA[jj*slda+ii] > 0 ? " " : "");
-                printf("%.4f", sA[jj*slda+ii]);
-                printf("%s", (jj<max_N-1)? ", " : ";\n");
-            }
-        }
-        printf("]\n");
-    }
-    __syncthreads();
-    #endif
-
 
     // ignore any info beyond minmn
     // (meaning singularity is encountered at the padded matrix)

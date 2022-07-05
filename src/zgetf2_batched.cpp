@@ -13,9 +13,6 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
-//#define DBG
-//#define ZGETF2_BATCHED_FUSED_UPDATE
-
 /***************************************************************************//**
     Purpose
     -------
@@ -134,13 +131,10 @@ magma_zgetf2_batched_v1(
                 }
             }
             else {
-                //printf("running --- shared version\n");
-                //printf("calling zcomputecolumn, panel ai=%2d, panelj = %d, step = %2d\n", ai, panelj, step);
                 arginfo = magma_zcomputecolumn_batched(m-panelj, panelj, step, dA_array, ai, aj, ldda, ipiv_array, info_array, gbstep, batchCount, queue);
                 if (arginfo != 0 ) return arginfo;
                 // Apply the interchange to columns 1:N. swap the whole row
 
-                //printf("calling zswap batched, ai = %d, step = %d\n", ai, gbj);
                 arginfo = magma_zswap_batched(n, dA_array, ai, aj, ldda, gbj, ipiv_array, batchCount, queue);
                 if (arginfo != 0 ) return arginfo;
             }
@@ -151,10 +145,6 @@ magma_zgetf2_batched_v1(
             // continue the update of the selected ib row column panelj+ib:n(TRSM)
             magma_zgetf2trsm_batched(ib, n-panelj-ib, dA_array, ai+panelj, ldda, batchCount, queue);
             // do the blocked DGER = DGEMM for the remaining panelj+ib:n columns
-            //magma_zdisplace_pointers(dW0_displ, dA_array, ldda, ib+panelj, panelj, batchCount, queue);
-            //magma_zdisplace_pointers(dW1_displ, dA_array, ldda, panelj, ib+panelj, batchCount, queue);
-            //magma_zdisplace_pointers(dW2_displ, dA_array, ldda, ib+panelj, ib+panelj, batchCount, queue);
-
             magma_zgemm_batched_core( MagmaNoTrans, MagmaNoTrans, m-(panelj+ib), n-(panelj+ib), ib,
                                  c_neg_one, dAarray(ai+ib+panelj, aj+panelj   ), ldda,
                                             dAarray(ai+panelj   , aj+ib+panelj), ldda,
@@ -162,8 +152,6 @@ magma_zgetf2_batched_v1(
                                  batchCount, queue );
         }
     }
-
-    //magma_free_cpu(cpuAarray);
 
     return 0;
 
@@ -181,16 +169,8 @@ magma_zgetf2_batched_v2(
 #define dA_array(i,j) dA_array, i, j
 #define ipiv_array(i) ipiv_array, i
 
-    #ifdef DBG
-    magmaDoubleComplex* a;
-    magma_getvector(1, sizeof(magmaDoubleComplex*), dA_array, 1, &a, 1, queue);
-    magma_zprint_gpu(m, n, a, ldda, queue);
-    #endif
-
-    //printf("(%d, %d) -- %d\n", m, n, stop_nb);
     magma_int_t arginfo = 0;
     if(n <= stop_nb){
-        //printf("(%d, %d) -- %d\n", m, n, stop_nb);
         arginfo = magma_zgetf2_fused_batched(m, n, dA_array(ai,aj), ldda, ipiv_array, info_array, batchCount, queue);
     }
     else{
@@ -210,55 +190,30 @@ magma_zgetf2_batched_v2(
         // swap right
         setup_pivinfo_batched(dpivinfo_array, ipiv_array(ai), m, n1, batchCount, queue);
 
-        #ifdef ZGETF2_BATCHED_FUSED_UPDATE
-        arginfo = -1;
-        for(int inb = 32; inb >= 2; inb /= 2) {
-            arginfo = magma_zgetf2_update_batched(
-                        m, n1, n2, min(n2,inb),
-                        dA_array, ai, aj, ldda,
-                        dpivinfo_array, 0,
-                        batchCount, queue );
-            if(arginfo == 0) break;
-        }
-
-        if(arginfo != 0) {
-        #endif
-            // fused update failed to launch, use classic update
-            magma_zlaswp_rowparallel_batched(
+        // fused update failed to launch, use classic update
+        magma_zlaswp_rowparallel_batched(
                 n2,
                 dA_array(ai,aj+n1), ldda,
                 dA_array(ai,aj+n1), ldda,
                 0, n1, dpivinfo_array,
                 batchCount, queue);
 
-            // trsm
-            magmablas_ztrsm_recursive_batched(
+        // trsm
+        magmablas_ztrsm_recursive_batched(
                 MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit,
                 n1, n2, MAGMA_Z_ONE,
                 dA_array(ai,   aj), ldda,
                 dA_array(ai,aj+n1), ldda,
                 batchCount, queue );
 
-            // gemm
-            magma_zgemm_batched_core(
+        // gemm
+        magma_zgemm_batched_core(
                 MagmaNoTrans, MagmaNoTrans,
                 m-n1, n2, n1,
                 MAGMA_Z_NEG_ONE, dA_array(ai+n1,    aj), ldda,
                                  dA_array(ai   , aj+n1), ldda,
                 MAGMA_Z_ONE,     dA_array(ai+n1, aj+n1), ldda,
                 batchCount, queue );
-
-        #ifdef ZGETF2_BATCHED_FUSED_UPDATE
-            arginfo = 0;
-        }
-        #endif
-
-        #ifdef DBG
-        magmaDoubleComplex* aa;
-        magma_getvector(1, sizeof(magmaDoubleComplex*), dA_array, 1, &aa, 1, queue);
-        magma_zprint_gpu(m, n, aa, ldda, queue);
-        #endif
-
 
         // panel 2
         magma_zgetf2_batched_v2(

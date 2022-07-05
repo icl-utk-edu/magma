@@ -14,7 +14,6 @@
 #include "zlaswp_device.cuh"
 
 #define PRECISION_z
-//#define DBG
 #define ib    (3)
 
 /******************************************************************************/
@@ -62,14 +61,6 @@ __global__ void zlaswp_left_rowserial_kernel_vbatched(
     if(my_M < Ai || my_N < Ai) return;
     const int my_max_n = Ai - Aj;
     const int my_n     = min(n, my_max_n);
-
-    #if defined(DBG) && defined(PRECISION_d)
-    __syncthreads();
-    if(batchid == ib && threadIdx.x == 0) {
-        printf("matrix %d: k1 = %d, k2 = %d, my_n = %d\n", ib, k1, k2, my_n);
-    }
-    __syncthreads();
-    #endif
 
     if (tid < my_n) {
         magmaDoubleComplex A1;
@@ -154,25 +145,10 @@ void zlaswp_left_rowparallel_kernel_vbatched(
     int my_N     = (int)N[batchid];
     int my_ldda  = (int)ldda[batchid];
 
-    #if defined(DBG) && defined(PRECISION_d)
-    __syncthreads();
-    if(batchid == ib && threadIdx.x == 0) {
-        printf("matrix %d: (%d, %d) -- offsets (%d, %d)\n", ib, my_M, my_N, Ai, Aj);
-    }
-    __syncthreads();
-    #endif
-
     magmaDoubleComplex* dA = dA_array[batchid]  + Aj  * my_ldda + Ai;
     magma_int_t *pivinfo   = pivinfo_array[batchid] + pivinfo_i;
 
     // check if offsets produce out-of-bound pointers
-    #if defined(DBG) && defined(PRECISION_d)
-    __syncthreads();
-    if(batchid == ib && threadIdx.x == 0) {
-        printf("checking offsets\n");
-    }
-    __syncthreads();
-    #endif
     if( my_M <= Ai || my_N <= Aj ) return;
 
     //my_M -= Ai;
@@ -181,21 +157,7 @@ void zlaswp_left_rowparallel_kernel_vbatched(
 
     // reduce minmn by the pivot offset
     my_minmn -= pivinfo_i;
-    #if defined(DBG) && defined(PRECISION_d)
-    __syncthreads();
-    if(batchid == ib && threadIdx.x == 0) {
-        printf("checking minmn\n");
-    }
-    __syncthreads();
-    #endif
     if( my_minmn <= 0  ) return;
-    #if defined(DBG) && defined(PRECISION_d)
-    __syncthreads();
-    if(batchid == ib && threadIdx.x == 0) {
-        printf("checking k1\n");
-    }
-    __syncthreads();
-    #endif
     if( k1 >= my_minmn ) return;
     k2 = min(k2, my_minmn);
     const int my_height = k2-k1;
@@ -210,15 +172,6 @@ void zlaswp_left_rowparallel_kernel_vbatched(
     if(my_M < Ai || my_N < Ai) return;
     const int my_max_n = Ai - Aj;
     const int my_n     = min(n, my_max_n);
-
-    #if defined(DBG) && defined(PRECISION_d)
-    __syncthreads();
-    if(batchid == ib && threadIdx.x == 0) {
-        printf("matrix %d: height = %d, my_n = %d\n", ib, my_height, my_n);
-    }
-    __syncthreads();
-    #endif
-
     zlaswp_rowparallel_devfunc( my_n, width, my_height,
                                 dA, my_ldda,
                                 dA, my_ldda,
@@ -258,14 +211,6 @@ __global__ void zlaswp_right_rowparallel_kernel_vbatched(
     // check the input scalar 'n'
     const int my_max_n = my_N - Aj;
     const int my_n     = min(n, my_max_n);
-
-    #if defined(DBG) && defined(PRECISION_d)
-    __syncthreads();
-    if(batchid == ib && threadIdx.x == 0) {
-        printf("matrix %d: (%d, %d), offsets (%d, %d), height = %d, my_n = %d\n", ib, my_M, my_N, Ai, Aj, my_height, my_n);
-    }
-    __syncthreads();
-    #endif
 
     zlaswp_rowparallel_devfunc( my_n, width, my_height,
                                 dA, my_ldda,
