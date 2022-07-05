@@ -335,7 +335,7 @@ magma_zgetf2_fused_sm_vbatched(
     // kernel deadlocks due to different thread-groups calling
     // syncthreads at different points
     const magma_int_t ntcol = 1;
-    magma_int_t shmem = ( max_MxN   * sizeof(magmaDoubleComplex) );
+    int         shmem = ( max_MxN   * sizeof(magmaDoubleComplex) );
     shmem            += ( max_M     * sizeof(double) );
     shmem            += ( max_M     * sizeof(int) );
     shmem            += ( max_minMN * sizeof(int) );
@@ -345,7 +345,7 @@ magma_zgetf2_fused_sm_vbatched(
     dim3 threads( nthreads, ntcol, 1);
 
     // get max. dynamic shared memory on the GPU
-    magma_int_t nthreads_max, shmem_max = 0;
+    int nthreads_max, shmem_max = 0;
     cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
@@ -553,8 +553,8 @@ magma_zgetf2_fused_kernel_driver_vbatched(
     // should not affect performance for other shapes
     max_M = max(max_M, max_N);
 
-    magma_int_t ntcol = 1;
-    magma_int_t shmem = 0, shmem_1 = 0, shmem_2 = 0;
+    int ntcol = 1;
+    int shmem = 0, shmem_1 = 0, shmem_2 = 0;
     shmem_1 += max_N * sizeof(magmaDoubleComplex);
     shmem_1 += max_M * sizeof(double);
     shmem_1 += max_M * sizeof(int);    // not magma_int_t
@@ -572,7 +572,7 @@ magma_zgetf2_fused_kernel_driver_vbatched(
     dim3 threads(max_M, ntcol, 1);
 
     // get max. dynamic shared memory on the GPU
-    magma_int_t nthreads_max, nthreads = max_M * ntcol, shmem_max = 0;
+    int nthreads_max, nthreads = max_M * ntcol, shmem_max = 0;
     cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
