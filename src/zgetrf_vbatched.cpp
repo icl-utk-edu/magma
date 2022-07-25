@@ -129,6 +129,58 @@ magma_zgetrf_vbatched_max_nocheck(
 #undef dipiv_array
 }
 
+extern "C" magma_int_t
+magma_zgetrf_vbatched_max_nocheck_work(
+        magma_int_t* m, magma_int_t* n,
+        magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn, magma_int_t max_mxn,
+        magmaDoubleComplex **dA_array, magma_int_t *ldda,
+        magma_int_t **dipiv_array, magma_int_t *info_array,
+        void* work, magma_int_t* lwork,
+        magma_int_t batchCount, magma_queue_t queue)
+{
+    // first calculate required workspace in bytes
+    magma_int_t workspace_bytes = 0;
+    workspace_bytes += batchCount * sizeof(magma_int_t);         // minmn array
+    workspace_bytes += max_m * batchCount * sizeof(magma_int_t); // pivinfo
+    workspace_bytes += batchCount * sizeof(magma_int_t*);        // dpivinfo_array
+    workspace_bytes  = magma_roundup(workspace_bytes, 128);      // multiple of 128 bytes
+
+    if( *lwork < 0 ) {
+        // workspace query is assumed
+        *lwork = workspace_bytes;
+        return 0;
+    }
+
+    // check lwork
+    if( *lwork < workspace_bytes ) {
+        printf("error in %s, not enough workspace (lwork = %lld, required = %lld)\n",
+                __func__, (long long)(*lwork), (long long)workspace_bytes );
+        return -12;    // lwork is not enough
+    }
+
+    // split workspace as needed by magma_zgetrf_vbatched_max_nocheck
+    magma_int_t** dpivinfo_array = (magma_int_t**) work;
+    magma_int_t* minmn           = (magma_int_t*)(dpivinfo_array + batchCount);
+    magma_int_t* pivinfo         = (magma_int_t*)(minmn + batchCount);
+
+    // init
+    magma_ivec_min_vv( batchCount, m, n, minmn, queue);
+    magma_iset_pointer(dpivinfo_array, pivinfo, 1, 0, 0, max_m, batchCount, queue );
+
+    // blocking sizes
+    magma_int_t nb, recnb;
+    magma_get_zgetrf_vbatched_nbparam(max_m, max_n, &nb, &recnb);
+
+    // call magma_zgetrf_vbatched_max_nocheck
+    magma_zgetrf_vbatched_max_nocheck(
+        m, n, minmn,
+        max_m, max_n, max_minmn, max_mxn,
+        nb, recnb,
+        dA_array, ldda,
+        dipiv_array, dpivinfo_array, info_array,
+        batchCount, queue);
+}
+
 /***************************************************************************//**
     Purpose
     -------
@@ -217,9 +269,8 @@ magma_zgetrf_vbatched(
         magma_xerbla( __func__, -(arginfo) );
     }
     else {
-        // min_mn
-        magma_imalloc(&minmn, batchCount);
-        magma_ivec_min_vv( batchCount, m, n, minmn, queue);
+        void* device_work;
+        magma_int_t lwork[1];
 
         // collect stats (requires at least 4 integers)
         magma_getrf_vbatched_setup( m, n, stats, batchCount, queue );
@@ -229,25 +280,27 @@ magma_zgetrf_vbatched(
         const magma_int_t max_minmn = hstats[2];
         const magma_int_t max_mxn   = hstats[3];
 
-        // pivinfo
-        magma_imalloc(&pivinfo, max_m * batchCount);
-        magma_malloc((void**)&dpivinfo_array, batchCount * sizeof(magma_int_t*));
-        magma_iset_pointer(dpivinfo_array, pivinfo, 1, 0, 0, max_m, batchCount, queue );
+        // query workspace
+        lwork[0] = -1;
+        magma_zgetrf_vbatched_max_nocheck_work(
+            NULL, NULL,
+            max_m, max_n, max_minmn, max_mxn,
+            NULL, NULL, NULL, NULL,
+            NULL, lwork, batchCount, queue);
 
-        magma_int_t nb, recnb;
-        magma_get_zgetrf_vbatched_nbparam(max_m, max_n, &nb, &recnb);
-        arginfo = magma_zgetrf_vbatched_max_nocheck(
-                    m, n, minmn,
+        // alloc workspace
+        magma_malloc( (void**)&device_work, lwork[0] );
+
+        arginfo = magma_zgetrf_vbatched_max_nocheck_work(
+                    m, n,
                     max_m, max_n, max_minmn, max_mxn,
-                    nb, recnb,
                     dA_array, ldda,
-                    dipiv_array, dpivinfo_array, info_array,
+                    dipiv_array, info_array,
+                    device_work, lwork,
                     batchCount, queue);
 
-        magma_queue_sync(queue);
-        magma_free(minmn);
-        magma_free(pivinfo);
-        magma_free(dpivinfo_array);
+        magma_queue_sync( queue );
+        magma_free( device_work );
     }
 
     magma_free(stats);
