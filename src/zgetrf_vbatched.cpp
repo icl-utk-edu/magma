@@ -129,6 +129,97 @@ magma_zgetrf_vbatched_max_nocheck(
 #undef dipiv_array
 }
 
+/***************************************************************************//**
+    Purpose
+    -------
+    ZGETRF computes an LU factorization of a general M-by-N matrix A
+    using partial pivoting with row interchanges.
+
+    The factorization has the form
+        A = P * L * U
+    where P is a permutation matrix, L is lower triangular with unit
+    diagonal elements (lower trapezoidal if m > n), and U is upper
+    triangular (upper trapezoidal if m < n).
+
+    This is the right-looking Level 3 BLAS version of the algorithm.
+
+    This is the variable-size batched version, which factors batchCount matrices of
+    different sizes in parallel. Each matrix is assumed to have its own size and leading
+    dimension.
+
+    Arguments
+    ---------
+    @param[in]
+    M       Array of INTEGERs on the GPU, dimension (batchCount)
+            Each is the number of rows of each matrix A.  M[i] >= 0.
+
+    @param[in]
+    N       Array of INTEGERs on the GPU, dimension (batchCount)
+            Each is the number of columns of each matrix A.  N[i] >= 0.
+
+    @param[in]
+    MAX_M   INTEGER
+            The maximum number of rows across the batch
+
+    @param[in]
+    MAX_N   INTEGER
+            The maximum number of columns across the batch
+
+    @param[in]
+    MAX_MINMN INTEGER
+              The maximum value of min(Mi, Ni) for i = 1, 2, ..., batchCount
+
+    @param[in]
+    MAX_MxN INTEGER
+            The maximum value of the product (Mi x Ni) for i = 1, 2, ..., batchCount
+
+    @param[in,out]
+    dA_array    Array of pointers on the GPU, dimension (batchCount).
+            Each is a COMPLEX_16 array on the GPU, dimension (LDDA[i],N[i]).
+            On entry, each pointer is an M[i]-by-N[i] matrix to be factored.
+            On exit, the factors L and U from the factorization
+            A = P*L*U; the unit diagonal elements of L are not stored.
+
+    @param[in]
+    ldda    Array of INTEGERs on the GPU
+            Each is the leading dimension of each array A.  LDDA[i] >= max(1,M[i]).
+
+    @param[out]
+    dipiv_array  Array of pointers, dimension (batchCount), for corresponding matrices.
+            Each is an INTEGER array, dimension (min(M[i],N[i]))
+            The pivot indices; for 1 <= p <= min(M[i],N[i]), row p of the
+            matrix was interchanged with row IPIV(p).
+
+    @param[out]
+    info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
+      -     = 0:  successful exit
+      -     < 0:  if INFO = -i, the i-th argument had an illegal value
+                  or another error occured, such as memory allocation failed.
+      -     > 0:  if INFO = i, U(i,i) is exactly zero. The factorization
+                  has been completed, but the factor U is exactly
+                  singular, and division by zero will occur if it is used
+                  to solve a system of equations.
+
+    @param[in]
+    WORK        VOID pointer
+                A workspace of size LWORK[0]
+
+    @param[inout]
+    LWORK       INTEGER pointer
+                If lwork[0] < 0, a workspace query is assumed, and lwork[0] is
+                overwritten by the required workspace size in bytes.
+                Otherwise, lwork[0] is the size of work
+
+    @param[in]
+    batchCount  INTEGER
+                The number of matrices to operate on.
+
+    @param[in]
+    queue   magma_queue_t
+            Queue to execute in.
+
+    @ingroup magma_getrf_batched
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zgetrf_vbatched_max_nocheck_work(
         magma_int_t* m, magma_int_t* n,
