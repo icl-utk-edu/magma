@@ -263,13 +263,13 @@ magma_zgetrf_vbatched_max_nocheck_work(
     magma_get_zgetrf_vbatched_nbparam(max_m, max_n, &nb, &recnb);
 
     // call magma_zgetrf_vbatched_max_nocheck
-    magma_zgetrf_vbatched_max_nocheck(
-        m, n, minmn,
-        max_m, max_n, max_minmn, max_mxn,
-        nb, recnb,
-        dA_array, ldda,
-        dipiv_array, dpivinfo_array, info_array,
-        batchCount, queue);
+    return magma_zgetrf_vbatched_max_nocheck(
+                m, n, minmn,
+                max_m, max_n, max_minmn, max_mxn,
+                nb, recnb,
+                dA_array, ldda,
+                dipiv_array, dpivinfo_array, info_array,
+                batchCount, queue);
 }
 
 /***************************************************************************//**
@@ -349,8 +349,7 @@ magma_zgetrf_vbatched(
     const magma_int_t stats_length = 4;
 
     magma_int_t arginfo = 0, hstats[stats_length];
-    magma_int_t *minmn, *stats, *pivinfo;
-    magma_int_t **dpivinfo_array;
+    magma_int_t *stats;
     magma_imalloc(&stats, stats_length);    // max_m, max_n, max_minmn, max_mxn
 
     // the checker requires that stats contains at least 3 integers
