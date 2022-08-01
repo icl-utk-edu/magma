@@ -60,7 +60,7 @@ void magma_getrf_vbatched_setup_kernel( magma_int_t *m, magma_int_t *n, magma_in
                 smax_m[tx]      = max( smax_m[tx], smax_m[tx+i] );
                 smax_n[tx]      = max( smax_n[tx], smax_n[tx+i] );
                 smax_min_mn[tx] = max( smax_min_mn[tx], smax_min_mn[tx+i] );
-                smax_mxn[tx]    = max( smax_mxn[tx], smax_min_mn[tx+i] );
+                smax_mxn[tx]    = max( smax_mxn[tx], smax_mxn[tx+i] );
             }
         }
         __syncthreads();

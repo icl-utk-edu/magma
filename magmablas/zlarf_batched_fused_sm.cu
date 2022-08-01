@@ -17,7 +17,6 @@
 #include "batched_kernel_param.h"
 
 #define PRECISION_z
-//#define DBG
 
 ////////////////////////////////////////////////////////////////////////////////
 #define SLDA(n)              ( (((n)+1)%4) == 0 ? (n) : (n+1) )

@@ -117,7 +117,7 @@ void magma_get_spotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
 
 
 /***************************************************************************//**
-    Returns in nb and recnb the crossover points for potrf based on m
+    Returns in nb and recnb the crossover points for getrf
 *******************************************************************************/
 void magma_get_zgetrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_t *recnb)
 {
@@ -150,6 +150,43 @@ void magma_get_sgetrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
     return;
 }
 
+/***************************************************************************//**
+    Returns in nb and recnb the crossover points for getrf
+*******************************************************************************/
+void magma_get_zgetrf_vbatched_nbparam(magma_int_t max_m, magma_int_t max_n, magma_int_t *nb, magma_int_t *recnb)
+{
+    *nb    = (max_m <= 192) ? 32 :
+             (max_m <= 384) ? 64 : 128;
+    *recnb = 32;
+    return;
+}
+
+/// @see magma_get_zgetrf_batched_nbparam
+void magma_get_cgetrf_vbatched_nbparam(magma_int_t max_m, magma_int_t max_n, magma_int_t *nb, magma_int_t *recnb)
+{
+    *nb    = (max_m <= 192) ? 32 :
+             (max_m <= 384) ? 64 : 128;
+    *recnb =  32;
+    return;
+}
+
+/// @see magma_get_zgetrf_batched_nbparam
+void magma_get_dgetrf_vbatched_nbparam(magma_int_t max_m, magma_int_t max_n, magma_int_t *nb, magma_int_t *recnb)
+{
+    *nb    = (max_m <= 192) ? 32 :
+             (max_m <= 384) ? 64 : 128;
+    *recnb =  32;
+    return;
+}
+
+/// @see magma_get_zgetrf_batched_nbparam
+void magma_get_sgetrf_vbatched_nbparam(magma_int_t max_m, magma_int_t max_n, magma_int_t *nb, magma_int_t *recnb)
+{
+    *nb    = (max_m <= 192) ? 32 :
+             (max_m <= 384) ? 64 : 128;
+    *recnb =  32;
+    return;
+}
 
 /***************************************************************************//**
     @return nb for geqrf_batched based on n

@@ -13,6 +13,63 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
+static magma_int_t
+magma_zgetf2_vbatched_v1(
+    magma_int_t *m, magma_int_t *n, magma_int_t* minmn,
+    magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn, magma_int_t max_mxn,
+    magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
+    magma_int_t **ipiv_array, magma_int_t *info_array,
+    magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue)
+{
+#define dA_array(i,j) dA_array, (i), (j)
+#define ipiv_array(i) ipiv_array, (i)
+
+    magma_int_t arginfo = 0;
+
+    magma_int_t j;
+    magma_int_t nb = 8;
+
+    for(j=0; j < max_minmn; j+=nb) {
+        // panel (the swap is done on the entire width)
+        magma_int_t ib = min(nb, max_minmn-j);
+        for(magma_int_t jj = 0; jj < ib; jj++) {
+            magma_int_t gbj = j+jj;
+            // izamax
+            magma_izamax_vbatched(max_m-gbj, m, n, dA_array(Ai+gbj, Aj+gbj), ldda, ipiv_array(Ai+gbj), info_array, gbj, gbstep, batchCount, queue);
+
+            // zswap
+            magma_zswap_vbatched(max_n, m, n, dA_array(Ai+gbj, Aj), ldda, ipiv_array, gbj, batchCount, queue);
+
+            // scal+ger
+            magma_zscal_zgeru_vbatched( max_m-gbj, ib-jj, m, n, dA_array(Ai+gbj, Aj+gbj), ldda, info_array, gbj, gbstep, batchCount, queue);
+        }
+
+        // trsm
+        magmablas_ztrsm_vbatched_core(
+            MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit,
+            ib, max_n-j-ib, m, n, MAGMA_Z_ONE,
+            dA_array(Ai+j, Aj+j   ), ldda,
+            dA_array(Ai+j, Aj+j+ib), ldda, batchCount, queue );
+
+        // gemm
+        magmablas_zgemm_vbatched_core(
+            MagmaNoTrans, MagmaNoTrans,
+            max_m-j-ib, max_n-j-ib, ib,
+            m, n, minmn,
+            MAGMA_Z_NEG_ONE, dA_array, Ai+j+ib, Aj+j,    ldda,
+                             dA_array, Ai+j,    Aj+j+ib, ldda,
+            MAGMA_Z_ONE,     dA_array, Ai+j+ib, Aj+j+ib, ldda,
+            batchCount, queue );
+    }
+
+    return arginfo;
+
+#undef dA_array
+#undef ipiv_array
+}
+
+
+
 /***************************************************************************//**
     Purpose
     -------
@@ -95,55 +152,29 @@
 extern "C" magma_int_t
 magma_zgetf2_vbatched(
     magma_int_t *m, magma_int_t *n, magma_int_t* minmn,
-    magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn,
+    magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn, magma_int_t max_mxn,
     magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
     magma_int_t **ipiv_array, magma_int_t *info_array,
     magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue)
 {
-#define dA_array(i,j) dA_array, (i), (j)
-#define ipiv_array(i) ipiv_array, (i)
-
     magma_int_t arginfo = 0;
 
-    magma_int_t j;
-    magma_int_t nb = 8;
+    // first, test the fused panel
+    arginfo = magma_zgetf2_fused_vbatched(
+                max_m, max_n, max_minmn, max_mxn,
+                m, n,
+                dA_array, Ai, Aj, ldda,
+                ipiv_array, Ai, info_array,
+                batchCount, queue);
+    if(arginfo == 0) return arginfo;
 
-    for(j=0; j < max_minmn; j+=nb) {
-        // panel (the swap is done on the entire width)
-        magma_int_t ib = min(nb, max_minmn-j);
-        for(magma_int_t jj = 0; jj < ib; jj++) {
-            magma_int_t gbj = j+jj;
-            // izamax
-            magma_izamax_vbatched(max_m-gbj, m, n, dA_array(Ai+gbj, Aj+gbj), ldda, ipiv_array(Ai+gbj), info_array, gbj, gbstep, batchCount, queue);
+    magma_zgetf2_vbatched_v1(
+        m, n,
+        minmn, max_m, max_n, max_minmn, max_mxn,
+        dA_array, Ai, Aj, ldda,
+        ipiv_array, info_array, gbstep,
+        batchCount, queue);
 
-            // zswap
-            magma_zswap_vbatched(max_n, m, n, dA_array(Ai+gbj, Aj), ldda, ipiv_array, gbj, batchCount, queue);
-
-            // scal+ger
-            magma_zscal_zgeru_vbatched( max_m-gbj, ib-jj, m, n, dA_array(Ai+gbj, Aj+gbj), ldda, info_array, gbj, gbstep, batchCount, queue);
-        }
-
-        // trsm
-        magmablas_ztrsm_vbatched_core(
-            MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit,
-            ib, max_n-j-ib, m, n, MAGMA_Z_ONE,
-            dA_array(Ai+j, Aj+j   ), ldda,
-            dA_array(Ai+j, Aj+j+ib), ldda, batchCount, queue );
-
-        // gemm
-        magmablas_zgemm_vbatched_core(
-            MagmaNoTrans, MagmaNoTrans,
-            max_m-j-ib, max_n-j-ib, ib,
-            m, n, minmn,
-            MAGMA_Z_NEG_ONE, dA_array, Ai+j+ib, Aj+j,    ldda,
-                             dA_array, Ai+j,    Aj+j+ib, ldda,
-            MAGMA_Z_ONE,     dA_array, Ai+j+ib, Aj+j+ib, ldda,
-            batchCount, queue );
-    }
-
-    return arginfo;
-
-#undef dA_array
-#undef ipiv_array
+    return 0;
 }
 
