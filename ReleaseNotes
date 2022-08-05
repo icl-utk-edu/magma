@@ -27,6 +27,7 @@ single (s), double (d), single-complex (c), double-complex (z).
 
  2.7.0 - XXXX, 2022
     * Performance improvement for the batch QR factorization routine
+    * Performance improvement for the variable size batch LU factorization routine
 
  2.6.2 - Mar 15, 2022
     * New routine: magma_{s,d,c,z}getrf_vbatched provides a variable-size batched LU
