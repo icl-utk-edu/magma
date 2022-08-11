@@ -204,6 +204,7 @@ testing_src += \
 	\
 	$(cdir)/testing_zgesv_batched.cpp	\
 	$(cdir)/testing_zgesv_nopiv_batched.cpp	\
+	$(cdir)/testing_zgbtrf_batched.cpp	\
 	$(cdir)/testing_zgetrf_batched.cpp	\
 	$(cdir)/testing_zgetrf_nopiv_batched.cpp	\
 	$(cdir)/testing_zgetri_batched.cpp	\
