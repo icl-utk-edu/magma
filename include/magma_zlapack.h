@@ -60,6 +60,7 @@ extern "C" {
 
 #define lapackf77_dbdsdc   FORTRAN_NAME( dbdsdc, DBDSDC )
 #define lapackf77_zbdsqr   FORTRAN_NAME( zbdsqr, ZBDSQR )
+#define lapackf77_zgbtrf   FORTRAN_NAME( zgbtrf, ZGBTRF )
 #define lapackf77_zgebak   FORTRAN_NAME( zgebak, ZGEBAK )
 #define lapackf77_zgebal   FORTRAN_NAME( zgebal, ZGEBAL )
 #define lapackf77_zgebd2   FORTRAN_NAME( zgebd2, ZGEBD2 )
@@ -379,6 +380,12 @@ void   lapackf77_zbdsqr( const char *uplo,
                          magmaDoubleComplex *U, const magma_int_t *ldu,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
                          double *work,
+                         magma_int_t *info );
+
+void   lapackf77_zgbtrf( const magma_int_t  *m,  const magma_int_t *n,
+                         const magma_int_t  *kl, const magma_int_t *ku,
+                         magmaDoubleComplex *AB, const magma_int_t *ldab,
+                         magma_int_t *ipiv,
                          magma_int_t *info );
 
 void   lapackf77_zgebak( const char *job, const char *side,
