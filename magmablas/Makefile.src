@@ -150,6 +150,7 @@ libmagma_src += \
 	$(cdir)/zgetrf_batched_smallsq_noshfl.cu\
 	$(cdir)/zgetrf_batched_smallsq_shfl.cu	\
     $(cdir)/zgbtrf_batched.cu               \
+    $(cdir)/zgbtrf_batched_small.cu         \
 	$(cdir)/getrf_setup_pivinfo.cu		\
 	$(cdir)/zhemm_batched_core.cu		\
 	$(cdir)/zher2k_batched.cpp		\
