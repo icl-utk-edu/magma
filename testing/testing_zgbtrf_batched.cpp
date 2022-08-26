@@ -207,6 +207,13 @@ int main( int argc, char** argv)
 
             magma_time = magma_sync_wtime( opts.queue );
             if(opts.version == 1) {
+                magma_zgbtrf_batched_small(
+                    M,  N, KL, KU,
+                    dA_array, lddab,
+                    dipiv_magma, dinfo_magma,
+                    batchCount, opts.queue );
+            }
+            else if (opts.version == 2) {
                 memcpy(h_Amagma, h_R, Mband * columns * sizeof(magmaDoubleComplex));
                 for (magma_int_t s=0; s < batchCount; s++) {
                         magma_int_t locinfo;
