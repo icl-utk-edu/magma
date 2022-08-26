@@ -210,7 +210,7 @@ int main( int argc, char** argv)
                 magma_zgbtrf_batched_small(
                     M,  N, KL, KU,
                     dA_array, lddab,
-                    dipiv_magma, dinfo_magma,
+                    dipiv_array, dinfo_magma,
                     batchCount, opts.queue );
             }
             else if (opts.version == 2) {
