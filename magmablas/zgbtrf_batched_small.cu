@@ -29,10 +29,10 @@
 #define sAB(i,j)        sAB[(j)*sldab + (i)]
 #define dAB(i,j)        dAB[(j)*lddab + (i)]
 
-void
+__global__ void
 zgbtrf_batched_kernel_small_sm(
     magma_int_t m, magma_int_t n,
-    magma_int_t kl, magma_int_t kl,
+    magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, int lddab,
     magma_int_t** ipiv_array, magma_int_t *info_array,
     int batchCount)
@@ -106,7 +106,7 @@ zgbtrf_batched_kernel_small_sm(
 
         // swap
         if( !(jp == 0) ) {
-            magmaDouobleComplex tmp;
+            magmaDoubleComplex tmp;
             magmaDoubleComplex *sR1 = &sAB(kv   ,j);
             magmaDoubleComplex *sR2 = &sAB(kv+jp,j);
             for(int i = tx; i < swap_len; i+=ntx) {
@@ -118,7 +118,7 @@ zgbtrf_batched_kernel_small_sm(
         __syncthreads();
 
         // scal
-        magmaDoubleComplex reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_ZONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sAB(kv,j) );
+        magmaDoubleComplex reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sAB(kv,j) );
         for(int i = tx; i < (km-1); i+=ntx) {
             sAB(kv+1+i, j) *= reg;
         }
