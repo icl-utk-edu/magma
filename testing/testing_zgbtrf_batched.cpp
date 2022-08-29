@@ -27,6 +27,8 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
+#define cond (batchCount == 1 && M == 8 && N == 8)
+
 double get_band_LU_error(
             magma_int_t M, magma_int_t N,
             magma_int_t KL, magma_int_t KU,
@@ -198,6 +200,9 @@ int main( int argc, char** argv)
             columns = Nband * batchCount;
             lapackf77_zlacpy( MagmaFullStr, &Mband, &columns, h_A, &ldab, h_R, &ldab );
 
+            if(cond) {
+                magma_zprint(Mband, N, h_R, ldab);
+            }
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
@@ -211,6 +216,7 @@ int main( int argc, char** argv)
                     M,  N, KL, KU,
                     dA_array, lddab,
                     dipiv_array, dinfo_magma,
+                    opts.nb, opts.nrhs,
                     batchCount, opts.queue );
             }
             else if (opts.version == 2) {
@@ -228,6 +234,10 @@ int main( int argc, char** argv)
             magma_perf = gflops / magma_time;
 
             magma_zgetmatrix( Mband, Nband*batchCount, dA, lddab, h_Amagma, ldab, opts.queue );
+
+            if(cond) {
+                magma_zprint(Mband, N, h_Amagma, ldab);
+            }
 
             // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_magma, 1, cpu_info, 1, opts.queue );

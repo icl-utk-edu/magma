@@ -29,6 +29,33 @@
 #define sAB(i,j)        sAB[(j)*sldab + (i)]
 #define dAB(i,j)        dAB[(j)*lddab + (i)]
 
+//#define DBG
+
+template<typename T>
+__device__ void print_memory(
+                const char* msg,
+                int m, int n, T* sA, int lda,
+                int tx, int ty, int tz,
+                int bx, int by, int bz)
+{
+#if defined(PRECISION_d) && defined(DBG)
+    __syncthreads();
+    if(threadIdx.x == tx && threadIdx.y == ty && threadIdx.z == tz &&
+       blockIdx.x  == bx && blockIdx.y  == by && blockIdx.z  == bz) {
+        printf("%s = [ \n", msg);
+        for(int i = 0; i < m; i++) {
+            for(int j = 0; j < n; j++) {
+                printf("%8.4f  ", (double)(sA[j*lda+i]));
+            }
+            printf("\n");
+        }
+        printf("]; \n");
+    }
+    __syncthreads();
+#endif
+}
+
+
 __global__ void
 zgbtrf_batched_kernel_small_sm(
     magma_int_t m, magma_int_t n,
@@ -77,6 +104,9 @@ zgbtrf_batched_kernel_small_sm(
     }
     __syncthreads();
 
+    print_memory<magmaDoubleComplex>
+    ("read", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
+
     int ju = 0;
     for(int j = 0; j < minmn; j++) {
         // izamax
@@ -104,6 +134,15 @@ zgbtrf_batched_kernel_small_sm(
         ju = max(ju, min(j+ku+jp, n-1));
         int swap_len = ju - j + 1;
 
+        __syncthreads();
+        #ifdef DBG
+        if(tx == 0 && ty == 0) {
+            printf("pivot = %f at %d, sipiv[%d] = %d\n", rx_abs_max, jp, j, sipiv[j]);
+            printf("ju = %d, swap_length = %d\n", ju, swap_len);
+        }
+        #endif
+        __syncthreads();
+
         // swap
         if( !(jp == 0) ) {
             magmaDoubleComplex tmp;
@@ -112,10 +151,14 @@ zgbtrf_batched_kernel_small_sm(
             for(int i = tx; i < swap_len; i+=ntx) {
                 tmp              = sR1[i * sldab_1];
                 sR1[i * sldab_1] = sR2[i * sldab_1];
-                sR1[i * sldab_1] = tmp;
+                sR2[i * sldab_1] = tmp;
             }
         }
         __syncthreads();
+
+        print_memory<magmaDoubleComplex>
+        ("swap", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
+
 
         // scal
         magmaDoubleComplex reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sAB(kv,j) );
@@ -124,15 +167,23 @@ zgbtrf_batched_kernel_small_sm(
         }
         __syncthreads();
 
+        print_memory<magmaDoubleComplex>
+        ("scal", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
+
         // ger
         reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
-        magmaDoubleComplex *sV = &sAB(kv,j);
-        if( tx > 0 && tx < (km-1) ) {
+        magmaDoubleComplex *sU = &sAB(kv,j);
+        magmaDoubleComplex *sV = &sAB(kv+1,j);
+        if( tx < (km-1) ) {
             for(int jj = 1; jj < swap_len; jj++) {
-                sV[jj * (sldab-1) + tx] -= sV[tx] * sAB[jj * (sldab-1) + 0] * reg;
+                sV[jj * sldab_1 + tx] -= sV[tx] * sU[jj * sldab_1 + 0] * reg;
             }
         }
         __syncthreads();
+
+        print_memory<magmaDoubleComplex>
+        ("ger", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
+
     }
 
     // write info
@@ -219,11 +270,12 @@ magma_zgbtrf_batched_small(
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,
     magma_int_t** ipiv_array, magma_int_t* info_array,
+    magma_int_t nthreads, magma_int_t ntcol,
     magma_int_t batchCount, magma_queue_t queue )
 {
+    magma_device_t device;
+    magma_getdevice( &device );
     magma_int_t arginfo = 0;
-    magma_int_t kv      = kl + ku;
-    magma_int_t mband   = kv + 1 + kl;
 
     if( m < 0 )
         arginfo = -1;
@@ -243,9 +295,12 @@ magma_zgbtrf_batched_small(
 
     if( m == 0 || n == 0 ) return 0;
 
-    magma_int_t nthreads = kl + 1;
-    magma_int_t sldab    = SLDAB(mband);
-    magma_int_t ntcol    = 1;   //NTCOL(nthreads);
+    magma_int_t kv      = kl + ku;
+    magma_int_t mband   = kv + 1 + kl;
+    magma_int_t sldab   = SLDAB(mband);
+
+    nthreads = max( nthreads, (kl + 1) );
+    ntcol    = max(1, ntcol);
 
     magma_int_t shmem  = 0;
     shmem += sldab * n * sizeof(magmaDoubleComplex); // sAB
@@ -257,8 +312,32 @@ magma_zgbtrf_batched_small(
     dim3 threads(nthreads, ntcol, 1);
     dim3 grid(gridx, 1, 1);
 
-    zgbtrf_batched_kernel_small_sm<<<grid, threads, shmem, queue->cuda_stream()>>>
-    (m, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, batchCount);
+    // get max. dynamic shared memory on the GPU
+    int nthreads_max, shmem_max;
+    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
+    #if CUDA_VERSION >= 9000
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
+    if (shmem <= shmem_max) {
+        cudaFuncSetAttribute(zgbtrf_batched_kernel_small_sm<N>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    }
+    #else
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
+    #endif    // CUDA_VERSION >= 9000
+
+    magma_int_t total_threads = nthreads * ntcol;
+    if ( total_threads > nthreads_max || shmem > shmem_max ) {
+        printf("error: kernel %s requires too many threads (%lld) or too much shared memory (%f KB)\n",
+                __func__, (long long)total_threads, (double)shmem/1024. );
+        arginfo = -100;
+        return arginfo;
+    }
+
+    void *kernel_args[] = {&m, &n, &kl, &ku, &dAB_array, &lddab, &ipiv_array, &info_array, &batchCount};
+    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_kernel_small_sm, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    if( e != cudaSuccess ) {
+        printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
+        arginfo = -100;
+    }
 
     return arginfo;
 }
