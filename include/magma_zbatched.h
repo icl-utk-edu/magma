@@ -470,6 +470,7 @@ magmablas_zlaset_batched(
     magmaDoubleComplex_ptr dAarray[], magma_int_t ldda,
     magma_int_t batchCount, magma_queue_t queue);
 
+magma_int_t
 magma_zgbtrf_batched_small(
     magma_int_t m,  magma_int_t n,
     magma_int_t kl, magma_int_t ku,
