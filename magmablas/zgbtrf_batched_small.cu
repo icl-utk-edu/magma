@@ -31,6 +31,7 @@
 
 //#define DBG
 
+////////////////////////////////////////////////////////////////////////////////
 template<typename T>
 __device__ void print_memory(
                 const char* msg,
@@ -55,7 +56,74 @@ __device__ void print_memory(
 #endif
 }
 
+////////////////////////////////////////////////////////////////////////////////
+__device__ __inline__ void
+read_sAB(
+    int mband, int n, int kl, int ku,
+    magmaDoubleComplex *dAB, int lddab,
+    magmaDoubleComplex *sAB, int sldab,
+    int ntx, int tx)
+{
+#if 0
+    const int tpg    = min(ntx, mband);
+    const int groups = max(1, ntx / mband);
+    const int active = max(ntx, groups * mband);
+    const int tx_    = tx % mband;
+    const int ty_    = tx / mband;
 
+    if(tx < active) {
+        for(int j = ty_; j < n; j += groups) {
+            int col_start = kl + max(ku-j,0);
+            int col_end   = kl + ku + min(kl, n-1-j);
+            for(int i = tx_+col_start; i <= col_end; i+=tpg) {
+                sAB(i,j) = dAB(i,j);
+            }
+        }
+    }
+#else
+    for(int j = 0; j < n; j++) {
+        int col_start = kl + max(ku-j,0);
+        int col_end   = kl + ku + min(kl, n-1-j);
+        for(int i = tx + col_start; i <= col_end; i+=ntx) {
+            sAB(i,j) = dAB(i,j);
+        }
+    }
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////
+__device__ __inline__ void
+write_sAB(
+    int mband, int n, int kl, int ku,
+    magmaDoubleComplex *sAB, int sldab,
+    magmaDoubleComplex *dAB, int lddab,
+    int ntx, int tx)
+{
+#if 1
+    const int tpg    = min(ntx, mband);
+    const int groups = max(1, ntx / mband);
+    const int active = max(ntx, groups * mband);
+    const int tx_    = tx % mband;
+    const int ty_    = tx / mband;
+
+    if(tx < active) {
+        for(int j = ty_; j < n; j += groups) {
+            for(int i = tx_; i < mband; i+=tpg) {
+                dAB(i,j) = sAB(i,j);
+            }
+        }
+    }
+#else
+    // write AB
+    for(int j = 0; j < n; j++) {
+        for(int i = tx; i < mband; i+=ntx) {
+            dAB(i,j) = sAB(i,j);
+        }
+    }
+#endif
+}
+
+////////////////////////////////////////////////////////////////////////////////
 __global__ void
 zgbtrf_batched_kernel_small_sm(
     magma_int_t m, magma_int_t n,
@@ -95,13 +163,7 @@ zgbtrf_batched_kernel_small_sm(
     __syncthreads();
 
     // read
-    for(int j = 0; j < n; j++) {
-        int col_start = kl + max(ku-j,0);
-        int col_end   = kl + ku + min(kl, n-1-j);
-        for(int i = tx + col_start; i <= col_end; i+=ntx) {
-            sAB(i,j) = dAB(i,j);
-        }
-    }
+    read_sAB(mband, n, kl, ku, dAB, lddab, sAB, sldab, ntx, tx);
     __syncthreads();
 
     print_memory<magmaDoubleComplex>
@@ -156,8 +218,8 @@ zgbtrf_batched_kernel_small_sm(
         }
         __syncthreads();
 
-        print_memory<magmaDoubleComplex>
-        ("swap", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
+        //print_memory<magmaDoubleComplex>
+        //("swap", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
 
 
         // scal
@@ -167,8 +229,8 @@ zgbtrf_batched_kernel_small_sm(
         }
         __syncthreads();
 
-        print_memory<magmaDoubleComplex>
-        ("scal", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
+        //print_memory<magmaDoubleComplex>
+        //("scal", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
 
         // ger
         reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
@@ -181,10 +243,11 @@ zgbtrf_batched_kernel_small_sm(
         }
         __syncthreads();
 
-        print_memory<magmaDoubleComplex>
-        ("ger", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
+        //print_memory<magmaDoubleComplex>
+        //("ger", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
 
     }
+
 
     // write info
     if(tx == 0) info_array[batchid] = linfo;
@@ -192,15 +255,27 @@ zgbtrf_batched_kernel_small_sm(
     // write pivot
     magma_int_t* ipiv = ipiv_array[batchid];
     for(int i = tx; i < minmn; i+=ntx) {
-        ipiv[i] = sipiv[i];
+        ipiv[i] = (magma_int_t)sipiv[i];
     }
 
-    // write AB
-    for(int j = 0; j < n; j++) {
-        for(int i = tx; i <= mband; i+=ntx) {
-            dAB(i,j) = sAB(i,j);
-        }
+    #ifdef DBG
+    __syncthreads();
+    if(tx == 0 && ty == 0) {
+        for(int ss = 0; ss < minmn; ss++) {printf("-%d ", ipiv[ss]);} printf("\n");
     }
+    __syncthreads();
+    #endif
+
+    write_sAB(mband, n, kl, ku, sAB, sldab, dAB, lddab, ntx, tx);
+
+    #ifdef DBG
+    __syncthreads();
+    if(tx == 0 && ty == 0) {
+        for(int ss = 0; ss < minmn; ss++) {printf("-%d ", ipiv[ss]);} printf("\n");
+    }
+    __syncthreads();
+    #endif
+
 }
 
 /***************************************************************************//**
@@ -277,6 +352,10 @@ magma_zgbtrf_batched_small(
     magma_getdevice( &device );
     magma_int_t arginfo = 0;
 
+    magma_int_t kv      = kl + ku;
+    magma_int_t mband   = kv + 1 + kl;
+    magma_int_t sldab   = SLDAB(mband);
+
     if( m < 0 )
         arginfo = -1;
     else if ( n < 0 )
@@ -295,10 +374,6 @@ magma_zgbtrf_batched_small(
 
     if( m == 0 || n == 0 ) return 0;
 
-    magma_int_t kv      = kl + ku;
-    magma_int_t mband   = kv + 1 + kl;
-    magma_int_t sldab   = SLDAB(mband);
-
     nthreads = max( nthreads, (kl + 1) );
     ntcol    = max(1, ntcol);
 
@@ -307,6 +382,7 @@ magma_zgbtrf_batched_small(
     shmem += (kl + 1)  * sizeof(double);        // dsx
     shmem += min(m,n)  * sizeof(magma_int_t);   // pivot
     shmem *= ntcol;
+
 
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
     dim3 threads(nthreads, ntcol, 1);
@@ -318,7 +394,7 @@ magma_zgbtrf_batched_small(
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
     if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zgbtrf_batched_kernel_small_sm<N>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+        cudaFuncSetAttribute(zgbtrf_batched_kernel_small_sm, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
     #else
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
