@@ -340,7 +340,7 @@ zgbtrf_batched_kernel_small_sm(
     @ingroup magma_getrf_batched
 *******************************************************************************/
 extern "C" magma_int_t
-magma_zgbtrf_batched_small(
+magma_zgbtrf_batched_small_sm(
     magma_int_t m,  magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,

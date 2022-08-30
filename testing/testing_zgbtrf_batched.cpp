@@ -213,7 +213,15 @@ int main( int argc, char** argv)
 
             magma_time = magma_sync_wtime( opts.queue );
             if(opts.version == 1) {
-                info = magma_zgbtrf_batched_small(
+                info = magma_zgbtrf_batched_small_reg(
+                    M,  N, KL, KU,
+                    dA_array, lddab,
+                    dipiv_array, dinfo_magma,
+                    opts.nb, opts.nrhs,
+                    batchCount, opts.queue );
+            }
+            else if(opts.version == 2) {
+                info = magma_zgbtrf_batched_small_sm(
                     M,  N, KL, KU,
                     dA_array, lddab,
                     dipiv_array, dinfo_magma,
