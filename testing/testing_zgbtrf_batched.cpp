@@ -149,7 +149,7 @@ int main( int argc, char** argv)
     magma_int_t     *ipiv, *cpu_info;
     magma_int_t     *dipiv_magma, *dinfo_magma;
 
-    magma_int_t M, N, Mband, Nband, KL, KU, n2, ldab, lddab, min_mn, info;
+    magma_int_t M, N, Mband, Nband, KL, KU, n2, ldab, lddab, min_mn, info = 0;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t batchCount;
@@ -165,6 +165,7 @@ int main( int argc, char** argv)
     KU         = opts.ku;
     magma_int_t columns;
 
+    printf("%% ## INFO ##: Gflop/s calculation is not available\n");
     printf("%% Lower bandwidth (KL) = %lld\n", (long long)KL);
     printf("%% Upper bandwidth (KU) = %lld\n", (long long)KU);
     printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
@@ -212,7 +213,7 @@ int main( int argc, char** argv)
 
             magma_time = magma_sync_wtime( opts.queue );
             if(opts.version == 1) {
-                magma_zgbtrf_batched_small(
+                info = magma_zgbtrf_batched_small(
                     M,  N, KL, KU,
                     dA_array, lddab,
                     dipiv_array, dinfo_magma,
@@ -237,22 +238,26 @@ int main( int argc, char** argv)
 
             if(cond) {
                 magma_zprint(Mband, N, h_Amagma, ldab);
+                magma_getvector( min_mn * batchCount, sizeof(magma_int_t), dipiv_magma, 1, ipiv, 1, opts.queue );
+                for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
             }
 
             // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_magma, 1, cpu_info, 1, opts.queue );
 
-            for (int i=0; i < batchCount; i++) {
-                if (cpu_info[i] != 0 ) {
-                    printf("magma_zgbtrf_batched matrix %lld returned internal error %lld\n",
-                            (long long) i, (long long) cpu_info[i] );
-                }
-            }
-
             if (info != 0) {
                 printf("magma_zgbtrf_batched returned argument error %lld: %s.\n",
                         (long long) info, magma_strerror( info ));
             }
+            else {
+                for (int i=0; i < batchCount; i++) {
+                    if (cpu_info[i] != 0 ) {
+                        printf("magma_zgbtrf_batched matrix %lld returned internal error %lld\n",
+                            (long long) i, (long long) cpu_info[i] );
+                    }
+                }
+            }
+
 
             /* =====================================================================
                Performs operation using LAPACK
@@ -299,27 +304,40 @@ int main( int argc, char** argv)
 
             if ( opts.check ) {
                 magma_getvector( min_mn * batchCount, sizeof(magma_int_t), dipiv_magma, 1, ipiv, 1, opts.queue );
+
+                if( cond ) {
+                    for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
+                }
+
                 error = 0;
+                bool pivot_ok = true;
+                #pragma omp parallel for reduction(max:error)
                 for (int i=0; i < batchCount; i++) {
+                    double err = 0;
                     for (int k=0; k < min_mn; k++) {
                         if (ipiv[i*min_mn+k] < 1 || ipiv[i*min_mn+k] > M ) {
-                            printf("error for matrix %lld ipiv @ %lld = %lld\n",
+                            printf("error for matrix %lld ipiv @ %lld = %lld, terminated on first occurrence\n",
                                     (long long) i, (long long) k, (long long) ipiv[i*min_mn+k] );
-                            error = -1;
+                            pivot_ok = false;
+                            err      = -1;
+                            break;
                         }
                     }
-                    if (error == -1) {
-                        break;
-                    }
 
-                    double err = get_band_LU_error(M, N, KL, KU, h_R + i * ldab*N,  ldab, h_Amagma + i * ldab*N, ipiv + i * min_mn);
-                    if (std::isnan(err) || std::isinf(err)) {
-                        error = err;
-                        break;
+                    if(pivot_ok && err == 0) {
+                        err = get_band_LU_error(M, N, KL, KU, h_R + i * ldab*N,  ldab, h_Amagma + i * ldab*N, ipiv + i * min_mn);
+                        if (std::isnan(err) || std::isinf(err)) {
+                            error = err;
+                        }
+                        else {
+                            error = magma_max_nan( err, error );
+                        }
                     }
-                    error = max( err, error );
+                    else {
+                        error = -1;
+                    }
                 }
-                bool okay = (error < tol);
+                bool okay = ( error >= 0 && error < tol);
                 status += ! okay;
                 printf("   %8.2e   %s\n", error, (okay ? "ok" : "failed") );
             }
