@@ -125,7 +125,7 @@ write_sAB(
 
 ////////////////////////////////////////////////////////////////////////////////
 __global__ void
-zgbtrf_batched_kernel_small_sm(
+zgbtrf_batched_kernel_small_reg(
     magma_int_t m, magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, int lddab,
@@ -394,7 +394,7 @@ magma_zgbtrf_batched_small_reg(
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
     if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zgbtrf_batched_kernel_small_sm, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+        cudaFuncSetAttribute(zgbtrf_batched_kernel_small_reg, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
     #else
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
@@ -409,7 +409,7 @@ magma_zgbtrf_batched_small_reg(
     }
 
     void *kernel_args[] = {&m, &n, &kl, &ku, &dAB_array, &lddab, &ipiv_array, &info_array, &batchCount};
-    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_kernel_small_sm, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_kernel_small_reg, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
         printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         arginfo = -100;
