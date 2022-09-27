@@ -23,7 +23,7 @@ __device__ static inline int magmablas_ishfl(int var, int srcLane, int width=DEF
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
 // HIP
-    return __shfl(var, src_lane);    // assume default warp size
+    return __shfl(var, srclane);    // assume default warp size
 #else
 ////////////////////////////////////////////////////////////////////////////////
 //CUDA
@@ -46,7 +46,7 @@ __device__ static inline float magmablas_sshfl(float var, int srcLane, int width
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
 // HIP
-    return __shfl(var, src_lane);    // assume default warp size
+    return __shfl(var, srclane);    // assume default warp size
 #else
 ////////////////////////////////////////////////////////////////////////////////
 //CUDA
@@ -69,7 +69,7 @@ __device__ static inline double magmablas_dshfl(double var, int srcLane, int wid
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
 // HIP
-    return __shfl(var, src_lane);    // assume default warp size
+    return __shfl(var, srclane);    // assume default warp size
 #else
 ////////////////////////////////////////////////////////////////////////////////
 //CUDA
@@ -134,7 +134,7 @@ __device__ static inline int magmablas_ishfl_xor(int var, int laneMask, int widt
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
 // HIP
-    return __shfl_xor(var, src_lane);    // assume default warp size
+    return __shfl_xor(var, srclane);    // assume default warp size
 #else
 ////////////////////////////////////////////////////////////////////////////////
 //CUDA
@@ -158,7 +158,7 @@ __device__ static inline float magmablas_sshfl_xor(float var, int laneMask, int 
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
 // HIP
-    return __shfl_xor(var, src_lane);    // assume default warp size
+    return __shfl_xor(var, srclane);    // assume default warp size
 #else
 ////////////////////////////////////////////////////////////////////////////////
 //CUDA
@@ -182,7 +182,7 @@ __device__ static inline double magmablas_dshfl_xor(double var, int laneMask, in
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
 // HIP
-    return __shfl_xor(var, src_lane);    // assume default warp size
+    return __shfl_xor(var, srclane);    // assume default warp size
 #else
 ////////////////////////////////////////////////////////////////////////////////
 //CUDA
