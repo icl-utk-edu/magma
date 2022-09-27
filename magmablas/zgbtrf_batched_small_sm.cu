@@ -64,7 +64,7 @@ read_sAB(
     magmaDoubleComplex *sAB, int sldab,
     int ntx, int tx)
 {
-#if 0
+#if 1
     const int tpg    = min(ntx, mband);
     const int groups = max(1, ntx / mband);
     const int active = max(ntx, groups * mband);

@@ -228,7 +228,7 @@ int main( int argc, char** argv)
                     opts.nb, opts.nrhs,
                     batchCount, opts.queue );
             }
-            else if (opts.version == 2) {
+            else if (opts.version == 3) {
                 memcpy(h_Amagma, h_R, Mband * columns * sizeof(magmaDoubleComplex));
                 for (magma_int_t s=0; s < batchCount; s++) {
                         magma_int_t locinfo;
