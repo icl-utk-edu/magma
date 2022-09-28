@@ -298,6 +298,8 @@ int main( int argc, char** argv)
             /* =====================================================================
                Check the factorization
                =================================================================== */
+            if( opts.niter > 1 && iter == 0) printf("#");
+
             if ( opts.lapack ) {
                 printf("%10lld %5lld %5lld   %7.2f (%7.2f)    %7.2f (%7.2f)",
                        (long long) batchCount, (long long) M, (long long) N,
@@ -367,7 +369,7 @@ int main( int argc, char** argv)
             fflush( stdout );
         }
         if ( opts.niter > 1 ) {
-            printf( "\n" );
+            printf( "#\n" );
         }
     }
 
