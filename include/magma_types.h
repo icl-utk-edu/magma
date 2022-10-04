@@ -22,9 +22,11 @@
 #define MAGMA_HAVE_OPENCL
 #endif
 
+// TTT
+#undef MAGMA_HAVE_CUDA
 
 // each implementation of MAGMA defines HAVE_* appropriately.
-#if ! defined(MAGMA_HAVE_CUDA) && ! defined(MAGMA_HAVE_OPENCL) && ! defined(HAVE_MIC) && ! defined(MAGMA_HAVE_HIP)
+#if ! defined(MAGMA_HAVE_CUDA) && ! defined(MAGMA_HAVE_SYCL) && ! defined(MAGMA_HAVE_OPENCL) && ! defined(HAVE_MIC) && ! defined(MAGMA_HAVE_HIP)
 // Pytorch requires that the error commented out below is not produced and that MAGMA_HAVE_CUDA is defined:
 // #error No 'HAVE_*' macros were set! (defaulting to CUBLAS)
 #define MAGMA_HAVE_CUDA
@@ -128,6 +130,72 @@ typedef double real_Double_t;
 
     #define magmaCfma cuCfma
     #define magmaCfmaf cuCfmaf
+
+    /// @}
+    // end group magma_complex
+
+    #ifdef __cplusplus
+    }
+    #endif
+#elif defined(MAGMA_HAVE_SYCL)
+    #include <CL/sycl.hpp>
+    #include <dpct/dpct.hpp>
+    
+    #define MKL_Complex8  std::complex<float>
+    #define MKL_Complex16 std::complex<double>
+
+    #include <oneapi/mkl.hpp>
+    #include <dpct/blas_utils.hpp>
+
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
+
+    // opaque queue structure
+    struct magma_queue;
+    typedef struct magma_queue* magma_queue_t;
+    typedef sycl::event magma_event_t;
+    typedef magma_int_t    magma_device_t;
+
+    typedef short            magmaHalf;
+        /*
+    // typedef sycl::double2 magmaDoubleComplex;
+    typedef MKL_Complex16 magmaDoubleComplex;
+    // typedef sycl::float2  magmaFloatComplex;
+    typedef MKL_Complex8 magmaFloatComplex;
+        */
+
+    typedef std::complex<float>   magmaFloatComplex;
+    typedef std::complex<double>   magmaDoubleComplex;
+
+    sycl::queue *magma_queue_get_cuda_stream(magma_queue_t queue);
+    sycl::queue *magma_queue_get_cublas_handle(magma_queue_t queue);
+    sycl::queue *magma_queue_get_cusparse_handle(magma_queue_t queue);
+
+    /// @addtogroup magma_complex
+    /// @{
+
+    #define MAGMA_Z_MAKE(r,i)     std::complex<double>(r,i)    ///< @return complex number r + i*sqrt(-1).
+    #define MAGMA_Z_REAL(a)       (a).real()                         ///< @return real component of a.
+    #define MAGMA_Z_IMAG(a)       (a).imag()                         ///< @return imaginary component of a.
+    #define MAGMA_Z_ADD(a, b)     ((a)+(b))                  ///< @return (a + b).
+    #define MAGMA_Z_SUB(a, b)     ((a)-(b))                  ///< @return (a - b).
+    #define MAGMA_Z_MUL(a, b)     ((a)*(b))                  ///< @return (a * b).
+    #define MAGMA_Z_DIV(a, b)     ((a)/(b))                  ///< @return (a / b).
+    #define MAGMA_Z_ABS(a)        abs(a)                     ///< @return absolute value, |a| = sqrt( real(a)^2 + imag(a)^2 ).
+    #define MAGMA_Z_ABS1(a)       (fabs((a).real()) + fabs((a).imag()))   ///< @return 1-norm absolute value, | real(a) | + | imag(a) |.
+    #define MAGMA_Z_CONJ(a)       conj(a)                     ///< @return conjugate of a.
+
+    #define MAGMA_C_MAKE(r,i)     std::complex<float> (r,i)
+    #define MAGMA_C_REAL(a)       (a).real()
+    #define MAGMA_C_IMAG(a)       (a).imag()
+    #define MAGMA_C_ADD(a, b)     ((a)+(b))
+    #define MAGMA_C_SUB(a, b)     ((a)-(b))
+    #define MAGMA_C_MUL(a, b)     ((a)*(b))
+    #define MAGMA_C_DIV(a, b)     ((a)/(b))
+    #define MAGMA_C_ABS(a)        abs(a)
+    #define MAGMA_C_ABS1(a)       (fabs((a).real()) + fabs((a).imag()))
+    #define MAGMA_C_CONJ(a)       conj(a)
 
     /// @}
     // end group magma_complex
