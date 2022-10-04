@@ -129,6 +129,11 @@ public:
 
     #endif
 
+    #ifdef MAGMA_HAVE_SYCL
+    sycl::queue *sycl_stream()     { return stream__; } 
+    sycl::queue *syclblas_handle()   { return syclblas__; }
+    sycl::queue *syclsparse_handle() { return syclsparse__; } 
+    #endif
 
     /// @return the pointer array dAarray__.
     void** get_dAarray() {
@@ -179,6 +184,12 @@ protected:
         const char* func, const char* file, int line );
     #endif
 
+    #ifdef MAGMA_HAVE_SYCL
+    friend void magma_queue_create_from_cuda_internal(
+        magma_device_t device, sycl::queue *stream, sycl::queue *syclblas_handle,
+        sycl::queue *syclsparse_handle, magma_queue_t *queuePtr, const char *func,
+        const char *file, int line);
+    #endif
 
     friend
     void magma_queue_destroy_internal(
@@ -204,10 +215,14 @@ protected:
 
     #ifdef MAGMA_HAVE_HIP
     hipStream_t      stream__;
-    //rocblas_handle rocblas__;
     hipblasHandle_t  hipblas__;
     hipsparseHandle_t hipsparse__;
+    #endif
 
+    #ifdef MAGMA_HAVE_SYCL
+    sycl::queue *stream__; 
+    sycl::queue *syclblas__; 
+    sycl::queue *syclsparse__;
     #endif
 };
 
