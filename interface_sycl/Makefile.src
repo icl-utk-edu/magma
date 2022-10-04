@@ -1,0 +1,32 @@
+#//////////////////////////////////////////////////////////////////////////////
+#   -- MAGMA (version 2.0) --
+#      Univ. of Tennessee, Knoxville
+#      Univ. of California, Berkeley
+#      Univ. of Colorado, Denver
+#      @date
+#//////////////////////////////////////////////////////////////////////////////
+
+# push previous directory
+dir_stack := $(dir_stack) $(cdir)
+cdir      := interface_sycl
+# ----------------------------------------------------------------------
+
+
+# alphabetic order by base name (ignoring precision)
+libmagma_src += \
+	$(cdir)/alloc.dp.cpp	\
+	$(cdir)/blas_h_v2.dp.cpp	\
+	$(cdir)/blas_z_v1.cpp	\
+	$(cdir)/blas_z_v2.cpp	\
+	$(cdir)/copy_v1.dp.cpp	\
+	$(cdir)/copy_v2.dp.cpp	\
+	$(cdir)/error.dp.cpp	\
+	$(cdir)/connection_mgpu.dp.cpp	\
+	$(cdir)/interface.dp.cpp	\
+	$(cdir)/interface_v1.dp.cpp	\
+
+
+# ----------------------------------------------------------------------
+# pop first directory
+cdir      := $(firstword $(dir_stack))
+dir_stack := $(wordlist 2, $(words $(dir_stack)), $(dir_stack))
