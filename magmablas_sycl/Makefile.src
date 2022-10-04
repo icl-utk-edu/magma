@@ -46,7 +46,7 @@ libmagma_src += \
 	$(cdir)/zhemv.dp.cpp		\
 	$(cdir)/zhemv_upper.dp.cpp		\
 	$(cdir)/zher2k.cpp	\
-	$(cdir)/zherk.cpp	\
+	$(cdir)/zherk.dp.cpp	\
 	$(cdir)/zherk_small_reduce.dp.cpp	\
 	$(cdir)/zlacpy.dp.cpp		\
 	$(cdir)/zlacpy_conj.dp.cpp		\
@@ -108,9 +108,9 @@ libmagma_src += \
 	$(cdir)/zsetmatrix_transpose_mgpu.cpp	\
 	$(cdir)/zhemv_mgpu.dp.cpp			\
 	$(cdir)/zhemv_mgpu_upper.dp.cpp		\
-	$(cdir)/zhemm_mgpu.cpp			\
-	$(cdir)/zher2k_mgpu.cpp			\
-	$(cdir)/zherk_mgpu.cpp			\
+	$(cdir)/zhemm_mgpu.dp.cpp			\
+	$(cdir)/zher2k_mgpu.dp.cpp			\
+	$(cdir)/zherk_mgpu.dp.cpp			\
 
 # panels for one-sided factorizations in CUDA
 libmagma_src += \
@@ -127,7 +127,7 @@ libmagma_src += \
 # batched files, alphabetic order by base name (ignoring precision)
 libmagma_src += \
 	$(cdir)/zgeadd_batched.dp.cpp		\
-	$(cdir)/zgemm_batched.cpp		\
+	$(cdir)/zgemm_batched.dp.cpp		\
 	$(cdir)/cgemm_batched_core.dp.cpp		\
 	$(cdir)/dgemm_batched_core.dp.cpp		\
 	$(cdir)/sgemm_batched_core.dp.cpp		\
@@ -152,7 +152,7 @@ libmagma_src += \
     $(cdir)/zgbtrf_batched.dp.cpp               \
 	$(cdir)/getrf_setup_pivinfo.dp.cpp		\
 	$(cdir)/zhemm_batched_core.dp.cpp		\
-	$(cdir)/zher2k_batched.cpp		\
+	$(cdir)/zher2k_batched.dp.cpp		\
 	$(cdir)/zherk_batched.cpp		\
 	$(cdir)/cherk_batched_core.dp.cpp		\
 	$(cdir)/zherk_batched_core.dp.cpp		\
@@ -164,12 +164,12 @@ libmagma_src += \
 	$(cdir)/zpotf2_kernels.dp.cpp		\
 	$(cdir)/set_pointer.dp.cpp			\
 	$(cdir)/zset_pointer.dp.cpp			\
-	$(cdir)/zsyr2k_batched.cpp		\
+	$(cdir)/zsyr2k_batched.dp.cpp		\
 	$(cdir)/dsyrk_batched_core.dp.cpp		\
 	$(cdir)/ssyrk_batched_core.dp.cpp		\
 	$(cdir)/ztrmm_batched_core.dp.cpp		\
-	$(cdir)/ztrsm_batched.cpp		\
-	$(cdir)/ztrsm_batched_core.cpp		\
+	$(cdir)/ztrsm_batched.dp.cpp		\
+	$(cdir)/ztrsm_batched_core.dp.cpp		\
 	$(cdir)/ztrsm_small_batched.dp.cpp		\
 	$(cdir)/ztrsv_batched.dp.cpp		\
 	$(cdir)/ztrtri_diag_batched.dp.cpp		\
@@ -201,14 +201,14 @@ libmagma_src += \
 	$(cdir)/zgemv_vbatched.cpp		\
 	$(cdir)/zhemm_vbatched.cpp		\
 	$(cdir)/zhemv_vbatched.cpp		\
-	$(cdir)/zher2k_vbatched.cpp		\
+	$(cdir)/zher2k_vbatched.dp.cpp		\
 	$(cdir)/zherk_vbatched.cpp		\
 	$(cdir)/zsyr2k_vbatched.cpp		\
 	$(cdir)/zsyrk_vbatched.cpp		\
-	$(cdir)/ztrmm_vbatched.cpp		\
-	$(cdir)/ztrsm_vbatched_core.cpp	\
-	$(cdir)/ztrsm_vbatched.cpp		\
-	$(cdir)/ztrsm_inv_vbatched.cpp		\
+	$(cdir)/ztrmm_vbatched.dp.cpp		\
+	$(cdir)/ztrsm_vbatched_core.dp.cpp	\
+	$(cdir)/ztrsm_vbatched.dp.cpp		\
+	$(cdir)/ztrsm_inv_vbatched.dp.cpp		\
 
 libmagma_src += \
 	$(cdir)/zgetf2_kernels_var.dp.cpp	\
