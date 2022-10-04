@@ -17,7 +17,7 @@
 // __host__ and __device__ are defined in CUDA headers.
 #include "magma_types.h"
 
-#ifdef MAGMA_HAVE_OPENCL
+#if defined(MAGMA_HAVE_OPENCL) || defined(MAGMA_HAVE_SYCL)
 #define __host__
 #define __device__
 #endif
