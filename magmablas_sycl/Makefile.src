@@ -45,7 +45,7 @@ libmagma_src += \
 	$(cdir)/zhemm.dp.cpp		\
 	$(cdir)/zhemv.dp.cpp		\
 	$(cdir)/zhemv_upper.dp.cpp		\
-	$(cdir)/zher2k.cpp	\
+	$(cdir)/zher2k.dp.cpp	\
 	$(cdir)/zherk.dp.cpp	\
 	$(cdir)/zherk_small_reduce.dp.cpp	\
 	$(cdir)/zlacpy.dp.cpp		\
