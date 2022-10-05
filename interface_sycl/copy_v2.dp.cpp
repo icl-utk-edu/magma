@@ -12,7 +12,7 @@
 #include "magma_internal.h"
 #include "error.h"
 
-#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP || defined(MAGMA_HAVE_SYCL))
+#if defined(MAGMA_HAVE_SYCL)
 
 // Generic, type-independent routines to copy data.
 // Type-safe versions which avoid the user needing sizeof(...) are in headers;
@@ -51,29 +51,39 @@
 
     @ingroup magma_setvector
 *******************************************************************************/
-extern "C" void
-magma_setvector_internal(
-    magma_int_t n, magma_int_t elemSize,
-    void const* hx_src, magma_int_t incx,
-    magma_ptr   dy_dst, magma_int_t incy,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
-    cudaStream_t stream = NULL;
+extern "C" void magma_setvector_internal(magma_int_t n, magma_int_t elemSize,
+                                         void const *hx_src, magma_int_t incx,
+                                         magma_ptr dy_dst, magma_int_t incy,
+                                         magma_queue_t queue, const char *func,
+                                         const char *file, int line) try {
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
-    cublasStatus_t status;
-    status = cublasSetVectorAsync(
-        int(n), int(elemSize),
-        hx_src, int(incx),
-        dy_dst, int(incy), stream );
+    int status;
+    /*
+    DPCT1018:24: The cublasSetVectorAsync was migrated, but due to parameter(s)
+    int(incx) and/or int(incy) could not be evaluated, the generated code
+    performance may be sub-optimal.
+    */
+    /*
+    DPCT1003:25: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    status = (dpct::matrix_mem_copy((void *)dy_dst, (void *)hx_src, int(incy),
+                                    int(incx), 1, int(n), int(elemSize),
+                                    dpct::automatic, *stream, true),
+              0);
     if ( queue != NULL )
-        cudaStreamSynchronize( stream );
+        stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_setvector_async( n, elemSize, hx_src, incx, dy_dst, incy, queue )
@@ -109,31 +119,40 @@ magma_setvector_internal(
 
     @ingroup magma_setvector
 *******************************************************************************/
-extern "C" void
-magma_setvector_async_internal(
-    magma_int_t n, magma_int_t elemSize,
-    void const* hx_src, magma_int_t incx,
-    magma_ptr   dy_dst, magma_int_t incy,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
+extern "C" void magma_setvector_async_internal(
+    magma_int_t n, magma_int_t elemSize, void const *hx_src, magma_int_t incx,
+    magma_ptr dy_dst, magma_int_t incy, magma_queue_t queue, const char *func,
+    const char *file, int line) try {
     // for backwards compatability, accepts NULL queue to mean NULL stream.
-    cudaStream_t stream = NULL;
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
     else {
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    cublasStatus_t status;
-    status = cublasSetVectorAsync(
-        int(n), int(elemSize),
-        hx_src, int(incx),
-        dy_dst, int(incy), stream );
+    int status;
+    /*
+    DPCT1018:26: The cublasSetVectorAsync was migrated, but due to parameter(s)
+    int(incx) and/or int(incy) could not be evaluated, the generated code
+    performance may be sub-optimal.
+    */
+    /*
+    DPCT1003:27: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    status = (dpct::matrix_mem_copy((void *)dy_dst, (void *)hx_src, int(incy),
+                                    int(incx), 1, int(n), int(elemSize),
+                                    dpct::automatic, *stream, true),
+              0);
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_getvector( n, elemSize, dx_src, incx, hy_dst, incy, queue )
@@ -168,29 +187,40 @@ magma_setvector_async_internal(
 
     @ingroup magma_getvector
 *******************************************************************************/
-extern "C" void
-magma_getvector_internal(
-    magma_int_t n, magma_int_t elemSize,
-    magma_const_ptr dx_src, magma_int_t incx,
-    void*           hy_dst, magma_int_t incy,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
-    cudaStream_t stream = NULL;
+extern "C" void magma_getvector_internal(magma_int_t n, magma_int_t elemSize,
+                                         magma_const_ptr dx_src,
+                                         magma_int_t incx, void *hy_dst,
+                                         magma_int_t incy, magma_queue_t queue,
+                                         const char *func, const char *file,
+                                         int line) try {
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
-    cublasStatus_t status;
-    status = cublasGetVectorAsync(
-        int(n), int(elemSize),
-        dx_src, int(incx),
-        hy_dst, int(incy), stream );
+    int status;
+    /*
+    DPCT1018:28: The cublasGetVectorAsync was migrated, but due to parameter(s)
+    int(incx) and/or int(incy) could not be evaluated, the generated code
+    performance may be sub-optimal.
+    */
+    /*
+    DPCT1003:29: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    status = (dpct::matrix_mem_copy((void *)hy_dst, (void *)dx_src, int(incy),
+                                    int(incx), 1, int(n), int(elemSize),
+                                    dpct::automatic, *stream, true),
+              0);
     if ( queue != NULL )
-        cudaStreamSynchronize( stream );
+        stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_getvector_async( n, elemSize, dx_src, incx, hy_dst, incy, queue )
@@ -226,31 +256,40 @@ magma_getvector_internal(
 
     @ingroup magma_getvector
 *******************************************************************************/
-extern "C" void
-magma_getvector_async_internal(
-    magma_int_t n, magma_int_t elemSize,
-    magma_const_ptr dx_src, magma_int_t incx,
-    void*           hy_dst, magma_int_t incy,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
+extern "C" void magma_getvector_async_internal(
+    magma_int_t n, magma_int_t elemSize, magma_const_ptr dx_src,
+    magma_int_t incx, void *hy_dst, magma_int_t incy, magma_queue_t queue,
+    const char *func, const char *file, int line) try {
     // for backwards compatability, accepts NULL queue to mean NULL stream.
-    cudaStream_t stream = NULL;
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
     else {
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    cublasStatus_t status;
-    status = cublasGetVectorAsync(
-        int(n), int(elemSize),
-        dx_src, int(incx),
-        hy_dst, int(incy), stream );
+    int status;
+    /*
+    DPCT1018:30: The cublasGetVectorAsync was migrated, but due to parameter(s)
+    int(incx) and/or int(incy) could not be evaluated, the generated code
+    performance may be sub-optimal.
+    */
+    /*
+    DPCT1003:31: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    status = (dpct::matrix_mem_copy((void *)hy_dst, (void *)dx_src, int(incy),
+                                    int(incx), 1, int(n), int(elemSize),
+                                    dpct::automatic, *stream, true),
+              0);
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_copyvector( n, elemSize, dx_src, incx, dy_dst, incy, queue )
@@ -288,26 +327,25 @@ magma_getvector_async_internal(
 *******************************************************************************/
 // TODO compare performance with cublasZcopy BLAS function.
 // But this implementation can handle any element size, not just [sdcz] precisions.
-extern "C" void
-magma_copyvector_internal(
-    magma_int_t n, magma_int_t elemSize,
-    magma_const_ptr dx_src, magma_int_t incx,
-    magma_ptr       dy_dst, magma_int_t incy,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
-    cudaStream_t stream = NULL;
+extern "C" void magma_copyvector_internal(magma_int_t n, magma_int_t elemSize,
+                                          magma_const_ptr dx_src,
+                                          magma_int_t incx, magma_ptr dy_dst,
+                                          magma_int_t incy, magma_queue_t queue,
+                                          const char *func, const char *file,
+                                          int line) try {
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
     if ( incx == 1 && incy == 1 ) {
-        cudaError_t status;
-        status = cudaMemcpyAsync(
-            dy_dst,
-            dx_src,
-            int(n*elemSize), cudaMemcpyDeviceToDevice, stream );
+        int status;
+        /*
+        DPCT1003:32: Migrated API does not return error code. (*, 0) is
+        inserted. You may need to rewrite this code.
+        */
+        status = (stream->memcpy(dy_dst, dx_src, int(n * elemSize)), 0);
         if ( queue != NULL )
-            cudaStreamSynchronize( stream );
+            stream->wait();
         check_xerror( status, func, file, line );
         MAGMA_UNUSED( status );
     }
@@ -316,7 +354,11 @@ magma_copyvector_internal(
             1, n, elemSize, dx_src, incx, dy_dst, incy, queue, func, file, line );
     }
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_copyvector_async( n, elemSize, dx_src, incx, dy_dst, incy, queue )
@@ -352,28 +394,25 @@ magma_copyvector_internal(
 
     @ingroup magma_copyvector
 *******************************************************************************/
-extern "C" void
-magma_copyvector_async_internal(
-    magma_int_t n, magma_int_t elemSize,
-    magma_const_ptr dx_src, magma_int_t incx,
-    magma_ptr       dy_dst, magma_int_t incy,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
+extern "C" void magma_copyvector_async_internal(
+    magma_int_t n, magma_int_t elemSize, magma_const_ptr dx_src,
+    magma_int_t incx, magma_ptr dy_dst, magma_int_t incy, magma_queue_t queue,
+    const char *func, const char *file, int line) try {
     // for backwards compatability, accepts NULL queue to mean NULL stream.
-    cudaStream_t stream = NULL;
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
     else {
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
     if ( incx == 1 && incy == 1 ) {
-        cudaError_t status;
-        status = cudaMemcpyAsync(
-            dy_dst,
-            dx_src,
-            int(n*elemSize), cudaMemcpyDeviceToDevice, stream );
+        int status;
+        /*
+        DPCT1003:33: Migrated API does not return error code. (*, 0) is
+        inserted. You may need to rewrite this code.
+        */
+        status = (stream->memcpy(dy_dst, dx_src, int(n * elemSize)), 0);
         check_xerror( status, func, file, line );
         MAGMA_UNUSED( status );
     }
@@ -382,7 +421,11 @@ magma_copyvector_async_internal(
             1, n, elemSize, dx_src, incx, dy_dst, incy, queue, func, file, line );
     }
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_setmatrix( m, n, elemSize, hA_src, lda, dB_dst, lddb, queue )
@@ -420,29 +463,40 @@ magma_copyvector_async_internal(
 
     @ingroup magma_setmatrix
 *******************************************************************************/
-extern "C" void
-magma_setmatrix_internal(
-    magma_int_t m, magma_int_t n, magma_int_t elemSize,
-    void const* hA_src, magma_int_t lda,
-    magma_ptr   dB_dst, magma_int_t lddb,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
-    cudaStream_t stream = NULL;
+extern "C" void magma_setmatrix_internal(magma_int_t m, magma_int_t n,
+                                         magma_int_t elemSize,
+                                         void const *hA_src, magma_int_t lda,
+                                         magma_ptr dB_dst, magma_int_t lddb,
+                                         magma_queue_t queue, const char *func,
+                                         const char *file, int line) try {
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
-    cublasStatus_t status;
-    status = cublasSetMatrixAsync(
-        int(m), int(n), int(elemSize),
-        hA_src, int(lda),
-        dB_dst, int(lddb), stream );
+    int status;
+    /*
+    DPCT1018:34: The cublasSetMatrixAsync was migrated, but due to parameter(s)
+    int(lda) and/or int(lddb) could not be evaluated, the generated code
+    performance may be sub-optimal.
+    */
+    /*
+    DPCT1003:35: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    status = (dpct::matrix_mem_copy((void *)dB_dst, (void *)hA_src, int(lddb),
+                                    int(lda), int(m), int(n), int(elemSize),
+                                    dpct::automatic, *stream, true),
+              0);
     if ( queue != NULL )
-        cudaStreamSynchronize( stream );
+        stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_setmatrix_async( m, n, elemSize, hA_src, lda, dB_dst, lddb, queue )
@@ -481,31 +535,40 @@ magma_setmatrix_internal(
 
     @ingroup magma_setmatrix
 *******************************************************************************/
-extern "C" void
-magma_setmatrix_async_internal(
-    magma_int_t m, magma_int_t n, magma_int_t elemSize,
-    void const* hA_src, magma_int_t lda,
-    magma_ptr   dB_dst, magma_int_t lddb,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
+extern "C" void magma_setmatrix_async_internal(
+    magma_int_t m, magma_int_t n, magma_int_t elemSize, void const *hA_src,
+    magma_int_t lda, magma_ptr dB_dst, magma_int_t lddb, magma_queue_t queue,
+    const char *func, const char *file, int line) try {
     // for backwards compatability, accepts NULL queue to mean NULL stream.
-    cudaStream_t stream = NULL;
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
     else {
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    cublasStatus_t status;
-    status = cublasSetMatrixAsync(
-        int(m), int(n), int(elemSize),
-        hA_src, int(lda),
-        dB_dst, int(lddb), stream );
+    int status;
+    /*
+    DPCT1018:36: The cublasSetMatrixAsync was migrated, but due to parameter(s)
+    int(lda) and/or int(lddb) could not be evaluated, the generated code
+    performance may be sub-optimal.
+    */
+    /*
+    DPCT1003:37: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    status = (dpct::matrix_mem_copy((void *)dB_dst, (void *)hA_src, int(lddb),
+                                    int(lda), int(m), int(n), int(elemSize),
+                                    dpct::automatic, *stream, true),
+              0);
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_getmatrix( m, n, elemSize, dA_src, ldda, hB_dst, ldb, queue )
@@ -544,28 +607,38 @@ magma_setmatrix_async_internal(
     @ingroup magma_getmatrix
 *******************************************************************************/
 extern "C" void
-magma_getmatrix_internal(
-    magma_int_t m, magma_int_t n, magma_int_t elemSize,
-    magma_const_ptr dA_src, magma_int_t ldda,
-    void*           hB_dst, magma_int_t ldb,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
-    cudaStream_t stream = NULL;
+magma_getmatrix_internal(magma_int_t m, magma_int_t n, magma_int_t elemSize,
+                         magma_const_ptr dA_src, magma_int_t ldda, void *hB_dst,
+                         magma_int_t ldb, magma_queue_t queue, const char *func,
+                         const char *file, int line) try {
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
-    cublasStatus_t status;
-    status = cublasGetMatrixAsync(
-        int(m), int(n), int(elemSize),
-        dA_src, int(ldda),
-        hB_dst, int(ldb), stream );
+    int status;
+    /*
+    DPCT1018:38: The cublasGetMatrixAsync was migrated, but due to parameter(s)
+    int(ldda) and/or int(ldb) could not be evaluated, the generated code
+    performance may be sub-optimal.
+    */
+    /*
+    DPCT1003:39: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    status = (dpct::matrix_mem_copy((void *)hB_dst, (void *)dA_src, int(ldb),
+                                    int(ldda), int(m), int(n), int(elemSize),
+                                    dpct::automatic, *stream, true),
+              0);
     if ( queue != NULL )
-        cudaStreamSynchronize( stream );
+        stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_getmatrix_async( m, n, elemSize, dA_src, ldda, hB_dst, ldb, queue )
@@ -604,30 +677,39 @@ magma_getmatrix_internal(
 
     @ingroup magma_getmatrix
 *******************************************************************************/
-extern "C" void
-magma_getmatrix_async_internal(
-    magma_int_t m, magma_int_t n, magma_int_t elemSize,
-    magma_const_ptr dA_src, magma_int_t ldda,
-    void*           hB_dst, magma_int_t ldb,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
-    cudaStream_t stream = NULL;
+extern "C" void magma_getmatrix_async_internal(
+    magma_int_t m, magma_int_t n, magma_int_t elemSize, magma_const_ptr dA_src,
+    magma_int_t ldda, void *hB_dst, magma_int_t ldb, magma_queue_t queue,
+    const char *func, const char *file, int line) try {
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
     else {
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    cublasStatus_t status;
-    status = cublasGetMatrixAsync(
-        int(m), int(n), int(elemSize),
-        dA_src, int(ldda),
-        hB_dst, int(ldb), stream );
+    int status;
+    /*
+    DPCT1018:40: The cublasGetMatrixAsync was migrated, but due to parameter(s)
+    int(ldda) and/or int(ldb) could not be evaluated, the generated code
+    performance may be sub-optimal.
+    */
+    /*
+    DPCT1003:41: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    status = (dpct::matrix_mem_copy((void *)hB_dst, (void *)dA_src, int(ldb),
+                                    int(ldda), int(m), int(n), int(elemSize),
+                                    dpct::automatic, *stream, true),
+              0);
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_copymatrix( m, n, elemSize, dA_src, ldda, dB_dst, lddb, queue )
@@ -666,29 +748,33 @@ magma_getmatrix_async_internal(
 
     @ingroup magma_copymatrix
 *******************************************************************************/
-extern "C" void
-magma_copymatrix_internal(
-    magma_int_t m, magma_int_t n, magma_int_t elemSize,
-    magma_const_ptr dA_src, magma_int_t ldda,
-    magma_ptr       dB_dst, magma_int_t lddb,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
-    cudaStream_t stream = NULL;
+extern "C" void magma_copymatrix_internal(
+    magma_int_t m, magma_int_t n, magma_int_t elemSize, magma_const_ptr dA_src,
+    magma_int_t ldda, magma_ptr dB_dst, magma_int_t lddb, magma_queue_t queue,
+    const char *func, const char *file, int line) try {
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
-    cudaError_t status;
-    status = cudaMemcpy2DAsync(
-        dB_dst, int(lddb*elemSize),
-        dA_src, int(ldda*elemSize),
-        int(m*elemSize), int(n), cudaMemcpyDeviceToDevice, stream );
+    int status;
+    /*
+    DPCT1003:42: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    status = (dpct::async_dpct_memcpy(dB_dst, int(lddb * elemSize), dA_src,
+                                      int(ldda * elemSize), int(m * elemSize),
+                                      int(n), dpct::device_to_device, *stream),
+              0);
     if ( queue != NULL )
-        cudaStreamSynchronize( stream );
+        stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_copymatrix_async( m, n, elemSize, dA_src, ldda, dB_dst, lddb, queue )
@@ -727,29 +813,34 @@ magma_copymatrix_internal(
 
     @ingroup magma_copymatrix
 *******************************************************************************/
-extern "C" void
-magma_copymatrix_async_internal(
-    magma_int_t m, magma_int_t n, magma_int_t elemSize,
-    magma_const_ptr dA_src, magma_int_t ldda,
-    magma_ptr       dB_dst, magma_int_t lddb,
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
+extern "C" void magma_copymatrix_async_internal(
+    magma_int_t m, magma_int_t n, magma_int_t elemSize, magma_const_ptr dA_src,
+    magma_int_t ldda, magma_ptr dB_dst, magma_int_t lddb, magma_queue_t queue,
+    const char *func, const char *file, int line) try {
     // for backwards compatability, accepts NULL queue to mean NULL stream.
-    cudaStream_t stream = NULL;
+    sycl::queue *stream = NULL;
     if ( queue != NULL ) {
-        stream = queue->cuda_stream();
+        stream = queue->sycl_stream();
     }
     else {
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    cudaError_t status;
-    status = cudaMemcpy2DAsync(
-        dB_dst, int(lddb*elemSize),
-        dA_src, int(ldda*elemSize),
-        int(m*elemSize), int(n), cudaMemcpyDeviceToDevice, stream );
+    int status;
+    /*
+    DPCT1003:43: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    status = (dpct::async_dpct_memcpy(dB_dst, int(lddb * elemSize), dA_src,
+                                      int(ldda * elemSize), int(m * elemSize),
+                                      int(n), dpct::device_to_device, *stream),
+              0);
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
+}
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
 }
 
 #endif // MAGMA_HAVE_CUDA

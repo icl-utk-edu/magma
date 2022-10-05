@@ -21,7 +21,7 @@
 #include "error.h"
 
 
-#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+#if defined(MAGMA_HAVE_SYCL)
 #ifndef MAGMA_NO_V1
 
 // -----------------------------------------------------------------------------
@@ -53,15 +53,21 @@ extern int g_magma_devices_cnt;
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" void
-magma_device_sync()
-{
-    cudaError_t err;
-    err = cudaDeviceSynchronize();
+extern "C" void magma_device_sync() try {
+    int err;
+    /*
+    DPCT1003:89: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    err = (dpct::get_current_device().queues_wait_and_throw(), 0);
     check_error( err );
     MAGMA_UNUSED( err );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 // =============================================================================
 // queue support
@@ -153,10 +159,8 @@ magma_queue_t magmablasGetQueue()
         }
         // create queue w/ NULL stream first time that NULL queue is used
         if ( g_null_queues[dev] == NULL ) {
-            #ifdef MAGMA_HAVE_CUDA
-            magma_queue_create_from_cuda( dev, NULL, NULL, NULL, &g_null_queues[dev] );
-            #elif defined(MAGMA_HAVE_HIP)
-            magma_queue_create_from_hip( dev, NULL, NULL, NULL, &g_null_queues[dev] );
+            #ifdef MAGMA_HAVE_SYCL
+            magma_queue_create_from_sycl( dev, NULL, NULL, NULL, &g_null_queues[dev] );
             #endif
             //printf( "dev %lld create queue %p\n", (long long) dev, (void*) g_null_queues[dev] );
             assert( g_null_queues[dev] != NULL );
@@ -171,18 +175,21 @@ magma_queue_t magmablasGetQueue()
 /******************************************************************************/
 // @deprecated
 // MAGMA v1 version that doesn't take device ID.
-extern "C" void
-magma_queue_create_v1_internal(
-    magma_queue_t* queue_ptr,
-    const char* func, const char* file, int line )
-{
+extern "C" void magma_queue_create_v1_internal(magma_queue_t *queue_ptr,
+                                               const char *func,
+                                               const char *file, int line) try {
     int device;
-    cudaError_t err;
-    err = cudaGetDevice( &device );
+    int err;
+    err = device = dpct::dev_mgr::instance().current_device_id();
     check_xerror( err, func, file, line );
     MAGMA_UNUSED( err );
 
     magma_queue_create_internal( device, queue_ptr, func, file, line );
+}
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
 }
 
 #endif // not MAGMA_NO_V1
