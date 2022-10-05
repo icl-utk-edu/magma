@@ -78,7 +78,7 @@ magma_izamax_vbatched(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         /*
         DPCT1083:1668: The size of local memory in the migrated code may be
         different from the original code. Check that the allocated memory size
@@ -162,7 +162,7 @@ magma_zswap_vbatched(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>
             jp_acc_ct1(cgh);
@@ -236,7 +236,7 @@ magma_int_t magma_zscal_zgeru_vbatched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {
                                zscal_zgeru_1d_generic_kernel_vbatched(
@@ -464,7 +464,7 @@ extern "C" magma_int_t magma_zgetf2_fused_sm_vbatched(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    int e = ((sycl::queue *)(queue->cuda_stream()))
+    int e = ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -704,7 +704,7 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_vbatched(
     DPC++ Compatibility Tool.
     */
     int e = cudaLaunchKernel((void *)zgetf2_fused_kernel_vbatched<max_N>, grid,
-                             threads, kernel_args, shmem, queue->cuda_stream());
+                             threads, kernel_args, shmem, queue->sycl_stream());
     /*
     DPCT1000:657: Error handling if-stmt was detected but could not be
     rewritten.

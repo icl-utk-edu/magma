@@ -260,7 +260,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 1: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -293,7 +293,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 2: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -326,7 +326,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 3: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -359,7 +359,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 4: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -392,7 +392,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 5: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -425,7 +425,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 6: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -458,7 +458,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 7: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -491,7 +491,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 8: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -524,7 +524,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 9: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -557,7 +557,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 10: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -590,7 +590,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 11: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -623,7 +623,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 12: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -656,7 +656,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 13: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -689,7 +689,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 14: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -722,7 +722,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 15: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -755,7 +755,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 16: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -788,7 +788,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 17: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -821,7 +821,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 18: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -854,7 +854,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 19: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -887,7 +887,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 20: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -920,7 +920,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 21: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -953,7 +953,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 22: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -986,7 +986,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 23: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -1019,7 +1019,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 24: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -1052,7 +1052,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 25: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -1085,7 +1085,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 26: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -1118,7 +1118,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 27: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -1151,7 +1151,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 28: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -1184,7 +1184,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 29: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -1217,7 +1217,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 30: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -1250,7 +1250,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 31: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -1283,7 +1283,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         case 32: e =
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>

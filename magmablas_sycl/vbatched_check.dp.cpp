@@ -56,7 +56,7 @@ magma_getrf_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            getrf_vbatched_checker(m, n, ldda, errors,
@@ -134,7 +134,7 @@ magma_gemm_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            gemm_vbatched_checker(transA, transB, m, n, k, ldda,
@@ -228,7 +228,7 @@ magma_trsm_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            trsm_vbatched_checker(side, m, n, ldda, lddb,
@@ -321,7 +321,7 @@ magma_syrk_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            herk_vbatched_checker(trans, n, k, ldda, lddc,
@@ -382,7 +382,7 @@ magma_herk_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            herk_vbatched_checker(trans, n, k, ldda, lddc,
@@ -474,7 +474,7 @@ magma_syr2k_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            her2k_vbatched_checker(trans, n, k, ldda, lddb, lddc,
@@ -540,7 +540,7 @@ magma_her2k_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            her2k_vbatched_checker(trans, n, k, ldda, lddb, lddc,
@@ -634,7 +634,7 @@ magma_hemm_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            hemm_vbatched_checker(side, m, n, ldda, lddb, lddc,
@@ -728,7 +728,7 @@ magma_gemv_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            gemv_vbatched_checker(trans, m, n, ldda, incx, incy,
@@ -812,7 +812,7 @@ magma_hemv_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            hemv_vbatched_checker(uplo, n, ldda, incx, incy,
@@ -889,7 +889,7 @@ magma_axpy_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            axpy_vbatched_checker(n, incx, incy, batchCount,
@@ -969,7 +969,7 @@ magma_trmm_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            trmm_vbatched_checker(side, m, n, ldda, lddb,
@@ -1051,7 +1051,7 @@ magma_potrf_vbatched_checker(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            potrf_vbatched_checker(uplo, n, ldda, batchCount,

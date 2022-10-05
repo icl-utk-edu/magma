@@ -143,7 +143,7 @@ magma_zlarf_sm(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sum_acc_ct1(
@@ -185,7 +185,7 @@ magma_zlarf_gpu(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,

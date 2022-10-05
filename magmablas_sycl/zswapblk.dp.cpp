@@ -121,7 +121,7 @@ magmablas_zswapblk(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(
                     sycl::nd_range<3>(blocks * sycl::range<3>(1, 1, blocksize),
                                       sycl::range<3>(1, 1, blocksize)),
@@ -149,7 +149,7 @@ magmablas_zswapblk(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(
                     sycl::nd_range<3>(blocks * sycl::range<3>(1, 1, blocksize),
                                       sycl::range<3>(1, 1, blocksize)),

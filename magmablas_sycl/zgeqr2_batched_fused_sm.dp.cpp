@@ -248,7 +248,7 @@ extern "C" magma_int_t magma_zgeqr2_fused_sm_batched(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    int e = ((sycl::queue *)(queue->cuda_stream()))
+    int e = ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>

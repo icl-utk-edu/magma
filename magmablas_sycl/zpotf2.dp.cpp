@@ -270,7 +270,7 @@ void zpotf2_zdotc(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
@@ -323,7 +323,7 @@ void zpotf2_zdscal(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magmaDoubleComplex, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>
             factor_acc_ct1(cgh);
@@ -390,7 +390,7 @@ void magmablas_zlacgv(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            kernel_zlacgv(n, x, incx, item_ct1);

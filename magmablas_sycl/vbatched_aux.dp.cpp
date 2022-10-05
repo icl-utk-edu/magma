@@ -96,7 +96,7 @@ void magma_getrf_vbatched_setup(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
@@ -182,7 +182,7 @@ magma_int_t magma_ivec_max( magma_int_t vecsize,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             swork_acc_ct1(sycl::range<1>(512 /*MAX_REDUCE_SEGMENT*/), cgh);
@@ -204,7 +204,7 @@ magma_int_t magma_ivec_max( magma_int_t vecsize,
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<int, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -300,7 +300,7 @@ magma_int_t magma_isum_reduce( magma_int_t vecsize,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             swork_acc_ct1(sycl::range<1>(512 /*ISUM_REDUCE_SEGMENT*/), cgh);
@@ -322,7 +322,7 @@ magma_int_t magma_isum_reduce( magma_int_t vecsize,
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<int, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -379,7 +379,7 @@ void magma_ivec_add( magma_int_t vecsize,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_ivec_add_kernel(vecsize, a1, x1, a2, x2, y,
@@ -420,7 +420,7 @@ void magma_ivec_mul( magma_int_t vecsize,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_ivec_mul_kernel(vecsize, x1, x2, y, item_ct1);
@@ -458,7 +458,7 @@ void magma_ivec_ceildiv( magma_int_t vecsize,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_ivec_ceildiv_kernel(vecsize, x, nb, y,
@@ -498,7 +498,7 @@ void magma_ivec_roundup( magma_int_t vecsize,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_ivec_roundup_kernel(vecsize, x, nb, y,
@@ -539,7 +539,7 @@ void magma_ivec_setc( magma_int_t vecsize,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_setvector_const_gpu_kernel<magma_int_t>(
@@ -562,7 +562,7 @@ void magma_zsetvector_const( magma_int_t vecsize,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_setvector_const_gpu_kernel<magmaDoubleComplex>(
@@ -585,7 +585,7 @@ void magma_csetvector_const( magma_int_t vecsize,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_setvector_const_gpu_kernel<magmaFloatComplex>(
@@ -608,7 +608,7 @@ void magma_dsetvector_const( magma_int_t vecsize,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_setvector_const_gpu_kernel<double>(
@@ -631,7 +631,7 @@ void magma_ssetvector_const( magma_int_t vecsize,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_setvector_const_gpu_kernel<float>(
@@ -668,7 +668,7 @@ void magma_ivec_addc(magma_int_t vecsize, magma_int_t *x, magma_int_t value, mag
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_ivec_addc_kernel(vecsize, x, value, y,
@@ -705,7 +705,7 @@ void magma_ivec_mulc(magma_int_t vecsize, magma_int_t *x, magma_int_t value, mag
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_ivec_mulc_kernel(vecsize, x, value, y,
@@ -743,7 +743,7 @@ void magma_ivec_minc(magma_int_t vecsize, magma_int_t *x, magma_int_t value, mag
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_ivec_minc_kernel(vecsize, x, value, y,
@@ -780,7 +780,7 @@ void magma_ivec_min_vv(magma_int_t vecsize, magma_int_t *v1, magma_int_t *v2, ma
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_ivec_min_vv_kernel(vecsize, v1, v2, y,
@@ -817,7 +817,7 @@ void magma_ivec_maxc(magma_int_t vecsize, magma_int_t* x, magma_int_t value, mag
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_ivec_maxc_kernel(vecsize, x, value, y,
@@ -862,7 +862,7 @@ void magma_compute_trsm_jb(magma_int_t vecsize, magma_int_t* m, magma_int_t tri_
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_compute_trsm_jb_kernel(vecsize, m, tri_nb, jbv,
@@ -922,7 +922,7 @@ void magma_imax_size_1(magma_int_t *n, magma_int_t l, magma_queue_t queue)
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             swork_acc_ct1(sycl::range<1>(256 /*AUX_MAX_SEGMENT*/), cgh);
@@ -987,7 +987,7 @@ void magma_imax_size_2(magma_int_t *m, magma_int_t *n, magma_int_t l, magma_queu
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             swork_acc_ct1(sycl::range<1>(256 /*AUX_MAX_SEGMENT*/), cgh);
@@ -1054,7 +1054,7 @@ void magma_imax_size_3(magma_int_t *m, magma_int_t *n, magma_int_t *k, magma_int
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             swork_acc_ct1(sycl::range<1>(256 /*AUX_MAX_SEGMENT*/), cgh);

@@ -81,7 +81,7 @@ void zlaswp_sym_kernel( zlaswp_sym_params_t params , sycl::nd_item<3> item_ct1)
 extern "C" void zlaswp_sym( zlaswp_sym_params_t &params, magma_queue_t queue )
 {
     int blocks = magma_ceildiv(params.n,  NTHREADS);
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, blocks) *
                                              sycl::range<3>(1, 1, NTHREADS),
                                          sycl::range<3>(1, 1, NTHREADS)),
