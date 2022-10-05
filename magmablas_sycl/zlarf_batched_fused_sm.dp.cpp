@@ -325,7 +325,7 @@ static magma_int_t magma_zlarf_fused_sm_kernel_driver_batched(
     Intel(R) DPC++ Compatibility Tool.
     */
     int e = cudaLaunchKernel((void *)zlarf_fused_sm_kernel_batched<NB>, grid,
-                             threads, kernel_args, shmem, queue->cuda_stream());
+                             threads, kernel_args, shmem, queue->sycl_stream());
     /*
     DPCT1000:1176: Error handling if-stmt was detected but could not be
     rewritten.

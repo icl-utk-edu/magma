@@ -217,7 +217,7 @@ magmablas_ztranspose(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sA_acc_ct1(sycl::range<2>(32 /*NB*/, 17 /*NX+1*/), cgh);
@@ -316,7 +316,7 @@ magmablas_ztranspose_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 2,
                                sycl::access_mode::read_write,
@@ -375,7 +375,7 @@ magmablas_ztranspose_batched_stride(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 2,
                                sycl::access_mode::read_write,

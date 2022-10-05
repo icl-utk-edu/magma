@@ -33,7 +33,6 @@ void slag2h_device(
     magmaHalf *HA,  int ldha,
     float rmax, magma_int_t* dinfo, sycl::nd_item<3> item_ct1)
 {
-#if CUDA_VERSION >= 7500 || defined(MAGMA_HAVE_HIP)
     const int gtx = item_ct1.get_group(2) * BLK_X + item_ct1.get_local_id(2);
     const int gty = item_ct1.get_group(1) * BLK_Y + item_ct1.get_local_id(1);
 
@@ -56,7 +55,6 @@ void slag2h_device(
             }
         }
     }
-#endif
 }
 
 
@@ -132,7 +130,7 @@ magmablas_slag2h(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto magma_flag_ct7 = magma_flag.get_ptr();
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -200,7 +198,7 @@ magmablas_slag2h_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto magma_flag_array_ct7 = magma_flag_array.get_ptr();
 
