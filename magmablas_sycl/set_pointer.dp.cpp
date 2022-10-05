@@ -56,7 +56,7 @@ void stepinit_ipiv(magma_int_t **ipiv_array,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount) *
                                              sycl::range<3>(1, 1, pm),
                                          sycl::range<3>(1, 1, pm)),
@@ -95,7 +95,7 @@ void magma_iset_pointer(
     for example the size  of A is N*batchCount; N is the size of A(batchSize)
     change into A_array[0] A_array[1],... A_array[batchCount-1], where the size of each A_array[i] is N
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount),
                                          sycl::range<3>(1, 1, 1)),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -131,7 +131,7 @@ void magma_idisplace_pointers(magma_int_t **output_array,
     input_array contains the pointers to the initial position.
     output_array[i] = input_array[i] + row + lda * column; 
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount),
                                          sycl::range<3>(1, 1, 1)),
                        [=](sycl::nd_item<3> item_ct1) {

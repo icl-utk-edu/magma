@@ -273,7 +273,7 @@ magmablas_zheinertia(
     sycl::range<3> threads(1, 1, NTHREADS);
 
     // Set itertia to zero
-    queue->cuda_stream()->memset(dneig, 0, 3 * sizeof(int));
+    queue->sycl_stream()->memset(dneig, 0, 3 * sizeof(int));
 
     if (upper)
         /*
@@ -281,7 +281,7 @@ magmablas_zheinertia(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<int, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -308,7 +308,7 @@ magmablas_zheinertia(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<int, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>

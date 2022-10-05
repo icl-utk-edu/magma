@@ -93,7 +93,7 @@ void trmm_template_lNx(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<T, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
@@ -129,7 +129,7 @@ void trmm_template_lTx(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<T, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
@@ -165,7 +165,7 @@ void trmm_template_rNx(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<T, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
@@ -201,7 +201,7 @@ void trmm_template_rTx(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<T, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sA_acc_ct1(sycl::range<1>(NB * NB), cgh);

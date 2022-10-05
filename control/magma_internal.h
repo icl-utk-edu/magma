@@ -185,7 +185,7 @@ protected:
     #endif
 
     #ifdef MAGMA_HAVE_SYCL
-    friend void magma_queue_create_from_cuda_internal(
+    friend void magma_queue_create_from_sycl_internal(
         magma_device_t device, sycl::queue *stream, sycl::queue *syclblas_handle,
         sycl::queue *syclsparse_handle, magma_queue_t *queuePtr, const char *func,
         const char *file, int line);

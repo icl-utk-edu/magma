@@ -37,7 +37,7 @@ void magma_hset_pointer(
     magma_int_t batchCount, 
     magma_queue_t queue)
 {
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount),
                                          sycl::range<3>(1, 1, 1)),
                        [=](sycl::nd_item<3> item_ct1) {

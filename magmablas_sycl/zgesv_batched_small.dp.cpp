@@ -510,7 +510,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            e = ((sycl::queue *)(queue->cuda_stream()))
+            e = ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -550,7 +550,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 1: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -583,7 +583,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 2: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -616,7 +616,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 3: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -649,7 +649,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 4: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -682,7 +682,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 5: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -715,7 +715,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 6: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -748,7 +748,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 7: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -781,7 +781,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 8: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -814,7 +814,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 9: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -847,7 +847,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 10: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -880,7 +880,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 11: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -913,7 +913,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 12: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -946,7 +946,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 13: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -979,7 +979,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 14: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1012,7 +1012,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 15: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1045,7 +1045,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 16: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1078,7 +1078,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 17: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1111,7 +1111,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 18: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1144,7 +1144,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 19: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1177,7 +1177,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 20: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1210,7 +1210,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 21: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1243,7 +1243,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 22: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1276,7 +1276,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 23: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1309,7 +1309,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 24: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1342,7 +1342,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 25: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1375,7 +1375,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 26: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1408,7 +1408,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 27: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1441,7 +1441,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 28: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1474,7 +1474,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 29: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1507,7 +1507,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 30: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1540,7 +1540,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 31: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1573,7 +1573,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             needed.
             */
             case 32: e =
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,

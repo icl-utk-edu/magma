@@ -167,7 +167,7 @@ void gemm_template_batched_nn(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<T, 2, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -220,7 +220,7 @@ void gemm_template_batched_nt(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<T, 2, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -273,7 +273,7 @@ void gemm_template_batched_tn(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<T, 2, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -326,7 +326,7 @@ void gemm_template_batched_tt(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<T, 2, sycl::access_mode::read_write,
                                sycl::access::target::local>

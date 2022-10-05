@@ -305,7 +305,7 @@ magma_zlarf_fused_reg_kernel_driver_batched(
     void *kernel_args[] = {&m, &n, &ib, &dA_array, &Ai, &Aj, &ldda, &dV_array, &Vi, &Vj, &lddv, &dtau_array, &taui, &check_launch_only, &batchCount};
     int e = cudaLaunchKernel(
         (void *)zlarf_fused_reg_kernel_batched<M32, NB, TPC>, grid, threads,
-        kernel_args, shmem, queue->cuda_stream());
+        kernel_args, shmem, queue->sycl_stream());
 
     return arginfo;
 }
