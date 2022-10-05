@@ -16,7 +16,7 @@
 
 #define COMPLEX
 
-#ifdef MAGMA_HAVE_CUDA
+#ifdef MAGMA_HAVE_SYCL
 
 // These MAGMA v1 routines are all deprecated.
 // See blas_z_v2.cpp for documentation.
@@ -542,7 +542,7 @@ magma_ztrsm_v1(
         magmablasGetQueue() );
 }
 
-#endif // MAGMA_HAVE_CUDA
+#endif // MAGMA_HAVE_SYCL
 
 #undef COMPLEX
 

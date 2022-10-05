@@ -4,6 +4,7 @@
 #include "magma_internal.h"
 #include "error.h"
 
+// TODO: error handling needs total overhaul for SYCL
 
 /***************************************************************************//**
     @return String describing cuBLAS errors (cublasStatus_t).
@@ -15,32 +16,31 @@
     @ingroup magma_error_internal
 *******************************************************************************/
 #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
-extern "C"
-const char* magma_cublasGetErrorString( cublasStatus_t err )
+extern "C" const char *magma_cublasGetErrorString(int err)
 {
     switch( err ) {
-        case CUBLAS_STATUS_SUCCESS:
+        case 0:
             return "success";
 
-        case CUBLAS_STATUS_NOT_INITIALIZED:
+        case 1:
             return "not initialized";
 
-        case CUBLAS_STATUS_ALLOC_FAILED:
+        case 3:
             return "out of memory";
 
-        case CUBLAS_STATUS_INVALID_VALUE:
+        case 7:
             return "invalid value";
 
-        case CUBLAS_STATUS_ARCH_MISMATCH:
+        case 8:
             return "architecture mismatch";
 
-        case CUBLAS_STATUS_MAPPING_ERROR:
+        case 11:
             return "memory mapping error";
 
-        case CUBLAS_STATUS_EXECUTION_FAILED:
+        case 13:
             return "execution failed";
 
-        case CUBLAS_STATUS_INTERNAL_ERROR:
+        case 14:
             return "internal error";
 
         default:
@@ -71,12 +71,8 @@ const char* magma_cublasGetErrorString( cublasStatus_t err )
     @ingroup magma_error_internal
 *******************************************************************************/
 #ifdef MAGMA_HAVE_CUDA
-void magma_xerror( cudaError_t err, const char* func, const char* file, int line )
+void magma_xerror(int err, const char *func, const char *file, int line)
 {
-    if ( err != cudaSuccess ) {
-        fprintf( stderr, "CUDA runtime error: %s (%d) in %s at %s:%d\n",
-                 cudaGetErrorString( err ), err, func, file, line );
-    }
 }
 #endif
 
@@ -85,9 +81,9 @@ void magma_xerror( cudaError_t err, const char* func, const char* file, int line
 /// @see magma_xerror
 /// @ingroup magma_error_internal
 #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
-void magma_xerror( cublasStatus_t err, const char* func, const char* file, int line )
+void magma_xerror(int err, const char *func, const char *file, int line)
 {
-    if ( err != CUBLAS_STATUS_SUCCESS ) {
+    if (err != 0) {
         fprintf( stderr, "CUBLAS error: %s (%d) in %s at %s:%d\n",
                  magma_cublasGetErrorString( err ), err, func, file, line );
     }
