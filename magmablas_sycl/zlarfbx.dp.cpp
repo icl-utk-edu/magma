@@ -51,7 +51,7 @@ magma_zgemv_kernel1(int m, const magmaDoubleComplex *__restrict__ V, int ldv,
 /******************************************************************************/
 /*
     Call 
-        magma_zgemv_kernel3<<< n, BLOCK_SIZE, 0, queue->cuda_stream() >>>(m, V, ldv, c, dwork, tau)
+        magma_zgemv_kernel3<<< n, BLOCK_SIZE, 0, queue->sycl_stream() >>>(m, V, ldv, c, dwork, tau)
     to compute
         ZGEMV( "Conjugate transpose", m, n, -tau[0], V, ldv, c, 1, zero, dwork, 1)
         and to set c[0] to 1.
@@ -137,7 +137,7 @@ magma_zlarfbx_gpu(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sum_acc_ct1(sycl::range<1>(512 /*BLOCK_SIZE*/), cgh);
@@ -157,7 +157,7 @@ magma_zlarfbx_gpu(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sum_acc_ct1(sycl::range<1>(128), cgh);
@@ -179,7 +179,7 @@ magma_zlarfbx_gpu(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(blocks3 * threads3, threads3),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_zgemv_kernel2(m, k, V, ldv, dwork + k, c,

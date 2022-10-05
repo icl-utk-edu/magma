@@ -923,7 +923,7 @@ magmablas_zhemv_mgpu(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queues[dev]->cuda_stream()))
+            ((sycl::queue *)(queues[dev]->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 2,
                                    sycl::access_mode::read_write,
@@ -957,7 +957,7 @@ magmablas_zhemv_mgpu(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queues[dev]->cuda_stream()))
+            ((sycl::queue *)(queues[dev]->sycl_stream()))
                 ->parallel_for(
                     sycl::nd_range<3>(grid * threads_sum, threads_sum),
                     [=](sycl::nd_item<3> item_ct1) {
@@ -973,7 +973,7 @@ magmablas_zhemv_mgpu(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queues[dev]->cuda_stream()))
+            ((sycl::queue *)(queues[dev]->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 2,
                                    sycl::access_mode::read_write,
@@ -1007,7 +1007,7 @@ magmablas_zhemv_mgpu(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queues[dev]->cuda_stream()))
+            ((sycl::queue *)(queues[dev]->sycl_stream()))
                 ->parallel_for(
                     sycl::nd_range<3>(grid * threads_sum, threads_sum),
                     [=](sycl::nd_item<3> item_ct1) {
