@@ -1,15 +1,17 @@
 #ifndef ERROR_H
 #define ERROR_H
 
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
 #include "magma_types.h"
 
 // overloaded C++ functions to deal with errors
 #ifdef MAGMA_HAVE_CUDA
-void magma_xerror( cudaError_t    err, const char* func, const char* file, int line );
+void magma_xerror(int err, const char *func, const char *file, int line);
 #endif
 
 #ifdef MAGMA_HAVE_CUDA
-void magma_xerror( cublasStatus_t err, const char* func, const char* file, int line );
+void magma_xerror(int err, const char *func, const char *file, int line);
 #endif 
 
 #ifdef MAGMA_HAVE_HIP
@@ -26,7 +28,7 @@ extern "C" {
 // but not cublasGetErrorString, so provide our own.
 // In magma.h, we also provide magma_strerror.
 #ifdef MAGMA_HAVE_CUDA
-const char* magma_cublasGetErrorString( cublasStatus_t error );
+const char *magma_cublasGetErrorString(int error);
 #endif
 
 #ifdef __cplusplus

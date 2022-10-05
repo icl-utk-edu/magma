@@ -22,8 +22,6 @@
 #include "magma_internal.h"
 #include "error.h"
 
-//#ifdef MAGMA_HAVE_CUDA
-
 
 #ifdef DEBUG_MEMORY
 std::mutex                g_pointers_mutex;  // requires C++11
@@ -365,22 +363,21 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-extern "C" magma_int_t
-magma_memset_async(void * ptr, int value, size_t count, magma_queue_t queue) {
-#ifdef MAGMA_HAVE_CUDA
+extern "C" magma_int_t magma_memset_async(void *ptr, int value, size_t count,
+                                          magma_queue_t queue) try {
+#ifdef MAGMA_HAVE_SYCL
 //    return cudaMemsetAsync(ptr, value, count, queue);
-    return cudaMemsetAsync(ptr, value, count, queue->cuda_stream());
-#elif defined(MAGMA_HAVE_HIP)
-    return hipMemsetAsync(ptr, value, count, queue->hip_stream());
-#elif defined(MAGMA_HAVE_SYCL)
     /*
     DPCT1003:7: Migrated API does not return error code. (*, 0) is inserted. You
     may need to rewrite this code.
     */
-    return (queue->memset(ptr, value, count), 0);
+    return (queue->sycl_stream()->memset(ptr, value, count), 0);
 #endif
 }
-
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 //#endif // MAGMA_HAVE_CUDA
