@@ -104,7 +104,7 @@ void hemm_template(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 2, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -129,7 +129,7 @@ void hemm_template(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 2, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -156,7 +156,7 @@ void hemm_template(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 2, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -181,7 +181,7 @@ void hemm_template(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 2, sycl::access_mode::read_write,
                                    sycl::access::target::local>

@@ -349,44 +349,44 @@ magma_zgbtrf_batched(
     if (use_pivoting == 0)
         switch(m){
             /*
-              case  1: zgbtrf_batched_np_kernel< 1, magma_ceilpow2( 1)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case  2: zgbtrf_batched_np_kernel< 2, magma_ceilpow2( 2)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case  3: zgbtrf_batched_np_kernel< 3, magma_ceilpow2( 3)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case  4: zgbtrf_batched_np_kernel< 4, magma_ceilpow2( 4)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case  5: zgbtrf_batched_np_kernel< 5, magma_ceilpow2( 5)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case  6: zgbtrf_batched_np_kernel< 6, magma_ceilpow2( 6)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case  7: zgbtrf_batched_np_kernel< 7, magma_ceilpow2( 7)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case  8: zgbtrf_batched_np_kernel< 8, magma_ceilpow2( 8)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case  9: zgbtrf_batched_np_kernel< 9, magma_ceilpow2( 9)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 10: zgbtrf_batched_np_kernel<10, magma_ceilpow2(10)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 11: zgbtrf_batched_np_kernel<11, magma_ceilpow2(11)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 12: zgbtrf_batched_np_kernel<12, magma_ceilpow2(12)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 13: zgbtrf_batched_np_kernel<13, magma_ceilpow2(13)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 14: zgbtrf_batched_np_kernel<14, magma_ceilpow2(14)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 15: zgbtrf_batched_np_kernel<15, magma_ceilpow2(15)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 16: zgbtrf_batched_np_kernel<16, magma_ceilpow2(16)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 17: zgbtrf_batched_np_kernel<17, magma_ceilpow2(17)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 18: zgbtrf_batched_np_kernel<18, magma_ceilpow2(18)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 19: zgbtrf_batched_np_kernel<19, magma_ceilpow2(19)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 20: zgbtrf_batched_np_kernel<20, magma_ceilpow2(20)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 21: zgbtrf_batched_np_kernel<21, magma_ceilpow2(21)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 22: zgbtrf_batched_np_kernel<22, magma_ceilpow2(22)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 23: zgbtrf_batched_np_kernel<23, magma_ceilpow2(23)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 24: zgbtrf_batched_np_kernel<24, magma_ceilpow2(24)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 25: zgbtrf_batched_np_kernel<25, magma_ceilpow2(25)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 26: zgbtrf_batched_np_kernel<26, magma_ceilpow2(26)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 27: zgbtrf_batched_np_kernel<27, magma_ceilpow2(27)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 28: zgbtrf_batched_np_kernel<28, magma_ceilpow2(28)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 29: zgbtrf_batched_np_kernel<29, magma_ceilpow2(29)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 30: zgbtrf_batched_np_kernel<30, magma_ceilpow2(30)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-              case 31: zgbtrf_batched_np_kernel<31, magma_ceilpow2(31)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case  1: zgbtrf_batched_np_kernel< 1, magma_ceilpow2( 1)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case  2: zgbtrf_batched_np_kernel< 2, magma_ceilpow2( 2)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case  3: zgbtrf_batched_np_kernel< 3, magma_ceilpow2( 3)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case  4: zgbtrf_batched_np_kernel< 4, magma_ceilpow2( 4)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case  5: zgbtrf_batched_np_kernel< 5, magma_ceilpow2( 5)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case  6: zgbtrf_batched_np_kernel< 6, magma_ceilpow2( 6)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case  7: zgbtrf_batched_np_kernel< 7, magma_ceilpow2( 7)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case  8: zgbtrf_batched_np_kernel< 8, magma_ceilpow2( 8)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case  9: zgbtrf_batched_np_kernel< 9, magma_ceilpow2( 9)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 10: zgbtrf_batched_np_kernel<10, magma_ceilpow2(10)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 11: zgbtrf_batched_np_kernel<11, magma_ceilpow2(11)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 12: zgbtrf_batched_np_kernel<12, magma_ceilpow2(12)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 13: zgbtrf_batched_np_kernel<13, magma_ceilpow2(13)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 14: zgbtrf_batched_np_kernel<14, magma_ceilpow2(14)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 15: zgbtrf_batched_np_kernel<15, magma_ceilpow2(15)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 16: zgbtrf_batched_np_kernel<16, magma_ceilpow2(16)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 17: zgbtrf_batched_np_kernel<17, magma_ceilpow2(17)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 18: zgbtrf_batched_np_kernel<18, magma_ceilpow2(18)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 19: zgbtrf_batched_np_kernel<19, magma_ceilpow2(19)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 20: zgbtrf_batched_np_kernel<20, magma_ceilpow2(20)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 21: zgbtrf_batched_np_kernel<21, magma_ceilpow2(21)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 22: zgbtrf_batched_np_kernel<22, magma_ceilpow2(22)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 23: zgbtrf_batched_np_kernel<23, magma_ceilpow2(23)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 24: zgbtrf_batched_np_kernel<24, magma_ceilpow2(24)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 25: zgbtrf_batched_np_kernel<25, magma_ceilpow2(25)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 26: zgbtrf_batched_np_kernel<26, magma_ceilpow2(26)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 27: zgbtrf_batched_np_kernel<27, magma_ceilpow2(27)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 28: zgbtrf_batched_np_kernel<28, magma_ceilpow2(28)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 29: zgbtrf_batched_np_kernel<29, magma_ceilpow2(29)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 30: zgbtrf_batched_np_kernel<30, magma_ceilpow2(30)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+              case 31: zgbtrf_batched_np_kernel<31, magma_ceilpow2(31)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
             */
         /*
         DPCT1049:273: The work-group size passed to the SYCL kernel may exceed
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-            case 32: ((sycl::queue *)(queue->cuda_stream()))
+            case 32: ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>

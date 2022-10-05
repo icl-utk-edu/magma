@@ -401,7 +401,7 @@ magma_zgetf2_native_fused(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, max_n_npages),
                                          sycl::range<3>(1, 1, max_n_npages)),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -415,7 +415,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 1: ((sycl::queue *)(queue->cuda_stream()))
+        case 1: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -449,7 +449,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 2: ((sycl::queue *)(queue->cuda_stream()))
+        case 2: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -483,7 +483,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 3: ((sycl::queue *)(queue->cuda_stream()))
+        case 3: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -517,7 +517,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 4: ((sycl::queue *)(queue->cuda_stream()))
+        case 4: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -551,7 +551,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 5: ((sycl::queue *)(queue->cuda_stream()))
+        case 5: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -585,7 +585,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 6: ((sycl::queue *)(queue->cuda_stream()))
+        case 6: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -619,7 +619,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 7: ((sycl::queue *)(queue->cuda_stream()))
+        case 7: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -653,7 +653,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 8: ((sycl::queue *)(queue->cuda_stream()))
+        case 8: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -687,7 +687,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 9: ((sycl::queue *)(queue->cuda_stream()))
+        case 9: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -721,7 +721,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 10: ((sycl::queue *)(queue->cuda_stream()))
+        case 10: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -755,7 +755,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 11: ((sycl::queue *)(queue->cuda_stream()))
+        case 11: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -789,7 +789,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 12: ((sycl::queue *)(queue->cuda_stream()))
+        case 12: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -823,7 +823,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 13: ((sycl::queue *)(queue->cuda_stream()))
+        case 13: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -857,7 +857,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 14: ((sycl::queue *)(queue->cuda_stream()))
+        case 14: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -891,7 +891,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 15: ((sycl::queue *)(queue->cuda_stream()))
+        case 15: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -925,7 +925,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 16: ((sycl::queue *)(queue->cuda_stream()))
+        case 16: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -959,7 +959,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 17: ((sycl::queue *)(queue->cuda_stream()))
+        case 17: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -993,7 +993,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 18: ((sycl::queue *)(queue->cuda_stream()))
+        case 18: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -1027,7 +1027,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 19: ((sycl::queue *)(queue->cuda_stream()))
+        case 19: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -1061,7 +1061,7 @@ magma_zgetf2_native_fused(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 20: ((sycl::queue *)(queue->cuda_stream()))
+        case 20: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -1091,68 +1091,68 @@ magma_zgetf2_native_fused(
             });
             break;
 #if defined(PRECISION_s) || defined(PRECISION_d)
-        case 21: zgetf2_native_kernel< ntx, 21><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 22: zgetf2_native_kernel< ntx, 22><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 23: zgetf2_native_kernel< ntx, 23><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 24: zgetf2_native_kernel< ntx, 24><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 25: zgetf2_native_kernel< ntx, 25><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 26: zgetf2_native_kernel< ntx, 26><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 27: zgetf2_native_kernel< ntx, 27><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 28: zgetf2_native_kernel< ntx, 28><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 29: zgetf2_native_kernel< ntx, 29><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 30: zgetf2_native_kernel< ntx, 30><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 31: zgetf2_native_kernel< ntx, 31><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 32: zgetf2_native_kernel< ntx, 32><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 33: zgetf2_native_kernel< ntx, 33><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 34: zgetf2_native_kernel< ntx, 34><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 35: zgetf2_native_kernel< ntx, 35><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 36: zgetf2_native_kernel< ntx, 36><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 37: zgetf2_native_kernel< ntx, 37><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 38: zgetf2_native_kernel< ntx, 38><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 39: zgetf2_native_kernel< ntx, 39><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 40: zgetf2_native_kernel< ntx, 40><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 41: zgetf2_native_kernel< ntx, 41><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 42: zgetf2_native_kernel< ntx, 42><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 43: zgetf2_native_kernel< ntx, 43><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 44: zgetf2_native_kernel< ntx, 44><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 45: zgetf2_native_kernel< ntx, 45><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 46: zgetf2_native_kernel< ntx, 46><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 21: zgetf2_native_kernel< ntx, 21><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 22: zgetf2_native_kernel< ntx, 22><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 23: zgetf2_native_kernel< ntx, 23><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 24: zgetf2_native_kernel< ntx, 24><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 25: zgetf2_native_kernel< ntx, 25><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 26: zgetf2_native_kernel< ntx, 26><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 27: zgetf2_native_kernel< ntx, 27><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 28: zgetf2_native_kernel< ntx, 28><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 29: zgetf2_native_kernel< ntx, 29><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 30: zgetf2_native_kernel< ntx, 30><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 31: zgetf2_native_kernel< ntx, 31><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 32: zgetf2_native_kernel< ntx, 32><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 33: zgetf2_native_kernel< ntx, 33><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 34: zgetf2_native_kernel< ntx, 34><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 35: zgetf2_native_kernel< ntx, 35><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 36: zgetf2_native_kernel< ntx, 36><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 37: zgetf2_native_kernel< ntx, 37><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 38: zgetf2_native_kernel< ntx, 38><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 39: zgetf2_native_kernel< ntx, 39><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 40: zgetf2_native_kernel< ntx, 40><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 41: zgetf2_native_kernel< ntx, 41><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 42: zgetf2_native_kernel< ntx, 42><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 43: zgetf2_native_kernel< ntx, 43><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 44: zgetf2_native_kernel< ntx, 44><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 45: zgetf2_native_kernel< ntx, 45><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 46: zgetf2_native_kernel< ntx, 46><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
         #endif // defined(PRECISION_s) || defined(PRECISION_d)
         #if defined(PRECISION_s)
-        case 47: zgetf2_native_kernel< ntx, 47><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 48: zgetf2_native_kernel< ntx, 48><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 49: zgetf2_native_kernel< ntx, 49><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 50: zgetf2_native_kernel< ntx, 50><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 51: zgetf2_native_kernel< ntx, 51><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 52: zgetf2_native_kernel< ntx, 52><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 53: zgetf2_native_kernel< ntx, 53><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 54: zgetf2_native_kernel< ntx, 54><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 55: zgetf2_native_kernel< ntx, 55><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 56: zgetf2_native_kernel< ntx, 56><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 57: zgetf2_native_kernel< ntx, 57><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 58: zgetf2_native_kernel< ntx, 58><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 59: zgetf2_native_kernel< ntx, 59><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 60: zgetf2_native_kernel< ntx, 60><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 61: zgetf2_native_kernel< ntx, 61><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 62: zgetf2_native_kernel< ntx, 62><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 63: zgetf2_native_kernel< ntx, 63><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 64: zgetf2_native_kernel< ntx, 64><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 65: zgetf2_native_kernel< ntx, 65><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 66: zgetf2_native_kernel< ntx, 66><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 67: zgetf2_native_kernel< ntx, 67><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 68: zgetf2_native_kernel< ntx, 68><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 69: zgetf2_native_kernel< ntx, 69><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 70: zgetf2_native_kernel< ntx, 70><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 71: zgetf2_native_kernel< ntx, 71><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 72: zgetf2_native_kernel< ntx, 72><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 73: zgetf2_native_kernel< ntx, 73><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 74: zgetf2_native_kernel< ntx, 74><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 75: zgetf2_native_kernel< ntx, 75><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 76: zgetf2_native_kernel< ntx, 76><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 77: zgetf2_native_kernel< ntx, 77><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 78: zgetf2_native_kernel< ntx, 78><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 79: zgetf2_native_kernel< ntx, 79><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 80: zgetf2_native_kernel< ntx, 80><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 47: zgetf2_native_kernel< ntx, 47><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 48: zgetf2_native_kernel< ntx, 48><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 49: zgetf2_native_kernel< ntx, 49><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 50: zgetf2_native_kernel< ntx, 50><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 51: zgetf2_native_kernel< ntx, 51><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 52: zgetf2_native_kernel< ntx, 52><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 53: zgetf2_native_kernel< ntx, 53><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 54: zgetf2_native_kernel< ntx, 54><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 55: zgetf2_native_kernel< ntx, 55><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 56: zgetf2_native_kernel< ntx, 56><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 57: zgetf2_native_kernel< ntx, 57><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 58: zgetf2_native_kernel< ntx, 58><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 59: zgetf2_native_kernel< ntx, 59><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 60: zgetf2_native_kernel< ntx, 60><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 61: zgetf2_native_kernel< ntx, 61><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 62: zgetf2_native_kernel< ntx, 62><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 63: zgetf2_native_kernel< ntx, 63><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 64: zgetf2_native_kernel< ntx, 64><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 65: zgetf2_native_kernel< ntx, 65><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 66: zgetf2_native_kernel< ntx, 66><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 67: zgetf2_native_kernel< ntx, 67><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 68: zgetf2_native_kernel< ntx, 68><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 69: zgetf2_native_kernel< ntx, 69><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 70: zgetf2_native_kernel< ntx, 70><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 71: zgetf2_native_kernel< ntx, 71><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 72: zgetf2_native_kernel< ntx, 72><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 73: zgetf2_native_kernel< ntx, 73><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 74: zgetf2_native_kernel< ntx, 74><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 75: zgetf2_native_kernel< ntx, 75><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 76: zgetf2_native_kernel< ntx, 76><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 77: zgetf2_native_kernel< ntx, 77><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 78: zgetf2_native_kernel< ntx, 78><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 79: zgetf2_native_kernel< ntx, 79><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 80: zgetf2_native_kernel< ntx, 80><<<grid, threads, shmem, queue->sycl_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
         #endif // defined(PRECISION_s)
         default: printf("size not supported \n");
     }

@@ -52,7 +52,7 @@ void trmv_template(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<T, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sA_acc_ct1(sycl::range<1>(slda * NB), cgh);

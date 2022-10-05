@@ -135,7 +135,7 @@ magmablas_ztrtri_diag_batched(
         if ( uplo == MagmaLower ) {
             // invert diagonal IB x IB inner blocks
             sycl::range<3> diaggrid(ibatch, 1, nblocks); // emulate 3D grid
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
@@ -176,7 +176,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -197,7 +197,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -220,7 +220,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -241,7 +241,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -264,7 +264,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -285,7 +285,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -308,7 +308,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -329,7 +329,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -350,7 +350,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
                             [=](sycl::nd_item<3> item_ct1) {
@@ -365,7 +365,7 @@ magmablas_ztrtri_diag_batched(
         }
         else {
             sycl::range<3> diaggrid(ibatch, 1, nblocks); // emulate 3D grid
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
@@ -401,7 +401,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -422,7 +422,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -445,7 +445,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -466,7 +466,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -489,7 +489,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -510,7 +510,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -533,7 +533,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -554,7 +554,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 2,
                                            sycl::access_mode::read_write,
@@ -575,7 +575,7 @@ magmablas_ztrtri_diag_batched(
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
                             [=](sycl::nd_item<3> item_ct1) {

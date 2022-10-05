@@ -129,7 +129,7 @@ magma_prefix_sum_internal_w(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magma_int_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sdata_acc_ct1(sycl::range<1>(1024 /*SCAN_SEG_SIZE*/), cgh);
@@ -152,7 +152,7 @@ magma_prefix_sum_internal_w(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magma_int_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -175,7 +175,7 @@ magma_prefix_sum_internal_w(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(grid_update * threads_update, threads_update),
                 [=](sycl::nd_item<3> item_ct1) {

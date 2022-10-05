@@ -281,7 +281,7 @@ magma_zhetrs_gpu(
                 info::device::max_work_group_size. Adjust the work-group size if
                 needed.
                 */
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->parallel_for(
                         sycl::nd_range<3>(sycl::range<3>(1, 1, nrhs),
                                           sycl::range<3>(1, 1, nrhs)),
@@ -309,7 +309,7 @@ magma_zhetrs_gpu(
                 info::device::max_work_group_size. Adjust the work-group size if
                 needed.
                 */
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->parallel_for(
                         sycl::nd_range<3>(sycl::range<3>(1, 1, nrhs),
                                           sycl::range<3>(1, 1, nrhs)),
@@ -409,7 +409,7 @@ magma_zhetrs_gpu(
                 info::device::max_work_group_size. Adjust the work-group size if
                 needed.
                 */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(sycl::range<3>(1, 1, nrhs),
                                               sycl::range<3>(1, 1, nrhs)),
@@ -419,7 +419,7 @@ magma_zhetrs_gpu(
                             });
                 }     
                 else {
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(
                                 sycl::range<3>(1, 1,
@@ -436,7 +436,7 @@ magma_zhetrs_gpu(
                     info::device::max_work_group_size. Adjust the work-group
                     size if needed.
                     */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(sycl::range<3>(1, 1, nrhs),
                                               sycl::range<3>(1, 1, nrhs)),
@@ -470,7 +470,7 @@ magma_zhetrs_gpu(
                 info::device::max_work_group_size. Adjust the work-group size if
                 needed.
                 */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(sycl::range<3>(1, 1, nrhs),
                                               sycl::range<3>(1, 1, nrhs)),
@@ -480,7 +480,7 @@ magma_zhetrs_gpu(
                             });
                 }
                 else {
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(
                                 sycl::range<3>(1, 1,
@@ -497,7 +497,7 @@ magma_zhetrs_gpu(
                     info::device::max_work_group_size. Adjust the work-group
                     size if needed.
                     */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(sycl::range<3>(1, 1, nrhs),
                                               sycl::range<3>(1, 1, nrhs)),
