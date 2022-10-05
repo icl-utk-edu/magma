@@ -237,7 +237,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 1: ((sycl::queue *)(queue->cuda_stream()))
+        case 1: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -258,7 +258,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 2: ((sycl::queue *)(queue->cuda_stream()))
+        case 2: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -279,7 +279,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 3: ((sycl::queue *)(queue->cuda_stream()))
+        case 3: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -300,7 +300,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 4: ((sycl::queue *)(queue->cuda_stream()))
+        case 4: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -321,7 +321,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 5: ((sycl::queue *)(queue->cuda_stream()))
+        case 5: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -342,7 +342,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 6: ((sycl::queue *)(queue->cuda_stream()))
+        case 6: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -363,7 +363,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 7: ((sycl::queue *)(queue->cuda_stream()))
+        case 7: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -384,7 +384,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 8: ((sycl::queue *)(queue->cuda_stream()))
+        case 8: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -405,7 +405,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 9: ((sycl::queue *)(queue->cuda_stream()))
+        case 9: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -426,7 +426,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 10: ((sycl::queue *)(queue->cuda_stream()))
+        case 10: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -447,7 +447,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 11: ((sycl::queue *)(queue->cuda_stream()))
+        case 11: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -468,7 +468,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 12: ((sycl::queue *)(queue->cuda_stream()))
+        case 12: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -489,7 +489,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 13: ((sycl::queue *)(queue->cuda_stream()))
+        case 13: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -510,7 +510,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 14: ((sycl::queue *)(queue->cuda_stream()))
+        case 14: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -531,7 +531,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 15: ((sycl::queue *)(queue->cuda_stream()))
+        case 15: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -552,7 +552,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 16: ((sycl::queue *)(queue->cuda_stream()))
+        case 16: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -573,7 +573,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 17: ((sycl::queue *)(queue->cuda_stream()))
+        case 17: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -594,7 +594,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 18: ((sycl::queue *)(queue->cuda_stream()))
+        case 18: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -615,7 +615,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 19: ((sycl::queue *)(queue->cuda_stream()))
+        case 19: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -636,7 +636,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 20: ((sycl::queue *)(queue->cuda_stream()))
+        case 20: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -657,7 +657,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 21: ((sycl::queue *)(queue->cuda_stream()))
+        case 21: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -678,7 +678,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 22: ((sycl::queue *)(queue->cuda_stream()))
+        case 22: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -699,7 +699,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 23: ((sycl::queue *)(queue->cuda_stream()))
+        case 23: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -720,7 +720,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 24: ((sycl::queue *)(queue->cuda_stream()))
+        case 24: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -741,7 +741,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 25: ((sycl::queue *)(queue->cuda_stream()))
+        case 25: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -762,7 +762,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 26: ((sycl::queue *)(queue->cuda_stream()))
+        case 26: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -783,7 +783,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 27: ((sycl::queue *)(queue->cuda_stream()))
+        case 27: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -804,7 +804,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 28: ((sycl::queue *)(queue->cuda_stream()))
+        case 28: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -825,7 +825,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 29: ((sycl::queue *)(queue->cuda_stream()))
+        case 29: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -846,7 +846,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 30: ((sycl::queue *)(queue->cuda_stream()))
+        case 30: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -867,7 +867,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 31: ((sycl::queue *)(queue->cuda_stream()))
+        case 31: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -888,7 +888,7 @@ magma_zgetf2_nopiv_internal_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 32: ((sycl::queue *)(queue->cuda_stream()))
+        case 32: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>

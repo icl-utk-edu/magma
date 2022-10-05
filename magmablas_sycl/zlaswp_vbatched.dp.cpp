@@ -246,7 +246,7 @@ magma_zlaswp_left_rowserial_vbatched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(grid * sycl::range<3>(1, 1, min_BLK_SIZE_n),
                                   sycl::range<3>(1, 1, min_BLK_SIZE_n)),
@@ -285,7 +285,7 @@ magma_zlaswp_right_rowserial_vbatched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(grid * sycl::range<3>(1, 1, min_BLK_SIZE_n),
                                   sycl::range<3>(1, 1, min_BLK_SIZE_n)),
@@ -332,7 +332,7 @@ magma_zlaswp_left_rowparallel_vbatched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -386,7 +386,7 @@ magma_zlaswp_right_rowparallel_vbatched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>

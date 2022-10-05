@@ -167,7 +167,7 @@ magma_izamax_batched(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         /*
         DPCT1083:1662: The size of local memory in the migrated code may be
         different from the original code. Check that the allocated memory size
@@ -222,7 +222,7 @@ magma_izamax_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 /*
                 DPCT1083:1663: The size of local memory in the migrated code may
@@ -265,7 +265,7 @@ magma_izamax_native(
         int res_temp_host_ct2 = (int)*res_temp_ptr_ct1;
         dpct::dpct_memcpy((int *)(ipiv), &res_temp_host_ct2, sizeof(int));
         sycl::free(res_temp_ptr_ct1, dpct::get_default_queue());
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, 1),
                                              sycl::range<3>(1, 1, 1)),
                            [=](sycl::nd_item<3> item_ct1) {
@@ -282,7 +282,7 @@ magma_izamax_native(
         hipblasSetPointerMode(queue->hipblas_handle(), CUBLAS_POINTER_MODE_DEVICE);
 
         hipblasIzamax(queue->hipblas_handle(), length, (const hipblasDoubleComplex*)x, 1, (int*)(ipiv));
-        magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv );
+        magma_zpivcast<<< 1, 1, 0, queue->sycl_stream() >>>( ipiv );
 
         hipblasSetPointerMode(queue->hipblas_handle(), ptr_mode);
 #endif
@@ -396,7 +396,7 @@ magma_zswap_batched( magma_int_t n,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>
             jp_acc_ct1(cgh);
@@ -433,7 +433,7 @@ magma_zswap_native( magma_int_t n, magmaDoubleComplex_ptr x, magma_int_t incx,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>
             jp_acc_ct1(cgh);
@@ -539,7 +539,7 @@ magma_zscal_zgeru_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 1: ((sycl::queue *)(queue->cuda_stream()))
+            case 1: ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
@@ -562,7 +562,7 @@ magma_zscal_zgeru_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 2: ((sycl::queue *)(queue->cuda_stream()))
+            case 2: ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
@@ -585,7 +585,7 @@ magma_zscal_zgeru_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 3: ((sycl::queue *)(queue->cuda_stream()))
+            case 3: ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
@@ -608,7 +608,7 @@ magma_zscal_zgeru_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 4: ((sycl::queue *)(queue->cuda_stream()))
+            case 4: ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
@@ -631,7 +631,7 @@ magma_zscal_zgeru_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 5: ((sycl::queue *)(queue->cuda_stream()))
+            case 5: ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
@@ -654,7 +654,7 @@ magma_zscal_zgeru_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 6: ((sycl::queue *)(queue->cuda_stream()))
+            case 6: ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
@@ -677,7 +677,7 @@ magma_zscal_zgeru_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 7: ((sycl::queue *)(queue->cuda_stream()))
+            case 7: ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
@@ -700,7 +700,7 @@ magma_zscal_zgeru_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 8: ((sycl::queue *)(queue->cuda_stream()))
+            case 8: ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
@@ -723,7 +723,7 @@ magma_zscal_zgeru_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            default: ((sycl::queue *)(queue->cuda_stream()))
+            default: ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zscal_zgeru_1d_generic_kernel_batched(
@@ -765,7 +765,7 @@ magma_zscal_zgeru_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 1: ((sycl::queue *)(queue->cuda_stream()))
+        case 1: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -786,7 +786,7 @@ magma_zscal_zgeru_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 2: ((sycl::queue *)(queue->cuda_stream()))
+        case 2: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -807,7 +807,7 @@ magma_zscal_zgeru_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 3: ((sycl::queue *)(queue->cuda_stream()))
+        case 3: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -828,7 +828,7 @@ magma_zscal_zgeru_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 4: ((sycl::queue *)(queue->cuda_stream()))
+        case 4: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -849,7 +849,7 @@ magma_zscal_zgeru_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 5: ((sycl::queue *)(queue->cuda_stream()))
+        case 5: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -870,7 +870,7 @@ magma_zscal_zgeru_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 6: ((sycl::queue *)(queue->cuda_stream()))
+        case 6: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -891,7 +891,7 @@ magma_zscal_zgeru_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 7: ((sycl::queue *)(queue->cuda_stream()))
+        case 7: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -912,7 +912,7 @@ magma_zscal_zgeru_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 8: ((sycl::queue *)(queue->cuda_stream()))
+        case 8: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -933,7 +933,7 @@ magma_zscal_zgeru_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        default: ((sycl::queue *)(queue->cuda_stream()))
+        default: ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {
                                zscal_zgeru_1d_generic_kernel_native(
@@ -1093,7 +1093,7 @@ magma_zgetf2trsm_batched(magma_int_t ib, magma_int_t n, magmaDoubleComplex **dA_
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             dpct_local_acc_ct1(sycl::range<1>(shared_size), cgh);
@@ -1225,7 +1225,7 @@ magma_zgetf2trsm_2d_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 8: ((sycl::queue *)(queue->cuda_stream()))
+        case 8: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -1250,7 +1250,7 @@ magma_zgetf2trsm_2d_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 16: ((sycl::queue *)(queue->cuda_stream()))
+        case 16: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -1275,7 +1275,7 @@ magma_zgetf2trsm_2d_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 24: ((sycl::queue *)(queue->cuda_stream()))
+        case 24: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -1300,7 +1300,7 @@ magma_zgetf2trsm_2d_native(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        case 32: ((sycl::queue *)(queue->cuda_stream()))
+        case 32: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
@@ -1468,7 +1468,7 @@ magma_int_t magma_zcomputecolumn_batched( magma_int_t m, magma_int_t paneloffset
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             dpct_local_acc_ct1(sycl::range<1>(shared_size), cgh);
@@ -1595,8 +1595,9 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_batched(
     DPCT1007:634: Migration of cudaLaunchKernel is not supported by the Intel(R)
     DPC++ Compatibility Tool.
     */
+    // TODO!
     int e = cudaLaunchKernel((void *)zgetf2_fused_kernel_batched<N>, grid,
-                             threads, kernel_args, shmem, queue->cuda_stream());
+                             threads, kernel_args, shmem, queue->sycl_stream());
     /*
     DPCT1000:633: Error handling if-stmt was detected but could not be
     rewritten.

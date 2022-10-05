@@ -12,8 +12,6 @@
 #ifndef GEMV_TEMPLATE_KERNEL_BATCHED_CUH
 #define GEMV_TEMPLATE_KERNEL_BATCHED_CUH
 
-#include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 #include "gemm_template_device_defs.dp.hpp" // use make_FloatingPoint
 #include "gemv_template_device.dp.hpp"
 
@@ -51,7 +49,7 @@ void gemvn_template_batched(
         dim3 grid( magma_ceildiv(m, TILE_SIZE), 1, ibatch );
 
         gemvn_kernel_batched<T, DIM_X, DIM_Y, TILE_SIZE>
-        <<< grid, threads, 0, queue->cuda_stream() >>>
+        <<<grid, threads, 0, queue->sycl_stream()>>>
         ( m, n, alpha, dA_array+i, ldda, dx_array+i, incx, beta, dy_array+i, incy );
     }
 }
@@ -92,12 +90,12 @@ void gemvc_template_batched(
 
         if (trans == MagmaConjTrans) {
             gemvc_kernel_batched<T, DIM_X, DIM_Y, TILE_SIZE, MagmaConjTrans>
-            <<< grid, threads, 0, queue->cuda_stream() >>>
+            <<<grid, threads, 0, queue->sycl_stream()>>>
             ( m, n, alpha, dA_array+i, ldda, dx_array+i, incx, beta, dy_array+i, incy );
         }
         else if (trans == MagmaTrans) {
             gemvc_kernel_batched<T, DIM_X, DIM_Y, TILE_SIZE, MagmaTrans>
-            <<< grid, threads, 0, queue->cuda_stream() >>>
+            <<<grid, threads, 0, queue->sycl_stream()>>>
             ( m, n, alpha, dA_array+i, ldda, dx_array+i, incx, beta, dy_array+i, incy );
         }
     }

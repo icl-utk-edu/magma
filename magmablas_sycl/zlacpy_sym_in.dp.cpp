@@ -277,7 +277,7 @@ magmablas_zlacpy_sym_in(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {
                                zlacpy_sym_in_lower_kernel(m, n, rows, perm, dA,
@@ -291,7 +291,7 @@ magmablas_zlacpy_sym_in(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {
                                zlacpy_sym_in_upper_kernel(m, n, dA, ldda, dB,
@@ -304,7 +304,7 @@ magmablas_zlacpy_sym_in(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {
                                zlacpy_sym_in_full_kernel(m, n, dA, ldda, dB,

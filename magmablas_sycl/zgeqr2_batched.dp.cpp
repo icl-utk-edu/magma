@@ -458,7 +458,7 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     /*
                     DPCT1083:1666: The size of local memory in the migrated code
@@ -507,7 +507,7 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     /*
                     DPCT1083:1667: The size of local memory in the migrated code
@@ -555,7 +555,7 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 0,
                                    sycl::access_mode::read_write,

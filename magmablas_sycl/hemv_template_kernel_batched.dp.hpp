@@ -94,7 +94,7 @@ void hemv_diag_template_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<T, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -139,7 +139,7 @@ void hemv_lower_template_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<T, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -184,7 +184,7 @@ void hemv_upper_template_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<T, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
