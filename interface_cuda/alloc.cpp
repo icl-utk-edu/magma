@@ -329,8 +329,6 @@ magma_memset_async(void * ptr, int value, size_t count, magma_queue_t queue) {
     return cudaMemsetAsync(ptr, value, count, queue->cuda_stream());
 #elif defined(MAGMA_HAVE_HIP)
     return hipMemsetAsync(ptr, value, count, queue->hip_stream());
-#elif defined(MAGMA_HAVE_SYCL)
-    return cudaMemsetAsync(ptr, value, count, queue->cuda_stream());
 #endif
 }
 
