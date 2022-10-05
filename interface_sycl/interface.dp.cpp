@@ -39,10 +39,11 @@
 
 #include "magma_internal.h"
 #include "error.h"
+#include <chrono>
 
 #define MAX_BATCHCOUNT    (65534)
 
-#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+#if defined(MAGMA_HAVE_SYCL)
 
 #ifdef DEBUG_MEMORY
 // defined in alloc.cpp
@@ -172,19 +173,23 @@ struct magma_device_info* g_magma_devices = NULL;
 
     @ingroup magma_init
 *******************************************************************************/
-extern "C" magma_int_t
-magma_init()
-{
+extern "C" magma_int_t magma_init() try {
     magma_int_t info = 0;
 
     g_mutex.lock();
     {
         if ( g_init == 0 ) {
             // query number of devices
-            cudaError_t err;
+            int err;
             g_magma_devices_cnt = 0;
-            err = cudaGetDeviceCount( &g_magma_devices_cnt );
-            if ( err != 0 && err != cudaErrorNoDevice ) {
+            /*
+            DPCT1003:45: Migrated API does not return error code. (*, 0) is
+            inserted. You may need to rewrite this code.
+            */
+            err =
+                (g_magma_devices_cnt = dpct::dev_mgr::instance().device_count(),
+                 0);
+            if (err != 0 && err != 100) {
                 info = MAGMA_ERR_UNKNOWN;
                 goto cleanup;
             }
@@ -201,23 +206,43 @@ magma_init()
 
             // query each device
             for( int dev=0; dev < g_magma_devices_cnt; ++dev ) {
-                cudaDeviceProp prop;
-                err = cudaGetDeviceProperties( &prop, dev );
+                dpct::device_info prop;
+                /*
+                DPCT1003:46: Migrated API does not return error code. (*, 0) is
+                inserted. You may need to rewrite this code.
+                */
+                err =
+                    (dpct::dev_mgr::instance().get_device(dev).get_device_info(
+                         prop),
+                     0);
                 if ( err != 0 ) {
                     info = MAGMA_ERR_UNKNOWN;
                 }
                 else {
-                    g_magma_devices[dev].memory          = prop.totalGlobalMem;
-                    g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock;
-                    #ifdef MAGMA_HAVE_CUDA
-                    g_magma_devices[dev].cuda_arch       = prop.major*100 + prop.minor*10;
+                    g_magma_devices[dev].memory = prop.get_global_mem_size();
+                    /*
+                    DPCT1019:47: local_mem_size in SYCL is not a complete
+                    equivalent of sharedMemPerBlock in CUDA. You may need to
+                    adjust the code.
+                    */
+                    g_magma_devices[dev].shmem_block =
+                        prop.get_local_mem_size();
+#ifdef MAGMA_HAVE_SYCL
+                    /*
+                    DPCT1005:48: The SYCL device version is different from CUDA
+                    Compute Compatibility. You may need to rewrite this code.
+                    */
+                    g_magma_devices[dev].cuda_arch =
+                        prop.get_major_version() * 100 +
+                        prop.get_minor_version() * 10;
                     g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor;
                     #elif defined(MAGMA_HAVE_HIP)
                     g_magma_devices[dev].cuda_arch       = prop.gcnArch;
                     g_magma_devices[dev].shmem_multiproc = prop.maxSharedMemoryPerMultiProcessor;
                     #endif
 
-                    g_magma_devices[dev].multiproc_count = prop.multiProcessorCount;
+                    g_magma_devices[dev].multiproc_count =
+                        prop.get_max_compute_units();
                 }
             }
 
@@ -251,7 +276,11 @@ cleanup:
 
     return info;
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     Frees information used by the MAGMA library.
@@ -346,9 +375,7 @@ magma_warn_leaks( const std::map< void*, size_t >& pointers, const char* type )
     Used in testing.
     @ingroup magma_testing
 *******************************************************************************/
-extern "C" void
-magma_print_environment()
-{
+extern "C" void magma_print_environment() try {
     magma_int_t major, minor, micro;
     magma_version( &major, &minor, &micro );
 
@@ -358,42 +385,46 @@ magma_print_environment()
             (long long) (8*sizeof(magma_int_t)),
             (long long) (8*sizeof(void*)) );
 
-/* CUDA */
+/* SYCL */
 
-#if defined(MAGMA_HAVE_CUDA)
+#if defined(MAGMA_HAVE_SYCL)
 
     printf("%% Compiled with CUDA support for %.1f\n", MAGMA_CUDA_ARCH_MIN/100.);
 
-    // CUDA, OpenCL, OpenMP, MKL, ACML versions all printed on same line
-    int cuda_runtime=0, cuda_driver=0;
-    cudaError_t err;
-    err = cudaDriverGetVersion( &cuda_driver );
+    // SYCL, OpenCL, OpenMP, MKL, ACML versions all printed on same line
+    int sycl_runtime=0, sycl_driver=0;
+    int err;
+    /*
+    DPCT1003:49: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    /*
+    DPCT1043:50: The version-related API is different in SYCL. An initial code
+    was generated, but you need to adjust it.
+    */
+    err =
+        (sycl_driver =
+             dpct::get_current_device().get_info<sycl::info::device::version>(),
+         0);
     check_error( err );
-    err = cudaRuntimeGetVersion( &cuda_runtime );
-    if ( err != cudaErrorNoDevice ) {
+    /*
+    DPCT1003:51: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    /*
+    DPCT1043:52: The version-related API is different in SYCL. An initial code
+    was generated, but you need to adjust it.
+    */
+    err =
+        (sycl_runtime =
+             dpct::get_current_device().get_info<sycl::info::device::version>(),
+         0);
+    if (err != 100) {
         check_error( err );
     }
-    printf( "%% CUDA runtime %d, driver %d. ", cuda_runtime, cuda_driver );
+    printf( "%% SYCL runtime %d, driver %d. ", sycl_runtime, sycl_driver );
 
 #endif
-
-/* HIP */
-
-#if defined(MAGMA_HAVE_HIP)
-    // TODO: add more specifics here
-
-    int hip_runtime=0, hip_driver=0;
-    hipError_t err;
-    err = hipDriverGetVersion( &hip_driver );
-    check_error( err );
-    err = hipRuntimeGetVersion( &hip_runtime );
-    if ( err != hipErrorNoDevice ) {
-        check_error( err );
-    }
-
-    printf("%% HIP runtime %d, driver %d. ", hip_runtime, hip_driver );
-#endif
-
 
 /* OpenMP */
 
@@ -429,25 +460,46 @@ magma_print_environment()
 
     // print devices
     int ndevices = 0;
-    err = cudaGetDeviceCount( &ndevices );
-    if ( err != cudaErrorNoDevice ) {
+    /*
+    DPCT1003:53: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    err = (ndevices = dpct::dev_mgr::instance().device_count(), 0);
+    if (err != 100) {
         check_error( err );
     }
     for( int dev = 0; dev < ndevices; ++dev ) {
-        cudaDeviceProp prop;
-        err = cudaGetDeviceProperties( &prop, dev );
+        dpct::device_info prop;
+        /*
+        DPCT1003:54: Migrated API does not return error code. (*, 0) is
+        inserted. You may need to rewrite this code.
+        */
+        err = (dpct::dev_mgr::instance().get_device(dev).get_device_info(prop),
+               0);
         check_error( err );
 
-        #ifdef MAGMA_HAVE_CUDA
-        printf( "%% device %d: %s, %.1f MHz clock, %.1f MiB memory, capability %d.%d\n",
-                dev,
-                prop.name,
-                prop.clockRate / 1000.,
-                prop.totalGlobalMem / (1024.*1024.),
-                prop.major,
-                prop.minor );
+        #ifdef MAGMA_HAVE_SYCL
+        printf("%% device %d: %s, %.1f MHz clock, %.1f MiB memory, capability "
+               "%d.%d\n",
+               dev, prop.get_name(), prop.get_max_clock_frequency() / 1000.,
+               prop.get_global_mem_size() / (1024. * 1024.),
+               /*
+               DPCT1005:55: The SYCL device version is different from CUDA
+               Compute Compatibility. You may need to rewrite this code.
+               */
+               prop.get_major_version(),
+               /*
+               DPCT1005:56: The SYCL device version is different from CUDA
+               Compute Compatibility. You may need to rewrite this code.
+               */
+               prop.get_minor_version());
 
-        int arch = prop.major*100 + prop.minor*10;
+        /*
+        DPCT1005:57: The SYCL device version is different from CUDA Compute
+        Compatibility. You may need to rewrite this code.
+        */
+        int arch =
+            prop.get_major_version() * 100 + prop.get_minor_version() * 10;
         if ( arch < MAGMA_CUDA_ARCH_MIN ) {
             printf("\n"
                    "==============================================================================\n"
@@ -457,20 +509,16 @@ magma_print_environment()
                    MAGMA_CUDA_ARCH_MIN/100., dev, arch/100. );
         }
         #endif
-
-        #ifdef MAGMA_HAVE_HIP
-        printf( "%% device %d: %s, %.1f MHz clock, %.1f MiB memory, gcn arch %d\n",
-                dev,
-                prop.name,
-                prop.clockRate / 1000.,
-                prop.totalGlobalMem / (1024.*1024.),
-                prop.gcnArch );
-        #endif
     }
 
     MAGMA_UNUSED( err );
     time_t t = time( NULL );
     printf( "%% %s", ctime( &t ));
+}
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
 }
 
 #if CUDA_VERSION >= 11000
@@ -497,18 +545,21 @@ magma_print_environment()
 
     @ingroup magma_util
 *******************************************************************************/
-extern "C" magma_int_t
-magma_is_devptr( const void* A )
-{
-    cudaError_t err;
-    cudaDeviceProp prop;
+extern "C" magma_int_t magma_is_devptr(const void *A) try {
+    int err;
+    dpct::device_info prop;
     cudaPointerAttributes attr;
     int dev;  // must be int
-    err = cudaGetDevice( &dev );
+    err = dev = dpct::dev_mgr::instance().current_device_id();
     if ( ! err ) {
-        err = cudaGetDeviceProperties( &prop, dev );
-
-        #ifdef MAGMA_HAVE_CUDA
+        /*
+        DPCT1003:59: Migrated API does not return error code. (*, 0) is
+        inserted. You may need to rewrite this code.
+        */
+        err = (dpct::dev_mgr::instance().get_device(dev).get_device_info(prop),
+               0);
+//TODO: how to handle this with SYCL?
+#ifdef MAGMA_HAVE_CUDA
         if ( ! err && prop.unifiedAddressing ) {
         #elif defined(MAGMA_HAVE_HIP)
         // in HIP, assume all can.
@@ -517,7 +568,11 @@ magma_is_devptr( const void* A )
         #endif
 
             // I think the cudaPointerGetAttributes prototype is wrong, missing const (mgates)
-            err = cudaPointerGetAttributes( &attr, const_cast<void*>( A ));
+            /*
+            DPCT1007:60: Migration of cudaPointerGetAttributes is not supported
+            by the Intel(R) DPC++ Compatibility Tool.
+            */
+            err = cudaPointerGetAttributes(&attr, const_cast<void *>(A));
             if ( ! err ) {
                 // definitely know type
                 #ifdef MAGMA_HAVE_CUDA
@@ -531,20 +586,37 @@ magma_is_devptr( const void* A )
                 return (attr.memoryType == hipMemoryTypeDevice);
                 #endif
             }
-            else if ( err == cudaErrorInvalidValue ) {
+            /*
+            DPCT1002:62: Special case error handling if-stmt was detected. You
+            may need to rewrite this code.
+            */
+            else if (err == 1) {
                 // clear error; see http://icl.cs.utk.edu/magma/forum/viewtopic.php?f=2&t=529
-                cudaGetLastError();
+                /*
+                DPCT1001:61: The statement could not be removed.
+                */
+                /*
+                DPCT1026:63: The call to cudaGetLastError was removed because
+                the function call is redundant in DPC++.
+                */
                 // infer as host pointer
                 return 0;
             }
         }
     }
     // clear error
-    cudaGetLastError();
+    /*
+    DPCT1026:58: The call to cudaGetLastError was removed because the function
+    call is redundant in DPC++.
+    */
     // unknown, e.g., device doesn't support unified addressing
     return -1;
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 // =============================================================================
 // device support
@@ -559,12 +631,10 @@ magma_is_devptr( const void* A )
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" magma_int_t
-magma_getdevice_arch()
-{
+extern "C" magma_int_t magma_getdevice_arch() try {
     int dev;
-    cudaError_t err;
-    err = cudaGetDevice( &dev );
+    int err;
+    err = dev = dpct::dev_mgr::instance().current_device_id();
     check_error( err );
     MAGMA_UNUSED( err );
     if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
@@ -573,7 +643,11 @@ magma_getdevice_arch()
     }
     return g_magma_devices[dev].cuda_arch;
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     Fills in devices array with the available devices.
@@ -592,15 +666,15 @@ magma_getdevice_arch()
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" void
-magma_getdevices(
-    magma_device_t* devices,
-    magma_int_t  size,
-    magma_int_t* num_dev )
-{
-    cudaError_t err;
+extern "C" void magma_getdevices(magma_device_t *devices, magma_int_t size,
+                                 magma_int_t *num_dev) try {
+    int err;
     int cnt;
-    err = cudaGetDeviceCount( &cnt );
+    /*
+    DPCT1003:64: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    err = (cnt = dpct::dev_mgr::instance().device_count(), 0);
     check_error( err );
     MAGMA_UNUSED( err );
 
@@ -610,7 +684,11 @@ magma_getdevices(
     }
     *num_dev = cnt;
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     Get the current device.
@@ -621,17 +699,19 @@ magma_getdevices(
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" void
-magma_getdevice( magma_device_t* device )
-{
+extern "C" void magma_getdevice(magma_device_t *device) try {
     int dev;
-    cudaError_t err;
-    err = cudaGetDevice( &dev );
+    int err;
+    err = dev = dpct::dev_mgr::instance().current_device_id();
     *device = dev;
     check_error( err );
     MAGMA_UNUSED( err );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     Set the current device.
@@ -642,13 +722,24 @@ magma_getdevice( magma_device_t* device )
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" void
-magma_setdevice( magma_device_t device )
-{
-    cudaError_t err;
-    err = cudaSetDevice( int(device) );
+extern "C" void magma_setdevice(magma_device_t device) try {
+    int err;
+    /*
+    DPCT1093:65: The "int(device)" may not be the best XPU device. Adjust the
+    selected device if needed.
+    */
+    /*
+    DPCT1003:66: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    err = (dpct::dev_mgr::instance().select_device(int(device)), 0);
     check_error( err );
     MAGMA_UNUSED( err );
+}
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -659,12 +750,10 @@ magma_setdevice( magma_device_t device )
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" magma_int_t
-magma_getdevice_multiprocessor_count()
-{
+extern "C" magma_int_t magma_getdevice_multiprocessor_count() try {
     int dev;
-    cudaError_t err;
-    err = cudaGetDevice( &dev );
+    int err;
+    err = dev = dpct::dev_mgr::instance().current_device_id();
     check_error( err );
     MAGMA_UNUSED( err );
     if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
@@ -672,6 +761,11 @@ magma_getdevice_multiprocessor_count()
         return 0;
     }
     return g_magma_devices[dev].multiproc_count;
+}
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -682,12 +776,10 @@ magma_getdevice_multiprocessor_count()
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" size_t
-magma_getdevice_shmem_block()
-{
+extern "C" size_t magma_getdevice_shmem_block() try {
     int dev;
-    cudaError_t err;
-    err = cudaGetDevice( &dev );
+    int err;
+    err = dev = dpct::dev_mgr::instance().current_device_id();
     check_error( err );
     MAGMA_UNUSED( err );
     if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
@@ -696,7 +788,11 @@ magma_getdevice_shmem_block()
     }
     return g_magma_devices[dev].shmem_block;
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     Returns the maximum shared memory multiprocessor (in bytes) for the current device.
@@ -706,12 +802,10 @@ magma_getdevice_shmem_block()
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" size_t
-magma_getdevice_shmem_multiprocessor()
-{
+extern "C" size_t magma_getdevice_shmem_multiprocessor() try {
     int dev;
-    cudaError_t err;
-    err = cudaGetDevice( &dev );
+    int err;
+    err = dev = dpct::dev_mgr::instance().current_device_id();
     check_error( err );
     MAGMA_UNUSED( err );
     if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
@@ -720,7 +814,11 @@ magma_getdevice_shmem_multiprocessor()
     }
     return g_magma_devices[dev].shmem_multiproc;
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @param[in]
@@ -731,21 +829,34 @@ magma_getdevice_shmem_multiprocessor()
 
     @ingroup magma_queue
 *******************************************************************************/
-extern "C" size_t
-magma_mem_size( magma_queue_t queue )
-{
+extern "C" size_t magma_mem_size(magma_queue_t queue) try {
     // CUDA would only need a device ID, but OpenCL requires a queue.
     size_t freeMem, totalMem;
     magma_device_t orig_dev;
     magma_getdevice( &orig_dev );
     magma_setdevice( magma_queue_get_device( queue ));
-    cudaError_t err = cudaMemGetInfo( &freeMem, &totalMem );
+    /*
+    DPCT1003:67: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    /*
+    DPCT1072:68: DPC++ currently does not support getting the available memory
+    on the current device. You may need to adjust the code.
+    */
+    int err =
+        (totalMem =
+             dpct::get_current_device().get_device_info().get_global_mem_size(),
+         0);
     check_error( err );
     MAGMA_UNUSED( err );
     magma_setdevice( orig_dev );
     return freeMem;
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 // =============================================================================
 // queue support
@@ -766,20 +877,18 @@ magma_queue_get_device( magma_queue_t queue )
 }
 
 
-#ifdef MAGMA_HAVE_CUDA
+#ifdef MAGMA_HAVE_SYCL
 /***************************************************************************//**
     @param[in]
     queue       Queue to query.
 
-    @return CUDA stream associated with the MAGMA queue.
+    @return SYCL stream associated with the MAGMA queue.
 
     @ingroup magma_queue
 *******************************************************************************/
-extern "C"
-cudaStream_t
-magma_queue_get_cuda_stream( magma_queue_t queue )
+extern "C" sycl::queue *magma_queue_get_sycl_stream(magma_queue_t queue)
 {
-    return queue->cuda_stream();
+    return queue->sycl_stream();
 }
 
 
@@ -787,87 +896,30 @@ magma_queue_get_cuda_stream( magma_queue_t queue )
     @param[in]
     queue       Queue to query.
 
-    @return cuBLAS handle associated with the MAGMA queue.
+    @return syclBLAS handle associated with the MAGMA queue.
             MAGMA assumes the handle's stream will not be modified.
 
     @ingroup magma_queue
 *******************************************************************************/
 
-extern "C"
-cublasHandle_t
-magma_queue_get_cublas_handle( magma_queue_t queue )
+extern "C" sycl::queue *magma_queue_get_syclblas_handle(magma_queue_t queue)
 {
-    return queue->cublas_handle();
+    return queue->syclblas_handle();
 }
 
 /***************************************************************************//**
     @param[in]
     queue       Queue to query.
 
-    @return cuSparse handle associated with the MAGMA queue.
+    @return syclSparse handle associated with the MAGMA queue.
             MAGMA assumes the handle's stream will not be modified.
 
     @ingroup magma_queue
 *******************************************************************************/
-extern "C"
-cusparseHandle_t
-magma_queue_get_cusparse_handle( magma_queue_t queue )
+extern "C" sycl::queue *magma_queue_get_syclsparse_handle(magma_queue_t queue)
 {
-    return queue->cusparse_handle();
+    return queue->syclsparse_handle();
 }
-
-#elif defined(MAGMA_HAVE_HIP)
-
-/***************************************************************************//**
-    @param[in]
-    queue       Queue to query.
-
-    @return HIP stream associated with the MAGMA queue.
-
-    @ingroup magma_queue
-*******************************************************************************/
-extern "C"
-hipStream_t
-magma_queue_get_hip_stream( magma_queue_t queue )
-{
-    return queue->hip_stream();
-}
-
-
-/***************************************************************************//**
-    @param[in]
-    queue       Queue to query.
-
-    @return hipBLAS handle associated with the MAGMA queue.
-            MAGMA assumes the handle's stream will not be modified.
-
-    @ingroup magma_queue
-*******************************************************************************/
-
-extern "C"
-hipblasHandle_t
-magma_queue_get_hipblas_handle( magma_queue_t queue )
-{
-    return queue->hipblas_handle();
-}
-
-/***************************************************************************//**
-    @param[in]
-    queue       Queue to query.
-
-    @return hipSparse handle associated with the MAGMA queue.
-            MAGMA assumes the handle's stream will not be modified.
-
-    @ingroup magma_queue
-*******************************************************************************/
-extern "C"
-cusparseHandle_t
-magma_queue_get_hipsparse_handle( magma_queue_t queue )
-{
-    return queue->hipsparse_handle();
-}
-
-
 
 #endif
 
@@ -892,11 +944,10 @@ magma_queue_get_hipsparse_handle( magma_queue_t queue )
 
     @ingroup magma_queue
 *******************************************************************************/
-extern "C" void
-magma_queue_create_internal(
-    magma_device_t device, magma_queue_t* queue_ptr,
-    const char* func, const char* file, int line )
-{
+extern "C" void magma_queue_create_internal(magma_device_t device,
+                                            magma_queue_t *queue_ptr,
+                                            const char *func, const char *file,
+                                            int line) try {
     magma_queue_t queue;
     magma_malloc_cpu( (void**)&queue, sizeof(*queue) );
     assert( queue != NULL );
@@ -910,240 +961,168 @@ magma_queue_create_internal(
     queue->dBarray__  = NULL;
     queue->dCarray__  = NULL;
 
-#if defined(MAGMA_HAVE_CUDA)
-    queue->cublas__   = NULL;
-    queue->cusparse__ = NULL;
-#elif defined(MAGMA_HAVE_HIP)
-    queue->hipblas__  = NULL;
-    queue->hipsparse__ = NULL;
+#if defined(MAGMA_HAVE_SYCL)
+    queue->syclblas__   = NULL;
+    queue->syclsparse__ = NULL;
 #endif
     queue->maxbatch__ = MAX_BATCHCOUNT;
 
     magma_setdevice( device );
 
-    cudaError_t err;
-    err = cudaStreamCreate( &queue->stream__ );
+    int err;
+    /*
+    DPCT1003:69: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    err = (queue->stream__ = dpct::get_current_device().create_queue(), 0);
     check_xerror( err, func, file, line );
     queue->own__ |= own_stream;
 
-#if defined(MAGMA_HAVE_CUDA)
-    cublasStatus_t stat;
-    stat = cublasCreate( &queue->cublas__ );
+#if defined(MAGMA_HAVE_SYCL)
+    int stat;
+    /*
+    DPCT1003:70: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    stat = (queue->syclblas__ = &dpct::get_default_queue(), 0);
     check_xerror( stat, func, file, line );
-    queue->own__ |= own_cublas;
-    stat = cublasSetStream( queue->cublas__, queue->stream__ );
-    check_xerror( stat, func, file, line );
-
-    cusparseStatus_t stat2;
-    stat2 = cusparseCreate( &queue->cusparse__ );
-    check_xerror( stat2, func, file, line );
-    queue->own__ |= own_cusparse;
-    stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
-    check_xerror( stat2, func, file, line );
-#elif defined(MAGMA_HAVE_HIP)
-
-    hipblasStatus_t stat;
-    stat = hipblasCreate( &queue->hipblas__ );
-    check_xerror( stat, func, file, line );
-    queue->own__ |= own_hipblas;
-    stat = hipblasSetStream( queue->hipblas__, queue->stream__ );
+    queue->own__ |= own_syclblas;
+    /*
+    DPCT1003:71: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    stat = (queue->syclblas__ = queue->stream__, 0);
     check_xerror( stat, func, file, line );
 
-    hipsparseStatus_t stat2;
-    stat2 = hipsparseCreate( &queue->hipsparse__ );
+    int stat2;
+    /*
+    DPCT1003:72: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    stat2 = (queue->syclsparse__ = &dpct::get_default_queue(), 0);
     check_xerror( stat2, func, file, line );
-    queue->own__ |= own_hipsparse;
-    stat2 = hipsparseSetStream( queue->hipsparse__, queue->stream__ );
+    queue->own__ |= own_syclsparse;
+    /*
+    DPCT1003:73: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    stat2 = (queue->syclsparse__ = queue->stream__, 0);
     check_xerror( stat2, func, file, line );
-
 #endif
 
     MAGMA_UNUSED( err );
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
-    @fn magma_queue_create_from_cuda( device, cuda_stream, cublas_handle, cusparse_handle, queue_ptr )
+    @fn magma_queue_create_from_sycl( device, sycl_queue, syclblas_handle, syclsparse_handle, queue_ptr )
 
-    Warning: non-portable outside of CUDA. Use with discretion.
+    Warning: non-portable outside of SYCL. Use with discretion.
 
-    Creates a new MAGMA queue, using the given CUDA stream, cuBLAS handle, and
-    cuSparse handle. The caller retains ownership of the given stream and
+    Creates a new MAGMA queue, using the given SYCL queue.  TODO: blas, sparse handles?
+    The caller retains ownership of the given stream and
     handles, so must free them after destroying the queue;
     see magma_queue_destroy().
 
-    MAGMA sets the stream on the cuBLAS and cuSparse handles, and assumes
+    MAGMA sets the stream on the BLAS and Sparse handles, and assumes
     it will not be changed while MAGMA is running.
 
     @param[in]
     device          Device to create queue on.
 
     @param[in]
-    cuda_stream     CUDA stream to use, even if NULL (the so-called default stream).
+    sycl_queue      SYCL queue to use.
 
     @param[in]
-    cublas_handle   cuBLAS handle to use. If NULL, a new handle is created.
+    syclblas_handle   TODO
 
     @param[in]
-    cusparse_handle cuSparse handle to use. If NULL, a new handle is created.
+    syclsparse_handle TODO 
 
     @param[out]
     queue_ptr       On output, the newly created queue.
 
     @ingroup magma_queue
 *******************************************************************************/
-#ifdef MAGMA_HAVE_CUDA
-extern "C" void
-magma_queue_create_from_cuda_internal(
-    magma_device_t   device,
-    cudaStream_t     cuda_stream,
-    cublasHandle_t   cublas_handle,
-    cusparseHandle_t cusparse_handle,
-    magma_queue_t*   queue_ptr,
-    const char* func, const char* file, int line )
-{
+#ifdef MAGMA_HAVE_SYCL
+extern "C" void magma_queue_create_from_sycl_internal(
+    magma_device_t device, sycl::queue *sycl_queue, sycl::queue *syclblas_handle,
+    sycl::queue *syclsparse_handle, magma_queue_t *queue_ptr, const char *func,
+    const char *file, int line) try {
     magma_queue_t queue;
     magma_malloc_cpu( (void**)&queue, sizeof(*queue) );
     assert( queue != NULL );
     *queue_ptr = queue;
 
-    queue->own__      = own_none;
-    queue->device__   = device;
-    queue->stream__   = NULL;
-    queue->cublas__   = NULL;
-    queue->cusparse__ = NULL;
-    queue->ptrArray__ = NULL;
-    queue->dAarray__  = NULL;
-    queue->dBarray__  = NULL;
-    queue->dCarray__  = NULL;
-    queue->maxbatch__ = MAX_BATCHCOUNT;
+    queue->own__        = own_none;
+    queue->device__     = device;
+    queue->stream__     = NULL;
+    queue->syclblas__   = NULL;
+    queue->syclsparse__ = NULL;
+    queue->ptrArray_  _ = NULL;
+    queue->dAarray__    = NULL;
+    queue->dBarray__    = NULL;
+    queue->dCarray__    = NULL;
+    queue->maxbatch__   = MAX_BATCHCOUNT;
 
     magma_setdevice( device );
 
     // stream can be NULL
-    queue->stream__ = cuda_stream;
+    queue->stream__ = sycl_queue;
 
     // allocate cublas handle if given as NULL
-    cublasStatus_t stat;
-    if ( cublas_handle == NULL ) {
-        stat  = cublasCreate( &cublas_handle );
+    int stat;
+    if ( syclblas_handle == NULL ) {
+        /*
+        DPCT1003:74: Migrated API does not return error code. (*, 0) is
+        inserted. You may need to rewrite this code.
+        */
+        stat = (syclblas_handle = &dpct::get_default_queue(), 0);
         check_xerror( stat, func, file, line );
-        queue->own__ |= own_cublas;
+        queue->own__ |= own_syclblas;
     }
-    queue->cublas__ = cublas_handle;
-    stat  = cublasSetStream( queue->cublas__, queue->stream__ );
+    queue->syclblas__ = syclblas_handle;
+    /*
+    DPCT1003:75: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    stat = (queue->syclblas__ = queue->stream__, 0);
     check_xerror( stat, func, file, line );
 
-    // allocate cusparse handle if given as NULL
-    cusparseStatus_t stat2;
-    if ( cusparse_handle == NULL ) {
-        stat2 = cusparseCreate( &cusparse_handle );
+    // allocate syclsparse handle if given as NULL
+    int stat2;
+    if ( syclsparse_handle == NULL ) {
+        /*
+        DPCT1003:76: Migrated API does not return error code. (*, 0) is
+        inserted. You may need to rewrite this code.
+        */
+        stat2 = (syclsparse_handle = &dpct::get_default_queue(), 0);
         check_xerror( stat, func, file, line );
-        queue->own__ |= own_cusparse;
+        queue->own__ |= own_syclsparse;
     }
-    queue->cusparse__ = cusparse_handle;
-    stat2 = cusparseSetStream( queue->cusparse__, queue->stream__ );
-    check_xerror( stat2, func, file, line );
-
-    MAGMA_UNUSED( stat );
-    MAGMA_UNUSED( stat2 );
-
-}
-#endif
-
-
-/***************************************************************************//**
-    @fn magma_queue_create_from_hip( device, hip_stream, hipblas_handle, hipsparse_handle, queue_ptr )
-
-    Warning: non-portable outside of CUDA. Use with discretion.
-
-    Creates a new MAGMA queue, using the given CUDA stream, cuBLAS handle, and
-    cuSparse handle. The caller retains ownership of the given stream and
-    handles, so must free them after destroying the queue;
-    see magma_queue_destroy().
-
-    MAGMA sets the stream on the cuBLAS and cuSparse handles, and assumes
-    it will not be changed while MAGMA is running.
-
-    @param[in]
-    device          Device to create queue on.
-
-    @param[in]
-    cuda_stream     CUDA stream to use, even if NULL (the so-called default stream).
-
-    @param[in]
-    cublas_handle   cuBLAS handle to use. If NULL, a new handle is created.
-
-    @param[in]
-    cusparse_handle cuSparse handle to use. If NULL, a new handle is created.
-
-    @param[out]
-    queue_ptr       On output, the newly created queue.
-
-    @ingroup magma_queue
-*******************************************************************************/
-#ifdef MAGMA_HAVE_HIP
-extern "C" void
-magma_queue_create_from_hip_internal(
-    magma_device_t    device,
-    hipStream_t       hip_stream,
-    hipblasHandle_t   hipblas_handle,
-    hipsparseHandle_t hipsparse_handle,
-    magma_queue_t*    queue_ptr,
-    const char* func, const char* file, int line )
-{
-    magma_queue_t queue;
-    magma_malloc_cpu( (void**)&queue, sizeof(*queue) );
-    assert( queue != NULL );
-    *queue_ptr = queue;
-
-    queue->own__      = own_none;
-    queue->device__   = device;
-    queue->stream__   = NULL;
-
-    queue->ptrArray__ = NULL;
-    queue->dAarray__  = NULL;
-    queue->dBarray__  = NULL;
-    queue->dCarray__  = NULL;
-
-    queue->hipblas__  = NULL;
-    queue->hipsparse__= NULL;
-    queue->maxbatch__ = MAX_BATCHCOUNT;
-
-    magma_setdevice( device );
-
-    // stream can be NULL
-    queue->stream__ = hip_stream;
-
-    // allocate cublas handle if given as NULL
-    hipblasStatus_t stat;
-    if ( hipblas_handle == NULL ) {
-        stat  = hipblasCreate( &hipblas_handle );
-        check_xerror( stat, func, file, line );
-        queue->own__ |= own_hipblas;
-    }
-    queue->hipblas__ = hipblas_handle;
-    stat  = hipblasSetStream( queue->hipblas__, queue->stream__ );
-    check_xerror( stat, func, file, line );
-
-    // allocate cusparse handle if given as NULL
-    hipsparseStatus_t stat2;
-    if ( hipsparse_handle == NULL ) {
-        stat2 = hipsparseCreate( &hipsparse_handle );
-        check_xerror( stat, func, file, line );
-        queue->own__ |= own_hipsparse;
-    }
-    queue->hipsparse__ = hipsparse_handle;
-    stat2 = hipsparseSetStream( queue->hipsparse__, queue->stream__ );
+    queue->syclsparse__ = syclsparse_handle;
+    /*
+    DPCT1003:77: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    stat2 = (queue->syclsparse__ = queue->stream__, 0);
     check_xerror( stat2, func, file, line );
 
     MAGMA_UNUSED( stat );
     MAGMA_UNUSED( stat2 );
 }
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 #endif
-
 
 
 /***************************************************************************//**
@@ -1161,38 +1140,35 @@ magma_queue_create_from_hip_internal(
 
     @ingroup magma_queue
 *******************************************************************************/
-extern "C" void
-magma_queue_destroy_internal(
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
+extern "C" void magma_queue_destroy_internal(magma_queue_t queue,
+                                             const char *func, const char *file,
+                                             int line) try {
     if ( queue != NULL ) {
-    #if defined(MAGMA_HAVE_CUDA)
-        if ( queue->cublas__ != NULL && (queue->own__ & own_cublas)) {
-            cublasStatus_t stat = cublasDestroy( queue->cublas__ );
+        if ( queue->syclblas__ != NULL && (queue->own__ & own_syclblas)) {
+            /*
+            DPCT1003:78: Migrated API does not return error code. (*, 0) is
+            inserted. You may need to rewrite this code.
+            */
+            int stat = (queue->syclblas__ = nullptr, 0);
             check_xerror( stat, func, file, line );
             MAGMA_UNUSED( stat );
         }
-        if ( queue->cusparse__ != NULL && (queue->own__ & own_cusparse)) {
-            cusparseStatus_t stat = cusparseDestroy( queue->cusparse__ );
+        if ( queue->syclsparse__ != NULL && (queue->own__ & own_syclsparse)) {
+            /*
+            DPCT1003:79: Migrated API does not return error code. (*, 0) is
+            inserted. You may need to rewrite this code.
+            */
+            int stat = (queue->syclsparse__ = nullptr, 0);
             check_xerror( stat, func, file, line );
             MAGMA_UNUSED( stat );
         }
-    #elif defined(MAGMA_HAVE_HIP)
-
-        if ( queue->hipblas__ != NULL && (queue->own__ & own_hipblas)) {
-            hipblasStatus_t stat = hipblasDestroy( queue->hipblas__ );
-            check_xerror( stat, func, file, line );
-            MAGMA_UNUSED( stat );
-        }
-        if ( queue->hipsparse__ != NULL && (queue->own__ & own_hipsparse)) {
-            hipsparseStatus_t stat = hipsparseDestroy( queue->hipsparse__ );
-            check_xerror( stat, func, file, line );
-            MAGMA_UNUSED( stat );
-        }
-    #endif
         if ( queue->stream__ != NULL && (queue->own__ & own_stream)) {
-            cudaError_t err = cudaStreamDestroy( queue->stream__ );
+            /*
+            DPCT1003:80: Migrated API does not return error code. (*, 0) is
+            inserted. You may need to rewrite this code.
+            */
+            int err =
+                (dpct::get_current_device().destroy_queue(queue->stream__), 0);
             check_xerror( err, func, file, line );
             MAGMA_UNUSED( err );
         }
@@ -1206,19 +1182,16 @@ magma_queue_destroy_internal(
         queue->dAarray__  = NULL;
         queue->dBarray__  = NULL;
         queue->dCarray__  = NULL;
-
-    #if defined(MAGMA_HAVE_CUDA)
-        queue->cublas__   = NULL;
-        queue->cusparse__ = NULL;
-    #elif defined(MAGMA_HAVE_HIP)
-        queue->hipblas__  = NULL;
-        queue->hipsparse__= NULL;
-    #endif
-
+        queue->syclblas__   = NULL;
+        queue->syclsparse__ = NULL;
         magma_free_cpu( queue );
     }
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     @fn magma_queue_sync( queue )
@@ -1231,22 +1204,31 @@ magma_queue_destroy_internal(
 
     @ingroup magma_queue
 *******************************************************************************/
-extern "C" void
-magma_queue_sync_internal(
-    magma_queue_t queue,
-    const char* func, const char* file, int line )
-{
-    cudaError_t err;
+extern "C" void magma_queue_sync_internal(magma_queue_t queue, const char *func,
+                                          const char *file, int line) try {
+    int err;
     if ( queue != NULL ) {
-        err = cudaStreamSynchronize( queue->cuda_stream() );
+        /*
+        DPCT1003:81: Migrated API does not return error code. (*, 0) is
+        inserted. You may need to rewrite this code.
+        */
+        err = (queue->sycl_stream()->wait(), 0);
     }
     else {
-        err = cudaStreamSynchronize( NULL );
+        /*
+        DPCT1003:82: Migrated API does not return error code. (*, 0) is
+        inserted. You may need to rewrite this code.
+        */
+        err = (NULL->wait(), 0);
     }
     check_xerror( err, func, file, line );
     MAGMA_UNUSED( err );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 // =============================================================================
 // event support
@@ -1259,15 +1241,21 @@ magma_queue_sync_internal(
 
     @ingroup magma_event
 *******************************************************************************/
-extern "C" void
-magma_event_create( magma_event_t* event )
-{
-    cudaError_t err;
-    err = cudaEventCreate( event );
+extern "C" void magma_event_create(magma_event_t *event) try {
+    int err;
+    /*
+    DPCT1027:83: The call to cudaEventCreate was replaced with 0 because this
+    call is redundant in DPC++.
+    */
+    err = 0;
     check_error( err );
     MAGMA_UNUSED( err );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     Creates a GPU event, without timing support. May improve performance
@@ -1277,16 +1265,21 @@ magma_event_create( magma_event_t* event )
 
     @ingroup magma_event
 *******************************************************************************/
-extern "C" void
-magma_event_create_untimed( magma_event_t* event )
-{
-    cudaError_t err;
-    err = cudaEventCreateWithFlags( event, cudaEventDisableTiming );
+extern "C" void magma_event_create_untimed(magma_event_t *event) try {
+    int err;
+    /*
+    DPCT1027:84: The call to cudaEventCreateWithFlags was replaced with 0
+    because this call is redundant in DPC++.
+    */
+    err = 0;
     check_error( err );
     MAGMA_UNUSED( err );
 }
-
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//*
     Destroys a GPU event, freeing its resources.
@@ -1296,17 +1289,23 @@ magma_event_create_untimed( magma_event_t* event )
 
     @ingroup magma_event
 *******************************************************************************/
-extern "C" void
-magma_event_destroy( magma_event_t event )
-{
+extern "C" void magma_event_destroy(magma_event_t event) try {
     if ( event != NULL ) {
-        cudaError_t err;
-        err = cudaEventDestroy( event );
+        int err;
+        /*
+        DPCT1027:85: The call to cudaEventDestroy was replaced with 0 because
+        this call is redundant in DPC++.
+        */
+        err = 0;
         check_error( err );
         MAGMA_UNUSED( err );
     }
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     Records an event into the queue's execution stream.
@@ -1320,15 +1319,30 @@ magma_event_destroy( magma_event_t event )
 
     @ingroup magma_event
 *******************************************************************************/
-extern "C" void
-magma_event_record( magma_event_t event, magma_queue_t queue )
-{
-    cudaError_t err;
-    err = cudaEventRecord( event, queue->cuda_stream() );
+extern "C" void magma_event_record(magma_event_t event,
+                                   magma_queue_t queue) try {
+    int err;
+std::chrono::time_point<std::chrono::steady_clock> event_ct1;
+    /*
+    DPCT1012:86: Detected kernel execution time measurement pattern and
+    generated an initial code for time measurements in SYCL. You can change the
+    way time is measured depending on your goals.
+    */
+    /*
+    DPCT1024:87: The original code returned the error code that was further
+    consumed by the program logic. This original code was replaced with 0. You
+    may need to rewrite the program logic consuming the error code.
+    */
+    event_ct1 = std::chrono::steady_clock::now();
+    err = (event = queue->sycl_stream()->ext_oneapi_submit_barrier(), 0);
     check_error( err );
     MAGMA_UNUSED( err );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     Synchronizes with an event. The CPU blocks until the event triggers.
@@ -1338,15 +1352,21 @@ magma_event_record( magma_event_t event, magma_queue_t queue )
 
     @ingroup magma_event
 *******************************************************************************/
-extern "C" void
-magma_event_sync( magma_event_t event )
-{
-    cudaError_t err;
-    err = cudaEventSynchronize( event );
+extern "C" void magma_event_sync(magma_event_t event) try {
+    int err;
+    /*
+    DPCT1003:90: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    err = (event.wait_and_throw(), 0);
     check_error( err );
     MAGMA_UNUSED( err );
 }
-
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
 /***************************************************************************//**
     Synchronizes a queue with an event. The queue blocks until the event
@@ -1360,13 +1380,21 @@ magma_event_sync( magma_event_t event )
 
     @ingroup magma_event
 *******************************************************************************/
-extern "C" void
-magma_queue_wait_event( magma_queue_t queue, magma_event_t event )
-{
-    cudaError_t err;
-    err = cudaStreamWaitEvent( queue->cuda_stream(), event, 0 );
+extern "C" void magma_queue_wait_event(magma_queue_t queue,
+                                       magma_event_t event) try {
+    int err;
+    /*
+    DPCT1003:88: Migrated API does not return error code. (*, 0) is inserted.
+    You may need to rewrite this code.
+    */
+    err = (event = queue->sycl_stream()->ext_oneapi_submit_barrier({event}), 0);
     check_error( err );
     MAGMA_UNUSED( err );
 }
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
+}
 
-#endif // MAGMA_HAVE_CUDA or MAGMA_HAVE_HIP
+#endif // MAGMA_HAVE_SYCL

@@ -92,39 +92,26 @@ magma_hgemm(
     if( arch >= 530 ) {
         #if CUDA_VERSION >= 9000
         // turn on tensor cores by default
+        /*
+        DPCT1007:8: Migration of cublasSetMathMode is not supported by the
+        Intel(R) DPC++ Compatibility Tool.
+        */
         cublasSetMathMode(queue->cublas_handle(), CUBLAS_TENSOR_OP_MATH);
-        #endif
+#endif
 
-        cublasHgemm(
-            queue->cublas_handle(),
-            cublas_trans_const( transA ),
-            cublas_trans_const( transB ),
-            int(m), int(n), int(k),
-            &alpha, dA, int(ldda),
-                    dB, int(lddb),
-            &beta,  dC, int(lddc) );
-        
-        #if CUDA_VERSION >= 9000
+        oneapi::mkl::blas::column_major::gemm(
+            *queue->cublas_handle(), cublas_trans_const(transA),
+            cublas_trans_const(transB), int(m), int(n), int(k), alpha, dA,
+            int(ldda), dB, int(lddb), beta, dC, int(lddc));
+
+#if CUDA_VERSION >= 9000
         // roll back to default
+        /*
+        DPCT1007:9: Migration of cublasSetMathMode is not supported by the
+        Intel(R) DPC++ Compatibility Tool.
+        */
         cublasSetMathMode(queue->cublas_handle(), CUBLAS_DEFAULT_MATH);
-        #endif
-    }
-    else {
-        printf("ERROR: unsupported architecture for %s \n", __func__ );
-    }
-#elif defined(MAGMA_HAVE_HIP)
-    magma_int_t arch = magma_getdevice_arch();
-    if( arch >= 330 ) {
-        hipblasGemmEx(
-		      queue->hipblas_handle(),
-		      hipblas_trans_const( transA ),
-		      hipblas_trans_const( transB ),
-		      int(m), int(n), int(k),
-		      (void*)&alpha, (void*)dA, HIPBLAS_R_16F, int(ldda),
-		      (void*)dB, HIPBLAS_R_16F, int(lddb),
-		      (void *)&beta,  (void*)dC, HIPBLAS_R_16F, int(lddc),
-		      HIPBLAS_R_16F,
-		      HIPBLAS_GEMM_DEFAULT);
+#endif
     }
     else {
         printf("ERROR: unsupported architecture for %s \n", __func__ );
@@ -145,44 +132,31 @@ magma_hgemmx(
     float *dC, magma_int_t lddc,
     magma_queue_t queue )
 {
-#if defined(MAGMA_HAVE_HIP)
-    magma_int_t arch = magma_getdevice_arch();
-    if( arch >= 330 ) {
-        hipblasGemmEx(
-		      queue->hipblas_handle(),
-		      hipblas_trans_const( transA ),
-		      hipblas_trans_const( transB ),
-		      int(m), int(n), int(k),
-		      (void*)&alpha, (void*)dA, HIPBLAS_R_16F, int(ldda),
-                                     (void*)dB, HIPBLAS_R_16F, int(lddb),
-		      (void*)&beta,  (void*)dC, HIPBLAS_R_32F, int(lddc),
-		      HIPBLAS_R_32F,
-		      HIPBLAS_GEMM_DEFAULT);
-    }
-    else {
-        printf("ERROR: unsupported architecture for %s \n", __func__ );
-    }
-#else
     #if CUDA_VERSION >= 7500
     magma_int_t arch = magma_getdevice_arch();
     if( arch >= 530 ) {
         #if CUDA_VERSION >= 9000
         // turn on tensor cores by default
+        /*
+        DPCT1007:10: Migration of cublasSetMathMode is not supported by the
+        Intel(R) DPC++ Compatibility Tool.
+        */
         cublasSetMathMode(queue->cublas_handle(), CUBLAS_TENSOR_OP_MATH);
         #endif
-        cublasGemmEx( queue->cublas_handle(),
-                      cublas_trans_const( transA ), cublas_trans_const( transB ),
-                      int(m), int(n), int(k),
-                      &alpha, dA,        CUDA_R_16F, int(ldda),
-                              dB,        CUDA_R_16F, int(lddb),
-                      &beta,  dC,        CUDA_R_32F, int(lddc),
-                      CUDA_R_32F, CUBLAS_GEMM_DFALT_TENSOR_OP);
+        oneapi::mkl::blas::column_major::gemm(
+            *queue->cublas_handle(), cublas_trans_const(transA),
+            cublas_trans_const(transB), int(m), int(n), int(k), alpha,
+            (sycl::half *)dA, int(ldda), (sycl::half *)dB, int(lddb),
+            dpct::get_value((float *)&beta, *queue->cublas_handle()),
+            (float *)dC, int(lddc));
         #if CUDA_VERSION >= 9000
         // roll back to default
+        /*
+        DPCT1007:11: Migration of cublasSetMathMode is not supported by the
+        Intel(R) DPC++ Compatibility Tool.
+        */
         cublasSetMathMode(queue->cublas_handle(), CUBLAS_DEFAULT_MATH);
         #endif
     }
     #endif
-#endif                                                         
 }
-
