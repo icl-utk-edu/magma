@@ -246,10 +246,10 @@ magmablas_zlat2c(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 magma_zlat2c_flag.init(
-                    *((sycl::queue *)(queue->cuda_stream())));
+                    *((sycl::queue *)(queue->sycl_stream())));
 
                 auto magma_zlat2c_flag_ptr_ct1 = magma_zlat2c_flag.get_ptr();
 
@@ -267,10 +267,10 @@ magmablas_zlat2c(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 magma_zlat2c_flag.init(
-                    *((sycl::queue *)(queue->cuda_stream())));
+                    *((sycl::queue *)(queue->sycl_stream())));
 
                 auto magma_zlat2c_flag_ptr_ct1 = magma_zlat2c_flag.get_ptr();
 

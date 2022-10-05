@@ -102,7 +102,7 @@ magmablas_dznrm2_check(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sum_acc_ct1(sycl::range<1>(512 /*BLOCK_SIZE*/), cgh);
@@ -179,7 +179,7 @@ magmablas_dznrm2_sm(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 2, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sum_acc_ct1(
@@ -239,7 +239,7 @@ magmablas_dznrm2_adjust(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sum_acc_ct1(sycl::range<1>(512 /*BLOCK_SIZE*/), cgh);
@@ -312,7 +312,7 @@ magmablas_dznrm2_row_check_adjust(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(blocks * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                            magma_dznrm2_row_check_adjust_kernel(
@@ -342,7 +342,7 @@ magmablas_dznrm2_cols(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sum_acc_ct1(sycl::range<1>(512 /*BLOCK_SIZE*/), cgh);

@@ -372,7 +372,7 @@ magmablas_zlacpy(
                     info::device::max_work_group_size. Adjust the work-group
                     size if needed.
                     */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
                             [=](sycl::nd_item<3> item_ct1) {
@@ -389,7 +389,7 @@ magmablas_zlacpy(
                     info::device::max_work_group_size. Adjust the work-group
                     size if needed.
                     */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
                             [=](sycl::nd_item<3> item_ct1) {
@@ -417,7 +417,7 @@ magmablas_zlacpy(
                     info::device::max_work_group_size. Adjust the work-group
                     size if needed.
                     */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
                             [=](sycl::nd_item<3> item_ct1) {
@@ -434,7 +434,7 @@ magmablas_zlacpy(
                     info::device::max_work_group_size. Adjust the work-group
                     size if needed.
                     */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
                             [=](sycl::nd_item<3> item_ct1) {
@@ -461,7 +461,7 @@ magmablas_zlacpy(
                 info::device::max_work_group_size. Adjust the work-group size if
                 needed.
                 */
-                ((sycl::queue *)(queue->cuda_stream()))
+                ((sycl::queue *)(queue->sycl_stream()))
                     ->parallel_for(
                         sycl::nd_range<3>(grid * threads, threads),
                         [=](sycl::nd_item<3> item_ct1) {
@@ -496,7 +496,7 @@ magmablas_zlacpy_internal_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlacpy_lower_kernel_batched(
@@ -511,7 +511,7 @@ magmablas_zlacpy_internal_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlacpy_upper_kernel_batched(
@@ -526,7 +526,7 @@ magmablas_zlacpy_internal_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlacpy_full_kernel_batched(
@@ -739,7 +739,7 @@ magmablas_zlacpy_vbatched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlacpy_lower_kernel_vbatched(
@@ -754,7 +754,7 @@ magmablas_zlacpy_vbatched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlacpy_upper_kernel_vbatched(
@@ -769,7 +769,7 @@ magmablas_zlacpy_vbatched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlacpy_full_kernel_vbatched(

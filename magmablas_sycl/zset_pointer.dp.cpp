@@ -98,7 +98,7 @@ void magma_zset_pointer(
     magma_int_t batchCount, 
     magma_queue_t queue)
 {
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount),
                                          sycl::range<3>(1, 1, 1)),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -117,7 +117,7 @@ void magma_zset_pointer_var_cc(
     magma_int_t batchCount, 
     magma_queue_t queue)
 {
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount),
                                          sycl::range<3>(1, 1, 1)),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -242,7 +242,7 @@ void magma_zdisplace_pointers(magmaDoubleComplex **output_array,
                magma_int_t row, magma_int_t column, 
                magma_int_t batchCount, magma_queue_t queue)
 {
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount),
                                          sycl::range<3>(1, 1, 1)),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -263,7 +263,7 @@ void magma_zdisplace_pointers_var_cc(magmaDoubleComplex **output_array,
     input_array contains the pointers to the initial position.
     output_array[i] = input_array[i] + row + lda[i] * column; 
 */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount),
                                          sycl::range<3>(1, 1, 1)),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -284,7 +284,7 @@ void magma_zdisplace_pointers_var_cv(magmaDoubleComplex **output_array,
     input_array contains the pointers to the initial position.
     output_array[i] = input_array[i] + row + lda[i] * column[i]; 
 */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount),
                                          sycl::range<3>(1, 1, 1)),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -305,7 +305,7 @@ void magma_zdisplace_pointers_var_vc(magmaDoubleComplex **output_array,
     input_array contains the pointers to the initial position.
     output_array[i] = input_array[i] + row[i] + lda[i] * column; 
 */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount),
                                          sycl::range<3>(1, 1, 1)),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -326,7 +326,7 @@ void magma_zdisplace_pointers_var_vv(magmaDoubleComplex **output_array,
     input_array contains the pointers to the initial position.
     output_array[i] = input_array[i] + row[i] + lda[i] * column[i]; 
 */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount),
                                          sycl::range<3>(1, 1, 1)),
                        [=](sycl::nd_item<3> item_ct1) {

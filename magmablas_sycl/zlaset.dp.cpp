@@ -369,7 +369,7 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                     info::device::max_work_group_size. Adjust the work-group
                     size if needed.
                     */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
                             [=](sycl::nd_item<3> item_ct1) {
@@ -386,7 +386,7 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                     info::device::max_work_group_size. Adjust the work-group
                     size if needed.
                     */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
                             [=](sycl::nd_item<3> item_ct1) {
@@ -414,7 +414,7 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                     info::device::max_work_group_size. Adjust the work-group
                     size if needed.
                     */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
                             [=](sycl::nd_item<3> item_ct1) {
@@ -431,7 +431,7 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                     info::device::max_work_group_size. Adjust the work-group
                     size if needed.
                     */
-                    ((sycl::queue *)(queue->cuda_stream()))
+                    ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
                             [=](sycl::nd_item<3> item_ct1) {
@@ -464,7 +464,7 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
             DPCT1003:1251: Migrated API does not return error code. (*, 0) is
             inserted. You may need to rewrite this code.
             */
-            int err = (queue->cuda_stream()->memset(
+            int err = (queue->sycl_stream()->memset(
                            dA, 0, size * sizeof(magmaDoubleComplex)),
                        0);
             assert(err == 0);
@@ -484,7 +484,7 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                        ((sycl::queue *)(queue->cuda_stream()))
+                        ((sycl::queue *)(queue->sycl_stream()))
                             ->parallel_for(
                                 sycl::nd_range<3>(grid * threads, threads),
                                 [=](sycl::nd_item<3> item_ct1) {
@@ -501,7 +501,7 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                         query info::device::max_work_group_size. Adjust the
                         work-group size if needed.
                         */
-                        ((sycl::queue *)(queue->cuda_stream()))
+                        ((sycl::queue *)(queue->sycl_stream()))
                             ->parallel_for(
                                 sycl::nd_range<3>(grid * threads, threads),
                                 [=](sycl::nd_item<3> item_ct1) {
@@ -545,7 +545,7 @@ void magmablas_zlaset_internal_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlaset_lower_kernel_batched(
@@ -560,7 +560,7 @@ void magmablas_zlaset_internal_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlaset_upper_kernel_batched(
@@ -575,7 +575,7 @@ void magmablas_zlaset_internal_batched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlaset_full_kernel_batched(
@@ -662,7 +662,7 @@ void magmablas_zlaset_vbatched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlaset_lower_kernel_vbatched(
@@ -677,7 +677,7 @@ void magmablas_zlaset_vbatched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlaset_upper_kernel_vbatched(
@@ -692,7 +692,7 @@ void magmablas_zlaset_vbatched(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            ((sycl::queue *)(queue->cuda_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
                                    zlaset_full_kernel_vbatched(

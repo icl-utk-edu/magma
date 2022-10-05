@@ -154,7 +154,7 @@ void magmablas_zlarft_ztrmv_sm32x32(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
@@ -197,7 +197,7 @@ void magmablas_zlarft_ztrmv_sm32x32_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -332,7 +332,7 @@ void magmablas_zlarft_recztrmv_sm32x32(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
@@ -374,7 +374,7 @@ void magmablas_zlarft_recztrmv_sm32x32_batched(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>

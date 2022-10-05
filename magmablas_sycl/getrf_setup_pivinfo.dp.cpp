@@ -164,7 +164,7 @@ setup_pivinfo( magma_int_t *pivinfo, magma_int_t *ipiv,
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(sycl::range<3>(1, 1, min_m_MAX_NTHREADS),
                                   sycl::range<3>(1, 1, min_m_MAX_NTHREADS)),
@@ -178,7 +178,7 @@ setup_pivinfo( magma_int_t *pivinfo, magma_int_t *ipiv,
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-        ((sycl::queue *)(queue->cuda_stream()))
+        ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<int, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
@@ -210,7 +210,7 @@ setup_pivinfo_batched( magma_int_t **pivinfo_array, magma_int_t **ipiv_array, ma
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount) *
                                   sycl::range<3>(1, 1, min_m_MAX_NTHREADS),
@@ -237,7 +237,7 @@ setup_pivinfo_vbatched(  magma_int_t **pivinfo_array, magma_int_t pivinfo_offset
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount) *
                                   sycl::range<3>(1, 1, min_m_MAX_NTHREADS),
@@ -313,7 +313,7 @@ adjust_ipiv( magma_int_t *ipiv,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(sycl::range<3>(1, 1, m), sycl::range<3>(1, 1, m)),
             [=](sycl::nd_item<3> item_ct1) {
@@ -339,7 +339,7 @@ adjust_ipiv_batched( magma_int_t **ipiv_array, magma_int_t ipiv_offset,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount) *
                                              sycl::range<3>(1, 1, m),
                                          sycl::range<3>(1, 1, m)),
@@ -367,7 +367,7 @@ adjust_ipiv_vbatched(    magma_int_t **ipiv_array, magma_int_t ipiv_offset,
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->cuda_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount) *
                                              sycl::range<3>(1, 1, max_minmn),
                                          sycl::range<3>(1, 1, max_minmn)),

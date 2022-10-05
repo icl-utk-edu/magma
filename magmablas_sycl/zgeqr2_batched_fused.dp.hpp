@@ -496,7 +496,7 @@ magma_zgeqr2_fused_reg_kernel_driver_batched(
     void *kernel_args[] = {&m, &dA_array, &Ai, &Aj, &ldda, &dtau_array, &taui, &lwork_tmp, &info_array, &check_launch_only, &batchCount};
     int e =
         cudaLaunchKernel((void *)zgeqr2_fused_reg_kernel_batched<M32, N>, grid,
-                         threads, kernel_args, shmem, queue->cuda_stream());
+                         threads, kernel_args, shmem, queue->sycl_stream());
 
     return arginfo;
 }
