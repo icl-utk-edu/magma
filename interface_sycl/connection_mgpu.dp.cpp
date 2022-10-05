@@ -13,12 +13,11 @@
 #include "magma_internal.h"
 
 extern "C" {
-
+// TODO: how this works (or doesn't) with SYCL
 #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
 magma_int_t magma_buildconnection_mgpu(
-    magma_int_t gnode[MagmaMaxGPUs+2][MagmaMaxGPUs+2],
-    magma_int_t *ncmplx, magma_int_t ngpu)
-{
+    magma_int_t gnode[MagmaMaxGPUs + 2][MagmaMaxGPUs + 2], magma_int_t *ncmplx,
+    magma_int_t ngpu) try {
     magma_int_t *deviceid = NULL;
     magma_imalloc_cpu( &deviceid, ngpu );
     memset( deviceid, 0, ngpu*sizeof(magma_int_t) );
@@ -26,8 +25,8 @@ magma_int_t magma_buildconnection_mgpu(
     ncmplx[0] = 0;
 
     int samecomplex = -1;
-    cudaError_t err;
-    cudaDeviceProp prop;
+    int err;
+    dpct::device_info prop;
 
     magma_int_t cmplxnb = 0;
     magma_int_t cmplxid = 0;
@@ -35,9 +34,9 @@ magma_int_t magma_buildconnection_mgpu(
     for( magma_int_t d = 0; d < ngpu; ++d ) {
         // check for unified memory & enable peer memory access between all GPUs.
         magma_setdevice( d );
-        cudaGetDeviceProperties( &prop, int(d) );
+        dpct::dev_mgr::instance().get_device(int(d)).get_device_info(prop);
 
-        #ifdef MAGMA_HAVE_CUDA
+#ifdef MAGMA_HAVE_CUDA
         if ( ! prop.unifiedAddressing ) {
         #elif defined(MAGMA_HAVE_HIP)
         // assume it does, HIP does not have support for checking this
@@ -63,8 +62,8 @@ magma_int_t magma_buildconnection_mgpu(
         for( magma_int_t d2 = d+1; d2 < ngpu; ++d2 ) {
             // check for unified memory & enable peer memory access between all GPUs.
             magma_setdevice( d2 );
-            cudaGetDeviceProperties( &prop, int(d2) );
-            #ifdef MAGMA_HAVE_CUDA
+            dpct::dev_mgr::instance().get_device(int(d2)).get_device_info(prop);
+#ifdef MAGMA_HAVE_CUDA
             if ( ! prop.unifiedAddressing ) {
             #elif defined(MAGMA_HAVE_HIP)
             // assume it does, HIP does not have support for checking this
@@ -75,7 +74,11 @@ magma_int_t magma_buildconnection_mgpu(
                 return -1;
             }
 
-            /* TODO err = */ cudaDeviceCanAccessPeer( &samecomplex, int(d), int(d2) );
+            /*
+            DPCT1031:16: DPC++ currently does not support memory access across
+            peer devices. The output parameter(s) are set to 0.
+            */
+            /* TODO err = */ *&samecomplex = 0;
 
             //printf(" device %lld and device %lld have samecomplex = %lld\n",
             //       (long long) d, (long long) d2, (long long) samecomplex );
@@ -84,10 +87,15 @@ magma_int_t magma_buildconnection_mgpu(
                 // so just enable the peer Access for d and enable+add d2.
                 // FOR d:
                 magma_setdevice( d );
-                err = cudaDeviceEnablePeerAccess( int(d2), 0 );
+                /*
+                DPCT1027:17: The call to cudaDeviceEnablePeerAccess was replaced
+                with 0 because DPC++ currently does not support memory access
+                across peer devices.
+                */
+                err = 0;
                 //printf("enabling devide %lld ==> %lld  error %lld\n",
                 //       (long long) d, (long long) d2, (long long) err );
-                if ( err != cudaSuccess && err != cudaErrorPeerAccessAlreadyEnabled ) {
+                if (err != 0 && err != 704) {
                     printf( "device %lld cudaDeviceEnablePeerAccess error %lld\n",
                             (long long) d2, (long long) err );
                     magma_free_cpu( deviceid );
@@ -96,10 +104,15 @@ magma_int_t magma_buildconnection_mgpu(
 
                 // FOR d2:
                 magma_setdevice( d2 );
-                err = cudaDeviceEnablePeerAccess( int(d), 0 );
+                /*
+                DPCT1027:18: The call to cudaDeviceEnablePeerAccess was replaced
+                with 0 because DPC++ currently does not support memory access
+                across peer devices.
+                */
+                err = 0;
                 //printf("enabling devide %lld ==> %lld  error %lld\n",
                 //       (long long) d2, (long long) d, (long long) err );
-                if ((err == cudaSuccess) || (err == cudaErrorPeerAccessAlreadyEnabled)) {
+                if ((err == 0) || (err == 704)) {
                     if (deviceid[d2] == 0) {
                         //printf("adding device %lld\n", (long long) d2 );
                         gnode[cmplxid][MagmaMaxGPUs] = gnode[cmplxid][MagmaMaxGPUs]+1;
@@ -124,7 +137,11 @@ magma_int_t magma_buildconnection_mgpu(
     // Err: CUDA only
     return -1;
 #endif
-
+}
+catch (sycl::exception const &exc) {
+  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+  std::exit(1);
 }
 
 } /* extern "C" */
