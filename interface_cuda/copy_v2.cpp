@@ -12,7 +12,7 @@
 
 #include <cuda_runtime.h>
 
-#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP || defined(MAGMA_HAVE_SYCL))
+#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
 
 // Generic, type-independent routines to copy data.
 // Type-safe versions which avoid the user needing sizeof(...) are in headers;
