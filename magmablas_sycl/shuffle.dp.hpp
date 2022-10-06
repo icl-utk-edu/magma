@@ -126,8 +126,8 @@ static inline magmaFloatComplex magmablas_cshfl(magmaFloatComplex var, int srcLa
                                                 sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
 {
     magmaFloatComplex r;
-    r.x() = magmablas_sshfl(var.x(), srcLane, item_ct1, width, mask);
-    r.y() = magmablas_sshfl(var.y(), srcLane, item_ct1, width, mask);
+    r.real() = magmablas_sshfl(var.real(), srcLane, item_ct1, width, mask);
+    r.imag() = magmablas_sshfl(var.imag(), srcLane, item_ct1, width, mask);
     return r;
 }
 
@@ -137,8 +137,8 @@ static inline magmaDoubleComplex magmablas_zshfl(magmaDoubleComplex var, int src
                                                  sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
 {
     magmaDoubleComplex r;
-    r.x() = magmablas_dshfl(var.x(), srcLane, item_ct1, width, mask);
-    r.y() = magmablas_dshfl(var.y(), srcLane, item_ct1, width, mask);
+    r.real() = magmablas_dshfl(var.real(), srcLane, item_ct1, width, mask);
+    r.imag() = magmablas_dshfl(var.imag(), srcLane, item_ct1, width, mask);
     return r;
 }
 
@@ -245,8 +245,8 @@ static inline magmaFloatComplex magmablas_cshfl_xor(magmaFloatComplex var, int l
                                                     sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
 {
     magmaFloatComplex r;
-    r.x() = magmablas_sshfl_xor(var.x(), laneMask, item_ct1, width, mask);
-    r.y() = magmablas_sshfl_xor(var.y(), laneMask, item_ct1, width, mask);
+    r.real() = magmablas_sshfl_xor(var.real(), laneMask, item_ct1, width, mask);
+    r.imag() = magmablas_sshfl_xor(var.imag(), laneMask, item_ct1, width, mask);
     return r;
 }
 
@@ -256,8 +256,8 @@ static inline magmaDoubleComplex magmablas_zshfl_xor(magmaDoubleComplex var, int
                                                      sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
 {
     magmaDoubleComplex r;
-    r.x() = magmablas_dshfl_xor(var.x(), laneMask, item_ct1, width, mask);
-    r.y() = magmablas_dshfl_xor(var.y(), laneMask, item_ct1, width, mask);
+    r.real() = magmablas_dshfl_xor(var.real(), laneMask, item_ct1, width, mask);
+    r.imag() = magmablas_dshfl_xor(var.imag(), laneMask, item_ct1, width, mask);
     return r;
 }
 

@@ -185,6 +185,13 @@ typedef double real_Double_t;
     #define MAGMA_Z_ABS(a)        abs(a)                     ///< @return absolute value, |a| = sqrt( real(a)^2 + imag(a)^2 ).
     #define MAGMA_Z_ABS1(a)       (fabs((a).real()) + fabs((a).imag()))   ///< @return 1-norm absolute value, | real(a) | + | imag(a) |.
     #define MAGMA_Z_CONJ(a)       conj(a)                     ///< @return conjugate of a.
+    // TODO: fix these and also conj() usage from MKL
+    static inline magmaDoubleComplex magmaConj(magmaDoubleComplex a) {
+        return MAGMA_Z_MAKE(a.real(), -a.imag());
+    }
+    static inline magmaDoubleComplex magmaCfma(magmaDoubleComplex a, magmaDoubleComplex b, magmaDoubleComplex c) {
+        return MAGMA_Z_ADD(MAGMA_Z_MUL(a, b), c);
+    }
 
     #define MAGMA_C_MAKE(r,i)     std::complex<float> (r,i)
     #define MAGMA_C_REAL(a)       (a).real()
@@ -196,6 +203,12 @@ typedef double real_Double_t;
     #define MAGMA_C_ABS(a)        abs(a)
     #define MAGMA_C_ABS1(a)       (fabs((a).real()) + fabs((a).imag()))
     #define MAGMA_C_CONJ(a)       conj(a)
+    static inline magmaFloatComplex magmaConjf(magmaFloatComplex a) {
+        return MAGMA_C_MAKE(a.real(), -a.imag());
+    }
+    static inline magmaFloatComplex magmaCfmaf(magmaFloatComplex a, magmaFloatComplex b, magmaFloatComplex c) {
+        return MAGMA_C_ADD(MAGMA_C_MUL(a, b), c);
+    }
 
     /// @}
     // end group magma_complex
@@ -1114,6 +1127,13 @@ hipblasSideMode_t    hipblas_side_const (magma_side_t side    );
 #define magma_backend_side_const hipblas_side_const
 #endif
 
+// Convert MAGMA constants to MKL constants
+#if defined(MAGMA_HAVE_SYCL)
+oneapi::mkl::transpose   syclblas_trans_const(magma_trans_t trans);
+oneapi::mkl::uplo   syclblas_uplo_const(magma_uplo_t uplo);
+oneapi::mkl::diag   syclblas_diag_const(magma_diag_t diag);
+oneapi::mkl::side   syclblas_side_const(magma_side_t side);
+#endif
 
 // -----------------------------------------------------------------------------
 // Convert MAGMA constants to CBLAS constants.

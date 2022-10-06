@@ -128,7 +128,9 @@ magma_zlarft_internal_batched(
     //    shared memory to nb, this nb column
     //    are split vertically by chunk of nb rows
 
-    dim3 grid(1, 1, batchCount);
+    // This causes errors when building with dpcpp and doesn't appear to be used anywhere else in the file?
+    // Can we remove?  - N Beams 
+//    dim3 grid(1, 1, batchCount);
 
     for (j=0; j < k; j += nb) {
         prev_n =  j;
