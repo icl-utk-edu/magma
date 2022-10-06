@@ -18,6 +18,8 @@
 // HIP settings
 #cmakedefine MAGMA_HAVE_HIP
 
+// SYCL settings
+#cmakedefine MAGMA_HAVE_SYCL
 
 
 #endif  // MAGMA_CONFIG_H
