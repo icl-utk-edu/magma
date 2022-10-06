@@ -91,7 +91,11 @@ magma_zgeqrf2_mgpu(
     magmaDoubleComplex *dwork[MagmaMaxGPUs]={NULL}, *dpanel[MagmaMaxGPUs]={NULL};
     magmaDoubleComplex *hwork=NULL, *hpanel=NULL;
     magma_queue_t queues[MagmaMaxGPUs][2]={{NULL}};
+#if defined(MAGMA_HAVE_SYCL)
+    magma_event_t panel_event[MagmaMaxGPUs]={sycl::event()};
+#else
     magma_event_t panel_event[MagmaMaxGPUs]={NULL};
+#endif
 
     magma_int_t i, j, min_mn, dev, ldhpanel, lddwork, rows;
     magma_int_t ib, nb;

@@ -14,7 +14,7 @@
 
 extern "C" {
 // TODO: how this works (or doesn't) with SYCL
-#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+#if defined(MAGMA_HAVE_SYCL) 
 magma_int_t magma_buildconnection_mgpu(
     magma_int_t gnode[MagmaMaxGPUs + 2][MagmaMaxGPUs + 2], magma_int_t *ncmplx,
     magma_int_t ngpu) try {
@@ -36,17 +36,18 @@ magma_int_t magma_buildconnection_mgpu(
         magma_setdevice( d );
         dpct::dev_mgr::instance().get_device(int(d)).get_device_info(prop);
 
-#ifdef MAGMA_HAVE_CUDA
+        #ifdef MAGMA_HAVE_CUDA
         if ( ! prop.unifiedAddressing ) {
         #elif defined(MAGMA_HAVE_HIP)
         // assume it does, HIP does not have support for checking this
         if ( ! true ) {
         #endif
+	#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
             printf( "device %lld doesn't support unified addressing\n", (long long) d );
             magma_free_cpu( deviceid );
             return -1;
         }
-
+        #endif
         // add this device to the list if not added yet.
         // not added yet meaning belong to a new complex
         if (deviceid[d] == 0) {
@@ -63,16 +64,18 @@ magma_int_t magma_buildconnection_mgpu(
             // check for unified memory & enable peer memory access between all GPUs.
             magma_setdevice( d2 );
             dpct::dev_mgr::instance().get_device(int(d2)).get_device_info(prop);
-#ifdef MAGMA_HAVE_CUDA
+            #ifdef MAGMA_HAVE_CUDA
             if ( ! prop.unifiedAddressing ) {
             #elif defined(MAGMA_HAVE_HIP)
             // assume it does, HIP does not have support for checking this
             if ( ! true ) {
             #endif
+	    #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
                 printf( "device %lld doesn't support unified addressing\n", (long long) d2 );
                 magma_free_cpu( deviceid );
                 return -1;
             }
+            #endif 
 
             /*
             DPCT1031:16: DPC++ currently does not support memory access across

@@ -265,6 +265,9 @@ magma_getdevice_shmem_multiprocessor();
 #define magma_queue_create_from_hip(           device, hip_stream, hipblas_handle, hipsparse_handle, queue_ptr ) \
         magma_queue_create_from_hip_internal( device, hip_stream, hipblas_handle, hipsparse_handle, queue_ptr, __func__, __FILE__, __LINE__ )
 
+#define magma_queue_create_from_sycl(          device, sycl_stream, syclblas_handle, syclsparse_handle, queue_ptr ) \
+        magma_queue_create_from_sycl_internal( device, sycl_stream, syclblas_handle, syclsparse_handle, queue_ptr, __func__, __FILE__, __LINE__ )
+
 #define magma_queue_create_from_opencl(          device, cl_queue, queue_ptr ) \
         magma_queue_create_from_opencl_internal( device, cl_queue, queue_ptr, __func__, __FILE__, __LINE__ )
 
