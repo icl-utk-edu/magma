@@ -65,12 +65,9 @@ magma_warn_leaks( const std::map< void*, size_t >& pointers, const char* type );
 enum {
     own_none     = 0x0000,
     own_stream   = 0x0001,
-    own_cublas   = 0x0002,
-    own_cusparse = 0x0004,
+    own_syclblas   = 0x0002,
+    own_syclsparse = 0x0004,
     own_opencl   = 0x0008,
-    own_hip      = 0x0010,
-    own_hipblas  = 0x0020,
-    own_hipsparse= 0x0040
 };
 
 
@@ -227,7 +224,9 @@ extern "C" magma_int_t magma_init() try {
                     */
                     g_magma_devices[dev].shmem_block =
                         prop.get_local_mem_size();
-#ifdef MAGMA_HAVE_SYCL
+                    
+		    // TODO:sharedMemPerMultiprocessor not part of dpct prop
+                    #ifdef MAGMA_HAVE_CUDA
                     /*
                     DPCT1005:48: The SYCL device version is different from CUDA
                     Compute Compatibility. You may need to rewrite this code.
@@ -388,11 +387,10 @@ extern "C" void magma_print_environment() try {
 /* SYCL */
 
 #if defined(MAGMA_HAVE_SYCL)
-
-    printf("%% Compiled with CUDA support for %.1f\n", MAGMA_CUDA_ARCH_MIN/100.);
+//    printf("%% Compiled with SYCL support for %.1f\n", MAGMA_CUDA_ARCH_MIN/100.);
 
     // SYCL, OpenCL, OpenMP, MKL, ACML versions all printed on same line
-    int sycl_runtime=0, sycl_driver=0;
+    std::string sycl_runtime, sycl_driver;
     int err;
     /*
     DPCT1003:49: Migrated API does not return error code. (*, 0) is inserted.
@@ -422,7 +420,7 @@ extern "C" void magma_print_environment() try {
     if (err != 100) {
         check_error( err );
     }
-    printf( "%% SYCL runtime %d, driver %d. ", sycl_runtime, sycl_driver );
+    printf( "%% SYCL runtime %s, driver %s. ", sycl_runtime.c_str(), sycl_driver.c_str() );
 
 #endif
 
@@ -498,16 +496,17 @@ extern "C" void magma_print_environment() try {
         DPCT1005:57: The SYCL device version is different from CUDA Compute
         Compatibility. You may need to rewrite this code.
         */
-        int arch =
-            prop.get_major_version() * 100 + prop.get_minor_version() * 10;
-        if ( arch < MAGMA_CUDA_ARCH_MIN ) {
+	//TODO
+/*        int arch =
+            prop.get_major_version() * 100 + prop.get_minor_version() * 10; */
+/*        if ( arch < MAGMA_CUDA_ARCH_MIN ) {
             printf("\n"
                    "==============================================================================\n"
                    "WARNING: MAGMA was compiled only for CUDA capability %.1f and higher;\n"
                    "device %d has only capability %.1f; some routines will not run correctly!\n"
                    "==============================================================================\n\n",
                    MAGMA_CUDA_ARCH_MIN/100., dev, arch/100. );
-        }
+        } */
         #endif
     }
 
@@ -548,68 +547,68 @@ catch (sycl::exception const &exc) {
 extern "C" magma_int_t magma_is_devptr(const void *A) try {
     int err;
     dpct::device_info prop;
-    cudaPointerAttributes attr;
-    int dev;  // must be int
-    err = dev = dpct::dev_mgr::instance().current_device_id();
-    if ( ! err ) {
-        /*
-        DPCT1003:59: Migrated API does not return error code. (*, 0) is
-        inserted. You may need to rewrite this code.
-        */
-        err = (dpct::dev_mgr::instance().get_device(dev).get_device_info(prop),
-               0);
-//TODO: how to handle this with SYCL?
-#ifdef MAGMA_HAVE_CUDA
-        if ( ! err && prop.unifiedAddressing ) {
-        #elif defined(MAGMA_HAVE_HIP)
-        // in HIP, assume all can.
-        // There's no corresponding property, and examples show no need to check any properties
-        if ( ! err ) {
-        #endif
-
-            // I think the cudaPointerGetAttributes prototype is wrong, missing const (mgates)
-            /*
-            DPCT1007:60: Migration of cudaPointerGetAttributes is not supported
-            by the Intel(R) DPC++ Compatibility Tool.
-            */
-            err = cudaPointerGetAttributes(&attr, const_cast<void *>(A));
-            if ( ! err ) {
-                // definitely know type
-                #ifdef MAGMA_HAVE_CUDA
-                  #if CUDA_VERSION >= 11000
-                    return (attr.type == cudaMemoryTypeDevice);
-                  #else
-                    return (attr.memoryType == cudaMemoryTypeDevice);
-                  #endif
-
-                #elif defined(MAGMA_HAVE_HIP)
-                return (attr.memoryType == hipMemoryTypeDevice);
-                #endif
-            }
-            /*
-            DPCT1002:62: Special case error handling if-stmt was detected. You
-            may need to rewrite this code.
-            */
-            else if (err == 1) {
-                // clear error; see http://icl.cs.utk.edu/magma/forum/viewtopic.php?f=2&t=529
-                /*
-                DPCT1001:61: The statement could not be removed.
-                */
-                /*
-                DPCT1026:63: The call to cudaGetLastError was removed because
-                the function call is redundant in DPC++.
-                */
-                // infer as host pointer
-                return 0;
-            }
-        }
-    }
-    // clear error
-    /*
-    DPCT1026:58: The call to cudaGetLastError was removed because the function
-    call is redundant in DPC++.
-    */
-    // unknown, e.g., device doesn't support unified addressing
+//    cudaPointerAttributes attr;
+//    int dev;  // must be int
+//    err = dev = dpct::dev_mgr::instance().current_device_id();
+//    if ( ! err ) {
+//        /*
+//        DPCT1003:59: Migrated API does not return error code. (*, 0) is
+//        inserted. You may need to rewrite this code.
+//        */
+//        err = (dpct::dev_mgr::instance().get_device(dev).get_device_info(prop),
+//               0);
+////TODO: how to handle this with SYCL?
+//#ifdef MAGMA_HAVE_CUDA
+//        if ( ! err && prop.unifiedAddressing ) {
+//        #elif defined(MAGMA_HAVE_HIP)
+//        // in HIP, assume all can.
+//        /There's no corresponding property, and examples show no need to check any properties
+//        if ( ! err ) {
+//        #endif
+//
+//            // I think the cudaPointerGetAttributes prototype is wrong, missing const (mgates)
+//            /*
+//            DPCT1007:60: Migration of cudaPointerGetAttributes is not supported
+//            by the Intel(R) DPC++ Compatibility Tool.
+//            */
+//  /*          err = cudaPointerGetAttributes(&attr, const_cast<void *>(A));
+//            if ( ! err ) {
+//                // definitely know type
+//                #ifdef MAGMA_HAVE_CUDA
+//                  #if CUDA_VERSION >= 11000
+//                    return (attr.type == cudaMemoryTypeDevice);
+//                  #else
+//                    return (attr.memoryType == cudaMemoryTypeDevice);
+//                  #endif
+//
+//                #elif defined(MAGMA_HAVE_HIP)
+//                return (attr.memoryType == hipMemoryTypeDevice);
+//                #endif
+//            } */
+//            /*
+//            DPCT1002:62: Special case error handling if-stmt was detected. You
+//            may need to rewrite this code.
+//            */
+//  //          else if (err == 1) {
+//                // clear error; see http://icl.cs.utk.edu/magma/forum/viewtopic.php?f=2&t=529
+//                /*
+//                DPCT1001:61: The statement could not be removed.
+//                */
+//                /*
+//                DPCT1026:63: The call to cudaGetLastError was removed because
+//                the function call is redundant in DPC++.
+//                */
+//    //            // infer as host pointer
+//   //             return 0;
+//    //        }
+//    //    }
+//    //}
+//    // clear error
+//    /*
+//    DPCT1026:58: The call to cudaGetLastError was removed because the function
+//    call is redundant in DPC++.
+//    */
+//    // unknown, e.g., device doesn't support unified addressing
     return -1;
 }
 catch (sycl::exception const &exc) {
@@ -944,7 +943,9 @@ extern "C" sycl::queue *magma_queue_get_syclsparse_handle(magma_queue_t queue)
 
     @ingroup magma_queue
 *******************************************************************************/
-extern "C" void magma_queue_create_internal(magma_device_t device,
+// This was previously marked extern "C", but dpcpp was giving errors
+// TODO...?
+void magma_queue_create_internal(magma_device_t device,
                                             magma_queue_t *queue_ptr,
                                             const char *func, const char *file,
                                             int line) try {
@@ -1051,7 +1052,9 @@ catch (sycl::exception const &exc) {
     @ingroup magma_queue
 *******************************************************************************/
 #ifdef MAGMA_HAVE_SYCL
-extern "C" void magma_queue_create_from_sycl_internal(
+// This was previously marked extern "C", but dpcpp was giving errors
+// TODO...?
+void magma_queue_create_from_sycl_internal(
     magma_device_t device, sycl::queue *sycl_queue, sycl::queue *syclblas_handle,
     sycl::queue *syclsparse_handle, magma_queue_t *queue_ptr, const char *func,
     const char *file, int line) try {
@@ -1065,7 +1068,7 @@ extern "C" void magma_queue_create_from_sycl_internal(
     queue->stream__     = NULL;
     queue->syclblas__   = NULL;
     queue->syclsparse__ = NULL;
-    queue->ptrArray_  _ = NULL;
+    queue->ptrArray__   = NULL;
     queue->dAarray__    = NULL;
     queue->dBarray__    = NULL;
     queue->dCarray__    = NULL;
@@ -1207,20 +1210,20 @@ catch (sycl::exception const &exc) {
 extern "C" void magma_queue_sync_internal(magma_queue_t queue, const char *func,
                                           const char *file, int line) try {
     int err;
-    if ( queue != NULL ) {
+//    if ( queue != NULL ) {
         /*
         DPCT1003:81: Migrated API does not return error code. (*, 0) is
         inserted. You may need to rewrite this code.
         */
         err = (queue->sycl_stream()->wait(), 0);
-    }
-    else {
+//    }
+//    else {
         /*
         DPCT1003:82: Migrated API does not return error code. (*, 0) is
         inserted. You may need to rewrite this code.
         */
-        err = (NULL->wait(), 0);
-    }
+//        err = (NULL->wait(), 0);
+//    }
     check_xerror( err, func, file, line );
     MAGMA_UNUSED( err );
 }
@@ -1289,8 +1292,9 @@ catch (sycl::exception const &exc) {
 
     @ingroup magma_event
 *******************************************************************************/
+//TODO: can we disregard this entirely for SYCL?  Considering DPCT message...
 extern "C" void magma_event_destroy(magma_event_t event) try {
-    if ( event != NULL ) {
+   // if ( event != NULL ) {
         int err;
         /*
         DPCT1027:85: The call to cudaEventDestroy was replaced with 0 because
@@ -1299,7 +1303,7 @@ extern "C" void magma_event_destroy(magma_event_t event) try {
         err = 0;
         check_error( err );
         MAGMA_UNUSED( err );
-    }
+   // }
 }
 catch (sycl::exception const &exc) {
   std::cerr << exc.what() << "Exception caught at file:" << __FILE__

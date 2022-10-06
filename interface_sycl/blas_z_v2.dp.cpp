@@ -488,8 +488,8 @@ magma_zrot(
     DPCT1007:12: Migration of cublasZrot is not supported by the Intel(R) DPC++
     Compatibility Tool.
     */
-    cublasZrot(queue->cublas_handle(), int(n), (sycl::double2 *)dx, int(incx),
-               (sycl::double2 *)dy, int(incy), &c, (sycl::double2 *)&s);
+/*    cublasZrot(queue->cublas_handle(), int(n), (sycl::double2 *)dx, int(incx),
+               (sycl::double2 *)dy, int(incy), &c, (sycl::double2 *)&s); */
 }
 
 
@@ -1202,10 +1202,10 @@ magma_zsymv(
     DPCT1007:13: Migration of cublasZsymv is not supported by the Intel(R) DPC++
     Compatibility Tool.
     */
-    cublasZsymv(queue->cublas_handle(), cublas_uplo_const(uplo), int(n),
+/*    cublasZsymv(queue->cublas_handle(), cublas_uplo_const(uplo), int(n),
                 (sycl::double2 *)&alpha, (sycl::double2 *)dA, int(ldda),
                 (sycl::double2 *)dx, int(incx), (sycl::double2 *)&beta,
-                (sycl::double2 *)dy, int(incy));
+                (sycl::double2 *)dy, int(incy)); */
 }
 
 
@@ -1255,9 +1255,9 @@ magma_zsyr(
     DPCT1007:14: Migration of cublasZsyr is not supported by the Intel(R) DPC++
     Compatibility Tool.
     */
-    cublasZsyr(queue->cublas_handle(), cublas_uplo_const(uplo), int(n),
+/*    cublasZsyr(queue->cublas_handle(), cublas_uplo_const(uplo), int(n),
                (sycl::double2 *)&alpha, (sycl::double2 *)dx, int(incx),
-               (sycl::double2 *)dA, int(ldda));
+               (sycl::double2 *)dA, int(ldda)); */
 }
 
 
@@ -1315,9 +1315,9 @@ magma_zsyr2(
     DPCT1007:15: Migration of cublasZsyr2 is not supported by the Intel(R) DPC++
     Compatibility Tool.
     */
-    cublasZsyr2(queue->cublas_handle(), cublas_uplo_const(uplo), int(n),
+/*    cublasZsyr2(queue->cublas_handle(), cublas_uplo_const(uplo), int(n),
                 (sycl::double2 *)&alpha, (sycl::double2 *)dx, int(incx),
-                (sycl::double2 *)dy, int(incy), (sycl::double2 *)dA, int(ldda));
+                (sycl::double2 *)dy, int(incy), (sycl::double2 *)dA, int(ldda)); */
 }
 
 
@@ -2016,7 +2016,7 @@ magma_ztrmm(
   oneapi::mkl::blas::column_major::trmm(
       *queue->syclblas_handle(), syclblas_side_const(side), syclblas_uplo_const(uplo),
       syclblas_trans_const(trans), syclblas_diag_const(diag), int(m), int(n),
-      std::complex<double>(alpha.x(), alpha.y()), (std::complex<double> *)dA,
+      std::complex<double>(alpha.real(), alpha.imag()), (std::complex<double> *)dA,
       int(ldda), (std::complex<double> *)dB,
       int(lddb)); /* C same as B; less efficient */
     #endif
