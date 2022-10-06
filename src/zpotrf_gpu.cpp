@@ -121,6 +121,14 @@ magma_zpotrf_expert_gpu(
         return *info;
 
     recnb = 128;
+    magma_queue_t queues[2];
+    magma_event_t events[2];
+    magma_device_t cdev;
+    magma_getdevice( &cdev );
+    magma_queue_create( cdev, &queues[0] );
+    magma_queue_create( cdev, &queues[1] );
+    magma_event_create(&events[0]);
+    magma_event_create(&events[1]);
 
     if (mode == MagmaHybrid) {
         if (nb <= 1 || 4*nb >= n ) {
@@ -149,14 +157,6 @@ magma_zpotrf_expert_gpu(
         }
     }
 
-    magma_queue_t queues[2];
-    magma_event_t events[2];
-    magma_device_t cdev;
-    magma_getdevice( &cdev );
-    magma_queue_create( cdev, &queues[0] );
-    magma_queue_create( cdev, &queues[1] );
-    magma_event_create(&events[0]);
-    magma_event_create(&events[1]);
     if (mode == MagmaNative)
         magma_setvector( 1, sizeof(magma_int_t), info, 1, dinfo, 1, queues[0]);
 

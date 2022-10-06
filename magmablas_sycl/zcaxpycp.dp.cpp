@@ -34,7 +34,7 @@ zcaxpycp_kernel(
         DPCT1064:246: Migrated make_cuDoubleComplex call is used in a macro
         definition and is not valid for all macro uses. Adjust the code.
         */
-        x[i] = MAGMA_Z_ADD(x[i], x()(MAGMA_C_REAL(r[i]), MAGMA_C_IMAG(r[i])));
+        x[i] = MAGMA_Z_ADD(x[i], MAGMA_Z_MAKE(MAGMA_C_REAL(r[i]), MAGMA_C_IMAG(r[i])));
         w[i] = b[i];
     }
 }

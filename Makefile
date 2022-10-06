@@ -23,10 +23,11 @@ BACKEND     ?= cuda
 # set these to their real paths
 CUDADIR     ?= /usr/local/cuda
 HIPDIR      ?= /opt/rocm/hip
+DPCPPDIR    ?= 
 
 # require either hip or cuda
-ifeq (,$(findstring $(BACKEND),"hip cuda"))
-    $(error "'BACKEND' should be either 'cuda' or 'hip' (got '$(BACKEND)')")
+ifeq (,$(findstring $(BACKEND),"hip cuda dpcpp"))
+    $(error "'BACKEND' should be either 'cuda', 'hip', or 'dpcpp' (got '$(BACKEND)')")
 endif
 
 # --------------------
@@ -39,10 +40,12 @@ FORT        ?= gfortran
 HIPCC       ?= hipcc
 NVCC        ?= nvcc
 DEVCC       ?= NONE
+DPCPP       ?= dpcpp
 
 # Configuration variables
 HAVE_CUDA  =
 HAVE_HIP   =
+HAVE_SYCL  = 
 CUDA_ARCH_MIN =
 
 # CMake.src file, which depends on the backend
@@ -68,6 +71,10 @@ else ifeq ($(BACKEND),hip)
     JOB_FLAG := $(filter -j%, $(subst -j ,-j,$(shell ps T | grep "^\s*$(MAKE_PID).*$(MAKE)")))
     JOBS     := $(subst -j,,$(JOB_FLAG))
     tmp := $(shell $(MAKE) -j$(JOBS) -f make.gen.hipMAGMA 1>&2)
+
+else ifeq ($(BACKEND),dpcpp)
+    DEVCC = $(DPCPP)
+	HAVE_SYCL = 1
 else
     $(warning BACKEND: $(BACKEND) not recognized)
 endif
@@ -285,6 +292,8 @@ else ifeq ($(BACKEND),hip)
 	#	$(error GPU_TARGET, currently $(GPU_TARGET), did not contain a minimum arch)
 	#endif
 
+else ifeq ($(BACKEND),dpcpp)
+    DEVCCFLAGS ?= -O3 -fopenmp  
 endif
 
 
@@ -348,6 +357,12 @@ else ifeq ($(BACKEND),hip)
 
     subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
 
+else ifeq ($(BACKEND),dpcpp)
+	SPARSE_DIR =
+	subdirs += interface_sycl
+	subdirs += magmablas_sycl
+	subdirs += testing
+
 endif
 
 
@@ -394,6 +409,8 @@ libmagma_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libmagma_dynami
     libmagma_dlink_obj   := magmablas/dynamic.link.o
   else ifeq ($(BACKEND),hip)
     libmagma_dlink_obj   := magmablas_hip/dynamic.link.o
+  else ifeq ($(BACKEND),dpcpp)
+    libmagma_dlink_obj   := magmablas_sycl/dynamic.link.o
   endif
 
 libmagma_obj         += $(libmagma_dynamic_obj) $(libmagma_dlink_obj)
@@ -461,6 +478,8 @@ $(sparse_testing_obj): MAGMA_INC += -I./sparse/include -I./sparse/control -I./te
 else ifeq ($(BACKEND),hip)
 $(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_hip -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control
 $(sparse_testing_obj): MAGMA_INC += -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control -I./testing
+else ifeq ($(BACKEND),dpcpp)
+$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_sycl
 endif
 
 
@@ -488,14 +507,25 @@ $(CONFIG): $(CONFIGDEPS)
 	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#define MAGMA_HAVE_CUDA/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#undef MAGMA_HAVE_HIP/g' $@
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_SYCL/#undef MAGMA_HAVE_SYCL/g' $@
 
-else
+else ifneq (,$(HAVE_HIP))
 
 $(CONFIG): $(CONFIGDEPS)
 	cp $< $@
 	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#undef MAGMA_HAVE_CUDA/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#define MAGMA_HAVE_HIP/g' $@
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_SYCL/#undef MAGMA_HAVE_SYCL/g' $@
+
+else ifneq (,$(HAVE_SYCL))
+
+$(CONFIG): $(CONFIGDEPS)
+	cp $< $@
+	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#undef MAGMA_HAVE_CUDA/g' $@
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#undef MAGMA_HAVE_HIP/g' $@
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_SYCL/#define MAGMA_HAVE_SYCL/g' $@
 
 endif
 
@@ -709,6 +739,9 @@ else ifeq ($(BACKEND),hip)
   interface_hip_obj   := $(filter     interface_hip/%.o, $(libmagma_obj))
   magmablas_hip_obj   := $(filter     magmablas_hip/%.o, $(libmagma_obj))
   #$(info $$magmablas_hip_obj=$(magmablas_hip_obj))
+else ifeq ($(BACKEND),dpcpp)
+  interface_sycl_obj   := $(filter     interface_sycl/%.o, $(libmagma_obj))
+  magmablas_sycl_obj   := $(filter     magmablas_sycl/%.o, $(libmagma_obj))
 endif
 
 
@@ -728,6 +761,9 @@ ifeq ($(BACKEND),cuda)
 else ifeq ($(BACKEND),hip)
 	interface_hip:       $(interface_hip_obj)
 	magmablas_hip:       $(magmablas_hip_obj)
+else ifeq ($(BACKEND),dpcpp)
+	interface_sycl:       $(interface_sycl_obj)
+	magmablas_sycl:       $(magmablas_sycl_obj)
 endif
 
 
@@ -772,6 +808,14 @@ interface_hip/clean:
 
 magmablas_hip/clean:
 	-rm -f $(magmablas_hip_obj)
+
+else ifeq ($(BACKEND),dpcpp)
+
+interface_sycl/clean:
+	-rm -f $(interface_sycl_obj)
+
+magmablas_sycl/clean:
+	-rm -f $(magmablas_sycl_obj)
 
 endif
 
@@ -842,6 +886,8 @@ d_ext := cu
 else ifeq ($(BACKEND),hip)
 d_ext := cpp
 CXXFLAGS += -D__HIP_PLATFORM_HCC__
+else ifeq ($(BACKEND),dpcpp)
+d_ext := dp.cpp
 endif
 
 
@@ -870,6 +916,13 @@ else ifeq ($(BACKEND),hip)
 #%.o: %.cpp
 #	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 
+else ifeq ($(BACKEND),dpcpp)
+
+%.dp.cpp.o: %.dp.cpp | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+%.o: %.cpp | $(CONFIG)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 endif
 
 # assume C++ for headers; needed for Fortran wrappers
@@ -909,6 +962,14 @@ $(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext) | $(CONFIG)
 
 $(libsparse_dlink_obj): $(libsparse_dynamic_obj) | $(CONFIG)
 	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -c -o $@ $^
+
+else ifeq ($(BACKEND),dpcpp)
+
+$(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext) | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -c -o $@ $<
+
+$(libmagma_dlink_obj): $(libmagma_dynamic_obj) | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
 
 endif
 # ------------------------------------------------------------------------------
