@@ -72,7 +72,7 @@ FFLAGS      = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
 LDFLAGS     =     $(FPIC)                       -fopenmp
 
-DEVCCFLAGS  = -O3         -DNDEBUG -DADD_       
+DEVCCFLAGS  = -O3         -DNDEBUG -DADD_
 
 # DEVCCFLAGS are populated later in `backend-specific`
 
@@ -88,7 +88,7 @@ LIB       += -lopenblas
 
 # define library directories preferably in your environment, or here.
 LIBDIR    += -L$(OPENBLASDIR)/lib
-INC       += 
+INC       +=
 
 
 # --------------------
@@ -121,7 +121,7 @@ ifeq ($(BACKEND),hip)
 
     #TODO: see if we need to link any HIP libraries
     #LIB += -lhip_hcc -lhsa-runtime64
-    INC += -I$(HIPDIR)/include
+    INC += -I$(HIPDIR)/../include
 
 endif
 
