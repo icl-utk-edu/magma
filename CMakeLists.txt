@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.8.1 )
+cmake_minimum_required( VERSION 3.18 )
 
 # ----------------------------------------
 # to disable Fortran, set this to "off"
@@ -112,33 +112,24 @@ if (OPENMP_FOUND)
 endif()
 
 if (MAGMA_ENABLE_CUDA)
+  enable_language(CUDA)
+
   # ----------------------------------------
   # locate CUDA libraries
   set( GPU_TARGET "Kepler Maxwell Pascal" CACHE STRING "CUDA architectures to compile for; one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
-  find_package( CUDA )
-  if (CUDA_FOUND)
+  find_package( CUDAToolkit )
+  if (CUDAToolkit_FOUND)
     message( STATUS "Found CUDA ${CUDA_VERSION}" )
-    message( STATUS "    CUDA_INCLUDE_DIRS:   ${CUDA_INCLUDE_DIRS}"   )
-    message( STATUS "    CUDA_CUDART_LIBRARY: ${CUDA_CUDART_LIBRARY}" )
-    #message( STATUS "    CUDA_LIBRARIES: ${CUDA_LIBRARIES}" )
-    #message( STATUS "    CUDA_CUBLAS_LIBRARIES: ${CUDA_CUBLAS_LIBRARIES}" )
-    include_directories( ${CUDA_INCLUDE_DIRS} )
+    message( STATUS "    CUDA_CUDART_LIBRARY: CUDA::cudart" )
+    #message( STATUS "    CUDA_CUBLAS_LIBRARIES: CUDA::cublas" )
 
     # NVCC options for the different cards
     # sm_xx is binary, compute_xx is PTX for forward compatability
     # MIN_ARCH is lowest requested version
-    # NV_SM    accumulates sm_xx for all requested versions
-    # NV_COMP  is compute_xx for highest requested version
-    set( NV_SM    "" )
-    set( NV_COMP  "" )
 
     set(CUDA_SEPARABLE_COMPILATION ON)
 
-    # nvcc >= 6.5 supports -std=c++11, so propagate CXXFLAGS to NVCCFLAGS.
-    # Older nvcc didn't support -std=c++11, so previously we disabled propagation.
-    ##if (${CMAKE_CXX_FLAGS} MATCHES -std=)
-    ##    set( CUDA_PROPAGATE_HOST_FLAGS OFF )
-    ##endif()
+    set(__cuda_architectures)
 
     if (GPU_TARGET MATCHES Fermi)
         set( GPU_TARGET "${GPU_TARGET} sm_20" )
@@ -172,8 +163,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 200 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_20,code=sm_20 )
-        set( NV_COMP        -gencode arch=compute_20,code=compute_20 )
+        list(APPEND __cuda_architectures 20)
         message( STATUS "    compile for CUDA arch 2.0 (Fermi)" )
     endif()
 
@@ -181,8 +171,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 300 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_30,code=sm_30 )
-        set( NV_COMP        -gencode arch=compute_30,code=compute_30 )
+        list(APPEND __cuda_architectures 30)
         message( STATUS "    compile for CUDA arch 3.0 (Kepler)" )
     endif()
 
@@ -190,8 +179,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 300 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_35,code=sm_35 )
-        set( NV_COMP        -gencode arch=compute_35,code=compute_35 )
+        list(APPEND __cuda_architectures 35)
         message( STATUS "    compile for CUDA arch 3.5 (Kepler)" )
     endif()
 
@@ -199,8 +187,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 300 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_37,code=sm_37 )
-        set( NV_COMP        -gencode arch=compute_37,code=compute_37 )
+        list(APPEND __cuda_architectures 37)
         message( STATUS "    compile for CUDA arch 3.7 (Kepler)" )
     endif()
 
@@ -208,8 +195,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 500 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_50,code=sm_50 )
-        set( NV_COMP        -gencode arch=compute_50,code=compute_50 )
+        list(APPEND __cuda_architectures 50)
         message( STATUS "    compile for CUDA arch 5.0 (Maxwell)" )
     endif()
 
@@ -217,8 +203,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 520 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_52,code=sm_52 )
-        set( NV_COMP        -gencode arch=compute_52,code=compute_52 )
+        list(APPEND __cuda_architectures 52)
         message( STATUS "    compile for CUDA arch 5.2 (Maxwell)" )
     endif()
 
@@ -226,8 +211,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 530 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_53,code=sm_53 )
-        set( NV_COMP        -gencode arch=compute_53,code=compute_53 )
+        list(APPEND __cuda_architectures 53)
         message( STATUS "    compile for CUDA arch 5.3 (Maxwell)" )
     endif()
 
@@ -235,8 +219,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 600 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_60,code=sm_60 )
-        set( NV_COMP        -gencode arch=compute_60,code=compute_60 )
+        list(APPEND __cuda_architectures 60)
         message( STATUS "    compile for CUDA arch 6.0 (Pascal)" )
     endif()
 
@@ -244,8 +227,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 610 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_61,code=sm_61 )
-        set( NV_COMP        -gencode arch=compute_61,code=compute_61 )
+        list(APPEND __cuda_architectures 61)
         message( STATUS "    compile for CUDA arch 6.1 (Pascal)" )
     endif()
 
@@ -253,8 +235,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 620 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_62,code=sm_62 )
-        set( NV_COMP        -gencode arch=compute_62,code=compute_62 )
+        list(APPEND __cuda_architectures 62)
         message( STATUS "    compile for CUDA arch 6.2 (Pascal)" )
     endif()
 
@@ -262,8 +243,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 700 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_70,code=sm_70 )
-        set( NV_COMP        -gencode arch=compute_70,code=compute_70 )
+        list(APPEND __cuda_architectures 70)
         message( STATUS "    compile for CUDA arch 7.0 (Volta)" )
     endif()
 
@@ -271,8 +251,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 710 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_71,code=sm_71 )
-        set( NV_COMP        -gencode arch=compute_71,code=compute_71 )
+        list(APPEND __cuda_architectures 71)
         message( STATUS "    compile for CUDA arch 7.1 (Volta)" )
     endif()
 
@@ -280,8 +259,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 750 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_75,code=sm_75 )
-        set( NV_COMP        -gencode arch=compute_75,code=compute_75 )
+        list(APPEND __cuda_architectures 75)
         message( STATUS "    compile for CUDA arch 7.5 (Turing)" )
     endif()
 
@@ -289,8 +267,7 @@ if (MAGMA_ENABLE_CUDA)
         if (NOT MIN_ARCH)
             set( MIN_ARCH 800 )
         endif()
-        set( NV_SM ${NV_SM} -gencode arch=compute_80,code=sm_80 )
-        set( NV_COMP        -gencode arch=compute_80,code=compute_80 )
+        list(APPEND __cuda_architectures 80)
         message( STATUS "    compile for CUDA arch 8.0 (Ampere)" )
     endif()
 
@@ -298,8 +275,14 @@ if (MAGMA_ENABLE_CUDA)
         message( FATAL_ERROR "GPU_TARGET must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
     endif()
 
-    set( CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -Xcompiler -fPIC ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )
-    #add_definitions( "-DMAGMA_HAVE_CUDA -DMAGMA_CUDA_ARCH_MIN=${MIN_ARCH}" )
+    set(CUDA_ARCHITECTURES "${__cuda_architectures}")
+
+    add_library(magma_nvcc_flags INTERFACE)
+    target_compile_options(magma_nvcc_flags
+        INTERFACE
+        $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;-fPIC,${FORTRAN_CONVENTION}>
+    )
+
     set(MAGMA_HAVE_CUDA "1")
     set(MAGMA_CUDA_ARCH_MIN "${MIN_ARCH}")
     message( STATUS "Define -DMAGMA_HAVE_CUDA -DMAGMA_CUDA_ARCH_MIN=${MIN_ARCH}" )
@@ -311,7 +294,7 @@ endif()
 
 if (MAGMA_ENABLE_HIP)
   set( GPU_TARGET "gfx900" CACHE STRING "HIP architectures to compile for" )
-  list(APPEND CMAKE_PREFIX_PATH /opt/rocm/hip /opt/rocm)
+  list(APPEND CMAKE_PREFIX_PATH /opt/rocm /opt/rocm/hip)
   find_package( HIP )
   if (HIP_FOUND)
     message( STATUS "Found HIP ${HIP_VERSION}" )
@@ -552,12 +535,13 @@ if (WIN32)
     #message( "libmagma_all_f   ${libmagma_all_f}"   )
 
     # on Windows, Fortran files aren't compiled if listed here...
-    cuda_add_library( magma ${libmagma_all_cpp} )
+    add_library( magma ${libmagma_all_cpp} )
     target_link_libraries( magma
         ${LAPACK_LIBRARIES}
-        ${CUDA_CUDART_LIBRARY}
-        ${CUDA_CUBLAS_LIBRARIES}
-        ${CUDA_cusparse_LIBRARY}
+        CUDA::cudart
+        CUDA::cublas
+        CUDA::cusparse
+        magma_nvcc_flags
     )
 
     # no Fortran files at the moment (how to test libmagma_all_f is not empty?),
@@ -567,21 +551,23 @@ if (WIN32)
     ## add_library( magmaf ${libmagma_all_f} )
     ## target_link_libraries( magmaf
     ##     ${LAPACK_LIBRARIES}
-    ##     ${CUDA_CUDART_LIBRARY}
-    ##     ${CUDA_CUBLAS_LIBRARIES}
-    ##     ${CUDA_cusparse_LIBRARY}
+    ##     CUDA::cudart
+    ##     CUDA::cublas
+    ##     CUDA::cusparse
     ## )
     ## make list of Fortran .mod files to install, as below
 else()
     # Unix doesn't seem to have a problem with mixing C, CUDA, and Fortran files
     if (MAGMA_ENABLE_CUDA)
-      cuda_add_library( magma ${libmagma_all} )
+    #message(FATAL_ERROR "${libmagma_all}")
+      add_library( magma ${libmagma_all} )
       target_link_libraries( magma
         ${blas_fix}
         ${LAPACK_LIBRARIES}
-        ${CUDA_CUDART_LIBRARY}
-        ${CUDA_CUBLAS_LIBRARIES}
-        ${CUDA_cusparse_LIBRARY}
+        CUDA::cudart
+        CUDA::cublas
+        CUDA::cusparse
+        magma_nvcc_flags
 	)
     else()
       find_package( hipBLAS )
@@ -667,14 +653,15 @@ endif()
 include_directories( testing )
 
 if (MAGMA_ENABLE_CUDA)
-  cuda_add_library( magma_sparse ${libsparse_all} )
+  add_library( magma_sparse ${libsparse_all} )
   target_link_libraries( magma_sparse
     magma
     ${blas_fix}
     ${LAPACK_LIBRARIES}
-    ${CUDA_CUDART_LIBRARY}
-    ${CUDA_CUBLAS_LIBRARIES}
-    ${CUDA_cusparse_LIBRARY}
+    CUDA::cudart
+    CUDA::cublas
+    CUDA::cusparse
+    magma_nvcc_flags
     )
 else()
   add_library( magma_sparse ${libsparse_all} )
@@ -773,7 +760,7 @@ set( CXXFLAGS "${CMAKE_CXX_FLAGS}" )
 string( REPLACE "/System/Library/Frameworks/Accelerate.framework" "-framework Accelerate" LAPACK_LIBS "${LAPACK_LIBRARIES}" )
 if (MAGMA_ENABLE_CUDA)
   string( REPLACE ";" " " LIBS
-    "${blas_fix_lib} ${LAPACK_LIBS} ${CUDA_CUDART_LIBRARY} ${CUDA_CUBLAS_LIBRARIES} ${CUDA_cusparse_LIBRARY}" )
+    "${blas_fix_lib} ${LAPACK_LIBS} CUDA::cudart CUDA::cublas CUDA::cusparse" )
 else()
   string( REPLACE ";" " " LIBS
      "${blas_fix_lib} ${LAPACK_LIBS} ${HIP} ${rocBLAS} ${rocSPARSE}" )
@@ -802,9 +789,9 @@ message( STATUS "    blas_fix:              ${blas_fix}  (MacOS Accelerate only)
 message( STATUS "    LAPACK_LIBRARIES:      ${LAPACK_LIBRARIES}"      )
 message( STATUS "    INCLUDE_DIRECTORIES:   ${MAGMA_INCLUDE}"   )
 if (MAGMA_ENABLE_CUDA)
-  message( STATUS "    CUDA_CUDART_LIBRARY:   ${CUDA_CUDART_LIBRARY}"   )
-  message( STATUS "    CUDA_CUBLAS_LIBRARIES: ${CUDA_CUBLAS_LIBRARIES}" )
-  message( STATUS "    CUDA_cusparse_LIBRARY: ${CUDA_cusparse_LIBRARY}" )
+  message( STATUS "    CUDA_CUDART_LIBRARY:   CUDA::cudart"   )
+  message( STATUS "    CUDA_CUBLAS_LIBRARIES: CUDA::cublas" )
+  message( STATUS "    CUDA_cusparse_LIBRARY: CUDA::cusparse" )
 else()
   message( STATUS "    HIP_LIBRARY:   hip::device"   )
   message( STATUS "    HIP_BLAS_LIBRARIES: roc::hipblas" )
