@@ -144,17 +144,20 @@
 
 extern "C" {
 
-static 
-void devfunc_name(precision) (
-    int M, int N, int K,
-    const FloatingPoint_t* __restrict__ A, int LDA,
-    const FloatingPoint_t* __restrict__ B, int LDB,
-    FloatingPoint_t*       __restrict__ C, int LDC,
-    FloatingPoint_t alpha, FloatingPoint_t beta,
-    int offsetA, int offsetB )
+static void devfunc_name(precision)(
+    int M, int N, int K, const FloatingPoint_t *__restrict__ A, int LDA,
+    const FloatingPoint_t *__restrict__ B, int LDB,
+    FloatingPoint_t *__restrict__ C, int LDC, FloatingPoint_t alpha,
+    FloatingPoint_t beta, int offsetA, int offsetB, sycl::nd_item<3> item_ct1,
+    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                   sycl::access::target::local>
+        sA,
+    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                   sycl::access::target::local>
+        sB)
 {
-    int idx = threadIdx.x;  // thread's m dimension
-    int idy = threadIdx.y;  // thread's n dimension
+    int idx = item_ct1.get_local_id(2); // thread's m dimension
+    int idy = item_ct1.get_local_id(1); // thread's n dimension
 
     int idt = DIM_X * idy + idx;    // thread's global number
 
@@ -164,11 +167,11 @@ void devfunc_name(precision) (
     int idxB = idt % DIM_XB;    // idx within B
     int idyB = idt / DIM_XB;    // idy within B
 
-    int blx = blockIdx.x;   // block's m dimension
-    int bly = blockIdx.y;   // block's n dimension
+    int blx = item_ct1.get_group(2); // block's m dimension
+    int bly = item_ct1.get_group(1); // block's n dimension
 
-    FloatingPoint_t sA[BLK_K][BLK_M+1];      // +1 only required if A is transposed
-    FloatingPoint_t sB[BLK_N][BLK_K+1];      // +1 always required
+          // +1 only required if A is transposed
+          // +1 always required
 
     // Registers for the innermost loop
     FloatingPoint_t rC[THR_N][THR_M];
@@ -220,13 +223,23 @@ void devfunc_name(precision) (
         for (n = 0; n < BLK_M; n += DIM_YA)
             #pragma unroll
             for (m = 0; m < BLK_K; m += DIM_XA)
-                sA[m+idxA][n+idyA] = fetch(A, m, n, boundA);
-    #else
+                /*
+                DPCT1084:28: The function call has multiple migration results in
+                different template instantiations that could not be unified. You
+                may need to adjust the code.
+                */
+                sA[m + idxA][n + idyA] = fetch(A, m, n, boundA);
+#else
         #pragma unroll
         for (n = 0; n < BLK_K; n += DIM_YA)
             #pragma unroll
             for (m = 0; m < BLK_M; m += DIM_XA)
-                sA[n+idyA][m+idxA] = fetch(A, m, n, boundA);
+                /*
+                DPCT1084:22: The function call has multiple migration results in
+                different template instantiations that could not be unified. You
+                may need to adjust the code.
+                */
+                sA[n + idyA][m + idxA] = fetch(A, m, n, boundA);
     #endif
 
     // Load B dev->shmem
@@ -235,33 +248,48 @@ void devfunc_name(precision) (
         for (n = 0; n < BLK_K; n += DIM_YB)
             #pragma unroll
             for (m = 0; m < BLK_N; m += DIM_XB)
-                sB[m+idxB][n+idyB] = fetch(B, m, n, boundB);
-    #else
+                /*
+                DPCT1084:26: The function call has multiple migration results in
+                different template instantiations that could not be unified. You
+                may need to adjust the code.
+                */
+                sB[m + idxB][n + idyB] = fetch(B, m, n, boundB);
+#else
         #pragma unroll
         for (n = 0; n < BLK_N; n += DIM_YB)
             #pragma unroll
             for (m = 0; m < BLK_K; m += DIM_XB)
-                sB[n+idyB][m+idxB] = fetch(B, m, n, boundB);
+                /*
+                DPCT1084:23: The function call has multiple migration results in
+                different template instantiations that could not be unified. You
+                may need to adjust the code.
+                */
+                sB[n + idyB][m + idxB] = fetch(B, m, n, boundB);
     #endif
 
-    __syncthreads();
+    /*
+    DPCT1065:1: Consider replacing sycl::nd_item::barrier() with
+    sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
+    performance if there is no access to global memory.
+    */
+    item_ct1.barrier();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K)
     {
-        #ifdef TRANS_A
-            offs_dA += BLK_K;
-            boundA  -= BLK_K;
-        #else
-            offs_dA += BLK_K*LDA;
-            boundA  -= BLK_K*LDA;
-        #endif
-        #ifdef TRANS_B
-            offs_dB += BLK_K*LDB;
-            boundB  -= BLK_K*LDB;
-        #else
-            offs_dB += BLK_K;
-            boundB  -= BLK_K;
-        #endif
+            #ifdef TRANS_A
+                offs_dA += BLK_K;
+                boundA  -= BLK_K;
+            #else
+                offs_dA += BLK_K*LDA;
+                boundA  -= BLK_K*LDA;
+            #endif
+            #ifdef TRANS_B
+                offs_dB += BLK_K*LDB;
+                boundB  -= BLK_K*LDB;
+            #else
+                offs_dB += BLK_K;
+                boundB  -= BLK_K;
+            #endif
 
         // Load A dev->regs
         #ifdef TRANS_A
@@ -269,13 +297,23 @@ void devfunc_name(precision) (
             for (n = 0; n < BLK_M/DIM_YA; n++)
                 #pragma unroll
                 for (m = 0; m < BLK_K/DIM_XA; m++)
-                    ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
-        #else
+                    /*
+                    DPCT1084:29: The function call has multiple migration
+                    results in different template instantiations that could not
+                    be unified. You may need to adjust the code.
+                    */
+                    ra[n][m] = fetch(A, m * DIM_XA, n * DIM_YA, boundA);
+#else
             #pragma unroll
             for (n = 0; n < BLK_K/DIM_YA; n++)
                 #pragma unroll
                 for (m = 0; m < BLK_M/DIM_XA; m++)
-                    ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
+                    /*
+                    DPCT1084:24: The function call has multiple migration
+                    results in different template instantiations that could not
+                    be unified. You may need to adjust the code.
+                    */
+                    ra[n][m] = fetch(A, m * DIM_XA, n * DIM_YA, boundA);
         #endif
 
         // Load B dev->regs
@@ -284,13 +322,23 @@ void devfunc_name(precision) (
             for (n = 0; n < BLK_K/DIM_YB; n++)
                 #pragma unroll
                 for (m = 0; m < BLK_N/DIM_XB; m++)
-                    rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
-        #else
+                    /*
+                    DPCT1084:27: The function call has multiple migration
+                    results in different template instantiations that could not
+                    be unified. You may need to adjust the code.
+                    */
+                    rb[n][m] = fetch(B, m * DIM_XB, n * DIM_YB, boundB);
+#else
             #pragma unroll
             for (n = 0; n < BLK_N/DIM_YB; n++)
                 #pragma unroll
                 for (m = 0; m < BLK_K/DIM_XB; m++)
-                    rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
+                    /*
+                    DPCT1084:25: The function call has multiple migration
+                    results in different template instantiations that could not
+                    be unified. You may need to adjust the code.
+                    */
+                    rb[n][m] = fetch(B, m * DIM_XB, n * DIM_YB, boundB);
         #endif
 
         // Multiply
@@ -329,7 +377,12 @@ void devfunc_name(precision) (
             }
         }
 
-        __syncthreads();
+        /*
+        DPCT1065:2: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
 
         // Load A regs->shmem
         #ifdef TRANS_A
@@ -361,7 +414,12 @@ void devfunc_name(precision) (
                     sB[n*DIM_YB+idyB][m*DIM_XB+idxB] = rb[n][m];
         #endif
 
-        __syncthreads();
+        /*
+        DPCT1065:3: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
     }
 
     // Multiply last full (BLK_K) or partial block of
