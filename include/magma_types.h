@@ -184,8 +184,7 @@ typedef double real_Double_t;
     #define MAGMA_Z_DIV(a, b)     ((a)/(b))                  ///< @return (a / b).
     #define MAGMA_Z_ABS(a)        abs(a)                     ///< @return absolute value, |a| = sqrt( real(a)^2 + imag(a)^2 ).
     #define MAGMA_Z_ABS1(a)       (fabs((a).real()) + fabs((a).imag()))   ///< @return 1-norm absolute value, | real(a) | + | imag(a) |.
-    #define MAGMA_Z_CONJ(a)       conj(a)                     ///< @return conjugate of a.
-    // TODO: fix these and also conj() usage from MKL
+    #define MAGMA_Z_CONJ(a)       magmaConj(a)                     ///< @return conjugate of a.
     static inline magmaDoubleComplex magmaConj(magmaDoubleComplex a) {
         return MAGMA_Z_MAKE(a.real(), -a.imag());
     }
@@ -202,7 +201,7 @@ typedef double real_Double_t;
     #define MAGMA_C_DIV(a, b)     ((a)/(b))
     #define MAGMA_C_ABS(a)        abs(a)
     #define MAGMA_C_ABS1(a)       (fabs((a).real()) + fabs((a).imag()))
-    #define MAGMA_C_CONJ(a)       conj(a)
+    #define MAGMA_C_CONJ(a)       magmaConjf(a)
     static inline magmaFloatComplex magmaConjf(magmaFloatComplex a) {
         return MAGMA_C_MAKE(a.real(), -a.imag());
     }
