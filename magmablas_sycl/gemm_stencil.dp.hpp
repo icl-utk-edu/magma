@@ -151,20 +151,10 @@ void devfunc_name(precision) (
     const FloatingPoint_t* __restrict__ B, int LDB,
     FloatingPoint_t*       __restrict__ C, int LDC,
     FloatingPoint_t alpha, FloatingPoint_t beta,
-    int offsetA, int offsetB , sycl::nd_item<3> item_ct1,
-    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write, sycl::access::target::local> sB,
-    dpct::image_accessor_ext<sycl::int4, 1> tex_ref_Amagma_z,
-    dpct::image_accessor_ext<sycl::int4, 1> tex_ref_Bmagma_z,
-    dpct::image_accessor_ext<sycl::float2, 1> tex_ref_Amagma_c,
-    dpct::image_accessor_ext<sycl::float2, 1> tex_ref_Bmagma_c,
-    dpct::image_accessor_ext<sycl::int2, 1> tex_ref_Amagma_d,
-    dpct::image_accessor_ext<sycl::int2, 1> tex_ref_Bmagma_d,
-    dpct::image_accessor_ext<float, 1> tex_ref_Amagma_s,
-    dpct::image_accessor_ext<float, 1> tex_ref_Bmagma_s)
+    int offsetA, int offsetB )
 {
-    int idx = item_ct1.get_local_id(2); // thread's m dimension
-    int idy = item_ct1.get_local_id(1); // thread's n dimension
+    int idx = threadIdx.x;  // thread's m dimension
+    int idy = threadIdx.y;  // thread's n dimension
 
     int idt = DIM_X * idy + idx;    // thread's global number
 
@@ -174,11 +164,11 @@ void devfunc_name(precision) (
     int idxB = idt % DIM_XB;    // idx within B
     int idyB = idt / DIM_XB;    // idy within B
 
-    int blx = item_ct1.get_group(2); // block's m dimension
-    int bly = item_ct1.get_group(1); // block's n dimension
+    int blx = blockIdx.x;   // block's m dimension
+    int bly = blockIdx.y;   // block's n dimension
 
-          // +1 only required if A is transposed
-          // +1 always required
+    FloatingPoint_t sA[BLK_K][BLK_M+1];      // +1 only required if A is transposed
+    FloatingPoint_t sB[BLK_N][BLK_K+1];      // +1 always required
 
     // Registers for the innermost loop
     FloatingPoint_t rC[THR_N][THR_M];
@@ -197,34 +187,21 @@ void devfunc_name(precision) (
         FloatingPoint_t rb[BLK_N/DIM_YB][BLK_K/DIM_XB];
     #endif
 
-    #ifdef TEXTURE_1D
-        #ifdef TRANS_A
-            int coord_A = offsetA + blx*BLK_M*LDA + idyA*LDA + idxA;
-        #else
-            int coord_A = offsetA + blx*BLK_M     + idyA*LDA + idxA;
-        #endif
-        #ifdef TRANS_B
-            int coord_B = offsetB + bly*BLK_N     + idyB*LDB + idxB;
-        #else
-            int coord_B = offsetB + bly*BLK_N*LDB + idyB*LDB + idxB;
-        #endif
+    // bound is the correction to offs_d in order to not get out of memory bound
+    // so bound could be negative value since offs_d could be out of bound
+    #ifdef TRANS_A
+        const FloatingPoint_t *offs_dA = A + blx*BLK_M*LDA + idyA*LDA + idxA;
+        ptrdiff_t boundA = (LDA*(M-1) + K) - ( blx*BLK_M*LDA + idyA*LDA + idxA ) -1;
     #else
-        // bound is the correction to offs_d in order to not get out of memory bound
-        // so bound could be negative value since offs_d could be out of bound
-        #ifdef TRANS_A
-            const FloatingPoint_t *offs_dA = A + blx*BLK_M*LDA + idyA*LDA + idxA;
-            ptrdiff_t boundA = (LDA*(M-1) + K) - ( blx*BLK_M*LDA + idyA*LDA + idxA ) -1;
-        #else
-            const FloatingPoint_t *offs_dA = A + blx*BLK_M     + idyA*LDA + idxA;
-            ptrdiff_t boundA = (LDA*(K-1) + M) - ( blx*BLK_M  + idyA*LDA + idxA ) -1;
-        #endif
-        #ifdef TRANS_B
-            const FloatingPoint_t *offs_dB = B + bly*BLK_N     + idyB*LDB + idxB;
-            ptrdiff_t boundB = (LDB*(K-1) + N) - ( bly*BLK_N     + idyB*LDB + idxB ) -1;
-        #else
-            const FloatingPoint_t *offs_dB = B + bly*BLK_N*LDB + idyB*LDB + idxB;
-            ptrdiff_t boundB = (LDB*(N-1) + K) - ( bly*BLK_N*LDB + idyB*LDB + idxB ) -1;
-        #endif
+        const FloatingPoint_t *offs_dA = A + blx*BLK_M     + idyA*LDA + idxA;
+        ptrdiff_t boundA = (LDA*(K-1) + M) - ( blx*BLK_M  + idyA*LDA + idxA ) -1;
+    #endif
+    #ifdef TRANS_B
+        const FloatingPoint_t *offs_dB = B + bly*BLK_N     + idyB*LDB + idxB;
+        ptrdiff_t boundB = (LDB*(K-1) + N) - ( bly*BLK_N     + idyB*LDB + idxB ) -1;
+    #else
+        const FloatingPoint_t *offs_dB = B + bly*BLK_N*LDB + idyB*LDB + idxB;
+        ptrdiff_t boundB = (LDB*(N-1) + K) - ( bly*BLK_N*LDB + idyB*LDB + idxB ) -1;
     #endif
 
     int m, n, k, kk;
@@ -243,23 +220,13 @@ void devfunc_name(precision) (
         for (n = 0; n < BLK_M; n += DIM_YA)
             #pragma unroll
             for (m = 0; m < BLK_K; m += DIM_XA)
-                /*
-                DPCT1084:16: The function call has multiple migration results in
-                different template instantiations that could not be unified. You
-                may need to adjust the code.
-                */
-                sA[m + idxA][n + idyA] = fetch(A, m, n, boundA);
-#else
+                sA[m+idxA][n+idyA] = fetch(A, m, n, boundA);
+    #else
         #pragma unroll
         for (n = 0; n < BLK_K; n += DIM_YA)
             #pragma unroll
             for (m = 0; m < BLK_M; m += DIM_XA)
-                /*
-                DPCT1084:10: The function call has multiple migration results in
-                different template instantiations that could not be unified. You
-                may need to adjust the code.
-                */
-                sA[n + idyA][m + idxA] = fetch(A, m, n, boundA);
+                sA[n+idyA][m+idxA] = fetch(A, m, n, boundA);
     #endif
 
     // Load B dev->shmem
@@ -268,60 +235,32 @@ void devfunc_name(precision) (
         for (n = 0; n < BLK_K; n += DIM_YB)
             #pragma unroll
             for (m = 0; m < BLK_N; m += DIM_XB)
-                /*
-                DPCT1084:14: The function call has multiple migration results in
-                different template instantiations that could not be unified. You
-                may need to adjust the code.
-                */
-                sB[m + idxB][n + idyB] = fetch(B, m, n, boundB);
-#else
+                sB[m+idxB][n+idyB] = fetch(B, m, n, boundB);
+    #else
         #pragma unroll
         for (n = 0; n < BLK_N; n += DIM_YB)
             #pragma unroll
             for (m = 0; m < BLK_K; m += DIM_XB)
-                /*
-                DPCT1084:11: The function call has multiple migration results in
-                different template instantiations that could not be unified. You
-                may need to adjust the code.
-                */
-                sB[n + idyB][m + idxB] = fetch(B, m, n, boundB);
+                sB[n+idyB][m+idxB] = fetch(B, m, n, boundB);
     #endif
 
-    /*
-    DPCT1065:3: Consider replacing sycl::nd_item::barrier() with
-    sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
-    performance if there is no access to global memory.
-    */
-    item_ct1.barrier();
+    __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K)
     {
-        #ifdef TEXTURE_1D
-            #ifdef TRANS_A
-                coord_A += BLK_K;
-            #else
-                coord_A += BLK_K*LDA;
-            #endif
-            #ifdef TRANS_B
-                coord_B += BLK_K*LDB;
-            #else
-                coord_B += BLK_K;
-            #endif
+        #ifdef TRANS_A
+            offs_dA += BLK_K;
+            boundA  -= BLK_K;
         #else
-            #ifdef TRANS_A
-                offs_dA += BLK_K;
-                boundA  -= BLK_K;
-            #else
-                offs_dA += BLK_K*LDA;
-                boundA  -= BLK_K*LDA;
-            #endif
-            #ifdef TRANS_B
-                offs_dB += BLK_K*LDB;
-                boundB  -= BLK_K*LDB;
-            #else
-                offs_dB += BLK_K;
-                boundB  -= BLK_K;
-            #endif
+            offs_dA += BLK_K*LDA;
+            boundA  -= BLK_K*LDA;
+        #endif
+        #ifdef TRANS_B
+            offs_dB += BLK_K*LDB;
+            boundB  -= BLK_K*LDB;
+        #else
+            offs_dB += BLK_K;
+            boundB  -= BLK_K;
         #endif
 
         // Load A dev->regs
@@ -330,23 +269,13 @@ void devfunc_name(precision) (
             for (n = 0; n < BLK_M/DIM_YA; n++)
                 #pragma unroll
                 for (m = 0; m < BLK_K/DIM_XA; m++)
-                    /*
-                    DPCT1084:17: The function call has multiple migration
-                    results in different template instantiations that could not
-                    be unified. You may need to adjust the code.
-                    */
-                    ra[n][m] = fetch(A, m * DIM_XA, n * DIM_YA, boundA);
-#else
+                    ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
+        #else
             #pragma unroll
             for (n = 0; n < BLK_K/DIM_YA; n++)
                 #pragma unroll
                 for (m = 0; m < BLK_M/DIM_XA; m++)
-                    /*
-                    DPCT1084:12: The function call has multiple migration
-                    results in different template instantiations that could not
-                    be unified. You may need to adjust the code.
-                    */
-                    ra[n][m] = fetch(A, m * DIM_XA, n * DIM_YA, boundA);
+                    ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
         #endif
 
         // Load B dev->regs
@@ -355,23 +284,13 @@ void devfunc_name(precision) (
             for (n = 0; n < BLK_K/DIM_YB; n++)
                 #pragma unroll
                 for (m = 0; m < BLK_N/DIM_XB; m++)
-                    /*
-                    DPCT1084:15: The function call has multiple migration
-                    results in different template instantiations that could not
-                    be unified. You may need to adjust the code.
-                    */
-                    rb[n][m] = fetch(B, m * DIM_XB, n * DIM_YB, boundB);
-#else
+                    rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
+        #else
             #pragma unroll
             for (n = 0; n < BLK_N/DIM_YB; n++)
                 #pragma unroll
                 for (m = 0; m < BLK_K/DIM_XB; m++)
-                    /*
-                    DPCT1084:13: The function call has multiple migration
-                    results in different template instantiations that could not
-                    be unified. You may need to adjust the code.
-                    */
-                    rb[n][m] = fetch(B, m * DIM_XB, n * DIM_YB, boundB);
+                    rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
         #endif
 
         // Multiply
@@ -410,12 +329,7 @@ void devfunc_name(precision) (
             }
         }
 
-        /*
-        DPCT1065:4: Consider replacing sycl::nd_item::barrier() with
-        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
-        better performance if there is no access to global memory.
-        */
-        item_ct1.barrier();
+        __syncthreads();
 
         // Load A regs->shmem
         #ifdef TRANS_A
@@ -447,12 +361,7 @@ void devfunc_name(precision) (
                     sB[n*DIM_YB+idyB][m*DIM_XB+idxB] = rb[n][m];
         #endif
 
-        /*
-        DPCT1065:5: Consider replacing sycl::nd_item::barrier() with
-        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
-        better performance if there is no access to global memory.
-        */
-        item_ct1.barrier();
+        __syncthreads();
     }
 
     // Multiply last full (BLK_K) or partial block of
