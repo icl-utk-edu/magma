@@ -39,6 +39,7 @@
 #endif
 
 // =============================================================================
+#define fetch(A, m, n, bound) offs_d##A[min(n*LD##A+m, bound)]
 
 #ifdef COMPLEX
   #ifdef DOUBLE
