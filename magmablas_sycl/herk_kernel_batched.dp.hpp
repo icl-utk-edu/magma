@@ -38,12 +38,5 @@ void batched_herk_kernel_name(precision)(
 
     int batchid = blockIdx.z;
     
-    #ifdef TEXTURE_1D
-    //printf("error zherk_fermi_kernel not implemented \n");
-    return;
-    offsetA += batchid*LDA*512;
-    offsetB += batchid*LDB*512;
-    #endif
-    
     devfunc_name(precision)( N, N, K, Aarray[batchid], LDA, Barray[batchid], LDB, Carray[batchid], LDC, alpha, beta, offsetA, offsetB );
 }
