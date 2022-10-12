@@ -223,7 +223,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+  ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
        sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
@@ -248,7 +248,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+  ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
        sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
@@ -273,7 +273,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+  ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
        sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
@@ -298,7 +298,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+  ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
        sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
@@ -323,7 +323,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+  ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
        sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
@@ -348,7 +348,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+  ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
        sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
@@ -373,7 +373,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+  ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
        sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
@@ -398,7 +398,7 @@ magmablas_zgemm(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+  ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
        sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
@@ -423,7 +423,7 @@ magmablas_zgemm(
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+  ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
        sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
