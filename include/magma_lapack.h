@@ -51,7 +51,7 @@ extern "C" {
 #if defined(MAGMA_HAVE_SYCL)
     #define LAPACK_EXCEPT noexcept;
 #else 
-    #define LAPACK_EXCEPT 
+    #define LAPACK_EXCEPT ;
 #endif
 
 magma_int_t lapackf77_ieeeck( const magma_int_t *ispec, const float *zero, const float *one ) LAPACK_EXCEPT
