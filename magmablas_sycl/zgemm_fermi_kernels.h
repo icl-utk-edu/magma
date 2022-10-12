@@ -21,11 +21,6 @@
 // =============================================================================
 #define COMPLEX
 #define DOUBLE
-#ifdef MAGMA_HAVE_CUDA
-  #define TEXTURE_1D
-#endif
-
-
 
 #include "gemm_stencil_defs.h"
 
