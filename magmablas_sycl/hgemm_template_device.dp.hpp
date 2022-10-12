@@ -13,12 +13,6 @@
 
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
-  // for CUDA_VERSION
-#if CUDA_VERSION >= 9000 && DPCT_COMPATIBILITY_TEMP >= 700
-#include <mma.h>
-using namespace nvcuda;
-#endif
-
 #include "sync.dp.hpp"
 
 #define WARP_SIZE 32
@@ -31,7 +25,7 @@ template<const int nthreads>
 __inline__ void sync(sycl::nd_item<3> item_ct1)
 {
     /*
-    DPCT1065:175: Consider replacing sycl::nd_item::barrier() with
+    DPCT1065:0: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
     performance if there is no access to global memory.
     */
@@ -162,9 +156,8 @@ store_half_reg2smem_trans(magmaHalf rA[ceildiv(BLK_C,DIM_Y)][ceildiv(BLK_R,DIM_X
 // sB is BLK_K x BLK_N
 // sC is BLK_M x BLK_N
 // multiple warps do the multiplication
-#if CUDA_VERSION >= 9000 && DPCT_COMPATIBILITY_TEMP >= 700
 template<typename T, const int BLK_M, const int BLK_N, const int BLK_K, const int TC_M, const int TC_N, const int TC_K, const int NWARPS, const int NFRAG>
-__device__ __inline__ void 
+__inline__ void 
 tc_multiply(T* sA, T* sB, wmma::fragment<wmma::accumulator, TC_M, TC_N, TC_K, T> fC[NFRAG], 
             const int tid, const int wid, const int nbx, const int nby, const int nblks)
 {
@@ -204,20 +197,21 @@ tc_multiply(T* sA, T* sB, wmma::fragment<wmma::accumulator, TC_M, TC_N, TC_K, T>
         }
     }
 }
-#endif    //CUDA_VERSION >= 9000 && __CUDA_ARCH__ >= 700
 
 /******************************************************************************/
-template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M,
-          const int BLK_N, const int BLK_K, const int TC_M, const int TC_N,
-          const int TC_K>
-static void hgemm_template_device_nn(int M, int N, int K, const sycl::half *A,
-                                     int LDA, const sycl::half *B, int LDB,
-                                     T *C, int LDC, T alpha, T beta, T *sA,
-                                     T *sB, T *sC)
+template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, const int TC_M, const int TC_N, const int TC_K>
+static 
+void hgemm_template_device_nn(
+    int M, int N, int K,
+    const T* A, int LDA,
+    const T* B, int LDB,
+    T*       C, int LDC,
+    T alpha, T beta, 
+    T* sA, T* sB, T* sC, sycl::nd_item<3> item_ct1)
 {
-#if CUDA_VERSION >= 9000 && DPCT_COMPATIBILITY_TEMP >= 700
-    // thread indexing 
-    const int tid    = threadIdx.x;       // assume a 1D config with DIM_X * DIM_Y threads 
+    // thread indexing
+    const int tid = item_ct1.get_local_id(
+        2); // assume a 1D config with DIM_X * DIM_Y threads
     const int tx     = tid % DIM_X;       
     const int ty     = tid / DIM_X;       
     const int wid    = tid / WARP_SIZE;
@@ -227,8 +221,8 @@ static void hgemm_template_device_nn(int M, int N, int K, const sycl::half *A,
     const int nfrag  = ceildiv(nblks, NWRPS);
 
     // block indexing
-    int bx = blockIdx.x;
-    int by = blockIdx.y;
+    int bx = item_ct1.get_group(2);
+    int by = item_ct1.get_group(1);
 
     // fC
     wmma::fragment<wmma::accumulator, TC_M, TC_N, TC_K, T> fC[nfrag];
@@ -276,9 +270,9 @@ static void hgemm_template_device_nn(int M, int N, int K, const sycl::half *A,
         store_half_reg2smem_notrans<DIM_X, DIM_Y, BLK_M, BLK_K>(rA, sA, tx, ty);
         store_half_reg2smem_notrans<DIM_X, DIM_Y, BLK_K, BLK_N>(rB, sB, tx, ty);
 
-        sync<DIM_X * DIM_Y>();
+        sync<DIM_X * DIM_Y>(item_ct1);
         tc_multiply<T, BLK_M, BLK_N, BLK_K, TC_M, TC_N, TC_K, NWRPS, nfrag>(sA, sB, fC, tid, wid, nbx, nby, nblks);
-        sync<DIM_X * DIM_Y>();
+        sync<DIM_X * DIM_Y>(item_ct1);
 
         A  += BLK_K * LDA;
         B  += BLK_K;
@@ -304,9 +298,9 @@ static void hgemm_template_device_nn(int M, int N, int K, const sycl::half *A,
         T* ptrC = sC + j * BLK_M + i;
         wmma::store_matrix_sync(ptrC, fC[fid], BLK_M, wmma::mem_col_major);
     }
-    sync<DIM_X * DIM_Y>();
+    sync<DIM_X * DIM_Y>(item_ct1);
 
-    #pragma unroll
+#pragma unroll
     for (n = 0; n < BLK_N/DIM_Y; n++){
         #pragma unroll
         for (m = 0; m < BLK_M/DIM_X; m++){
@@ -317,21 +311,22 @@ static void hgemm_template_device_nn(int M, int N, int K, const sycl::half *A,
             }
         }
     }
-#endif /* #if CUDA_VERSION >= 9000 && __CUDA_ARCH__ >= 700    */
 }
 
 /******************************************************************************/
-template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M,
-          const int BLK_N, const int BLK_K, const int TC_M, const int TC_N,
-          const int TC_K>
-static void hgemm_template_device_nt(int M, int N, int K, const sycl::half *A,
-                                     int LDA, const sycl::half *B, int LDB,
-                                     T *C, int LDC, T alpha, T beta, T *sA,
-                                     T *sB, T *sC)
+template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, const int TC_M, const int TC_N, const int TC_K>
+static 
+void hgemm_template_device_nt(
+    int M, int N, int K,
+    const T* A, int LDA,
+    const T* B, int LDB,
+    T*       C, int LDC,
+    T alpha, T beta, 
+    T* sA, T* sB, T* sC , sycl::nd_item<3> item_ct1)
 {
-#if CUDA_VERSION >= 9000 && DPCT_COMPATIBILITY_TEMP >= 700
-    // thread indexing 
-    const int tid    = threadIdx.x;    // assume a 1D config with DIM_X * DIM_Y threads 
+    // thread indexing
+    const int tid = item_ct1.get_local_id(
+        2); // assume a 1D config with DIM_X * DIM_Y threads
     const int tx     = tid % DIM_X;
     const int ty     = tid / DIM_X;
     const int wid    = tid / WARP_SIZE;
@@ -341,8 +336,8 @@ static void hgemm_template_device_nt(int M, int N, int K, const sycl::half *A,
     const int nfrag  = ceildiv(nblks, NWRPS);
 
     // block indexing
-    int bx = blockIdx.x;
-    int by = blockIdx.y;
+    int bx = item_ct1.get_group(2);
+    int by = item_ct1.get_group(1);
 
     // fC
     wmma::fragment<wmma::accumulator, TC_M, TC_N, TC_K, T> fC[nfrag];
@@ -389,9 +384,9 @@ static void hgemm_template_device_nt(int M, int N, int K, const sycl::half *A,
         store_half_reg2smem_notrans<DIM_X, DIM_Y, BLK_M, BLK_K>(rA, sA, tx, ty);
         store_half_reg2smem_trans<DIM_X, DIM_Y, BLK_N, BLK_K>(rB, sB, tx, ty);
 
-        sync<DIM_X * DIM_Y>();
+        sync<DIM_X * DIM_Y>(item_ct1);
         tc_multiply<T, BLK_M, BLK_N, BLK_K, TC_M, TC_N, TC_K, NWRPS, nfrag>(sA, sB, fC, tid, wid, nbx, nby, nblks);
-        sync<DIM_X * DIM_Y>();
+        sync<DIM_X * DIM_Y>(item_ct1);
 
         A  += BLK_K * LDA;
         B  += BLK_K * LDB;
@@ -417,9 +412,9 @@ static void hgemm_template_device_nt(int M, int N, int K, const sycl::half *A,
         T* ptrC = sC + j * BLK_M + i;
         wmma::store_matrix_sync(ptrC, fC[fid], BLK_M, wmma::mem_col_major);
     }
-    sync<DIM_X * DIM_Y>();
+    sync<DIM_X * DIM_Y>(item_ct1);
 
-    #pragma unroll
+#pragma unroll
     for (n = 0; n < BLK_N/DIM_Y; n++){
         #pragma unroll
         for (m = 0; m < BLK_M/DIM_X; m++){
@@ -430,21 +425,22 @@ static void hgemm_template_device_nt(int M, int N, int K, const sycl::half *A,
             }
         }
     }
-#endif /* #if CUDA_VERSION >= 9000 && __CUDA_ARCH__ >= 700    */
 }
 
 /******************************************************************************/
-template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M,
-          const int BLK_N, const int BLK_K, const int TC_M, const int TC_N,
-          const int TC_K>
-static void hgemm_template_device_tn(int M, int N, int K, const sycl::half *A,
-                                     int LDA, const sycl::half *B, int LDB,
-                                     T *C, int LDC, T alpha, T beta, T *sA,
-                                     T *sB, T *sC)
+template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, const int TC_M, const int TC_N, const int TC_K>
+static 
+void hgemm_template_device_tn(
+    int M, int N, int K,
+    const T* A, int LDA,
+    const T* B, int LDB,
+    T*       C, int LDC,
+    T alpha, T beta, 
+    T* sA, T* sB, T* sC , sycl::nd_item<3> item_ct1)
 {
-#if CUDA_VERSION >= 9000 && DPCT_COMPATIBILITY_TEMP >= 700
-    // thread indexing 
-    const int tid    = threadIdx.x;    // assume a 1D config with DIM_X * DIM_Y threads 
+    // thread indexing
+    const int tid = item_ct1.get_local_id(
+        2); // assume a 1D config with DIM_X * DIM_Y threads
     const int tx     = tid % DIM_X;
     const int ty     = tid / DIM_X;
     const int wid    = tid / WARP_SIZE;
@@ -454,8 +450,8 @@ static void hgemm_template_device_tn(int M, int N, int K, const sycl::half *A,
     const int nfrag  = ceildiv(nblks, NWRPS);
 
     // block indexing
-    int bx = blockIdx.x;
-    int by = blockIdx.y;
+    int bx = item_ct1.get_group(2);
+    int by = item_ct1.get_group(1);
 
     // fC
     wmma::fragment<wmma::accumulator, TC_M, TC_N, TC_K, T> fC[nfrag];
@@ -502,9 +498,9 @@ static void hgemm_template_device_tn(int M, int N, int K, const sycl::half *A,
         store_half_reg2smem_trans<DIM_X, DIM_Y, BLK_K, BLK_M>(rA, sA, tx, ty);
         store_half_reg2smem_notrans<DIM_X, DIM_Y, BLK_K, BLK_N>(rB, sB, tx, ty);
 
-        sync<DIM_X * DIM_Y>();
+        sync<DIM_X * DIM_Y>(item_ct1);
         tc_multiply<T, BLK_M, BLK_N, BLK_K, TC_M, TC_N, TC_K, NWRPS, nfrag>(sA, sB, fC, tid, wid, nbx, nby, nblks);
-        sync<DIM_X * DIM_Y>();
+        sync<DIM_X * DIM_Y>(item_ct1);
 
         A  += BLK_K;
         B  += BLK_K;
@@ -530,10 +526,9 @@ static void hgemm_template_device_tn(int M, int N, int K, const sycl::half *A,
         T* ptrC = sC + j * BLK_M + i;
         wmma::store_matrix_sync(ptrC, fC[fid], BLK_M, wmma::mem_col_major);
     }
-    sync<DIM_X * DIM_Y>();
+    sync<DIM_X * DIM_Y>(item_ct1);
 
-
-    #pragma unroll
+#pragma unroll
     for (n = 0; n < BLK_N/DIM_Y; n++){
         #pragma unroll
         for (m = 0; m < BLK_M/DIM_X; m++){
@@ -544,21 +539,22 @@ static void hgemm_template_device_tn(int M, int N, int K, const sycl::half *A,
             }
         }
     }
-#endif /* #if CUDA_VERSION >= 9000 && __CUDA_ARCH__ >= 700    */
 }
 
 /******************************************************************************/
-template <typename T, const int DIM_X, const int DIM_Y, const int BLK_M,
-          const int BLK_N, const int BLK_K, const int TC_M, const int TC_N,
-          const int TC_K>
-static void hgemm_template_device_tt(int M, int N, int K, const sycl::half *A,
-                                     int LDA, const sycl::half *B, int LDB,
-                                     T *C, int LDC, T alpha, T beta, T *sA,
-                                     T *sB, T *sC)
+template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K, const int TC_M, const int TC_N, const int TC_K>
+static 
+void hgemm_template_device_tt(
+    int M, int N, int K,
+    const T* A, int LDA,
+    const T* B, int LDB,
+    T*       C, int LDC,
+    T alpha, T beta, 
+    T* sA, T* sB, T* sC , sycl::nd_item<3> item_ct1)
 {
-#if CUDA_VERSION >= 9000 && DPCT_COMPATIBILITY_TEMP >= 700
-    // thread indexing 
-    const int tid    = threadIdx.x;    // assume a 1D config with DIM_X * DIM_Y threads 
+    // thread indexing
+    const int tid = item_ct1.get_local_id(
+        2); // assume a 1D config with DIM_X * DIM_Y threads
     const int tx     = tid % DIM_X;
     const int ty     = tid / DIM_X;
     const int wid    = tid / WARP_SIZE;
@@ -568,8 +564,8 @@ static void hgemm_template_device_tt(int M, int N, int K, const sycl::half *A,
     const int nfrag  = ceildiv(nblks, NWRPS);
 
     // block indexing
-    int bx = blockIdx.x;
-    int by = blockIdx.y;
+    int bx = item_ct1.get_group(2);
+    int by = item_ct1.get_group(1);
 
     // fC
     wmma::fragment<wmma::accumulator, TC_M, TC_N, TC_K, T> fC[nfrag];
@@ -616,9 +612,9 @@ static void hgemm_template_device_tt(int M, int N, int K, const sycl::half *A,
         store_half_reg2smem_trans<DIM_X, DIM_Y, BLK_K, BLK_M>(rA, sA, tx, ty);
         store_half_reg2smem_trans<DIM_X, DIM_Y, BLK_N, BLK_K>(rB, sB, tx, ty);
 
-        sync<DIM_X * DIM_Y>();
+        sync<DIM_X * DIM_Y>(item_ct1);
         tc_multiply<T, BLK_M, BLK_N, BLK_K, TC_M, TC_N, TC_K, NWRPS, nfrag>(sA, sB, fC, tid, wid, nbx, nby, nblks);
-        sync<DIM_X * DIM_Y>();
+        sync<DIM_X * DIM_Y>(item_ct1);
 
         A  += BLK_K;
         B  += BLK_K * LDB;
@@ -644,9 +640,9 @@ static void hgemm_template_device_tt(int M, int N, int K, const sycl::half *A,
         T* ptrC = sC + j * BLK_M + i;
         wmma::store_matrix_sync(ptrC, fC[fid], BLK_M, wmma::mem_col_major);
     }
-    sync<DIM_X * DIM_Y>();
+    sync<DIM_X * DIM_Y>(item_ct1);
 
-    #pragma unroll
+#pragma unroll
     for (n = 0; n < BLK_N/DIM_Y; n++){
         #pragma unroll
         for (m = 0; m < BLK_M/DIM_X; m++){
@@ -657,7 +653,6 @@ static void hgemm_template_device_tt(int M, int N, int K, const sycl::half *A,
             }
         }
     }
-#endif /* #if CUDA_VERSION >= 9000 && __CUDA_ARCH__ >= 700    */
 }
 
 #endif //HGEMM_TEMPLATE_DEVICE_CUH
