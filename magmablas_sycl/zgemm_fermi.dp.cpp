@@ -219,145 +219,226 @@ magmablas_zgemm(
         sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N_nn),
                                magma_ceildiv(m, BLK_M_nn));
         /*
-        DPCT1049:0: The work-group size passed to the SYCL kernel may exceed the
+        DPCT1049:3: The work-group size passed to the SYCL kernel may exceed the
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->sycl_stream()))
-      ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
-                     [=](sycl::nd_item<3> item_ct1) {
-                      zgemm_kernel_fermi_nn(m, n, k, dA, ldda, dB, lddb, dC,
-                                            lddc, alpha, beta, (int)offsetA,
-                                            (int)offsetB);
-                     });
+  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+
+   cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
+                    [=](sycl::nd_item<3> item_ct1) {
+                     zgemm_kernel_fermi_nn(m, n, k, dA, ldda, dB, lddb, dC,
+                                           lddc, alpha, beta, (int)offsetA,
+                                           (int)offsetB, item_ct1, sA_acc_ct1,
+                                           sB_acc_ct1);
+                    });
+  });
     }
     else if ( TransA == 0 && TransB == 1 ) {
         sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N_nt),
                                magma_ceildiv(m, BLK_M_nt));
         /*
-        DPCT1049:1: The work-group size passed to the SYCL kernel may exceed the
+        DPCT1049:4: The work-group size passed to the SYCL kernel may exceed the
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->sycl_stream()))
-      ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
-                     [=](sycl::nd_item<3> item_ct1) {
-                      zgemm_kernel_fermi_nt(m, n, k, dA, ldda, dB, lddb, dC,
-                                            lddc, alpha, beta, (int)offsetA,
-                                            (int)offsetB);
-                     });
+  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+
+   cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
+                    [=](sycl::nd_item<3> item_ct1) {
+                     zgemm_kernel_fermi_nt(m, n, k, dA, ldda, dB, lddb, dC,
+                                           lddc, alpha, beta, (int)offsetA,
+                                           (int)offsetB, item_ct1, sA_acc_ct1,
+                                           sB_acc_ct1);
+                    });
+  });
     }
     else if ( TransA == 0 && TransB == 2 ) {
         sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N_nc),
                                magma_ceildiv(m, BLK_M_nc));
         /*
-        DPCT1049:2: The work-group size passed to the SYCL kernel may exceed the
+        DPCT1049:5: The work-group size passed to the SYCL kernel may exceed the
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->sycl_stream()))
-      ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
-                     [=](sycl::nd_item<3> item_ct1) {
-                      zgemm_kernel_fermi_nc(m, n, k, dA, ldda, dB, lddb, dC,
-                                            lddc, alpha, beta, (int)offsetA,
-                                            (int)offsetB);
-                     });
+  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+
+   cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
+                    [=](sycl::nd_item<3> item_ct1) {
+                     zgemm_kernel_fermi_nc(m, n, k, dA, ldda, dB, lddb, dC,
+                                           lddc, alpha, beta, (int)offsetA,
+                                           (int)offsetB, item_ct1, sA_acc_ct1,
+                                           sB_acc_ct1);
+                    });
+  });
     }
     else if ( TransA == 1 && TransB == 0 ) {
         sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N_tn),
                                magma_ceildiv(m, BLK_M_tn));
         /*
-        DPCT1049:3: The work-group size passed to the SYCL kernel may exceed the
+        DPCT1049:6: The work-group size passed to the SYCL kernel may exceed the
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->sycl_stream()))
-      ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
-                     [=](sycl::nd_item<3> item_ct1) {
-                      zgemm_kernel_fermi_tn(m, n, k, dA, ldda, dB, lddb, dC,
-                                            lddc, alpha, beta, (int)offsetA,
-                                            (int)offsetB);
-                     });
+  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+
+   cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
+                    [=](sycl::nd_item<3> item_ct1) {
+                     zgemm_kernel_fermi_tn(m, n, k, dA, ldda, dB, lddb, dC,
+                                           lddc, alpha, beta, (int)offsetA,
+                                           (int)offsetB, item_ct1, sA_acc_ct1,
+                                           sB_acc_ct1);
+                    });
+  });
     }
     else if ( TransA == 1 && TransB == 1 ) {
         sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N_tt),
                                magma_ceildiv(m, BLK_M_tt));
         /*
-        DPCT1049:4: The work-group size passed to the SYCL kernel may exceed the
+        DPCT1049:7: The work-group size passed to the SYCL kernel may exceed the
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->sycl_stream()))
-      ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
-                     [=](sycl::nd_item<3> item_ct1) {
-                      zgemm_kernel_fermi_tt(m, n, k, dA, ldda, dB, lddb, dC,
-                                            lddc, alpha, beta, (int)offsetA,
-                                            (int)offsetB);
-                     });
+  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+
+   cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
+                    [=](sycl::nd_item<3> item_ct1) {
+                     zgemm_kernel_fermi_tt(m, n, k, dA, ldda, dB, lddb, dC,
+                                           lddc, alpha, beta, (int)offsetA,
+                                           (int)offsetB, item_ct1, sA_acc_ct1,
+                                           sB_acc_ct1);
+                    });
+  });
     }
     else if ( TransA == 1 && TransB == 2 ) {
         sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N_tc),
                                magma_ceildiv(m, BLK_M_tc));
         /*
-        DPCT1049:5: The work-group size passed to the SYCL kernel may exceed the
+        DPCT1049:8: The work-group size passed to the SYCL kernel may exceed the
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->sycl_stream()))
-      ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
-                     [=](sycl::nd_item<3> item_ct1) {
-                      zgemm_kernel_fermi_tc(m, n, k, dA, ldda, dB, lddb, dC,
-                                            lddc, alpha, beta, (int)offsetA,
-                                            (int)offsetB);
-                     });
+  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+
+   cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
+                    [=](sycl::nd_item<3> item_ct1) {
+                     zgemm_kernel_fermi_tc(m, n, k, dA, ldda, dB, lddb, dC,
+                                           lddc, alpha, beta, (int)offsetA,
+                                           (int)offsetB, item_ct1, sA_acc_ct1,
+                                           sB_acc_ct1);
+                    });
+  });
     }
     else if ( TransA == 2 && TransB == 0 ) {
         sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N_cn),
                                magma_ceildiv(m, BLK_M_cn));
         /*
-        DPCT1049:6: The work-group size passed to the SYCL kernel may exceed the
+        DPCT1049:9: The work-group size passed to the SYCL kernel may exceed the
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->sycl_stream()))
-      ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
-                     [=](sycl::nd_item<3> item_ct1) {
-                      zgemm_kernel_fermi_cn(m, n, k, dA, ldda, dB, lddb, dC,
-                                            lddc, alpha, beta, (int)offsetA,
-                                            (int)offsetB);
-                     });
+  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+
+   cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
+                    [=](sycl::nd_item<3> item_ct1) {
+                     zgemm_kernel_fermi_cn(m, n, k, dA, ldda, dB, lddb, dC,
+                                           lddc, alpha, beta, (int)offsetA,
+                                           (int)offsetB, item_ct1, sA_acc_ct1,
+                                           sB_acc_ct1);
+                    });
+  });
     }
     else if ( TransA == 2 && TransB == 1 ) {
         sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N_ct),
                                magma_ceildiv(m, BLK_M_ct));
         /*
-        DPCT1049:7: The work-group size passed to the SYCL kernel may exceed the
-        limit. To get the device limit, query info::device::max_work_group_size.
-        Adjust the work-group size if needed.
+        DPCT1049:10: The work-group size passed to the SYCL kernel may exceed
+        the limit. To get the device limit, query
+        info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->sycl_stream()))
-      ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
-                     [=](sycl::nd_item<3> item_ct1) {
-                      zgemm_kernel_fermi_ct(m, n, k, dA, ldda, dB, lddb, dC,
-                                            lddc, alpha, beta, (int)offsetA,
-                                            (int)offsetB);
-                     });
+  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+
+   cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
+                    [=](sycl::nd_item<3> item_ct1) {
+                     zgemm_kernel_fermi_ct(m, n, k, dA, ldda, dB, lddb, dC,
+                                           lddc, alpha, beta, (int)offsetA,
+                                           (int)offsetB, item_ct1, sA_acc_ct1,
+                                           sB_acc_ct1);
+                    });
+  });
     }
     else if ( TransA == 2 && TransB == 2 ) {
         sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N_cc),
                                magma_ceildiv(m, BLK_M_cc));
         /*
-        DPCT1049:8: The work-group size passed to the SYCL kernel may exceed the
-        limit. To get the device limit, query info::device::max_work_group_size.
-        Adjust the work-group size if needed.
+        DPCT1049:11: The work-group size passed to the SYCL kernel may exceed
+        the limit. To get the device limit, query
+        info::device::max_work_group_size. Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->sycl_stream()))
-      ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
-                     [=](sycl::nd_item<3> item_ct1) {
-                      zgemm_kernel_fermi_cc(m, n, k, dA, ldda, dB, lddb, dC,
-                                            lddc, alpha, beta, (int)offsetA,
-                                            (int)offsetB);
-                     });
+  ((sycl::queue *)(queue->cuda_stream()))->submit([&](sycl::handler &cgh) {
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+   sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
+                  sycl::access::target::local>
+       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+
+   cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
+                    [=](sycl::nd_item<3> item_ct1) {
+                     zgemm_kernel_fermi_cc(m, n, k, dA, ldda, dB, lddb, dC,
+                                           lddc, alpha, beta, (int)offsetA,
+                                           (int)offsetB, item_ct1, sA_acc_ct1,
+                                           sB_acc_ct1);
+                    });
+  });
     }
 
 }
