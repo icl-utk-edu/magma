@@ -223,7 +223,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))
+  ((sycl::queue *)(queue->sycl_stream()))
       ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                      [=](sycl::nd_item<3> item_ct1) {
                       zgemm_kernel_fermi_nn(m, n, k, dA, ldda, dB, lddb, dC,
@@ -239,7 +239,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))
+  ((sycl::queue *)(queue->sycl_stream()))
       ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                      [=](sycl::nd_item<3> item_ct1) {
                       zgemm_kernel_fermi_nt(m, n, k, dA, ldda, dB, lddb, dC,
@@ -255,7 +255,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))
+  ((sycl::queue *)(queue->sycl_stream()))
       ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                      [=](sycl::nd_item<3> item_ct1) {
                       zgemm_kernel_fermi_nc(m, n, k, dA, ldda, dB, lddb, dC,
@@ -271,7 +271,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))
+  ((sycl::queue *)(queue->sycl_stream()))
       ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                      [=](sycl::nd_item<3> item_ct1) {
                       zgemm_kernel_fermi_tn(m, n, k, dA, ldda, dB, lddb, dC,
@@ -287,7 +287,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))
+  ((sycl::queue *)(queue->sycl_stream()))
       ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                      [=](sycl::nd_item<3> item_ct1) {
                       zgemm_kernel_fermi_tt(m, n, k, dA, ldda, dB, lddb, dC,
@@ -303,7 +303,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))
+  ((sycl::queue *)(queue->sycl_stream()))
       ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                      [=](sycl::nd_item<3> item_ct1) {
                       zgemm_kernel_fermi_tc(m, n, k, dA, ldda, dB, lddb, dC,
@@ -319,7 +319,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))
+  ((sycl::queue *)(queue->sycl_stream()))
       ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                      [=](sycl::nd_item<3> item_ct1) {
                       zgemm_kernel_fermi_cn(m, n, k, dA, ldda, dB, lddb, dC,
@@ -335,7 +335,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))
+  ((sycl::queue *)(queue->sycl_stream()))
       ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                      [=](sycl::nd_item<3> item_ct1) {
                       zgemm_kernel_fermi_ct(m, n, k, dA, ldda, dB, lddb, dC,
@@ -351,7 +351,7 @@ magmablas_zgemm(
         limit. To get the device limit, query info::device::max_work_group_size.
         Adjust the work-group size if needed.
         */
-  ((sycl::queue *)(queue->cuda_stream()))
+  ((sycl::queue *)(queue->sycl_stream()))
       ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                      [=](sycl::nd_item<3> item_ct1) {
                       zgemm_kernel_fermi_cc(m, n, k, dA, ldda, dB, lddb, dC,
