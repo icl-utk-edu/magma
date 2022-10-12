@@ -1,5 +1,3 @@
-#include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 
 /*
    -- MAGMA (version 2.0) --
@@ -17,7 +15,8 @@
 
 #ifndef MAGMABLAS_ZPOTF2_DEVICES_Z_H
 #define MAGMABLAS_ZPOTF2_DEVICES_Z_H
-
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
 
 //extern __shared__ magmaDoubleComplex shared_data[];
 
@@ -40,12 +39,12 @@ static inline void zpotf2_sminout_anywidth_device(const int m, const int n, magm
             double xreal = MAGMA_Z_REAL(A[iter + iter * lda]);
             linfo = ( linfo == 0 && (xreal <= MAGMA_D_ZERO) ) ? (iter+1) : linfo;
             xreal = sycl::sqrt(xreal);
-            factor = MAGMA_Z_MAKE(1.0/xreal, 0.0);
-        #ifdef ENABLE_COND1
+            factor = sycl::double2(1.0 / xreal, 0.0);
+#ifdef ENABLE_COND1
         }
         #endif
         /*
-        DPCT1065:160: Consider replacing sycl::nd_item::barrier() with
+        DPCT1065:1: Consider replacing sycl::nd_item::barrier() with
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
@@ -61,7 +60,7 @@ static inline void zpotf2_sminout_anywidth_device(const int m, const int n, magm
         }
         #endif
         /*
-        DPCT1065:161: Consider replacing sycl::nd_item::barrier() with
+        DPCT1065:2: Consider replacing sycl::nd_item::barrier() with
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
@@ -81,7 +80,7 @@ static inline void zpotf2_sminout_anywidth_device(const int m, const int n, magm
         }
         #endif
         /*
-        DPCT1065:162: Consider replacing sycl::nd_item::barrier() with
+        DPCT1065:3: Consider replacing sycl::nd_item::barrier() with
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
@@ -90,7 +89,7 @@ static inline void zpotf2_sminout_anywidth_device(const int m, const int n, magm
     // ENABLE_COND1 must be disabled, which the default config., so that the right info is returned 
     if(tx == 0) *info = linfo;
     /*
-    DPCT1065:159: Consider replacing sycl::nd_item::barrier() with
+    DPCT1065:0: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
     performance if there is no access to global memory.
     */
@@ -116,13 +115,18 @@ static inline void zpotf2_sminout_fixsize_device(const int m, magmaDoubleComplex
         #endif
             double xreal = MAGMA_Z_REAL(A[iter + iter * lda]);
             linfo = ( linfo == 0 && (xreal <= MAGMA_D_ZERO || xreal != xreal )) ? (iter+1) : linfo;
-            xreal = sqrt(xreal);
-            factor = MAGMA_Z_MAKE(1.0/xreal, 0.0);
-        #ifdef ENABLE_COND2
+            xreal = sycl::sqrt(xreal);
+            factor = sycl::double2(1.0 / xreal, 0.0);
+#ifdef ENABLE_COND2
         }
         #endif
-        __syncthreads();
-        #ifdef ENABLE_COND2
+        /*
+        DPCT1065:5: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
+#ifdef ENABLE_COND2
         if ( tx >= iter && tx < m )
         {
         #endif
@@ -135,8 +139,12 @@ static inline void zpotf2_sminout_fixsize_device(const int m, magmaDoubleComplex
         }
         #endif
 
-        __syncthreads();
-
+        /*
+        DPCT1065:6: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
 
         // zherk
         #ifdef ENABLE_COND2
@@ -153,12 +161,17 @@ static inline void zpotf2_sminout_fixsize_device(const int m, magmaDoubleComplex
         #ifdef ENABLE_COND2
         }
         #endif
-        __syncthreads();
+        /*
+        DPCT1065:7: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
     }// end of iter
     // ENABLE_COND1 must be disabled, which the default config., so that the right info is returned
     if(tx == 0) *info = linfo;
     /*
-    DPCT1065:163: Consider replacing sycl::nd_item::barrier() with
+    DPCT1065:4: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
     performance if there is no access to global memory.
     */
@@ -186,6 +199,10 @@ static inline void zgemm_v20_1_fixsize_device(int m, int k,
         for (int i=0; i < POTF2_NB; i++)
         {
             rp[i] = A0[tx + i * lda];
+            /*
+            DPCT1064:10: Migrated make_cuDoubleComplex call is used in a macro
+            definition and is not valid for all macro uses. Adjust the code.
+            */
             rC[i] = MAGMA_Z_ZERO;
         }
     #ifdef ENABLE_COND4
@@ -193,7 +210,7 @@ static inline void zgemm_v20_1_fixsize_device(int m, int k,
     #endif
 
     /*
-    DPCT1065:164: Consider replacing sycl::nd_item::barrier() with
+    DPCT1065:8: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
     performance if there is no access to global memory.
     */
@@ -228,7 +245,7 @@ static inline void zgemm_v20_1_fixsize_device(int m, int k,
         }
 
         /*
-        DPCT1065:166: Consider replacing sycl::nd_item::barrier() with
+        DPCT1065:11: Consider replacing sycl::nd_item::barrier() with
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
@@ -268,7 +285,7 @@ static inline void zgemm_v20_1_fixsize_device(int m, int k,
         }
         #endif
         /*
-        DPCT1065:167: Consider replacing sycl::nd_item::barrier() with
+        DPCT1065:12: Consider replacing sycl::nd_item::barrier() with
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
@@ -289,7 +306,7 @@ static inline void zgemm_v20_1_fixsize_device(int m, int k,
     }
     #endif
     /*
-    DPCT1065:165: Consider replacing sycl::nd_item::barrier() with
+    DPCT1065:9: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
     performance if there is no access to global memory.
     */
@@ -318,7 +335,11 @@ static inline void zgemm_v20_1_anywidth_device(int m, int n, int k,
         #pragma unroll
         for (int i=0; i < POTF2_NB; i++)
         {
-            rp[i] = A0[min(bound_A, tx + i * lda)];
+            rp[i] = A0[sycl::min(bound_A, (int)(tx + i * lda))];
+            /*
+            DPCT1064:15: Migrated make_cuDoubleComplex call is used in a macro
+            definition and is not valid for all macro uses. Adjust the code.
+            */
             rC[i] = MAGMA_Z_ZERO;
         }
     #ifdef ENABLE_COND5
@@ -326,7 +347,7 @@ static inline void zgemm_v20_1_anywidth_device(int m, int n, int k,
     #endif
 
     /*
-    DPCT1065:168: Consider replacing sycl::nd_item::barrier() with
+    DPCT1065:13: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
     performance if there is no access to global memory.
     */
@@ -361,7 +382,7 @@ static inline void zgemm_v20_1_anywidth_device(int m, int n, int k,
         }
 
         /*
-        DPCT1065:170: Consider replacing sycl::nd_item::barrier() with
+        DPCT1065:16: Consider replacing sycl::nd_item::barrier() with
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
@@ -375,7 +396,11 @@ static inline void zgemm_v20_1_anywidth_device(int m, int n, int k,
             #pragma unroll
             for (int i=0; i < POTF2_NB; i++)
             {
-                rp[i] = A0[min(bound_A, tx + (i+(iter+POTF2_NB)) * lda)]; // min(bound,xxx) is to avoid reading out of bound
+                rp[i] = A0[sycl::min(
+                    bound_A,
+                    (int)(tx + (i + (iter + POTF2_NB)) *
+                                   lda))]; // min(bound,xxx) is to avoid reading
+                                           // out of bound
             }
         #ifdef ENABLE_COND5
         }
@@ -401,7 +426,7 @@ static inline void zgemm_v20_1_anywidth_device(int m, int n, int k,
         }
         #endif
         /*
-        DPCT1065:171: Consider replacing sycl::nd_item::barrier() with
+        DPCT1065:17: Consider replacing sycl::nd_item::barrier() with
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
@@ -422,7 +447,7 @@ static inline void zgemm_v20_1_anywidth_device(int m, int n, int k,
     }
     #endif
     /*
-    DPCT1065:169: Consider replacing sycl::nd_item::barrier() with
+    DPCT1065:14: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
     performance if there is no access to global memory.
     */
@@ -436,7 +461,7 @@ static inline void zpotf2_smlpout_fixwidth_device(const int m,
         const int localstep, const int gbstep,
         magma_int_t *info, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
-    extern magmaDoubleComplex shared_data[];
+    auto shared_data = (magmaDoubleComplex *)dpct_local;
 
     // checkinfo to avoid computation of the singular matrix
     #ifndef BATCH_DISABLE_CHECKING
@@ -446,20 +471,21 @@ static inline void zpotf2_smlpout_fixwidth_device(const int m,
     const int orginfo = (*info);
     int panel_info = 0, newinfo = 0;
     const int tx = item_ct1.get_local_id(2);
-    magmaDoubleComplex *sdata_A = shared_data + threadIdx.y * (m+POTF2_NB)*POTF2_NB;
+    magmaDoubleComplex *sdata_A =
+        shared_data + item_ct1.get_local_id(1) * (m + POTF2_NB) * POTF2_NB;
     magmaDoubleComplex *sdata_B = sdata_A + m * POTF2_NB;
 
 
     #if 1
-    zgemm_v20_1_fixsize_device(m, localstep, 
-                       A0, lda, sdata_A, sdata_B);
-    #else
+    zgemm_v20_1_fixsize_device(m, localstep, A0, lda, sdata_A, sdata_B,
+                               item_ct1);
+#else
     zgemm_v20_1_anywidth_device(m, POTF2_NB, localstep, 
                        A0, lda, sdata_A, sdata_B);
     #endif
 
     // panel fact. in shared memory
-    zpotf2_sminout_fixsize_device(m, sdata_A, m, &panel_info);
+    zpotf2_sminout_fixsize_device(m, sdata_A, m, &panel_info, item_ct1);
     //----------------------------------------------------
     // Check for not SPD generating info
     #ifndef BATCH_DISABLE_CHECKING
@@ -468,7 +494,7 @@ static inline void zpotf2_smlpout_fixwidth_device(const int m,
         (*info) = newinfo;
     }
     /*
-    DPCT1065:172: Consider replacing sycl::nd_item::barrier() with
+    DPCT1065:18: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
     performance if there is no access to global memory.
     */
@@ -503,7 +529,7 @@ static inline void zpotf2_smlpout_anywidth_device(const int m, const int n,
         const int localstep, const int gbstep,
         magma_int_t *info, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
-    extern magmaDoubleComplex shared_data[];
+    auto shared_data = (magmaDoubleComplex *)dpct_local;
     // checkinfo to avoid computation of the singular matrix
     #ifndef BATCH_DISABLE_CHECKING
     if (*info != 0 ) return;
@@ -512,7 +538,8 @@ static inline void zpotf2_smlpout_anywidth_device(const int m, const int n,
     const int orginfo = (*info);
     int panel_info = 0, newinfo = 0;
     const int tx = item_ct1.get_local_id(2);
-    magmaDoubleComplex *sdata_A = shared_data + threadIdx.y * (m+POTF2_NB)*POTF2_NB;
+    magmaDoubleComplex *sdata_A =
+        shared_data + item_ct1.get_local_id(1) * (m + POTF2_NB) * POTF2_NB;
     magmaDoubleComplex *sdata_B = sdata_A + m * POTF2_NB;
 
     #if 0
@@ -520,11 +547,11 @@ static inline void zpotf2_smlpout_anywidth_device(const int m, const int n,
                        A0, lda, sdata_A, sdata_B);
     zpotf2_sminout_fixsize_device(m, sdata_A, m);
     #else
-    zgemm_v20_1_anywidth_device(m, n, localstep, 
-                       A0, lda, sdata_A, sdata_B);
+    zgemm_v20_1_anywidth_device(m, n, localstep, A0, lda, sdata_A, sdata_B,
+                                item_ct1);
     #endif
 
-    zpotf2_sminout_anywidth_device(m, n, sdata_A, m, &panel_info);
+    zpotf2_sminout_anywidth_device(m, n, sdata_A, m, &panel_info, item_ct1);
     //----------------------------------------------------
     // Check for not SPD generating info
     #ifndef BATCH_DISABLE_CHECKING
@@ -533,7 +560,7 @@ static inline void zpotf2_smlpout_anywidth_device(const int m, const int n,
         (*info) = newinfo;
     }
     /*
-    DPCT1065:173: Consider replacing sycl::nd_item::barrier() with
+    DPCT1065:19: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
     performance if there is no access to global memory.
     */
