@@ -176,7 +176,7 @@ extern "C" {
 #if defined(MAGMA_HAVE_SYCL)
     #define LAPACK_EXCEPT noexcept;
 #else 
-    #define LAPACK_EXCEPT 
+    #define LAPACK_EXCEPT ;
 #endif
 
 /*
