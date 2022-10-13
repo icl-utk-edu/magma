@@ -85,7 +85,7 @@ void magma_zlarfgx_gpu_kernel( int n, magmaDoubleComplex* dx0, magmaDoubleComple
                     *dA   = MAGMA_Z_MAKE(beta, 0.);
                 }
 
-                alpha = MAGMA_Z_MAKE(x()(alpha) - beta, y()(alpha));
+                alpha = MAGMA_Z_MAKE(MAGMA_Z_REAL(alpha) - beta, MAGMA_Z_IMAG(alpha));
                 /*
                 DPCT1064:1204: Migrated make_cuDoubleComplex call is used in a
                 macro definition and is not valid for all macro uses. Adjust the

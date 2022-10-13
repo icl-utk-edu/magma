@@ -42,14 +42,14 @@ void clag2z_kernel(
             #pragma unroll
             for( int j=0; j < BLK_Y; ++j ) {
                 A[j * lda] =
-                    sycl::double2(x()(SA[j * ldsa]), y()(SA[j * ldsa]));
+                    magmaDoubleComplex(MAGMA_Z_REAL(SA[j * ldsa]), MAGMA_Z_IMAG(SA[j * ldsa]));
             }
         }
         else {
             // partial block-column
             for( int j=0; j < BLK_Y && iby+j < n; ++j ) {
                 A[j * lda] =
-                    sycl::double2(x()(SA[j * ldsa]), y()(SA[j * ldsa]));
+                    magmaDoubleComplex(MAGMA_Z_REAL(SA[j * ldsa]), MAGMA_Z_IMAG(SA[j * ldsa]));
             }
         }
     }
