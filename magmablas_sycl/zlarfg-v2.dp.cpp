@@ -89,7 +89,7 @@ void magma_zlarfg_gpu_kernel( int n, magmaDoubleComplex* dx0, magmaDoubleComplex
             DPCT1064:1197: Migrated make_cuDoubleComplex call is used in a macro
             definition and is not valid for all macro uses. Adjust the code.
             */
-            alpha = MAGMA_Z_MAKE(x()(alpha) - beta, y()(alpha));
+            alpha = MAGMA_Z_MAKE(MAGMA_Z_REAL(alpha)- beta, MAGMA_Z_IMAG(alpha));
             /*
             DPCT1064:1198: Migrated make_cuDoubleComplex call is used in a macro
             definition and is not valid for all macro uses. Adjust the code.
