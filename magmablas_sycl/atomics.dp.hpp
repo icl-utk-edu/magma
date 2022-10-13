@@ -46,8 +46,8 @@ magmablas_datomic_add(double* address, double val)
 static __inline__ magmaFloatComplex 
 magmablas_catomic_add(magmaFloatComplex* address, magmaFloatComplex val)
 {
-    float re = magmablas_satomic_add((float *)(&(*address).real()), val.real());
-    float im = magmablas_satomic_add((float *)(&(*address).imag()), val.imag());
+    float re = magmablas_satomic_add(&(reinterpret_cast<float(&)[2]>(*address)[0]), val.real());
+    float im = magmablas_satomic_add(&(reinterpret_cast<float(&)[2]>(*address)[1]), val.imag());
     return MAGMA_C_MAKE(re, im);
 }
 
@@ -55,8 +55,8 @@ magmablas_catomic_add(magmaFloatComplex* address, magmaFloatComplex val)
 static __inline__ magmaDoubleComplex 
 magmablas_zatomic_add(magmaDoubleComplex* address, magmaDoubleComplex val)
 {
-    double re = magmablas_datomic_add((double *)(&(*address).real()), val.real());
-    double im = magmablas_datomic_add((double *)(&(*address).imag()), val.imag());
+    double re = magmablas_datomic_add(&(reinterpret_cast<double(&)[2]>(*address)[0]), val.real());
+    double im = magmablas_datomic_add(&(reinterpret_cast<double(&)[2]>(*address)[1]), val.imag());
     return MAGMA_Z_MAKE(re, im);
 }
 

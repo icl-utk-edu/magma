@@ -95,7 +95,7 @@ gemvn_template_device(
 
             if ( DIM_Y > 16)
             { 
-                magma_sum_reduce< DIM_Y >( ty, sdata + tx * DIM_Y);
+                magma_sum_reduce< DIM_Y >( ty, sdata + tx * DIM_Y, item_ct1);
             }
             else
             {
@@ -200,7 +200,7 @@ gemvc_template_device(
         // from DIM_X sums to ... 128 to 64 to 32 ... to 1 sum in sdata[0]
         if ( DIM_X > 16)
         { 
-            magma_sum_reduce< DIM_X >( tx, sdata + ty * DIM_X);
+            magma_sum_reduce< DIM_X >( tx, sdata + ty * DIM_X, item_ct1);
         }
         else
         {
