@@ -49,7 +49,7 @@ zlarfg_kernel(
     if ( tx == 0 ) {
         tmp = *dalpha;
         #ifdef COMPLEX
-        swork[tx] = max(sycl::fabs(x()(tmp)), sycl::fabs(y()(tmp)));
+        swork[tx] = max(sycl::fabs(MAGMA_Z_REAL(tmp)), sycl::fabs(MAGMA_Z_IMAG(tmp)));
 #else
         swork[tx] = fabs(tmp);
         #endif
@@ -98,12 +98,12 @@ zlarfg_kernel(
             // beta = norm( [dalpha, dx] )
             double beta;
             tmp = alpha / *sscale;
-            beta = *sscale * sycl::sqrt(x()(tmp) * x()(tmp) +
-                                        y()(tmp) * y()(tmp) + swork[0]);
-            beta = -sycl::copysign(beta, x()(alpha));
+            beta = *sscale * sycl::sqrt(MAGMA_Z_REAL(tmp) * MAGMA_Z_REAL(tmp) +
+                                        MAGMA_Z_IMAG(tmp) * MAGMA_Z_IMAG(tmp) + swork[0]);
+            beta = -sycl::copysign(beta, MAGMA_Z_REAL(alpha));
             // todo: deal with badly scaled vectors (see lapack's larfg)
             *dtau =
-                MAGMA_Z_MAKE((beta - x()(alpha)) / beta, -y()(alpha) / beta);
+                MAGMA_Z_MAKE((beta - MAGMA_Z_REAL(alpha)) / beta, -MAGMA_Z_IMAG(alpha) / beta);
             *dalpha = MAGMA_Z_MAKE( beta, 0 );
             *sscale2 = 1 / (alpha - beta);
         }
