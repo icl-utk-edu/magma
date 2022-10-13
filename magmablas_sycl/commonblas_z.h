@@ -55,65 +55,81 @@ void magmablas_zgemv_tesla(
 
 
 // kernels used in dznrm2, zgeqr2x-v4, laqps2_gpu, zlarfbx, zlarfgx-v2, zlarfx
-void
+SYCL_EXTERNAL void
 magma_zgemv_kernel1(int m, const magmaDoubleComplex * __restrict__ V, int ldv,
                     const magmaDoubleComplex * __restrict__ c,
-                    magmaDoubleComplex *dwork);
+                    magmaDoubleComplex *dwork, sycl::nd_item<3> item_ct1,
+		    magmaDoubleComplex *sum);
 
-void
+SYCL_EXTERNAL void
 magma_zgemv_kernel2(int m, int n, const magmaDoubleComplex * __restrict__ V, int ldv,
-                    const magmaDoubleComplex * __restrict__ x, magmaDoubleComplex *c);
+                    const magmaDoubleComplex * __restrict__ x, magmaDoubleComplex *c,
+		    sycl::nd_item<3> item_ct1);
 
-void
+SYCL_EXTERNAL void
 magma_zgemv_kernel3(int m, const magmaDoubleComplex * __restrict__ V, int ldv,
                     magmaDoubleComplex *c, magmaDoubleComplex *dwork,
-                    magmaDoubleComplex *tau);
+                    magmaDoubleComplex *tau, sycl::nd_item<3> item_ct1,
+                    magmaDoubleComplex *sum);
 
-void
+SYCL_EXTERNAL void
 magma_ztrmv_tkernel(magmaDoubleComplex *T, int ldt, magmaDoubleComplex *v,
-                                    magmaDoubleComplex *y);
+                    magmaDoubleComplex *y, sycl::nd_item<3> item_ct1,
+		    magmaDoubleComplex *sum);
 
-void
+SYCL_EXTERNAL void
 magma_ztrmv_kernel2(const magmaDoubleComplex *T, int ldt,
-                    magmaDoubleComplex *v, magmaDoubleComplex *y, magmaDoubleComplex *tau);
+                    magmaDoubleComplex *v, magmaDoubleComplex *y,
+		    magmaDoubleComplex *tau, sycl::nd_item<3> item_ct1,
+		    magmaDoubleComplex *sum);
 
 void
 magma_dznrm2_adjust_kernel(double *xnorm, magmaDoubleComplex *c);
 
 
 // kernels used in zhemv
-void
+SYCL_EXTERNAL void
 zhemv_kernel_U(
     int n,
     magmaDoubleComplex const * __restrict__ A, int lda,
     magmaDoubleComplex const * __restrict__ x, int incx,
-    magmaDoubleComplex       * __restrict__ work);
+    magmaDoubleComplex       * __restrict__ work,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
+                   sycl::access::target::local> sA,
+    magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj );
 
-void
+SYCL_EXTERNAL void
 zhemv_kernel_U_sum(
     int n,
     magmaDoubleComplex alpha,
     int lda,
     magmaDoubleComplex beta,
     magmaDoubleComplex       * __restrict__ y, int incy,
-    magmaDoubleComplex const * __restrict__ work );
+    magmaDoubleComplex const * __restrict__ work,
+    sycl::nd_item<3> item_ct1 );
 
 // kernels used in zsymv
-void
+SYCL_EXTERNAL void
 zsymv_kernel_U(
     int n,
     magmaDoubleComplex const * __restrict__ A, int lda,
     magmaDoubleComplex const * __restrict__ x, int incx,
-    magmaDoubleComplex       * __restrict__ work);
+    magmaDoubleComplex       * __restrict__ work,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
+                   sycl::access::target::local> sA,
+    magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj );
 
-void
+SYCL_EXTERNAL void
 zsymv_kernel_U_sum(
     int n,
     magmaDoubleComplex alpha,
     int lda,
     magmaDoubleComplex beta,
     magmaDoubleComplex       * __restrict__ y, int incy,
-    magmaDoubleComplex const * __restrict__ work );
+    magmaDoubleComplex const * __restrict__ work,
+    sycl::nd_item<3> item_ct1 );
 
 // kernels used in zhemv_mgpu
 void

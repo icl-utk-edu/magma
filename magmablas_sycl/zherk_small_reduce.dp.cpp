@@ -41,7 +41,7 @@ zherk_small_reduce_scale_beta_kernel(magma_uplo_t uplo, int N, magmaDoubleComple
         DPCT1064:1032: Migrated make_cuDoubleComplex call is used in a macro
         definition and is not valid for all macro uses. Adjust the code.
         */
-        if (gtx == gty) rC = MAGMA_Z_MAKE(x()(rC), MAGMA_D_ZERO);
+        if (gtx == gty) rC = MAGMA_Z_MAKE(MAGMA_Z_REAL(rC), MAGMA_D_ZERO);
 #endif
         dC[gty * lddc + gtx] = beta * rC;
     }

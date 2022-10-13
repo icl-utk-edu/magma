@@ -109,7 +109,7 @@ zlanhe_inf_kernel_lower(
             }
             #ifdef COMPLEX
             else if ( i == tx ) {
-                la[i][i] = MAGMA_Z_MAKE(x()(la[i][i]), 0);
+                la[i][i] = MAGMA_Z_MAKE(MAGMA_Z_REAL(la[i][i]), 0);
             }
             #endif
         }
@@ -406,7 +406,7 @@ zlanhe_inf_kernel_upper(
                 macro definition and is not valid for all macro uses. Adjust the
                 code.
                 */
-                la[i][i] = MAGMA_Z_MAKE(x()(la[i][i]), 0);
+                la[i][i] = MAGMA_Z_MAKE(MAGMA_Z_REAL(la[i][i]), 0);
             }
             #endif
         }
