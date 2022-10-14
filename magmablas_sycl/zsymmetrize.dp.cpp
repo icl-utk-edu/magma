@@ -41,7 +41,7 @@ zsymmetrize_lower( int m, magmaDoubleComplex *dA, int ldda ,
         DPCT1064:1332: Migrated make_cuDoubleComplex call is used in a macro
         definition and is not valid for all macro uses. Adjust the code.
         */
-        *dA = MAGMA_Z_MAKE(x()(*dA), 0); // make diagonal real
+        *dA = MAGMA_Z_MAKE(MAGMA_Z_REAL(*dA), 0); // make diagonal real
     }
 }
 
@@ -67,7 +67,7 @@ zsymmetrize_upper( int m, magmaDoubleComplex *dA, int ldda ,
         DPCT1064:1333: Migrated make_cuDoubleComplex call is used in a macro
         definition and is not valid for all macro uses. Adjust the code.
         */
-        *dA = MAGMA_Z_MAKE(x()(*dA), 0); // make diagonal real
+        *dA = MAGMA_Z_MAKE(MAGMA_Z_REAL(*dA), 0); // make diagonal real
     }
 }
 

@@ -43,15 +43,15 @@ void clat2z_lower(
             // full block-column, off-diagonal block
             #pragma unroll
             for( int j=0; j < BLK_Y; ++j ) {
-                A[j * lda] =
-                    sycl::double2(x()(SA[j * ldsa]), y()(SA[j * ldsa]));
+                A[j * lda] = MAGMA_Z_MAKE(MAGMA_C_REAL(SA[j * ldsa]),
+				          MAGMA_C_IMAG(SA[j * ldsa]));
             }
         }
         else {
             // either partial block-column or diagonal block
             for( int j=0; j < BLK_Y && iby+j < n && ind >= iby+j; ++j ) {
-                A[j * lda] =
-                    sycl::double2(x()(SA[j * ldsa]), y()(SA[j * ldsa]));
+                A[j*lda] = MAGMA_Z_MAKE( MAGMA_C_REAL( SA[j*ldsa] ),
+                                         MAGMA_C_IMAG( SA[j*ldsa] ) );
             }
         }
     }
@@ -82,16 +82,16 @@ void clat2z_upper(
             // full block-column, off-diagonal block
             #pragma unroll
             for( int j=0; j < BLK_Y; ++j ) {
-                A[j * lda] =
-                    sycl::double2(x()(SA[j * ldsa]), y()(SA[j * ldsa]));
+                A[j*lda] = MAGMA_Z_MAKE( MAGMA_C_REAL( SA[j*ldsa] ),
+                                         MAGMA_C_IMAG( SA[j*ldsa] ) );
             }
         }
         else {
             // either partial block-column or diagonal block
             for( int j=0; j < BLK_Y && iby+j < n; ++j ) {
                 if ( ind <= iby+j ) {
-                    A[j * lda] =
-                        sycl::double2(x()(SA[j * ldsa]), y()(SA[j * ldsa]));
+                    A[j*lda] = MAGMA_Z_MAKE( MAGMA_C_REAL( SA[j*ldsa] ),
+                                             MAGMA_C_IMAG( SA[j*ldsa] ) );
                 }
             }
         }

@@ -63,8 +63,8 @@ zclaswp_inv_kernel(
             DPCT1064:248: Migrated make_cuDoubleComplex call is used in a macro
             definition and is not valid for all macro uses. Adjust the code.
             */
-            res = MAGMA_Z_MAKE((double)x()(SA[newind + i * ldsa]),
-                               (double)y()(SA[newind + i * ldsa]));
+            res = MAGMA_Z_MAKE((double)MAGMA_C_REAL(SA[newind + i * ldsa]),
+                               (double)MAGMA_C_IMAG(SA[newind + i * ldsa]));
             A[i*lda] = res;
         }
     }
