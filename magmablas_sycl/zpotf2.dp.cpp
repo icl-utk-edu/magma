@@ -294,7 +294,7 @@ void kernel_zdscal(int n, magmaDoubleComplex *x, int incx,
         DPCT1064:1290: Migrated make_cuDoubleComplex call is used in a macro
         definition and is not valid for all macro uses. Adjust the code.
         */
-        *factor = MAGMA_Z_MAKE(1.0 / x()(x[0]), 0.0);
+        *factor = MAGMA_Z_MAKE(1.0 / MAGMA_Z_REAL(x[0]), 0.0);
     }
 
     /*
