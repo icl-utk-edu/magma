@@ -26,22 +26,21 @@
 #include "ztrtri_upper_device.dp.hpp"
 
 /******************************************************************************/
-SYCL_EXTERNAL void
-ztrtri_diag_upper_kernel(magma_diag_t diag, int n, const magmaDoubleComplex *A,
-                         int lda, magmaDoubleComplex *d_dinvA,
-                         sycl::nd_item<3> item_ct1, magmaDoubleComplex *sB)
+void
+ztrtri_diag_upper_kernel(
+    magma_diag_t diag, int n, const magmaDoubleComplex *A, int lda, magmaDoubleComplex *d_dinvA,
+    sycl::nd_item<3> item_ct1, magmaDoubleComplex *sB)
 {
     ztrtri_diag_upper_device(diag, n, A, lda, d_dinvA, item_ct1, sB);
 }
 
 
 /******************************************************************************/
-SYCL_EXTERNAL void triple_zgemm16_part1_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA,
-    int jb, int npages, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local>
-        sB)
+void
+triple_zgemm16_part1_upper_kernel(
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
 {
     triple_zgemm16_part1_upper_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -49,12 +48,11 @@ SYCL_EXTERNAL void triple_zgemm16_part1_upper_kernel(
 
 
 /******************************************************************************/
-SYCL_EXTERNAL void triple_zgemm16_part2_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA,
-    int jb, int npages, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local>
-        sB)
+void
+triple_zgemm16_part2_upper_kernel(
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
 {
     triple_zgemm16_part2_upper_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -62,12 +60,11 @@ SYCL_EXTERNAL void triple_zgemm16_part2_upper_kernel(
 
 
 /******************************************************************************/
-SYCL_EXTERNAL void triple_zgemm32_part1_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA,
-    int jb, int npages, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local>
-        sB)
+void
+triple_zgemm32_part1_upper_kernel(
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
 {
     triple_zgemm32_part1_upper_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -75,12 +72,11 @@ SYCL_EXTERNAL void triple_zgemm32_part1_upper_kernel(
 
 
 /******************************************************************************/
-SYCL_EXTERNAL void triple_zgemm32_part2_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA,
-    int jb, int npages, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local>
-        sB)
+void
+triple_zgemm32_part2_upper_kernel(
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
 {
     triple_zgemm32_part2_upper_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -88,12 +84,11 @@ SYCL_EXTERNAL void triple_zgemm32_part2_upper_kernel(
 
 
 /******************************************************************************/
-SYCL_EXTERNAL void triple_zgemm64_part1_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA,
-    int jb, int npages, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local>
-        sB)
+void
+triple_zgemm64_part1_upper_kernel(
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
 {
     triple_zgemm64_part1_upper_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -101,12 +96,11 @@ SYCL_EXTERNAL void triple_zgemm64_part1_upper_kernel(
 
 
 /******************************************************************************/
-SYCL_EXTERNAL void triple_zgemm64_part2_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA,
-    int jb, int npages, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local>
-        sB)
+void
+triple_zgemm64_part2_upper_kernel(
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
 {
     triple_zgemm64_part2_upper_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -114,12 +108,11 @@ SYCL_EXTERNAL void triple_zgemm64_part2_upper_kernel(
 
 
 /******************************************************************************/
-SYCL_EXTERNAL void triple_zgemm_above64_part1_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA,
-    int jb, int npages, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local>
-        sB)
+void
+triple_zgemm_above64_part1_upper_kernel(
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
 {
     triple_zgemm_above64_part1_upper_device(n, Ain, lda, d_dinvA, jb, npages,
                                             item_ct1, sB);
@@ -127,12 +120,11 @@ SYCL_EXTERNAL void triple_zgemm_above64_part1_upper_kernel(
 
 
 /******************************************************************************/
-SYCL_EXTERNAL void triple_zgemm_above64_part2_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA,
-    int jb, int npages, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local>
-        sB)
+void
+triple_zgemm_above64_part2_upper_kernel(
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
 {
     triple_zgemm_above64_part2_upper_device(n, Ain, lda, d_dinvA, jb, npages,
                                             item_ct1, sB);
@@ -140,9 +132,10 @@ SYCL_EXTERNAL void triple_zgemm_above64_part2_upper_kernel(
 
 
 /******************************************************************************/
-SYCL_EXTERNAL void triple_zgemm_above64_part3_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA,
-    int jb, int npages, sycl::nd_item<3> item_ct1)
+void
+triple_zgemm_above64_part3_upper_kernel(
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
+    sycl::nd_item<3> item_ct1)
 {
     triple_zgemm_above64_part3_upper_device(n, Ain, lda, d_dinvA, jb, npages,
                                             item_ct1);

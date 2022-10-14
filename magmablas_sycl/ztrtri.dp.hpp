@@ -21,7 +21,7 @@
 #define PRECISION_z 
 
 // define 0 for large initializations
-#define Z0 MAGMA_Z_ZERO
+#define Z0 sycl::double2(Z0, Z0)
 
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
@@ -70,11 +70,11 @@ zgemm_kernel_16(
     magmaDoubleComplex *A, int lda,
     magmaDoubleComplex *B, int ldb,
     magmaDoubleComplex *C, int ldc,
-    magmaDoubleComplex alpha, int jb, int tx, int ty)
+    magmaDoubleComplex alpha, int jb, int tx, int ty, sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
 {
     const magmaDoubleComplex *Blast = B + jb;
-    magmaDoubleComplex sB[16][17];
-    
+
     // compute NT x 16 block of C
     // each thread computes one 1x16 row, C(id,0:15)
     magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
@@ -83,14 +83,19 @@ zgemm_kernel_16(
     do {
         // load 16 x 16 block of B using NX x NY threads
         #pragma unroll
-        for( int i=0; i < 16; i += blockDim.x ) {
-            #pragma unroll
-            for( int j=0; j < 16; j += blockDim.y ) {
+        for (int i = 0; i < 16; i += item_ct1.get_local_range(2)) {
+#pragma unroll
+            for (int j = 0; j < 16; j += item_ct1.get_local_range(1)) {
                 sB[tx + i][ty + j] = B[i + j*ldb];
             }
         }
-        __syncthreads();
-        
+        /*
+        DPCT1065:0: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
+
         // load NT x 16 block of A; each thread initially loads 1x4 row,
         // then continues loading more elements as axpys are done.
         rA[0] = A[0*lda];
@@ -122,7 +127,12 @@ zgemm_kernel_16(
         // move to next block of A and B
         A += 16*lda;
         B += 16;
-        __syncthreads();
+        /*
+        DPCT1065:1: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
     } while( B < Blast );
 
     // write NT x 16 result; each thread writes one 16x1 row, C(id,0:15)
@@ -177,43 +187,61 @@ triple_zgemm_above64_part3_lower_kernel(
     
 void
 ztrtri_diag_upper_kernel(
-    magma_diag_t diag, int n, const magmaDoubleComplex *A, int lda, magmaDoubleComplex *d_invA);
+    magma_diag_t diag, int n, const magmaDoubleComplex *A, int lda, magmaDoubleComplex *d_invA,
+    sycl::nd_item<3> item_ct1, magmaDoubleComplex *sB);
 
 void
 triple_zgemm16_part1_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
 
 void
 triple_zgemm16_part2_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
 
 void
 triple_zgemm32_part1_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
 
 void
 triple_zgemm32_part2_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
 
 void
 triple_zgemm64_part1_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
 
 void
 triple_zgemm64_part2_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
 
 void
 triple_zgemm_above64_part1_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
 
 void
 triple_zgemm_above64_part2_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
 
 void
 triple_zgemm_above64_part3_upper_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
+    sycl::nd_item<3> item_ct1);
 
 
 
