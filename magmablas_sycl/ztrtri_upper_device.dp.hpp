@@ -22,7 +22,7 @@
 #include "magma_internal.h"
 
 // define 0 for large initializations
-#define Z0 MAGMA_Z_ZERO
+#define Z0 sycl::double2(Z0, Z0)
 
 /******************************************************************************/
 /*
@@ -34,7 +34,7 @@
 static void
 ztrtri_diag_upper_device(
     magma_diag_t diag, int n, const magmaDoubleComplex *A, int lda, magmaDoubleComplex *d_dinvA,
-    sycl::nd_item<3> item_ct1,  *sB)
+    sycl::nd_item<3> item_ct1, magmaDoubleComplex *sB)
 {
     int tx = item_ct1.get_local_id(2);
     int bx = item_ct1.get_group(2);
@@ -54,11 +54,15 @@ ztrtri_diag_upper_device(
             sB[tx + j*IB] = A[tx + j*lda];
         }
         else {
-            sB[tx + j*IB] = MAGMA_Z_ZERO;
+            /*
+            DPCT1064:3: Migrated make_cuDoubleComplex call is used in a macro
+            definition and is not valid for all macro uses. Adjust the code.
+            */
+            sB[tx + j * IB] = MAGMA_Z_ZERO;
         }
     }
     /*
-    DPCT1065:227: Consider replacing sycl::nd_item::barrier() with
+    DPCT1065:2: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
     performance if there is no access to global memory.
     */
@@ -66,14 +70,30 @@ ztrtri_diag_upper_device(
 
     // invert the diagonal
     if (diag == MagmaUnit) {
-        sB[tx + tx*IB] = MAGMA_Z_ONE;
+        /*
+        DPCT1064:4: Migrated make_cuDoubleComplex call is used in a macro
+        definition and is not valid for all macro uses. Adjust the code.
+        */
+        sB[tx + tx * IB] = MAGMA_Z_ONE;
     }
     else {
-        if ( sB[tx + tx*IB] == MAGMA_Z_ZERO ) {  // singular or outside matrix
-            sB[tx + tx*IB] = MAGMA_Z_ONE;
+        /*
+        DPCT1064:5: Migrated make_cuDoubleComplex call is used in a macro
+        definition and is not valid for all macro uses. Adjust the code.
+        */
+        if (sB[tx + tx * IB] == MAGMA_Z_ZERO) { // singular or outside matrix
+            /*
+            DPCT1064:6: Migrated make_cuDoubleComplex call is used in a macro
+            definition and is not valid for all macro uses. Adjust the code.
+            */
+            sB[tx + tx * IB] = MAGMA_Z_ONE;
         }
         else {
-            sB[tx + tx*IB] = MAGMA_Z_ONE / sB[tx + tx*IB];
+            /*
+            DPCT1064:7: Migrated make_cuDoubleComplex call is used in a macro
+            definition and is not valid for all macro uses. Adjust the code.
+            */
+            sB[tx + tx * IB] = MAGMA_Z_ONE / sB[tx + tx * IB];
         }
     }
     
@@ -82,15 +102,24 @@ ztrtri_diag_upper_device(
         if ( tx < j ) {
             // trmv:  y = sB(0:j-1, 0:j-1) * sB(0:j-1, j)
             // each thread sums one element, y[tx]
-            y_tx   = MAGMA_Z_ZERO;
-            #pragma unroll
+            /*
+            DPCT1064:9: Migrated make_cuDoubleComplex call is used in a macro
+            definition and is not valid for all macro uses. Adjust the code.
+            */
+            y_tx = MAGMA_Z_ZERO;
+#pragma unroll
             for( int k=0; k < j; k++ )
                 y_tx += sB[tx + k*IB] * sB[k + j*IB];
     
             // scal:  sB(0:j-1, j) = -sB(j,j) * y
             sB[tx + j*IB] = -sB[j + j*IB] * y_tx;
         }
-        __syncthreads();
+        /*
+        DPCT1065:8: Consider replacing sycl::nd_item::barrier() with
+        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+        better performance if there is no access to global memory.
+        */
+        item_ct1.barrier();
     }
     
     // go to the (bx / ib_per_NB) outer NB*NB block,
@@ -193,18 +222,9 @@ triple_zgemm16_part1_upper_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        /*
-        DPCT1064:228: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0,
-                                     Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
-        /*
-        DPCT1064:229: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rA[4] = {Z0, Z0, Z0, Z0};
-
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
+        
         do {
             // load 16 x 16 block of B using NX x 4 threads
             #pragma unroll
@@ -215,7 +235,7 @@ triple_zgemm16_part1_upper_device(
                 }
             }
             /*
-            DPCT1065:230: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:10: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -253,7 +273,7 @@ triple_zgemm16_part1_upper_device(
             A += 16*lda;
             B += 16;
             /*
-            DPCT1065:231: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:11: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -316,17 +336,8 @@ triple_zgemm16_part2_upper_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        /*
-        DPCT1064:232: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0,
-                                     Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
-        /*
-        DPCT1064:233: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rA[4] = {Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -338,7 +349,7 @@ triple_zgemm16_part2_upper_device(
                 }
             }
             /*
-            DPCT1065:234: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:12: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -376,7 +387,7 @@ triple_zgemm16_part2_upper_device(
             A += 16*lda;
             B += 16;
             /*
-            DPCT1065:235: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:13: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -439,17 +450,8 @@ triple_zgemm32_part1_upper_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        /*
-        DPCT1064:236: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0,
-                                     Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
-        /*
-        DPCT1064:237: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rA[4] = {Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -461,7 +463,7 @@ triple_zgemm32_part1_upper_device(
                 }
             }
             /*
-            DPCT1065:238: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:14: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -499,7 +501,7 @@ triple_zgemm32_part1_upper_device(
             A += 16*lda;
             B += 16;
             /*
-            DPCT1065:239: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:15: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -563,17 +565,8 @@ triple_zgemm32_part2_upper_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        /*
-        DPCT1064:240: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0,
-                                     Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
-        /*
-        DPCT1064:241: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rA[4] = {Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -585,7 +578,7 @@ triple_zgemm32_part2_upper_device(
                 }
             }
             /*
-            DPCT1065:242: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:16: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -623,7 +616,7 @@ triple_zgemm32_part2_upper_device(
             A += 16*lda;
             B += 16;
             /*
-            DPCT1065:243: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:17: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -685,17 +678,8 @@ triple_zgemm64_part1_upper_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        /*
-        DPCT1064:244: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0,
-                                     Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
-        /*
-        DPCT1064:245: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rA[4] = {Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -707,7 +691,7 @@ triple_zgemm64_part1_upper_device(
                 }
             }
             /*
-            DPCT1065:246: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:18: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -745,7 +729,7 @@ triple_zgemm64_part1_upper_device(
             A += 16*lda;
             B += 16;
             /*
-            DPCT1065:247: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:19: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -808,17 +792,8 @@ triple_zgemm64_part2_upper_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        /*
-        DPCT1064:248: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0,
-                                     Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
-        /*
-        DPCT1064:249: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rA[4] = {Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -830,7 +805,7 @@ triple_zgemm64_part2_upper_device(
                 }
             }
             /*
-            DPCT1065:250: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:20: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -868,7 +843,7 @@ triple_zgemm64_part2_upper_device(
             A += 16*lda;
             B += 16;
             /*
-            DPCT1065:251: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:21: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -939,17 +914,8 @@ triple_zgemm_above64_part1_upper_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        /*
-        DPCT1064:252: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0,
-                                     Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
-        /*
-        DPCT1064:253: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rA[4] = {Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -961,7 +927,7 @@ triple_zgemm_above64_part1_upper_device(
                 }
             }
             /*
-            DPCT1065:254: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:22: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -999,7 +965,7 @@ triple_zgemm_above64_part1_upper_device(
             A += 16*lda;
             B += 16;
             /*
-            DPCT1065:255: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:23: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -1062,17 +1028,8 @@ triple_zgemm_above64_part2_upper_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        /*
-        DPCT1064:256: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0,
-                                     Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
-        /*
-        DPCT1064:257: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        magmaDoubleComplex rA[4] = {Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -1084,7 +1041,7 @@ triple_zgemm_above64_part2_upper_device(
                 }
             }
             /*
-            DPCT1065:258: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:24: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -1122,7 +1079,7 @@ triple_zgemm_above64_part2_upper_device(
             A += 16*lda;
             B += 16;
             /*
-            DPCT1065:259: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:25: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -1172,7 +1129,11 @@ triple_zgemm_above64_part3_upper_device(
         
         #pragma unroll
         for( int i = 0; i < 16; i++ ) {
-            B21[i * ldb] = sycl::double2(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
+            /*
+            DPCT1064:26: Migrated make_cuDoubleComplex call is used in a macro
+            definition and is not valid for all macro uses. Adjust the code.
+            */
+            B21[i * ldb] = MAGMA_Z_ZERO;
         }
     }
 }
