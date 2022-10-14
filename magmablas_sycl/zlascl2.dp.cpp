@@ -24,7 +24,7 @@ zlascl2_full(int m, int n, const double* D, magmaDoubleComplex* A, int lda,
 {
     int ind = item_ct1.get_group(2) * NB + item_ct1.get_local_id(2);
 
-    double mul = D[ind];
+    magmaDoubleComplex mul = magmaDoubleComplex(D[ind], 0.0);
     A += ind;
     if (ind < m) {
         for (int j=0; j < n; j++ )
@@ -43,7 +43,7 @@ zlascl2_lower(int m, int n, const double* D, magmaDoubleComplex* A, int lda,
 
     int break_d = (ind < n) ? ind : n-1;
 
-    double mul = D[ind];
+    magmaDoubleComplex mul = magmaDoubleComplex(D[ind], 0.0);
     A += ind;
     if (ind < m) {
         for (int j=0; j <= break_d; j++ )
@@ -60,7 +60,7 @@ zlascl2_upper(int m, int n, const double *D, magmaDoubleComplex* A, int lda,
 {
     int ind = item_ct1.get_group(2) * NB + item_ct1.get_local_id(2);
 
-    double mul = D[ind];
+    magmaDoubleComplex mul = magmaDoubleComplex(D[ind], 0.0);
     A += ind;
     if (ind < m) {
         for (int j=n-1; j >= ind; j--)
