@@ -215,7 +215,7 @@ void magmablas_zher2k_mgpu2(
         return;
     }
 
-    const magmaDoubleComplex c_one = sycl::double2(MAGMA_Z_ONE, MAGMA_Z_ONE);
+    const magmaDoubleComplex c_one = MAGMA_Z_ONE;
     /*
     DPCT1064:6: Migrated make_cuDoubleComplex call is used in a macro definition
     and is not valid for all macro uses. Adjust the code.

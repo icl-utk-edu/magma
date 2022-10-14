@@ -83,8 +83,9 @@ magma_ztrmv_kernel2(const magmaDoubleComplex *T, int ldt,
 		    magmaDoubleComplex *tau, sycl::nd_item<3> item_ct1,
 		    magmaDoubleComplex *sum);
 
-void
-magma_dznrm2_adjust_kernel(double *xnorm, magmaDoubleComplex *c);
+SYCL_EXTERNAL void
+magma_dznrm2_adjust_kernel(double *xnorm, magmaDoubleComplex *c,
+		           sycl::nd_item<3> item_ct1, double *sum);
 
 
 // kernels used in zhemv
@@ -132,7 +133,7 @@ zsymv_kernel_U_sum(
     sycl::nd_item<3> item_ct1 );
 
 // kernels used in zhemv_mgpu
-void
+SYCL_EXTERNAL void
 zhemv_kernel_U_mgpu(
     int n,
     magmaDoubleComplex const * __restrict__ A, int lda,
@@ -140,9 +141,14 @@ zhemv_kernel_U_mgpu(
     magmaDoubleComplex       * __restrict__ work,
     int my_gpu_id,
     int ngpu,
-    int block_offset );
+    int block_offset,
+    sycl::nd_item<3> item_ct1,
+    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
+                   sycl::access::target::local> sA,
+    magmaDoubleComplex *sx_blk,
+    magmaDoubleComplex *sx_jj);
 
-void
+SYCL_EXTERNAL void
 zhemv_kernel_U_mgpu_sum(
     int n,
     magmaDoubleComplex alpha,
@@ -151,7 +157,8 @@ zhemv_kernel_U_mgpu_sum(
     magmaDoubleComplex const * __restrict__ work,
     int my_gpu_id,
     int ngpu,
-    int block_offset);
+    int block_offset,
+    sycl::nd_item<3> item_ct1);
 
 #ifdef __cplusplus
 }
