@@ -52,10 +52,15 @@ void trmv_template(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
+    // From trmv_small_template_device:
+    // const int slda = NB+1;
+    // used this definition in creation of shared memory accessor here
+    // (originally added as `slda` by dpct; see CUDA version of
+    // device function for reference)
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<T, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            sA_acc_ct1(sycl::range<1>(slda * NB), cgh);
+            sA_acc_ct1(sycl::range<1>(/*slda*/(NB+1) * NB), cgh);
         sycl::accessor<T, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sX_acc_ct1(sycl::range<1>(NB), cgh);
