@@ -126,7 +126,7 @@ void zgeqr2_compute_norm(
     // continue with serial sum
     sum = MAGMA_D_ZERO;
     if( tx == 0 ) {
-        for (int i = 0; i < sycl::min(ntx, 64); i++) {
+        for (int i = 0; i < min(ntx, 64); i++) {
             sum += dx[i];
         }
         dx[0] = sum;

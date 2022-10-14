@@ -335,7 +335,7 @@ static inline void zgemm_v20_1_anywidth_device(int m, int n, int k,
         #pragma unroll
         for (int i=0; i < POTF2_NB; i++)
         {
-            rp[i] = A0[sycl::min(bound_A, (int)(tx + i * lda))];
+            rp[i] = A0[min(bound_A, (int)(tx + i * lda))];
             /*
             DPCT1064:15: Migrated make_cuDoubleComplex call is used in a macro
             definition and is not valid for all macro uses. Adjust the code.
@@ -396,7 +396,7 @@ static inline void zgemm_v20_1_anywidth_device(int m, int n, int k,
             #pragma unroll
             for (int i=0; i < POTF2_NB; i++)
             {
-                rp[i] = A0[sycl::min(
+                rp[i] = A0[min(
                     bound_A,
                     (int)(tx + (i + (iter + POTF2_NB)) *
                                    lda))]; // min(bound,xxx) is to avoid reading
