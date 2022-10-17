@@ -234,6 +234,10 @@ libmagma_src += \
 	$(cdir)/hlaswp.cu		         \
 	$(cdir)/hset_pointer.cu		     \
 
+# aux files for mixed-precision POSV-IRGMRES
+libmagma_src += \
+	$(cdir)/zposv_irgmres_kernels.cu    \
+
 # ----------------------------------------------------------------------
 # extra include dependencies
 $(cdir)/strtri_diag.$(o_ext): $(cdir)/strtri.cuh
