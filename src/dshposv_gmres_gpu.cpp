@@ -272,8 +272,11 @@ magma_dshposv_gpu_expert(
     }
 
     // factor dSA in single precision
-    magma_int_t nb = 512, recnb = 128;
-    magma_shpotrf_LL_expert_gpu(uplo, n, dSA, lddsa, nb, recnb, info, mode );
+    if(mode == MagmaHybrid) {
+        magma_shpotrf_gpu(uplo, n, dSA, lddsa, info );
+    else{
+        magma_shpotrf_native(uplo, n, dSA, lddsa, info );
+    }
 
     if (*info != 0) {
         printf("magma_shpotrf_LL_expert_gpu failed, info = %lld \n", (long long)(*info) );
@@ -469,6 +472,8 @@ magma_dshposv_gpu(
 
     magma_free( dworks );
     magma_free( dworkd );
+
+    return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -501,4 +506,6 @@ magma_dshposv_native(
 
     magma_free( dworks );
     magma_free( dworkd );
+
+    return 0;
 }
