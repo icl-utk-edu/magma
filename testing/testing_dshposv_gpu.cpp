@@ -25,7 +25,7 @@ int main(int argc, char **argv)
     real_Double_t   gflopsF, gflopsS, gpu_perf, gpu_time;
     real_Double_t   gpu_perfdf, gpu_perfds;
     real_Double_t   gpu_perfsf, gpu_perfss;
-    double          error, Rnorm, Anorm, Anorm2, Ainvnorm, condA;
+    double          error, Rnorm, Anorm;
     double c_one     = MAGMA_D_ONE;
     double c_neg_one = MAGMA_D_NEG_ONE;
     double *h_A, *h_B, *h_X;
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     nrhs = opts.nrhs;
 
     printf("%% uplo = %s\n", lapack_uplo_const(opts.uplo));
-    printf("%%   N NRHS   DP-Factor  DP-Solve  SP-Factor  SP-Solve  MP-Solve  Iter   |b-Ax|/|A|\n");
+    printf("%%    N NRHS   DP-Factor  DP-Solve  SP-Factor  SP-Solve  MP-Solve  Iter   |b-Ax|/|A|\n");
     printf("%%====================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -70,28 +70,7 @@ int main(int argc, char **argv)
             TESTING_CHECK( magma_dmalloc( &d_workd, N*nrhs ));
 
             /* Initialize the matrix */
-            size = lda * N;
-            if( 0 ) {
-                lapackf77_dlarnv( &ione, ISEED, &size, h_A );
-                magma_dmake_hpd( N, h_A, lda );
-            }
-            else {
-                double* h_d = NULL;
-                magma_int_t tmp_seed[4] = {0,0,0,1};
-                TESTING_CHECK( magma_dmalloc_cpu(&h_d, N ) );
-                if(opts.matrix == "poev_specified") {
-                    for(magma_int_t si = 0; si < N; si++){
-                        float percent = (float)si / (float)N;
-                        h_d[si] = (percent <= 0.1) ? 1 : 1/(opts.cond);
-                    }
-                }
-                else {
-                    lapackf77_dlarnv( &ione, tmp_seed, &N, h_d );
-                }
-                magma_generate_matrix(opts, N, N, h_d, h_A, lda );
-                //magma_dmake_hpd( N, h_A, lda );
-                magma_free_cpu( h_d );
-            }
+            magma_generate_matrix(opts, N, N, h_A, lda );
 
             size = ldb * nrhs;
             lapackf77_dlarnv( &ione, ISEED, &size, h_B );
@@ -146,7 +125,12 @@ int main(int argc, char **argv)
             magma_dsetmatrix( N, N, h_A, lda, d_A, lda, opts.queue );
 
             gpu_time = magma_wtime();
-            magma_dpotrf_gpu(opts.uplo, N, d_A, lda, &info);
+            if(opts.version == 1) {
+                magma_dpotrf_gpu(opts.uplo, N, d_A, lda, &info);
+            }
+            else{
+                magma_dpotrf_native(opts.uplo, N, d_A, lda, &info);
+            }
             gpu_time = magma_wtime() - gpu_time;
             gpu_perfdf = gflopsF / gpu_time;
             if (info != 0) {
@@ -161,7 +145,12 @@ int main(int argc, char **argv)
             magma_dsetmatrix( N, nrhs, h_B, ldb, d_B, ldb, opts.queue );
 
             gpu_time = magma_wtime();
-            magma_dpotrf_gpu(opts.uplo, N, d_A, lda, &info);
+            if(opts.version == 1) {
+                magma_dpotrf_gpu(opts.uplo, N, d_A, lda, &info);
+            }
+            else{
+                magma_dpotrf_native(opts.uplo, N, d_A, lda, &info);
+            }
             magma_dpotrs_gpu(opts.uplo, N, nrhs, d_A, lda, d_B, ldb, &info);
             gpu_time = magma_wtime() - gpu_time;
             gpu_perfds = gflopsS / gpu_time;
@@ -181,7 +170,12 @@ int main(int argc, char **argv)
             magmablas_dlag2s( N, nrhs, d_B, ldb, d_Bs, N, opts.queue, &info );
 
             gpu_time = magma_wtime();
-            magma_spotrf_gpu(opts.uplo, N, d_As, N, &info);
+            if(opts.version == 1) {
+                magma_spotrf_gpu(opts.uplo, N, d_As, N, &info);
+            }
+            else{
+                magma_spotrf_native(opts.uplo, N, d_As, N, &info);
+            }
             gpu_time = magma_wtime() - gpu_time;
             gpu_perfsf = gflopsF / gpu_time;
             if (info != 0) {
@@ -196,7 +190,12 @@ int main(int argc, char **argv)
             magmablas_dlag2s(N, nrhs, d_B, ldb, d_Bs, N, opts.queue, &info );
 
             gpu_time = magma_wtime();
-            magma_spotrf_gpu(opts.uplo, N, d_As, lda, &info);
+            if(opts.version == 1) {
+                magma_spotrf_gpu(opts.uplo, N, d_As, N, &info);
+            }
+            else{
+                magma_spotrf_native(opts.uplo, N, d_As, N, &info);
+            }
             magma_spotrs_gpu(opts.uplo, N, nrhs, d_As, N, d_Bs, N, &info);
             gpu_time = magma_wtime() - gpu_time;
             gpu_perfss = gflopsS / gpu_time;
@@ -205,8 +204,8 @@ int main(int argc, char **argv)
                        (long long) info, magma_strerror( info ));
             }
 
-            printf("%3.1e   %5lld %5lld   %7.2f   %7.2f   %7.2f   %7.2f   %7.2f    %4lld   %8.2e   %s\n",
-                   condA, (long long) N, (long long) nrhs,
+            printf(" %5lld %4lld   %7.2f   %7.2f   %7.2f   %7.2f   %7.2f    %4lld   %8.2e   %s\n",
+                   (long long) N, (long long) nrhs,
                    gpu_perfdf, gpu_perfds, gpu_perfsf, gpu_perfss, gpu_perf,
                    (long long) posv_iter, error, (error < tol ? "ok" : "failed"));
             status += ! (error < tol);

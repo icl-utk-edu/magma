@@ -30,7 +30,7 @@ magma_sgemm_fp16(
                   (const void*) &alpha, (const void*) dA, CUDA_R_32F, (int)ldda,
                                         (const void*) dB, CUDA_R_32F, (int)lddb,
                   (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
-                  CUDA_R_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
+                  CUBLAS_COMPUTE_32F_FAST_16F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
     #else
     printf(" %s is not supported \n", __func__);
     #endif
