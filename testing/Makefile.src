@@ -84,6 +84,7 @@ testing_src += \
 	$(cdir)/testing_zpotrf.cpp	\
 	$(cdir)/testing_zpotri.cpp	\
 	$(cdir)/testing_ztrtri.cpp	\
+	$(cdir)/testing_dshposv_gpu.cpp	\
 
 # ----------
 # Symmetric indefinite, CPU interface
