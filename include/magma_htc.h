@@ -172,30 +172,6 @@ magma_shpotrf_native(
     magmaFloat_ptr dA, magma_int_t ldda,
     magma_int_t *info );
 
-/* auxiliary routines for posv-irgmres  */
-void
-magmablas_zextract_diag_sqrt(
-    magma_int_t m, magma_int_t n,
-    magmaDoubleComplex* dA, magma_int_t ldda,
-    double* dD, magma_int_t incd,
-    magma_queue_t queue);
-
-void
-magmablas_zscal_shift_hpd(
-    magma_uplo_t uplo, int n,
-    magmaDoubleComplex* dA, int ldda,
-    double* dD, int incd,
-    double miu, double cn, double eps,
-    magma_queue_t queue);
-
-void
-magmablas_zdimv_invert(
-    magma_int_t n,
-    magmaDoubleComplex alpha, magmaDoubleComplex* dD, magma_int_t incd,
-                              magmaDoubleComplex* dx, magma_int_t incx,
-    magmaDoubleComplex beta,  magmaDoubleComplex* dy, magma_int_t incy,
-    magma_queue_t queue);
-
 magma_int_t
 magma_dfgmres_spd_gpu(
     magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
