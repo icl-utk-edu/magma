@@ -460,14 +460,14 @@ magma_dshposv_gpu(
     magma_smalloc( &dworks, n*(n+nrhs) + n );  // an extra 'N' is required to store the diagonal
     magma_dmalloc( &dworkd, n*nrhs );
 
-    info = magma_dshposv_gpu_expert(
-                uplo, n, nrhs,
-                dA, ldda,
-                dB, lddb,
-                dX, lddx,
-                dworkd, dworks,
-                iter, MagmaHybrid, 1, 1,
-                cn, theta, &info);
+    magma_dshposv_gpu_expert(
+        uplo, n, nrhs,
+        dA, ldda,
+        dB, lddb,
+        dX, lddx,
+        dworkd, dworks,
+        iter, MagmaHybrid, 1, 1,
+        cn, theta, info);
 
     magma_free( dworks );
     magma_free( dworkd );
@@ -492,14 +492,14 @@ magma_dshposv_native(
     magma_smalloc( &dworks, n*(n+nrhs) + n );  // an extra 'N' is required to store the diagonal
     magma_dmalloc( &dworkd, n*nrhs );
 
-    info = magma_dshposv_gpu_expert(
-                uplo, n, nrhs,
-                dA, ldda,
-                dB, lddb,
-                dX, lddx,
-                dworkd, dworks,
-                iter, MagmaNative, 1, 1,
-                cn, theta, &info);
+    magma_dshposv_gpu_expert(
+        uplo, n, nrhs,
+        dA, ldda,
+        dB, lddb,
+        dX, lddx,
+        dworkd, dworks,
+        iter, MagmaNative, 1, 1,
+        cn, theta, info);
 
     magma_free( dworks );
     magma_free( dworkd );

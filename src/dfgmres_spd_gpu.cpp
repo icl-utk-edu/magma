@@ -15,8 +15,13 @@
 #define EPSILON   lapackf77_dlamch("Epsilon") //1.0e-18
 #define EPSMAC    1.0e-14
 
-//#define MAGMA_PRINTF printf
+//#define DEBUG
+
+#ifdef DEBUG
+#define MAGMA_PRINTF printf
+#else
 #define MAGMA_PRINTF(...)
+#endif
 
 extern "C" magma_int_t
 magma_dfgmres_spd_gpu(
@@ -36,7 +41,7 @@ magma_dfgmres_spd_gpu(
     magma_int_t tot_inner_iter=0;
 
     magma_int_t i,j,k,k1,ii,out_flag,in_flag, info;
-    double gam, eps1;
+    double eps1;
     double *d_VV, *d_w;
 
     // constants
@@ -105,10 +110,12 @@ magma_dfgmres_spd_gpu(
 	        eps1 = tol*ro;
 	        MAGMA_PRINTF("ro = %e, tol = %e, eps1 = %e\n", ro, tol, eps1);
 
+	        #ifdef DEBUG
 	        // tol is usually passed as cte = Anrm * sqrt(n) * BDWTH, with BDWTH=1.0
             double Anrm = tol / (lapackf77_dlamch("Epsilon") * magma_dsqrt((double)n));
             MAGMA_PRINTF("Before inner loop: GPU_GMRES_ITER %5lld  inner_iter %5lld   ro = %8.2E    Anrm = %8.2e    residual = %8.2e\n",
             (long long) iters, (long long) 0, ro, Anrm, ro / (Anrm * n));
+            #endif
 	    }
 
 	    rs[0] = MAGMA_D_MAKE( ro, 0.f );
@@ -119,7 +126,9 @@ magma_dfgmres_spd_gpu(
 	    while (in_flag) {
 		    i++;
 		    iters ++;
+		    #ifdef DEBUG
             magma_int_t  inner_iter=0;
+            #endif
 
             magmablas_dlag2s(n, nrhs, &d_VV[i*n2], n2, dSX, n, queue, &info);
             if(is_preprocessed > 0) {
@@ -175,12 +184,12 @@ magma_dfgmres_spd_gpu(
 		    HH[IDX2C(i,i,restrt+1)] = rot;
 		    ro = MAGMA_D_ABS(rs[i+1]);
 
-		    if( true ) {
-                // tol is usually passed as cte = Anrm * sqrt(n) * BDWTH, with BDWTH=1.0
-                float Anrm = tol / (lapackf77_dlamch("Epsilon") * magma_dsqrt((double)n));
-                MAGMA_PRINTF("     GPU_GMRES_ITER %5lld  inner_iter %5lld   ro = %8.2E    Anrm = %8.2e    residual = %8.2e\n",
-                (long long) iters, (long long) inner_iter, ro, Anrm, ro / (Anrm * n));
-            }
+		    #ifdef DEBUG
+            // tol is usually passed as cte = Anrm * sqrt(n) * BDWTH, with BDWTH=1.0
+            float Anrm = tol / (lapackf77_dlamch("Epsilon") * magma_dsqrt((double)n));
+            MAGMA_PRINTF("     GPU_GMRES_ITER %5lld  inner_iter %5lld   ro = %8.2E    Anrm = %8.2e    residual = %8.2e\n",
+                        (long long) iters, (long long) inner_iter, ro, Anrm, ro / (Anrm * n));
+            #endif
 
 		    /* test convergence */
 		    if (i+1 >=restrt || ro <= eps1 || iters >= maxiter) {
