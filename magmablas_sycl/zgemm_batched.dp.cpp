@@ -73,18 +73,18 @@ magma_zgemm_batched_core(
     magma_int_t zero_offset = (Ai == 0 && Aj == 0 && Bi == 0 && Bj == 0 && Ci == 0 && Cj == 0);
     if(use_cublas){
         if(zero_offset){
-      oneapi::mkl::transpose transpose_ct1 = cublas_trans_const(transA);
-      oneapi::mkl::transpose transpose_ct2 = cublas_trans_const(transB);
+      oneapi::mkl::transpose transpose_ct1 = syclblas_trans_const(transA);
+      oneapi::mkl::transpose transpose_ct2 = syclblas_trans_const(transB);
       int64_t m_ct3 = int(m), n_ct4 = int(n), k_ct5 = int(k),
               lda_ct6 = int(ldda), ldb_ct7 = int(lddb), ldc_ct8 = int(lddc),
               group_size_ct9 = int(batchCount);
       std::complex<double> alpha_ct10 =
                                dpct::get_value((BackendFloat_t *)&alpha,
-                                               *queue->cublas_handle()),
+                                               *queue->syclblas_handle()),
                            beta_ct11 = dpct::get_value((BackendFloat_t *)&beta,
-                                                       *queue->cublas_handle());
+                                                       *queue->syclblas_handle());
       oneapi::mkl::blas::column_major::gemm_batch(
-          *queue->cublas_handle(), &transpose_ct1, &transpose_ct2, &m_ct3,
+          *queue->syclblas_handle(), &transpose_ct1, &transpose_ct2, &m_ct3,
           &n_ct4, &k_ct5, &alpha_ct10,
           (const std::complex<double> **)(const BackendFloat_t **)dA_array,
           &lda_ct6,
@@ -103,19 +103,19 @@ magma_zgemm_batched_core(
                 magma_zdisplace_pointers(dAarray, (magmaDoubleComplex**)dA_array + i, ldda, Ai, Aj, batch, queue);
                 magma_zdisplace_pointers(dBarray, (magmaDoubleComplex**)dB_array + i, lddb, Bi, Bj, batch, queue);
                 magma_zdisplace_pointers(dCarray, (magmaDoubleComplex**)dC_array + i, lddc, Ci, Cj, batch, queue);
-        oneapi::mkl::transpose transpose_ct12 = cublas_trans_const(transA);
-        oneapi::mkl::transpose transpose_ct13 = cublas_trans_const(transB);
+        oneapi::mkl::transpose transpose_ct12 = syclblas_trans_const(transA);
+        oneapi::mkl::transpose transpose_ct13 = syclblas_trans_const(transB);
         int64_t m_ct14 = int(m), n_ct15 = int(n), k_ct16 = int(k),
                 lda_ct17 = int(ldda), ldb_ct18 = int(lddb),
                 ldc_ct19 = int(lddc), group_size_ct20 = int(batch);
         std::complex<double> alpha_ct21 =
                                  dpct::get_value((BackendFloat_t *)&alpha,
-                                                 *queue->cublas_handle()),
+                                                 *queue->syclblas_handle()),
                              beta_ct22 =
                                  dpct::get_value((BackendFloat_t *)&beta,
-                                                 *queue->cublas_handle());
+                                                 *queue->syclblas_handle());
         oneapi::mkl::blas::column_major::gemm_batch(
-            *queue->cublas_handle(), &transpose_ct12, &transpose_ct13, &m_ct14,
+            *queue->syclblas_handle(), &transpose_ct12, &transpose_ct13, &m_ct14,
             &n_ct15, &k_ct16, &alpha_ct21,
             (const std::complex<double> **)(const BackendFloat_t **)dAarray,
             &lda_ct17,
