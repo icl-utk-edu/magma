@@ -61,7 +61,7 @@ zlarfg_device(
         }
     }
 
-    magma_max_reduce<BLOCK_SIZE>( tx, swork );
+    magma_max_reduce<BLOCK_SIZE>( tx, swork, item_ct1 );
 
     if ( tx == 0 )
         *sscale = swork[0];
@@ -83,7 +83,7 @@ zlarfg_device(
                 swork[tx] += real(tmp)*real(tmp) + imag(tmp)*imag(tmp);
             }
         }
-        magma_sum_reduce<BLOCK_SIZE>( tx, swork );
+        magma_sum_reduce<BLOCK_SIZE>( tx, swork, item_ct1 );
     }
     
     if ( tx == 0 ) {
