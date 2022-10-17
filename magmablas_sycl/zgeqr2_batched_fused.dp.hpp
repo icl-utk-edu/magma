@@ -1,5 +1,3 @@
-#include <CL/sycl.hpp>
-#include <dpct/dpct.hpp>
 /*
     -- MAGMA (version 2.0) --
        Univ. of Tennessee, Knoxville
@@ -11,6 +9,11 @@
 
        @precisions normal z -> s d c
 */
+
+#include <CL/sycl.hpp>
+#include <dpct/dpct.hpp>
+#include "magma_types.h"
+#include "magma_internal.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 #define SLDA(n)              ( (((n)+1)%4) == 0 ? (n) : (n+1) )
@@ -29,7 +32,7 @@ void zgeqr2_compute_vtA_device(
         magmaDoubleComplex *sTmp,
         const int &tx, const int &ntx, sycl::nd_item<3> item_ct1)
 {
-    magmaDoubleComplex zsum = MAGMA_Z_ZERO;
+    magmaDoubleComplex zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
 
     const int ncols= n-j-1;
     const int tpc  = ntx / ncols; // threads-per-column
@@ -51,7 +54,7 @@ void zgeqr2_compute_vtA_device(
     item_ct1.barrier();
     // reduce
     if( tx < nath && tx_ == 0) {
-        zsum = MAGMA_Z_ZERO;
+        zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
         for(int i = 0; i < tpc; i++) {
             zsum += sTmp[i];
         }
@@ -126,7 +129,7 @@ void zgeqr2_compute_norm(
     // continue with serial sum
     sum = MAGMA_D_ZERO;
     if( tx == 0 ) {
-        for (int i = 0; i < min(ntx, 64); i++) {
+        for( int i = 0; i < min(ntx,64); i++ ) {
             sum += dx[i];
         }
         dx[0] = sum;
@@ -154,7 +157,7 @@ zgeqr2_fused_reg_kernel_batched(
     magma_int_t lwork_tmp, magma_int_t *info_array, magma_int_t check_launch_only, magma_int_t batchCount ,
     sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
-    extern magmaDoubleComplex zdata[];
+    auto zdata = (magmaDoubleComplex *)dpct_local;
 
     // if check_launch_only = 1, then return immediately
     // this is only to check if the kernel has been launched
@@ -171,7 +174,7 @@ zgeqr2_fused_reg_kernel_batched(
     magmaDoubleComplex* dtau = dtau_array[batchid] + taui;
     magma_int_t* info        = &info_array[batchid];
 
-    magmaDoubleComplex rA[N] = {MAGMA_Z_ZERO};
+    magmaDoubleComplex rA[N] = {magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO)};
     const int slda = SLDA(M32);
     const int sldt = SLDA(_TPC_);
 
@@ -186,7 +189,9 @@ zgeqr2_fused_reg_kernel_batched(
     sTmp  += ty * lwork_tmp;
     double* snorm = (double*) (sTmp); // must be set after offsetting w.r.t. ty
 
-    magmaDoubleComplex alpha, tau, tmp = MAGMA_Z_ZERO, scale = MAGMA_Z_ZERO;
+    magmaDoubleComplex alpha, tau,
+        tmp = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO),
+        scale = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
     double sum = MAGMA_D_ZERO, norm = MAGMA_D_ZERO, beta, ibeta;
     int i = 0;
 
@@ -197,12 +202,12 @@ zgeqr2_fused_reg_kernel_batched(
     // init sA to zero
     #pragma unroll
     for(int j = 0; j < N; j++) {
-        sA(tx,j) = MAGMA_Z_ZERO;
+        sA(tx, j) = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
     }
 
     // init tau
     if(tx < N) {
-        stau[tx] = MAGMA_Z_ZERO;
+        stau[tx] = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
     }
 
     // read and prepare for the norm of the first column
@@ -320,20 +325,39 @@ zgeqr2_fused_reg_kernel_batched(
         } // end of computing the norm
 
         norm  = snorm[0];
-        beta  = -copysign(norm, real(alpha));
+        beta = -sycl::copysign(norm, real(alpha));
         ibeta = 1 / beta;
-        scale = (tx > j) ? MAGMA_Z_DIV( MAGMA_Z_ONE,  alpha - MAGMA_Z_MAKE(beta, 0)) : MAGMA_Z_ONE;
-        tau   = MAGMA_Z_MAKE( (beta - real(alpha)) * ibeta, -imag(alpha) * ibeta );
+        /*
+        DPCT1064:18: Migrated make_cuDoubleComplex call is used in a macro
+        definition and is not valid for all macro uses. Adjust the code.
+        */
+        scale = (tx > j)
+                    ? MAGMA_Z_DIV(MAGMA_Z_ONE, alpha - MAGMA_Z_MAKE(beta, 0))
+                    : MAGMA_Z_ONE;
+        /*
+        DPCT1064:19: Migrated make_cuDoubleComplex call is used in a macro
+        definition and is not valid for all macro uses. Adjust the code.
+        */
+        tau = MAGMA_Z_MAKE((beta - real(alpha)) * ibeta, -imag(alpha) * ibeta);
 
         if(tx == j) {
             stau[j] = tau;
-            rA[j]   = MAGMA_Z_ONE;
+            /*
+            DPCT1064:20: Migrated make_cuDoubleComplex call is used in a macro
+            definition and is not valid for all macro uses. Adjust the code.
+            */
+            rA[j] = MAGMA_Z_ONE;
         }
 
         // scale the current column below the diagonal
         rA[j] *= scale;
-        tmp = (tx == j) ? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO) : rA[j]; // this does not need a sync
-        rA[j] = (tx < j) ? MAGMA_Z_ZERO : rA[j];
+        /*
+        DPCT1064:21: Migrated make_cuDoubleComplex call is used in a macro
+        definition and is not valid for all macro uses. Adjust the code.
+        */
+        tmp = (tx == j) ? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO)
+                        : rA[j]; // this does not need a sync
+        rA[j] = (tx < j) ? magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO) : rA[j];
 
         // write the column into global memory
         if( tx < m ) {
@@ -348,7 +372,7 @@ zgeqr2_fused_reg_kernel_batched(
                 sA(tx, jj) = MAGMA_Z_CONJ( rA[j] ) * rA[jj];
             }
             /*
-            DPCT1065:18: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:22: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -360,14 +384,14 @@ zgeqr2_fused_reg_kernel_batched(
             const int tx_   = tx % TPC;
             const int ty_   = tx / TPC;
 
-            magmaDoubleComplex zsum = MAGMA_Z_ZERO;
+            magmaDoubleComplex zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
             magmaDoubleComplex* sT  = sTmp;
 
             int ig = 0;
 
             #pragma unroll
             for(ig = 0; ig < NCOLS-NGRP; ig+=NGRP) {
-                zsum  = MAGMA_Z_ZERO;
+                zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
                 sT = sTmp + (ty_+ig+j+1) * sldt;
                 #pragma unroll
                 for(i = 0; i < M32; i+=TPC) {
@@ -377,7 +401,7 @@ zgeqr2_fused_reg_kernel_batched(
             }
 
             if(ty_ < NCOLS-ig) {
-                zsum  = MAGMA_Z_ZERO;
+                zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
                 sT = sTmp + (ty_+ig+j+1) * sldt;
                 #pragma unroll
                 for(i = 0; i < M32; i+=TPC) {
@@ -386,7 +410,7 @@ zgeqr2_fused_reg_kernel_batched(
                 sT[tx_] = zsum;
             }
             /*
-            DPCT1065:19: Consider replacing sycl::nd_item::barrier() with
+            DPCT1065:23: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
             better performance if there is no access to global memory.
             */
@@ -394,7 +418,7 @@ zgeqr2_fused_reg_kernel_batched(
 
             // reduce
             if( tx < NCOLS ) {
-                zsum = MAGMA_Z_ZERO;
+                zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
                 sT = sTmp + (tx+j+1) * sldt;
                 #pragma unroll
                 for(int i = 0; i < TPC; i++) {
@@ -416,7 +440,8 @@ zgeqr2_fused_reg_kernel_batched(
             if(j < N-1) {
                 rA[j+1]    -= rA[j] * sY[j+1];
                 sA(tx,j+1)  = rA[j+1]; // for alpha next iteration
-                tmp         = (tx < (j+1)) ? MAGMA_Z_ZERO : rA[j+1];
+                tmp = (tx < (j + 1)) ? magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO)
+                                     : rA[j + 1];
                 snorm[ tx ] = MAGMA_Z_REAL(tmp) * MAGMA_Z_REAL(tmp) +
                               MAGMA_Z_IMAG(tmp) * MAGMA_Z_IMAG(tmp) ;
             }
@@ -470,20 +495,14 @@ magma_zgeqr2_fused_reg_kernel_driver_batched(
     shmem += lwork_tmp     * sizeof(magmaDoubleComplex);  // for norm and w = v' * A
     shmem *= ntcol;
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
-    sycl::range<3> grid(gridx, 1, 1);
-    sycl::range<3> threads(nthreads, ntcol, 1);
+    sycl::range<3> grid(1, 1, gridx);
+    sycl::range<3> threads(1, ntcol, nthreads);
 
     // get max. dynamic shared memory on the GPU
     int nthreads_max, shmem_max = 0;
-    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
-    #if CUDA_VERSION >= 9000
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
-    if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zgeqr2_fused_reg_kernel_batched<M32, N>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
-    }
-    #else
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
-    #endif    // CUDA_VERSION >= 9000
+    int arginfo = 0;
+    nthreads_max = queue->sycl_stream().get_device().get_info<sycl::info::device::max_work_group_size>();
+    shmem_max = queue->sycl_stream().get_device().get_info<sycl::info::device::local_mem_size>();
 
     magma_int_t total_threads = nthreads * ntcol;
     if ( total_threads > nthreads_max || shmem > shmem_max ) {
@@ -493,10 +512,25 @@ magma_zgeqr2_fused_reg_kernel_driver_batched(
     }
 
     //if(check_launch_only == 1) return arginfo;
-    void *kernel_args[] = {&m, &dA_array, &Ai, &Aj, &ldda, &dtau_array, &taui, &lwork_tmp, &info_array, &check_launch_only, &batchCount};
-    int e =
-        cudaLaunchKernel((void *)zgeqr2_fused_reg_kernel_batched<M32, N>, grid,
-                         threads, kernel_args, shmem, queue->sycl_stream());
+    /*
+    DPCT1049:24: The work-group size passed to the SYCL kernel may exceed the
+    limit. To get the device limit, query info::device::max_work_group_size.
+    Adjust the work-group size if needed.
+    */
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
+        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
+                       sycl::access::target::local>
+            dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+
+        cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
+                         [=](sycl::nd_item<3> item_ct1) {
+                             zgeqr2_fused_reg_kernel_batched<M32, N>(
+                                 m, dA_array, Ai, Aj, ldda, dtau_array, taui,
+                                 lwork_tmp, info_array, check_launch_only,
+                                 batchCount, item_ct1,
+                                 dpct_local_acc_ct1.get_pointer());
+                         });
+    });
 
     return arginfo;
 }
