@@ -106,9 +106,9 @@ magma_dfgmres_spd_gpu(
 	        MAGMA_PRINTF("ro = %e, tol = %e, eps1 = %e\n", ro, tol, eps1);
 
 	        // tol is usually passed as cte = Anrm * sqrt(n) * BDWTH, with BDWTH=1.0
-            //double Anrm = tol / (lapackf77_dlamch("Epsilon") * magma_dsqrt((double)n));
-            //MAGMA_PRINTF("Before inner loop: GPU_GMRES_ITER %5lld  inner_iter %5lld   ro = %8.2E    Anrm = %8.2e    residual = %8.2e\n",
-            //(long long) iters, (long long) 0, ro, Anrm, ro / (Anrm * n));
+            double Anrm = tol / (lapackf77_dlamch("Epsilon") * magma_dsqrt((double)n));
+            MAGMA_PRINTF("Before inner loop: GPU_GMRES_ITER %5lld  inner_iter %5lld   ro = %8.2E    Anrm = %8.2e    residual = %8.2e\n",
+            (long long) iters, (long long) 0, ro, Anrm, ro / (Anrm * n));
 	    }
 
 	    rs[0] = MAGMA_D_MAKE( ro, 0.f );
