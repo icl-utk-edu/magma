@@ -47,6 +47,7 @@ libmagma_src += \
 	$(cdir)/ztrtri.cpp		\
 	\
 	$(cdir)/zpotrf_m.cpp		\
+	$(cdir)/shpotrf_gpu.cpp		\
 
 # ----------
 # LU, GPU interface
