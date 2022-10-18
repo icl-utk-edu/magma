@@ -67,7 +67,7 @@ zgesv_batched_small_device(
         double rx_abs_max = MAGMA_D_ZERO;
         double update = MAGMA_D_ZERO;
         // izamax and find pivot
-        dsx[rowid] = sycl::fabs(x()(rA[i])) + sycl::fabs(y()(rA[i]));
+        dsx[rowid] = sycl::fabs(MAGMA_Z_REAL(rA[i])) + sycl::fabs(MAGMA_Z_IMAG(rA[i]));
         magmablas_syncwarp(item_ct1);
         rx_abs_max = dsx[i];
         max_id = i;
@@ -237,7 +237,7 @@ zgesv_batched_small_sm_kernel(
 #pragma unroll
     for(int i = 0; i < n; i++) {
         // izamax and find pivot
-        dsx[tx] = sycl::fabs(x()(sA(tx, i))) + sycl::fabs(y()(sA(tx, i)));
+        dsx[tx] = sycl::fabs(MAGMA_Z_REAL(sA(tx, i))) + sycl::fabs(MAGMA_Z_IMAG(sA(tx, i)));
         /*
         DPCT1065:516: Consider replacing sycl::nd_item::barrier() with
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
@@ -478,27 +478,13 @@ extern "C" magma_int_t magma_zgesv_batched_small(
     sycl::range<3> threads(1, 1, thread_x);
     sycl::range<3> grid(1, 1, batchCount);
 
-    int e = 1;
+    // TODO: fix error handling for SYCL (exception --> MAGMA error)
+    int e = 0;
     if(use_shmem_kernel == 1) {
         magma_device_t device;
         int nthreads_max, shmem_max;
-        magma_getdevice( &device );
-        cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
-        #if CUDA_VERSION >= 9000
-        cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
-        if (shmem <= shmem_max) {
-            /*
-            DPCT1007:525: Migration of cudaFuncSetAttribute is not supported by
-            the Intel(R) DPC++ Compatibility Tool.
-            */
-            cudaFuncSetAttribute(zgesv_batched_small_sm_kernel,
-                                 cudaFuncAttributeMaxDynamicSharedMemorySize,
-                                 shmem);
-        }
-        #else
-        cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
-        #endif    // CUDA_VERSION >= 9000
-
+        nthreads_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::max_work_group_size>();
+        shmem_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::local_mem_size>();
         if ( thread_x > nthreads_max || shmem > shmem_max ) {
             arginfo = -100;
         }
@@ -510,7 +496,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            e = ((sycl::queue *)(queue->sycl_stream()))
+            ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -549,8 +535,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 1: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 1: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -582,8 +567,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 2: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 2: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -615,8 +599,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 3: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 3: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -648,8 +631,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 4: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 4: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -681,8 +663,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 5: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 5: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -714,8 +695,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 6: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 6: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -747,8 +727,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 7: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 7: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -780,8 +759,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 8: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 8: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -813,8 +791,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 9: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 9: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -846,8 +823,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 10: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 10: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -879,8 +855,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 11: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 11: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -912,8 +887,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 12: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 12: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -945,8 +919,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 13: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 13: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -978,8 +951,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 14: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 14: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1011,8 +983,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 15: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 15: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1044,8 +1015,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 16: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 16: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1077,8 +1047,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 17: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 17: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1110,8 +1079,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 18: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 18: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1143,8 +1111,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 19: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 19: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1176,8 +1143,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 20: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 20: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1209,8 +1175,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 21: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 21: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1242,8 +1207,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 22: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 22: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1275,8 +1239,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 23: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 23: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1308,8 +1271,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 24: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 24: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1341,8 +1303,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 25: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 25: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1374,8 +1335,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 26: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 26: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1407,8 +1367,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 27: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 27: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1440,8 +1399,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 28: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 28: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1473,8 +1431,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 29: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 29: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1506,8 +1463,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 30: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 30: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1539,8 +1495,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 31: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 31: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1572,8 +1527,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
-            case 32: e =
-                ((sycl::queue *)(queue->sycl_stream()))
+            case 32: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
                                        sycl::access_mode::read_write,
@@ -1607,6 +1561,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
     DPCT1000:524: Error handling if-stmt was detected but could not be
     rewritten.
     */
+    // TODO
     if (e != 0) {
         /*
         DPCT1001:523: The statement could not be removed.
