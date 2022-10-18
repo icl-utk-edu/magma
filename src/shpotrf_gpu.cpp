@@ -14,7 +14,7 @@
 
 #include "magma_internal.h"
 
-//#define CUDA_USE_FAST_SGEMM
+#define CUDA_USE_FAST_SGEMM
 
 static magma_int_t
 magma_sgemm_fp16(
@@ -35,13 +35,6 @@ magma_sgemm_fp16(
                       (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
                       CUBLAS_COMPUTE_32F_FAST_16F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
         #else
-        //magma_int_t hinfo = 0;
-        //magma_int_t Am = (transA == MagmaNoTrans) ? m : k;
-        //magma_int_t An = (transA == MagmaNoTrans) ? k : m;
-        //magma_int_t Bm = (transB == MagmaNoTrans) ? k : n;
-        //magma_int_t Bn = (transB == MagmaNoTrans) ? n : k;
-        //magmablas_slag2h(Am, An, dA, ldda, dhA, Am, &hinfo, queue);
-        //magmablas_slag2h(Bm, Bn, dB, lddb, dhB, Bm, &hinfo, queue);
         cublasGemmEx( queue->cublas_handle(),
             cublas_trans_const( transA ), cublas_trans_const( transB ),
             (int)m, (int)n, (int)k,
@@ -51,14 +44,6 @@ magma_sgemm_fp16(
             CUDA_R_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
          #endif
     #else
-    //magma_int_t hinfo = 0;
-    //magma_int_t Am = (transA == MagmaNoTrans) ? m : k;
-    //magma_int_t An = (transA == MagmaNoTrans) ? k : m;
-    //magma_int_t Bm = (transB == MagmaNoTrans) ? k : n;
-    //magma_int_t Bn = (transB == MagmaNoTrans) ? n : k;
-    //magmablas_slag2h(Am, An, dA, ldda, dhA, Am, &hinfo, queue);
-    //magmablas_slag2h(Bm, Bn, dB, lddb, dhB, Bm, &hinfo, queue);
-
     hipblasGemmEx( queue->hipblas_handle(),
 		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
 		           int(m), int(n), int(k),
@@ -171,7 +156,7 @@ magma_shpotrf_LL_expert_gpu(
     // half precision workspace
     magmaHalf* dhA = NULL;
     magmaHalf* dhB = NULL;
-    //#if defined(MAGMA_HAVE_HIP) || ( defined(MAGMA_HAVE_CUDA) && !defined(CUDA_USE_FAST_SGEMM) )
+    #if defined(MAGMA_HAVE_HIP) || ( defined(MAGMA_HAVE_CUDA) && !defined(CUDA_USE_FAST_SGEMM) )
     magma_int_t lddha  = magma_roundup(n, 128);
     magma_int_t lhwork = lddha * n;
     if( MAGMA_SUCCESS != magma_malloc( (void**)&dhW, lhwork*sizeof(magmaHalf)) ) {
@@ -267,7 +252,10 @@ magma_shpotrf_LL_expert_gpu(
                          c_one, dA(j,    j), ldda,
                                 dA(j+jb, j), ldda, queues[0] );
 
+            #if defined(MAGMA_HAVE_HIP) || ( defined(MAGMA_HAVE_CUDA) && !defined(CUDA_USE_FAST_SGEMM) )
             magmablas_slag2h(n-j, jb, dA(j, j), ldda, dhW(j, j), lddha, &s2h_info, queues[0]);
+            #endif
+
             magma_event_record(events[0], queues[0]);
         }
     }
