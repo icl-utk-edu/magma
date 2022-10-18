@@ -42,8 +42,8 @@ magma_sgemm_fp16(
     magma_int_t An = (transA == MagmaNoTrans) ? k : m;
     magma_int_t Bm = (transB == MagmaNoTrans) ? k : n;
     magma_int_t Bn = (transB == MagmaNoTrans) ? n : k;
-    magmablas_slag2h(Am, An, dA, ldda, dhA, Am, &hinfo, queue);
-    magmablas_slag2h(Bm, Bn, dB, lddb, dhB, Bm, &hinfo, queue);
+    magmablas_slag2h(Am, An, dA, ldda, dhA, ldda, &hinfo, queue);
+    magmablas_slag2h(Bm, Bn, dB, lddb, dhB, lddb, &hinfo, queue);
 
     hipblasGemmEx( qmagma_queue_get_hipblas_handle( queue ),
 		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
