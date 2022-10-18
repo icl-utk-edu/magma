@@ -59,7 +59,7 @@ magma_sgemm_fp16_v1(
 
 // version 2 -- no change for hip
 static magma_int_t
-magma_sgemm_fp16_v1(
+magma_sgemm_fp16_v2(
     magma_trans_t transA, magma_trans_t transB,
     magma_int_t m, magma_int_t n, magma_int_t k,
     float alpha, float* dA, magmaHalf* dhA, magma_int_t ldda,
