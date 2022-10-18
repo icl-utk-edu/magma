@@ -200,7 +200,7 @@ zgbtrf_batched_np_kernel( magmaDoubleComplex** dA_array, int ldda,
 
     #pragma unroll
     for(int i = 0; i < N; i++){
-        rx_abs_max = sycl::fabs(x()(rA[i])) + sycl::fabs(y()(rA[i]));
+        rx_abs_max = sycl::fabs(MAGMA_Z_REAL(rA[i])) + sycl::fabs(MAGMA_Z_IMAG(rA[i]));
         magmablas_syncwarp(item_ct1);
 
         linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (i+1) : linfo;
@@ -395,7 +395,7 @@ magma_zgbtrf_batched(
                     cgh.parallel_for(
                         sycl::nd_range<3>(grid * threads, threads),
                         [=](sycl::nd_item<3> item_ct1) {
-                            zgbtrf_batched_np_kernel<32, magma_ceilpow2>(
+                            zgbtrf_batched_np_kernel<32, magma_ceilpow2(32)>(
                                 dA_array, ldda, info_array, batchCount,
                                 item_ct1, dpct_local_acc_ct1.get_pointer());
                         });

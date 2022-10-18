@@ -1566,23 +1566,11 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_batched(
     sycl::range<3> threads(1, ntcol, m);
 
     // get max. dynamic shared memory on the GPU
-    int nthreads_max, nthreads = m * ntcol;
-    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
-    #if CUDA_VERSION >= 9000
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
-    if (shmem <= shmem_max) {
-        /*
-        DPCT1007:635: Migration of cudaFuncSetAttribute is not supported by the
-        Intel(R) DPC++ Compatibility Tool.
-        */
-        cudaFuncSetAttribute(zgetf2_fused_kernel_batched<N>,
-                             cudaFuncAttributeMaxDynamicSharedMemorySize,
-                             shmem);
-    }
-    #else
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
-    #endif    // CUDA_VERSION >= 9000
+    int nthreads_max;
+    nthreads_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::max_work_group_size>();
+    shmem_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::local_mem_size>();
 
+    int nthreads = m * ntcol;
     magma_int_t total_threads = nthreads * ntcol;
     if ( total_threads > nthreads_max || shmem > shmem_max ) {
         //printf("error: kernel %s requires too many threads or too much shared memory\n", __func__);
@@ -1590,25 +1578,30 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_batched(
         return arginfo;
     }
 
-    void *kernel_args[] = {&m, &dA_array, &ai, &aj, &ldda, &dipiv_array, &info_array, &batchCount};
-    /*
-    DPCT1007:634: Migration of cudaLaunchKernel is not supported by the Intel(R)
-    DPC++ Compatibility Tool.
-    */
-    // TODO!
-    int e = cudaLaunchKernel((void *)zgetf2_fused_kernel_batched<N>, grid,
-                             threads, kernel_args, shmem, queue->sycl_stream());
+//    void *kernel_args[] = {&m, &dA_array, &ai, &aj, &ldda, &dipiv_array, &info_array, &batchCount};
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
+       sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
+                       sycl::access::target::local>
+                       dpct_local_acc_ct1(sycl::range<1>(shmem), cgh); // NNB: I added this manually, dpct didn't finish --
+				                                      // check if size is correct
+      cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
+                       [=](sycl::nd_item<3> item_ct1) {
+                       zgetf2_fused_kernel_batched<N>(m, dA_array, ai, aj, ldda, dipiv_array, info_array,
+                            batchCount, item_ct1, dpct_local_acc_ct1.get_pointer());
+                       });
+	});
     /*
     DPCT1000:633: Error handling if-stmt was detected but could not be
     rewritten.
     */
-    if (e != 0) {
+    // TODO
+//    if (e != 0) {
         //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         /*
         DPCT1001:632: The statement could not be removed.
         */
-        arginfo = -100;
-    }
+//        arginfo = -100;
+//    }
 
     return arginfo;
 }

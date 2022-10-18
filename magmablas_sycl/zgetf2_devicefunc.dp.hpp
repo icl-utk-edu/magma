@@ -62,9 +62,9 @@ izamax_devfunc(int length, const magmaDoubleComplex *x, int incx, double *shared
     item_ct1.barrier();
 
     if (length >= zamax) // there are more than 128 threads working ==> all shared_x shared_idx are initialized here so I can call the fixed getidmax
-        magma_getidmax<zamax>(tx, shared_x, shared_idx);
+        magma_getidmax<zamax>(tx, shared_x, shared_idx, item_ct1);
     else
-        magma_getidmax_n(min(zamax,length), tx, shared_x, shared_idx);
+        magma_getidmax_n(min(zamax,length), tx, shared_x, shared_idx, item_ct1);
     return shared_idx[0];
 }
 
@@ -78,7 +78,7 @@ void zswap_device( magma_int_t n,
     const int tx = item_ct1.get_local_id(2);
 
     if (tx == 0){
-        jp = ipiv[step] - 1;
+        *jp = ipiv[step] - 1;
     }
     /*
     DPCT1065:22: Consider replacing sycl::nd_item::barrier() with
@@ -87,11 +87,11 @@ void zswap_device( magma_int_t n,
     */
     item_ct1.barrier();
 
-    if (jp == step) return; // no pivot
+    if (*jp == step) return; // no pivot
 
     if (tx < n) {
-        magmaDoubleComplex tmp = x[jp + tx * incx];
-        x[jp + tx * incx] = x[step + tx * incx];
+        magmaDoubleComplex tmp = x[*jp + tx * incx];
+        x[*jp + tx * incx] = x[step + tx * incx];
         x[step + tx * incx] = tmp;
     }
 }
@@ -122,7 +122,7 @@ static __inline__
 void zscal_zgeru_device( int m,
                          magmaDoubleComplex_ptr dA, int lda,
                          magma_int_t *info, int step, int gbstep,
-                         sycl::nd_item<3> item_ct1,  *shared_y)
+                         sycl::nd_item<3> item_ct1, magmaDoubleComplex *shared_y)
 {
     const int tx = item_ct1.get_local_id(2);
     const int gtx = item_ct1.get_group(2) * item_ct1.get_local_range(2) + tx;
@@ -130,7 +130,7 @@ void zscal_zgeru_device( int m,
     if( (*info) != 0 ) return;
 
     magmaDoubleComplex rA[N], reg;
-    magmaDoubleComplex shared_y[N];
+//    magmaDoubleComplex shared_y[N];
 
     if (tx < N) {
         shared_y[tx] = dA[lda * tx];
@@ -276,7 +276,7 @@ zgetf2_fused_device( int m, int minmn, magmaDoubleComplex rA[WIDTH], magma_int_t
     double rx_abs_max = MAGMA_D_ZERO;
 
     magmaDoubleComplex *sx = (magmaDoubleComplex*)(swork);
-    double* dsx = (double*)(sx + blockDim.y * WIDTH);
+    double* dsx = (double*)(sx + item_ct1.get_local_range(1) * WIDTH);
     int *isx = (int *)(dsx + item_ct1.get_local_range(1) * m);
     int *sipiv = (int *)(isx + item_ct1.get_local_range(1) * m);
     sx    += ty * WIDTH;
@@ -302,7 +302,7 @@ zgetf2_fused_device( int m, int minmn, magmaDoubleComplex rA[WIDTH], magma_int_t
         better performance if there is no access to global memory.
         */
         item_ct1.barrier();
-        magma_getidmax_n(m-i, tx, dsx+i, isx+i); // this devfunc has syncthreads at the end
+        magma_getidmax_n(m-i, tx, dsx+i, isx+i, item_ct1); // this devfunc has syncthreads at the end
         rx_abs_max = dsx[i];
         max_id = isx[i];
         linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;

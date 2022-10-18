@@ -12,9 +12,6 @@
 
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
-#include "magma_types.h"
-#include "magma_internal.h"
-
 ////////////////////////////////////////////////////////////////////////////////
 #define SLDA(n)              ( (((n)+1)%4) == 0 ? (n) : (n+1) )
 #define sA(i,j)              sA[(j) * slda + (i)]
@@ -32,7 +29,7 @@ void zgeqr2_compute_vtA_device(
         magmaDoubleComplex *sTmp,
         const int &tx, const int &ntx, sycl::nd_item<3> item_ct1)
 {
-    magmaDoubleComplex zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
+    magmaDoubleComplex zsum = MAGMA_Z_ZERO;
 
     const int ncols= n-j-1;
     const int tpc  = ntx / ncols; // threads-per-column
@@ -54,7 +51,7 @@ void zgeqr2_compute_vtA_device(
     item_ct1.barrier();
     // reduce
     if( tx < nath && tx_ == 0) {
-        zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
+        zsum = MAGMA_Z_ZERO;
         for(int i = 0; i < tpc; i++) {
             zsum += sTmp[i];
         }
@@ -174,7 +171,7 @@ zgeqr2_fused_reg_kernel_batched(
     magmaDoubleComplex* dtau = dtau_array[batchid] + taui;
     magma_int_t* info        = &info_array[batchid];
 
-    magmaDoubleComplex rA[N] = {magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO)};
+    magmaDoubleComplex rA[N] = {MAGMA_Z_ZERO};
     const int slda = SLDA(M32);
     const int sldt = SLDA(_TPC_);
 
@@ -190,8 +187,8 @@ zgeqr2_fused_reg_kernel_batched(
     double* snorm = (double*) (sTmp); // must be set after offsetting w.r.t. ty
 
     magmaDoubleComplex alpha, tau,
-        tmp = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO),
-        scale = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
+        tmp = MAGMA_Z_ZERO,
+        scale = MAGMA_Z_ZERO;
     double sum = MAGMA_D_ZERO, norm = MAGMA_D_ZERO, beta, ibeta;
     int i = 0;
 
@@ -202,12 +199,12 @@ zgeqr2_fused_reg_kernel_batched(
     // init sA to zero
     #pragma unroll
     for(int j = 0; j < N; j++) {
-        sA(tx, j) = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
+        sA(tx, j) = MAGMA_Z_ZERO;
     }
 
     // init tau
     if(tx < N) {
-        stau[tx] = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
+        stau[tx] = MAGMA_Z_ZERO;
     }
 
     // read and prepare for the norm of the first column
@@ -357,7 +354,7 @@ zgeqr2_fused_reg_kernel_batched(
         */
         tmp = (tx == j) ? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO)
                         : rA[j]; // this does not need a sync
-        rA[j] = (tx < j) ? magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO) : rA[j];
+        rA[j] = (tx < j) ? MAGMA_Z_ZERO : rA[j];
 
         // write the column into global memory
         if( tx < m ) {
@@ -384,14 +381,14 @@ zgeqr2_fused_reg_kernel_batched(
             const int tx_   = tx % TPC;
             const int ty_   = tx / TPC;
 
-            magmaDoubleComplex zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
+            magmaDoubleComplex zsum = MAGMA_Z_ZERO;
             magmaDoubleComplex* sT  = sTmp;
 
             int ig = 0;
 
             #pragma unroll
             for(ig = 0; ig < NCOLS-NGRP; ig+=NGRP) {
-                zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
+                zsum = MAGMA_Z_ZERO;
                 sT = sTmp + (ty_+ig+j+1) * sldt;
                 #pragma unroll
                 for(i = 0; i < M32; i+=TPC) {
@@ -401,7 +398,7 @@ zgeqr2_fused_reg_kernel_batched(
             }
 
             if(ty_ < NCOLS-ig) {
-                zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
+                zsum = MAGMA_Z_ZERO;
                 sT = sTmp + (ty_+ig+j+1) * sldt;
                 #pragma unroll
                 for(i = 0; i < M32; i+=TPC) {
@@ -418,7 +415,7 @@ zgeqr2_fused_reg_kernel_batched(
 
             // reduce
             if( tx < NCOLS ) {
-                zsum = magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO);
+                zsum = MAGMA_Z_ZERO;
                 sT = sTmp + (tx+j+1) * sldt;
                 #pragma unroll
                 for(int i = 0; i < TPC; i++) {
@@ -440,7 +437,7 @@ zgeqr2_fused_reg_kernel_batched(
             if(j < N-1) {
                 rA[j+1]    -= rA[j] * sY[j+1];
                 sA(tx,j+1)  = rA[j+1]; // for alpha next iteration
-                tmp = (tx < (j + 1)) ? magmaDoubleComplex(MAGMA_Z_ZERO, MAGMA_Z_ZERO)
+                tmp = (tx < (j + 1)) ? MAGMA_Z_ZERO
                                      : rA[j + 1];
                 snorm[ tx ] = MAGMA_Z_REAL(tmp) * MAGMA_Z_REAL(tmp) +
                               MAGMA_Z_IMAG(tmp) * MAGMA_Z_IMAG(tmp) ;
@@ -500,9 +497,8 @@ magma_zgeqr2_fused_reg_kernel_driver_batched(
 
     // get max. dynamic shared memory on the GPU
     int nthreads_max, shmem_max = 0;
-    int arginfo = 0;
-    nthreads_max = queue->sycl_stream().get_device().get_info<sycl::info::device::max_work_group_size>();
-    shmem_max = queue->sycl_stream().get_device().get_info<sycl::info::device::local_mem_size>();
+    nthreads_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::max_work_group_size>();
+    shmem_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::local_mem_size>();
 
     magma_int_t total_threads = nthreads * ntcol;
     if ( total_threads > nthreads_max || shmem > shmem_max ) {
