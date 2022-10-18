@@ -230,11 +230,20 @@ int main( int argc, char** argv)
 
                 magma_flush_cache( opts.cache );
                 magma_time = magma_sync_wtime( opts.queue );
-                magma_sgemm_fp16( opts.transA, opts.transB, M, N, K,
+                if(opts.version == 1) {
+                    magma_sgemm_fp16_v1( opts.transA, opts.transB, M, N, K,
                                  alpha, dA, dhA, ldda,
                                         dB, dhB, lddb,
                                  beta,  dC,      lddc,
                                  opts.queue );
+                }
+                else {
+                    magma_sgemm_fp16_v2( opts.transA, opts.transB, M, N, K,
+                                 alpha, dA, dhA, ldda,
+                                        dB, dhB, lddb,
+                                 beta,  dC,      lddc,
+                                 opts.queue );
+                }
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
                 magma_perf = gflops / magma_time;
 
