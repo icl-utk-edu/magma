@@ -20,8 +20,8 @@ static magma_int_t
 magma_sgemm_fp16(
     magma_trans_t transA, magma_trans_t transB,
     magma_int_t m, magma_int_t n, magma_int_t k,
-    float alpha, float* dA, magmaHalf* dhA, magma_int_t ldda,
-                 float* dB, magmaHalf* dhB, magma_int_t lddb,
+    float alpha, float* dA, magma_int_t ldda, magmaHalf* dhA, magma_int_t lddha,
+                 float* dB, magma_int_t lddb, magmaHalf* dhB, magma_int_t lddhb,
     float beta,  float* dC, magma_int_t lddc,
     magma_queue_t queue )
 {
@@ -35,35 +35,35 @@ magma_sgemm_fp16(
                       (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
                       CUBLAS_COMPUTE_32F_FAST_16F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
         #else
-        magma_int_t hinfo = 0;
-        magma_int_t Am = (transA == MagmaNoTrans) ? m : k;
-        magma_int_t An = (transA == MagmaNoTrans) ? k : m;
-        magma_int_t Bm = (transB == MagmaNoTrans) ? k : n;
-        magma_int_t Bn = (transB == MagmaNoTrans) ? n : k;
-        magmablas_slag2h(Am, An, dA, ldda, dhA, Am, &hinfo, queue);
-        magmablas_slag2h(Bm, Bn, dB, lddb, dhB, Bm, &hinfo, queue);
-        cublasGemmEx( magma_queue_get_cublas_handle( queue ),
+        //magma_int_t hinfo = 0;
+        //magma_int_t Am = (transA == MagmaNoTrans) ? m : k;
+        //magma_int_t An = (transA == MagmaNoTrans) ? k : m;
+        //magma_int_t Bm = (transB == MagmaNoTrans) ? k : n;
+        //magma_int_t Bn = (transB == MagmaNoTrans) ? n : k;
+        //magmablas_slag2h(Am, An, dA, ldda, dhA, Am, &hinfo, queue);
+        //magmablas_slag2h(Bm, Bn, dB, lddb, dhB, Bm, &hinfo, queue);
+        cublasGemmEx( queue->cublas_handle(),
             cublas_trans_const( transA ), cublas_trans_const( transB ),
             (int)m, (int)n, (int)k,
-            (const void*) &alpha, (const void*) dhA, CUDA_R_16F, (int)ldda,
-                                  (const void*) dhB, CUDA_R_16F, (int)lddb,
+            (const void*) &alpha, (const void*) dhA, CUDA_R_16F, (int)lddha,
+                                  (const void*) dhB, CUDA_R_16F, (int)lddhb,
             (const void*) &beta,  (      void*) dC,  CUDA_R_32F, (int)lddc,
             CUDA_R_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
          #endif
     #else
-    magma_int_t hinfo = 0;
-    magma_int_t Am = (transA == MagmaNoTrans) ? m : k;
-    magma_int_t An = (transA == MagmaNoTrans) ? k : m;
-    magma_int_t Bm = (transB == MagmaNoTrans) ? k : n;
-    magma_int_t Bn = (transB == MagmaNoTrans) ? n : k;
-    magmablas_slag2h(Am, An, dA, ldda, dhA, Am, &hinfo, queue);
-    magmablas_slag2h(Bm, Bn, dB, lddb, dhB, Bm, &hinfo, queue);
+    //magma_int_t hinfo = 0;
+    //magma_int_t Am = (transA == MagmaNoTrans) ? m : k;
+    //magma_int_t An = (transA == MagmaNoTrans) ? k : m;
+    //magma_int_t Bm = (transB == MagmaNoTrans) ? k : n;
+    //magma_int_t Bn = (transB == MagmaNoTrans) ? n : k;
+    //magmablas_slag2h(Am, An, dA, ldda, dhA, Am, &hinfo, queue);
+    //magmablas_slag2h(Bm, Bn, dB, lddb, dhB, Bm, &hinfo, queue);
 
     hipblasGemmEx( queue->hipblas_handle(),
 		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
 		           int(m), int(n), int(k),
-		           (void*)&alpha, (void*)dhA, HIPBLAS_R_16F, (int)Am,
-                                  (void*)dhB, HIPBLAS_R_16F, (int)Bm,
+		           (void*)&alpha, (void*)dhA, HIPBLAS_R_16F, (int)lddha,
+                                  (void*)dhB, HIPBLAS_R_16F, (int)lddhb,
 		           (void*)&beta,  (void*)dC,  HIPBLAS_R_32F, (int)lddc,
 		           HIPBLAS_R_32F, HIPBLAS_GEMM_DEFAULT);
     #endif
@@ -139,11 +139,8 @@ magma_shpotrf_LL_expert_gpu(
     magma_int_t nb, magma_int_t recnb,
     magma_int_t *info, magma_mode_t mode )
 {
-    #ifdef HAVE_clBLAS
-    #define dA(i_, j_)  dA, ((i_) + (j_)*ldda + dA_offset)
-    #else
-    #define dA(i_, j_) (dA + (i_) + (j_)*ldda)
-    #endif
+    #define  dA(i_, j_) (dA  + (i_) + (j_)*ldda)
+    #define dhW(i_, j_) (dhW + (i_) + (j_)*lddha)
 
     /* Constants */
     const float c_one     = MAGMA_S_ONE;
@@ -152,13 +149,14 @@ magma_shpotrf_LL_expert_gpu(
     const float d_neg_one = -1.0;
 
     /* Local variables */
-    magma_int_t j, jb;
+    magma_int_t j, jb, s2h_info;
     magma_int_t *dinfo=NULL;
     float *work=NULL;
-    magmaHalf *hwork=NULL;
+    magmaHalf *dhW=NULL;
 
     *info = 0;
-    if (uplo != MagmaUpper && uplo != MagmaLower) {
+    if (uplo != MagmaLower) {
+        printf("only uplo = MagmaLower is supported\n");
         *info = -1;
     } else if (n < 0) {
         *info = -2;
@@ -170,19 +168,20 @@ magma_shpotrf_LL_expert_gpu(
         return *info;
     }
 
-    magmaHalf* hA = NULL;
-    magmaHalf* hB = NULL;
-    #if defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_CUDA)
-    magma_int_t n2     = magma_roundup(n, 2);
-    magma_int_t lhwork = ( (n2*n2) / 4) + (n * nb);   // max size of A at n/2 x n/2
-    if( MAGMA_SUCCESS != magma_malloc( (void**)&hwork, lhwork*sizeof(magmaHalf)) ) {
+    // half precision workspace
+    magmaHalf* dhA = NULL;
+    magmaHalf* dhB = NULL;
+    //#if defined(MAGMA_HAVE_HIP) || ( defined(MAGMA_HAVE_CUDA) && !defined(CUDA_USE_FAST_SGEMM) )
+    magma_int_t lddha  = magma_roundup(n, 128);
+    magma_int_t lhwork = lddha * n;
+    if( MAGMA_SUCCESS != magma_malloc( (void**)&dhW, lhwork*sizeof(magmaHalf)) ) {
         *info = MAGMA_ERR_HOST_ALLOC;
         goto cleanup;
     }
 
-    hA = hwork;
-    hB = hA + ((n2*n2) / 4);
-    #endif
+    dhA = dhW;
+    dhB = dhW;
+    //#endif
 
     if (mode == MagmaHybrid) {
         if ( MAGMA_SUCCESS != magma_smalloc_pinned( &work, nb*nb ) ) {
@@ -208,126 +207,71 @@ magma_shpotrf_LL_expert_gpu(
     if (mode == MagmaNative)
         magma_setvector( 1, sizeof(magma_int_t), info, 1, dinfo, 1, queues[0]);
 
-    if (uplo == MagmaUpper) {
-        //=========================================================
-        /* Compute the Cholesky factorization A = U'*U. */
-        for (j=0; j < n; j += nb) {
-            // apply all previous updates to diagonal block,
-            // then transfer it to CPU (if hybrid)
-            jb = min( nb, n-j );
-            magma_ssyrk( MagmaUpper, MagmaConjTrans, jb, j,
-                         d_neg_one, dA(0, j), ldda,
-                         d_one,     dA(j, j), ldda, queues[1] );
+    // Compute the Cholesky factorization A = L*L'.
+    for (j=0; j < n; j += nb) {
+        // apply all previous updates to diagonal block,
+        // then transfer it to CPU (if hybrid)
+        jb = min( nb, n-j );
+        magma_ssyrk( MagmaLower, MagmaNoTrans, jb, j,
+                     d_neg_one, dA(j, 0), ldda,
+                     d_one,     dA(j, j), ldda, queues[0] );
 
-            if (mode == MagmaHybrid) {
-                magma_queue_sync( queues[1] );
-                magma_sgetmatrix_async( jb, jb,
-                                        dA(j, j), ldda,
-                                        work,     jb, queues[0] );
-            }
-            else {
-                magma_spotrf_rectile_native(MagmaUpper, jb, recnb,
-                                            dA(j, j), ldda, j,
-                                            dinfo, info, queues[1] );
-            }
-
-
-            // apply all previous updates to block row right of diagonal block
-            if (j+jb < n) {
-                magma_sgemm_fp16( MagmaConjTrans, MagmaNoTrans,
-                             jb, n-j-jb, j,
-                             c_neg_one, dA(0, j   ), hA, ldda,
-                                        dA(0, j+jb), hB, ldda,
-                             c_one,     dA(j, j+jb),     ldda, queues[1] );
-            }
-
-            // simultaneous with above sgemm, transfer diagonal block,
-            // factor it on CPU, and test for positive definiteness
-            if (mode == MagmaHybrid) {
-                magma_queue_sync( queues[0] );
-                lapackf77_spotrf( MagmaUpperStr, &jb, work, &jb, info );
-                magma_ssetmatrix_async( jb, jb,
-                                        work,     jb,
-                                        dA(j, j), ldda, queues[1] );
-                if (*info != 0) {
-                    *info = *info + j;
-                    break;
-                }
-            }
-
-            // apply diagonal block to block row right of diagonal block
-            if (j+jb < n) {
-                magma_strsm( MagmaLeft, MagmaUpper, MagmaConjTrans, MagmaNonUnit,
-                             jb, n-j-jb,
-                             c_one, dA(j, j),    ldda,
-                                    dA(j, j+jb), ldda, queues[1] );
+        if (mode == MagmaHybrid) {
+            magma_sgetmatrix_async( jb, jb,
+                                    dA(j, j), ldda,
+                                    work,     jb, queues[0] );
+        }
+        else {
+            magma_spotrf_rectile_native(MagmaLower, jb, recnb,
+                                        dA(j, j), ldda, j,
+                                        dinfo, info, queues[0] );
+            if(*info != 0) {
+                return *info;
+                break;
             }
         }
-    }
-    else {
-        //=========================================================
-        // Compute the Cholesky factorization A = L*L'.
-        for (j=0; j < n; j += nb) {
-            // apply all previous updates to diagonal block,
-            // then transfer it to CPU (if hybrid)
-            jb = min( nb, n-j );
-            magma_ssyrk( MagmaLower, MagmaNoTrans, jb, j,
-                         d_neg_one, dA(j, 0), ldda,
-                         d_one,     dA(j, j), ldda, queues[0] );
 
-            if (mode == MagmaHybrid) {
-                magma_sgetmatrix_async( jb, jb,
-                                        dA(j, j), ldda,
-                                        work,     jb, queues[0] );
-            }
-            else {
-                magma_spotrf_rectile_native(MagmaLower, jb, recnb,
-                                            dA(j, j), ldda, j,
-                                            dinfo, info, queues[0] );
-                //printf("j = %lld, info = %lld\n", (long long)j, (long long)*info );
-                if(*info != 0) {
-                    return *info;   // not *info+j (j is already added)
-                    break;
-                }
-            }
+        // apply all previous updates to block column below diagonal block
+        if (j+jb < n) {
+            magma_queue_wait_event(queues[1], events[0]);
+            dhA = dhW(j+jb, 0);
+            dhB = dhW(j,    0);
+            magma_sgemm_fp16( MagmaNoTrans, MagmaConjTrans,
+                         n-j-jb, jb, j,
+                         c_neg_one, dA(j+jb, 0), ldda, dhA, lddha,
+                                    dA(j,    0), ldda, dhB, lddha,
+                         c_one,     dA(j+jb, j), ldda, queues[1] );
+            magma_event_record(events[1], queues[1]);
+        }
 
-            // apply all previous updates to block column below diagonal block
-            if (j+jb < n) {
-                magma_queue_wait_event(queues[1], events[0]);
-                magma_sgemm_fp16( MagmaNoTrans, MagmaConjTrans,
-                             n-j-jb, jb, j,
-                             c_neg_one, dA(j+jb, 0), hA, ldda,
-                                        dA(j,    0), hB, ldda,
-                             c_one,     dA(j+jb, j),     ldda, queues[1] );
-                magma_event_record(events[1], queues[1]);
-            }
-
-            // simultaneous with above sgemm, transfer diagonal block,
-            // factor it on CPU, and test for positive definiteness
-            // Azzam: The above section can be moved here the code will look cleaner.
-            if (mode == MagmaHybrid) {
-                magma_queue_sync( queues[0] );
-                lapackf77_spotrf( MagmaLowerStr, &jb, work, &jb, info );
-                magma_ssetmatrix_async( jb, jb,
-                                        work,     jb,
-                                        dA(j, j), ldda, queues[0] );
-                if (*info != 0) {
-                    *info = *info + j;
-                    break;
-                }
-            }
-
-            // apply diagonal block to block column below diagonal
-            if (j+jb < n) {
-                magma_queue_wait_event(queues[0], events[1]);
-                magma_strsm( MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit,
-                             n-j-jb, jb,
-                             c_one, dA(j,    j), ldda,
-                                    dA(j+jb, j), ldda, queues[0] );
-                magma_event_record(events[0], queues[0]);
+        // simultaneous with above sgemm, transfer diagonal block,
+        // factor it on CPU, and test for positive definiteness
+        // Azzam: The above section can be moved here the code will look cleaner.
+        if (mode == MagmaHybrid) {
+            magma_queue_sync( queues[0] );
+            lapackf77_spotrf( MagmaLowerStr, &jb, work, &jb, info );
+            magma_ssetmatrix_async( jb, jb,
+                                    work,     jb,
+                                    dA(j, j), ldda, queues[0] );
+            if (*info != 0) {
+                *info = *info + j;
+                break;
             }
         }
+
+        // apply diagonal block to block column below diagonal
+        if (j+jb < n) {
+            magma_queue_wait_event(queues[0], events[1]);
+            magma_strsm( MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit,
+                         n-j-jb, jb,
+                         c_one, dA(j,    j), ldda,
+                                dA(j+jb, j), ldda, queues[0] );
+
+            magmablas_slag2h(n-j, jb, dA(j, j), ldda, dhW(j, j), lddha, &s2h_info, queues[0]);
+            magma_event_record(events[0], queues[0]);
+        }
     }
+
     if (mode == MagmaNative)
         magma_getvector( 1, sizeof(magma_int_t), dinfo, 1, info, 1, queues[0]);
 
@@ -346,7 +290,7 @@ cleanup:
         if(dinfo) magma_free( dinfo );
     }
 
-    if(hwork) magma_free(hwork);
+    if(dhW) magma_free(dhW);
 
     return *info;
 } /* magma_shpotrf_LL_expert_gpu */
