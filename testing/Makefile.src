@@ -234,8 +234,6 @@ testing_src += \
 testing_src += \
 	$(cdir)/testing_hgemm.cpp	        \
 	$(cdir)/testing_hgemm_batched.cpp	\
-
-testing_src += \
 	$(cdir)/testing_sgemm_fp16.cpp	\
 
 # ----------
