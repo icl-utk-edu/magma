@@ -452,7 +452,7 @@ magma_dshposv_gpu(
     magmaDouble_ptr dX, magma_int_t lddx,
     magma_int_t *iter, magma_int_t *info)
 {
-    float cn    = 0.01;
+    float cn    = 0.0;
     float theta = 0.1;
 
     double *dworkd = NULL;
@@ -484,7 +484,7 @@ magma_dshposv_native(
     magmaDouble_ptr dX, magma_int_t lddx,
     magma_int_t *iter, magma_int_t *info)
 {
-    float cn    = 0.01;
+    float cn    = 0.0;
     float theta = 0.1;
 
     double *dworkd = NULL;
