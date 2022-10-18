@@ -23,7 +23,7 @@ magma_sgemm_fp16(
     float beta,  float* dC, magma_int_t lddc,
     magma_queue_t queue )
 {
-    #ifdef TMP //MAGMA_HAVE_CUDA
+    #ifdef MAGMA_HAVE_CUDA
     cublasGemmEx( queue->cublas_handle(),
                   cublas_trans_const( transA ), cublas_trans_const( transB ),
                   (int)m, (int)n, (int)k,
@@ -37,14 +37,9 @@ magma_sgemm_fp16(
     magma_int_t An = (transA == MagmaNoTrans) ? k : m;
     magma_int_t Bm = (transB == MagmaNoTrans) ? k : n;
     magma_int_t Bn = (transB == MagmaNoTrans) ? n : k;
-    //printf("A is (%5d, %5d) -- B is (%5d, %5d)\n", Am, An, Bm, Bn);
-    //printf("convert A\n");
     magmablas_slag2h(Am, An, dA, ldda, dhA, Am, &hinfo, queue);
-    //magma_queue_sync( queue );
-    //printf("convert B\n");
     magmablas_slag2h(Bm, Bn, dB, lddb, dhB, Bm, &hinfo, queue);
 
-    #ifdef MAGMA_HAVE_HIP
     hipblasGemmEx( queue->hipblas_handle(),
 		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
 		           int(m), int(n), int(k),
@@ -52,16 +47,6 @@ magma_sgemm_fp16(
                                   (void*)dhB, HIPBLAS_R_16F, (int)Bm,
 		           (void*)&beta,  (void*)dC,  HIPBLAS_R_32F, (int)lddc,
 		           HIPBLAS_R_32F, HIPBLAS_GEMM_DEFAULT);
-    #else
-    cublasGemmEx( queue->cublas_handle(),
-                  cublas_trans_const( transA ), cublas_trans_const( transB ),
-                  (int)m, (int)n, (int)k,
-                  (const void*) &alpha, (const void*) dhA, CUDA_R_16F, (int)Am,
-                                        (const void*) dhB, CUDA_R_16F, (int)Bm,
-                  (const void*) &beta,  (      void*)  dC, CUDA_R_32F, (int)lddc,
-                  CUBLAS_COMPUTE_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
-    #endif
-    //printf(" %s is not supported \n", __func__);
     #endif
     return 0;
 }
