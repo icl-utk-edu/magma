@@ -14,8 +14,9 @@
 
 #include "magma_internal.h"
 
+// this flag enables the fp16-accelerated sgemm, which exists in cublasGemmEx,
+// but not in hipblas (as of rocm-5.2)
 #define CUDA_USE_FAST_SGEMM
-
 static magma_int_t
 magma_sgemm_fp16(
     magma_trans_t transA, magma_trans_t transB,
@@ -134,7 +135,7 @@ magma_shpotrf_LL_expert_gpu(
     const float d_neg_one = -1.0;
 
     /* Local variables */
-    magma_int_t j, jb, s2h_info;
+    magma_int_t j, jb;
     magma_int_t *dinfo=NULL;
     float *work=NULL;
     magmaHalf *dhW=NULL;
@@ -154,10 +155,10 @@ magma_shpotrf_LL_expert_gpu(
     }
 
     // half precision workspace
-    magmaHalf* dhA = NULL;
-    magmaHalf* dhB = NULL;
-    #if defined(MAGMA_HAVE_HIP) || ( defined(MAGMA_HAVE_CUDA) && !defined(CUDA_USE_FAST_SGEMM) )
+    magmaHalf* dhA     = NULL;
+    magmaHalf* dhB     = NULL;
     magma_int_t lddha  = magma_roundup(n, 128);
+    #if defined(MAGMA_HAVE_HIP) || ( defined(MAGMA_HAVE_CUDA) && !defined(CUDA_USE_FAST_SGEMM) )
     magma_int_t lhwork = lddha * n;
     if( MAGMA_SUCCESS != magma_malloc( (void**)&dhW, lhwork*sizeof(magmaHalf)) ) {
         *info = MAGMA_ERR_HOST_ALLOC;
@@ -253,6 +254,7 @@ magma_shpotrf_LL_expert_gpu(
                                 dA(j+jb, j), ldda, queues[0] );
 
             #if defined(MAGMA_HAVE_HIP) || ( defined(MAGMA_HAVE_CUDA) && !defined(CUDA_USE_FAST_SGEMM) )
+            magma_int_t s2h_info;
             magmablas_slag2h(n-j, jb, dA(j, j), ldda, dhW(j, j), lddha, &s2h_info, queues[0]);
             #endif
 
