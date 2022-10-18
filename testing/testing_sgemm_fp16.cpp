@@ -19,8 +19,9 @@
 #include "magma_operators.h"
 #include "testings.h"
 
+// version 1
 static magma_int_t
-magma_sgemm_fp16(
+magma_sgemm_fp16_v1(
     magma_trans_t transA, magma_trans_t transB,
     magma_int_t m, magma_int_t n, magma_int_t k,
     float alpha, float* dA, magmaHalf* dhA, magma_int_t ldda,
@@ -55,6 +56,45 @@ magma_sgemm_fp16(
     #endif
     return 0;
 }
+
+// version 2 -- no change for hip
+static magma_int_t
+magma_sgemm_fp16_v1(
+    magma_trans_t transA, magma_trans_t transB,
+    magma_int_t m, magma_int_t n, magma_int_t k,
+    float alpha, float* dA, magmaHalf* dhA, magma_int_t ldda,
+                 float* dB, magmaHalf* dhB, magma_int_t lddb,
+    float beta,  float* dC, magma_int_t lddc,
+    magma_queue_t queue )
+{
+    magma_int_t hinfo = 0;
+    magma_int_t Am = (transA == MagmaNoTrans) ? m : k;
+    magma_int_t An = (transA == MagmaNoTrans) ? k : m;
+    magma_int_t Bm = (transB == MagmaNoTrans) ? k : n;
+    magma_int_t Bn = (transB == MagmaNoTrans) ? n : k;
+    magmablas_slag2h(Am, An, dA, ldda, dhA, ldda, &hinfo, queue);
+    magmablas_slag2h(Bm, Bn, dB, lddb, dhB, lddb, &hinfo, queue);
+
+    #ifdef MAGMA_HAVE_CUDA
+    cublasGemmEx( magma_queue_get_cublas_handle( queue ),
+                  cublas_trans_const( transA ), cublas_trans_const( transB ),
+                  (int)m, (int)n, (int)k,
+                  (const void*) &alpha, (const void*) dhA, CUDA_R_16F, (int)ldda,
+                                        (const void*) dhB, CUDA_R_16F, (int)lddb,
+                  (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
+                  CUDA_R_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
+    #else
+    hipblasGemmEx( magma_queue_get_hipblas_handle( queue ),
+		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
+		           int(m), int(n), int(k),
+		           (void*)&alpha, (void*)dhA, HIPBLAS_R_16F, (int)ldda,
+                                  (void*)dhB, HIPBLAS_R_16F, (int)lddb,
+		           (void*)&beta,  (void*)dC,  HIPBLAS_R_32F, (int)lddc,
+		           HIPBLAS_R_32F, HIPBLAS_GEMM_DEFAULT);
+    #endif
+    return 0;
+}
+
 
 
 /* ////////////////////////////////////////////////////////////////////////////
