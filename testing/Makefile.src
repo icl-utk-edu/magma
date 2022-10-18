@@ -259,6 +259,8 @@ libtest_src := \
 	$(cdir)/magma_zgesvd_check.cpp	\
 	$(cdir)/magma_generate.cpp		\
 
+testing_src += \
+	$(cdir)/testing_sgemm_fp16.cpp	\
 
 # ----------------------------------------------------------------------
 # pop first directory
