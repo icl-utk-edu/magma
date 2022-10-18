@@ -163,7 +163,7 @@ magma_shpotrf_LL_expert_gpu(
         *info = MAGMA_ERR_HOST_ALLOC;
         goto cleanup;
     }
-
+    #endif
     dhA = dhW;
     dhB = dhW;
     //#endif
