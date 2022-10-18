@@ -18,12 +18,12 @@ static magma_int_t
 magma_sgemm_fp16(
     magma_trans_t transA, magma_trans_t transB,
     magma_int_t m, magma_int_t n, magma_int_t k,
-    float alpha, float* dA, magma_int_t ldda,
-                 float* dB, magma_int_t lddb,
+    float alpha, float* dA, magmaHalf* dhA, magma_int_t ldda,
+                 float* dB, magmaHalf* dhB, magma_int_t lddb,
     float beta,  float* dC, magma_int_t lddc,
     magma_queue_t queue )
 {
-    #ifdef MAGMA_HAVE_CUDA
+    #ifdef TMP //MAGMA_HAVE_CUDA
     cublasGemmEx( queue->cublas_handle(),
                   cublas_trans_const( transA ), cublas_trans_const( transB ),
                   (int)m, (int)n, (int)k,
@@ -32,7 +32,36 @@ magma_sgemm_fp16(
                   (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
                   CUBLAS_COMPUTE_32F_FAST_16F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
     #else
-    printf(" %s is not supported \n", __func__);
+    magma_int_t hinfo = 0;
+    magma_int_t Am = (transA == MagmaNoTrans) ? m : k;
+    magma_int_t An = (transA == MagmaNoTrans) ? k : m;
+    magma_int_t Bm = (transB == MagmaNoTrans) ? k : n;
+    magma_int_t Bn = (transB == MagmaNoTrans) ? n : k;
+    //printf("A is (%5d, %5d) -- B is (%5d, %5d)\n", Am, An, Bm, Bn);
+    //printf("convert A\n");
+    magmablas_slag2h(Am, An, dA, ldda, dhA, Am, &hinfo, queue);
+    //magma_queue_sync( queue );
+    //printf("convert B\n");
+    magmablas_slag2h(Bm, Bn, dB, lddb, dhB, Bm, &hinfo, queue);
+
+    #ifdef MAGMA_HAVE_HIP
+    hipblasGemmEx( queue->hipblas_handle(),
+		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
+		           int(m), int(n), int(k),
+		           (void*)&alpha, (void*)dhA, HIPBLAS_R_16F, (int)Am,
+                                  (void*)dhB, HIPBLAS_R_16F, (int)Bm,
+		           (void*)&beta,  (void*)dC,  HIPBLAS_R_32F, (int)lddc,
+		           HIPBLAS_R_32F, HIPBLAS_GEMM_DEFAULT);
+    #else
+    cublasGemmEx( queue->cublas_handle(),
+                  cublas_trans_const( transA ), cublas_trans_const( transB ),
+                  (int)m, (int)n, (int)k,
+                  (const void*) &alpha, (const void*) dhA, CUDA_R_16F, (int)Am,
+                                        (const void*) dhB, CUDA_R_16F, (int)Bm,
+                  (const void*) &beta,  (      void*)  dC, CUDA_R_32F, (int)lddc,
+                  CUBLAS_COMPUTE_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
+    #endif
+    //printf(" %s is not supported \n", __func__);
     #endif
     return 0;
 }
@@ -120,8 +149,9 @@ magma_shpotrf_LL_expert_gpu(
 
     /* Local variables */
     magma_int_t j, jb;
-    float *work;
-    magma_int_t *dinfo;
+    magma_int_t *dinfo=NULL;
+    float *work=NULL;
+    magmaHalf *hwork=NULL;
 
     *info = 0;
     if (uplo != MagmaUpper && uplo != MagmaLower) {
@@ -136,18 +166,28 @@ magma_shpotrf_LL_expert_gpu(
         return *info;
     }
 
-    //nb = 512;//magma_get_spotrf_nb( n );
-    //recnb = 128;
+    magmaHalf* hA = NULL;
+    magmaHalf* hB = NULL;
+    #if defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_CUDA)
+    magma_int_t n2     = magma_roundup(n, 2);
+    magma_int_t lhwork = ( (n2*n2) / 4) + (n * nb);   // max size of A at n/2 x n/2
+    if( MAGMA_SUCCESS != magma_malloc( (void**)&hwork, lhwork*sizeof(magmaHalf)) ) {
+        *info = MAGMA_ERR_HOST_ALLOC;
+        goto cleanup;
+    }
+
+    hA = hwork;
+    hB = hA + ((n2*n2) / 4);
+    #endif
 
     if (mode == MagmaHybrid) {
-        if (MAGMA_SUCCESS != magma_smalloc_pinned( &work, nb*nb )) {
+        if ( MAGMA_SUCCESS != magma_smalloc_pinned( &work, nb*nb ) ) {
             *info = MAGMA_ERR_HOST_ALLOC;
             goto cleanup;
         }
     }
     else {
         if (MAGMA_SUCCESS != magma_imalloc( &dinfo, 1 ) ) {
-            /* alloc failed for workspace */
             *info = MAGMA_ERR_DEVICE_ALLOC;
             goto cleanup;
         }
@@ -192,9 +232,9 @@ magma_shpotrf_LL_expert_gpu(
             if (j+jb < n) {
                 magma_sgemm_fp16( MagmaConjTrans, MagmaNoTrans,
                              jb, n-j-jb, j,
-                             c_neg_one, dA(0, j   ), ldda,
-                                        dA(0, j+jb), ldda,
-                             c_one,     dA(j, j+jb), ldda, queues[1] );
+                             c_neg_one, dA(0, j   ), hA, ldda,
+                                        dA(0, j+jb), hB, ldda,
+                             c_one,     dA(j, j+jb),     ldda, queues[1] );
             }
 
             // simultaneous with above sgemm, transfer diagonal block,
@@ -252,9 +292,9 @@ magma_shpotrf_LL_expert_gpu(
                 magma_queue_wait_event(queues[1], events[0]);
                 magma_sgemm_fp16( MagmaNoTrans, MagmaConjTrans,
                              n-j-jb, jb, j,
-                             c_neg_one, dA(j+jb, 0), ldda,
-                                        dA(j,    0), ldda,
-                             c_one,     dA(j+jb, j), ldda, queues[1] );
+                             c_neg_one, dA(j+jb, 0), hA, ldda,
+                                        dA(j,    0), hB, ldda,
+                             c_one,     dA(j+jb, j),     ldda, queues[1] );
                 magma_event_record(events[1], queues[1]);
             }
 
@@ -296,11 +336,13 @@ cleanup:
     magma_queue_destroy( queues[1] );
 
     if (mode == MagmaHybrid) {
-        magma_free_pinned( work );
+        if(work)  magma_free_pinned( work );
     }
     else {
-        magma_free( dinfo );
+        if(dinfo) magma_free( dinfo );
     }
+
+    if(hwork) magma_free(hwork);
 
     return *info;
 } /* magma_shpotrf_LL_expert_gpu */
