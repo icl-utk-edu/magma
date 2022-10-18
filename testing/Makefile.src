@@ -235,6 +235,9 @@ testing_src += \
 	$(cdir)/testing_hgemm.cpp	        \
 	$(cdir)/testing_hgemm_batched.cpp	\
 
+testing_src += \
+	$(cdir)/testing_sgemm_fp16.cpp	\
+
 # ----------
 ifeq ($(FORT), pgfortran)
 	# Does this need fortran_thunking.$(o_ext) ?
@@ -258,9 +261,6 @@ libtest_src := \
 	$(cdir)/magma_zutil.cpp		\
 	$(cdir)/magma_zgesvd_check.cpp	\
 	$(cdir)/magma_generate.cpp		\
-
-testing_src += \
-	$(cdir)/testing_sgemm_fp16.cpp	\
 
 # ----------------------------------------------------------------------
 # pop first directory
