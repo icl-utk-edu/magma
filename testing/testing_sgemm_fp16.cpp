@@ -45,7 +45,7 @@ magma_sgemm_fp16(
     magmablas_slag2h(Am, An, dA, ldda, dhA, ldda, &hinfo, queue);
     magmablas_slag2h(Bm, Bn, dB, lddb, dhB, lddb, &hinfo, queue);
 
-    hipblasGemmEx( qmagma_queue_get_hipblas_handle( queue ),
+    hipblasGemmEx( magma_queue_get_hipblas_handle( queue ),
 		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
 		           int(m), int(n), int(k),
 		           (void*)&alpha, (void*)dhA, HIPBLAS_R_16F, (int)ldda,
