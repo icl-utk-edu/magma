@@ -4,10 +4,8 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-
-       @generated from testing/testing_zgemm.cpp, normal z -> s, Tue Oct 18 10:31:22 2022
-       @author Mark Gates
 */
+
 // includes, system
 #include <stdlib.h>
 #include <stdio.h>
