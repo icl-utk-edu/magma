@@ -217,21 +217,8 @@ extern "C" magma_int_t magma_zgeqr2_fused_sm_batched(
 
     // get max. dynamic shared memory on the GPU
     int nthreads_max, shmem_max = 0;
-    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
-    #if CUDA_VERSION >= 9000
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
-    if (shmem <= shmem_max) {
-        /*
-        DPCT1007:434: Migration of cudaFuncSetAttribute is not supported by the
-        Intel(R) DPC++ Compatibility Tool.
-        */
-        cudaFuncSetAttribute(zgeqr2_fused_sm_kernel_batched,
-                             cudaFuncAttributeMaxDynamicSharedMemorySize,
-                             shmem);
-    }
-    #else
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
-    #endif    // CUDA_VERSION >= 9000
+    nthreads_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::max_work_group_size>();
+    shmem_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::local_mem_size>();
 
     magma_int_t total_threads = nthreads * ntcol;
     if ( total_threads > nthreads_max || shmem > shmem_max ) {
@@ -248,7 +235,7 @@ extern "C" magma_int_t magma_zgeqr2_fused_sm_batched(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    int e = ((sycl::queue *)(queue->sycl_stream()))
+    ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
@@ -280,13 +267,13 @@ extern "C" magma_int_t magma_zgeqr2_fused_sm_batched(
     DPCT1000:433: Error handling if-stmt was detected but could not be
     rewritten.
     */
-    if (e != 0) {
+//    if (e != 0) {
         // printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         /*
         DPCT1001:432: The statement could not be removed.
         */
-        arginfo = -100;
-    }
+//        arginfo = -100;
+//    }
 
     return arginfo;
 }
