@@ -31,7 +31,7 @@ magma_sgemm_fp16(
     magma_queue_t queue )
 {
     #ifdef MAGMA_HAVE_CUDA
-    cublasGemmEx( queue->cublas_handle(),
+    cublasGemmEx( magma_queue_get_cublas_handle( queue ),
                   cublas_trans_const( transA ), cublas_trans_const( transB ),
                   (int)m, (int)n, (int)k,
                   (const void*) &alpha, (const void*) dA, CUDA_R_32F, (int)ldda,
@@ -47,7 +47,7 @@ magma_sgemm_fp16(
     magmablas_slag2h(Am, An, dA, ldda, dhA, Am, &hinfo, queue);
     magmablas_slag2h(Bm, Bn, dB, lddb, dhB, Bm, &hinfo, queue);
 
-    hipblasGemmEx( queue->hipblas_handle(),
+    hipblasGemmEx( qmagma_queue_get_hipblas_handle( queue ),
 		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
 		           int(m), int(n), int(k),
 		           (void*)&alpha, (void*)dhA, HIPBLAS_R_16F, (int)ldda,
