@@ -14,6 +14,8 @@
 
 #include "magma_internal.h"
 
+//#define CUDA_USE_FAST_SGEMM
+
 static magma_int_t
 magma_sgemm_fp16(
     magma_trans_t transA, magma_trans_t transB,
@@ -24,13 +26,30 @@ magma_sgemm_fp16(
     magma_queue_t queue )
 {
     #ifdef MAGMA_HAVE_CUDA
-    cublasGemmEx( queue->cublas_handle(),
-                  cublas_trans_const( transA ), cublas_trans_const( transB ),
-                  (int)m, (int)n, (int)k,
-                  (const void*) &alpha, (const void*) dA, CUDA_R_32F, (int)ldda,
-                                        (const void*) dB, CUDA_R_32F, (int)lddb,
-                  (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
-                  CUBLAS_COMPUTE_32F_FAST_16F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
+        #ifdef CUDA_USE_FAST_SGEMM
+        cublasGemmEx( queue->cublas_handle(),
+                      cublas_trans_const( transA ), cublas_trans_const( transB ),
+                      (int)m, (int)n, (int)k,
+                      (const void*) &alpha, (const void*) dA, CUDA_R_32F, (int)ldda,
+                                            (const void*) dB, CUDA_R_32F, (int)lddb,
+                      (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
+                      CUBLAS_COMPUTE_32F_FAST_16F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
+        #else
+        magma_int_t hinfo = 0;
+        magma_int_t Am = (transA == MagmaNoTrans) ? m : k;
+        magma_int_t An = (transA == MagmaNoTrans) ? k : m;
+        magma_int_t Bm = (transB == MagmaNoTrans) ? k : n;
+        magma_int_t Bn = (transB == MagmaNoTrans) ? n : k;
+        magmablas_slag2h(Am, An, dA, ldda, dhA, Am, &hinfo, queue);
+        magmablas_slag2h(Bm, Bn, dB, lddb, dhB, Bm, &hinfo, queue);
+        cublasGemmEx( magma_queue_get_cublas_handle( queue ),
+            cublas_trans_const( transA ), cublas_trans_const( transB ),
+            (int)m, (int)n, (int)k,
+            (const void*) &alpha, (const void*) dhA, CUDA_R_16F, (int)ldda,
+                                  (const void*) dhB, CUDA_R_16F, (int)lddb,
+            (const void*) &beta,  (      void*) dC,  CUDA_R_32F, (int)lddc,
+            CUDA_R_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
+         #endif
     #else
     magma_int_t hinfo = 0;
     magma_int_t Am = (transA == MagmaNoTrans) ? m : k;
