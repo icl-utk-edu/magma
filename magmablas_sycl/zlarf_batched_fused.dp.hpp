@@ -34,7 +34,6 @@ zlarf_fused_reg_kernel_batched(
     magma_int_t check_launch_only, magma_int_t batchCount ,
     sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
-    extern magmaDoubleComplex zdata[];
 
     // if check_launch_only = 1, then return immediately
     // this is only to check if the kernel has been launched
@@ -59,7 +58,7 @@ zlarf_fused_reg_kernel_batched(
     const int sldt = SLDA(TPC);
 
     // shared memory pointers
-    magmaDoubleComplex* sV   = (magmaDoubleComplex*)(zdata);
+    magmaDoubleComplex* sV   = (magmaDoubleComplex*)(dpct_local);
     magmaDoubleComplex* sA   = sV + (nty * sldv * NB);
     magmaDoubleComplex* sT   = sA + (nty * slda * NB);
     magmaDoubleComplex* stau = sT + (nty * sldt * NB);
@@ -284,15 +283,8 @@ magma_zlarf_fused_reg_kernel_driver_batched(
 
     // get max. dynamic shared memory on the GPU
     int nthreads_max, shmem_max = 0;
-    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
-    #if CUDA_VERSION >= 9000
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
-    if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zlarf_fused_reg_kernel_batched<M32, NB, TPC>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
-    }
-    #else
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
-    #endif    // CUDA_VERSION >= 9000
+    nthreads_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::max_work_group_size>();
+    shmem_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::local_mem_size>();
 
     magma_int_t total_threads = nthreads * ntcol;
     if ( total_threads > nthreads_max || shmem > shmem_max ) {
@@ -301,11 +293,21 @@ magma_zlarf_fused_reg_kernel_driver_batched(
         return arginfo;
     }
 
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
+       sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
+                       sycl::access::target::local>
+                       dpct_local_acc_ct1(sycl::range<1>(shmem), cgh); // NNB: I added this manually, dpct didn't finish --
+				                                      // check if size is correct
+      cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
+                       [=](sycl::nd_item<3> item_ct1) {
+                       zlarf_fused_reg_kernel_batched<M32, NB, TPC>(m, n, ib,
+				       dA_array, Ai, Aj, ldda, dV_array, Vi, Vj,
+				       lddv, dtau_array, taui, check_launch_only, batchCount,
+				       item_ct1, dpct_local_acc_ct1.get_pointer());
+		       });
+      });
     //if(check_launch_only == 1) return arginfo;
-    void *kernel_args[] = {&m, &n, &ib, &dA_array, &Ai, &Aj, &ldda, &dV_array, &Vi, &Vj, &lddv, &dtau_array, &taui, &check_launch_only, &batchCount};
-    int e = cudaLaunchKernel(
-        (void *)zlarf_fused_reg_kernel_batched<M32, NB, TPC>, grid, threads,
-        kernel_args, shmem, queue->sycl_stream());
+//    void *kernel_args[] = {&m, &n, &ib, &dA_array, &Ai, &Aj, &ldda, &dV_array, &Vi, &Vj, &lddv, &dtau_array, &taui, &check_launch_only, &batchCount};
 
     return arginfo;
 }
