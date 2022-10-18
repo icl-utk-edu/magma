@@ -635,7 +635,8 @@ typedef struct magma_solve_info_t
     csrsm2Info_t descr{};
     void *buffer{};
 } magma_solve_info_t;
-#define magma_ilu_info_t cusparseSolveAnalysisInfo_t
+//#define magma_ilu_info_t cusparseSolveAnalysisInfo_t
+#define magma_ilu_info_t csrsm2Info_t
 #else
 typedef struct magma_solve_info_t
 {
