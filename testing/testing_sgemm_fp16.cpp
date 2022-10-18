@@ -192,19 +192,11 @@ int main( int argc, char** argv)
 
                 magma_flush_cache( opts.cache );
                 magma_time = magma_sync_wtime( opts.queue );
-                #ifdef PRECISION_s
                 magma_sgemm_fp16( opts.transA, opts.transB, M, N, K,
-                                 alpha, dA, ldda,
-                                        dB, lddb,
-                                 beta,  dC, lddc,
+                                 alpha, dA, dhA, ldda,
+                                        dB, dhB, lddb,
+                                 beta,  dC,      lddc,
                                  opts.queue );
-                #else
-                magmablas_sgemm( opts.transA, opts.transB, M, N, K,
-                                 alpha, dA, ldda,
-                                        dB, lddb,
-                                 beta,  dC, lddc,
-                                 opts.queue );
-                #endif
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
                 magma_perf = gflops / magma_time;
 
