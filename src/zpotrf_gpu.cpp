@@ -14,10 +14,14 @@
 */
 #include "magma_internal.h"
 
-// === Define what BLAS to use ============================================
-//    #undef  magma_ztrsm
-//    #define magma_ztrsm magmablas_ztrsm
-// === End defining what BLAS to use =======================================
+// rocBLAS has a very slow syrk/herk
+// switch to magmablas syrk/herk (which internally calls rocBLAS GEMM)
+#if defined(MAGMA_HAVE_HIP)
+#define magma_zherk    magmablas_zherk
+#define magma_cherk    magmablas_cherk
+#define magma_dsyrk    magmablas_dsyrk
+#define magma_ssyrk    magmablas_ssyrk
+#endif
 
 /***************************************************************************//**
     Purpose
