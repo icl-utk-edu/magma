@@ -18,9 +18,6 @@
 // switch to magmablas syrk/herk (which internally calls rocBLAS GEMM)
 #if defined(MAGMA_HAVE_HIP)
 #define magma_zherk    magmablas_zherk
-#define magma_cherk    magmablas_cherk
-#define magma_dsyrk    magmablas_dsyrk
-#define magma_ssyrk    magmablas_ssyrk
 #endif
 
 /***************************************************************************//**
