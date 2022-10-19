@@ -32,7 +32,7 @@ zlarf_fused_reg_kernel_batched(
     magmaDoubleComplex **dV_array, int Vi, int Vj, int lddv,
     magmaDoubleComplex **dtau_array, magma_int_t taui,
     magma_int_t check_launch_only, magma_int_t batchCount ,
-    sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
+    sycl::nd_item<3> item_ct1, magmaDoubleComplex *dpct_local)
 {
 
     // if check_launch_only = 1, then return immediately
@@ -294,10 +294,10 @@ magma_zlarf_fused_reg_kernel_driver_batched(
     }
 
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-       sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
+       sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-                       dpct_local_acc_ct1(sycl::range<1>(shmem), cgh); // NNB: I added this manually, dpct didn't finish --
-				                                      // check if size is correct
+                       dpct_local_acc_ct1(sycl::range<1>(shmem/sizeof(magmaDoubleComplex)), cgh); // NNB: I added this manually, dpct didn't finish --
+				                                                                  // check if size is correct
       cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                        zlarf_fused_reg_kernel_batched<M32, NB, TPC>(m, n, ib,

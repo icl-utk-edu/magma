@@ -37,7 +37,7 @@ zlarf_fused_sm_kernel_batched(
     magmaDoubleComplex **dA_array, int Ai, int Aj, int ldda,
     magmaDoubleComplex **dV_array, int Vi, int Vj, int lddv,
     magmaDoubleComplex **dtau_array, magma_int_t taui,
-    magma_int_t batchCount , sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
+    magma_int_t batchCount , sycl::nd_item<3> item_ct1, magmaDoubleComplex *dpct_local)
 {
     auto zdata = (magmaDoubleComplex *)dpct_local;
     const int tx = item_ct1.get_local_id(2);
@@ -294,21 +294,8 @@ static magma_int_t magma_zlarf_fused_sm_kernel_driver_batched(
 
     // get max. dynamic shared memory on the GPU
     int nthreads_max, shmem_max = 0;
-    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
-    #if CUDA_VERSION >= 9000
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
-    if (shmem <= shmem_max) {
-        /*
-        DPCT1007:1178: Migration of cudaFuncSetAttribute is not supported by the
-        Intel(R) DPC++ Compatibility Tool.
-        */
-        cudaFuncSetAttribute(zlarf_fused_sm_kernel_batched<NB>,
-                             cudaFuncAttributeMaxDynamicSharedMemorySize,
-                             shmem);
-    }
-    #else
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
-    #endif    // CUDA_VERSION >= 9000
+    nthreads_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::max_work_group_size>();
+    shmem_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::local_mem_size>();
 
     magma_int_t total_threads = nthreads * ntcol;
     if ( total_threads > nthreads_max || shmem > shmem_max ) {
@@ -319,17 +306,25 @@ static magma_int_t magma_zlarf_fused_sm_kernel_driver_batched(
 
     if( check_launch_only == 1 ) return arginfo;
 
-    void *kernel_args[] = {&m, &n, &ib, &dA_array, &Ai, &Aj, &ldda, &dV_array, &Vi, &Vj, &lddv, &dtau_array, &taui, &batchCount};
-    /*
-    DPCT1007:1177: Migration of cudaLaunchKernel is not supported by the
-    Intel(R) DPC++ Compatibility Tool.
-    */
-    int e = cudaLaunchKernel((void *)zlarf_fused_sm_kernel_batched<NB>, grid,
-                             threads, kernel_args, shmem, queue->sycl_stream());
+//    void *kernel_args[] = {&m, &n, &ib, &dA_array, &Ai, &Aj, &ldda, &dV_array, &Vi, &Vj, &lddv, &dtau_array, &taui, &batchCount};
+
+    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
+       sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
+                       sycl::access::target::local>
+                       dpct_local_acc_ct1(sycl::range<1>(shmem/sizeof(magmaDoubleComplex)), cgh); // NNB: I added this manually, dpct didn't finish --
+				                                                                  // check if size is correct
+      cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
+                       [=](sycl::nd_item<3> item_ct1) {
+                       zlarf_fused_sm_kernel_batched<NB>(m, n, ib, dA_array, Ai, Aj, ldda,
+				       dV_array, Vi, Vj, lddv, dtau_array, taui, batchCount,
+				       item_ct1, dpct_local_acc_ct1.get_pointer());
+		       });
+      });
     /*
     DPCT1000:1176: Error handling if-stmt was detected but could not be
     rewritten.
-    */
+    */ //TODO
+    int e = 0;
     if (e != 0) {
         //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         /*
