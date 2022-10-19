@@ -14,6 +14,12 @@
 
 #include "magma_internal.h"
 
+// rocBLAS has a very slow ssyrk
+// switch to magmablas_ssyrk (which internally calls rocBLAS SGEMM)
+#if defined(MAGMA_HAVE_HIP)
+#define magma_ssyrk    magmablas_ssyrk
+#endif
+
 // this flag enables the fp16-accelerated sgemm, which exists in cublasGemmEx,
 // but not in hipblas (as of rocm-5.2)
 #define CUDA_USE_FAST_SGEMM
