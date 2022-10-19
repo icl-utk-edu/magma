@@ -453,14 +453,16 @@ void trsm_template_vbatched_rNx(
             info::device::max_work_group_size. Adjust the work-group size if
             needed.
             */
+	    // NNB: shared mem sizes based on trsm_template_device.cuh
+	    // values (for all kernels in this file)
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        sA_acc_ct1(sycl::range<1>(slda * NB), cgh);
+                        sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        sB_acc_ct1(sycl::range<1>(sldb * NB), cgh);
+                        sB_acc_ct1(sycl::range<1>((NRHS+1) * NB), cgh);
 
                     cgh.parallel_for(
                         sycl::nd_range<3>(grid * threads, threads),
@@ -488,10 +490,10 @@ void trsm_template_vbatched_rNx(
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        sA_acc_ct1(sycl::range<1>(slda * NB), cgh);
+                        sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        sB_acc_ct1(sycl::range<1>(sldb * NB), cgh);
+                        sB_acc_ct1(sycl::range<1>((NRHS+1) * NB), cgh);
 
                     cgh.parallel_for(
                         sycl::nd_range<3>(grid * threads, threads),
@@ -536,10 +538,10 @@ void trsm_template_vbatched_rTx(
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        sA_acc_ct1(sycl::range<1>(slda * NB), cgh);
+                        sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        sB_acc_ct1(sycl::range<1>(sldb * NB), cgh);
+                        sB_acc_ct1(sycl::range<1>((NRHS+1) * NB), cgh);
 
                     cgh.parallel_for(
                         sycl::nd_range<3>(grid * threads, threads),
@@ -568,10 +570,10 @@ void trsm_template_vbatched_rTx(
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        sA_acc_ct1(sycl::range<1>(slda * NB), cgh);
+                        sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        sB_acc_ct1(sycl::range<1>(sldb * NB), cgh);
+                        sB_acc_ct1(sycl::range<1>((NRHS+1) * NB), cgh);
 
                     cgh.parallel_for(
                         sycl::nd_range<3>(grid * threads, threads),

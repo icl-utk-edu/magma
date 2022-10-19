@@ -45,7 +45,7 @@ magmablas_ztrsm_vbatched_core(
 #define dA_array(i,j) dA_array, i, j
 #define dB_array(i,j) dB_array, i, j
 
-    const magmaDoubleComplex c_one = sycl::double2(MAGMA_Z_ONE, MAGMA_Z_ONE);
+    const magmaDoubleComplex c_one = MAGMA_Z_ONE;
     /*
     DPCT1064:21: Migrated make_cuDoubleComplex call is used in a macro
     definition and is not valid for all macro uses. Adjust the code.
