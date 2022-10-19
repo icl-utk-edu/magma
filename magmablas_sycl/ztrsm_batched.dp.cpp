@@ -192,7 +192,7 @@ void magmablas_ztrsm_inv_outofplace_batched(
     definition and is not valid for all macro uses. Adjust the code.
     */
     const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
-    const magmaDoubleComplex c_one = sycl::double2(MAGMA_Z_ONE, MAGMA_Z_ONE);
+    const magmaDoubleComplex c_one = MAGMA_Z_ONE;
     /*
     DPCT1064:18: Migrated make_cuDoubleComplex call is used in a macro
     definition and is not valid for all macro uses. Adjust the code.
