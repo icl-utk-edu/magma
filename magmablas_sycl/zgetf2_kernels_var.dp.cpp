@@ -321,7 +321,7 @@ zgetf2_fused_sm_kernel_vbatched(
     for(int j = 0; j < my_minmn; j++){
         // izamax and find pivot
         for(int i = j+tx; i < my_M; i+=ntx) {
-            dsx[i] = sycl::fabs(x()(sA(i, j))) + sycl::fabs(y()(sA(i, j)));
+            dsx[i] = sycl::fabs(MAGMA_Z_REAL(sA(i, j))) + sycl::fabs(MAGMA_Z_IMAG(sA(i, j)));
             isx[ i ] = i-j;
         }
         /*
@@ -428,26 +428,15 @@ extern "C" magma_int_t magma_zgetf2_fused_sm_vbatched(
     shmem            += ( max_minMN * sizeof(int) );
     shmem            *= ntcol;
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
+    // TODO: revisit this mem use
+    int shmem_num_items = shmem/sizeof(uint8_t);
     sycl::range<3> grid(1, 1, gridx);
     sycl::range<3> threads(1, ntcol, nthreads);
 
     // get max. dynamic shared memory on the GPU
     int nthreads_max, shmem_max = 0;
-    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
-    #if CUDA_VERSION >= 9000
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
-    if (shmem <= shmem_max) {
-        /*
-        DPCT1007:648: Migration of cudaFuncSetAttribute is not supported by the
-        Intel(R) DPC++ Compatibility Tool.
-        */
-        cudaFuncSetAttribute(zgetf2_fused_sm_kernel_vbatched,
-                             cudaFuncAttributeMaxDynamicSharedMemorySize,
-                             shmem);
-    }
-    #else
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
-    #endif    // CUDA_VERSION >= 9000
+    nthreads_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::max_work_group_size>();
+    shmem_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::local_mem_size>();
 
     magma_int_t total_threads = nthreads * ntcol;
     if ( total_threads > nthreads_max || shmem > shmem_max ) {
@@ -464,12 +453,15 @@ extern "C" magma_int_t magma_zgetf2_fused_sm_vbatched(
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    int e = ((sycl::queue *)(queue->sycl_stream()))
+    // TODO: error handling
+    int e = 0; //fix
+    ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+                        dpct_local_acc_ct1(sycl::range<1>(shmem_num_items), cgh);
 
+		    //TODO: adjust this?
                     auto max_M_ct0 = *(int *)kernel_args[0];
                     auto max_N_ct1 = *(int *)kernel_args[1];
                     auto max_minMN_ct2 = *(int *)kernel_args[2];
@@ -669,27 +661,15 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_vbatched(
 
     shmem  = max(shmem_1, shmem_2);
     shmem *= ntcol;
+    int shmem_num_items = shmem/sizeof(uint8_t);
 
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, ntcol));
     sycl::range<3> threads(1, ntcol, max_M);
 
     // get max. dynamic shared memory on the GPU
     int nthreads_max, nthreads = max_M * ntcol, shmem_max = 0;
-    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
-    #if CUDA_VERSION >= 9000
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
-    if (shmem <= shmem_max) {
-        /*
-        DPCT1007:659: Migration of cudaFuncSetAttribute is not supported by the
-        Intel(R) DPC++ Compatibility Tool.
-        */
-        cudaFuncSetAttribute(zgetf2_fused_kernel_vbatched<max_N>,
-                             cudaFuncAttributeMaxDynamicSharedMemorySize,
-                             shmem);
-    }
-    #else
-    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
-    #endif    // CUDA_VERSION >= 9000
+    nthreads_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::max_work_group_size>();
+    shmem_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::local_mem_size>();
 
     magma_int_t total_threads = nthreads * ntcol;
     if ( total_threads > nthreads_max || shmem > shmem_max ) {
@@ -698,13 +678,28 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_vbatched(
         return arginfo;
     }
 
-    void *kernel_args[] = {&max_M, &M, &N, &dA_array, &Ai, &Aj, &ldda, &dipiv_array, &ipiv_i, &info_array, &batchCount};
+    //void *kernel_args[] = {&max_M, &M, &N, &dA_array, &Ai, &Aj, &ldda, &dipiv_array, &ipiv_i, &info_array, &batchCount};
     /*
     DPCT1007:658: Migration of cudaLaunchKernel is not supported by the Intel(R)
     DPC++ Compatibility Tool.
     */
-    int e = cudaLaunchKernel((void *)zgetf2_fused_kernel_vbatched<max_N>, grid,
-                             threads, kernel_args, shmem, queue->sycl_stream());
+    // TODO: error handling
+    int e = 0;
+    ((sycl::queue *)(queue->sycl_stream()))
+                ->submit([&](sycl::handler &cgh) {
+                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
+                                   sycl::access::target::local>
+                        dpct_local_acc_ct1(sycl::range<1>(shmem_num_items), cgh);
+
+                    cgh.parallel_for(
+                        sycl::nd_range<3>(grid * threads, threads),
+                        [=](sycl::nd_item<3> item_ct1) {
+			    zgetf2_fused_kernel_vbatched<max_N>(
+			        max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array,
+				ipiv_i, info_array, batchCount,
+                                item_ct1, dpct_local_acc_ct1.get_pointer());
+                        });
+                });
     /*
     DPCT1000:657: Error handling if-stmt was detected but could not be
     rewritten.

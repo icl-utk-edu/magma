@@ -87,41 +87,14 @@ magma_hgemm(
     magmaHalf_ptr       dC, magma_int_t lddc,
     magma_queue_t queue )
 {
-#if CUDA_VERSION >= 7500
-    magma_int_t arch = magma_getdevice_arch();
-    if( arch >= 530 ) {
-        #if CUDA_VERSION >= 9000
-        // turn on tensor cores by default
-        /*
-        DPCT1007:8: Migration of cublasSetMathMode is not supported by the
-        Intel(R) DPC++ Compatibility Tool.
-        */
-        cublasSetMathMode(queue->cublas_handle(), CUBLAS_TENSOR_OP_MATH);
-#endif
-
-        oneapi::mkl::blas::column_major::gemm(
-            *queue->cublas_handle(), cublas_trans_const(transA),
-            cublas_trans_const(transB), int(m), int(n), int(k), alpha, dA,
-            int(ldda), dB, int(lddb), beta, dC, int(lddc));
-
-#if CUDA_VERSION >= 9000
-        // roll back to default
-        /*
-        DPCT1007:9: Migration of cublasSetMathMode is not supported by the
-        Intel(R) DPC++ Compatibility Tool.
-        */
-        cublasSetMathMode(queue->cublas_handle(), CUBLAS_DEFAULT_MATH);
-#endif
-    }
-    else {
-        printf("ERROR: unsupported architecture for %s \n", __func__ );
-    }
-#else
-    printf("ERROR: unsupported architecture version for %s \n", __func__ );
-#endif
+    oneapi::mkl::blas::column_major::gemm(
+        *queue->sycl_stream(), syclblas_trans_const(transA),
+        syclblas_trans_const(transB), int(m), int(n), int(k), alpha, dA,
+        int(ldda), dB, int(lddb), beta, dC, int(lddc));
 }
 
 extern "C" void
+// todo: not supported in sycl? (rather than calling same routine)
 magma_hgemmx(
     magma_trans_t transA, magma_trans_t transB,
     magma_int_t m, magma_int_t n, magma_int_t k,
@@ -132,31 +105,10 @@ magma_hgemmx(
     float *dC, magma_int_t lddc,
     magma_queue_t queue )
 {
-    #if CUDA_VERSION >= 7500
-    magma_int_t arch = magma_getdevice_arch();
-    if( arch >= 530 ) {
-        #if CUDA_VERSION >= 9000
-        // turn on tensor cores by default
-        /*
-        DPCT1007:10: Migration of cublasSetMathMode is not supported by the
-        Intel(R) DPC++ Compatibility Tool.
-        */
-        cublasSetMathMode(queue->cublas_handle(), CUBLAS_TENSOR_OP_MATH);
-        #endif
-        oneapi::mkl::blas::column_major::gemm(
-            *queue->cublas_handle(), cublas_trans_const(transA),
-            cublas_trans_const(transB), int(m), int(n), int(k), alpha,
-            (sycl::half *)dA, int(ldda), (sycl::half *)dB, int(lddb),
-            dpct::get_value((float *)&beta, *queue->cublas_handle()),
-            (float *)dC, int(lddc));
-        #if CUDA_VERSION >= 9000
-        // roll back to default
-        /*
-        DPCT1007:11: Migration of cublasSetMathMode is not supported by the
-        Intel(R) DPC++ Compatibility Tool.
-        */
-        cublasSetMathMode(queue->cublas_handle(), CUBLAS_DEFAULT_MATH);
-        #endif
-    }
-    #endif
+    oneapi::mkl::blas::column_major::gemm(
+          *queue->sycl_stream(), syclblas_trans_const(transA),
+          syclblas_trans_const(transB), int(m), int(n), int(k), alpha,
+          (sycl::half *)dA, int(ldda), (sycl::half *)dB, int(lddb),
+          dpct::get_value((float *)&beta, *queue->sycl_stream()),
+          (float *)dC, int(lddc));
 }

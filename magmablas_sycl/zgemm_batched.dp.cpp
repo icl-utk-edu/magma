@@ -42,13 +42,13 @@
   #ifdef MAGMA_HAVE_HIP
     typedef hipblasDoubleComplex BackendFloat_t;
   #else
-    typedef sycl::double2 BackendFloat_t;
+    typedef std::complex<double> BackendFloat_t;
   #endif
 #elif defined(PRECISION_c)
   #ifdef MAGMA_HAVE_HIP
     typedef hipblasComplex BackendFloat_t;
   #else
-    typedef cuFloatComplex BackendFloat_t;
+    typedef std::complex<float> BackendFloat_t;
   #endif
 #elif defined(PRECISION_d)
   typedef double BackendFloat_t;
