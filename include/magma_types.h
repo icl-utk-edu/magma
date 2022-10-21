@@ -157,7 +157,8 @@ typedef double real_Double_t;
     typedef sycl::event magma_event_t;
     typedef magma_int_t    magma_device_t;
 
-    typedef short            magmaHalf;
+//    typedef short            magmaHalf;
+    typedef sycl::half         magmaHalf;
         /*
     // typedef sycl::double2 magmaDoubleComplex;
     typedef MKL_Complex16 magmaDoubleComplex;

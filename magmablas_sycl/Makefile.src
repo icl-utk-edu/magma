@@ -385,7 +385,7 @@ $(cdir)/zgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.dp.hpp
 $(cdir)/cgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.dp.hpp $(cdir)/gemm_template_device.dp.hpp $(cdir)/gemm_template_device_defs.dp.hpp
 $(cdir)/dgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.dp.hpp $(cdir)/gemm_template_device.dp.hpp $(cdir)/gemm_template_device_defs.dp.hpp
 $(cdir)/sgemm_batched_core.$(o_ext): $(cdir)/gemm_template_kernel_batched.dp.hpp $(cdir)/gemm_template_device.dp.hpp $(cdir)/gemm_template_device_defs.dp.hpp
-$(cdir)/hgemm_batched_core.$(o_ext): $(cdir)/hgemm_template_kernel_batched.dp.hpp $(cdir)/hgemm_template_device.dp.hpp $(cdir)/gemm_template_device_defs.dp.hpp
+$(cdir)/hgemm_batched_core.$(o_ext):
 
 $(cdir)/sgemm_vbatched_core.$(o_ext): $(cdir)/gemm_template_kernel_vbatched.dp.hpp $(cdir)/gemm_template_device.dp.hpp $(cdir)/gemm_template_device_defs.dp.hpp
 $(cdir)/dgemm_vbatched_core.$(o_ext): $(cdir)/gemm_template_kernel_vbatched.dp.hpp $(cdir)/gemm_template_device.dp.hpp $(cdir)/gemm_template_device_defs.dp.hpp
