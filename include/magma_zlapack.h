@@ -173,10 +173,12 @@ extern "C" {
 #define lapackf77_zstt21   FORTRAN_NAME( zstt21, ZSTT21 )
 #define lapackf77_zunt01   FORTRAN_NAME( zunt01, ZUNT01 )
 
-#if defined(MAGMA_HAVE_SYCL)
-    #define LAPACK_EXCEPT noexcept
-#else 
-    #define LAPACK_EXCEPT
+#ifndef LAPACK_EXCEPT
+  #if defined(MAGMA_HAVE_SYCL)
+      #define LAPACK_EXCEPT noexcept
+  #else
+      #define LAPACK_EXCEPT
+  #endif
 #endif
 
 /*
