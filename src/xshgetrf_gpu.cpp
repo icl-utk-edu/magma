@@ -359,7 +359,7 @@ magma_xshgetrf_gpu(
                             &c_one,     dAT(nextj, nextj+nextjb), CUDA_R_32F, int(lddat),
                             CUDA_R_32F, ALGO);
                     #else
-                    hipblasGemmEx( queues[1]->cublas_handle(),
+                    hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
                             &c_neg_one, dAT(j    , nextj+nextjb), HIPBLAS_R_32F, int(lddat),
