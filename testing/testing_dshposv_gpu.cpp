@@ -16,6 +16,13 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
+static inline bool begins( std::string const &str, std::string const &prefix )
+{
+    return (str.compare( 0, prefix.size(), prefix) == 0);
+}
 
 int main(int argc, char **argv)
 {
@@ -48,6 +55,11 @@ int main(int argc, char **argv)
     double tol = opts.tolerance * lapackf77_dlamch("E");
     nrhs = opts.nrhs;
 
+    if( !begins(opts.matrix, "poev") ) {
+        printf(ANSI_COLOR_MAGENTA "%% WARNING: matrix option \"%s\" will be explicitly made SPD\n" ANSI_COLOR_RESET, opts.matrix.c_str());
+        printf(ANSI_COLOR_MAGENTA "%% Use matrix option \"poev\" or \"poev_<distribution>\" to avoid this warning\n\n" ANSI_COLOR_RESET);
+    }
+
     printf("%% uplo = %s\n", lapack_uplo_const(opts.uplo));
     printf("%%    N NRHS   DP-Factor  DP-Solve  SP-Factor  SP-Solve  MP-Solve  Iter   |b-Ax|/|A|\n");
     printf("%%====================================================================================\n");
@@ -71,6 +83,9 @@ int main(int argc, char **argv)
 
             /* Initialize the matrix */
             magma_generate_matrix(opts, N, N, h_A, lda );
+            if( !begins(opts.matrix, "poev") ) {
+                magma_dmake_hpd( N, h_A, lda );
+            }
 
             size = ldb * nrhs;
             lapackf77_dlarnv( &ione, ISEED, &size, h_B );
