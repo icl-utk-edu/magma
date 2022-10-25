@@ -83,6 +83,7 @@ public:
 };
 
 // ---------------
+#ifndef MAGMA_HAVE_SYCL
 template<>
 class traits2< float, std::complex<float> >
 {
@@ -90,6 +91,7 @@ public:
     typedef std::complex<float> scalar_t;
     typedef float real_t;
 };
+#endif
 
 template<>
 class traits2< float, magmaFloatComplex >
@@ -98,8 +100,8 @@ public:
     typedef magmaFloatComplex scalar_t;
     typedef float real_t;
 };
-
 // ---------------
+#ifndef MAGMA_HAVE_SYCL
 template<>
 class traits2< float, std::complex<double> >
 {
@@ -107,6 +109,7 @@ public:
     typedef std::complex<double> scalar_t;
     typedef double real_t;
 };
+#endif
 
 template<>
 class traits2< float, magmaDoubleComplex >
@@ -118,6 +121,7 @@ public:
 
 // ----------------------------------------
 // double
+#ifndef MAGMA_HAVE_SYCL
 template<>
 class traits2< double, std::complex<float> >
 {
@@ -125,6 +129,7 @@ public:
     typedef std::complex<double> scalar_t;
     typedef double real_t;
 };
+#endif
 
 template<>
 class traits2< double, magmaFloatComplex >
@@ -135,6 +140,7 @@ public:
 };
 
 // ---------------
+#ifndef MAGMA_HAVE_SYCL
 template<>
 class traits2< double, std::complex<double> >
 {
@@ -142,6 +148,7 @@ public:
     typedef std::complex<double> scalar_t;
     typedef double real_t;
 };
+#endif
 
 template<>
 class traits2< double, magmaDoubleComplex >
@@ -153,6 +160,7 @@ public:
 
 // ----------------------------------------
 // complex<float>
+#ifndef MAGMA_HAVE_SYCL
 template<>
 class traits2< std::complex<float>, std::complex<double> >
 {
@@ -160,6 +168,7 @@ public:
     typedef std::complex<double> scalar_t;
     typedef double real_t;
 };
+#endif
 
 template<>
 class traits2< magmaFloatComplex, magmaDoubleComplex >

@@ -26,7 +26,6 @@
 #include <dpct/dpct.hpp>
 #include "magma_internal.h"
 #include "commonblas_z.h"
-#include <complex>
 
 #define PRECISION_z
 

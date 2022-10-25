@@ -37,6 +37,9 @@
 #elif defined(MAGMA_HAVE_HIP)
     const char* g_platform_str = "HIPBLAS";
 
+#elif defined(MAGMA_HAVE_SYCL)
+    const char* g_platform_str = "oneMKL";
+
 #else
     #error "unknown platform"
 #endif
@@ -650,7 +653,7 @@ void magma_opts::parse_opts( int argc, char** argv )
     }
     assert( this->ntest <= MAX_NTEST );
 
-    #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+    #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
     magma_setdevice( this->device );
     #endif
 
@@ -668,6 +671,8 @@ void magma_opts::parse_opts( int argc, char** argv )
     #elif defined(MAGMA_HAVE_CUDA)
         // handle for directly calling cublas
         this->handle = magma_queue_get_cublas_handle( this->queue );
+    #elif defined(MAGMA_HAVE_SYCL)
+        this->handle = magma_queue_get_syclblas_handle( this->queue );
     #else
         #error "unknown platform"
     #endif
