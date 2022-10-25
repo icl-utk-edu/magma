@@ -261,6 +261,8 @@ public:
     cublasHandle_t  handle;
     #elif defined(MAGMA_HAVE_HIP)
     hipblasHandle_t handle;
+    #elif defined(MAGMA_HAVE_SYCL)
+    sycl::queue *handle;
     #endif
 };
 

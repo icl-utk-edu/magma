@@ -169,9 +169,9 @@ typedef double real_Double_t;
     typedef std::complex<float>   magmaFloatComplex;
     typedef std::complex<double>   magmaDoubleComplex;
 
-    sycl::queue *magma_queue_get_cuda_stream(magma_queue_t queue);
-    sycl::queue *magma_queue_get_cublas_handle(magma_queue_t queue);
-    sycl::queue *magma_queue_get_cusparse_handle(magma_queue_t queue);
+    sycl::queue *magma_queue_get_sycl_stream(magma_queue_t queue);
+    sycl::queue *magma_queue_get_syclblas_handle(magma_queue_t queue);
+    sycl::queue *magma_queue_get_syclsparse_handle(magma_queue_t queue);
 
     /// @addtogroup magma_complex
     /// @{
@@ -534,11 +534,11 @@ extern "C" {
 #define MAGMA_D_NEG_ONE           (-1.0)
 #define MAGMA_D_NEG_HALF          (-0.5)
 
-#define MAGMA_S_ZERO              ( 0.0)
-#define MAGMA_S_ONE               ( 1.0)
-#define MAGMA_S_HALF              ( 0.5)
-#define MAGMA_S_NEG_ONE           (-1.0)
-#define MAGMA_S_NEG_HALF          (-0.5)
+#define MAGMA_S_ZERO              ( 0.0f)
+#define MAGMA_S_ONE               ( 1.0f)
+#define MAGMA_S_HALF              ( 0.5f)
+#define MAGMA_S_NEG_ONE           (-1.0f)
+#define MAGMA_S_NEG_HALF          (-0.5f)
 
 #ifndef CBLAS_SADDR
 #define CBLAS_SADDR(a)  &(a)
@@ -1133,6 +1133,11 @@ oneapi::mkl::transpose   syclblas_trans_const(magma_trans_t trans);
 oneapi::mkl::uplo   syclblas_uplo_const(magma_uplo_t uplo);
 oneapi::mkl::diag   syclblas_diag_const(magma_diag_t diag);
 oneapi::mkl::side   syclblas_side_const(magma_side_t side);
+
+#define magma_backend_trans_const syclblas_trans_const
+#define magma_backend_uplo_const syclblas_uplo_const
+#define magma_backend_diag_const syclblas_diag_const
+#define magma_backend_side_const syclblas_side_const
 #endif
 
 // -----------------------------------------------------------------------------

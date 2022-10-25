@@ -21,7 +21,7 @@
 #include "magma_internal.h"
 
 // define 0 for large initializations
-#define Z0 magmaDoubleComplex(0., 0.)
+#define Z0 MAGMA_Z_ZERO
 
 /*
     This inverts the diagonal IB by IB inner blocks of A,

@@ -242,7 +242,7 @@ magma_zgegqr_gpu(
                 *info = j;
                 break;
             }
-            magma_zscal( m, 1./ *work(j,j), dA(0,j), 1, queue );
+            magma_zscal( m, MAGMA_D_ONE/ *work(j,j), dA(0,j), 1, queue );
         }
         // ================== end of ikind == 3 ================================
     }
