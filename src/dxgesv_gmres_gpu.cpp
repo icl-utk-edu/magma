@@ -233,17 +233,6 @@ magma_dxgesv_gmres_gpu(
         *info = -11;
     // check cuda version and if device has tensor cores in case tensor cores was requested to be used.
 
-//#if CUDA_VERSION < 9000
-//    if (facto_type != Magma_PREC_SS){
-//        *info = -14;
-//    }
-//#else
-//    magma_int_t arch = magma_getdevice_arch();
-//    if(arch < 530 && facto_type != Magma_PREC_SS){
-//        *info = -14;
-//    }
-//#endif
-
     switch (facto_type) {
         case Magma_PREC_HS :
             snprintf(factoname, sizeof(factoname),"HS");
