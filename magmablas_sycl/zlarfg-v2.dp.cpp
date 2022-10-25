@@ -62,7 +62,7 @@ void magma_zlarfg_gpu_kernel( int n, magmaDoubleComplex* dx0, magmaDoubleComplex
             *dtau = (beta - alpha) / beta;
             *dAkk  = beta;
 
-            scale = 1. / (alpha - beta);
+            *scale = MAGMA_D_ONE / (alpha - beta);
         }
 #else
     double alphar = MAGMA_Z_REAL(alpha);

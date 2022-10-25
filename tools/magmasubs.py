@@ -733,6 +733,7 @@ subs = {
     ('magma_ps',       'magma_pd',       'magma_pc',       'magma_pz'        ),
     ('magma_ssb',      'magma_dsb',      'magma_chb',      'magma_zhb'       ),
     ('MAGMA_S',        'MAGMA_D',        'MAGMA_C',        'MAGMA_Z'         ),
+    ('MAGMA_S',        'MAGMA_D',        'MAGMA_S',        'MAGMA_D'         ),
     ('MAGMA_s',        'MAGMA_d',        'MAGMA_c',        'MAGMA_z'         ),
     ('magma_s',        'magma_d',        'magma_c',        'magma_z'         ),
     ('magma_s',        'magma_d',        'magma_sc',       'magma_dz'        ),

@@ -827,6 +827,79 @@ hipblasSideMode_t     hipblas_side_const  ( magma_side_t magma_const )
 
 #endif // MAGMA_HAVE_HIP
 
+
+#ifdef MAGMA_HAVE_SYCL
+
+const char magma2syclblas_constants[] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0,                      // 100
+    0,                      // 101: MagmaRowMajor
+    0,                      // 102: MagmaColMajor
+    0, 0, 0, 0, 0, 0, 0, 0,
+    (char) oneapi::mkl::transpose::nontrans,  // 111: MagmaNoTrans
+    (char) oneapi::mkl::transpose::trans,     // 112: MagmaTrans
+    (char) oneapi::mkl::transpose::conjtrans, // 113: MagmaConjTrans
+    0, 0, 0, 0, 0, 0, 0,
+    (char) oneapi::mkl::uplo::upper,// 121: MagmaUpper
+    (char) oneapi::mkl::uplo::lower,// 122: MagmaLower
+    0, 0, 0, 0, 0, 0, 0, 0,
+    (char) oneapi::mkl::diag::nonunit,// 131: MagmaNonUnit
+    (char) oneapi::mkl::diag::unit,   // 132: MagmaUnit
+    0, 0, 0, 0, 0, 0, 0, 0,
+    (char) oneapi::mkl::side::left,   // 141: MagmaLeft
+    (char) oneapi::mkl::side::right,  // 142: MagmaRight
+    0, 0, 0, 0, 0, 0, 0, 0
+};
+
+extern "C"
+oneapi::mkl::transpose    syclblas_trans_const ( magma_trans_t magma_const )
+{
+    assert( magma_const >= MagmaNoTrans   );
+    assert( magma_const <= MagmaConjTrans );
+    oneapi::mkl::transpose trans_const{magma2syclblas_constants[ magma_const ]};
+    return trans_const;
+}
+
+extern "C"
+oneapi::mkl::uplo     syclblas_uplo_const  ( magma_uplo_t magma_const )
+{
+    assert( magma_const >= MagmaUpper );
+    assert( magma_const <= MagmaLower );
+    oneapi::mkl::uplo uplo_const{magma2syclblas_constants[ magma_const ]};
+    return uplo_const;
+}
+
+extern "C"
+oneapi::mkl::diag    syclblas_diag_const  ( magma_diag_t magma_const )
+{
+    assert( magma_const >= MagmaNonUnit );
+    assert( magma_const <= MagmaUnit    );
+    oneapi::mkl::diag diag_const{magma2syclblas_constants[ magma_const ]};
+    return diag_const;
+}
+
+extern "C"
+oneapi::mkl::side   syclblas_side_const  ( magma_side_t magma_const )
+{
+    assert( magma_const >= MagmaLeft  );
+    assert( magma_const <= MagmaRight );
+    oneapi::mkl::side side_const{magma2syclblas_constants[ magma_const ]};
+    return side_const;
+}
+
+
+#endif // MAGMA_HAVE_SYCL
+
 #ifdef HAVE_CBLAS
 // =============================================================================
 /// @addtogroup cblas_const
