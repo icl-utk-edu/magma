@@ -29,7 +29,8 @@ zlascl_full(
     A += ind;
     if (ind < m) {
         for (int j=0; j < n; j++ )
-            A[j*lda] *= magmaDoubleComplex(mul, 0.0);
+//            A[j*lda] *= mul; TODO: overload issue with std::complex and magma_operators?
+            A[j*lda] = A[j*lda] * mul;
     }
 }
 
@@ -48,7 +49,8 @@ zlascl_lower(
     A += ind;
     if (ind < m) {
         for (int j=0; j <= break_d; j++ )
-            A[j*lda] *= magmaDoubleComplex(mul, 0.0);
+//            A[j*lda] *= mul;
+            A[j*lda] = A[j*lda] * mul;
     }
 }
 
@@ -65,7 +67,8 @@ zlascl_upper(
     A += ind;
     if (ind < m) {
         for (int j=n-1; j >= ind; j--)
-            A[j*lda] *= magmaDoubleComplex(mul, 0.0);
+//            A[j*lda] *= mul;
+            A[j*lda] = A[j*lda] * mul;
     }
 }
 

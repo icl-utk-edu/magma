@@ -39,7 +39,7 @@ static inline void zpotf2_sminout_anywidth_device(const int m, const int n, magm
             double xreal = MAGMA_Z_REAL(A[iter + iter * lda]);
             linfo = ( linfo == 0 && (xreal <= MAGMA_D_ZERO) ) ? (iter+1) : linfo;
             xreal = sycl::sqrt(xreal);
-            factor = magmaDoubleComplex(1.0 / xreal, 0.0);
+            factor = MAGMA_Z_MAKE(1.0 / xreal, 0.0);
 #ifdef ENABLE_COND1
         }
         #endif
@@ -116,7 +116,7 @@ static inline void zpotf2_sminout_fixsize_device(const int m, magmaDoubleComplex
             double xreal = MAGMA_Z_REAL(A[iter + iter * lda]);
             linfo = ( linfo == 0 && (xreal <= MAGMA_D_ZERO || xreal != xreal )) ? (iter+1) : linfo;
             xreal = sycl::sqrt(xreal);
-            factor = magmaDoubleComplex(1.0 / xreal, 0.0);
+            factor = MAGMA_Z_MAKE(1.0 / xreal, 0.0);
 #ifdef ENABLE_COND2
         }
         #endif
