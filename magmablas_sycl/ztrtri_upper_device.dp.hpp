@@ -22,7 +22,7 @@
 #include "magma_internal.h"
 
 // define 0 for large initializations
-#define Z0 magmaDoubleComplex(0., 0.)
+#define Z0 MAGMA_Z_ZERO
 
 /******************************************************************************/
 /*

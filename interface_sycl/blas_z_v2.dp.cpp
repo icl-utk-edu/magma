@@ -12,7 +12,6 @@
 #include <dpct/dpct.hpp>
 #include "magma_internal.h"
 #include "error.h"
-#include <complex>
 
 #define COMPLEX
 
@@ -77,8 +76,8 @@ magma_izamax(
   int64_t *res_temp_ptr_ct1 =
       sycl::malloc_shared<int64_t>(1, dpct::get_default_queue());
   oneapi::mkl::blas::column_major::iamax(
-      *queue->syclblas_handle(), int(n),
-      (std::complex<double> *)(sycl::double2 *)dx, int(incx), res_temp_ptr_ct1)
+      *queue->sycl_stream(), int(n),
+      (std::complex<double> *)dx, int(incx), res_temp_ptr_ct1)
       .wait();
   int res_temp_host_ct2 = (int)*res_temp_ptr_ct1;
   dpct::dpct_memcpy(&result, &res_temp_host_ct2, sizeof(int));
@@ -117,8 +116,8 @@ magma_izamin(
   int64_t *res_temp_ptr_ct3 =
       sycl::malloc_shared<int64_t>(1, dpct::get_default_queue());
   oneapi::mkl::blas::column_major::iamin(
-      *queue->syclblas_handle(), int(n),
-      (std::complex<double> *)(sycl::double2 *)dx, int(incx), res_temp_ptr_ct3)
+      *queue->sycl_stream(), int(n),
+      (std::complex<double> *)dx, int(incx), res_temp_ptr_ct3)
       .wait();
   int res_temp_host_ct4 = (int)*res_temp_ptr_ct3;
   dpct::dpct_memcpy(&result, &res_temp_host_ct4, sizeof(int));
@@ -155,21 +154,21 @@ magma_dzasum(
 {
     double result;
   double *res_temp_ptr_ct5 = &result;
-  if (sycl::get_pointer_type(&result, queue->syclblas_handle()->get_context()) !=
+  if (sycl::get_pointer_type(&result, queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::device &&
-      sycl::get_pointer_type(&result, queue->syclblas_handle()->get_context()) !=
+      sycl::get_pointer_type(&result, queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
     res_temp_ptr_ct5 =
         sycl::malloc_shared<double>(1, dpct::get_default_queue());
   }
   oneapi::mkl::blas::column_major::asum(
-      *queue->syclblas_handle(), int(n),
-      (std::complex<double> *)(sycl::double2 *)dx, int(incx), res_temp_ptr_ct5);
-  if (sycl::get_pointer_type(&result, queue->syclblas_handle()->get_context()) !=
+      *queue->sycl_stream(), int(n),
+      (std::complex<double> *)dx, int(incx), res_temp_ptr_ct5);
+  if (sycl::get_pointer_type(&result, queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::device &&
-      sycl::get_pointer_type(&result, queue->syclblas_handle()->get_context()) !=
+      sycl::get_pointer_type(&result, queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
-    queue->syclblas_handle()->wait();
+    queue->sycl_stream()->wait();
     result = *res_temp_ptr_ct5;
     sycl::free(res_temp_ptr_ct5, dpct::get_default_queue());
   }
@@ -215,10 +214,10 @@ magma_zaxpy(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::axpy(
-        *queue->syclblas_handle(), int(n),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-        (std::complex<double> *)(sycl::double2 *)dy, int(incy));
+        *queue->sycl_stream(), int(n),
+        dpct::get_value((std::complex<double> *)&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dx, int(incx),
+        (std::complex<double> *)dy, int(incy));
 }
 
 
@@ -256,9 +255,9 @@ magma_zcopy(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::copy(
-        *queue->syclblas_handle(), int(n),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-        (std::complex<double> *)(sycl::double2 *)dy, int(incy));
+        *queue->sycl_stream(), int(n),
+        (std::complex<double> *)dx, int(incx),
+        (std::complex<double> *)dy, int(incy));
 }
 
 
@@ -297,29 +296,29 @@ magmaDoubleComplex magma_zdotc(
     magma_queue_t queue )
 {
     magmaDoubleComplex result;
-  sycl::double2 *res_temp_ptr_ct6 = (sycl::double2 *)&result;
-  if (sycl::get_pointer_type((sycl::double2 *)&result,
-                             queue->syclblas_handle()->get_context()) !=
+    std::complex<double> *res_temp_ptr_ct6 = (std::complex<double> *)&result;
+  if (sycl::get_pointer_type((std::complex<double> *)&result,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::device &&
-      sycl::get_pointer_type((sycl::double2 *)&result,
-                             queue->syclblas_handle()->get_context()) !=
+      sycl::get_pointer_type((std::complex<double> *)&result,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
     res_temp_ptr_ct6 =
-        sycl::malloc_shared<sycl::double2>(1, dpct::get_default_queue());
+        sycl::malloc_shared<std::complex<double>>(1, dpct::get_default_queue());
   }
   oneapi::mkl::blas::column_major::dotc(
-      *queue->syclblas_handle(), int(n),
-      (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-      (std::complex<double> *)(sycl::double2 *)dy, int(incy),
+      *queue->sycl_stream(), int(n),
+      (std::complex<double> *)dx, int(incx),
+      (std::complex<double> *)dy, int(incy),
       (std::complex<double> *)res_temp_ptr_ct6);
-  if (sycl::get_pointer_type((sycl::double2 *)&result,
-                             queue->syclblas_handle()->get_context()) !=
+  if (sycl::get_pointer_type((std::complex<double> *)&result,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::device &&
-      sycl::get_pointer_type((sycl::double2 *)&result,
-                             queue->syclblas_handle()->get_context()) !=
+      sycl::get_pointer_type((std::complex<double> *)&result,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
-    queue->syclblas_handle()->wait();
-    *((sycl::double2 *)&result) = *res_temp_ptr_ct6;
+    queue->sycl_stream()->wait();
+    *((std::complex<double> *)&result) = *res_temp_ptr_ct6;
     sycl::free(res_temp_ptr_ct6, dpct::get_default_queue());
   }
     return result;
@@ -361,29 +360,33 @@ magmaDoubleComplex magma_zdotu(
     magma_queue_t queue )
 {
     magmaDoubleComplex result;
-  sycl::double2 *res_temp_ptr_ct7 = (sycl::double2 *)&result;
-  if (sycl::get_pointer_type((sycl::double2 *)&result,
-                             queue->syclblas_handle()->get_context()) !=
+  std::complex<double> *res_temp_ptr_ct7 = (std::complex<double> *)&result;
+  if (sycl::get_pointer_type((std::complex<double> *)&result,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::device &&
-      sycl::get_pointer_type((sycl::double2 *)&result,
-                             queue->syclblas_handle()->get_context()) !=
+      sycl::get_pointer_type((std::complex<double> *)&result,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
     res_temp_ptr_ct7 =
-        sycl::malloc_shared<sycl::double2>(1, dpct::get_default_queue());
+        sycl::malloc_shared<std::complex<double>>(1, dpct::get_default_queue());
   }
+#ifdef COMPLEX
   oneapi::mkl::blas::column_major::dotu(
-      *queue->syclblas_handle(), int(n),
-      (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-      (std::complex<double> *)(sycl::double2 *)dy, int(incy),
+#else
+  oneapi::mkl::blas::column_major::dot(
+#endif
+      *queue->sycl_stream(), int(n),
+      (std::complex<double> *)dx, int(incx),
+      (std::complex<double> *)dy, int(incy),
       (std::complex<double> *)res_temp_ptr_ct7);
-  if (sycl::get_pointer_type((sycl::double2 *)&result,
-                             queue->syclblas_handle()->get_context()) !=
+  if (sycl::get_pointer_type((std::complex<double> *)&result,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::device &&
-      sycl::get_pointer_type((sycl::double2 *)&result,
-                             queue->syclblas_handle()->get_context()) !=
+      sycl::get_pointer_type((std::complex<double> *)&result,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
-    queue->syclblas_handle()->wait();
-    *((sycl::double2 *)&result) = *res_temp_ptr_ct7;
+    queue->sycl_stream()->wait();
+    *((std::complex<double> *)&result) = *res_temp_ptr_ct7;
     sycl::free(res_temp_ptr_ct7, dpct::get_default_queue());
   }
     return result;
@@ -418,21 +421,21 @@ magma_dznrm2(
 {
     double result;
   double *res_temp_ptr_ct8 = &result;
-  if (sycl::get_pointer_type(&result, queue->syclblas_handle()->get_context()) !=
+  if (sycl::get_pointer_type(&result, queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::device &&
-      sycl::get_pointer_type(&result, queue->syclblas_handle()->get_context()) !=
+      sycl::get_pointer_type(&result, queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
     res_temp_ptr_ct8 =
         sycl::malloc_shared<double>(1, dpct::get_default_queue());
   }
   oneapi::mkl::blas::column_major::nrm2(
-      *queue->syclblas_handle(), int(n),
-      (std::complex<double> *)(sycl::double2 *)dx, int(incx), res_temp_ptr_ct8);
-  if (sycl::get_pointer_type(&result, queue->syclblas_handle()->get_context()) !=
+      *queue->sycl_stream(), int(n),
+      (std::complex<double> *)dx, int(incx), res_temp_ptr_ct8);
+  if (sycl::get_pointer_type(&result, queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::device &&
-      sycl::get_pointer_type(&result, queue->syclblas_handle()->get_context()) !=
+      sycl::get_pointer_type(&result, queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
-    queue->syclblas_handle()->wait();
+    queue->sycl_stream()->wait();
     result = *res_temp_ptr_ct8;
     sycl::free(res_temp_ptr_ct8, dpct::get_default_queue());
   }
@@ -539,9 +542,9 @@ magma_zdrot(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::rot(
-        *queue->syclblas_handle(), int(n),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-        (std::complex<double> *)(sycl::double2 *)dy, int(incy), c, s);
+        *queue->sycl_stream(), int(n),
+        (std::complex<double> *)dx, int(incx),
+        (std::complex<double> *)dy, int(incy), c, s);
 }
 #endif // COMPLEX
 
@@ -586,39 +589,39 @@ magma_zrotg(
     double             *c, magmaDoubleComplex *s,
     magma_queue_t queue )
 {
-  sycl::double2 *a_ct9 = (sycl::double2 *)a;
-  sycl::double2 *b_ct10 = (sycl::double2 *)b;
+  std::complex<double> *a_ct9 = (std::complex<double> *)a;
+  std::complex<double> *b_ct10 = (std::complex<double> *)b;
   double *c_ct11 = c;
-  sycl::double2 *s_ct12 = (sycl::double2 *)s;
-  if (sycl::get_pointer_type((sycl::double2 *)a,
-                             queue->syclblas_handle()->get_context()) !=
+  std::complex<double> *s_ct12 = (std::complex<double> *)s;
+  if (sycl::get_pointer_type((std::complex<double> *)a,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::device &&
-      sycl::get_pointer_type((sycl::double2 *)a,
-                             queue->syclblas_handle()->get_context()) !=
+      sycl::get_pointer_type((std::complex<double> *)a,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
-    a_ct9 = sycl::malloc_shared<sycl::double2>(3, dpct::get_default_queue());
+    a_ct9 = sycl::malloc_shared<std::complex<double>>(3, dpct::get_default_queue());
     c_ct11 = sycl::malloc_shared<double>(1, dpct::get_default_queue());
     b_ct10 = a_ct9 + 1;
     s_ct12 = a_ct9 + 2;
-    *a_ct9 = *((sycl::double2 *)a);
-    *b_ct10 = *((sycl::double2 *)b);
+    *a_ct9 = *((std::complex<double> *)a);
+    *b_ct10 = *((std::complex<double> *)b);
     *c_ct11 = *c;
-    *s_ct12 = *((sycl::double2 *)s);
+    *s_ct12 = *((std::complex<double> *)s);
   }
   oneapi::mkl::blas::column_major::rotg(
-      *queue->syclblas_handle(), (std::complex<double> *)a_ct9,
+      *queue->sycl_stream(), (std::complex<double> *)a_ct9,
       (std::complex<double> *)b_ct10, c_ct11, (std::complex<double> *)s_ct12);
-  if (sycl::get_pointer_type((sycl::double2 *)a,
-                             queue->syclblas_handle()->get_context()) !=
+  if (sycl::get_pointer_type((std::complex<double> *)a,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::device &&
-      sycl::get_pointer_type((sycl::double2 *)a,
-                             queue->syclblas_handle()->get_context()) !=
+      sycl::get_pointer_type((std::complex<double> *)a,
+                             queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
-    queue->syclblas_handle()->wait();
-    *((sycl::double2 *)a) = *a_ct9;
-    *((sycl::double2 *)b) = *b_ct10;
+    queue->sycl_stream()->wait();
+    *((std::complex<double> *)a) = *a_ct9;
+    *((std::complex<double> *)b) = *b_ct10;
     *c = *c_ct11;
-    *((sycl::double2 *)s) = *s_ct12;
+    *((std::complex<double> *)s) = *s_ct12;
     sycl::free(a_ct9, dpct::get_default_queue());
     sycl::free(c_ct11, dpct::get_default_queue());
   }
@@ -639,7 +642,10 @@ magma_zrotm(
     const double *param,
     magma_queue_t queue )
 {
-    syclblasZrotm( queue->syclblas_handle(), int(n), dx, int(incx), dy, int(incy), param );
+
+    oneapi::mkl::blas::column_major::rotm(*queue->sycl_stream(), int(n), dx,
+                                          int(incx), dy, int(incy),
+                                          const_cast<double *>(param));
 }
 #endif // REAL
 
@@ -657,7 +663,38 @@ magma_zrotmg(
     double *param,
     magma_queue_t queue )
 {
-    syclblasZrotmg( queue->syclblas_handle(), d1, d2, x1, y1, param );
+   double *d1_ct1 = d1;
+   double *d2_ct2 = d2;
+   double *x1_ct3 = x1;
+   double *param_ct4 = param;
+   if (sycl::get_pointer_type(d1, queue->sycl_stream()->get_context()) !=
+           sycl::usm::alloc::device &&
+       sycl::get_pointer_type(d1, queue->sycl_stream()->get_context()) !=
+           sycl::usm::alloc::shared) {
+     d1_ct1 = sycl::malloc_shared<double>(8, dpct::get_default_queue());
+     d2_ct2 = d1_ct1 + 1;
+     x1_ct3 = d1_ct1 + 2;
+     param_ct4 = d1_ct1 + 3;
+     *d1_ct1 = *d1;
+     *d2_ct2 = *d2;
+     *x1_ct3 = *x1;
+   }
+   oneapi::mkl::blas::column_major::rotmg(
+       *queue->sycl_stream(), d1_ct1, d2_ct2, x1_ct3,
+       dpct::get_value(y1, *queue->sycl_stream()), param_ct4);
+   if (sycl::get_pointer_type(d1, queue->sycl_stream()->get_context()) !=
+           sycl::usm::alloc::device &&
+       sycl::get_pointer_type(d1, queue->sycl_stream()->get_context()) !=
+           sycl::usm::alloc::shared) {
+     queue->sycl_stream()->wait();
+     *d1 = *d1_ct1;
+     *d2 = *d2_ct2;
+     *x1 = *x1_ct3;
+     dpct::get_default_queue()
+         .memcpy(param, param_ct4, sizeof(double) * 5)
+         .wait();
+     sycl::free(d1_ct1, dpct::get_default_queue());
+   }
 }
 #endif // REAL
 
@@ -692,9 +729,9 @@ magma_zscal(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::scal(
-        *queue->syclblas_handle(), int(n),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx));
+        *queue->sycl_stream(), int(n),
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dx, int(incx));
 }
 
 
@@ -729,8 +766,8 @@ magma_zdscal(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::scal(
-        *queue->syclblas_handle(), int(n), alpha,
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx));
+        *queue->sycl_stream(), int(n), alpha,
+        (std::complex<double> *)dx, int(incx));
 }
 #endif // COMPLEX
 
@@ -769,9 +806,9 @@ magma_zswap(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::swap(
-        *queue->syclblas_handle(), int(n),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-        (std::complex<double> *)(sycl::double2 *)dy, int(incy));
+        *queue->sycl_stream(), int(n),
+        (std::complex<double> *)dx, int(incx),
+        (std::complex<double> *)dy, int(incy));
 }
 
 
@@ -840,12 +877,12 @@ magma_zgemv(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::gemv(
-        *queue->syclblas_handle(), syclblas_trans_const(transA), int(m), int(n),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-        dpct::get_value((sycl::double2 *)&beta, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dy, int(incy));
+        *queue->sycl_stream(), syclblas_trans_const(transA), int(m), int(n),
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dA, int(ldda),
+        (std::complex<double> *)dx, int(incx),
+        dpct::get_value(&beta, *queue->sycl_stream()),
+        (std::complex<double> *)dy, int(incy));
 }
 
 
@@ -899,11 +936,11 @@ magma_zgerc(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::gerc(
-        *queue->syclblas_handle(), int(m), int(n),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-        (std::complex<double> *)(sycl::double2 *)dy, int(incy),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda));
+        *queue->sycl_stream(), int(m), int(n),
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dx, int(incx),
+        (std::complex<double> *)dy, int(incy),
+        (std::complex<double> *)dA, int(ldda));
 }
 #endif // COMPLEX
 
@@ -956,12 +993,17 @@ magma_zgeru(
     magmaDoubleComplex_ptr       dA, magma_int_t ldda,
     magma_queue_t queue )
 {
+
+#ifdef COMPLEX
     oneapi::mkl::blas::column_major::geru(
-        *queue->syclblas_handle(), int(m), int(n),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-        (std::complex<double> *)(sycl::double2 *)dy, int(incy),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda));
+#else
+    oneapi::mkl::blas::column_major::ger(
+#endif
+	*queue->sycl_stream(), int(m), int(n),
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dx, int(incx),
+        (std::complex<double> *)dy, int(incy),
+        (std::complex<double> *)dA, int(ldda));
 }
 
 
@@ -1021,12 +1063,12 @@ magma_zhemv(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::hemv(
-        *queue->syclblas_handle(), syclblas_uplo_const(uplo), int(n),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-        dpct::get_value((sycl::double2 *)&beta, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dy, int(incy));
+        *queue->sycl_stream(), syclblas_uplo_const(uplo), int(n),
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dA, int(ldda),
+        (std::complex<double> *)dx, int(incx),
+        dpct::get_value(&beta, *queue->sycl_stream()),
+        (std::complex<double> *)dy, int(incy));
 }
 #endif // COMPLEX
 
@@ -1075,10 +1117,10 @@ magma_zher(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::her(
-        *queue->syclblas_handle(), syclblas_uplo_const(uplo), int(n),
-        dpct::get_value((const double *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda));
+        *queue->sycl_stream(), syclblas_uplo_const(uplo), int(n),
+        dpct::get_value((const double *)&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dx, int(incx),
+        (std::complex<double> *)dA, int(ldda));
 }
 #endif // COMPLEX
 
@@ -1135,11 +1177,11 @@ magma_zher2(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::her2(
-        *queue->syclblas_handle(), syclblas_uplo_const(uplo), int(n),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx),
-        (std::complex<double> *)(sycl::double2 *)dy, int(incy),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda));
+        *queue->sycl_stream(), syclblas_uplo_const(uplo), int(n),
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dx, int(incx),
+        (std::complex<double> *)dy, int(incy),
+        (std::complex<double> *)dA, int(ldda));
 }
 #endif // COMPLEX
 
@@ -1368,10 +1410,10 @@ magma_ztrmv(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::trmv(
-        *queue->syclblas_handle(), syclblas_uplo_const(uplo),
+        *queue->sycl_stream(), syclblas_uplo_const(uplo),
         syclblas_trans_const(trans), syclblas_diag_const(diag), int(n),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx));
+        (std::complex<double> *)dA, int(ldda),
+        (std::complex<double> *)dx, int(incx));
 }
 
 
@@ -1423,10 +1465,10 @@ magma_ztrsv(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::trsv(
-        *queue->syclblas_handle(), syclblas_uplo_const(uplo),
+        *queue->sycl_stream(), syclblas_uplo_const(uplo),
         syclblas_trans_const(trans), syclblas_diag_const(diag), int(n),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda),
-        (std::complex<double> *)(sycl::double2 *)dx, int(incx));
+        (std::complex<double> *)dA, int(ldda),
+        (std::complex<double> *)dx, int(incx));
 }
 
 
@@ -1498,13 +1540,13 @@ magma_zgemm(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::gemm(
-        *queue->syclblas_handle(), syclblas_trans_const(transA),
+        *queue->sycl_stream(), syclblas_trans_const(transA),
         syclblas_trans_const(transB), int(m), int(n), int(k),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda),
-        (std::complex<double> *)(sycl::double2 *)dB, int(lddb),
-        dpct::get_value((sycl::double2 *)&beta, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dC, int(lddc));
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dA, int(ldda),
+        (std::complex<double> *)dB, int(lddb),
+        dpct::get_value(&beta, *queue->sycl_stream()),
+        (std::complex<double> *)dC, int(lddc));
 }
 
 #ifdef COMPLEX
@@ -1572,13 +1614,13 @@ magma_zhemm(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::hemm(
-        *queue->syclblas_handle(), syclblas_side_const(side),
+        *queue->sycl_stream(), syclblas_side_const(side),
         syclblas_uplo_const(uplo), int(m), int(n),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda),
-        (std::complex<double> *)(sycl::double2 *)dB, int(lddb),
-        dpct::get_value((sycl::double2 *)&beta, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dC, int(lddc));
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dA, int(ldda),
+        (std::complex<double> *)dB, int(lddb),
+        dpct::get_value(&beta, *queue->sycl_stream()),
+        (std::complex<double> *)dC, int(lddc));
 }
 #endif // COMPLEX
 
@@ -1641,10 +1683,10 @@ magma_zherk(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::herk(
-        *queue->syclblas_handle(), syclblas_uplo_const(uplo),
+        *queue->sycl_stream(), syclblas_uplo_const(uplo),
         syclblas_trans_const(trans), int(n), int(k), alpha,
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda), beta,
-        (std::complex<double> *)(sycl::double2 *)dC, int(lddc));
+        (std::complex<double> *)dA, int(ldda), beta,
+        (std::complex<double> *)dC, int(lddc));
 }
 #endif // COMPLEX
 
@@ -1716,12 +1758,12 @@ magma_zher2k(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::her2k(
-        *queue->syclblas_handle(), syclblas_uplo_const(uplo),
+        *queue->sycl_stream(), syclblas_uplo_const(uplo),
         syclblas_trans_const(trans), int(n), int(k),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda),
-        (std::complex<double> *)(sycl::double2 *)dB, int(lddb), beta,
-        (std::complex<double> *)(sycl::double2 *)dC, int(lddc));
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dA, int(ldda),
+        (std::complex<double> *)dB, int(lddb), beta,
+        (std::complex<double> *)dC, int(lddc));
 }
 #endif // COMPLEX
 
@@ -1790,13 +1832,13 @@ magma_zsymm(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::symm(
-        *queue->syclblas_handle(), syclblas_side_const(side),
+        *queue->sycl_stream(), syclblas_side_const(side),
         syclblas_uplo_const(uplo), int(m), int(n),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda),
-        (std::complex<double> *)(sycl::double2 *)dB, int(lddb),
-        dpct::get_value((sycl::double2 *)&beta, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dC, int(lddc));
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dA, int(ldda),
+        (std::complex<double> *)dB, int(lddb),
+        dpct::get_value(&beta, *queue->sycl_stream()),
+        (std::complex<double> *)dC, int(lddc));
 }
 
 
@@ -1857,12 +1899,12 @@ magma_zsyrk(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::syrk(
-        *queue->syclblas_handle(), syclblas_uplo_const(uplo),
+        *queue->sycl_stream(), syclblas_uplo_const(uplo),
         syclblas_trans_const(trans), int(n), int(k),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda),
-        dpct::get_value((sycl::double2 *)&beta, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dC, int(lddc));
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dA, int(ldda),
+        dpct::get_value(&beta, *queue->sycl_stream()),
+        (std::complex<double> *)dC, int(lddc));
 }
 
 
@@ -1932,13 +1974,13 @@ magma_zsyr2k(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::syr2k(
-        *queue->syclblas_handle(), syclblas_uplo_const(uplo),
+        *queue->sycl_stream(), syclblas_uplo_const(uplo),
         syclblas_trans_const(trans), int(n), int(k),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda),
-        (std::complex<double> *)(sycl::double2 *)dB, int(lddb),
-        dpct::get_value((sycl::double2 *)&beta, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dC, int(lddc));
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dA, int(ldda),
+        (std::complex<double> *)dB, int(lddb),
+        dpct::get_value(&beta, *queue->sycl_stream()),
+        (std::complex<double> *)dC, int(lddc));
 }
 
 
@@ -1999,27 +2041,14 @@ magma_ztrmm(
     magmaDoubleComplex_ptr       dB, magma_int_t lddb,
     magma_queue_t queue )
 {
-    #ifdef MAGMA_HAVE_HIP
-        // TODO: remove fallback when hipblas provides this routine
-        syclblasZtrmm(
-		    queue->syclblas_handle(),
-		    syclblas_side_const( side ),
-                    syclblas_uplo_const( uplo ),
-                    syclblas_trans_const( trans ),
-                    syclblas_diag_const( diag ),
-		    int(m), int(n),
-		    (cuDoubleComplex*)&alpha, (const cuDoubleComplex*)dA, int(ldda),
-		    (cuDoubleComplex*)dB, int(lddb) );
-    #else
   dpct::matrix_mem_copy(dB, dB, int(lddb), int(lddb), int(m), int(n),
-                        dpct::device_to_device, *queue->syclblas_handle());
+                        dpct::device_to_device, *queue->sycl_stream());
   oneapi::mkl::blas::column_major::trmm(
-      *queue->syclblas_handle(), syclblas_side_const(side), syclblas_uplo_const(uplo),
+      *queue->sycl_stream(), syclblas_side_const(side), syclblas_uplo_const(uplo),
       syclblas_trans_const(trans), syclblas_diag_const(diag), int(m), int(n),
-      std::complex<double>(alpha.real(), alpha.imag()), (std::complex<double> *)dA,
+      MAGMA_Z_MAKE(MAGMA_Z_REAL(alpha), MAGMA_Z_IMAG(alpha)), (std::complex<double> *)dA,
       int(ldda), (std::complex<double> *)dB,
       int(lddb)); /* C same as B; less efficient */
-    #endif
 }
 
 
@@ -2082,12 +2111,12 @@ magma_ztrsm(
     magma_queue_t queue )
 {
     oneapi::mkl::blas::column_major::trsm(
-        *queue->syclblas_handle(), syclblas_side_const(side),
+        *queue->sycl_stream(), syclblas_side_const(side),
         syclblas_uplo_const(uplo), syclblas_trans_const(trans),
         syclblas_diag_const(diag), int(m), int(n),
-        dpct::get_value((sycl::double2 *)&alpha, *queue->syclblas_handle()),
-        (std::complex<double> *)(sycl::double2 *)dA, int(ldda),
-        (std::complex<double> *)(sycl::double2 *)dB, int(lddb));
+        dpct::get_value(&alpha, *queue->sycl_stream()),
+        (std::complex<double> *)dA, int(ldda),
+        (std::complex<double> *)dB, int(lddb));
 }
 
 

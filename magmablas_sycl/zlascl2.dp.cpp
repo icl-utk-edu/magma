@@ -24,11 +24,12 @@ zlascl2_full(int m, int n, const double* D, magmaDoubleComplex* A, int lda,
 {
     int ind = item_ct1.get_group(2) * NB + item_ct1.get_local_id(2);
 
-    magmaDoubleComplex mul = magmaDoubleComplex(D[ind], 0.0);
+    double mul = D[ind];
     A += ind;
     if (ind < m) {
         for (int j=0; j < n; j++ )
-            A[j*lda] *= mul;
+//            A[j*lda] *= mul; TODO: overload issue with std::complex and magma_operators?
+            A[j*lda] = A[j*lda] * mul;
     }
 }
 
@@ -43,11 +44,12 @@ zlascl2_lower(int m, int n, const double* D, magmaDoubleComplex* A, int lda,
 
     int break_d = (ind < n) ? ind : n-1;
 
-    magmaDoubleComplex mul = magmaDoubleComplex(D[ind], 0.0);
+    double mul = D[ind];
     A += ind;
     if (ind < m) {
         for (int j=0; j <= break_d; j++ )
-            A[j*lda] *= mul;
+//            A[j*lda] *= mul;
+            A[j*lda] = A[j*lda] * mul;
     }
 }
 
@@ -60,11 +62,12 @@ zlascl2_upper(int m, int n, const double *D, magmaDoubleComplex* A, int lda,
 {
     int ind = item_ct1.get_group(2) * NB + item_ct1.get_local_id(2);
 
-    magmaDoubleComplex mul = magmaDoubleComplex(D[ind], 0.0);
+    double mul = D[ind];
     A += ind;
     if (ind < m) {
         for (int j=n-1; j >= ind; j--)
-            A[j*lda] *= mul;
+//            A[j*lda] *= mul;
+            A[j*lda] = A[j*lda] * mul;
     }
 }
 

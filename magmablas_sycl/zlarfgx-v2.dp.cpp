@@ -61,7 +61,7 @@ void magma_zlarfgx_gpu_kernel( int n, magmaDoubleComplex* dx0, magmaDoubleComple
         else {
             #ifdef REAL
                 // no need to compute the norm as it is passed as input
-                double beta  = xnorm; // sqrt( alpha*alpha + xnorm*xnorm );
+                double beta  = *xnorm; // sqrt( alpha*alpha + xnorm*xnorm );
                 beta  = -copysign( beta, alpha );
      
                 // todo: deal with badly scaled vectors (see lapack's larfg)
@@ -71,7 +71,7 @@ void magma_zlarfgx_gpu_kernel( int n, magmaDoubleComplex* dx0, magmaDoubleComple
                     *dA   = beta;
                 }
     
-                scale = 1. / (alpha - beta);
+                *scale = MAGMA_D_ONE / (alpha - beta);
             #else
                 // no need to compute the norm as it is passed as input
                 double beta = (*xnorm); // sqrt( alphar*alphar + alphai*alphai +

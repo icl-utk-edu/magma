@@ -59,7 +59,7 @@ magma_int_t zherk_d(
 
     /* Quick return */
     if (m == 0 || n == 0 ||
-        ((alpha == 0.0 || m == 0) && beta == 1.0) ) {
+        ((alpha == MAGMA_D_ZERO || m == 0) && beta == MAGMA_D_ONE) ) {
         return info;
     }
 
@@ -132,7 +132,7 @@ magma_int_t zherk_d_workspace(
 
     /* Quick return */
     if (n == 0 || k == 0 ||
-        ((alpha == 0.0 || k == 0) && beta == 1.0) ) {
+        ((alpha == MAGMA_D_ZERO || k == 0) && beta == MAGMA_D_ONE) ) {
         return info;
     }
 
