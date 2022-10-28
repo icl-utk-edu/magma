@@ -26,6 +26,11 @@ Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
  2.7.0 - XXXX, 2022
+    * New routine: magma_dshposv_gpu and magma_dshposv_native solve Ax = b, for a 
+      symmetric positive definite matrix 'A', using FP16 during the Cholesky 
+      factorization. GMRES-based iterative refinement is used to recover the solution 
+      up to double precision accuracy. The '_gpu' suffix denotes a hybrid CPU-GPU 
+      factorization, while '_native' denotes a GPU-only factorization. 
     * Performance improvement for the batch QR factorization routine
     * Performance improvement for the variable size batch LU factorization routine
 
