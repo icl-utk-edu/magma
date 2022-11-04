@@ -67,7 +67,7 @@ int main( int argc, char** argv)
     double eps = lapackf77_dlamch("E");
     double tol = 3*eps;
 
-    #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+    #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
         // for CUDA/HIP, we can check MAGMA vs. CUBLAS/hipBLAS, without running LAPACK
         printf("%% If running lapack (option --lapack), MAGMA and %s error are both computed\n"
                "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to %s result.\n\n",
@@ -145,7 +145,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Performs operation using MAGMABLAS (currently only with CUDA)
                =================================================================== */
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                 magma_zsetmatrix( M, N, hC, ldc, dC, lddc, opts.queue );
 
                 magma_flush_cache( opts.cache );
@@ -209,7 +209,7 @@ int main( int argc, char** argv)
                 dev_error = lapackf77_zlange( "F", &M, &N, hCdev, &ldc, work )
                             / (sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
 
-                #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+                #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                     blasf77_zaxpy( &sizeC, &c_neg_one, hC, &ione, hCmagma, &ione );
                     magma_error = lapackf77_zlange( "F", &M, &N, hCmagma, &ldc, work )
                             / (sqrt(double(K+2))*fabs(alpha)*Anorm*Bnorm + 2*fabs(beta)*Cnorm);
@@ -235,7 +235,7 @@ int main( int argc, char** argv)
                 #endif
             }
             else {
-                #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+                #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
 
                     // use cuBLAS for R_ref (currently only with CUDA)
                     blasf77_zaxpy( &sizeC, &c_neg_one, hCdev, &ione, hCmagma, &ione );
