@@ -203,6 +203,7 @@ extern "C" magma_int_t magma_init() try {
 
             // query each device
             for( int dev=0; dev < g_magma_devices_cnt; ++dev ) {
+               if (!(dpct::dev_mgr::instance().get_device(dev).is_host())) {
                 dpct::device_info prop;
                 /*
                 DPCT1003:46: Migrated API does not return error code. (*, 0) is
@@ -243,7 +244,8 @@ extern "C" magma_int_t magma_init() try {
                     g_magma_devices[dev].multiproc_count =
                         prop.get_max_compute_units();
                 }
-            }
+              }
+	    }
 
             #ifndef MAGMA_NO_V1
                 #ifdef HAVE_PTHREAD_KEY
@@ -467,6 +469,7 @@ extern "C" void magma_print_environment() try {
         check_error( err );
     }
     for( int dev = 0; dev < ndevices; ++dev ) {
+        if (!(dpct::dev_mgr::instance().get_device(dev).is_host())) {
         dpct::device_info prop;
         /*
         DPCT1003:54: Migrated API does not return error code. (*, 0) is
@@ -508,8 +511,8 @@ extern "C" void magma_print_environment() try {
                    MAGMA_CUDA_ARCH_MIN/100., dev, arch/100. );
         } */
         #endif
+      }
     }
-
     MAGMA_UNUSED( err );
     time_t t = time( NULL );
     printf( "%% %s", ctime( &t ));
