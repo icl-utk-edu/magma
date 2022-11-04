@@ -226,10 +226,10 @@ magmablas_zgemm(
   ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+       sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M+1), cgh);
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+       sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K), cgh);
 
    cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                     [=](sycl::nd_item<3> item_ct1) {
@@ -251,10 +251,10 @@ magmablas_zgemm(
   ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+       sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M+1), cgh);
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+       sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K+1), cgh);
 
    cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                     [=](sycl::nd_item<3> item_ct1) {
@@ -276,10 +276,10 @@ magmablas_zgemm(
   ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+       sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M+1), cgh);
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+       sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K+1), cgh);
 
    cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                     [=](sycl::nd_item<3> item_ct1) {
@@ -301,10 +301,10 @@ magmablas_zgemm(
   ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+       sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M+1), cgh);
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+       sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K+1), cgh);
 
    cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                     [=](sycl::nd_item<3> item_ct1) {
@@ -326,10 +326,10 @@ magmablas_zgemm(
   ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+       sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M+1), cgh);
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+       sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K+1), cgh);
 
    cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                     [=](sycl::nd_item<3> item_ct1) {
@@ -351,10 +351,10 @@ magmablas_zgemm(
   ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+       sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M+1), cgh);
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+       sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K+1), cgh);
 
    cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                     [=](sycl::nd_item<3> item_ct1) {
@@ -376,10 +376,10 @@ magmablas_zgemm(
   ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+       sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M+1), cgh);
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+       sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K+1), cgh);
 
    cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                     [=](sycl::nd_item<3> item_ct1) {
@@ -401,10 +401,10 @@ magmablas_zgemm(
   ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+       sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M+1), cgh);
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+       sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K+1), cgh);
 
    cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                     [=](sycl::nd_item<3> item_ct1) {
@@ -426,10 +426,10 @@ magmablas_zgemm(
   ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sA_acc_ct1(sycl::range<2>(8 /*BLK_K*/, 25 /*BLK_M+1*/), cgh);
+       sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M+1), cgh);
    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write,
                   sycl::access::target::local>
-       sB_acc_ct1(sycl::range<2>(16 /*BLK_N*/, 9 /*BLK_K+1*/), cgh);
+       sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K+1), cgh);
 
    cgh.parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                     [=](sycl::nd_item<3> item_ct1) {
