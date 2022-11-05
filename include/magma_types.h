@@ -200,8 +200,12 @@ typedef double real_Double_t;
     typedef hipEvent_t  magma_event_t;
     typedef magma_int_t magma_device_t;
 
+    #ifdef __cplusplus
+    typedef __half           magmaHalf;
+    #else
     // just define a half precision as a short, since they should be the same byte-size
-    typedef __half            magmaHalf;
+    typedef short            magmaHalf;
+    #endif
 
     hipStream_t       magma_queue_get_hip_stream      ( magma_queue_t queue );
     hipblasHandle_t   magma_queue_get_hipblas_handle  ( magma_queue_t queue );
