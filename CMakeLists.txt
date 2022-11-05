@@ -131,6 +131,8 @@ if (MAGMA_ENABLE_CUDA)
 
     set(__cuda_architectures)
 
+    include_directories( ${CUDAToolkit_INCLUDE_DIRS} )
+
     if (GPU_TARGET MATCHES Fermi)
         set( GPU_TARGET "${GPU_TARGET} sm_20" )
     endif()
@@ -760,7 +762,7 @@ set( CXXFLAGS "${CMAKE_CXX_FLAGS}" )
 string( REPLACE "/System/Library/Frameworks/Accelerate.framework" "-framework Accelerate" LAPACK_LIBS "${LAPACK_LIBRARIES}" )
 if (MAGMA_ENABLE_CUDA)
   string( REPLACE ";" " " LIBS
-    "${blas_fix_lib} ${LAPACK_LIBS} CUDA::cudart CUDA::cublas CUDA::cusparse" )
+    "${blas_fix_lib} ${LAPACK_LIBS} -L${CUDAToolkit_LIBRARY_DIR} -lcudart -lcublas -lcusparse")
 else()
   string( REPLACE ";" " " LIBS
      "${blas_fix_lib} ${LAPACK_LIBS} ${HIP} ${rocBLAS} ${rocSPARSE}" )
