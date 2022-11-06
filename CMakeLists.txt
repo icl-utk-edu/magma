@@ -656,6 +656,7 @@ include_directories( testing )
 
 if (MAGMA_ENABLE_CUDA)
   add_library( magma_sparse ${libsparse_all} )
+  set_property(TARGET magma_sparse PROPERTY CUDA_STANDARD 11)
   target_link_libraries( magma_sparse
     magma
     ${blas_fix}
