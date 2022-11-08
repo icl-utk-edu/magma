@@ -173,7 +173,6 @@ magmablas_zlascl(
     
     cfromc = cfrom;
     ctoc   = cto;
-    int cnt = 0;
     while( ! done ) {
         cfrom1 = cfromc*smlnum;
         if ( cfrom1 == cfromc ) {
@@ -218,6 +217,5 @@ magmablas_zlascl(
             zlascl_full  <<< grid, threads, 0, queue->cuda_stream() >>> (m, n, mul, dA, ldda);
         }
      
-        cnt += 1;
     }
 }
