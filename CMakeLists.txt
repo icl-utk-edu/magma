@@ -286,10 +286,18 @@ if (MAGMA_ENABLE_CUDA)
     set(CUDA_ARCHITECTURES "${__cuda_architectures}")
 
     add_library(magma_nvcc_flags INTERFACE)
-    target_compile_options(magma_nvcc_flags
-        INTERFACE
-        $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;-fPIC,${FORTRAN_CONVENTION}>
-    )
+    if (WIN32)
+        # No Position Independent Code on Windows. Compiler will complain if you add that flag.
+        target_compile_options(magma_nvcc_flags
+            INTERFACE
+            $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;${FORTRAN_CONVENTION}>
+        )
+    else()
+        target_compile_options(magma_nvcc_flags
+            INTERFACE
+            $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;-fPIC,${FORTRAN_CONVENTION}>
+        )
+    endif(WIN32)
 
     set(MAGMA_HAVE_CUDA "1")
     set(MAGMA_CUDA_ARCH_MIN "${MIN_ARCH}")
