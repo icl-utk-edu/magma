@@ -67,6 +67,7 @@ include(CheckCXXCompilerFlag)
 include(CheckCCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+CHECK_CXX_COMPILER_FLAG("-fPIC" COMPILER_SUPPORTS_FPIC)
 if (COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 elseif(COMPILER_SUPPORTS_CXX0X)
@@ -286,18 +287,18 @@ if (MAGMA_ENABLE_CUDA)
     set(CUDA_ARCHITECTURES "${__cuda_architectures}")
 
     add_library(magma_nvcc_flags INTERFACE)
-    if (WIN32)
+    if (COMPILER_SUPPORTS_FPIC)
+        target_compile_options(magma_nvcc_flags
+            INTERFACE
+            $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;-fPIC,${FORTRAN_CONVENTION}>
+        )
+    else()
         # No Position Independent Code on Windows. Compiler will complain if you add that flag.
         target_compile_options(magma_nvcc_flags
             INTERFACE
             $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;${FORTRAN_CONVENTION}>
         )
-    else()
-        target_compile_options(magma_nvcc_flags
-            INTERFACE
-            $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;-fPIC,${FORTRAN_CONVENTION}>
-        )
-    endif(WIN32)
+    endif(COMPILER_SUPPORTS_FPIC)
 
     set(MAGMA_HAVE_CUDA "1")
     set(MAGMA_CUDA_ARCH_MIN "${MIN_ARCH}")
