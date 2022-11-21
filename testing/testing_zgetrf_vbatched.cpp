@@ -28,6 +28,9 @@
 
 #define PRECISION_z
 
+// uncomment to use mkl's group batch interface
+//#define USE_MKL_GETRF_BATCH
+
 double get_LU_error(magma_int_t M, magma_int_t N,
                     magmaDoubleComplex *A,  magma_int_t lda,
                     magmaDoubleComplex *LU, magma_int_t *IPIV)
@@ -258,7 +261,7 @@ int main( int argc, char** argv)
                =================================================================== */
             if ( opts.lapack ) {
 
-                #ifdef MAGMA_WITH_MKL
+                #if defined(MAGMA_WITH_MKL) && defined(USE_MKL_GETRF_BATCH)
                 magma_int_t *group_size = new magma_int_t[batchCount];
                 for(magma_int_t ig = 0; ig < batchCount; ig++) group_size[ig] = 1;
 

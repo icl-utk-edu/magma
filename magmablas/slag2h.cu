@@ -56,6 +56,7 @@ void slag2h_device(
 
 /******************************************************************************/
 __global__
+__launch_bounds__(BLK_X*BLK_Y)
 void slag2h_kernel(
         int m, int n,
         float const *dA, int lda,
@@ -68,6 +69,7 @@ void slag2h_kernel(
 
 /******************************************************************************/
 __global__
+__launch_bounds__(BLK_X*BLK_Y)
 void slag2h_kernel_batched(
         int m, int n,
         float const * const * dAarray, int lda,

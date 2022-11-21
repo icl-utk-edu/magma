@@ -33,7 +33,8 @@
 BACKEND      = hip
 
 # set these to their real paths
-HIPDIR      ?= /opt/rocm/hip
+HIPDIR  ?= /opt/rocm/hip
+CUDADIR ?= /usr/local/cuda
 
 # require either hip or cuda
 ifeq (,$(findstring $(BACKEND),hip cuda))
@@ -70,14 +71,13 @@ RANLIB      ?= ranlib
 
 # set our GPU targets
 ifeq ($(BACKEND),cuda)
-    # See a full table: https://nouveau.freedesktop.org/wiki/CodeNames/
-    # note: provided by freedesktop, which is reliable, but not from the vendor
-    GPU_TARGET ?= Maxwell Pascal Volta Turing
+    # See http://developer.nvidia.com/cuda-gpuss
+    GPU_TARGET ?= Volta Turing Ampere
 else ifeq ($(BACKEND),hip)
-    # See a full table: 
+    # See a full table:
     #   https://llvm.org/docs/AMDGPUUsage.html#amdgpu-processor-table
     # note: provided by LLVM, so not technically from the vendor.
-    # Here's ROCm's source: https://rocm.github.io/hardware.html , but it is 
+    # Here's ROCm's source: https://rocm.github.io/hardware.html , but it is
     # not specific enough. TODO: find better link?
     GPU_TARGET ?= gfx900 gfx906 gfx908
 endif
@@ -88,10 +88,10 @@ FPIC        = -fPIC
 
 # use -fopenmp to support openmp builds
 # comment out to build without openmp support
-# NOTE: For some reason, using `-fopenmp` is not enough to add linker flags to 
+# NOTE: For some reason, using `-fopenmp` is not enough to add linker flags to
 #   the compiler sometimes, so we need to add -L here too if there are problems
 FOPENMP     = -fopenmp
-#FOPENMP     = 
+#FOPENMP     =
 #FOPENMP     = -fopenmp -L$(HIPDIR)/../aomp/lib -I$(HIPDIR)/../aomp/include
 
 # now, generate our flags
@@ -99,10 +99,10 @@ CFLAGS      = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c99
 CXXFLAGS    = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c++11
 FFLAGS      = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
-LDFLAGS     =     $(FPIC) $(FOPENMP)        
+LDFLAGS     =     $(FPIC) $(FOPENMP)
 
 # add in the default for device compiling
-DEVCCFLAGS  = -O3 -DNDEBUG -DADD_ 
+DEVCCFLAGS  = -O3 -DNDEBUG -DADD_
 
 # add the flags in a backend-specific way
 ifeq ($(BACKEND),cuda)
@@ -115,16 +115,11 @@ else ifeq ($(BACKEND),hip)
         # they don't have hipblasComplex yet, so replace it manually
         DEVCCFLAGS += -DhipblasComplex=hipComplex -DhipblasDoubleComplex=hipDoubleComplex
     endif
-    
-    # add in linker flags
-    LDFLAGS += -L$(HIPDIR)/lib -L$(HIPDIR)/../aomp/lib -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib
-    CXXFLAGS += -I$(HIPDIR)/include
 endif
 
 
 # --------------------
 # libraries
-
 LIB       = -lpthread -lstdc++ -lm -lgomp
 
 # MKL
@@ -134,25 +129,22 @@ ifeq ($(BACKEND),cuda)
     LIB   += -lcublas -lcusparse -lcudart -lcudadevrt
 else ifeq ($(BACKEND),hip)
     # TODO: see if we will need to link anything
-    LIB   += -lhipblas -lhipsparse 
+    LIB   += -lhipblas -lhipsparse
 endif
 
 # --------------------
 # directories
 
-# define library directories preferably in your environment, or here.
-LIBDIR    += -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib -L$(MKLROOT)/lib/intel64
-# define include directories (like -I/path/to/dir) in your env, or here.
-INC       += -I$(HIPDIR)/../hipblas/include -I$(HIPDIR)/../hipsparse/include -I$(MKLROOT)/include
-
 # include each's directories
-# note: we don't need to include the library directories, since nvcc or hipcc 
-#   should already know about them. But, `gcc` might not know about include 
+# note: we don't need to include the library directories, since nvcc or hipcc
+#   should already know about them. But, `gcc` might not know about include
 #   folders
 ifeq ($(BACKEND),cuda)
-    INC   += -I$(CUDADIR)/include
+    INC    += -I$(CUDADIR)/include
+    LIBDIR += -L$(CUDADIR)/lib64 -L$(MKLROOT)/lib/intel64
 else ifeq ($(BACKEND),hip)
-    INC   += -I$(HIPDIR)/include
+    INC    += -I$(HIPDIR)/../include
+    LIBDIR += -L$(HIPDIR)/../aomp/lib -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib -L$(MKLROOT)/lib/intel64
 endif
 
 

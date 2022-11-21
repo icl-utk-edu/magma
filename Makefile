@@ -152,6 +152,9 @@ ifeq ($(BACKEND),cuda)
 	ifneq ($(findstring Ampere, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_80
 	endif
+	ifneq ($(findstring Hopper, $(GPU_TARGET)),)
+		CUDA_ARCH_ += sm_90
+	endif
 
 
 	# Remember to add to CMakeLists.txt too!
@@ -166,7 +169,7 @@ ifeq ($(BACKEND),cuda)
 	# See also $(info compile for ...) in Makefile
 
 
-    CUDA_ARCH_UNKNOWN_ = $(filter-out sm_% Kepler Maxwell Pascal Volta Turing Ampere, $(CUDA_ARCH_))
+    CUDA_ARCH_UNKNOWN_ = $(filter-out sm_% Kepler Maxwell Pascal Volta Turing Ampere Hopper, $(CUDA_ARCH_))
     ifneq ($(CUDA_ARCH_UNKNOWN_),)
         $(error ERROR: unknown `$(CUDA_ARCH_UNKNOWN_)` in GPU_TARGET)
     endif
@@ -186,7 +189,7 @@ ifeq ($(BACKEND),cuda)
 
 	# Check for empty
     ifeq ($(NV_SM),)
-        $(error ERROR: unknown `GPU_TARGET=$(GPU_TARGET)`. Set cuda_arch to one or more of Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_XX from nvcc -h)
+        $(error ERROR: unknown `GPU_TARGET=$(GPU_TARGET)`. Set cuda_arch to one or more of Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_XX from nvcc -h)
     else
         # Get last option (last 2 words) of nv_compute.
         nwords := $(words $(NV_COMP))
@@ -202,7 +205,7 @@ ifeq ($(BACKEND),cuda)
 	# (add zero, so its comparable to '__CUDA_ARCH__')
     CUDA_ARCH_MIN := $(word 1, $(SMS))0
     ifeq ($(CUDA_ARCH_MIN),)
-        $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, or valid sm_[0-9][0-9]. Please edit your make.inc file)
+        $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_[0-9][0-9]. Please edit your make.inc file)
     endif
 else ifeq ($(BACKEND),hip)
 

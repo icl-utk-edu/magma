@@ -84,6 +84,7 @@ testing_src += \
 	$(cdir)/testing_zpotrf.cpp	\
 	$(cdir)/testing_zpotri.cpp	\
 	$(cdir)/testing_ztrtri.cpp	\
+	$(cdir)/testing_dshposv_gpu.cpp	\
 
 # ----------
 # Symmetric indefinite, CPU interface
@@ -234,6 +235,7 @@ testing_src += \
 testing_src += \
 	$(cdir)/testing_hgemm.cpp	        \
 	$(cdir)/testing_hgemm_batched.cpp	\
+	$(cdir)/testing_sgemm_fp16.cpp	\
 
 # ----------
 ifeq ($(FORT), pgfortran)
@@ -258,7 +260,6 @@ libtest_src := \
 	$(cdir)/magma_zutil.cpp		\
 	$(cdir)/magma_zgesvd_check.cpp	\
 	$(cdir)/magma_generate.cpp		\
-
 
 # ----------------------------------------------------------------------
 # pop first directory

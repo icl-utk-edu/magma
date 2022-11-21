@@ -22,7 +22,7 @@ extern "C" {
 // In alphabetical order of base name (ignoring precision).
 
 /* Half precision iterative refinement routines */
-    
+
 magma_int_t
 magma_dhgesv_iteref_gpu(
     magma_trans_t trans, magma_int_t n, magma_int_t nrhs,
@@ -55,7 +55,7 @@ magma_dxgesv_gmres_gpu(
     magmaDouble_ptr dB, magma_int_t lddb,
     magmaDouble_ptr dX, magma_int_t lddx,
     magmaDouble_ptr dworkd, magmaFloat_ptr dworks,
-    magma_refinement_t facto_type, 
+    magma_refinement_t facto_type,
     magma_refinement_t solver_type,
     magma_int_t *iter,
     magma_int_t *info,
@@ -70,10 +70,10 @@ magma_dfgmres_plu_gpu(
     magmaInt_ptr ipiv, magmaInt_ptr dipiv,
     magmaDouble_ptr dB, magma_int_t lddb,
     magmaDouble_ptr dX, magma_int_t lddx,
-    magmaFloat_ptr dSX, 
+    magmaFloat_ptr dSX,
     magma_int_t maxiter, magma_int_t restrt,
     magma_int_t maxiter_inner, magma_int_t restrt_inner,
-    magma_int_t userinitguess, 
+    magma_int_t userinitguess,
     double tol, double innertol,
 	double *rnorm0, magma_int_t *niters,
     magma_refinement_t solver_type,
@@ -124,13 +124,68 @@ magma_xshgetrf_gpu(
     magma_mp_type_t enable_tc,
     magma_mp_type_t mp_algo_type);
 
-magma_int_t 
+magma_int_t
     magma_get_hgetrf_nb( magma_int_t m, magma_int_t n );
 
-magma_int_t 
-magma_get_xgetrf_nb( 
-        magma_int_t m, magma_int_t n, magma_int_t prev_nb, 
+magma_int_t
+magma_get_xgetrf_nb(
+        magma_int_t m, magma_int_t n, magma_int_t prev_nb,
         magma_mp_type_t enable_tc, magma_mp_type_t mp_algo_type);
+
+/* Cholesky-based solvers with FP16 capability */
+magma_int_t
+magma_dshposv_gpu_expert(
+    magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
+    magmaDouble_ptr dA, magma_int_t ldda,
+    magmaDouble_ptr dB, magma_int_t lddb,
+    magmaDouble_ptr dX, magma_int_t lddx,
+    magmaDouble_ptr dworkd, magmaFloat_ptr dworks,
+    magma_int_t *iter, magma_mode_t mode, magma_int_t use_gmres, magma_int_t preprocess,
+    float cn, float theta, magma_int_t *info);
+
+magma_int_t
+magma_dshposv_gpu(
+    magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
+    magmaDouble_ptr dA, magma_int_t ldda,
+    magmaDouble_ptr dB, magma_int_t lddb,
+    magmaDouble_ptr dX, magma_int_t lddx,
+    magma_int_t *iter, magma_int_t *info);
+
+magma_int_t
+magma_dshposv_native(
+    magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
+    magmaDouble_ptr dA, magma_int_t ldda,
+    magmaDouble_ptr dB, magma_int_t lddb,
+    magmaDouble_ptr dX, magma_int_t lddx,
+    magma_int_t *iter, magma_int_t *info);
+
+/* Cholesky factorizations routines with FP16 */
+magma_int_t
+magma_shpotrf_gpu(
+    magma_uplo_t uplo, magma_int_t n,
+    magmaFloat_ptr dA, magma_int_t ldda,
+    magma_int_t *info );
+
+magma_int_t
+magma_shpotrf_native(
+    magma_uplo_t uplo, magma_int_t n,
+    magmaFloat_ptr dA, magma_int_t ldda,
+    magma_int_t *info );
+
+magma_int_t
+magma_dfgmres_spd_gpu(
+    magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
+    double  *dA, magma_int_t ldda,
+    float   *dL, magma_int_t lddl, float* dD,
+    double  *dB, magma_int_t lddb,
+    double  *dX, magma_int_t lddx,
+    float   *dSX,
+    magma_int_t maxiter, magma_int_t restrt,
+    magma_int_t maxiter_inner, magma_int_t restrt_inner,
+    double tol, double innertol,
+	double *rnorm0, magma_int_t *niters, magma_int_t is_inner,
+	magma_int_t is_preprocessed, float miu,
+    magma_queue_t queue);
 
 /* Half precision conversion routines */
 void
