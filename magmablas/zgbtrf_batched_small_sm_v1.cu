@@ -14,7 +14,6 @@
 #include "magma_internal.h"
 #include "magma_templates.h"
 #include "batched_kernel_param.h"
-#include "shuffle.cuh"
 
 // use this so magmasubs will replace with relevant precision, so we can comment out
 // the switch case that causes compilation failure
@@ -30,7 +29,7 @@
 #define sAB(i,j)        sAB[(j)*sldab + (i)]
 #define dAB(i,j)        dAB[(j)*lddab + (i)]
 
-#define DBG
+//#define DBG
 
 ////////////////////////////////////////////////////////////////////////////////
 template<typename T>
@@ -125,16 +124,14 @@ write_sAB(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-#define KR (KL+KL+KU+1)
-template<int KL, int KU>
 __global__ void
-zgbtrf_batched_kernel_small_reg(
+zgbtrf_batched_kernel_small_sm_v1(
     magma_int_t m, magma_int_t n,
+    magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, int lddab,
     magma_int_t** ipiv_array, magma_int_t *info_array,
     int batchCount)
 {
-#if 0
     extern __shared__ magmaDoubleComplex zdata[];
     const int tx  = threadIdx.x;
     const int ty  = threadIdx.y;
@@ -143,105 +140,46 @@ zgbtrf_batched_kernel_small_reg(
     if(batchid >= batchCount) return;
 
     const int minmn   = min(m,n);
-    const int kv      = KL + KU;
-    const int mband   = (KL + 1 + kv);
+    const int kv      = kl + ku;
+    const int mband   = (kl + 1 + kv);
     const int sldab   = SLDAB(mband);
     const int sldab_1 = sldab-1;
 
     magmaDoubleComplex* dAB = dAB_array[batchid];
     int linfo = 0;
 
-    magmaDoubleComplex rAB[KR] = {MAGMA_Z_ZERO};
-
     // shared memory pointers
-    // sBF is the entire shmem buffer for every matrix, it overlaps
-    // with sAB and dsx
-    magmaDoubleComplex *sBF = (magmaDoubleComplex*)(zdata);
-    int* sipiv              = (int*)(sBF + blockDim.y * (n + KL + KU) * sldab);
-    sBF   += ty * (n + KL + KU) * sldab;
+    magmaDoubleComplex *sAB = (magmaDoubleComplex*)(zdata);
+    double* dsx             = (double*)(sAB + blockDim.y * n * sldab);
+    int* sipiv              = (int*)(dsx + blockDim.y * (kl+1));
+    sAB   += ty * n * sldab;
+    dsx   += ty * (kl+1);
     sipiv += ty * minmn;
 
-    magmaDoubleComplex *sAB = sBF + KL * sldab;
-    magmaDoubleComplex *sx  = sAB + n  * sldab;  // sx overlaps with sBF
-    double* dsx             = (double*)(sBF);    // dsx overlaps with sBF
-
-    // init sBF
-    for(int i = tx; i < (n+KL+KU)*sldab; i+=ntx) {
-        sBF[i] = MAGMA_Z_ZERO;
+    // init sAB
+    for(int i = tx; i < n*sldab; i+=ntx) {
+        sAB[i] = MAGMA_Z_ZERO;
     }
     __syncthreads();
 
-    // read into sAB
-    read_sAB(mband, n, KL, KU, dAB, lddab, sAB, sldab, ntx, tx);
+    // read
+    read_sAB(mband, n, kl, ku, dAB, lddab, sAB, sldab, ntx, tx);
     __syncthreads();
 
-    //print_memory<magmaDoubleComplex>
-    //("read", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
-
-    // read from sAB into reg
-    int i = tx - KL;
-    magmaDoubleComplex *sT = &sAB(KR-1,i); //sAB[i * sldab + (KR-1)]
-    #pragma unroll
-    for(int j = 0; j < KR; j++) {
-        rAB[j] = sT[j * sldab_1];
-    }
-
-    #if defined(PRECISION_d) && defined(DBG)
-        __syncthreads();
-        for(int ii = 0; ii < ntx; ii++) {
-            if(tx == ii) {
-                printf("%2d: ", tx);
-                for(int j = 0; j < KR; j++) {
-                    printf("%.4f ", rAB[j]);
-                }
-                printf("\n");
-            }
-            __syncthreads();
-        }
-    #endif
-
+    print_memory<magmaDoubleComplex>
+    ("read", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
 
     int ju = 0;
     for(int j = 0; j < minmn; j++) {
         // izamax
-        int km = 1 + min( KL, m-j ); // diagonal and subdiagonal(s)
-        int    jp  = 0;
-        double rx_abs_max = MAGMA_D_ZERO, rx_abs;
-
-        magmaDoubleComplex zmax = MAGMA_Z_ZERO, ztmp;
-        jp = 0;
-        #pragma unroll
-        for(int s = 0; s < (KL+1); s++) {
-            ztmp       = magmablas_zshfl(rAB[KL-s], j+s);
-            rx_abs     = fabs( MAGMA_Z_REAL( ztmp ) ) + fabs( MAGMA_Z_IMAG( ztmp ) );
-            jp         = (rx_abs > rx_abs_max) ? s : jp;
-            zmax       = (rx_abs > rx_abs_max) ? ztmp : zmax;
-            rx_abs_max = max(rx_abs_max, rx_abs);
-        }
-        __syncthreads();
-
-        linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (j+1) : linfo;
-
-        #ifdef DBG
-        if(tx == j && ty == 0) {
-            printf("pivot = %f at %d, ipiv = %d\n", rx_abs_max, jp, jp + j + 1);
-        }
-        #endif
-        __syncthreads();
-
-        if(tx == 0) {
-            sipiv[j] = jp + j + 1;    // +1 for fortran indexing
-        }
-
-        //----------------------------
-        km = 1 + min( KL, m-j ); // diagonal and subdiagonal(s)
+        int km = 1 + min( kl, m-j ); // diagonal and subdiagonal(s)
         if(tx < km) {
             dsx[ tx ] = fabs(MAGMA_Z_REAL( sAB(kv+tx,j) )) + fabs(MAGMA_Z_IMAG( sAB(kv+tx,j) ));
         }
         __syncthreads();
 
-        rx_abs_max = dsx[0];
-        jp       = 0;
+        double rx_abs_max = dsx[0];
+        int    jp       = 0;
         for(int i = 1; i < km; i++) {
             if( dsx[i] > rx_abs_max ) {
                 rx_abs_max = dsx[i];
@@ -255,7 +193,7 @@ zgbtrf_batched_kernel_small_reg(
             sipiv[j] = jp + j + 1;    // +1 for fortran indexing
         }
 
-        ju = max(ju, min(j+KU+jp, n-1));
+        ju = max(ju, min(j+ku+jp, n-1));
         int swap_len = ju - j + 1;
 
         __syncthreads();
@@ -328,7 +266,7 @@ zgbtrf_batched_kernel_small_reg(
     __syncthreads();
     #endif
 
-    write_sAB(mband, n, KL, KU, sAB, sldab, dAB, lddab, ntx, tx);
+    write_sAB(mband, n, kl, ku, sAB, sldab, dAB, lddab, ntx, tx);
 
     #ifdef DBG
     __syncthreads();
@@ -337,7 +275,7 @@ zgbtrf_batched_kernel_small_reg(
     }
     __syncthreads();
     #endif
-#endif
+
 }
 
 /***************************************************************************//**
@@ -402,7 +340,7 @@ zgbtrf_batched_kernel_small_reg(
     @ingroup magma_getrf_batched
 *******************************************************************************/
 extern "C" magma_int_t
-magma_zgbtrf_batched_small_reg(
+magma_zgbtrf_batched_small_sm(
     magma_int_t m,  magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,
@@ -440,9 +378,11 @@ magma_zgbtrf_batched_small_reg(
     ntcol    = max(1, ntcol);
 
     magma_int_t shmem  = 0;
-    shmem += sldab * (n + max(1,kl) + max(1,ku)) * sizeof(magmaDoubleComplex); // sBF if kl/ku = 0, add one column before/after sAB
+    shmem += sldab * n * sizeof(magmaDoubleComplex); // sAB
+    shmem += (kl + 1)  * sizeof(double);        // dsx
     shmem += min(m,n)  * sizeof(magma_int_t);   // pivot
     shmem *= ntcol;
+
 
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
     dim3 threads(nthreads, ntcol, 1);
@@ -454,7 +394,7 @@ magma_zgbtrf_batched_small_reg(
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
     if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zgbtrf_batched_kernel_small_reg<2,3>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+        cudaFuncSetAttribute(zgbtrf_batched_kernel_small_sm_v1, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
     #else
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
@@ -468,8 +408,8 @@ magma_zgbtrf_batched_small_reg(
         return arginfo;
     }
 
-    void *kernel_args[] = {&m, &n, &dAB_array, &lddab, &ipiv_array, &info_array, &batchCount};
-    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_kernel_small_reg<2,3>, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    void *kernel_args[] = {&m, &n, &kl, &ku, &dAB_array, &lddab, &ipiv_array, &info_array, &batchCount};
+    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_kernel_small_sm_v1, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
         printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         arginfo = -100;
