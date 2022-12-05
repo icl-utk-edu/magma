@@ -27,7 +27,7 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (batchCount == 1 && M == 8 && N == 8)
+#define cond (batchCount == 2 && M == 16 && N == 16)
 
 double get_band_LU_error(
             magma_int_t M, magma_int_t N,
@@ -202,7 +202,8 @@ int main( int argc, char** argv)
             lapackf77_zlacpy( MagmaFullStr, &Mband, &columns, h_A, &ldab, h_R, &ldab );
 
             if(cond) {
-                magma_zprint(Mband, N, h_R, ldab);
+                //magma_zprint(Mband, N, h_R, ldab);
+                magma_zprint(Mband, N, h_R + ldab * N, ldab);
             }
             /* ====================================================================
                Performs operation using MAGMA
@@ -211,24 +212,45 @@ int main( int argc, char** argv)
             magma_zset_pointer( dA_array, dA, lddab, 0, 0, lddab*Nband, batchCount, opts.queue );
             magma_iset_pointer( dipiv_array, dipiv_magma, 1, 0, 0, min_mn, batchCount, opts.queue );
 
-            magma_time = magma_sync_wtime( opts.queue );
+            magma_int_t nthreads = (opts.nrhs == 1) ? KL+1 : opts.nrhs;
+            magma_int_t nb       = (opts.nb   == 0) ? 32 : opts.nb;
+
             if(opts.version == 1) {
+                magma_time = magma_sync_wtime( opts.queue );
                 info = magma_zgbtrf_batched_small_sm_v1(
                     M,  N, KL, KU,
                     dA_array, lddab,
                     dipiv_array, dinfo_magma,
-                    opts.nb, opts.nrhs,
+                    nthreads, 1,
                     batchCount, opts.queue );
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
             else if(opts.version == 2) {
-                info = magma_zgbtrf_batched_small_sm_v2(
-                    M,  N, KL, KU,
-                    dA_array, lddab,
-                    dipiv_array, dinfo_magma,
-                    opts.nb, opts.nrhs,
+                // query workspace
+                magma_int_t lwork[1] = {-1};
+                magma_zgbtrf_batched_small_sm_v2_work(
+                    M, N, KL, KU,
+                    NULL, lddab, NULL, NULL,
+                    nb, nthreads, 1, NULL, lwork,
                     batchCount, opts.queue );
+
+                void* device_work = NULL;
+                magma_malloc((void**)&device_work, lwork[0]);
+
+                // timing async call only
+                magma_time = magma_sync_wtime( opts.queue );
+                magma_zgbtrf_batched_small_sm_v2_work(
+                    M, N, KL, KU,
+                    dAB_array, lddab, dipiv_array, dinfo_magma,
+                    nb, nthreads, 1,
+                    device_work, lwork,
+                    batchCount, opts.queue );
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+
+                magma_free( device_work );
             }
             else if (opts.version == 3) {
+                magma_time = magma_sync_wtime( opts.queue );
                 memcpy(h_Amagma, h_R, Mband * columns * sizeof(magmaDoubleComplex));
                 for (magma_int_t s=0; s < batchCount; s++) {
                         magma_int_t locinfo;
@@ -238,16 +260,18 @@ int main( int argc, char** argv)
                 magma_setvector( min_mn * batchCount, sizeof(magma_int_t), ipiv, 1, dipiv_magma, 1, opts.queue );
                 magma_memset_async(dinfo_magma, 0, batchCount * sizeof(magma_int_t), opts.queue);
                 info = 0;
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
-            magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
 
             magma_zgetmatrix( Mband, Nband*batchCount, dA, lddab, h_Amagma, ldab, opts.queue );
 
             if(cond) {
-                magma_zprint(Mband, N, h_Amagma, ldab);
+                //magma_zprint(Mband, N, h_Amagma, ldab);
+                magma_zprint(Mband, N, h_Amagma + ldab * N, ldab);
                 magma_getvector( min_mn * batchCount, sizeof(magma_int_t), dipiv_magma, 1, ipiv, 1, opts.queue );
-                for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
+                //for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
+                for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[min_mn + ss]);} printf("\n");
             }
 
             // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
@@ -315,9 +339,9 @@ int main( int argc, char** argv)
             if ( opts.check ) {
                 magma_getvector( min_mn * batchCount, sizeof(magma_int_t), dipiv_magma, 1, ipiv, 1, opts.queue );
 
-                if( cond ) {
-                    for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
-                }
+                //if( cond ) {
+                //    for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
+                //}
 
                 error = 0;
                 bool pivot_ok = true;
@@ -336,6 +360,10 @@ int main( int argc, char** argv)
 
                     if(pivot_ok && err == 0) {
                         err = get_band_LU_error(M, N, KL, KU, h_R + i * ldab*N,  ldab, h_Amagma + i * ldab*N, ipiv + i * min_mn);
+                        if(cond) {
+                            printf("\n error[%d] = %8.4e\n", i, err);
+                        }
+
                         if (std::isnan(err) || std::isinf(err)) {
                             error = err;
                         }

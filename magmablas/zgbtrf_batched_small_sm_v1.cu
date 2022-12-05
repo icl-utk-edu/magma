@@ -167,7 +167,7 @@ zgbtrf_batched_kernel_small_sm_v1(
     __syncthreads();
 
     print_memory<magmaDoubleComplex>
-    ("read", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
+    ("read", mband, n, sAB, sldab, 0, 0, 0, 1, 0, 0);
 
     int ju = 0;
     for(int j = 0; j < minmn; j++) {
@@ -198,8 +198,8 @@ zgbtrf_batched_kernel_small_sm_v1(
 
         __syncthreads();
         #ifdef DBG
-        if(tx == 0 && ty == 0) {
-            printf("pivot = %f at %d, sipiv[%d] = %d\n", rx_abs_max, jp, j, sipiv[j]);
+        if(tx == 0 && ty == 0 && batchid == 1) {
+            printf("j = %d, pivot = %f at %d, sipiv[%d] = %d\n", j, rx_abs_max, jp, j, sipiv[j]);
             printf("ju = %d, swap_length = %d\n", ju, swap_len);
         }
         #endif
@@ -218,8 +218,10 @@ zgbtrf_batched_kernel_small_sm_v1(
         }
         __syncthreads();
 
-        //print_memory<magmaDoubleComplex>
-        //("swap", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
+        #ifdef DBG
+        print_memory<magmaDoubleComplex>
+        ("swap", mband, n, sAB, sldab, 0, 0, 0, 1, 0, 0);
+        #endif
 
 
         // scal
@@ -229,8 +231,10 @@ zgbtrf_batched_kernel_small_sm_v1(
         }
         __syncthreads();
 
-        //print_memory<magmaDoubleComplex>
-        //("scal", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
+        #ifdef DBG
+        print_memory<magmaDoubleComplex>
+        ("scal", mband, n, sAB, sldab, 0, 0, 0, 1, 0, 0);
+        #endif
 
         // ger
         reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
@@ -243,11 +247,11 @@ zgbtrf_batched_kernel_small_sm_v1(
         }
         __syncthreads();
 
-        //print_memory<magmaDoubleComplex>
-        //("ger", mband, n, sAB, sldab, 0, 0, 0, 0, 0, 0);
-
+        #ifdef DBG
+        print_memory<magmaDoubleComplex>
+        ("ger", mband, n, sAB, sldab, 0, 0, 0, 1, 0, 0);
+        #endif
     }
-
 
     // write info
     if(tx == 0) info_array[batchid] = linfo;
@@ -260,8 +264,8 @@ zgbtrf_batched_kernel_small_sm_v1(
 
     #ifdef DBG
     __syncthreads();
-    if(tx == 0 && ty == 0) {
-        for(int ss = 0; ss < minmn; ss++) {printf("-%d ", ipiv[ss]);} printf("\n");
+    if(tx == 0 && ty == 0 && batchid == 1) {
+        for(int ss = 0; ss < minmn; ss++) {printf("%-d ", ipiv[ss]);} printf("\n");
     }
     __syncthreads();
     #endif
@@ -270,8 +274,8 @@ zgbtrf_batched_kernel_small_sm_v1(
 
     #ifdef DBG
     __syncthreads();
-    if(tx == 0 && ty == 0) {
-        for(int ss = 0; ss < minmn; ss++) {printf("-%d ", ipiv[ss]);} printf("\n");
+    if(tx == 0 && ty == 0 && batchid == 1) {
+        for(int ss = 0; ss < minmn; ss++) {printf("%-d ", ipiv[ss]);} printf("\n");
     }
     __syncthreads();
     #endif
