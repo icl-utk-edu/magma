@@ -139,7 +139,7 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
-    real_Double_t   gflops, magma_perf, magma_time, cpu_perf=0, cpu_time=0;
+    real_Double_t   gflops, magma_perf, magma_time=0, cpu_perf=0, cpu_time=0;
     double          error;
     magmaDoubleComplex *h_A, *h_R, *h_Amagma;
     magmaDoubleComplex *dA;
@@ -241,7 +241,7 @@ int main( int argc, char** argv)
                 magma_time = magma_sync_wtime( opts.queue );
                 magma_zgbtrf_batched_small_sm_v2_work(
                     M, N, KL, KU,
-                    dAB_array, lddab, dipiv_array, dinfo_magma,
+                    dA_array, lddab, dipiv_array, dinfo_magma,
                     nb, nthreads, 1,
                     device_work, lwork,
                     batchCount, opts.queue );
@@ -298,9 +298,9 @@ int main( int argc, char** argv)
                 cpu_time = magma_wtime();
                 // #define BATCHED_DISABLE_PARCPU
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
-                magma_int_t nthreads = magma_get_lapack_numthreads();
+                magma_int_t lapack_threads = magma_get_lapack_numthreads();
                 magma_set_lapack_numthreads(1);
-                magma_set_omp_numthreads(nthreads);
+                magma_set_omp_numthreads(lapack_threads);
                 #pragma omp parallel for schedule(dynamic)
                 #endif
                 for (magma_int_t s=0; s < batchCount; s++) {
@@ -312,7 +312,7 @@ int main( int argc, char** argv)
                     }
                 }
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
-                    magma_set_lapack_numthreads(nthreads);
+                    magma_set_lapack_numthreads(lapack_threads);
                 #endif
 
                 cpu_time = magma_wtime() - cpu_time;
