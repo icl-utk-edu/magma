@@ -7,80 +7,59 @@
 
        @author Azzam Haidar
        @author Ahmad Abdelfattah
-       
+
        @precisions normal z -> s d c
 */
 #include "magma_internal.h"
 
 #define  max_shared_bsiz 32
 
-#define RFT_MAG_GEM
-
-
 /******************************************************************************/
 extern "C" void
-magma_zlarft_sm32x32_batched(magma_int_t n, magma_int_t k, 
-                    magmaDoubleComplex **v_array, magma_int_t ldv,
-                    magmaDoubleComplex **tau_array, 
-                    magmaDoubleComplex **T_array, magma_int_t ldt, 
-                    magma_int_t batchCount, magma_queue_t queue)
+magma_zlarft_sm32x32_batched(
+        magma_int_t n, magma_int_t k,
+        magmaDoubleComplex **v_array, magma_int_t vi, magma_int_t vj, magma_int_t ldv,
+        magmaDoubleComplex **tau_array, magma_int_t taui,
+        magmaDoubleComplex **T_array, magma_int_t Ti, magma_int_t Tj, magma_int_t ldt,
+        magma_int_t batchCount, magma_queue_t queue)
 {
     if ( k <= 0) return;
 
-     //==================================
-     //          GEMV
-     //==================================
-#define USE_GEMV2
-#define use_gemm_larft_sm32
+    magma_zgemm_batched_core(
+            MagmaConjTrans, MagmaNoTrans,
+            k, k, n,
+            MAGMA_Z_ONE,
+            v_array, vi, vj, ldv,
+            v_array, vi, vj, ldv,
+            MAGMA_Z_ZERO,
+            T_array, Ti, Tj, ldt,
+            batchCount, queue );
 
-    #if defined(use_gemm_larft_sm32)
-    magma_zgemm_batched( MagmaConjTrans, MagmaNoTrans, 
-                         k, k, n, 
-                         MAGMA_Z_ONE, v_array, ldv, 
-                         v_array, ldv, 
-                         MAGMA_Z_ZERO, T_array, ldt, 
-                         batchCount, queue );
-    magmablas_zlaset_batched( MagmaLower, k, k, 
-            MAGMA_Z_ZERO, MAGMA_Z_ZERO, 
-            T_array, ldt, batchCount, queue );
-    #else
-    #if 1
-    for (magma_int_t i=0; i < k; i++)
-    {
-        //W(1:i-1) := - tau(i) * V(i:n,1:i-1)' * V(i:n,i)
-        //T( i, i ) = tau( i ) 
-        //custom implementation.
-        #ifdef USE_GEMV2
-        magmablas_zlarft_gemvrowwise_batched( n-i, i, 
-                            tau_array,
-                            v_array, ldv, 
-                            T_array, ldt,
-                            batchCount, queue);
-                            
-        #else       
-        magmablas_zlarft_gemvcolwise_batched( n-i, i, v_array, ldv, T_array, ldt, tau_array, batchCount, queue);
-        #endif
-    }
-    #else
-        //seems to be very slow when k=32 while the one by one loop above is faster
-        zlarft_gemv_loop_inside_kernel_batched(n, k, tau_array, v_array, ldv, T_array, ldt, batchCount, queue); 
-    #endif
-    #endif
-    //==================================
-    //          TRMV
-    //==================================
-    //T(1:i-1,i) := T(1:i-1,1:i-1) * W(1:i-1) i=[1:k]
-    magmablas_zlarft_ztrmv_sm32x32_batched(k, k, tau_array, T_array, ldt, T_array, ldt, batchCount, queue);
+    magmablas_zlaset_internal_batched(
+            MagmaLower, k, k,
+            MAGMA_Z_ZERO, MAGMA_Z_ZERO,
+            T_array, Ti, Tj, ldt,
+            batchCount, queue );
+
+    // TRMV
+    // T(1:i-1,i) := T(1:i-1,1:i-1) * W(1:i-1) i=[1:k]
+    magmablas_zlarft_ztrmv_sm32x32_batched(
+        k, k, tau_array, taui,
+        T_array, Ti, Tj, ldt,
+        T_array, Ti, Tj, ldt,
+        batchCount, queue);
 }
 
 
 /******************************************************************************/
 extern "C" magma_int_t
-magma_zlarft_batched(magma_int_t n, magma_int_t k, magma_int_t stair_T, 
-                magmaDoubleComplex **v_array, magma_int_t ldv,
-                magmaDoubleComplex **tau_array, magmaDoubleComplex **T_array, magma_int_t ldt, 
-                magmaDoubleComplex **work_array, magma_int_t lwork, 
-                magma_int_t batchCount, magma_queue_t queue)
+magma_zlarft_internal_batched(
+        magma_int_t n, magma_int_t k, magma_int_t stair_T,
+        magmaDoubleComplex **v_array,   magma_int_t vi, magma_int_t vj, magma_int_t ldv,
+        magmaDoubleComplex **tau_array, magma_int_t taui,
+        magmaDoubleComplex **T_array,   magma_int_t Ti, magma_int_t Tj, magma_int_t ldt,
+        magmaDoubleComplex **work_array, magma_int_t lwork,
+        magma_int_t batchCount, magma_queue_t queue)
 {
     magmaDoubleComplex c_one  = MAGMA_Z_ONE;
     magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
@@ -107,64 +86,51 @@ magma_zlarft_batched(magma_int_t n, magma_int_t k, magma_int_t stair_T,
 
     magma_int_t i, j, prev_n, mycol, rows;
 
-    magmaDoubleComplex **dW1_displ  = NULL;
-    magmaDoubleComplex **dW2_displ  = NULL;
-    magmaDoubleComplex **dW3_displ  = NULL;
     magmaDoubleComplex **dTstep_array  = NULL;
 
-    magma_malloc((void**)&dW1_displ,  batchCount * sizeof(*dW1_displ));
-    magma_malloc((void**)&dW2_displ,  batchCount * sizeof(*dW2_displ));
-    magma_malloc((void**)&dW3_displ,  batchCount * sizeof(*dW3_displ));
-    magma_malloc((void**)&dTstep_array,  batchCount * sizeof(*dTstep_array));
-
-    //magmaDoubleComplex *Tstep =  k > nb ? work : T;
-    if (k > nb)
-    {
-        magma_zdisplace_pointers(dTstep_array, work_array, lwork, 0, 0, batchCount, queue);
+    magma_int_t Tstepi, Tstepj;
+    if (k > nb) {
+        dTstep_array = work_array;
+        Tstepi = 0;
+        Tstepj = 0;
     }
-    else
-    {
-        magma_zdisplace_pointers(dTstep_array, T_array, ldt, 0, 0, batchCount, queue);
+    else {
+        dTstep_array = T_array;
+        Tstepi = Ti;
+        Tstepj = Tj;
     }
 
-    //magma_int_t ldtstep = k > nb ? k : ldt;
     magma_int_t ldtstep = ldt; //a enlever
     // stair_T = 0 meaning all T
-    // stair_T > 0 meaning the triangular portion of T has been computed. 
+    // stair_T > 0 meaning the triangular portion of T has been computed.
     //                    the value of stair_T is the nb of these triangulars
-   
 
-    //GEMV compute the whole triangular upper portion of T (phase 1)
-    // TODO addcublas to check perf
+    magma_zgemm_batched_core( MagmaConjTrans, MagmaNoTrans,
+                              k, k, n,
+                              c_one,  v_array, vi, vj, ldv,
+                                      v_array, vi, vj, ldv,
+                              c_zero, dTstep_array, Tstepi, Tstepj, ldtstep,
+                              batchCount, queue );
 
-    magma_zgemm_batched( MagmaConjTrans, MagmaNoTrans, 
-                         k, k, n, 
-                         c_one,  v_array, ldv, 
-                                 v_array, ldv, 
-                         c_zero, dTstep_array, ldtstep, 
-                         batchCount, queue );
-
-    magmablas_zlaset_batched( MagmaLower, k, k, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dTstep_array, ldtstep, batchCount, queue );
-    // no need for it as T is expected to be lower zero
-    //if (k > nb) magmablas_zlaset_batched( MagmaLower, k, k, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dTstep_array, ldtstep, batchCount, queue );
-    
+    magmablas_zlaset_internal_batched(
+            MagmaLower, k, k, MAGMA_Z_ZERO, MAGMA_Z_ZERO,
+            dTstep_array, 0, 0, ldtstep, batchCount, queue );
 
     //TRMV
     //T(1:i-1,i) := T(1:i-1,1:i-1) * W(1:i-1) i=[1:k]
-    // TRMV is split over block of column of size nb 
+    // TRMV is split over block of column of size nb
     // the update should be done from top to bottom so:
     // 1- a gemm using the previous computed columns
-    //    of T to update rectangular upper protion above 
-    //    the triangle of my columns 
-    // 2- the columns need to be updated by a serial 
+    //    of T to update rectangular upper protion above
+    //    the triangle of my columns
+    // 2- the columns need to be updated by a serial
     //    loop over of gemv over itself. since we limit the
-    //    shared memory to nb, this nb column 
+    //    shared memory to nb, this nb column
     //    are split vertically by chunk of nb rows
 
     dim3 grid(1, 1, batchCount);
 
-    for (j=0; j < k; j += nb)
-    {
+    for (j=0; j < k; j += nb) {
         prev_n =  j;
         mycol  =  min(nb, k-j);
         // note that myrow = prev_n + mycol;
@@ -174,31 +140,28 @@ magma_zlarft_batched(magma_int_t n, magma_int_t k, magma_int_t stair_T,
                         (long long) prev_n, (long long) mycol, (long long) 0, (long long) j );
             }
 
-            magma_zdisplace_pointers(dW1_displ, dTstep_array, ldtstep, 0, j, batchCount, queue);
-            magma_zdisplace_pointers(dW2_displ, T_array,     ldt, 0, j, batchCount, queue);
-            magma_zgemm_batched( MagmaNoTrans, MagmaNoTrans, 
-                                 prev_n, mycol, prev_n, 
-                                 c_one,  T_array, ldt, 
-                                         dW1_displ, ldtstep, 
-                                 c_zero, dW2_displ, ldt, 
+            magma_zgemm_batched_core( MagmaNoTrans, MagmaNoTrans,
+                                 prev_n, mycol, prev_n,
+                                 c_one,  T_array,            Ti,       Tj, ldt,
+                                         dTstep_array, Tstepi+0, Tstepj+j, ldtstep,
+                                 c_zero, T_array,            Ti,     Tj+j, ldt,
                                  batchCount, queue );
 
-            // update my rectangular portion (prev_n,mycol) using sequence of gemv 
-            magma_zdisplace_pointers(dW1_displ, dTstep_array, ldtstep, j, j, batchCount, queue);
-            magma_zdisplace_pointers(dW3_displ, tau_array,  1, j, 0, batchCount, queue);
-
-            for (i=0; i < prev_n; i += nb)
-            {
+            // update my rectangular portion (prev_n,mycol) using sequence of gemv
+            for (i=0; i < prev_n; i += nb) {
                 rows = min(nb,prev_n-i);
                 if (DEBUG == 3) {
                     printf("        doing recztrmv on the rectangular portion of size %lld %lld of T(%lld,%lld)\n",
                             (long long) rows, (long long) mycol, (long long) i, (long long) j );
                 }
 
-                if (rows > 0 && mycol > 0)
-                {
-                    magma_zdisplace_pointers(dW2_displ, T_array,     ldt, i, j, batchCount, queue);
-                    magmablas_zlarft_recztrmv_sm32x32_batched(rows, mycol, dW3_displ, dW2_displ, ldt, dW1_displ, ldtstep, batchCount, queue);
+                if (rows > 0 && mycol > 0) {
+                    magmablas_zlarft_recztrmv_sm32x32_batched(
+                            rows, mycol,
+                            tau_array,      taui+j,
+                            T_array,          Ti+i,     Tj+j, ldt,
+                            dTstep_array, Tstepi+j, Tstepj+j, ldtstep,
+                            batchCount, queue);
                 }
             }
         }
@@ -210,20 +173,35 @@ magma_zlarft_batched(magma_int_t n, magma_int_t k, magma_int_t stair_T,
                         (long long) mycol, (long long) mycol, (long long) j, (long long) j );
             }
 
-            if (mycol > 0)
-            {
-                magma_zdisplace_pointers(dW1_displ, dTstep_array, ldtstep, j, j, batchCount, queue);
-                magma_zdisplace_pointers(dW3_displ, tau_array,  1, j, 0, batchCount, queue);
-                magma_zdisplace_pointers(dW2_displ, T_array,     ldt, j, j, batchCount, queue);
-                magmablas_zlarft_ztrmv_sm32x32_batched(mycol, mycol, dW3_displ, dW1_displ, ldtstep, dW2_displ, ldt, batchCount, queue);
+            if (mycol > 0) {
+                magmablas_zlarft_ztrmv_sm32x32_batched(
+                        mycol, mycol,
+                        tau_array,      taui+j,
+                        dTstep_array, Tstepi+j, Tstepj+j, ldtstep,
+                        T_array,          Ti+j,     Tj+j, ldt,
+                        batchCount, queue);
             }
         }
-    }// end of j
+    } // end of j
 
-    magma_free(dW1_displ);
-    magma_free(dW2_displ);
-    magma_free(dW3_displ);
-    magma_free(dTstep_array);
+    return 0;
+}
+
+/******************************************************************************/
+extern "C" magma_int_t
+magma_zlarft_batched(magma_int_t n, magma_int_t k, magma_int_t stair_T,
+                magmaDoubleComplex **v_array, magma_int_t ldv,
+                magmaDoubleComplex **tau_array, magmaDoubleComplex **T_array, magma_int_t ldt,
+                magmaDoubleComplex **work_array, magma_int_t lwork,
+                magma_int_t batchCount, magma_queue_t queue)
+{
+    magma_zlarft_internal_batched(
+        n, k, stair_T,
+        v_array,   0, 0, ldv,
+        tau_array, 0,
+        T_array,   0, 0, ldt,
+        work_array, lwork,
+        batchCount, queue);
 
     return 0;
 }

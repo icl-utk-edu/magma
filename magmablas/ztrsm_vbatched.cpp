@@ -10,7 +10,6 @@
        @author Ahmad Abdelfattah
 */
 
-#include "cublas_v2.h"
 #include "magma_internal.h"
 #include "commonblas_z.h"
 

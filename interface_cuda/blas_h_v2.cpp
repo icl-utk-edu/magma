@@ -22,7 +22,7 @@
 
 /***************************************************************************//**
     Perform FP16 matrix-matrix product, \f$ C = \alpha op(A) op(B) + \beta C \f$.
-    This routine requires CUDA 7.5 or greater. 
+    This routine requires CUDA 7.5 or greater.
 
     @param[in]
     transA  Operation op(A) to perform on matrix A.
@@ -101,7 +101,7 @@ magma_hgemm(
             &alpha, dA, int(ldda),
                     dB, int(lddb),
             &beta,  dC, int(lddc) );
-        
+
         #if CUDA_VERSION >= 9000
         // roll back to default
         cublasSetMathMode(queue->cublas_handle(), CUBLAS_DEFAULT_MATH);
@@ -174,13 +174,13 @@ magma_hgemmx(
                       &alpha, dA,        CUDA_R_16F, int(ldda),
                               dB,        CUDA_R_16F, int(lddb),
                       &beta,  dC,        CUDA_R_32F, int(lddc),
-                      CUDA_R_32F, CUBLAS_GEMM_DFALT_TENSOR_OP);
+                      CUDA_R_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP);
         #if CUDA_VERSION >= 9000
         // roll back to default
         cublasSetMathMode(queue->cublas_handle(), CUBLAS_DEFAULT_MATH);
         #endif
     }
     #endif
-#endif                                                         
+#endif
 }
 

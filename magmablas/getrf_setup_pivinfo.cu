@@ -83,17 +83,39 @@ static __device__ void setup_pivinfo_sm_devfunc(magma_int_t *pivinfo, magma_int_
 
 
 /******************************************************************************/
+__global__ void setup_pivinfo_kernel(magma_int_t *pivinfo, magma_int_t *ipiv, int m, int nb)
+{
+    setup_pivinfo_devfunc(pivinfo, ipiv, m, nb);
+}
+
+/******************************************************************************/
 __global__ void setup_pivinfo_kernel_batched(magma_int_t **pivinfo_array, magma_int_t **ipiv_array, int ipiv_offset, int m, int nb)
 {
     int batchid = blockIdx.x;
     setup_pivinfo_devfunc(pivinfo_array[batchid], ipiv_array[batchid]+ipiv_offset, m, nb);
 }
 
-
 /******************************************************************************/
-__global__ void setup_pivinfo_kernel(magma_int_t *pivinfo, magma_int_t *ipiv, int m, int nb)
+__global__ void setup_pivinfo_kernel_vbatched(
+                    magma_int_t* M, magma_int_t* N,
+                    magma_int_t **pivinfo_array, int pivinfo_offset,
+                    magma_int_t **ipiv_array,    int ipiv_offset,
+                    int nb)
 {
-    setup_pivinfo_devfunc(pivinfo, ipiv, m, nb);
+    const int batchid = blockIdx.x;
+    int my_m = (int)M[batchid];
+    int my_n = (int)N[batchid];
+    int my_minmn = min(my_m, my_n);
+    my_m     -= ipiv_offset;
+    my_minmn -= ipiv_offset;
+
+    // check for early termination
+    if(my_minmn <= 0) return;
+
+    nb = min(nb, my_minmn);
+
+
+    setup_pivinfo_devfunc(pivinfo_array[batchid] + pivinfo_offset, ipiv_array[batchid]+ipiv_offset, my_m, nb);
 }
 
 
@@ -101,22 +123,6 @@ __global__ void setup_pivinfo_kernel(magma_int_t *pivinfo, magma_int_t *ipiv, in
 __global__ void setup_pivinfo_sm_kernel(magma_int_t *pivinfo, magma_int_t *ipiv, int m, int nb)
 {
     setup_pivinfo_sm_devfunc(pivinfo, ipiv, m, nb);
-}
-
-
-/******************************************************************************/
-extern "C" void
-setup_pivinfo_batched( magma_int_t **pivinfo_array, magma_int_t **ipiv_array, magma_int_t ipiv_offset,
-                         magma_int_t m, magma_int_t nb,
-                         magma_int_t batchCount,
-                         magma_queue_t queue)
-{
-    if (nb == 0 ) return;
-
-    size_t min_m_MAX_NTHREADS = min(m, MAX_NTHREADS);
-    setup_pivinfo_kernel_batched
-        <<< batchCount, min_m_MAX_NTHREADS, 0, queue->cuda_stream() >>>
-        (pivinfo_array, ipiv_array, ipiv_offset, m, nb);
 }
 
 
@@ -136,6 +142,36 @@ setup_pivinfo( magma_int_t *pivinfo, magma_int_t *ipiv,
     }
 }
 
+/******************************************************************************/
+extern "C" void
+setup_pivinfo_batched( magma_int_t **pivinfo_array, magma_int_t **ipiv_array, magma_int_t ipiv_offset,
+                         magma_int_t m, magma_int_t nb,
+                         magma_int_t batchCount,
+                         magma_queue_t queue)
+{
+    if (nb == 0 ) return;
+
+    size_t min_m_MAX_NTHREADS = min(m, MAX_NTHREADS);
+    setup_pivinfo_kernel_batched
+        <<< batchCount, min_m_MAX_NTHREADS, 0, queue->cuda_stream() >>>
+        (pivinfo_array, ipiv_array, ipiv_offset, m, nb);
+}
+
+/******************************************************************************/
+extern "C" void
+setup_pivinfo_vbatched(  magma_int_t **pivinfo_array, magma_int_t pivinfo_offset,
+                         magma_int_t **ipiv_array,    magma_int_t ipiv_offset,
+                         magma_int_t* m, magma_int_t* n,
+                         magma_int_t max_m, magma_int_t nb, magma_int_t batchCount,
+                         magma_queue_t queue)
+{
+    if (nb == 0 ) return;
+
+    size_t min_m_MAX_NTHREADS = min(max_m, MAX_NTHREADS);
+    setup_pivinfo_kernel_vbatched
+    <<< batchCount, min_m_MAX_NTHREADS, 0, queue->cuda_stream() >>>
+    (m, n, pivinfo_array, pivinfo_offset, ipiv_array, ipiv_offset, nb);
+}
 
 // =============================================================================
 // Auxiliary routine to adjust ipiv

@@ -26,6 +26,11 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
+#define PRECISION_z
+
+// uncomment to use mkl's group batch interface
+//#define USE_MKL_GETRF_BATCH
+
 double get_LU_error(magma_int_t M, magma_int_t N,
                     magmaDoubleComplex *A,  magma_int_t lda,
                     magmaDoubleComplex *LU, magma_int_t *IPIV)
@@ -85,13 +90,13 @@ int main( int argc, char** argv)
     magmaDoubleComplex *dA;
     magmaDoubleComplex **dA_array = NULL, **hA_array = NULL, **hR_array = NULL, **hdA_array = NULL;
 
-    magma_int_t     **hipiv_array = NULL, **hdipiv_array = NULL, **dipiv_array = NULL;
+    magma_int_t     **hipiv_array = NULL, **hdipiv_array = NULL, **dipiv_array = NULL, **dpivinfo_array;
     magma_int_t     *ipiv, *hinfo;
-    magma_int_t     *dipiv, *dinfo;
+    magma_int_t     *dipiv, *dpivinfo, *dinfo;
 
     magma_int_t *h_M = NULL, *h_N = NULL, *h_lda  = NULL, *h_ldda = NULL, *h_min_mn = NULL;
-    magma_int_t *d_M = NULL, *d_N = NULL, *d_ldda = NULL;
-    magma_int_t iM, iN, max_M=0, max_N=0, max_minmn, info;
+    magma_int_t *d_M = NULL, *d_N = NULL, *d_ldda = NULL, *d_min_mn;
+    magma_int_t iM, iN, max_M=0, max_N=0, max_minMN=0, max_MxN=0, info=0;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t batchCount;
@@ -110,19 +115,21 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_imalloc_cpu(&h_min_mn, batchCount) );
     TESTING_CHECK( magma_imalloc_cpu(&hinfo,    batchCount ));
 
-    TESTING_CHECK( magma_imalloc(&d_M,    batchCount) );
-    TESTING_CHECK( magma_imalloc(&d_N,    batchCount) );
-    TESTING_CHECK( magma_imalloc(&d_ldda, batchCount) );
-    TESTING_CHECK( magma_imalloc(&dinfo,  batchCount ));
+    TESTING_CHECK( magma_imalloc(&d_M,      batchCount) );
+    TESTING_CHECK( magma_imalloc(&d_N,      batchCount) );
+    TESTING_CHECK( magma_imalloc(&d_ldda,   batchCount) );
+    TESTING_CHECK( magma_imalloc(&d_min_mn, batchCount) );
+    TESTING_CHECK( magma_imalloc(&dinfo,    batchCount ));
 
     TESTING_CHECK( magma_malloc_cpu((void**)&hA_array,  batchCount * sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc_cpu((void**)&hR_array,  batchCount * sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc_cpu((void**)&hdA_array, batchCount * sizeof(magmaDoubleComplex*)) );
     TESTING_CHECK( magma_malloc(    (void**)&dA_array,  batchCount * sizeof(magmaDoubleComplex*)) );
 
-    TESTING_CHECK( magma_malloc_cpu((void**)&hipiv_array,  batchCount * sizeof(magma_int_t*) ));
-    TESTING_CHECK( magma_malloc_cpu((void**)&hdipiv_array, batchCount * sizeof(magma_int_t*) ));
-    TESTING_CHECK( magma_malloc(    (void**)&dipiv_array,  batchCount * sizeof(magma_int_t*) ));
+    TESTING_CHECK( magma_malloc_cpu((void**)&hipiv_array,    batchCount * sizeof(magma_int_t*) ));
+    TESTING_CHECK( magma_malloc_cpu((void**)&hdipiv_array,   batchCount * sizeof(magma_int_t*) ));
+    TESTING_CHECK( magma_malloc(    (void**)&dipiv_array,    batchCount * sizeof(magma_int_t*) ));
+    TESTING_CHECK( magma_malloc(    (void**)&dpivinfo_array, batchCount * sizeof(magma_int_t*) ));
 
     printf("%%             max   max\n");
     printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
@@ -140,6 +147,7 @@ int main( int argc, char** argv)
             dA_size  = 0;
             piv_size = 0;
             gflops   = 0;
+
             for(int s = 0; s < batchCount; s++) {
                 h_M[s]      = 1 + (rand() % iM);
                 h_N[s]      = max(1, (magma_int_t) round(NbyM * real_Double_t(h_M[s])) ); // try to keep the M/N ratio
@@ -148,7 +156,8 @@ int main( int argc, char** argv)
                 h_lda[s]    = h_M[s];
                 h_ldda[s]   = h_lda[s]; //magma_roundup( h_M[s], opts.align );  // multiple of 32 by default
                 h_min_mn[s] = min( h_M[s], h_N[s] );
-                max_minmn   = (s == 0) ? h_min_mn[s] : max(h_min_mn[s], max_minmn);
+                max_minMN   = (s == 0) ? h_min_mn[s] : max(h_min_mn[s], max_minMN);
+                max_MxN     = (s == 0) ? h_M[s] * h_N[s] : max(h_M[s] * h_N[s], max_MxN);
                 hA_size    += h_lda[s]  * h_N[s];
                 dA_size    += h_ldda[s] * h_N[s];
                 piv_size   += h_min_mn[s];
@@ -160,8 +169,9 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc_cpu( &hA_magma, hA_size  ));
             TESTING_CHECK( magma_zmalloc_pinned( &hR,    hA_size  ));
 
-            TESTING_CHECK( magma_zmalloc( &dA,    dA_size ));
-            TESTING_CHECK( magma_imalloc( &dipiv, piv_size ));
+            TESTING_CHECK( magma_zmalloc( &dA,       dA_size ));
+            TESTING_CHECK( magma_imalloc( &dipiv,    piv_size ));
+            TESTING_CHECK( magma_imalloc( &dpivinfo, batchCount * max_M ));
 
             /* Initialize ptr arrays */
             hA_array [0]    = hA;
@@ -176,6 +186,7 @@ int main( int argc, char** argv)
                 hipiv_array[s]  = hipiv_array[s-1]  + h_min_mn[s-1];
                 hdipiv_array[s] = hdipiv_array[s-1] + h_min_mn[s-1];
             }
+            magma_iset_pointer(dpivinfo_array, dpivinfo, 1, 0, 0, max_M, batchCount, opts.queue );
 
             /* Initialize hA and copy to hR */
             lapackf77_zlarnv( &ione, ISEED, &hA_size, hA );
@@ -189,6 +200,7 @@ int main( int argc, char** argv)
             magma_isetvector(batchCount, h_M,    1, d_M,    1, opts.queue);
             magma_isetvector(batchCount, h_N,    1, d_N,    1, opts.queue);
             magma_isetvector(batchCount, h_ldda, 1, d_ldda, 1, opts.queue);
+            magma_isetvector(batchCount, h_min_mn, 1, d_min_mn, 1, opts.queue);
 
             for(int s = 0; s < batchCount; s++) {
                 magma_zsetmatrix( h_M[s], h_N[s],
@@ -196,13 +208,32 @@ int main( int argc, char** argv)
                                   hdA_array[s], h_ldda[s], opts.queue );
             }
 
-            magma_time = magma_sync_wtime( opts.queue );
-            info = magma_zgetrf_vbatched(
-                    d_M, d_N,
-                    dA_array, d_ldda,
-                    dipiv_array, dinfo,
-                    batchCount, opts.queue);
-            magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+
+            if(opts.version == 1) {
+                // main API, with error checking and
+                // workspace allocation
+                magma_time = magma_sync_wtime( opts.queue );
+                info = magma_zgetrf_vbatched(
+                        d_M, d_N,
+                        dA_array, d_ldda,
+                        dipiv_array, dinfo,
+                        batchCount, opts.queue);
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+            }
+            else {
+                // advanced API, totally asynchronous,
+                // but requires some setup
+                magma_time = magma_sync_wtime( opts.queue );
+                magma_int_t nb, recnb;
+                magma_get_zgetrf_vbatched_nbparam(max_M, max_N, &nb, &recnb);
+                info = magma_zgetrf_vbatched_max_nocheck(
+                        d_M, d_N, d_min_mn,
+                        max_M, max_N, max_minMN, max_MxN, nb, 32,
+                        dA_array, d_ldda,
+                        dipiv_array, dpivinfo_array, dinfo,
+                        batchCount, opts.queue);
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+            }
             magma_perf = gflops / magma_time;
 
             hTmp = hA_magma;
@@ -229,6 +260,21 @@ int main( int argc, char** argv)
                Performs operation using LAPACK
                =================================================================== */
             if ( opts.lapack ) {
+
+                #if defined(MAGMA_WITH_MKL) && defined(USE_MKL_GETRF_BATCH)
+                magma_int_t *group_size = new magma_int_t[batchCount];
+                for(magma_int_t ig = 0; ig < batchCount; ig++) group_size[ig] = 1;
+
+                cpu_time = magma_wtime();
+                lapackf77_zgetrf_batch(
+                         h_M, h_N,
+                         hA_array, h_lda,
+                         hipiv_array, &batchCount, group_size, hinfo );
+                cpu_time = magma_wtime() - cpu_time;
+
+                delete[] group_size;
+
+                #else
                 cpu_time = magma_wtime();
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                 magma_int_t nthreads = magma_get_lapack_numthreads();
@@ -247,8 +293,10 @@ int main( int argc, char** argv)
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);
                 #endif
-
                 cpu_time = magma_wtime() - cpu_time;
+
+                #endif
+
                 cpu_perf = gflops / cpu_time;
             }
 
@@ -312,6 +360,7 @@ int main( int argc, char** argv)
 
             magma_free( dA );
             magma_free( dipiv );
+            magma_free( dpivinfo );
             fflush( stdout );
         }
         if ( opts.niter > 1 ) {
@@ -322,8 +371,10 @@ int main( int argc, char** argv)
     magma_free( d_M );
     magma_free( d_N );
     magma_free( d_ldda );
+    magma_free( d_min_mn );
     magma_free( dA_array );
     magma_free( dipiv_array );
+    magma_free( dpivinfo_array );
     magma_free( dinfo );
 
     magma_free_cpu( h_M );

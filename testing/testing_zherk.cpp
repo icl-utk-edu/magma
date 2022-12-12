@@ -71,7 +71,6 @@ int main( int argc, char** argv)
     }
     #endif
 
-    #ifdef MAGMA_HAVE_CUDA
     // for CUDA, we can check MAGMA vs. CUBLAS, without running LAPACK
     printf("%% If running lapack (option --lapack), MAGMA and %s errors are both computed\n"
            "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to %s result.\n\n",
@@ -80,13 +79,6 @@ int main( int argc, char** argv)
     printf("%% uplo = %s, transA = %s\n",
            lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA) );
     printf("%%   N     K   MAGMA Gflop/s (ms)  %s Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error   %s error\n", g_platform_str, g_platform_str);
-   #else
-    // for others, we need LAPACK for check
-    opts.lapack |= opts.check;  // check (-c) implies lapack (-l)
-    printf("%% uplo = %s, transA = %s\n",
-           lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA) );
-    printf("%%   N     K   MAGMA Gflop/s (ms)   CPU Gflop/s (ms)  MAGMA error\n");
-    #endif
     printf("%%===================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -147,14 +139,12 @@ int main( int argc, char** argv)
                =================================================================== */
             magma_zsetmatrix( N, N, hC, ldc, dC(0,0), lddc, opts.queue );
 
-            #ifdef MAGMA_HAVE_CUDA
             dev_time = magma_sync_wtime( opts.queue );
             magma_zherk( opts.uplo, opts.transA, N, K,
                          alpha, dA(0,0), ldda,
                          beta,  dC(0,0), lddc, opts.queue );
             dev_time = magma_sync_wtime( opts.queue ) - dev_time;
             dev_perf = gflops / dev_time;
-            #endif
 
             magma_zgetmatrix( N, N, dC(0,0), lddc, hCdev, ldc, opts.queue );
 
@@ -179,7 +169,6 @@ int main( int argc, char** argv)
                 magma_error = safe_lapackf77_zlanhe( "F", lapack_uplo_const(opts.uplo), &N, hCmagma, &ldc, work )
                             / (sqrt(double(K+2))*fabs(alpha)*Anorm*Anorm + 2*fabs(beta)*Cnorm);
 
-                #ifdef MAGMA_HAVE_CUDA
                 blasf77_zaxpy( &sizeC, &c_neg_one, hC, &ione, hCdev, &ione );
                 dev_error = safe_lapackf77_zlanhe( "F", lapack_uplo_const(opts.uplo), &N, hCdev, &ldc, work )
                             / (sqrt(double(K+2))*fabs(alpha)*Anorm*Anorm + 2*fabs(beta)*Cnorm);
@@ -192,19 +181,8 @@ int main( int argc, char** argv)
                        dev_perf,   1000.*dev_time,
                        cpu_perf,   1000.*cpu_time,
                        magma_error, dev_error, (okay ? "ok" : "failed"));
-                #else
-                bool okay = (magma_error < tol);
-                status += ! okay;
-                printf("%5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)    %8.2e   %s\n",
-                       (long long) N, (long long) K,
-                       magma_perf, 1000.*magma_time,
-                       cpu_perf,   1000.*cpu_time,
-                       magma_error, (okay ? "ok" : "failed"));
-                #endif
-
             }
             else {
-                #ifdef MAGMA_HAVE_CUDA
                 blasf77_zaxpy( &sizeC, &c_neg_one, hCdev, &ione, hCmagma, &ione );
                 magma_error = safe_lapackf77_zlanhe( "F", lapack_uplo_const(opts.uplo), &N, hCmagma, &ldc, work )
                             / (sqrt(double(K+2))*fabs(alpha)*Anorm*Anorm + 2*fabs(beta)*Cnorm);
@@ -216,12 +194,6 @@ int main( int argc, char** argv)
                        magma_perf, 1000.*magma_time,
                        dev_perf,   1000.*dev_time,
                        magma_error, (okay ? "ok" : "failed"));
-                #else
-                printf("%5lld %5lld   %7.2f (%7.2f)   ---   (  ---  )     ---  \n",
-                       (long long) N, (long long) K,
-                       magma_perf, 1000.*magma_time);
-                #endif
-
             }
 
             magma_free_cpu( hA );

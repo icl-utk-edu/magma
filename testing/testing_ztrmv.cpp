@@ -146,7 +146,7 @@ int main( int argc, char** argv)
                 // See testing_zgemm for formula. Here K = N.
                 // initial C = 0, alpha = 1
                 blasf77_zaxpy( &N, &c_neg_one, hx, &ione, hxmagma, &ione );
-                dev_error = lapackf77_zlange( "F", &N, &ione, hxmagma, &N, work )
+                magma_error = lapackf77_zlange( "F", &N, &ione, hxmagma, &N, work )
                             / (sqrt(double(N+2))*Anorm*Xnorm);
 
                 blasf77_zaxpy( &N, &c_neg_one, hx, &ione, hxdev, &ione );

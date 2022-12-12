@@ -49,7 +49,6 @@ const char* magma_cublasGetErrorString( cublasStatus_t err )
 #endif
 
 /***************************************************************************//**
-/***************************************************************************//**
     Prints error message to stderr.
     C++ function overloaded for different error types (CUDA,
     cuBLAS, MAGMA errors). Note CUDA and cuBLAS errors are enums,

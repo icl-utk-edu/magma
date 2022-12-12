@@ -187,30 +187,33 @@ __global__
 void zlaset_full_kernel_batched(
     int m, int n,
     magmaDoubleComplex offdiag, magmaDoubleComplex diag,
-    magmaDoubleComplex **dAarray, int ldda )
+    magmaDoubleComplex **dAarray, int Ai, int Aj, int ldda )
 {
     int batchid = blockIdx.z;
-    zlaset_full_device(m, n, offdiag, diag, dAarray[batchid], ldda);
+    magmaDoubleComplex *dA = dAarray[batchid] + Aj * ldda + Ai;
+    zlaset_full_device(m, n, offdiag, diag, dA, ldda);
 }
 
 __global__
 void zlaset_lower_kernel_batched(
     int m, int n,
     magmaDoubleComplex offdiag, magmaDoubleComplex diag,
-    magmaDoubleComplex **dAarray, int ldda )
+    magmaDoubleComplex **dAarray, int Ai, int Aj, int ldda )
 {
     int batchid = blockIdx.z;
-    zlaset_lower_device(m, n, offdiag, diag, dAarray[batchid], ldda);
+    magmaDoubleComplex *dA = dAarray[batchid] + Aj * ldda + Ai;
+    zlaset_lower_device(m, n, offdiag, diag, dA, ldda);
 }
 
 __global__
 void zlaset_upper_kernel_batched(
     int m, int n,
     magmaDoubleComplex offdiag, magmaDoubleComplex diag,
-    magmaDoubleComplex **dAarray, int ldda )
+    magmaDoubleComplex **dAarray, int Ai, int Aj, int ldda )
 {
     int batchid = blockIdx.z;
-    zlaset_upper_device(m, n, offdiag, diag, dAarray[batchid], ldda);
+    magmaDoubleComplex *dA = dAarray[batchid] + Aj * ldda + Ai;
+    zlaset_upper_device(m, n, offdiag, diag, dA, ldda);
 }
 /******************************************************************************/
 /*
@@ -416,6 +419,36 @@ void magmablas_zlaset(
 
 /******************************************************************************/
 extern "C"
+void magmablas_zlaset_internal_batched(
+    magma_uplo_t uplo, magma_int_t m, magma_int_t n,
+    magmaDoubleComplex offdiag, magmaDoubleComplex diag,
+    magmaDoubleComplex_ptr dAarray[], magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+    magma_int_t batchCount, magma_queue_t queue)
+{
+    dim3 threads( BLK_X, 1, 1 );
+    magma_int_t max_batchCount = queue->get_maxBatch();
+
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 grid( magma_ceildiv( m, BLK_X ), magma_ceildiv( n, BLK_Y ), ibatch );
+
+        if (uplo == MagmaLower) {
+            zlaset_lower_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
+            (m, n, offdiag, diag, dAarray+i, Ai, Aj, ldda);
+        }
+        else if (uplo == MagmaUpper) {
+            zlaset_upper_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
+            (m, n, offdiag, diag, dAarray+i, Ai, Aj, ldda);
+        }
+        else {
+            zlaset_full_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
+            (m, n, offdiag, diag, dAarray+i, Ai, Aj, ldda);
+        }
+    }
+}
+
+/******************************************************************************/
+extern "C"
 void magmablas_zlaset_batched(
     magma_uplo_t uplo, magma_int_t m, magma_int_t n,
     magmaDoubleComplex offdiag, magmaDoubleComplex diag,
@@ -441,27 +474,12 @@ void magmablas_zlaset_batched(
         return;
     }
 
-    dim3 threads( BLK_X, 1, 1 );
-    magma_int_t max_batchCount = queue->get_maxBatch();
-
-    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
-        magma_int_t ibatch = min(max_batchCount, batchCount-i);
-        dim3 grid( magma_ceildiv( m, BLK_X ), magma_ceildiv( n, BLK_Y ), ibatch );
-
-        if (uplo == MagmaLower) {
-            zlaset_lower_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
-            (m, n, offdiag, diag, dAarray+i, ldda);
-        }
-        else if (uplo == MagmaUpper) {
-            zlaset_upper_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
-            (m, n, offdiag, diag, dAarray+i, ldda);
-        }
-        else {
-            zlaset_full_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
-            (m, n, offdiag, diag, dAarray+i, ldda);
-        }
-    }
+    magmablas_zlaset_internal_batched(
+            uplo, m, n, offdiag, diag,
+            dAarray, 0, 0, ldda,
+            batchCount, queue);
 }
+
 /******************************************************************************/
 extern "C"
 void magmablas_zlaset_vbatched(

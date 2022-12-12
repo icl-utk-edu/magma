@@ -666,8 +666,8 @@ magmablas_zhemv_mgpu(
     magma_int_t nb,
     magma_queue_t queues[] )
 {
-    magma_int_t arch = magma_getdevice_arch();
     #ifndef MAGMA_HAVE_HIP
+    magma_int_t arch = magma_getdevice_arch();
     if ( arch < 200  ) {
         // --------------------
         // no CUDA ARCH 1.x version
