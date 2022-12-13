@@ -57,53 +57,10 @@ __device__ void print_memory(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-__global__ void
-zgbtrf_batched_init_kernel(
-    int n, int kl, int ku,
-    magmaDoubleComplex** dAB_array, int lddab )
-{
-    const int batchid  = blockIdx.x;
-    const int col_base = blockIdx.y;
-    const int ntx = blockDim.x;
-    const int tx  = threadIdx.x;
-
-    magmaDoubleComplex *dAB = dAB_array[batchid];
-    for(int col = col_base; col < n; col++) {
-        // exact col start/end for band matrix
-        // (not including the extra kl window at the top)
-        const int col_start = kl + max(ku-col,0);
-        const int col_end   = kl + ku + min(kl, n-1-col);
-
-        // zero out from 0 -> col_start-1
-        for(int i = tx; i < col_start; i+= ntx) {
-            dAB(i,col) = MAGMA_Z_ZERO;
-        }
-
-        // zero out from col_end+1 -> (2kl + ku + 1)
-        for(int i = (tx+col_end+1); i < (2*kl+ku+1); i+= ntx) {
-            dAB(i,col) = MAGMA_Z_ZERO;
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-static void
-zgbtrf_batched_init(
-    int n, int kl, int ku,
-    magmaDoubleComplex **dAB_array, int lddab,
-    magma_int_t batchCount, magma_queue_t queue )
-{
-    dim3 grid(batchCount, min(n,50000), 1);
-    dim3 threads(32, 1, 1);
-    zgbtrf_batched_init_kernel<<<grid, threads, 0, queue->cuda_stream()>>>
-    (n, kl, ku, dAB_array, lddab);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // read from column jstart to column jend (inclusive) from dAB to sAB
 // jstart and jend are global column indices with respect to dAB
 __device__ __inline__ void
-read_sAB_columns(
+read_sAB_updated_columns(
     int mband, int n, int jstart, int jend, int kl, int ku,
     magmaDoubleComplex *dAB, int lddab,
     magmaDoubleComplex *sAB, int sldab,
@@ -111,7 +68,7 @@ read_sAB_columns(
 {
     #ifdef DBG
     __syncthreads();
-    if(tx == 0 && blockIdx.x == 1)printf("reading columns %d to %d\n", jstart, jend);
+    if(tx == 0 && blockIdx.x == 7)printf("reading columns %d to %d\n", jstart, jend);
     __syncthreads();
     #endif
 
@@ -125,6 +82,39 @@ read_sAB_columns(
         for(int j = jstart + ty_; j <= jend; j += groups) {
             int col_start = 0;       //kl + max(ku-j,0);
             int col_end   = mband-1; //kl + ku + min(kl, n-1-j);
+            for(int i = tx_+col_start; i <= col_end; i+=tpg) {
+                sAB(i,j-jstart) = dAB(i,j);
+            }
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// read from column jstart to column jend (inclusive) from dAB to sAB
+// jstart and jend are global column indices with respect to dAB
+__device__ __inline__ void
+read_sAB_new_columns(
+    int mband, int n, int jstart, int jend, int kl, int ku,
+    magmaDoubleComplex *dAB, int lddab,
+    magmaDoubleComplex *sAB, int sldab,
+    int ntx, int tx)
+{
+    #ifdef DBG
+    __syncthreads();
+    if(tx == 0 && blockIdx.x == 7)printf("reading columns %d to %d\n", jstart, jend);
+    __syncthreads();
+    #endif
+
+    const int tpg    = min(ntx, mband);
+    const int groups = max(1, ntx / mband);
+    const int active = max(ntx, groups * mband);
+    const int tx_    = tx % mband;
+    const int ty_    = tx / mband;
+
+    if(tx < active) {
+        for(int j = jstart + ty_; j <= jend; j += groups) {
+            int col_start = kl + max(ku-j,0);
+            int col_end   = kl + ku + min(kl, n-1-j);
             for(int i = tx_+col_start; i <= col_end; i+=tpg) {
                 sAB(i,j-jstart) = dAB(i,j);
             }
@@ -179,7 +169,9 @@ write_sAB_columns(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-__global__ void
+template<int NTX>
+__global__ __launch_bounds__(NTX)
+void
 zgbtrf_batched_kernel_small_sm_v2(
     magma_int_t m, magma_int_t nb, magma_int_t n,
     magma_int_t kl, magma_int_t ku,
@@ -220,28 +212,48 @@ zgbtrf_batched_kernel_small_sm_v2(
     magmaDoubleComplex *sAB_trail = sAB;
     int last_column_read = 0;
 
+    int ju = (ABj == 0) ? 0 : ju_array[batchid];
+
     // init sAB
     for(int i = tx; i < nn*sldab; i+=ntx) {
         sAB[i] = MAGMA_Z_ZERO;
     }
     __syncthreads();
 
-    // read columns 0 to nb-1, and account for offsets
-    read_sAB_columns(mband, n, ABj, ABj+nb-1, kl, ku, dAB, lddab, sAB, sldab, ntx, tx);
+    // read columns ABj to ju, and account for offsets
+    int jtmp = (ABj == 0) ? nb-1 : max(ju, ABj+nb-1);
+    int juu  = (ju  == 0) ? -1 : ju;
+
+    if( ABj > 0 ) {
+        read_sAB_updated_columns(mband, n, ABj, ju, kl, ku, dAB, lddab, sAB, sldab, ntx, tx);
+        sAB_trail += sldab * (ju-ABj+1);
+    }
+
+    if( ABj+nb-1 > ju ) {
+        read_sAB_new_columns(mband, n, juu+1, ABj+nb-1, kl, ku, dAB, lddab, sAB_trail, sldab, ntx, tx);
+        sAB_trail += sldab * ((ABj+nb-1) - (juu+1) + 1);
+    }
+    //======================================================
+    //int jtmp = (ABj == 0) ? nb-1 : max(ju, ABj+nb-1);
+    //if( ABj == 0 ) {
+    //    read_sAB_new_columns(mband, n, ABj, jtmp, kl, ku, dAB, lddab, sAB, sldab, ntx, tx);
+    //}
+    //else{
+    //    read_sAB_updated_columns(mband, n, ABj, jtmp, kl, ku, dAB, lddab, sAB, sldab, ntx, tx);
+    //}
     __syncthreads();
 
     // advance trailing ptrs
-    sAB_trail = sAB + sldab * nb;
-    last_column_read = ABj + nb-1;
+    //sAB_trail = sAB + sldab * (jtmp-ABj+1);
+    last_column_read = jtmp;
 
     #ifdef DBG
     __syncthreads();
     print_memory<magmaDoubleComplex>
-    ("read", mband, nn, sAB, sldab, 0, 0, 0, 1, 0, 0);
+    ("read", mband, nn, sAB, sldab, 0, 0, 0, 7, 0, 0);
     __syncthreads();
     #endif
 
-    int ju = (ABj == 0) ? 0 : ju_array[batchid];
     //int ju = 0;
     //for(int jj = 0; jj < ABj; jj++) {
     //    int jp_ = ipiv[jj] - 1; // reverse fortran indexing
@@ -274,7 +286,7 @@ zgbtrf_batched_kernel_small_sm_v2(
 
         #ifdef DBG
         __syncthreads();
-        if(tx == 0 && ty == 0 && batchid == 1) {
+        if(tx == 0 && ty == 0 && batchid == 7) {
             printf("j = %d, pivot = %f at %d, sipiv[%d] = %d\n", j, rx_abs_max, jp, j, sipiv[j]);
             printf("ju = %d, swap_length = %d \n", ju, swap_len);
             printf("ju = %d, last_column_read = %d\n", ju, last_column_read);
@@ -287,7 +299,7 @@ zgbtrf_batched_kernel_small_sm_v2(
             int jend   = ju;
             //jstart = min(jstart+ABj, n-1);
             //jend   = min(jend + ABj, n-1);
-            read_sAB_columns(mband, n, jstart, jend, kl, ku, dAB, lddab, sAB_trail, sldab, ntx, tx);
+            read_sAB_new_columns(mband, n, jstart, jend, kl, ku, dAB, lddab, sAB_trail, sldab, ntx, tx);
             __syncthreads();
 
             last_column_read = ju;
@@ -299,7 +311,7 @@ zgbtrf_batched_kernel_small_sm_v2(
 
 
         print_memory<magmaDoubleComplex>
-        ("after reading", mband, nn, sAB, sldab, 0, 0, 0, 1, 0, 0);
+        ("after reading", mband, nn, sAB, sldab, 0, 0, 0, 7, 0, 0);
 
 
         // swap
@@ -317,7 +329,7 @@ zgbtrf_batched_kernel_small_sm_v2(
 
         #ifdef DBG
         print_memory<magmaDoubleComplex>
-        ("swap", mband, nn, sAB, sldab, 0, 0, 0, 1, 0, 0);
+        ("swap", mband, nn, sAB, sldab, 0, 0, 0, 7, 0, 0);
         #endif
 
         // scal
@@ -329,7 +341,7 @@ zgbtrf_batched_kernel_small_sm_v2(
 
         #ifdef DBG
         print_memory<magmaDoubleComplex>
-        ("scal", mband, nn, sAB, sldab, 0, 0, 0, 1, 0, 0);
+        ("scal", mband, nn, sAB, sldab, 0, 0, 0, 7, 0, 0);
         #endif
 
         // ger
@@ -345,7 +357,7 @@ zgbtrf_batched_kernel_small_sm_v2(
 
         #ifdef DBG
         print_memory<magmaDoubleComplex>
-        ("ger", mband, nn, sAB, sldab, 0, 0, 0, 1, 0, 0);
+        ("ger", mband, nn, sAB, sldab, 0, 0, 0, 7, 0, 0);
         #endif
 
     }
@@ -364,7 +376,7 @@ zgbtrf_batched_kernel_small_sm_v2(
 
     #ifdef DBG
     __syncthreads();
-    if(tx == 0 && ty == 0 && batchid == 1) {
+    if(tx == 0 && ty == 0 && batchid == 7) {
         printf("sipiv: ");
         for(int ss = 0; ss < minmn; ss++) {printf("%-d ", ipiv[ss]);} printf("\n");
     }
@@ -376,7 +388,7 @@ zgbtrf_batched_kernel_small_sm_v2(
 
     #ifdef DBG
     __syncthreads();
-    if(tx == 0 && ty == 0 && batchid == 1) {
+    if(tx == 0 && ty == 0 && batchid == 7) {
         printf("dipiv: ");
         for(int ss = 0; ss < minmn; ss++) {printf("%-d ", ipiv[ss]);} printf("\n");
     }
@@ -446,7 +458,8 @@ zgbtrf_batched_kernel_small_sm_v2(
 
     @ingroup magma_getrf_batched
 *******************************************************************************/
-extern "C" magma_int_t
+template<int NTX>
+static magma_int_t
 magma_zgbtrf_batched_small_sm_v2_kernel_driver(
     magma_int_t m,  magma_int_t nb, magma_int_t n,
     magma_int_t kl, magma_int_t ku,
@@ -487,7 +500,7 @@ magma_zgbtrf_batched_small_sm_v2_kernel_driver(
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
     if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zgbtrf_batched_kernel_small_sm_v2, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+        cudaFuncSetAttribute(zgbtrf_batched_kernel_small_sm_v2<NTX>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
     #else
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
@@ -502,12 +515,62 @@ magma_zgbtrf_batched_small_sm_v2_kernel_driver(
     }
 
     void *kernel_args[] = {&m, &nb, &n, &kl, &ku, &dAB_array, &abi, &abj, &lddab, &ipiv_array, &ju_array, &info_array, &batchCount};
-    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_kernel_small_sm_v2, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_kernel_small_sm_v2<NTX>, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
         printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         arginfo = -100;
     }
 
+    return arginfo;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+static magma_int_t
+magma_zgbtrf_batched_small_sm_v2_kernel_instantiator(
+    magma_int_t m,  magma_int_t nb, magma_int_t n,
+    magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex** dAB_array, magma_int_t abi, magma_int_t abj, magma_int_t lddab,
+    magma_int_t** ipiv_array, magma_int_t* info_array,
+    magma_int_t nthreads, magma_int_t ntcol, int* ju_array,
+    magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_int_t arginfo = 0;
+    magma_int_t nthreads32 = magma_roundup(nthreads, 32);
+    switch(nthreads32) {
+        case   32: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver<  32>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case   64: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver<  64>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case   96: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver<  96>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  128: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 128>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  160: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 160>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  192: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 192>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  224: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 224>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  256: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 256>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  288: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 288>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  320: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 320>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  352: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 352>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  384: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 384>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  416: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 416>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  448: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 448>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  480: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 480>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  512: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 512>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  544: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 544>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  576: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 576>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  608: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 608>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  640: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 640>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  672: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 672>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  704: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 704>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  736: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 736>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  768: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 768>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  800: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 800>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  832: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 832>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  864: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 864>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  896: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 896>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  928: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 928>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  960: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 960>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  992: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver< 992>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case 1024: arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_driver<1024>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        default: arginfo = -100;
+    }
     return arginfo;
 }
 
@@ -564,11 +627,12 @@ magma_zgbtrf_batched_small_sm_v2_work(
     int* ju_array = (int*)device_work;
 
     #ifdef DBG
-    magmaDoubleComplex *htmp=NULL;
-    magma_getvector(1, sizeof(magmaDoubleComplex*), dAB_array, 1, &htmp, 1, queue);
+    magmaDoubleComplex *hh[8];
+    magma_getvector(8, sizeof(magmaDoubleComplex*), dAB_array, 1, hh, 1, queue);
+    magmaDoubleComplex *htmp=hh[7];
     #endif
 
-    zgbtrf_batched_init(n, kl, ku, dAB_array, lddab, batchCount, queue );
+    //zgbtrf_batched_init(n, kl, ku, dAB_array, lddab, batchCount, queue );
 
     for(int j = 0; j < n; j += nb) {
         magma_int_t ib = min(nb, n-j);
@@ -578,16 +642,20 @@ magma_zgbtrf_batched_small_sm_v2_work(
         printf("--------------------------------------\n");
         #endif
 
-        magma_zgbtrf_batched_small_sm_v2_kernel_driver(
-            m, ib, n, kl, ku,
-            dAB_array, 0, j, lddab,
-            ipiv_array, info_array,
-            nthreads, ntcol, ju_array, batchCount, queue );
+        arginfo = magma_zgbtrf_batched_small_sm_v2_kernel_instantiator(
+                    m, ib, n, kl, ku,
+                    dAB_array, 0, j, lddab,
+                    ipiv_array, info_array,
+                    nthreads, ntcol, ju_array, batchCount, queue );
+
+        if( arginfo != 0) {
+            break;
+        }
 
         #ifdef DBG
         magma_queue_sync( queue );
         printf("output:\n");
-        magma_zprint_gpu(16, 16, htmp, lddab, queue);
+        magma_zprint_gpu(kv+kl+1, n, htmp, lddab, queue);
         magma_queue_sync( queue );
         #endif
 
@@ -619,12 +687,12 @@ magma_zgbtrf_batched_small_sm_v2(
     void* device_work = NULL;
     magma_malloc((void**)&device_work, lwork[0]);
 
-    magma_zgbtrf_batched_small_sm_v2_work(
-        m, n, kl, ku,
-        dAB_array, lddab, ipiv_array, info_array,
-        nb, nthreads, ntcol,
-        device_work, lwork,
-        batchCount, queue );
+    arginfo = magma_zgbtrf_batched_small_sm_v2_work(
+                m, n, kl, ku,
+                dAB_array, lddab, ipiv_array, info_array,
+                nb, nthreads, ntcol,
+                device_work, lwork,
+                batchCount, queue );
 
     magma_free( device_work );
     return arginfo;
