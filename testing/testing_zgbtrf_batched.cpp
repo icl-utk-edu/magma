@@ -27,7 +27,7 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (batchCount == 2 && M == 16 && N == 16)
+#define cond (batchCount == 10 && M == 16 && N == 16)
 
 double get_band_LU_error(
             magma_int_t M, magma_int_t N,
@@ -203,7 +203,7 @@ int main( int argc, char** argv)
 
             if(cond) {
                 //magma_zprint(Mband, N, h_R, ldab);
-                magma_zprint(Mband, N, h_R + ldab * N, ldab);
+                magma_zprint(Mband, N, h_R + 7 * ldab * N, ldab);
             }
             /* ====================================================================
                Performs operation using MAGMA
@@ -228,24 +228,29 @@ int main( int argc, char** argv)
             else if(opts.version == 2) {
                 // query workspace
                 magma_int_t lwork[1] = {-1};
-                magma_zgbtrf_batched_small_sm_v2_work(
-                    M, N, KL, KU,
-                    NULL, lddab, NULL, NULL,
-                    nb, nthreads, 1, NULL, lwork,
-                    batchCount, opts.queue );
+                info = magma_zgbtrf_batched_small_sm_v2_work(
+                        M, N, KL, KU,
+                        NULL, lddab, NULL, NULL,
+                        nb, nthreads, 1, NULL, lwork,
+                        batchCount, opts.queue );
 
                 void* device_work = NULL;
                 magma_malloc((void**)&device_work, lwork[0]);
 
                 // timing async call only
                 magma_time = magma_sync_wtime( opts.queue );
-                magma_zgbtrf_batched_small_sm_v2_work(
-                    M, N, KL, KU,
-                    dA_array, lddab, dipiv_array, dinfo_magma,
-                    nb, nthreads, 1,
-                    device_work, lwork,
-                    batchCount, opts.queue );
+                info = magma_zgbtrf_batched_small_sm_v2_work(
+                        M, N, KL, KU,
+                        dA_array, lddab, dipiv_array, dinfo_magma,
+                        nb, nthreads, 1,
+                        device_work, lwork,
+                        batchCount, opts.queue );
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+
+                // for tuning tests, put in a large value to ignore it
+                if(info != 0) {
+                    magma_time = 1e9;
+                }
 
                 magma_free( device_work );
             }
@@ -268,7 +273,7 @@ int main( int argc, char** argv)
 
             if(cond) {
                 //magma_zprint(Mband, N, h_Amagma, ldab);
-                magma_zprint(Mband, N, h_Amagma + ldab * N, ldab);
+                magma_zprint(Mband, N, h_Amagma + 7 * ldab * N, ldab);
                 magma_getvector( min_mn * batchCount, sizeof(magma_int_t), dipiv_magma, 1, ipiv, 1, opts.queue );
                 //for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
                 for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[min_mn + ss]);} printf("\n");
@@ -277,6 +282,7 @@ int main( int argc, char** argv)
             // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_magma, 1, cpu_info, 1, opts.queue );
 
+            /*
             if (info != 0) {
                 printf("magma_zgbtrf_batched returned argument error %lld: %s.\n",
                         (long long) info, magma_strerror( info ));
@@ -289,6 +295,7 @@ int main( int argc, char** argv)
                     }
                 }
             }
+            */
 
 
             /* =====================================================================
@@ -325,54 +332,54 @@ int main( int argc, char** argv)
             if( opts.niter > 1 && iter == 0) printf("#");
 
             if ( opts.lapack ) {
-                printf("%10lld %5lld %5lld   %7.2f (%7.2f)    %7.2f (%7.2f)",
-                       (long long) batchCount, (long long) M, (long long) N,
+                printf("%10lld %5lld %5lld %5lld %5lld %5lld %5lld   %7.2f (%7.2f)    %7.2f (%7.2f)",
+                       (long long) batchCount, (long long) M, (long long) N, (long long) KL, (long long) KU, (long long) nb, (long long) nthreads,
                        cpu_perf, cpu_time*1000.,
                        magma_perf, magma_time*1000  );
             }
             else {
-                printf("%10lld %5lld %5lld     ---   (  ---  )    %7.2f (%7.2f)",
-                       (long long) batchCount, (long long) M, (long long) N,
+                printf("%10lld %5lld %5lld %5lld %5lld %5lld %5lld     ---   (  ---  )    %7.2f (%7.2f)",
+                       (long long) batchCount, (long long) M, (long long) N, (long long) KL, (long long) KU, (long long) nb, (long long) nthreads,
                        magma_perf, magma_time*1000. );
             }
 
             if ( opts.check ) {
-                magma_getvector( min_mn * batchCount, sizeof(magma_int_t), dipiv_magma, 1, ipiv, 1, opts.queue );
-
-                //if( cond ) {
-                //    for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
-                //}
-
-                error = 0;
-                bool pivot_ok = true;
-                #pragma omp parallel for reduction(max:error)
-                for (int i=0; i < batchCount; i++) {
-                    double err = 0;
-                    for (int k=0; k < min_mn; k++) {
-                        if (ipiv[i*min_mn+k] < 1 || ipiv[i*min_mn+k] > M ) {
-                            printf("error for matrix %lld ipiv @ %lld = %lld, terminated on first occurrence\n",
-                                    (long long) i, (long long) k, (long long) ipiv[i*min_mn+k] );
-                            pivot_ok = false;
-                            err      = -1;
-                            break;
-                        }
-                    }
-
-                    if(pivot_ok && err == 0) {
-                        err = get_band_LU_error(M, N, KL, KU, h_R + i * ldab*N,  ldab, h_Amagma + i * ldab*N, ipiv + i * min_mn);
-                        if(cond) {
-                            printf("\n error[%d] = %8.4e\n", i, err);
+                if( info != 0 ) {
+                    error = -1;
+                }
+                else {
+                    magma_getvector( min_mn * batchCount, sizeof(magma_int_t), dipiv_magma, 1, ipiv, 1, opts.queue );
+                    error = 0;
+                    bool pivot_ok = true;
+                    #pragma omp parallel for reduction(max:error)
+                    for (int i=0; i < batchCount; i++) {
+                        double err = 0;
+                        for (int k=0; k < min_mn; k++) {
+                            if (ipiv[i*min_mn+k] < 1 || ipiv[i*min_mn+k] > M ) {
+                                printf("error for matrix %lld ipiv @ %lld = %lld, terminated on first occurrence\n",
+                                        (long long) i, (long long) k, (long long) ipiv[i*min_mn+k] );
+                                pivot_ok = false;
+                                err      = -1;
+                                break;
+                            }
                         }
 
-                        if (std::isnan(err) || std::isinf(err)) {
-                            error = err;
+                        if(pivot_ok && err == 0) {
+                            err = get_band_LU_error(M, N, KL, KU, h_R + i * ldab*N,  ldab, h_Amagma + i * ldab*N, ipiv + i * min_mn);
+                            if(cond) {
+                                printf("\n error[%d] = %8.4e\n", i, err);
+                            }
+
+                            if (std::isnan(err) || std::isinf(err)) {
+                                error = err;
+                            }
+                            else {
+                                error = magma_max_nan( err, error );
+                            }
                         }
                         else {
-                            error = magma_max_nan( err, error );
+                            error = -1;
                         }
-                    }
-                    else {
-                        error = -1;
                     }
                 }
                 bool okay = ( error >= 0 && error < tol);
