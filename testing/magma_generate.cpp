@@ -904,3 +904,28 @@ void magma_generate_matrix(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex* A_ptr, magma_int_t lda,
     double* sigma_ptr );
+
+//TODO: why is this necessary with dpcpp but not CUDA?
+template
+void magma_generate_matrix(
+    magma_opts& opts,
+    Matrix< float >& A,
+    Vector< typename blas::traits<float>::real_t >& sigma );
+
+template
+void magma_generate_matrix(
+    magma_opts& opts,
+    Matrix< double >& A,
+    Vector< typename blas::traits<double>::real_t >& sigma );
+
+template
+void magma_generate_matrix(
+    magma_opts& opts,
+    Matrix< magmaFloatComplex >& A,
+    Vector< typename blas::traits<magmaFloatComplex>::real_t >& sigma );
+
+template
+void magma_generate_matrix(
+    magma_opts& opts,
+    Matrix< magmaDoubleComplex >& A,
+    Vector< typename blas::traits<magmaDoubleComplex>::real_t >& sigma );
