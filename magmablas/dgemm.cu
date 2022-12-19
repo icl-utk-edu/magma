@@ -204,7 +204,7 @@
     @ingroup magma_gemm
 *******************************************************************************/
 void
-magmablas_dgemm_2(
+magmablas_dgemm(
     magma_trans_t transA, magma_trans_t transB,
     magma_int_t m, magma_int_t n, magma_int_t k,
     double alpha,

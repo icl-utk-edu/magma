@@ -168,18 +168,10 @@ int main( int argc, char** argv)
 
             magma_flush_cache( opts.cache );
             dev_time = magma_sync_wtime( opts.queue );
-            if(opts.version == 1) {
-                magma_zgemm( opts.transA, opts.transB, M, N, K,
+            magma_zgemm( opts.transA, opts.transB, M, N, K,
                          alpha, dA(0,0), ldda,
                                 dB(0,0), lddb,
                          beta,  dC(0,0), lddc, opts.queue );
-            }
-            else {
-                magmablas_zgemm_2( opts.transA, opts.transB, M, N, K,
-                         alpha, dA(0,0), ldda,
-                                dB(0,0), lddb,
-                         beta,  dC(0,0), lddc, opts.queue );
-            }
             dev_time = magma_sync_wtime( opts.queue ) - dev_time;
             dev_perf = gflops / dev_time;
 
