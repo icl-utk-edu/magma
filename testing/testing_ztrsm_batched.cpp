@@ -215,13 +215,25 @@ int main( int argc, char** argv)
                 int(M), int(N), (const cuDoubleComplex*)&alpha,
                 (const cuDoubleComplex**) d_A_array, int(ldda),
                 (      cuDoubleComplex**) d_B_array, int(lddb), int(batchCount) );
-            #else
+            #elif defined(MAGMA_HAVE_HIP)
             hipblasZtrsmBatched(
                 opts.handle, cublas_side_const(opts.side), cublas_uplo_const(opts.uplo),
                 cublas_trans_const(opts.transA), cublas_diag_const(opts.diag),
                 int(M), int(N), (const hipblasDoubleComplex*)&alpha,
                 (hipblasDoubleComplex* const*) d_A_array, int(ldda),
                 (      hipblasDoubleComplex**) d_B_array, int(lddb), int(batchCount) );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::side left_right = syclblas_side_const(opts.side);
+	    oneapi::mkl::uplo upper_lower = syclblas_uplo_const(opts.uplo);
+	    oneapi::mkl::transpose trans = syclblas_trans_const(opts.transA);
+	    oneapi::mkl::diag unit_diag = syclblas_diag_const(opts.diag);
+ 	    oneapi::mkl::blas::column_major::trsm_batch( *opts.handle,
+			   &left_right, &upper_lower, &trans, &unit_diag,
+			   (std::int64_t*)(&M), (std::int64_t*)(&N), (magmaDoubleComplex*)&alpha,
+			   (const magmaDoubleComplex**) d_A_array, (std::int64_t*)(&ldda), 
+			   (magmaDoubleComplex**) d_B_array, (std::int64_t*)(&lddb),
+			   std::int64_t(1), (std::int64_t*)(&batchCount), {});
+
             #endif
 
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;

@@ -130,7 +130,9 @@ int main( int argc, char** argv)
     magma_int_t     *ipiv, *cpu_info;
     magma_int_t     *dipiv_magma, *dinfo_magma;
     int             *dipiv_device, *dinfo_device;  // not magma_int_t
-
+    #ifdef MAGMA_HAVE_SYCL
+    std::int64_t *dipiv_syclblas;
+    #endif
     magma_int_t M, N, n2, lda, ldda, min_mn, info;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
@@ -172,6 +174,9 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_imalloc( &dinfo_magma,  batchCount ));
             TESTING_CHECK( magma_malloc( (void**) &dipiv_device, min_mn * batchCount * sizeof(int) ));  // not magma_int_t
             TESTING_CHECK( magma_malloc( (void**) &dinfo_device, batchCount          * sizeof(int) ));
+            #ifdef MAGMA_HAVE_SYCL
+	    TESTING_CHECK( magma_malloc( (void**) &dipiv_syclblas, min_mn * batchCount * sizeof(std::int64_t) ));  // not magma_int_t
+            #endif													
 
             TESTING_CHECK( magma_malloc( (void**) &dA_array,    batchCount * sizeof(magmaDoubleComplex*) ));
             TESTING_CHECK( magma_malloc( (void**) &dipiv_array, batchCount * sizeof(magma_int_t*) ));
@@ -236,10 +241,20 @@ int main( int argc, char** argv)
                 cublasZgetrfBatched( opts.handle, int(N),
                                      dA_array, int(ldda), dipiv_device,
                                      dinfo_device, int(batchCount) );
-                #else
+                #elif defined(MAGMA_HAVE_HIP)
                 hipblasZgetrfBatched( opts.handle, int(N),
                                      (hipblasDoubleComplex**)dA_array, int(ldda), dipiv_device,
                                      dinfo_device, int(batchCount) );
+                #elif defined(MAGMA_HAVE_SYCL)
+		std::int64_t scratchSize = oneapi::mkl::lapack::getrf_batch_scratchpad_size<magmaDoubleComplex>(
+				*opts.handle, (std::int64_t*)(&N), (std::int64_t*)(&N), (std::int64_t*)(&ldda),
+				 std::int64_t(1), (std::int64_t*)(&batchCount));
+		magmaDoubleComplex *scratchPad;
+                TESTING_CHECK( magma_zmalloc( &scratchPad,  scratchSize));
+		oneapi::mkl::lapack::getrf_batch( *opts.handle, (std::int64_t*)(&N), (std::int64_t*)(&N),
+				(magmaDoubleComplex**)dA_array, (std::int64_t*)(&ldda), &dipiv_syclblas,
+				std::int64_t(1), (std::int64_t*)(&batchCount),
+			        scratchPad, scratchSize, {});
                 #endif
             }
             else {
@@ -361,6 +376,7 @@ int main( int argc, char** argv)
             magma_free( dipiv_magma );
             magma_free( dipiv_device );
             magma_free( dinfo_device );
+            magma_free( dipiv_syclblas );
             magma_free( dipiv_array );
             magma_free( dA_array );
             fflush( stdout );
