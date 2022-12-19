@@ -91,7 +91,7 @@ int main( int argc, char** argv)
             // If diag == Unit, the diagonal is replaced; this is still well-conditioned.
             // First, brute force positive definiteness.
             for (int i = 0; i < N; ++i) {
-                hA[ i + i*lda ] += N;
+                hA[ i + i*lda ] += MAGMA_Z_MAKE(N, 0.);
             }
             lapackf77_zpotrf( lapack_uplo_const(opts.uplo), &N, hA, &lda, &info );
             assert( info == 0 );
