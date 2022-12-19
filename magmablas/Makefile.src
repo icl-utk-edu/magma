@@ -38,7 +38,6 @@ libmagma_src += \
 	$(cdir)/dgemm.cu		\
 	$(cdir)/cgemm.cu		\
 	$(cdir)/zgemm.cu		\
-	$(cdir)/zgemm_fermi.cu		\
 	$(cdir)/zgemm_reduce.cu		\
 	$(cdir)/zgemv_conj.cu		\
 	$(cdir)/zgemv_fermi.cu		\
