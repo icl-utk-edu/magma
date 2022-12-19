@@ -345,8 +345,21 @@ magma_mem_info(size_t * freeMem, size_t * totalMem) {
     DPCT1072:5: DPC++ currently does not support getting the available memory on
     the current device. You may need to adjust the code.
     */
+	// NNB: see https://github.com/intel/llvm/issues/5713
+	// this is currently in an Intel-specific extension to SYCL, not portable!
+	// TODO: remove use of dpct get_current_device entirely
+    sycl::device d = dpct::get_current_device();
+	// TODO: sycl::ext::intel::info not availble in oneapi/eng-compiler/2022.10.15.004
+	//   even though the SYCL_EXT_INTEL_DEVICE_INFO is 3, just as in
+	//   the 2022.10.15.006 module (where it is found)
+	//   But all latest versions don't have version 4, which is required for the
+	//   free memory calculation to work.
+	//   We should change to the below lines when it is available?
+    //    *totalMem = d.get_info<sycl::info::device::global_mem_size>();
+    //    *freeMem = d.get_info<sycl::ext::intel::info::device::free_memory>();
     *totalMem =
         dpct::get_current_device().get_device_info().get_global_mem_size();
+    *freeMem = (*totalMem); // FIX this when extension available!
     return MAGMA_SUCCESS;
 }
 
