@@ -186,7 +186,7 @@ int main( int argc, char** argv)
                                    (const cuDoubleComplex**) d_B_array, int(lddb),
                                    (const cuDoubleComplex*)&beta,
                                    (cuDoubleComplex**)d_C_array, int(lddc), int(batchCount) );
-                #else
+                #elif defined(MAGMA_HAVE_HIP)
                   hipblasZgemmBatched(
                                    opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                    int(M), int(N), int(K),
@@ -195,6 +195,18 @@ int main( int argc, char** argv)
                                    (const hipblasDoubleComplex**) d_B_array, int(lddb),
                                    (const hipblasDoubleComplex*)&beta,
                                    (hipblasDoubleComplex**)d_C_array, int(lddc), int(batchCount) );
+		#elif defined(MAGMA_HAVE_SYCL)
+                 oneapi::mkl::transpose transpose_ct1 = syclblas_trans_const(opts.transA);
+                 oneapi::mkl::transpose transpose_ct2 = syclblas_trans_const(opts.transB);
+                 oneapi::mkl::blas::column_major::gemm_batch(
+                                 *opts.handle, &transpose_ct1, &transpose_ct2,
+				 (std::int64_t*)(&M),(std::int64_t*)(&N),(std::int64_t*)(&K),
+                                 (magmaDoubleComplex*)&alpha,
+                                 (const magmaDoubleComplex **)d_A_array, (std::int64_t*)(&ldda),
+                                 (const magmaDoubleComplex **)d_B_array, (std::int64_t*)(&lddb),
+				 (magmaDoubleComplex*)&beta,
+                                 (magmaDoubleComplex**)d_C_array, (std::int64_t*)(&lddc), std::int64_t(1),
+				 (std::int64_t*)(&batchCount), {});
                 #endif
             }
             else{
@@ -207,7 +219,7 @@ int main( int argc, char** argv)
                                    (const cuDoubleComplex*) d_B, int(lddb), lddb * Bn,
                                    (const cuDoubleComplex*)&beta,
                                    (cuDoubleComplex*)d_C, int(lddc), lddc*N, int(batchCount) );
-                #else
+                #elif defined(MAGMA_HAVE_HIP)
                 hipblasZgemmStridedBatched(
                                    opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                    int(M), int(N), int(K),
@@ -216,6 +228,21 @@ int main( int argc, char** argv)
                                    (const hipblasDoubleComplex*) d_B, int(lddb), lddb * Bn,
                                    (const hipblasDoubleComplex*)&beta,
                                    (hipblasDoubleComplex*)d_C, int(lddc), lddc*N, int(batchCount) );
+                #elif defined(MAGMA_HAVE_SYCL)
+                 oneapi::mkl::transpose transpose_ct1 = syclblas_trans_const(opts.transA);
+                 oneapi::mkl::transpose transpose_ct2 = syclblas_trans_const(opts.transB);
+		 std::int64_t stridea = ldda * An;
+		 std::int64_t strideb = lddb * Bn;
+		 std::int64_t stridec = lddc * N;
+		 oneapi::mkl::blas::column_major::gemm_batch(
+                                 *opts.handle, transpose_ct1, transpose_ct2,
+				 std::int64_t(M),std::int64_t(N),std::int64_t(K),
+                                 (magmaDoubleComplex)alpha,
+                                 (const magmaDoubleComplex *)d_A_array, std::int64_t(ldda), stridea,
+                                 (const magmaDoubleComplex *)d_B_array, std::int64_t(lddb), strideb,
+				 (magmaDoubleComplex)beta,
+                                 (magmaDoubleComplex*)d_C_array, std::int64_t(lddc), stridec,
+				 std::int64_t(batchCount), {});
                 #endif
             }
 
