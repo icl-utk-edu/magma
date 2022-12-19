@@ -988,30 +988,18 @@ void magma_queue_create_internal(magma_device_t device,
     DPCT1003:70: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
     */
-    stat = (queue->syclblas__ = &dpct::get_default_queue(), 0);
-    check_xerror( stat, func, file, line );
-    queue->own__ |= own_syclblas;
-    /*
-    DPCT1003:71: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
     stat = (queue->syclblas__ = queue->stream__, 0);
     check_xerror( stat, func, file, line );
+    queue->own__ |= own_syclblas;
 
     int stat2;
     /*
     DPCT1003:72: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
     */
-    stat2 = (queue->syclsparse__ = &dpct::get_default_queue(), 0);
-    check_xerror( stat2, func, file, line );
-    queue->own__ |= own_syclsparse;
-    /*
-    DPCT1003:73: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
     stat2 = (queue->syclsparse__ = queue->stream__, 0);
     check_xerror( stat2, func, file, line );
+    queue->own__ |= own_syclsparse;
 #endif
 
     MAGMA_UNUSED( err );

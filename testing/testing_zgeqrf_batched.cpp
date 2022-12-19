@@ -193,11 +193,24 @@ int main( int argc, char** argv)
                                  dA_array, int(ldda), dtau_array,
                                  &device_info, int(batchCount) );
             #endif
-            #else
+            #elif defined(MAGMA_HAVE_HIP)
             hipblasZgeqrfBatched( opts.handle, int(M), int(N),
                                  (hipblasDoubleComplex**)dA_array, int(ldda),
                                  (hipblasDoubleComplex**)dtau_array,
                                  &device_info, int(batchCount) );
+            #elif defined(MAGMA_HAVE_SYCL)
+            std::int64_t scratchSize = oneapi::mkl::lapack::geqrf_batch_scratchpad_size<magmaDoubleComplex>(
+			         *opts.handle,
+			         (std::int64_t*)(&M), (std::int64_t*)(&N), (std::int64_t*)(&ldda),
+				 std::int64_t(1), (std::int64_t*)(&batchCount));
+	    magmaDoubleComplex *scratchPad;
+	    TESTING_CHECK( magma_zmalloc( &scratchPad, scratchSize));
+            oneapi::mkl::lapack::geqrf_batch( *opts.handle, 
+			         (std::int64_t*)(&M), (std::int64_t*)(&N),
+				 (magmaDoubleComplex**)dA_array, (std::int64_t*)(&ldda),
+				 (magmaDoubleComplex**)dtau_array,
+				 std::int64_t(1), (std::int64_t*)(&batchCount),
+				 scratchPad, scratchSize, {}); 
             #endif
 
             device_time = magma_sync_wtime( opts.queue ) - device_time;
@@ -284,7 +297,7 @@ int main( int argc, char** argv)
                 /* check cublas result */
                 cublas_error  = 0;
                 cublas_error2 = 0;
-                #if ((defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 6050) || defined(MAGMA_HAVE_HIP))
+                #if ((defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 6050) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL))
                 magma_zgetvector(min_mn*batchCount, dtau_cublas, 1, tau, 1, opts.queue );
                 magma_zgetmatrix( M, column, d_A, ldda, h_A, lda, opts.queue );
                 #pragma omp parallel for reduction(max:cublas_error,cublas_error2)
