@@ -212,6 +212,8 @@ testing_src += \
 	\
 	$(cdir)/testing_zposv_batched.cpp	\
 	$(cdir)/testing_zpotrf_batched.cpp	\
+	\
+	$(cdir)/testing_zgbtrf_batched_tuning.cpp	\
 
 # ----------
 # vbatched BLAS, QR, LU, Cholesky
