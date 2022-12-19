@@ -401,7 +401,7 @@ int main( int argc, char** argv)
                                &alpha, (const magmaHalf**)dA_array, int(ldda),
                                        (const magmaHalf**)dB_array, int(lddb),
                                &beta,                     dC_array, int(lddc), int(batchCount) );
-            #else
+            #elif MAGMA_HAVE_HIP
             hipblasHgemmBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                int(M), int(N), int(K),
                                (hipblasHalf*)&alpha, (const hipblasHalf**)dA_array, int(ldda),
