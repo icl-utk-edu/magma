@@ -116,7 +116,7 @@ if (MAGMA_ENABLE_CUDA)
 
   # ----------------------------------------
   # locate CUDA libraries
-  set( GPU_TARGET "Kepler Maxwell Pascal" CACHE STRING "CUDA architectures to compile for; one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
+  set( GPU_TARGET "Kepler Maxwell Pascal" CACHE STRING "CUDA architectures to compile for; one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_[0-9][0-9]" )
   find_package( CUDAToolkit )
   if (CUDAToolkit_FOUND)
     message( STATUS "Found CUDA ${CUDA_VERSION}" )
@@ -159,6 +159,10 @@ if (MAGMA_ENABLE_CUDA)
 
     if (GPU_TARGET MATCHES Ampere)
         set( GPU_TARGET "${GPU_TARGET} sm_80" )
+    endif()
+
+    if (GPU_TARGET MATCHES Hopper)
+        set( GPU_TARGET "${GPU_TARGET} sm_90" )
     endif()
 
     if (GPU_TARGET MATCHES sm_20)
@@ -271,6 +275,14 @@ if (MAGMA_ENABLE_CUDA)
         endif()
         list(APPEND __cuda_architectures 80)
         message( STATUS "    compile for CUDA arch 8.0 (Ampere)" )
+    endif()
+
+    if (GPU_TARGET MATCHES sm_90)
+        if (NOT MIN_ARCH)
+            set( MIN_ARCH 900 )
+        endif()
+        list(APPEND __cuda_architectures 90)
+        message( STATUS "    compile for CUDA arch 9.0 (Hopper)" )
     endif()
 
     if (NOT MIN_ARCH)
