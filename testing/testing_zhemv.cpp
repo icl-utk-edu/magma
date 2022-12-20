@@ -72,6 +72,10 @@ int main(int argc, char **argv)
         printf("%%   N   MAGMA Gflop/s (ms)    Atomics Gflop/s      %s Gflop/s       CPU Gflop/s   MAGMA error  %s\n",
                 g_platform_str, g_platform_str );
         printf("%%==========================================================================================================\n");
+    #elif defined(MAGMA_HAVE_SYCL)
+        printf("%%   N   MAGMA Gflop/s (ms)    %s Gflop/s       CPU Gflop/s   MAGMA error  %s\n",
+                g_platform_str, g_platform_str );
+        printf("%%==========================================================================================================\n");
     #else
         printf("%%   N   %s Gflop/s       CPU Gflop/s   MAGMA error  %s\n",
                 g_platform_str, g_platform_str );
@@ -147,6 +151,7 @@ int main(int argc, char **argv)
                Performs operation using cuBLAS - using atomics
                =================================================================== */
             #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+	        // No equivalent setting in MKL?  (for SYCL)
                 cublasSetAtomicsMode( opts.handle, CUBLAS_ATOMICS_ALLOWED );
                 magma_zsetvector( N, Y, incy, dY(0), incy, opts.queue );
                 
@@ -166,7 +171,7 @@ int main(int argc, char **argv)
             /* =====================================================================
                Performs operation using MAGMABLAS (only with CUDA)
                =================================================================== */
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                 magma_zsetvector( N, Y, incy, dY(0), incy, opts.queue );
                 
                 magma_time = magma_sync_wtime( opts.queue );
@@ -206,7 +211,7 @@ int main(int argc, char **argv)
             dev_error = lapackf77_zlange( "M", &N, &ione, Ydev, &N, work )
                             / (sqrt(double(N+2))*fabs(alpha)*Anorm*Xnorm + 2*fabs(beta)*Ynorm);
             
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                 blasf77_zaxpy( &N, &c_neg_one, Y, &incy, Yatomics, &incy );
                 atomics_error = lapackf77_zlange( "M", &N, &ione, Yatomics, &N, work )
                             / (sqrt(double(N+2))*fabs(alpha)*Anorm*Xnorm + 2*fabs(beta)*Ynorm);
@@ -216,6 +221,7 @@ int main(int argc, char **argv)
                             / (sqrt(double(N+2))*fabs(alpha)*Anorm*Xnorm + 2*fabs(beta)*Ynorm);
             #endif
             
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
             bool okay = (magma_error < tol && dev_error < tol && atomics_error < tol);
             status += ! okay;
             printf("%5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %8.2e   %8.2e   %s\n",
@@ -226,7 +232,18 @@ int main(int argc, char **argv)
                    cpu_perf,     1000.*cpu_time,
                    magma_error, dev_error, atomics_error,
                    (okay ? "ok" : "failed"));
-            
+            #elif defined(MAGMA_HAVE_SYCL)
+            bool okay = (magma_error < tol && dev_error < tol);
+            status += ! okay;
+            printf("%5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %8.2e   %s\n",
+                   (long long) N,
+                   magma_perf,   1000.*magma_time,
+                   dev_perf,     1000.*dev_time,
+                   cpu_perf,     1000.*cpu_time,
+                   magma_error, dev_error,
+                   (okay ? "ok" : "failed"));
+            #endif
+
             magma_free_cpu( A );
             magma_free_cpu( X );
             magma_free_cpu( Y );
