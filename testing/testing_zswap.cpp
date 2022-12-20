@@ -252,7 +252,7 @@ int main( int argc, char** argv)
              * zswapblk, blocked version (2 matrices)
              */
             
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                 /* Row Major */
                 init_matrix( N, N, h_A1, lda, 0 );
                 init_matrix( N, N, h_A2, lda, 100 );
