@@ -31,6 +31,8 @@ void herk_template_batched_nt_kernel(
     int Bi, int Bj,
     int Ci, int Cj)
 {
+    extern __shared__ T* sdata_nt[];
+
     // for lower: each thread-block checks its bottom left corner of its corresponding C block
     if ( ( uplo == MagmaLower ) && ( blockIdx.y*BLK_N > (blockIdx.x+1)*BLK_M ) )
         return;
@@ -40,13 +42,18 @@ void herk_template_batched_nt_kernel(
         return;
 
     int batchid = blockIdx.z;
-
+    const int slda = BLK_M+1;  // +1 only required if A is transposed
+    const int sldb = BLK_K+1;  // +1 always required
+    T* sA = (T*)sdata_nt;      // sA is (BLK_M+1) x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
     gemm_template_device_nt
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
-        ( N, N, K, Aarray[batchid] + Aj * LDA + Ai, LDA,
-                   Barray[batchid] + Bj * LDB + Bi, LDB,
-                   Carray[batchid] + Cj * LDC + Ci, LDC,
-                   alpha, beta );
+        ( N, N, K,
+          Aarray[batchid] + Aj * LDA + Ai, LDA,
+          Barray[batchid] + Bj * LDB + Bi, LDB,
+          Carray[batchid] + Cj * LDC + Ci, LDC,
+          alpha, beta,
+          sA, slda, sB, sldb, NULL, 0 );
 }
 
 
@@ -66,6 +73,8 @@ void herk_template_batched_tn_kernel(
     int Ci, int Cj)
 
 {
+    extern __shared__ T* sdata_tn[];
+
     // for lower: each thread-block checks its bottom left corner of its corresponding C block
     if ( ( uplo == MagmaLower ) && ( blockIdx.y*BLK_N > (blockIdx.x+1)*BLK_M ) )
         return;
@@ -75,13 +84,18 @@ void herk_template_batched_tn_kernel(
         return;
 
     int batchid = blockIdx.z;
-
+    const int slda = BLK_M+1;  // +1 only required if A is transposed
+    const int sldb = BLK_K+1;  // +1 always required
+    T* sA = (T*)sdata_tn;      // sA is (BLK_M+1) x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
     gemm_template_device_tn
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
-        ( N, N, K, Aarray[batchid] + Aj * LDA + Ai, LDA,
-                   Barray[batchid] + Bj * LDB + Bi, LDB,
-                   Carray[batchid] + Cj * LDC + Ci, LDC,
-                   alpha, beta );
+        ( N, N, K,
+          Aarray[batchid] + Aj * LDA + Ai, LDA,
+          Barray[batchid] + Bj * LDB + Bi, LDB,
+          Carray[batchid] + Cj * LDC + Ci, LDC,
+          alpha, beta,
+          sA, slda, sB, sldb, NULL, 0 );
 }
 
 
@@ -99,16 +113,18 @@ void herk_template_batched_nt(
     T alpha, T beta,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
+    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
+    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
     dim3 dimBlock(DIM_X, DIM_Y);
-
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 dimGrid( magma_ceildiv( n, BLK_M ), magma_ceildiv( n, BLK_N ), ibatch );
 
         herk_template_batched_nt_kernel
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-        <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
+        <<< dimGrid, dimBlock, shmem, queue->cuda_stream() >>>
         (uplo, n, k, alpha, dA_array+i, ldda, dB_array+i, lddb, beta, dC_array+i, lddc, ai, aj, bi, bj, ci, cj);
     }
 }
@@ -127,16 +143,18 @@ void herk_template_batched_tn(
     T alpha, T beta,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
+    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
+    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
     dim3 dimBlock(DIM_X, DIM_Y);
-
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 dimGrid( magma_ceildiv( n, BLK_M ), magma_ceildiv( n, BLK_N ), ibatch );
 
         herk_template_batched_tn_kernel
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-        <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
+        <<< dimGrid, dimBlock, shmem, queue->cuda_stream() >>>
         (uplo, n, k, alpha, dA_array+i, ldda, dB_array+i, lddb, beta, dC_array+i, lddc, ai, aj, bi, bj, ci, cj);
     }
 }

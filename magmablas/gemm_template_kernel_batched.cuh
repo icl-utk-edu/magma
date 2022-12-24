@@ -33,7 +33,13 @@ void gemm_template_batched_nn_kernel(
     int roffB, int coffB,
     int roffC, int coffC )
 {
+    extern __shared__ T* sdata_nn[];
     const int batchid = blockIdx.z;
+
+    const int slda = BLK_M+1;    // +1 only required if A is transposed
+    const int sldb = BLK_K+1;    // +1 always required
+    T* sA = (T*)sdata_nn;        // sA is (BLK_M+1) x (BLK_K)
+    T* sB = sA + slda * BLK_K;   // sB is (BLK_K+1) x (BLK_N)
 
     gemm_template_device_nn
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
@@ -41,7 +47,8 @@ void gemm_template_batched_nn_kernel(
           Aarray[batchid] + LDA *  coffA + roffA, LDA,
           Barray[batchid] + LDB *  coffB + roffB, LDB,
           Carray[batchid] + LDC *  coffC + roffC, LDC,
-          alpha, beta );
+          alpha, beta,
+          sA, slda, sB, sldb, NULL, 0 );
 }
 
 
@@ -61,7 +68,13 @@ void gemm_template_batched_nt_kernel(
     int roffB, int coffB,
     int roffC, int coffC )
 {
+    extern __shared__ T* sdata_nt[];
     const int batchid = blockIdx.z;
+
+    const int slda = BLK_M+1;  // +1 only required if A is transposed
+    const int sldb = BLK_K+1;  // +1 always required
+    T* sA = (T*)sdata_nt;      // sA is (BLK_M+1) x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
 
     gemm_template_device_nt
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
@@ -69,7 +82,8 @@ void gemm_template_batched_nt_kernel(
           Aarray[batchid] + LDA *  coffA + roffA, LDA,
           Barray[batchid] + LDB *  coffB + roffB, LDB,
           Carray[batchid] + LDC *  coffC + roffC, LDC,
-          alpha, beta );
+          alpha, beta,
+          sA, slda, sB, sldb, NULL, 0 );
 }
 
 
@@ -89,7 +103,13 @@ void gemm_template_batched_tn_kernel(
     int roffB, int coffB,
     int roffC, int coffC )
 {
+    extern __shared__ T* sdata_tn[];
     const int batchid = blockIdx.z;
+
+    const int slda = BLK_M+1;  // +1 only required if A is transposed
+    const int sldb = BLK_K+1;  // +1 always required
+    T* sA = (T*)sdata_tn;      // sA is (BLK_M+1) x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
 
     gemm_template_device_tn
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
@@ -97,7 +117,8 @@ void gemm_template_batched_tn_kernel(
           Aarray[batchid] + LDA *  coffA + roffA, LDA,
           Barray[batchid] + LDB *  coffB + roffB, LDB,
           Carray[batchid] + LDC *  coffC + roffC, LDC,
-          alpha, beta );
+          alpha, beta,
+          sA, slda, sB, sldb, NULL, 0 );
 }
 
 
@@ -117,7 +138,13 @@ void gemm_template_batched_tt_kernel(
     int roffB, int coffB,
     int roffC, int coffC )
 {
+    extern __shared__ T* sdata_tt[];
     const int batchid = blockIdx.z;
+
+    const int slda = BLK_M+1;  // +1 only required if A is transposed
+    const int sldb = BLK_K+1;  // +1 always required
+    T* sA = (T*)sdata_tt;      // sA is (BLK_M+1) x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
 
     gemm_template_device_tt
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
@@ -125,7 +152,8 @@ void gemm_template_batched_tt_kernel(
           Aarray[batchid] + LDA *  coffA + roffA, LDA,
           Barray[batchid] + LDB *  coffB + roffB, LDB,
           Carray[batchid] + LDC *  coffC + roffC, LDC,
-          alpha, beta );
+          alpha, beta,
+          sA, slda, sB, sldb, NULL, 0 );
 }
 
 
@@ -147,13 +175,16 @@ void gemm_template_batched_nn(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
+    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
+    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), ibatch );
         gemm_template_batched_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-        <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
+        <<< dimGrid, dimBlock, shmem, queue->cuda_stream() >>>
         (m, n, k, dA_array+i, ldda, dB_array+i, lddb, dC_array+i, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
     }
 }
@@ -176,13 +207,16 @@ void gemm_template_batched_nt(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
+    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
+    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), ibatch );
         gemm_template_batched_nt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-        <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
+        <<< dimGrid, dimBlock, shmem, queue->cuda_stream() >>>
         (m, n, k, dA_array+i, ldda, dB_array+i, lddb, dC_array+i, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
     }
 }
@@ -205,13 +239,16 @@ void gemm_template_batched_tn(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
+    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
+    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), ibatch );
         gemm_template_batched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-        <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
+        <<< dimGrid, dimBlock, shmem, queue->cuda_stream() >>>
         (m, n, k, dA_array+i, ldda, dB_array+i, lddb, dC_array+i, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
     }
 }
@@ -234,13 +271,16 @@ void gemm_template_batched_tt(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
+    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
+    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), ibatch );
         gemm_template_batched_tt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-        <<< dimGrid, dimBlock, 0, queue->cuda_stream() >>>
+        <<< dimGrid, dimBlock, shmem, queue->cuda_stream() >>>
         (m, n, k, dA_array+i, ldda, dB_array+i, lddb, dC_array+i, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
     }
 }
