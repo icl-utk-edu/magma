@@ -355,10 +355,12 @@ else ifeq ($(BACKEND),hip)
     subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
 
 else ifeq ($(BACKEND),dpcpp)
-	SPARSE_DIR =
+	SPARSE_DIR ?= sparse_sycl
 	subdirs += interface_sycl
 	subdirs += magmablas_sycl
 	subdirs += testing
+
+    subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
 
 endif
 
@@ -476,7 +478,8 @@ else ifeq ($(BACKEND),hip)
 $(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_hip -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control
 $(sparse_testing_obj): MAGMA_INC += -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control -I./testing
 else ifeq ($(BACKEND),dpcpp)
-$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_sycl
+$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_sycl -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control
+$(sparse_testing_obj): MAGMA_INC += -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control -I./testing
 endif
 
 
