@@ -1,0 +1,1282 @@
+---
+MainSourceFile:  '/home/u177171/local/magma/sparse_sycl/blas/magma_sampleselect.h'
+Replacements:
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          188
+    Length:          0
+    ReplacementText: "#include <CL/sycl.hpp>\n#include <dpct/dpct.hpp>\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1234
+    Length:          11
+    ReplacementText: 'SYCL_EXTERNAL '
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1295
+    Length:          0
+    ReplacementText: ', sycl::nd_item<3> item_ct1'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1298
+    Length:          11
+    ReplacementText: 'SYCL_EXTERNAL '
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1357
+    Length:          0
+    ReplacementText: ', sycl::nd_item<3> item_ct1'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1360
+    Length:          11
+    ReplacementText: 'SYCL_EXTERNAL '
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1435
+    Length:          0
+    ReplacementText: ",\n                             sycl::nd_item<3> item_ct1, int32_t *sums"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1473
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1536
+    Length:          11
+    ReplacementText: 'SYCL_EXTERNAL '
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1598
+    Length:          0
+    ReplacementText: ", sycl::nd_item<3> item_ct1,\n                      double *sample_buffer, double *leaves"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1601
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1673
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1744
+    Length:          0
+    ReplacementText: ",\n                             sycl::nd_item<3> item_ct1, double *data"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1747
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1831
+    Length:          11
+    ReplacementText: 'SYCL_EXTERNAL '
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          1919
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2002
+    Length:          11
+    ReplacementText: 'SYCL_EXTERNAL '
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2084
+    Length:          0
+    ReplacementText: ",\n                   sycl::nd_item<3> item_ct1, double *local_tree,\n                   int32_t *local_counts"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2087
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2186
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2284
+    Length:          0
+    ReplacementText: ",\n                         sycl::nd_item<3> item_ct1, double *local_tree,\n                         int32_t *local_counts"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2287
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2415
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2542
+    Length:          0
+    ReplacementText: ",\n                             sycl::nd_item<3> item_ct1, int32_t *count"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2546
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2623
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2701
+    Length:          0
+    ReplacementText: ",\n                           sycl::nd_item<3> item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2750
+    Length:          12
+    ReplacementText: 'sycl::queue'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2763
+    Length:          0
+    ReplacementText: '*'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2849
+    Length:          12
+    ReplacementText: 'sycl::queue'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2862
+    Length:          0
+    ReplacementText: '*'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2961
+    Length:          12
+    ReplacementText: 'sycl::queue'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          2974
+    Length:          0
+    ReplacementText: '*'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          3053
+    Length:          12
+    ReplacementText: 'sycl::queue'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          3066
+    Length:          0
+    ReplacementText: '*'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          3173
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          3429
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          3587
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          3668
+    Length:          28
+    ReplacementText: 'sycl::popcount(mask << (32 - shift))'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          3812
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          3912
+    Length:          0
+    ReplacementText: ",\n                                           sycl::nd_item<3> item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          3936
+    Length:          11
+    ReplacementText: 'item_ct1.get_local_id(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4017
+    Length:          9
+    ReplacementText: 'dpct::atomic_fetch_add<int32_t, sycl::access::address_space::generic_space>'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4035
+    Length:          12
+    ReplacementText: 'sycl::popcount(mask)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4088
+    Length:          0
+    ReplacementText: "    /*\n    DPCT1023:52: The DPC++ sub-group does not support mask options for dpct::select_from_sub_group.\n    */\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4098
+    Length:          26
+    ReplacementText: 'dpct::select_from_sub_group(item_ct1.get_sub_group(), ofs, 0)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4246
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4352
+    Length:          0
+    ReplacementText: ",\n                                                sycl::nd_item<3> item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4404
+    Length:          31
+    ReplacementText: 'sycl::reduce_over_group(item_ct1.get_sub_group(), (amask & (0x1 << item_ct1.get_sub_group().get_local_linear_id())) && predicate ? (0x1 << item_ct1.get_sub_group().get_local_linear_id()) : 0, sycl::ext::oneapi::plus<>())'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4553
+    Length:          0
+    ReplacementText: ', item_ct1'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4592
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4694
+    Length:          0
+    ReplacementText: ",\n                               sycl::nd_item<3> item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4834
+    Length:          0
+    ReplacementText: "    /*\n    DPCT1023:53: The DPC++ sub-group does not support mask options for dpct::permute_sub_group_by_xor.\n    */\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4848
+    Length:          36
+    ReplacementText: 'dpct::permute_sub_group_by_xor(item_ct1.get_sub_group(), result, 1, 4)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4919
+    Length:          0
+    ReplacementText: "    /*\n    DPCT1023:54: The DPC++ sub-group does not support mask options for dpct::permute_sub_group_by_xor.\n    */\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          4933
+    Length:          36
+    ReplacementText: 'dpct::permute_sub_group_by_xor(item_ct1.get_sub_group(), result, 2, 4)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          5204
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          5299
+    Length:          0
+    ReplacementText: ",\n                                  sycl::nd_item<3> item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          5571
+    Length:          0
+    ReplacementText: "    /*\n    DPCT1023:55: The DPC++ sub-group does not support mask options for dpct::select_from_sub_group.\n    */\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          5584
+    Length:          57
+    ReplacementText: 'dpct::select_from_sub_group(item_ct1.get_sub_group(), packed, (pack_idx * 4) % warp_size, 4)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          5807
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          5867
+    Length:          0
+    ReplacementText: ', sycl::nd_item<3> item_ct1'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          5936
+    Length:          11
+    ReplacementText: 'item_ct1.get_local_id(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          6389
+    Length:          15
+    ReplacementText: "/*\n            DPCT1065:56: Consider replacing sycl::nd_item::barrier() with sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better performance if there is no access to global memory.\n            */\n            item_ct1.barrier()"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          6435
+    Length:          12
+    ReplacementText: 'sycl::group_barrier(item_ct1.get_sub_group())'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          6629
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          6691
+    Length:          0
+    ReplacementText: ', sycl::nd_item<3> item_ct1'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          6760
+    Length:          11
+    ReplacementText: 'item_ct1.get_local_id(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          7315
+    Length:          15
+    ReplacementText: "/*\n            DPCT1065:57: Consider replacing sycl::nd_item::barrier() with sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better performance if there is no access to global memory.\n            */\n            item_ct1.barrier()"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          7361
+    Length:          12
+    ReplacementText: 'sycl::group_barrier(item_ct1.get_sub_group())'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          7747
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          7800
+    Length:          0
+    ReplacementText: ', sycl::nd_item<3> item_ct1'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          7836
+    Length:          0
+    ReplacementText: ', item_ct1'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          7843
+    Length:          15
+    ReplacementText: "/*\n    DPCT1065:58: Consider replacing sycl::nd_item::barrier() with sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better performance if there is no access to global memory.\n    */\n    item_ct1.barrier()"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          7894
+    Length:          0
+    ReplacementText: ', item_ct1'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          7931
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          8048
+    Length:          0
+    ReplacementText: ",\n                              sycl::nd_item<3> item_ct1, int32_t *sums"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          8159
+    Length:          11
+    ReplacementText: 'item_ct1.get_local_id(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          8176
+    Length:          30
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          8314
+    Length:          0
+    ReplacementText: ', item_ct1'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          8321
+    Length:          15
+    ReplacementText: "/*\n    DPCT1065:59: Consider replacing sycl::nd_item::barrier() with sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better performance if there is no access to global memory.\n    */\n    item_ct1.barrier()"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          8623
+    Length:          67
+    ReplacementText: 'sycl::reduce_over_group(item_ct1.get_sub_group(), (full_mask & (0x1 << item_ct1.get_sub_group().get_local_linear_id())) && sums[(warp_size - idx - 1) * step] > rank ? (0x1 << item_ct1.get_sub_group().get_local_linear_id()) : 0, sycl::ext::oneapi::plus<>())'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          8836
+    Length:          11
+    ReplacementText: 'sycl::clz((int)mask)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          9069
+    Length:          65
+    ReplacementText: 'sycl::reduce_over_group(item_ct1.get_sub_group(), (cur_mask & (0x1 << item_ct1.get_sub_group().get_local_linear_id())) && sums[base_idx + (step - idx - 1)] > rank ? (0x1 << item_ct1.get_sub_group().get_local_linear_id()) : 0, sycl::ext::oneapi::plus<>())'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          9353
+    Length:          11
+    ReplacementText: 'sycl::clz((int)mask)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          9522
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          9604
+    Length:          0
+    ReplacementText: ",\n                           sycl::nd_item<3> item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          9661
+    Length:          10
+    ReplacementText: 'item_ct1.get_local_range(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          9741
+    Length:          11
+    ReplacementText: 'item_ct1.get_local_id(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          9755
+    Length:          10
+    ReplacementText: 'item_ct1.get_local_range(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          9768
+    Length:          10
+    ReplacementText: 'item_ct1.get_group(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          9925
+    Length:          36
+    ReplacementText: 'sycl::reduce_over_group(item_ct1.get_sub_group(), (full_mask & (0x1 << item_ct1.get_sub_group().get_local_linear_id())) && idx < size ? (0x1 << item_ct1.get_sub_group().get_local_linear_id()) : 0, sycl::ext::oneapi::plus<>())'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          10045
+    Length:          0
+    ReplacementText: "            /*\n            DPCT1084:125: The function call has multiple migration results in different template instantiations that could not be unified. You may need to adjust the code.\n            */\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          10078
+    Length:          0
+    ReplacementText: ', item_ct1'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          10128
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          10196
+    Length:          0
+    ReplacementText: ",\n                                 sycl::nd_item<3> item_ct1"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          10221
+    Length:          11
+    ReplacementText: 'item_ct1.get_local_id(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          10249
+    Length:          10
+    ReplacementText: 'item_ct1.get_local_range(2)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          10263
+    Length:          0
+    ReplacementText: "        /*\n        DPCT1084:126: The function call has multiple migration results in different template instantiations that could not be unified. You may need to adjust the code.\n        */\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          10293
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+    Offset:          10500
+    Length:          14
+    ReplacementText: 'sycl::clz(idx + 1)'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+DpctVersion:     2022.1.0
+MainHelperFileName: dpct
+USMLevel:        ''
+FeatureMap:
+  atomic.hpp:
+    atomic_exchange:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zbajac_csr_overlap.cu'
+      FeatureName:     atomic_exchange
+      SubFeatureMap:   {}
+    atomic_fetch_add:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+      FeatureName:     atomic_fetch_add
+      SubFeatureMap:   {}
+    atomic_fetch_sub:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+      FeatureName:     atomic_fetch_sub
+      SubFeatureMap:   {}
+  device.hpp:
+    device_ext:
+      IsCalled:        false
+      FeatureName:     ''
+      SubFeatureMap:
+        device_ext_default_queue:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/clag2z_sparse.cu'
+            - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+            - '/home/u177171/local/magma/sparse/blas/magma_zmatrixtools_gpu.cu'
+            - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+            - '/home/u177171/local/magma/sparse/blas/zlag2c_sparse.cu'
+          FeatureName:     'device_ext::default_queue'
+          SubFeatureMap:   {}
+    get_current_device:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/clag2z_sparse.cu'
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/magma_zmatrixtools_gpu.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zlag2c_sparse.cu'
+      FeatureName:     get_current_device
+      SubFeatureMap:   {}
+    get_default_queue:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/clag2z_sparse.cu'
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/magma_zmatrixtools_gpu.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_maxblock.cu'
+        - '/home/u177171/local/magma/sparse/blas/zlag2c_sparse.cu'
+        - '/home/u177171/local/magma/sparse/blas/zmergecg.cu'
+      FeatureName:     get_default_queue
+      SubFeatureMap:   {}
+  dpct.hpp:
+    dpct_align_and_inline:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+        - '/home/u177171/local/magma/sparse/blas/zgecsr5mv.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_batched32.cu'
+      FeatureName:     '__dpct_align__(n) and __dpct_inline__'
+      SubFeatureMap:   {}
+    dpct_compatibility_temp:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+        - '/home/u177171/local/magma/sparse/blas/magma_zthrsselect.cu'
+        - '/home/u177171/local/magma/sparse/blas/zbajac_csr.cu'
+        - '/home/u177171/local/magma/sparse/blas/zbajac_csr_overlap.cu'
+        - '/home/u177171/local/magma/sparse/blas/zbcsrlugemm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecsr5mv.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_16.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_32.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_8.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_batched32.cu'
+        - '/home/u177171/local/magma/sparse/blas/zmdot_shfl.cu'
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+        - '/home/u177171/local/magma/sparse/blas/zparic_kernels.cu'
+        - '/home/u177171/local/magma/sparse/blas/zparilu_kernels.cu'
+      FeatureName:     DPCT_COMPATIBILITY_TEMP
+      SubFeatureMap:   {}
+  image.hpp:
+    create_image_wrapper:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     create_image_wrapper
+      SubFeatureMap:   {}
+    image_accessor_ext:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     image_accessor_ext
+      SubFeatureMap:   {}
+    image_channel:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     image_channel
+      SubFeatureMap:   {}
+    image_channel_data_type:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+        - '/home/u177171/spack/opt/spack/linux-ubuntu20.04-skylake/gcc-9.4.0/cuda-11.2.0-argay5lfmfjuu62q32c2uboij6qk4xvc/targets/x86_64-linux/include/driver_types.h'
+      FeatureName:     image_channel_data_type
+      SubFeatureMap:   {}
+    image_data:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     image_data
+      SubFeatureMap:
+        image_data_set_channel:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_data::set_channel'
+          SubFeatureMap:   {}
+        image_data_set_data:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_data::set_data'
+          SubFeatureMap:   {}
+        image_data_set_data_ptr:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_data::set_data_ptr'
+          SubFeatureMap:   {}
+        image_data_set_data_type:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_data::set_data_type'
+          SubFeatureMap:   {}
+        image_data_set_x:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_data::set_x'
+          SubFeatureMap:   {}
+    image_data_type:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+        - '/home/u177171/spack/opt/spack/linux-ubuntu20.04-skylake/gcc-9.4.0/cuda-11.2.0-argay5lfmfjuu62q32c2uboij6qk4xvc/targets/x86_64-linux/include/driver_types.h'
+      FeatureName:     image_data_type
+      SubFeatureMap:   {}
+    image_wrapper:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     image_wrapper
+      SubFeatureMap:
+        image_wrapper_get_access:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_wrapper::get_access'
+          SubFeatureMap:   {}
+    image_wrapper_base:
+      IsCalled:        false
+      FeatureName:     ''
+      SubFeatureMap:
+        image_wrapper_base_get_sampler:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_wrapper_base::get_sampler'
+          SubFeatureMap:   {}
+        image_wrapper_base_set_addressing_mode:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_wrapper_base::set'
+          SubFeatureMap:   {}
+        image_wrapper_base_set_coordinate_normalization_mode_enum:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_wrapper_base::set'
+          SubFeatureMap:   {}
+        image_wrapper_base_set_filtering_mode:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_wrapper_base::set'
+          SubFeatureMap:   {}
+    image_wrapper_base_p_alias:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     image_wrapper_base_p
+      SubFeatureMap:   {}
+    sampling_info:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     sampling_info
+      SubFeatureMap:
+        sampling_info_set_addressing_mode:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'sampling_info::set'
+          SubFeatureMap:   {}
+        sampling_info_set_coordinate_normalization_mode_enum:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'sampling_info::set'
+          SubFeatureMap:   {}
+        sampling_info_set_filtering_mode:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'sampling_info::set'
+          SubFeatureMap:   {}
+  memory.hpp:
+    device_memory:
+      IsCalled:        false
+      FeatureName:     ''
+      SubFeatureMap:
+        device_memory_get_ptr:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/clag2z_sparse.cu'
+            - '/home/u177171/local/magma/sparse/blas/zlag2c_sparse.cu'
+          FeatureName:     'device_memory::get_ptr'
+          SubFeatureMap:   {}
+    dpct_memcpy:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_maxblock.cu'
+      FeatureName:     dpct_memcpy
+      SubFeatureMap:   {}
+    dpct_memcpy_2d:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_maxblock.cu'
+      FeatureName:     dpct_memcpy
+      SubFeatureMap:   {}
+    dpct_memcpy_3d:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_maxblock.cu'
+      FeatureName:     dpct_memcpy
+      SubFeatureMap:   {}
+    dpct_memset:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+      FeatureName:     dpct_memset
+      SubFeatureMap:   {}
+    dpct_memset_2d:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+      FeatureName:     dpct_memset
+      SubFeatureMap:   {}
+    dpct_memset_3d:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+      FeatureName:     dpct_memset
+      SubFeatureMap:   {}
+    global_memory_alias:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/clag2z_sparse.cu'
+        - '/home/u177171/local/magma/sparse/blas/zlag2c_sparse.cu'
+      FeatureName:     global_memory
+      SubFeatureMap:   {}
+    memcpy_direction:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_maxblock.cu'
+      FeatureName:     memcpy_direction
+      SubFeatureMap:   {}
+  util.hpp:
+    permute_sub_group_by_xor:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+      FeatureName:     permute_sub_group_by_xor
+      SubFeatureMap:   {}
+    select_from_sub_group:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+        - '/home/u177171/local/magma/sparse/blas/magma_zthrsselect.cu'
+      FeatureName:     select_from_sub_group
+      SubFeatureMap:   {}
+    shift_sub_group_left:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmdot_shfl.cu'
+      FeatureName:     shift_sub_group_left
+      SubFeatureMap:   {}
+CompileTargets:  {}
+OptionMap:
+  AsyncHandler:
+    Value:           'false'
+    Specified:       false
+  CommentsEnabled:
+    Value:           'false'
+    Specified:       false
+  CompilationsDir:
+    Value:           '/home/u177171/local/magma'
+    Specified:       true
+  CtadEnabled:
+    Value:           'false'
+    Specified:       false
+  CustomHelperFileName:
+    Value:           dpct
+    Specified:       false
+  ExperimentalFlag:
+    Value:           '0'
+    Specified:       false
+  ExplicitClNamespace:
+    Value:           'false'
+    Specified:       false
+  ExplicitNamespace:
+    Value:           '20'
+    Specified:       false
+  ExtensionFlag:
+    Value:           '4294967295'
+    Specified:       false
+  NDRangeDim:
+    Value:           '3'
+    Specified:       false
+  NoDRYPattern:
+    Value:           'false'
+    Specified:       false
+  OptimizeMigration:
+    Value:           'false'
+    Specified:       false
+  ProcessAll:
+    Value:           'true'
+    Specified:       true
+  RuleFile:
+    Value:           ''
+    Specified:       false
+  SyclNamedLambda:
+    Value:           'false'
+    Specified:       false
+  UsmLevel:
+    Value:           '1'
+    Specified:       false
+...

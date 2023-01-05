@@ -1,0 +1,481 @@
+---
+MainSourceFile:  '/home/u177171/local/magma/sparse_sycl/blas/atomicopsmagmaDoubleComplex.h'
+Replacements:
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          325
+    Length:          0
+    ReplacementText: "#include <CL/sycl.hpp>\n#include <dpct/dpct.hpp>\n"
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          360
+    Length:          17
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          476
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          497
+    Length:          13
+    ReplacementText: DPCT_COMPATIBILITY_TEMP
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          958
+    Length:          15
+    ReplacementText: __dpct_inline__
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          974
+    Length:          11
+    ReplacementText: ''
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          1075
+    Length:          9
+    ReplacementText: 'dpct::atomic_fetch_add<double, sycl::access::address_space::generic_space>'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          1095
+    Length:          1
+    ReplacementText: 'x()'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          1103
+    Length:          1
+    ReplacementText: 'x()'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          1111
+    Length:          9
+    ReplacementText: 'dpct::atomic_fetch_add<double, sycl::access::address_space::generic_space>'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          1131
+    Length:          1
+    ReplacementText: 'y()'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+  - FilePath:        '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+    Offset:          1139
+    Length:          1
+    ReplacementText: 'y()'
+    ConstantFlag:    ''
+    ConstantOffset:  0
+    InitStr:         ''
+    NewHostVarName:  ''
+    BlockLevelFormatFlag: false
+DpctVersion:     2022.1.0
+MainHelperFileName: dpct
+USMLevel:        ''
+FeatureMap:
+  atomic.hpp:
+    atomic_exchange:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zbajac_csr_overlap.cu'
+      FeatureName:     atomic_exchange
+      SubFeatureMap:   {}
+    atomic_fetch_add:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+      FeatureName:     atomic_fetch_add
+      SubFeatureMap:   {}
+    atomic_fetch_sub:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+      FeatureName:     atomic_fetch_sub
+      SubFeatureMap:   {}
+  device.hpp:
+    device_ext:
+      IsCalled:        false
+      FeatureName:     ''
+      SubFeatureMap:
+        device_ext_default_queue:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/clag2z_sparse.cu'
+            - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+            - '/home/u177171/local/magma/sparse/blas/magma_zmatrixtools_gpu.cu'
+            - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+            - '/home/u177171/local/magma/sparse/blas/zlag2c_sparse.cu'
+          FeatureName:     'device_ext::default_queue'
+          SubFeatureMap:   {}
+    get_current_device:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/clag2z_sparse.cu'
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/magma_zmatrixtools_gpu.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zlag2c_sparse.cu'
+      FeatureName:     get_current_device
+      SubFeatureMap:   {}
+    get_default_queue:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/clag2z_sparse.cu'
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/magma_zmatrixtools_gpu.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_maxblock.cu'
+        - '/home/u177171/local/magma/sparse/blas/zlag2c_sparse.cu'
+        - '/home/u177171/local/magma/sparse/blas/zmergecg.cu'
+      FeatureName:     get_default_queue
+      SubFeatureMap:   {}
+  dpct.hpp:
+    dpct_align_and_inline:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+        - '/home/u177171/local/magma/sparse/blas/zgecsr5mv.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_batched32.cu'
+      FeatureName:     '__dpct_align__(n) and __dpct_inline__'
+      SubFeatureMap:   {}
+    dpct_compatibility_temp:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/atomicopsmagmaDoubleComplex.h'
+        - '/home/u177171/local/magma/sparse/blas/magma_zthrsselect.cu'
+        - '/home/u177171/local/magma/sparse/blas/zbajac_csr.cu'
+        - '/home/u177171/local/magma/sparse/blas/zbajac_csr_overlap.cu'
+        - '/home/u177171/local/magma/sparse/blas/zbcsrlugemm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecsr5mv.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_16.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_32.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_8.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_batched32.cu'
+        - '/home/u177171/local/magma/sparse/blas/zmdot_shfl.cu'
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+        - '/home/u177171/local/magma/sparse/blas/zparic_kernels.cu'
+        - '/home/u177171/local/magma/sparse/blas/zparilu_kernels.cu'
+      FeatureName:     DPCT_COMPATIBILITY_TEMP
+      SubFeatureMap:   {}
+  image.hpp:
+    create_image_wrapper:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     create_image_wrapper
+      SubFeatureMap:   {}
+    image_accessor_ext:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     image_accessor_ext
+      SubFeatureMap:   {}
+    image_channel:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     image_channel
+      SubFeatureMap:   {}
+    image_channel_data_type:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+        - '/home/u177171/spack/opt/spack/linux-ubuntu20.04-skylake/gcc-9.4.0/cuda-11.2.0-argay5lfmfjuu62q32c2uboij6qk4xvc/targets/x86_64-linux/include/driver_types.h'
+      FeatureName:     image_channel_data_type
+      SubFeatureMap:   {}
+    image_data:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     image_data
+      SubFeatureMap:
+        image_data_set_channel:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_data::set_channel'
+          SubFeatureMap:   {}
+        image_data_set_data:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_data::set_data'
+          SubFeatureMap:   {}
+        image_data_set_data_ptr:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_data::set_data_ptr'
+          SubFeatureMap:   {}
+        image_data_set_data_type:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_data::set_data_type'
+          SubFeatureMap:   {}
+        image_data_set_x:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_data::set_x'
+          SubFeatureMap:   {}
+    image_data_type:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+        - '/home/u177171/spack/opt/spack/linux-ubuntu20.04-skylake/gcc-9.4.0/cuda-11.2.0-argay5lfmfjuu62q32c2uboij6qk4xvc/targets/x86_64-linux/include/driver_types.h'
+      FeatureName:     image_data_type
+      SubFeatureMap:   {}
+    image_wrapper:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     image_wrapper
+      SubFeatureMap:
+        image_wrapper_get_access:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_wrapper::get_access'
+          SubFeatureMap:   {}
+    image_wrapper_base:
+      IsCalled:        false
+      FeatureName:     ''
+      SubFeatureMap:
+        image_wrapper_base_get_sampler:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_wrapper_base::get_sampler'
+          SubFeatureMap:   {}
+        image_wrapper_base_set_addressing_mode:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_wrapper_base::set'
+          SubFeatureMap:   {}
+        image_wrapper_base_set_coordinate_normalization_mode_enum:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_wrapper_base::set'
+          SubFeatureMap:   {}
+        image_wrapper_base_set_filtering_mode:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'image_wrapper_base::set'
+          SubFeatureMap:   {}
+    image_wrapper_base_p_alias:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     image_wrapper_base_p
+      SubFeatureMap:   {}
+    sampling_info:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+      FeatureName:     sampling_info
+      SubFeatureMap:
+        sampling_info_set_addressing_mode:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'sampling_info::set'
+          SubFeatureMap:   {}
+        sampling_info_set_coordinate_normalization_mode_enum:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'sampling_info::set'
+          SubFeatureMap:   {}
+        sampling_info_set_filtering_mode:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/zmgesellcmmv.cu'
+          FeatureName:     'sampling_info::set'
+          SubFeatureMap:   {}
+  memory.hpp:
+    device_memory:
+      IsCalled:        false
+      FeatureName:     ''
+      SubFeatureMap:
+        device_memory_get_ptr:
+          IsCalled:        true
+          CallerSrcFiles:
+            - '/home/u177171/local/magma/sparse/blas/clag2z_sparse.cu'
+            - '/home/u177171/local/magma/sparse/blas/zlag2c_sparse.cu'
+          FeatureName:     'device_memory::get_ptr'
+          SubFeatureMap:   {}
+    dpct_memcpy:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_maxblock.cu'
+      FeatureName:     dpct_memcpy
+      SubFeatureMap:   {}
+    dpct_memcpy_2d:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_maxblock.cu'
+      FeatureName:     dpct_memcpy
+      SubFeatureMap:   {}
+    dpct_memcpy_3d:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_maxblock.cu'
+      FeatureName:     dpct_memcpy
+      SubFeatureMap:   {}
+    dpct_memset:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+      FeatureName:     dpct_memset
+      SubFeatureMap:   {}
+    dpct_memset_2d:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+      FeatureName:     dpct_memset
+      SubFeatureMap:   {}
+    dpct_memset_3d:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+      FeatureName:     dpct_memset
+      SubFeatureMap:   {}
+    global_memory_alias:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/clag2z_sparse.cu'
+        - '/home/u177171/local/magma/sparse/blas/zlag2c_sparse.cu'
+      FeatureName:     global_memory
+      SubFeatureMap:   {}
+    memcpy_direction:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_dsampleselect_core.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgecscsyncfreetrsm.cu'
+        - '/home/u177171/local/magma/sparse/blas/zgeisai_maxblock.cu'
+      FeatureName:     memcpy_direction
+      SubFeatureMap:   {}
+  util.hpp:
+    permute_sub_group_by_xor:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+      FeatureName:     permute_sub_group_by_xor
+      SubFeatureMap:   {}
+    select_from_sub_group:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/magma_sampleselect.h'
+        - '/home/u177171/local/magma/sparse/blas/magma_zthrsselect.cu'
+      FeatureName:     select_from_sub_group
+      SubFeatureMap:   {}
+    shift_sub_group_left:
+      IsCalled:        true
+      CallerSrcFiles:
+        - '/home/u177171/local/magma/sparse/blas/zmdot_shfl.cu'
+      FeatureName:     shift_sub_group_left
+      SubFeatureMap:   {}
+CompileTargets:  {}
+OptionMap:
+  AsyncHandler:
+    Value:           'false'
+    Specified:       false
+  CommentsEnabled:
+    Value:           'false'
+    Specified:       false
+  CompilationsDir:
+    Value:           '/home/u177171/local/magma'
+    Specified:       true
+  CtadEnabled:
+    Value:           'false'
+    Specified:       false
+  CustomHelperFileName:
+    Value:           dpct
+    Specified:       false
+  ExperimentalFlag:
+    Value:           '0'
+    Specified:       false
+  ExplicitClNamespace:
+    Value:           'false'
+    Specified:       false
+  ExplicitNamespace:
+    Value:           '20'
+    Specified:       false
+  ExtensionFlag:
+    Value:           '4294967295'
+    Specified:       false
+  NDRangeDim:
+    Value:           '3'
+    Specified:       false
+  NoDRYPattern:
+    Value:           'false'
+    Specified:       false
+  OptimizeMigration:
+    Value:           'false'
+    Specified:       false
+  ProcessAll:
+    Value:           'true'
+    Specified:       true
+  RuleFile:
+    Value:           ''
+    Specified:       false
+  SyclNamedLambda:
+    Value:           'false'
+    Specified:       false
+  UsmLevel:
+    Value:           '1'
+    Specified:       false
+...
