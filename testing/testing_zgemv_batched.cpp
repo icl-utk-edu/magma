@@ -180,18 +180,18 @@ int main( int argc, char** argv)
                 cublasZgemvStridedBatched(opts.handle, cublas_trans_const(opts.transA),
                                       M, N,
                                       (const cuDoubleComplex *)&alpha,
-                                      (const cuDoubleComplex **)d_A, ldda, ldda*N,
-                                      (const cuDoubleComplex **)d_X, incx, incx*Xm,
+                                      (const cuDoubleComplex *)d_A, ldda, ldda*N,
+                                      (const cuDoubleComplex *)d_X, incx, incx*Xm,
                                       (const cuDoubleComplex *)&beta,
-                                      (cuDoubleComplex **)d_Y, incy, incy*Ym, batchCount);
+                                      (cuDoubleComplex *)d_Y, incy, incy*Ym, batchCount);
                 #else
                 hipblasZgemvStridedBatched(opts.handle, hipblas_trans_const(opts.transA),
                                       M, N,
                                       (const hipblasDoubleComplex *)&alpha,
-                                      (const hipblasDoubleComplex **)d_A, ldda, ldda*N,
-                                      (const hipblasDoubleComplex **)d_X, incx, incx*Xm,
+                                      (const hipblasDoubleComplex *)d_A, ldda, ldda*N,
+                                      (const hipblasDoubleComplex *)d_X, incx, incx*Xm,
                                       (const hipblasDoubleComplex *)&beta,
-                                      (hipblasDoubleComplex **)d_Y, incy, incy*Ym, batchCount);
+                                      (hipblasDoubleComplex *)d_Y, incy, incy*Ym, batchCount);
                 #endif
             }
             device_time = magma_sync_wtime( opts.queue ) - device_time;
