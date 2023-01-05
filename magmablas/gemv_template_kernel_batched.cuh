@@ -90,7 +90,7 @@ void gemvc_template_batched(
     magma_trans_t trans, magma_int_t m, magma_int_t n, T alpha,
     T const * const * dA_array, T const * dA, magma_int_t ldda, magma_int_t strideA,
     T const * const * dx_array, T const * dx, magma_int_t incx, magma_int_t stridex,
-    T beta, T** dy_array, T* dym magma_int_t incy, magma_int_t stridey,
+    T beta, T** dy_array, T* dy, magma_int_t incy, magma_int_t stridey,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t max_batchCount = queue->get_maxBatch();
