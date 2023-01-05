@@ -42,7 +42,7 @@ zgesellcmv_kernel(
     int offset = drowptr[item_ct1.get_group(2)];
     int border = (drowptr[item_ct1.get_group(2) + 1] - offset) / blocksize;
     if(Idx < num_rows ){
-        magmaDoubleComplex dot {0.0, 0.0};
+        magmaDoubleComplex dot = 0.0;
         for ( int n = 0; n < border; n++){
             int col =
                 dcolind[offset + blocksize * n + item_ct1.get_local_id(2)];

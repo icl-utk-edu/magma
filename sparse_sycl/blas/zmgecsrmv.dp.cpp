@@ -38,7 +38,7 @@ zmgecsrmv_kernel(
     if( row<num_rows ){
         for( int i=0; i<num_vecs; i++ )
                 dot[item_ct1.get_local_id(2) +
-                    i * item_ct1.get_local_range(2)] = std::complex<double> {0.0, 0.0};
+                    i * item_ct1.get_local_range(2)] = = 0.0;
         int start = drowptr[ row ];
         int end = drowptr[ row+1 ];
         for( j=start; j<end; j++ ){

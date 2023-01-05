@@ -35,7 +35,7 @@ magma_zjaccardweights_kernel(
             item_ct1.get_local_range(2) * item_ct1.get_group(2) +
             item_ct1.get_local_id(2);
 
-    magmaDoubleComplex zero {0.0, 0.0};
+    magmaDoubleComplex zero = 0.0;
     /*
     DPCT1064:476: Migrated make_cuDoubleComplex call is used in a macro
     definition and is not valid for all macro uses. Adjust the code.

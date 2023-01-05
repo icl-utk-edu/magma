@@ -53,7 +53,7 @@ zbcsrvalzro_kernel(
         //dB += i;
 
         while( i<size_b*size_b ){
-                dB[i] {0.0, 0.0};
+                dB[i] = 0.0;
                 i+=BLOCK_SIZE;
         }
     }

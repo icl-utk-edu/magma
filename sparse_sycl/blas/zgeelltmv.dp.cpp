@@ -34,7 +34,7 @@ zgeelltmv_kernel(
     int row = item_ct1.get_local_range(2) * item_ct1.get_group(2) +
               item_ct1.get_local_id(2);
     if (row < num_rows ) {
-        magmaDoubleComplex dot {0.0, 0.0};
+        magmaDoubleComplex dot = 0.0;
         for ( int n = 0; n < num_cols_per_row; n++ ) {
             int col = dcolind [ num_rows * n + row ];
             magmaDoubleComplex val = dval [ num_rows * n + row ];
@@ -71,7 +71,7 @@ zgeelltmv_kernel_shift(
     int row = item_ct1.get_local_range(2) * item_ct1.get_group(2) +
               item_ct1.get_local_id(2);
     if (row < num_rows ) {
-        magmaDoubleComplex dot {0.0, 0.0};
+        magmaDoubleComplex dot = 0.0;
         for ( int n = 0; n < num_cols_per_row; n++ ) {
             int col = dcolind [ num_rows * n + row ];
             magmaDoubleComplex val = dval [ num_rows * n + row ];

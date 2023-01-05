@@ -702,7 +702,7 @@ magma_zgpumemzero_8kernel(
     }
 
     for( int j=0; j<dim_y; j++)
-        d[i * dim_x * dim_y + j * dim_y + idx] {0.0, 0.0};
+        d[i * dim_x * dim_y + j * dim_y + idx] = 0.0;
 }
 
 void

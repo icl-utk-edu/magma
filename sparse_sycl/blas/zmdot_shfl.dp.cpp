@@ -455,7 +455,7 @@ template<typename T>
 void deviceReduceKernel(const T * __restrict__ in, T * __restrict__ out, int N,
                         sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
-    T sum {0.0, 0.0};
+    T sum = 0.0;
     //reduce multiple elements per thread
     for (int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) +
                  item_ct1.get_local_id(2);

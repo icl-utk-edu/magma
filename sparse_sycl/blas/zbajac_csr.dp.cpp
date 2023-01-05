@@ -37,16 +37,10 @@ magma_zbajac_csr_ls_kernel(int localiters, int n,
         start = rowR[index];
         end   = rowR[index+1];
 
-//        magmaDoubleComplex zero {0.0, 0.0};
-        magmaDoubleComplex zero{0.0, 0.0};
+        magmaDoubleComplex zero = 0.0;
         magmaDoubleComplex bl, tmp = zero, v = zero;
 
-#if (DPCT_COMPATIBILITY_TEMP >= 350) &&                                        \
-    (defined(PRECISION_d) || defined(PRECISION_s))
-        bl = __ldg( b+index );
-#else
         bl = b[index];
-#endif
 
         #pragma unroll
         for( i=start; i<end; i++ )
@@ -106,15 +100,10 @@ magma_zbajac_csr_kernel(
     int i, start, end;   
 
     if (index < n) {
-        magmaDoubleComplex zero {0.0, 0.0};
+        magmaDoubleComplex zero = 0.0;
         magmaDoubleComplex bl, tmp = zero, v = zero;
 
-#if (DPCT_COMPATIBILITY_TEMP >= 350) &&                                        \
-    (defined(PRECISION_d) || defined(PRECISION_s))
-        bl = __ldg( b+index );
-#else
         bl = b[index];
-#endif
 
         start = rowR[index];
         end   = rowR[index+1];

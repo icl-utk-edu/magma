@@ -87,15 +87,7 @@ candidate(
     definition and is not valid for all macro uses. Adjust the code.
     */
     magmaDoubleComplex x = MAGMA_Z_ZERO;
-#if DPCT_COMPATIBILITY_TEMP >= 350
-    /*
-    DPCT1026:428: The call to __ldg was removed because there is no
-    correspoinding API in DPC++.
-    */
     x = d_x[d_column_index_tile[candidate_index]];
-#else
-    x = d_x[d_column_index_tile[candidate_index]];
-#endif
     return d_value_tile[candidate_index] * x * alpha;
 }
 

@@ -33,18 +33,13 @@ magma_zparilu_csr_kernel(
     int i, j;
     int k = item_ct1.get_local_range(2) * item_ct1.get_group(2) +
             item_ct1.get_local_id(2);
-    magmaDoubleComplex zero {0.0, 0.0};
+    magmaDoubleComplex zero = 0.0;
     magmaDoubleComplex s, sp;
     int il, iu, jl, ju;
     if (k < nnz) {
        i = rowidxA[k];
         j = colidxA[k];
-#if (DPCT_COMPATIBILITY_TEMP >= 350) &&                                        \
-    (defined(PRECISION_d) || defined(PRECISION_s))
-        s =  __ldg(A+k);
-#else
         s =  A[k];
-#endif
         il = rowptrL[i];
         iu = rowptrU[j];
 
