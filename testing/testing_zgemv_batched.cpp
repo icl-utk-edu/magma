@@ -132,10 +132,20 @@ int main( int argc, char** argv)
             magma_zset_pointer( d_Y_array, d_Y, 1, 0, 0, incy*Ym, batchCount, opts.queue );
 
             magma_time = magma_sync_wtime( opts.queue );
-            magmablas_zgemv_batched(opts.transA, M, N,
-                             alpha, d_A_array, ldda,
-                                    d_X_array, incx,
-                             beta,  d_Y_array, incy, batchCount, opts.queue);
+            if( opts.version == 1 ) {
+                magmablas_zgemv_batched(opts.transA, M, N,
+                    alpha, d_A_array, ldda,
+                           d_X_array, incx,
+                    beta,  d_Y_array, incy,
+                    batchCount, opts.queue);
+            }
+            else{
+                magmablas_zgemv_batched_strided(opts.transA, M, N,
+                    alpha, d_A, ldda, ldda*N,
+                           d_X, incx, incx*Xm,
+                    beta,  d_Y, incy, incy*Ym,
+                    batchCount, opts.queue);
+            }
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
             magma_zgetvector( Ym*batchCount, d_Y, incy, h_Ymagma, incy, opts.queue );
@@ -146,23 +156,44 @@ int main( int argc, char** argv)
             magma_zsetvector( Ym*batchCount, h_Y, incy, d_Y, incy, opts.queue );
 
             device_time = magma_sync_wtime( opts.queue );
-            #ifdef MAGMA_HAVE_CUDA
-            cublasZgemvBatched(opts.handle, cublas_trans_const(opts.transA),
-                                  M, N,
-                                  (const cuDoubleComplex *)&alpha,
-                                  (const cuDoubleComplex **)d_A_array, ldda,
-                                  (const cuDoubleComplex **)d_X_array, incx,
-                                  (const cuDoubleComplex *)&beta,
-                                  (cuDoubleComplex **)d_Y_array, incy, batchCount);
-            #else
-            hipblasZgemvBatched(opts.handle, hipblas_trans_const(opts.transA),
-                                  M, N,
-                                  (const hipblasDoubleComplex *)&alpha,
-                                  (const hipblasDoubleComplex **)d_A_array, ldda,
-                                  (const hipblasDoubleComplex **)d_X_array, incx,
-                                  (const hipblasDoubleComplex *)&beta,
-                                  (hipblasDoubleComplex **)d_Y_array, incy, batchCount);
-            #endif
+            if(opts.version == 1) {
+                #ifdef MAGMA_HAVE_CUDA
+                cublasZgemvBatched(opts.handle, cublas_trans_const(opts.transA),
+                                      M, N,
+                                      (const cuDoubleComplex *)&alpha,
+                                      (const cuDoubleComplex **)d_A_array, ldda,
+                                      (const cuDoubleComplex **)d_X_array, incx,
+                                      (const cuDoubleComplex *)&beta,
+                                      (cuDoubleComplex **)d_Y_array, incy, batchCount);
+                #else
+                hipblasZgemvBatched(opts.handle, hipblas_trans_const(opts.transA),
+                                      M, N,
+                                      (const hipblasDoubleComplex *)&alpha,
+                                      (const hipblasDoubleComplex **)d_A_array, ldda,
+                                      (const hipblasDoubleComplex **)d_X_array, incx,
+                                      (const hipblasDoubleComplex *)&beta,
+                                      (hipblasDoubleComplex **)d_Y_array, incy, batchCount);
+                #endif
+            }
+            else{
+                #ifdef MAGMA_HAVE_CUDA
+                cublasZgemvStridedBatched(opts.handle, cublas_trans_const(opts.transA),
+                                      M, N,
+                                      (const cuDoubleComplex *)&alpha,
+                                      (const cuDoubleComplex **)d_A, ldda, ldda*N,
+                                      (const cuDoubleComplex **)d_X, incx, incx*Xm,
+                                      (const cuDoubleComplex *)&beta,
+                                      (cuDoubleComplex **)d_Y, incy, incy*Ym, batchCount);
+                #else
+                hipblasZgemvStridedBatched(opts.handle, hipblas_trans_const(opts.transA),
+                                      M, N,
+                                      (const hipblasDoubleComplex *)&alpha,
+                                      (const hipblasDoubleComplex **)d_A, ldda, ldda*N,
+                                      (const hipblasDoubleComplex **)d_X, incx, incx*Xm,
+                                      (const hipblasDoubleComplex *)&beta,
+                                      (hipblasDoubleComplex **)d_Y, incy, incy*Ym, batchCount);
+                #endif
+            }
             device_time = magma_sync_wtime( opts.queue ) - device_time;
             device_perf = gflops / device_time;
             magma_zgetvector( Ym*batchCount, d_Y, incy, h_Ydevice, incy, opts.queue );
