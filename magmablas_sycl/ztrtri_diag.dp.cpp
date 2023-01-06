@@ -114,7 +114,7 @@ magmablas_ztrtri_diag(
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sB_acc_ct1(sycl::range<1>(256 /*IB*IB*/), cgh);
+                    sB_acc_ct1(sycl::range<1>(IB*IB), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(sycl::range<3>(1, 1, nblocks) *
@@ -343,7 +343,7 @@ magmablas_ztrtri_diag(
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sB_acc_ct1(sycl::range<1>(256 /*IB*IB*/), cgh);
+                    sB_acc_ct1(sycl::range<1>(IB*IB), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(sycl::range<3>(1, 1, nblocks) *

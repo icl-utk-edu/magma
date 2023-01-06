@@ -210,7 +210,7 @@ magmablas_ztranspose_conj(
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            sA_acc_ct1(sycl::range<2>(32 /*NB*/, 17 /*NX+1*/), cgh);
+            sA_acc_ct1(sycl::range<2>(NB, NX+1), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
@@ -310,7 +310,7 @@ magmablas_ztranspose_conj_batched(
                 sycl::accessor<magmaDoubleComplex, 2,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sA_acc_ct1(sycl::range<2>(32 /*NB*/, 17 /*NX+1*/), cgh);
+                    sA_acc_ct1(sycl::range<2>(NB, NX+1), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                  [=](sycl::nd_item<3> item_ct1) {

@@ -185,7 +185,7 @@ magma_int_t magma_ivec_max( magma_int_t vecsize,
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            swork_acc_ct1(sycl::range<1>(512 /*MAX_REDUCE_SEGMENT*/), cgh);
+            swork_acc_ct1(sycl::range<1>(MAX_REDUCE_SEGMENT), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
@@ -208,7 +208,7 @@ magma_int_t magma_ivec_max( magma_int_t vecsize,
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<int, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    swork_acc_ct1(sycl::range<1>(512 /*MAX_REDUCE_SEGMENT*/),
+                    swork_acc_ct1(sycl::range<1>(MAX_REDUCE_SEGMENT),
                                   cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -303,7 +303,7 @@ magma_int_t magma_isum_reduce( magma_int_t vecsize,
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            swork_acc_ct1(sycl::range<1>(512 /*ISUM_REDUCE_SEGMENT*/), cgh);
+            swork_acc_ct1(sycl::range<1>(ISUM_REDUCE_SEGMENT), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
@@ -326,7 +326,7 @@ magma_int_t magma_isum_reduce( magma_int_t vecsize,
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<int, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    swork_acc_ct1(sycl::range<1>(512 /*ISUM_REDUCE_SEGMENT*/),
+                    swork_acc_ct1(sycl::range<1>(ISUM_REDUCE_SEGMENT),
                                   cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -925,7 +925,7 @@ void magma_imax_size_1(magma_int_t *n, magma_int_t l, magma_queue_t queue)
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            swork_acc_ct1(sycl::range<1>(256 /*AUX_MAX_SEGMENT*/), cgh);
+            swork_acc_ct1(sycl::range<1>(AUX_MAX_SEGMENT), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
@@ -990,7 +990,7 @@ void magma_imax_size_2(magma_int_t *m, magma_int_t *n, magma_int_t l, magma_queu
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            swork_acc_ct1(sycl::range<1>(256 /*AUX_MAX_SEGMENT*/), cgh);
+            swork_acc_ct1(sycl::range<1>(AUX_MAX_SEGMENT), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
@@ -1057,7 +1057,7 @@ void magma_imax_size_3(magma_int_t *m, magma_int_t *n, magma_int_t *k, magma_int
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            swork_acc_ct1(sycl::range<1>(256 /*AUX_MAX_SEGMENT*/), cgh);
+            swork_acc_ct1(sycl::range<1>(AUX_MAX_SEGMENT), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
