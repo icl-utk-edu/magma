@@ -478,10 +478,10 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        sum_acc_ct1(sycl::range<1>(256 /*BLOCK_SIZE*/), cgh);
+                        sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
                     sycl::accessor<double, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        swork_acc_ct1(sycl::range<1>(256 /*BLOCK_SIZE*/), cgh);
+                        swork_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
                     sycl::accessor<double, 0, sycl::access_mode::read_write,
                                    sycl::access::target::local>
                         sscale_acc_ct1(cgh);
@@ -526,10 +526,10 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        sum_acc_ct1(sycl::range<1>(256 /*BLOCK_SIZE*/), cgh);
+                        sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
                     sycl::accessor<double, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        swork_acc_ct1(sycl::range<1>(256 /*BLOCK_SIZE*/), cgh);
+                        swork_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
                     sycl::accessor<double, 0, sycl::access_mode::read_write,
                                    sycl::access::target::local>
                         sscale_acc_ct1(cgh);
@@ -564,10 +564,10 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
                     sycl::accessor<magmaDoubleComplex, 1,
                                    sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        sum_acc_ct1(sycl::range<1>(256 /*BLOCK_SIZE*/), cgh);
+                        sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
                     sycl::accessor<double, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        swork_acc_ct1(sycl::range<1>(256 /*BLOCK_SIZE*/), cgh);
+                        swork_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
                     sycl::accessor<double, 0, sycl::access_mode::read_write,
                                    sycl::access::target::local>
                         sscale_acc_ct1(cgh);
