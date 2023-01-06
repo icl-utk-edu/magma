@@ -384,7 +384,7 @@ magmablas_zlange(
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<double, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    ssum_acc_ct1(sycl::range<1>(64 /*NB_X*/), cgh);
+                    ssum_acc_ct1(sycl::range<1>(NB_X), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                  [=](sycl::nd_item<3> item_ct1) {
@@ -424,7 +424,7 @@ magmablas_zlange(
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<double, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    ssum_acc_ct1(sycl::range<1>(64 /*NB_X*/), cgh);
+                    ssum_acc_ct1(sycl::range<1>(NB_X), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                  [=](sycl::nd_item<3> item_ct1) {
