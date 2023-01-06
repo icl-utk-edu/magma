@@ -131,18 +131,23 @@ int main( int argc, char** argv)
             magma_zset_pointer( d_X_array, d_X, 1, 0, 0, incx*Xm, batchCount, opts.queue );
             magma_zset_pointer( d_Y_array, d_Y, 1, 0, 0, incy*Ym, batchCount, opts.queue );
 
+            const magmaDoubleComplex** dA_array = (const magmaDoubleComplex**) d_A_array;
+            const magmaDoubleComplex** dX_array = (const magmaDoubleComplex**) d_X_array;
+            const magmaDoubleComplex* dA = (const magmaDoubleComplex*) d_A;
+            const magmaDoubleComplex* dX = (const magmaDoubleComplex*) d_X;
+
             magma_time = magma_sync_wtime( opts.queue );
             if( opts.version == 1 ) {
                 magmablas_zgemv_batched(opts.transA, M, N,
-                    alpha, d_A_array, ldda,
-                           d_X_array, incx,
+                    alpha, dA_array, ldda,
+                           dX_array, incx,
                     beta,  d_Y_array, incy,
                     batchCount, opts.queue);
             }
             else{
                 magmablas_zgemv_batched_strided(opts.transA, M, N,
-                    alpha, d_A, ldda, ldda*N,
-                           d_X, incx, incx*Xm,
+                    alpha, dA, ldda, ldda*N,
+                           dX, incx, incx*Xm,
                     beta,  d_Y, incy, incy*Ym,
                     batchCount, opts.queue);
             }

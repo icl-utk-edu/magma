@@ -24,11 +24,11 @@
 extern "C" void
 magmablas_cgemv_batched_core(
     magma_trans_t trans, magma_int_t m, magma_int_t n,
-    magmaFloatComplex alpha,
-    magmaFloatComplex_ptr dA_array[], magmaFloatComplex_ptr dA, magma_int_t ldda, magma_int_t strideA,
-    magmaFloatComplex_ptr dx_array[], magmaFloatComplex_ptr dx, magma_int_t incx, magma_int_t stridex,
-    magmaFloatComplex beta,
-    magmaFloatComplex_ptr dy_array[], magmaFloatComplex_ptr dy, magma_int_t incy, magma_int_t stridey,
+    const magmaFloatComplex alpha,
+    const magmaFloatComplex* dA_array[], const magmaFloatComplex* dA, magma_int_t ldda, magma_int_t strideA,
+    const magmaFloatComplex* dx_array[], const magmaFloatComplex* dx, magma_int_t incx, magma_int_t stridex,
+    const magmaFloatComplex beta,
+    magmaFloatComplex* dy_array[], magmaFloatComplex* dy, magma_int_t incy, magma_int_t stridey,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t info = 0;

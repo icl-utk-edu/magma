@@ -141,6 +141,7 @@ libmagma_src += \
 	$(cdir)/dgemv_batched_core.cu		\
 	$(cdir)/sgemv_batched_core.cu		\
 	$(cdir)/zgemv_batched_core.cu		\
+	$(cdir)/zgemv_batched_smallsq.cu		\
 	$(cdir)/zhemv_batched_core.cu		\
 	$(cdir)/zgeqr2_batched.cu		\
 	$(cdir)/zgeqr2_batched_fused_reg.cu		\
