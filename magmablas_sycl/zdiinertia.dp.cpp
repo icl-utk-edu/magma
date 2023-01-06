@@ -145,13 +145,13 @@ magmablas_zdiinertia(
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            pe_acc_ct1(sycl::range<1>(64 /*NTHREADS*/), cgh);
+            pe_acc_ct1(sycl::range<1>(NTHREADS), cgh);
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            ne_acc_ct1(sycl::range<1>(64 /*NTHREADS*/), cgh);
+            ne_acc_ct1(sycl::range<1>(NTHREADS), cgh);
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            ze_acc_ct1(sycl::range<1>(64 /*NTHREADS*/), cgh);
+            ze_acc_ct1(sycl::range<1>(NTHREADS), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {

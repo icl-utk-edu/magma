@@ -132,7 +132,7 @@ magma_prefix_sum_internal_w(
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magma_int_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            sdata_acc_ct1(sycl::range<1>(1024 /*SCAN_SEG_SIZE*/), cgh);
+            sdata_acc_ct1(sycl::range<1>(SCAN_SEG_SIZE), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid_sum * threads_sum, threads_sum),
                          [=](sycl::nd_item<3> item_ct1) {
@@ -156,7 +156,7 @@ magma_prefix_sum_internal_w(
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magma_int_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sdata_acc_ct1(sycl::range<1>(1024 /*SCAN_SEG_SIZE*/), cgh);
+                    sdata_acc_ct1(sycl::range<1>(SCAN_SEG_SIZE), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(grid_sumw * threads_sumw, threads_sumw),

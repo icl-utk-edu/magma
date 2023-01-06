@@ -153,7 +153,7 @@ magmablas_zgemm_reduce(
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
                     sum_acc_ct1(
-                        sycl::range<3>(BLK_K, 17 /*BLK_M+1*/, 17 /*BLK_N+1*/),
+                        sycl::range<3>(BLK_K, BLK_M+1, BLK_N+1),
                         cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
@@ -185,7 +185,7 @@ magmablas_zgemm_reduce(
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
                     sum_acc_ct1(
-                        sycl::range<3>(BLK_K, 17 /*BLK_M+1*/, 17 /*BLK_N+1*/),
+                        sycl::range<3>(BLK_K, BLK_M+1, BLK_N+1),
                         cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),

@@ -777,16 +777,16 @@ magmablas_zsymv_work(
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
                     sA_acc_ct1(
-                        sycl::range<2>(16 /*quarter_NB_X*/, 67 /*NB_X + 3*/),
+                        sycl::range<2>(quarter_NB_X, NB_X + 3),
                         cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sx_blk_acc_ct1(sycl::range<1>(64 /*NB_X*/), cgh);
+                    sx_blk_acc_ct1(sycl::range<1>(NB_X), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sx_jj_acc_ct1(sycl::range<1>(64 /*NB_X*/), cgh);
+                    sx_jj_acc_ct1(sycl::range<1>(NB_X), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(grid * threads, threads),
@@ -821,16 +821,16 @@ magmablas_zsymv_work(
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
                     sA_acc_ct1(
-                        sycl::range<2>(16 /*quarter_NB_X*/, 67 /*NB_X + 3*/),
+                        sycl::range<2>(quarter_NB_X, NB_X + 3),
                         cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sx_blk_acc_ct1(sycl::range<1>(64 /*NB_X*/), cgh);
+                    sx_blk_acc_ct1(sycl::range<1>(NB_X), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sx_jj_acc_ct1(sycl::range<1>(64 /*NB_X*/), cgh);
+                    sx_jj_acc_ct1(sycl::range<1>(NB_X), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(grid * threads, threads),
