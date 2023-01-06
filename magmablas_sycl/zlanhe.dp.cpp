@@ -643,7 +643,7 @@ zlanhe_inf(
                 sycl::accessor<magmaDoubleComplex, 2,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    la_acc_ct1(sycl::range<2>(32 /*inf_bs*/, 33 /*inf_bs+1*/),
+                    la_acc_ct1(sycl::range<2>(inf_bs, inf_bs+1),
                                cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -665,7 +665,7 @@ zlanhe_inf(
                 sycl::accessor<magmaDoubleComplex, 2,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    la_acc_ct1(sycl::range<2>(32 /*inf_bs*/, 33 /*inf_bs+1*/),
+                    la_acc_ct1(sycl::range<2>(inf_bs, inf_bs+1),
                                cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

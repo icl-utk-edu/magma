@@ -1474,10 +1474,10 @@ magma_int_t magma_zcomputecolumn_batched( magma_int_t m, magma_int_t paneloffset
             dpct_local_acc_ct1(sycl::range<1>(shared_size), cgh);
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            shared_x_acc_ct1(sycl::range<1>(256 /*zamax*/), cgh);
+            shared_x_acc_ct1(sycl::range<1>(zamax), cgh);
         sycl::accessor<int, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            shared_idx_acc_ct1(sycl::range<1>(256 /*zamax*/), cgh);
+            shared_idx_acc_ct1(sycl::range<1>(zamax), cgh);
         sycl::accessor<magmaDoubleComplex, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>
             alpha_acc_ct1(cgh);

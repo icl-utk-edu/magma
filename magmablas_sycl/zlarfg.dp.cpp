@@ -195,7 +195,7 @@ void magmablas_zlarfg(
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            swork_acc_ct1(sycl::range<1>(512 /*NB*/), cgh);
+            swork_acc_ct1(sycl::range<1>(NB), cgh);
         sycl::accessor<double, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sscale_acc_ct1(cgh);

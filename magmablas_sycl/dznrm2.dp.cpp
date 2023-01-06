@@ -105,7 +105,7 @@ magmablas_dznrm2_check(
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            sum_acc_ct1(sycl::range<1>(512 /*BLOCK_SIZE*/), cgh);
+            sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
@@ -183,7 +183,7 @@ magmablas_dznrm2_sm(
         sycl::accessor<double, 2, sycl::access_mode::read_write,
                        sycl::access::target::local>
             sum_acc_ct1(
-                sycl::range<2>(32 /*BLOCK_SIZEx*/, 17 /*BLOCK_SIZEy + 1*/),
+                sycl::range<2>(BLOCK_SIZEx, BLOCK_SIZEy + 1),
                 cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
@@ -242,7 +242,7 @@ magmablas_dznrm2_adjust(
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            sum_acc_ct1(sycl::range<1>(512 /*BLOCK_SIZE*/), cgh);
+            sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
@@ -345,7 +345,7 @@ magmablas_dznrm2_cols(
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            sum_acc_ct1(sycl::range<1>(512 /*BLOCK_SIZE*/), cgh);
+            sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {

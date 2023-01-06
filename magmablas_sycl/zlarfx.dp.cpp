@@ -213,7 +213,7 @@ magma_zlarfx_gpu(
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sum_acc_ct1(sycl::range<1>(512 /*BLOCK_SIZE*/), cgh);
+                    sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(sycl::range<3>(1, 1, N) *
@@ -237,7 +237,7 @@ magma_zlarfx_gpu(
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sum_acc_ct1(sycl::range<1>(512 /*BLOCK_SIZE*/), cgh);
+                    sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(sycl::range<3>(1, 1, N) *

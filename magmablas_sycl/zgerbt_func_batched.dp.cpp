@@ -246,19 +246,19 @@ magmablas_zprbt_batched(
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    u1_acc_ct1(sycl::range<1>(32 /*block_height*/), cgh);
+                    u1_acc_ct1(sycl::range<1>(block_height), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    u2_acc_ct1(sycl::range<1>(32 /*block_height*/), cgh);
+                    u2_acc_ct1(sycl::range<1>(block_height), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    v1_acc_ct1(sycl::range<1>(4 /*block_width*/), cgh);
+                    v1_acc_ct1(sycl::range<1>(block_width), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    v2_acc_ct1(sycl::range<1>(4 /*block_width*/), cgh);
+                    v2_acc_ct1(sycl::range<1>(block_width), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(grid * threads, threads),
@@ -280,19 +280,19 @@ magmablas_zprbt_batched(
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    u1_acc_ct1(sycl::range<1>(32 /*block_height*/), cgh);
+                    u1_acc_ct1(sycl::range<1>(block_height), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    u2_acc_ct1(sycl::range<1>(32 /*block_height*/), cgh);
+                    u2_acc_ct1(sycl::range<1>(block_height), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    v1_acc_ct1(sycl::range<1>(4 /*block_width*/), cgh);
+                    v1_acc_ct1(sycl::range<1>(block_width), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    v2_acc_ct1(sycl::range<1>(4 /*block_width*/), cgh);
+                    v2_acc_ct1(sycl::range<1>(block_width), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(grid * threads, threads),
@@ -314,19 +314,19 @@ magmablas_zprbt_batched(
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    u1_acc_ct1(sycl::range<1>(32 /*block_height*/), cgh);
+                    u1_acc_ct1(sycl::range<1>(block_height), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    u2_acc_ct1(sycl::range<1>(32 /*block_height*/), cgh);
+                    u2_acc_ct1(sycl::range<1>(block_height), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    v1_acc_ct1(sycl::range<1>(4 /*block_width*/), cgh);
+                    v1_acc_ct1(sycl::range<1>(block_width), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    v2_acc_ct1(sycl::range<1>(4 /*block_width*/), cgh);
+                    v2_acc_ct1(sycl::range<1>(block_width), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(grid * threads, threads),
@@ -348,19 +348,19 @@ magmablas_zprbt_batched(
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    u1_acc_ct1(sycl::range<1>(32 /*block_height*/), cgh);
+                    u1_acc_ct1(sycl::range<1>(block_height), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    u2_acc_ct1(sycl::range<1>(32 /*block_height*/), cgh);
+                    u2_acc_ct1(sycl::range<1>(block_height), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    v1_acc_ct1(sycl::range<1>(4 /*block_width*/), cgh);
+                    v1_acc_ct1(sycl::range<1>(block_width), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    v2_acc_ct1(sycl::range<1>(4 /*block_width*/), cgh);
+                    v2_acc_ct1(sycl::range<1>(block_width), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(grid * threads, threads),
@@ -385,19 +385,19 @@ magmablas_zprbt_batched(
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    u1_acc_ct1(sycl::range<1>(32 /*block_height*/), cgh);
+                    u1_acc_ct1(sycl::range<1>(block_height), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    u2_acc_ct1(sycl::range<1>(32 /*block_height*/), cgh);
+                    u2_acc_ct1(sycl::range<1>(block_height), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    v1_acc_ct1(sycl::range<1>(4 /*block_width*/), cgh);
+                    v1_acc_ct1(sycl::range<1>(block_width), cgh);
                 sycl::accessor<magmaDoubleComplex, 1,
                                sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    v2_acc_ct1(sycl::range<1>(4 /*block_width*/), cgh);
+                    v2_acc_ct1(sycl::range<1>(block_width), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(grid2 * threads2, threads2),
