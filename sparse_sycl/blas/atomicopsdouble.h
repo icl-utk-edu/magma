@@ -23,3 +23,4 @@ atomicAdddouble(double *addr, double val)
 {
     dpct::atomic_fetch_add<double, sycl::access::address_space::generic_space>(addr, val);
 }
+#endif

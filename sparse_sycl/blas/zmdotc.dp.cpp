@@ -386,7 +386,7 @@ magma_zmdotc2_gpumemzero(
 
     if (i < n) {
         for (int j = 0; j < 2; j++)
-            d[i + j * n] = (0.0, 0.0);
+            d[i + j * n] = 0.0;
     }
 }
 
@@ -821,7 +821,7 @@ magma_zmdotc3_gpumemzero(
 
     if (i < n) {
         for (int j = 0; j < 3; j++)
-            d[i + j * n] = (0.0, 0.0);
+            d[i + j * n] = 0.0;
     }
 }
 
@@ -1280,7 +1280,7 @@ magma_zmdotc4_gpumemzero(
 
     if (i < n) {
         for (int j = 0; j < 4; j++)
-            d[i + j * n] = (0.0, 0.0);
+            d[i + j * n] = 0.0;
     }
 }
 

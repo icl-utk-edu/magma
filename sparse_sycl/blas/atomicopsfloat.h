@@ -14,7 +14,7 @@
 
 #include "magmasparse_internal.h"
 
-extern _inline__ void 
+extern __inline__ void 
 atomicAddfloat(float *addr, float val)
 {
     dpct::atomic_fetch_add<float, sycl::access::address_space::generic_space>(addr, val);
