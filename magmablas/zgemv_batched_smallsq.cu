@@ -18,7 +18,11 @@
 
 #define SLDA(N)              ( (N==15||N==23||N==31)? N : (N+1) )
 
+#ifdef MAGMA_HAVE_CUDA
 #define MAX_THREADS          (128)
+#else
+#define MAX_THREADS          (256)
+#endif
 #define BATCH_GEMV_NTCOL(N)  (max(1,MAX_THREADS/N))
 
 ////////////////////////////////////////////////////////////////////////////////
