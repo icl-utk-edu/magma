@@ -1,0 +1,26 @@
+#//////////////////////////////////////////////////////////////////////////////
+#   -- MAGMA (version 2.0) --
+#      Univ. of Tennessee, Knoxville
+#      Univ. of California, Berkeley
+#      Univ. of Colorado, Denver
+#      @date
+#//////////////////////////////////////////////////////////////////////////////
+
+# push previous directory
+dir_stack := $(dir_stack) $(cdir)
+cdir      := sparse_sycl/include
+# ----------------------------------------------------------------------
+
+
+# only headers needing precision generation need to go here.
+# plain headers do not need to be listed.
+hdr += \
+	$(cdir)/magmasparse_z.h               \
+	$(cdir)/magmasparse_zc.h              \
+	$(cdir)/magmasparse_types.h           \
+
+
+# ----------------------------------------------------------------------
+# pop first directory
+cdir      := $(firstword $(dir_stack))
+dir_stack := $(wordlist 2, $(words $(dir_stack)), $(dir_stack))

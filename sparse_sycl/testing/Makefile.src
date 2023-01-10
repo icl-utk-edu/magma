@@ -1,0 +1,88 @@
+#//////////////////////////////////////////////////////////////////////////////
+#   -- MAGMA (version 2.0) --
+#      Univ. of Tennessee, Knoxville
+#      Univ. of California, Berkeley
+#      Univ. of Colorado, Denver
+#      @date
+#//////////////////////////////////////////////////////////////////////////////
+
+# push previous directory
+dir_stack := $(dir_stack) $(cdir)
+cdir      := sparse_sycl/testing
+# ----------------------------------------------------------------------
+
+
+# ----------
+# utility functions
+sparse_testing_src += \
+	$(cdir)/testing_zblas.cpp             \
+	$(cdir)/testing_zmatrix.cpp           \
+	$(cdir)/testing_zio.cpp               \
+	$(cdir)/testing_zmcompressor.cpp      \
+	$(cdir)/testing_zmconverter.cpp       \
+	$(cdir)/testing_zsort.cpp             \
+	$(cdir)/testing_zmatrixinfo.cpp       \
+	$(cdir)/testing_zgetrowptr.cpp	      \
+
+# ----------
+# low level LA operations
+sparse_testing_src += \
+	$(cdir)/testing_zdot.cpp              \
+	$(cdir)/testing_zmdotc.cpp            \
+	$(cdir)/testing_zspmv.cpp             \
+	$(cdir)/testing_zspmv_check.cpp       \
+	$(cdir)/testing_zspmm.cpp             \
+	$(cdir)/testing_zmadd.cpp             \
+	$(cdir)/testing_zcspmv_mixed.cpp       \
+
+
+# ----------
+# iterative solvers and preconditioners
+sparse_testing_src += \
+	$(cdir)/testing_zsolver.cpp           \
+	$(cdir)/testing_zsolver_rhs.cpp           \
+	$(cdir)/testing_zsolver_rhs_scaling.cpp   \
+	$(cdir)/testing_zpreconditioner.cpp   \
+#	$(cdir)/testing_dusemagma_example.cpp	\
+
+# ----------
+# Mixed-precision solvers
+#sparse_testing_src += \
+#	$(cdir)/testing_zpcg.cpp              \
+#	$(cdir)/testing_zpbicgstab.cpp        \
+#	$(cdir)/testing_zcpbicgstab.cpp       \
+#	$(cdir)/testing_zpgmres.cpp           \
+#	$(cdir)/testing_zgmres_pipe.cpp       \
+#	$(cdir)/testing_zcpgmres.cpp          \
+#	$(cdir)/testing_zdot.cpp              \
+#	$(cdir)/testing_zkernel.cpp           \
+#	$(cdir)/testing_z_csrmv.cpp           \
+#	$(cdir)/testing_z_mpk_4.cpp           \
+#	$(cdir)/testing_z_mpk_5.cpp           \
+
+# Big Data Analytics
+#sparse_testing_src += \
+	$(cdir)/testing_zjaccard.cpp              \
+
+# debugging
+sparse_testing_src += \
+	$(cdir)/testing_zsptrsv.cpp           \
+	$(cdir)/testing_zselect.cpp           \
+	$(cdir)/testing_zmatrixcapcup.cpp     \
+#	$(cdir)/testing_zbug.cpp              \
+#	$(cdir)/testing_ddebug.cpp            \
+#	$(cdir)/testing_zailumatrix.cpp       \
+#	$(cdir)/testing_zdynamicilu.cpp       \
+#	$(cdir)/testing_zbgmres_saak_mscale2M.cpp	\
+#	$(cdir)/testing_zbug.cpp              \
+#	$(cdir)/testing_zluwrite.cpp          \
+#	$(cdir)/testing_zbug.cpp              \
+#	$(cdir)/testing_zsolver_debug.cpp     \
+#	$(cdir)/testing_spmvELLRT.cpp         \
+#	$(cdir)/testing_zcdebug.cpp           \
+
+
+# ----------------------------------------------------------------------
+# pop first directory
+cdir      := $(firstword $(dir_stack))
+dir_stack := $(wordlist 2, $(words $(dir_stack)), $(dir_stack))

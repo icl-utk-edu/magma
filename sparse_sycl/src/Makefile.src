@@ -1,0 +1,149 @@
+#//////////////////////////////////////////////////////////////////////////////
+#   -- MAGMA (version 2.0) --
+#      Univ. of Tennessee, Knoxville
+#      Univ. of California, Berkeley
+#      Univ. of Colorado, Denver
+#      @date
+#//////////////////////////////////////////////////////////////////////////////
+
+# push previous directory
+dir_stack := $(dir_stack) $(cdir)
+cdir      := sparse_sycl/src
+# ----------------------------------------------------------------------
+
+
+# ------------------------------------------------------------
+# Loosely, the order is alphabetic in each section, but mixed precision,
+# driver, and multi-GPU routines are separated where it made sense.
+# Double precision "d" files that generate "s" files must also be listed
+# in ZSRC, despite the name.
+
+# Krylov space linear solvers
+libsparse_src += \
+	$(cdir)/zcg.cpp                       \
+	$(cdir)/zcg_res.cpp                   \
+	$(cdir)/zcg_merge.cpp                 \
+	$(cdir)/zpcg_merge.cpp                \
+	$(cdir)/zbicgstab.cpp                 \
+	$(cdir)/zbicg.cpp                     \
+	$(cdir)/zpbicg.cpp                    \
+	$(cdir)/zbicgstab_merge.cpp           \
+	$(cdir)/zbicgstab_merge2.cpp          \
+	$(cdir)/zbicgstab_merge3.cpp          \
+	$(cdir)/zqmr.cpp                      \
+	$(cdir)/zqmr_merge.cpp                \
+	$(cdir)/ztfqmr.cpp                    \
+	$(cdir)/ztfqmr_unrolled.cpp           \
+	$(cdir)/ztfqmr_merge.cpp              \
+	$(cdir)/zpqmr.cpp                     \
+	$(cdir)/zpqmr_merge.cpp               \
+	$(cdir)/zptfqmr.cpp                   \
+	$(cdir)/zptfqmr_merge.cpp             \
+	$(cdir)/zidr.cpp                      \
+	$(cdir)/zidr_merge.cpp                \
+	$(cdir)/zidr_strms.cpp                \
+	$(cdir)/ziterref.cpp                  \
+	$(cdir)/zftjacobi.cpp                 \
+	$(cdir)/zjacobi.cpp                   \
+	$(cdir)/zbaiter.cpp                   \
+	$(cdir)/zbaiter_overlap.cpp           \
+	$(cdir)/zpcg.cpp                      \
+	$(cdir)/zcgs.cpp                      \
+	$(cdir)/zcgs_merge.cpp                \
+	$(cdir)/zpcgs.cpp                     \
+	$(cdir)/zpcgs_merge.cpp               \
+	$(cdir)/zbpcg.cpp                     \
+	$(cdir)/zfgmres.cpp                   \
+	$(cdir)/zpbicgstab.cpp                \
+	$(cdir)/zpidr.cpp                     \
+	$(cdir)/zpidr_merge.cpp               \
+	$(cdir)/zpidr_strms.cpp               \
+	$(cdir)/zbombard.cpp                  \
+	$(cdir)/zbombard_merge.cpp            \
+    $(cdir)/zpbicgstab_merge.cpp          \
+
+# Krylov space eigen-solvers
+libsparse_src += \
+	$(cdir)/zlobpcg.cpp                   \
+
+# Krylov space least squares
+libsparse_src += \
+	$(cdir)/zlsqr.cpp                     \
+
+
+# Sparse direct solver (PARDISO)
+#libsparse_src += \
+#        $(cdir)/zpardiso.cpp                  \
+
+
+
+# Mixed-precision solvers
+#libsparse_src += \
+#	$(cdir)/zcpbicgstab.cpp               \
+#	$(cdir)/zcpgmres.cpp                  \
+#	$(cdir)/zciterref.cpp                 \
+#	$(cdir)/zcpir.cpp                     \
+
+# QR and least squares, GPU interface
+#libsparse_src += \
+#	$(cdir)/zungqr_lapack.cpp             \
+#	$(cdir)/zungqr_cgs.cpp                \
+#	$(cdir)/zungqr_mgs.cpp                \
+#	$(cdir)/zungqr_chol.cpp               \
+#	$(cdir)/zungqr_iter.cpp               \
+
+# custom ILU
+libsparse_src += \
+	$(cdir)/zcustomic.cpp                 \
+	$(cdir)/zcustomilu.cpp                \
+
+# ParILU / ParILUT
+libsparse_src += \
+	$(cdir)/zparilu_gpu.cpp		\
+	$(cdir)/zparilu_cpu.cpp         \
+	$(cdir)/zparic_gpu.cpp          \
+        $(cdir)/zparic_cpu.cpp          \
+	$(cdir)/zparilut_gpu_nodp.cpp        \
+	$(cdir)/zparilut_gpu.cpp        \
+	$(cdir)/zparilut_cpu.cpp        \
+	$(cdir)/zparict_cpu.cpp         \
+	$(cdir)/zparilut.cpp                  \
+	$(cdir)/zparict.cpp   		      \
+
+# incomplete sparse approximate inverse
+libsparse_src += \
+    $(cdir)/zgeisai_apply.cpp             \
+    $(cdir)/zgeisai_lower.cpp             \
+    $(cdir)/zgeisai_upper.cpp             \
+
+# dummy to compensate for routines not included in release
+libsparse_src += \
+#	$(cdir)/zdummy.cpp                    \
+
+
+# orthogonalization schemes and wrappers to dense MAGMA
+libsparse_src += \
+	$(cdir)/magma_zqr_wrapper.cpp         \
+#	$(cdir)/zorthomgs.cpp                 \
+
+# backward communication for SpMV and Preconditioner
+libsparse_src += \
+	$(cdir)/magma_zcustomspmv.cpp         \
+	$(cdir)/magma_zcustomprecond.cpp      \
+
+# Wrappers, tools etc
+libsparse_src += \
+	$(cdir)/magma_z_precond_wrapper.cpp   \
+	$(cdir)/magma_z_solver_wrapper.cpp    \
+	$(cdir)/zresidual.cpp                 \
+	$(cdir)/zresidualvec.cpp              \
+
+# research functions
+libsparse_src += \
+	$(cdir)/zjacobidomainoverlap.cpp      \
+
+
+# ----------------------------------------------------------------------
+# pop first directory
+cdir      := $(firstword $(dir_stack))
+dir_stack := $(wordlist 2, $(words $(dir_stack)), $(dir_stack))
