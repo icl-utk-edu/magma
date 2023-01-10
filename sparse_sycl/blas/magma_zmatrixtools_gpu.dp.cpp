@@ -32,7 +32,7 @@ magma_zvalinit_kernel(
 {
     int k = item_ct1.get_local_range(2) * item_ct1.get_group(2) +
             item_ct1.get_local_id(2);
-    magmaDoubleComplex zero = 0.0;
+    magmaDoubleComplex zero = MAGMA_Z_ZERO;
     if (k < num_el) {
         dval[k] = zero;
     }

@@ -38,12 +38,12 @@ magma_zreduce_kernel_spmv1(
     int Idx = item_ct1.get_local_id(2);
     int blockSize = 128;
     int gridSize = blockSize * 2 * item_ct1.get_group_range(2);
-    temp[Idx] = 0.0;
+    temp[Idx] = MAGMA_Z_ZERO;
     int i = item_ct1.get_group(2) * (blockSize * 2) + Idx;
     while (i < Gs ) {
         temp[ Idx  ] += vtmp[ i ];
         temp[Idx] += (i + blockSize < Gs) ? vtmp[i + blockSize]
-                                          : 0.0;
+                                          : MAGMA_Z_ZERO;
         i += gridSize;
     }
     /*

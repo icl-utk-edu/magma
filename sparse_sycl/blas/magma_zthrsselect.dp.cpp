@@ -122,24 +122,12 @@ zthreshselect_kernel(
     }
     for (magma_int_t z=0; z<total_size-BLOCK_SIZE; z+=BLOCK_SIZE*sampling) {
         sval[tidx] = val[ (z+tidx)%total_size ];
-#if DPCT_COMPATIBILITY_TEMP >= 300
-#if __CUDACC_VER_MAJOR__ < 9
             for (int k=0; k<BLOCK_SIZE; k++) {
                 for (int t=0; t<THRS_PER_THREAD; t++) {
                     count[t] = (sval[k] < (gtidx*THRS_PER_THREAD+t)*thrs_inc*scaling) ?
                                                     count[t]+1 : count[t];
                 }
             }       
-        #else
-            //#pragma unroll
-            for (int k=0; k<BLOCK_SIZE; k++) {
-                for (int t=0; t<THRS_PER_THREAD; t++) {
-                    count[t] = (sval[k] < (gtidx*THRS_PER_THREAD+t)*thrs_inc*scaling) ? 
-                                                    count[t]+1 : count[t];
-                }
-            }
-        #endif
-        #endif
         // threads that have their lowest count above the subset size return
         if (sycl::all_of_group(item_ct1.get_sub_group(),
                                count[0] > subset_size)) {

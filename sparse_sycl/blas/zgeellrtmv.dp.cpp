@@ -41,7 +41,7 @@ zgeellrtmv_kernel_32(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if (i < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int max_ = magma_ceildiv( drowlength[i], T );  
             // number of elements each thread handles
 
@@ -97,7 +97,7 @@ zgeellrtmv_kernel_16(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if (i < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int max_ = magma_ceildiv( drowlength[i], T );  
             // number of elements each thread handles
 
@@ -152,7 +152,7 @@ zgeellrtmv_kernel_8(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if (i < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int max_ = magma_ceildiv( drowlength[i], T );  
             // number of elements each thread handles
 

@@ -30,7 +30,7 @@ magma_zparic_csr_kernel(
     int i, j;
     int k = (item_ct1.get_local_range(2) * item_ct1.get_group(2) +
              item_ct1.get_local_id(2)); // % nnz;
-    magmaDoubleComplex zero = 0.0;
+    magmaDoubleComplex zero = MAGMA_Z_ZERO;
     magmaDoubleComplex s, sp;
     int il, iu, jl, ju;
     if ( k < nnz ) {     

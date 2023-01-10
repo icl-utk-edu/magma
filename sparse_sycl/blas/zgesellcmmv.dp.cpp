@@ -57,7 +57,7 @@ zgesellptmv2d_kernel_1(
         int offset = drowptr[ row/blocksize ];
         int border = (drowptr[ row/blocksize+1 ]-offset)/blocksize;
 
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         for ( int n = 0; n < border; n++) { 
             int col = dcolind [ offset+ blocksize * n + lrow ];
             magmaDoubleComplex val = dval[ offset+ blocksize * n + lrow ];
@@ -106,7 +106,7 @@ zgesellptmv2d_kernel_4(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if(row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int block = blocksize * T; // total number of threads
 
@@ -200,7 +200,7 @@ zgesellptmv2d_kernel_8(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if(row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int block = blocksize * T; // total number of threads
 
@@ -301,7 +301,7 @@ zgesellptmv2d_kernel_16(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if(row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int block = blocksize * T; // total number of threads
 
@@ -392,7 +392,7 @@ zgesellptmv2d_kernel_32(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if(row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int block = blocksize * T; // total number of threads
 

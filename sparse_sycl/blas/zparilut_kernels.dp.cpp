@@ -48,7 +48,7 @@ magma_zparilut_L_kernel(
     int k = item_ct1.get_local_range(2) * item_ct1.get_group(2) +
             item_ct1.get_local_id(2);
 
-    magmaDoubleComplex zero = 0.0;
+    magmaDoubleComplex zero = MAGMA_Z_ZERO;
     int il, iu, jl, ju;
     
     if (k < L_nnz) {
@@ -122,7 +122,7 @@ magma_zparilut_U_kernel(
     int k = item_ct1.get_local_range(2) * item_ct1.get_group(2) +
             item_ct1.get_local_id(2);
 
-    magmaDoubleComplex zero = 0.0;
+    magmaDoubleComplex zero = MAGMA_Z_ZERO;
     int il, iu, jl, ju;
     
     if (k < U_nnz) {
@@ -323,7 +323,7 @@ magma_zparilut_residuals_kernel(
     int k = item_ct1.get_local_range(2) * item_ct1.get_group(2) +
             item_ct1.get_local_id(2);
 
-    magmaDoubleComplex zero = 0.0;
+    magmaDoubleComplex zero = MAGMA_Z_ZERO;
     magmaDoubleComplex s, sp;
     int il, iu, jl, ju;
     

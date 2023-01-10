@@ -56,7 +56,7 @@ magma_zbajac_csr_o_ls_kernel1(int localiters, int n,
         start = rowR[index];
         end   = rowR[index+1];
 
-        magmaDoubleComplex zero = 0.0;
+        magmaDoubleComplex zero = MAGMA_Z_ZERO;
         magmaDoubleComplex bl, tmp = zero, v = zero;
 
         bl = b[index];
@@ -130,7 +130,7 @@ magma_zbajac_csr_o_ls_kernel2(int localiters, int n,
     int i, j, start, end;
     //bool leaveLoop = false;
 
-    magmaDoubleComplex zero = 0.0;
+    magmaDoubleComplex zero = MAGMA_Z_ZERO;
     magmaDoubleComplex bl, tmp = zero, v = zero; 
     magmaDoubleComplex *valR, *valD;
     magma_index_t *colR, *rowR, *colD, *rowD;
@@ -211,7 +211,7 @@ magma_zbajac_csr_o_ls_kernel4(int localiters, int n,
     int i, j, start, end;
     //bool leaveLoop = false;
 
-    magmaDoubleComplex zero = 0.0;
+    magmaDoubleComplex zero = MAGMA_Z_ZERO;
     magmaDoubleComplex bl, tmp = zero, v = zero; 
     magmaDoubleComplex *valR, *valD;
     magma_index_t *colR, *rowR, *colD, *rowD;
@@ -299,7 +299,7 @@ magma_zbajac_csr_o_ls_kernel8(int localiters, int n,
         overlap + item_ct1.get_local_id(2);
     int i, j, start, end;
 
-    magmaDoubleComplex zero = 0.0;
+    magmaDoubleComplex zero = MAGMA_Z_ZERO;
     magmaDoubleComplex bl, tmp = zero, v = zero; 
     magmaDoubleComplex *valR, *valD;
     magma_index_t *colR, *rowR, *colD, *rowD;
@@ -403,7 +403,7 @@ magma_zbajac_csr_o_ls_kernel16(int localiters, int n,
         overlap + item_ct1.get_local_id(2);
     int i, j, start, end;
 
-    magmaDoubleComplex zero = 0.0;
+    magmaDoubleComplex zero = MAGMA_Z_ZERO;
     magmaDoubleComplex bl, tmp = zero, v = zero; 
     magmaDoubleComplex *valR, *valD;
     magma_index_t *colR, *rowR, *colD, *rowD;
@@ -560,7 +560,7 @@ magma_zbajac_csr_o_ls_kernel32(int localiters, int n,
         overlap + item_ct1.get_local_id(2);
     int i, j, start, end;
 
-    magmaDoubleComplex zero = 0.0;
+    magmaDoubleComplex zero = MAGMA_Z_ZERO;
     magmaDoubleComplex bl, tmp = zero, v = zero; 
     magmaDoubleComplex *valR, *valD;
     magma_index_t *colR, *rowR, *colD, *rowD;
@@ -813,7 +813,7 @@ magma_zbajac_csr_o_ls_kernel64(int localiters, int n,
         overlap + item_ct1.get_local_id(2);
     int i, j, start, end;
 
-    magmaDoubleComplex zero = 0.0;
+    magmaDoubleComplex zero = MAGMA_Z_ZERO;
     magmaDoubleComplex bl, tmp = zero, v = zero; 
     magmaDoubleComplex *valR, *valD;
     magma_index_t *colR, *rowR, *colD, *rowD;

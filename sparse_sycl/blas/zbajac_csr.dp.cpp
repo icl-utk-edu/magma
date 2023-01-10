@@ -37,7 +37,7 @@ magma_zbajac_csr_ls_kernel(int localiters, int n,
         start = rowR[index];
         end   = rowR[index+1];
 
-        magmaDoubleComplex zero = 0.0;
+        magmaDoubleComplex zero = MAGMA_Z_ZERO;
         magmaDoubleComplex bl, tmp = zero, v = zero;
 
         bl = b[index];
@@ -100,7 +100,7 @@ magma_zbajac_csr_kernel(
     int i, start, end;   
 
     if (index < n) {
-        magmaDoubleComplex zero = 0.0;
+        magmaDoubleComplex zero = MAGMA_Z_ZERO;
         magmaDoubleComplex bl, tmp = zero, v = zero;
 
         bl = b[index];

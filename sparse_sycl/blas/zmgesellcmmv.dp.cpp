@@ -49,7 +49,7 @@ zmgesellptmv_kernel_1_3D(
 
 
     if (row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int max_ = (drowptr[ bdx+1 ]-offset)/blocksize;  
             // number of elements each thread handles
@@ -108,7 +108,7 @@ zmgesellptmv_kernel_4_3D(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if (row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int block = blocksize * T; // total number of threads
 
@@ -192,7 +192,7 @@ zmgesellptmv_kernel_8_3D(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if (row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int block = blocksize * T; // total number of threads
 
@@ -283,7 +283,7 @@ zmgesellptmv_kernel_16_3D(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if (row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int block = blocksize * T; // total number of threads
 
@@ -378,7 +378,7 @@ zmgesellptmv_kernel_32_3D(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if (row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int block = blocksize * T; // total number of threads
 
@@ -1031,7 +1031,7 @@ magma_zmgesellpmv(
 
 //        if ( alignment == 1) {
 //            sycl::range<3> block(1, num_vecs / 2, blocksize);
-//            if (beta == 0.0)
+//            if (beta == MAGMA_Z_ZERO)
 //            /*
 //            DPCT1049:548: The work-group size passed to the SYCL kernel may
 //            exceed the limit. To get the device limit, query
@@ -1103,7 +1103,7 @@ magma_zmgesellpmv(
 //        }
 //        else if ( alignment == 4) {
 //            sycl::range<3> block(num_vecs / 2, alignment, blocksize);
-//            if (beta == 0.0)
+//            if (beta == MAGMA_Z_ZERO)
 //            /*
 //            DPCT1049:550: The work-group size passed to the SYCL kernel may
 //            exceed the limit. To get the device limit, query
@@ -1174,7 +1174,7 @@ magma_zmgesellpmv(
 //        }
 //        else if ( alignment == 8) {
 //            sycl::range<3> block(num_vecs / 2, alignment, blocksize);
-//            if (beta == 0.0)
+//            if (beta == MAGMA_Z_ZERO)
 //            /*
 //            DPCT1049:553: The work-group size passed to the SYCL kernel may
 //            exceed the limit. To get the device limit, query
@@ -1245,7 +1245,7 @@ magma_zmgesellpmv(
 //        }
 //        else if ( alignment == 16) {
 //            sycl::range<3> block(num_vecs / 2, alignment, blocksize);
-//            if (beta == 0.0)
+//            if (beta == MAGMA_Z_ZERO)
 //            /*
 //            DPCT1049:555: The work-group size passed to the SYCL kernel may
 //            exceed the limit. To get the device limit, query
@@ -1316,7 +1316,7 @@ magma_zmgesellpmv(
 //        }
 //        else if ( alignment == 32) {
 //            sycl::range<3> block(num_vecs / 2, alignment, blocksize);
-//            if (beta == 0.0)
+//            if (beta == MAGMA_Z_ZERO)
 //            /*
 //            DPCT1049:557: The work-group size passed to the SYCL kernel may
 //            exceed the limit. To get the device limit, query
@@ -1416,7 +1416,7 @@ magma_zmgesellpmv(
 //        int Ms = num_threads * sizeof(magmaDoubleComplex);
 //        if ( alignment == 1) {
 //            sycl::range<3> block(1, num_vecs / 2, blocksize);
-//            if (beta == 0.0)
+//            if (beta == MAGMA_Z_ZERO)
 //            /*
 //            DPCT1049:559: The work-group size passed to the SYCL kernel may
 //            exceed the limit. To get the device limit, query
@@ -1449,7 +1449,7 @@ magma_zmgesellpmv(
 //        }
 //        else if ( alignment == 4) {
 //            sycl::range<3> block(num_vecs / 2, alignment, blocksize);
-//            if (beta == 0.0)
+//            if (beta == MAGMA_Z_ZERO)
 //            /*
 //            DPCT1049:561: The work-group size passed to the SYCL kernel may
 //            exceed the limit. To get the device limit, query
@@ -1498,7 +1498,7 @@ magma_zmgesellpmv(
 //        }
 //        else if ( alignment == 8) {
 //            sycl::range<3> block(num_vecs / 2, alignment, blocksize);
-//            if (beta == 0.0)
+//            if (beta == MAGMA_Z_ZERO)
 //            /*
 //            DPCT1049:564: The work-group size passed to the SYCL kernel may
 //            exceed the limit. To get the device limit, query
@@ -1547,7 +1547,7 @@ magma_zmgesellpmv(
 //        }
 //        else if ( alignment == 16) {
 //            sycl::range<3> block(num_vecs / 2, alignment, blocksize);
-//            if (beta == 0.0)
+//            if (beta == MAGMA_Z_ZERO)
 //            /*
 //            DPCT1049:566: The work-group size passed to the SYCL kernel may
 //            exceed the limit. To get the device limit, query
@@ -1596,7 +1596,7 @@ magma_zmgesellpmv(
 //        }
 //        else if ( alignment == 32) {
 //            sycl::range<3> block(num_vecs / 2, alignment, blocksize);
-//            if (beta == 0.0)
+//            if (beta == MAGMA_Z_ZERO)
 //            /*
 //            DPCT1049:568: The work-group size passed to the SYCL kernel may
 //            exceed the limit. To get the device limit, query

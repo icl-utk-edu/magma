@@ -168,8 +168,7 @@ magma_zblockdot_kernel(
     }
     else {
         for( j=0; j<k; j++)
-            temp[Idx + j * item_ct1.get_local_range(2)] =
-                0.0;
+            temp[Idx + j * item_ct1.get_local_range(2)] = MAGMA_Z_ZERO;
     }
     /*
     DPCT1065:9: Consider replacing sycl::nd_item::barrier() with
@@ -313,7 +312,7 @@ magma_zblockreduce_kernel(
 
     for( j=0; j<k; j++){
         temp[Idx + j * item_ct1.get_local_range(2)] =
-            (i < n) ? vtmp[i + j * n] : 0.0;
+            (i < n) ? vtmp[i + j * n] : MAGMA_Z_ZERO;
     }
     /*
     DPCT1065:18: Consider replacing sycl::nd_item::barrier() with
@@ -450,7 +449,7 @@ magma_zreduce_kernel_fast( int Gs,
     int Idx = item_ct1.get_local_id(2);
     int blockSize = 128;
     int gridSize = blockSize * 2 * item_ct1.get_group_range(2);
-    temp[Idx] = 0.0;
+    temp[Idx] = MAGMA_Z_ZERO;
     int i = item_ct1.get_group(2) * (blockSize * 2) + Idx;
     while (i < Gs ) {
         temp[ Idx  ] += vtmp[ i ];

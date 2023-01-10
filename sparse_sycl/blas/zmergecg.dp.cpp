@@ -113,12 +113,12 @@ magma_zcgreduce_kernel_spmv1(
     int Idx = item_ct1.get_local_id(2);
     int blockSize = 128;
     int gridSize = blockSize * 2 * item_ct1.get_group_range(2);
-    temp[Idx] = 0.0;
+    temp[Idx] = MAGMA_Z_ZERO;
     int i = item_ct1.get_group(2) * (blockSize * 2) + Idx;
     while (i < Gs ) {
         temp[ Idx  ] += vtmp[ i ];
         temp[Idx] += (i + blockSize < Gs) ? vtmp[i + blockSize]
-                                          : 0.0;
+                                          : MAGMA_Z_ZERO;
         i += gridSize;
     }
     /*
@@ -359,7 +359,7 @@ magma_zcgmerge_spmvcsr_kernel(
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
     int j;
 
-    temp[Idx] = 0.0;
+    temp[Idx] = MAGMA_Z_ZERO;
 
     if( i<n ) {
         /*
@@ -484,10 +484,10 @@ magma_zcgmerge_spmvell_kernel(
     int Idx = item_ct1.get_local_id(2);
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
 
-    temp[Idx] = 0.0;
+    temp[Idx] = MAGMA_Z_ZERO;
 
     if(i < n ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         for ( int k = 0; k < num_cols_per_row; k++ ) {
             int col = dcolind [ n * k + i ];
             magmaDoubleComplex val = dval [ n * k + i ];
@@ -608,10 +608,10 @@ magma_zcgmerge_spmvellpack_kernel(
     int Idx = item_ct1.get_local_id(2);
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
 
-    temp[Idx] = 0.0;
+    temp[Idx] = MAGMA_Z_ZERO;
 
     if(i < n ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         for ( int k = 0; k < num_cols_per_row; k++ ) {
             int col = dcolind [ num_cols_per_row * i + k ];
             magmaDoubleComplex val = dval [ num_cols_per_row * i + k ];
@@ -733,7 +733,7 @@ magma_zcgmerge_spmvell_kernelb1(
     int Idx = item_ct1.get_local_id(2);
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
 
-    temp[Idx] = 0.0;
+    temp[Idx] = MAGMA_Z_ZERO;
 
     int idx = item_ct1.get_local_id(2); // local row
     int bdx = item_ct1.get_group(2);    // global block index
@@ -745,7 +745,7 @@ magma_zcgmerge_spmvell_kernelb1(
         int offset = drowptr[ row/blocksize ];
         int border = (drowptr[ row/blocksize+1 ]-offset)/blocksize;
 
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         for ( int n = 0; n < border; n++) { 
             int col = dcolind [ offset+ blocksize * n + lrow ];
             magmaDoubleComplex val = dval[ offset+ blocksize * n + lrow ];
@@ -899,7 +899,7 @@ magma_zcgmerge_spmvellpackrt_kernel_8(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if(i < n ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int max_ = magma_ceildiv( drowlength[i], T );  
             // number of elements each thread handles
 
@@ -951,7 +951,7 @@ magma_zcgmerge_spmvellpackrt_kernel_16(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if(i < n ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int max_ = magma_ceildiv( drowlength[i], T );  
             // number of elements each thread handles
 
@@ -1004,7 +1004,7 @@ magma_zcgmerge_spmvellpackrt_kernel_32(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if(i < n ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int max_ = magma_ceildiv( drowlength[i], T );  
             // number of elements each thread handles
 
@@ -1047,7 +1047,7 @@ magma_zcgmerge_spmvellpackrt_kernel2(
     int Idx = item_ct1.get_local_id(2);
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
 
-    temp[Idx] = (i < n) ? z[i] * d[i] : 0.0;
+    temp[Idx] = (i < n) ? z[i] * d[i] : MAGMA_Z_ZERO;
     /*
     DPCT1065:627: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -1162,10 +1162,10 @@ magma_zcgmerge_spmvsellc_kernel(
     int offset = drowptr[item_ct1.get_group(2)];
     int border = (drowptr[item_ct1.get_group(2) + 1] - offset) / blocksize;
 
-    temp[Idx] = 0.0;
+    temp[Idx] = MAGMA_Z_ZERO;
 
     if(i < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         for ( int n = 0; n < border; n ++) {
             int col = dcolind [offset+ blocksize * n + Idx ];
             magmaDoubleComplex val = dval[offset+ blocksize * n + Idx];
@@ -1298,7 +1298,7 @@ magma_zcgmerge_spmvsellpt_kernel_8(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if(row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int block = blocksize * T; // total number of threads
 
@@ -1370,7 +1370,7 @@ magma_zcgmerge_spmvsellpt_kernel_16(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if(row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int block = blocksize * T; // total number of threads
 
@@ -1451,7 +1451,7 @@ magma_zcgmerge_spmvsellpt_kernel_32(
     auto shared = (magmaDoubleComplex *)dpct_local;
 
     if(row < num_rows ) {
-        magmaDoubleComplex dot = 0.0;
+        magmaDoubleComplex dot = MAGMA_Z_ZERO;
         int offset = drowptr[ bdx ];
         int block = blocksize * T; // total number of threads
 
@@ -2041,7 +2041,7 @@ magma_zcgmerge_xrbeta_kernel(
     */
     magmaDoubleComplex mrho = MAGMA_Z_MAKE(-1.0, 0.0) * rho;
 
-    temp[Idx] = 0.0;
+    temp[Idx] = MAGMA_Z_ZERO;
 
     if( i<n ) {
         x[i] += rho * d[i];
