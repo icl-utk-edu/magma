@@ -437,6 +437,7 @@ subs = {
   'normal' : [
     # ----- header
     ('s',              'd',              'c',              'z'               ),
+    ('',                '', '#include <complex>', '#include<complex>'),
 
     # ----- Preprocessor
     ('#define PRECISION_s',  '#define PRECISION_d',  '#define PRECISION_c',   '#define PRECISION_z'  ),

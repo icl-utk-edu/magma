@@ -36,12 +36,7 @@ magma_zparic_csr_kernel(
     if ( k < nnz ) {     
         i = Arowidx[k];
         j = Acolidx[k];
-#if (DPCT_COMPATIBILITY_TEMP >= 350) &&                                        \
-    (defined(PRECISION_d) || defined(PRECISION_s))
-        s = __ldg( A_val+k );
-#else
         s = A_val[k];
-#endif
         il = rowptr[i];
         iu = rowptr[j];
         while (il < rowptr[i+1] && iu < rowptr[j+1]) {
@@ -67,7 +62,7 @@ magma_zparic_csr_kernel(
             DPCT1064:154: Migrated make_cuDoubleComplex call is used in a macro
             definition and is not valid for all macro uses. Adjust the code.
             */
-            val[il - 1] = MAGMA_Z_MAKE(sycl::sqrt(sycl::fabs(s.real())), 0.0);
+            val[il - 1] = MAGMA_Z_MAKE(sycl::sqrt(sycl::fabs(std::real(s))), 0.0);
         else  //sub-diagonal
             val[il-1] =  s / val[iu-1];
     }

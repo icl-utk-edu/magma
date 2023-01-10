@@ -39,14 +39,7 @@ zcgecsrmv_mixed_prec_kernel(
         int start = drowptr[ row ];
         int end = drowptr[ row+1 ];
         for( j=start; j<end; j++){
-            magmaDoubleComplex val =
-                /*
-                DPCT1064:196: Migrated make_cuDoubleComplex call is used in a
-                macro definition and is not valid for all macro uses. Adjust the
-                code.
-                */
-                MAGMA_Z_MAKE((doffdiagval[j]).real(),
-                             (doffdiagval[j]).imag());
+            magmaDoubleComplex val = doffdiagval[j];
             dot += val * dx[ dcolind[j] ];
         }
         dy[ row ] =  dot *alpha + beta * dy[ row ];

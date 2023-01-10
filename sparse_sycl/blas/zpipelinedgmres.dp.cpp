@@ -204,7 +204,7 @@ magma_zpipelined_copyscale(
     magmaDoubleComplex rr=skp[k];
 
     if ( i < n ) {
-        v[i] =  r[i] * 1.0 / rr;
+        v[i] =  r[i] * MAGMA_Z_MAKE(1.0, 0.0) / rr;
     }
 }
 
@@ -260,7 +260,7 @@ magma_zpipelinedscale(
             item_ct1.get_local_id(2);
 
     if ( i<n ) {
-        r[i] =  r[i] * 1.0 / drnorm[0];
+        r[i] =  r[i] * MAGMA_Z_MAKE(1.0, 0.0) / drnorm[0];
     }
 }
 

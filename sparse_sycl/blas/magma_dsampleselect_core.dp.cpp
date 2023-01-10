@@ -45,7 +45,6 @@ void bitonic_sort(double* in, sycl::nd_item<3> item_ct1) {
             int32_t upper = idx ^ lower;
             // we then sort the elements | upper | 0/1 | lower |
             int32_t sort_idx = lower | (upper << 1);
-#if (__CUDACC_VER_MAJOR__ >= 9)
             if (bit >= warp_size) {
                 /*
                 DPCT1065:127: Consider replacing sycl::nd_item::barrier() with
@@ -56,9 +55,6 @@ void bitonic_sort(double* in, sycl::nd_item<3> item_ct1) {
             } else {
                 sycl::group_barrier(item_ct1.get_sub_group());
             }
-#else
-            __syncthreads();
-#endif
             if (idx < 1 << (bitonic_cutoff_log2 - 1)) {
                 sort2(in, sort_idx, sort_idx | bit, odd);
             }
@@ -99,7 +95,6 @@ int32_t searchtree_traversal(const double* searchtree, double el, uint32_t amask
         bool smaller = next_smaller;
         i = 2 * i + 2 - smaller;
         next_smaller = el < searchtree[i];
-#if (__CUDACC_VER_MAJOR__ >= 9)
         auto local_mask =
             sycl::reduce_over_group(
                 item_ct1.get_sub_group(),
@@ -110,9 +105,6 @@ int32_t searchtree_traversal(const double* searchtree, double el, uint32_t amask
                     : 0,
                 sycl::ext::oneapi::plus<>()) ^
             (smaller - 1);
-#else
-        auto local_mask = (__ballot(smaller) & amask) ^ (smaller - 1);
-#endif
         equal_mask &= local_mask;
     }
     return i - (searchtree_width - 1);
@@ -198,7 +190,7 @@ void count_buckets_impl(const double* __restrict__ in,
 
     blockwise_work_local(
         searchtree_width,
-        [&](int32_t i, sycl::nd_item<3> item_ct1) {
+        [&](int32_t i) {
         local_counts[i] = 0;
         },
         item_ct1);
@@ -230,7 +222,7 @@ void count_buckets_impl(const double* __restrict__ in,
     // store the local counts grouped by block idx
     blockwise_work_local(
         searchtree_width,
-        [&](int32_t i, sycl::nd_item<3> item_ct1) {
+        [&](int32_t i) {
         counts[i + item_ct1.get_group(2) * searchtree_width] = local_counts[i];
         },
         item_ct1);
@@ -279,12 +271,13 @@ void collect_bucket_indirect(const double* __restrict__ data,
                                         sycl::nd_item<3> item_ct1) {
             auto packed = load_packed_bytes(oracles_packed, amask, idx, item_ct1);
             int32_t ofs{};
-            ofs = warp_aggr_atomic_count_predicate(&count, amask,
+            ofs = warp_aggr_atomic_count_predicate(count, amask,
                                                    packed == bucket, item_ct1);
             if (packed == bucket) {
                 out[ofs] = data[idx];
             }
-        });
+        },
+        item_ct1 );
 }
 
 void launch_sampleselect(double* __restrict__ in, double* __restrict__ tmp, double* __restrict__ tree,

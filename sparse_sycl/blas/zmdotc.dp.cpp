@@ -34,6 +34,8 @@ magma_zmdotc1_kernel_1(
     int Idx = item_ct1.get_local_id(2);
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
 
+    auto blockDimX = item_ct1.get_local_range(2);
+
     // 1 vectors v(i)/w(i)
 
     temp[Idx] =
@@ -409,6 +411,8 @@ magma_zmdotc2_kernel_1(
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
     int j;
 
+    auto blockDimX = item_ct1.get_local_range(2);
+
     // 2 vectors v(i)/w(i)
 
     temp[Idx] =
@@ -523,12 +527,12 @@ magma_zmdotc2_kernel_1(
         if( Idx < 32 ){
             volatile double *temp2 = temp;
             for( j=0; j<2; j++){
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 32 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 16 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 8 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 4 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 2 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 1 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 32 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 16 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 8 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 4 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 2 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 1 ];
             }
         }
     #endif
@@ -846,6 +850,8 @@ magma_zmdotc3_kernel_1(
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
     int j;
 
+    auto blockDimX = item_ct1.get_local_range(2);
+
     // 3 vectors v(i)/w(i)
 
     temp[Idx] =
@@ -970,12 +976,12 @@ magma_zmdotc3_kernel_1(
         if( Idx < 32 ){
             volatile double *temp2 = temp;
             for( j=0; j<3; j++){
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 32 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 16 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 8 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 4 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 2 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 1 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 32 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 16 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 8 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 4 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 2 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 1 ];
             }
         }
     #endif
@@ -1307,6 +1313,8 @@ magma_zmdotc4_kernel_1(
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
     int j;
 
+    auto blockDimX = item_ct1.get_local_range(2);
+
     // 4 vectors v(i)/w(i)
 
     temp[Idx] =
@@ -1441,12 +1449,12 @@ magma_zmdotc4_kernel_1(
         if( Idx < 32 ){
             volatile double *temp2 = temp;
             for( j=0; j<4; j++){
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 32 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 16 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 8 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 4 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 2 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 1 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 32 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 16 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 8 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 4 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 2 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 1 ];
             }
         }
     #endif

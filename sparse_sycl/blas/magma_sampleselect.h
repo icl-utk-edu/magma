@@ -61,16 +61,24 @@ void build_searchtree(const float*,float*,int32_t);
 SYCL_EXTERNAL void build_searchtree(const double *, double *, int32_t,
                                     sycl::nd_item<3> item_ct1,
                                     double *sample_buffer, double *leaves);
+SYCL_EXTERNAL void build_searchtree(const float *, float *, int32_t,
+                                    sycl::nd_item<3> item_ct1,
+                                    float *sample_buffer, float *leaves);
 void select_bitonic_basecase(float*,float*,int32_t,int32_t);
 void select_bitonic_basecase(double*,double*,int32_t,int32_t,
                              sycl::nd_item<3> item_ct1, double *data);
 void sampleselect(float*,float*,float*,int32_t*,int32_t,int32_t,float*);
 SYCL_EXTERNAL void sampleselect(double *, double *, double *, int32_t *,
                                 int32_t, int32_t, double *);
+SYCL_EXTERNAL void sampleselect(float *, float *, float *, int32_t *,
+                                int32_t, int32_t, float *);
 void count_buckets(const float*,const float*,int32_t*,int32_t,int32_t);
 SYCL_EXTERNAL void count_buckets(const double *, const double *, int32_t *,
                                  int32_t, int32_t, sycl::nd_item<3> item_ct1,
                                  double *local_tree, int32_t *local_counts);
+SYCL_EXTERNAL void count_buckets(const float *, const float *, int32_t *,
+                                 int32_t, int32_t, sycl::nd_item<3> item_ct1,
+                                 float *local_tree, int32_t *local_counts);
 void count_buckets_write(const float*,const float*,int32_t*,uint32_t*,int32_t,int32_t);
 void count_buckets_write(const double*,const double*,int32_t*,uint32_t*,int32_t,int32_t,
                          sycl::nd_item<3> item_ct1, double *local_tree,
@@ -353,7 +361,7 @@ inline void blockwise_work(int32_t local_work, int32_t size, F function,
             different template instantiations that could not be unified. You may
             need to adjust the code.
             */
-            function(args..., idx, item_ct1, amask);
+            function(idx, amask, item_ct1);
         }
     }
 }

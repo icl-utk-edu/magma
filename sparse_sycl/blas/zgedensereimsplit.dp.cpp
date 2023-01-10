@@ -32,8 +32,8 @@ zgedensereimsplit_kernel(
 
     if( row<num_rows ){
         for( j=0; j<num_cols; j++ ){
-            ReA[j] = MAGMA_Z_MAKE((A[j]).real(), 0.0);
-            ImA[j] = MAGMA_Z_MAKE((A[j]).imag(), 0.0);
+            ReA[j] = MAGMA_Z_MAKE(std::real(A[j]), 0.0);
+            ImA[j] = MAGMA_Z_MAKE(std::imag(A[j]), 0.0);
         }
     }
 }

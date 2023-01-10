@@ -31,7 +31,7 @@ magma_zgpumemzero(
 
     if (i < n) {
         for (int j = 0; j < k; j++)
-            d[i + j * n] = (0.0, 0.0);
+            d[i + j * n] = 0.0;
     }
 }
 
@@ -50,7 +50,7 @@ magma_zdot_kernel(
     int Idx = item_ct1.get_local_id(2);
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
 
-    temp[Idx] = (i < n) ? v[i] * r[i] : (0.0, 0.0);
+    temp[Idx] = (i < n) ? v[i] * r[i] : 0.0;
     /*
     DPCT1065:0: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -159,6 +159,8 @@ magma_zblockdot_kernel(
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
     int j;
 
+    auto blockDimX = item_ct1.get_local_range(2);
+
     // k vectors v(i)
     if (i<n){
         for( j=0; j<k; j++)
@@ -167,7 +169,7 @@ magma_zblockdot_kernel(
     else {
         for( j=0; j<k; j++)
             temp[Idx + j * item_ct1.get_local_range(2)] =
-                (0.0, 0.0);
+                0.0;
     }
     /*
     DPCT1065:9: Consider replacing sycl::nd_item::barrier() with
@@ -261,12 +263,12 @@ magma_zblockdot_kernel(
         if( Idx < 32 ){
             volatile double *temp2 = temp;
             for( j=0; j<k; j++){
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 32 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 16 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 8 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 4 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 2 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 1 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 32 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 16 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 8 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 4 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 2 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 1 ];
             }
         }
     #endif
@@ -274,12 +276,12 @@ magma_zblockdot_kernel(
         if( Idx < 32 ){
             volatile float *temp2 = temp;
             for( j=0; j<k; j++){
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 32 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 16 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 8 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 4 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 2 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 1 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 32 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 16 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 8 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 4 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 2 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 1 ];
             }
         }
     #endif
@@ -306,9 +308,12 @@ magma_zblockreduce_kernel(
     int Idx = item_ct1.get_local_id(2);
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
     int j;
+
+    auto blockDimX = item_ct1.get_local_range(2);
+
     for( j=0; j<k; j++){
         temp[Idx + j * item_ct1.get_local_range(2)] =
-            (i < n) ? vtmp[i + j * n] : (0.0, 0.0);
+            (i < n) ? vtmp[i + j * n] : 0.0;
     }
     /*
     DPCT1065:18: Consider replacing sycl::nd_item::barrier() with
@@ -402,12 +407,12 @@ magma_zblockreduce_kernel(
         if( Idx < 32 ){
             volatile double *temp2 = temp;
             for( j=0; j<k; j++){
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 32 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 16 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 8 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 4 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 2 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 1 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 32 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 16 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 8 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 4 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 2 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 1 ];
             }
         }
     #endif
@@ -415,12 +420,12 @@ magma_zblockreduce_kernel(
         if( Idx < 32 ){
             volatile float *temp2 = temp;
             for( j=0; j<k; j++){
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 32 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 16 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 8 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 4 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 2 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 1 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 32 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 16 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 8 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 4 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 2 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 1 ];
             }
         }
     #endif
@@ -445,12 +450,12 @@ magma_zreduce_kernel_fast( int Gs,
     int Idx = item_ct1.get_local_id(2);
     int blockSize = 128;
     int gridSize = blockSize * 2 * item_ct1.get_group_range(2);
-    temp[Idx] = (0.0, 0.0);
+    temp[Idx] = 0.0;
     int i = item_ct1.get_group(2) * (blockSize * 2) + Idx;
     while (i < Gs ) {
         temp[ Idx  ] += vtmp[ i ];
         temp[Idx] += (i + blockSize < Gs) ? vtmp[i + blockSize]
-                                          : (0.0, 0.0);
+                                          : 0.0;
         i += gridSize;
     }
     /*
@@ -554,12 +559,12 @@ magma_zblockreduce_kernel_fast(
 
     for( j=0; j<k; j++){
         int i = item_ct1.get_group(2) * (blockSize * 2) + Idx;
-        temp[Idx + j * (blockSize)] = (0.0, 0.0);
+        temp[Idx + j * (blockSize)] = 0.0;
         while (i < Gs ) {
             temp[ Idx+j*(blockSize)  ] += vtmp[ i+j*n ];
             temp[Idx + j * (blockSize)] += (i + (blockSize) < Gs)
                                                ? vtmp[i + j * n + (blockSize)]
-                                               : (0.0, 0.0);
+                                               : 0.0;
             i += gridSize;
         }
     }

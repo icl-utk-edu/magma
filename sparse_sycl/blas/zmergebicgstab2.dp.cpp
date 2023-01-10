@@ -38,12 +38,12 @@ magma_zreduce_kernel_spmv1(
     int Idx = item_ct1.get_local_id(2);
     int blockSize = 128;
     int gridSize = blockSize * 2 * item_ct1.get_group_range(2);
-    temp[Idx] = (0.0, 0.0);
+    temp[Idx] = 0.0;
     int i = item_ct1.get_group(2) * (blockSize * 2) + Idx;
     while (i < Gs ) {
         temp[ Idx  ] += vtmp[ i ];
         temp[Idx] += (i + blockSize < Gs) ? vtmp[i + blockSize]
-                                          : (0.0, 0.0);
+                                          : 0.0;
         i += gridSize;
     }
     /*
@@ -167,7 +167,7 @@ magma_zbicgmerge_spmv1_kernel(
     */
     item_ct1.barrier();
 
-    temp[Idx] = (i < n) ? v[i] * r[i] : (0.0, 0.0);
+    temp[Idx] = (i < n) ? v[i] * r[i] : 0.0;
     /*
     DPCT1065:747: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -434,12 +434,12 @@ magma_zreduce_kernel_spmv2(
 
     for( j=0; j<2; j++){
         int i = item_ct1.get_group(2) * (blockSize * 2) + Idx;
-        temp[Idx + j * (blockSize)] = (0.0, 0.0);
+        temp[Idx + j * (blockSize)] = 0.0;
         while (i < Gs ) {
             temp[ Idx+j*(blockSize)  ] += vtmp[ i+j*n ];
             temp[Idx + j * (blockSize)] += (i + (blockSize) < Gs)
                                                ? vtmp[i + j * n + (blockSize)]
-                                               : (0.0, 0.0);
+                                               : 0.0;
             i += gridSize;
         }
     }
@@ -562,6 +562,8 @@ magma_zbicgmerge_spmv2_kernel(
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
     int j;
 
+    auto blockDimX = item_ct1.get_local_range(2);
+
     if( i<n ){
         /*
         DPCT1064:773: Migrated make_cuDoubleComplex call is used in a macro
@@ -591,7 +593,7 @@ magma_zbicgmerge_spmv2_kernel(
     else {
         for( j=0; j<2; j++)
             temp[Idx + j * item_ct1.get_local_range(2)] =
-                (0.0, 0.0);
+                0.0;
     }
     /*
     DPCT1065:770: Consider replacing sycl::nd_item::barrier() with
@@ -685,12 +687,12 @@ magma_zbicgmerge_spmv2_kernel(
         if( Idx < 32 ){
             volatile double *temp2 = temp;
             for( j=0; j<2; j++){
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 32 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 16 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 8 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 4 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 2 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 1 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 32 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 16 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 8 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 4 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 2 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 1 ];
             }
         }
     #endif
@@ -698,12 +700,12 @@ magma_zbicgmerge_spmv2_kernel(
         if( Idx < 32 ){
             volatile float *temp2 = temp;
             for( j=0; j<2; j++){
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 32 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 16 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 8 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 4 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 2 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 1 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 32 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 16 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 8 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 4 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 2 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 1 ];
             }
         }
     #endif
@@ -885,6 +887,8 @@ magma_zbicgmerge_xrbeta_kernel(
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
     int j;
 
+    auto blockDimX = item_ct1.get_local_range(2);
+
     magmaDoubleComplex alpha=skp[0];
     magmaDoubleComplex omega=skp[2];
 
@@ -911,7 +915,7 @@ magma_zbicgmerge_xrbeta_kernel(
     else {
         for( j=0; j<2; j++)
             temp[Idx + j * item_ct1.get_local_range(2)] =
-                (0.0, 0.0);
+                0.0;
     }
     /*
     DPCT1065:785: Consider replacing sycl::nd_item::barrier() with
@@ -1005,12 +1009,12 @@ magma_zbicgmerge_xrbeta_kernel(
         if( Idx < 32 ){
             volatile double *temp2 = temp;
             for( j=0; j<2; j++){
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 32 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 16 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 8 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 4 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 2 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 1 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 32 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 16 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 8 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 4 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 2 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 1 ];
             }
         }
     #endif
@@ -1018,12 +1022,12 @@ magma_zbicgmerge_xrbeta_kernel(
         if( Idx < 32 ){
             volatile float *temp2 = temp;
             for( j=0; j<2; j++){
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 32 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 16 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 8 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 4 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 2 ];
-                temp2[ Idx+j*blockDim.x ] += temp2[ Idx+j*blockDim.x + 1 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 32 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 16 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 8 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 4 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 2 ];
+                temp2[ Idx+j*blockDimX ] += temp2[ Idx+j*blockDimX + 1 ];
             }
         }
     #endif

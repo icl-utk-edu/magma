@@ -38,7 +38,7 @@ int row = item_ct1.get_local_range(2) * item_ct1.get_group(2) +
     if(row < num_rows ){
         for( int i=0; i<num_vecs; i++)
                 dot[item_ct1.get_local_id(2) +
-                    i * item_ct1.get_local_range(2)] = std::complex<double> {0.0, 0.0};
+                    i * item_ct1.get_local_range(2)] = 0.0;
         for ( int n = 0; n < num_cols_per_row; n++ ) {
             int col = dcolind [ num_cols_per_row * row + n ];
             magmaDoubleComplex val = dval [ num_cols_per_row * row + n ];
