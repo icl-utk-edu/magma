@@ -123,7 +123,7 @@ int main( int argc, char** argv)
                 magma_zgeqrf2_gpu( M, N, d_A, ldda, tau, &info );
                 gpu_time = magma_wtime() - gpu_time;
             }
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
             else if ( opts.version == 3 ) {
                 // stores dT, V blocks have zeros, R blocks stored in dT
                 gpu_time = magma_wtime();
@@ -273,7 +273,7 @@ int main( int argc, char** argv)
                     }
                     magma_free_cpu( hwork );
                 }
-                #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+                #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                 else if ( opts.version == 3 ) {
                     // allocate hwork
                     magma_zgeqrs3_gpu( M, N, 1,

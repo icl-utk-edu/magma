@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     double tol = 3*eps;
 
     printf("%% trans = %s\n", lapack_trans_const(opts.transA) );
-    #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+    #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
         printf("%%   M     N   MAGMA Gflop/s (ms)  %s Gflop/s (ms)   CPU Gflop/s (ms)  MAGMA error  %s error\n",
                 g_platform_str, g_platform_str );
     #else
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
             /* =====================================================================
                Performs operation using MAGMABLAS (currently only with CUDA)
                =================================================================== */
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                 magma_zsetvector( Ym, Y, incy, dY(0), incy, opts.queue );
                 
                 magma_flush_cache( opts.cache );
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
             // TODO: investigate why.
             tol = (M < 20000 && N < 20000 ? 3*eps : opts.tolerance*eps);
             
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                 blasf77_zaxpy( &Ym, &c_neg_one, Y, &incy, Ymagma, &incy );
                 magma_error = lapackf77_zlange( "F", &Ym, &ione, Ymagma, &Ym, work )
                             / (sqrt(double(N+2))*fabs(alpha)*Anorm*Xnorm + 2*fabs(beta)*Ynorm);
