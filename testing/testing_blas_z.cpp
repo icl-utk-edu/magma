@@ -28,6 +28,10 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
+#ifdef MAGMA_HAVE_SYCL
+#include "../control/magma_internal.h" // to get sycl queue from magma queue struct
+#endif
+
 #define A(i,j)  &A[  (i) + (j)*ld ]
 #define dA(i,j) &dA[ (i) + (j)*ld ]
 #define dB(i,j) &dB[ (i) + (j)*ld ]
@@ -61,7 +65,7 @@ int main( int argc, char** argv )
     magma_opts opts;
     opts.parse_opts( argc, argv );
     
-    #ifdef MAGMA_HAVE_CUDA 
+    #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_SYCL)
     printf( "Compares magma wrapper function to cublas function; all diffs should be exactly 0.\n\n" );
     
     total_error = 0.;
@@ -105,9 +109,15 @@ int main( int argc, char** argv )
             magma_zsetmatrix( m, n, A, ld, dB, ld, opts.queue );
             magma_zswap( m, dA(0,1), 1, dA(0,2), 1, opts.queue );
             magma_zswap( m, dB(0,1), 1, dB(0,2), 1, opts.queue );
-            
+            #ifdef MAGMA_HAVE_CUDA
             // check results, storing diff between magma and cuda calls in C2
             cublasZaxpy( opts.handle, int(ld*n), &c_neg_one, dA, 1, dB, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::axpy(
+                *opts.handle, int(ld * n),
+                c_neg_one,
+                (magmaDoubleComplex *)dA, 1, (magmaDoubleComplex *)dB, 1);
+            #endif
             magma_zgetmatrix( m, n, dB, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &m, &k, C2, &ld, work );
             total_error += error;
@@ -124,7 +134,19 @@ int main( int argc, char** argv )
         for( int j = 0; j < k; ++j ) {
             magma_int_t i1 = magma_izamax( m, dA(0,j), 1, opts.queue );
             int i2;  // not magma_int_t
+            #ifdef MAGMA_HAVE_CUDA
             cublasIzamax( opts.handle, int(m), dA(0,j), 1, &i2 );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    int64_t *res_temp_ptr_ct1 =
+            sycl::malloc_shared<int64_t>(1, *opts.queue->sycl_stream());
+            oneapi::mkl::blas::column_major::iamax(*opts.handle, int(m),
+                                             (magmaDoubleComplex *)dA(0, j),
+                                             1, res_temp_ptr_ct1)
+            .wait();
+            int res_temp_host_ct2 = (int)*res_temp_ptr_ct1;
+            dpct::dpct_memcpy(&i2, &res_temp_host_ct2, sizeof(int));
+            sycl::free(res_temp_ptr_ct1, *opts.queue->sycl_stream());
+            #endif
             // todo need sync here?
             assert( i1 == i2 );
             error += abs( i1 - i2 );
@@ -150,13 +172,29 @@ int main( int argc, char** argv )
             t1 = magma_sync_wtime( opts.queue ) - t1;
             
             t2 = magma_sync_wtime( opts.queue );
-            cublasZgemv( opts.handle, cublas_trans_const(trans[ia]),
+            #ifdef MAGMA_HAVE_CUDA
+            cublasZgemv( opts.handle, trans_const(trans[ia]),
                          int(m), int(n), &alpha, dA, int(ld), dB, 1, &beta, dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::gemv(
+                *opts.handle, syclblas_trans_const(trans[ia]), int(m), int(n),
+                alpha,
+                (magmaDoubleComplex *)dA, int(ld), (magmaDoubleComplex *)dB,
+                1, beta,
+                (magmaDoubleComplex *)dC2, 1);
+            #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
             // check results, storing diff between magma and cuda call in C2
             size = (trans[ia] == MagmaNoTrans ? m : n);
+            #ifdef MAGMA_HAVE_CUDA
             cublasZaxpy( opts.handle, int(size), &c_neg_one, dC1, 1, dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+            oneapi::mkl::blas::column_major::axpy(
+                *opts.handle, int(size),
+                c_neg_one,
+                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+            #endif
             magma_zgetvector( size, dC2, 1, C2, 1, opts.queue );
             error = lapackf77_zlange( "F", &size, &ione, C2, &ld, work );
             total_error += error;
@@ -180,12 +218,28 @@ int main( int argc, char** argv )
             t1 = magma_sync_wtime( opts.queue ) - t1;
             
             t2 = magma_sync_wtime( opts.queue );
-            cublasZhemv( opts.handle, cublas_uplo_const(uplo[iu]),
+            #ifdef MAGMA_HAVE_CUDA
+            cublasZhemv( opts.handle, uplo_const(uplo[iu]),
                          int(m), &alpha, dA, int(ld), dB, 1, &beta, dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+            oneapi::mkl::blas::column_major::hemv(
+                *opts.handle, syclblas_uplo_const(uplo[iu]), int(m),
+                alpha,
+                (magmaDoubleComplex *)dA, int(ld), (magmaDoubleComplex *)dB,
+                1, beta,
+                (magmaDoubleComplex *)dC2, 1);
+            #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
             // check results, storing diff between magma and cuda call in C2
+            #ifdef MAGMA_HAVE_CUDA
             cublasZaxpy( opts.handle, int(m), &c_neg_one, dC1, 1, dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+            oneapi::mkl::blas::column_major::axpy(
+                *opts.handle, int(m),
+		c_neg_one,
+                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+            #endif
             magma_zgetvector( m, dC2, 1, C2, 1, opts.queue );
             error = lapackf77_zlange( "F", &m, &ione, C2, &ld, work );
             total_error += error;
@@ -221,12 +275,27 @@ int main( int argc, char** argv )
             t1 = magma_sync_wtime( opts.queue ) - t1;
             
             t2 = magma_sync_wtime( opts.queue );
-            cublasZtrsv( opts.handle, cublas_uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
-                         cublas_diag_const(diag[id]), int(m), dA, int(ld), dC2, 1 );
+            #ifdef MAGMA_HAVE_CUDA
+	    cublasZtrsv( opts.handle, uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
+                         diag_const(diag[id]), int(m), dA, int(ld), dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::trsv(
+                *opts.handle, syclblas_uplo_const(uplo[iu]),
+                syclblas_trans_const(trans[it]), syclblas_diag_const(diag[id]),
+                int(m), (magmaDoubleComplex *)dA, int(ld),
+                (magmaDoubleComplex *)dC2, 1);
+            #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
             // check results, storing diff between magma and cuda call in C2
+            #ifdef MAGMA_HAVE_CUDA
             cublasZaxpy( opts.handle, int(m), &c_neg_one, dC1, 1, dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::axpy(
+                *opts.handle, int(m),
+                c_neg_one,
+                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+            #endif
             magma_zgetvector( m, dC2, 1, C2, 1, opts.queue );
             error = lapackf77_zlange( "F", &m, &ione, C2, &ld, work );
             total_error += error;
@@ -256,12 +325,29 @@ int main( int argc, char** argv )
             t1 = magma_sync_wtime( opts.queue ) - t1;
             
             t2 = magma_sync_wtime( opts.queue );
-            cublasZgemm( opts.handle, cublas_trans_const(trans[ia]), cublas_trans_const(trans[ib]),
+            #ifdef MAGMA_HAVE_CUDA
+            cublasZgemm( opts.handle, trans_const(trans[ia]), cublas_trans_const(trans[ib]),
                          int(m), int(n), int(k), &alpha, dA, int(ld), dB, int(ld), &beta, dC2, int(ld) );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::gemm(
+                *opts.handle, syclblas_trans_const(trans[ia]),
+                syclblas_trans_const(trans[ib]), int(m), int(n), int(k),
+                alpha,
+                (magmaDoubleComplex *)dA, int(ld), (magmaDoubleComplex *)dB,
+                int(ld), beta,
+                (magmaDoubleComplex *)dC2, int(ld));
+            #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
             // check results, storing diff between magma and cuda call in C2
+            #ifdef MAGMA_HAVE_CUDA
             cublasZaxpy( opts.handle, int(ld*n), &c_neg_one, dC1, 1, dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::axpy(
+                *opts.handle, int(ld * n),
+                c_neg_one,
+                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+            #endif
             magma_zgetmatrix( m, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &m, &n, C2, &ld, work );
             total_error += error;
@@ -288,12 +374,29 @@ int main( int argc, char** argv )
             t1 = magma_sync_wtime( opts.queue ) - t1;
             
             t2 = magma_sync_wtime( opts.queue );
-            cublasZhemm( opts.handle, cublas_side_const(side[is]), cublas_uplo_const(uplo[iu]),
+            #ifdef MAGMA_HAVE_CUDA
+            cublasZhemm( opts.handle, side_const(side[is]), cublas_uplo_const(uplo[iu]),
                          int(m), int(n), &alpha, dA, int(ld), dB, int(ld), &beta, dC2, int(ld) );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::hemm(
+                *opts.handle, syclblas_side_const(side[is]),
+                syclblas_uplo_const(uplo[iu]), int(m), int(n),
+                alpha,
+                (magmaDoubleComplex *)dA, int(ld), (magmaDoubleComplex *)dB,
+                int(ld), beta,
+                (magmaDoubleComplex *)dC2, int(ld));
+            #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
             // check results, storing diff between magma and cuda call in C2
+            #ifdef MAGMA_HAVE_CUDA
             cublasZaxpy( opts.handle, int(ld*n), &c_neg_one, dC1, 1, dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::axpy(
+                *opts.handle, int(ld * n),
+                c_neg_one,
+                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+            #endif
             magma_zgetmatrix( m, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &m, &n, C2, &ld, work );
             total_error += error;
@@ -319,12 +422,27 @@ int main( int argc, char** argv )
             t1 = magma_sync_wtime( opts.queue ) - t1;
             
             t2 = magma_sync_wtime( opts.queue );
-            cublasZherk( opts.handle, cublas_uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
+            #ifdef MAGMA_HAVE_CUDA
+            cublasZherk( opts.handle, uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
                          int(n), int(k), &dalpha, dA, int(ld), &dbeta, dC2, int(ld) );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::herk(
+                *opts.handle, syclblas_uplo_const(uplo[iu]),
+                syclblas_trans_const(trans[it]), int(n), int(k), dalpha,
+                (magmaDoubleComplex *)dA, int(ld), dbeta,
+                (magmaDoubleComplex *)dC2, int(ld));
+            #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
             // check results, storing diff between magma and cuda call in C2
+            #ifdef MAGMA_HAVE_CUDA
             cublasZaxpy( opts.handle, int(ld*n), &c_neg_one, dC1, 1, dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+            oneapi::mkl::blas::column_major::axpy(
+                *opts.handle, int(ld * n),
+                c_neg_one,
+                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+            #endif
             magma_zgetmatrix( n, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &n, &n, C2, &ld, work );
             total_error += error;
@@ -351,12 +469,28 @@ int main( int argc, char** argv )
             t1 = magma_sync_wtime( opts.queue ) - t1;
             
             t2 = magma_sync_wtime( opts.queue );
-            cublasZher2k( opts.handle, cublas_uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
+            #ifdef MAGMA_HAVE_CUDA
+            cublasZher2k( opts.handle, uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
                           int(n), int(k), &alpha, dA, int(ld), dB, int(ld), &dbeta, dC2, int(ld) );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::her2k(
+                *opts.handle, syclblas_uplo_const(uplo[iu]),
+                syclblas_trans_const(trans[it]), int(n), int(k),
+                alpha,
+                (magmaDoubleComplex *)dA, int(ld), (magmaDoubleComplex *)dB,
+                int(ld), dbeta, (magmaDoubleComplex *)dC2, int(ld));
+            #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
             // check results, storing diff between magma and cuda call in C2
+            #ifdef MAGMA_HAVE_CUDA
             cublasZaxpy( opts.handle, int(ld*n), &c_neg_one, dC1, 1, dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::axpy(
+                *opts.handle, int(ld * n),
+                c_neg_one,
+                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+            #endif
             magma_zgetmatrix( n, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &n, &n, C2, &ld, work );
             total_error += error;
@@ -387,13 +521,30 @@ int main( int argc, char** argv )
             // note cublas does trmm out-of-place (i.e., adds output matrix C),
             // but allows C=B to do in-place.
             t2 = magma_sync_wtime( opts.queue );
-            cublasZtrmm( opts.handle, cublas_side_const(side[is]), cublas_uplo_const(uplo[iu]),
-                         cublas_trans_const(trans[it]), cublas_diag_const(diag[id]),
+            #ifdef MAGMA_HAVE_CUDA
+            cublasZtrmm( opts.handle, side_const(side[is]), cublas_uplo_const(uplo[iu]),
+                         trans_const(trans[it]), cublas_diag_const(diag[id]),
                          int(m), int(n), &alpha, dA, int(ld), dC2, int(ld), dC2, int(ld) );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::trmm(
+                *opts.handle, syclblas_side_const(side[is]),
+                syclblas_uplo_const(uplo[iu]), syclblas_trans_const(trans[it]),
+                syclblas_diag_const(diag[id]), int(m), int(n),
+                alpha,
+                (magmaDoubleComplex *)dA, int(ld),
+                (magmaDoubleComplex *)dC2, int(ld));
+            #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
             // check results, storing diff between magma and cuda call in C2
+            #ifdef MAGMA_HAVE_CUDA
             cublasZaxpy( opts.handle, int(ld*n), &c_neg_one, dC1, 1, dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::axpy(
+                *opts.handle, int(ld * n),
+                c_neg_one,
+                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+            #endif
             magma_zgetmatrix( m, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &n, &n, C2, &ld, work );
             total_error += error;
@@ -422,13 +573,30 @@ int main( int argc, char** argv )
             t1 = magma_sync_wtime( opts.queue ) - t1;
             
             t2 = magma_sync_wtime( opts.queue );
-            cublasZtrsm( opts.handle, cublas_side_const(side[is]), cublas_uplo_const(uplo[iu]),
-                         cublas_trans_const(trans[it]), cublas_diag_const(diag[id]),
+            #ifdef MAGMA_HAVE_CUDA
+            cublasZtrsm( opts.handle, side_const(side[is]), cublas_uplo_const(uplo[iu]),
+                         trans_const(trans[it]), cublas_diag_const(diag[id]),
                          int(m), int(n), &alpha, dA, int(ld), dC2, int(ld) );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::trsm(
+                *opts.handle, syclblas_side_const(side[is]),
+                syclblas_uplo_const(uplo[iu]), syclblas_trans_const(trans[it]),
+                syclblas_diag_const(diag[id]), int(m), int(n),
+                alpha,
+                (magmaDoubleComplex *)dA, int(ld),
+                (magmaDoubleComplex *)dC2, int(ld));
+            #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
             // check results, storing diff between magma and cuda call in C2
+            #ifdef MAGMA_HAVE_CUDA
             cublasZaxpy( opts.handle, int(ld*n), &c_neg_one, dC1, 1, dC2, 1 );
+            #elif defined(MAGMA_HAVE_SYCL)
+	    oneapi::mkl::blas::column_major::axpy(
+                *opts.handle, int(ld * n),
+                c_neg_one,
+                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+            #endif
             magma_zgetmatrix( m, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &n, &n, C2, &ld, work );
             total_error += error;

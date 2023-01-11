@@ -131,7 +131,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Performs operation using MAGMABLAS (only with CUDA)
                =================================================================== */
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                 magma_zsetmatrix( M, N, hB, ldb, dB(0,0), lddb, opts.queue );
 
                 if (opts.ngpu == 1) {
@@ -194,7 +194,7 @@ int main( int argc, char** argv)
                                       lapack_diag_const(opts.diag),
                                       &Ak, &Ak, hA, &lda, work );
 
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                 // check magma
                 memcpy( hX, hBmagma, sizeB*sizeof(magmaDoubleComplex) );
                 blasf77_ztrmm( lapack_side_const(opts.side), lapack_uplo_const(opts.uplo),
