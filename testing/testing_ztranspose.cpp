@@ -133,7 +133,7 @@ int main( int argc, char** argv)
                 //magmablas_ztranspose( M-2, N-2, d_A(1,1), ldda, d_B(1,1), lddb, opts.queue );  // inset by 1 row & col
                 magmablas_ztranspose( M, N, d_A(0,0), ldda, d_B(0,0), lddb, opts.queue );
             }
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
             else {
                 //magmablas_ztranspose_conj( M-2, N-2, d_A(1,1), ldda, d_B(1,1), lddb, opts.queue );  // inset by 1 row & col
                 magmablas_ztranspose_conj( M, N, d_A(0,0), ldda, d_B(0,0), lddb, opts.queue );
@@ -153,7 +153,7 @@ int main( int argc, char** argv)
                     //magmablas_ztranspose_inplace( N-2, d_A(1,1), ldda, opts.queue );  // inset by 1 row & col
                     magmablas_ztranspose_inplace( N, d_A(0,0), ldda, opts.queue );
                 }
-                #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+                #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                 else {
                     //magmablas_ztranspose_conj_inplace( N-2, d_A(1,1), ldda, opts.queue );  // inset by 1 row & col
                     magmablas_ztranspose_conj_inplace( N, d_A(0,0), ldda, opts.queue );

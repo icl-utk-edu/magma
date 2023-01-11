@@ -122,7 +122,7 @@ int main(int argc, char **argv)
             /* =====================================================================
                Performs operation using MAGMABLAS
                =================================================================== */
-            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP) || defined(MAGMA_HAVE_SYCL)
                 magma_zsetmatrix( N, N, A, lda, dA(0,0), ldda, opts.queue );
                 magma_zsetvector( N, X, incx, dX(0), incx, opts.queue );
                 magma_zsetvector( N, Y, incy, dY(0), incy, opts.queue );
