@@ -173,7 +173,7 @@ int main( int argc, char** argv )
             
             t2 = magma_sync_wtime( opts.queue );
             #ifdef MAGMA_HAVE_CUDA
-            cublasZgemv( opts.handle, trans_const(trans[ia]),
+            cublasZgemv( opts.handle, cublas_trans_const(trans[ia]),
                          int(m), int(n), &alpha, dA, int(ld), dB, 1, &beta, dC2, 1 );
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::gemv(
@@ -219,7 +219,7 @@ int main( int argc, char** argv )
             
             t2 = magma_sync_wtime( opts.queue );
             #ifdef MAGMA_HAVE_CUDA
-            cublasZhemv( opts.handle, uplo_const(uplo[iu]),
+            cublasZhemv( opts.handle, cublas_uplo_const(uplo[iu]),
                          int(m), &alpha, dA, int(ld), dB, 1, &beta, dC2, 1 );
             #elif defined(MAGMA_HAVE_SYCL)
             oneapi::mkl::blas::column_major::hemv(
@@ -276,8 +276,8 @@ int main( int argc, char** argv )
             
             t2 = magma_sync_wtime( opts.queue );
             #ifdef MAGMA_HAVE_CUDA
-	    cublasZtrsv( opts.handle, uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
-                         diag_const(diag[id]), int(m), dA, int(ld), dC2, 1 );
+	    cublasZtrsv( opts.handle, cublas_uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
+                         cublas_diag_const(diag[id]), int(m), dA, int(ld), dC2, 1 );
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::trsv(
                 *opts.handle, syclblas_uplo_const(uplo[iu]),
@@ -326,7 +326,7 @@ int main( int argc, char** argv )
             
             t2 = magma_sync_wtime( opts.queue );
             #ifdef MAGMA_HAVE_CUDA
-            cublasZgemm( opts.handle, trans_const(trans[ia]), cublas_trans_const(trans[ib]),
+            cublasZgemm( opts.handle, cublas_trans_const(trans[ia]), cublas_trans_const(trans[ib]),
                          int(m), int(n), int(k), &alpha, dA, int(ld), dB, int(ld), &beta, dC2, int(ld) );
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::gemm(
@@ -375,7 +375,7 @@ int main( int argc, char** argv )
             
             t2 = magma_sync_wtime( opts.queue );
             #ifdef MAGMA_HAVE_CUDA
-            cublasZhemm( opts.handle, side_const(side[is]), cublas_uplo_const(uplo[iu]),
+            cublasZhemm( opts.handle, cublas_side_const(side[is]), cublas_uplo_const(uplo[iu]),
                          int(m), int(n), &alpha, dA, int(ld), dB, int(ld), &beta, dC2, int(ld) );
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::hemm(
@@ -423,7 +423,7 @@ int main( int argc, char** argv )
             
             t2 = magma_sync_wtime( opts.queue );
             #ifdef MAGMA_HAVE_CUDA
-            cublasZherk( opts.handle, uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
+            cublasZherk( opts.handle, cublas_uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
                          int(n), int(k), &dalpha, dA, int(ld), &dbeta, dC2, int(ld) );
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::herk(
@@ -470,7 +470,7 @@ int main( int argc, char** argv )
             
             t2 = magma_sync_wtime( opts.queue );
             #ifdef MAGMA_HAVE_CUDA
-            cublasZher2k( opts.handle, uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
+            cublasZher2k( opts.handle, cublas_uplo_const(uplo[iu]), cublas_trans_const(trans[it]),
                           int(n), int(k), &alpha, dA, int(ld), dB, int(ld), &dbeta, dC2, int(ld) );
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::her2k(
@@ -522,8 +522,8 @@ int main( int argc, char** argv )
             // but allows C=B to do in-place.
             t2 = magma_sync_wtime( opts.queue );
             #ifdef MAGMA_HAVE_CUDA
-            cublasZtrmm( opts.handle, side_const(side[is]), cublas_uplo_const(uplo[iu]),
-                         trans_const(trans[it]), cublas_diag_const(diag[id]),
+            cublasZtrmm( opts.handle, cublas_side_const(side[is]), cublas_uplo_const(uplo[iu]),
+                         cublas_trans_const(trans[it]), cublas_diag_const(diag[id]),
                          int(m), int(n), &alpha, dA, int(ld), dC2, int(ld), dC2, int(ld) );
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::trmm(
@@ -574,8 +574,8 @@ int main( int argc, char** argv )
             
             t2 = magma_sync_wtime( opts.queue );
             #ifdef MAGMA_HAVE_CUDA
-            cublasZtrsm( opts.handle, side_const(side[is]), cublas_uplo_const(uplo[iu]),
-                         trans_const(trans[it]), cublas_diag_const(diag[id]),
+            cublasZtrsm( opts.handle, cublas_side_const(side[is]), cublas_uplo_const(uplo[iu]),
+                         cublas_trans_const(trans[it]), cublas_diag_const(diag[id]),
                          int(m), int(n), &alpha, dA, int(ld), dC2, int(ld) );
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::trsm(
