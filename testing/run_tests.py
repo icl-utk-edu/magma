@@ -1194,6 +1194,9 @@ batched = (
 	('testing_zgemv_batched',     batch + '               -c',  mn,   ''),
 	('testing_zgemv_batched',     batch + '-T             -c',  mn,   ''),
 	('testing_zgemv_batched',     batch + '-C             -c',  mn,   ''),
+    ('testing_zgemv_batched',     batch + '   --version 2 -c',  mn,   ''),
+    ('testing_zgemv_batched',     batch + '-T --version 2 -c',  mn,   ''),
+    ('testing_zgemv_batched',     batch + '-C --version 2 -c',  mn,   ''),
 
 	# left/right lower/upper
 	('testing_zhemm_batched',     batch + '-SL      -L    -c',  mn,   ''),
