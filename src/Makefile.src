@@ -291,6 +291,8 @@ libmagma_src += \
 # ----------
 # Batched, GPU interface
 libmagma_src += \
+	$(cdir)/zgbtrf_batched.cpp		\
+	\
 	$(cdir)/zgetf2_batched.cpp		\
 	$(cdir)/zgetf2_nopiv_batched.cpp	\
 	$(cdir)/zgetrf_panel_batched.cpp	\
