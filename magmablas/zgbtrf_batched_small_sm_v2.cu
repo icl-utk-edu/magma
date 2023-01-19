@@ -605,6 +605,7 @@ magma_zgbtrf_batched_small_sm_v2_work(
     }
 
     if( m == 0 || n == 0 || batchCount == 0) return 0;
+    magma_int_t ntcol = 1;
 
     // calculate required workspace
     magma_int_t lwork_bytes = 0;
@@ -675,7 +676,6 @@ magma_zgbtrf_batched_small_sm_v2(
     magma_int_t arginfo  = 0;
     magma_int_t nb       = 32;
     magma_int_t nthreads = kl+1;
-    magma_int_t ntcol    = 1;
 
     magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
 
@@ -684,7 +684,7 @@ magma_zgbtrf_batched_small_sm_v2(
     magma_zgbtrf_batched_small_sm_v2_work(
         m, n, kl, ku,
         NULL, lddab, NULL, NULL,
-        nb, nthreads, ntcol, NULL, lwork,
+        nb, nthreads, NULL, lwork,
         batchCount, queue );
 
     void* device_work = NULL;
@@ -693,7 +693,7 @@ magma_zgbtrf_batched_small_sm_v2(
     arginfo = magma_zgbtrf_batched_small_sm_v2_work(
                 m, n, kl, ku,
                 dAB_array, lddab, ipiv_array, info_array,
-                nb, nthreads, ntcol,
+                nb, nthreads,
                 device_work, lwork,
                 batchCount, queue );
 
