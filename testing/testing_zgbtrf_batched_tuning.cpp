@@ -239,7 +239,7 @@ int main( int argc, char** argv)
                         info = magma_zgbtrf_batched_small_sm_v2_work(
                                 M, N, KL, KU,
                                 NULL, lddab, NULL, NULL,
-                                nb, nthreads, 1, NULL, lwork,
+                                nb, nthreads, NULL, lwork,
                                 batchCount, opts.queue );
 
                         void* device_work = NULL;
@@ -250,7 +250,7 @@ int main( int argc, char** argv)
                         info = magma_zgbtrf_batched_small_sm_v2_work(
                                 M, N, KL, KU,
                                 dA_array, lddab, dipiv_array, dinfo_magma,
-                                nb, nthreads, 1,
+                                nb, nthreads,
                                 device_work, lwork,
                                 batchCount, opts.queue );
                         magma_time = magma_sync_wtime( opts.queue ) - magma_time;
