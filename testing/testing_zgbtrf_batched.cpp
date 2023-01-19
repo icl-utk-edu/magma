@@ -349,14 +349,14 @@ int main( int argc, char** argv)
             if( opts.niter > 1 && iter == 0) printf("#");
 
             if ( opts.lapack ) {
-                printf("%10lld %5lld %5lld %5lld %5lld %5lld %5lld   %7.2f (%7.2f)    %7.2f (%7.2f)",
-                       (long long) batchCount, (long long) M, (long long) N, (long long) KL, (long long) KU, (long long) nb, (long long) nthreads,
+                printf("%10lld %5lld %5lld   %7.2f (%7.2f)    %7.2f (%7.2f)",
+                       (long long) batchCount, (long long) M, (long long) N,
                        cpu_perf, cpu_time*1000.,
                        magma_perf, magma_time*1000  );
             }
             else {
-                printf("%10lld %5lld %5lld %5lld %5lld %5lld %5lld     ---   (  ---  )    %7.2f (%7.2f)",
-                       (long long) batchCount, (long long) M, (long long) N, (long long) KL, (long long) KU, (long long) nb, (long long) nthreads,
+                printf("%10lld %5lld %5lld     ---   (  ---  )    %7.2f (%7.2f)",
+                       (long long) batchCount, (long long) M, (long long) N,
                        magma_perf, magma_time*1000. );
             }
 
