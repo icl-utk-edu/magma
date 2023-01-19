@@ -236,7 +236,7 @@ int main( int argc, char** argv)
 
                 // tuning
                 magma_int_t nb = 4, nthreads = 32;
-                magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
+                magma_get_zgbtrf_batched_params(M, N, KL, KU, &nb, &nthreads);
 
                 // timing async call only
                 magma_time = magma_sync_wtime( opts.queue );
