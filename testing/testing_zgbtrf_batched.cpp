@@ -233,6 +233,9 @@ int main( int argc, char** argv)
 
                 void* device_work = NULL;
                 magma_malloc((void**)&device_work, lwork[0]);
+
+                // tuning
+                magma_int_t nb = 4, nthreads = 32;
                 magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
 
                 // timing async call only
