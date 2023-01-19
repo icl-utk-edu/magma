@@ -31,20 +31,6 @@ magma_get_zgbtrf_batched_params(
     magma_int_t kl, magma_int_t ku,
     magma_int_t *nb, magma_int_t *threads)
 {
-    // the tuning data for nb and threads are stored in 2D
-    // array of size 16x16. Each entry is for the even values
-    // of (kl, ku) in the range [2, 4, 6, ..., 32]
-    // Each entry has the tuning value for square sizes in
-    // the range [32, 64, 96, ..., 1024]
-    // TODO: generate tuning data for z precision
-    #ifdef MAGMA_HAVE_CUDA
-    int*** nb_table = (int***)dgbtrf_batch_nb_a100;
-    int*** th_table = (int***)dgbtrf_batch_th_a100;
-    #else
-    int*** nb_table = (int***)dgbtrf_batch_nb_mi250x;
-    int*** th_table = (int***)dgbtrf_batch_th_mi250x;
-    #endif
-
     // get index for kl, ku based on the rounded-up even
     // values of the input bandwidths
     int ikl = (kl + 1) / 2;
@@ -56,13 +42,25 @@ magma_get_zgbtrf_batched_params(
     ikl = min( max(ikl, 0), 15 );
     iku = min( max(iku, 0), 15 );
 
-    int* nb_record = nb_table[ikl][iku];
-    int* th_record = th_table[ikl][iku];
+    // the tuning data for nb and threads are stored in 2D
+    // array of size 16x16. Each entry is for the even values
+    // of (kl, ku) in the range [2, 4, 6, ..., 32]
+    // Each entry has the tuning value for square sizes in
+    // the range [32, 64, 96, ..., 1024]
+    // TODO: generate tuning data for d precision
+    #ifdef MAGMA_HAVE_CUDA
+    const int* nb_record = dgbtrf_batch_nb_a100[ikl][iku];
+    const int* th_record = dgbtrf_batch_th_a100[ikl][iku];
+    #else
+    const int* nb_record = dgbtrf_batch_nb_mi250x[ikl][iku];
+    const int* th_record = dgbtrf_batch_th_mi250x[ikl][iku];
+    #endif
 
     const int minmn = min(m, n);
     int isize = (minmn + 32 - 1) / 32;
     isize --;
     isize = min( max(isize, 0), 31 );
+
     *nb = nb_record[isize];
     *threads = th_record[isize];
 }
@@ -75,20 +73,6 @@ magma_get_cgbtrf_batched_params(
     magma_int_t kl, magma_int_t ku,
     magma_int_t *nb, magma_int_t *threads)
 {
-    // the tuning data for nb and threads are stored in 2D
-    // array of size 16x16. Each entry is for the even values
-    // of (kl, ku) in the range [2, 4, 6, ..., 32]
-    // Each entry has the tuning value for square sizes in
-    // the range [32, 64, 96, ..., 1024]
-    // TODO: generate tuning data for c precision
-    #ifdef MAGMA_HAVE_CUDA
-    int*** nb_table = (int***)dgbtrf_batch_nb_a100;
-    int*** th_table = (int***)dgbtrf_batch_th_a100;
-    #else
-    int*** nb_table = (int***)dgbtrf_batch_nb_mi250x;
-    int*** th_table = (int***)dgbtrf_batch_th_mi250x;
-    #endif
-
     // get index for kl, ku based on the rounded-up even
     // values of the input bandwidths
     int ikl = (kl + 1) / 2;
@@ -100,13 +84,25 @@ magma_get_cgbtrf_batched_params(
     ikl = min( max(ikl, 0), 15 );
     iku = min( max(iku, 0), 15 );
 
-    int* nb_record = nb_table[ikl][iku];
-    int* th_record = th_table[ikl][iku];
+    // the tuning data for nb and threads are stored in 2D
+    // array of size 16x16. Each entry is for the even values
+    // of (kl, ku) in the range [2, 4, 6, ..., 32]
+    // Each entry has the tuning value for square sizes in
+    // the range [32, 64, 96, ..., 1024]
+    // TODO: generate tuning data for d precision
+    #ifdef MAGMA_HAVE_CUDA
+    const int* nb_record = dgbtrf_batch_nb_a100[ikl][iku];
+    const int* th_record = dgbtrf_batch_th_a100[ikl][iku];
+    #else
+    const int* nb_record = dgbtrf_batch_nb_mi250x[ikl][iku];
+    const int* th_record = dgbtrf_batch_th_mi250x[ikl][iku];
+    #endif
 
     const int minmn = min(m, n);
     int isize = (minmn + 32 - 1) / 32;
     isize --;
     isize = min( max(isize, 0), 31 );
+
     *nb = nb_record[isize];
     *threads = th_record[isize];
 }
@@ -119,20 +115,6 @@ magma_get_dgbtrf_batched_params(
     magma_int_t kl, magma_int_t ku,
     magma_int_t *nb, magma_int_t *threads)
 {
-    // the tuning data for nb and threads are stored in 2D
-    // array of size 16x16. Each entry is for the even values
-    // of (kl, ku) in the range [2, 4, 6, ..., 32]
-    // Each entry has the tuning value for square sizes in
-    // the range [32, 64, 96, ..., 1024]
-    // TODO: generate tuning data for d precision
-    #ifdef MAGMA_HAVE_CUDA
-    int*** nb_table = (int***)dgbtrf_batch_nb_a100;
-    int*** th_table = (int***)dgbtrf_batch_th_a100;
-    #else
-    int*** nb_table = (int***)dgbtrf_batch_nb_mi250x;
-    int*** th_table = (int***)dgbtrf_batch_th_mi250x;
-    #endif
-
     // get index for kl, ku based on the rounded-up even
     // values of the input bandwidths
     int ikl = (kl + 1) / 2;
@@ -144,13 +126,25 @@ magma_get_dgbtrf_batched_params(
     ikl = min( max(ikl, 0), 15 );
     iku = min( max(iku, 0), 15 );
 
-    int* nb_record = nb_table[ikl][iku];
-    int* th_record = th_table[ikl][iku];
+    // the tuning data for nb and threads are stored in 2D
+    // array of size 16x16. Each entry is for the even values
+    // of (kl, ku) in the range [2, 4, 6, ..., 32]
+    // Each entry has the tuning value for square sizes in
+    // the range [32, 64, 96, ..., 1024]
+    // TODO: generate tuning data for d precision
+    #ifdef MAGMA_HAVE_CUDA
+    const int* nb_record = dgbtrf_batch_nb_a100[ikl][iku];
+    const int* th_record = dgbtrf_batch_th_a100[ikl][iku];
+    #else
+    const int* nb_record = dgbtrf_batch_nb_mi250x[ikl][iku];
+    const int* th_record = dgbtrf_batch_th_mi250x[ikl][iku];
+    #endif
 
     const int minmn = min(m, n);
     int isize = (minmn + 32 - 1) / 32;
     isize --;
     isize = min( max(isize, 0), 31 );
+
     *nb = nb_record[isize];
     *threads = th_record[isize];
 }
@@ -163,20 +157,6 @@ magma_get_sgbtrf_batched_params(
     magma_int_t kl, magma_int_t ku,
     magma_int_t *nb, magma_int_t *threads)
 {
-    // the tuning data for nb and threads are stored in 2D
-    // array of size 16x16. Each entry is for the even values
-    // of (kl, ku) in the range [2, 4, 6, ..., 32]
-    // Each entry has the tuning value for square sizes in
-    // the range [32, 64, 96, ..., 1024]
-    // TODO: generate tuning data for s precision
-    #ifdef MAGMA_HAVE_CUDA
-    int*** nb_table = (int***)dgbtrf_batch_nb_a100;
-    int*** th_table = (int***)dgbtrf_batch_th_a100;
-    #else
-    int*** nb_table = (int***)dgbtrf_batch_nb_mi250x;
-    int*** th_table = (int***)dgbtrf_batch_th_mi250x;
-    #endif
-
     // get index for kl, ku based on the rounded-up even
     // values of the input bandwidths
     int ikl = (kl + 1) / 2;
@@ -188,13 +168,25 @@ magma_get_sgbtrf_batched_params(
     ikl = min( max(ikl, 0), 15 );
     iku = min( max(iku, 0), 15 );
 
-    int* nb_record = nb_table[ikl][iku];
-    int* th_record = th_table[ikl][iku];
+    // the tuning data for nb and threads are stored in 2D
+    // array of size 16x16. Each entry is for the even values
+    // of (kl, ku) in the range [2, 4, 6, ..., 32]
+    // Each entry has the tuning value for square sizes in
+    // the range [32, 64, 96, ..., 1024]
+    // TODO: generate tuning data for d precision
+    #ifdef MAGMA_HAVE_CUDA
+    const int* nb_record = dgbtrf_batch_nb_a100[ikl][iku];
+    const int* th_record = dgbtrf_batch_th_a100[ikl][iku];
+    #else
+    const int* nb_record = dgbtrf_batch_nb_mi250x[ikl][iku];
+    const int* th_record = dgbtrf_batch_th_mi250x[ikl][iku];
+    #endif
 
     const int minmn = min(m, n);
     int isize = (minmn + 32 - 1) / 32;
     isize --;
     isize = min( max(isize, 0), 31 );
+
     *nb = nb_record[isize];
     *threads = th_record[isize];
 }
