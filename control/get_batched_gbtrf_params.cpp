@@ -10,9 +10,9 @@
 
 #include "magma_internal.h"
 #ifdef MAGMA_HAVE_CUDA
-#include "gbtrf_tuning/dgbtrf_batch_a100.h "
+#include"./gbtrf_tuning/dgbtrf_batch_a100.h"
 #else
-#include "gbtrf_tuning/dgbtrf_batch_mi250x.h "
+#include"./gbtrf_tuning/dgbtrf_batch_mi250x.h"
 #endif
 
 #ifdef __cplusplus
@@ -56,13 +56,15 @@ magma_get_zgbtrf_batched_params(
     ikl = min( max(ikl, 0), 15 );
     iku = min( max(iku, 0), 15 );
 
-    int* nb = nb_table[ikl][iku];
-    int* th = th_table[ikl][iku];
+    int* nb_record = nb_table[ikl][iku];
+    int* th_record = th_table[ikl][iku];
 
     const int minmn = min(m, n);
     int isize = (minmn + 32 - 1) / 32;
-    iszie --;
+    isize --;
     isize = min( max(isize, 0), 31 );
+    *nb = nb_record[isize];
+    *threads = th_record[isize];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -98,13 +100,15 @@ magma_get_cgbtrf_batched_params(
     ikl = min( max(ikl, 0), 15 );
     iku = min( max(iku, 0), 15 );
 
-    int* nb = nb_table[ikl][iku];
-    int* th = th_table[ikl][iku];
+    int* nb_record = nb_table[ikl][iku];
+    int* th_record = th_table[ikl][iku];
 
     const int minmn = min(m, n);
     int isize = (minmn + 32 - 1) / 32;
-    iszie --;
+    isize --;
     isize = min( max(isize, 0), 31 );
+    *nb = nb_record[isize];
+    *threads = th_record[isize];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -140,13 +144,15 @@ magma_get_dgbtrf_batched_params(
     ikl = min( max(ikl, 0), 15 );
     iku = min( max(iku, 0), 15 );
 
-    int* nb = nb_table[ikl][iku];
-    int* th = th_table[ikl][iku];
+    int* nb_record = nb_table[ikl][iku];
+    int* th_record = th_table[ikl][iku];
 
     const int minmn = min(m, n);
     int isize = (minmn + 32 - 1) / 32;
-    iszie --;
+    isize --;
     isize = min( max(isize, 0), 31 );
+    *nb = nb_record[isize];
+    *threads = th_record[isize];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -182,13 +188,15 @@ magma_get_sgbtrf_batched_params(
     ikl = min( max(ikl, 0), 15 );
     iku = min( max(iku, 0), 15 );
 
-    int* nb = nb_table[ikl][iku];
-    int* th = th_table[ikl][iku];
+    int* nb_record = nb_table[ikl][iku];
+    int* th_record = th_table[ikl][iku];
 
     const int minmn = min(m, n);
     int isize = (minmn + 32 - 1) / 32;
-    iszie --;
+    isize --;
     isize = min( max(isize, 0), 31 );
+    *nb = nb_record[isize];
+    *threads = th_record[isize];
 }
 
 #ifdef __cplusplus
