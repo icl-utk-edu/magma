@@ -64,6 +64,7 @@ magma_int_t magma_get_zgeqr2_fused_sm_batched_nthreads(magma_int_t m, magma_int_
 magma_int_t magma_get_zgeqrf_batched_ntcol(magma_int_t m, magma_int_t n);
 magma_int_t magma_get_zgetri_batched_ntcol(magma_int_t m, magma_int_t n);
 magma_int_t magma_get_ztrsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n);
+void magma_get_zgbtrf_batched_params(magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t *nb, magma_int_t *threads);
 
 void
 magmablas_zswapdblk_batched(
