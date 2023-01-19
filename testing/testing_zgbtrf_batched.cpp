@@ -212,7 +212,12 @@ int main( int argc, char** argv)
             magma_zset_pointer( dA_array, dA, lddab, 0, 0, lddab*Nband, batchCount, opts.queue );
             magma_iset_pointer( dipiv_array, dipiv_magma, 1, 0, 0, min_mn, batchCount, opts.queue );
 
+            magma_int_t nb = 4, nthreads = 32;
+
             if(opts.version == 1) {
+                // tuning
+                magma_get_zgbtrf_batched_params(M, N, KL, KU, &nb, &nthreads);
+
                 magma_time = magma_sync_wtime( opts.queue );
                 info = magma_zgbtrf_batched_small_sm_v1(
                     M,  N, KL, KU,
@@ -235,7 +240,6 @@ int main( int argc, char** argv)
                 magma_malloc((void**)&device_work, lwork[0]);
 
                 // tuning
-                magma_int_t nb = 4, nthreads = 32;
                 magma_get_zgbtrf_batched_params(M, N, KL, KU, &nb, &nthreads);
 
                 // timing async call only
