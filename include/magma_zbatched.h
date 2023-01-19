@@ -486,7 +486,7 @@ magma_zgbtrf_batched_small_sm_v2_work(
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,
     magma_int_t** ipiv_array, magma_int_t* info_array,
-    magma_int_t nb, magma_int_t nthreads, magma_int_t ntcol,
+    magma_int_t nb, magma_int_t nthreads,
     void* device_work, magma_int_t *lwork,
     magma_int_t batchCount, magma_queue_t queue );
 

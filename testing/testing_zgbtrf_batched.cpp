@@ -231,7 +231,7 @@ int main( int argc, char** argv)
                 info = magma_zgbtrf_batched_small_sm_v2_work(
                         M, N, KL, KU,
                         NULL, lddab, NULL, NULL,
-                        nb, nthreads, 1, NULL, lwork,
+                        nb, nthreads, NULL, lwork,
                         batchCount, opts.queue );
 
                 void* device_work = NULL;
@@ -242,7 +242,7 @@ int main( int argc, char** argv)
                 info = magma_zgbtrf_batched_small_sm_v2_work(
                         M, N, KL, KU,
                         dA_array, lddab, dipiv_array, dinfo_magma,
-                        nb, nthreads, 1,
+                        nb, nthreads,
                         device_work, lwork,
                         batchCount, opts.queue );
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
@@ -253,6 +253,18 @@ int main( int argc, char** argv)
                 }
 
                 magma_free( device_work );
+            }
+            else if (opts.version == 22) {
+                magma_time = magma_sync_wtime( opts.queue );
+                info = magma_zgbtrf_batched_small_sm_v2(
+                        M,  N, KL, KU,
+                        dA_array, lddab,
+                        dipiv_array, dinfo_magma,
+                        batchCount, opts.queue );
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+                if(info != 0) {
+                    magma_time = 1e9;
+                }
             }
             else if (opts.version == 3) {
                 magma_time = magma_sync_wtime( opts.queue );

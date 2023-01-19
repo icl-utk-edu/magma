@@ -581,7 +581,7 @@ magma_zgbtrf_batched_small_sm_v2_work(
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,
     magma_int_t** ipiv_array, magma_int_t* info_array,
-    magma_int_t nb, magma_int_t nthreads, magma_int_t ntcol,
+    magma_int_t nb, magma_int_t nthreads,
     void* device_work, magma_int_t *lwork,
     magma_int_t batchCount, magma_queue_t queue )
 {
@@ -670,11 +670,14 @@ magma_zgbtrf_batched_small_sm_v2(
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,
     magma_int_t** ipiv_array, magma_int_t* info_array,
-    magma_int_t nthreads, magma_int_t ntcol,
     magma_int_t batchCount, magma_queue_t queue )
 {
-    magma_int_t arginfo = 0;
-    magma_int_t nb      = 32;
+    magma_int_t arginfo  = 0;
+    magma_int_t nb       = 32;
+    magma_int_t nthreads = kl+1;
+    magma_int_t ntcol    = 1;
+
+    magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
 
     // query workspace
     magma_int_t lwork[1] = {-1};
