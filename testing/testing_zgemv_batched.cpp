@@ -163,6 +163,7 @@ int main( int argc, char** argv)
             device_time = magma_sync_wtime( opts.queue );
             if(opts.version == 1) {
                 #ifdef MAGMA_HAVE_CUDA
+                #if CUDA_VERSION >= 11070
                 cublasZgemvBatched(opts.handle, cublas_trans_const(opts.transA),
                                       M, N,
                                       (const cuDoubleComplex *)&alpha,
@@ -170,6 +171,14 @@ int main( int argc, char** argv)
                                       (const cuDoubleComplex **)d_X_array, incx,
                                       (const cuDoubleComplex *)&beta,
                                       (cuDoubleComplex **)d_Y_array, incy, batchCount);
+                #else
+                for(magma_int_t s = 0; s < batchCount; s++) {
+                    magma_zgemv( opts.transA, M, N,
+                         alpha, d_A + s*ldda*N,  ldda,
+                                d_X + s*Xm*incx, incx,
+                         beta,  d_Y + s*Ym*incy, incy, opts.queue );
+                }
+                #endif
                 #else
                 hipblasZgemvBatched(opts.handle, hipblas_trans_const(opts.transA),
                                       M, N,
@@ -182,6 +191,7 @@ int main( int argc, char** argv)
             }
             else{
                 #ifdef MAGMA_HAVE_CUDA
+                #if CUDA_VERSION >= 11070
                 cublasZgemvStridedBatched(opts.handle, cublas_trans_const(opts.transA),
                                       M, N,
                                       (const cuDoubleComplex *)&alpha,
@@ -189,6 +199,14 @@ int main( int argc, char** argv)
                                       (const cuDoubleComplex *)d_X, incx, incx*Xm,
                                       (const cuDoubleComplex *)&beta,
                                       (cuDoubleComplex *)d_Y, incy, incy*Ym, batchCount);
+                #else
+                for(magma_int_t s = 0; s < batchCount; s++) {
+                    magma_zgemv( opts.transA, M, N,
+                         alpha, d_A + s*ldda*N,  ldda,
+                                d_X + s*Xm*incx, incx,
+                         beta,  d_Y + s*Ym*incy, incy, opts.queue );
+                }
+                #endif
                 #else
                 hipblasZgemvStridedBatched(opts.handle, hipblas_trans_const(opts.transA),
                                       M, N,
