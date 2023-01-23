@@ -299,6 +299,9 @@ magmablas_ztrsv_recursive_outofplace_batched(
     magmaDoubleComplex **x_array,
     magma_int_t batchCount, magma_queue_t queue)
 {
+#define dW0_displ_ (const magmaDoubleComplex**) dW0_displ
+#define dW1_displ_ (const magmaDoubleComplex**) dW1_displ
+
     /* Check arguments */
     magma_int_t info = 0;
     if ( uplo != MagmaUpper && uplo != MagmaLower ) {
@@ -374,7 +377,7 @@ magmablas_ztrsv_recursive_outofplace_batched(
             }
 
             //assume x_array contains zero elements
-            magmablas_zgemv_batched(MagmaNoTrans, jb, i, MAGMA_Z_ONE, dW0_displ, lda, dW1_displ, 1, MAGMA_Z_ONE, dW2_displ, 1, batchCount, queue);
+            magmablas_zgemv_batched(MagmaNoTrans, jb, i, MAGMA_Z_ONE, dW0_displ_, lda, dW1_displ_, 1, MAGMA_Z_ONE, dW2_displ, 1, batchCount, queue);
 
             magma_zdisplace_pointers(dW0_displ, A_array, lda,  col, col, batchCount, queue);
             magma_zdisplace_pointers(dW1_displ, b_array, 1, col*incb,   0, batchCount, queue);
@@ -409,7 +412,7 @@ magmablas_ztrsv_recursive_outofplace_batched(
 
             //assume x_array contains zero elements
 
-            magmablas_zgemv_batched(trans, i, jb, MAGMA_Z_ONE, dW0_displ, lda, dW1_displ, 1, MAGMA_Z_ONE, dW2_displ, 1, batchCount, queue);
+            magmablas_zgemv_batched(trans, i, jb, MAGMA_Z_ONE, dW0_displ_, lda, dW1_displ_, 1, MAGMA_Z_ONE, dW2_displ, 1, batchCount, queue);
 
             magma_zdisplace_pointers(dW0_displ, A_array, lda,  col, col, batchCount, queue);
             magma_zdisplace_pointers(dW1_displ, b_array, 1, col*incb,   0, batchCount, queue);

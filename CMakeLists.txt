@@ -67,6 +67,7 @@ include(CheckCXXCompilerFlag)
 include(CheckCCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+CHECK_CXX_COMPILER_FLAG("-fPIC" COMPILER_SUPPORTS_FPIC)
 if (COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 elseif(COMPILER_SUPPORTS_CXX0X)
@@ -116,7 +117,7 @@ if (MAGMA_ENABLE_CUDA)
 
   # ----------------------------------------
   # locate CUDA libraries
-  set( GPU_TARGET "Kepler Maxwell Pascal" CACHE STRING "CUDA architectures to compile for; one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
+  set( GPU_TARGET "Kepler Maxwell Pascal" CACHE STRING "CUDA architectures to compile for; one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_[0-9][0-9]" )
   find_package( CUDAToolkit )
   if (CUDAToolkit_FOUND)
     message( STATUS "Found CUDA ${CUDA_VERSION}" )
@@ -127,7 +128,13 @@ if (MAGMA_ENABLE_CUDA)
     # sm_xx is binary, compute_xx is PTX for forward compatability
     # MIN_ARCH is lowest requested version
 
-    set(CUDA_SEPARABLE_COMPILATION ON)
+    if(WIN32)
+        # Disable separable compilation on Windows because object linking list
+        # becomes too long when building multiple archs and MSVC throws errors
+        set(CUDA_SEPARABLE_COMPILATION OFF)
+    else()
+        set(CUDA_SEPARABLE_COMPILATION ON)
+    endif()
 
     set(__cuda_architectures)
 
@@ -159,6 +166,10 @@ if (MAGMA_ENABLE_CUDA)
 
     if (GPU_TARGET MATCHES Ampere)
         set( GPU_TARGET "${GPU_TARGET} sm_80" )
+    endif()
+
+    if (GPU_TARGET MATCHES Hopper)
+        set( GPU_TARGET "${GPU_TARGET} sm_90" )
     endif()
 
     if (GPU_TARGET MATCHES sm_20)
@@ -273,6 +284,14 @@ if (MAGMA_ENABLE_CUDA)
         message( STATUS "    compile for CUDA arch 8.0 (Ampere)" )
     endif()
 
+    if (GPU_TARGET MATCHES sm_90)
+        if (NOT MIN_ARCH)
+            set( MIN_ARCH 900 )
+        endif()
+        list(APPEND __cuda_architectures 90)
+        message( STATUS "    compile for CUDA arch 9.0 (Hopper)" )
+    endif()
+
     if (NOT MIN_ARCH)
         message( FATAL_ERROR "GPU_TARGET must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
     endif()
@@ -280,10 +299,18 @@ if (MAGMA_ENABLE_CUDA)
     set(CUDA_ARCHITECTURES "${__cuda_architectures}")
 
     add_library(magma_nvcc_flags INTERFACE)
-    target_compile_options(magma_nvcc_flags
-        INTERFACE
-        $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;-fPIC,${FORTRAN_CONVENTION}>
-    )
+    if (COMPILER_SUPPORTS_FPIC)
+        target_compile_options(magma_nvcc_flags
+            INTERFACE
+            $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;-fPIC,${FORTRAN_CONVENTION}>
+        )
+    else()
+        # No Position Independent Code on Windows. Compiler will complain if you add that flag.
+        target_compile_options(magma_nvcc_flags
+            INTERFACE
+            $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;${FORTRAN_CONVENTION}>
+        )
+    endif(COMPILER_SUPPORTS_FPIC)
 
     set(MAGMA_HAVE_CUDA "1")
     set(MAGMA_CUDA_ARCH_MIN "${MIN_ARCH}")

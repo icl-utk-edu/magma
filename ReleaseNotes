@@ -25,7 +25,11 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
- 2.7.0 - Nov 9, 2022
+ 2.7.1 - XXX
+    * Add a new interface for batch GEMV that accepts a pointer + stride
+    * Performance improvement for batch GEMV targeting square sizes up to 32
+ 
+2.7.0 - Nov 9, 2022
     * Add support for builds targeting NVIDIA's Hopper architecture
     * New routine: magma_dshposv_gpu and magma_dshposv_native solve Ax = b, for a 
       symmetric positive definite matrix 'A', using FP16 during the Cholesky 
