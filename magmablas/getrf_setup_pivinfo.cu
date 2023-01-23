@@ -12,6 +12,46 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
+#define GBTRF_ADJUST_JU_MAX_THREADS (128)
+
+/******************************************************************************/
+// This kernel must be called before pivot adjustment
+__global__ __launch_bounds__(GBTRF_ADJUST_JU_MAX_THREADS)
+void
+gbtrf_adjust_ju_kernel_batched(
+    int n, int ku,
+    magma_int_t** dipiv_array, int* ju_array, int gbstep, int batchCount)
+{
+    const int batchid = blockIdx.x * blockDim.x + threadIdx.x; // global thread x-index
+
+    //ju = max(ju, min(j+ku+jp, n-1));
+    if( batchid < batchCount ) {
+        magma_int_t* ipiv = dipiv_array[batchid];
+        int jp   = (int)(ipiv[gbstep]) - 1;    // undo fortran indexing
+        int ju1  = (gbstep == 0) ? 0 : ju_array[batchid];
+        int ju2  = max(ju1, min(gbstep+ku+jp, n-1));
+        ju_array[batchid] = ju2;
+    }
+}
+
+/******************************************************************************/
+// auxiliary routine for gbtrf that calculates the last column index to be
+// affected by the factorization
+// Note that ju_array is internal, so it is always `int`, not `magma_int_t`
+extern "C"
+void magma_gbtrf_adjust_ju(
+        magma_int_t n, magma_int_t ku,
+        magma_int_t** dipiv_array, int* ju_array, magma_int_t gbstep,
+        magma_int_t batchCount, magma_queue_t queue)
+{
+    const int nthreads = GBTRF_ADJUST_JU_MAX_THREADS;
+    const int nblocks  = magma_ceildiv(batchCount, nthreads);
+    dim3 threads(nthreads, 1, 1);
+    dim3 grid(nblocks, 1, 1);
+    gbtrf_adjust_ju_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>
+    (n, ku, dipiv_array, ju_array, gbstep, batchCount);
+}
+
 // =============================================================================
 // Auxiliary routine to compute piv final destination for the current step
 

@@ -104,6 +104,70 @@
     @ingroup magma_getrf_batched
 *******************************************************************************/
 extern "C" magma_int_t
+magma_zgbtrf_batched_work(
+        magma_int_t m, magma_int_t n,
+        magma_int_t kl, magma_int_t ku,
+        magmaDoubleComplex **dAB_array, magma_int_t lddab,
+        magma_int_t **dipiv_array, magma_int_t *info_array,
+        void* device_work, magma_int_t lwork,
+        magma_int_t batchCount, magma_queue_t queue)
+{
+    magma_int_t arginfo = 0;
+    magma_int_t minmn = min(m, n);
+    magma_int_t kv    = kl + ku;
+
+    // calculate required workspace
+    magma_int_t lwork_bytes = 0;
+    lwork_bytes += batchCount * sizeof(int); // no need for magma_int_t here
+
+    if( *lwork < 0) {
+        *lwork = lwork_bytes;
+        arginfo = 0;
+        return arginfo;
+    }
+
+    if( *lwork < lwork_bytes ) {
+        arginfo = -13;
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    // ju_array holds (per problem) the index of the last column affected
+    // by the previous factorization stage
+    int* ju_array = (int*)device_work;
+
+    for(magma_int_t j = 0; j < minmn; j++) {
+        // izamax
+        magma_int_t km = 1 + min( kl, m-j ); // diagonal and subdiagonal(s)
+        magma_izamax_batched(
+            km, dAB_array, kv, j, lddab, 1,
+            dipiv_array, j,
+            j, 0, info_array, batchCount, queue);
+
+        // adjust ju_array
+        magma_gbtrf_adjust_ju(n, ku, dipiv_array, ju_array, j, batchCount, queue);
+
+        // swap (right only)
+        magma_zgbtf2_zswap_batched(
+            kl, ku, dAB_array, kv, j, lddab,
+            dipiv_array, j, ju_array, j, batchCount, queue);
+
+        // adjust pivot
+        adjust_ipiv_batched(ipiv_array, j, 1, j, batchCount, queue);
+
+        // scal and ger
+        magma_zgbtf2_scal_ger_batched(
+            m, n, kl, ku,
+            dAB_array, kv, j, lddab,
+            ju_array, j, info_array,
+            batchCount, queue);
+    }
+    return 0;
+}
+
+
+/******************************************************************************/
+extern "C" magma_int_t
 magma_zgbtrf_batched(
         magma_int_t m, magma_int_t n,
         magma_int_t kl, magma_int_t ku,
@@ -111,5 +175,46 @@ magma_zgbtrf_batched(
         magma_int_t **dipiv_array, magma_int_t *info_array,
         magma_int_t batchCount, magma_queue_t queue)
 {
+    magma_int_t arginfo = 0;
+    magma_int_t minmn = min(m, n);
+    magma_int_t kv    = kl + ku;
+
+    if( m < 0 )
+        arginfo = -1;
+    else if ( n < 0 )
+        arginfo = -2;
+    else if ( kl < 0 )
+        arginfo = -3;
+    else if ( ku < 0 )
+        arginfo = -4;
+    else if ( lddab < (kl+kv+1) )
+        arginfo = -6;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    if( m == 0 || n == 0 || batchCount == 0) return 0;
+
+    // query workspace
+    magma_int_t lwork[1] = {-1};
+    magma_zgbtrf_batched_work(
+        m, n, kl, ku,
+        NULL, lddab,
+        NULL, NULL,
+        NULL, lwork,
+        batchCount, queue);
+
+    void* device_work = NULL;
+    magma_malloc((void**)&device_work, lwork[0]);
+
+    magma_zgbtrf_batched_work(
+        m, n, kl, ku,
+        dAB_array, lddab,
+        dipiv_array, info_array,
+        device_work, lwork, batchCount, queue);
+
+    magma_free(device_work);
     return 0;
 }

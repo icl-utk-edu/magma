@@ -472,6 +472,20 @@ magmablas_zlaset_batched(
     magma_int_t batchCount, magma_queue_t queue);
 
 magma_int_t
+magma_zgbtf2_zswap_batched(
+    magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex **dAB_array, magma_int_t ai, magma_int_t aj, magma_int_t lddab,
+    magma_int_t** dipiv_array, magma_int_t ipiv_offset,
+    int* ju_array, magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue);
+
+magma_int_t
+magma_zgbtf2_scal_ger_batched(
+    magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex **dAB_array, magma_int_t ai, magma_int_t aj, magma_int_t lddab,
+    int* ju_array, magma_int_t gbstep, magma_int_t *info_array,
+    magma_int_t batchCount, magma_queue_t queue);
+
+magma_int_t
 magma_zgbtrf_batched_small_sm_v1(
     magma_int_t m,  magma_int_t n,
     magma_int_t kl, magma_int_t ku,
