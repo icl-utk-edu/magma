@@ -109,7 +109,7 @@ magma_zgbtrf_batched_work(
         magma_int_t kl, magma_int_t ku,
         magmaDoubleComplex **dAB_array, magma_int_t lddab,
         magma_int_t **dipiv_array, magma_int_t *info_array,
-        void* device_work, magma_int_t lwork,
+        void* device_work, magma_int_t *lwork,
         magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t arginfo = 0;
@@ -153,7 +153,7 @@ magma_zgbtrf_batched_work(
             dipiv_array, j, ju_array, j, batchCount, queue);
 
         // adjust pivot
-        adjust_ipiv_batched(ipiv_array, j, 1, j, batchCount, queue);
+        adjust_ipiv_batched(dipiv_array, j, 1, j, batchCount, queue);
 
         // scal and ger
         magma_zgbtf2_scal_ger_batched(
@@ -176,7 +176,6 @@ magma_zgbtrf_batched(
         magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t arginfo = 0;
-    magma_int_t minmn = min(m, n);
     magma_int_t kv    = kl + ku;
 
     if( m < 0 )

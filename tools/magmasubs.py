@@ -174,6 +174,7 @@ lapack = [
     ('ssiinertia',     'dsiinertia',     'cheinertia',     'zheinertia'      ),
     ('sgbbrd',         'dgbbrd',         'cgbbrd',         'zgbbrd'          ),
     ('sgbsv',          'dgbsv',          'cgbsv',          'zgbsv'           ),
+    ('sgbtf2',         'dgbtf2',         'cgbtf2',         'zgbtf2'          ),
     ('sgebak',         'dgebak',         'cgebak',         'zgebak'          ),
     ('sgebal',         'dgebal',         'cgebal',         'zgebal'          ),
     ('sgebd2',         'dgebd2',         'cgebd2',         'zgebd2'          ),
@@ -429,7 +430,7 @@ subs = {
     # magma_ceildiv -> magma_seildiv, so revert
     ('magma_ceildiv',             'magma_seildiv'           ),
     ('magma_copy',                'magma_sopy'              ),
-    
+
   ], # end mixed
 
   # ------------------------------------------------------------
@@ -610,8 +611,8 @@ subs = {
     ('ssyisai',        'dsyisai',        'csyisai',        'zsyisai'         ),
     ('silu',           'dilu',           'cilu',           'zilu'            ),
     ('sgeblock',       'dgeblock',       'cilugeblock',    'zgeblock'        ),
-    ('sge3pt',         'dge3pt',         'cge3pt',         'zge3pt'          ),    
-    ('sgecscsyncfreetrsm',  'dgecscsyncfreetrsm',  'cgecscsyncfreetrsm',  'zgecscsyncfreetrsm'),   
+    ('sge3pt',         'dge3pt',         'cge3pt',         'zge3pt'          ),
+    ('sgecscsyncfreetrsm',  'dgecscsyncfreetrsm',  'cgecscsyncfreetrsm',  'zgecscsyncfreetrsm'),
 
 
     # ----- SPARSE Iterative Solvers
@@ -759,21 +760,21 @@ subs = {
     ('lapack_diag',    'lapack_siag',    'lapack_diag',    'lapack_siag'     ),
     ('lapack_direct',  'lapack_sirect',  'lapack_direct',  'lapack_sirect'   ),
     ('magma_copy',     'magma_sopy',     'magma_copy',     'magma_sopy'      ),
-    
+
   ], # end normal
 
   # ------------------------------------------------------------
   # replacements applied to Fortran files.
   'fortran' : [
-    # ----- header                                                             
+    # ----- header
     ('s',              'd',              'c',              'z'               ),
 
     # ----- Text
     ('symmetric',      'symmetric',      'hermitian',      'hermitian'       ),
     ('symmetric',      'symmetric',      'Hermitian',      'Hermitian'       ),
     ('orthogonal',     'orthogonal',     'unitary',        'unitary'         ),
-    
-    # ----- data types    
+
+    # ----- data types
     ('REAL',           'DOUBLE PRECISION', 'REAL',         'DOUBLE PRECISION'),
     ('real',           'double precision', 'real',         'double precision'),
     ('REAL',           'DOUBLE PRECISION', 'COMPLEX',      'COMPLEX\*16'     ),
@@ -781,10 +782,10 @@ subs = {
     ('real',           'double',           'complex',      'complex16'       ),
     ('c_float',        'c_double',         'c_float_complex', 'c_double_complex'),
     ('real',           'real',             'complex',      'complex'         ),
-    
-    # ----- constants                        
+
+    # ----- constants
     ('\.0E',           '\.0D',             '\.0E',         '\.0D'            ),
-    
+
     # ----- BLAS & LAPACK
     ]
     + lower( blas )    # e.g., dgemm
@@ -792,12 +793,12 @@ subs = {
     + lower( lapack )  # e.g., dgetrf
     + upper( lapack )  # e.g., DGETRF
     + [
-    
+
     # ----- Prefixes
     ('magma_s',        'magma_d',        'magma_c',        'magma_z'         ),
     ('magma2_s',       'magma2_d',       'magma2_c',       'magma2_z'        ),
   ], # end fortran
-  
+
   # ------------------------------------------------------------
   # replacements applied for profiling with tau
   'tracing' :[

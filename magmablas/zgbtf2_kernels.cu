@@ -5,8 +5,6 @@
        Univ. of Colorado, Denver
        @date
 
-       @author Azzam Haidar
-       @author Tingxing Dong
        @author Ahmad Abdelfattah
 
        @precisions normal z -> s d c
@@ -26,7 +24,7 @@
 #define GBTF2_SCAL_GER_MAX_THREADS (64)
 
 /******************************************************************************/
-__global__ __laucnh_bounds__(GBTF2_SWAP_MAX_THREADS)
+__global__ __launch_bounds__(GBTF2_SWAP_MAX_THREADS)
 void zgbtf2_swap_kernel_batched(
         magmaDoubleComplex **dAB_array, magma_int_t ai, magma_int_t aj, magma_int_t lddab,
         magma_int_t** dipiv_array, int ipiv_offset,
@@ -36,7 +34,7 @@ void zgbtf2_swap_kernel_batched(
     const int ntx     = blockDim.x;
     const int batchid = blockIdx.x;
     magmaDoubleComplex *dAB = dAB_array[batchid] + aj * lddab + ai;
-    magma_int_t *ipiv = ipiv_array[batchid] + ipiv_offset;
+    magma_int_t *ipiv = dipiv_array[batchid] + ipiv_offset;
 
     int ju = ju_array[batchid];
     int jp = (int)ipiv[0];
@@ -64,12 +62,14 @@ magma_zgbtf2_zswap_batched(
     magma_int_t** dipiv_array, magma_int_t ipiv_offset,
     int* ju_array, magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue)
 {
-    const int nthreads = min(kl+ku+1, GBTF2_MAX_THREADS);
+    const int nthreads = min(kl+ku+1, GBTF2_SWAP_MAX_THREADS);
     dim3 threads(nthreads, 1, 1);
-    dim3 blocks(batchCount, 1, 1);
+    dim3 grid(batchCount, 1, 1);
 
     zgbtf2_swap_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>
     (dAB_array, ai, aj, lddab, dipiv_array, ipiv_offset, ju_array, gbstep);
+
+    return 0;
 }
 
 
@@ -82,20 +82,23 @@ void zgbtf2_scal_ger_kernel_batched(
 {
     const int gtx     = blockIdx.x * blockDim.x + threadIdx.x;
     const int batchid = blockIdx.z;
-    int ju = ju_array[batchid];
-    int swap_len = ju - gbstep + 1;
-    int km = 1 + min( kl, m-gbstep ); // diagonal + subdiagonal(s)
-        magmaDoubleComplex* dA = dA_array[batchid] + aj * lda + ai;
+    int ju            = ju_array[batchid];
+    int swap_length   = ju - gbstep + 1;
+    int km            = 1 + min( kl, m-gbstep ); // diagonal + subdiagonal(s)
+
     if( info_array[batchid] != 0 ) return;
+
+    magmaDoubleComplex* dAB = dAB_array[batchid] + aj * lddab + ai;
+    magmaDoubleComplex  rA  = MAGMA_Z_ZERO, reg = MAGMA_Z_ZERO;
 
     if( gtx > 0 && gtx < km ) {
         reg = MAGMA_Z_DIV(MAGMA_Z_ONE, dAB[0]);
         rA  = dAB[ gtx ];
         rA *= reg;
-        dA[ gtx ] = rA;
+        dAB[ gtx ] = rA;
 
         for(int i = 1; i < swap_length; i++)
-            dA[i * (lddab-1) + gtx] -= rA * dA[i * (lddab-1) + 0];
+            dAB[i * (lddab-1) + gtx] -= rA * dAB[i * (lddab-1) + 0];
     }
 }
 
@@ -114,10 +117,12 @@ magma_zgbtf2_scal_ger_batched(
     magma_int_t nblocks  = magma_ceildiv(km, nthreads);
 
     dim3 threads(GBTF2_SCAL_GER_MAX_THREADS, 1, 1);
-    dim3 grid(nblocks, 1, batchCount);
 
-    for(magma_int_t s = 0; s < batchCount; s+=queue->max_batchCount()) {
-        magma_int_t ibatch = min(batchCount-s, queue->max_batchCount());
+    magma_int_t max_batchCount = queue->get_maxBatch();
+    for(magma_int_t s = 0; s < batchCount; s+=max_batchCount) {
+        magma_int_t ibatch = min(batchCount-s, max_batchCount);
+        dim3 grid(nblocks, 1, ibatch);
+
         zgbtf2_scal_ger_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>
         (m, n, kl, ku, dAB_array+s, ai, aj, lddab, ju_array+s, gbstep, info_array+s);
     }

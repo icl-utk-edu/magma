@@ -284,6 +284,14 @@ int main( int argc, char** argv)
                 info = 0;
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
+            else if (opts.version == 4) {
+                magma_time = magma_sync_wtime( opts.queue );
+                info = magma_zgbtrf_batched(
+                    M, N, KL, KU,
+                    dA_array, lddab, dipiv_array, dinfo_magma,
+                    batchCount, opts.queue);
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+            }
             magma_perf = gflops / magma_time;
 
             magma_zgetmatrix( Mband, Nband*batchCount, dA, lddab, h_Amagma, ldab, opts.queue );
