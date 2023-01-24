@@ -471,6 +471,12 @@ magmablas_zlaset_batched(
     magmaDoubleComplex_ptr dAarray[], magma_int_t ldda,
     magma_int_t batchCount, magma_queue_t queue);
 
+void magma_zgbtrf_adjust_ju_fillin(
+        magma_int_t n, magma_int_t kl, magma_int_t ku,
+        magmaDoubleComplex** dAB_array, magma_int_t lddab,
+        magma_int_t** dipiv_array, int* ju_array, magma_int_t gbstep,
+        magma_int_t batchCount, magma_queue_t queue);
+
 magma_int_t
 magma_zgbtf2_zswap_batched(
     magma_int_t kl, magma_int_t ku,

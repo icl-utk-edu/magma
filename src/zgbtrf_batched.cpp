@@ -157,7 +157,8 @@ magma_zgbtrf_batched_work(
             0, 0, info_array, batchCount, queue);
 
         // adjust ju_array
-        magma_gbtrf_adjust_ju(n, ku, dipiv_array, ju_array, j, batchCount, queue);
+        //magma_gbtrf_adjust_ju(n, ku, dipiv_array, ju_array, j, batchCount, queue);
+        magma_zgbtrf_adjust_ju_fillin(n, kl, ku, dAB_array, lddab, dipiv_array, ju_array, j, batchCount, queue);
 
         #ifdef DBG
         printf("iamax & adjust ju\n");
