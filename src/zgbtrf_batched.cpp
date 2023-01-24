@@ -13,6 +13,8 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
+//#define DBG
+
 /***************************************************************************//**
     Purpose
     -------
@@ -136,6 +138,14 @@ magma_zgbtrf_batched_work(
     // by the previous factorization stage
     int* ju_array = (int*)device_work;
 
+    #ifdef DBG
+    magmaDoubleComplex* ha=NULL;
+    magma_int_t* ipiv=NULL;
+    magma_getvector(&ha, dAB_array, 1*sizeof(magmaDoubleComplex*), queue);
+    magma_getvector(&ipiv, dipiv_array, 1*sizeof(magma_int_t*), queue);
+    magma_int_t Mband = kl + kv + 1;
+    magma_zprint_gpu(Mband, n, ha, laadb, queue);
+    #endif
     for(magma_int_t j = 0; j < minmn; j++) {
         // izamax
         magma_int_t km = 1 + min( kl, m-j ); // diagonal and subdiagonal(s)
@@ -143,6 +153,10 @@ magma_zgbtrf_batched_work(
             km, dAB_array, kv, j, lddab, 1,
             dipiv_array, j,
             j, 0, info_array, batchCount, queue);
+
+        #ifdef DBG
+
+        #endif
 
         // adjust ju_array
         magma_gbtrf_adjust_ju(n, ku, dipiv_array, ju_array, j, batchCount, queue);

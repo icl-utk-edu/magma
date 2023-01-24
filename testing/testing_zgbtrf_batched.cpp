@@ -27,7 +27,7 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (batchCount == 10 && M == 16 && N == 16)
+#define cond (batchCount == 1 && M == 8 && N == 8)
 
 double get_band_LU_error(
             magma_int_t M, magma_int_t N,
@@ -202,8 +202,7 @@ int main( int argc, char** argv)
             lapackf77_zlacpy( MagmaFullStr, &Mband, &columns, h_A, &ldab, h_R, &ldab );
 
             if(cond) {
-                //magma_zprint(Mband, N, h_R, ldab);
-                magma_zprint(Mband, N, h_R + 7 * ldab * N, ldab);
+                magma_zprint(Mband, N, h_R, ldab);
             }
             /* ====================================================================
                Performs operation using MAGMA
@@ -297,8 +296,7 @@ int main( int argc, char** argv)
             magma_zgetmatrix( Mband, Nband*batchCount, dA, lddab, h_Amagma, ldab, opts.queue );
 
             if(cond) {
-                //magma_zprint(Mband, N, h_Amagma, ldab);
-                magma_zprint(Mband, N, h_Amagma + 7 * ldab * N, ldab);
+                magma_zprint(Mband, N, h_Amagma, ldab);
                 magma_getvector( min_mn * batchCount, sizeof(magma_int_t), dipiv_magma, 1, ipiv, 1, opts.queue );
                 //for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
                 for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[min_mn + ss]);} printf("\n");
