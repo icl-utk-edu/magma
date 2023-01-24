@@ -13,7 +13,7 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
-//#define DBG
+#define DBG
 
 /***************************************************************************//**
     Purpose
@@ -141,10 +141,12 @@ magma_zgbtrf_batched_work(
     #ifdef DBG
     magmaDoubleComplex* ha=NULL;
     magma_int_t* ipiv=NULL;
-    magma_getvector(&ha, dAB_array, 1*sizeof(magmaDoubleComplex*), queue);
-    magma_getvector(&ipiv, dipiv_array, 1*sizeof(magma_int_t*), queue);
+    magma_getvector(1, sizeof(magmaDoubleComplex*), dAB_array, 1, &ha, 1, queue);
+    magma_getvector(1, sizeof(magma_int_t*), dipiv_array, 1, &ipiv, 1, queue);
+    magma_queue_sync( queue );
     magma_int_t Mband = kl + kv + 1;
-    magma_zprint_gpu(Mband, n, ha, laadb, queue);
+    magma_zprint_gpu(Mband, n, ha, lddab, queue);
+    magma_iprint_gpu(minmn, 1, ipiv, minmn, queue);
     #endif
     for(magma_int_t j = 0; j < minmn; j++) {
         // izamax
@@ -152,22 +154,34 @@ magma_zgbtrf_batched_work(
         magma_izamax_batched(
             km, dAB_array, kv, j, lddab, 1,
             dipiv_array, j,
-            j, 0, info_array, batchCount, queue);
-
-        #ifdef DBG
-
-        #endif
+            0, 0, info_array, batchCount, queue);
 
         // adjust ju_array
         magma_gbtrf_adjust_ju(n, ku, dipiv_array, ju_array, j, batchCount, queue);
+
+        #ifdef DBG
+        printf("iamax & adjust ju\n");
+        magma_iprint_gpu(minmn, 1, ipiv, minmn, queue);
+        magma_iprint_gpu(1, 1, ju_array, 1, queue);
+        #endif
 
         // swap (right only)
         magma_zgbtf2_zswap_batched(
             kl, ku, dAB_array, kv, j, lddab,
             dipiv_array, j, ju_array, j, batchCount, queue);
 
+        #ifdef DBG
+        printf("swap\n");
+        magma_zprint_gpu(Mband, n, ha, lddab, queue);
+        #endif
+
         // adjust pivot
         adjust_ipiv_batched(dipiv_array, j, 1, j, batchCount, queue);
+
+        #ifdef DBG
+        printf("adjust ipiv\n");
+        magma_iprint_gpu(minmn, 1, ipiv, minmn, queue);
+        #endif
 
         // scal and ger
         magma_zgbtf2_scal_ger_batched(
@@ -175,7 +189,13 @@ magma_zgbtrf_batched_work(
             dAB_array, kv, j, lddab,
             ju_array, j, info_array,
             batchCount, queue);
+        #ifdef DBG
+        printf("scal/ger\n");
+        magma_zprint_gpu(Mband, n, ha, lddab, queue);
+        #endif
+
     }
+
     return 0;
 }
 

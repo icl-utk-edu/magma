@@ -298,8 +298,8 @@ int main( int argc, char** argv)
             if(cond) {
                 magma_zprint(Mband, N, h_Amagma, ldab);
                 magma_getvector( min_mn * batchCount, sizeof(magma_int_t), dipiv_magma, 1, ipiv, 1, opts.queue );
-                //for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
-                for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[min_mn + ss]);} printf("\n");
+                for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
+                //for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[min_mn + ss]);} printf("\n");
             }
 
             // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
@@ -347,6 +347,10 @@ int main( int argc, char** argv)
 
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;
+            }
+            if(cond) {
+                magma_zprint(Mband, N, h_A, ldab);
+                for(magma_int_t ii = 0; ii < min_mn; ii++) {printf("%d  ", ipiv[ii]);} printf("\n");
             }
 
             /* =====================================================================
