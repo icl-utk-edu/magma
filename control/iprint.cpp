@@ -133,7 +133,7 @@ void magma_iprint_gpu(
 
     magma_igetmatrix( m, n, dA, ldda, A, lda, queue );
 
-    magma_i	print( m, n, A, lda );
+    magma_iprint( m, n, A, lda );
 
     magma_free_cpu( A );
 }
