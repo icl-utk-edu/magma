@@ -26,7 +26,7 @@
 
 /******************************************************************************/
 // This kernel must be called before pivot adjustment
-__global__ __launch_bounds__(GBTF2_JU_MAX_THREADS)
+__global__ __launch_bounds__(GBTF2_JU_FILLIN_MAX_THREADS)
 void
 zgbtf2_adjust_ju_fillin_kernel_batched(
     int n, int kl, int ku,
@@ -38,6 +38,8 @@ zgbtf2_adjust_ju_fillin_kernel_batched(
 
     //ju = max(ju, min(j+ku+jp, n-1));
     magma_int_t* ipiv = dipiv_array[batchid];
+    magmaDoubleComplex *dAB = dAB_array[batchid];
+
     int jp   = (int)(ipiv[gbstep]) - 1;    // undo fortran indexing
     int ju1  = (gbstep == 0) ? 0 : ju_array[batchid];
     int ju2  = max(ju1, min(gbstep+ku+jp, n-1));
@@ -48,7 +50,7 @@ zgbtf2_adjust_ju_fillin_kernel_batched(
 
     if(gtx < kl) {
         for(int j = ju1; j <= ju2; j++) {
-            dAB_array[j*lddab + j] = MAGMA_Z_ZERO;
+            dAB[j*lddab + j] = MAGMA_Z_ZERO;
         }
     }
 }
