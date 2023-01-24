@@ -399,6 +399,13 @@ magmaFloatComplex    magma_csqrt( magmaFloatComplex  x );
 magmaDoubleComplex   magma_zsqrt( magmaDoubleComplex x );
 
 
+// =============================================================================
+// integer print functions
+
+void magma_iprint( magma_int_t m, magma_int_t n, const magma_int_t *A, magma_int_t lda );
+
+void magma_iprint_gpu( magma_int_t m, magma_int_t n, magma_int_t* dA, magma_int_t ldda, magma_queue_t queue );
+
 #ifdef __cplusplus
 }
 #endif
