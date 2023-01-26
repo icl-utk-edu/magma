@@ -25,6 +25,11 @@
   #endif
 #endif
 
+#if CUDA_VERSION >= 12000
+   #define cusparseCreateCsrsm2Info(info)
+   #define cusparseDestroyCsrsm2Info(info)
+#endif
+
 // todo: make it spacific
 #if CUDA_VERSION >= 11000 || defined(MAGMA_HAVE_HIP)
 #define cusparseCreateSolveAnalysisInfo(info) cusparseCreateCsrsm2Info(info) 
@@ -816,8 +821,8 @@ magma_zcumiccsetup(
     cusparseCreateSolveAnalysisInfo( &(precond->cuinfoILU) );
     // use kernel to manually check for zeros n the diagonal
     CHECK( magma_zdiagcheck( precond->M, queue ) );
- /*      
-#if CUDA_VERSION >= 7000
+    
+#if CUDA_VERSION >= 12000
     // this version has the bug fixed where a zero on the diagonal causes a crash
     CHECK_CUSPARSE( cusparseCreateCsric02Info(&info_M) );
     CHECK_CUSPARSE( cusparseSetMatType( descrA, CUSPARSE_MATRIX_TYPE_GENERAL ));
@@ -848,7 +853,7 @@ magma_zcumiccsetup(
                          precond->M.dval, precond->M.drow, precond->M.dcol,
                          info_M, CUSPARSE_SOLVE_POLICY_NO_LEVEL, pBuffer) );    
 
-#else*/
+#else
     // this version contains the bug but is needed for backward compability
     CHECK_CUSPARSE( cusparseSetMatType( descrA, CUSPARSE_MATRIX_TYPE_SYMMETRIC ));
     CHECK_CUSPARSE( cusparseSetMatDiagType( descrA, CUSPARSE_DIAG_TYPE_NON_UNIT ));
@@ -867,7 +872,7 @@ magma_zcumiccsetup(
                      precond->M.drow,
                      precond->M.dcol,
                      precond->cuinfoILU );
-//#endif
+#endif
 
     CHECK( magma_zmtransfer( precond->M, &precond->L, 
         Magma_DEV, Magma_DEV, queue ));
