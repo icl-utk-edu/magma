@@ -1920,19 +1920,31 @@ magma_zmconvert(
 
             // step 1: allocate buffer
             cusparseXcoosort_bufferSizeExt(cusparseHandle, m, n, nnz, B->drowidx, B->dcol, &pBufferSizeInBytes);
-            //cudaMalloc( &pBuffer, sizeof(char)* pBufferSizeInBytes);
             CHECK( magma_malloc( &pBuffer, sizeof(char)* pBufferSizeInBytes ));
             // step 2: setup permutation vector P to identity
             CHECK( magma_index_malloc( &P, nnz ));
-            //magma_( &P, sizeof(int)*nnz);
             cusparseCreateIdentityPermutation(cusparseHandle, nnz, P);
 
             // step 3: sort COO format by Row
             cusparseXcoosortByRow(cusparseHandle, m, n, nnz, B->drowidx, B->dcol, P, pBuffer);
 
             // step 4: gather sorted cooVals
+#if CUDA_VERSION >= 12000
+            cusparseSpVecDescr_t vec_permutation;
+            cusparseDnVecDescr_t vec_values;
+            CHECK_CUSPARSE( cusparseCreateSpVec(&vec_permutation, A.nnz, A.nnz,
+                                                P, B->dval,
+                                                CUSPARSE_INDEX_32I,
+                                                CUSPARSE_INDEX_BASE_ZERO, CUDA_C_64F) );
+            CHECK_CUSPARSE( cusparseCreateDnVec(&vec_values, A.nnz, A.dval, CUDA_C_64F) );
+            CHECK_CUSPARSE( cusparseGather(cusparseHandle, vec_values, vec_permutation) );
+            
+            // destroy matrix/vector descriptors
+            CHECK_CUSPARSE( cusparseDestroySpVec(vec_permutation) );
+            CHECK_CUSPARSE( cusparseDestroyDnVec(vec_values) );
+#else
             cusparseZgthr(cusparseHandle, nnz, A.dval, B->dval, P, CUSPARSE_INDEX_BASE_ZERO);
-
+#endif
 
             // conversion using CUSPARSE
             cusparseXcoo2csr( cusparseHandle, B->drowidx,
