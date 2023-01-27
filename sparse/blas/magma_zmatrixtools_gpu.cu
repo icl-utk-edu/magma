@@ -404,7 +404,7 @@ extern "C" magma_int_t
 magma_zcsr_sort_gpu(
     magma_z_matrix *A,
     magma_queue_t queue)
-{
+{   
     magma_int_t info = 0;
     cusparseHandle_t handle=NULL;
     cusparseMatDescr_t descrA=NULL;
@@ -440,9 +440,24 @@ magma_zcsr_sort_gpu(
         descrA, A->drow, A->dcol, P, pBuffer);
     
     // step 4: gather sorted csrVal
+#if CUDA_VERSION >= 12000
+    cusparseSpVecDescr_t vec_permutation;
+    cusparseDnVecDescr_t vec_values;
+    CHECK_CUSPARSE( cusparseCreateSpVec(&vec_permutation, A->nnz, A->nnz,
+                                        P, csrVal_sorted,
+                                        CUSPARSE_INDEX_32I,
+                                        CUSPARSE_INDEX_BASE_ZERO, CUDA_C_64F) );
+    CHECK_CUSPARSE( cusparseCreateDnVec(&vec_values, A->nnz, A->dval, CUDA_C_64F) );
+    CHECK_CUSPARSE( cusparseGather(handle, vec_values, vec_permutation) );
+    
+    // destroy matrix/vector descriptors
+    CHECK_CUSPARSE( cusparseDestroySpVec(vec_permutation) );
+    CHECK_CUSPARSE( cusparseDestroyDnVec(vec_values) );
+#else
     cusparseZgthr(handle, A->nnz, (cuDoubleComplex*)A->dval, (cuDoubleComplex*)csrVal_sorted, P, 
         CUSPARSE_INDEX_BASE_ZERO);
-    
+#endif
+
     SWAP(A->dval, csrVal_sorted);
     
 cleanup:

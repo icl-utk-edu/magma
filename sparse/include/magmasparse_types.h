@@ -629,6 +629,10 @@ typedef struct magma_s_vector
 
     //************            preconditioner parameters       ********************//
 
+#if CUDA_VERSION >= 12000
+    #define csrsm2Info_t int
+#endif
+    
 #if CUDA_VERSION < 11031 || defined(MAGMA_HAVE_HIP)
 typedef struct magma_solve_info_t
 {
