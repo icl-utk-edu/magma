@@ -49,8 +49,8 @@ zgbtf2_adjust_ju_fillin_kernel_batched(
     }
 
     if(gtx < kl) {
-        for(int j = ju1; j <= ju2; j++) {
-            dAB[j*lddab + j] = MAGMA_Z_ZERO;
+        for(int j = ju1+1; j <= ju2; j++) {
+            dAB[j*lddab + gtx] = MAGMA_Z_ZERO;
         }
     }
 }
@@ -66,7 +66,7 @@ void magma_zgbtrf_adjust_ju_fillin(
         magma_int_t** dipiv_array, int* ju_array, magma_int_t gbstep,
         magma_int_t batchCount, magma_queue_t queue)
 {
-    const int nthreads = min(kl, GBTF2_JU_FILLIN_MAX_THREADS);
+    const int nthreads = min(kl+1, GBTF2_JU_FILLIN_MAX_THREADS);
     const int nblocks  = magma_ceildiv(kl, nthreads);
     dim3 threads(nthreads, 1, 1);
     dim3 grid(nblocks, 1, batchCount);

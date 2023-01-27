@@ -13,7 +13,7 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
-#define DBG
+//#define DBG
 
 /***************************************************************************//**
     Purpose
@@ -150,7 +150,7 @@ magma_zgbtrf_batched_work(
     #endif
     for(magma_int_t j = 0; j < minmn; j++) {
         // izamax
-        magma_int_t km = 1 + min( kl, m-j ); // diagonal and subdiagonal(s)
+        magma_int_t km = 1 + min( kl, m-j-1 ); // diagonal and subdiagonal(s)
         magma_izamax_batched(
             km, dAB_array, kv, j, lddab, 1,
             dipiv_array, j,
@@ -162,6 +162,7 @@ magma_zgbtrf_batched_work(
 
         #ifdef DBG
         printf("iamax & adjust ju\n");
+        magma_zprint_gpu(Mband, n, ha, lddab, queue);
         magma_iprint_gpu(minmn, 1, ipiv, minmn, queue);
         magma_iprint_gpu(1, 1, ju_array, 1, queue);
         #endif
