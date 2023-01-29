@@ -18,7 +18,7 @@
 
 #endif
 
-#if (defined(MAGMA_HAVE_CUDA) && CUDA_VERSION < 9020)
+#if (defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 7500 && CUDA_VERSION < 9020)
 // conversion float to half are not defined for host in CUDA version <9.2
 // thus uses the conversion below when CUDA VERSION is < 9.2.
 #include <string.h>
