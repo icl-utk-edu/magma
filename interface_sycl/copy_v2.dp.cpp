@@ -473,6 +473,9 @@ extern "C" void magma_setmatrix_internal(magma_int_t m, magma_int_t n,
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
     }
+    else {
+        stream = &dpct::get_default_queue();
+    }
     int status;
     /*
     DPCT1018:34: The cublasSetMatrixAsync was migrated, but due to parameter(s)
@@ -485,10 +488,8 @@ extern "C" void magma_setmatrix_internal(magma_int_t m, magma_int_t n,
     */
     status = (dpct::matrix_mem_copy((void *)dB_dst, (void *)hA_src, int(lddb),
                                     int(lda), int(m), int(n), int(elemSize),
-                                    dpct::automatic, *stream, true),
+                                    dpct::automatic, *stream, false),
               0);
-    if ( queue != NULL )
-        stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -615,6 +616,9 @@ magma_getmatrix_internal(magma_int_t m, magma_int_t n, magma_int_t elemSize,
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
     }
+    else {
+        stream = &dpct::get_default_queue();
+    }
     int status;
     /*
     DPCT1018:38: The cublasGetMatrixAsync was migrated, but due to parameter(s)
@@ -627,10 +631,8 @@ magma_getmatrix_internal(magma_int_t m, magma_int_t n, magma_int_t elemSize,
     */
     status = (dpct::matrix_mem_copy((void *)hB_dst, (void *)dA_src, int(ldb),
                                     int(ldda), int(m), int(n), int(elemSize),
-                                    dpct::automatic, *stream, true),
+                                    dpct::automatic, *stream, false),
               0);
-    if ( queue != NULL )
-        stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -756,6 +758,9 @@ extern "C" void magma_copymatrix_internal(
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
     }
+    else {
+        stream = &dpct::get_default_queue();
+    }
     int status;
     /*
     DPCT1003:42: Migrated API does not return error code. (*, 0) is inserted.
@@ -843,4 +848,4 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-#endif // MAGMA_HAVE_CUDA
+#endif // MAGMA_HAVE_SYCL
