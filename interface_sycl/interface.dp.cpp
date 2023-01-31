@@ -1201,20 +1201,20 @@ catch (sycl::exception const &exc) {
 extern "C" void magma_queue_sync_internal(magma_queue_t queue, const char *func,
                                           const char *file, int line) try {
     int err;
-//    if ( queue != NULL ) {
+    if ( queue != NULL ) {
         /*
         DPCT1003:81: Migrated API does not return error code. (*, 0) is
         inserted. You may need to rewrite this code.
         */
         err = (queue->sycl_stream()->wait(), 0);
-//    }
-//    else {
+    }
+    else {
         /*
         DPCT1003:82: Migrated API does not return error code. (*, 0) is
         inserted. You may need to rewrite this code.
         */
-//        err = (NULL->wait(), 0);
-//    }
+        err = (dpct::get_default_queue().wait(), 0);
+    }
     check_xerror( err, func, file, line );
     MAGMA_UNUSED( err );
 }
