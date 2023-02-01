@@ -2,6 +2,7 @@ Known bugs & issues
 
 These show up when using testing run_tests.py --tol 100.
 
+Feb 2023
 
 Nov 2017
 When compiling MAGMA with CUDA 9.0RC, the compiler issues numerous warnings:
