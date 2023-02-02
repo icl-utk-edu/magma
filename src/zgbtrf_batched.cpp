@@ -324,13 +324,14 @@ magma_zgbtrf_batched(
     if( m == 0 || n == 0 || batchCount == 0) return 0;
 
     // get tuning parameters for fused and sliding window routines
+    magma_int_t ntcol = 1;
     magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
 
     // first try the fully fused factorization
     magma_int_t info_fused = 0;
     info_fused = magma_zgbtrf_batched_fused_sm(
                     m,  n, kl, ku,
-                    dAB_array, lddab, ipiv_array,
+                    dAB_array, lddab, dipiv_array,
                     info_array, nthreads, ntcol,
                     batchCount, queue );
     if(info_fused == 0) return arginfo;
@@ -360,7 +361,7 @@ magma_zgbtrf_batched(
     magma_malloc((void**)&device_work, lwork);
 
     // try running the sliding window kernel first
-    magma_int_t info_sliding_window = 0
+    magma_int_t info_sliding_window = 0;
     info_sliding_window = magma_zgbtrf_batched_sliding_window_work(
                             m, n, kl, ku,
                             dAB_array, lddab, dipiv_array, info_array,
