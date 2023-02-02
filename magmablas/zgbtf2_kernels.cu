@@ -25,7 +25,7 @@
 #define GBTF2_SCAL_GER_MAX_THREADS  (64)
 
 /******************************************************************************/
-// This kernel must be called before pivot adjustment
+// This kernel must be called before pivot adjustment and before updating ju
 __global__ __launch_bounds__(GBTF2_JU_FILLIN_MAX_THREADS)
 void
 zgbtf2_adjust_ju_fillin_kernel_batched(
@@ -44,10 +44,6 @@ zgbtf2_adjust_ju_fillin_kernel_batched(
     int ju1  = (gbstep == 0) ? 0 : ju_array[batchid];
     int ju2  = max(ju1, min(gbstep+ku+jp, n-1));
 
-    if( gtx == 0 ) {
-        ju_array[batchid] = ju2;
-    }
-
     if(gtx < kl) {
         for(int j = ju1+1; j <= ju2; j++) {
             dAB[j*lddab + gtx] = MAGMA_Z_ZERO;
@@ -56,16 +52,16 @@ zgbtf2_adjust_ju_fillin_kernel_batched(
 }
 
 /******************************************************************************/
-// auxiliary routine for gbtrf that calculates the last column index to be
-// affected by the factorization
-// Note that ju_array is internal, so it is always `int`, not `magma_int_t`
+// auxiliary routine that sets the necessary fill-in elements based on the new pivot
+// must be called before pivot adjustment and before updating ju
 extern "C"
-void magma_zgbtrf_adjust_ju_fillin(
+void magma_zgbtrf_set_fillin(
         magma_int_t n, magma_int_t kl, magma_int_t ku,
         magmaDoubleComplex** dAB_array, magma_int_t lddab,
         magma_int_t** dipiv_array, int* ju_array, magma_int_t gbstep,
         magma_int_t batchCount, magma_queue_t queue)
 {
+    // if kl = 0, use at least one thread to set ju
     const int nthreads = min(kl+1, GBTF2_JU_FILLIN_MAX_THREADS);
     const int nblocks  = magma_ceildiv(kl, nthreads);
     dim3 threads(nthreads, 1, 1);

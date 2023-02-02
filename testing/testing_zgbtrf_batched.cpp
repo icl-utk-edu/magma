@@ -218,7 +218,7 @@ int main( int argc, char** argv)
                 magma_get_zgbtrf_batched_params(M, N, KL, KU, &nb, &nthreads);
 
                 magma_time = magma_sync_wtime( opts.queue );
-                info = magma_zgbtrf_batched_small_sm_v1(
+                info = magma_zgbtrf_batched_fused_sm(
                     M,  N, KL, KU,
                     dA_array, lddab,
                     dipiv_array, dinfo_magma,
@@ -229,7 +229,7 @@ int main( int argc, char** argv)
             else if(opts.version == 2) {
                 // query workspace
                 magma_int_t lwork[1] = {-1};
-                info = magma_zgbtrf_batched_small_sm_v2_work(
+                info = magma_zgbtrf_batched_sliding_window_work(
                         M, N, KL, KU,
                         NULL, lddab, NULL, NULL,
                         nb, nthreads, NULL, lwork,
@@ -243,7 +243,7 @@ int main( int argc, char** argv)
 
                 // timing async call only
                 magma_time = magma_sync_wtime( opts.queue );
-                info = magma_zgbtrf_batched_small_sm_v2_work(
+                info = magma_zgbtrf_batched_sliding_window_work(
                         M, N, KL, KU,
                         dA_array, lddab, dipiv_array, dinfo_magma,
                         nb, nthreads,
@@ -260,7 +260,7 @@ int main( int argc, char** argv)
             }
             else if (opts.version == 22) {
                 magma_time = magma_sync_wtime( opts.queue );
-                info = magma_zgbtrf_batched_small_sm_v2(
+                info = magma_zgbtrf_batched_sliding_window(
                         M,  N, KL, KU,
                         dA_array, lddab,
                         dipiv_array, dinfo_magma,

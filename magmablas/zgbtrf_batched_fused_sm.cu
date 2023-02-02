@@ -29,33 +29,6 @@
 #define sAB(i,j)        sAB[(j)*sldab + (i)]
 #define dAB(i,j)        dAB[(j)*lddab + (i)]
 
-//#define DBG
-
-////////////////////////////////////////////////////////////////////////////////
-template<typename T>
-__device__ void print_memory(
-                const char* msg,
-                int m, int n, T* sA, int lda,
-                int tx, int ty, int tz,
-                int bx, int by, int bz)
-{
-#if defined(PRECISION_d) && defined(DBG)
-    __syncthreads();
-    if(threadIdx.x == tx && threadIdx.y == ty && threadIdx.z == tz &&
-       blockIdx.x  == bx && blockIdx.y  == by && blockIdx.z  == bz) {
-        printf("%s = [ \n", msg);
-        for(int i = 0; i < m; i++) {
-            for(int j = 0; j < n; j++) {
-                printf("%8.4f  ", (double)(sA[j*lda+i]));
-            }
-            printf("\n");
-        }
-        printf("]; \n");
-    }
-    __syncthreads();
-#endif
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 __device__ __inline__ void
 read_sAB(
@@ -64,7 +37,6 @@ read_sAB(
     magmaDoubleComplex *sAB, int sldab,
     int ntx, int tx)
 {
-#if 1
     const int tpg    = min(ntx, mband);
     const int groups = max(1, ntx / mband);
     const int active = max(ntx, groups * mband);
@@ -80,15 +52,6 @@ read_sAB(
             }
         }
     }
-#else
-    for(int j = 0; j < n; j++) {
-        int col_start = kl + max(ku-j,0);
-        int col_end   = kl + ku + min(kl, n-1-j);
-        for(int i = tx + col_start; i <= col_end; i+=ntx) {
-            sAB(i,j) = dAB(i,j);
-        }
-    }
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -99,7 +62,6 @@ write_sAB(
     magmaDoubleComplex *dAB, int lddab,
     int ntx, int tx)
 {
-#if 1
     const int tpg    = min(ntx, mband);
     const int groups = max(1, ntx / mband);
     const int active = max(ntx, groups * mband);
@@ -113,19 +75,11 @@ write_sAB(
             }
         }
     }
-#else
-    // write AB
-    for(int j = 0; j < n; j++) {
-        for(int i = tx; i < mband; i+=ntx) {
-            dAB(i,j) = sAB(i,j);
-        }
-    }
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 __global__ void
-zgbtrf_batched_kernel_small_sm_v1(
+zgbtrf_batched_kernel_fused_sm(
     magma_int_t m, magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, int lddab,
@@ -166,9 +120,6 @@ zgbtrf_batched_kernel_small_sm_v1(
     read_sAB(mband, n, kl, ku, dAB, lddab, sAB, sldab, ntx, tx);
     __syncthreads();
 
-    print_memory<magmaDoubleComplex>
-    ("read", mband, n, sAB, sldab, 0, 0, 0, 1, 0, 0);
-
     int ju = 0;
     for(int j = 0; j < minmn; j++) {
         // izamax
@@ -196,15 +147,6 @@ zgbtrf_batched_kernel_small_sm_v1(
         ju = max(ju, min(j+ku+jp, n-1));
         int swap_len = ju - j + 1;
 
-        __syncthreads();
-        #ifdef DBG
-        if(tx == 0 && ty == 0 && batchid == 1) {
-            printf("j = %d, pivot = %f at %d, sipiv[%d] = %d\n", j, rx_abs_max, jp, j, sipiv[j]);
-            printf("ju = %d, swap_length = %d\n", ju, swap_len);
-        }
-        #endif
-        __syncthreads();
-
         // swap
         if( !(jp == 0) ) {
             magmaDoubleComplex tmp;
@@ -218,23 +160,12 @@ zgbtrf_batched_kernel_small_sm_v1(
         }
         __syncthreads();
 
-        #ifdef DBG
-        print_memory<magmaDoubleComplex>
-        ("swap", mband, n, sAB, sldab, 0, 0, 0, 1, 0, 0);
-        #endif
-
-
         // scal
         magmaDoubleComplex reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sAB(kv,j) );
         for(int i = tx; i < (km-1); i+=ntx) {
             sAB(kv+1+i, j) *= reg;
         }
         __syncthreads();
-
-        #ifdef DBG
-        print_memory<magmaDoubleComplex>
-        ("scal", mband, n, sAB, sldab, 0, 0, 0, 1, 0, 0);
-        #endif
 
         // ger
         reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
@@ -246,11 +177,6 @@ zgbtrf_batched_kernel_small_sm_v1(
             }
         }
         __syncthreads();
-
-        #ifdef DBG
-        print_memory<magmaDoubleComplex>
-        ("ger", mband, n, sAB, sldab, 0, 0, 0, 1, 0, 0);
-        #endif
     }
 
     // write info
@@ -262,76 +188,84 @@ zgbtrf_batched_kernel_small_sm_v1(
         ipiv[i] = (magma_int_t)sipiv[i];
     }
 
-    #ifdef DBG
-    __syncthreads();
-    if(tx == 0 && ty == 0 && batchid == 1) {
-        for(int ss = 0; ss < minmn; ss++) {printf("%-d ", ipiv[ss]);} printf("\n");
-    }
-    __syncthreads();
-    #endif
-
     write_sAB(mband, n, kl, ku, sAB, sldab, dAB, lddab, ntx, tx);
-
-    #ifdef DBG
-    __syncthreads();
-    if(tx == 0 && ty == 0 && batchid == 1) {
-        for(int ss = 0; ss < minmn; ss++) {printf("%-d ", ipiv[ss]);} printf("\n");
-    }
-    __syncthreads();
-    #endif
-
 }
 
 /***************************************************************************//**
     Purpose
     -------
-    zgbtrf_batched computes the LU factorization of a square N-by-N matrix A
+    ZGBTRF computes an LU factorization of a COMPLEX m-by-n band matrix A
     using partial pivoting with row interchanges.
-    This routine can deal only with square matrices of size up to 32
 
-    The factorization has the form
-        A = P * L * U
-    where P is a permutation matrix, L is lower triangular with unit
-    diagonal elements (lower trapezoidal if m > n), and U is upper
-    triangular (upper trapezoidal if m < n).
+    This is the batched version of the algorithm, which performs the factorization
+    on a batch of matrices with the same size and lower/upper bandwidths.
 
-    This is the right-looking Level 3 BLAS version of the algorithm.
-
-    This is a batched version that factors batchCount M-by-N matrices in parallel.
-    dAB, ipiv, and info become arrays with one entry per matrix.
+    This routine has shared memory requirements that may exceed the capacity of
+    the GPU. In such a case, the routine exits immediately, returning a negative
+    error code.
 
     Arguments
     ---------
     @param[in]
-    n       INTEGER
-            The size of each matrix A.  N >= 0.
+    M     INTEGER
+          The number of rows of the matrix A.  M >= 0.
+
+    @param[in]
+    N     INTEGER
+          The number of columns of the matrix A.  N >= 0.
+
+    @param[in]
+    KL    INTEGER
+          The number of subdiagonals within the band of A.  KL >= 0.
+
+    @param[in]
+    KU    INTEGER
+          The number of superdiagonals within the band of A.  KU >= 0.
 
     @param[in,out]
     dAB_array    Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array on the GPU, dimension (LDDAB,N).
-            On entry, each pointer is an M-by-N matrix to be factored.
-            On exit, the factors L and U from the factorization
-            A = P*L*U; the unit diagonal elements of L are not stored.
+          Each is a COMPLEX_16 array, dimension (LDDAB,N)
+          On entry, the matrix AB in band storage, in rows KL+1 to
+          2*KL+KU+1; rows 1 to KL of the array need not be set.
+          The j-th column of A is stored in the j-th column of the
+          array AB as follows:
+          AB(kl+ku+1+i-j,j) = A(i,j) for max(1,j-ku)<=i<=min(m,j+kl)
+
+          On exit, details of the factorization: U is stored as an
+          upper triangular band matrix with KL+KU superdiagonals in
+          rows 1 to KL+KU+1, and the multipliers used during the
+          factorization are stored in rows KL+KU+2 to 2*KL+KU+1.
+          See below for further details.
 
     @param[in]
-    lddab    INTEGER
-            The leading dimension of each array A.  LDDAB >= max(1,M).
+    LDDAB INTEGER
+          The leading dimension of the array AB.  LDAB >= 2*KL+KU+1.
 
     @param[out]
-    ipiv_array  Array of pointers, dimension (batchCount), for corresponding matrices.
-            Each is an INTEGER array, dimension (min(M,N))
-            The pivot indices; for 1 <= i <= min(M,N), row i of the
-            matrix was interchanged with row IPIV(i).
+    dIPIV_array    Array of pointers, dimension (batchCount).
+          Each is an INTEGER array, dimension (min(M,N))
+          The pivot indices; for 1 <= i <= min(M,N), row i of the
+          matrix was interchanged with row IPIV(i).
 
     @param[out]
-    info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
-      -     = 0:  successful exit
-      -     < 0:  if INFO = -i, the i-th argument had an illegal value
-                  or another error occured, such as memory allocation failed.
-      -     > 0:  if INFO = i, U(i,i) is exactly zero. The factorization
-                  has been completed, but the factor U is exactly
-                  singular, and division by zero will occur if it is used
-                  to solve a system of equations.
+    dINFO_array    INTEGER array, dimension (batchCount)
+          Each is the INFO output for a given matrix
+          = 0: successful exit
+          < 0: if INFO = -i, the i-th argument had an illegal value
+          > 0: if INFO = +i, U(i,i) is exactly zero. The factorization
+               has been completed, but the factor U is exactly
+               singular, and division by zero will occur if it is used
+               to solve a system of equations.
+
+    @param[in]
+    nthreads    INTEGER
+                The number of threads assigned to a single matrix.
+                nthreads >= (KL+1)
+
+    @param[in]
+    ntcol       INTEGER
+                The number of concurrent factorizations in a thread-block
+                ntcol >= 1
 
     @param[in]
     batchCount  INTEGER
@@ -341,10 +275,30 @@ zgbtrf_batched_kernel_small_sm_v1(
     queue   magma_queue_t
             Queue to execute in.
 
+    Further Details
+    ---------------
+
+    The band storage scheme is illustrated by the following example, when
+    M = N = 6, KL = 2, KU = 1:
+
+    On entry:                       On exit:
+
+      *    *    *    +    +    +       *    *    *   u14  u25  u36
+      *    *    +    +    +    +       *    *   u13  u24  u35  u46
+      *   a12  a23  a34  a45  a56      *   u12  u23  u34  u45  u56
+     a11  a22  a33  a44  a55  a66     u11  u22  u33  u44  u55  u66
+     a21  a32  a43  a54  a65   *      m21  m32  m43  m54  m65   *
+     a31  a42  a53  a64   *    *      m31  m42  m53  m64   *    *
+
+    Array elements marked * are not used by the routine, but may be set
+    to zero after completion. Elements marked
+    + need not be set on entry, but are required by the routine to store
+    elements of U because of fill-in resulting from the row interchanges.
+
     @ingroup magma_getrf_batched
 *******************************************************************************/
 extern "C" magma_int_t
-magma_zgbtrf_batched_small_sm_v1(
+magma_zgbtrf_batched_fused_sm(
     magma_int_t m,  magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,
@@ -398,7 +352,7 @@ magma_zgbtrf_batched_small_sm_v1(
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
     if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zgbtrf_batched_kernel_small_sm_v1, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+        cudaFuncSetAttribute(zgbtrf_batched_kernel_fused_sm, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
     #else
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
@@ -413,7 +367,7 @@ magma_zgbtrf_batched_small_sm_v1(
     }
 
     void *kernel_args[] = {&m, &n, &kl, &ku, &dAB_array, &lddab, &ipiv_array, &info_array, &batchCount};
-    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_kernel_small_sm_v1, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_kernel_fused_sm, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
         printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         arginfo = -100;

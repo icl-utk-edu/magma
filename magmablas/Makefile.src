@@ -155,8 +155,8 @@ libmagma_src += \
 	$(cdir)/zgbtf2_kernels.cu		\
 	$(cdir)/zgetrf_batched_smallsq_noshfl.cu\
 	$(cdir)/zgetrf_batched_smallsq_shfl.cu	\
-    $(cdir)/zgbtrf_batched_small_sm_v1.cu  \
-    $(cdir)/zgbtrf_batched_small_sm_v2.cu  \
+    $(cdir)/zgbtrf_batched_fused_sm.cu  \
+    $(cdir)/zgbtrf_batched_sliding_window_sm.cu  \
 	$(cdir)/getrf_setup_pivinfo.cu		\
 	$(cdir)/zhemm_batched_core.cu		\
 	$(cdir)/zher2k_batched.cpp		\
