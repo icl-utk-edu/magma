@@ -27,8 +27,6 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (batchCount == 1 && M == 8 && N == 8)
-
 double get_band_LU_error(
             magma_int_t M, magma_int_t N,
             magma_int_t KL, magma_int_t KU,
@@ -84,20 +82,6 @@ double get_band_LU_error(
         lapackf77_zlaswp(&ione, &LU(0,j), &M, &k1, &k2, IPIV, &ione );
     }
     // end of converting LUB to dense in LU
-
-    #if 0
-    magma_int_t Mband  = KL + 1 + (KL+KU); // need extra KL for the upper factor
-    magma_int_t Nband  = N;
-    for(j = 0; j < min_mn; j++) {printf("%2d ", IPIV[j]);} printf("\n");
-    printf("AB = ");
-    magma_zprint(Mband, Nband,  AB, ldab);
-    printf("A = ");
-    magma_zprint(M, N,  A, M);
-    printf("LUB = ");
-    magma_zprint(Mband, Nband, LUB, ldab);
-    printf("LU = ");
-    magma_zprint(M, N,  LU, M);
-    #endif
 
     lapackf77_zlaswp( &N, A, &M, &ione, &min_mn, IPIV, &ione);
     lapackf77_zlacpy( MagmaLowerStr, &M, &min_mn, LU, &M, L, &M      );
@@ -201,9 +185,6 @@ int main( int argc, char** argv)
             columns = Nband * batchCount;
             lapackf77_zlacpy( MagmaFullStr, &Mband, &columns, h_A, &ldab, h_R, &ldab );
 
-            if(cond) {
-                magma_zprint(Mband, N, h_R, ldab);
-            }
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
@@ -211,79 +192,7 @@ int main( int argc, char** argv)
             magma_zset_pointer( dA_array, dA, lddab, 0, 0, lddab*Nband, batchCount, opts.queue );
             magma_iset_pointer( dipiv_array, dipiv_magma, 1, 0, 0, min_mn, batchCount, opts.queue );
 
-            magma_int_t nb = 4, nthreads = 32;
-
             if(opts.version == 1) {
-                // tuning
-                magma_get_zgbtrf_batched_params(M, N, KL, KU, &nb, &nthreads);
-
-                magma_time = magma_sync_wtime( opts.queue );
-                info = magma_zgbtrf_batched_fused_sm(
-                    M,  N, KL, KU,
-                    dA_array, lddab,
-                    dipiv_array, dinfo_magma,
-                    nthreads, 1,
-                    batchCount, opts.queue );
-                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
-            }
-            else if(opts.version == 2) {
-                // query workspace
-                magma_int_t lwork[1] = {-1};
-                info = magma_zgbtrf_batched_sliding_window_work(
-                        M, N, KL, KU,
-                        NULL, lddab, NULL, NULL,
-                        nb, nthreads, NULL, lwork,
-                        batchCount, opts.queue );
-
-                void* device_work = NULL;
-                magma_malloc((void**)&device_work, lwork[0]);
-
-                // tuning
-                magma_get_zgbtrf_batched_params(M, N, KL, KU, &nb, &nthreads);
-
-                // timing async call only
-                magma_time = magma_sync_wtime( opts.queue );
-                info = magma_zgbtrf_batched_sliding_window_work(
-                        M, N, KL, KU,
-                        dA_array, lddab, dipiv_array, dinfo_magma,
-                        nb, nthreads,
-                        device_work, lwork,
-                        batchCount, opts.queue );
-                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
-
-                // for tuning tests, put in a large value to ignore it
-                if(info != 0) {
-                    magma_time = 1e9;
-                }
-
-                magma_free( device_work );
-            }
-            else if (opts.version == 22) {
-                magma_time = magma_sync_wtime( opts.queue );
-                info = magma_zgbtrf_batched_sliding_window(
-                        M,  N, KL, KU,
-                        dA_array, lddab,
-                        dipiv_array, dinfo_magma,
-                        batchCount, opts.queue );
-                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
-                if(info != 0) {
-                    magma_time = 1e9;
-                }
-            }
-            else if (opts.version == 3) {
-                magma_time = magma_sync_wtime( opts.queue );
-                memcpy(h_Amagma, h_R, Mband * columns * sizeof(magmaDoubleComplex));
-                for (magma_int_t s=0; s < batchCount; s++) {
-                        magma_int_t locinfo;
-                        lapackf77_zgbtrf(&M, &N, &KL, &KU, h_Amagma + s * ldab * Nband, &ldab, ipiv + s * min_mn, &locinfo );
-                }
-                magma_zsetmatrix( Mband, columns, h_Amagma, ldab, dA, lddab, opts.queue );
-                magma_setvector( min_mn * batchCount, sizeof(magma_int_t), ipiv, 1, dipiv_magma, 1, opts.queue );
-                magma_memset_async(dinfo_magma, 0, batchCount * sizeof(magma_int_t), opts.queue);
-                info = 0;
-                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
-            }
-            else if (opts.version == 4) {
                 magma_time = magma_sync_wtime( opts.queue );
                 info = magma_zgbtrf_batched(
                     M, N, KL, KU,
@@ -291,21 +200,34 @@ int main( int argc, char** argv)
                     batchCount, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
-            magma_perf = gflops / magma_time;
+            else if(opts.version == 2) {
+                // query workspace
+                magma_int_t lwork[1] = {-1};
+                magma_zgbtrf_batched_work(
+                    M, N, KL, KU,
+                    NULL, lddab, NULL, NULL,
+                    NULL, lwork,
+                    batchCount, opts.queue);
 
-            magma_zgetmatrix( Mband, Nband*batchCount, dA, lddab, h_Amagma, ldab, opts.queue );
+                void* device_work = NULL;
+                magma_malloc((void**)&device_work, lwork[0]);
 
-            if(cond) {
-                magma_zprint(Mband, N, h_Amagma, ldab);
-                magma_getvector( min_mn * batchCount, sizeof(magma_int_t), dipiv_magma, 1, ipiv, 1, opts.queue );
-                for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[ss]);} printf("\n");
-                //for(int ss = 0; ss < min_mn; ss++) {printf("%2d ", ipiv[min_mn + ss]);} printf("\n");
+                // timing async call only
+                magma_time = magma_sync_wtime( opts.queue );
+                info = magma_zgbtrf_batched_work(
+                    M, N, KL, KU,
+                    dA_array, lddab, dipiv_array, dinfo_magma,
+                    device_work, lwork,
+                    batchCount, opts.queue);
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+                magma_free( device_work );
             }
+
+            magma_perf = gflops / magma_time;
+            magma_zgetmatrix( Mband, Nband*batchCount, dA, lddab, h_Amagma, ldab, opts.queue );
 
             // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_magma, 1, cpu_info, 1, opts.queue );
-
-            /*
             if (info != 0) {
                 printf("magma_zgbtrf_batched returned argument error %lld: %s.\n",
                         (long long) info, magma_strerror( info ));
@@ -318,8 +240,6 @@ int main( int argc, char** argv)
                     }
                 }
             }
-            */
-
 
             /* =====================================================================
                Performs operation using LAPACK
@@ -348,16 +268,10 @@ int main( int argc, char** argv)
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;
             }
-            if(cond) {
-                magma_zprint(Mband, N, h_A, ldab);
-                for(magma_int_t ii = 0; ii < min_mn; ii++) {printf("%d  ", ipiv[ii]);} printf("\n");
-            }
 
             /* =====================================================================
                Check the factorization
                =================================================================== */
-            if( opts.niter > 1 && iter == 0) printf("#");
-
             if ( opts.lapack ) {
                 printf("%10lld %5lld %5lld   %7.2f (%7.2f)    %7.2f (%7.2f)",
                        (long long) batchCount, (long long) M, (long long) N,
@@ -393,10 +307,6 @@ int main( int argc, char** argv)
 
                         if(pivot_ok && err == 0) {
                             err = get_band_LU_error(M, N, KL, KU, h_R + i * ldab*N,  ldab, h_Amagma + i * ldab*N, ipiv + i * min_mn);
-                            if(cond) {
-                                printf("\n error[%d] = %8.4e\n", i, err);
-                            }
-
                             if (std::isnan(err) || std::isinf(err)) {
                                 error = err;
                             }
@@ -429,9 +339,6 @@ int main( int argc, char** argv)
             magma_free( dipiv_array );
             magma_free( dA_array );
             fflush( stdout );
-        }
-        if ( opts.niter > 1 ) {
-            printf( "#\n" );
         }
     }
 

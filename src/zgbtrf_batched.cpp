@@ -13,8 +13,6 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
-//#define DBG
-
 /***************************************************************************//**
     Purpose
     -------
@@ -114,13 +112,29 @@ magma_zgbtrf_batched_work(
         void* device_work, magma_int_t *lwork,
         magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t arginfo = 0;
+    magma_int_t arginfo = 0, nb = 8, nthreads = kl+1;
     magma_int_t minmn = min(m, n);
     magma_int_t kv    = kl + ku;
 
+    // get tuning parameters for fused and sliding window routines
+    magma_int_t ntcol = 1;
+    magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
+
     // calculate required workspace
+    // first calculate workspace for sliding window kernel
+    magma_int_t lwork_sliding_window[1] = {-1};
+    magma_zgbtrf_batched_sliding_window_work(
+        m, n, kl, ku,
+        NULL, lddab, NULL, NULL,
+        nb, nthreads, NULL, lwork_sliding_window,
+        batchCount, queue );
+
+    // calculate workspace for generic implementation
     magma_int_t lwork_bytes = 0;
     lwork_bytes += batchCount * sizeof(int); // no need for magma_int_t here
+
+    // get max of two lworks
+    lwork_bytes = max(lwork_bytes, lwork_sliding_window[0]);
 
     if( *lwork < 0) {
         *lwork = lwork_bytes;
@@ -134,20 +148,32 @@ magma_zgbtrf_batched_work(
         return arginfo;
     }
 
+    // first try the fully fused factorization
+    if(minmn <= 128) {
+        magma_int_t info_fused = 0;
+        info_fused = magma_zgbtrf_batched_fused_sm(
+                        m,  n, kl, ku,
+                        dAB_array, lddab, dipiv_array,
+                        info_array, nthreads, ntcol,
+                        batchCount, queue );
+        if(info_fused == 0) return arginfo;
+    }
+
+    // try the sliding window implementation
+    magma_int_t info_sliding_window = 0;
+    info_sliding_window = magma_zgbtrf_batched_sliding_window_work(
+                            m, n, kl, ku,
+                            dAB_array, lddab, dipiv_array, info_array,
+                            nb, nthreads,
+                            device_work, lwork,
+                            batchCount, queue );
+    if(info_sliding_window == 0) return arginfo;
+
+    // generic implementation (currently unblocked)
+    // TODO: implement blocked version to use level-3 BLAS
     // ju_array holds (per problem) the index of the last column affected
     // by the previous factorization stage
     int* ju_array = (int*)device_work;
-
-    #ifdef DBG
-    magmaDoubleComplex* ha=NULL;
-    magma_int_t* ipiv=NULL;
-    magma_getvector(1, sizeof(magmaDoubleComplex*), dAB_array, 1, &ha, 1, queue);
-    magma_getvector(1, sizeof(magma_int_t*), dipiv_array, 1, &ipiv, 1, queue);
-    magma_queue_sync( queue );
-    magma_int_t Mband = kl + kv + 1;
-    magma_zprint_gpu(Mband, n, ha, lddab, queue);
-    magma_iprint_gpu(minmn, 1, ipiv, minmn, queue);
-    #endif
     for(magma_int_t j = 0; j < minmn; j++) {
         // izamax
         magma_int_t km = 1 + min( kl, m-j-1 ); // diagonal and subdiagonal(s)
@@ -160,30 +186,13 @@ magma_zgbtrf_batched_work(
         magma_zgbtrf_set_fillin(n, kl, ku, dAB_array, lddab, dipiv_array, ju_array, j, batchCount, queue);
         magma_gbtrf_adjust_ju(n, ku, dipiv_array, ju_array, j, batchCount, queue);
 
-        #ifdef DBG
-        printf("iamax & adjust ju\n");
-        magma_zprint_gpu(Mband, n, ha, lddab, queue);
-        magma_iprint_gpu(minmn, 1, ipiv, minmn, queue);
-        magma_iprint_gpu(1, 1, ju_array, 1, queue);
-        #endif
-
         // swap (right only)
         magma_zgbtf2_zswap_batched(
             kl, ku, dAB_array, kv, j, lddab,
             dipiv_array, j, ju_array, j, batchCount, queue);
 
-        #ifdef DBG
-        printf("swap\n");
-        magma_zprint_gpu(Mband, n, ha, lddab, queue);
-        #endif
-
         // adjust pivot
         adjust_ipiv_batched(dipiv_array, j, 1, j, batchCount, queue);
-
-        #ifdef DBG
-        printf("adjust ipiv\n");
-        magma_iprint_gpu(minmn, 1, ipiv, minmn, queue);
-        #endif
 
         // scal and ger
         magma_zgbtf2_scal_ger_batched(
@@ -191,14 +200,9 @@ magma_zgbtrf_batched_work(
             dAB_array, kv, j, lddab,
             ju_array, j, info_array,
             batchCount, queue);
-        #ifdef DBG
-        printf("scal/ger\n");
-        magma_zprint_gpu(Mband, n, ha, lddab, queue);
-        #endif
-
     }
 
-    return 0;
+    return arginfo;
 }
 
 
@@ -302,7 +306,7 @@ magma_zgbtrf_batched(
         magma_int_t **dipiv_array, magma_int_t *info_array,
         magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t arginfo = 0, nb = 8, nthreads = kl+1;
+    magma_int_t arginfo = 0;
     magma_int_t kv    = kl + ku;
 
     if( m < 0 )
@@ -323,60 +327,25 @@ magma_zgbtrf_batched(
 
     if( m == 0 || n == 0 || batchCount == 0) return 0;
 
-    // get tuning parameters for fused and sliding window routines
-    magma_int_t ntcol = 1;
-    magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
+    magma_int_t lwork[1] = {-1};
 
-    // first try the fully fused factorization
-    magma_int_t info_fused = 0;
-    info_fused = magma_zgbtrf_batched_fused_sm(
-                    m,  n, kl, ku,
-                    dAB_array, lddab, dipiv_array,
-                    info_array, nthreads, ntcol,
-                    batchCount, queue );
-    if(info_fused == 0) return arginfo;
-
-    // sliding window and generic implementations require workspace
-    magma_int_t lwork_sliding_window[1] = {-1};
-    magma_int_t lwork_generic[1] = {-1};
-
-    // query workspace: sliding window
-    magma_zgbtrf_batched_sliding_window_work(
-        m, n, kl, ku,
-        NULL, lddab, NULL, NULL,
-        nb, nthreads, NULL, lwork_sliding_window,
-        batchCount, queue );
-
-    // query workspace: generic
+    // query workspace
     magma_zgbtrf_batched_work(
         m, n, kl, ku,
         NULL, lddab,
         NULL, NULL,
-        NULL, lwork_generic,
+        NULL, lwork,
         batchCount, queue);
 
-    magma_int_t lwork = max(lwork_generic[0], lwork_sliding_window[0]);
-
     void* device_work = NULL;
-    magma_malloc((void**)&device_work, lwork);
+    magma_malloc((void**)&device_work, lwork[0]);
 
-    // try running the sliding window kernel first
-    magma_int_t info_sliding_window = 0;
-    info_sliding_window = magma_zgbtrf_batched_sliding_window_work(
-                            m, n, kl, ku,
-                            dAB_array, lddab, dipiv_array, info_array,
-                            nb, nthreads,
-                            device_work, &lwork,
-                            batchCount, queue );
-
-    if(info_sliding_window != 0) {
-        // call generic implementation
-        magma_zgbtrf_batched_work(
-            m, n, kl, ku,
-            dAB_array, lddab,
-            dipiv_array, info_array,
-            device_work, &lwork, batchCount, queue);
-    }
+    // call generic implementation
+    magma_zgbtrf_batched_work(
+        m, n, kl, ku,
+        dAB_array, lddab,
+        dipiv_array, info_array,
+        device_work, lwork, batchCount, queue);
 
     magma_free(device_work);
     return arginfo;
