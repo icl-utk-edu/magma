@@ -554,7 +554,7 @@ magma_zgeqr2_fused_reg_N_batched(
         case  6: arginfo = magma_zgeqr2_fused_reg_kernel_driver_batched<M32, 6>( m, dA_array, Ai, Aj, ldda, dtau_array, taui, info_array, check_launch_only, batchCount, queue ); break;
         case  7: arginfo = magma_zgeqr2_fused_reg_kernel_driver_batched<M32, 7>( m, dA_array, Ai, Aj, ldda, dtau_array, taui, info_array, check_launch_only, batchCount, queue ); break;
         case  8: arginfo = magma_zgeqr2_fused_reg_kernel_driver_batched<M32, 8>( m, dA_array, Ai, Aj, ldda, dtau_array, taui, info_array, check_launch_only, batchCount, queue ); break;
-        #if defined(MAGMA_HAVE_CUDA) && !defined(PRECISION_z)
+        #if !defined(PRECISION_z) // Is this the correct check for SYCL?
         case  9: arginfo = magma_zgeqr2_fused_reg_kernel_driver_batched<M32, 9>( m, dA_array, Ai, Aj, ldda, dtau_array, taui, info_array, check_launch_only, batchCount, queue ); break;
         case 10: arginfo = magma_zgeqr2_fused_reg_kernel_driver_batched<M32,10>( m, dA_array, Ai, Aj, ldda, dtau_array, taui, info_array, check_launch_only, batchCount, queue ); break;
         case 11: arginfo = magma_zgeqr2_fused_reg_kernel_driver_batched<M32,11>( m, dA_array, Ai, Aj, ldda, dtau_array, taui, info_array, check_launch_only, batchCount, queue ); break;
