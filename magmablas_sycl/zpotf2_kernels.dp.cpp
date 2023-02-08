@@ -145,8 +145,8 @@ void zpotf2_smlpout_fixwidth_kernel_batched(int m,
 {
     const int batchid = item_ct1.get_group(2) * item_ct1.get_local_range(1) +
                         item_ct1.get_local_id(1);
-    magmaDoubleComplex *dA = dA_array[batchid] + aj * lda + ai;
     if (batchid >= batchCount) return;
+    magmaDoubleComplex *dA = dA_array[batchid] + aj * lda + ai;
     zpotf2_smlpout_fixwidth_device(
         m, dA + localstep, dA + localstep + localstep * lda, lda, localstep,
         gbstep, &(info_array[batchid]), item_ct1, dpct_local);
@@ -161,8 +161,8 @@ void zpotf2_smlpout_anywidth_kernel_batched(int m, int n,
 {
     const int batchid = item_ct1.get_group(2) * item_ct1.get_local_range(1) +
                         item_ct1.get_local_id(1);
-    magmaDoubleComplex *dA = dA_array[batchid] + aj * lda + ai;
     if (batchid >= batchCount) return;
+    magmaDoubleComplex *dA = dA_array[batchid] + aj * lda + ai;
     zpotf2_smlpout_anywidth_device(
         m, n, dA + localstep, dA + localstep + localstep * lda, lda, localstep,
         gbstep, &(info_array[batchid]), item_ct1, dpct_local);

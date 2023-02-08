@@ -27,22 +27,16 @@ void hlag2s_device(
     magmaHalf_const_ptr A, int lda,
     float             *SA, int ldsa , sycl::nd_item<3> item_ct1)
 {
-#if CUDA_VERSION >= 7500 || defined(MAGMA_HAVE_HIP)
     const int gtx = item_ct1.get_group(2) * BLK_X + item_ct1.get_local_id(2);
     const int gty = item_ct1.get_group(1) * BLK_Y + item_ct1.get_local_id(1);
 
-    for (int j = 0; j < n; j += item_ct1.get_group_range(1)) {
-        const int gty_ = gty + j;
-        for (int i = 0; i < m; i += item_ct1.get_group_range(2)) {
-            const int gtx_ = gtx + i;
-            if(gtx_ < m && gty_ < n) {
-                SA[gty_ * ldsa + gtx_] =
-                    sycl::vec<sycl::half, 1>{A[gty_ * lda + gtx_]}
-                        .convert<float, sycl::rounding_mode::automatic>()[0];
-            }
+    for (int j = gty; j < n; j += item_ct1.get_group_range(1) * BLK_Y) {
+        for (int i = gtx; i < m; i += item_ct1.get_group_range(2) * BLK_X) {
+            SA[j * ldsa + i] =
+                sycl::vec<sycl::half, 1>{A[j * lda + i]}
+                    .convert<float, sycl::rounding_mode::automatic>()[0];
         }
     }
-#endif
 }
 
 /******************************************************************************/
@@ -100,7 +94,7 @@ magmablas_hlag2s(
     sycl::range<3> grid(1, min(max_gridy, magma_ceildiv(n, BLK_Y)),
                         magma_ceildiv(m, BLK_X));
     /*
-    DPCT1049:188: The work-group size passed to the SYCL kernel may exceed the
+    DPCT1049:0: The work-group size passed to the SYCL kernel may exceed the
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
@@ -147,9 +141,9 @@ magmablas_hlag2s_batched(
         sycl::range<3> grid(batch, magma_ceildiv(n, BLK_Y),
                             magma_ceildiv(m, BLK_X));
         /*
-        DPCT1049:189: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
+        DPCT1049:1: The work-group size passed to the SYCL kernel may exceed the
+        limit. To get the device limit, query info::device::max_work_group_size.
+        Adjust the work-group size if needed.
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),

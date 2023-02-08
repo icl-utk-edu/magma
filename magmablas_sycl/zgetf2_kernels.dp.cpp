@@ -1562,8 +1562,6 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_batched(
     shmem += N * sizeof(int);    // not magma_int_t
     shmem *= ntcol;
 
-    // NNB: trying this to get correct shared mem size with mixed types, based on dpct use of uint8_t
-    int shmem_num_items = shmem/sizeof(uint8_t);
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, ntcol));
     sycl::range<3> threads(1, ntcol, m);
 
@@ -1584,7 +1582,7 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_batched(
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-                       dpct_local_acc_ct1(sycl::range<1>(shmem_num_items), cgh); // NNB: I added this manually, dpct didn't finish --
+                       dpct_local_acc_ct1(sycl::range<1>(shmem), cgh); // NNB: I added this manually, dpct didn't finish --
 				                                      // check if size is correct
       cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
