@@ -179,7 +179,6 @@ magmablas_zlascl(
     
     cfromc = cfrom;
     ctoc   = cto;
-    int cnt = 0;
     while( ! done ) {
         cfrom1 = cfromc*smlnum;
         if ( cfrom1 == cfromc ) {
@@ -254,6 +253,5 @@ magmablas_zlascl(
                                });
         }
      
-        cnt += 1;
     }
 }

@@ -428,8 +428,6 @@ extern "C" magma_int_t magma_zgetf2_fused_sm_vbatched(
     shmem            += ( max_minMN * sizeof(int) );
     shmem            *= ntcol;
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
-    // TODO: revisit this mem use
-    int shmem_num_items = shmem/sizeof(uint8_t);
     sycl::range<3> grid(1, 1, gridx);
     sycl::range<3> threads(1, ntcol, nthreads);
 
@@ -459,7 +457,7 @@ extern "C" magma_int_t magma_zgetf2_fused_sm_vbatched(
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        dpct_local_acc_ct1(sycl::range<1>(shmem_num_items), cgh);
+                        dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
 		    //TODO: adjust this?
                     auto max_M_ct0 = *(int *)kernel_args[0];
@@ -661,7 +659,6 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_vbatched(
 
     shmem  = max(shmem_1, shmem_2);
     shmem *= ntcol;
-    int shmem_num_items = shmem/sizeof(uint8_t);
 
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, ntcol));
     sycl::range<3> threads(1, ntcol, max_M);
@@ -689,7 +686,7 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_vbatched(
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                    sycl::access::target::local>
-                        dpct_local_acc_ct1(sycl::range<1>(shmem_num_items), cgh);
+                        dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                     cgh.parallel_for(
                         sycl::nd_range<3>(grid * threads, threads),

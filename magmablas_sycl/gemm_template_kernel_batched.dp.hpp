@@ -32,19 +32,23 @@ void gemm_template_batched_nn_kernel(
     T alpha, T beta,
     int roffA, int coffA,
     int roffB, int coffB,
-    int roffC, int coffC , sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    int roffC, int coffC , sycl::nd_item<3> item_ct1, uint8_t*dpct_local)
 {
+    auto sdata_nn = (T **)dpct_local;
     const int batchid = item_ct1.get_group(0);
+
+    const int slda = BLK_M+1;    // +1 only required if A is transposed
+    const int sldb = BLK_K+1;    // +1 always required
+    T* sA = (T*)sdata_nn;        // sA is (BLK_M+1) x (BLK_K)
+    T* sB = sA + slda * BLK_K;   // sB is (BLK_K+1) x (BLK_N)
 
     gemm_template_device_nn<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA,
                             DIM_YA, DIM_XB, DIM_YB, (BLK_M / DIM_X),
                             (BLK_N / DIM_Y), CONJA, CONJB>(
         M, N, K, Aarray[batchid] + LDA * coffA + roffA, LDA,
         Barray[batchid] + LDB * coffB + roffB, LDB,
-        Carray[batchid] + LDC * coffC + roffC, LDC, alpha, beta, item_ct1, sA,
-        sB);
+        Carray[batchid] + LDC * coffC + roffC, LDC, alpha, beta, sA, slda, sB,
+        sldb, NULL, 0, item_ct1);
 }
 
 
@@ -62,19 +66,23 @@ void gemm_template_batched_nt_kernel(
     T alpha, T beta,
     int roffA, int coffA,
     int roffB, int coffB,
-    int roffC, int coffC , sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    int roffC, int coffC , sycl::nd_item<3> item_ct1, uint8_t*dpct_local)
 {
+    auto sdata_nt = (T **)dpct_local;
     const int batchid = item_ct1.get_group(0);
+
+    const int slda = BLK_M+1;  // +1 only required if A is transposed
+    const int sldb = BLK_K+1;  // +1 always required
+    T* sA = (T*)sdata_nt;      // sA is (BLK_M+1) x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
 
     gemm_template_device_nt<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA,
                             DIM_YA, DIM_XB, DIM_YB, (BLK_M / DIM_X),
                             (BLK_N / DIM_Y), CONJA, CONJB>(
         M, N, K, Aarray[batchid] + LDA * coffA + roffA, LDA,
         Barray[batchid] + LDB * coffB + roffB, LDB,
-        Carray[batchid] + LDC * coffC + roffC, LDC, alpha, beta, item_ct1, sA,
-        sB);
+        Carray[batchid] + LDC * coffC + roffC, LDC, alpha, beta, sA, slda, sB,
+        sldb, NULL, 0, item_ct1);
 }
 
 
@@ -92,19 +100,23 @@ void gemm_template_batched_tn_kernel(
     T alpha, T beta,
     int roffA, int coffA,
     int roffB, int coffB,
-    int roffC, int coffC , sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    int roffC, int coffC , sycl::nd_item<3> item_ct1, uint8_t*dpct_local)
 {
+    auto sdata_tn = (T **)dpct_local;
     const int batchid = item_ct1.get_group(0);
+
+    const int slda = BLK_M+1;  // +1 only required if A is transposed
+    const int sldb = BLK_K+1;  // +1 always required
+    T* sA = (T*)sdata_tn;      // sA is (BLK_M+1) x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
 
     gemm_template_device_tn<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA,
                             DIM_YA, DIM_XB, DIM_YB, (BLK_M / DIM_X),
                             (BLK_N / DIM_Y), CONJA, CONJB>(
         M, N, K, Aarray[batchid] + LDA * coffA + roffA, LDA,
         Barray[batchid] + LDB * coffB + roffB, LDB,
-        Carray[batchid] + LDC * coffC + roffC, LDC, alpha, beta, item_ct1, sA,
-        sB);
+        Carray[batchid] + LDC * coffC + roffC, LDC, alpha, beta, sA, slda, sB,
+        sldb, NULL, 0, item_ct1);
 }
 
 
@@ -122,19 +134,23 @@ void gemm_template_batched_tt_kernel(
     T alpha, T beta,
     int roffA, int coffA,
     int roffB, int coffB,
-    int roffC, int coffC , sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    int roffC, int coffC , sycl::nd_item<3> item_ct1, uint8_t*dpct_local)
 {
+    auto sdata_tt = (T **)dpct_local;
     const int batchid = item_ct1.get_group(0);
+
+    const int slda = BLK_M+1;  // +1 only required if A is transposed
+    const int sldb = BLK_K+1;  // +1 always required
+    T* sA = (T*)sdata_tt;      // sA is (BLK_M+1) x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
 
     gemm_template_device_tt<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA,
                             DIM_YA, DIM_XB, DIM_YB, (BLK_M / DIM_X),
                             (BLK_N / DIM_Y), CONJA, CONJB>(
         M, N, K, Aarray[batchid] + LDA * coffA + roffA, LDA,
         Barray[batchid] + LDB * coffB + roffB, LDB,
-        Carray[batchid] + LDC * coffC + roffC, LDC, alpha, beta, item_ct1, sA,
-        sB);
+        Carray[batchid] + LDC * coffC + roffC, LDC, alpha, beta, sA, slda, sB,
+        sldb, NULL, 0, item_ct1);
 }
 
 
@@ -156,25 +172,25 @@ void gemm_template_batched_nn(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
+    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
+    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
     sycl::range<3> dimBlock(1, DIM_Y, DIM_X);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> dimGrid(ibatch, magma_ceildiv(n, BLK_N),
                                magma_ceildiv(m, BLK_M));
         /*
-        DPCT1049:12: The work-group size passed to the SYCL kernel may exceed
+        DPCT1049:24: The work-group size passed to the SYCL kernel may exceed
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 2, sycl::access_mode::read_write,
+                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M + 1), cgh);
-                sycl::accessor<T, 2, sycl::access_mode::read_write,
-                               sycl::access::target::local>
-                    sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K + 1), cgh);
+                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
@@ -184,8 +200,8 @@ void gemm_template_batched_nn(
                             DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>(
                             m, n, k, dA_array + i, ldda, dB_array + i, lddb,
                             dC_array + i, lddc, alpha, beta, roffA, coffA,
-                            roffB, coffB, roffC, coffC, item_ct1, sA_acc_ct1,
-                            sB_acc_ct1);
+                            roffB, coffB, roffC, coffC, item_ct1,
+                            dpct_local_acc_ct1.get_pointer());
                     });
             });
     }
@@ -209,25 +225,25 @@ void gemm_template_batched_nt(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
+    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
+    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
     sycl::range<3> dimBlock(1, DIM_Y, DIM_X);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> dimGrid(ibatch, magma_ceildiv(n, BLK_N),
                                magma_ceildiv(m, BLK_M));
         /*
-        DPCT1049:13: The work-group size passed to the SYCL kernel may exceed
+        DPCT1049:25: The work-group size passed to the SYCL kernel may exceed
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 2, sycl::access_mode::read_write,
+                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M + 1), cgh);
-                sycl::accessor<T, 2, sycl::access_mode::read_write,
-                               sycl::access::target::local>
-                    sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K + 1), cgh);
+                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
@@ -237,8 +253,8 @@ void gemm_template_batched_nt(
                             DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>(
                             m, n, k, dA_array + i, ldda, dB_array + i, lddb,
                             dC_array + i, lddc, alpha, beta, roffA, coffA,
-                            roffB, coffB, roffC, coffC, item_ct1, sA_acc_ct1,
-                            sB_acc_ct1);
+                            roffB, coffB, roffC, coffC, item_ct1,
+                            dpct_local_acc_ct1.get_pointer());
                     });
             });
     }
@@ -262,25 +278,25 @@ void gemm_template_batched_tn(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
+    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
+    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
     sycl::range<3> dimBlock(1, DIM_Y, DIM_X);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> dimGrid(ibatch, magma_ceildiv(n, BLK_N),
                                magma_ceildiv(m, BLK_M));
         /*
-        DPCT1049:14: The work-group size passed to the SYCL kernel may exceed
+        DPCT1049:26: The work-group size passed to the SYCL kernel may exceed
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 2, sycl::access_mode::read_write,
+                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M + 1), cgh);
-                sycl::accessor<T, 2, sycl::access_mode::read_write,
-                               sycl::access::target::local>
-                    sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K + 1), cgh);
+                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
@@ -290,8 +306,8 @@ void gemm_template_batched_tn(
                             DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>(
                             m, n, k, dA_array + i, ldda, dB_array + i, lddb,
                             dC_array + i, lddc, alpha, beta, roffA, coffA,
-                            roffB, coffB, roffC, coffC, item_ct1, sA_acc_ct1,
-                            sB_acc_ct1);
+                            roffB, coffB, roffC, coffC, item_ct1,
+                            dpct_local_acc_ct1.get_pointer());
                     });
             });
     }
@@ -315,25 +331,25 @@ void gemm_template_batched_tt(
     magma_int_t roffC, magma_int_t coffC,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
+    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
+    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
     sycl::range<3> dimBlock(1, DIM_Y, DIM_X);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> dimGrid(ibatch, magma_ceildiv(n, BLK_N),
                                magma_ceildiv(m, BLK_M));
         /*
-        DPCT1049:15: The work-group size passed to the SYCL kernel may exceed
+        DPCT1049:27: The work-group size passed to the SYCL kernel may exceed
         the limit. To get the device limit, query
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 2, sycl::access_mode::read_write,
+                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                                sycl::access::target::local>
-                    sA_acc_ct1(sycl::range<2>(BLK_K, BLK_M + 1), cgh);
-                sycl::accessor<T, 2, sycl::access_mode::read_write,
-                               sycl::access::target::local>
-                    sB_acc_ct1(sycl::range<2>(BLK_N, BLK_K + 1), cgh);
+                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
                     sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
@@ -343,8 +359,8 @@ void gemm_template_batched_tt(
                             DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>(
                             m, n, k, dA_array + i, ldda, dB_array + i, lddb,
                             dC_array + i, lddc, alpha, beta, roffA, coffA,
-                            roffB, coffB, roffC, coffC, item_ct1, sA_acc_ct1,
-                            sB_acc_ct1);
+                            roffB, coffB, roffC, coffC, item_ct1,
+                            dpct_local_acc_ct1.get_pointer());
                     });
             });
     }

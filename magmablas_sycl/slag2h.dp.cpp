@@ -21,7 +21,6 @@
 #define BLK_Y 4
 #define MAX_BATCH    65000
 
-// TODO: static is not working for HIP; removed from cuda as well
 dpct::global_memory<magma_int_t, 0> magma_flag(0);
 dpct::global_memory<magma_int_t, 1> magma_flag_array(sycl::range<1>(MAX_BATCH),
                                                      {0});
@@ -39,26 +38,22 @@ void slag2h_device(
     float tmp;
     float neg_rmax = - rmax;
 
-    for (int j = 0; j < n; j += item_ct1.get_group_range(1)) {
-        const int gty_ = gty + j;
-        for (int i = 0; i < m; i += item_ct1.get_group_range(2)) {
-            const int gtx_ = gtx + i;
-            if(gtx_ < m && gty_ < n){
-                tmp = A[gty_ * lda + gtx_];
-                if ( (MAGMA_S_REAL(tmp) < neg_rmax) || (MAGMA_S_REAL(tmp) > rmax) ) {
-                    *dinfo  = 1;
-                }
-                HA[gty_ * ldha + gtx_] =
-                    sycl::vec<float, 1>{tmp}
-                        .convert<sycl::half,
-                                 sycl::rounding_mode::automatic>()[0];
+    for (int j = gty; j < n; j += item_ct1.get_group_range(1) * BLK_Y) {
+        for (int i = gtx; i < m; i += item_ct1.get_group_range(2) * BLK_X) {
+            tmp = A[j * lda + i];
+            if ( (MAGMA_S_REAL(tmp) < neg_rmax) || (MAGMA_S_REAL(tmp) > rmax) ) {
+                *dinfo  = 1;
             }
+            HA[j * ldha + i] =
+                sycl::vec<float, 1>{tmp}
+                    .convert<sycl::half, sycl::rounding_mode::automatic>()[0];
         }
     }
 }
 
 
 /******************************************************************************/
+
 
 void slag2h_kernel(
         int m, int n,
@@ -71,6 +66,7 @@ void slag2h_kernel(
 
 
 /******************************************************************************/
+
 
 void slag2h_kernel_batched(
         int m, int n,
@@ -126,7 +122,7 @@ magmablas_slag2h(
                         magma_ceildiv(m, BLK_X));
 
     /*
-    DPCT1049:199: The work-group size passed to the SYCL kernel may exceed the
+    DPCT1049:0: The work-group size passed to the SYCL kernel may exceed the
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
@@ -194,9 +190,9 @@ magmablas_slag2h_batched(
         sycl::range<3> grid(batch, magma_ceildiv(n, BLK_Y),
                             magma_ceildiv(m, BLK_X));
         /*
-        DPCT1049:200: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
+        DPCT1049:1: The work-group size passed to the SYCL kernel may exceed the
+        limit. To get the device limit, query info::device::max_work_group_size.
+        Adjust the work-group size if needed.
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
