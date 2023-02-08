@@ -1138,7 +1138,7 @@ extern "C" void magma_queue_destroy_internal(magma_queue_t queue,
                                              const char *func, const char *file,
                                              int line) try {
     if ( queue != NULL ) {
-        if ( queue->syclblas__ != NULL && (queue->own__ & own_syclblas)) {
+        if ( *queue->syclblas__ != dpct::get_default_queue() && (queue->own__ & own_syclblas)) {
             /*
             DPCT1003:78: Migrated API does not return error code. (*, 0) is
             inserted. You may need to rewrite this code.
@@ -1147,7 +1147,7 @@ extern "C" void magma_queue_destroy_internal(magma_queue_t queue,
             check_xerror( stat, func, file, line );
             MAGMA_UNUSED( stat );
         }
-        if ( queue->syclsparse__ != NULL && (queue->own__ & own_syclsparse)) {
+        if ( *queue->syclsparse__ != dpct::get_default_queue() && (queue->own__ & own_syclsparse)) {
             /*
             DPCT1003:79: Migrated API does not return error code. (*, 0) is
             inserted. You may need to rewrite this code.
@@ -1156,7 +1156,7 @@ extern "C" void magma_queue_destroy_internal(magma_queue_t queue,
             check_xerror( stat, func, file, line );
             MAGMA_UNUSED( stat );
         }
-        if ( queue->stream__ != NULL && (queue->own__ & own_stream)) {
+        if ( *queue->stream__ != dpct::get_default_queue() && (queue->own__ & own_stream)) {
             /*
             DPCT1003:80: Migrated API does not return error code. (*, 0) is
             inserted. You may need to rewrite this code.
