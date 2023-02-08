@@ -62,7 +62,7 @@ zgetf2_native_kernel( int m, int n,
                       magmaDoubleComplex *sx, double *sabs, int *smax_id,
                       magmaDoubleComplex *sreg)
 {
-#ifdef MAGMA_HAVE_CUDA
+#ifdef MAGMA_HAVE_SYCL
     const int tx = item_ct1.get_local_id(2);
     const int bx = item_ct1.get_group(2);
     magmaDoubleComplex rA[NPAGES] = {MAGMA_Z_ZERO};
@@ -96,12 +96,12 @@ zgetf2_native_kernel( int m, int n,
             definition and is not valid for all macro uses. Adjust the code.
             */
             rx_max = rx = (tx < i) ? MAGMA_Z_ZERO : rA[0];
-            rx_abs_max = rx_abs = sycl::fabs(x()(rx)) + sycl::fabs(y()(rx));
+            rx_abs_max = rx_abs = sycl::fabs(MAGMA_Z_REAL(rx)) + sycl::fabs(MAGMA_Z_IMAG(rx));
             max_id = rx_id = tx;
             #pragma unroll
             for(int j = 1; j < NPAGES; j++){
                 rx = rA[j];
-                rx_abs = sycl::fabs(x()(rx)) + sycl::fabs(y()(rx));
+                rx_abs = sycl::fabs(MAGMA_Z_REAL(rx)) + sycl::fabs(MAGMA_Z_IMAG(rx));
                 if ( rx_abs  > rx_abs_max ){
                     rx_max = rx;
                     rx_abs_max = rx_abs;
@@ -354,7 +354,7 @@ zgetf2_native_kernel( int m, int n,
         }
     }
 
-#endif    // MAGMA_HAVE_CUDA
+#endif    // MAGMA_HAVE_SYCL
 }
 
 // =============================================================================

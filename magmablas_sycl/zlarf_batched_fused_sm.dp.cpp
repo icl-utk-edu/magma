@@ -377,7 +377,7 @@ magma_zlarf_fused_sm_batched(
         case 2: arginfo = magma_zlarf_fused_sm_kernel_driver_batched<2>( m, n, ib, dA_array, Ai, Aj, ldda, dV_array, Vi, Vj, lddv, dtau_array, taui, nthreads, check_launch_only, batchCount, queue ); break;
         case 4: arginfo = magma_zlarf_fused_sm_kernel_driver_batched<4>( m, n, ib, dA_array, Ai, Aj, ldda, dV_array, Vi, Vj, lddv, dtau_array, taui, nthreads, check_launch_only, batchCount, queue ); break;
         case 8: arginfo = magma_zlarf_fused_sm_kernel_driver_batched<8>( m, n, ib, dA_array, Ai, Aj, ldda, dV_array, Vi, Vj, lddv, dtau_array, taui, nthreads, check_launch_only, batchCount, queue ); break;
-        #if defined(MAGMA_HAVE_CUDA) && !defined(PRECISION_z)
+        #if !defined(PRECISION_z)
         case 16: arginfo = magma_zlarf_fused_sm_kernel_driver_batched<16>( m, n, ib, dA_array, Ai, Aj, ldda, dV_array, Vi, Vj, lddv, dtau_array, taui, nthreads, check_launch_only, batchCount, queue ); break;
         #endif
         default: arginfo = -100;

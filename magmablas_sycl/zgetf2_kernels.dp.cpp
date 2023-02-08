@@ -245,7 +245,6 @@ magma_izamax_native(
             });
     }
     else {
-    #ifdef MAGMA_HAVE_CUDA
         int ptr_mode;
         /*
         DPCT1026:586: The call to cublasGetPointerMode was removed because the
@@ -271,21 +270,6 @@ magma_izamax_native(
                            [=](sycl::nd_item<3> item_ct1) {
                                magma_zpivcast(ipiv);
                            });
-
-        /*
-        DPCT1026:588: The call to cublasSetPointerMode was removed because the
-        function call is redundant in DPC++.
-        */
-#elif defined(MAGMA_HAVE_HIP)
-        hipblasPointerMode_t ptr_mode;
-        hipblasGetPointerMode(queue->hipblas_handle(), &ptr_mode);
-        hipblasSetPointerMode(queue->hipblas_handle(), CUBLAS_POINTER_MODE_DEVICE);
-
-        hipblasIzamax(queue->hipblas_handle(), length, (const hipblasDoubleComplex*)x, 1, (int*)(ipiv));
-        magma_zpivcast<<< 1, 1, 0, queue->sycl_stream() >>>( ipiv );
-
-        hipblasSetPointerMode(queue->hipblas_handle(), ptr_mode);
-#endif
 
         adjust_ipiv( ipiv, 1, step, queue);
     }
