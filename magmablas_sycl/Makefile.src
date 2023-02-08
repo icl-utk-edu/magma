@@ -34,7 +34,10 @@ libmagma_src += \
 	$(cdir)/zgeadd.dp.cpp		\
 	$(cdir)/zgeadd2.dp.cpp		\
     $(cdir)/zgeam.dp.cpp                \
-	$(cdir)/zgemm_fermi.dp.cpp		\
+	$(cdir)/sgemm.dp.cpp     		\
+	$(cdir)/dgemm.dp.cpp     		\
+	$(cdir)/cgemm.dp.cpp     		\
+	$(cdir)/zgemm.dp.cpp     		\
 	$(cdir)/zgemm_reduce.dp.cpp		\
 	$(cdir)/zgemv_conj.dp.cpp		\
 	$(cdir)/zgemv_fermi.dp.cpp		\
@@ -133,10 +136,12 @@ libmagma_src += \
 	$(cdir)/sgemm_batched_core.dp.cpp		\
 	$(cdir)/zgemm_batched_core.dp.cpp		\
 	$(cdir)/zgemm_batched_smallsq.dp.cpp		\
+	$(cdir)/zgemv_batched.cpp		\
 	$(cdir)/cgemv_batched_core.dp.cpp		\
 	$(cdir)/dgemv_batched_core.dp.cpp		\
 	$(cdir)/sgemv_batched_core.dp.cpp		\
 	$(cdir)/zgemv_batched_core.dp.cpp		\
+	$(cdir)/zgemv_batched_smallsq.dp.cpp		\
 	$(cdir)/zhemv_batched_core.dp.cpp		\
 	$(cdir)/zgeqr2_batched.dp.cpp		\
 	$(cdir)/zgeqr2_batched_fused_reg.dp.cpp		\
@@ -233,6 +238,10 @@ libmagma_src += \
 	$(cdir)/hlaconvert.dp.cpp	         \
 	$(cdir)/hlaswp.dp.cpp		         \
 	$(cdir)/hset_pointer.dp.cpp		     \
+
+# aux files for mixed-precision POSV-IRGMRES
+libmagma_src += \
+	$(cdir)/zposv_irgmres_kernels.dp.cpp    \
 
 # ----------------------------------------------------------------------
 # extra include dependencies

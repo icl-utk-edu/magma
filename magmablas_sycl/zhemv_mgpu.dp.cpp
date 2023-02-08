@@ -821,15 +821,6 @@ magmablas_zhemv_mgpu(
     magma_int_t nb,
     magma_queue_t queues[] )
 {
-    magma_int_t arch = magma_getdevice_arch();
-    #ifndef MAGMA_HAVE_HIP
-    if ( arch < 200  ) {
-        // --------------------
-        // no CUDA ARCH 1.x version
-        fprintf( stderr, "%s not supported on CUDA arch 1.x\n", __func__ );
-        return MAGMA_ERR_NOT_SUPPORTED;
-    }
-    #endif    
 
     // --------------------
     // CUDA ARCH 2.x (Fermi) version
