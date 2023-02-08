@@ -411,11 +411,7 @@ extern "C" magma_int_t magma_zgetf2_fused_sm_vbatched(
     magma_getdevice( &device );
 
     nthreads = nthreads <= 0 ? (max_M/2) : nthreads;
-    #ifdef MAGMA_HAVE_CUDA
     nthreads = magma_roundup(nthreads, 32);
-    #else
-    nthreads = magma_roundup(nthreads, 64);
-    #endif
     nthreads = min(nthreads, 1024);
 
     // in a variable-size setting, setting ntcol > 1 may lead to
