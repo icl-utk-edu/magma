@@ -163,6 +163,7 @@ magma_shpotrf_LL_expert_gpu(
         return *info;
     }
 
+    magma_event_t events[2];
     // half precision workspace
     magmaHalf* dhA     = NULL;
     magmaHalf* dhB     = NULL;
@@ -192,7 +193,6 @@ magma_shpotrf_LL_expert_gpu(
     }
 
     magma_queue_t queues[2];
-    magma_event_t events[2];
     magma_device_t cdev;
     magma_getdevice( &cdev );
     magma_queue_create( cdev, &queues[0] );
