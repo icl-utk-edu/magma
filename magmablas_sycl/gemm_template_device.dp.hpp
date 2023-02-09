@@ -19,6 +19,41 @@
 #ifndef GEMM_TEMPLATE_DEVICE_CUH
 #define GEMM_TEMPLATE_DEVICE_CUH
 
+// =============================================================================
+// conjugation -- double complex
+template <const int conjugate>
+inline magmaDoubleComplex conj(magmaDoubleComplex &x) {
+  return MAGMA_Z_CONJ(x);
+}
+
+template <>
+inline magmaDoubleComplex conj<0>(magmaDoubleComplex &x) {
+  return x;
+}
+
+// conjugation -- single complex
+template <const int conjugate>
+inline magmaFloatComplex conj(magmaFloatComplex &x) {
+  return MAGMA_C_CONJ(x);
+}
+
+template <>
+inline magmaFloatComplex conj<0>(magmaFloatComplex &x) {
+  return x;
+}
+
+// conjugation -- real single & double
+template <const int conjugate>
+static inline double conj(double &x) {
+  return x;
+}
+
+template <const int conjugate>
+static inline float conj(float &x) {
+  return x;
+}
+
+
 /******************************************************************************/
 // op<trans>( x ) returns x or conj(x).
 template<const int conjugate, typename T>
