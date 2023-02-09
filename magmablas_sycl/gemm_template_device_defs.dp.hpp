@@ -19,40 +19,6 @@
 #define GEMM_TEMPLATE_DEVICE_DEFS_H
 
 // =============================================================================
-// conjugation -- double complex
-template <const int conjugate>
-SYCL_EXTERNAL inline magmaDoubleComplex conj(magmaDoubleComplex &x) {
-  return MAGMA_Z_CONJ(x);
-}
-
-SYCL_EXTERNAL template <>
-inline magmaDoubleComplex conj<0>(magmaDoubleComplex &x) {
-  return x;
-}
-
-// conjugation -- single complex
-template <const int conjugate>
-SYCL_EXTERNAL inline magmaFloatComplex conj(magmaFloatComplex &x) {
-  return MAGMA_C_CONJ(x);
-}
-
-SYCL_EXTERNAL template <>
-inline magmaFloatComplex conj<0>(magmaFloatComplex &x) {
-  return x;
-}
-
-// conjugation -- real single & double
-template <const int conjugate>
-SYCL_EXTERNAL static inline double conj(double &x) {
-  return x;
-}
-
-template <const int conjugate>
-SYCL_EXTERNAL static inline float conj(float &x) {
-  return x;
-}
-
-// =============================================================================
 #define fetch(A, m, n, bound)  offs_d##A[min(n*LD##A+m, bound)]
 
 // =============================================================================
