@@ -263,11 +263,11 @@ magmablas_zsyrk_batched(
         return;  //info;
     }
     
-    magma_int_t arch = magma_getdevice_arch();
-    if ( arch < 200  ) {
-        printf("not supported \n"); // TODO call cublas
-        return;
-    }
+//    magma_int_t arch = magma_getdevice_arch();
+//    if ( arch < 200  ) {
+//        printf("not supported \n"); // TODO call cublas
+//        return;
+//    }
     
     // --------------------
     // CUDA ARCH 2.x (Fermi) version
@@ -424,27 +424,11 @@ magmablas_zherk_batched(
         return;  //info;
     }
     
-    magma_int_t arch = magma_getdevice_arch();
-    if ( arch < 200  ) {
-        printf("not supported \n"); // TODO call cublas
-        return;
-    }
-    
-    // --------------------
-    // CUDA ARCH 2.x (Fermi) version
     if ( n <= 0 || k <= 0 )
         return;
 
     magmablas_zherk_batched_core(
         uplo, trans, n, k,
-        /*
-        DPCT1064:1030: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         MAGMA_Z_MAKE(alpha, 0.), dA_array, 0, 0, ldda, dA_array, 0, 0, ldda,
-        /*
-        DPCT1064:1031: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         MAGMA_Z_MAKE(beta, 0.), dC_array, 0, 0, lddc, batchCount, queue);
 }
