@@ -257,7 +257,7 @@ magma_izamax_native(
 
         int64_t *res_temp_ptr_ct1 =
             sycl::malloc_shared<int64_t>(1, dpct::get_default_queue());
-        oneapi::mkl::blas::column_major::iamax(*queue->cublas_handle(), length,
+        oneapi::mkl::blas::column_major::iamax(*queue->syclblas_handle(), length,
                                                (std::complex<double> *)x, 1,
                                                res_temp_ptr_ct1)
             .wait();
