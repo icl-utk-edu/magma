@@ -139,10 +139,13 @@ static int g_init = 0;
 struct magma_device_info
 {
     size_t memory;
-    size_t shmem_block;      // maximum shared memory per thread block in bytes
-    size_t shmem_multiproc;  // maximum shared memory per multiprocessor in bytes
-    magma_int_t cuda_arch;
-    magma_int_t multiproc_count;    // number of multiprocessors
+    size_t shmem_block;       // maximum shared memory per thread block in bytes
+    size_t shmem_block_optin; // maximum shared memory per thread block in bytes with opt-in
+    size_t shmem_multiproc;   // maximum shared memory per multiprocessor in bytes
+    magma_int_t gpu_arch;
+    magma_int_t multiproc_count;        // number of multiprocessors
+    magma_int_t num_threads_block;      // max. #threads per block
+    magma_int_t num_threads_multiproc;  // max. #threads per sm
 };
 
 int g_magma_devices_cnt = 0;
@@ -207,17 +210,27 @@ magma_init()
                     info = MAGMA_ERR_UNKNOWN;
                 }
                 else {
-                    g_magma_devices[dev].memory          = prop.totalGlobalMem;
-                    g_magma_devices[dev].shmem_block     = prop.sharedMemPerBlock;
+                    g_magma_devices[dev].memory                = prop.totalGlobalMem;
+                    g_magma_devices[dev].num_threads_block     = prop.maxThreadsPerBlock;
+                    g_magma_devices[dev].num_threads_multiproc = prop.maxThreadsPerMultiProcessor;
+                    g_magma_devices[dev].multiproc_count       = prop.multiProcessorCount;
+                    g_magma_devices[dev].shmem_block           = prop.sharedMemPerBlock;
+
                     #ifdef MAGMA_HAVE_CUDA
-                    g_magma_devices[dev].cuda_arch       = prop.major*100 + prop.minor*10;
-                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor;
-                    #elif defined(MAGMA_HAVE_HIP)
-                    g_magma_devices[dev].cuda_arch       = prop.gcnArch;
-                    g_magma_devices[dev].shmem_multiproc = prop.maxSharedMemoryPerMultiProcessor;
+                    g_magma_devices[dev].gpu_arch          = prop.major*100 + prop.minor*10;
+                    g_magma_devices[dev].shmem_multiproc   = prop.sharedMemPerMultiprocessor;
+                    // dynamic shared memory in CUDA has a special opt-in since CUDA 9
+                    #if CUDA_VERSION >= 9000
+                    g_magma_devices[dev].shmem_block_optin = prop.sharedMemPerBlockOptin;
+                    #else
+                    g_magma_devices[dev].shmem_block_optin = prop.sharedMemPerBlock;
                     #endif
 
-                    g_magma_devices[dev].multiproc_count = prop.multiProcessorCount;
+                    #elif defined(MAGMA_HAVE_HIP)
+                    g_magma_devices[dev].gpu_arch          = prop.gcnArch;
+                    g_magma_devices[dev].shmem_multiproc   = prop.maxSharedMemoryPerMultiProcessor;
+                    g_magma_devices[dev].shmem_block_optin = prop.sharedMemPerBlock;
+                    #endif
                 }
             }
 
@@ -571,7 +584,7 @@ magma_getdevice_arch()
         fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
         return 0;
     }
-    return g_magma_devices[dev].cuda_arch;
+    return g_magma_devices[dev].gpu_arch;
 }
 
 
@@ -675,6 +688,52 @@ magma_getdevice_multiprocessor_count()
 }
 
 /***************************************************************************//**
+    Returns the maximum number of threads per block for the current device.
+    This requires magma_init() to be called first to cache the information.
+
+    @return the maximum number of threads per block for the current device.
+
+    @ingroup magma_device
+*******************************************************************************/
+extern "C" magma_int_t
+magma_getdevice_num_threads_block()
+{
+    int dev;
+    cudaError_t err;
+    err = cudaGetDevice( &dev );
+    check_error( err );
+    MAGMA_UNUSED( err );
+    if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
+        fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
+        return 0;
+    }
+    return g_magma_devices[dev].num_threads_block;
+}
+
+/***************************************************************************//**
+    Returns the maximum number of threads per multiprocessor for the current device.
+    This requires magma_init() to be called first to cache the information.
+
+    @return the maximum number of threads per multiprocessor for the current device.
+
+    @ingroup magma_device
+*******************************************************************************/
+extern "C" magma_int_t
+magma_getdevice_num_threads_multiprocessor()
+{
+    int dev;
+    cudaError_t err;
+    err = cudaGetDevice( &dev );
+    check_error( err );
+    MAGMA_UNUSED( err );
+    if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
+        fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
+        return 0;
+    }
+    return g_magma_devices[dev].num_threads_multiproc;
+}
+
+/***************************************************************************//**
     Returns the maximum shared memory per block (in bytes) for the current device.
     This requires magma_init() to be called first to cache the information.
 
@@ -697,6 +756,30 @@ magma_getdevice_shmem_block()
     return g_magma_devices[dev].shmem_block;
 }
 
+/***************************************************************************//**
+    Returns the maximum shared memory per block (in bytes) with a special opt-in
+    for the current device.
+    This requires magma_init() to be called first to cache the information.
+
+    @return the maximum shared memory per block (in bytes) with a special opt-in
+    for the current device.
+
+    @ingroup magma_device
+*******************************************************************************/
+extern "C" size_t
+magma_getdevice_shmem_block_optin()
+{
+    int dev;
+    cudaError_t err;
+    err = cudaGetDevice( &dev );
+    check_error( err );
+    MAGMA_UNUSED( err );
+    if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
+        fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
+        return 0;
+    }
+    return g_magma_devices[dev].shmem_block_optin;
+}
 
 /***************************************************************************//**
     Returns the maximum shared memory multiprocessor (in bytes) for the current device.

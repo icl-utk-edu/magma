@@ -238,8 +238,17 @@ magma_mem_size( magma_queue_t queue );
 magma_int_t
 magma_getdevice_multiprocessor_count();
 
+magma_int_t
+magma_getdevice_num_threads_block();
+
+magma_int_t
+magma_getdevice_num_threads_multiprocessor();
+
 size_t
 magma_getdevice_shmem_block();
+
+size_t
+magma_getdevice_shmem_block_optin();
 
 size_t
 magma_getdevice_shmem_multiprocessor();
