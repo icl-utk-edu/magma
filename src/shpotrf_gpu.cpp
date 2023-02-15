@@ -32,7 +32,7 @@ magma_sgemm_fp16(
     float beta,  float* dC, magma_int_t lddc,
     magma_queue_t queue )
 {
-    #ifdef MAGMA_HAVE_CUDA
+    #if (defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 7500)
         #ifdef CUDA_USE_FAST_SGEMM
         cublasGemmEx( queue->cublas_handle(),
                       cublas_trans_const( transA ), cublas_trans_const( transB ),
@@ -49,8 +49,9 @@ magma_sgemm_fp16(
                                   (const void*) dhB, CUDA_R_16F, (int)lddhb,
             (const void*) &beta,  (      void*) dC,  CUDA_R_32F, (int)lddc,
             CUDA_R_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
-         #endif
-    #else
+        #endif
+        return 0;
+    #elif defined(MAGMA_HAVE_HIP)
     hipblasGemmEx( queue->hipblas_handle(),
 		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
 		           int(m), int(n), int(k),
@@ -58,8 +59,10 @@ magma_sgemm_fp16(
                                   (void*)dhB, HIPBLAS_R_16F, (int)lddhb,
 		           (void*)&beta,  (void*)dC,  HIPBLAS_R_32F, (int)lddc,
 		           HIPBLAS_R_32F, HIPBLAS_GEMM_DEFAULT);
-    #endif
     return 0;
+    #else
+    return MAGMA_ERR_NOT_SUPPORTED;
+    #endif
 }
 
 /***************************************************************************//**
