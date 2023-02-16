@@ -165,7 +165,7 @@ int main( int argc, char** argv)
             ldab   = Mband;
             n2     = ldab * Nband * batchCount;
             lddab  = magma_roundup( Mband, opts.align );  // multiple of 32 by default
-            gflops = 0.;    // TODO: gflop formula for gbtrf
+            gflops = 0.;    // TODO: gflop formula for gbtrf?
 
             TESTING_CHECK( magma_imalloc_cpu( &cpu_info, batchCount ));
             TESTING_CHECK( magma_imalloc_cpu( &ipiv, min_mn * batchCount ));
