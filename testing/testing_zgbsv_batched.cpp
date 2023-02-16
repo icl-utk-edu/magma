@@ -103,7 +103,7 @@ int main(int argc, char **argv)
     magmaDoubleComplex_ptr d_A, d_B;
     magma_int_t *dipiv, *dinfo_array;
     magma_int_t *ipiv, *cpu_info;
-    magma_int_t N, Nband, nrhs, lda, ldb, ldda, lddb, info, sizeA, sizeB;
+    magma_int_t N, Nband, KL, KU, KV, nrhs, lda, ldb, ldda, lddb, info, sizeA, sizeB;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
@@ -121,6 +121,7 @@ int main(int argc, char **argv)
     nrhs       = opts.nrhs;
     KL         = opts.kl;
     KU         = opts.ku;
+    KV         = KL + KU;
     batchCount = opts.batchcount;
 
     printf("%% ## INFO ##: Gflop/s calculation is not available\n");
@@ -131,7 +132,7 @@ int main(int argc, char **argv)
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
             N = opts.nsize[itest];
-            Nband  = KL + 1 + (KL+KU); // need extra KL for the upper factor
+            Nband  = KL + 1 + KV; // need extra KL superdiagonals for the upper factor
             lda    = Nband;
             ldb    = N;
             ldda   = magma_roundup( lda, opts.align );  // multiple of 32 by default
@@ -219,7 +220,7 @@ int main(int argc, char **argv)
                 Xnorm = lapackf77_zlange("I", &N, &nrhs, hX, &ldb, work);
 
                 for(magma_int_t j = 0; j < nrhs; j++) {
-                    blasf77_zgbmv( MagmaNoTransStr, &N, &N, &KL, &KU,
+                    blasf77_zgbmv( MagmaNoTransStr, &N, &N, &KL, &KV,
                                    &c_one, hA           , &lda,
                                            hX  + j * ldb, &ione,
                                &c_neg_one, hB  + j * ldb, &ione);

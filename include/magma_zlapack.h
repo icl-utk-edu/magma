@@ -26,6 +26,7 @@ extern "C" {
 #define blasf77_izamax     FORTRAN_NAME( izamax, IZAMAX )
 #define blasf77_zaxpy      FORTRAN_NAME( zaxpy,  ZAXPY  )
 #define blasf77_zcopy      FORTRAN_NAME( zcopy,  ZCOPY  )
+#define blasf77_zgbmv      FORTRAN_NAME( zgbmv,  ZGBMV  )
 #define blasf77_zgemm      FORTRAN_NAME( zgemm,  ZGEMM  )
 #define blasf77_zgemv      FORTRAN_NAME( zgemv,  ZGEMV  )
 #define blasf77_zgerc      FORTRAN_NAME( zgerc,  ZGERC  )
@@ -106,6 +107,7 @@ extern "C" {
 #define lapackf77_zlacrm   FORTRAN_NAME( zlacrm, ZLACRM )
 #define lapackf77_zladiv   FORTRAN_NAME( zladiv, ZLADIV )
 #define lapackf77_zlahef   FORTRAN_NAME( zlahef, ZLAHEF )
+#define lapackf77_zlangb   FORTRAN_NAME( zlangb, ZLANGB )
 #define lapackf77_zlange   FORTRAN_NAME( zlange, ZLANGE )
 #define lapackf77_zlanhe   FORTRAN_NAME( zlanhe, ZLANHE )
 #define lapackf77_zlanht   FORTRAN_NAME( zlanht, ZLANHT )
@@ -189,6 +191,15 @@ void blasf77_zaxpy(  const magma_int_t *n,
 
 void blasf77_zcopy(  const magma_int_t *n,
                      const magmaDoubleComplex *x, const magma_int_t *incx,
+                           magmaDoubleComplex *y, const magma_int_t *incy );
+
+void blasf77_zgbmv(  const char *transa,
+                     const magma_int_t *m,  const magma_int_t *n,
+                     const magma_int_t *kl, const magma_int_t *ku,
+                     const magmaDoubleComplex *alpha,
+                     const magmaDoubleComplex *A, const magma_int_t *lda,
+                     const magmaDoubleComplex *x, const magma_int_t *incx,
+                     const magmaDoubleComplex *beta,
                            magmaDoubleComplex *y, const magma_int_t *incy );
 
 void blasf77_zgemm(  const char *transa, const char *transb,

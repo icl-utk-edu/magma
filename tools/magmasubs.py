@@ -137,6 +137,7 @@ blas = [
     ('scopy',          'dcopy',          'scopy',          'dcopy'           ),
     ('sdot',           'ddot',           'cdotc',          'zdotc'           ),
     ('sdot',           'ddot',           'cdotu',          'zdotu'           ),
+    ('sgbmv',          'dgbmv',          'cgbmv',          'zgbmv'           ),
     ('sgemm',          'dgemm',          'cgemm',          'zgemm'           ),
     ('sgemv',          'dgemv',          'cgemv',          'zgemv'           ),
     ('sger',           'dger',           'cgerc',          'zgerc'           ),
