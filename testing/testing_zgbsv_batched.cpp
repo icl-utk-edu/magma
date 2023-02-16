@@ -162,8 +162,8 @@ int main(int argc, char **argv)
             lapackf77_zlarnv( &ione, ISEED, &sizeA, h_A );
             lapackf77_zlarnv( &ione, ISEED, &sizeB, h_B );
 
-            magma_zsetmatrix( Nband, N*batchCount, h_A, lda, d_A, ldda, opts.queue );
-            magma_zsetmatrix( N, nrhs*batchCount, h_B, ldb, d_B, lddb, opts.queue );
+            magma_zsetmatrix( Nband, N*batchCount,    h_A, lda, d_A, ldda, opts.queue );
+            magma_zsetmatrix( N,     nrhs*batchCount, h_B, ldb, d_B, lddb, opts.queue );
 
             /* ====================================================================
                Performs operation using MAGMA
@@ -172,21 +172,28 @@ int main(int argc, char **argv)
             magma_zset_pointer( dB_array, d_B, lddb, 0, 0, lddb*nrhs, batchCount, opts.queue );
             magma_iset_pointer( dipiv_array, dipiv, 1, 0, 0, N, batchCount, opts.queue );
 
+
             // testing MAGMA
             gpu_time = magma_sync_wtime( opts.queue );
-            magma_int_t linfo = 0, columns = nrhs * batchCount;
+            // --------------------------------------------------
+            magma_int_t linfo = 0, columns = nrhs * batchCount, n2 = N * batchCount;
             info = 0;
+            magmaDoubleComplex* hTmp = NULL;
+            TESTING_CHECK( magma_zmalloc_cpu( &hTmp, sizeA ));
+            lapackf77_zlacpy( MagmaFullStr, &Nband, &n2, h_A, &lda, hTmp, &lda );
             lapackf77_zlacpy( MagmaFullStr, &N, &columns, h_B, &ldb, h_X, &ldb );
             for(magma_int_t s = 0; s < batchCount; s++) {
                 lapackf77_zgbsv( &N, &KL, &KU, &nrhs,
-                                 h_A  + s * lda * N,    &lda,
+                                 hTmp + s * lda * N,    &lda,
                                  ipiv + s * N,
                                  h_X  + s * ldb * nrhs, &ldb,
                                  &linfo );
                 info += linfo;
             }
-            magma_memset(dinfo, 0, batchCount * sizeof(magma_int_t), queue);
+            magma_memset(dinfo_array, 0, batchCount * sizeof(magma_int_t));
             magma_zsetmatrix( N, nrhs*batchCount, h_X, ldb, d_B, lddb, opts.queue );
+            TESTING_CHECK( magma_free_cpu( hTmp ));
+            // --------------------------------------------------
             gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             gpu_perf = gflops / gpu_time;
 
@@ -212,21 +219,22 @@ int main(int argc, char **argv)
 
             error = 0;
             for (magma_int_t s=0; s < batchCount; s++) {
-                magmaDoubleComplex* hA = h_A + s * lda * N;
+                magmaDoubleComplex* hA = h_A + s * lda * N + KL;
                 magmaDoubleComplex* hX = h_X + s * ldb * nrhs;
                 magmaDoubleComplex* hB = h_B + s * ldb * nrhs;
 
-                Anorm = lapackf77_zlangb("I", &Nband,    hA, &lda, work);
+                Anorm = lapackf77_zlangb("I", &N, &KL, &KU, hA, &lda, work);
                 Xnorm = lapackf77_zlange("I", &N, &nrhs, hX, &ldb, work);
 
                 for(magma_int_t j = 0; j < nrhs; j++) {
-                    blasf77_zgbmv( MagmaNoTransStr, &N, &N, &KL, &KV,
+                    blasf77_zgbmv( MagmaNoTransStr, &N, &N, &KL, &KU,
                                    &c_one, hA           , &lda,
                                            hX  + j * ldb, &ione,
                                &c_neg_one, hB  + j * ldb, &ione);
                 }
 
                 Rnorm = lapackf77_zlange("I", &N, &nrhs, hB, &ldb, work);
+
                 double err = Rnorm/(N*Anorm*Xnorm);
 
                 if (std::isnan(err) || std::isinf(err)) {
