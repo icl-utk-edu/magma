@@ -129,6 +129,10 @@ libmagma_src += \
 
 # batched files, alphabetic order by base name (ignoring precision)
 libmagma_src += \
+	$(cdir)/zgbtf2_kernels.cu		\
+    $(cdir)/zgbtrf_batched_fused_sm.cu  \
+    $(cdir)/zgbtrf_batched_sliding_window_sm.cu  \
+    $(cdir)/zgbtrs_kernels.cu  \
 	$(cdir)/zgeadd_batched.cu		\
 	$(cdir)/zgemm_batched.cpp		\
 	$(cdir)/cgemm_batched_core.cu		\
@@ -152,11 +156,8 @@ libmagma_src += \
 	$(cdir)/zgerbt_func_batched.cu		\
 	$(cdir)/zgesv_batched_small.cu		\
 	$(cdir)/zgetf2_kernels.cu		\
-	$(cdir)/zgbtf2_kernels.cu		\
 	$(cdir)/zgetrf_batched_smallsq_noshfl.cu\
 	$(cdir)/zgetrf_batched_smallsq_shfl.cu	\
-    $(cdir)/zgbtrf_batched_fused_sm.cu  \
-    $(cdir)/zgbtrf_batched_sliding_window_sm.cu  \
 	$(cdir)/getrf_setup_pivinfo.cu		\
 	$(cdir)/zhemm_batched_core.cu		\
 	$(cdir)/zher2k_batched.cpp		\
