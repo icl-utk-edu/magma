@@ -77,7 +77,7 @@ void zgeru_kernel_batched(
 extern "C"
 void magmablas_zgbtrs_swap_batched(
         magma_int_t n, magmaDoubleComplex** dA_array, magma_int_t ldda,
-        magma_int_t dipiv_array, magma_int_t j,
+        magma_int_t** dipiv_array, magma_int_t j,
         magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t nthreads = min(n, GBTRS_SWAP_THREADS);
@@ -100,7 +100,7 @@ void magmablas_zgeru_batched_core(
         magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t ntx     = min(m, GBTRS_GERU_THREADS_X);
-    magma_int_t nty     = min(n, GBTRS_GERU_THREADS_Y)
+    magma_int_t nty     = min(n, GBTRS_GERU_THREADS_Y);
     magma_int_t nblocks = magma_ceildiv(m, GBTRS_GERU_THREADS_X);
 
     dim3 threads(ntx, nty, 1);

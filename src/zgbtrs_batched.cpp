@@ -21,7 +21,7 @@
     using the LU factorization computed by ZGBTRF.
 
     This is the batched version of the routine.
-    Currently, only (A * X = B) is supported
+    Currently, only (A * X = B) is supported (no-trans only)
 
     Arguments
     ---------
@@ -110,7 +110,7 @@ magma_zgbtrs_batched(
         // swap
         magmablas_zgbtrs_swap_batched(nrhs, dB_array, lddb, dipiv_array, j, batchCount, queue);
 
-        // gerw
+        // geru
         magmablas_zgeru_batched_core(
             min(kl, n-j), nrhs,
             MAGMA_Z_NEG_ONE,

@@ -1,0 +1,137 @@
+/*
+   -- MAGMA (version 2.0) --
+   Univ. of Tennessee, Knoxville
+   Univ. of California, Berkeley
+   Univ. of Colorado, Denver
+   @date
+
+   @author Ahmad Abdelfattah
+
+   @precisions normal z -> s d c
+*/
+
+#include "magma_internal.h"
+#include "batched_kernel_param.h"
+
+/***************************************************************************//**
+    Purpose
+    -------
+    ZGBSV computes the solution to a system of linear equations
+    A * X = B, where A is a band matrix of order N with KL subdiagonals
+    and KU superdiagonals, and X and B are N-by-NRHS matrices.
+
+    The LU decomposition with partial pivoting and row interchanges is
+    used to factor A as A = L * U, where L is a product of permutation
+    and unit lower triangular matrices with KL subdiagonals, and U is
+    upper triangular with KL+KU superdiagonals.  The factored form of A
+    is then used to solve the system of equations A * X = B.
+
+    This is the batched version of the routine.
+
+    Arguments
+    ---------
+    @param[in]
+    n       INTEGER
+            The order of the matrix A.  n >= 0.
+
+    @param[in]
+    kl      INTEGER
+            The number of subdiagonals within the band of A.  KL >= 0.
+
+    @param[in]
+    ku      INTEGER
+            The number of superdiagonals within the band of A.  KL >= 0.
+
+    @param[in]
+    nrhs    INTEGER
+            The number of right hand sides, i.e., the number of columns
+            of the matrix B.  NRHS >= 0.
+
+    @param[in]
+    dA_array    Array of pointers, dimension (batchCount).
+                Each contains the details of the LU factorization of the band matrix A,
+                as computed by ZGBTRF.  U is stored as an upper triangular band
+                matrix with KL+KU superdiagonals in rows 1 to KL+KU+1, and
+                the multipliers used during the factorization are stored in
+                rows KL+KU+2 to 2*KL+KU+1.
+
+    @param[in]
+    ldda    INTEGER
+            The leading dimension of each array A.  LDDA >= (2*KL+KU+1).
+
+    @param[in]
+    dipiv_array  Array of pointers, dimension (batchCount), for corresponding matrices.
+            Each is an INTEGER array, dimension (min(M,N))
+            The pivot indices; for 1 <= i <= min(M,N), row i of the
+            matrix was interchanged with row IPIV(i).
+
+    @param[in,out]
+    dB_array    Array of pointers, dimension (batchCount).
+                Each is a COMPLEX*16 array, dimension (LDB,NRHS)
+                On entry, the right hand side matrix B.
+                On exit, the solution matrix X.
+
+    @param[in]
+    lddb    INTEGER
+            The leading dimension of each array B.  LDDB >= max(1, N).
+
+    @param[out]
+    info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
+      -     = 0:  successful exit
+      -     < 0:  if INFO = -i, the i-th argument had an illegal value
+                  or another error occured, such as memory allocation failed.
+
+    @param[in]
+    batchCount  INTEGER
+                The number of matrices to operate on.
+
+    @param[in]
+    queue   magma_queue_t
+            Queue to execute in.
+
+    @ingroup magma_getrf_batched
+*******************************************************************************/
+extern "C" magma_int_t
+magma_zgbsv_batched(
+    magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
+    magmaDoubleComplex **dA_array, magma_int_t ldda, magma_int_t **dipiv_array,
+    magmaDoubleCompplex** dB_array, magma_int_t lddb,
+    magma_int_t *info_array,
+    magma_int_t batchCount, magma_queue_t queue)
+{
+    magma_int_t arginfo = 0;
+    magma_int_t kv = kl + ku;
+
+    if ( n < 0 )
+        arginfo = -1;
+    else if ( kl < 0 )
+        arginfo = -2;
+    else if ( ku < 0 )
+        arginfo = -3;
+    eles if (nrhs < 0)
+        arginfo = -4;
+    else if ( ldda < (kl+kv+1) )
+        arginfo = -6;
+    else if ( lddb < n)
+        arginfo = -9;
+    else if ( batchCount < 0 )
+        arginfo = -11;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    if(n == 0 || batchCount == 0) return 0;
+
+    magma_zgbtrf_batched(
+        n, n, kl, ku,
+        dA_array, ldda, dipiv_array,
+        info_array, batchCount, queue);
+
+    magma_zgbtrs_batched(
+        MagmaNoTrans, n, kl, ku, nrhs,
+        dA_array, ldda, dipiv_array,
+        dB_array, lddb, info_array,
+        batchCount, queue);
+}
