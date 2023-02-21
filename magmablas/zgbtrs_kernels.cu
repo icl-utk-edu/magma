@@ -100,14 +100,14 @@ void zgbtrs_upper_columnwise_kernel_batched(
     dB += j;
 
     const int nupdates = min(kv, j);
-    magmaDoubleComplex x, s;
+    magmaDoubleComplex s;
     for(int rhs = 0; rhs < nrhs; rhs++) {
         s = dB(0,rhs) * MAGMA_Z_DIV(MAGMA_Z_ONE, dA(0,0));
         __syncthreads();
 
-        if(tx == 0) dA(0,0) = s;
-        for(int i = tx; tx < nupdates ; i+= ntx) {
-            dB(-i,rhs) -= s * dA(-i,0);
+        if(tx == 0) dB(0,rhs) = s;
+        for(int i = tx; i < nupdates ; i+= ntx) {
+            dB(-i-1,rhs) -= s * dA(-i-1,0);
         }
     }
 
@@ -141,6 +141,8 @@ void magmablas_zgeru_batched_core(
         magmaDoubleComplex** dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
         magma_int_t batchCount, magma_queue_t queue )
 {
+    if(m == 0 || n == 0 || batchCount == 0) return;
+
     magma_int_t ntx     = min(m, GBTRS_GERU_THREADS_X);
     magma_int_t nty     = min(n, GBTRS_GERU_THREADS_Y);
     magma_int_t nblocks = magma_ceildiv(m, GBTRS_GERU_THREADS_X);

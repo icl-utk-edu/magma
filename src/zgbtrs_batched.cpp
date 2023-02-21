@@ -140,7 +140,7 @@ magma_zgbtrs_batched(
 
         // geru
         magmablas_zgeru_batched_core(
-            min(kl, n-j), nrhs,
+            min(kl, n-j-1), nrhs,
             MAGMA_Z_NEG_ONE,
             dA_array(kv+1, j), ldda, 1,
             dB_array(j   , 0), lddb, lddb,
