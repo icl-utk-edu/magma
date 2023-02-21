@@ -27,10 +27,10 @@ extern "C" void
 magmablas_dgemv_batched_core(
     magma_trans_t trans, magma_int_t m, magma_int_t n,
     const double alpha,
-    const double* dA_array[], const double* dA, magma_int_t ldda, magma_int_t strideA,
-    const double* dx_array[], const double* dx, magma_int_t incx, magma_int_t stridex,
+    double const * const * dA_array, const double* dA, magma_int_t ldda, magma_int_t strideA,
+    double const * const * dx_array, const double* dx, magma_int_t incx, magma_int_t stridex,
     const double beta,
-    double* dy_array[], double* dy, magma_int_t incy, magma_int_t stridey,
+    double** dy_array, double* dy, magma_int_t incy, magma_int_t stridey,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t info = 0;
