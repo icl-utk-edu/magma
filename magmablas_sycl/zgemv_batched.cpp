@@ -100,10 +100,10 @@ extern "C" void
 magmablas_zgemv_batched(
     magma_trans_t trans, magma_int_t m, magma_int_t n,
     const magmaDoubleComplex alpha,
-    const magmaDoubleComplex* dA_array[], magma_int_t ldda,
-    const magmaDoubleComplex* dx_array[], magma_int_t incx,
+    magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
+    magmaDoubleComplex const * const * dx_array, magma_int_t incx,
     const magmaDoubleComplex beta,
-    magmaDoubleComplex* dy_array[], magma_int_t incy,
+    magmaDoubleComplex** dy_array, magma_int_t incy,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t info = 0;
