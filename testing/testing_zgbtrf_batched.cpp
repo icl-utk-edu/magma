@@ -340,6 +340,11 @@ int main( int argc, char** argv)
             magma_free( dA_array );
             fflush( stdout );
         }
+
+        if ( opts.niter > 1 ) {
+            printf( "\n" );
+        }
+
     }
 
     opts.cleanup();
