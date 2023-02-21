@@ -19,6 +19,8 @@
 #define GBTRS_GERU_THREADS_X (32)
 #define GBTRS_GERU_THREADS_Y (4)
 
+#define GBTRS_UPPER_THREADS (128)
+
 ////////////////////////////////////////////////////////////////////////////////
 __global__
 __launch_bounds__(GBTRS_SWAP_THREADS)
@@ -74,6 +76,46 @@ void zgeru_kernel_batched(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+__global__
+__launch_bounds__(GBTRS_UPPER_THREADS)
+void zgbtrs_upper_columnwise_kernel_batched(
+        int n, int kl, int ku, int nrhs, int j,
+        magmaDoubleComplex** dA_array, int ldda,
+        magmaDoubleComplex** dB_array, int lddb)
+{
+#define dA(i,j) dA[(j)*ldda + (i)]
+#define dB(i,j) dB[(j)*lddb + (i)]
+
+    const int kv      = kl + ku;
+    const int tx      = threadIdx.x;
+    const int ntx     = blockDim.x;
+    const int batchid = blockIdx.x;
+    //const int je      = (n-1) - j;
+
+    magmaDoubleComplex* dA = dA_array[batchid];
+    magmaDoubleComplex* dB = dB_array[batchid];
+
+    // advance dA/dB based on j
+    dA += j * ldda + kv;
+    dB += j;
+
+    const int nupdates = min(kv, j);
+    magmaDoubleComplex x, s;
+    for(int rhs = 0; rhs < nrhs; rhs++) {
+        s = dB(0,rhs) * MAGMA_Z_DIV(MAGMA_Z_ONE, dA(0,0));
+        __syncthreads();
+
+        if(tx == 0) dA(0,0) = s;
+        for(int i = tx; tx < nupdates ; i+= ntx) {
+            dB(-i,rhs) -= s * dA(-i,0);
+        }
+    }
+
+#undef dA
+#undef dB
+}
+
+////////////////////////////////////////////////////////////////////////////////
 extern "C"
 void magmablas_zgbtrs_swap_batched(
         magma_int_t n, magmaDoubleComplex** dA_array, magma_int_t ldda,
@@ -115,5 +157,21 @@ void magmablas_zgeru_batched_core(
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+extern "C"
+void magmablas_zgbtrs_upper_columnwise_batched(
+        magma_int_t n, magma_int_t kl, magma_int_t ku,
+        magma_int_t nrhs, magma_int_t j,
+        magmaDoubleComplex** dA_array, magma_int_t ldda,
+        magmaDoubleComplex** dB_array, magma_int_t lddb,
+        magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_int_t kv       = kl + ku;
+    magma_int_t nthreads = min(GBTRS_UPPER_THREADS, kv+1);
+    magma_int_t nblocks  = batchCount;
 
-
+    dim3 grid(nblocks, 1, 1);
+    dim3 threads(nthreads, 1, 1);
+    zgbtrs_upper_columnwise_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>
+    (n, kl, ku, nrhs, j, dA_array, ldda, dB_array, lddb);
+}

@@ -95,18 +95,46 @@ extern "C" magma_int_t
 magma_zgbtrs_batched(
     magma_trans_t transA,
     magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
-    magmaDoubleComplex **dA_array, magma_int_t ldda, magma_int_t **dipiv_array,
-    magmaDoubleCompplex** dB_array, magma_int_t lddb,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t **dipiv_array,
+    magmaDoubleComplex** dB_array, magma_int_t lddb,
     magma_int_t *info_array,
     magma_int_t batchCount, magma_queue_t queue)
 {
 #define dA_array(i, j)    dA_array, i, j
 #define dB_array(i, j)    dB_array, i, j
 
+    magma_int_t arginfo = 0;
     magma_int_t kv = kl + ku;
 
+    if ( transA != MagmaNoTrans ) {
+        arginfo = -1;
+        printf("ERROR: Function %s only support transA = MagmaNoTrans\n", __func__);
+    }
+    else if ( n < 0 )
+        arginfo = -2;
+    else if ( kl < 0 )
+        arginfo = -3;
+    else if ( ku < 0 )
+        arginfo = -4;
+    else if (nrhs < 0)
+        arginfo = -5;
+    else if ( ldda < (kl+kv+1) )
+        arginfo = -7;
+    else if ( lddb < n)
+        arginfo = -10;
+    else if ( batchCount < 0 )
+        arginfo = -12;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    if(n == 0 || batchCount == 0) return 0;
+
+
     // apply L^(-1) as a series of row interchanges and rank-1 updates
-    for(magma_int_t j = 0; j < N; j++) {
+    for(magma_int_t j = 0; j < n; j++) {
         // swap
         magmablas_zgbtrs_swap_batched(nrhs, dB_array, lddb, dipiv_array, j, batchCount, queue);
 
@@ -119,6 +147,17 @@ magma_zgbtrs_batched(
             dB_array(j+1 , 0), lddb,
             batchCount, queue );
     }
+
+    // solve for U, backward solve
+    for(magma_int_t j = n-1; j >= 0; j--) {
+        magmablas_zgbtrs_upper_columnwise_batched(
+            n, kl, ku, nrhs, j,
+            dA_array, ldda,
+            dB_array, lddb,
+            batchCount, queue );
+    }
+
+    return arginfo;
 
 #undef dA_array
 #undef dB_array
