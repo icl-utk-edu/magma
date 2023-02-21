@@ -94,8 +94,8 @@
 extern "C" magma_int_t
 magma_zgbsv_batched(
     magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
-    magmaDoubleComplex **dA_array, magma_int_t ldda, magma_int_t **dipiv_array,
-    magmaDoubleCompplex** dB_array, magma_int_t lddb,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t **dipiv_array,
+    magmaDoubleComplex** dB_array, magma_int_t lddb,
     magma_int_t *info_array,
     magma_int_t batchCount, magma_queue_t queue)
 {
@@ -108,7 +108,7 @@ magma_zgbsv_batched(
         arginfo = -2;
     else if ( ku < 0 )
         arginfo = -3;
-    eles if (nrhs < 0)
+    else if (nrhs < 0)
         arginfo = -4;
     else if ( ldda < (kl+kv+1) )
         arginfo = -6;
@@ -134,4 +134,6 @@ magma_zgbsv_batched(
         dA_array, ldda, dipiv_array,
         dB_array, lddb, info_array,
         batchCount, queue);
+
+    return arginfo;
 }
