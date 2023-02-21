@@ -28,6 +28,8 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
+#define cond (N <= 32 && batchCount == 1)
+
 // multiplies a square band matrix ( Nband x Nband ) with
 // a dense matrix (Nband x N)
 static void
@@ -172,30 +174,51 @@ int main(int argc, char **argv)
             magma_zset_pointer( dB_array, d_B, lddb, 0, 0, lddb*nrhs, batchCount, opts.queue );
             magma_iset_pointer( dipiv_array, dipiv, 1, 0, 0, N, batchCount, opts.queue );
 
+            if(cond) {
+                printf("a = ");
+                magma_zprint_gpu(Nband, N, d_A, ldda, opts.queue);
+                printf("b = ");
+                magma_zprint_gpu(N, nrhs, d_B, lddb, opts.queue);
+            }
 
             // testing MAGMA
             gpu_time = magma_sync_wtime( opts.queue );
-            // --------------------------------------------------
-            magma_int_t linfo = 0, columns = nrhs * batchCount, n2 = N * batchCount;
-            info = 0;
-            magmaDoubleComplex* hTmp = NULL;
-            TESTING_CHECK( magma_zmalloc_cpu( &hTmp, sizeA ));
-            lapackf77_zlacpy( MagmaFullStr, &Nband, &n2, h_A, &lda, hTmp, &lda );
-            lapackf77_zlacpy( MagmaFullStr, &N, &columns, h_B, &ldb, h_X, &ldb );
-            for(magma_int_t s = 0; s < batchCount; s++) {
-                lapackf77_zgbsv( &N, &KL, &KU, &nrhs,
-                                 hTmp + s * lda * N,    &lda,
-                                 ipiv + s * N,
-                                 h_X  + s * ldb * nrhs, &ldb,
-                                 &linfo );
-                info += linfo;
+            if(opts.version == 1) {
+                info = magma_zgbsv_batched(
+                        N, KL, KU, nrhs,
+                        dA_array, ldda, dipiv_array,
+                        dB_array, lddb, dinfo_array,
+                        batchCount, opts.queue);
             }
-            magma_memset(dinfo_array, 0, batchCount * sizeof(magma_int_t));
-            magma_zsetmatrix( N, nrhs*batchCount, h_X, ldb, d_B, lddb, opts.queue );
-            TESTING_CHECK( magma_free_cpu( hTmp ));
-            // --------------------------------------------------
+            else{
+                // --------------------------------------------------
+                magma_int_t linfo = 0, columns = nrhs * batchCount, n2 = N * batchCount;
+                info = 0;
+                magmaDoubleComplex* hTmp = NULL;
+                TESTING_CHECK( magma_zmalloc_cpu( &hTmp, sizeA ));
+                lapackf77_zlacpy( MagmaFullStr, &Nband, &n2, h_A, &lda, hTmp, &lda );
+                lapackf77_zlacpy( MagmaFullStr, &N, &columns, h_B, &ldb, h_X, &ldb );
+                for(magma_int_t s = 0; s < batchCount; s++) {
+                    lapackf77_zgbsv( &N, &KL, &KU, &nrhs,
+                                     hTmp + s * lda * N,    &lda,
+                                     ipiv + s * N,
+                                     h_X  + s * ldb * nrhs, &ldb,
+                                     &linfo );
+                    info += linfo;
+                }
+                magma_memset(dinfo_array, 0, batchCount * sizeof(magma_int_t));
+                magma_zsetmatrix( N, nrhs*batchCount, h_X, ldb, d_B, lddb, opts.queue );
+                TESTING_CHECK( magma_free_cpu( hTmp ));
+                // --------------------------------------------------
+            }
             gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             gpu_perf = gflops / gpu_time;
+
+            if(cond) {
+                //magma_zprint_gpu(Nband, N, d_A, ldda, opts.queue);
+                printf("bm = ");
+                magma_zprint_gpu(N, nrhs, d_B, lddb, opts.queue);
+            }
 
             // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_array, 1, cpu_info, 1, opts.queue );
