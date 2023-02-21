@@ -32,10 +32,10 @@ template<typename T, int N>
 void
 zgemvn_batched_smallsq_kernel(
         const T alpha,
-        const T* dA_array[], const T* dA, int ldda, int strideA,
-        const T* dx_array[], const T* dx, int incx, int stridex,
+        T const * const * dA_array, const T* dA, int ldda, int strideA,
+        T const * const * dx_array, const T* dx, int incx, int stridex,
         const T beta,
-        T*       dy_array[],       T* dy, int incy, int stridey,
+        T**       dy_array,       T* dy, int incy, int stridey,
         const int batchCount, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
     auto zdata = (T *)dpct_local;
@@ -91,10 +91,10 @@ template<typename T, int N>
 void
 zgemvc_batched_smallsq_kernel(
         const magma_trans_t transA, const T alpha,
-        const T* dA_array[], const T* dA, int ldda, int strideA,
-        const T* dx_array[], const T* dx, int incx, int stridex,
+        T const * const * dA_array, const T* dA, int ldda, int strideA,
+        T const * const * dx_array, const T* dx, int incx, int stridex,
         const T beta,
-        T*       dy_array[],       T* dy, int incy, int stridey,
+        T**       dy_array,       T* dy, int incy, int stridey,
         const int batchCount, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
     auto zdata = (T *)dpct_local;
@@ -168,10 +168,10 @@ zgemvc_batched_smallsq_kernel(
 template <int N>
 static int zgemv_batched_smallsq_kernel_driver(
     magma_trans_t transA, const magmaDoubleComplex alpha,
-    const magmaDoubleComplex *dA_array[], const magmaDoubleComplex *dA,
-    magma_int_t ldda, magma_int_t strideA, const magmaDoubleComplex *dx_array[],
+    magmaDoubleComplex const * const * dA_array, const magmaDoubleComplex *dA,
+    magma_int_t ldda, magma_int_t strideA, magmaDoubleComplex const * const * dx_array,
     const magmaDoubleComplex *dx, magma_int_t incx, magma_int_t stridex,
-    const magmaDoubleComplex beta, magmaDoubleComplex *dy_array[],
+    const magmaDoubleComplex beta, magmaDoubleComplex **dy_array,
     magmaDoubleComplex *dy, magma_int_t incy, magma_int_t stridey,
     magma_int_t batchCount, magma_queue_t queue) try {
     magma_device_t device;
@@ -243,10 +243,10 @@ static magma_int_t
 zgemv_batched_smallsq_core(
     magma_trans_t transA, magma_int_t n,
     const magmaDoubleComplex alpha,
-    const magmaDoubleComplex* dA_array[], const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA,
-    const magmaDoubleComplex* dx_array[], const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex,
+    magmaDoubleComplex const * const * dA_array, const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA,
+    magmaDoubleComplex const * const * dx_array, const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex,
     const magmaDoubleComplex beta,
-    magmaDoubleComplex*       dy_array[],       magmaDoubleComplex* dy, magma_int_t incy, magma_int_t stridey,
+    magmaDoubleComplex**       dy_array,       magmaDoubleComplex* dy, magma_int_t incy, magma_int_t stridey,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t info = 0;
@@ -294,10 +294,10 @@ extern "C" magma_int_t
 magmablas_zgemv_batched_smallsq(
     magma_trans_t transA, magma_int_t n,
     const magmaDoubleComplex alpha,
-    const magmaDoubleComplex* dA_array[], magma_int_t ldda,
-    const magmaDoubleComplex* dx_array[], magma_int_t incx,
+    magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
+    magmaDoubleComplex const * const * dx_array, magma_int_t incx,
     const magmaDoubleComplex beta,
-    magmaDoubleComplex*       dy_array[], magma_int_t incy,
+    magmaDoubleComplex**       dy_array, magma_int_t incy,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t info = 0;

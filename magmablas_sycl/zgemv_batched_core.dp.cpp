@@ -27,10 +27,10 @@ extern "C" void
 magmablas_zgemv_batched_core(
     magma_trans_t trans, magma_int_t m, magma_int_t n,
     const magmaDoubleComplex alpha,
-    const magmaDoubleComplex* dA_array[], const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA,
-    const magmaDoubleComplex* dx_array[], const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex,
+    magmaDoubleComplex const * const * dA_array, const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA,
+    magmaDoubleComplex const * const * dx_array, const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex,
     const magmaDoubleComplex beta,
-    magmaDoubleComplex* dy_array[], magmaDoubleComplex* dy, magma_int_t incy, magma_int_t stridey,
+    magmaDoubleComplex** dy_array, magmaDoubleComplex* dy, magma_int_t incy, magma_int_t stridey,
     magma_int_t batchCount, magma_queue_t queue)
 {
     if ( trans == MagmaNoTrans ) {
