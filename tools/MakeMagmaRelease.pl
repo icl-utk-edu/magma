@@ -30,6 +30,7 @@ my @files2delete = qw(
     make.inc
     make.inc-examples/make.inc.ig.pgi
     scripts
+    make.gen.hipMAGMA
 
     sparse/python
 
@@ -52,10 +53,13 @@ my @files2delete = qw(
     tools/checklist_run_tests.pl
     tools/compare_prototypes.pl
     tools/fortran_wrappers.pl
-    tools/magmasubs.pyc
+    tools/magmasubs.py
     tools/parse-magma.py
     tools/trim_spaces.pl
     tools/wdiff.pl
+    tools/hipify-perl
+    tools/codegen.py
+    tools/gen-hip-make
 );
 # note: keep tools/{codegen.py, magmasubs.py}
 
@@ -212,23 +216,24 @@ EOT
     # Need to define Fortran compiler to something that exists (true),
     # in order to include all Fortran files in CMake.src.
     print "Generate the different precisions\n";
-    myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc");
 
-    # Compile the documentation
-    print "Compile the documentation\n";
-    myCmd("make docs");
-
-    # Generate hip files
+    # Generate hip files first
     myCmd("echo -e 'GPU_TARGET = gfx700\nBACKEND = hip\nFORT = true' > make.inc");
     myCmd("make generate");
 
     # Generate cuda files
     myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc");
+    
+    # Compile the documentation
+    print "Compile the documentation\n";                                                                                                     
+    myCmd("make docs");
+
     myCmd("make -j generate");
 
     myCmd("rm -f make.inc");
 
     # Remove non-required files (e.g., Makefile.gen)
+    # (including make.gen.hipMAGMA that Makefile would otherwise use to regenerate hip)
     myCmd("rm -rf @files2delete");
 
     # Remove the lines relative to include directory in root Makefile
