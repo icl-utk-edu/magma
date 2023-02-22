@@ -34,7 +34,6 @@ my @files2delete = qw(
 
     sparse/python
 
-    sparse/testing/test_matrices
     sparse/testing/testing_zpardiso.cpp
     sparse/testing/testing_zparilu_weight.cpp
     sparse/testing/testing_zsolver_allufmc.cpp

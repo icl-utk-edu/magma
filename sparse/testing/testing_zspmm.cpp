@@ -34,6 +34,12 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
+#if CUDA_VERSION >= 12000
+  #define CUSPARSE_CSRMV_ALG2 CUSPARSE_SPMV_CSR_ALG2
+  #define CUSPARSE_CSRMV_ALG1 CUSPARSE_SPMV_CSR_ALG1
+  #define CUSPARSE_CSRMM_ALG1 CUSPARSE_SPMM_CSR_ALG1
+#endif
+
 #if CUDA_VERSION >= 11000
 #define cusparseZcsrmm(handle, op, rows, num_vecs, cols, nnz, alpha, descr, dval, drow, dcol,   \
                        x, ldx, beta, y, ldy)                                                    \

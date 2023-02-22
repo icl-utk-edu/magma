@@ -1194,6 +1194,9 @@ batched = (
 	('testing_zgemv_batched',     batch + '               -c',  mn,   ''),
 	('testing_zgemv_batched',     batch + '-T             -c',  mn,   ''),
 	('testing_zgemv_batched',     batch + '-C             -c',  mn,   ''),
+    ('testing_zgemv_batched',     batch + '   --version 2 -c',  mn,   ''),
+    ('testing_zgemv_batched',     batch + '-T --version 2 -c',  mn,   ''),
+    ('testing_zgemv_batched',     batch + '-C --version 2 -c',  mn,   ''),
 
 	# left/right lower/upper
 	('testing_zhemm_batched',     batch + '-SL      -L    -c',  mn,   ''),
@@ -1334,9 +1337,9 @@ vbatched = (
 	('testing_zgemm_vbatched',     batch + '-NC            -c',  mn,   ''),
 	('testing_zgemm_vbatched',     batch + '-CN            -c',  mn,   ''),
 	('testing_zgemm_vbatched',     batch + '-CC            -c',  mn,   ''),
-	('testing_zgemm_vbatched',     batch + '-NC            -c',  mn,   ''),
-	('testing_zgemm_vbatched',     batch + '-CN            -c',  mn,   ''),
-	('testing_zgemm_vbatched',     batch + '-CC            -c',  mn,   ''),
+	('testing_zgemm_vbatched',     batch + '-NT            -c',  mn,   ''),
+	('testing_zgemm_vbatched',     batch + '-TN            -c',  mn,   ''),
+	('testing_zgemm_vbatched',     batch + '-TT            -c',  mn,   ''),
 
 	# no-trans/trans/conj-trans
 	('testing_zgemv_vbatched',     batch + '               -c',  mn,   ''),
