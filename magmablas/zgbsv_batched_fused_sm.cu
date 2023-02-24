@@ -25,17 +25,19 @@
 #define NTCOL(M)        (max(1,64/(M)))
 #endif
 
-#define SLDAB(MBAND)    ((MBAND)+1)
-#define sAB(i,j)        sAB[(j)*sldab + (i)]
-#define dAB(i,j)        dAB[(j)*ldda + (i)]
+#define SLDA(N)    ((N)+1)
+#define sA(i,j)        sA[(j)*slda + (i)]
+#define sB(i,j)        sB[(j)*sldb + (i)]
+#define dA(i,j)        dA[(j)*ldda + (i)]
+#define dB(i,j)        dB[(j)*lddb + (i)]
 
 ////////////////////////////////////////////////////////////////////////////////
 template<int NTX>
 __device__ __inline__ void
-read_sAB(
+read_sA(
     int nband, int n, int kl, int ku,
-    magmaDoubleComplex *dAB, int ldda,
-    magmaDoubleComplex *sAB, int sldab,
+    magmaDoubleComplex *dA, int ldda,
+    magmaDoubleComplex *sA, int slda,
     int tx)
 {
     const int tpg    = min(NTX, nband);
@@ -49,7 +51,7 @@ read_sAB(
             int col_start = kl + max(ku-j,0);
             int col_end   = kl + ku + min(kl, n-1-j);
             for(int i = tx_+col_start; i <= col_end; i+=tpg) {
-                sAB(i,j) = dAB(i,j);
+                sA(i,j) = dA(i,j);
             }
         }
     }
@@ -58,10 +60,34 @@ read_sAB(
 ////////////////////////////////////////////////////////////////////////////////
 template<int NTX>
 __device__ __inline__ void
-write_sAB(
+read_sB(
+    int n, int nrhs,
+    magmaDoubleComplex *dB, int lddb,
+    magmaDoubleComplex *sB, int sldb,
+    int tx )
+{
+    const int tpg    = min(NTX, n);
+    const int groups = max(1, NTX / n);
+    const int active = max(NTX, groups * n);
+    const int tx_    = tx % n;
+    const int ty_    = tx / n;
+
+    if(tx < active) {
+        for(int j = ty_; j < nrhs; j += groups) {
+            for(int i = tx_; i < n; i+=tpg) {
+                sB(i,j) = dB(i,j);
+            }
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+template<int NTX>
+__device__ __inline__ void
+write_sA(
     int nband, int n, int kl, int ku,
-    magmaDoubleComplex *sAB, int sldab,
-    magmaDoubleComplex *dAB, int ldda,
+    magmaDoubleComplex *sA, int slda,
+    magmaDoubleComplex *dA, int ldda,
     int tx)
 {
     const int tpg    = min(NTX, nband);
@@ -73,7 +99,31 @@ write_sAB(
     if(tx < active) {
         for(int j = ty_; j < n; j += groups) {
             for(int i = tx_; i < nband; i+=tpg) {
-                dAB(i,j) = sAB(i,j);
+                dA(i,j) = sA(i,j);
+            }
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+template<int NTX>
+__device__ __inline__ void
+write_sB(
+    int n, int nrhs,
+    magmaDoubleComplex *sB, int sldb,
+    magmaDoubleComplex *dB, int lddb,
+    int tx )
+{
+    const int tpg    = min(NTX, n);
+    const int groups = max(1, NTX / n);
+    const int active = max(NTX, groups * n);
+    const int tx_    = tx % n;
+    const int ty_    = tx / n;
+
+    if(tx < active) {
+        for(int j = ty_; j < nrhs; j += groups) {
+            for(int i = tx_; i < n; i+=tpg) {
+                dB(i,j) = sB(i,j);
             }
         }
     }
@@ -84,11 +134,10 @@ template<int NTX>
 __global__ __launch_bounds__(NTX * NTCOL(NTX))
 void
 zgbsv_batched_kernel_fused_sm(
-    magma_int_t m, magma_int_t n,
-    magma_int_t kl, magma_int_t ku,
-    magmaDoubleComplex** dA_array, int ldda,
-    magma_int_t** ipiv_array, magma_int_t *info_array,
-    int batchCount)
+    int n, int kl, int ku, int nrhs,
+    magmaDoubleComplex** dA_array, int ldda, magma_int_t** ipiv_array,
+    magmaDoubleComplex** dB_array, int lddb,
+    magma_int_t *info_array, int batchCount)
 {
     extern __shared__ magmaDoubleComplex zdata[];
     const int tx  = threadIdx.x;
@@ -96,45 +145,49 @@ zgbsv_batched_kernel_fused_sm(
     const int batchid = blockIdx.x * blockDim.y + ty;
     if(batchid >= batchCount) return;
 
-    const int minmn   = min(m,n);
-    const int kv      = kl + ku;
-    const int nband   = (kl + 1 + kv);
-    const int sldab   = SLDAB(nband);
-    const int sldab_1 = sldab-1;
+    const int kv     = kl + ku;
+    const int nband  = (kl + 1 + kv);
+    const int slda   = SLDA(nband);
+    const int sldb   = SLDA(n);
+    const int slda_1 = slda-1;
 
-    magmaDoubleComplex* dAB = dA_array[batchid];
+    magmaDoubleComplex* dA = dA_array[batchid];
+    magmaDoubleComplex* dB = dB_array[batchid];
     int linfo = 0;
 
     // shared memory pointers
-    magmaDoubleComplex *sAB = (magmaDoubleComplex*)(zdata);
-    double* dsx             = (double*)(sAB + blockDim.y * n * sldab);
-    int* sipiv              = (int*)(dsx + blockDim.y * (kl+1));
-    sAB   += ty * n * sldab;
+    magmaDoubleComplex *sA = (magmaDoubleComplex*)(zdata);
+    magmaDoubleComplex *sB = sA + blockDim.y * n * slda;
+    double* dsx            = (double*)(sB + blockDim.y * nrhs * sldb);
+    int* sipiv             = (int*)(dsx + blockDim.y * (kl+1));
+    sA    += ty * n * slda;
+    sB    += ty * nrhs * sldb;
     dsx   += ty * (kl+1);
-    sipiv += ty * minmn;
+    sipiv += ty * n;
 
-    // init sAB
-    for(int i = tx; i < n*sldab; i+=NTX) {
-        sAB[i] = MAGMA_Z_ZERO;
+    // init sA
+    for(int i = tx; i < n*slda; i+=NTX) {
+        sA[i] = MAGMA_Z_ZERO;
     }
     __syncthreads();
 
-    // read
-    read_sAB<NTX>(nband, n, kl, ku, dAB, ldda, sAB, sldab, tx);
+    // read A & B
+    read_sA<NTX>(nband, n, kl, ku, dA, ldda, sA, slda, tx);
+    read_sB<NTX>(n, nrhs, dB, lddb, sB, sldb, tx );
     __syncthreads();
 
     int ju = 0;
-    for(int j = 0; j < minmn; j++) {
+    for(int j = 0; j < n; j++) {
         // izamax
-        int km = 1 + min( kl, m-j ); // diagonal and subdiagonal(s)
-        if(tx < km) {
-            dsx[ tx ] = fabs(MAGMA_Z_REAL( sAB(kv+tx,j) )) + fabs(MAGMA_Z_IMAG( sAB(kv+tx,j) ));
+        int kn = 1 + min( kl, n-j ); // diagonal and subdiagonal(s)
+        if(tx < kn) {
+            dsx[ tx ] = fabs(MAGMA_Z_REAL( sA(kv+tx,j) )) + fabs(MAGMA_Z_IMAG( sA(kv+tx,j) ));
         }
         __syncthreads();
 
         double rx_abs_max = dsx[0];
         int    jp       = 0;
-        for(int i = 1; i < km; i++) {
+        for(int i = 1; i < kn; i++) {
             if( dsx[i] > rx_abs_max ) {
                 rx_abs_max = dsx[i];
                 jp         = i;
@@ -152,31 +205,45 @@ zgbsv_batched_kernel_fused_sm(
 
         // swap
         if( !(jp == 0) ) {
+            // swap A
             magmaDoubleComplex tmp;
-            magmaDoubleComplex *sR1 = &sAB(kv   ,j);
-            magmaDoubleComplex *sR2 = &sAB(kv+jp,j);
+            magmaDoubleComplex *sR1 = &sA(kv   ,j);
+            magmaDoubleComplex *sR2 = &sA(kv+jp,j);
             for(int i = tx; i < swap_len; i+=NTX) {
-                tmp              = sR1[i * sldab_1];
-                sR1[i * sldab_1] = sR2[i * sldab_1];
-                sR2[i * sldab_1] = tmp;
+                tmp             = sR1[i * slda_1];
+                sR1[i * slda_1] = sR2[i * slda_1];
+                sR2[i * slda_1] = tmp;
+            }
+
+            // swap B
+            for(int i = tx; i < nrhs; i+=NTX) {
+                tmp       = sB(i, j);
+                sB(i, j)  = sB(i, jp);
+                sB(i, jp) = tmp;
             }
         }
         __syncthreads();
 
         // scal
-        magmaDoubleComplex reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sAB(kv,j) );
-        for(int i = tx; i < (km-1); i+=NTX) {
-            sAB(kv+1+i, j) *= reg;
+        magmaDoubleComplex reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sA(kv,j) );
+        for(int i = tx; i < (kn-1); i+=NTX) {
+            sA(kv+1+i, j) *= reg;
         }
         __syncthreads();
 
         // ger
         reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
-        magmaDoubleComplex *sU = &sAB(kv,j);
-        magmaDoubleComplex *sV = &sAB(kv+1,j);
-        if( tx < (km-1) ) {
+        magmaDoubleComplex *sU  = &sA(kv,j);
+        magmaDoubleComplex *sV  = &sA(kv+1,j);
+        magmaDoubleComplex *sBB = &sB(j,0);
+        if( tx < (kn-1) ) {
             for(int jj = 1; jj < swap_len; jj++) {
-                sV[jj * sldab_1 + tx] -= sV[tx] * sU[jj * sldab_1 + 0] * reg;
+                sV[jj * slda_1 + tx] -= sV[tx] * sU[jj * slda_1 + 0] * reg;
+            }
+
+            // apply the current column to B
+            for(int jj = 0; jj < nrhs; jj++) {
+                sB(j + tx + 1, jj) -= sV[tx] * sB(j,jj)
             }
         }
         __syncthreads();
@@ -187,11 +254,11 @@ zgbsv_batched_kernel_fused_sm(
 
     // write pivot
     magma_int_t* ipiv = ipiv_array[batchid];
-    for(int i = tx; i < minmn; i+=NTX) {
+    for(int i = tx; i < n; i+=NTX) {
         ipiv[i] = (magma_int_t)sipiv[i];
     }
 
-    write_sAB<NTX>(nband, n, kl, ku, sAB, sldab, dAB, ldda, tx);
+    write_sA<NTX>(nband, n, kl, ku, sA, slda, dA, ldda, tx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -210,16 +277,17 @@ magma_zgbsv_batched_fused_sm_kernel_driver(
 
     magma_int_t kv      = kl + ku;
     magma_int_t nband   = kv + 1 + kl;
-    magma_int_t sldab   = SLDAB(nband);
+    magma_int_t slda   = SLDA(nband);
+    magma_int_t sldb   = SLDA(n);
 
     nthreads = max( nthreads, (kl + 1) );
     ntcol    = max(1, ntcol);
 
     magma_int_t shmem  = 0;
-    shmem += sldab * n * sizeof(magmaDoubleComplex); // sAB
-    shmem += n * nrhs  * sizeof(magmaDoubleComplex); // rhs
+    shmem += slda * n     * sizeof(magmaDoubleComplex); // sA
+    shmem += sldb * nrhs  * sizeof(magmaDoubleComplex); // rhs
     shmem += (kl + 1)  * sizeof(double);             // dsx
-    shmem += min(m,n)  * sizeof(magma_int_t);        // pivot
+    shmem += n         * sizeof(magma_int_t);        // pivot
     shmem *= ntcol;
 
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
@@ -246,7 +314,7 @@ magma_zgbsv_batched_fused_sm_kernel_driver(
         return arginfo;
     }
 
-    void *kernel_args[] = {&m, &n, &kl, &ku, &dA_array, &ldda, &ipiv_array, &info_array, &batchCount};
+    void *kernel_args[] = {&n, &kl, &ku, &nrhs, &dA_array, &ldda, &ipiv_array, &dB_array, &lddb, &info_array, &batchCount};
     cudaError_t e = cudaLaunchKernel((void*)zgbsv_batched_kernel_fused_sm<NTX>, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
         printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
@@ -358,8 +426,6 @@ magma_zgbsv_batched_fused_sm(
     magma_int_t arginfo = 0;
 
     magma_int_t kv      = kl + ku;
-    magma_int_t nband   = kv + 1 + kl;
-    magma_int_t sldab   = SLDAB(nband);
 
     if ( n < 0 )
         arginfo = -1;
@@ -385,7 +451,7 @@ magma_zgbsv_batched_fused_sm(
 
     magma_int_t nthread32 = magma_roundup(nthreads, 32);
 
-    switch(nthreads32) {
+    switch(nthread32) {
         case   32: arginfo = magma_zgbsv_batched_fused_sm_kernel_driver<  32>(n, kl, ku, nrhs, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
         case   64: arginfo = magma_zgbsv_batched_fused_sm_kernel_driver<  64>(n, kl, ku, nrhs, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
         case   96: arginfo = magma_zgbsv_batched_fused_sm_kernel_driver<  96>(n, kl, ku, nrhs, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;

@@ -190,6 +190,13 @@ int main(int argc, char **argv)
                         dB_array, lddb, dinfo_array,
                         batchCount, opts.queue);
             }
+            else if(opts.version == 2) {
+                info = magma_zgbsv_batched_fused_sm(
+                        N, KL, KU, nrhs,
+                        dA_array, ldda, dipiv_array,
+                        dB_array, lddb, dinfo_array,
+                        KL+1, 1, batchCount, opts.queue );
+            }
             else{
                 // --------------------------------------------------
                 magma_int_t linfo = 0, columns = nrhs * batchCount, n2 = N * batchCount;
