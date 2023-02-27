@@ -25,9 +25,9 @@
 __global__
 __launch_bounds__(GBTRS_SWAP_THREADS)
 void zgbtrs_swap_kernel_batched(
-        int k1, int k2, int n,
+        int n,
         magmaDoubleComplex** dA_array, int ldda,
-        magma_int_t** dipiv_array)
+        magma_int_t** dipiv_array, int j)
 {
     const int ntx     = blockDim.x;
     const int tx      = threadIdx.x;
@@ -36,18 +36,13 @@ void zgbtrs_swap_kernel_batched(
     magmaDoubleComplex* dA    = dA_array[batchid];
     magma_int_t*        dipiv = dipiv_array[batchid];
 
-    for(int j = k1; j <= k2; j++) {
-        int jp = dipiv[j] - 1; // undo fortran indexing
-        if( j != jp ) {
-            for(int i = tx; i < n; i+=ntx) {
-                magmaDoubleComplex tmp = dA[i * ldda +  j];
-                dA[i * ldda +  j]      = dA[i * ldda + jp];
-                dA[i * ldda + jp]      = tmp;
-            }
+    int jp = dipiv[j] - 1; // undo fortran indexing
+    if( j != jp ) {
+        for(int i = tx; i < n; i+=ntx) {
+            magmaDoubleComplex tmp = dA[i * ldda +  j];
+            dA[i * ldda +  j]      = dA[i * ldda + jp];
+            dA[i * ldda + jp]      = tmp;
         }
-
-        // to make sure the writes are visible to all threads in the same block
-        __syncthreads();
     }
 }
 
@@ -181,9 +176,8 @@ void zgbtrs_lower_blocked_kernel_batched(
 ////////////////////////////////////////////////////////////////////////////////
 extern "C"
 void magmablas_zgbtrs_swap_batched(
-        magma_int_t k1, magma_int_t k2, magma_int_t n,
-        magmaDoubleComplex** dA_array, magma_int_t ldda,
-        magma_int_t** dipiv_array,
+        magma_int_t n, magmaDoubleComplex** dA_array, magma_int_t ldda,
+        magma_int_t** dipiv_array, magma_int_t j,
         magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t nthreads = min(n, GBTRS_SWAP_THREADS);
@@ -192,7 +186,7 @@ void magmablas_zgbtrs_swap_batched(
     dim3 grid(nblocks, 1, 1);
     dim3 threads(nthreads, 1, 1);
     zgbtrs_swap_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>
-    (k1, k2, n, dA_array, ldda, dipiv_array);
+    (n, dA_array, ldda, dipiv_array, j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

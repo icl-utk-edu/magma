@@ -132,11 +132,12 @@ magma_zgbtrs_batched(
 
     if(n == 0 || batchCount == 0) return 0;
 
-    // swap
-    magmablas_zgbtrs_swap_batched(0, n-1, nrhs, dB_array, lddb, dipiv_array, batchCount, queue);
 
     // apply L^(-1) as a series of row interchanges and rank-1 updates
     for(magma_int_t j = 0; j < n; j++) {
+        // swap
+        magmablas_zgbtrs_swap_batched(nrhs, dB_array, lddb, dipiv_array, j, batchCount, queue);
+
         // geru
         magmablas_zgeru_batched_core(
             min(kl, n-j-1), nrhs,
