@@ -191,11 +191,12 @@ int main(int argc, char **argv)
                         batchCount, opts.queue);
             }
             else if(opts.version == 2) {
+                magma_int_t nthreads = max(opts.nb, KL+1);
                 info = magma_zgbsv_batched_fused_sm(
                         N, KL, KU, nrhs,
                         dA_array, ldda, dipiv_array,
                         dB_array, lddb, dinfo_array,
-                        KL+1, 1, batchCount, opts.queue );
+                        nthreads, 1, batchCount, opts.queue );
             }
             else{
                 // --------------------------------------------------
@@ -222,7 +223,8 @@ int main(int argc, char **argv)
             gpu_perf = gflops / gpu_time;
 
             if(cond) {
-                //magma_zprint_gpu(Nband, N, d_A, ldda, opts.queue);
+                printf("Af = ");
+                magma_zprint_gpu(Nband, N, d_A, ldda, opts.queue);
                 printf("bm = ");
                 magma_zprint_gpu(N, nrhs, d_B, lddb, opts.queue);
             }

@@ -124,6 +124,18 @@ magma_zgbsv_batched(
 
     if(n == 0 || batchCount == 0) return 0;
 
+    // try fused kernel first
+    magma_int_t nb    = 8, nthreads = kl+1;
+    magma_int_t ntcol = 1;
+    magma_get_zgbtrf_batched_params(n, n, kl, ku, &nb, &nthreads);
+    magma_int_t fused_info = -1;
+    fused_info = magma_zgbsv_batched_fused_sm(
+                n, kl, ku, nrhs,
+                dA_array, ldda, dipiv_array,
+                dB_array, lddb, info_array,
+                nthreads, ntcol, batchCount, queue );
+    if(fused_info == 0) return fused_info;
+
     magma_zgbtrf_batched(
         n, n, kl, ku,
         dA_array, ldda, dipiv_array,
