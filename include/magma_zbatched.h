@@ -546,7 +546,8 @@ magma_zgbtrs_batched(
 
 void
 magmablas_zgbtrs_swap_batched(
-    magma_int_t n, magmaDoubleComplex** dA_array, magma_int_t ldda,
+    magma_int_t k1, magma_int_t k2, magma_int_t n,
+    magmaDoubleComplex** dA_array, magma_int_t ldda,
     magma_int_t** dipiv_array, magma_int_t j,
     magma_int_t batchCount, magma_queue_t queue);
 

@@ -25,9 +25,9 @@
 __global__
 __launch_bounds__(GBTRS_SWAP_THREADS)
 void zgbtrs_swap_kernel_batched(
-        int n,
+        int k1, int k2, int n,
         magmaDoubleComplex** dA_array, int ldda,
-        magma_int_t** dipiv_array, int j)
+        magma_int_t** dipiv_array)
 {
     const int ntx     = blockDim.x;
     const int tx      = threadIdx.x;
@@ -36,13 +36,18 @@ void zgbtrs_swap_kernel_batched(
     magmaDoubleComplex* dA    = dA_array[batchid];
     magma_int_t*        dipiv = dipiv_array[batchid];
 
-    int jp = dipiv[j] - 1; // undo fortran indexing
-    if( j != jp ) {
-        for(int i = tx; i < n; i+=ntx) {
-            magmaDoubleComplex tmp = dA[i * ldda +  j];
-            dA[i * ldda +  j]      = dA[i * ldda + jp];
-            dA[i * ldda + jp]      = tmp;
+    for(int j = k1; j <= k2; j++) {
+        int jp = dipiv[j] - 1; // undo fortran indexing
+        if( j != jp ) {
+            for(int i = tx; i < n; i+=ntx) {
+                magmaDoubleComplex tmp = dA[i * ldda +  j];
+                dA[i * ldda +  j]      = dA[i * ldda + jp];
+                dA[i * ldda + jp]      = tmp;
+            }
         }
+
+        // to make sure the writes are visible to all threads in the same block
+        __syncthreads();
     }
 }
 
@@ -116,9 +121,68 @@ void zgbtrs_upper_columnwise_kernel_batched(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/*
+template<int MAX_THREADS, int NB>
+__global__
+__launch_bounds__(MAX_THREADS)
+void zgbtrs_lower_blocked_kernel_batched(
+        int n, int kl, int ku, int nrhs, int nrhs_nb,
+        magmaDoubleComplex** dA_array, int ldda,
+        magmaDoubleComplex** dB_array, int lddb )
+{
+    extern __shared__ magmaDoubleComplex zdata[];
+    const int kv      = kl + ku;
+    const int tx      = threadIdx.x;
+    const int ntx     = blockDim.x;
+    const int bx      = blockIdx.x;
+    const int by      = blockIdx.y;
+    const int batchid = bx;
+    const int my_rhs  = min(nrhs_nb, nrhs - by * nrhs_nb);
+    const int n1      = ( n / NB ) * NB;
+    const int n2      = n - n1;
+
+    magmaDoubleComplex* dA = dA_array[batchid];
+    magmaDoubleComplex* dB = dB_array[batchid];
+
+    magmaDoubleComplex rA[NB] = {MAGMA_Z_ZERO};
+    magmaDoubleComplex sB     = (magmaDoubleComplex*)zdata;
+
+    // advance dA and dB
+    dA += kv;
+    dB += by * nrhs_nb;
+
+    int tmp = (n >= NB) ? NB : n2;
+
+    if(tx < tmp) {
+        for(int jb = 0; jb < my_rhs; jb++) {
+            sB[jb * sldb + tx] = dB[jb * lddb + tx];
+        }
+    }
+
+    for(int j = 0; j < n1; j+=NB) {
+        // read A
+
+        // read B
+
+        // apply A
+
+        // write part of B that is finished and shift the the rest up
+
+        dA +=
+        dB +=
+    }
+
+    // cleanup section
+
+
+}
+*/
+
+////////////////////////////////////////////////////////////////////////////////
 extern "C"
 void magmablas_zgbtrs_swap_batched(
-        magma_int_t n, magmaDoubleComplex** dA_array, magma_int_t ldda,
+        magma_int_t k1, magma_int_t k2, magma_int_t n,
+        magmaDoubleComplex** dA_array, magma_int_t ldda,
         magma_int_t** dipiv_array, magma_int_t j,
         magma_int_t batchCount, magma_queue_t queue)
 {
@@ -128,7 +192,7 @@ void magmablas_zgbtrs_swap_batched(
     dim3 grid(nblocks, 1, 1);
     dim3 threads(nthreads, 1, 1);
     zgbtrs_swap_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>
-    (n, dA_array, ldda, dipiv_array, j);
+    (k1, k2, n, dA_array, ldda, dipiv_array, j);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
