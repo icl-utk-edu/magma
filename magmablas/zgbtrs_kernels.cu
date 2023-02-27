@@ -183,7 +183,7 @@ extern "C"
 void magmablas_zgbtrs_swap_batched(
         magma_int_t k1, magma_int_t k2, magma_int_t n,
         magmaDoubleComplex** dA_array, magma_int_t ldda,
-        magma_int_t** dipiv_array, magma_int_t j,
+        magma_int_t** dipiv_array,
         magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t nthreads = min(n, GBTRS_SWAP_THREADS);
@@ -192,7 +192,7 @@ void magmablas_zgbtrs_swap_batched(
     dim3 grid(nblocks, 1, 1);
     dim3 threads(nthreads, 1, 1);
     zgbtrs_swap_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>
-    (k1, k2, n, dA_array, ldda, dipiv_array, j);
+    (k1, k2, n, dA_array, ldda, dipiv_array);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
