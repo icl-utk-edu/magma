@@ -350,8 +350,8 @@ magma_zgbsv_batched_fused_sm_kernel_driver(
 
     magma_int_t total_threads = nthreads * ntcol;
     if ( total_threads > nthreads_max || shmem > shmem_max ) {
-        printf("error: kernel %s requires too many threads (%lld) or too much shared memory (%f KB)\n",
-                __func__, (long long)total_threads, (double)shmem/1024. );
+        //printf("error: kernel %s requires too many threads (%lld) or too much shared memory (%f KB)\n",
+        //        __func__, (long long)total_threads, (double)shmem/1024. );
         arginfo = -100;
         return arginfo;
     }
@@ -359,7 +359,7 @@ magma_zgbsv_batched_fused_sm_kernel_driver(
     void *kernel_args[] = {&n, &kl, &ku, &nrhs, &dA_array, &ldda, &ipiv_array, &dB_array, &lddb, &info_array, &batchCount};
     cudaError_t e = cudaLaunchKernel((void*)zgbsv_batched_kernel_fused_sm<MAX_THREADS>, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
-        printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
+        //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         arginfo = -100;
     }
 
