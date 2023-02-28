@@ -544,6 +544,13 @@ magma_zgbtrs_batched(
     magma_int_t *info_array,
     magma_int_t batchCount, magma_queue_t queue);
 
+magma_int_t
+magmablas_zgbtrs_lower_blocked_batched(
+        magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
+        magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t** dipiv_array,
+        magmaDoubleComplex** dB_array, magma_int_t lddb,
+        magma_int_t batchCount, magma_queue_t queue );
+
 void
 magmablas_zgbtrs_swap_batched(
     magma_int_t n, magmaDoubleComplex** dA_array, magma_int_t ldda,
