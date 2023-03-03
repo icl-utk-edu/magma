@@ -141,8 +141,7 @@ magma_zgbtrs_batched(
                         batchCount, queue );
 
     if( gbtrs_lower_info != 0) {
-        // ref. impl.
-        // apply L^(-1) as a series of row interchanges and rank-1 updates
+        // ref. impl.: apply inv(L) as a series of row interchanges and rank-1 updates
         for(magma_int_t j = 0; j < n; j++) {
             // swap
             magmablas_zgbtrs_swap_batched(nrhs, dB_array, lddb, dipiv_array, j, batchCount, queue);
@@ -159,12 +158,22 @@ magma_zgbtrs_batched(
     }
 
     // solve for U, backward solve
-    for(magma_int_t j = n-1; j >= 0; j--) {
-        magmablas_zgbtrs_upper_columnwise_batched(
-            n, kl, ku, nrhs, j,
-            dA_array, ldda,
-            dB_array, lddb,
-            batchCount, queue );
+    magma_int_t gbtrs_upper_info = -1;
+    gbtrs_upper_info = magmablas_zgbtrs_upper_blocked_batched(
+                        n, kl, ku, nrhs,
+                        dA_array, ldda,
+                        dB_array, lddb,
+                        batchCount, queue );
+
+    if( gbtrs_upper_info != 0 ) {
+        // ref. impl.: apply inv(U) column-wise
+        for(magma_int_t j = n-1; j >= 0; j--) {
+            magmablas_zgbtrs_upper_columnwise_batched(
+                n, kl, ku, nrhs, j,
+                dA_array, ldda,
+                dB_array, lddb,
+                batchCount, queue );
+        }
     }
 
     return arginfo;
