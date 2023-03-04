@@ -222,7 +222,7 @@ void zgbtrs_lower_blocked_kernel_batched(
         // read extra B elements to have a total of (nb + kl) elements
         int b_elements_2 = min(nb+kl-b_elements_1, n-j-b_elements_1);
 
-        #ifdef DBG
+        #ifdef DBG0
         __syncthreads();
         if(tx == 0) {
             printf("nb = %d, b1 = %d, b2 = %d\n", nb, b_elements_1, b_elements_2);
@@ -237,7 +237,7 @@ void zgbtrs_lower_blocked_kernel_batched(
         }
         __syncthreads();
 
-        print_memory<magmaDoubleComplex>("sB1", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
+        //print_memory<magmaDoubleComplex>("sB1", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
 
 
         // swap & rank-1 update
@@ -259,14 +259,14 @@ void zgbtrs_lower_blocked_kernel_batched(
 
             // apply
             for(int jb = 0; jb < my_rhs; jb++) {
-                #if defined(DBG) && defined(PRECISION_d)
+                #if defined(DBG0) && defined(PRECISION_d)
                 printf("[%d]: %.4f -= %.4f * %.4f\n", tx, sB(tx+ja+1, jb), rA[ja], sB(ja,jb));
                 __syncthreads();
                 #endif
                 sB(tx+ja+1, jb) -= rA[ja] * sB(ja,jb);
             }
             __syncthreads();
-            print_memory<magmaDoubleComplex>("tB2", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
+            //print_memory<magmaDoubleComplex>("tB2", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
 
         } // end of swap & rank-1 updates
 
@@ -279,7 +279,7 @@ void zgbtrs_lower_blocked_kernel_batched(
         }
         __syncthreads();
 
-        print_memory<magmaDoubleComplex>("sB2", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
+        //print_memory<magmaDoubleComplex>("sB2", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
 
         // shift up
         int shift_size = b_elements_1 + b_elements_2 - nb;
@@ -289,8 +289,8 @@ void zgbtrs_lower_blocked_kernel_batched(
             }
         }
         __syncthreads();
-        print_memory<magmaDoubleComplex>("sB3", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
-        #ifdef DBG
+        //print_memory<magmaDoubleComplex>("sB3", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
+        #ifdef DBG0
         __syncthreads();
         if(tx == 0) {
             printf("shift = %d\n", shift_size);
@@ -317,6 +317,7 @@ void zgbtrs_upper_blocked_kernel_batched(
 #define dA(i, j)  dA[(j)*ldda + (i)]
 #define dB(i, j)  dB[(j)*lddb + (i)]
 #define sB(i, j)  sB[(j)*sldb + (i)]
+#define sBr(i, j) sBr[(j)*sldb + (i)]
 
     extern __shared__ magmaDoubleComplex zdata[];
     const int kv      = kl + ku;
@@ -341,19 +342,32 @@ void zgbtrs_upper_blocked_kernel_batched(
     dA += (n-1) * ldda + kv;             // backwards
     dB += (by * nrhs_nb * lddb) + (n-1); // backwards
 
-    magmaDoubleComplex sBr = sB + kb;
+    //#if defined(DBG) && defined(PRECISION_d)
+    //printf("%.4f\n", dB[0]);
+    //__syncthreads();
+    for(int itx = tx; itx < kb; itx+=ntx) {sB[itx] = MAGMA_Z_ZERO;}
+    __syncthreads();
+    //#endif
+    //print_memory<magmaDoubleComplex>("sB-1", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
 
+
+    magmaDoubleComplex* sBr = sB + (kb-1);
     // we need (NB+kv) elements in one sweep
     int b_elements_1     = min(NB, n);
     for(int itx = rtx; itx < b_elements_1; itx+=ntx) {
         for(int jb = 0; jb < my_rhs; jb++) {
             sBr(-itx, jb) = dB(-itx, jb);
+            #if defined(DBG) && defined(PRECISION_d)
+            printf("[%d, %d]: sBr(-itx, jb) = %.4f\n", tx, rtx, sBr(-itx, jb));
+            #endif
         }
     }
+    __syncthreads();
+    print_memory<magmaDoubleComplex>("sB0", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
 
     for(int fj = 0; fj < n; fj+=NB) {
         int nb = min(NB, n-fj);
-        int j  = (n-1) - fj;
+        //int j  = (n-1) - fj;
 
         // read A
         if(nb == NB) {
@@ -393,32 +407,53 @@ void zgbtrs_upper_blocked_kernel_batched(
         // apply block of A (divide + rank-1 updates)
         #pragma unroll
         for(int ja = NB-1; ja >= 0; ja--) {
+            int jj = (NB-1) - ja;
             if(rtx == 0) {
-                stmp = MAGMA_Z_DIV(MAGMA_Z_ONE, rA[ja]);
+                stmp[0] = MAGMA_Z_DIV(MAGMA_Z_ONE, rA[ja]);
             }
             __syncthreads();
+
+            #if defined(DBG) && defined(PRECISION_d)
+            __syncthreads();
+            if(rtx == 0) {
+                printf("[%d]: 1 / %.4f = %4f\n", tx, rA[ja], stmp[0]);
+            }
+            __syncthreads();
+            #endif
+
 
             for(int jb = tx; jb < my_rhs; jb+=ntx) {
-                sB(ja, jb) *= stmp
+                #if defined(DBG) && defined(PRECISION_d)
+                printf("[%d]: sB[%d] ( = %.4f ) * %.4f = \n", tx, kb-1-jj, sB(kb-1-jj, jb), stmp[0]);
+                #endif
+                sB(kb-1-jj, jb) *= stmp[0];
+                //sB(ja, jb) *= stmp[0];
+                #if defined(DBG) && defined(PRECISION_d)
+                printf("[%d]: %.4f\n", tx, sB(kb-1-jj, jb));
+                #endif
             }
             __syncthreads();
-
-            //print_memory<magmaDoubleComplex>("tB1", sldb, my_rhs, sB-kb, sldb, 0, 0, 0, 0, 0, 0);
 
             // rank-1 update
             magmaDoubleComplex ztmp = (rtx == 0) ? MAGMA_Z_ZERO : rA[ja];
             for(int jb = 0; jb < my_rhs; jb++) {
-                sB(ja-rtx, jb) -= rA[ja] * sB(ja,jb);
+                #if defined(DBG) && defined(PRECISION_d)
+                __syncthreads();
+                printf("[%d]: %.4f -= %4f * %.4f\n", tx, sBr(-jj-rtx, jb), ztmp, sB(kb-1-jj,jb));
+                __syncthreads();
+                #endif
+
+                sBr(-jj-rtx, jb) -= ztmp * sB(kb-1-jj,jb);
                 //sB(tx+ja+1, jb) -= rA[ja] * sB(ja,jb);
             }
             __syncthreads();
-            //print_memory<magmaDoubleComplex>("tB2", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
+            print_memory<magmaDoubleComplex>("tB", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
 
         } // end of swap & rank-1 updates
 
         // write part of B that is finished and shift the the rest down
 
-        for(int itx = tx; itx < nb; itx+=ntx) {
+        for(int itx = rtx; itx < nb; itx+=ntx) {
             for(int jb = 0; jb < my_rhs; jb++) {
                 dB(-itx, jb) = sBr(-itx, jb);
             }
@@ -429,12 +464,13 @@ void zgbtrs_upper_blocked_kernel_batched(
 
         // shift down
         int shift_size = b_elements_1 + b_elements_2 - nb;
-        for(int itx = tx; itx < shift_size; itx+=ntx) {
+        for(int itx = rtx; itx < shift_size; itx+=ntx) {
             for(int jb = 0; jb < my_rhs; jb++) {
-                sBr(-itx, jb) = sB(-itx-nb, jb);
+                sBr(-itx, jb) = sBr(-itx-nb, jb);
             }
         }
         __syncthreads();
+
         print_memory<magmaDoubleComplex>("sB3", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
         #ifdef DBG
         __syncthreads();
@@ -612,38 +648,38 @@ magmablas_zgbtrs_upper_blocked_batched(
     magma_int_t arginfo = 0;
     cudaError_t e;
     switch( nthreads32 ) {
-        case   32: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched<  32, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case   64: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched<  64, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case   96: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched<  96, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  128: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 128, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  160: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 160, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  192: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 192, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  224: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 224, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  256: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 256, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  288: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 288, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  320: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 320, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  352: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 352, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  384: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 384, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  416: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 416, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  448: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 448, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  480: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 480, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  512: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 512, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  544: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 544, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  576: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 576, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  608: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 608, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  640: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 640, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  672: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 672, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  704: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 704, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  736: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 736, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  768: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 768, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  800: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 800, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  832: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 832, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  864: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 864, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  896: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 896, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  928: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 928, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  960: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 960, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case  992: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 992, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
-        case 1024: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched<1024, GBTRS_LOWER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case   32: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched<  32, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case   64: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched<  64, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case   96: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched<  96, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  128: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 128, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  160: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 160, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  192: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 192, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  224: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 224, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  256: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 256, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  288: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 288, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  320: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 320, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  352: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 352, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  384: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 384, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  416: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 416, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  448: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 448, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  480: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 480, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  512: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 512, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  544: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 544, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  576: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 576, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  608: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 608, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  640: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 640, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  672: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 672, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  704: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 704, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  736: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 736, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  768: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 768, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  800: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 800, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  832: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 832, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  864: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 864, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  896: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 896, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  928: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 928, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  960: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 960, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case  992: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched< 992, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
+        case 1024: e = cudaLaunchKernel((void*)zgbtrs_upper_blocked_kernel_batched<1024, GBTRS_UPPER_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());break;
         default: arginfo = -100;
     }
 
