@@ -34,7 +34,10 @@
 #define GBTRS_UPPER_NB      (8)
 #endif
 
-//#define DBG
+#define GBTRS_LOWER_NRHS    (4)
+#define GBTRS_UPPER_NRHS    (4)
+
+#define DBG
 
 ////////////////////////////////////////////////////////////////////////////////
 template<typename T>
@@ -189,7 +192,8 @@ void zgbtrs_lower_blocked_kernel_batched(
     dA += kv+1;
     dB += by * nrhs_nb * lddb;
 
-    int b_elements_1     = min(NB, n);
+    int b_elements_1        = min(NB, n);
+    magmaDoubleComplex ztmp = MAGMA_Z_ZERO;
 
     for(int itx = tx; itx < b_elements_1; itx+=ntx) {
         for(int jb = 0; jb < my_rhs; jb++) {
@@ -283,12 +287,30 @@ void zgbtrs_lower_blocked_kernel_batched(
 
         // shift up
         int shift_size = b_elements_1 + b_elements_2 - nb;
+        #if 0
         for(int itx = tx; itx < shift_size; itx+=ntx) {
             for(int jb = 0; jb < my_rhs; jb++) {
                 sB(itx, jb) = sB(itx+nb, jb);
             }
         }
         __syncthreads();
+        #else
+        for(int is = 0; is < shift_size; is += ntx) {
+            int active_threads = min(shift_size-is, ntx);
+            for(int jb = 0; jb < my_rhs; jb++) {
+                if(tx < active_threads) {
+                    ztmp = sB(tx+nb, jb);
+                }
+                __syncthreads();
+
+                if(tx < active_threads) {
+                    sB(tx, jb) = ztmp;
+                }
+                __syncthreads();
+            }
+        }
+        #endif
+
         //print_memory<magmaDoubleComplex>("sB3", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
         #ifdef DBG0
         __syncthreads();
@@ -337,19 +359,14 @@ void zgbtrs_upper_blocked_kernel_batched(
     magmaDoubleComplex rA[NB] = {MAGMA_Z_ZERO};
     magmaDoubleComplex* sB    = (magmaDoubleComplex*)zdata;
     magmaDoubleComplex* stmp  = sB + nrhs_nb * sldb;
+    magmaDoubleComplex  ztmp  = MAGMA_Z_ZERO;
 
     // advance dA, dB, sB
     dA += (n-1) * ldda + kv;             // backwards
     dB += (by * nrhs_nb * lddb) + (n-1); // backwards
 
-    //#if defined(DBG) && defined(PRECISION_d)
-    //printf("%.4f\n", dB[0]);
-    //__syncthreads();
     for(int itx = tx; itx < kb; itx+=ntx) {sB[itx] = MAGMA_Z_ZERO;}
     __syncthreads();
-    //#endif
-    //print_memory<magmaDoubleComplex>("sB-1", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
-
 
     magmaDoubleComplex* sBr = sB + (kb-1);
     // we need (NB+kv) elements in one sweep
@@ -357,13 +374,9 @@ void zgbtrs_upper_blocked_kernel_batched(
     for(int itx = rtx; itx < b_elements_1; itx+=ntx) {
         for(int jb = 0; jb < my_rhs; jb++) {
             sBr(-itx, jb) = dB(-itx, jb);
-            #if defined(DBG) && defined(PRECISION_d)
-            printf("[%d, %d]: sBr(-itx, jb) = %.4f\n", tx, rtx, sBr(-itx, jb));
-            #endif
         }
     }
     __syncthreads();
-    print_memory<magmaDoubleComplex>("sB0", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
 
     for(int fj = 0; fj < n; fj+=NB) {
         int nb = min(NB, n-fj);
@@ -385,24 +398,12 @@ void zgbtrs_upper_blocked_kernel_batched(
 
         // read extra B elements to have a total of (nb + kl) elements
         int b_elements_2 = min(kb-b_elements_1, n-fj-b_elements_1);
-
-        #ifdef DBG
-        __syncthreads();
-        if(tx == 0) {
-            printf("nb = %d, b1 = %d, b2 = %d\n", nb, b_elements_1, b_elements_2);
-        }
-        __syncthreads();
-        #endif
-
         for(int itx = rtx; itx < b_elements_2; itx+=ntx) {
             for(int jb = 0; jb < my_rhs; jb++) {
                 sBr(-(b_elements_1+itx), jb) = dB(-(b_elements_1+itx), jb);
             }
         }
         __syncthreads();
-
-        print_memory<magmaDoubleComplex>("sB1", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
-
 
         // apply block of A (divide + rank-1 updates)
         #pragma unroll
@@ -413,41 +414,17 @@ void zgbtrs_upper_blocked_kernel_batched(
             }
             __syncthreads();
 
-            #if defined(DBG) && defined(PRECISION_d)
-            __syncthreads();
-            if(rtx == 0) {
-                printf("[%d]: 1 / %.4f = %4f\n", tx, rA[ja], stmp[0]);
-            }
-            __syncthreads();
-            #endif
-
-
             for(int jb = tx; jb < my_rhs; jb+=ntx) {
-                #if defined(DBG) && defined(PRECISION_d)
-                printf("[%d]: sB[%d] ( = %.4f ) * %.4f = \n", tx, kb-1-jj, sB(kb-1-jj, jb), stmp[0]);
-                #endif
                 sB(kb-1-jj, jb) *= stmp[0];
-                //sB(ja, jb) *= stmp[0];
-                #if defined(DBG) && defined(PRECISION_d)
-                printf("[%d]: %.4f\n", tx, sB(kb-1-jj, jb));
-                #endif
             }
             __syncthreads();
 
             // rank-1 update
-            magmaDoubleComplex ztmp = (rtx == 0) ? MAGMA_Z_ZERO : rA[ja];
+            ztmp = (rtx == 0) ? MAGMA_Z_ZERO : rA[ja];
             for(int jb = 0; jb < my_rhs; jb++) {
-                #if defined(DBG) && defined(PRECISION_d)
-                __syncthreads();
-                printf("[%d]: %.4f -= %4f * %.4f\n", tx, sBr(-jj-rtx, jb), ztmp, sB(kb-1-jj,jb));
-                __syncthreads();
-                #endif
-
                 sBr(-jj-rtx, jb) -= ztmp * sB(kb-1-jj,jb);
-                //sB(tx+ja+1, jb) -= rA[ja] * sB(ja,jb);
             }
             __syncthreads();
-            print_memory<magmaDoubleComplex>("tB", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
 
         } // end of swap & rank-1 updates
 
@@ -460,25 +437,40 @@ void zgbtrs_upper_blocked_kernel_batched(
         }
         __syncthreads();
 
-        print_memory<magmaDoubleComplex>("sB2", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
-
         // shift down
         int shift_size = b_elements_1 + b_elements_2 - nb;
+        #if 0
         for(int itx = rtx; itx < shift_size; itx+=ntx) {
             for(int jb = 0; jb < my_rhs; jb++) {
                 sBr(-itx, jb) = sBr(-itx-nb, jb);
             }
         }
-        __syncthreads();
+        #elif 1
+        for(int is = 0; is < shift_size; is += ntx) {
+            int active_threads = min(ntx, shift_size-is);
+            //printf("shift-size = %d, active threads = %d\n", shift_size, active_threads);
+            for(int jb = 0; jb < my_rhs; jb++) {
+                if(rtx < active_threads) {
+                    ztmp = sBr(-rtx-is-nb, jb);
+                }
+                __syncthreads();
 
-        print_memory<magmaDoubleComplex>("sB3", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
-        #ifdef DBG
-        __syncthreads();
-        if(tx == 0) {
-            printf("shift = %d\n", shift_size);
+                if(rtx < active_threads) {
+                    sBr(-rtx-is, jb) = ztmp;
+                }
+                __syncthreads();
+            }
         }
-        __syncthreads();
+        #else
+        if(tx == 0) {
+            for(int is = 0; is < shift_size; is++) {
+                for(int jb = 0; jb < my_rhs; jb++) {
+                    sBr(-is,jb) = sBr(-is-nb,jb);
+                }
+            }
+        }
         #endif
+        __syncthreads();
 
         b_elements_1 = shift_size; /*b_elements_2*/;
         dA    -= nb * ldda;
@@ -559,7 +551,7 @@ magmablas_zgbtrs_lower_blocked_batched(
         magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t nb         = GBTRS_LOWER_NB;
-    magma_int_t nrhs_nb    = 4;
+    magma_int_t nrhs_nb    = GBTRS_LOWER_NRHS;
     magma_int_t nthreads   = kl;
     magma_int_t nthreads32 = magma_roundup(nthreads, 32);
     magma_int_t nblocks_x  = batchCount;
@@ -629,7 +621,7 @@ magmablas_zgbtrs_upper_blocked_batched(
 {
     magma_int_t kv         = kl + ku;
     magma_int_t nb         = GBTRS_UPPER_NB;
-    magma_int_t nrhs_nb    = 4;
+    magma_int_t nrhs_nb    = GBTRS_UPPER_NRHS;
     magma_int_t nthreads   = kv + 1;
     magma_int_t nthreads32 = magma_roundup(nthreads, 32);
     magma_int_t nblocks_x  = batchCount;
