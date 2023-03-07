@@ -129,11 +129,13 @@ magma_zgbsv_batched(
     magma_int_t ntcol = 1;
     magma_get_zgbtrf_batched_params(n, n, kl, ku, &nb, &nthreads);
     magma_int_t fused_info = -1;
-    fused_info = magma_zgbsv_batched_fused_sm(
+    if( n <= 64 ) {
+        fused_info = magma_zgbsv_batched_fused_sm(
                 n, kl, ku, nrhs,
                 dA_array, ldda, dipiv_array,
                 dB_array, lddb, info_array,
                 nthreads, ntcol, batchCount, queue );
+    }
     if(fused_info == 0) return fused_info;
 
     magma_zgbtrf_batched(
