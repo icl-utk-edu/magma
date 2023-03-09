@@ -588,6 +588,15 @@ magma_zgbsv_batched_fused_sm(
     magma_int_t nthreads, magma_int_t ntcol,
     magma_int_t batchCount, magma_queue_t queue );
 
+magma_int_t
+magma_zgbsv_batched_work(
+    magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t **dipiv_array,
+    magmaDoubleComplex** dB_array, magma_int_t lddb,
+    magma_int_t *info_array,
+    void* device_work, magma_int_t *lwork,
+    magma_int_t batchCount, magma_queue_t queue);
+
 void
 magmablas_zgeru_batched_core(
     magma_int_t m, magma_int_t n,

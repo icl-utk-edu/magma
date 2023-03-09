@@ -13,6 +13,90 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
+extern "C" magma_int_t
+magma_zgbsv_batched_work(
+    magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t **dipiv_array,
+    magmaDoubleComplex** dB_array, magma_int_t lddb,
+    magma_int_t *info_array,
+    void* device_work, magma_int_t *lwork,
+    magma_int_t batchCount, magma_queue_t queue)
+{
+    magma_int_t arginfo = 0;
+    magma_int_t kv = kl + ku;
+
+    if ( n < 0 )
+        arginfo = -1;
+    else if ( kl < 0 )
+        arginfo = -2;
+    else if ( ku < 0 )
+        arginfo = -3;
+    else if (nrhs < 0)
+        arginfo = -4;
+    else if ( ldda < (kl+kv+1) )
+        arginfo = -6;
+    else if ( lddb < n)
+        arginfo = -9;
+    else if ( batchCount < 0 )
+        arginfo = -13;
+
+    // calculate the amount of workspace required
+    magma_int_t gbsv_lwork = 0, gbtrf_lwork = 0, gbtrs_lwork = 0;
+
+    // query gbtrf
+    magma_zgbtrf_batched_work( m, n, kl, ku, NULL, ldda, NULL, NULL, NULL, &gbtrf_lwork, batchCount, queue);
+
+    gbsv_lwork = gbtrf_lwork + gbtrs_lwork;
+    if( *lwork < 0) {
+       // workspace query is assumed
+       *lwork = gbsv_lwork;
+       return 0;
+    }
+
+    if(lwork[0] < gbsv_lwork) {
+        arginfo = -12;
+    }
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    // quick return if possible
+    if(n == 0 || batchCount == 0) return 0;
+
+    // try fused kernel first
+    magma_int_t nb    = 8, nthreads = kl+1;
+    magma_int_t ntcol = 1;
+    magma_get_zgbtrf_batched_params(n, n, kl, ku, &nb, &nthreads);
+    magma_int_t fused_info = -1;
+    if( n <= 64 ) {
+        fused_info = magma_zgbsv_batched_fused_sm(
+                n, kl, ku, nrhs,
+                dA_array, ldda, dipiv_array,
+                dB_array, lddb, info_array,
+                nthreads, ntcol, batchCount, queue );
+    }
+    if(fused_info == 0) return fused_info;
+
+    // factorization
+    magma_zgbtrf_batched_work(
+        m, n,
+        kl, ku,
+        dA_array, lddb,
+        dipiv_array, info_array,
+        device_work, lwork, batchCount, queue);
+
+    // solve
+    magma_zgbtrs_batched(
+        MagmaNoTrans, n, kl, ku, nrhs,
+        dA_array, ldda, dipiv_array,
+        dB_array, lddb, info_array,
+        batchCount, queue);
+
+    return arginfo;
+}
+
 /***************************************************************************//**
     Purpose
     -------
@@ -124,30 +208,20 @@ magma_zgbsv_batched(
 
     if(n == 0 || batchCount == 0) return 0;
 
-    // try fused kernel first
-    magma_int_t nb    = 8, nthreads = kl+1;
-    magma_int_t ntcol = 1;
-    magma_get_zgbtrf_batched_params(n, n, kl, ku, &nb, &nthreads);
-    magma_int_t fused_info = -1;
-    if( n <= 64 ) {
-        fused_info = magma_zgbsv_batched_fused_sm(
-                n, kl, ku, nrhs,
-                dA_array, ldda, dipiv_array,
-                dB_array, lddb, info_array,
-                nthreads, ntcol, batchCount, queue );
-    }
-    if(fused_info == 0) return fused_info;
+    // query workspace
+    magma_int_t lwork[1];
+    magma_zgbsv_batched_work(n, kl, ku, nrhs, NULL, ldda, NULL, NULL, lddb, NULL, NULL, lwork, batchCount, queue);
 
-    magma_zgbtrf_batched(
-        n, n, kl, ku,
+    void* device_work = NULL;
+    magma_malloc(&device_work, lwrok[1]);
+
+    magma_zgbsv_batched_work(
+        n, kl, ku, nrhs,
         dA_array, ldda, dipiv_array,
-        info_array, batchCount, queue);
+        dB_array, lddb,
+        info_array,
+        device_work, lwork, batchCount, queue);
 
-    magma_zgbtrs_batched(
-        MagmaNoTrans, n, kl, ku, nrhs,
-        dA_array, ldda, dipiv_array,
-        dB_array, lddb, info_array,
-        batchCount, queue);
-
+    magma_free( device_work );
     return arginfo;
 }

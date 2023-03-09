@@ -182,44 +182,40 @@ int main(int argc, char **argv)
             }
 
             // testing MAGMA
-            gpu_time = magma_sync_wtime( opts.queue );
             if(opts.version == 1) {
+                gpu_time = magma_sync_wtime( opts.queue );
                 info = magma_zgbsv_batched(
                         N, KL, KU, nrhs,
                         dA_array, ldda, dipiv_array,
                         dB_array, lddb, dinfo_array,
                         batchCount, opts.queue);
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
             else if(opts.version == 2) {
-                magma_int_t nthreads = max(opts.nb, KL+1);
-                info = magma_zgbsv_batched_fused_sm(
+                // query workspace
+                magma_int_t lwork[1];
+                magma_zgbsv_batched_work(
+                        N, KL, KU, nrhs,
+                        NULL, ldda, NULL,
+                        NULL, lddb,
+                        NULL, NULL, lwork, batchCount, opts.queue);
+
+                // allocate workspace
+                void* device_work = NULL
+                TESTING_CHECK( magma_malloc(&device_work, lwork[0]) );
+
+                // time the async interface only
+                gpu_time = magma_sync_wtime( opts.queue );
+                info = magma_zgbsv_batched_work(
                         N, KL, KU, nrhs,
                         dA_array, ldda, dipiv_array,
-                        dB_array, lddb, dinfo_array,
-                        nthreads, 1, batchCount, opts.queue );
+                        dB_array, lddb,
+                        dinfo_array, device_work, lwork, batchCount, opts.queue);
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+
+                // free workspace
+                magma_free( device_work );
             }
-            else{
-                // --------------------------------------------------
-                magma_int_t linfo = 0, columns = nrhs * batchCount, n2 = N * batchCount;
-                info = 0;
-                magmaDoubleComplex* hTmp = NULL;
-                TESTING_CHECK( magma_zmalloc_cpu( &hTmp, sizeA ));
-                lapackf77_zlacpy( MagmaFullStr, &Nband, &n2, h_A, &lda, hTmp, &lda );
-                lapackf77_zlacpy( MagmaFullStr, &N, &columns, h_B, &ldb, h_X, &ldb );
-                for(magma_int_t s = 0; s < batchCount; s++) {
-                    lapackf77_zgbsv( &N, &KL, &KU, &nrhs,
-                                     hTmp + s * lda * N,    &lda,
-                                     ipiv + s * N,
-                                     h_X  + s * ldb * nrhs, &ldb,
-                                     &linfo );
-                    info += linfo;
-                }
-                magma_memset(dinfo_array, 0, batchCount * sizeof(magma_int_t));
-                magma_zsetmatrix( N, nrhs*batchCount, h_X, ldb, d_B, lddb, opts.queue );
-                TESTING_CHECK( magma_free_cpu( hTmp ));
-                // --------------------------------------------------
-            }
-            gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             gpu_perf = gflops / gpu_time;
 
             if(cond) {
