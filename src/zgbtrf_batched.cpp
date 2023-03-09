@@ -149,7 +149,7 @@ magma_zgbtrf_batched_work(
     }
 
     // first try the fully fused factorization
-    if(minmn <= 128) {
+    if(minmn <= 64) {
         magma_int_t info_fused = 0;
         info_fused = magma_zgbtrf_batched_fused_sm(
                         m,  n, kl, ku,
