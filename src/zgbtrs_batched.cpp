@@ -130,7 +130,7 @@ magma_zgbtrs_batched(
         return arginfo;
     }
 
-    if(n == 0 || batchCount == 0) return 0;
+    if(n == 0 || batchCount == 0 || nrhs == 0) return 0;
 
 
     magma_int_t gbtrs_lower_info = -1;
