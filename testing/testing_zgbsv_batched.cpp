@@ -97,7 +97,7 @@ int main(int argc, char **argv)
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
-    real_Double_t   gflops, cpu_perf, cpu_time, gpu_perf, gpu_time;
+    real_Double_t   gflops, cpu_perf, cpu_time, gpu_perf, gpu_time = 0;
     double          error, Rnorm, Anorm, Xnorm, *work;
     magmaDoubleComplex c_one     = MAGMA_Z_ONE;
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
     magmaDoubleComplex_ptr d_A, d_B;
     magma_int_t *dipiv, *dinfo_array;
     magma_int_t *ipiv, *cpu_info;
-    magma_int_t N, Nband, KL, KU, KV, nrhs, lda, ldb, ldda, lddb, info, sizeA, sizeB;
+    magma_int_t N, Nband, KL, KU, KV, nrhs, lda, ldb, ldda, lddb, info = 0, sizeA, sizeB;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     int status = 0;
@@ -193,7 +193,7 @@ int main(int argc, char **argv)
             }
             else if(opts.version == 2) {
                 // query workspace
-                magma_int_t lwork[1];
+                magma_int_t lwork[1] = {-1};
                 magma_zgbsv_batched_work(
                         N, KL, KU, nrhs,
                         NULL, ldda, NULL,
@@ -201,7 +201,7 @@ int main(int argc, char **argv)
                         NULL, NULL, lwork, batchCount, opts.queue);
 
                 // allocate workspace
-                void* device_work = NULL
+                void* device_work = NULL;
                 TESTING_CHECK( magma_malloc(&device_work, lwork[0]) );
 
                 // time the async interface only

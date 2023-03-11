@@ -40,11 +40,18 @@ magma_zgbsv_batched_work(
     else if ( batchCount < 0 )
         arginfo = -13;
 
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+
     // calculate the amount of workspace required
     magma_int_t gbsv_lwork = 0, gbtrf_lwork = 0, gbtrs_lwork = 0;
 
-    // query gbtrf
-    magma_zgbtrf_batched_work( m, n, kl, ku, NULL, ldda, NULL, NULL, NULL, &gbtrf_lwork, batchCount, queue);
+    // query gbtrf, set gbtrf_lwork to a negative value
+    gbtrf_lwork = -1;
+    magma_zgbtrf_batched_work( n, n, kl, ku, NULL, ldda, NULL, NULL, NULL, &gbtrf_lwork, batchCount, queue);
 
     gbsv_lwork = gbtrf_lwork + gbtrs_lwork;
     if( *lwork < 0) {
@@ -55,10 +62,6 @@ magma_zgbsv_batched_work(
 
     if(lwork[0] < gbsv_lwork) {
         arginfo = -12;
-    }
-
-    if (arginfo != 0) {
-        magma_xerbla( __func__, -(arginfo) );
         return arginfo;
     }
 
@@ -81,9 +84,9 @@ magma_zgbsv_batched_work(
 
     // factorization
     magma_zgbtrf_batched_work(
-        m, n,
+        n, n,
         kl, ku,
-        dA_array, lddb,
+        dA_array, ldda,
         dipiv_array, info_array,
         device_work, lwork, batchCount, queue);
 
@@ -209,11 +212,11 @@ magma_zgbsv_batched(
     if(n == 0 || batchCount == 0) return 0;
 
     // query workspace
-    magma_int_t lwork[1];
+    magma_int_t lwork[1] = {-1};
     magma_zgbsv_batched_work(n, kl, ku, nrhs, NULL, ldda, NULL, NULL, lddb, NULL, NULL, lwork, batchCount, queue);
 
     void* device_work = NULL;
-    magma_malloc(&device_work, lwrok[1]);
+    magma_malloc(&device_work, lwork[0]);
 
     magma_zgbsv_batched_work(
         n, kl, ku, nrhs,
