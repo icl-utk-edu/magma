@@ -193,14 +193,26 @@ int main( int argc, char** argv)
             magma_iset_pointer( dipiv_array, dipiv_magma, 1, 0, 0, min_mn, batchCount, opts.queue );
 
             if(opts.version == 1) {
+                // top-level API accepting ptr arrays
                 magma_time = magma_sync_wtime( opts.queue );
                 info = magma_zgbtrf_batched(
-                    M, N, KL, KU,
-                    dA_array, lddab, dipiv_array, dinfo_magma,
-                    batchCount, opts.queue);
+                        M, N, KL, KU,
+                        dA_array, lddab, dipiv_array, dinfo_magma,
+                        batchCount, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
             else if(opts.version == 2) {
+                // top-level API accepting (ptr+stride)
+                magma_time = magma_sync_wtime( opts.queue );
+                info = magma_zgbtrf_batched_strided(
+                        M, N, KL, KU,
+                        dA, lddab, lddab*Nband,
+                        dipiv_magma, min_mn,
+                        dinfo_magma, batchCount, opts.queue);
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+            }
+            else if(opts.version == 3) {
+                // async API accepting ptr arrays and workspace
                 // query workspace
                 magma_int_t lwork[1] = {-1};
                 magma_zgbtrf_batched_work(
@@ -221,6 +233,33 @@ int main( int argc, char** argv)
                     batchCount, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
                 magma_free( device_work );
+            }
+            else if(opts.version == 4) {
+                // async API accepting (ptr+stride) and workspace
+                // query workspace
+                magma_int_t lwork[1] = {-1};
+                magma_zgbtrf_batched_strided_work(
+                    M, N, KL, KU,
+                    NULL, lddab, lddab*Nband,
+                    NULL, min_mn,
+                    NULL, NULL, lwork,
+                    batchCount, opts.queue);
+
+                void* device_work = NULL;
+                magma_malloc((void**)&device_work, lwork[0]);
+
+                // timing async call only
+                magma_time = magma_sync_wtime( opts.queue );
+                info = magma_zgbtrf_batched_strided_work(
+                        M, N, KL, KU,
+                        dA, lddab, lddab*Nband,
+                        dipiv_magma, min_mn,
+                        dinfo_magma,
+                        device_work, lwork,
+                        batchCount, opts.queue);
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+                magma_free( device_work );
+
             }
 
             magma_perf = gflops / magma_time;
