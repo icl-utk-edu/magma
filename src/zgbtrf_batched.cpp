@@ -239,6 +239,7 @@ magma_zgbtrf_batched_strided_work(
         void* device_work, magma_int_t *lwork,
         magma_int_t batchCount, magma_queue_t queue)
 {
+    magma_int_t arginfo = 0;
     magma_int_t kv = kl + ku;
 
     if( m < 0 )
@@ -267,7 +268,7 @@ magma_zgbtrf_batched_strided_work(
     if( m == 0 || n == 0 || batchCount == 0) return 0;
 
     magmaDoubleComplex** dAB_array   = (magmaDoubleComplex**)queue->get_dAarray();
-    magmaDoubleComplex** dipiv_array = (magma_int_t**)queue->get_dBarray();
+    magma_int_t**      dipiv_array   = (magma_int_t**)queue->get_dBarray();
 
     // query workspace
     magma_int_t my_work[1] = {-1};
@@ -287,7 +288,7 @@ magma_zgbtrf_batched_strided_work(
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
         magma_int_t batch = min(max_batchCount, batchCount-i);
         magma_zset_pointer(dAB_array,   (magmaDoubleComplex*)(dAB + i * strideAB), lddab, 0, 0, strideAB,   batch, queue);
-        magma_zset_pointer(dipiv_array, (magma_int_t*)(dipiv + i * stride_piv),        1, 0, 0, stride_piv, batch, queue);
+        magma_iset_pointer(dipiv_array, (magma_int_t*)(dipiv + i * stride_piv),        1, 0, 0, stride_piv, batch, queue);
 
         magma_zgbtrf_batched_work(
             m, n, kl, ku,
