@@ -40,12 +40,6 @@ magma_zgbsv_batched_work(
     else if ( batchCount < 0 )
         arginfo = -13;
 
-    if (arginfo != 0) {
-        magma_xerbla( __func__, -(arginfo) );
-        return arginfo;
-    }
-
-
     // calculate the amount of workspace required
     magma_int_t gbsv_lwork = 0, gbtrf_lwork = 0, gbtrs_lwork = 0;
 
@@ -62,6 +56,10 @@ magma_zgbsv_batched_work(
 
     if(lwork[0] < gbsv_lwork) {
         arginfo = -12;
+    }
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
         return arginfo;
     }
 
