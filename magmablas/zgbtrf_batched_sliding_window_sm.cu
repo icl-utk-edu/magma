@@ -136,7 +136,7 @@ zgbtrf_batched_sliding_window_kernel_sm(
 
     magmaDoubleComplex* dAB = dAB_array[batchid];
     magma_int_t* ipiv = ipiv_array[batchid];
-    int linfo = 0;
+    int linfo = (ABj == 0) ? 0 : info_array[batchid];
 
     // shared memory pointers
     magmaDoubleComplex *sAB = (magmaDoubleComplex*)(zdata);
