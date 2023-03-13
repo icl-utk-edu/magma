@@ -116,6 +116,26 @@ magma_zgbtrf_batched_work(
     magma_int_t minmn = min(m, n);
     magma_int_t kv    = kl + ku;
 
+    if( m < 0 )
+        arginfo = -1;
+    else if ( n < 0 )
+        arginfo = -2;
+    else if ( kl < 0 )
+        arginfo = -3;
+    else if ( ku < 0 )
+        arginfo = -4;
+    else if ( lddab < (kl+kv+1) )
+        arginfo = -6;
+    else if ( batchCount < 0)
+        arginfo = -11;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    if( m == 0 || n == 0 || batchCount == 0) return 0;
+
     // get tuning parameters for fused and sliding window routines
     magma_int_t ntcol = 1;
     magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
@@ -205,6 +225,79 @@ magma_zgbtrf_batched_work(
     return arginfo;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+/// @see magma_zgbtrf_batched_work.
+/// This is the (pointer + stride) interface of magma_zgbtrf_batched_work
+extern "C" magma_int_t
+magma_zgbtrf_batched_strided_work(
+        magma_int_t m, magma_int_t n,
+        magma_int_t kl, magma_int_t ku,
+        magmaDoubleComplex* dAB, magma_int_t lddab, magma_int_t strideAB,
+        magma_int_t* dipiv, magma_int_t stride_piv,
+        magma_int_t *info_array,
+        void* device_work, magma_int_t *lwork,
+        magma_int_t batchCount, magma_queue_t queue)
+{
+    magma_int_t kv = kl + ku;
+
+    if( m < 0 )
+        arginfo = -1;
+    else if ( n < 0 )
+        arginfo = -2;
+    else if ( kl < 0 )
+        arginfo = -3;
+    else if ( ku < 0 )
+        arginfo = -4;
+    else if ( lddab < (kl+kv+1) )
+        arginfo = -6;
+    else if ( strideAB < (lddab * n))
+        arginfo = -7;
+    else if ( stride_piv < min(m, n))
+        arginfo = -9;
+    else if ( batchCount < 0 )
+        arginfo = -13;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    // quick return if possible
+    if( m == 0 || n == 0 || batchCount == 0) return 0;
+
+    magmaDoubleComplex** dAB_array   = (magmaDoubleComplex**)queue->get_dAarray();
+    magmaDoubleComplex** dipiv_array = (magma_int_t**)queue->get_dBarray();
+
+    // query workspace
+    magma_int_t my_work[1] = {-1};
+    magma_zgbtrf_batched_work(m, n, kl, ku, NULL, lddab, NULL, NULL, NULL, my_work, batchCount, queue);
+
+    if( *lwork < 0 ) {
+        *lwork = my_work[0];
+        return arginfo;
+    }
+
+    if( *lwork < my_work[0] ) {
+        arginfo = -12;
+        return arginfo;
+    }
+
+    magma_int_t max_batchCount   = queue->get_maxBatch();
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+        magma_int_t batch = min(max_batchCount, batchCount-i);
+        magma_zset_pointer(dAB_array,   (magmaDoubleComplex*)(dAB + i * strideAB), lddab, 0, 0, strideAB,   batch, queue);
+        magma_zset_pointer(dipiv_array, (magma_int_t*)(dipiv + i * stride_piv),        1, 0, 0, stride_piv, batch, queue);
+
+        magma_zgbtrf_batched_work(
+            m, n, kl, ku,
+            dAB_array, lddab,
+            dipiv_array, info_array + i,
+            device_work, lwork,
+            batch, queue );
+    }
+    return arginfo;
+}
 
 /***************************************************************************//**
     Purpose
@@ -319,6 +412,8 @@ magma_zgbtrf_batched(
         arginfo = -4;
     else if ( lddab < (kl+kv+1) )
         arginfo = -6;
+    else if ( batchCount < 0 )
+        arginfo = -9;
 
     if (arginfo != 0) {
         magma_xerbla( __func__, -(arginfo) );
@@ -346,6 +441,70 @@ magma_zgbtrf_batched(
         dAB_array, lddab,
         dipiv_array, info_array,
         device_work, lwork, batchCount, queue);
+
+    magma_free(device_work);
+    return arginfo;
+}
+
+
+/// @see magma_zgbtrf_batched. This is the (pointer + stride) interface of magma_zgbtrf_batched
+extern "C" magma_int_t
+magma_zgbtrf_batched_strided(
+        magma_int_t m, magma_int_t n,
+        magma_int_t kl, magma_int_t ku,
+        magmaDoubleComplex* dAB, magma_int_t lddab, magma_int_t strideAB,
+        magma_int_t* dipiv, magma_int_t stride_piv,
+        magma_int_t *info_array,
+        magma_int_t batchCount, magma_queue_t queue)
+{
+    magma_int_t arginfo = 0;
+    magma_int_t kv    = kl + ku;
+
+    if( m < 0 )
+        arginfo = -1;
+    else if ( n < 0 )
+        arginfo = -2;
+    else if ( kl < 0 )
+        arginfo = -3;
+    else if ( ku < 0 )
+        arginfo = -4;
+    else if ( lddab < (kl+kv+1) )
+        arginfo = -6;
+    else if ( strideAB < (lddab * n))
+        arginfo = -7;
+    else if ( stride_piv < min(m, n))
+        arginfo = -9;
+    else if ( batchCount < 0 )
+        arginfo = -11;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    if( m == 0 || n == 0 || batchCount == 0) return 0;
+
+    magma_int_t lwork[1] = {-1};
+
+    // query workspace
+    magma_zgbtrf_batched_strided_work(
+        m, n, kl, ku,
+        NULL, lddab, strideAB,
+        NULL, stride_piv,
+        NULL, NULL, lwork,
+        batchCount, queue);
+
+    void* device_work = NULL;
+    magma_malloc((void**)&device_work, lwork[0]);
+
+    // call generic implementation
+    magma_zgbtrf_batched_strided_work(
+        m, n, kl, ku,
+        dAB, lddab, strideAB,
+        dipiv, stride_piv,
+        info_array,
+        device_work, lwork,
+        batchCount, queue);
 
     magma_free(device_work);
     return arginfo;
