@@ -183,6 +183,7 @@ int main(int argc, char **argv)
 
             // testing MAGMA
             if(opts.version == 1) {
+                // synchronous api with ptr array
                 gpu_time = magma_sync_wtime( opts.queue );
                 info = magma_zgbsv_batched(
                         N, KL, KU, nrhs,
@@ -192,6 +193,18 @@ int main(int argc, char **argv)
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
             else if(opts.version == 2) {
+                // synchronous api with stride
+                gpu_time = magma_sync_wtime( opts.queue );
+                info = magma_zgbsv_batched_strided(
+                        N, KL, KU, nrhs,
+                        d_A, ldda, ldda*N,
+                        dipiv, N,
+                        d_B, lddb, lddb*nrhs,
+                        dinfo_array, batchCount, opts.queue);
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+            }
+            else if(opts.version == 3) {
+                // async api with ptr array
                 // query workspace
                 magma_int_t lwork[1] = {-1};
                 magma_zgbsv_batched_work(
@@ -211,6 +224,33 @@ int main(int argc, char **argv)
                         dA_array, ldda, dipiv_array,
                         dB_array, lddb,
                         dinfo_array, device_work, lwork, batchCount, opts.queue);
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+
+                // free workspace
+                magma_free( device_work );
+            }
+            else if(opts.version == 4) {
+                // async api with stride
+                // query workspace
+                magma_int_t lwork[1] = {-1};
+                magma_zgbsv_batched_strided_work(
+                    N, KL, KU, nrhs,
+                    NULL, ldda, ldda*N, NULL, N,
+                    NULL, lddb, lddb*nrhs, NULL, NULL, lwork,
+                    batchCount, opts.queue);
+
+                // allocate workspace
+                void* device_work = NULL;
+                TESTING_CHECK( magma_malloc(&device_work, lwork[0]) );
+
+                // time the async interface only
+                gpu_time = magma_sync_wtime( opts.queue );
+                info = magma_zgbsv_batched_strided_work(
+                        N, KL, KU, nrhs,
+                        d_A, ldda, laad*N, dipiv, N,
+                        d_B, lddb, lddb*nrhs,
+                        dinfo_array, device_work, lwork,
+                        batchCount, opts.queue);
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
 
                 // free workspace

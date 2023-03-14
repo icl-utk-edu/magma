@@ -230,7 +230,7 @@ magma_zgbsv_batched_strided_work(
         arginfo = -16;
 
     magmaDoubleComplex** dA_array   = (magmaDoubleComplex**)queue->get_dAarray();
-    magmaDoubleComplex** dA_array   = (magmaDoubleComplex**)queue->get_dBarray();
+    magmaDoubleComplex** dB_array   = (magmaDoubleComplex**)queue->get_dBarray();
     magma_int_t**      dipiv_array  = (magma_int_t**)queue->get_dCarray();
 
     // calculate the amount of workspace required
