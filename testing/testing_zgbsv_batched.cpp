@@ -247,7 +247,7 @@ int main(int argc, char **argv)
                 gpu_time = magma_sync_wtime( opts.queue );
                 info = magma_zgbsv_batched_strided_work(
                         N, KL, KU, nrhs,
-                        d_A, ldda, laad*N, dipiv, N,
+                        d_A, ldda, ldda*N, dipiv, N,
                         d_B, lddb, lddb*nrhs,
                         dinfo_array, device_work, lwork,
                         batchCount, opts.queue);
