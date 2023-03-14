@@ -93,6 +93,19 @@
                   singular, and division by zero will occur if it is used
                   to solve a system of equations.
 
+    @param[in,out]
+    device_work  Workspace, allocated on device memory
+
+    @param[in,out]
+    lwork        INTEGER pointer
+                 The size of the workspace (device_work) in bytes
+                 - lwork[0] < 0: a workspace query is assumed, the routine
+                   calculates the required amount of workspace and returns
+                   it in lwork. The workspace is not referenced, and no
+                   factorization is performed.
+                -  lwork[0] >= 0: the routine assumes that the user has provided
+                   a workspace with the size in lwork.
+
     @param[in]
     batchCount  INTEGER
                 The number of matrices to operate on.
