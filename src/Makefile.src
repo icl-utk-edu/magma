@@ -74,6 +74,7 @@ libmagma_src += \
 	$(cdir)/zgetrf2_mgpu.cpp	\
 	$(cdir)/zgerbt_gpu.cpp		\
 	\
+	$(cdir)/zgbsv_gpu.cpp		\
 	$(cdir)/zgbtrf_gpu.cpp		\
 
 

@@ -97,6 +97,28 @@ magma_zirange(
 #endif  // MAGMA_REAL
 
 // ---------------------------------------------------------------- zgb routines
+magma_int_t
+magma_zgbsv_native(
+        magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
+        magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* dipiv,
+        magmaDoubleComplex* dB, magma_int_t lddb,
+        magma_int_t *info);
+
+void
+magma_zgbsv_native_work(
+        magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
+        magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* dipiv,
+        magmaDoubleComplex* dB, magma_int_t lddb,
+        magma_int_t *info, void* device_work, magma_int_t* lwork,
+        magma_queue_t queue);
+
+magma_int_t
+magma_zgbtrf_native(
+    magma_int_t m, magma_int_t n,
+    magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex* dAB, magma_int_t lddab, magma_int_t* dipiv,
+    magma_int_t *info);
+
 void
 magma_zgbtrf_native_work(
     magma_int_t m, magma_int_t n,
@@ -105,13 +127,6 @@ magma_zgbtrf_native_work(
     magma_int_t* dipiv, magma_int_t *info,
     void* device_work, magma_int_t* lwork,
     magma_queue_t queue);
-
-magma_int_t
-magma_zgbtrf_native(
-    magma_int_t m, magma_int_t n,
-    magma_int_t kl, magma_int_t ku,
-    magmaDoubleComplex* dAB, magma_int_t lddab, magma_int_t* dipiv,
-    magma_int_t *info);
 
 // ---------------------------------------------------------------- zgb routines
 magma_int_t
