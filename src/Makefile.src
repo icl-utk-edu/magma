@@ -73,6 +73,9 @@ libmagma_src += \
 	$(cdir)/zgetrf_mgpu.cpp		\
 	$(cdir)/zgetrf2_mgpu.cpp	\
 	$(cdir)/zgerbt_gpu.cpp		\
+	\
+	$(cdir)/zgbtrf_gpu.cpp		\
+
 
 # LU, CPU interface
 libmagma_src += \

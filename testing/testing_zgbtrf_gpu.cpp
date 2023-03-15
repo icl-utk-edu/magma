@@ -56,6 +56,7 @@ double get_band_LU_error(
     memset( U,  0, min_mn*N*sizeof(magmaDoubleComplex) );
 
     // recover A in dense form, account for extra KL super-diagonals
+    #pragma omp parallel for
     for(j = 0; j < N; j++) {
         int col_start      = max(0, j-KU);
         int col_end        = min(j+KL,M-1);
@@ -67,6 +68,7 @@ double get_band_LU_error(
 
     // recover LU in dense form
     magma_int_t KV = KL + KU;
+    #pragma omp parallel for
     for(j = 0; j < N; j++) {
         magma_int_t col_start      = max(0, j-KV);
         magma_int_t col_end        = min(j+KL,M-1);
@@ -95,6 +97,7 @@ double get_band_LU_error(
     blasf77_zgemm("N", "N", &M, &N, &min_mn,
                   &alpha, L, &M, U, &min_mn, &beta, LU, &M);
 
+    #pragma omp parallel for
     for( j = 0; j < N; j++ ) {
         for( i = 0; i < M; i++ ) {
             LU[i+j*M] = MAGMA_Z_SUB( LU[i+j*M], A[i+j*M] );
@@ -127,25 +130,21 @@ int main( int argc, char** argv)
     double          error;
     magmaDoubleComplex *h_A, *h_R, *h_Amagma;
     magmaDoubleComplex *dA;
-    magmaDoubleComplex **dA_array = NULL;
 
-    magma_int_t     **dipiv_array = NULL;
     magma_int_t     *ipiv;
     magma_int_t     *dipiv_magma, *dinfo_magma;
 
     magma_int_t M, N, Mband, Nband, KL, KU, n2, ldab, lddab, min_mn, info = 0;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
-    magma_int_t batchCount;
     int status = 0;
 
     magma_opts opts;
     opts.parse_opts( argc, argv );
     double tol = opts.tolerance * lapackf77_dlamch("E");
 
-    KL         = opts.kl;
-    KU         = opts.ku;
-    magma_int_t columns;
+    KL = opts.kl;
+    KU = opts.ku;
 
     printf("%% ## INFO ##: Gflop/s calculation is not available\n");
     printf("%% Lower bandwidth (KL) = %lld\n", (long long)KL);
@@ -184,11 +183,17 @@ int main( int argc, char** argv)
             magma_zsetmatrix( Mband, Nband, h_R, ldab, dA, lddab, opts.queue );
 
             magma_time = magma_sync_wtime( opts.queue );
+            #if 0
             info = magma_zgbtrf_batched_strided(
                     M, N, KL, KU,
                     dA, lddab, lddab*Nband,
                     dipiv_magma, min_mn,
                     dinfo_magma, 1, opts.queue);
+            #else
+            magma_zgbtrf_native(
+                    M, N,KL, KU,
+                    dA, lddab, dipiv_magma, &info);
+            #endif
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
             magma_zgetmatrix( Mband, Nband, dA, lddab, h_Amagma, ldab, opts.queue );
