@@ -28,8 +28,6 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (N <= 32 && batchCount == 1)
-
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zgesv_batched
 */
@@ -109,31 +107,31 @@ int main(int argc, char **argv)
                     d_B, lddb, &info);
                 gpu_time = magma_wtime() - gpu_time;
             }
-            else if(opts.version == 2) {
+            else {
                 // async. interface
 
                 // query wrokspace
-                magma_int_t lwork = {-1};
+                magma_int_t lwork[1] = {-1};
                 magma_zgbsv_native_work(
                     N, KL, KU, nrhs,
                     NULL, ldda, NULL,
-                    NULL, lddb, info, NULL, lwork, opts.queue);
+                    NULL, lddb, &info, NULL, lwork, opts.queue);
 
                 void* device_work = NULL;
                 TESTING_CHECK( magma_malloc(&device_work, lwork[0]) );
 
+                // time async. call only
                 gpu_time = magma_sync_wtime( opts.queue );
                 magma_zgbsv_native_work(
                     N, KL, KU, nrhs,
                     d_A, ldda, dipiv,
-                    d_B, lddb, info, device_work, lwork, opts.queue);
+                    d_B, lddb, &info, device_work, lwork, opts.queue);
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
 
                 magma_free( device_work );
             }
             gpu_perf = gflops / gpu_time;
 
-            // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
             if (info != 0) {
                 printf("magma_zgbsv_gpu returned error %lld: %s.\n",
                         (long long) info, magma_strerror( info ));
@@ -142,7 +140,7 @@ int main(int argc, char **argv)
             //=====================================================================
             // Residual
             //=====================================================================
-            magma_zgetmatrix( N, nrhs*batchCount, d_B, lddb, h_X, ldb, opts.queue );
+            magma_zgetmatrix( N, nrhs, d_B, lddb, h_X, ldb, opts.queue );
 
             error = 0;
             Anorm = lapackf77_zlangb("I", &N, &KL, &KU, h_A, &lda, work);
@@ -150,9 +148,9 @@ int main(int argc, char **argv)
 
             for(magma_int_t j = 0; j < nrhs; j++) {
                 blasf77_zgbmv( MagmaNoTransStr, &N, &N, &KL, &KU,
-                               &c_one, h_A           , &lda,
-                                       h_X  + j * ldb, &ione,
-                           &c_neg_one, h_B  + j * ldb, &ione);
+                               &c_one, h_A + KL     , &lda,
+                                       h_X + j * ldb, &ione,
+                           &c_neg_one, h_B + j * ldb, &ione);
             }
 
             Rnorm = lapackf77_zlange("I", &N, &nrhs, h_B, &ldb, work);
@@ -173,7 +171,7 @@ int main(int argc, char **argv)
 
                 if (info != 0) {
                     printf("lapackf77_zgesv returned error %lld: %s.\n",
-                            (long long) s, (long long)info, magma_strerror( info ));
+                            (long long)info, magma_strerror( info ));
                 }
                 printf( "%5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %s\n",
                         (long long) N, (long long) nrhs,
