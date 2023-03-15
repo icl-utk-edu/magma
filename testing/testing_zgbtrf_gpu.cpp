@@ -182,19 +182,35 @@ int main( int argc, char** argv)
                =================================================================== */
             magma_zsetmatrix( Mband, Nband, h_R, ldab, dA, lddab, opts.queue );
 
-            magma_time = magma_sync_wtime( opts.queue );
-            #if 0
-            info = magma_zgbtrf_batched_strided(
-                    M, N, KL, KU,
-                    dA, lddab, lddab*Nband,
-                    dipiv_magma, min_mn,
-                    dinfo_magma, 1, opts.queue);
-            #else
-            magma_zgbtrf_native(
+            if(opts.version == 1) {
+                // sync. interface
+                magma_time = magma_wtime();
+                magma_zgbtrf_native(
                     M, N,KL, KU,
                     dA, lddab, dipiv_magma, &info);
-            #endif
-            magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+                magma_time = magma_wtime() - magma_time;
+            }
+            else{
+                // async. interface
+                // query workspace first
+                magma_int_t lwork[1] = {-1};
+                magma_zgbtrf_native_work(
+                    M, N, KL, KU,
+                    NULL, lddab,
+                    NULL, &info,
+                    NULL, lwork, opts.queue);
+
+                void* device_work = NULL;
+                TESTING_CHECK( magma_malloc(&device_work, lwork[0]) );
+
+                // time the async call only
+                magma_time = magma_sync_wtime( opts.queue );
+                magma_zgbtrf_native_work(
+                    M, N, KL, KU,
+                    dA, lddab, dipiv_magma, &info,
+                    device_work, lwork, opts.queue);
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+            }
             magma_perf = gflops / magma_time;
             magma_zgetmatrix( Mband, Nband, dA, lddab, h_Amagma, ldab, opts.queue );
 

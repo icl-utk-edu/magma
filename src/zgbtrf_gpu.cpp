@@ -64,7 +64,7 @@ magma_zgbtrf_native_work(
         return;
     }
 
-    magma_int_t* device_info = (magma_int_t*)(device_work + gbtrf_batch_lwork[0]);
+    magma_int_t* device_info = (magma_int_t*)((uint8_t*)device_work + gbtrf_batch_lwork[0]);
     magma_zgbtrf_batched_strided_work(
         m, n, kl, ku,
         dAB, lddab, lddab*n,
@@ -74,7 +74,7 @@ magma_zgbtrf_native_work(
         1, queue);
 
     // copy device_info to info
-    magma_igetvector( 1, device_info, 1, info, 1, queues[0] );
+    magma_igetvector( 1, device_info, 1, info, 1, queue );
 
     return;
 }
@@ -117,19 +117,17 @@ magma_zgbtrf_native(
     // query workspace
     magma_zgbtrf_native_work(
         m, n, kl, ku,
-        NULL, lddab,
-        NULL,
-        NULL, NULL, lwork,
+        NULL, lddab, NULL,
+        info, NULL, lwork,
         queue);
 
     void* device_work = NULL;
     magma_malloc((void**)&device_work, lwork[0]);
 
-    // call generic implementation
     magma_zgbtrf_native_work(
         m, n, kl, ku,
         dAB, lddab,
-        dipiv, info_array,
+        dipiv, info,
         device_work, lwork,
         queue);
 
