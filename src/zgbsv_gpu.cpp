@@ -24,22 +24,24 @@ magma_zgbsv_native_work(
     magma_int_t kv    = kl + ku;
 
     if ( n < 0 )
-        arginfo = -1;
+        *info = -1;
     else if ( kl < 0 )
-        arginfo = -2;
+        *info = -2;
     else if ( ku < 0 )
-        arginfo = -3;
+        *info = -3;
     else if (nrhs < 0)
-        arginfo = -4;
+        *info = -4;
     else if ( ldda < (kl+kv+1) )
-        arginfo = -6;
+        *info = -6;
     else if ( lddb < n)
-        arginfo = -9;
+        *info = -9;
 
     if (*info != 0) {
         magma_xerbla( __func__, -(*info) );
         return;
     }
+
+    if( n == 0 ) return;
 
     // calculate the required workspace
     // [1] workspace of batched-strided gbsv
@@ -89,17 +91,17 @@ magma_zgbsv_native(
     magma_int_t kv    = kl + ku;
 
     if ( n < 0 )
-        arginfo = -1;
+        *info = -1;
     else if ( kl < 0 )
-        arginfo = -2;
+        *info = -2;
     else if ( ku < 0 )
-        arginfo = -3;
+        *info = -3;
     else if (nrhs < 0)
-        arginfo = -4;
+        *info = -4;
     else if ( ldda < (kl+kv+1) )
-        arginfo = -6;
+        *info = -6;
     else if ( lddb < n)
-        arginfo = -9;
+        *info = -9;
 
     if (*info != 0) {
         magma_xerbla( __func__, -(*info) );
@@ -112,7 +114,7 @@ magma_zgbsv_native(
     magma_queue_t queue;
     magma_queue_create( cdev, &queue );
 
-    if( m == 0 || n == 0 ) return 0;
+    if( n == 0 ) return 0;
 
     magma_int_t lwork[1] = {-1};
 

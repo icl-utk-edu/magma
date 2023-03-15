@@ -107,6 +107,7 @@ testing_src += \
 	\
 	$(cdir)/testing_zgetrf_mgpu.cpp	\
 	\
+	$(cdir)/testing_zgbsv_gpu.cpp	\
 	$(cdir)/testing_zgbtrf_gpu.cpp	\
 
 # LU, CPU interface
