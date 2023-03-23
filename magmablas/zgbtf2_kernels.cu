@@ -199,7 +199,8 @@ void zgbtf2_native_kernel(
     const int mband  = kv + 1 + kl;
 
     int linfo = (gbstep == 0) ? 0 : *dinfo;
-    int swap_length = 0, local_ju = 0;
+    int swap_length = 0, local_ju = 0, jp = 0;
+    double rx_abs_max = 0;
     magmaDoubleComplex tmp = MAGMA_Z_ZERO, reg = MAGMA_Z_ZERO;
 
     // setup shared memory
@@ -232,8 +233,8 @@ void zgbtf2_native_kernel(
             }
             __syncthreads();
 
-            double rx_abs_max = sX[0];
-            int    jp         = 0;
+            rx_abs_max = sX[0];
+            jp = 0;
             for(int i = 1; i < km; i++) {
                 if( sX[i] > rx_abs_max ) {
                     rx_abs_max = sX[i];
@@ -257,7 +258,7 @@ void zgbtf2_native_kernel(
             linfo = (int)(*dinfo);
         }
         local_ju = max(local_ju, min(gbstep+j+ku+jp, n-1));
-        swap_len = local_ju - (j+gbstep) + 1;
+        //swap_length = local_ju - (j+gbstep) + 1;
         __syncthreads();
 
         // swap
@@ -291,7 +292,7 @@ void zgbtf2_native_kernel(
         if(bx > j) {
             int j1 = (kv + 0) - (bx-j);
             for(int i = tx; i < km-1; i+=ntx) {
-                sA[j1+1+i] -= sA[j1] * dA(kv+1+i,j)
+                sA[j1+1+i] -= sA[j1] * dA(kv+1+i,j);
             }
             __syncthreads();
         }
@@ -327,7 +328,7 @@ magma_zgbtf2_native_work(
         *info = -3;
     else if ( ku < 0 )
         *info = -4;
-    else if ( lddab < mband )
+    else if ( ldda < mband )
         *info = -6;
 
     // calculate workspace required
@@ -342,7 +343,7 @@ magma_zgbtf2_native_work(
     }
 
     if(*lwork < lwork_required) {
-        info = -11;
+        *info = -11;
     }
 
     if (*info != 0) {
@@ -355,11 +356,11 @@ magma_zgbtf2_native_work(
     magma_int_t nblocks  = n;
 
     // device pointers
-    magma_int_t *ju    = (magma_int_t)device_work;
+    magma_int_t *ju    = (magma_int_t*)device_work;
     magma_int_t *dinfo = ju + 1;
 
     magma_int_t shmem = 0;
-    shmem += mband  * sizeof(magmaDoublecomplex);
+    shmem += mband  * sizeof(magmaDoubleComplex);
     shmem += (kl+1) * sizeof(double);
 
     dim3 threads(nthreads, 1, 1);
@@ -367,8 +368,8 @@ magma_zgbtf2_native_work(
 
 
     void *kernel_args[] = {&m, &n, &kl, &ku, &dA, &ldda, &ipiv, &ju, &gbstep, &dinfo};
-    cudaError_t e cudaLaunchCooperativeKernel(zgbtf2_native_kernel, grid, threads, void** args, shmem, queue->cuda_stream());
-    magma_igetvector_async( 1, device_info, 1, info, 1, queue );
+    cudaError_t e = cudaLaunchCooperativeKernel(zgbtf2_native_kernel, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    magma_igetvector_async( 1, dinfo, 1, info, 1, queue );
 
     return *info;
 }
@@ -377,7 +378,7 @@ extern "C"
 magma_int_t
 magma_zgbtf2_native(
     magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
-    magmaDoubleComplex* *dA, magma_int_t ldda, magma_int_t* ipiv,
+    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
     magma_int_t* info, magma_queue_t queue)
 {
     magma_int_t kv    = kl + ku;
@@ -392,7 +393,7 @@ magma_zgbtf2_native(
         *info = -3;
     else if ( ku < 0 )
         *info = -4;
-    else if ( lddab < mband )
+    else if ( ldda < mband )
         *info = -6;
 
     if (*info != 0) {
