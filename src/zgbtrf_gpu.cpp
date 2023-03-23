@@ -74,7 +74,7 @@ magma_zgbtrf_native_work(
         1, queue);
 
     // copy device_info to info
-    magma_igetvector( 1, device_info, 1, info, 1, queue );
+    magma_igetvector_async( 1, device_info, 1, info, 1, queue );
 
     return;
 }
@@ -130,6 +130,7 @@ magma_zgbtrf_native(
         dipiv, info,
         device_work, lwork,
         queue);
+    magma_queue_sync( queue );
 
     magma_free(device_work);
     magma_queue_destroy( queue );
