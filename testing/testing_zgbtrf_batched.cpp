@@ -259,7 +259,14 @@ int main( int argc, char** argv)
                         batchCount, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
                 magma_free( device_work );
-
+            }
+            else if(opts.version == 5) {
+                magma_time = magma_sync_wtime( opts.queue );
+                info = magma_zgbtrf_batched_sliding_window_v2(
+                        M,  N, KL, KU,
+                        dA_array, lddab, dipiv_magma,
+                        dinfo_magma, batchCount, opts.queue );
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
 
             magma_perf = gflops / magma_time;
