@@ -249,6 +249,10 @@ void zgbtf2_native_kernel(
                 *dinfo   = (magma_int_t)linfo;
             }
             __threadfence();
+
+            #ifdef DBG
+            printf("[%d]: found pivot = %f @ %d -- linfo = %d\n", bx, rx_abs_max, jp, linfo);
+            #endif
         }
         grid.sync();
 
@@ -256,6 +260,9 @@ void zgbtf2_native_kernel(
         if(bx >= j) {
             jp    = ipiv[j] - j - 1;
             linfo = (int)(*dinfo);
+            #ifdef DBG
+            printf("[%d]: jp = %d -- linfo = %d\n", bx, jp, linfo);
+            #endif
         }
         local_ju = max(local_ju, min(gbstep+j+ku+jp, n-1));
         //swap_length = local_ju - (j+gbstep) + 1;
@@ -281,17 +288,20 @@ void zgbtf2_native_kernel(
             }
             __syncthreads();
 
-            for(int i = tx; i < km; i+=ntx) {
-                dA(kv+i,j) = sA[kv+i];
+            for(int i = tx; i < mband; i+=ntx) {
+                dA(i,j) = sA[i];
             }
             __threadfence();
         }
         grid.sync();
 
         // ger
-        if(bx > j) {
+        if(bx > j && bx <= local_ju) {
             int j1 = (kv + 0) - (bx-j);
             for(int i = tx; i < km-1; i+=ntx) {
+                #ifdef DBG
+                printf("[%d]: j = %d, sA[%d] -= sA[%d] * dA(%d,%d)\n", bx, j, j1+1+i, j1, kv+1+i,j);
+                #endif
                 sA[j1+1+i] -= sA[j1] * dA(kv+1+i,j);
             }
             __syncthreads();
@@ -352,7 +362,7 @@ magma_zgbtf2_native_work(
     }
 
     magma_int_t gbstep   = 0;
-    magma_int_t nthreads = 1;
+    magma_int_t nthreads = kv+1;
     magma_int_t nblocks  = n;
 
     // device pointers
@@ -368,12 +378,13 @@ magma_zgbtf2_native_work(
 
 
     void *kernel_args[] = {&m, &n, &kl, &ku, &dA, &ldda, &ipiv, &ju, &gbstep, &dinfo};
-    cudaError_t e = cudaLaunchCooperativeKernel(zgbtf2_native_kernel, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    cudaError_t e = cudaLaunchCooperativeKernel((void*)zgbtf2_native_kernel, grid, threads, kernel_args, shmem, queue->cuda_stream());
     magma_igetvector_async( 1, dinfo, 1, info, 1, queue );
 
     return *info;
 }
 
+/******************************************************************************/
 extern "C"
 magma_int_t
 magma_zgbtf2_native(
