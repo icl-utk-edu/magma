@@ -27,6 +27,8 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
+#define cond (M == 8 && N == 8)
+
 double get_band_LU_error(
             magma_int_t M, magma_int_t N,
             magma_int_t KL, magma_int_t KU,
@@ -149,7 +151,7 @@ int main( int argc, char** argv)
     printf("%% ## INFO ##: Gflop/s calculation is not available\n");
     printf("%% Lower bandwidth (KL) = %lld\n", (long long)KL);
     printf("%% Upper bandwidth (KU) = %lld\n", (long long)KU);
-    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
+    printf("%% M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
     printf("%%=======================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -182,6 +184,8 @@ int main( int argc, char** argv)
                =================================================================== */
             magma_zsetmatrix( Mband, Nband, h_R, ldab, dA, lddab, opts.queue );
 
+            if(cond) magma_zprint_gpu(Mband, N, dA, lddab, opts.queue);
+
             if(opts.version == 1) {
                 // sync. interface
                 magma_time = magma_wtime();
@@ -190,7 +194,7 @@ int main( int argc, char** argv)
                     M, N, KL, KU,
                     dA, lddab, dipiv_magma, &info);
                 #else
-                magma_zgbtf2_native(M, N, KL, KU, dA, ldda, dipiv_magma, &info, opts.queue);
+                magma_zgbtf2_native(M, N, KL, KU, dA, lddab, dipiv_magma, &info, opts.queue);
                 #endif
                 magma_time = magma_wtime() - magma_time;
             }
@@ -217,6 +221,8 @@ int main( int argc, char** argv)
             }
             magma_perf = gflops / magma_time;
             magma_zgetmatrix( Mband, Nband, dA, lddab, h_Amagma, ldab, opts.queue );
+
+            if(cond) magma_zprint_gpu(Mband, N, dA, lddab, opts.queue);
 
             if (info != 0) {
                 printf("magma_zgbtrf_gpu returned internal error %lld: %s.\n",
