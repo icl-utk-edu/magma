@@ -153,21 +153,9 @@ magma_zgbtrf_batched_work(
     magma_int_t ntcol = 1;
     magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
 
-    // calculate required workspace
-    // first calculate workspace for sliding window kernel
-    magma_int_t lwork_sliding_window[1] = {-1};
-    magma_zgbtrf_batched_sliding_window_work(
-        m, n, kl, ku,
-        NULL, lddab, NULL, NULL,
-        nb, nthreads, NULL, lwork_sliding_window,
-        batchCount, queue );
-
     // calculate workspace for generic implementation
     magma_int_t lwork_bytes = 0;
     lwork_bytes += batchCount * sizeof(int); // no need for magma_int_t here
-
-    // get max of two lworks
-    lwork_bytes = max(lwork_bytes, lwork_sliding_window[0]);
 
     if( *lwork < 0) {
         *lwork = lwork_bytes;
@@ -194,11 +182,9 @@ magma_zgbtrf_batched_work(
 
     // try the sliding window implementation
     magma_int_t info_sliding_window = 0;
-    info_sliding_window = magma_zgbtrf_batched_sliding_window_work(
+    info_sliding_window = magma_zgbtrf_batched_sliding_window_loopin(
                             m, n, kl, ku,
                             dAB_array, lddab, dipiv_array, info_array,
-                            nb, nthreads,
-                            device_work, lwork,
                             batchCount, queue );
     if(info_sliding_window == 0) return arginfo;
 

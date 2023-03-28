@@ -27,6 +27,8 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
+#define cond (batchCount == 1 && M == 34 && N == 34 && KL == 10 && KU == 7)
+
 double get_band_LU_error(
             magma_int_t M, magma_int_t N,
             magma_int_t KL, magma_int_t KU,
@@ -192,6 +194,9 @@ int main( int argc, char** argv)
             magma_zset_pointer( dA_array, dA, lddab, 0, 0, lddab*Nband, batchCount, opts.queue );
             magma_iset_pointer( dipiv_array, dipiv_magma, 1, 0, 0, min_mn, batchCount, opts.queue );
 
+            if(cond)
+                magma_zprint_gpu(Mband, N, dA, lddab, opts.queue);
+
             if(opts.version == 1) {
                 // top-level API accepting ptr arrays
                 magma_time = magma_sync_wtime( opts.queue );
@@ -262,12 +267,15 @@ int main( int argc, char** argv)
             }
             else if(opts.version == 5) {
                 magma_time = magma_sync_wtime( opts.queue );
-                info = magma_zgbtrf_batched_sliding_window_v2(
+                info = magma_zgbtrf_batched_sliding_window_loopin(
                         M,  N, KL, KU,
-                        dA_array, lddab, dipiv_magma,
+                        dA_array, lddab, dipiv_array,
                         dinfo_magma, batchCount, opts.queue );
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
+
+            if(cond)
+                magma_zprint_gpu(Mband, N, dA, lddab, opts.queue);
 
             magma_perf = gflops / magma_time;
             magma_zgetmatrix( Mband, Nband*batchCount, dA, lddab, h_Amagma, ldab, opts.queue );

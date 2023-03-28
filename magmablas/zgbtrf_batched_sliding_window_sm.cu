@@ -19,9 +19,6 @@
 // the switch case that causes compilation failure
 #define PRECISION_z
 
-#define SLIDING_WINDOW_V1    // multiple calls, redundant memory traffic
-//#define SLIDING_WINDOW_V2    // single call, optimal memory traffic
-
 
 #ifdef MAGMA_HAVE_HIP
 #define NTCOL(M)        (max(1,64/(M)))
@@ -97,7 +94,7 @@ write_sAB_columns(
 {
     const int tpg    = min(ntx, mband);
     const int groups = max(1, ntx / mband);
-    const int active = max(ntx, groups * mband);
+    const int active = min(ntx, groups * tpg);
     const int tx_    = tx % mband;
     const int ty_    = tx / mband;
 
@@ -114,7 +111,7 @@ write_sAB_columns(
 template<int NTX>
 __global__ __launch_bounds__(NTX)
 void
-zgbtrf_batched_sliding_window_kernel_sm(
+zgbtrf_batched_sliding_window_loopout_kernel_sm(
     magma_int_t m, magma_int_t nb, magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, int ABi, int ABj, int lddab,
@@ -270,7 +267,7 @@ zgbtrf_batched_sliding_window_kernel_sm(
 template<int NTX>
 __global__ __launch_bounds__(NTX)
 void
-zgbtrf_batched_sliding_window_kernel_sm_v2(
+zgbtrf_batched_sliding_window_loopin_kernel_sm(
     magma_int_t m, magma_int_t nb, magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, int lddab,
@@ -284,7 +281,7 @@ zgbtrf_batched_sliding_window_kernel_sm_v2(
     const int batchid = blockIdx.x * blockDim.y + ty;
     if(batchid >= batchCount) return;
 
-    const int minmn   = min(m,nb);
+    const int minmn   = min(m,n);
     const int kv      = kl + ku;
     const int mband   = (kl + 1 + kv);
     const int sldab   = SLDAB(mband);
@@ -306,7 +303,7 @@ zgbtrf_batched_sliding_window_kernel_sm_v2(
     dsx   += ty * (kl+1);
     sipiv += ty * minmn;
 
-    magmaDoubleComplex *sABtmp = &sAB;
+    magmaDoubleComplex *sABtmp = sAB;
     int last_column_read = 0;
     int cached_columns   = 0;   // number of columns cached from previous iteration
 
@@ -412,33 +409,45 @@ zgbtrf_batched_sliding_window_kernel_sm_v2(
         cached_columns -= ib;
 
         // write pivot
-        for(int i = tx; i < minmn; i+=ntx) {
+        for(int i = tx; i < ib; i+=ntx) {
             ipiv[gbj+i] = (magma_int_t)sipiv[i];
         }
         __syncthreads();
 
         // shift the remaining columns to the left
+        // then zero-out the rest of the columns
         {
             const int tpg    = min(ntx, mband);
             const int groups = max(1, ntx / mband);
-            const int active = max(ntx, groups * mband);
+            const int active = min(ntx, groups * tpg);
             const int tx_    = tx % mband;
             const int ty_    = tx / mband;
 
             magmaDoubleComplex tmp = MAGMA_Z_ZERO;
             for(int j = 0; j < cached_columns; j+=groups) {
                 for(int i=0; i < mband; i+=tpg) {
-                    if(tx < active) {
-                        tmp = sAB(i+tx, ib+j+ty_)
+                    int src_j = ib+j+ty_;
+                    if(tx < active && src_j < nn) {
+                        tmp = sAB(i+tx_, ib+j+ty_);
                     }
                     __syncthreads();
 
-                    if(tx < active) {
-                        sAB(i+tx, j+ty) = tmp;
+                    if(tx < active && src_j < nn) {
+                        sAB(i+tx_, j+ty_) = tmp;
                     }
                     __syncthreads();
                 }
             }
+
+            // zero out the rest of the columns
+            if(tx < active) {
+                for(int j = ty_+cached_columns; j < nn; j+=groups) {
+                    for(int i=tx_; i < mband; i+=tpg) {
+                        sAB(i,j) = MAGMA_Z_ZERO;
+                    }
+                }
+            }
+            __syncthreads();
         }
         // end of the shift
 
@@ -454,7 +463,7 @@ zgbtrf_batched_sliding_window_kernel_sm_v2(
 ////////////////////////////////////////////////////////////////////////////////
 template<int NTX>
 static magma_int_t
-magma_zgbtrf_batched_sliding_window_sm_kernel_driver(
+magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver(
     magma_int_t m,  magma_int_t nb, magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t abi, magma_int_t abj, magma_int_t lddab,
@@ -494,7 +503,7 @@ magma_zgbtrf_batched_sliding_window_sm_kernel_driver(
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
     if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zgbtrf_batched_sliding_window_kernel_sm<NTX>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+        cudaFuncSetAttribute(zgbtrf_batched_sliding_window_loopout_kernel_sm<NTX>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
     #else
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
@@ -509,7 +518,7 @@ magma_zgbtrf_batched_sliding_window_sm_kernel_driver(
     }
 
     void *kernel_args[] = {&m, &nb, &n, &kl, &ku, &dAB_array, &abi, &abj, &lddab, &ipiv_array, &ju_array, &info_array, &batchCount};
-    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_sliding_window_kernel_sm<NTX>, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_sliding_window_loopout_kernel_sm<NTX>, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
         //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         arginfo = -100;
@@ -521,7 +530,7 @@ magma_zgbtrf_batched_sliding_window_sm_kernel_driver(
 ////////////////////////////////////////////////////////////////////////////////
 template<int NTX>
 static magma_int_t
-magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2(
+magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver(
     magma_int_t m,  magma_int_t nb, magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,
@@ -561,7 +570,7 @@ magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2(
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
     if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zgbtrf_batched_sliding_window_kernel_sm_v2<NTX>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+        cudaFuncSetAttribute(zgbtrf_batched_sliding_window_loopin_kernel_sm<NTX>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
     #else
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
@@ -576,7 +585,7 @@ magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2(
     }
 
     void *kernel_args[] = {&m, &nb, &n, &kl, &ku, &dAB_array, &lddab, &ipiv_array, &info_array, &batchCount};
-    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_sliding_window_kernel_sm_v2<NTX>, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    cudaError_t e = cudaLaunchKernel((void*)zgbtrf_batched_sliding_window_loopin_kernel_sm<NTX>, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
         //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         arginfo = -100;
@@ -587,7 +596,7 @@ magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2(
 
 ////////////////////////////////////////////////////////////////////////////////
 static magma_int_t
-magma_zgbtrf_batched_sliding_window_sm_kernel_instantiator(
+magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_instantiator(
     magma_int_t m,  magma_int_t nb, magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t abi, magma_int_t abj, magma_int_t lddab,
@@ -598,51 +607,158 @@ magma_zgbtrf_batched_sliding_window_sm_kernel_instantiator(
     magma_int_t arginfo = 0;
     magma_int_t nthreads32 = magma_roundup(nthreads, 32);
     switch(nthreads32) {
-        case   32: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver<  32>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case   64: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver<  64>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case   96: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver<  96>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  128: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 128>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  160: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 160>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  192: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 192>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  224: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 224>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  256: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 256>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  288: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 288>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  320: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 320>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  352: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 352>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  384: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 384>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  416: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 416>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  448: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 448>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  480: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 480>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  512: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 512>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  544: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 544>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  576: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 576>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  608: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 608>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  640: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 640>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  672: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 672>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  704: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 704>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  736: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 736>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  768: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 768>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  800: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 800>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  832: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 832>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  864: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 864>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  896: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 896>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  928: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 928>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  960: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 960>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case  992: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver< 992>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
-        case 1024: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver<1024>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case   32: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver<  32>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case   64: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver<  64>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case   96: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver<  96>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  128: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 128>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  160: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 160>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  192: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 192>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  224: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 224>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  256: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 256>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  288: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 288>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  320: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 320>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  352: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 352>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  384: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 384>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  416: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 416>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  448: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 448>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  480: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 480>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  512: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 512>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  544: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 544>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  576: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 576>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  608: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 608>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  640: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 640>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  672: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 672>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  704: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 704>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  736: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 736>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  768: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 768>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  800: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 800>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  832: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 832>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  864: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 864>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  896: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 896>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  928: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 928>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  960: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 960>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case  992: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver< 992>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
+        case 1024: arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver<1024>(m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array, info_array, nthreads, ntcol, ju_array, batchCount, queue ); break;
         default: arginfo = -100;
     }
     return arginfo;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+/***************************************************************************//**
+    Purpose
+    -------
+    ZGBTRF computes an LU factorization of a COMPLEX m-by-n band matrix A
+    using partial pivoting with row interchanges.
+
+    This is the batched version of the algorithm, which performs the factorization
+    on a batch of matrices with the same size and lower/upper bandwidths.
+
+    This routine has shared memory requirements that may exceed the capacity of
+    the GPU. In such a case, the routine exits immediately, returning a negative
+    error code.
+
+    Arguments
+    ---------
+    @param[in]
+    M     INTEGER
+          The number of rows of the matrix A.  M >= 0.
+
+    @param[in]
+    N     INTEGER
+          The number of columns of the matrix A.  N >= 0.
+
+    @param[in]
+    KL    INTEGER
+          The number of subdiagonals within the band of A.  KL >= 0.
+
+    @param[in]
+    KU    INTEGER
+          The number of superdiagonals within the band of A.  KU >= 0.
+
+    @param[in,out]
+    dAB_array    Array of pointers, dimension (batchCount).
+          Each is a COMPLEX_16 array, dimension (LDDAB,N)
+          On entry, the matrix AB in band storage, in rows KL+1 to
+          2*KL+KU+1; rows 1 to KL of the array need not be set.
+          The j-th column of A is stored in the j-th column of the
+          array AB as follows:
+          AB(kl+ku+1+i-j,j) = A(i,j) for max(1,j-ku)<=i<=min(m,j+kl)
+
+          On exit, details of the factorization: U is stored as an
+          upper triangular band matrix with KL+KU superdiagonals in
+          rows 1 to KL+KU+1, and the multipliers used during the
+          factorization are stored in rows KL+KU+2 to 2*KL+KU+1.
+          See below for further details.
+
+    @param[in]
+    LDDAB INTEGER
+          The leading dimension of the array AB.  LDAB >= 2*KL+KU+1.
+
+    @param[out]
+    dIPIV_array    Array of pointers, dimension (batchCount).
+          Each is an INTEGER array, dimension (min(M,N))
+          The pivot indices; for 1 <= i <= min(M,N), row i of the
+          matrix was interchanged with row IPIV(i).
+
+    @param[out]
+    dINFO_array    INTEGER array, dimension (batchCount)
+          Each is the INFO output for a given matrix
+          = 0: successful exit
+          < 0: if INFO = -i, the i-th argument had an illegal value
+          > 0: if INFO = +i, U(i,i) is exactly zero. The factorization
+               has been completed, but the factor U is exactly
+               singular, and division by zero will occur if it is used
+               to solve a system of equations.
+
+    @param[in,out]
+    device_work  Workspace, allocated on device memory by the user
+
+    @param[in,out]
+    lwork        INTEGER pointer
+                 The size of the workspace (device_work) in bytes
+                 - lwork[0] < 0: a workspace query is assumed, the routine
+                   calculates the required amount of workspace and returns
+                   it in lwork. The workspace is not referenced, and no
+                   computation is performed.
+                -  lwork[0] >= 0: the routine assumes that the user has provided
+                   a workspace with the size in lwork.
+
+    @param[in]
+    batchCount  INTEGER
+                The number of matrices to operate on.
+
+    @param[in]
+    queue   magma_queue_t
+            Queue to execute in.
+
+  Further Details
+  ===============
+
+  The band storage scheme is illustrated by the following example, when
+  M = N = 6, KL = 2, KU = 1:
+
+  On entry:                       On exit:
+
+      *    *    *    +    +    +       *    *    *   u14  u25  u36
+      *    *    +    +    +    +       *    *   u13  u24  u35  u46
+      *   a12  a23  a34  a45  a56      *   u12  u23  u34  u45  u56
+     a11  a22  a33  a44  a55  a66     u11  u22  u33  u44  u55  u66
+     a21  a32  a43  a54  a65   *      m21  m32  m43  m54  m65   *
+     a31  a42  a53  a64   *    *      m31  m42  m53  m64   *    *
+
+  Array elements marked * are not used by the routine; elements marked
+  + need not be set on entry, but are required by the routine to store
+  elements of U because of fill-in resulting from the row interchanges.
+
+
+    @ingroup magma_getrf_batched
+*******************************************************************************/
 extern "C" magma_int_t
-magma_zgbtrf_batched_sliding_window_work(
+magma_zgbtrf_batched_sliding_window_loopout(
     magma_int_t m,  magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,
     magma_int_t** ipiv_array, magma_int_t* info_array,
-    magma_int_t nb, magma_int_t nthreads,
     void* device_work, magma_int_t *lwork,
     magma_int_t batchCount, magma_queue_t queue )
 {
@@ -666,7 +782,11 @@ magma_zgbtrf_batched_sliding_window_work(
     }
 
     if( m == 0 || n == 0 || batchCount == 0) return 0;
-    magma_int_t ntcol = 1;
+
+    magma_int_t nb       = 8;
+    magma_int_t nthreads = kl+1;
+    magma_int_t ntcol    = 1;
+    magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
 
     // calculate required workspace
     magma_int_t lwork_bytes = 0;
@@ -690,7 +810,7 @@ magma_zgbtrf_batched_sliding_window_work(
 
     for(int j = 0; j < n; j += nb) {
         magma_int_t ib = min(nb, n-j);
-        arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_instantiator(
+        arginfo = magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_instantiator(
                     m, ib, n, kl, ku,
                     dAB_array, 0, j, lddab,
                     ipiv_array, info_array,
@@ -800,44 +920,7 @@ magma_zgbtrf_batched_sliding_window_work(
     @ingroup magma_getrf_batched
 *******************************************************************************/
 extern "C" magma_int_t
-magma_zgbtrf_batched_sliding_window(
-    magma_int_t m,  magma_int_t n,
-    magma_int_t kl, magma_int_t ku,
-    magmaDoubleComplex** dAB_array, magma_int_t lddab,
-    magma_int_t** ipiv_array, magma_int_t* info_array,
-    magma_int_t batchCount, magma_queue_t queue )
-{
-    magma_int_t arginfo  = 0;
-    magma_int_t nb       = 32;
-    magma_int_t nthreads = kl+1;
-
-    magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
-
-    // query workspace
-    magma_int_t lwork[1] = {-1};
-    magma_zgbtrf_batched_sliding_window_work(
-        m, n, kl, ku,
-        NULL, lddab, NULL, NULL,
-        nb, nthreads, NULL, lwork,
-        batchCount, queue );
-
-    void* device_work = NULL;
-    magma_malloc((void**)&device_work, lwork[0]);
-
-    arginfo = magma_zgbtrf_batched_sliding_window_work(
-                m, n, kl, ku,
-                dAB_array, lddab, ipiv_array, info_array,
-                nb, nthreads,
-                device_work, lwork,
-                batchCount, queue );
-
-    magma_free( device_work );
-    return arginfo;
-}
-
-
-extern "C" magma_int_t
-magma_zgbtrf_batched_sliding_window_v2(
+magma_zgbtrf_batched_sliding_window_loopin(
     magma_int_t m,  magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,
@@ -867,46 +950,45 @@ magma_zgbtrf_batched_sliding_window_v2(
 
     if( m == 0 || n == 0 || batchCount == 0) return 0;
 
-    magma_int_t nb       = 32;
+    magma_int_t nb       = 8;
     magma_int_t nthreads = kl+1;
     magma_int_t ntcol    = 1;
 
     magma_get_zgbtrf_batched_params(m, n, kl, ku, &nb, &nthreads);
     magma_int_t nthreads32 = magma_roundup(nthreads, 32);
-
     switch(nthreads32) {
-        case   32: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2<  32>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case   64: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2<  64>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case   96: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2<  96>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  128: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 128>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  160: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 160>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  192: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 192>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  224: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 224>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  256: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 256>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  288: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 288>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  320: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 320>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  352: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 352>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  384: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 384>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  416: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 416>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  448: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 448>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  480: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 480>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  512: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 512>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  544: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 544>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  576: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 576>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  608: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 608>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  640: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 640>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  672: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 672>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  704: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 704>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  736: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 736>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  768: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 768>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  800: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 800>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  832: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 832>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  864: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 864>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  896: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 896>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  928: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 928>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  960: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 960>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case  992: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2< 992>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
-        case 1024: arginfo = magma_zgbtrf_batched_sliding_window_sm_kernel_driver_v2<1024>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case   32: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver<  32>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case   64: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver<  64>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case   96: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver<  96>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  128: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 128>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  160: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 160>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  192: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 192>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  224: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 224>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  256: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 256>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  288: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 288>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  320: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 320>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  352: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 352>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  384: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 384>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  416: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 416>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  448: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 448>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  480: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 480>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  512: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 512>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  544: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 544>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  576: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 576>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  608: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 608>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  640: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 640>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  672: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 672>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  704: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 704>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  736: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 736>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  768: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 768>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  800: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 800>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  832: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 832>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  864: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 864>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  896: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 896>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  928: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 928>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  960: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 960>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  992: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver< 992>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case 1024: arginfo = magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver<1024>(m, nb, n, kl, ku, dAB_array, lddab, ipiv_array, info_array, nthreads, ntcol, batchCount, queue ); break;
         default: arginfo = -100;
     }
 

@@ -546,25 +546,16 @@ magma_zgbtrf_batched_fused_sm(
     magma_int_t batchCount, magma_queue_t queue );
 
 magma_int_t
-magma_zgbtrf_batched_sliding_window_work(
+magma_zgbtrf_batched_sliding_window_loopout(
     magma_int_t m,  magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,
     magma_int_t** ipiv_array, magma_int_t* info_array,
-    magma_int_t nb, magma_int_t nthreads,
     void* device_work, magma_int_t *lwork,
     magma_int_t batchCount, magma_queue_t queue );
 
 magma_int_t
-magma_zgbtrf_batched_sliding_window(
-    magma_int_t m,  magma_int_t n,
-    magma_int_t kl, magma_int_t ku,
-    magmaDoubleComplex** dAB_array, magma_int_t lddab,
-    magma_int_t** ipiv_array, magma_int_t* info_array,
-    magma_int_t batchCount, magma_queue_t queue );
-
-magma_int_t
-magma_zgbtrf_batched_sliding_window_v2(
+magma_zgbtrf_batched_sliding_window_loopin(
     magma_int_t m,  magma_int_t n,
     magma_int_t kl, magma_int_t ku,
     magmaDoubleComplex** dAB_array, magma_int_t lddab,
