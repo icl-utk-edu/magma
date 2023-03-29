@@ -129,7 +129,7 @@ libmagma_src += \
 
 # batched files, alphabetic order by base name (ignoring precision)
 libmagma_src += \
-	$(cdir)/zgbsv_batched_fused_sm.cu	\
+	$(cdir)/zgbsv_kernels.cu	\
 	$(cdir)/zgbtf2_kernels.cu		\
     $(cdir)/zgbtrf_batched_fused_sm.cu  \
     $(cdir)/zgbtrf_batched_sliding_window_sm.cu  \
