@@ -116,7 +116,7 @@ write_sA(
 {
     const int tpg    = min(ntx, nband);
     const int groups = max(1, ntx / nband);
-    const int active = max(ntx, groups * nband);
+    const int active = min(ntx, groups * tpg);
     const int tx_    = tx % nband;
     const int ty_    = tx / nband;
 
