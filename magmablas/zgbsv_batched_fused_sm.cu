@@ -68,7 +68,7 @@ read_sA(
 {
     const int tpg    = min(ntx, nband);
     const int groups = max(1, ntx / nband);
-    const int active = max(ntx, groups * nband);
+    const int active = min(ntx, groups * tpg);
     const int tx_    = tx % nband;
     const int ty_    = tx / nband;
 
@@ -93,7 +93,7 @@ read_sB(
 {
     const int tpg    = min(ntx, n);
     const int groups = max(1, ntx / n);
-    const int active = max(ntx, groups * n);
+    const int active = min(ntx, groups * tpg);
     const int tx_    = tx % n;
     const int ty_    = tx / n;
 
@@ -139,7 +139,7 @@ write_sB(
 {
     const int tpg    = min(ntx, n);
     const int groups = max(1, ntx / n);
-    const int active = max(ntx, groups * n);
+    const int active = min(ntx, groups * tpg);
     const int tx_    = tx % n;
     const int ty_    = tx / n;
 
