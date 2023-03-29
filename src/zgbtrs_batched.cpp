@@ -13,6 +13,147 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
+
+magma_int_t
+magma_zgbtrs_lower_batched(
+    magma_trans_t transA,
+    magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t **dipiv_array,
+    magmaDoubleComplex** dB_array, magma_int_t lddb,
+    magma_int_t *info_array,
+    magma_int_t batchCount, magma_queue_t queue)
+{
+#define dA_array(i, j)    dA_array, i, j
+#define dB_array(i, j)    dB_array, i, j
+
+    magma_int_t arginfo = 0;
+    magma_int_t kv = kl + ku;
+
+    if ( transA != MagmaNoTrans ) {
+        arginfo = -1;
+        printf("ERROR: Function %s only support transA = MagmaNoTrans\n", __func__);
+    }
+    else if ( n < 0 )
+        arginfo = -2;
+    else if ( kl < 0 )
+        arginfo = -3;
+    else if ( ku < 0 )
+        arginfo = -4;
+    else if (nrhs < 0)
+        arginfo = -5;
+    else if ( ldda < (kl+kv+1) )
+        arginfo = -7;
+    else if ( lddb < n)
+        arginfo = -10;
+    else if ( batchCount < 0 )
+        arginfo = -12;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    if(n == 0 || batchCount == 0 || nrhs == 0) return 0;
+
+
+    magma_int_t gbtrs_lower_info = -1;
+    gbtrs_lower_info = magmablas_zgbtrs_lower_blocked_batched(
+                        n, kl, ku, nrhs,
+                        dA_array, ldda, dipiv_array,
+                        dB_array, lddb,
+                        batchCount, queue );
+
+    if( gbtrs_lower_info != 0) {
+        // ref. impl.: apply inv(L) as a series of row interchanges and rank-1 updates
+        for(magma_int_t j = 0; j < n; j++) {
+            // swap
+            magmablas_zgbtrs_swap_batched(nrhs, dB_array, lddb, dipiv_array, j, batchCount, queue);
+
+            // geru
+            magmablas_zgeru_batched_core(
+                min(kl, n-j-1), nrhs,
+                MAGMA_Z_NEG_ONE,
+                dA_array(kv+1, j), ldda, 1,
+                dB_array(j   , 0), lddb, lddb,
+                dB_array(j+1 , 0), lddb,
+                batchCount, queue );
+        }
+
+        gbtrs_lower_info = 0;
+    }
+
+    return gbtrs_lower_info;
+#undef dA_array
+#undef dB_array
+}
+
+
+magma_int_t
+magma_zgbtrs_upper_batched(
+    magma_trans_t transA,
+    magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t **dipiv_array,
+    magmaDoubleComplex** dB_array, magma_int_t lddb,
+    magma_int_t *info_array,
+    magma_int_t batchCount, magma_queue_t queue)
+{
+#define dA_array(i, j)    dA_array, i, j
+#define dB_array(i, j)    dB_array, i, j
+
+    magma_int_t arginfo = 0;
+    magma_int_t kv = kl + ku;
+
+    if ( transA != MagmaNoTrans ) {
+        arginfo = -1;
+        printf("ERROR: Function %s only support transA = MagmaNoTrans\n", __func__);
+    }
+    else if ( n < 0 )
+        arginfo = -2;
+    else if ( kl < 0 )
+        arginfo = -3;
+    else if ( ku < 0 )
+        arginfo = -4;
+    else if (nrhs < 0)
+        arginfo = -5;
+    else if ( ldda < (kl+kv+1) )
+        arginfo = -7;
+    else if ( lddb < n)
+        arginfo = -10;
+    else if ( batchCount < 0 )
+        arginfo = -12;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    if(n == 0 || batchCount == 0 || nrhs == 0) return 0;
+
+    // solve for U, backward solve
+    magma_int_t gbtrs_upper_info = -1;
+    gbtrs_upper_info = magmablas_zgbtrs_upper_blocked_batched(
+                        n, kl, ku, nrhs,
+                        dA_array, ldda,
+                        dB_array, lddb,
+                        batchCount, queue );
+
+    if( gbtrs_upper_info != 0 ) {
+        // ref. impl.: apply inv(U) column-wise
+        for(magma_int_t j = n-1; j >= 0; j--) {
+            magmablas_zgbtrs_upper_columnwise_batched(
+                n, kl, ku, nrhs, j,
+                dA_array, ldda,
+                dB_array, lddb,
+                batchCount, queue );
+        }
+        gbtrs_upper_info = 0;
+    }
+
+    return gbtrs_upper_info;
+
+#undef dA_array
+#undef dB_array
+}
 /***************************************************************************//**
     Purpose
     -------
@@ -132,52 +273,18 @@ magma_zgbtrs_batched(
 
     if(n == 0 || batchCount == 0 || nrhs == 0) return 0;
 
+    magma_zgbtrs_lower_batched(
+        transA, n, kl, ku, nrhs,
+        dA_array, ldda, dipiv_array,
+        dB_array, lddb,
+        info_array, batchCount, queue);
 
-    magma_int_t gbtrs_lower_info = -1;
-    gbtrs_lower_info = magmablas_zgbtrs_lower_blocked_batched(
-                        n, kl, ku, nrhs,
-                        dA_array, ldda, dipiv_array,
-                        dB_array, lddb,
-                        batchCount, queue );
-
-    if( gbtrs_lower_info != 0) {
-        // ref. impl.: apply inv(L) as a series of row interchanges and rank-1 updates
-        for(magma_int_t j = 0; j < n; j++) {
-            // swap
-            magmablas_zgbtrs_swap_batched(nrhs, dB_array, lddb, dipiv_array, j, batchCount, queue);
-
-            // geru
-            magmablas_zgeru_batched_core(
-                min(kl, n-j-1), nrhs,
-                MAGMA_Z_NEG_ONE,
-                dA_array(kv+1, j), ldda, 1,
-                dB_array(j   , 0), lddb, lddb,
-                dB_array(j+1 , 0), lddb,
-                batchCount, queue );
-        }
-    }
-
-    // solve for U, backward solve
-    magma_int_t gbtrs_upper_info = -1;
-    gbtrs_upper_info = magmablas_zgbtrs_upper_blocked_batched(
-                        n, kl, ku, nrhs,
-                        dA_array, ldda,
-                        dB_array, lddb,
-                        batchCount, queue );
-
-    if( gbtrs_upper_info != 0 ) {
-        // ref. impl.: apply inv(U) column-wise
-        for(magma_int_t j = n-1; j >= 0; j--) {
-            magmablas_zgbtrs_upper_columnwise_batched(
-                n, kl, ku, nrhs, j,
-                dA_array, ldda,
-                dB_array, lddb,
-                batchCount, queue );
-        }
-    }
+    magma_zgbtrs_upper_batched(
+        transA, n, kl, ku, nrhs,
+        dA_array, ldda, dipiv_array,
+        dB_array, lddb,
+        info_array,
+        batchCount, queue);
 
     return arginfo;
-
-#undef dA_array
-#undef dB_array
 }
