@@ -14,6 +14,7 @@
 #include "magma_internal.h"
 #include "magma_templates.h"
 #include "batched_kernel_param.h"
+#include "zgbtf2_devicefunc.cuh"
 
 // use this so magmasubs will replace with relevant precision, so we can comment out
 // the switch case that causes compilation failure
@@ -26,56 +27,6 @@
 #endif
 
 #define SLDAB(MBAND)    ((MBAND)+1)
-#define sAB(i,j)        sAB[(j)*sldab + (i)]
-#define dAB(i,j)        dAB[(j)*lddab + (i)]
-
-////////////////////////////////////////////////////////////////////////////////
-__device__ __inline__ void
-read_sAB(
-    int mband, int n, int kl, int ku,
-    magmaDoubleComplex *dAB, int lddab,
-    magmaDoubleComplex *sAB, int sldab,
-    int ntx, int tx)
-{
-    const int tpg    = min(ntx, mband);
-    const int groups = max(1, ntx / mband);
-    const int active = max(ntx, groups * mband);
-    const int tx_    = tx % mband;
-    const int ty_    = tx / mband;
-
-    if(tx < active) {
-        for(int j = ty_; j < n; j += groups) {
-            int col_start = kl + max(ku-j,0);
-            int col_end   = kl + ku + min(kl, n-1-j);
-            for(int i = tx_+col_start; i <= col_end; i+=tpg) {
-                sAB(i,j) = dAB(i,j);
-            }
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-__device__ __inline__ void
-write_sAB(
-    int mband, int n, int kl, int ku,
-    magmaDoubleComplex *sAB, int sldab,
-    magmaDoubleComplex *dAB, int lddab,
-    int ntx, int tx)
-{
-    const int tpg    = min(ntx, mband);
-    const int groups = max(1, ntx / mband);
-    const int active = max(ntx, groups * mband);
-    const int tx_    = tx % mband;
-    const int ty_    = tx / mband;
-
-    if(tx < active) {
-        for(int j = ty_; j < n; j += groups) {
-            for(int i = tx_; i < mband; i+=tpg) {
-                dAB(i,j) = sAB(i,j);
-            }
-        }
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 __global__ void
@@ -86,6 +37,9 @@ zgbtrf_batched_kernel_fused_sm(
     magma_int_t** ipiv_array, magma_int_t *info_array,
     int batchCount)
 {
+#define sAB(i,j)        sAB[(j)*sldab + (i)]
+#define dAB(i,j)        dAB[(j)*lddab + (i)]
+
     extern __shared__ magmaDoubleComplex zdata[];
     const int tx  = threadIdx.x;
     const int ty  = threadIdx.y;
@@ -189,6 +143,9 @@ zgbtrf_batched_kernel_fused_sm(
     }
 
     write_sAB(mband, n, kl, ku, sAB, sldab, dAB, lddab, ntx, tx);
+
+#undef sAB
+#undef dAB
 }
 
 /***************************************************************************//**

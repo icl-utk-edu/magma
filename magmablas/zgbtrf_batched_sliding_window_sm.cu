@@ -14,6 +14,7 @@
 #include "magma_internal.h"
 #include "magma_templates.h"
 #include "batched_kernel_param.h"
+#include "zgbtf2_devicefunc.cuh"
 
 // use this so magmasubs will replace with relevant precision, so we can comment out
 // the switch case that causes compilation failure
@@ -27,97 +28,21 @@
 #endif
 
 #define SLDAB(MBAND)    ((MBAND)+1)
-#define sAB(i,j)        sAB[(j)*sldab + (i)]
-#define dAB(i,j)        dAB[(j)*lddab + (i)]
-
-////////////////////////////////////////////////////////////////////////////////
-// read from column jstart to column jend (inclusive) from dAB to sAB
-// jstart and jend are global column indices with respect to dAB
-__device__ __inline__ void
-read_sAB_updated_columns(
-    int mband, int n, int jstart, int jend, int kl, int ku,
-    magmaDoubleComplex *dAB, int lddab,
-    magmaDoubleComplex *sAB, int sldab,
-    int ntx, int tx)
-{
-    const int tpg    = min(ntx, mband);
-    const int groups = max(1, ntx / mband);
-    const int active = max(ntx, groups * mband);
-    const int tx_    = tx % mband;
-    const int ty_    = tx / mband;
-
-    if(tx < active) {
-        for(int j = jstart + ty_; j <= jend; j += groups) {
-            int col_start = 0;       //kl + max(ku-j,0);
-            int col_end   = mband-1; //kl + ku + min(kl, n-1-j);
-            for(int i = tx_+col_start; i <= col_end; i+=tpg) {
-                sAB(i,j-jstart) = dAB(i,j);
-            }
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// read from column jstart to column jend (inclusive) from dAB to sAB
-// jstart and jend are global column indices with respect to dAB
-__device__ __inline__ void
-read_sAB_new_columns(
-    int mband, int n, int jstart, int jend, int kl, int ku,
-    magmaDoubleComplex *dAB, int lddab,
-    magmaDoubleComplex *sAB, int sldab,
-    int ntx, int tx)
-{
-    const int tpg    = min(ntx, mband);
-    const int groups = max(1, ntx / mband);
-    const int active = max(ntx, groups * mband);
-    const int tx_    = tx % mband;
-    const int ty_    = tx / mband;
-
-    if(tx < active) {
-        for(int j = jstart + ty_; j <= jend; j += groups) {
-            int col_start = kl + max(ku-j,0);
-            int col_end   = kl + ku + min(kl, n-1-j);
-            for(int i = tx_+col_start; i <= col_end; i+=tpg) {
-                sAB(i,j-jstart) = dAB(i,j);
-            }
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-__device__ __inline__ void
-write_sAB_columns(
-    int mband, int n, int jstart, int jend, int kl, int ku,
-    magmaDoubleComplex *sAB, int sldab,
-    magmaDoubleComplex *dAB, int lddab,
-    int ntx, int tx)
-{
-    const int tpg    = min(ntx, mband);
-    const int groups = max(1, ntx / mband);
-    const int active = min(ntx, groups * tpg);
-    const int tx_    = tx % mband;
-    const int ty_    = tx / mband;
-
-    if(tx < active) {
-        for(int j = jstart + ty_; j <= jend; j += groups) {
-            for(int i = tx_; i < mband; i+=tpg) {
-                dAB(i,j) = sAB(i,j-jstart);
-            }
-        }
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 template<int NTX>
 __global__ __launch_bounds__(NTX)
 void
 zgbtrf_batched_sliding_window_loopout_kernel_sm(
-    magma_int_t m, magma_int_t nb, magma_int_t n,
-    magma_int_t kl, magma_int_t ku,
+    int m, int nb, int n,
+    int kl, int ku,
     magmaDoubleComplex** dAB_array, int ABi, int ABj, int lddab,
     magma_int_t** ipiv_array, int* ju_array,
     magma_int_t *info_array, int batchCount)
 {
+#define sAB(i,j)        sAB[(j)*sldab + (i)]
+#define dAB(i,j)        dAB[(j)*lddab + (i)]
+
     extern __shared__ magmaDoubleComplex zdata[];
     const int tx  = threadIdx.x;
     const int ty  = threadIdx.y;
@@ -261,6 +186,9 @@ zgbtrf_batched_sliding_window_loopout_kernel_sm(
     }
 
     write_sAB_columns(mband, n, ABj, last_column_read, kl, ku, sAB, sldab, dAB, lddab, ntx, tx);
+
+#undef sAB
+#undef dAB
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -268,12 +196,15 @@ template<int NTX>
 __global__ __launch_bounds__(NTX)
 void
 zgbtrf_batched_sliding_window_loopin_kernel_sm(
-    magma_int_t m, magma_int_t nb, magma_int_t n,
-    magma_int_t kl, magma_int_t ku,
+    int m, int nb, int n,
+    int kl, int ku,
     magmaDoubleComplex** dAB_array, int lddab,
     magma_int_t** ipiv_array, magma_int_t *info_array,
     int batchCount)
 {
+#define sAB(i,j)        sAB[(j)*sldab + (i)]
+#define dAB(i,j)        dAB[(j)*lddab + (i)]
+
     extern __shared__ magmaDoubleComplex zdata[];
     const int tx  = threadIdx.x;
     const int ty  = threadIdx.y;
@@ -458,6 +389,9 @@ zgbtrf_batched_sliding_window_loopin_kernel_sm(
     if(tx == 0) {
         info_array[batchid] = linfo;
     }
+
+#undef sAB
+#undef dAB
 }
 
 ////////////////////////////////////////////////////////////////////////////////

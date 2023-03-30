@@ -256,6 +256,25 @@ int main(int argc, char **argv)
                 // free workspace
                 magma_free( device_work );
             }
+            else if(opts.version == 5) {
+                magma_int_t nb  = 2;
+                magma_int_t nth = KL+1
+                gpu_time = magma_sync_wtime( opts.queue );
+                magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm(
+                    N, KL, KU, nrhs, nb,
+                    dA_array, ldda, dipiv_array,
+                    dB_array, lddb, dinfo_array,
+                    nth, 1, batchCount, opts.queue );
+
+                magma_zgbtrs_upper_batched(
+                    MagmaNoTrans,
+                    N, KL, KU, nrhs,
+                    dA_array, ldda, dipiv_array,
+                    dB_array, lddb, dinfo_array,
+                    batchCount, opts.queue);
+                info = 0;
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+            }
             gpu_perf = gflops / gpu_time;
 
             if(cond) {

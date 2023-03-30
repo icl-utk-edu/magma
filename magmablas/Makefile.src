@@ -25,6 +25,7 @@ hdr += \
 	$(cdir)/zlaswp_device.cuh		\
 	$(cdir)/zgeqr2_batched_fused.cuh	\
 	$(cdir)/zlarf_batched_fused.cuh	\
+	$(cdir)/zgbtf2_devicefunc.cuh	\
 
 # alphabetic order by base name (ignoring precision)
 libmagma_src += \

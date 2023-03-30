@@ -14,6 +14,7 @@
 #include "magma_internal.h"
 #include "magma_templates.h"
 #include "batched_kernel_param.h"
+#include "zgbtf2_devicefunc.cuh"
 
 // use this so magmasubs will replace with relevant precision, so we can comment out
 // the switch case that causes compilation failure
@@ -28,129 +29,6 @@
 #endif
 
 #define SLDA(N)    ((N)+1)
-#define sA(i,j)        sA[(j)*slda + (i)]
-#define sB(i,j)        sB[(j)*sldb + (i)]
-#define dA(i,j)        dA[(j)*ldda + (i)]
-#define dB(i,j)        dB[(j)*lddb + (i)]
-
-////////////////////////////////////////////////////////////////////////////////
-template<typename T>
-__device__ void print_memory(
-                const char* msg,
-                int m, int n, T* sA, int lda,
-                int tx, int ty, int tz,
-                int bx, int by, int bz)
-{
-#if defined(PRECISION_d) && defined(DBG)
-    __syncthreads();
-    if(threadIdx.x == tx && threadIdx.y == ty && threadIdx.z == tz &&
-       blockIdx.x  == bx && blockIdx.y  == by && blockIdx.z  == bz) {
-        printf("%s = [ \n", msg);
-        for(int i = 0; i < m; i++) {
-            for(int j = 0; j < n; j++) {
-                printf("%8.4f  ", (double)(sA[j*lda+i]));
-            }
-            printf("\n");
-        }
-        printf("]; \n");
-    }
-    __syncthreads();
-#endif
-}
-
-////////////////////////////////////////////////////////////////////////////////
-__device__ __inline__ void
-read_sA(
-    int nband, int n, int kl, int ku,
-    magmaDoubleComplex *dA, int ldda,
-    magmaDoubleComplex *sA, int slda,
-    int ntx, int tx)
-{
-    const int tpg    = min(ntx, nband);
-    const int groups = max(1, ntx / nband);
-    const int active = min(ntx, groups * tpg);
-    const int tx_    = tx % nband;
-    const int ty_    = tx / nband;
-
-    if(tx < active) {
-        for(int j = ty_; j < n; j += groups) {
-            int col_start = kl + max(ku-j,0);
-            int col_end   = kl + ku + min(kl, n-1-j);
-            for(int i = tx_+col_start; i <= col_end; i+=tpg) {
-                sA(i,j) = dA(i,j);
-            }
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-__device__ __inline__ void
-read_sB(
-    int n, int nrhs,
-    magmaDoubleComplex *dB, int lddb,
-    magmaDoubleComplex *sB, int sldb,
-    int ntx, int tx )
-{
-    const int tpg    = min(ntx, n);
-    const int groups = max(1, ntx / n);
-    const int active = min(ntx, groups * tpg);
-    const int tx_    = tx % n;
-    const int ty_    = tx / n;
-
-    if(tx < active) {
-        for(int j = ty_; j < nrhs; j += groups) {
-            for(int i = tx_; i < n; i+=tpg) {
-                sB(i,j) = dB(i,j);
-            }
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-__device__ __inline__ void
-write_sA(
-    int nband, int n, int kl, int ku,
-    magmaDoubleComplex *sA, int slda,
-    magmaDoubleComplex *dA, int ldda,
-    int ntx, int tx)
-{
-    const int tpg    = min(ntx, nband);
-    const int groups = max(1, ntx / nband);
-    const int active = min(ntx, groups * tpg);
-    const int tx_    = tx % nband;
-    const int ty_    = tx / nband;
-
-    if(tx < active) {
-        for(int j = ty_; j < n; j += groups) {
-            for(int i = tx_; i < nband; i+=tpg) {
-                dA(i,j) = sA(i,j);
-            }
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-__device__ __inline__ void
-write_sB(
-    int n, int nrhs,
-    magmaDoubleComplex *sB, int sldb,
-    magmaDoubleComplex *dB, int lddb,
-    int ntx, int tx )
-{
-    const int tpg    = min(ntx, n);
-    const int groups = max(1, ntx / n);
-    const int active = min(ntx, groups * tpg);
-    const int tx_    = tx % n;
-    const int ty_    = tx / n;
-
-    if(tx < active) {
-        for(int j = ty_; j < nrhs; j += groups) {
-            for(int i = tx_; i < n; i+=tpg) {
-                dB(i,j) = sB(i,j);
-            }
-        }
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 template<int MAX_THREADS>
@@ -162,6 +40,11 @@ zgbsv_batched_kernel_fused_sm(
     magmaDoubleComplex** dB_array, int lddb,
     magma_int_t *info_array, int batchCount)
 {
+#define sA(i,j)        sA[(j)*slda + (i)]
+#define sB(i,j)        sB[(j)*sldb + (i)]
+#define dA(i,j)        dA[(j)*ldda + (i)]
+#define dB(i,j)        dB[(j)*lddb + (i)]
+
     extern __shared__ magmaDoubleComplex zdata[];
     const int tx  = threadIdx.x;
     const int ty  = threadIdx.y;
@@ -196,7 +79,7 @@ zgbsv_batched_kernel_fused_sm(
     __syncthreads();
 
     // read A & B
-    read_sA(nband, n, kl, ku, dA, ldda, sA, slda, ntx, tx);
+    read_sAB(nband, n, kl, ku, dA, ldda, sA, slda, ntx, tx);
     read_sB(n, nrhs, dB, lddb, sB, sldb, ntx, tx );
     __syncthreads();
 
@@ -299,9 +182,272 @@ zgbsv_batched_kernel_fused_sm(
         ipiv[i] = (magma_int_t)sipiv[i];
     }
 
-    write_sA(nband, n, kl, ku, sA, slda, dA, ldda, ntx, tx);
+    write_sAB(nband, n, kl, ku, sA, slda, dA, ldda, ntx, tx);
     write_sB(n, nrhs, sB, sldb, dB, lddb, ntx, tx );
+
+#undef sA
+#undef sB
+#undef dA
+#undef dB
 }
+
+////////////////////////////////////////////////////////////////////////////////
+template<int NTX>
+__global__ __launch_bounds__(NTX)
+void
+zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel(
+    int n, int kl, int ku, int nrhs, int nb,
+    magmaDoubleComplex** dA_array, int ldda, magma_int_t** ipiv_array,
+    magmaDoubleComplex** dB_array, int lddb,
+    int batchCount)
+{
+#define sA(i,j)        sA[(j)*slda + (i)]
+#define dA(i,j)        dA[(j)*ldda + (i)]
+
+    extern __shared__ magmaDoubleComplex zdata[];
+    const int tx  = threadIdx.x;
+    const int ty  = threadIdx.y;
+    const int ntx = blockDim.x;
+    const int batchid = blockIdx.x * blockDim.y + ty;
+    if(batchid >= batchCount) return;
+
+    const int minmn  = min(m,n);
+    const int kv     = kl + ku;
+    const int mband  = (kl + 1 + kv);
+    const int slda   = SLDAB(mband);
+    const int slda_1 = slda-1;
+    const int sldb   = (nb+kl);
+
+    // the kernel assumes a panel of mband x nb,
+    // and accounts for mband x (kv+1) extra space "worst case" for pivoting
+    const int nn = nb + kv + 1;
+
+    magmaDoubleComplex* dA = dA_array[batchid];
+    magmaDoubleComplex* dB = dB_array[batchid];
+    magma_int_t* ipiv = ipiv_array[batchid];
+    int linfo = 0;
+
+    // shared memory pointers
+    magmaDoubleComplex *sA = (magmaDoubleComplex*)(zdata);
+    magmaDoubleComplex *sB = sA + blockDim.y * slda * nn;
+    double* dsx            = (double*)(sB + blockDim.y * sldb * nrhs);
+    int* sipiv             = (int*)(dsx + blockDim.y * (kl+1));
+    sA    += ty * slda * nn;
+    sB    += ty * sldb  * nrhs;
+    dsx   += ty * (kl+1);
+    sipiv += ty * minmn;
+
+    magmaDoubleComplex *sAtmp = sA;
+    int last_column_read = 0;
+    int cached_columns   = 0;   // number of columns cached from previous iteration
+
+    int ju = -1;
+
+    // init sA
+    for(int i = tx; i < nn*slda; i+=ntx) {
+        sA[i] = MAGMA_Z_ZERO;
+    }
+
+    // init sB
+    for(int i = tx; i < nrhs*sldb; i+=ntx) {
+        sB[i] = MAGMA_Z_ZERO;
+    }
+    __syncthreads();
+
+    int b_elements_1 = 0;
+    int b_elements_2 = 0;
+    for(int gbj = 0; gbj < minmn; gbj+=nb) {
+        int ib = min(nb, n-gbj);
+        int j1 = ju+1;
+        int j2 = ju+ib-cached_columns;
+        sAtmp = &sA(0,cached_columns);
+
+        // read at least ib columns from A
+        if(cached_columns < ib) {
+            read_sAB_new_columns(mband, n, j1, j2, kl, ku, dA, ldda, sAtmp, slda, ntx, tx);
+        }
+
+        // read at least (ib+kl) rows from B
+        b_elements_1 = min(ib+kl, n-gbj);
+        for(int itx = tx; itx < b_elements_1-b_elements_2; itx+=ntx) {
+            for(int jb = 0; jb < my_rhs; jb++) {
+                sB(itx, jb) = dB(itx, jb);
+            }
+        }
+        __syncthreads();
+
+        last_column_read = (cached_columns < ib) ? j2 : last_column_read;
+        cached_columns   = max(cached_columns, ib);
+        sAtmp            = &sA(0,cached_columns);
+
+        // factorization loop
+        for(int j = 0; j < ib; j++) {
+            // izamax
+            int km = 1 + min( kl, m-j ); // diagonal and subdiagonal(s)
+            if(tx < km) {
+                dsx[ tx ] = fabs(MAGMA_Z_REAL( sA(kv+tx,j) )) + fabs(MAGMA_Z_IMAG( sA(kv+tx,j) ));
+            }
+            __syncthreads();
+
+            double rx_abs_max = dsx[0];
+            int    jp         = 0;
+            for(int i = 1; i < km; i++) {
+                if( dsx[i] > rx_abs_max ) {
+                    rx_abs_max = dsx[i];
+                    jp         = i;
+                }
+            }
+
+            ju  = max(ju, min(gbj+j+ku+jp, n-1));
+            int swap_len = ju - (j+gbj) + 1;
+            if(tx == 0) {
+                sipiv[j] = gbj + jp + j + 1;    // +1 for fortran indexing (adjustment included w.r.t gbj)
+            }
+
+            if(ju > last_column_read) {
+                // read up to ju into shared memory
+                int jstart = min(last_column_read + 1, n-1);
+                int jend   = ju;
+                read_sAB_new_columns(mband, n, jstart, jend, kl, ku, dA, ldda, sAtmp, slda, ntx, tx);
+                __syncthreads();
+
+                last_column_read = ju;
+                sAtmp          += (jend - jstart + 1) * slda;
+                cached_columns += (jend - jstart + 1);
+            }
+
+            linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbj+jp+j+1) : linfo;
+            __syncthreads(); // wait for the trailing matrix read
+
+            // swap
+            if( !(jp == 0) ) {
+                magmaDoubleComplex tmp;
+                magmaDoubleComplex *sR1 = &sA(kv   ,j);
+                magmaDoubleComplex *sR2 = &sA(kv+jp,j);
+                for(int i = tx; i < swap_len; i+=ntx) {
+                    tmp              = sR1[i * slda_1];
+                    sR1[i * slda_1] = sR2[i * slda_1];
+                    sR2[i * slda_1] = tmp;
+                }
+
+                // swap B
+                for(int i = tx; i < nrhs; i+=ntx) {
+                    tmp         = sB(   j, i);
+                    sB(   j, i) = sB(jp+j, i);
+                    sB(jp+j, i) = tmp;
+                }
+            }
+            __syncthreads();
+
+            // scal
+            magmaDoubleComplex reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sA(kv,j) );
+            for(int i = tx; i < (km-1); i+=ntx) {
+                sA(kv+1+i, j) *= reg;
+            }
+            __syncthreads();
+
+            // ger
+            reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
+            magmaDoubleComplex *sU = &sA(kv,j);
+            magmaDoubleComplex *sV = &sA(kv+1,j);
+            if( tx < (km-1) ) {
+                for(int jj = 1; jj < swap_len; jj++) {
+                    sV[jj * slda_1 + tx] -= sV[tx] * sU[jj * slda_1 + 0] * reg;
+                }
+
+                // apply the current column to B
+                for(int jj = 0; jj < nrhs; jj++) {
+                    sB(j + tx + 1, jj) -= sV[tx] * sB(j,jj) * reg;
+                }
+            }
+            __syncthreads();
+        }
+        // end of factorization loop
+
+        // write ib columns
+        write_sAB_columns(mband, n, gbj, gbj+ib-1, kl, ku, sA, slda, dA, ldda, ntx, tx);
+        cached_columns -= ib;
+
+        // write ib rows of B
+        write_sB(ib, nrhs, sB, sldb, dB, lddb, ntx, tx);
+
+        // write pivot
+        for(int i = tx; i < ib; i+=ntx) {
+            ipiv[gbj+i] = (magma_int_t)sipiv[i];
+        }
+        __syncthreads();
+
+        // shift the remaining columns to the left
+        // then zero-out the rest of the columns
+        {
+            const int tpg    = min(ntx, mband);
+            const int groups = max(1, ntx / mband);
+            const int active = min(ntx, groups * tpg);
+            const int tx_    = tx % mband;
+            const int ty_    = tx / mband;
+
+            magmaDoubleComplex tmp = MAGMA_Z_ZERO;
+            for(int j = 0; j < cached_columns; j+=groups) {
+                for(int i=0; i < mband; i+=tpg) {
+                    int src_j = ib+j+ty_;
+                    if(tx < active && src_j < nn) {
+                        tmp = sA(i+tx_, ib+j+ty_);
+                    }
+                    __syncthreads();
+
+                    if(tx < active && src_j < nn) {
+                        sA(i+tx_, j+ty_) = tmp;
+                    }
+                    __syncthreads();
+                }
+            }
+
+            // zero out the rest of the columns
+            if(tx < active) {
+                for(int j = ty_+cached_columns; j < nn; j+=groups) {
+                    for(int i=tx_; i < mband; i+=tpg) {
+                        sA(i,j) = MAGMA_Z_ZERO;
+                    }
+                }
+            }
+            __syncthreads();
+        }
+        // end of shifting A
+
+        // shift B up
+        {
+            int shift_size = b_elements_1 - ib;
+            magmaDoubleComplex ztmp = MAGMA_Z_ZERO;
+            for(int is = 0; is < shift_size; is += ntx) {
+                int active_threads = min(shift_size-is, ntx);
+                for(int jb = 0; jb < nrhs; jb++) {
+                    if(tx < active_threads) {
+                        ztmp = sB(tx+nb, jb);
+                    }
+                    __syncthreads();
+
+                    if(tx < active_threads) {
+                        sB(tx, jb) = ztmp;
+                    }
+                    __syncthreads();
+                }
+            }
+            b_elements_2 = shift_size;
+        }
+        // end of shifting B
+
+    }
+    // end of the main loop over min_mn in steps of nb
+
+    // write info
+    if(tx == 0) {
+        info_array[batchid] = linfo;
+    }
+
+#undef sA
+#undef dA
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 template<int MAX_THREADS>
@@ -328,8 +474,8 @@ magma_zgbsv_batched_fused_sm_kernel_driver(
     magma_int_t shmem  = 0;
     shmem += slda * n     * sizeof(magmaDoubleComplex); // sA
     shmem += sldb * nrhs  * sizeof(magmaDoubleComplex); // rhs (sB)
-    shmem += (kl + 1)  * sizeof(double);             // dsx
-    shmem += n         * sizeof(magma_int_t);        // pivot
+    shmem += (kl + 1)     * sizeof(double);             // dsx
+    shmem += n            * sizeof(int);        // pivot
     shmem *= ntcol;
 
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
@@ -358,6 +504,70 @@ magma_zgbsv_batched_fused_sm_kernel_driver(
 
     void *kernel_args[] = {&n, &kl, &ku, &nrhs, &dA_array, &ldda, &ipiv_array, &dB_array, &lddb, &info_array, &batchCount};
     cudaError_t e = cudaLaunchKernel((void*)zgbsv_batched_kernel_fused_sm<MAX_THREADS>, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    if( e != cudaSuccess ) {
+        //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
+        arginfo = -100;
+    }
+
+    return arginfo;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+template<int MAX_THREADS>
+magma_int_t
+magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver(
+    magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs, magma_int_t nb,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t** ipiv_array,
+    magmaDoubleComplex** dB_array, magma_int_t lddb, magma_int_t* info_array,
+    magma_int_t nthreads, magma_int_t ntcol,
+    magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_device_t device;
+    magma_getdevice( &device );
+    magma_int_t arginfo = 0;
+
+    magma_int_t kv     = kl + ku;
+    magma_int_t nband  = kv + 1 + kl;
+    magma_int_t slda   = SLDA(nband);
+    magma_int_t nn     = nb + kv + 1;
+    magma_int_t sldb   = nb + kl;
+
+    nthreads = max( nthreads, (kl + 1) );
+    ntcol    = max(1, ntcol);
+
+    magma_int_t shmem  = 0;
+    shmem += slda * nn   * sizeof(magmaDoubleComplex); // sA
+    shmem += sldb * nrhs * sizeof(magmaDoubleComplex); // rhs (sB)
+    shmem += (kl + 1)    * sizeof(double);             // dsx
+    shmem += n           * sizeof(int);        // pivot
+    shmem *= ntcol;
+
+    magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
+    dim3 threads(nthreads, ntcol, 1);
+    dim3 grid(gridx, 1, 1);
+
+    // get max. dynamic shared memory on the GPU
+    int nthreads_max, shmem_max;
+    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
+    #if CUDA_VERSION >= 9000
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
+    if (shmem <= shmem_max) {
+        cudaFuncSetAttribute(zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel<MAX_THREADS>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    }
+    #else
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
+    #endif    // CUDA_VERSION >= 9000
+
+    magma_int_t total_threads = nthreads * ntcol;
+    if ( total_threads > nthreads_max || shmem > shmem_max ) {
+        //printf("error: kernel %s requires too many threads (%lld) or too much shared memory (%f KB)\n",
+        //        __func__, (long long)total_threads, (double)shmem/1024. );
+        arginfo = -100;
+        return arginfo;
+    }
+
+    void *kernel_args[] = {&n, &kl, &ku, &nrhs, &nb, &dA_array, &ldda, &ipiv_array, &dB_array, &lddb, &info_array, &batchCount};
+    cudaError_t e = cudaLaunchKernel((void*)zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel<MAX_THREADS>, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
         //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         arginfo = -100;
@@ -454,7 +664,6 @@ magma_zgbsv_batched_fused_sm_kernel_driver(
 
     @ingroup magma_getrf_batched
 *******************************************************************************/
-
 extern "C" magma_int_t
 magma_zgbsv_batched_fused_sm(
     magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
@@ -526,6 +735,84 @@ magma_zgbsv_batched_fused_sm(
         case  960: arginfo = magma_zgbsv_batched_fused_sm_kernel_driver< 960>(n, kl, ku, nrhs, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
         case  992: arginfo = magma_zgbsv_batched_fused_sm_kernel_driver< 992>(n, kl, ku, nrhs, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
         case 1024: arginfo = magma_zgbsv_batched_fused_sm_kernel_driver<1024>(n, kl, ku, nrhs, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        default: arginfo = -100;
+    }
+
+    return arginfo;
+}
+
+
+extern "C" magma_int_t
+magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm(
+    magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs, magma_int_t nb,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t** ipiv_array,
+    magmaDoubleComplex** dB_array, magma_int_t lddb, magma_int_t* info_array,
+    magma_int_t nthreads, magma_int_t ntcol,
+    magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_device_t device;
+    magma_getdevice( &device );
+    magma_int_t arginfo = 0;
+
+    magma_int_t kv      = kl + ku;
+
+    if ( n < 0 )
+        arginfo = -1;
+    else if ( kl < 0 )
+        arginfo = -2;
+    else if ( ku < 0 )
+        arginfo = -3;
+    else if (nrhs < 0)
+        arginfo = -4;
+    else if ( ldda < (kl+kv+1) )
+        arginfo = -6;
+    else if ( lddb < n)
+        arginfo = -9;
+    else if ( batchCount < 0 )
+        arginfo = -13;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    if( n == 0 || nrhs == 0 || batchCount == 0 ) return 0;
+
+    magma_int_t nthread32 = magma_roundup(nthreads, 32);
+
+    switch(nthread32) {
+        case   32: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver<  32>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case   64: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver<  64>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case   96: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver<  96>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  128: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 128>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  160: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 160>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  192: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 192>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  224: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 224>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  256: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 256>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  288: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 288>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  320: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 320>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  352: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 352>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  384: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 384>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  416: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 416>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  448: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 448>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  480: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 480>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  512: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 512>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  544: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 544>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  576: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 576>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  608: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 608>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  640: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 640>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  672: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 672>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  704: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 704>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  736: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 736>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  768: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 768>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  800: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 800>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  832: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 832>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  864: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 864>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  896: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 896>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  928: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 928>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  960: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 960>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case  992: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver< 992>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
+        case 1024: arginfo = magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm_kernel_driver<1024>(n, kl, ku, nrhs, nb, dA_array, ldda, ipiv_array, dB_array, lddb, info_array, nthreads, ntcol, batchCount, queue ); break;
         default: arginfo = -100;
     }
 
