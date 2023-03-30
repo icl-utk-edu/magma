@@ -11,9 +11,11 @@
 */
 
 #include "magma_internal.h"
-#ifdef MAGMA_HAVE_CUDA
+#if   defined(MAGMA_HAVE_CUDA)
 #include <cooperative_groups.h>
 namespace cg = cooperative_groups;
+#elif defined(MAGMA_HAVE_HIP)
+#include <amd_hip_cooperative_groups.h>
 #endif
 
 #include "batched_kernel_param.h"
@@ -190,7 +192,11 @@ void zgbtf2_native_kernel(
 {
 #define dA(i,j) dA[(j)*ldda + (i)]
     extern __shared__ magmaDoubleComplex zdata[];
+    #ifdef MAGMA_HAVE_CUDA
     cg::grid_group grid = cg::this_grid();
+    #else
+    grid_group grid = this_grid();
+    #endif
     const int tx     = threadIdx.x;
     const int ntx    = blockDim.x;
     const int bx     = blockIdx.x;
