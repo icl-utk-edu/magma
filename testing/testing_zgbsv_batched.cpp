@@ -258,7 +258,7 @@ int main(int argc, char **argv)
             }
             else if(opts.version == 5) {
                 magma_int_t nb  = 2;
-                magma_int_t nth = KL+1
+                magma_int_t nth = KL+1;
                 gpu_time = magma_sync_wtime( opts.queue );
                 magma_zgbsv_batched_no_upper_slv_sliding_window_loopin_sm(
                     N, KL, KU, nrhs, nb,
