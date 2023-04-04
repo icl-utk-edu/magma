@@ -182,10 +182,18 @@ magma_zgbtrf_batched_work(
 
     // try the sliding window implementation
     magma_int_t info_sliding_window = 0;
-    info_sliding_window = magma_zgbtrf_batched_sliding_window_loopin(
+    if(nb >= n) {
+        info_sliding_window = magma_zgbtrf_batched_sliding_window_loopout(
+                            m, n, kl, ku,
+                            dAB_array, lddab, dipiv_array, info_array,
+                            device_work, lwork, batchCount, queue );
+    }
+    else{
+        info_sliding_window = magma_zgbtrf_batched_sliding_window_loopin(
                             m, n, kl, ku,
                             dAB_array, lddab, dipiv_array, info_array,
                             batchCount, queue );
+    }
     if(info_sliding_window == 0) return arginfo;
 
     // generic implementation (currently unblocked)
