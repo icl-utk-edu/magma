@@ -877,16 +877,25 @@ magmablas_zhemv_mgpu(
     magma_int_t dev;
     for (dev=0; dev < ngpu; dev++) {
         magma_setdevice( dev );
-        
+
+        // compute total local blocks for each device
+	magma_int_t total_blocks = magma_ceildiv( n + offset, NB_X);
+	magma_int_t num_local_blocks = total_blocks / ngpu;
+	if (dev < total_blocks % ngpu) {
+	  num_local_blocks += 1;
+	}
+
         // blocks before the offset block
         magma_int_t num_blocks_skipped = offset_block_id / ngpu;
         if ( dev < offset_gpu_id ) {
             num_blocks_skipped += 1;
         }
-        
+	if (num_blocks_skipped == num_local_blocks) {
+	   num_blocks_skipped = 0;
+	}
         // shift dA to first block >= offset block that is owned by this GPU
         magmaDoubleComplex const *dA_dev    = d_lA[dev] + offset_block_id*NB_X + num_blocks_skipped*NB_X*ldda;
-        
+
         // first column of dwork is to broadcast x to all GPUs.
         // remaining blocks number of columns is for partial sums from
         // each block, as in single GPU version.
