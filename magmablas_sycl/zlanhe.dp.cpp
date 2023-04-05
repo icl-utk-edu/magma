@@ -862,8 +862,8 @@ magmablas_zlanhe(
 //    #else
 //    const bool inf_implemented = true;
 //    #endif
-    
-    if ( ! (max_norm || (inf_norm && inf_implemented)) )
+   
+    if ( ! (max_norm || (inf_norm))) // && inf_implemented)) ) 
         info = -1;
     else if ( uplo != MagmaUpper && uplo != MagmaLower )
         info = -2;
