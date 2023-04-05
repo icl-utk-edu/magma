@@ -263,14 +263,6 @@ magmablas_zsyrk_batched(
         return;  //info;
     }
     
-//    magma_int_t arch = magma_getdevice_arch();
-//    if ( arch < 200  ) {
-//        printf("not supported \n"); // TODO call cublas
-//        return;
-//    }
-    
-    // --------------------
-    // CUDA ARCH 2.x (Fermi) version
     if ( n <= 0 || k <= 0 )
         return;
 

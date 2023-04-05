@@ -731,17 +731,6 @@ magmablas_zhemv_work(
     magmaDoubleComplex_ptr dwork, magma_int_t lwork,
     magma_queue_t queue )
 {
-#if defined(PRECISION_z)
-    // z precision requires CUDA ARCH 2.x; call CUBLAS version instead.
-    magma_int_t arch = magma_getdevice_arch();
-    if ( arch < 200 ) {
-        magma_zhemv( uplo, n, alpha, dA, ldda, dx, incx, beta, dy, incy, queue );
-        return MAGMA_SUCCESS;
-    }
-#endif
-
-    // --------------------
-    // [sdc] precisions, or z precision with CUDA ARCH 2.x
     bool upper = (uplo == MagmaUpper);
 
     magma_int_t blocks = magma_ceildiv( n, NB_X );
@@ -974,17 +963,6 @@ magmablas_zhemv(
     magmaDoubleComplex_ptr dy, magma_int_t incy,
     magma_queue_t queue )
 {
-#if defined(PRECISION_z)
-    // z precision requires CUDA ARCH 2.x; call CUBLAS version instead.
-    magma_int_t arch = magma_getdevice_arch();
-    if ( arch < 200 ) {
-        magma_zhemv( uplo, n, alpha, dA, ldda, dx, incx, beta, dy, incy, queue );
-        return MAGMA_SUCCESS;
-    }
-#endif
-
-    // --------------------
-    // [sdc] precisions, or z precision with CUDA ARCH 2.x
     bool upper = (uplo == MagmaUpper);
 
     /*
