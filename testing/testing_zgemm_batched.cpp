@@ -196,17 +196,26 @@ int main( int argc, char** argv)
                                    (const hipblasDoubleComplex*)&beta,
                                    (hipblasDoubleComplex**)d_C_array, int(lddc), int(batchCount) );
 		#elif defined(MAGMA_HAVE_SYCL)
-                 oneapi::mkl::transpose transpose_ct1 = syclblas_trans_const(opts.transA);
-                 oneapi::mkl::transpose transpose_ct2 = syclblas_trans_const(opts.transB);
+                 oneapi::mkl::transpose transpose_ct1[1] = {syclblas_trans_const(opts.transA)};
+                 oneapi::mkl::transpose transpose_ct2[1] = {syclblas_trans_const(opts.transB)};
+		 std::int64_t lda_arr[1] = {ldda};
+		 std::int64_t ldb_arr[1] = {lddb};
+		 std::int64_t ldc_arr[1] = {lddc};
+		 std::int64_t M_arr[1] = {M};
+		 std::int64_t N_arr[1] = {N};
+		 std::int64_t K_arr[1] = {K};
+		 magmaDoubleComplex alpha_arr[1] = {alpha};
+		 magmaDoubleComplex beta_arr[1] = {beta};
+                 std::int64_t batchCount_arr[1] = {batchCount};
                  oneapi::mkl::blas::column_major::gemm_batch(
-                                 *opts.handle, &transpose_ct1, &transpose_ct2,
-				 (std::int64_t*)(&M),(std::int64_t*)(&N),(std::int64_t*)(&K),
-                                 (magmaDoubleComplex*)&alpha,
-                                 (const magmaDoubleComplex **)d_A_array, (std::int64_t*)(&ldda),
-                                 (const magmaDoubleComplex **)d_B_array, (std::int64_t*)(&lddb),
-				 (magmaDoubleComplex*)&beta,
-                                 (magmaDoubleComplex**)d_C_array, (std::int64_t*)(&lddc), std::int64_t(1),
-				 (std::int64_t*)(&batchCount), {});
+                                 *opts.handle, transpose_ct1, transpose_ct2,
+				 M_arr, N_arr, K_arr,
+                                 alpha_arr,
+                                 (const magmaDoubleComplex **)d_A_array, lda_arr,
+                                 (const magmaDoubleComplex **)d_B_array, ldb_arr,
+                                 beta_arr,
+                                 (magmaDoubleComplex**)d_C_array, ldc_arr, std::int64_t(1),
+				 batchCount_arr, {});
                 #endif
             }
             else{

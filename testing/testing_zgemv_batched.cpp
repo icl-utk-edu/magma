@@ -135,9 +135,8 @@ int main( int argc, char** argv)
             const magmaDoubleComplex** dX_array = (const magmaDoubleComplex**) d_X_array;
             const magmaDoubleComplex* dA = (const magmaDoubleComplex*) d_A;
             const magmaDoubleComplex* dX = (const magmaDoubleComplex*) d_X;
-
             magma_time = magma_sync_wtime( opts.queue );
-            if( opts.version == 1 ) {
+	    if( opts.version == 1 ) {
                 magmablas_zgemv_batched(opts.transA, M, N,
                     alpha, dA_array, ldda,
                            dX_array, incx,
@@ -159,7 +158,6 @@ int main( int argc, char** argv)
                Performs operation using Vendor BLAS
                =================================================================== */
             magma_zsetvector( Ym*batchCount, h_Y, incy, d_Y, incy, opts.queue );
-
             device_time = magma_sync_wtime( opts.queue );
             if(opts.version == 1) {
                 #ifdef MAGMA_HAVE_CUDA
@@ -179,7 +177,7 @@ int main( int argc, char** argv)
                          beta,  d_Y + s*Ym*incy, incy, opts.queue );
                 }
                 #endif
-                #else
+                #elif defined(MAGMA_HAVE_HIP)
                 hipblasZgemvBatched(opts.handle, hipblas_trans_const(opts.transA),
                                       M, N,
                                       (const hipblasDoubleComplex *)&alpha,
@@ -187,6 +185,22 @@ int main( int argc, char** argv)
                                       (const hipblasDoubleComplex **)d_X_array, incx,
                                       (const hipblasDoubleComplex *)&beta,
                                       (hipblasDoubleComplex **)d_Y_array, incy, batchCount);
+                #elif defined(MAGMA_HAVE_SYCL)
+		oneapi::mkl::transpose transA[1] = {syclblas_trans_const(opts.transA)};
+                std::int64_t incx_arr[1] = {incx};
+		std::int64_t incy_arr[1] = {incy};
+		std::int64_t lda_arr[1] = {ldda};
+		std::int64_t batchCount_arr[1] = {batchCount};
+		std::int64_t M_arr[1] = {M};
+		std::int64_t N_arr[1] = {N};
+		magmaDoubleComplex alpha_arr[1] = {alpha};
+		magmaDoubleComplex beta_arr[1] = {beta};
+		oneapi::mkl::blas::column_major::gemv_batch(*opts.handle, transA,
+			         M_arr, N_arr, alpha_arr,
+                                 (const magmaDoubleComplex **)d_A_array, lda_arr,
+                                 (const magmaDoubleComplex**)d_X_array, incx_arr, beta_arr,
+				 (magmaDoubleComplex**)d_Y_array, incy_arr,
+				 std::int64_t(1), batchCount_arr, {});
                 #endif
             }
             else{
@@ -199,7 +213,6 @@ int main( int argc, char** argv)
                                       (const cuDoubleComplex *)d_X, incx, incx*Xm,
                                       (const cuDoubleComplex *)&beta,
                                       (cuDoubleComplex *)d_Y, incy, incy*Ym, batchCount);
-                #else
                 for(magma_int_t s = 0; s < batchCount; s++) {
                     magma_zgemv( opts.transA, M, N,
                          alpha, d_A + s*ldda*N,  ldda,
@@ -207,7 +220,7 @@ int main( int argc, char** argv)
                          beta,  d_Y + s*Ym*incy, incy, opts.queue );
                 }
                 #endif
-                #else
+                #elif defined(MAGMA_HAVE_HIP)
                 hipblasZgemvStridedBatched(opts.handle, hipblas_trans_const(opts.transA),
                                       M, N,
                                       (const hipblasDoubleComplex *)&alpha,
@@ -215,6 +228,19 @@ int main( int argc, char** argv)
                                       (const hipblasDoubleComplex *)d_X, incx, incx*Xm,
                                       (const hipblasDoubleComplex *)&beta,
                                       (hipblasDoubleComplex *)d_Y, incy, incy*Ym, batchCount);
+                #elif defined(MAGMA_HAVE_SYCL)
+		oneapi::mkl::blas::column_major::gemv_batch(*opts.handle,
+			         syclblas_trans_const(opts.transA),
+                                 (std::int64_t) M,(std::int64_t) N,
+                                 alpha,
+                                 (const magmaDoubleComplex *) d_A,
+				 (std::int64_t) ldda, (std::int64_t) ldda*N,
+                                 (const magmaDoubleComplex*) d_X,
+				 (std::int64_t) incx, (std::int64_t) incx*Xm,
+                                 beta,
+				 (magmaDoubleComplex*) d_Y,
+				 (std::int64_t) incy, (std::int64_t) incy*Ym,
+				 (std::int64_t) batchCount, {});
                 #endif
             }
             device_time = magma_sync_wtime( opts.queue ) - device_time;
@@ -224,7 +250,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Performs operation using CPU BLAS
                =================================================================== */
-            if ( opts.lapack ) {
+	    if ( opts.lapack ) {
                 cpu_time = magma_wtime();
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                 magma_int_t nthreads = magma_get_lapack_numthreads();
