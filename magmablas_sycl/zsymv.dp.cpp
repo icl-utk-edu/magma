@@ -954,19 +954,6 @@ magmablas_zsymv(
     magmaDoubleComplex_ptr dy, magma_int_t incy,
     magma_queue_t queue )
 {
-#if defined(PRECISION_z)
-    // z precision requires CUDA ARCH 2.x; no CUBLAS version of zsymv.
-    magma_int_t arch = magma_getdevice_arch();
-    if ( arch < 200 ) {
-        //magma_zsymv( uplo, n, alpha, dA, ldda, dx, incx, beta, dy, incy );
-        //return MAGMA_SUCCESS;
-        fprintf(stderr, "%s: %s\n", __func__, "not supported on CUDA ARCH 1.x");
-        return MAGMA_ERR_NOT_SUPPORTED;
-    }
-#endif
-
-    // --------------------
-    // [sdc] precisions, or z precision with CUDA ARCH 2.x
     bool upper = (uplo == MagmaUpper);
 
     /*

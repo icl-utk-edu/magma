@@ -201,12 +201,6 @@ magmablas_sgemm_batched_core(
         return;  //info;
     }
     
-    magma_int_t arch = magma_getdevice_arch();
-    if ( arch < 200  ) {
-        printf("arch < 200 not supported \n"); // TODO call cublas
-        return;
-    }
-    
     if ( m <= 0 || n <= 0 || k <= 0 )
         return;
 

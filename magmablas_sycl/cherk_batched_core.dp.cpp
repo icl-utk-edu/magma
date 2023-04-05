@@ -275,12 +275,6 @@ magmablas_csyrk_batched(
         return;  //info;
     }
     
-    magma_int_t arch = magma_getdevice_arch();
-    if ( arch < 200  ) {
-        printf("not supported \n"); // TODO call cublas
-        return;
-    }
-    
     // --------------------
     // CUDA ARCH 2.x (Fermi) version
     if ( n <= 0 || k <= 0 )
@@ -323,12 +317,6 @@ magmablas_cherk_batched(
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return;  //info;
-    }
-    
-    magma_int_t arch = magma_getdevice_arch();
-    if ( arch < 200  ) {
-        printf("not supported \n"); // TODO call cublas
-        return;
     }
     
     // --------------------

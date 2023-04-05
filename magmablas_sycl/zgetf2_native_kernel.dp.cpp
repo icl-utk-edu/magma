@@ -384,8 +384,6 @@ magma_zgetf2_native_fused(
         return arginfo;
     }
 
-    magma_int_t arch = magma_getdevice_arch();
-
     sycl::range<3> grid(1, 1, n);
     sycl::range<3> threads(1, 1, ntx);
     const magma_int_t npages = magma_ceildiv(m, ntx);
