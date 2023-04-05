@@ -60,7 +60,7 @@ int main( int argc, char** argv)
     magma_norm_t norm[] = { MagmaInfNorm, MagmaOneNorm, MagmaMaxNorm, MagmaFrobeniusNorm };
     
     // Double-Complex inf-norm not supported on Tesla (CUDA arch 1.x)
-#if defined(PRECISION_z)
+#if defined(PRECISION_z) && defined(MAGMA_HAVE_CUDA)
     magma_int_t arch = magma_getdevice_arch();
     if ( arch < 200 ) {
         printf("!!!! NOTE: Double-Complex %s and %s norm are not supported\n"
