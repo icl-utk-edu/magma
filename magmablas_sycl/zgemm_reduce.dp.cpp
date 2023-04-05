@@ -129,71 +129,31 @@ magmablas_zgemm_reduce(
         magma_xerbla( __func__, -(info) );
         return;  //info;
     }
-    
-    magma_int_t arch = magma_getdevice_arch();
 
-    // if HIP, always assume other method
-    #ifndef MAGMA_HAVE_HIP
-    if ( arch < 200  ) {
-        // --------------------
-        // call CUDA ARCH 1.x -- maximum 512 threads
-        const int NUM_THREADS = 512;
-        const int BLK_K = (NUM_THREADS / (BLK_M * BLK_N)); // == 2
-        sycl::range<3> threads(BLK_N, BLK_M, BLK_K);
-        sycl::range<3> blocks(1, magma_ceildiv(n, BLK_N),
-                              magma_ceildiv(m, BLK_M));
-        /*
-        DPCT1049:359: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 3,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
-                    sum_acc_ct1(
-                        sycl::range<3>(BLK_K, BLK_M+1, BLK_N+1),
-                        cgh);
+    const int NUM_THREADS = 1024;
+    const int BLK_K = (NUM_THREADS / (BLK_M * BLK_N)); // == 4
+    sycl::range<3> threads(BLK_N, BLK_M, BLK_K);
+    sycl::range<3> blocks(1, magma_ceildiv(n, BLK_N),
+                          magma_ceildiv(m, BLK_M));
+    /*
+    DPCT1049:360: The work-group size passed to the SYCL kernel may exceed
+    the limit. To get the device limit, query
+    info::device::max_work_group_size. Adjust the work-group size if needed.
+    */
+    ((sycl::queue *)(queue->sycl_stream()))
+        ->submit([&](sycl::handler &cgh) {
+            sycl::accessor<magmaDoubleComplex, 3,
+                           sycl::access_mode::read_write,
+                           sycl::access::target::local>
+                sum_acc_ct1(
+                    sycl::range<3>(BLK_K, BLK_M+1, BLK_N+1),
+                    cgh);
 
-                cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
-                                 [=](sycl::nd_item<3> item_ct1) {
-                                     zgemm_reduce_kernel<BLK_K>(
-                                         m, n, k, alpha, dA, ldda, dB, lddb,
-                                         beta, dC, lddc, item_ct1, sum_acc_ct1);
-                                 });
-            });
-    }
-    else 
-    #endif /* MAGMA_HAVE_HIP */
-    {
-        // --------------------
-        // call CUDA ARCH 2.x -- maximum 1024 threads
-        const int NUM_THREADS = 1024;
-        const int BLK_K = (NUM_THREADS / (BLK_M * BLK_N)); // == 4
-        sycl::range<3> threads(BLK_N, BLK_M, BLK_K);
-        sycl::range<3> blocks(1, magma_ceildiv(n, BLK_N),
-                              magma_ceildiv(m, BLK_M));
-        /*
-        DPCT1049:360: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 3,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
-                    sum_acc_ct1(
-                        sycl::range<3>(BLK_K, BLK_M+1, BLK_N+1),
-                        cgh);
-
-                cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
-                                 [=](sycl::nd_item<3> item_ct1) {
-                                     zgemm_reduce_kernel<BLK_K>(
-                                         m, n, k, alpha, dA, ldda, dB, lddb,
-                                         beta, dC, lddc, item_ct1, sum_acc_ct1);
-                                 });
-            });
-    }
+            cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
+                             [=](sycl::nd_item<3> item_ct1) {
+                                 zgemm_reduce_kernel<BLK_K>(
+                                     m, n, k, alpha, dA, ldda, dB, lddb,
+                                     beta, dC, lddc, item_ct1, sum_acc_ct1);
+                             });
+        });
 }

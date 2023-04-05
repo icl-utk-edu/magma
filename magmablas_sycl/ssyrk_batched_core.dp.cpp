@@ -216,12 +216,6 @@ magmablas_ssyrk_batched(
         return;  //info;
     }
     
-    magma_int_t arch = magma_getdevice_arch();
-    if ( arch < 200  ) {
-        printf("not supported \n"); // TODO call cublas
-        return;
-    }
-    
     magmablas_ssyrk_batched_core(
             uplo, trans, 
             n, k, 
