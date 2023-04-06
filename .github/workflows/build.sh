@@ -59,4 +59,5 @@ else # maker="cmake"
 fi
 
 make -j8 || make -j1
+make test
 
