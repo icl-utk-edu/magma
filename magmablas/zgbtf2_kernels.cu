@@ -36,6 +36,31 @@ namespace cg = cooperative_groups;
 #define GBTF2_SWAP_MAX_THREADS      (128)
 #define GBTF2_SCAL_GER_MAX_THREADS  (64)
 
+
+template<typename T>
+__device__ void print_memory(
+                const char* msg,
+                int m, int n, T* sA, int lda,
+                int tx, int ty, int tz,
+                int bx, int by, int bz)
+{
+#if defined(PRECISION_d) && defined(DBG)
+    __syncthreads();
+    if(threadIdx.x == tx && threadIdx.y == ty && threadIdx.z == tz &&
+       blockIdx.x  == bx && blockIdx.y  == by && blockIdx.z  == bz) {
+        printf("%s = [ \n", msg);
+        for(int i = 0; i < m; i++) {
+            for(int j = 0; j < n; j++) {
+                printf("%8.4f  ", (double)(sA[j*lda+i]));
+            }
+            printf("\n");
+        }
+        printf("]; \n");
+    }
+    __syncthreads();
+#endif
+}
+
 /******************************************************************************/
 // This kernel must be called before pivot adjustment and before updating ju
 __global__ __launch_bounds__(GBTF2_JU_FILLIN_MAX_THREADS)
@@ -499,3 +524,331 @@ magma_zgbtf2_native(
     magma_free(device_work);
     return *info;
 }
+
+/******************************************************************************/
+// kernel for gbtf2 using cooperative groups and 1D cyclic dist. of columns
+// among thread-blocks
+template<int nb>
+__global__
+void zgbtf2_native_kernel_v2(
+    int m, int n, int kl, int ku,
+    magmaDoubleComplex *dA, int ldda, magma_int_t *ipiv,
+    int* ju, int gbstep, magma_int_t *dinfo)
+{
+#define dA(i, j) dA[(j)*ldda + (i)]
+#define sA(i, j) sA[(j)*slda + (i)]
+    extern __shared__ magmaDoubleComplex zdata[];
+    cg::grid_group grid = cg::this_grid();
+    const int nb1    = nb+1;
+    const int tx     = threadIdx.x;
+    const int ntx    = blockDim.x;
+    const int bx     = blockIdx.x;
+    const int nbx    = gridDim.x;
+    const int kv     = kl + ku;
+    const int mband  = kv + 1 + kl;
+    const int slda   = mband;
+
+    int linfo    = (gbstep == 0) ?  0 : *dinfo;
+    int local_ju = (gbstep == 0) ? -1 : *ju;
+    int jp = 0;
+    double rx_abs_max = 0;
+    magmaDoubleComplex tmp = MAGMA_Z_ZERO, reg = MAGMA_Z_ZERO;
+
+    // setup shared memory
+    magmaDoubleComplex* sA = zdata;
+    double*             sX = (double*)( sA + slda * nb1 );
+    int*                sI = (int*)(sX + kl+1);
+
+    // init sA to zero & sX to [0, 1, 2, ...]
+    for(int i = tx; i < slda*nb1; i+=ntx)
+        sA[i] = MAGMA_Z_ZERO;
+    __syncthreads();
+
+    // read columns -- nb1 cols/TB
+    const int total_columns    = min(n-gbstep, nbx * nb1);
+    const int total_factorize  = min(nbx * nb, total_columns);
+    const int my_total_columns = (total_columns / nbx) + (bx < (total_columns % nbx)) ? 1 : 0;
+    const int my_last_column   = (my_total_columns-1) * nbx + bx
+    int col_start = 0, col_end = 0, lj = 0, glj = 0;
+    for(int jc = gbstep+bx; jc < total_columns; jc += nbx) {
+        // determine column start/end
+        col_start = (jc <= local_ju) ? 0       : kl + max(ku-jc,0);
+        col_end   = (jc <= local_ju) ? mband-1 : kl + ku + min(kl, n-1-jc);
+
+        // read columns
+        for(int i = col_start+tx; i <= col_end; i+=ntx) {
+            sA(i,lj) = dA(i, jc);
+        }
+        lj++;
+    }
+    __syncthreads();
+
+    #if defined(DBG) && defined(PRECISION_d)
+    print_memory<magmaDoubleComplex>("sAr", slda, nb1, sA, slda, 0, 0, 0, 0, 0, 0);
+    __syncthreads();
+    #endif
+
+    for(int j = 0; j < total_factorize; j++) {
+        int gbj     = j + gbstep;
+        int km      = 1 + min( kl, m-gbj );
+        int pivoter = j%nbx;
+        // find pivot
+        if( bx ==  pivoter) {
+            lj = j / nbx;
+            if(km >= 128) {
+                for(int i = tx; i < km; i+=ntx) {
+                    sX[i] = fabs( MAGMA_Z_REAL(sA(kv+i,lj)) ) + fabs( MAGMA_Z_IMAG(sA(kv+i,lj)) );
+                    sI[i] = i;
+                }
+                __syncthreads();
+
+                magma_getidmax_n(km, tx, sX, sI);
+                jp         = sI[0];
+                rx_abs_max = sX[0];
+            }
+            else{
+                for(int i = tx; i < km; i+=ntx) {
+                    sX[i] = fabs( MAGMA_Z_REAL(sA(kv+i,lj)) ) + fabs( MAGMA_Z_IMAG(sA(kv+i,lj)) );
+                }
+                __syncthreads();
+
+                rx_abs_max = sX[0];
+                jp = 0;
+                for(int i = 1; i < km; i++) {
+                    if( sX[i] > rx_abs_max ) {
+                        rx_abs_max = sX[i];
+                        jp         = i;
+                    }
+                }
+            }
+            linfo    = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbj+1) : linfo;
+            local_ju = max(local_ju, min(gbj+ku+jp, n-1));
+
+            if(tx == 0) {
+                ipiv[gbj] = jp + gbj + 1;  // +1 for fortran indexing
+                *dinfo    = (magma_int_t)linfo;
+                *ju       = local_ju;
+            }
+
+            #ifdef DBG
+            if(gbstep == 0) {
+                printf("[%d]: found pivot = %f @ %d -- linfo = %d\n", bx, rx_abs_max, jp, linfo);
+            }
+            #endif
+        }
+        grid.sync();
+
+        // other blocks read the information
+        if( !(bx == pivoter) ) {
+            jp       = ipiv[gbj] - gbj - 1;
+            linfo    = (int)(*dinfo);
+            local_ju = *ju;
+            #ifdef DBG
+            if(gbstep == 0) {
+                printf("[%d]: jp = %d -- linfo = %d -- ju = %d\n", bx, jp, linfo, local_ju);
+            }
+            #endif
+        }
+        __syncthreads();
+
+        // determine your next update column
+        lj  = (bx < pivoter) ? (gbj / nb) + 1 : (gbj / nb);
+        lj  = min(ucol, my_last_column);
+        glj = lj * nbx + bx;
+
+        // swap
+        if(glj <= local_ju && tx == 0) {
+            if(jp != 0) {
+                int j1 = (kv +  0) - (glj-gbj);
+                int j2 = (kv + jp) - (glj-gbj);
+                tmp    = sA[j1];
+                sA(j1,lj) = sA(j2,lj);
+                sA(j2,lj) = tmp;
+            }
+            #if defined(DBG) && defined(PRECISION_d)
+            if(gbstep == 0) {
+                printf("bx = %d, swapping %d with %d\n", bx, (kv +  0) - (bx-j), (kv + jp) - (bx-j));
+                //for(int ii = 0; ii < mband; ii++) {
+                //    printf("swap - %.4f\n", sA[ii]);
+                //}
+            }
+            #endif
+        }
+        __syncthreads();
+
+        // scal & write to global memory
+        if(bx == pivoter) {
+            lj = j / nbx;
+            reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sA[kv] );
+            for(int i = tx; i < (km-1); i+=ntx) {
+                sA(kv+1+i,lj) *= reg;
+            }
+            __syncthreads();
+
+            for(int i = tx; i < mband; i+=ntx) {
+                dA(i,gbj) = sA(i,lj);
+            }
+        }
+        grid.sync();
+
+        // ger
+        if(glj <= local_ju) {
+            int j1 = (kv + 0) - (glj-gbj);
+            for(int i = tx; i < km-1; i+=ntx) {
+                #ifdef DBG
+                printf("[%d]: j = %d, sA[%d] -= sA[%d] * dA(%d,%d)\n", bx, j, j1+1+i, j1, kv+1+i,j);
+                #endif
+                sA(j1+1+i,lj) -= sA(j1,lj) * dA(kv+1+i,gbj);
+            }
+            __syncthreads();
+
+            #if defined(DBG) && defined(PRECISION_d)
+            if(bx == 1 && tx == 0 && gbstep == 0) {
+                for(int ii = 0; ii < mband; ii++) {
+                    printf("ger - %.4f\n", sA(ii,lj));
+                }
+            }
+            __syncthreads();
+            #endif
+        }
+
+    } // end of main loop
+
+    // write the columns at position sA(*,nb)
+    int jj = gbstep + (nb1 * nbx + bx);
+    if( jj < n ) {
+        for(int i = tx; i < mband; i+=ntx) {
+            dA(i,jj) = sA(i,nb);
+        }
+    }
+#undef dA
+#undef sA
+}
+
+/******************************************************************************/
+extern "C"
+magma_int_t
+magma_zgbtf2_native_v2_work(
+    magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
+    magma_int_t* info,
+    void* device_work, magma_int_t* lwork,
+    magma_queue_t queue)
+{
+    magma_int_t kv    = kl + ku;
+    magma_int_t mband = kv + 1 + kl;
+
+    *info  = 0;
+    if( m < 0 )
+        *info = -1;
+    else if ( n < 0 )
+        *info = -2;
+    else if ( kl < 0 )
+        *info = -3;
+    else if ( ku < 0 )
+        *info = -4;
+    else if ( ldda < mband )
+        *info = -6;
+
+    // calculate workspace required
+    magma_int_t lwork_required = 0;
+    lwork_required += 1 * sizeof(magma_int_t); // ju
+    lwork_required += 1 * sizeof(magma_int_t); // dinfo
+
+    if(*lwork < 0) {
+       // query assumed
+       *lwork = lwork_required;
+       return *info;
+    }
+
+    if(*lwork < lwork_required) {
+        *info = -11;
+    }
+
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
+    const magma_int_t nb  = 1;
+    const magma_int_t nb1 = nb+1;
+
+    magma_int_t nthreads = magma_roundup(kv+1,32);
+    magma_int_t slda     = mband;
+
+    // device pointers
+    magma_int_t *ju    = (magma_int_t*)device_work;
+    magma_int_t *dinfo = ju + 1;
+
+    magma_int_t shmem = 0;
+    shmem += slda  * nb1 * sizeof(magmaDoubleComplex);
+    shmem += (kl+1) * sizeof(double);
+    shmem += (kl+1) * sizeof(int);
+
+    #if 1
+    magma_int_t nblocks = kv + 1;
+    dim3 threads(nthreads, 1, 1);
+    dim3 grid(nblocks, 1, 1);
+    void *kernel_args[] = {&m, &n, &kl, &ku, &dA, &ldda, &ipiv, &ju, &gbstep, &dinfo};
+    cudaError_t e = cudaLaunchCooperativeKernel((void*)zgbtf2_native_kernel_v2, grid, threads, kernel_args, shmem, queue->cuda_stream());
+
+    /*
+    for(magma_int_t gbstep = 0; gbstep < n; gbstep += nb) {
+        magma_int_t ib      = min(nb, n-gbstep);
+        magma_int_t nblocks = min(ib+kv+1, n-gbstep);
+        dim3 grid(nblocks, 1, 1);
+        void *kernel_args[] = {&m, &n, &ib, &kl, &ku, &dA, &ldda, &ipiv, &ju, &gbstep, &dinfo};
+        cudaError_t e = cudaLaunchCooperativeKernel((void*)zgbtf2_native_kernel, grid, threads, kernel_args, shmem, queue->cuda_stream());
+
+        #ifdef DBG
+        magma_zprint_gpu(mband, n, dA, ldda, queue);
+        #endif
+    }
+    */
+
+    magma_igetvector_async( 1, dinfo, 1, info, 1, queue );
+
+    return *info;
+}
+
+/******************************************************************************/
+extern "C"
+magma_int_t
+magma_zgbtf2_native_v2(
+    magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
+    magma_int_t* info, magma_queue_t queue)
+{
+    magma_int_t kv    = kl + ku;
+    magma_int_t mband = kv + 1 + kl;
+
+    *info  = 0;
+    if( m < 0 )
+        *info = -1;
+    else if ( n < 0 )
+        *info = -2;
+    else if ( kl < 0 )
+        *info = -3;
+    else if ( ku < 0 )
+        *info = -4;
+    else if ( ldda < mband )
+        *info = -6;
+
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
+    // query workspace
+    magma_int_t lwork[1] = {-1};
+    magma_zgbtf2_native_v2_work(m, n, kl, ku, NULL, ldda, NULL, info, NULL, lwork, queue);
+
+    void* device_work = NULL;
+    magma_malloc(&device_work, lwork[0]);
+
+    magma_zgbtf2_native_v2_work(m, n, kl, ku, dA, ldda, ipiv, info, device_work, lwork, queue);
+
+    magma_free(device_work);
+    return *info;
+}
+

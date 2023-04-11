@@ -198,7 +198,7 @@ int main( int argc, char** argv)
                 #endif
                 magma_time = magma_wtime() - magma_time;
             }
-            else{
+            else if (opts.version == 2){
                 // async. interface
                 // query workspace first
                 magma_int_t lwork[1] = {-1};
@@ -218,6 +218,11 @@ int main( int argc, char** argv)
                     dA, lddab, dipiv_magma, &info,
                     device_work, lwork, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+            }
+            else if(opts.version == 3) {
+                magma_time = magma_wtime();
+                magma_zgbtf2_native_v2(M, N, KL, KU, dA, lddab, dipiv_magma, &info, opts.queue);
+                magma_time = magma_wtime() - magma_time;
             }
             magma_perf = gflops / magma_time;
             magma_zgetmatrix( Mband, Nband, dA, lddab, h_Amagma, ldab, opts.queue );
