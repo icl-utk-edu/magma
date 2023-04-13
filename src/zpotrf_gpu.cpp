@@ -237,6 +237,7 @@ magma_zpotrf_expert_gpu(
                 magma_zpotrf_rectile_native(MagmaLower, jb, recnb,
                                             dA(j, j), ldda, j,
                                             dinfo, info, queues[0] );
+                magma_event_record(events[0], queues[0]);
             }
 
             // apply all previous updates to block column below diagonal block
