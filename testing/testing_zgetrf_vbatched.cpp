@@ -31,6 +31,7 @@
 // uncomment to use mkl's group batch interface
 //#define USE_MKL_GETRF_BATCH
 
+////////////////////////////////////////////////////////////////////////////////
 double get_LU_error(magma_int_t M, magma_int_t N,
                     magmaDoubleComplex *A,  magma_int_t lda,
                     magmaDoubleComplex *LU, magma_int_t *IPIV)
@@ -71,6 +72,38 @@ double get_LU_error(magma_int_t M, magma_int_t N,
     magma_free_cpu( U );
 
     return residual / (matnorm * N);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// compares the GPU output to the CPU's
+void
+get_LU_forward_error(
+    magma_int_t M, magma_int_t N,
+    magmaDoubleComplex *refLU, magma_int_t ref_lda, magma_int_t *refIPIV,
+    magmaDoubleComplex *resLU, magma_int_t res_lda, magma_int_t *resIPIV,
+    double* error, int* pivots_match)
+{
+    magma_int_t i, j;
+    double work[1], matnorm, residual;
+    *error = MAGMA_D_ZERO;
+    matnorm = lapackf77_zlange("f", &M, &N, refLU, &ref_lda, work);
+
+    for( j = 0; j < N; j++ ) {
+        for( i = 0; i < M; i++ ) {
+            resLU[i+j*res_lda] = MAGMA_Z_SUB( resLU[i+j*res_lda], refLU[i+j*ref_lda] );
+        }
+    }
+    residual = lapackf77_zlange("f", &M, &N, res_LU, &res_lda, work);
+    *error = residual / (matnorm * N);
+
+    // compare pivots
+    pivots_match = 1;
+    for( i = 0; i < min(M,N); i++ ) {
+        if( !( refIPIV[i] == resIPIV[i]) ) {
+            pivots_match = 0;
+            break;
+        }
+    }
 }
 
 /* ////////////////////////////////////////////////////////////////////////////
@@ -315,7 +348,7 @@ int main( int argc, char** argv)
                        magma_perf, magma_time*1000. );
             }
 
-            if ( opts.check ) {
+            if ( opts.check == 1 ) {
                 magma_getvector( piv_size, sizeof(magma_int_t), dipiv, 1, ipiv, 1, opts.queue );
                 hA_array[0] = hA_magma;
                 for(int s = 1; s < batchCount; s++) {
@@ -348,6 +381,45 @@ int main( int argc, char** argv)
                 bool okay = (error < tol);
                 status += ! okay;
                 printf("   %8.2e   %s\n", error, (okay ? "ok" : "failed") );
+            }
+            else {
+                printf("     ---\n");
+            }
+
+            if( opts.check == 2 ) {
+                magma_int_t* ipiv_magma = NULL;
+                TESTING_CHECK( magma_imalloc_cpu( &ipiv_magma,     piv_size ));
+                magma_getvector( piv_size, sizeof(magma_int_t), dipiv, 1, ipiv_magma, 1, opts.queue );
+
+                magmaDoubleComplex *htmp_gpu = hA_magma;
+                magmaDoubleComplex *htmp_cpu = hA;
+                magma_int_t *hpiv_cpu = ipiv;
+                magma_int_t *hpiv_gpu = ipiv_magma;
+                double error = 0, err = 0;
+                magma_int_t pivots_match = 1, piv_match = 1;
+                for(magma_int_t s = 0; s < batchCount; s++) {
+                    get_LU_forward_error(
+                        h_M[s], h_N[s],
+                        htmp_cpu, h_lda[s], hpiv_cpu,
+                        htmp_gpu, h_lda[s], hpiv_gpu,
+                        err, &piv_match);
+
+                    error = max(error, err);
+                    pivots_match &= piv_match;
+
+                    htmp_cpu += h_lda[s] * h_N[s];
+                    htmp_gpu += h_lda[s] * h_N[s];
+                    hpiv_cpu += h_min_mn[s];
+                    hpiv_gpu += h_min_mn[s];
+                }
+
+                bool okay = (error < tol);
+                status += ! okay;
+                printf("   %8.2e   %15s   %s\n", error,
+                       (pivots_match == 1)  ? "pivot match" : "pivot mismatch",
+                       (okay ? "ok" : "failed") );
+
+                magma_free_cpu( ipiv_magma );
             }
             else {
                 printf("     ---\n");
