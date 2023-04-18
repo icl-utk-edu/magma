@@ -198,7 +198,7 @@ zgetf2_fused_sm_kernel_vbatched(
         magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex** dA_array, int Ai, int Aj, magma_int_t* ldda,
         magma_int_t** dipiv_array, int ipiv_i,
-        magma_int_t *info,  int gbstep, int batchCount )
+        magma_int_t *info_array,  int gbstep, int batchCount )
 {
     extern __shared__ magmaDoubleComplex zdata[];
     const int tx      = threadIdx.x;
@@ -214,6 +214,7 @@ zgetf2_fused_sm_kernel_vbatched(
     int my_minmn     = min(my_M, my_N);
     magmaDoubleComplex* dA = dA_array[batchid] + Aj * my_ldda + Ai;
     magma_int_t* dipiv     = dipiv_array[batchid] + ipiv_i;
+    magma_int_t* info      = &info_array[batchid];
 
     // check offsets
     if( my_M <= Ai || my_N <= Aj || my_minmn <= ipiv_i ) return;
@@ -266,9 +267,8 @@ zgetf2_fused_sm_kernel_vbatched(
         if( tx == 0 ) sipiv[ j ] = max_id;
         __syncthreads();
 
-
         // swap
-        if(max_id != j) {
+        if(rx_abs_max != MAGMA_D_ZERO && max_id != j) {
             for(int i = tx; i < my_N; i+=ntx) {
                 reg          = sA(j     ,i);
                 sA(j,i)      = sA(max_id,i);
@@ -277,14 +277,12 @@ zgetf2_fused_sm_kernel_vbatched(
         }
         __syncthreads();
 
-        if( linfo == 0 ) {
-            reg = MAGMA_Z_DIV( MAGMA_Z_ONE, sA(j,j) );
-            for(int i = (tx+j+1); i < my_M; i+=ntx) {
-                rTmp    = reg * sA(i,j);
-                sA(i,j) = rTmp;
-                for(int jj = j+1; jj < my_N; jj++) {
-                    sA(i,jj) -= rTmp * sA(j,jj);
-                }
+        reg = (rx_abs_max == MAGMA_D_ZERO) ? MAGMA_Z_ONE : MAGMA_Z_DIV( MAGMA_Z_ONE, sA(j,j) );
+        for(int i = (tx+j+1); i < my_M; i+=ntx) {
+            rTmp    = reg * sA(i,j);
+            sA(i,j) = rTmp;
+            for(int jj = j+1; jj < my_N; jj++) {
+                sA(i,jj) -= rTmp * sA(j,jj);
             }
         }
         __syncthreads();
@@ -422,8 +420,9 @@ zgetf2_fused_kernel_vbatched(
     magmaDoubleComplex* sA = (magmaDoubleComplex*)data;
     #pragma unroll
     for(int j = 0; j < max_N; j++) {
-        sA[j * slda + tx] = MAGMA_Z_ZERO;
+        sA[j * slda + tx] = (j == tx) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
     }
+    __syncthreads();
 
     // read A into sm then mv to reg
     if(tx < my_M) {
@@ -452,6 +451,10 @@ zgetf2_fused_kernel_vbatched(
         sA[ j * slda + rowid ] = rA[j];
     }
     __syncthreads();
+
+    #ifdef PRECISION_d
+    //print_memory<double>("sA", 15, 15, sA, slda, 0, 0, 0, 0, 0, 0);
+    #endif
 
     // ignore any info beyond minmn
     // (meaning singularity is encountered at the padded matrix)
@@ -562,7 +565,6 @@ magma_zgetf2_fused_vbatched(
 
     info = -1; // init a negative value
     switch(max_N) {
-        #if 1
         case  1: info = magma_zgetf2_fused_kernel_driver_vbatched< 1>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case  2: info = magma_zgetf2_fused_kernel_driver_vbatched< 2>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case  3: info = magma_zgetf2_fused_kernel_driver_vbatched< 3>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
@@ -595,7 +597,6 @@ magma_zgetf2_fused_vbatched(
         case 30: info = magma_zgetf2_fused_kernel_driver_vbatched<30>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case 31: info = magma_zgetf2_fused_kernel_driver_vbatched<31>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case 32: info = magma_zgetf2_fused_kernel_driver_vbatched<32>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
-        #endif
         default: ;
     }
 
