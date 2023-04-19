@@ -31,6 +31,17 @@
 // uncomment to use mkl's group batch interface
 //#define USE_MKL_GETRF_BATCH
 
+// uncomment to introduce singularity in one matrix
+// by setting two different columns to zeros
+// (edit MTX_ID, COL1, and COL2 accordingly)
+#define SINGULARITY_CHECK
+#ifdef SINGULARITY_CHECK
+#define MTX_ID (10)    // checked against batchCount
+#define COL1   (1)     // checked against #columns
+#define COL2   (10)    // checked against #columns
+#endif
+
+
 ////////////////////////////////////////////////////////////////////////////////
 double get_LU_error(magma_int_t M, magma_int_t N,
                     magmaDoubleComplex *A,  magma_int_t lda,
@@ -93,14 +104,14 @@ get_LU_forward_error(
             resLU[i+j*res_lda] = MAGMA_Z_SUB( resLU[i+j*res_lda], refLU[i+j*ref_lda] );
         }
     }
-    residual = lapackf77_zlange("f", &M, &N, res_LU, &res_lda, work);
+    residual = lapackf77_zlange("f", &M, &N, resLU, &res_lda, work);
     *error = residual / (matnorm * N);
 
     // compare pivots
-    pivots_match = 1;
+    *pivots_match = 1;
     for( i = 0; i < min(M,N); i++ ) {
         if( !( refIPIV[i] == resIPIV[i]) ) {
-            pivots_match = 0;
+            *pivots_match = 0;
             break;
         }
     }
@@ -137,6 +148,7 @@ int main( int argc, char** argv)
 
     magma_opts opts( MagmaOptsBatched );
     opts.parse_opts( argc, argv );
+    opts.lapack |= (opts.check == 2);
     double tol = opts.tolerance * lapackf77_dlamch("E");
 
     batchCount = opts.batchcount;
@@ -223,6 +235,19 @@ int main( int argc, char** argv)
 
             /* Initialize hA and copy to hR */
             lapackf77_zlarnv( &ione, ISEED, &hA_size, hA );
+
+            #ifdef SINGULARITY_CHECK
+            // introduce singularity -- for debugging purpose only
+            magma_int_t id   = min(MTX_ID, batchCount-1);
+            magma_int_t col1 = min(COL1, h_N[id]-1);
+            magma_int_t col2 = min(COL2, h_N[id]-1);
+            printf("singularity in matrix %lld of size (%lld, %lld) : col. %lld & %lld set to zeros\n",
+                   (long long)id, (long long)h_M[id], (long long)h_N[id],
+                   (long long)col1, (long long)col2);
+            memset(hA_array[id] + col1 * h_lda[id], 0, h_M[id] * sizeof(magmaDoubleComplex));
+            memset(hA_array[id] + col2 * h_lda[id], 0, h_M[id] * sizeof(magmaDoubleComplex));
+            #endif
+
             memcpy(hR, hA, hA_size * sizeof(magmaDoubleComplex));
 
             /* ====================================================================
@@ -382,11 +407,7 @@ int main( int argc, char** argv)
                 status += ! okay;
                 printf("   %8.2e   %s\n", error, (okay ? "ok" : "failed") );
             }
-            else {
-                printf("     ---\n");
-            }
-
-            if( opts.check == 2 ) {
+            else if( opts.check == 2 ) {
                 magma_int_t* ipiv_magma = NULL;
                 TESTING_CHECK( magma_imalloc_cpu( &ipiv_magma,     piv_size ));
                 magma_getvector( piv_size, sizeof(magma_int_t), dipiv, 1, ipiv_magma, 1, opts.queue );
@@ -395,14 +416,14 @@ int main( int argc, char** argv)
                 magmaDoubleComplex *htmp_cpu = hA;
                 magma_int_t *hpiv_cpu = ipiv;
                 magma_int_t *hpiv_gpu = ipiv_magma;
-                double error = 0, err = 0;
+                double err = 0; error = 0;
                 magma_int_t pivots_match = 1, piv_match = 1;
                 for(magma_int_t s = 0; s < batchCount; s++) {
                     get_LU_forward_error(
                         h_M[s], h_N[s],
                         htmp_cpu, h_lda[s], hpiv_cpu,
                         htmp_gpu, h_lda[s], hpiv_gpu,
-                        err, &piv_match);
+                        &err, &piv_match);
 
                     error = max(error, err);
                     pivots_match &= piv_match;
