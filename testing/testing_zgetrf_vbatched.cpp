@@ -178,7 +178,7 @@ int main( int argc, char** argv)
 
     printf("%%             max   max\n");
     if(opts.check == 2) {
-        printf("% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||Aref-A||/(||Aref||*N)\n");
+        printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||Aref-A||/(||Aref||*N)\n");
     }
     else {
         printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
