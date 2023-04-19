@@ -150,18 +150,14 @@ void zscal_zgeru_generic_device( int m, int n,
 {
     const int tx  = threadIdx.x;
     const int gtx = blockIdx.x * blockDim.x + tx;
-    // checkinfo to avoid computation of the singular matrix
-    if( (*info) != 0 ) return;
     if (gtx == 0 || gtx >= m) return;
 
     magmaDoubleComplex rA, reg;
+    double rTmp;
+    rA   = dA[0];
+    rTmp = fabs(MAGMA_Z_REAL( rA ) ) + fabs( MAGMA_Z_IMAG( rA ) );
 
-    if (dA[0] == MAGMA_Z_ZERO) {
-        (*info) = step + gbstep + 1;
-        return;
-    }
-
-    reg = MAGMA_Z_DIV(MAGMA_Z_ONE, dA[0]);
+    reg = (rTmp == MAGMA_D_ZERO) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, rA);
     rA  = dA[ gtx ];
     rA *= reg;
 
@@ -169,7 +165,6 @@ void zscal_zgeru_generic_device( int m, int n,
     #pragma unroll
     for(int i = 1; i < n; i++)
         dA[i * lda + gtx] -= rA * dA[i * lda + 0];
-
 }
 
 /******************************************************************************/
@@ -262,7 +257,9 @@ zgetf2_fused_device( int m, int minmn, magmaDoubleComplex rA[WIDTH], magma_int_t
         rx_abs_max = dsx[i];
         max_id = isx[i];
         linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;
-        if(tx == 0) sipiv[i] = max_id;
+        if(tx == 0) {
+            sipiv[i] = max_id;
+        }
         __syncthreads();
 
         if( rowid == max_id ) {
