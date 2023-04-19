@@ -43,6 +43,8 @@ izamax_kernel_vbatched(
 
     magmaDoubleComplex *dA = dA_array[batchid] + Aj * my_ldda + Ai;
     magma_int_t *ipiv = ipiv_array[batchid] + ipiv_i;
+    magma_int_t *info = &info_array[batchid];
+    int linfo = ( (gbstep+step) == 0) ? 0 : *info;
     int tx = threadIdx.x;
 
     double *shared_x = sdata;
@@ -52,9 +54,8 @@ izamax_kernel_vbatched(
 
     if (tx == 0) {
         *ipiv = shared_idx[0] + step + 1; // Fortran Indexing & adjust pivot
-        if (shared_x[0] == MAGMA_D_ZERO) {
-            info_array[batchid] = shared_idx[0] + step + gbstep + 1;
-        }
+        linfo  = ( shared_x[0] == MAGMA_D_ZERO && linfo == 0) ? (shared_idx[0]+step+gbstep+1) : linfo;
+        *info = (magma_int_t)linfo;
     }
 }
 
@@ -106,11 +107,23 @@ void zswap_kernel_vbatched(
     }
     __syncthreads();
 
-    if (jp == 0) return; // no swapping required
+     // no swapping if pivot is already on the diagonal
+    if (jp == 0) return;
 
-    magmaDoubleComplex *dA  = dA_array[batchid] + Aj * my_ldda + Ai;
-    magmaDoubleComplex *dA1 = dA;
-    magmaDoubleComplex *dA2 = dA + jp;
+    magmaDoubleComplex *dAorg = dA_array[batchid];
+    magmaDoubleComplex *dA    = dAorg + Aj * my_ldda + Ai;
+    magmaDoubleComplex *dA1   = dA;
+    magmaDoubleComplex *dA2   = dA + jp;
+
+    // read the abs. value of the pivot:
+    // in src/zgetf2_vbatched.cpp izamax is called at dA(Ai+gbj, Aj+gbj)
+    // while zswap is called at dA(Ai+gbj, Aj), so for this kernel
+    // the pivot is at Ai (local value) and (Aj + piv_adjustment)
+    magmaDoubleComplex rA = dAorg[ (Aj+piv_adjustment) * my_ldda + Ai ];
+    double rx_abs_max = fabs( MAGMA_Z_REAL(rA) ) + fabs( MAGMA_Z_IMAG(rA) );
+
+    // swap only if the pivot is non-zero
+    if(rx_abs_max == MAGMA_D_ZERO) return;
 
     zswap_device_v2(my_N, dA1, my_ldda, dA2, my_ldda );
 }
@@ -452,13 +465,9 @@ zgetf2_fused_kernel_vbatched(
     }
     __syncthreads();
 
-    #ifdef PRECISION_d
-    //print_memory<double>("sA", 15, 15, sA, slda, 0, 0, 0, 0, 0, 0);
-    #endif
-
-    // ignore any info beyond minmn
+    // ignore any info beyond minmn (linfo at this point uses 1-based index)
     // (meaning singularity is encountered at the padded matrix)
-    linfo = (linfo >= my_minmn) ? 0 : linfo;
+    linfo = (linfo > my_minmn) ? 0 : linfo;
     linfo = (orginfo == 0) ? linfo : orginfo;
 
     if(tx == 0){
@@ -500,9 +509,6 @@ magma_zgetf2_fused_kernel_driver_vbatched(
     shmem_1 += max_N * sizeof(int);    // not magma_int_t
 
     shmem_2 += SLDA(max_M) * max_N * sizeof(magmaDoubleComplex);
-
-    //printf("max_M = %d, max_N = %d\n", max_M, max_N);
-    //printf("shmem-1 = %d, shmem-2 = %d\n", shmem_1, shmem_2);
 
     shmem  = max(shmem_1, shmem_2);
     shmem *= ntcol;
@@ -563,7 +569,7 @@ magma_zgetf2_fused_vbatched(
     if(info < 0) return info;
 
 
-    info = -1; // init a negative value
+    info = -1;
     switch(max_N) {
         case  1: info = magma_zgetf2_fused_kernel_driver_vbatched< 1>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case  2: info = magma_zgetf2_fused_kernel_driver_vbatched< 2>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
@@ -599,8 +605,6 @@ magma_zgetf2_fused_vbatched(
         case 32: info = magma_zgetf2_fused_kernel_driver_vbatched<32>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         default: ;
     }
-
-    //printf("info from reg = %d\n", info);
 
     if( info != 0 ) {
         // try sm version
