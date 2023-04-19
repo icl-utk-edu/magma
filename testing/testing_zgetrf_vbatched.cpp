@@ -177,7 +177,12 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_malloc(    (void**)&dpivinfo_array, batchCount * sizeof(magma_int_t*) ));
 
     printf("%%             max   max\n");
-    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
+    if(opts.check == 2) {
+        printf("% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||Aref-A||/(||Aref||*N)\n");
+    }
+    else {
+        printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
+    }
     printf("%%==========================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         seed = rand();
@@ -437,7 +442,7 @@ int main( int argc, char** argv)
                 bool okay = (error < tol);
                 status += ! okay;
                 printf("   %8.2e   %15s   %s\n", error,
-                       (pivots_match == 1)  ? "pivot match" : "pivot mismatch",
+                       (pivots_match == 1)  ? "pivots match" : "pivots mismatch",
                        (okay ? "ok" : "failed") );
 
                 magma_free_cpu( ipiv_magma );
