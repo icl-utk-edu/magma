@@ -107,8 +107,6 @@ void zscal_zgeru_device( int m,
 {
     const int tx  = threadIdx.x;
     const int gtx = blockIdx.x * blockDim.x + tx;
-    // checkinfo to avoid computation of the singular matrix
-    if( (*info) != 0 ) return;
 
     magmaDoubleComplex rA[N], reg;
     __shared__ magmaDoubleComplex shared_y[N];
@@ -126,7 +124,10 @@ void zscal_zgeru_device( int m,
     // terminate threads that are out of the range
     if (gtx == 0 || gtx >= m) return;
 
-    reg = MAGMA_Z_DIV(MAGMA_Z_ONE, shared_y[0]);
+    double rTmp = fabs(MAGMA_Z_REAL( shared_y[0] ) ) + fabs( MAGMA_Z_IMAG( shared_y[0] ) );
+
+    reg = (rTmp == MAGMA_D_ZERO) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, shared_y[0]);
+
     #pragma unroll
     for(int i = 0; i < N; i++)
         rA[i] = dA[ i* lda + gtx ];
