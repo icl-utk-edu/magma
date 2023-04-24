@@ -116,11 +116,6 @@ void zscal_zgeru_device( int m,
     }
     __syncthreads();
 
-    if (shared_y[0] == MAGMA_Z_ZERO) {
-        (*info) = step + gbstep + 1;
-        return;
-    }
-
     // terminate threads that are out of the range
     if (gtx == 0 || gtx >= m) return;
 
