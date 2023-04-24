@@ -35,6 +35,8 @@ izamax_kernel_batched(
     int tx = threadIdx.x;
     const magmaDoubleComplex *x = x_array[batchid] + xj * lda + xi;
     magma_int_t *ipiv           = ipiv_array[batchid] + ipiv_i;
+    magma_int_t *info = &info_array[batchid];
+    int linfo = ( (gbstep+step) == 0) ? 0 : *info;
 
     double *shared_x = sdata;
     int *shared_idx = (int*)(shared_x + zamax);
@@ -43,9 +45,8 @@ izamax_kernel_batched(
 
     if (tx == 0) {
         *ipiv  = shared_idx[0] + step + 1; // Fortran Indexing & adjust ipiv
-        if (shared_x[0] == MAGMA_D_ZERO) {
-            info_array[batchid] = shared_idx[0] + step + gbstep + 1;
-        }
+        linfo  = ( shared_x[0] == MAGMA_D_ZERO && linfo == 0) ? (shared_idx[0]+step+gbstep+1) : linfo;
+        *info = (magma_int_t)linfo;
     }
 }
 
@@ -62,13 +63,13 @@ izamax_kernel_native(
 
     double *shared_x = sdata;
     int *shared_idx = (int*)(shared_x + zamax);
+    int linfo = ( (gbstep+step) == 0) ? 0 : *info;
 
     izamax_devfunc(length, x, incx, shared_x, shared_idx);
     if (tx == 0) {
         *ipiv  = shared_idx[0] + step + 1; // Fortran Indexing
-        if (shared_x[0] == MAGMA_D_ZERO) {
-            (*info) = shared_idx[0] + step + gbstep + 1;
-        }
+        linfo  = ( shared_x[0] == MAGMA_D_ZERO && linfo == 0) ? (shared_idx[0]+step+gbstep+1) : linfo;
+        *info = (magma_int_t)linfo;
     }
 }
 
@@ -232,7 +233,11 @@ void zswap_kernel_batched(
     magmaDoubleComplex *x = x_array[batchid] + xj * incx + xi;
     magma_int_t *ipiv = ipiv_array[batchid] + xi;
 
-    zswap_device(n, x, incx, step, ipiv);
+    magmaDoubleComplex* xpiv = x_array[batchid] + (xj+step) * incx + (xi+step);
+    double rx_abs = fabs( MAGMA_Z_REAL(xpiv[0]) ) + fabs( MAGMA_Z_IMAG(xpiv[0]) );
+    if( rx_abs != 0) {
+        zswap_device(n, x, incx, step, ipiv);
+    }
 }
 
 
