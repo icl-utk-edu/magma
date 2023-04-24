@@ -30,7 +30,7 @@
 // uncomment to introduce singularity in one matrix
 // by setting two different columns to zeros
 // (edit MTX_ID, COL1, and COL2 accordingly)
-#define SINGULARITY_CHECK
+//#define SINGULARITY_CHECK
 #ifdef SINGULARITY_CHECK
 #define MTX_ID (10)    // checked against batchCount
 #define COL1   (29)     // checked against #columns
