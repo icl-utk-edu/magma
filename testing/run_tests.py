@@ -1313,7 +1313,7 @@ batched = (
 	# ----- LU
 	('testing_zgesv_batched',         batch + '           -c',  mn,   ''),
 	('testing_zgesv_nopiv_batched',   batch + '           -c',  mn,   ''),
-	('testing_zgetrf_batched',        batch + '          -c2',  mn,   ''),
+	('testing_zgetrf_batched',        batch + '           -c',  mn,   ''),
 	('testing_zgetrf_nopiv_batched',  batch + '          -c2',  mn,   ''),
 	('testing_zgetri_batched',        batch + '           -c',  n,    ''),
 
@@ -1510,7 +1510,7 @@ vbatched = (
 	('#testing_zposv_vbatched',    batch + '         -U    -c2', n,    'upper not implemented'),
 
 	# ----- LU
-	('testing_zgetrf_vbatched',    batch + '          -c2',  mn,   ''),
+	('testing_zgetrf_vbatched',    batch + '          -c',  mn,   ''),
 )
 if (opts.vbatched):
 	tests += vbatched
