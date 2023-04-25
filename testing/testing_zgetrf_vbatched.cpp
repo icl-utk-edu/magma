@@ -92,7 +92,7 @@ get_LU_forward_error(
     magma_int_t M, magma_int_t N,
     magmaDoubleComplex *refLU, magma_int_t ref_lda, magma_int_t *refIPIV,
     magmaDoubleComplex *resLU, magma_int_t res_lda, magma_int_t *resIPIV,
-    double* error, int* pivots_match)
+    double* error, magma_int_t* pivots_match)
 {
     magma_int_t i, j;
     double work[1], matnorm, residual;
