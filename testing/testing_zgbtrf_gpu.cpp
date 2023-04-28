@@ -27,7 +27,7 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (M == 10 && N == 10)
+#define cond (M == 11 && N == 11)
 
 double get_band_LU_error(
             magma_int_t M, magma_int_t N,
