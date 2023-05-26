@@ -518,7 +518,7 @@ static inline void zpotf2_smlpout_fixwidth_device(const int m,
         }
     #ifdef ENABLE_COND6
     }
-    __syncthreads();
+    item_ct1.barrier();
     #endif
 }
 
@@ -585,7 +585,7 @@ static inline void zpotf2_smlpout_anywidth_device(const int m, const int n,
         }
     #ifdef ENABLE_COND6
     }
-    __syncthreads();
+    item_ct1.barrier();
     #endif
 }
 
