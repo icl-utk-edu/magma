@@ -199,17 +199,21 @@ int main( int argc, char** argv)
                                  (hipblasDoubleComplex**)dtau_array,
                                  &device_info, int(batchCount) );
             #elif defined(MAGMA_HAVE_SYCL)
+	    std::int64_t M_l = (std::int64_t) M;
+	    std::int64_t N_l = (std::int64_t) N;
+	    std::int64_t ldda_l = (std::int64_t) ldda;
+	    std::int64_t batchCount_l = (std::int64_t) batchCount_l;
             std::int64_t scratchSize = oneapi::mkl::lapack::geqrf_batch_scratchpad_size<magmaDoubleComplex>(
 			         *opts.handle,
-			         (std::int64_t*)(&M), (std::int64_t*)(&N), (std::int64_t*)(&ldda),
-				 std::int64_t(1), (std::int64_t*)(&batchCount));
+			         &M_l, &N_l, &ldda_l,
+				 std::int64_t(1), &batchCount_l);
 	    magmaDoubleComplex *scratchPad;
-	    TESTING_CHECK( magma_zmalloc( &scratchPad, scratchSize));
+	    TESTING_CHECK( magma_zmalloc( &scratchPad, (magma_int_t) scratchSize));
             oneapi::mkl::lapack::geqrf_batch( *opts.handle, 
-			         (std::int64_t*)(&M), (std::int64_t*)(&N),
-				 (magmaDoubleComplex**)dA_array, (std::int64_t*)(&ldda),
+			         &M_l, &N_l,
+				 (magmaDoubleComplex**)dA_array, &ldda_l,
 				 (magmaDoubleComplex**)dtau_array,
-				 std::int64_t(1), (std::int64_t*)(&batchCount),
+				 std::int64_t(1), &batchCount_l,
 				 scratchPad, scratchSize, {}); 
             #endif
 
