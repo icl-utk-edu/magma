@@ -274,7 +274,8 @@ static magma_int_t magma_zlarf_fused_sm_kernel_driver_batched(
     magma_device_t device;
     magma_getdevice( &device );
     magma_int_t arginfo = 0;
-    const magma_int_t ntcol = max(1, 32/nthreads);
+    const magma_int_t ntcol = 1; //max(1, 32/nthreads);
+				 // set to 1 for now due to SYCL divergent return/barrier issue
     const magma_int_t TPC   = nthreads / NB;
 
     magma_int_t shmem = 0;
