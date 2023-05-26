@@ -26,6 +26,7 @@ magma_zgeqrf_panel_fused_update_batched(
     magma_int_t minmn = min(m,n);
     if( m < nb ) return -1;
 
+#ifndef MAGMA_HAVE_SYCL
     // check for square sizes <= 32
     if( m == n && m <= 32 ){
         info = magma_zgeqrf_batched_smallsq(
@@ -34,6 +35,7 @@ magma_zgeqrf_panel_fused_update_batched(
                     info_array, batchCount, queue );
     }
     else{
+#endif
         for(magma_int_t j = 0; j < minmn; j+=nb) {
             magma_int_t ib = min(minmn-j,nb);
 
@@ -94,8 +96,9 @@ magma_zgeqrf_panel_fused_update_batched(
                             batchCount, queue );
             }
         }
+#ifndef MAGMA_HAVE_SYCL
     }
-
+#endif
     if( info == 0 && separate_R_V == 1 ) {
         // copy to dR
         magmablas_zlacpy_internal_batched(

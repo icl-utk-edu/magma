@@ -36,12 +36,16 @@ zgemm_batched_smallsq_kernel(
     const int bx = item_ct1.get_group(2);
 
     const int batchid = bx * item_ct1.get_local_range(0) + tz;
-    if(batchid >= batchCount) return;
     
-    const magmaDoubleComplex* __restrict__ dA = dA_array[batchid] + aj * ldda + ai;
-    const magmaDoubleComplex* __restrict__ dB = dB_array[batchid] + bj * lddb + bi;
-          magmaDoubleComplex* __restrict__ dC = dC_array[batchid] + cj * lddc + ci;
+    const magmaDoubleComplex* __restrict__ dA;
+    const magmaDoubleComplex* __restrict__ dB;
+          magmaDoubleComplex* __restrict__ dC;
 
+    if(batchid < batchCount) {
+      dA = dA_array[batchid] + aj * ldda + ai;
+      dB = dB_array[batchid] + bj * lddb + bi;
+      dC = dC_array[batchid] + cj * lddc + ci;
+    }
     /*
     DPCT1064:301: Migrated make_cuDoubleComplex call is used in a macro
     definition and is not valid for all macro uses. Adjust the code.
@@ -63,18 +67,20 @@ zgemm_batched_smallsq_kernel(
     sB += tz * sldb * N;
     
     // read A & B 
-    if(transA == MagmaNoTrans){
-        sA[ty * slda + tx] = dA[ty * ldda + tx];
-    }
-    else{
-        sA[tx * slda + ty] = (transA == MagmaTrans) ? dA[ty * ldda + tx] : MAGMA_Z_CONJ( dA[ty * ldda + tx] );
-    }
+    if(batchid < batchCount) {
+      if(transA == MagmaNoTrans){
+          sA[ty * slda + tx] = dA[ty * ldda + tx];
+      }
+      else{
+          sA[tx * slda + ty] = (transA == MagmaTrans) ? dA[ty * ldda + tx] : MAGMA_Z_CONJ( dA[ty * ldda + tx] );
+      }
 
-    if(transB == MagmaNoTrans){
-        sB[ty * sldb + tx] = dB[ty * lddb + tx];
-    }
-    else{
-        sB[tx * sldb + ty] = (transB == MagmaTrans) ? dB[ty * lddb + tx] : MAGMA_Z_CONJ( dB[ty * lddb + tx] );
+      if(transB == MagmaNoTrans){
+          sB[ty * sldb + tx] = dB[ty * lddb + tx];
+      }
+      else{
+          sB[tx * sldb + ty] = (transB == MagmaTrans) ? dB[ty * lddb + tx] : MAGMA_Z_CONJ( dB[ty * lddb + tx] );
+      }
     }
     /*
     DPCT1065:300: Consider replacing sycl::nd_item::barrier() with
@@ -87,24 +93,26 @@ zgemm_batched_smallsq_kernel(
     DPCT1064:303: Migrated make_cuDoubleComplex call is used in a macro
     definition and is not valid for all macro uses. Adjust the code.
     */
-    if (beta != MAGMA_Z_ZERO) {
-        rC = beta * dC[ty * lddc + tx];
-    }
+    if(batchid < batchCount) {
+      if (beta != MAGMA_Z_ZERO) {
+          rC = beta * dC[ty * lddc + tx];
+      }
 
-    // multiply
-    /*
-    DPCT1064:304: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
-    rTmp = MAGMA_Z_ZERO;
+      // multiply
+      /*
+      DPCT1064:304: Migrated make_cuDoubleComplex call is used in a macro
+      definition and is not valid for all macro uses. Adjust the code.
+      */
+      rTmp = MAGMA_Z_ZERO;
 #pragma unroll
-    for(int j = 0; j < N; j++){
-        rTmp += sA[j * slda + tx] * sB[ty * sldb + j]; 
-    }
-    rC += alpha * rTmp;
+      for(int j = 0; j < N; j++){
+          rTmp += sA[j * slda + tx] * sB[ty * sldb + j];
+      }
+      rC += alpha * rTmp;
 
     // write from rC
-    dC[ty * lddc + tx] = rC;
+      dC[ty * lddc + tx] = rC;
+    }
 }
 
 

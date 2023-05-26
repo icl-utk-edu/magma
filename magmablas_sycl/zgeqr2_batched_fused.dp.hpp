@@ -479,7 +479,7 @@ magma_zgeqr2_fused_reg_kernel_driver_batched(
     magma_getdevice( &device );
     magma_int_t arginfo = 0;
     magma_int_t nthreads = M32;
-    const magma_int_t ntcol = NTCOL(M32);
+    const magma_int_t ntcol = 1; // setting to 1 for now for SYCL, to avoid divergence thread return barrier issue
 
     magma_int_t lwork_norm = magma_roundup( M32 * sizeof(double), sizeof(magmaDoubleComplex));
     magma_int_t lwork_vtA  = (N) * SLDA(_TPC_);
