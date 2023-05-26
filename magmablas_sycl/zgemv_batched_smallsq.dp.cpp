@@ -45,12 +45,15 @@ zgemvn_batched_smallsq_kernel(
     const int bx = item_ct1.get_group(2);
 
     const int batchid = bx * item_ct1.get_local_range(1) + ty;
-    if(batchid >= batchCount) return;
 
-    const T* A = (dA_array == NULL) ? dA + batchid * strideA : dA_array[batchid];
-    const T* x = (dx_array == NULL) ? dx + batchid * stridex : dx_array[batchid];
-    T* y = (dy_array == NULL) ? dy + batchid * stridey : dy_array[batchid];
-
+    const T* A;
+    const T* x;
+    T* y;
+    if(batchid < batchCount) {
+      A = (dA_array == NULL) ? dA + batchid * strideA : dA_array[batchid];
+      x = (dx_array == NULL) ? dx + batchid * stridex : dx_array[batchid];
+      y = (dy_array == NULL) ? dy + batchid * stridey : dy_array[batchid];
+    }
     T rA[N] = {MAGMA_Z_ZERO};
 
     // shared memory
@@ -58,7 +61,9 @@ zgemvn_batched_smallsq_kernel(
     sx += ty * N;
 
     // read x in shmem
-    sx[tx] = x[tx * incx];
+    if(batchid < batchCount) { 
+      sx[tx] = x[tx * incx];
+    }
     /*
     DPCT1065:120: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -66,23 +71,26 @@ zgemvn_batched_smallsq_kernel(
     */
     item_ct1.barrier();
 
-    T ry = (beta == MAGMA_Z_ZERO)
+    T ry;
+    if(batchid < batchCount) {
+      ry = (beta == MAGMA_Z_ZERO)
                ? MAGMA_Z_ZERO
                : beta * y[tx * incy];
 #pragma unroll
-    for(int j = 0; j < N; j++) {
-        rA[j] = A[j * ldda + tx];
-    }
+      for(int j = 0; j < N; j++) {
+          rA[j] = A[j * ldda + tx];
+      }
 
-    T rTmp = MAGMA_Z_ZERO;
+      T rTmp = MAGMA_Z_ZERO;
 #pragma unroll
-    for(int j = 0; j < N; j++) {
-        rTmp += rA[j] * sx[j];
-    }
+      for(int j = 0; j < N; j++) {
+          rTmp += rA[j] * sx[j];
+      }
 
-    rTmp *= alpha;
-    ry   += rTmp;
-    y[tx * incy] = ry;
+      rTmp *= alpha;
+      ry   += rTmp;
+      y[tx * incy] = ry;
+    }
 
 }
 
@@ -106,12 +114,15 @@ zgemvc_batched_smallsq_kernel(
     const int slda = SLDA(N);
 
     const int batchid = bx * item_ct1.get_local_range(1) + ty;
-    if(batchid >= batchCount) return;
 
-    const T* A = (dA_array == NULL) ? dA + batchid * strideA : dA_array[batchid];
-    const T* x = (dx_array == NULL) ? dx + batchid * stridex : dx_array[batchid];
-    T* y = (dy_array == NULL) ? dy + batchid * stridey : dy_array[batchid];
-
+    const T* A;
+    const T* x;
+    T* y;
+    if(batchid < batchCount) { 
+      A = (dA_array == NULL) ? dA + batchid * strideA : dA_array[batchid];
+      x = (dx_array == NULL) ? dx + batchid * stridex : dx_array[batchid];
+      y = (dy_array == NULL) ? dy + batchid * stridey : dy_array[batchid];
+    }
     T rA[N] = {MAGMA_Z_ZERO};
 
     // shared memory
@@ -120,26 +131,29 @@ zgemvc_batched_smallsq_kernel(
     sA += ty * slda * N;
     sx += ty * N;
 
-    T ry = (beta == MAGMA_Z_ZERO)
+    T ry;
+    if(batchid < batchCount) { 
+      ry = (beta == MAGMA_Z_ZERO)
                ? MAGMA_Z_ZERO
                : beta * y[tx * incy];
 
-    // read x in shmem
-    sx[tx] = x[tx * incx];
+      // read x in shmem
+      sx[tx] = x[tx * incx];
 
-    #pragma unroll
-    for(int j = 0; j < N; j++) {
-        rA[j] = A[j * ldda + tx];
-    }
+      #pragma unroll
+      for(int j = 0; j < N; j++) {
+          rA[j] = A[j * ldda + tx];
+      }
 
-    // transpose
-    #pragma unroll
-    for(int j = 0; j < N; j++) {
-        #if defined(PRECISION_z) || defined(PRECISION_c)
-        sA[tx * slda + j] = (transA == MagmaConjTrans) ? MAGMA_Z_CONJ(rA[j]) : rA[j];
-        #else
-        sA[tx * slda + j] = rA[j];
-        #endif
+      // transpose
+      #pragma unroll
+      for(int j = 0; j < N; j++) {
+          #if defined(PRECISION_z) || defined(PRECISION_c)
+          sA[tx * slda + j] = (transA == MagmaConjTrans) ? MAGMA_Z_CONJ(rA[j]) : rA[j];
+          #else
+          sA[tx * slda + j] = rA[j];
+          #endif
+      }
     }
     /*
     DPCT1065:121: Consider replacing sycl::nd_item::barrier() with
@@ -148,20 +162,22 @@ zgemvc_batched_smallsq_kernel(
     */
     item_ct1.barrier();
 
+    if(batchid < batchCount) {
 #pragma unroll
-    for(int j = 0; j < N; j++) {
-         rA[j] = sA[j * slda + tx];
-    }
+      for(int j = 0; j < N; j++) {
+           rA[j] = sA[j * slda + tx];
+      }
 
-    T rTmp = MAGMA_Z_ZERO;
+      T rTmp = MAGMA_Z_ZERO;
 #pragma unroll
-    for(int j = 0; j < N; j++) {
-        rTmp += rA[j] * sx[j];
-    }
+      for(int j = 0; j < N; j++) {
+          rTmp += rA[j] * sx[j];
+      }
 
-    rTmp *= alpha;
-    ry   += rTmp;
-    y[tx * incy] = ry;
+      rTmp *= alpha;
+      ry   += rTmp;
+      y[tx * incy] = ry;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

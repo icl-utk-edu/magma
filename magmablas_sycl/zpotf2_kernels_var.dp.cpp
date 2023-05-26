@@ -18,7 +18,7 @@
 #include "batched_kernel_param.h"
 #include "magma_templates.h"
 
-//#define VBATCH_DISABLE_THREAD_RETURN
+#define VBATCH_DISABLE_THREAD_RETURN
 #ifdef VBATCH_DISABLE_THREAD_RETURN
 #define ENABLE_COND1
 #define ENABLE_COND2

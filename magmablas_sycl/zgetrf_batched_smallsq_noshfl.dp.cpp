@@ -227,11 +227,8 @@ magma_zgetrf_batched_smallsq_noshfl(
 
     if( m == 0) return 0;
 
-    #ifdef MAGMA_HAVE_HIP
-    const magma_int_t ntcol = NTCOL(n);
-    #else
-    const magma_int_t ntcol = magma_get_zgetrf_batched_ntcol(m, n);
-    #endif
+    const magma_int_t ntcol = 1; //magma_get_zgetrf_batched_ntcol(m, n);
+				 // Set to 1 for SYCL for now to avoid early return/barrier issue
     /*
     DPCT1083:737: The size of local memory in the migrated code may be different
     from the original code. Check that the allocated memory size in the migrated

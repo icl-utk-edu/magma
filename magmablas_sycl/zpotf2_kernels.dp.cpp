@@ -217,9 +217,10 @@ magma_zpotrf_lpout_batched(
 
         // tuning ntcol
         magma_int_t ntcol;  // for z precision, the best tuning is at NTCOL = 1 for all sizes
-        if (rows > 64) ntcol = 1;
-        else if (rows > 32) ntcol = NTCOL2;
-        else ntcol = NTCOL1;
+	ntcol = 1; // Currently setting ntcol to 1 for SYCL always (avoid divergent thread return/barrier issue)
+//        if (rows > 64) ntcol = 1;
+//        else if (rows > 32) ntcol = NTCOL2;
+//        else ntcol = NTCOL1;
         // end of tuning ntcol
 
         const magma_int_t nTB = magma_ceildiv( batchCount, ntcol );
