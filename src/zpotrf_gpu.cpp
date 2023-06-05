@@ -80,11 +80,15 @@
     @ingroup magma_potrf
 *******************************************************************************/
 extern "C" magma_int_t
-magma_zpotrf_expert_gpu(
+magma_zpotrf_expert_gpu_work(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *info,
-    magma_int_t nb, magma_mode_t mode )
+    magma_mode_t mode,
+    magma_int_t nb, magma_int_t recnb,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_event_t events[2], magma_queue_t queues[2] )
 {
     #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_, j_)  dA, ((i_) + (j_)*ldda + dA_offset)
@@ -103,7 +107,34 @@ magma_zpotrf_expert_gpu(
     magmaDoubleComplex *work;
     magma_int_t *dinfo;
 
+    /* Quick return if possible */
     *info = 0;
+    if (n == 0) return *info;
+
+    // calculate the required workspace in bytes
+    magma_int_t h_workspace_bytes = 0;
+    magma_int_t d_workspace_bytes = 0;
+    if (mode == MagmaHybrid) {
+        if ( nb <= 1 || 4*nb >= n ) {
+            h_workspace_bytes += n * n * sizeof(magmaDoubleComplex);
+        }
+        else {
+            h_workspace_bytes += nb * nb * sizeof(magmaDoubleComplex);
+        }
+    }
+    else {
+        d_workspace_bytes += 1 * sizeof(magma_int_t);
+    }
+
+    // check for workspace query
+    if( *lwork_host < 0 || *lwork_device < 0 ) {
+        *lwork_host   = h_workspace_bytes;
+        *lwork_device = d_workspace_bytes;
+        *info  = 0;
+        return 0;
+    }
+
+    // check input arguments
     if (uplo != MagmaUpper && uplo != MagmaLower) {
         *info = -1;
     } else if (n < 0) {
@@ -111,52 +142,43 @@ magma_zpotrf_expert_gpu(
     } else if (ldda < max(1,n)) {
         *info = -4;
     }
+    else if( mode != MagmaHybrid && mode != MagmaNative) {
+        *info = -6;
+    }
+    else if(nb < 0) {
+        *info = -7;
+    }
+    else if(recnb < 0) {
+        *info = -8;
+    }
+    else if( *lwork_host   < h_workspace_bytes ) {
+        *info = -10;
+    }
+    else if( *lwork_device < d_workspace_bytes ) {
+        *info = -12;
+    }
+
     if (*info != 0) {
         magma_xerbla( __func__, -(*info) );
         return *info;
     }
 
-    /* Quick return if possible */
-    if (n == 0)
-        return *info;
-
-    recnb = 128;
-
+    // assign pointers
     if (mode == MagmaHybrid) {
-        if (nb <= 1 || 4*nb >= n ) {
-            /* Use CPU code. */
-            if ( MAGMA_SUCCESS != magma_zmalloc_cpu( &work, n*n )) {
-                *info = MAGMA_ERR_HOST_ALLOC;
-                return *info;
-            }
-            magma_zgetmatrix( n, n, dA(0,0), ldda, work, n, NULL);
-            lapackf77_zpotrf(lapack_uplo_const(uplo), &n, work, &n, info );
-            magma_zsetmatrix( n, n, work, n, dA(0,0), ldda, NULL);
-            magma_free_cpu( work );  work=NULL;
-
-            return *info;
-        }
-        else if (MAGMA_SUCCESS != magma_zmalloc_pinned( &work, nb*nb )) {
-            *info = MAGMA_ERR_HOST_ALLOC;
-            goto cleanup;
-        }
+        work = (magmaDoubleComplex*) host_work;
     }
     else {
-        if (MAGMA_SUCCESS != magma_imalloc( &dinfo, 1 ) ) {
-            /* alloc failed for workspace */
-            *info = MAGMA_ERR_DEVICE_ALLOC;
-            goto cleanup;
-        }
+        dinfo = (magma_int_t*) host_device;
     }
 
-    magma_queue_t queues[2];
-    magma_event_t events[2];
-    magma_device_t cdev;
-    magma_getdevice( &cdev );
-    magma_queue_create( cdev, &queues[0] );
-    magma_queue_create( cdev, &queues[1] );
-    magma_event_create(&events[0]);
-    magma_event_create(&events[1]);
+    if ( mode == MagmaHybrid && (nb <= 1 || 4*nb >= n) ) {
+        /* Use CPU only */
+        magma_zgetmatrix( n, n, dA(0,0), ldda, work, n, NULL);
+        lapackf77_zpotrf(lapack_uplo_const(uplo), &n, work, &n, info );
+        magma_zsetmatrix( n, n, work, n, dA(0,0), ldda, NULL);
+        return *info;
+    }
+
     if (mode == MagmaNative)
         magma_setvector( 1, sizeof(magma_int_t), info, 1, dinfo, 1, queues[0]);
 
@@ -280,7 +302,78 @@ magma_zpotrf_expert_gpu(
     if (mode == MagmaNative)
         magma_getvector( 1, sizeof(magma_int_t), dinfo, 1, info, 1, queues[0]);
 
-cleanup:
+    return *info;
+} /* magma_zpotrf_expert_gpu_work */
+
+////////////////////////////////////////////////////////////////////////////////
+extern "C" magma_int_t
+magma_zpotrf_expert_gpu(
+    magma_uplo_t uplo, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *info,
+    magma_int_t nb, magma_mode_t mode )
+{
+
+    *info = 0;
+    if (uplo != MagmaUpper && uplo != MagmaLower) {
+        *info = -1;
+    } else if (n < 0) {
+        *info = -2;
+    } else if (ldda < max(1,n)) {
+        *info = -4;
+    }
+    else if( nb < 0 ) {
+        *info = -6;
+    }
+    else if( mode != MagmaHybrid && mode != MagmaNative ) {
+        *info = -7;
+    }
+
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
+    /* Quick return if possible */
+    if (n == 0)
+        return *info;
+
+    magma_int_t recnb = 128;
+
+    magma_queue_t queues[2];
+    magma_event_t events[2];
+    magma_device_t cdev;
+    magma_getdevice( &cdev );
+    magma_queue_create( cdev, &queues[0] );
+    magma_queue_create( cdev, &queues[1] );
+    magma_event_create(&events[0]);
+    magma_event_create(&events[1]);
+
+    // query workspace
+    magma_int_t lhwork[1] = {-1}, ldwork[1] = {-1};
+    magma_zpotrf_expert_gpu_work(
+        uplo, n, NULL, ldda, info,
+        mode, nb, recnb,
+        NULL, lhwork, NULL, ldwork,
+        events, queues );
+
+    // alloc workspace
+    void *hwork = NULL, *dwork=NULL;
+    if( lhwork > 0 ) {
+        magma_malloc_pinned( (void**)&hwork, lhwork );
+    }
+
+    if( ldwork > 0 ) {
+        magma_malloc( (void**)&dwork, ldwork );
+    }
+
+    // main call
+        magma_zpotrf_expert_gpu_work(
+        uplo, n, dA, ldda, info,
+        mode, nb, recnb,
+        hwork, lhwork, dwork, ldwork,
+        events, queues );
+
     magma_queue_sync( queues[0] );
     magma_queue_sync( queues[1] );
     magma_event_destroy( events[0] );
@@ -288,11 +381,13 @@ cleanup:
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
 
-    if (mode == MagmaHybrid) {
-        magma_free_pinned( work );
+    // free workspace
+    if( hwork != NULL) {
+        magma_free_pinned( hwork );
     }
-    else {
-        magma_free( dinfo );
+
+    if( dwork != NULL ) {
+        magma_free( dwork );
     }
 
     return *info;
