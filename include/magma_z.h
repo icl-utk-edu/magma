@@ -1411,6 +1411,17 @@ magma_zpotrf(
     magma_int_t *info);
 
 magma_int_t
+magma_zpotrf_expert_gpu_work(
+    magma_uplo_t uplo, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *info,
+    magma_mode_t mode,
+    magma_int_t nb, magma_int_t recnb,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_event_t events[2], magma_queue_t queues[2] );
+
+magma_int_t
 magma_zpotrf_expert_gpu(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
