@@ -730,6 +730,9 @@ chol = (
 	('testing_zpotrf_gpu', '--version 1 -L   -c2',  n,    ''),
 	('testing_zpotrf_gpu', '--version 1 -U   -c2',  n,    ''),
 	('testing_zpotrf_gpu', '--version 2 -L   -c2',  n,    ''), # zpotrf_native, lower only
+	('testing_zpotrf_gpu', '--version 3 -L   -c2',  n,    ''), # zpotrf_hybrid, expert api, lower
+	('testing_zpotrf_gpu', '--version 3 -U   -c2',  n,    ''), # zpotrf_hybrid, expert api, upper
+	('testing_zpotrf_gpu', '--version 4 -L   -c2',  n,    ''), # zpotrf_native, expert api, lower only
 
 	('testing_zpotf2_gpu',       '-L    -c',  n + tall,  ''),
 	('testing_zpotf2_gpu',       '-U    -c',  n + tall,  ''),
