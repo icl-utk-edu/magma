@@ -38,8 +38,8 @@
     ---------
     @param[in]
     uplo    magma_uplo_t
-      -     = MagmaUpper:  Upper triangle of dA is stored;
-      -     = MagmaLower:  Lower triangle of dA is stored.
+      -     = MagmaUpper:  Upper triangle of dA is stored (hybrid mode only);
+      -     = MagmaLower:  Lower triangle of dA is stored (hybrid & native modes).
 
     @param[in]
     n       INTEGER
@@ -59,7 +59,7 @@
             factorization dA = U**H * U or dA = L * L**H.
 
     @param[in]
-    ldda     INTEGER
+    ldda    INTEGER
             The leading dimension of the array dA.  LDDA >= max(1,N).
             To benefit from coalescent memory accesses LDDA must be
             divisible by 16.
@@ -76,6 +76,55 @@
     mode    magma_mode_t
       -     = MagmaNative:  Factorize dA using GPU only mode (only uplo=MagmaLower is available);
       -     = MagmaHybrid:  Factorize dA using Hybrid (CPU/GPU) mode.
+
+    @param[in]
+    nb      INTEGER
+            The blocking size used during the factorization. nb > 0;
+            Users with no specific preference of nb can call magma_get_zpotrf_nb()
+            to get the value of nb as determined by MAGMA's internal tuning.
+
+    @param[in]
+    recnb   INTEGER
+            The blocking size used during the recursive panel factorization (0 < recnb <= nb);
+            Users with no specific preference of recnb can set it to a fixed value of
+            64 or 128.
+
+    @param[in,out]
+    host_work  Workspace, allocated on host (CPU) memory. For faster CPU-GPU communication,
+               user can allocate it as pinned memory using magma_malloc_pinned()
+
+    @param[in,out]
+    lwork_host   INTEGER pointer
+                 The size of the workspace (host_work) in bytes
+                 - lwork_host[0] < 0: a workspace query is assumed, the routine
+                   calculates the required amount of workspace and returns
+                   it in lwork_host. The workspace itself is not referenced, and no
+                   factorization is performed.
+                -  lwork[0] >= 0: the routine assumes that the user has provided
+                   a workspace with the size in lwork_host.
+
+    @param[in,out]
+    device_work  Workspace, allocated on device (GPU) memory.
+
+    @param[in,out]
+    lwork_device   INTEGER pointer
+                   The size of the workspace (device_work) in bytes
+                   - lwork_device[0] < 0: a workspace query is assumed, the routine
+                     calculates the required amount of workspace and returns
+                     it in lwork_device. The workspace itself is not referenced, and no
+                     factorization is performed.
+                   - lwork_device[0] >= 0: the routine assumes that the user has provided
+                     a workspace with the size in lwork_device.
+
+    @param[in]
+    events        magma_event_t array of size two
+                  - created/destroyed by the user outside the routine
+                  - Used to manage inter-stream dependencies
+
+    @param[in]
+    queues        magma_queue_t array of size two
+                  - created/destroyed by the user outside the routine
+                  - Used for concurrent kernel execution, if possible
 
     @ingroup magma_potrf
 *******************************************************************************/
@@ -145,10 +194,10 @@ magma_zpotrf_expert_gpu_work(
     else if( mode != MagmaHybrid && mode != MagmaNative) {
         *info = -6;
     }
-    else if(nb < 0) {
+    else if(nb <= 0) {
         *info = -7;
     }
-    else if(recnb < 0) {
+    else if(recnb <= 0) {
         *info = -8;
     }
     else if( *lwork_host   < h_workspace_bytes ) {
@@ -305,7 +354,12 @@ magma_zpotrf_expert_gpu_work(
     return *info;
 } /* magma_zpotrf_expert_gpu_work */
 
-////////////////////////////////////////////////////////////////////////////////
+/***************************************************************************//**
+    wrapper around magma_zpotrf_expert_gpu_work to hide workspace, event,
+    and queue management
+    @see magma_zpotrf_expert_gpu_work
+    @ingroup magma_potrf
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_expert_gpu(
     magma_uplo_t uplo, magma_int_t n,
@@ -322,7 +376,7 @@ magma_zpotrf_expert_gpu(
     } else if (ldda < max(1,n)) {
         *info = -4;
     }
-    else if( nb < 0 ) {
+    else if( nb <= 0 ) {
         *info = -6;
     }
     else if( mode != MagmaHybrid && mode != MagmaNative ) {
