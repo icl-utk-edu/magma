@@ -103,9 +103,9 @@ magma_zpotrf_expert_gpu_work(
     const double d_neg_one = -1.0;
 
     /* Local variables */
-    magma_int_t j, jb, recnb;
-    magmaDoubleComplex *work;
-    magma_int_t *dinfo;
+    magma_int_t j, jb;
+    magmaDoubleComplex *work = NULL;
+    magma_int_t *dinfo = NULL;
 
     /* Quick return if possible */
     *info = 0;
@@ -168,14 +168,14 @@ magma_zpotrf_expert_gpu_work(
         work = (magmaDoubleComplex*) host_work;
     }
     else {
-        dinfo = (magma_int_t*) host_device;
+        dinfo = (magma_int_t*) device_work;
     }
 
     if ( mode == MagmaHybrid && (nb <= 1 || 4*nb >= n) ) {
         /* Use CPU only */
-        magma_zgetmatrix( n, n, dA(0,0), ldda, work, n, NULL);
+        magma_zgetmatrix( n, n, dA(0,0), ldda, work, n, queues[0]);
         lapackf77_zpotrf(lapack_uplo_const(uplo), &n, work, &n, info );
-        magma_zsetmatrix( n, n, work, n, dA(0,0), ldda, NULL);
+        magma_zsetmatrix( n, n, work, n, dA(0,0), ldda, queues[0]);
         return *info;
     }
 
@@ -359,16 +359,16 @@ magma_zpotrf_expert_gpu(
 
     // alloc workspace
     void *hwork = NULL, *dwork=NULL;
-    if( lhwork > 0 ) {
-        magma_malloc_pinned( (void**)&hwork, lhwork );
+    if( lhwork[0] > 0 ) {
+        magma_malloc_pinned( (void**)&hwork, lhwork[0] );
     }
 
-    if( ldwork > 0 ) {
-        magma_malloc( (void**)&dwork, ldwork );
+    if( ldwork[0] > 0 ) {
+        magma_malloc( (void**)&dwork, ldwork[0] );
     }
 
     // main call
-        magma_zpotrf_expert_gpu_work(
+    magma_zpotrf_expert_gpu_work(
         uplo, n, dA, ldda, info,
         mode, nb, recnb,
         hwork, lhwork, dwork, ldwork,
@@ -405,6 +405,20 @@ magma_zpotrf_gpu(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *info )
 {
+    *info = 0;
+    if (uplo != MagmaUpper && uplo != MagmaLower) {
+        *info = -1;
+    } else if (n < 0) {
+        *info = -2;
+    } else if (ldda < max(1,n)) {
+        *info = -4;
+    }
+
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
     magma_mode_t mode = MagmaHybrid;
     magma_int_t nb = magma_get_zpotrf_nb( n );
     magma_zpotrf_expert_gpu(uplo, n, dA, ldda, info, nb, mode);
@@ -423,6 +437,21 @@ magma_zpotrf_native(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *info )
 {
+    *info = 0;
+    if (uplo != MagmaLower) {
+        printf("%s currently only supports uplo = MagmaLower\n", __func__);
+        *info = -1;
+    } else if (n < 0) {
+        *info = -2;
+    } else if (ldda < max(1,n)) {
+        *info = -4;
+    }
+
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
     magma_mode_t mode = MagmaNative;
     magma_int_t nb = magma_get_zpotrf_nb( n );
     magma_zpotrf_expert_gpu(uplo, n, dA, ldda, info, nb, mode);
