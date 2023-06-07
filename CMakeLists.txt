@@ -296,7 +296,7 @@ if (MAGMA_ENABLE_CUDA)
         message( FATAL_ERROR "GPU_TARGET must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
     endif()
 
-    set(CUDA_ARCHITECTURES "${__cuda_architectures}")
+    set(CMAKE_CUDA_ARCHITECTURES "${__cuda_architectures}")
 
     add_library(magma_nvcc_flags INTERFACE)
     if (COMPILER_SUPPORTS_FPIC)
