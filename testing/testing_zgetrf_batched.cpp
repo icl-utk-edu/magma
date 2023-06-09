@@ -22,6 +22,10 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
+#ifdef MAGMA_HAVE_SYCL
+#include "../control/magma_internal.h"  // for access to SYCL queue
+#endif
+
 #if defined(_OPENMP)
 #include <omp.h>
 #include "../control/magma_threadsetting.h"  // internal header
@@ -129,8 +133,10 @@ int main( int argc, char** argv)
     magma_int_t     **dipiv_array = NULL;
     magma_int_t     *ipiv, *cpu_info;
     magma_int_t     *dipiv_magma, *dinfo_magma;
+    #ifndef MAGMA_HAVE_SYCL
     int             *dipiv_device, *dinfo_device;  // not magma_int_t
-    #ifdef MAGMA_HAVE_SYCL
+    #else
+    std::int64_t **dipiv_array_syclblas;
     std::int64_t *dipiv_syclblas;
     #endif
     magma_int_t M, N, n2, lda, ldda, min_mn, info;
@@ -172,12 +178,13 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc( &dA,  ldda*N * batchCount ));
             TESTING_CHECK( magma_imalloc( &dipiv_magma,  min_mn * batchCount ));
             TESTING_CHECK( magma_imalloc( &dinfo_magma,  batchCount ));
+            #ifndef MAGMA_HAVE_SYCL
             TESTING_CHECK( magma_malloc( (void**) &dipiv_device, min_mn * batchCount * sizeof(int) ));  // not magma_int_t
             TESTING_CHECK( magma_malloc( (void**) &dinfo_device, batchCount          * sizeof(int) ));
-            #ifdef MAGMA_HAVE_SYCL
+            #else
+	    TESTING_CHECK( magma_malloc( (void**) &dipiv_array_syclblas, batchCount * sizeof(std::int64_t*) ));  // not magma_int_t
 	    TESTING_CHECK( magma_malloc( (void**) &dipiv_syclblas, min_mn * batchCount * sizeof(std::int64_t) ));  // not magma_int_t
             #endif													
-
             TESTING_CHECK( magma_malloc( (void**) &dA_array,    batchCount * sizeof(magmaDoubleComplex*) ));
             TESTING_CHECK( magma_malloc( (void**) &dipiv_array, batchCount * sizeof(magma_int_t*) ));
 
@@ -205,6 +212,16 @@ int main( int argc, char** argv)
             magma_zsetmatrix( M, columns, h_R, lda, dA, ldda, opts.queue );
             magma_zset_pointer( dA_array, dA, ldda, 0, 0, ldda*N, batchCount, opts.queue );
             magma_iset_pointer( dipiv_array, dipiv_magma, 1, 0, 0, min_mn, batchCount, opts.queue );
+            #ifdef MAGMA_HAVE_SYCL
+	    // Perform pointer setting directly, to make sure we have std::int64_t instead of magma_int_t
+	    ((sycl::queue *)(opts.queue->sycl_stream()))
+              ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount),
+                                         sycl::range<3>(1, 1, 1)),
+                       [=](sycl::nd_item<3> item_ct1) {
+                           dipiv_array_syclblas[item_ct1.get_group(2)] =
+                                dipiv_syclblas + item_ct1.get_group(2) * std::int64_t(min_mn);
+                       }).wait();
+            #endif
 
             magma_time = magma_sync_wtime( opts.queue );
             info = magma_zgetrf_batched( M, N, dA_array, ldda, dipiv_array,  dinfo_magma, batchCount, opts.queue);
@@ -246,14 +263,17 @@ int main( int argc, char** argv)
                                      (hipblasDoubleComplex**)dA_array, int(ldda), dipiv_device,
                                      dinfo_device, int(batchCount) );
                 #elif defined(MAGMA_HAVE_SYCL)
+		std::int64_t N_l = (std::int64_t) N;
+		std::int64_t ldda_l = (std::int64_t) ldda;
+		std::int64_t batchCount_l = (std::int64_t) batchCount;
 		std::int64_t scratchSize = oneapi::mkl::lapack::getrf_batch_scratchpad_size<magmaDoubleComplex>(
-				*opts.handle, (std::int64_t*)(&N), (std::int64_t*)(&N), (std::int64_t*)(&ldda),
-				 std::int64_t(1), (std::int64_t*)(&batchCount));
+				*opts.handle, &N_l, &N_l, &ldda_l,
+				 std::int64_t(1), &batchCount_l);
 		magmaDoubleComplex *scratchPad;
-                TESTING_CHECK( magma_zmalloc( &scratchPad,  scratchSize));
-		oneapi::mkl::lapack::getrf_batch( *opts.handle, (std::int64_t*)(&N), (std::int64_t*)(&N),
-				(magmaDoubleComplex**)dA_array, (std::int64_t*)(&ldda), &dipiv_syclblas,
-				std::int64_t(1), (std::int64_t*)(&batchCount),
+                TESTING_CHECK( magma_zmalloc( &scratchPad,  (magma_int_t) scratchSize));
+		oneapi::mkl::lapack::getrf_batch( *opts.handle, &N_l, &N_l,
+				(magmaDoubleComplex**)dA_array, &ldda_l, dipiv_array_syclblas,
+				std::int64_t(1), &batchCount_l,
 			        scratchPad, scratchSize, {});
                 #endif
             }
@@ -374,9 +394,13 @@ int main( int argc, char** argv)
             magma_free( dA );
             magma_free( dinfo_magma );
             magma_free( dipiv_magma );
+            #ifndef MAGMA_HAVE_SYCL
             magma_free( dipiv_device );
             magma_free( dinfo_device );
+            #else
             magma_free( dipiv_syclblas );
+            magma_free( dipiv_array_syclblas );
+            #endif
             magma_free( dipiv_array );
             magma_free( dA_array );
             fflush( stdout );
