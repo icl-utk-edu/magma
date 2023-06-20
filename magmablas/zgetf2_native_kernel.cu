@@ -33,7 +33,7 @@
         4. n must be less than the number of SMs on the GPU
 **/
 
-// =============================================================================
+/******************************************************************************/
 // init kernel
 __global__ void
 zgetf2_native_init_kernel( int n, int npages, magma_int_t *ipiv, int* update_flags)
@@ -47,15 +47,17 @@ zgetf2_native_init_kernel( int n, int npages, magma_int_t *ipiv, int* update_fla
     }
 }
 
-// =============================================================================
+/******************************************************************************/
 // the main kernel
 template<int TX, int NPAGES>
-__global__ void
-zgetf2_native_kernel( int m, int n,
-                      magmaDoubleComplex_ptr dA, int ldda,
-                      volatile magma_int_t *ipiv, int gbstep,
-                      volatile int* update_flag,
-                      volatile magma_int_t *info)
+__global__
+__launch_bounds__(TX)
+void zgetf2_native_kernel
+        ( int m, int n,
+          magmaDoubleComplex_ptr dA, int ldda,
+          volatile magma_int_t *ipiv, int gbstep,
+          volatile int* update_flag,
+          volatile magma_int_t *info)
 {
 #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
     const int tx  = threadIdx.x;
@@ -277,6 +279,46 @@ zgetf2_native_kernel( int m, int n,
 #endif    // MAGMA_HAVE_CUDA
 }
 
+/******************************************************************************/
+template<int TX, int NPAGES>
+static magma_int_t
+zgetf2_native_kernel_driver(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *ipiv, magma_int_t gbstep,
+    int* update_flag,
+    magma_int_t *info
+    magma_queue_t queue )
+{
+    magma_int_t arginfo = 0;
+    magma_device_t device;
+    magma_getdevice( &device );
+
+    dim3 grid(n, 1, 1);
+    dim3 threads(ZGETF2_FUSED_NTH, 1, 1);
+
+    // configure shared memory
+    int shmem_max = 0;   // not magma_int_t (causes problems with 64bit builds)
+    #if CUDA_VERSION >= 9000
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
+    #else
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
+    #endif    // CUDA_VERSION >= 9000
+
+    // the kernel uses communication among thread blocks
+    // as a safeguard, force one thread block per multiprocessor
+    // by allocating more than half the shared memory
+    int shmem = (magma_int_t)(0.75 * shmem_max);
+
+    void *kernel_args[] = {&m, &n, &dA, &ldda, &ipiv, &gbstep, &update_flag, &info};
+    cudaError_t e = cudaLaunchKernel((void*)zgetf2_native_kernel<TX, NPAGES>, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    if( e != cudaSuccess ) {
+        //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
+        arginfo = -100;
+    }
+
+    return arginfo;
+}
 // =============================================================================
 extern "C" magma_int_t
 magma_zgetf2_native_fused(
@@ -304,104 +346,96 @@ magma_zgetf2_native_fused(
         return arginfo;
     }
 
-    magma_int_t arch = magma_getdevice_arch();
-
-    dim3 grid(n, 1, 1);
-    dim3 threads(ntx, 1, 1);
     const magma_int_t npages = magma_ceildiv(m, ntx);
-    // the kernel uses communication among thread blocks
-    // as a safeguard, force one thread block per multiprocessor
-    // by allocating more than half the shared memory
-    magma_int_t shmem = magma_getdevice_shmem_block();
-    shmem = (magma_int_t)(0.75 * shmem);
     int *update_flag = (int*) flags;    // update_flag is an int, not magma_int_t
     size_t max_n_npages = max(n,npages);
     zgetf2_native_init_kernel<<< 1, max_n_npages, 0, queue->cuda_stream() >>>( n, npages, ipiv, update_flag);
+
     // The case statement should cover up to ( xGETF2_CHAIN_MAX_M / ntx )
     switch(npages){
-        case  1: zgetf2_native_kernel< ntx,  1><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case  2: zgetf2_native_kernel< ntx,  2><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case  3: zgetf2_native_kernel< ntx,  3><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case  4: zgetf2_native_kernel< ntx,  4><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case  5: zgetf2_native_kernel< ntx,  5><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case  6: zgetf2_native_kernel< ntx,  6><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case  7: zgetf2_native_kernel< ntx,  7><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case  8: zgetf2_native_kernel< ntx,  8><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case  9: zgetf2_native_kernel< ntx,  9><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 10: zgetf2_native_kernel< ntx, 10><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 11: zgetf2_native_kernel< ntx, 11><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 12: zgetf2_native_kernel< ntx, 12><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 13: zgetf2_native_kernel< ntx, 13><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 14: zgetf2_native_kernel< ntx, 14><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 15: zgetf2_native_kernel< ntx, 15><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 16: zgetf2_native_kernel< ntx, 16><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 17: zgetf2_native_kernel< ntx, 17><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 18: zgetf2_native_kernel< ntx, 18><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 19: zgetf2_native_kernel< ntx, 19><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 20: zgetf2_native_kernel< ntx, 20><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case  1: arginfo = zgetf2_native_kernel_driver< ntx,  1>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case  2: arginfo = zgetf2_native_kernel_driver< ntx,  2>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case  3: arginfo = zgetf2_native_kernel_driver< ntx,  3>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case  4: arginfo = zgetf2_native_kernel_driver< ntx,  4>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case  5: arginfo = zgetf2_native_kernel_driver< ntx,  5>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case  6: arginfo = zgetf2_native_kernel_driver< ntx,  6>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case  7: arginfo = zgetf2_native_kernel_driver< ntx,  7>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case  8: arginfo = zgetf2_native_kernel_driver< ntx,  8>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case  9: arginfo = zgetf2_native_kernel_driver< ntx,  9>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 10: arginfo = zgetf2_native_kernel_driver< ntx, 10>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 11: arginfo = zgetf2_native_kernel_driver< ntx, 11>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 12: arginfo = zgetf2_native_kernel_driver< ntx, 12>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 13: arginfo = zgetf2_native_kernel_driver< ntx, 13>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 14: arginfo = zgetf2_native_kernel_driver< ntx, 14>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 15: arginfo = zgetf2_native_kernel_driver< ntx, 15>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 16: arginfo = zgetf2_native_kernel_driver< ntx, 16>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 17: arginfo = zgetf2_native_kernel_driver< ntx, 17>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 18: arginfo = zgetf2_native_kernel_driver< ntx, 18>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 19: arginfo = zgetf2_native_kernel_driver< ntx, 19>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 20: arginfo = zgetf2_native_kernel_driver< ntx, 20>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
         #if defined(PRECISION_s) || defined(PRECISION_d)
-        case 21: zgetf2_native_kernel< ntx, 21><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 22: zgetf2_native_kernel< ntx, 22><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 23: zgetf2_native_kernel< ntx, 23><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 24: zgetf2_native_kernel< ntx, 24><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 25: zgetf2_native_kernel< ntx, 25><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 26: zgetf2_native_kernel< ntx, 26><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 27: zgetf2_native_kernel< ntx, 27><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 28: zgetf2_native_kernel< ntx, 28><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 29: zgetf2_native_kernel< ntx, 29><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 30: zgetf2_native_kernel< ntx, 30><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 31: zgetf2_native_kernel< ntx, 31><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 32: zgetf2_native_kernel< ntx, 32><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 33: zgetf2_native_kernel< ntx, 33><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 34: zgetf2_native_kernel< ntx, 34><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 35: zgetf2_native_kernel< ntx, 35><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 36: zgetf2_native_kernel< ntx, 36><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 37: zgetf2_native_kernel< ntx, 37><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 38: zgetf2_native_kernel< ntx, 38><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 39: zgetf2_native_kernel< ntx, 39><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 40: zgetf2_native_kernel< ntx, 40><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 41: zgetf2_native_kernel< ntx, 41><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 42: zgetf2_native_kernel< ntx, 42><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 43: zgetf2_native_kernel< ntx, 43><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 44: zgetf2_native_kernel< ntx, 44><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 45: zgetf2_native_kernel< ntx, 45><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 46: zgetf2_native_kernel< ntx, 46><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 21: arginfo = zgetf2_native_kernel_driver< ntx, 21>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 22: arginfo = zgetf2_native_kernel_driver< ntx, 22>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 23: arginfo = zgetf2_native_kernel_driver< ntx, 23>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 24: arginfo = zgetf2_native_kernel_driver< ntx, 24>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 25: arginfo = zgetf2_native_kernel_driver< ntx, 25>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 26: arginfo = zgetf2_native_kernel_driver< ntx, 26>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 27: arginfo = zgetf2_native_kernel_driver< ntx, 27>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 28: arginfo = zgetf2_native_kernel_driver< ntx, 28>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 29: arginfo = zgetf2_native_kernel_driver< ntx, 29>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 30: arginfo = zgetf2_native_kernel_driver< ntx, 30>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 31: arginfo = zgetf2_native_kernel_driver< ntx, 31>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 32: arginfo = zgetf2_native_kernel_driver< ntx, 32>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 33: arginfo = zgetf2_native_kernel_driver< ntx, 33>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 34: arginfo = zgetf2_native_kernel_driver< ntx, 34>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 35: arginfo = zgetf2_native_kernel_driver< ntx, 35>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 36: arginfo = zgetf2_native_kernel_driver< ntx, 36>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 37: arginfo = zgetf2_native_kernel_driver< ntx, 37>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 38: arginfo = zgetf2_native_kernel_driver< ntx, 38>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 39: arginfo = zgetf2_native_kernel_driver< ntx, 39>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 40: arginfo = zgetf2_native_kernel_driver< ntx, 40>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 41: arginfo = zgetf2_native_kernel_driver< ntx, 41>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 42: arginfo = zgetf2_native_kernel_driver< ntx, 42>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 43: arginfo = zgetf2_native_kernel_driver< ntx, 43>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 44: arginfo = zgetf2_native_kernel_driver< ntx, 44>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 45: arginfo = zgetf2_native_kernel_driver< ntx, 45>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 46: arginfo = zgetf2_native_kernel_driver< ntx, 46>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
         #endif // defined(PRECISION_s) || defined(PRECISION_d)
         #if defined(PRECISION_s)
-        case 47: zgetf2_native_kernel< ntx, 47><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 48: zgetf2_native_kernel< ntx, 48><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 49: zgetf2_native_kernel< ntx, 49><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 50: zgetf2_native_kernel< ntx, 50><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 51: zgetf2_native_kernel< ntx, 51><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 52: zgetf2_native_kernel< ntx, 52><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 53: zgetf2_native_kernel< ntx, 53><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 54: zgetf2_native_kernel< ntx, 54><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 55: zgetf2_native_kernel< ntx, 55><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 56: zgetf2_native_kernel< ntx, 56><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 57: zgetf2_native_kernel< ntx, 57><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 58: zgetf2_native_kernel< ntx, 58><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 59: zgetf2_native_kernel< ntx, 59><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 60: zgetf2_native_kernel< ntx, 60><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 61: zgetf2_native_kernel< ntx, 61><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 62: zgetf2_native_kernel< ntx, 62><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 63: zgetf2_native_kernel< ntx, 63><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 64: zgetf2_native_kernel< ntx, 64><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 65: zgetf2_native_kernel< ntx, 65><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 66: zgetf2_native_kernel< ntx, 66><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 67: zgetf2_native_kernel< ntx, 67><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 68: zgetf2_native_kernel< ntx, 68><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 69: zgetf2_native_kernel< ntx, 69><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 70: zgetf2_native_kernel< ntx, 70><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 71: zgetf2_native_kernel< ntx, 71><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 72: zgetf2_native_kernel< ntx, 72><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 73: zgetf2_native_kernel< ntx, 73><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 74: zgetf2_native_kernel< ntx, 74><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 75: zgetf2_native_kernel< ntx, 75><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 76: zgetf2_native_kernel< ntx, 76><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 77: zgetf2_native_kernel< ntx, 77><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 78: zgetf2_native_kernel< ntx, 78><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 79: zgetf2_native_kernel< ntx, 79><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
-        case 80: zgetf2_native_kernel< ntx, 80><<<grid, threads, shmem, queue->cuda_stream() >>>( m, n, dA, ldda, ipiv, gbstep, update_flag, info); break;
+        case 47: arginfo = zgetf2_native_kernel_driver< ntx, 47>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 48: arginfo = zgetf2_native_kernel_driver< ntx, 48>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 49: arginfo = zgetf2_native_kernel_driver< ntx, 49>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 50: arginfo = zgetf2_native_kernel_driver< ntx, 50>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 51: arginfo = zgetf2_native_kernel_driver< ntx, 51>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 52: arginfo = zgetf2_native_kernel_driver< ntx, 52>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 53: arginfo = zgetf2_native_kernel_driver< ntx, 53>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 54: arginfo = zgetf2_native_kernel_driver< ntx, 54>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 55: arginfo = zgetf2_native_kernel_driver< ntx, 55>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 56: arginfo = zgetf2_native_kernel_driver< ntx, 56>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 57: arginfo = zgetf2_native_kernel_driver< ntx, 57>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 58: arginfo = zgetf2_native_kernel_driver< ntx, 58>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 59: arginfo = zgetf2_native_kernel_driver< ntx, 59>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 60: arginfo = zgetf2_native_kernel_driver< ntx, 60>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 61: arginfo = zgetf2_native_kernel_driver< ntx, 61>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 62: arginfo = zgetf2_native_kernel_driver< ntx, 62>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 63: arginfo = zgetf2_native_kernel_driver< ntx, 63>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 64: arginfo = zgetf2_native_kernel_driver< ntx, 64>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 65: arginfo = zgetf2_native_kernel_driver< ntx, 65>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 66: arginfo = zgetf2_native_kernel_driver< ntx, 66>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 67: arginfo = zgetf2_native_kernel_driver< ntx, 67>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 68: arginfo = zgetf2_native_kernel_driver< ntx, 68>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 69: arginfo = zgetf2_native_kernel_driver< ntx, 69>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 70: arginfo = zgetf2_native_kernel_driver< ntx, 70>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 71: arginfo = zgetf2_native_kernel_driver< ntx, 71>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 72: arginfo = zgetf2_native_kernel_driver< ntx, 72>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 73: arginfo = zgetf2_native_kernel_driver< ntx, 73>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 74: arginfo = zgetf2_native_kernel_driver< ntx, 74>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 75: arginfo = zgetf2_native_kernel_driver< ntx, 75>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 76: arginfo = zgetf2_native_kernel_driver< ntx, 76>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 77: arginfo = zgetf2_native_kernel_driver< ntx, 77>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 78: arginfo = zgetf2_native_kernel_driver< ntx, 78>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 79: arginfo = zgetf2_native_kernel_driver< ntx, 79>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
+        case 80: arginfo = zgetf2_native_kernel_driver< ntx, 80>( m, n, dA, ldda, ipiv, gbstep, update_flag, info, queue); break;
         #endif // defined(PRECISION_s)
         default: printf("size not supported \n");
     }
