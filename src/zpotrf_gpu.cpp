@@ -349,7 +349,7 @@ magma_zpotrf_expert_gpu_work(
         }
     }
     if (mode == MagmaNative)
-        magma_getvector( 1, sizeof(magma_int_t), dinfo, 1, info, 1, queues[0]);
+        magma_getvector_async( 1, sizeof(magma_int_t), dinfo, 1, info, 1, queues[0]);
 
     return *info;
 } /* magma_zpotrf_expert_gpu_work */
