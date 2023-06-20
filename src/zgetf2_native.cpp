@@ -260,7 +260,7 @@ magma_zgetf2_native(
     magma_int_t *dinfo, magma_int_t gbstep,
     magma_queue_t queue, magma_queue_t update_queue)
 {
-    #ifdef MAGMA_HAVE_CUDA
+    #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
     magma_int_t arch = magma_getdevice_arch();
     if(m > ZGETF2_FUSED_MAX_M || arch < 300){
       magma_zgetf2_native_blocked(m, n, dA, ldda, dipiv, dinfo, gbstep, queue);

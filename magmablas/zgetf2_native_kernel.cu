@@ -57,7 +57,7 @@ zgetf2_native_kernel( int m, int n,
                       volatile int* update_flag,
                       volatile magma_int_t *info)
 {
-#ifdef MAGMA_HAVE_CUDA
+#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
     const int tx  = threadIdx.x;
     const int bx = blockIdx.x;
     magmaDoubleComplex rA[NPAGES] = {MAGMA_Z_ZERO};
@@ -87,7 +87,6 @@ zgetf2_native_kernel( int m, int n,
     }
 
     // main loop
-    #pragma unroll
     for(int i = 0; i < n; i++){
         // izamax and write pivot for the ith thread block
         if(bx == i){
@@ -314,7 +313,7 @@ magma_zgetf2_native_fused(
     // as a safeguard, force one thread block per multiprocessor
     // by allocating more than half the shared memory
     magma_int_t shmem = magma_getdevice_shmem_block();
-    shmem = (shmem / 2);
+    shmem = (magma_int_t)(0.75 * shmem);
     int *update_flag = (int*) flags;    // update_flag is an int, not magma_int_t
     size_t max_n_npages = max(n,npages);
     zgetf2_native_init_kernel<<< 1, max_n_npages, 0, queue->cuda_stream() >>>( n, npages, ipiv, update_flag);
