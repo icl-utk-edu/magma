@@ -287,7 +287,7 @@ zgetf2_native_kernel_driver(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *ipiv, magma_int_t gbstep,
     int* update_flag,
-    magma_int_t *info
+    magma_int_t *info,
     magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
@@ -309,6 +309,10 @@ zgetf2_native_kernel_driver(
     // as a safeguard, force one thread block per multiprocessor
     // by allocating more than half the shared memory
     int shmem = (magma_int_t)(0.75 * shmem_max);
+
+    #if CUDA_VERSION >= 9000
+    cudaFuncSetAttribute(zgetf2_native_kernel<TX, NPAGES>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    #endif
 
     void *kernel_args[] = {&m, &n, &dA, &ldda, &ipiv, &gbstep, &update_flag, &info};
     cudaError_t e = cudaLaunchKernel((void*)zgetf2_native_kernel<TX, NPAGES>, grid, threads, kernel_args, shmem, queue->cuda_stream());
