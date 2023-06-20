@@ -90,7 +90,7 @@ magma_zgetf2_native_recursive(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *dipiv, magma_int_t *dipivinfo,
     magma_int_t *dinfo, magma_int_t gbstep,
-    magma_queue_t queue, magma_queue_t update_queue)
+    magma_queue_t queues[2], magma_events_t events[2])
 {
     magma_int_t arginfo = 0;
     if (m < 0 || m > ZGETF2_FUSED_MAX_M) {
@@ -111,9 +111,9 @@ magma_zgetf2_native_recursive(
         return arginfo;
     }
 
-    magma_event_t events[2];
-    magma_event_create( &events[0] );
-    magma_event_create( &events[1] );
+    //magma_event_t events[2];
+    //magma_event_create( &events[0] );
+    //magma_event_create( &events[1] );
 
     magma_int_t nb;
     magma_int_t sm_count = magma_getdevice_multiprocessor_count();
@@ -127,11 +127,11 @@ magma_zgetf2_native_recursive(
     if( n <= nb){
         magma_int_t* update_flags = dipivinfo;
         // wait for all kernels in the update queue to end before calling the panel kernel
-        magma_event_record( events[0], update_queue );
-        magma_queue_wait_event( queue, events[0] );
-        magma_zgetf2_native_fused( m, n, dA(0,0), ldda, dipiv, gbstep, update_flags, dinfo, queue );
-        magma_event_record( events[1], queue );
-        magma_queue_wait_event( update_queue, events[1] );
+        magma_event_record( events[0], queues[1] );
+        magma_queue_wait_event( queues[0], events[0] );
+        magma_zgetf2_native_fused( m, n, dA(0,0), ldda, dipiv, gbstep, update_flags, dinfo, queues[0] );
+        magma_event_record( events[1], queues[0] );
+        magma_queue_wait_event( queues[1], events[1] );
         return 0;
     }
     else{
@@ -139,46 +139,46 @@ magma_zgetf2_native_recursive(
         magma_int_t n2 = n - n1;
 
         // lu on A1
-        magma_zgetf2_native_recursive(m, n1, dA(0,0), ldda, dipiv, dipivinfo, dinfo, gbstep, queue, update_queue);
+        magma_zgetf2_native_recursive(m, n1, dA(0,0), ldda, dipiv, dipivinfo, dinfo, gbstep, queues[0], queues[1]);
 
         // swap left
         #ifdef PARSWAP
-        setup_pivinfo( dipivinfo, dipiv, m, n1, queue);  // setup pivinfo
-        magma_zlaswp_rowparallel_native( n2, dA(0,n1), ldda, dA(0,n1), ldda, 0, n1, dipivinfo, queue);
+        setup_pivinfo( dipivinfo, dipiv, m, n1, queues[0]);  // setup pivinfo
+        magma_zlaswp_rowparallel_native( n2, dA(0,n1), ldda, dA(0,n1), ldda, 0, n1, dipivinfo, queues[0]);
         #else
-        magma_zlaswp_rowserial_native(n2, dA(0,n1), ldda, 0, n1, dipiv, queue);
+        magma_zlaswp_rowserial_native(n2, dA(0,n1), ldda, 0, n1, dipiv, queues[0]);
         #endif
 
         // update (trsm + gemm)
         magma_zgetf2trsm_2d_native( n1, n2,
                                     dA(0,0), ldda,
-                                    dA(0,n1), ldda, queue);
+                                    dA(0,n1), ldda, queues[0]);
 
         magma_zgemm( MagmaNoTrans, MagmaNoTrans,
                      m-n1, n2, n1,
                      MAGMA_Z_NEG_ONE, dA(n1,  0), ldda,
                                       dA(0 , n1), ldda,
-                     MAGMA_Z_ONE,     dA(n1, n1), ldda, queue );
+                     MAGMA_Z_ONE,     dA(n1, n1), ldda, queues[0] );
 
         // lu on A2
-        magma_zgetf2_native_recursive(m-n1, n2, dA(n1,n1), ldda, dipiv+n1, dipivinfo, dinfo, gbstep, queue, update_queue );
+        magma_zgetf2_native_recursive(m-n1, n2, dA(n1,n1), ldda, dipiv+n1, dipivinfo, dinfo, gbstep, queues[0], queues[1] );
 
         // swap right: if PARSWAP is set, we need to call setup_pivinfo
         #ifdef PARSWAP
-        setup_pivinfo( dipivinfo, dipiv+n1, m-n1, n2, queue);  // setup pivinfo
+        setup_pivinfo( dipivinfo, dipiv+n1, m-n1, n2, queues[0]);  // setup pivinfo
         #endif
 
-        adjust_ipiv( dipiv+n1, n2, n1, queue);
+        adjust_ipiv( dipiv+n1, n2, n1, queues[0]);
 
         #ifdef PARSWAP
-        magma_zlaswp_rowparallel_native(n1, dA(n1,0), ldda, dA(n1,0), ldda, n1, n, dipivinfo, queue);
+        magma_zlaswp_rowparallel_native(n1, dA(n1,0), ldda, dA(n1,0), ldda, n1, n, dipivinfo, queues[0]);
         #else
-        magma_zlaswp_rowserial_native(n1, dA(0,0), ldda, n1, n, dipiv, queue);
+        magma_zlaswp_rowserial_native(n1, dA(0,0), ldda, n1, n, dipiv, queues[0]);
         #endif
     }
 
-    magma_event_destroy( events[0] );
-    magma_event_destroy( events[1] );
+    //magma_event_destroy( events[0] );
+    //magma_event_destroy( events[1] );
 
     return 0;
 }
@@ -241,12 +241,12 @@ magma_zgetf2_native_recursive(
             internal use.
 
     @param[in]
-    queue   magma_queue_t
-            Queue to execute in.
+    queues  magma_queue_t array of size 2.
+            Queues to execute in.
 
     @param[in]
-    update_queue   magma_queue_t
-                   Internal use.
+    events  magma_event_t array of size 2
+            Internal use.
 
     This is an internal routine.
 
@@ -258,15 +258,15 @@ magma_zgetf2_native(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *dipiv, magma_int_t* dipivinfo,
     magma_int_t *dinfo, magma_int_t gbstep,
-    magma_queue_t queue, magma_queue_t update_queue)
+    magma_queue_t queues[2], magma_event_t events[2])
 {
     #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
     magma_int_t arch = magma_getdevice_arch();
     if(m > ZGETF2_FUSED_MAX_M || arch < 300){
-      magma_zgetf2_native_blocked(m, n, dA, ldda, dipiv, dinfo, gbstep, queue);
+      magma_zgetf2_native_blocked(m, n, dA, ldda, dipiv, dinfo, gbstep, queues[0]);
     }
     else{
-      magma_zgetf2_native_recursive(m, n, dA, ldda, dipiv, dipivinfo, dinfo, gbstep, queue, update_queue);
+      magma_zgetf2_native_recursive(m, n, dA, ldda, dipiv, dipivinfo, dinfo, gbstep, queues, events);
     }
     #else
     // (Ahmad) hipcc (from rocm 3.5) fails to compile the fused LU panel kernel

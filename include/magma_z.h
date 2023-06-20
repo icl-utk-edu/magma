@@ -504,7 +504,7 @@ magma_zgetf2_native(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *dipiv, magma_int_t* dipivinfo,
     magma_int_t *dinfo, magma_int_t gbstep,
-    magma_queue_t queue, magma_queue_t update_queue);
+    magma_queue_t queues[2], magma_event_t events[2]);
 
 // CUDA MAGMA only
 magma_int_t
@@ -515,11 +515,11 @@ magma_zgetf2_nopiv(
 
 magma_int_t
 magma_zgetrf_recpanel_native(
-    magma_int_t m, magma_int_t n,
+    magma_int_t m, magma_int_t n, magma_int_t recnb,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t* dipiv, magma_int_t* dipivinfo,
     magma_int_t *dinfo, magma_int_t gbstep,
-    magma_queue_t queue, magma_queue_t update_queue );
+    magma_queue_t queues[2], magma_event_t events[2]);
 
 magma_int_t
 magma_zgetrf(
@@ -534,6 +534,17 @@ magma_zgetrf_gpu(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *ipiv,
     magma_int_t *info);
+
+magma_int_t
+magma_zgetrf_expert_gpu_work(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *ipiv,
+    magma_int_t *info, magma_mode_t mode,
+    magma_int_t nb, magma_int_t recnb,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_event_t events[2], magma_queue_t queues[2] );
 
 magma_int_t
 magma_zgetrf_gpu_expert(
