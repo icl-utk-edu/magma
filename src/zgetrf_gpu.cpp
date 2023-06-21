@@ -5,14 +5,122 @@
        Univ. of Colorado, Denver
        @date
 
-       @author Stan Tomov
-       @author Mark Gates
+       @author Stan  Tomov
+       @author Mark  Gates
+       @author Ahmad Abdelfattah
 
        @precisions normal z -> s d c
 
 */
 #include "magma_internal.h"
 
+/***************************************************************************//**
+    Purpose
+    -------
+    ZGETRF computes an LU factorization of a general M-by-N matrix A
+    using partial pivoting with row interchanges.
+
+    The factorization has the form
+        A = P * L * U
+    where P is a permutation matrix, L is lower triangular with unit
+    diagonal elements (lower trapezoidal if m > n), and U is upper
+    triangular (upper trapezoidal if m < n).
+
+    This is the right-looking Level 3 BLAS version of the algorithm.
+
+    This is an expert API, exposing more controls to the end user.
+
+    Arguments
+    ---------
+    @param[in]
+    m       INTEGER
+            The number of rows of the matrix A.  M >= 0.
+
+    @param[in]
+    n       INTEGER
+            The number of columns of the matrix A.  N >= 0.
+
+    @param[in,out]
+    dA      COMPLEX_16 array on the GPU, dimension (LDDA,N).
+            On entry, the M-by-N matrix to be factored.
+            On exit, the factors L and U from the factorization
+            A = P*L*U; the unit diagonal elements of L are not stored.
+
+    @param[in]
+    ldda     INTEGER
+            The leading dimension of the array A.  LDDA >= max(1,M).
+
+    @param[out]
+    ipiv    INTEGER array, dimension (min(M,N))
+            The pivot indices; for 1 <= i <= min(M,N), row i of the
+            matrix was interchanged with row IPIV(i).
+
+    @param[out]
+    info    INTEGER
+      -     = 0:  successful exit
+      -     < 0:  if INFO = -i, the i-th argument had an illegal value
+                  or another error occured, such as memory allocation failed.
+      -     > 0:  if INFO = i, U(i,i) is exactly zero. The factorization
+                  has been completed, but the factor U is exactly
+                  singular, and division by zero will occur if it is used
+                  to solve a system of equations.
+
+    @param[in]
+    mode    magma_mode_t
+      -     = MagmaNative:  Factorize dA using GPU only mode.
+      -     = MagmaHybrid:  Factorize dA using Hybrid (CPU/GPU) mode.
+
+    @param[in]
+    nb      INTEGER
+            The blocking size used during the factorization. nb > 0;
+            Users with no specific preference of nb can call magma_get_zgetrf_nb()
+            or magma_get_zgetrf_native_nb() to get the value of nb as determined
+            by MAGMA's internal tuning.
+
+    @param[in]
+    recnb   INTEGER
+            The blocking size used during the recursive panel factorization (0 < recnb <= nb);
+            Users with no specific preference of recnb can set it to a fixed value of 32.
+
+    @param[in,out]
+    host_work  Workspace, allocated on host (CPU) memory. For faster CPU-GPU communication,
+               user can allocate it as pinned memory using magma_malloc_pinned()
+
+    @param[in,out]
+    lwork_host   INTEGER pointer
+                 The size of the workspace (host_work) in bytes
+                 - lwork_host[0] < 0: a workspace query is assumed, the routine
+                   calculates the required amount of workspace and returns
+                   it in lwork_host. The workspace itself is not referenced, and no
+                   factorization is performed.
+                -  lwork[0] >= 0: the routine assumes that the user has provided
+                   a workspace with the size in lwork_host.
+
+    @param[in,out]
+    device_work  Workspace, allocated on device (GPU) memory.
+
+    @param[in,out]
+    lwork_device   INTEGER pointer
+                   The size of the workspace (device_work) in bytes
+                   - lwork_device[0] < 0: a workspace query is assumed, the routine
+                     calculates the required amount of workspace and returns
+                     it in lwork_device. The workspace itself is not referenced, and no
+                     factorization is performed.
+                   - lwork_device[0] >= 0: the routine assumes that the user has provided
+                     a workspace with the size in lwork_device.
+
+    @param[in]
+    events        magma_event_t array of size two
+                  - created/destroyed by the user outside the routine
+                  - Used to manage inter-stream dependencies
+
+    @param[in]
+    queues        magma_queue_t array of size two
+                  - created/destroyed by the user outside the routine
+                  - Used for concurrent kernel execution, if possible
+
+    @ingroup magma_getrf
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zgetrf_expert_gpu_work(
     magma_int_t m, magma_int_t n,
@@ -131,12 +239,6 @@ magma_zgetrf_expert_gpu_work(
     // check for small sizes
     if ( nb <= 1 || 4*nb >= min(m,n) ) {
         if (mode == MagmaHybrid) {
-            /* Use CPU code. */
-            //if ( MAGMA_SUCCESS != magma_zmalloc_cpu( &work, m*n )) {
-            //    *info = MAGMA_ERR_HOST_ALLOC;
-            //    return *info;
-            //}
-            //work = host_work;
             magma_zgetmatrix( m, n, dA(0,0), ldda, work, m, NULL);
             lapackf77_zgetrf( &m, &n, work, &m, ipiv, info );
             magma_zsetmatrix( m, n, work, m, dA(0,0), ldda, NULL);
@@ -152,45 +254,12 @@ magma_zgetrf_expert_gpu_work(
         }
     }
 
-    //magma_queue_t queues[2] = { NULL };
-    //magma_device_t cdev;
-    //magma_getdevice( &cdev );
-    //magma_queue_create( cdev, &queues[0] );
-    //magma_queue_create( cdev, &queues[1] );
-
-    //if (mode == MagmaNative) {
-    //    liwork = m + minmn + 1;
-        //if (MAGMA_SUCCESS != magma_imalloc(&diwork, liwork)) {
-        //    *info = MAGMA_ERR_DEVICE_ALLOC;
-        //    goto cleanup;
-        //}
-        //else {
-            //dipivinfo = diwork;     // dipivinfo size = m
-            //dipiv = dipivinfo + m;  // dipiv size = minmn
-            //dinfo = dipiv + minmn;  // dinfo size = 1
-            //magma_memset_async(dinfo, 0, sizeof(magma_int_t), queues[0]);
-        //}
-    //}
-
-    /* Use blocked code. */
-    //if (MAGMA_SUCCESS != magma_zmalloc( &dAP, nb*maxm )) {
-    //    *info = MAGMA_ERR_DEVICE_ALLOC;
-    //    goto cleanup;
-    //}
-
     // square matrices can be done in place;
     // rectangular requires copy to transpose
     if ( m == n ) {
-        //dAT = dA;
-        //lddat = ldda;
         magmablas_ztranspose_inplace( m, dAT(0,0), lddat, queues[0] );
     }
     else {
-        //lddat = maxn;  // N-by-M
-        //if (MAGMA_SUCCESS != magma_zmalloc( &dAT, lddat*maxm )) {
-        //    *info = MAGMA_ERR_DEVICE_ALLOC;
-        //    goto cleanup;
-        //}
         magmablas_ztranspose( m, n, dA(0,0), ldda, dAT(0,0), lddat, queues[0] );
     }
 
@@ -201,22 +270,14 @@ magma_zgetrf_expert_gpu_work(
     else {
         magma_event_record( events[0], queues[0] );
         magma_queue_wait_event( queues[1], events[0] );
-        // magma_queue_sync( queues[0] );
     }
-
-    //ldwork = maxm;
-    //if (mode == MagmaHybrid) {
-        //if (MAGMA_SUCCESS != magma_zmalloc_pinned( &work, ldwork*nb )) {
-        //    *info = MAGMA_ERR_HOST_ALLOC;
-        //    goto cleanup;
-        //}
-    //}
 
     // main loop
     for( j=0; j < minmn-nb; j += nb ) {
         // get j-th panel from device
         magmablas_ztranspose( nb, m-j, dAT(j,j), lddat, dAP(0,0), maxm, queues[1] );
         magma_queue_sync( queues[1] );  // wait for transpose
+
         if (mode == MagmaHybrid) {
             magma_zgetmatrix_async( m-j, nb, dAP(0,0), maxm, work, ldwork, queues[0] );
         }
@@ -352,62 +413,6 @@ magma_zgetrf_expert_gpu_work(
     return *info;
 } /* magma_zgetrf_gpu */
 
-/***************************************************************************//**
-    Purpose
-    -------
-    ZGETRF computes an LU factorization of a general M-by-N matrix A
-    using partial pivoting with row interchanges.
-
-    The factorization has the form
-        A = P * L * U
-    where P is a permutation matrix, L is lower triangular with unit
-    diagonal elements (lower trapezoidal if m > n), and U is upper
-    triangular (upper trapezoidal if m < n).
-
-    This is the right-looking Level 3 BLAS version of the algorithm.
-
-    Arguments
-    ---------
-    @param[in]
-    m       INTEGER
-            The number of rows of the matrix A.  M >= 0.
-
-    @param[in]
-    n       INTEGER
-            The number of columns of the matrix A.  N >= 0.
-
-    @param[in,out]
-    dA      COMPLEX_16 array on the GPU, dimension (LDDA,N).
-            On entry, the M-by-N matrix to be factored.
-            On exit, the factors L and U from the factorization
-            A = P*L*U; the unit diagonal elements of L are not stored.
-
-    @param[in]
-    ldda     INTEGER
-            The leading dimension of the array A.  LDDA >= max(1,M).
-
-    @param[out]
-    ipiv    INTEGER array, dimension (min(M,N))
-            The pivot indices; for 1 <= i <= min(M,N), row i of the
-            matrix was interchanged with row IPIV(i).
-
-    @param[out]
-    info    INTEGER
-      -     = 0:  successful exit
-      -     < 0:  if INFO = -i, the i-th argument had an illegal value
-                  or another error occured, such as memory allocation failed.
-      -     > 0:  if INFO = i, U(i,i) is exactly zero. The factorization
-                  has been completed, but the factor U is exactly
-                  singular, and division by zero will occur if it is used
-                  to solve a system of equations.
-
-    @param[in]
-    mode    magma_mode_t
-      -     = MagmaNative:  Factorize dA using GPU only mode.
-      -     = MagmaHybrid:  Factorize dA using Hybrid (CPU/GPU) mode.
-
-    @ingroup magma_getrf
-*******************************************************************************/
 extern "C" magma_int_t
 magma_zgetrf_gpu_expert(
     magma_int_t m, magma_int_t n,
@@ -698,9 +703,9 @@ cleanup:
 } /* magma_zgetrf_gpu */
 
 /***************************************************************************//**
-    magma_zgetrf_gpu_expert with mode = MagmaHybrid.
+    magma_zgetrf_expert_gpu_work with mode = MagmaHybrid.
     Computation is hybrid, part on CPU (panels), part on GPU (matrix updates).
-    @see magma_zgetrf_gpu_expert
+    @see magma_zgetrf_expert_gpu_work
     @ingroup magma_getrf
 *******************************************************************************/
 extern "C" magma_int_t
@@ -710,15 +715,62 @@ magma_zgetrf_gpu(
     magma_int_t *ipiv,
     magma_int_t *info )
 {
-    magma_int_t nb = magma_get_zgetrf_nb( m, n );
-    magma_zgetrf_gpu_expert(m, n, dA, ldda, ipiv, info, nb, MagmaHybrid);
+    magma_device_t cdev;
+    magma_queue_t queues[2];
+    magma_event_t events[2];
+    magma_getdevice( &cdev );
+
+    magma_queue_create( cdev, &queues[0] );
+    magma_queue_create( cdev, &queues[1] );
+    magma_event_create(&events[0]);
+    magma_event_create(&events[1]);
+
+    magma_mode_t mode = MagmaHybrid;
+    magma_int_t nb    = magma_get_zgetrf_nb( m, n );
+    magma_int_t recnb = 32;
+
+    // query workspace
+    void *hwork = NULL, *dwork=NULL;
+    magma_int_t lhwork[1] = {-1}, ldwork[1] = {-1};
+    magma_zgetrf_expert_gpu_work(
+        m, n, NULL, ldda,
+        NULL, &info, mode, nb, recnb,
+        NULL, lhwork, NULL, ldwork,
+        events, queues );
+
+    // alloc workspace
+    if( lhwork[0] > 0 ) {
+        magma_malloc_pinned( (void**)&hwork, lhwork[0] );
+    }
+
+    if( ldwork[0] > 0 ) {
+        magma_malloc( (void**)&dwork, ldwork[0] );
+    }
+
+    magma_zgetrf_expert_gpu_work(
+        M, N, d_A, ldda, ipiv, &info,
+        mode, nb, recnb,
+        hwork, lhwork, dwork, ldwork,
+        events, queues );
+    magma_queue_sync( queues[0] );
+    magma_queue_sync( queues[1] );
+
+    // free workspace
+    if( hwork != NULL ) magma_free_pinned( hwork );
+    if( dwork != NULL ) magma_free( dwork );
+
+    magma_event_destroy( events[0] );
+    magma_event_destroy( events[1] );
+    magma_queue_destroy( queues[0] );
+    magma_queue_destroy( queues[1] );
+
     return *info;
 } /* magma_zgetrf_gpu */
 
 /***************************************************************************//**
-    magma_zgetrf_gpu_expert with mode = MagmaNative.
+    magma_zgetrf_expert_gpu_work with mode = MagmaNative.
     Computation is done only on the GPU, not on the CPU.
-    @see magma_zgetrf_gpu_expert
+    @see magma_zgetrf_expert_gpu_work
     @ingroup magma_getrf
 *******************************************************************************/
 extern "C" magma_int_t
@@ -728,7 +780,54 @@ magma_zgetrf_native(
     magma_int_t *ipiv,
     magma_int_t *info )
 {
-    magma_int_t nb = magma_get_zgetrf_native_nb( m, n );
-    magma_zgetrf_gpu_expert(m, n, dA, ldda, ipiv, info, nb, MagmaNative);
+    magma_device_t cdev;
+    magma_queue_t queues[2];
+    magma_event_t events[2];
+    magma_getdevice( &cdev );
+
+    magma_queue_create( cdev, &queues[0] );
+    magma_queue_create( cdev, &queues[1] );
+    magma_event_create(&events[0]);
+    magma_event_create(&events[1]);
+
+    magma_mode_t mode = MagmaNative;
+    magma_int_t nb    = magma_get_zgetrf_native_nb( m, n );
+    magma_int_t recnb = 32;
+
+    // query workspace
+    void *hwork = NULL, *dwork=NULL;
+    magma_int_t lhwork[1] = {-1}, ldwork[1] = {-1};
+    magma_zgetrf_expert_gpu_work(
+        m, n, NULL, ldda,
+        NULL, &info, mode, nb, recnb,
+        NULL, lhwork, NULL, ldwork,
+        events, queues );
+
+    // alloc workspace
+    if( lhwork[0] > 0 ) {
+        magma_malloc_pinned( (void**)&hwork, lhwork[0] );
+    }
+
+    if( ldwork[0] > 0 ) {
+        magma_malloc( (void**)&dwork, ldwork[0] );
+    }
+
+    magma_zgetrf_expert_gpu_work(
+        M, N, d_A, ldda, ipiv, &info,
+        mode, nb, recnb,
+        hwork, lhwork, dwork, ldwork,
+        events, queues );
+    magma_queue_sync( queues[0] );
+    magma_queue_sync( queues[1] );
+
+    // free workspace
+    if( hwork != NULL ) magma_free_pinned( hwork );
+    if( dwork != NULL ) magma_free( dwork );
+
+    magma_event_destroy( events[0] );
+    magma_event_destroy( events[1] );
+    magma_queue_destroy( queues[0] );
+    magma_queue_destroy( queues[1] );
+
     return *info;
 } /* magma_zgetrf_native */
