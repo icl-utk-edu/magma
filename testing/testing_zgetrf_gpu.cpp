@@ -258,7 +258,7 @@ int main( int argc, char** argv)
             else if (opts.version == 4 || opts.version == 5) {
                 // expert interface
                 magma_mode_t mode = (opts.version == 4)   ? MagmaHybrid : MagmaNative;
-                magma_int_t nb    = (mode == MagmaHybrid) ? magma_get_zgetrf_native_nb(M, N) :
+                magma_int_t nb    = (mode == MagmaNative) ? magma_get_zgetrf_native_nb(M, N) :
                                                             magma_get_zgetrf_nb(M, N);
                 magma_int_t recnb = 32;
                 // query workspace
