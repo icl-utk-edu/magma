@@ -734,7 +734,7 @@ magma_zgetrf_gpu(
     magma_int_t lhwork[1] = {-1}, ldwork[1] = {-1};
     magma_zgetrf_expert_gpu_work(
         m, n, NULL, ldda,
-        NULL, &info, mode, nb, recnb,
+        NULL, info, mode, nb, recnb,
         NULL, lhwork, NULL, ldwork,
         events, queues );
 
@@ -748,7 +748,7 @@ magma_zgetrf_gpu(
     }
 
     magma_zgetrf_expert_gpu_work(
-        m, n, dA, ldda, ipiv, &info,
+        m, n, dA, ldda, ipiv, info,
         mode, nb, recnb,
         hwork, lhwork, dwork, ldwork,
         events, queues );
@@ -799,7 +799,7 @@ magma_zgetrf_native(
     magma_int_t lhwork[1] = {-1}, ldwork[1] = {-1};
     magma_zgetrf_expert_gpu_work(
         m, n, NULL, ldda,
-        NULL, &info, mode, nb, recnb,
+        NULL, info, mode, nb, recnb,
         NULL, lhwork, NULL, ldwork,
         events, queues );
 
@@ -813,7 +813,7 @@ magma_zgetrf_native(
     }
 
     magma_zgetrf_expert_gpu_work(
-        m, n, dA, ldda, ipiv, &info,
+        m, n, dA, ldda, ipiv, info,
         mode, nb, recnb,
         hwork, lhwork, dwork, ldwork,
         events, queues );
