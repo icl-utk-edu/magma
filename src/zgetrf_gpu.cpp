@@ -748,7 +748,7 @@ magma_zgetrf_gpu(
     }
 
     magma_zgetrf_expert_gpu_work(
-        M, N, dA, ldda, ipiv, &info,
+        m, n, dA, ldda, ipiv, &info,
         mode, nb, recnb,
         hwork, lhwork, dwork, ldwork,
         events, queues );
@@ -813,7 +813,7 @@ magma_zgetrf_native(
     }
 
     magma_zgetrf_expert_gpu_work(
-        M, N, dA, ldda, ipiv, &info,
+        m, n, dA, ldda, ipiv, &info,
         mode, nb, recnb,
         hwork, lhwork, dwork, ldwork,
         events, queues );
