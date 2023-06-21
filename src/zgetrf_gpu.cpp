@@ -42,7 +42,6 @@ magma_zgetrf_expert_gpu_work(
     maxm  = magma_roundup( m, 32 );
     maxn  = magma_roundup( n, 32 );
 
-printf("calc workspace\n");
     // calculate the required workspace in bytes
     magma_int_t h_workspace_bytes = 0;
     magma_int_t d_workspace_bytes = 0;
@@ -67,22 +66,15 @@ printf("calc workspace\n");
         if( !(m == n) ) {
             d_workspace_bytes += lddat * maxm * sizeof(magmaDoubleComplex); // separate memory for dAT
         }
-        printf("native needs %.1f KB of shared memory\n", (double)(d_workspace_bytes)/1024.);
     }
 
-printf("check for query\n");
     // check for workspace query
     if( *lwork_host < 0 || *lwork_device < 0 ) {
-        printf("hi1\n");
         *lwork_host   = h_workspace_bytes;
-        printf("hi2\n");
         *lwork_device = d_workspace_bytes;
-        printf("hi3\n");
         *info  = 0;
         return *info;
     }
-
-    printf("hi4\n");
 
     *info = 0;
     /* Quick return if possible */
@@ -119,8 +111,6 @@ printf("check for query\n");
         return *info;
     }
 
-printf("assign ptrs\n");
-
     // assign pointers
     if( mode == MagmaHybrid ) {
         work = (magmaDoubleComplex*)host_work;
@@ -138,13 +128,9 @@ printf("assign ptrs\n");
         magma_memset_async(dinfo, 0, sizeof(magma_int_t), queues[0]);
     }
 
-printf("ptr assigned\n");
-
     // check for small sizes
     if ( nb <= 1 || 4*nb >= min(m,n) ) {
-printf("small\n");
         if (mode == MagmaHybrid) {
-printf("small-hybrid\n");
             /* Use CPU code. */
             //if ( MAGMA_SUCCESS != magma_zmalloc_cpu( &work, m*n )) {
             //    *info = MAGMA_ERR_HOST_ALLOC;
@@ -158,7 +144,6 @@ printf("small-hybrid\n");
             return *info;
         }
         else {
-printf("small-native\n");
             // use non-transposed panel factorization for the whole matrix
             magma_zgetrf_recpanel_native( m, n, recnb, dA(0,0), ldda, dipiv, dipivinfo, dinfo, 0, events, queues[0], queues[1]);
             magma_igetvector_async( minmn, dipiv, 1, ipiv, 1, queues[0] );
@@ -193,7 +178,6 @@ printf("small-native\n");
     //    goto cleanup;
     //}
 
-printf("transpose\n");
     // square matrices can be done in place;
     // rectangular requires copy to transpose
     if ( m == n ) {
@@ -210,15 +194,14 @@ printf("transpose\n");
         magmablas_ztranspose( m, n, dA(0,0), ldda, dAT(0,0), lddat, queues[0] );
     }
 
-printf("wait for transpose\n");
     // wait for transpose to finish
     if( mode == MagmaHybrid ) {
         magma_queue_sync( queues[0] );
     }
     else {
-        //magma_event_record( events[0], queues[0] );
-        //magma_queue_wait_event( queues[1], events[0] );
-         magma_queue_sync( queues[0] );
+        magma_event_record( events[0], queues[0] );
+        magma_queue_wait_event( queues[1], events[0] );
+        // magma_queue_sync( queues[0] );
     }
 
     //ldwork = maxm;
@@ -229,7 +212,6 @@ printf("wait for transpose\n");
         //}
     //}
 
-printf("main loop\n");
     // main loop
     for( j=0; j < minmn-nb; j += nb ) {
         // get j-th panel from device
@@ -333,7 +315,7 @@ printf("main loop\n");
             magma_zsetmatrix( rows, jb, work, ldwork, dAP(0,0), maxm, queues[1] );
         }
         else {
-            magma_zgetrf_recpanel_native( rows, jb, recnb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, events, queues[0], queues[1]);
+            magma_zgetrf_recpanel_native( rows, jb, recnb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, events, queues[1], queues[0]);
             adjust_ipiv( dipiv+j, jb, j, queues[1]);
             #ifdef SWP_CHUNK
             magma_igetvector( jb, dipiv+j, 1, ipiv+j, 1, queues[1] );

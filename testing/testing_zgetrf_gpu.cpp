@@ -261,7 +261,6 @@ int main( int argc, char** argv)
                 magma_int_t nb    = (mode == MagmaHybrid) ? magma_get_zgetrf_native_nb(M, N) :
                                                             magma_get_zgetrf_nb(M, N);
                 magma_int_t recnb = 32;
-printf("query -- nb = %d\n", nb);
                 // query workspace
                 void *hwork = NULL, *dwork=NULL;
                 magma_int_t lhwork[1] = {-1}, ldwork[1] = {-1};
@@ -271,7 +270,6 @@ printf("query -- nb = %d\n", nb);
                     NULL, lhwork, NULL, ldwork,
                     events, queues );
 
-printf("alloc -- (%.1f, %.1f) KB\n", (double)(lhwork[0])/1024., (double)(ldwork[0])/1024.);
                 // alloc workspace
                 if( lhwork[0] > 0 ) {
                     magma_malloc_pinned( (void**)&hwork, lhwork[0] );
@@ -281,7 +279,6 @@ printf("alloc -- (%.1f, %.1f) KB\n", (double)(lhwork[0])/1024., (double)(ldwork[
                     magma_malloc( (void**)&dwork, ldwork[0] );
                 }
 
-printf("call\n");
                 // time actual call only
                 gpu_time = magma_wtime();
                 magma_zgetrf_expert_gpu_work(

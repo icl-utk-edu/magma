@@ -139,7 +139,7 @@ magma_zgetf2_native_recursive(
         magma_int_t n2 = n - n1;
 
         // lu on A1
-        magma_zgetf2_native_recursive(m, n1, dA(0,0), ldda, dipiv, dipivinfo, dinfo, gbstep, queues, events);
+        magma_zgetf2_native_recursive(m, n1, dA(0,0), ldda, dipiv, dipivinfo, dinfo, gbstep, events, queue_0, queue_1 );
 
         // swap left
         #ifdef PARSWAP
@@ -161,7 +161,7 @@ magma_zgetf2_native_recursive(
                      MAGMA_Z_ONE,     dA(n1, n1), ldda, queue_0 );
 
         // lu on A2
-        magma_zgetf2_native_recursive(m-n1, n2, dA(n1,n1), ldda, dipiv+n1, dipivinfo, dinfo, gbstep, queues, events );
+        magma_zgetf2_native_recursive(m-n1, n2, dA(n1,n1), ldda, dipiv+n1, dipivinfo, dinfo, gbstep, events, queue_0, queue_1 );
 
         // swap right: if PARSWAP is set, we need to call setup_pivinfo
         #ifdef PARSWAP
@@ -263,7 +263,7 @@ magma_zgetf2_native(
     #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
     magma_int_t arch = magma_getdevice_arch();
     if(m > ZGETF2_FUSED_MAX_M || arch < 300){
-      magma_zgetf2_native_blocked(m, n, dA, ldda, dipiv, dinfo, gbstep, queues[0]);
+      magma_zgetf2_native_blocked(m, n, dA, ldda, dipiv, dinfo, gbstep, queue);
     }
     else{
       magma_zgetf2_native_recursive(m, n, dA, ldda, dipiv, dipivinfo, dinfo, gbstep, events, queue, update_queue);
