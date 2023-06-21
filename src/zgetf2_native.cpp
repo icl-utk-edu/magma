@@ -90,7 +90,7 @@ magma_zgetf2_native_recursive(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *dipiv, magma_int_t *dipivinfo,
     magma_int_t *dinfo, magma_int_t gbstep,
-    magma_queue_t queues[2], magma_events_t events[2])
+    magma_queue_t queues[2], magma_event_t events[2])
 {
     magma_int_t arginfo = 0;
     if (m < 0 || m > ZGETF2_FUSED_MAX_M) {
@@ -139,7 +139,7 @@ magma_zgetf2_native_recursive(
         magma_int_t n2 = n - n1;
 
         // lu on A1
-        magma_zgetf2_native_recursive(m, n1, dA(0,0), ldda, dipiv, dipivinfo, dinfo, gbstep, queues[0], queues[1]);
+        magma_zgetf2_native_recursive(m, n1, dA(0,0), ldda, dipiv, dipivinfo, dinfo, gbstep, queues, events);
 
         // swap left
         #ifdef PARSWAP
@@ -161,7 +161,7 @@ magma_zgetf2_native_recursive(
                      MAGMA_Z_ONE,     dA(n1, n1), ldda, queues[0] );
 
         // lu on A2
-        magma_zgetf2_native_recursive(m-n1, n2, dA(n1,n1), ldda, dipiv+n1, dipivinfo, dinfo, gbstep, queues[0], queues[1] );
+        magma_zgetf2_native_recursive(m-n1, n2, dA(n1,n1), ldda, dipiv+n1, dipivinfo, dinfo, gbstep, queues, events );
 
         // swap right: if PARSWAP is set, we need to call setup_pivinfo
         #ifdef PARSWAP
@@ -269,9 +269,6 @@ magma_zgetf2_native(
       magma_zgetf2_native_recursive(m, n, dA, ldda, dipiv, dipivinfo, dinfo, gbstep, queues, events);
     }
     #else
-    // (Ahmad) hipcc (from rocm 3.5) fails to compile the fused LU panel kernel
-    // (under magmablas/zgetf2_native_kernel.cu)
-    // So use the blocked implementation only
     magma_zgetf2_native_blocked(m, n, dA, ldda, dipiv, dinfo, gbstep, queue);
     #endif    // MAGMA_HAVE_CUDA
     return 0;

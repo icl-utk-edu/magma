@@ -32,16 +32,17 @@ magma_zgetrf_expert_gpu_work(
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
 
     magma_int_t iinfo;
-    magma_int_t maxm, maxn, minmn, liwork;
+    magma_int_t maxm, maxn, minmn;
     magma_int_t i, j, jb, rows, lddat, ldwork;
     magmaDoubleComplex_ptr dAT=NULL, dAP=NULL;
     magmaDoubleComplex *work=NULL; // hybrid
-    magma_int_t *diwork=NULL, *dipiv=NULL, *dipivinfo=NULL, *dinfo=NULL; // native
+    magma_int_t *dipiv=NULL, *dipivinfo=NULL, *dinfo=NULL; // native
 
     minmn = min( m, n );
     maxm  = magma_roundup( m, 32 );
     maxn  = magma_roundup( n, 32 );
 
+printf("calc workspace\n");
     // calculate the required workspace in bytes
     magma_int_t h_workspace_bytes = 0;
     magma_int_t d_workspace_bytes = 0;
@@ -66,15 +67,22 @@ magma_zgetrf_expert_gpu_work(
         if( !(m == n) ) {
             d_workspace_bytes += lddat * maxm * sizeof(magmaDoubleComplex); // separate memory for dAT
         }
+        printf("native needs %.1f KB of shared memory\n", (double)(d_workspace_bytes)/1024.);
     }
 
+printf("check for query\n");
     // check for workspace query
     if( *lwork_host < 0 || *lwork_device < 0 ) {
+        printf("hi1\n");
         *lwork_host   = h_workspace_bytes;
+        printf("hi2\n");
         *lwork_device = d_workspace_bytes;
+        printf("hi3\n");
         *info  = 0;
-        return 0;
+        return *info;
     }
+
+    printf("hi4\n");
 
     *info = 0;
     /* Quick return if possible */
@@ -111,6 +119,8 @@ magma_zgetrf_expert_gpu_work(
         return *info;
     }
 
+printf("assign ptrs\n");
+
     // assign pointers
     if( mode == MagmaHybrid ) {
         work = (magmaDoubleComplex*)host_work;
@@ -121,16 +131,20 @@ magma_zgetrf_expert_gpu_work(
         work      = NULL;
         dAP       = (magmaDoubleComplex*)device_work;
         dAT       = ( m == n ) ? dA : dAP + (nb * maxm);
-        dipivinfo = ( m == n ) ? (magma_int_t*)(dAP) + (nb * maxm) :
-                                 (magma_int_t*)(dAT) + (lddat * maxm);
+        dipivinfo = ( m == n ) ? (magma_int_t*)(dAP + nb * maxm) :
+                                 (magma_int_t*)(dAT + lddat * maxm);
         dipiv = dipivinfo + m;
         dinfo = dipiv + minmn;
         magma_memset_async(dinfo, 0, sizeof(magma_int_t), queues[0]);
     }
 
+printf("ptr assigned\n");
+
     // check for small sizes
-    if (nb <= 1 || 4*nb >= min(m,n) ) {
+    if ( 1 || nb <= 1 || 4*nb >= min(m,n) ) {
+printf("small\n");
         if (mode == MagmaHybrid) {
+printf("small-hybrid\n");
             /* Use CPU code. */
             //if ( MAGMA_SUCCESS != magma_zmalloc_cpu( &work, m*n )) {
             //    *info = MAGMA_ERR_HOST_ALLOC;
@@ -144,10 +158,12 @@ magma_zgetrf_expert_gpu_work(
             return *info;
         }
         else {
+printf("small-native\n");
             // use non-transposed panel factorization for the whole matrix
             magma_zgetrf_recpanel_native( m, n, recnb, dA(0,0), ldda, dipiv, dipivinfo, dinfo, 0, queues, events);
             magma_igetvector_async( minmn, dipiv, 1, ipiv, 1, queues[0] );
             magma_igetvector_async( 1, dinfo, 1, info, 1, queues[0] );
+            return *info;
         }
     }
 
@@ -177,6 +193,7 @@ magma_zgetrf_expert_gpu_work(
     //    goto cleanup;
     //}
 
+printf("transpose\n");
     // square matrices can be done in place;
     // rectangular requires copy to transpose
     if ( m == n ) {
@@ -193,6 +210,7 @@ magma_zgetrf_expert_gpu_work(
         magmablas_ztranspose( m, n, dA(0,0), ldda, dAT(0,0), lddat, queues[0] );
     }
 
+printf("wait for transpose\n");
     // wait for transpose to finish
     if( mode == MagmaHybrid ) {
         magma_queue_sync( queues[0] );
@@ -210,6 +228,7 @@ magma_zgetrf_expert_gpu_work(
         //}
     //}
 
+printf("main loop\n");
     // main loop
     for( j=0; j < minmn-nb; j += nb ) {
         // get j-th panel from device
@@ -332,10 +351,10 @@ magma_zgetrf_expert_gpu_work(
     }
 
     if (mode == MagmaNative) {
-        magma_igetvector( 1, dinfo, 1, info, 1, queues[0] );
+        magma_igetvector_async( 1, dinfo, 1, info, 1, queues[0] );
         // copy the pivot vector to the CPU
         #ifndef SWP_CHUNK
-        magma_igetvector(minmn, dipiv, 1, ipiv, 1, queues[1] );
+        magma_igetvector_async(minmn, dipiv, 1, ipiv, 1, queues[1] );
         #endif
     }
 
@@ -345,22 +364,6 @@ magma_zgetrf_expert_gpu_work(
     }
     else {
         magmablas_ztranspose( n, m, dAT(0,0), lddat, dA(0,0), ldda, queues[1] );
-    }
-
-cleanup:
-    magma_queue_destroy( queues[0] );
-    magma_queue_destroy( queues[1] );
-
-    magma_free( dAP );
-    if (m != n) {
-        magma_free( dAT );
-    }
-
-    if (mode == MagmaHybrid) {
-        magma_free_pinned( work );
-    }
-    else {
-        magma_free( diwork );
     }
 
     return *info;
@@ -470,6 +473,7 @@ magma_zgetrf_gpu_expert(
 
     /* Function Body */
     minmn = min( m, n );
+    magma_int_t recnb = 32;
 
     if (nb <= 1 || 4*nb >= min(m,n) )
         if (mode == MagmaHybrid) {
@@ -487,10 +491,13 @@ magma_zgetrf_gpu_expert(
         }
 
     magma_queue_t queues[2] = { NULL };
+    magma_event_t events[2] = { NULL };
     magma_device_t cdev;
     magma_getdevice( &cdev );
     magma_queue_create( cdev, &queues[0] );
     magma_queue_create( cdev, &queues[1] );
+    magma_event_create( &events[0] );
+    magma_event_create( &events[1] );
 
     if (mode == MagmaNative) {
         liwork = m + minmn + 1;
@@ -689,6 +696,8 @@ magma_zgetrf_gpu_expert(
 cleanup:
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
+    magma_event_destroy( events[0] );
+    magma_event_destroy( events[1] );
 
     magma_free( dAP );
     if (m != n) {

@@ -167,7 +167,7 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
-    real_Double_t   gflops, gpu_perf, gpu_time, cpu_perf=0, cpu_time=0;
+    real_Double_t   gflops=0, gpu_perf=0, gpu_time=0, cpu_perf=0, cpu_time=0;
     double          error;
     magmaDoubleComplex *h_A;
     magmaDoubleComplex_ptr d_A;
@@ -261,16 +261,17 @@ int main( int argc, char** argv)
                 magma_int_t nb    = (mode == MagmaHybrid) ? magma_get_zgetrf_native_nb(M, N) :
                                                             magma_get_zgetrf_nb(M, N);
                 magma_int_t recnb = 32;
-
+printf("query -- nb = %d\n", nb);
                 // query workspace
                 void *hwork = NULL, *dwork=NULL;
                 magma_int_t lhwork[1] = {-1}, ldwork[1] = {-1};
                 magma_zgetrf_expert_gpu_work(
                     M, N, NULL, ldda,
-                    NULL, NULL, mode, nb, recnb,
+                    NULL, &info, mode, nb, recnb,
                     NULL, lhwork, NULL, ldwork,
                     events, queues );
 
+printf("alloc -- (%.1f, %.1f) KB\n", (double)(lhwork[0])/1024., (double)(ldwork[0])/1024.);
                 // alloc workspace
                 if( lhwork[0] > 0 ) {
                     magma_malloc_pinned( (void**)&hwork, lhwork[0] );
@@ -280,13 +281,14 @@ int main( int argc, char** argv)
                     magma_malloc( (void**)&dwork, ldwork[0] );
                 }
 
+printf("call\n");
                 // time actual call only
                 gpu_time = magma_wtime();
-               magma_zgetrf_expert_gpu_work(
-                   M, N, d_A, ldda, ipiv, &info,
-                   mode, nb, recnb,
-                   hwork, lhwork, dwork, ldwork,
-                   events, queues );
+                magma_zgetrf_expert_gpu_work(
+                    M, N, d_A, ldda, ipiv, &info,
+                    mode, nb, recnb,
+                    hwork, lhwork, dwork, ldwork,
+                    events, queues );
                 magma_queue_sync( queues[0] );
                 magma_queue_sync( queues[1] );
                 gpu_time = magma_wtime() - gpu_time;
