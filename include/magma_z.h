@@ -504,7 +504,8 @@ magma_zgetf2_native(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *dipiv, magma_int_t* dipivinfo,
     magma_int_t *dinfo, magma_int_t gbstep,
-    magma_queue_t queues[2], magma_event_t events[2]);
+    magma_event_t events[2],
+    magma_queue_t queue, magma_queue_t update_queue);
 
 // CUDA MAGMA only
 magma_int_t
@@ -519,7 +520,7 @@ magma_zgetrf_recpanel_native(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t* dipiv, magma_int_t* dipivinfo,
     magma_int_t *dinfo, magma_int_t gbstep,
-    magma_queue_t queues[2], magma_event_t events[2]);
+    magma_event_t events[2], magma_queue_t queue, magma_queue_t update_queue);
 
 magma_int_t
 magma_zgetrf(

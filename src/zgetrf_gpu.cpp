@@ -141,7 +141,7 @@ printf("assign ptrs\n");
 printf("ptr assigned\n");
 
     // check for small sizes
-    if ( 1 || nb <= 1 || 4*nb >= min(m,n) ) {
+    if ( nb <= 1 || 4*nb >= min(m,n) ) {
 printf("small\n");
         if (mode == MagmaHybrid) {
 printf("small-hybrid\n");
@@ -160,7 +160,7 @@ printf("small-hybrid\n");
         else {
 printf("small-native\n");
             // use non-transposed panel factorization for the whole matrix
-            magma_zgetrf_recpanel_native( m, n, recnb, dA(0,0), ldda, dipiv, dipivinfo, dinfo, 0, queues, events);
+            magma_zgetrf_recpanel_native( m, n, recnb, dA(0,0), ldda, dipiv, dipivinfo, dinfo, 0, events, queues[0], queues[1]);
             magma_igetvector_async( minmn, dipiv, 1, ipiv, 1, queues[0] );
             magma_igetvector_async( 1, dinfo, 1, info, 1, queues[0] );
             return *info;
@@ -216,8 +216,9 @@ printf("wait for transpose\n");
         magma_queue_sync( queues[0] );
     }
     else {
-        magma_event_record( events[0], queues[0] );
-        magma_queue_wait_event( queues[1], events[0] );
+        //magma_event_record( events[0], queues[0] );
+        //magma_queue_wait_event( queues[1], events[0] );
+         magma_queue_sync( queues[0] );
     }
 
     //ldwork = maxm;
@@ -270,7 +271,7 @@ printf("main loop\n");
         }
         else {
             // do the panel on the GPU
-            magma_zgetrf_recpanel_native( rows, nb, recnb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, queues, events);
+            magma_zgetrf_recpanel_native( rows, nb, recnb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, events, queues[0], queues[1]);
             adjust_ipiv( dipiv+j, nb, j, queues[0]);
             #ifdef SWP_CHUNK
             magma_igetvector_async( nb, dipiv+j, 1, ipiv+j, 1, queues[0] );
@@ -332,7 +333,7 @@ printf("main loop\n");
             magma_zsetmatrix( rows, jb, work, ldwork, dAP(0,0), maxm, queues[1] );
         }
         else {
-            magma_zgetrf_recpanel_native( rows, jb, recnb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, queues, events);
+            magma_zgetrf_recpanel_native( rows, jb, recnb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, events, queues[0], queues[1]);
             adjust_ipiv( dipiv+j, jb, j, queues[1]);
             #ifdef SWP_CHUNK
             magma_igetvector( jb, dipiv+j, 1, ipiv+j, 1, queues[1] );
@@ -516,7 +517,7 @@ magma_zgetrf_gpu_expert(
     if (nb <= 1 || nb >= min(m,n) ) {
         if (mode == MagmaNative) {
             /* Use GPU code (native mode). */
-            magma_zgetrf_recpanel_native( m, n, recnb, dA(0,0), ldda, dipiv, dipivinfo, dinfo, 0, queues, events);
+            magma_zgetrf_recpanel_native( m, n, recnb, dA(0,0), ldda, dipiv, dipivinfo, dinfo, 0, events, queues[0], queues[1]);
             magma_igetvector( minmn, dipiv, 1, ipiv, 1, queues[0] );
             magma_igetvector( 1, dinfo, 1, info, 1, queues[0] );
         }
@@ -596,7 +597,7 @@ magma_zgetrf_gpu_expert(
             }
             else {
                 // do the panel on the GPU
-                magma_zgetrf_recpanel_native( rows, nb, recnb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, queues, events);
+                magma_zgetrf_recpanel_native( rows, nb, recnb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, events, queues[0], queues[1]);
                 adjust_ipiv( dipiv+j, nb, j, queues[0]);
                 #ifdef SWP_CHUNK
                 magma_igetvector_async( nb, dipiv+j, 1, ipiv+j, 1, queues[0] );
@@ -658,7 +659,7 @@ magma_zgetrf_gpu_expert(
                 magma_zsetmatrix( rows, jb, work, ldwork, dAP(0,0), maxm, queues[1] );
             }
             else {
-                magma_zgetrf_recpanel_native( rows, jb, recnb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, queues, events);
+                magma_zgetrf_recpanel_native( rows, jb, recnb, dAP(0,0), maxm, dipiv+j, dipivinfo, dinfo, j, events, queues[1], queues[0]);
                 adjust_ipiv( dipiv+j, jb, j, queues[1]);
                 #ifdef SWP_CHUNK
                 magma_igetvector( jb, dipiv+j, 1, ipiv+j, 1, queues[1] );

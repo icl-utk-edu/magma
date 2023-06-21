@@ -86,7 +86,7 @@ magma_zgetrf_recpanel_native(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t* dipiv, magma_int_t* dipivinfo,
     magma_int_t *dinfo, magma_int_t gbstep,
-    magma_queue_t queues[2], magma_event_t events[2])
+    magma_event_t events[2], magma_queue_t queue, magma_queue_t update_queue)
 {
     if (m == 0 || n == 0) {
         return 0;
@@ -94,7 +94,7 @@ magma_zgetrf_recpanel_native(
 
     magma_int_t panel_nb = n;
     if (panel_nb <= recnb) {
-        magma_zgetf2_native(m, n, dA, ldda, dipiv, dipivinfo, dinfo, gbstep, queues, events);
+        magma_zgetf2_native(m, n, dA, ldda, dipiv, dipivinfo, dinfo, gbstep, events, queue, update_queue);
         return 0;
     }
     else {
@@ -104,40 +104,40 @@ magma_zgetrf_recpanel_native(
         magma_int_t n2 = n-n1;
 
         // panel on A1
-        magma_zgetrf_recpanel_native(m, n1, recnb, dA(0,0), ldda, dipiv, dipivinfo, dinfo, gbstep, queues, events);
+        magma_zgetrf_recpanel_native(m, n1, recnb, dA(0,0), ldda, dipiv, dipivinfo, dinfo, gbstep, events, queue, update_queue);
 
         // update A2
         #ifdef PARSWAP
-        setup_pivinfo( dipivinfo, dipiv, m, n1, queues[0]);  // setup pivinfo
-        magma_zlaswp_rowparallel_native( n2, dA(0,n1), ldda, dA(0,n1), ldda, 0, n1, dipivinfo, queues[0] );
+        setup_pivinfo( dipivinfo, dipiv, m, n1, queue);  // setup pivinfo
+        magma_zlaswp_rowparallel_native( n2, dA(0,n1), ldda, dA(0,n1), ldda, 0, n1, dipivinfo, queue );
         #else
-        magma_zlaswp_rowserial_native(n2, dA(0,n1), ldda, 0, n1, dipiv, queues[0]);
+        magma_zlaswp_rowserial_native(n2, dA(0,n1), ldda, 0, n1, dipiv, queue);
         #endif
 
         magma_ztrsm( MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit,
                      n1, n2, MAGMA_Z_ONE,
                      dA(0, 0), ldda,
-                     dA(0,n1), ldda, queues[0] );
+                     dA(0,n1), ldda, queue );
         magma_zgemm( MagmaNoTrans, MagmaNoTrans,
                      m-n1, n2, n1,
                      MAGMA_Z_NEG_ONE, dA(n1,  0), ldda,
                                       dA(0 , n1), ldda,
-                     MAGMA_Z_ONE,     dA(n1, n1), ldda, queues[0] );
+                     MAGMA_Z_ONE,     dA(n1, n1), ldda, queue );
 
         // panel on A2
-        magma_zgetrf_recpanel_native(m-n1, n2, recnb, dA(n1,n1), ldda, dipiv+n1, dipivinfo+n1, dinfo, gbstep+n1, queues, events);
+        magma_zgetrf_recpanel_native(m-n1, n2, recnb, dA(n1,n1), ldda, dipiv+n1, dipivinfo+n1, dinfo, gbstep+n1, events, queue, update_queue);
 
         // swap on the right
         #ifdef PARSWAP
-        setup_pivinfo( dipivinfo, dipiv+n1, m-n1, n2, queues[0]);  // setup pivinfo
+        setup_pivinfo( dipivinfo, dipiv+n1, m-n1, n2, queue);  // setup pivinfo
         #endif
 
-        adjust_ipiv( dipiv+n1, n2, n1, queues[0]);
+        adjust_ipiv( dipiv+n1, n2, n1, queue);
 
         #ifdef PARSWAP
-        magma_zlaswp_rowparallel_native(n1, dA(n1,0), ldda, dA(n1,0), ldda, n1, n, dipivinfo, queues[0]);
+        magma_zlaswp_rowparallel_native(n1, dA(n1,0), ldda, dA(n1,0), ldda, n1, n, dipivinfo, queue);
         #else
-        magma_zlaswp_rowserial_native(n1, dA(0,0), ldda, n1, n, dipiv, queues[0]);
+        magma_zlaswp_rowserial_native(n1, dA(0,0), ldda, n1, n, dipiv, queue);
         #endif
     }
     return 0;
