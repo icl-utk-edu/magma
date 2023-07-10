@@ -55,9 +55,9 @@ int main( int argc, char** argv)
     magma_queue_create( cdev, &queues[1] );
 
     // version 3 can do either check
-    if (opts.check == 1 && ( opts.version == 1 || opts.version == 4) ) {
+    if (opts.check == 1 && ( opts.version == 1 || opts.version == 4 ) ) {
         opts.check = 2;
-        printf( "%% version 1 requires check 2 (solve A*x=b)\n" );
+        printf( "%% versions 1 and 4 requires check 2 (solve A*x=b)\n" );
     }
     if (opts.check == 2 && opts.version == 2) {
         opts.check = 1;
@@ -97,7 +97,7 @@ int main( int argc, char** argv)
 
             TESTING_CHECK( magma_zmalloc( &d_A,    ldda*N ));
 
-            if ( opts.version == 1 || opts.version == 3 ) {
+            if ( opts.version == 1 || opts.version == 3 || opts.version == 4 ) {
                 size = (2*min(M, N) + magma_roundup( N, 32 ) )*nb;
                 TESTING_CHECK( magma_zmalloc( &dT, size ));
                 magmablas_zlaset( MagmaFull, size, 1, c_zero, c_zero, dT, size, opts.queue );
@@ -111,8 +111,6 @@ int main( int argc, char** argv)
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
-            nb = magma_get_zgeqrf_nb( M, N );
-
             if ( opts.version == 1 ) {
                 // stores dT, V blocks have zeros, R blocks inverted & stored in dT
                 gpu_time = magma_wtime();
@@ -136,10 +134,9 @@ int main( int argc, char** argv)
             else if (opts.version == 4) {
                 // expert API for magma_zgeqrf_gpu
                 magma_mode_t mode = MagmaHybrid;
-                magma_int_t nb    = magma_get_zgetrf_nb(M, N);
 
                 // query workspace
-                void *hwork = NULL, *dwork=NULL;
+                void *host_work = NULL, *device_work=NULL;
                 magma_int_t lhwork[1] = {-1}, ldwork[1] = {-1};
                 magma_zgeqrf_expert_gpu_work(
                     M, N, NULL, ldda,
@@ -147,14 +144,13 @@ int main( int argc, char** argv)
                     mode, nb,
                     NULL, lhwork,
                     NULL, ldwork, queues );
-
                 // alloc workspace
                 if( lhwork[0] > 0 ) {
-                    magma_malloc_pinned( (void**)&hwork, lhwork[0] );
+                    magma_malloc_pinned( (void**)&host_work, lhwork[0] );
                 }
 
                 if( ldwork[0] > 0 ) {
-                    magma_malloc( (void**)&dwork, ldwork[0] );
+                    magma_malloc( (void**)&device_work, ldwork[0] );
                 }
 
                 // time actual call only
@@ -162,18 +158,18 @@ int main( int argc, char** argv)
                 magma_zgeqrf_expert_gpu_work(
                     M, N, d_A, ldda, tau, dT, &info,
                     mode, nb,
-                    hwork, lhwork, dwork, ldwork, queues );
+                    host_work, lhwork, device_work, ldwork, queues );
                 magma_queue_sync( queues[0] );
                 magma_queue_sync( queues[1] );
                 gpu_time = magma_wtime() - gpu_time;
 
                 // free workspace
-                if( hwork != NULL) {
-                    magma_free_pinned( hwork );
+                if( host_work != NULL) {
+                    magma_free_pinned( host_work );
                 }
 
-                if( dwork != NULL ) {
-                    magma_free( dwork );
+                if( device_work != NULL ) {
+                    magma_free( device_work );
                 }
             }
             else {
@@ -181,6 +177,7 @@ int main( int argc, char** argv)
                 return -1;
             }
             gpu_perf = gflops / gpu_time;
+
             if (info != 0) {
                 printf("magma_zgeqrf returned error %lld: %s.\n",
                        (long long) info, magma_strerror( info ));
@@ -240,7 +237,7 @@ int main( int argc, char** argv)
                 magma_free_cpu( R    );  R    = NULL;
                 magma_free_cpu( work );  work = NULL;
             }
-            else if ( opts.check == 2 && M >= N && (opts.version == 1 || opts.version == 3) ) {
+            else if ( opts.check == 2 && M >= N && (opts.version == 1 || opts.version == 3 || opts.version == 4) ) {
                 /* =====================================================================
                    Check the result by solving consistent linear system, A*x = b.
                    Only for versions 1 & 3 with M >= N.
@@ -258,7 +255,7 @@ int main( int argc, char** argv)
                 TESTING_CHECK( magma_zmalloc( &d_B, M ));
                 magma_zsetvector( M, b, 1, d_B, 1, opts.queue );
 
-                if ( opts.version == 1 ) {
+                if ( opts.version == 1 || opts.version == 4) {
                     // allocate hwork
                     magma_zgeqrs_gpu( M, N, 1,
                                       d_A, ldda, tau, dT,
@@ -314,7 +311,6 @@ int main( int argc, char** argv)
                 magma_free_cpu( x );
                 magma_free_cpu( b );
                 magma_free( d_B );
-
                 error = norm_r / (max(M,N) * norm_A * norm_x);
             }
 
@@ -370,7 +366,7 @@ int main( int argc, char** argv)
 
             magma_free( d_A );
 
-            if ( opts.version == 1 || opts.version == 3 ) {
+            if ( opts.version == 1 || opts.version == 3 || opts.version == 4 ) {
                 magma_free( dT );
             }
 

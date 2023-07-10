@@ -61,7 +61,9 @@ magma_zgeqrf_expert_gpu_work(
     #define dwork(i_)  (dT + (2*minmn + (i_))*nb)
 
     magmaDoubleComplex *work, *hwork, *R;
-    magma_int_t cols, i, ib, ldwork, lddwork, lhwork, lwork, minmn, nb, old_i, old_ib, rows;
+    magma_int_t cols, i, ib, ldwork, lddwork, lhwork, lwork, minmn, old_i, old_ib, rows;
+
+    minmn = min( m, n );
 
     // ---- compute lddwork, ldwork, lhwork, and lwork
     // dT contains 3 blocks:
@@ -131,13 +133,12 @@ magma_zgeqrf_expert_gpu_work(
         return *info;
     }
 
-    minmn = min( m, n );
     if (minmn == 0)
         return *info;
 
     if (nb <= 1 || nb >= minmn) {
         /* Use CPU code. */
-        work = (magmaDoubleComplex*)lwork_host;
+        work = (magmaDoubleComplex*)host_work;
         magma_zgetmatrix(m, n, dA, ldda, work, m, NULL );
         lhwork = m*n;
         lapackf77_zgeqrf( &m, &n, work, &m, tau, work+m*n, &lhwork, info );
@@ -146,7 +147,7 @@ magma_zgeqrf_expert_gpu_work(
     }
 
     // use blocked code
-    work = (magmaDoubleComplex*)lwork_host;
+    work = (magmaDoubleComplex*)host_work;
     hwork = work + ldwork*nb;
     R     = work + ldwork*nb + lhwork;
     memset( R, 0, nb*nb*sizeof(magmaDoubleComplex) );
