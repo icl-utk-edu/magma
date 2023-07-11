@@ -167,7 +167,10 @@ magma_int_t magma_get_sgeqrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 800 ) {
+        nb = 32;
+    }
+    else if ( arch >= 300 ) {
         if      (minmn <  4096) nb = 96;
         else if (minmn <  7168) nb = 128;
         else if (minmn < 18432) nb = 256;
@@ -192,7 +195,10 @@ magma_int_t magma_get_dgeqrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+        if ( arch >= 800 ) {
+        nb = 32;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <   256) nb =  64;
         else if (minmn <  3072) nb = 128;
         else if (minmn < 10240) nb = 128;
@@ -211,7 +217,10 @@ magma_int_t magma_get_cgeqrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+        if ( arch >= 800 ) {
+        nb = 32;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <  4096) nb = 64;
         else                    nb = 128;
     }
@@ -229,7 +238,10 @@ magma_int_t magma_get_zgeqrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+        if ( arch >= 800 ) {
+        nb = 32;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <  4096) nb = 64;
         else                    nb = 128;
     }
