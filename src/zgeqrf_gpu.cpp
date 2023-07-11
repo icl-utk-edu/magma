@@ -139,10 +139,10 @@ magma_zgeqrf_expert_gpu_work(
     if (nb <= 1 || nb >= minmn) {
         /* Use CPU code. */
         work = (magmaDoubleComplex*)host_work;
-        magma_zgetmatrix(m, n, dA, ldda, work, m, NULL );
+        magma_zgetmatrix(m, n, dA, ldda, work, m, queues[0] );
         lhwork = m*n;
         lapackf77_zgeqrf( &m, &n, work, &m, tau, work+m*n, &lhwork, info );
-        magma_zsetmatrix( m, n, work, m, dA, ldda, NULL );
+        magma_zsetmatrix( m, n, work, m, dA, ldda, queues[0] );
         return *info;
     }
 

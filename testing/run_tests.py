@@ -848,6 +848,7 @@ qr = (
 	('testing_zgeqrf_gpu', '--version 1 -c2', mn,   ''),  # version 1 requires check=2
 	('testing_zgeqrf_gpu', '--version 2 -c',  mn,   ''),  # check=1 allows any M, N
 	('testing_zgeqrf_gpu', '--version 3 -c',  mn,   ''),
+	('testing_zgeqrf_gpu', '--version 4 -c2', mn,   ''),  # version 4 requires check=2
 
 	('testing_zlarfb_gpu', '--version 1 -c',  mnk,  ''),
 	('testing_zlarfb_gpu', '--version 2 -c',  mnk,  ''),
