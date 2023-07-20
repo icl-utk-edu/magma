@@ -44,6 +44,124 @@ void zsplit_diag_block_invert(
     lapackf77_ztrtri( MagmaUpperStr, MagmaNonUnitStr, &ib, work, &ib, &info );
 }
 
+/***************************************************************************//**
+    Purpose
+    -------
+    ZGEQRF computes a QR factorization of a complex M-by-N matrix A:
+    A = Q * R.
+
+    This version stores the triangular dT matrices used in
+    the block QR factorization so that they can be applied directly (i.e.,
+    without being recomputed) later. As a result, the application
+    of Q is much faster. Also, the upper triangular matrices for V have 0s
+    in them. The corresponding parts of the upper triangular R are inverted and
+    stored separately in dT.
+
+    Arguments
+    ---------
+    @param[in]
+    m       INTEGER
+            The number of rows of the matrix A.  M >= 0.
+
+    @param[in]
+    n       INTEGER
+            The number of columns of the matrix A.  N >= 0.
+
+    @param[in,out]
+    dA      COMPLEX_16 array on the GPU, dimension (LDDA,N)
+            On entry, the M-by-N matrix A.
+            On exit, the elements on and above the diagonal of the array
+            contain the min(M,N)-by-N upper trapezoidal matrix R (R is
+            upper triangular if m >= n); the elements below the diagonal,
+            with the array TAU, represent the orthogonal matrix Q as a
+            product of min(m,n) elementary reflectors (see Further
+            Details).
+
+    @param[in]
+    ldda    INTEGER
+            The leading dimension of the array dA.  LDDA >= max(1,M).
+            To benefit from coalescent memory accesses LDDA must be
+            divisible by 16.
+
+    @param[out]
+    tau     COMPLEX_16 array, dimension (min(M,N))
+            The scalar factors of the elementary reflectors (see Further
+            Details).
+
+    @param[out]
+    dT      (workspace) COMPLEX_16 array on the GPU,
+            dimension (2*MIN(M, N) + ceil(N/32)*32 )*NB,
+            where NB can be obtained through magma_get_zgeqrf_nb( M, N ).
+            It starts with a MIN(M,N)*NB block that stores the triangular T
+            matrices, followed by a MIN(M,N)*NB block that stores inverses of
+            the diagonal blocks of the R matrix.
+            The rest of the array is used as workspace.
+
+    @param[out]
+    info    INTEGER
+      -     = 0:  successful exit
+      -     < 0:  if INFO = -i, the i-th argument had an illegal value
+                  or another error occured, such as memory allocation failed.
+
+    @param[in]
+    mode    magma_mode_t
+      -     Only mode = MagmaHybrid is currently supported, factorizes dA using Hybrid (CPU/GPU) mode.
+
+    @param[in]
+    nb      INTEGER
+            The blocking size used during the factorization. nb > 0;
+            Users with no specific preference of nb can call magma_get_zgeqrf_nb()
+            to get the value of nb as determined by MAGMA's internal tuning.
+
+    @param[in,out]
+    host_work  Workspace, allocated on host (CPU) memory. For faster CPU-GPU communication,
+               user can allocate it as pinned memory using magma_malloc_pinned()
+
+    @param[in,out]
+    lwork_host   INTEGER pointer
+                 The size of the workspace (host_work) in bytes
+                 - lwork_host[0] < 0: a workspace query is assumed, the routine
+                   calculates the required amount of workspace and returns
+                   it in lwork_host. The workspace itself is not referenced, and no
+                   factorization is performed.
+                -  lwork[0] >= 0: the routine assumes that the user has provided
+                   a workspace with the size in lwork_host.
+
+    @param[in,out]
+    device_work  Workspace, allocated on device (GPU) memory.
+
+    @param[in,out]
+    lwork_device   INTEGER pointer
+                   The size of the workspace (device_work) in bytes
+                   - lwork_device[0] < 0: a workspace query is assumed, the routine
+                     calculates the required amount of workspace and returns
+                     it in lwork_device. The workspace itself is not referenced, and no
+                     factorization is performed.
+                   - lwork_device[0] >= 0: the routine assumes that the user has provided
+                     a workspace with the size in lwork_device.
+
+    @param[in]
+    queues        magma_queue_t array of size two
+                  - created/destroyed by the user outside the routine
+                  - Used for concurrent kernel execution, if possible
+
+
+    Further Details
+    ---------------
+    The matrix Q is represented as a product of elementary reflectors
+
+        Q = H(1) H(2) . . . H(k), where k = min(m,n).
+
+    Each H(i) has the form
+
+        H(i) = I - tau * v * v^H
+
+    where tau is a complex scalar, and v is a complex vector with
+    v(1:i-1) = 0 and v(i) = 1; v(i+1:m) is stored on exit in A(i+1:m,i),
+    and tau in TAU(i).
+
+    @ingroup magma_geqrf
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zgeqrf_expert_gpu_work(
     magma_int_t m, magma_int_t n,
