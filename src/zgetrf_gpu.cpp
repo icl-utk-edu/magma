@@ -239,9 +239,9 @@ magma_zgetrf_expert_gpu_work(
     // check for small sizes
     if ( nb <= 1 || 4*nb >= min(m,n) ) {
         if (mode == MagmaHybrid) {
-            magma_zgetmatrix( m, n, dA(0,0), ldda, work, m, NULL);
+            magma_zgetmatrix( m, n, dA(0,0), ldda, work, m, queues[0]);
             lapackf77_zgetrf( &m, &n, work, &m, ipiv, info );
-            magma_zsetmatrix( m, n, work, m, dA(0,0), ldda, NULL);
+            magma_zsetmatrix( m, n, work, m, dA(0,0), ldda, queues[0]);
             //magma_free_cpu( work );  work=NULL;
             return *info;
         }
