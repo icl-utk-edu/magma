@@ -808,6 +808,8 @@ lu = (
 	('testing_zgetrf_gpu', '--version 1 -c2', n,    ''),
 	('testing_zgetrf_gpu', '--version 2 -c2', n,    ''), # zgetrf_nopiv_gpu
 	('testing_zgetrf_gpu', '--version 3 -c2', n,    ''), # zgetrf_native
+	('testing_zgetrf_gpu', '--version 4 -c2', n,    ''), # zgetrf hybrid expert api
+	('testing_zgetrf_gpu', '--version 5 -c2', n,    ''), # zgetrf native expert api
 	('testing_zgetf2_gpu',             '-c',  n + tall,  ''),
 	('testing_zgetri_gpu',             '-c',  n,    ''),
 	('testing_zgetrf_mgpu',    ngpu + '-c2',  n,    ''),
