@@ -1043,9 +1043,8 @@ catch (sycl::exception const &exc) {
     @ingroup magma_queue
 *******************************************************************************/
 #ifdef MAGMA_HAVE_SYCL
-// This was previously marked extern "C", but dpcpp was giving errors
-// TODO...?
-void magma_queue_create_from_sycl_internal(
+extern "C" void
+magma_queue_create_from_sycl_internal(
     magma_device_t device, sycl::queue *sycl_queue, sycl::queue *syclblas_handle,
     sycl::queue *syclsparse_handle, magma_queue_t *queue_ptr, const char *func,
     const char *file, int line) try {
