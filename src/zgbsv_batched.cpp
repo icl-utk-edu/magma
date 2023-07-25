@@ -165,7 +165,7 @@ magma_zgbsv_batched_work(
     magma_int_t ntcol = 1;
     magma_get_zgbtrf_batched_params(n, n, kl, ku, &nb, &nthreads);
     magma_int_t fused_info = -1;
-    if( n <= 64 ) {
+    if( n <= 64 && nrhs == 1) {
         fused_info = magma_zgbsv_batched_fused_sm(
                 n, kl, ku, nrhs,
                 dA_array, ldda, dipiv_array,
