@@ -201,6 +201,8 @@ magma_zgbtrf_batched_work(
     // ju_array holds (per problem) the index of the last column affected
     // by the previous factorization stage
     int* ju_array = (int*)device_work;
+    // set info to zero
+    magma_memset_async(info_array, 0, batchCount*sizeof(magma_int_t), queue);
     for(magma_int_t j = 0; j < minmn; j++) {
         // izamax
         magma_int_t km = 1 + min( kl, m-j-1 ); // diagonal and subdiagonal(s)
