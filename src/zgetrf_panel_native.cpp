@@ -75,31 +75,26 @@
             internal use.
 
     @param[in]
-    queue   magma_queue_t
-            Queue to execute in.
-
-    @param[in]
-    update_queue   magma_queue_t
-                   Internal use.
+    queues  Array of magma_queue_t, size 2
+            Queues to execute in.
 
     @ingroup magma_getrf_batched
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zgetrf_recpanel_native(
-    magma_int_t m, magma_int_t n,
+    magma_int_t m, magma_int_t n, magma_int_t recnb,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t* dipiv, magma_int_t* dipivinfo,
     magma_int_t *dinfo, magma_int_t gbstep,
-    magma_queue_t queue, magma_queue_t update_queue)
+    magma_event_t events[2], magma_queue_t queue, magma_queue_t update_queue)
 {
-    magma_int_t recpnb = 32;
     if (m == 0 || n == 0) {
         return 0;
     }
 
     magma_int_t panel_nb = n;
-    if (panel_nb <= recpnb) {
-        magma_zgetf2_native(m, n, dA, ldda, dipiv, dipivinfo, dinfo, gbstep, queue, update_queue);
+    if (panel_nb <= recnb) {
+        magma_zgetf2_native(m, n, dA, ldda, dipiv, dipivinfo, dinfo, gbstep, events, queue, update_queue);
         return 0;
     }
     else {
@@ -109,7 +104,7 @@ magma_zgetrf_recpanel_native(
         magma_int_t n2 = n-n1;
 
         // panel on A1
-        magma_zgetrf_recpanel_native(m, n1, dA(0,0), ldda, dipiv, dipivinfo, dinfo, gbstep, queue, update_queue);
+        magma_zgetrf_recpanel_native(m, n1, recnb, dA(0,0), ldda, dipiv, dipivinfo, dinfo, gbstep, events, queue, update_queue);
 
         // update A2
         #ifdef PARSWAP
@@ -130,7 +125,7 @@ magma_zgetrf_recpanel_native(
                      MAGMA_Z_ONE,     dA(n1, n1), ldda, queue );
 
         // panel on A2
-        magma_zgetrf_recpanel_native(m-n1, n2, dA(n1,n1), ldda, dipiv+n1, dipivinfo+n1, dinfo, gbstep+n1, queue, update_queue);
+        magma_zgetrf_recpanel_native(m-n1, n2, recnb, dA(n1,n1), ldda, dipiv+n1, dipivinfo+n1, dinfo, gbstep+n1, events, queue, update_queue);
 
         // swap on the right
         #ifdef PARSWAP

@@ -730,6 +730,9 @@ chol = (
 	('testing_zpotrf_gpu', '--version 1 -L   -c2',  n,    ''),
 	('testing_zpotrf_gpu', '--version 1 -U   -c2',  n,    ''),
 	('testing_zpotrf_gpu', '--version 2 -L   -c2',  n,    ''), # zpotrf_native, lower only
+	('testing_zpotrf_gpu', '--version 3 -L   -c2',  n,    ''), # zpotrf_hybrid, expert api, lower
+	('testing_zpotrf_gpu', '--version 3 -U   -c2',  n,    ''), # zpotrf_hybrid, expert api, upper
+	('testing_zpotrf_gpu', '--version 4 -L   -c2',  n,    ''), # zpotrf_native, expert api, lower only
 
 	('testing_zpotf2_gpu',       '-L    -c',  n + tall,  ''),
 	('testing_zpotf2_gpu',       '-U    -c',  n + tall,  ''),
@@ -805,6 +808,8 @@ lu = (
 	('testing_zgetrf_gpu', '--version 1 -c2', n,    ''),
 	('testing_zgetrf_gpu', '--version 2 -c2', n,    ''), # zgetrf_nopiv_gpu
 	('testing_zgetrf_gpu', '--version 3 -c2', n,    ''), # zgetrf_native
+	('testing_zgetrf_gpu', '--version 4 -c2', n,    ''), # zgetrf hybrid expert api
+	('testing_zgetrf_gpu', '--version 5 -c2', n,    ''), # zgetrf native expert api
 	('testing_zgetf2_gpu',             '-c',  n + tall,  ''),
 	('testing_zgetri_gpu',             '-c',  n,    ''),
 	('testing_zgetrf_mgpu',    ngpu + '-c2',  n,    ''),
@@ -845,6 +850,7 @@ qr = (
 	('testing_zgeqrf_gpu', '--version 1 -c2', mn,   ''),  # version 1 requires check=2
 	('testing_zgeqrf_gpu', '--version 2 -c',  mn,   ''),  # check=1 allows any M, N
 	('testing_zgeqrf_gpu', '--version 3 -c',  mn,   ''),
+	('testing_zgeqrf_gpu', '--version 4 -c2', mn,   ''),  # version 4 requires check=2
 
 	('testing_zlarfb_gpu', '--version 1 -c',  mnk,  ''),
 	('testing_zlarfb_gpu', '--version 2 -c',  mnk,  ''),

@@ -167,7 +167,10 @@ magma_int_t magma_get_sgeqrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 800 ) {
+        nb = 32;
+    }
+    else if ( arch >= 300 ) {
         if      (minmn <  4096) nb = 96;
         else if (minmn <  7168) nb = 128;
         else if (minmn < 18432) nb = 256;
@@ -192,7 +195,10 @@ magma_int_t magma_get_dgeqrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+        if ( arch >= 800 ) {
+        nb = 32;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <   256) nb =  64;
         else if (minmn <  3072) nb = 128;
         else if (minmn < 10240) nb = 128;
@@ -211,7 +217,10 @@ magma_int_t magma_get_cgeqrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+        if ( arch >= 800 ) {
+        nb = 32;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <  4096) nb = 64;
         else                    nb = 128;
     }
@@ -229,7 +238,10 @@ magma_int_t magma_get_zgeqrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+        if ( arch >= 800 ) {
+        nb = 32;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <  4096) nb = 64;
         else                    nb = 128;
     }
@@ -633,7 +645,13 @@ magma_int_t magma_get_sgetrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 800 ) {
+        // based on experiments using AMD CPU running MKL + A100-SXM4 GPU
+        // high-end GPUs are much faster thanmost CPUs, so small nb's usually
+        // gives a higher performance than bigger nb's
+        nb = 32;
+    }
+    else if ( arch >= 300 ) {
         if      (minmn <  4096) nb = 256;
         else if (minmn < 18432) nb = 512;
         else                    nb = 1024;
@@ -656,7 +674,13 @@ magma_int_t magma_get_dgetrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 800 ) {
+        // based on experiments using AMD CPU running MKL + A100-SXM4 GPU
+        if      (minmn <=  9000) nb = 32;
+        else if (minmn <= 14000) nb = 64;
+        else                     nb = 96;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <  2048) nb =  64;
         else if (minmn <  3072) nb = 128;
         else if (minmn <  8192) nb = 256;
@@ -680,7 +704,11 @@ magma_int_t magma_get_cgetrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 800 ) {
+        // based on experiments using AMD CPU running MKL + A100-SXM4 GPU
+        nb = 32;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn < 4096) nb = 64;
         else if (minmn < 8192) nb = 256;
         else                   nb = 512;
@@ -702,7 +730,11 @@ magma_int_t magma_get_zgetrf_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 800 ) {
+        // based on experiments using AMD CPU running MKL + A100-SXM4 GPU
+        nb = 32;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn < 4096) nb = 64;
         else if (minmn < 8192) nb = 256;
         else                   nb = 512;
@@ -725,7 +757,11 @@ magma_int_t magma_get_sgetrf_native_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 800 ) {
+        // based on experiments using AMD CPU running MKL + A100-SXM4 GPU
+        nb = 512;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <=  4096) nb = 64;
         else if (minmn <= 10240) nb = 128;
         else if (minmn <= 20480) nb = 512;
@@ -749,7 +785,12 @@ magma_int_t magma_get_dgetrf_native_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 800 ) {
+        // based on experiments using AMD CPU running MKL + A100-SXM4 GPU
+        if ( minmn <= 7000 ) nb = 256;
+        else                 nb = 512;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <=  4096)  nb = 64;
         else if (minmn <=  10240) nb = 128;
         else if (minmn <=  20480) nb = 512;
@@ -773,8 +814,12 @@ magma_int_t magma_get_cgetrf_native_nb( magma_int_t m, magma_int_t n )
     magma_int_t nb;
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
-    // TODO: try all nb's (128,256,512, ... etc)
-    if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 800 ) {
+        // based on experiments using AMD CPU running MKL + A100-SXM4 GPU
+        if ( minmn <= 15000 ) nb = 64;
+        else                  nb = 512;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <=  2048)  nb = 128;
         else                      nb = 256;
     }
@@ -796,7 +841,12 @@ magma_int_t magma_get_zgetrf_native_nb( magma_int_t m, magma_int_t n )
     magma_int_t minmn = min( m, n );
     magma_int_t arch = magma_getdevice_arch();
     // TODO: try all nb's (128,256,512, ... etc)
-    if ( arch >= 300 ) {       // 3.x Kepler
+    if ( arch >= 800 ) {
+        // based on experiments using AMD CPU running MKL + A100-SXM4 GPU
+        if ( minmn <= 8000 ) nb = 256;
+        else                 nb = 512;
+    }
+    else if ( arch >= 300 ) {       // 3.x Kepler
         if      (minmn <=  4096)  nb = 32;
         else if (minmn <=  10240) nb = 64;
         else if (minmn <=  20480) nb = 256;
