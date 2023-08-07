@@ -25,6 +25,13 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+2.7.2 - Aug 7, 2023
+    * Add expert interfaces for LU, QR, and Cholesky factorizations
+    * Add tuning specifications for LU, QR, and Cholesky factorizations
+    * Tuning for Ampere and later GPUs
+    * Fused LU panel for AMD GPUs
+    * Bug fixes for batched LU on singular matrices
+
 2.7.1 - Feb 23, 2023
     * Add support for CUDA 12
     * Add a new interface for batch GEMV that accepts a pointer + stride
