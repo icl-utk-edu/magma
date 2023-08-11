@@ -617,10 +617,12 @@ magma_zprecondfree(
          precond_par->solver == Magma_PARIC) &&
         (precond_par->trisolver == Magma_CUSOLVE ||
          precond_par->trisolver == 0)) {
+#if defined(MAGMA_HAVE_CUDA)
         magma_trisolve_free( &precond_par->cuinfoL );
         magma_trisolve_free( &precond_par->cuinfoU );
         magma_trisolve_free( &precond_par->cuinfoLT );
         magma_trisolve_free( &precond_par->cuinfoUT );
+#endif
     }
     if ( precond_par->LD.val != NULL ) {
         if ( precond_par->LD.memory_location == Magma_DEV )

@@ -70,7 +70,11 @@ magma_zmscale(
                 for( magma_int_t z=0; z<A->num_rows; z++ ) {
                     magmaDoubleComplex s = MAGMA_Z_MAKE( 0.0, 0.0 );
                     for( magma_int_t f=A->row[z]; f<A->row[z+1]; f++ )
+#if defined(MAGMA_HAVE_SYCL)
+                        s+= MAGMA_Z_MAKE(MAGMA_Z_REAL(A->val[f] + A->val[f]), 1.0);
+#else
                         s+= MAGMA_Z_REAL(A->val[f])*MAGMA_Z_REAL(A->val[f]);
+#endif
                     tmp[z] = MAGMA_Z_MAKE( 1.0/sqrt(  MAGMA_Z_REAL( s )  ), 0.0 );
                 }        
                 for( magma_int_t z=0; z<A->nnz; z++ ) {
