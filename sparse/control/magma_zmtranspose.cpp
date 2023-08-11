@@ -12,7 +12,9 @@
 */
 #include "magmasparse_internal.h"
 
+#ifdef MAGMA_HAVE_CUDA
 #include <cuda.h>  // for CUDA_VERSION
+#endif
 
 // todo: check if we need buf later
 #if CUDA_VERSION >= 11000

@@ -10,12 +10,13 @@
 */
 #include "magmasparse_internal.h"
 
+#ifdef MAGMA_HAVE_CUDA
 #include <cuda.h>  // for CUDA_VERSION
-
+#endif
 
 
 // todo: check if we need buf later
-#if CUDA_VERSION >= 11000
+#if defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 11000
 #define cusparseZcsr2csc(handle, m, n, nnz, valA, rowA, colA, valB, rowB, colB,                \
                          action, base)                                                         \
     {                                                                                          \
@@ -188,9 +189,11 @@ magma_zmconvert(
     magmaDoubleComplex *transpose=NULL;
     magma_index_t *nnz_per_row=NULL;
 
+#ifndef MAGMA_HAVE_SYCL
     cusparseHandle_t cusparseHandle = 0;
     cusparseMatDescr_t descr = 0;
-    
+#endif
+
     // make sure the target structure is empty
     magma_zmfree( B, queue );
     B->ownership = MagmaTrue;
