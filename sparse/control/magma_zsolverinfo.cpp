@@ -594,7 +594,8 @@ magma_zsolverinfo_init(
     precond_par->UDT.col = NULL;
     precond_par->UDT.row = NULL;
     precond_par->UDT.blockinfo = NULL;
-    
+
+#ifdef MAGMA_HAVE_CUDA
     precond_par->cuinfoL.descr = NULL;
     precond_par->cuinfoU.descr = NULL;
     precond_par->cuinfoLT.descr = NULL;
@@ -603,7 +604,8 @@ magma_zsolverinfo_init(
     precond_par->cuinfoU.buffer = NULL;
     precond_par->cuinfoLT.buffer = NULL;
     precond_par->cuinfoUT.buffer = NULL;
-    
+#endif
+
     precond_par->L_dgraphindegree = NULL;
     precond_par->U_dgraphindegree = NULL;
     precond_par->L_dgraphindegree_bak = NULL;

@@ -629,8 +629,8 @@ typedef struct magma_s_vector
 #if CUDA_VERSION >= 12000
     #define csrsm2Info_t int
 #endif
-
-#if CUDA_VERSION < 11031 || defined(MAGMA_HAVE_HIP)
+    
+#if (defined(MAGMA_HAVE_CUDA) && CUDA_VERSION < 11031) || defined(MAGMA_HAVE_HIP)
 typedef struct magma_solve_info_t
 {
     csrsm2Info_t descr{};
@@ -638,13 +638,21 @@ typedef struct magma_solve_info_t
 } magma_solve_info_t;
 //#define magma_ilu_info_t cusparseSolveAnalysisInfo_t
 #define magma_ilu_info_t csrsm2Info_t
-#else
+#elif !defined(MAGMA_HAVE_SYCL)
 typedef struct magma_solve_info_t
 {
     cusparseSpSMDescr_t descr{};
     void *buffer{};
 } magma_solve_info_t;
 #define magma_ilu_info_t csrsm2Info_t
+#endif
+
+#if defined(MAGMA_HAVE_SYCL)
+typedef struct magma_solve_info_t
+{
+    void *descr{};
+    void *buffer{};
+} magma_solve_info_t;
 #endif
 
     typedef struct magma_z_preconditioner
@@ -693,13 +701,14 @@ typedef struct magma_solve_info_t
         magma_index_t *U_dgraphindegree;     // for sync-free trisolve
         magma_index_t *U_dgraphindegree_bak; // for sync-free trisolve
 
-        /* was merge conflict, assume master */
+#if defined(MAGMA_HAVE_CUDA)
+	/* was merge conflict, assume master */
         magma_ilu_info_t cuinfoILU;
         magma_solve_info_t cuinfoL;
         magma_solve_info_t cuinfoLT;
         magma_solve_info_t cuinfoU;
         magma_solve_info_t cuinfoUT;
-
+#endif
         magma_bool_t transpose; // need the transpose for the solver?
 #if defined(MAGMA_HAVE_PASTIX)
         pastix_data_t *pastix_data;
@@ -754,11 +763,13 @@ typedef struct magma_solve_info_t
         magma_index_t *U_dgraphindegree;     // for sync-free trisolve
         magma_index_t *U_dgraphindegree_bak; // for sync-free trisolve
 
+#if defined(MAGMA_HAVE_CUDA)
         magma_ilu_info_t cuinfoILU;
         magma_solve_info_t cuinfoL;
         magma_solve_info_t cuinfoLT;
         magma_solve_info_t cuinfoU;
         magma_solve_info_t cuinfoUT;
+#endif
 
         magma_bool_t transpose; // need the transpose for the solver?
 #if defined(MAGMA_HAVE_PASTIX)
@@ -814,12 +825,13 @@ typedef struct magma_solve_info_t
         magma_index_t *U_dgraphindegree;     // for sync-free trisolve
         magma_index_t *U_dgraphindegree_bak; // for sync-free trisolve
 
+#if defined(MAGMA_HAVE_CUDA)
         magma_ilu_info_t cuinfoILU;
         magma_solve_info_t cuinfoL;
         magma_solve_info_t cuinfoLT;
         magma_solve_info_t cuinfoU;
         magma_solve_info_t cuinfoUT;
-
+#endif
         magma_bool_t transpose; // need the transpose for the solver?
 #if defined(MAGMA_HAVE_PASTIX)
         pastix_data_t *pastix_data;
@@ -874,12 +886,13 @@ typedef struct magma_solve_info_t
         magma_index_t *U_dgraphindegree;     // for sync-free trisolve
         magma_index_t *U_dgraphindegree_bak; // for sync-free trisolve
 
+#if defined(MAGMA_HAVE_CUDA)
         magma_ilu_info_t cuinfoILU;
         magma_solve_info_t cuinfoL;
         magma_solve_info_t cuinfoLT;
         magma_solve_info_t cuinfoU;
         magma_solve_info_t cuinfoUT;
-
+#endif
         magma_bool_t transpose; // need the transpose for the solver?
 #if defined(MAGMA_HAVE_PASTIX)
         pastix_data_t *pastix_data;

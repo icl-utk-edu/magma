@@ -7,7 +7,7 @@
 
        @author Mark Gates
 */
-
+#if defined(MAGMA_HAVE_CUDA)
 #include <cuda.h>  // for CUDA_VERSION
 
 #include "magmasparse_internal.h"
@@ -46,3 +46,4 @@ cusparse2magma_error( cusparseStatus_t status )
             break;
     }
 }
+#endif
