@@ -1,0 +1,123 @@
+#//////////////////////////////////////////////////////////////////////////////
+#   -- MAGMA (version 2.0) --
+#      Univ. of Tennessee, Knoxville
+#      Univ. of California, Berkeley
+#      Univ. of Colorado, Denver
+#      @date
+#//////////////////////////////////////////////////////////////////////////////
+
+# push previous directory
+dir_stack := $(dir_stack) $(cdir)
+cdir      := sparse/blas_sycl
+# ----------------------------------------------------------------------
+
+
+# alphabetic order by base name (ignoring precision)
+libsparse_src += \
+	$(cdir)/magma_z_blaswrapper.cpp       \
+	$(cdir)/zbajac_csr.dp.cpp                 \
+	$(cdir)/zbajac_csr_overlap.dp.cpp         \
+	$(cdir)/zgeaxpy.dp.cpp                    \
+	$(cdir)/zgecsr5mv.dp.cpp                  \
+	$(cdir)/zgecsrmv.dp.cpp                   \
+	$(cdir)/zgeellmv.dp.cpp                   \
+	$(cdir)/zgeelltmv.dp.cpp                  \
+	$(cdir)/zgeellrtmv.dp.cpp                 \
+	$(cdir)/zgesellcmv.dp.cpp                 \
+	$(cdir)/zgesellcmmv.dp.cpp                \
+	$(cdir)/zjacobisetup.dp.cpp               \
+	$(cdir)/zlobpcg_shift.dp.cpp              \
+	$(cdir)/zlobpcg_residuals.dp.cpp          \
+	$(cdir)/zlobpcg_maxpy.dp.cpp              \
+	$(cdir)/zmdotc.dp.cpp                     \
+	$(cdir)/zgemvmdot.dp.cpp                  \
+	$(cdir)/zmdot_shfl.dp.cpp                 \
+	$(cdir)/zmergebicgstab2.dp.cpp            \
+	$(cdir)/zmergebicgstab3.dp.cpp            \
+	$(cdir)/zmergeidr.dp.cpp                  \
+	$(cdir)/zmergecg.dp.cpp                   \
+	$(cdir)/zmergecgs.dp.cpp                  \
+	$(cdir)/zmergeqmr.dp.cpp                  \
+	$(cdir)/zmergebicgstab.dp.cpp             \
+	$(cdir)/zmergetfqmr.dp.cpp                \
+	$(cdir)/zmgecsrmv.dp.cpp                  \
+	$(cdir)/zmgeellmv.dp.cpp                  \
+	$(cdir)/zmgeelltmv.dp.cpp                 \
+	$(cdir)/zmgesellcmmv.dp.cpp               \
+	$(cdir)/zpipelinedgmres.dp.cpp            \
+	
+# Wrappers to cusparse functions
+libsparse_src += \
+	$(cdir)/zilu.cpp                      \
+	$(cdir)/magma_ztrisolve.cpp           \
+	$(cdir)/magma_trisolve.cpp            \
+	$(cdir)/magma_zcuspmm.cpp             \
+	$(cdir)/magma_zcuspaxpy.cpp           \
+
+# Mixed precision SpMV
+libsparse_src += \
+        $(cdir)/zcgecsrmv_mixed_prec.dp.cpp        \
+
+# Iterative factorizations
+libsparse_src += \
+	$(cdir)/zparilu.cpp		              \
+	$(cdir)/zparilu_kernels.dp.cpp            \
+	$(cdir)/zparic_kernels.dp.cpp             \
+	$(cdir)/zparilut_kernels.dp.cpp           \
+	$(cdir)/zparilut_candidates.dp.cpp        \
+	$(cdir)/magma_zthrsrm.dp.cpp	          \
+	$(cdir)/magma_zpreselect.dp.cpp           \
+	$(cdir)/magma_zsampleselect.dp.cpp        \
+	$(cdir)/magma_zsampleselect_nodp.dp.cpp   \
+
+libsparse_dynamic_src += \
+	$(cdir)/magma_dsampleselect_core.dp.cpp   \
+	$(cdir)/magma_sampleselect.dp.cpp
+
+# Auxiliary routines
+libsparse_src += \
+	$(cdir)/zcompact.dp.cpp                   \
+	$(cdir)/magma_zmcsrcompressor_gpu.dp.cpp  \
+	$(cdir)/magma_zdiagcheck.dp.cpp           \
+	$(cdir)/zgecsrreimsplit.dp.cpp            \
+	$(cdir)/zgedensereimsplit.dp.cpp          \
+	$(cdir)/magma_zmconjugate.dp.cpp          \
+	$(cdir)/magma_zget_rowptr.dp.cpp          \
+	$(cdir)/magma_zmatrixtools_gpu.dp.cpp     \
+
+# Big data analytics
+libsparse_src += \
+	$(cdir)/zjaccard_weights.dp.cpp    \
+	
+# ISAI
+libsparse_src += \
+	$(cdir)/zgeisai_trsv.dp.cpp           \
+	$(cdir)/zgeisai_maxblock.dp.cpp	\
+	$(cdir)/zgeisai_batched32.dp.cpp      \
+
+# Stencil operators
+libsparse_src += \
+	$(cdir)/zge3pt.dp.cpp                   \
+	
+
+# Tester routines
+libsparse_src += \
+	$(cdir)/zmergeblockkrylov.dp.cpp          \
+
+
+libsparse_src += \
+	$(cdir)/zgecscsyncfreetrsm.dp.cpp         \
+# add some additional compiler flags for those
+custom_nvccflags_obj = \
+	$(cdir)/sgecscsyncfreetrsm.o \
+	$(cdir)/dgecscsyncfreetrsm.o \
+	$(cdir)/cgecscsyncfreetrsm.o \
+	$(cdir)/zgecscsyncfreetrsm.o \
+
+$(custom_nvccflags_obj): NVCCFLAGS += -Xptxas -dlcm=cg
+
+
+# ----------------------------------------------------------------------
+# pop first directory
+cdir      := $(firstword $(dir_stack))
+dir_stack := $(wordlist 2, $(words $(dir_stack)), $(dir_stack))

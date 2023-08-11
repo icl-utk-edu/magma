@@ -297,7 +297,7 @@ magma_zjacobisetup_diagscal(
             magma_int_t end = (B.drow[rowindex+1]);
             for( i=start; i<end; i++ ) {
                 if ( B.dcol[i]==rowindex ) {
-                    diag.val[rowindex] = 1.0/B.val[i];
+                    diag.val[rowindex] = MAGMA_Z_MAKE(1.0, 0.0)/B.val[i];
                     break;
                 }
             }
@@ -321,7 +321,7 @@ magma_zjacobisetup_diagscal(
             magma_int_t end = (A.drow[rowindex+1]);
             for( i=start; i<end; i++ ) {
                 if ( A.dcol[i]==rowindex ) {
-                    diag.val[rowindex] = 1.0/A.val[i];
+                    diag.val[rowindex] = MAGMA_Z_MAKE(1.0, 0.0)/A.val[i];
                     break;
                 }
             }

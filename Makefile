@@ -348,7 +348,6 @@ ifeq ($(BACKEND),cuda)
 	subdirs += magmablas
 
     # add all sparse folders
-	# Don't do it for HIP yet
     subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
 
 else ifeq ($(BACKEND),hip)
@@ -360,10 +359,12 @@ else ifeq ($(BACKEND),hip)
     subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
 
 else ifeq ($(BACKEND),dpcpp)
-	SPARSE_DIR =
+	SPARSE_DIR = sparse
 	subdirs += interface_sycl
 	subdirs += magmablas_sycl
 	subdirs += testing
+
+    subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas_sycl $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
 
 endif
 
@@ -426,6 +427,8 @@ ifeq ($(BACKEND),cuda)
 else ifeq ($(BACKEND),hip)
   # No dynamic parallelism support in HIP
   #libsparse_dlink_obj   := $(SPARSE_DIR)/blas/dynamic.link.o
+else ifeq ($(BACKEND),dpcpp)
+  libsparse_dlink_obj   := $(SPARSE_DIR)/blas_sycl/dynamic.link.o
 endif
 
 
@@ -481,7 +484,8 @@ else ifeq ($(BACKEND),hip)
 $(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_hip -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control
 $(sparse_testing_obj): MAGMA_INC += -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control -I./testing
 else ifeq ($(BACKEND),dpcpp)
-$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_sycl
+$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_sycl -I./sparse/include -I./sparse/control
+$(sparse_testing_obj): MAGMA_INC += -I./sparse/include -I./sparse/control -I./testing
 endif
 
 
@@ -732,7 +736,11 @@ control_obj          := $(filter          control/%.o, $(libmagma_obj))
 src_obj              := $(filter              src/%.o, $(libmagma_obj))
 
 sparse_control_obj   := $(filter   $(SPARSE_DIR)/control/%.o, $(libsparse_obj))
+ifeq ($(BACKEND),dpcpp)
+sparse_blas_obj      := $(filter      $(SPARSE_DIR)/blas_sycl/%.o, $(libsparse_obj))
+else
 sparse_blas_obj      := $(filter      $(SPARSE_DIR)/blas/%.o, $(libsparse_obj))
+endif
 sparse_src_obj       := $(filter       $(SPARSE_DIR)/src/%.o, $(libsparse_obj))
 
 

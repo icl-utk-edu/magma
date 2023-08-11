@@ -11,7 +11,9 @@
 
        Utilities for testing MAGMA-sparse.
 */
+#ifdef MAGMA_HAVE_CUDA
 #include <cuda_runtime_api.h>
+#endif
 
 #include "magmasparse_internal.h"
 
@@ -145,8 +147,8 @@ magma_zparse_opts(
     
     printf( usage_sparse_short, argv[0] );
     
-    int ndevices;
-    cudaGetDeviceCount( &ndevices );
+//    int ndevices;
+//    cudaGetDeviceCount( &ndevices );
     
     int basic = 0;
 

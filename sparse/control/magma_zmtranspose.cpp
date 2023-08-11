@@ -12,7 +12,9 @@
 */
 #include "magmasparse_internal.h"
 
+#ifdef MAGMA_HAVE_CUDA
 #include <cuda.h>  // for CUDA_VERSION
+#endif
 
 /* For hipSPARSE, they use a separate complex type than for hipBLAS */
 #ifdef MAGMA_HAVE_HIP

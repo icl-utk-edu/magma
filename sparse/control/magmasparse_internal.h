@@ -19,7 +19,9 @@ extern "C" {
 #endif
 
 
+#if defined(MAGMA_HAVE_CUDA)
 magma_int_t cusparse2magma_error( cusparseStatus_t status );
+#endif
 
 
 /**
@@ -56,6 +58,7 @@ magma_int_t cusparse2magma_error( cusparseStatus_t status );
     } while(0)
 
 
+#if defined(MAGMA_HAVE_CUDA)
 /**
     Macro checks the return code of a cusparse function;
     if non-zero, maps the cusparse error to a magma error and sets info,
@@ -72,7 +75,7 @@ magma_int_t cusparse2magma_error( cusparseStatus_t status );
             goto cleanup;                       \
         }                                       \
     } while(0)
-
+#endif
 
 #ifdef __cplusplus
 } // extern C

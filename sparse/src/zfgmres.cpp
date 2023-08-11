@@ -53,7 +53,11 @@ GeneratePlaneRotation(magmaDoubleComplex dx, magmaDoubleComplex dy, magmaDoubleC
 #else   
     // below the code Joss Knight from MathWorks provided me with - this works. 
     // No idea why the above code fails for complex - maybe rounding.
+#ifndef MAGMA_HAVE_SYCL
     real_Double_t rho = sqrt(MAGMA_Z_REAL(MAGMA_Z_CONJ(dx)*dx + MAGMA_Z_CONJ(dy)*dy));
+#else
+    auto rho = MAGMA_Z_MAKE(sqrt(MAGMA_Z_REAL(MAGMA_Z_CONJ(dx)*dx + MAGMA_Z_CONJ(dy)*dy)), 0.0);
+#endif
     *cs = dx / rho;
     *sn = dy / rho;
 #endif
@@ -224,7 +228,7 @@ magma_zfgmres(
         }
 
         
-        temp = -1.0/beta;
+	temp = MAGMA_Z_MAKE(-1.0, 0.0) / beta;
         magma_zscal( dofs, temp, V(0), 1, queue );                 // V(0) = -V(0)/beta
 
         // save very first residual norm
@@ -261,7 +265,7 @@ magma_zfgmres(
             }
 
             H(i+1, i) = MAGMA_Z_MAKE( magma_dznrm2( dofs, V(i+1), 1, queue), 0. ); // H(i+1,i) = ||r||
-            temp = 1.0 / H(i+1, i);
+            temp = MAGMA_Z_MAKE(1.0, 0.0) / H(i+1, i);
             // V(i+1) = V(i+1) / H(i+1, i)
             magma_zscal( dofs, temp, V(i+1), 1, queue );    //  (to be fused)
     
