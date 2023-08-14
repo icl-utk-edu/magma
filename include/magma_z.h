@@ -340,7 +340,7 @@ magma_zgeqrf_gpu(
     magmaDoubleComplex_ptr dT,
     magma_int_t *info);
 
-extern "C" magma_int_t
+magma_int_t
 magma_zgeqrf_expert_gpu_work(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
