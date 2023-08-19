@@ -10,6 +10,7 @@ blas=$3
 compiler=$4
 
 module load cmake
+module load gcc@10.4.0
 if [ "$blas" = "openblas" ]; then
    module load openblas
    export OPENBLASDIR=$ICL_OPENBLAS_ROOT
