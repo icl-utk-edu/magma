@@ -25,6 +25,8 @@ jobs:
         exclude:
           - maker: make
             device: gpu_amd
+          - maker: cmake
+            blas: mkl-ilp64
       fail-fast: false
     runs-on: ${{ matrix.device }}
     steps:
