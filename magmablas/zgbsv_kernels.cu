@@ -16,11 +16,7 @@
 #include "batched_kernel_param.h"
 #include "zgbtf2_devicefunc.cuh"
 
-// use this so magmasubs will replace with relevant precision, so we can comment out
-// the switch case that causes compilation failure
 #define PRECISION_z
-
-//#define DBG
 
 #ifdef MAGMA_HAVE_HIP
 #define NTCOL(M)        (max(1,64/(M)))

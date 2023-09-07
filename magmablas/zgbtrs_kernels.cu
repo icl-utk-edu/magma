@@ -37,33 +37,6 @@
 #define GBTRS_LOWER_NRHS    (4)
 #define GBTRS_UPPER_NRHS    (4)
 
-#define DBG
-
-////////////////////////////////////////////////////////////////////////////////
-template<typename T>
-__device__ void print_memory(
-                const char* msg,
-                int m, int n, T* sA, int lda,
-                int tx, int ty, int tz,
-                int bx, int by, int bz)
-{
-#if defined(PRECISION_d) && defined(DBG)
-    __syncthreads();
-    if(threadIdx.x == tx && threadIdx.y == ty && threadIdx.z == tz &&
-       blockIdx.x  == bx && blockIdx.y  == by && blockIdx.z  == bz) {
-        printf("%s = [ \n", msg);
-        for(int i = 0; i < m; i++) {
-            for(int j = 0; j < n; j++) {
-                printf("%8.4f  ", (double)(sA[j*lda+i]));
-            }
-            printf("\n");
-        }
-        printf("]; \n");
-    }
-    __syncthreads();
-#endif
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 __global__
 __launch_bounds__(GBTRS_SWAP_THREADS)
@@ -226,23 +199,12 @@ void zgbtrs_lower_blocked_kernel_batched(
         // read extra B elements to have a total of (nb + kl) elements
         int b_elements_2 = min(nb+kl-b_elements_1, n-j-b_elements_1);
 
-        #ifdef DBG0
-        __syncthreads();
-        if(tx == 0) {
-            printf("nb = %d, b1 = %d, b2 = %d\n", nb, b_elements_1, b_elements_2);
-        }
-        __syncthreads();
-        #endif
-
         for(int itx = tx; itx < b_elements_2; itx+=ntx) {
             for(int jb = 0; jb < my_rhs; jb++) {
                 sB(itx+b_elements_1, jb) = dB(itx+b_elements_1, jb);
             }
         }
         __syncthreads();
-
-        //print_memory<magmaDoubleComplex>("sB1", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
-
 
         // swap & rank-1 update
         #pragma unroll
@@ -259,18 +221,11 @@ void zgbtrs_lower_blocked_kernel_batched(
             }
             __syncthreads();
 
-            //print_memory<magmaDoubleComplex>("tB1", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
-
             // apply
             for(int jb = 0; jb < my_rhs; jb++) {
-                #if defined(DBG0) && defined(PRECISION_d)
-                printf("[%d]: %.4f -= %.4f * %.4f\n", tx, sB(tx+ja+1, jb), rA[ja], sB(ja,jb));
-                __syncthreads();
-                #endif
                 sB(tx+ja+1, jb) -= rA[ja] * sB(ja,jb);
             }
             __syncthreads();
-            //print_memory<magmaDoubleComplex>("tB2", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
 
         } // end of swap & rank-1 updates
 
@@ -282,8 +237,6 @@ void zgbtrs_lower_blocked_kernel_batched(
             }
         }
         __syncthreads();
-
-        //print_memory<magmaDoubleComplex>("sB2", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
 
         // shift up
         int shift_size = b_elements_1 + b_elements_2 - nb;
@@ -309,15 +262,6 @@ void zgbtrs_lower_blocked_kernel_batched(
                 __syncthreads();
             }
         }
-        #endif
-
-        //print_memory<magmaDoubleComplex>("sB3", sldb, my_rhs, sB, sldb, 0, 0, 0, 0, 0, 0);
-        #ifdef DBG0
-        __syncthreads();
-        if(tx == 0) {
-            printf("shift = %d\n", shift_size);
-        }
-        __syncthreads();
         #endif
 
         b_elements_1 = shift_size; /*b_elements_2*/;
