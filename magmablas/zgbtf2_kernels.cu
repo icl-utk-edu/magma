@@ -700,6 +700,8 @@ magma_zgbtf2_native_v2_work(
         cudaError_t e = cudaLaunchCooperativeKernel((void*)zgbtf2_native_kernel_v2, grid, threads, kernel_args, shmem, queue->cuda_stream());
         if(e != cudaSuccess) {
             printf("ERROR: %s \n", cudaGetErrorString(e));
+            *info = -100;
+            return *info;
         }
     }
 

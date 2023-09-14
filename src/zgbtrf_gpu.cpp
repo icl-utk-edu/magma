@@ -42,15 +42,22 @@ magma_zgbtrf_native_work(
 
     // calculate the required workspace
     // [1] workspace of batched-strided gbtrf
-    magma_int_t gbtrf_batch_lwork[1]  = {-1};
+    magma_int_t gbtrf_batch_lwork[1]     = {-1};
     magma_zgbtrf_batched_strided_work(
         m, n, kl, ku,
         NULL, lddab, lddab*n, NULL, min(m,n),
         NULL, NULL, gbtrf_batch_lwork, 1, queue);
 
+    // [2] workspace of native gbtrf with cooperative groups
+    magma_int_t gbtrf_cogroups_lwork[1] = {-1};
+    magma_zgbtf2_native_v2_work(
+        m, n, kl, ku,
+        NULL, lddab, NULL, info,
+        NULL, gbtrf_cogroups_lwork, queue);
+
     // [2] we need a "device_info" on device memory
     magma_int_t gbtrf_native_lwork[1] = {0};
-    gbtrf_native_lwork[0] = gbtrf_batch_lwork[0] + sizeof(magma_int_t);
+    gbtrf_native_lwork[0] = gbtrf_batch_lwork[0] + gbtrf_cogroups_lwork[0] + sizeof(magma_int_t);
 
     if(*lwork < 0) {
         // workspace query assumed
@@ -63,6 +70,10 @@ magma_zgbtrf_native_work(
         *info = -10;
         return;
     }
+
+    // try cooperative groups kernel first
+    magma_zgbtf2_native_v2_work(m, n, kl, ku, dAB, lddab, dipiv, info, device_work, gbtrf_cogroups_lwork, queue);
+    if(*info != -100) return; // cooperative group kernel finished successfully
 
     magma_int_t* device_info = (magma_int_t*)((uint8_t*)device_work + gbtrf_batch_lwork[0]);
     magma_zgbtrf_batched_strided_work(
