@@ -14,6 +14,7 @@
 #include "batched_kernel_param.h"
 
 
+////////////////////////////////////////////////////////////////////////////////
 magma_int_t
 magma_zgbtrs_lower_batched(
     magma_trans_t transA,
@@ -88,6 +89,7 @@ magma_zgbtrs_lower_batched(
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
 magma_int_t
 magma_zgbtrs_upper_batched(
     magma_trans_t transA,
@@ -154,6 +156,7 @@ magma_zgbtrs_upper_batched(
 #undef dA_array
 #undef dB_array
 }
+
 /***************************************************************************//**
     Purpose
     -------
@@ -285,6 +288,70 @@ magma_zgbtrs_batched(
         dB_array, lddb,
         info_array,
         batchCount, queue);
+
+    return arginfo;
+}
+
+/// @see magma_zgbtrs_batched. This is the (pointer + stride) interface of magma_zgbtrs_batched
+extern "C" magma_int_t
+magma_zgbtrs_batched_strided(
+    magma_trans_t transA,
+    magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
+    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA,
+    magma_int_t *dipiv, magma_int_t stride_piv,
+    magmaDoubleComplex* dB, magma_int_t lddb, magma_int_t strideB,
+    magma_int_t *info_array,
+    magma_int_t batchCount, magma_queue_t queue)
+{
+
+    magma_int_t arginfo = 0;
+    magma_int_t kv = kl + ku;
+
+    if ( transA != MagmaNoTrans ) {
+        arginfo = -1;
+        printf("ERROR: Function %s only support transA = MagmaNoTrans\n", __func__);
+    }
+    else if ( n < 0 )
+        arginfo = -2;
+    else if ( kl < 0 )
+        arginfo = -3;
+    else if ( ku < 0 )
+        arginfo = -4;
+    else if (nrhs < 0)
+        arginfo = -5;
+    else if ( ldda < (kl+kv+1) )
+        arginfo = -7;
+    else if (strideA < (ldda * n))
+        arginfo = -8;
+    else if (stride_piv < n)
+        arginfo = -10;
+    else if ( lddb < n)
+        arginfo = -12;
+    else if (strideB < lddb * nrhs)
+        arginfo = -13;
+    else if ( batchCount < 0 )
+        arginfo = -15;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    if(n == 0 || batchCount == 0 || nrhs == 0) return 0;
+
+
+    magma_int_t max_batchCount   = queue->get_maxBatch();
+    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
+        magma_int_t batch = min(max_batchCount, batchCount-i);
+        magma_zset_pointer(dA_array,    (magmaDoubleComplex*)(dA + i * strideA), ldda, 0, 0, strideA,    batch, queue);
+        magma_zset_pointer(dB_array,    (magmaDoubleComplex*)(dB + i * strideB), lddb, 0, 0, strideB,    batch, queue);
+        magma_iset_pointer(dipiv_array, (magma_int_t*)(dipiv + i * stride_piv),     1, 0, 0, stride_piv, batch, queue);
+
+        magma_zgbtrs_batched(
+            transA, n, kl, ku, nrhs,
+            dA_array, ldda, dipiv_array,
+            dB_array, lddb, info_array, batchCount, queue);
+    }
 
     return arginfo;
 }
