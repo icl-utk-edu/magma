@@ -339,6 +339,9 @@ magma_zgbtrs_batched_strided(
 
     if(n == 0 || batchCount == 0 || nrhs == 0) return 0;
 
+    magmaDoubleComplex** dA_array   = (magmaDoubleComplex**)queue->get_dAarray();
+    magmaDoubleComplex** dB_array   = (magmaDoubleComplex**)queue->get_dAarray();
+    magma_int_t**      dipiv_array  = (magma_int_t**)queue->get_dCarray();
 
     magma_int_t max_batchCount   = queue->get_maxBatch();
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount){
