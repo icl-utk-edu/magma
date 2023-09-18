@@ -50,7 +50,7 @@ magma_zgbtrf_native_work(
         NULL, lddab, lddab*n, NULL, min(m,n),
         NULL, NULL, gbtrf_batch_lwork, 1, queue);
 
-    #ifdef MAGMA_ZGBTRF_NATIVE_DISABLE_COOP_KERNEL
+    #ifndef MAGMA_ZGBTRF_NATIVE_DISABLE_COOP_KERNEL
     // [2] workspace of native gbtrf with cooperative groups
     magma_int_t gbtrf_cogroups_lwork[1] = {-1};
     magma_zgbtf2_native_v2_work(
@@ -61,7 +61,7 @@ magma_zgbtrf_native_work(
 
     // [3] we need a "device_info" on device memory
     magma_int_t gbtrf_native_lwork[1] = {0};
-    #ifdef MAGMA_ZGBTRF_NATIVE_DISABLE_COOP_KERNEL
+    #ifndef MAGMA_ZGBTRF_NATIVE_DISABLE_COOP_KERNEL
     gbtrf_native_lwork[0] = gbtrf_batch_lwork[0] + gbtrf_cogroups_lwork[0] + sizeof(magma_int_t);
     #else
     gbtrf_native_lwork[0] = gbtrf_batch_lwork[0] + sizeof(magma_int_t);
