@@ -189,13 +189,9 @@ int main( int argc, char** argv)
             if(opts.version == 1) {
                 // sync. interface
                 magma_time = magma_wtime();
-                #if 0
                 magma_zgbtrf_native(
                     M, N, KL, KU,
                     dA, lddab, dipiv_magma, &info);
-                #else
-                magma_zgbtf2_native(M, N, KL, KU, dA, lddab, dipiv_magma, &info, opts.queue);
-                #endif
                 magma_time = magma_wtime() - magma_time;
             }
             else if (opts.version == 2){
