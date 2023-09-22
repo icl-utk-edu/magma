@@ -27,8 +27,6 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (M == 11 && N == 11)
-
 double get_band_LU_error(
             magma_int_t M, magma_int_t N,
             magma_int_t KL, magma_int_t KU,
@@ -183,9 +181,6 @@ int main( int argc, char** argv)
                Performs operation using MAGMA
                =================================================================== */
             magma_zsetmatrix( Mband, Nband, h_R, ldab, dA, lddab, opts.queue );
-
-            if(cond) magma_zprint_gpu(Mband, N, dA, lddab, opts.queue);
-
             if(opts.version == 1) {
                 // sync. interface
                 magma_time = magma_wtime();
@@ -222,8 +217,6 @@ int main( int argc, char** argv)
             }
             magma_perf = gflops / magma_time;
             magma_zgetmatrix( Mband, Nband, dA, lddab, h_Amagma, ldab, opts.queue );
-
-            if(cond) magma_zprint_gpu(Mband, N, dA, lddab, opts.queue);
 
             if (info != 0) {
                 printf("magma_zgbtrf_gpu returned internal error %lld: %s.\n",

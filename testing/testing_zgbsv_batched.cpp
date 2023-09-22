@@ -28,8 +28,6 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (N <= 32 && batchCount == 1)
-
 // multiplies a square band matrix ( Nband x Nband ) with
 // a dense matrix (Nband x N)
 static void
@@ -173,15 +171,6 @@ int main(int argc, char **argv)
             magma_zset_pointer( dA_array, d_A, ldda, 0, 0, ldda*N,    batchCount, opts.queue );
             magma_zset_pointer( dB_array, d_B, lddb, 0, 0, lddb*nrhs, batchCount, opts.queue );
             magma_iset_pointer( dipiv_array, dipiv, 1, 0, 0, N, batchCount, opts.queue );
-
-            if(cond) {
-                printf("a = ");
-                magma_zprint_gpu(Nband, N, d_A, ldda, opts.queue);
-                printf("b = ");
-                magma_zprint_gpu(N, nrhs, d_B, lddb, opts.queue);
-            }
-
-            // testing MAGMA
             if(opts.version == 1) {
                 // synchronous api with ptr array
                 gpu_time = magma_sync_wtime( opts.queue );
@@ -257,13 +246,6 @@ int main(int argc, char **argv)
                 magma_free( device_work );
             }
             gpu_perf = gflops / gpu_time;
-
-            if(cond) {
-                printf("Af = ");
-                magma_zprint_gpu(Nband, N, d_A, ldda, opts.queue);
-                printf("bm = ");
-                magma_zprint_gpu(N, nrhs, d_B, lddb, opts.queue);
-            }
 
             // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_array, 1, cpu_info, 1, opts.queue );
