@@ -56,9 +56,7 @@ scan_32(
                           s_scan[bi] += s_scan[ai]; }
     if (local_id < 2)   { ai = 8 * baseai - 1;  bi = 8 * basebi - 1;   
                           s_scan[bi] += s_scan[ai]; }
-    if (local_id == 0) {
-        s_scan[31] = s_scan[15]; s_scan[15] = sycl::double2(r, i);
-    }
+    if (local_id == 0)  { s_scan[31] = s_scan[15]; s_scan[15] = MAGMA_Z_ZERO; }
     if (local_id < 2)   { ai = 8 * baseai - 1;  bi = 8 * basebi - 1;   
                           temp = s_scan[ai]; s_scan[ai] = s_scan[bi]; 
                           s_scan[bi] += temp; }
@@ -81,7 +79,7 @@ candidate(
     const magma_index_t            candidate_index,
     const magmaDoubleComplex       alpha)
 {
-    magmaDoubleComplex x = sycl::double2(r, i);
+    magmaDoubleComplex x = MAGMA_Z_ZERO;
     x = d_x[d_column_index_tile[candidate_index]];
     return d_value_tile[candidate_index] * x * alpha;
 }
@@ -94,7 +92,7 @@ segmented_sum(magmaDoubleComplex tmp_sum, magmaDoubleComplex *s_sum,
     if (lane_id)
         s_sum[lane_id - 1] = tmp_sum;
     s_sum[lane_id] =
-        lane_id == MAGMA_CSR5_OMEGA - 1 ? sycl::double2(r, i) : s_sum[lane_id];
+        lane_id == MAGMA_CSR5_OMEGA - 1 ? MAGMA_Z_ZERO : s_sum[lane_id];
     magmaDoubleComplex sum = tmp_sum = s_sum[lane_id];
     scan_32(s_sum, lane_id); // exclusive scan
     s_sum[lane_id] += tmp_sum; // inclusive scan (exclusive scan+original val)
@@ -116,7 +114,7 @@ tile_fast_track(
     const magma_index_t          par_id,
     const magmaDoubleComplex     alpha)
 {
-    magmaDoubleComplex sum = sycl::double2(r, i);
+    magmaDoubleComplex sum = MAGMA_Z_ZERO;
 
 #pragma unroll
     for (int i = 0; i < c_sigma; i++)
@@ -157,7 +155,7 @@ tile_normal_track(
     int stop = 0;
 
     bool local_bit;
-    magmaDoubleComplex sum = sycl::double2(r, i);
+    magmaDoubleComplex sum = MAGMA_Z_ZERO;
 
     magma_index_t offset_pointer = empty_rows ? 
                                    d_tile_desc_offset_ptr[par_id] : 0;
@@ -215,7 +213,7 @@ tile_normal_track(
         y_offset += local_bit & direct;
 
         direct |= local_bit;
-        sum = local_bit ? sycl::double2(r, i) : sum;
+        sum = local_bit ? MAGMA_Z_ZERO : sum;
         stop += local_bit;
 
         sum += candidate(d_value_tile, d_x, d_column_index_tile, 
@@ -226,12 +224,12 @@ tile_normal_track(
     last_sum = sum;
 
     // step 2. segmented sum
-    sum = start ? first_sum : sycl::double2(r, i);
+    sum = start ? first_sum : MAGMA_Z_ZERO;
 
     sum = segmented_sum(sum, s_sum, scansum_offset, lane_id);
 
     // step 3-1. add s_sum to position stop
-    last_sum += (start <= stop) ? sum : sycl::double2(r, i);
+    last_sum += (start <= stop) ? sum : MAGMA_Z_ZERO;
 
     // step 3-2. write sums to result array
     if (direct)
@@ -381,7 +379,7 @@ spmv_csr5_calibrate_kernel(
     s_tile_ptr[local_id] = global_id < p-1 ? 
                   (magma_index_t)(d_tile_ptr[global_id] & 0x7FFFFFFF) : -1;
     s_calibrator[local_id] = sum =
-        global_id < p - 1 ? d_calibrator[global_id] : sycl::double2(r, i);
+        global_id < p - 1 ? d_calibrator[global_id] : MAGMA_Z_ZERO;
     /*
     DPCT1065:1: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -427,7 +425,7 @@ spmv_csr5_calibrate_kernel(
 
     int local_par_id = local_id;
     magma_index_t row_start_current, row_start_target, row_start_previous;
-    sum = sycl::double2(r, i);
+    sum = MAGMA_Z_ZERO;
 
     // use (p - 1), due to the tail tile is dealt with CSR-vector method
     if (global_id < p - 1)
@@ -479,7 +477,7 @@ spmv_csr5_tail_tile_kernel(
                                         : d_row_pointer[row_id];
     const magma_index_t row_stop  = d_row_pointer[row_id + 1];
 
-    magmaDoubleComplex sum = sycl::double2(r, i);
+    magmaDoubleComplex sum = MAGMA_Z_ZERO;
 
     for (magma_index_t idx = local_id + row_start; 
          idx < row_stop; idx += MAGMA_CSR5_OMEGA)
@@ -505,8 +503,8 @@ zgecsr5mv_kernel_update_y(int    num_rows,
 
     if (row < num_rows)
     {
-        if (beta == sycl::double2(r, i))
-            dy[row] = sycl::double2(r, i);
+        if (beta == MAGMA_Z_ZERO)
+            dy[row] = MAGMA_Z_ZERO;
         else
             dy[row] *= beta; 
     }
@@ -1749,9 +1747,6 @@ magma_zgecsr5mv(
         });
 
     info = MAGMA_SUCCESS;
-    else {
-        info = MAGMA_ERR_NOT_SUPPORTED;
-    }
 
     return info;
 }

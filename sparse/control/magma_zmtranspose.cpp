@@ -273,6 +273,7 @@ magma_z_cucsrtranspose(
     magma_z_matrix *B,
     magma_queue_t queue )
 {
+#ifndef MAGMA_HAVE_SYCL
     // for symmetric matrices: convert to csc using cusparse
     
     magma_int_t info = 0;
@@ -350,6 +351,7 @@ cleanup:
         magma_zmfree( B, queue );
     }
     return info;
+#endif
 }
 
 
@@ -384,6 +386,7 @@ magma_zmtransposeconjugate(
     magma_z_matrix *B,
     magma_queue_t queue )
 {
+#ifndef MAGMA_HAVE_SYCL
     // for symmetric matrices: convert to csc using cusparse
     
     magma_int_t info = 0;
@@ -459,4 +462,5 @@ cleanup:
         magma_zmfree( B, queue );
     }
     return info;
+#endif
 }
