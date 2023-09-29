@@ -68,16 +68,16 @@ magma_zcg(
     
     magma_int_t dofs = A.num_rows * b.num_cols;
 
+    // solver variables
+    magmaDoubleComplex alpha, beta;
+    double nom, nom0, r0, betanom, betanomsq, den, nomb;
+
     // GPU workspace
     magma_z_matrix r={Magma_CSR}, p={Magma_CSR}, q={Magma_CSR};
     CHECK( magma_zvinit( &r, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &p, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &q, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
     
-    // solver variables
-    magmaDoubleComplex alpha, beta;
-    double nom, nom0, r0, betanom, betanomsq, den, nomb;
-
     // solver setup
     CHECK(  magma_zresidualvec( A, b, *x, &r, &nom0, queue));
     magma_zcopy( dofs, r.dval, 1, p.dval, 1, queue );                    // p = r
