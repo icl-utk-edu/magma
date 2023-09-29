@@ -68,6 +68,13 @@ magma_zbicgstab_merge(
     
     magma_int_t dofs = A.num_rows * b.num_cols;
 
+    // solver variables
+    magmaDoubleComplex alpha, beta, omega, rho_old, rho_new;
+    double betanom, nom0, r0, res, nomb;
+    res=0;
+    //double nom;
+    //double den;
+
     // workspace
     magma_z_matrix r={Magma_CSR}, rr={Magma_CSR}, p={Magma_CSR}, v={Magma_CSR}, 
     s={Magma_CSR}, t={Magma_CSR}, d1={Magma_CSR}, d2={Magma_CSR};
@@ -81,13 +88,6 @@ magma_zbicgstab_merge(
     CHECK( magma_zvinit( &d2, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
 
     
-    // solver variables
-    magmaDoubleComplex alpha, beta, omega, rho_old, rho_new;
-    double betanom, nom0, r0, res, nomb;
-    res=0;
-    //double nom;
-    //double den;
-
     // solver setup
     CHECK(  magma_zresidualvec( A, b, *x, &r, &nom0, queue));
     magma_zcopy( dofs, r.dval, 1, rr.dval, 1, queue );                  // rr = r

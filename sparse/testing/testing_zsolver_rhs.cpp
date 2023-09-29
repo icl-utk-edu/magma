@@ -26,7 +26,9 @@
 */
 int main(  int argc, char** argv )
 {
-    magma_int_t info = 0;
+
+     magma_int_t info = 0;
+#ifdef MAGMA_HAVE_CUDA
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
@@ -159,5 +161,6 @@ int main(  int argc, char** argv )
 
     magma_queue_destroy( queue );
     TESTING_CHECK( magma_finalize() );
+#endif
     return info;
 }

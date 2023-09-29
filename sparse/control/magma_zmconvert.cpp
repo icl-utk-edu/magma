@@ -192,7 +192,6 @@ magma_zmconvert(
 #ifndef MAGMA_HAVE_SYCL
     cusparseHandle_t cusparseHandle = 0;
     cusparseMatDescr_t descr = 0;
-#endif
 
     // make sure the target structure is empty
     magma_zmfree( B, queue );
@@ -1993,5 +1992,6 @@ cleanup:
     if ( info != 0 ) {
         magma_zmfree( B, queue );
     }
+#endif
     return info;
 }

@@ -100,8 +100,6 @@ magmablas_clag2z_sparse(
     magma_queue_t queue,
     magma_int_t *info )
 {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
-    sycl::queue &q_ct1 = dev_ct1.default_queue();
     /*
     (TODO note from original dense source)
     
@@ -140,17 +138,17 @@ magmablas_clag2z_sparse(
 
     sycl::range<3> threads(1, 1, blksize);
     sycl::range<3> grid(1, 1, magma_ceildiv(M, blksize));
-    q_ct1.memcpy(flag.get_ptr(), info, sizeof(flag)).wait(); // flag = 0
+    queue->sycl_stream->memcpy(flag.get_ptr(), info, sizeof(flag)).wait(); // flag = 0
     /*
     DPCT1049:426: The work-group size passed to the SYCL kernel may exceed the
     limit. To get the device limit, query info::device::max_work_group_size.
     Adjust the work-group size if needed.
     */
-    ((sycl::queue *)(queue->sycl_stream))
+    ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                        [=](sycl::nd_item<3> item_ct1) {
                            magmaint_clag2z_sparse(M, N, SA, lda, A, ldsa, RMAX,
                                                   item_ct1);
                        });
-    q_ct1.memcpy(info, flag.get_ptr(), sizeof(flag)).wait(); // info = flag
+    queue->sycl_stream()->memcpy(info, flag.get_ptr(), sizeof(flag)).wait(); // info = flag
 }

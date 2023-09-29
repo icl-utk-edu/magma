@@ -210,6 +210,7 @@ magma_zsampleselect_approx(
     int32_t* gpulocalcounts = gpucounts + searchtree_width;
     uint32_t bucketidx{};
 
+    constexpr auto size = 1 << searchtree_height; // for shared mem size in sampleselect_findbucket
     CHECK(realloc_result);
 
     /*
@@ -233,10 +234,10 @@ magma_zsampleselect_approx(
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            sample_buffer_acc_ct1(sycl::range<1>(1024 /*sample_size*/), cgh);
+            sample_buffer_acc_ct1(sycl::range<1>(sample_size), cgh);
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            leaves_acc_ct1(sycl::range<1>(256 /*searchtree_width*/), cgh);
+            leaves_acc_ct1(sycl::range<1>(searchtree_width), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, sample_size),
                                            sycl::range<3>(1, 1, sample_size)),
@@ -255,10 +256,10 @@ magma_zsampleselect_approx(
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            local_tree_acc_ct1(sycl::range<1>(511 /*searchtree_size*/), cgh);
+            local_tree_acc_ct1(sycl::range<1>(searchtree_size), cgh);
         sycl::accessor<int32_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            local_counts_acc_ct1(sycl::range<1>(256 /*searchtree_width*/), cgh);
+            local_counts_acc_ct1(sycl::range<1>(searchtree_width), cgh);
 
         cgh.parallel_for(
             sycl::nd_range<3>(sycl::range<3>(1, 1, num_grouped_blocks) *
@@ -292,7 +293,7 @@ magma_zsampleselect_approx(
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int32_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            sums_acc_ct1(sycl::range<1>(256 /*size*/), cgh);
+            sums_acc_ct1(sycl::range<1>(size), cgh);
 
         cgh.parallel_for(
             sycl::nd_range<3>(sycl::range<3>(1, 1, searchtree_width / 2),

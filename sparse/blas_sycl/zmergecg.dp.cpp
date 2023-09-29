@@ -12,11 +12,14 @@
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magmasparse_internal.h"
-#include <complex>
 
 #include <cmath>
 
 #define PRECISION_z
+#define COMPLEX
+#ifdef COMPLEX
+#include <complex>
+#endif
 
 /* For hipSPARSE, they use a separate complex type than for hipBLAS */
 #if defined(MAGMA_HAVE_HIP)

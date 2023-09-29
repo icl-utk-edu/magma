@@ -101,8 +101,6 @@ magmablas_zlag2c_sparse(
     magma_queue_t queue,
     magma_int_t *info )
 {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
-    sycl::queue &q_ct1 = dev_ct1.default_queue();
     /*
     (TODO note from original dense source)
     
@@ -132,7 +130,7 @@ magmablas_zlag2c_sparse(
 
     sycl::range<3> grid(1, 1, magma_ceildiv(M, BLOCKSIZE));
 
-    q_ct1.memcpy(flag.get_ptr(), info, sizeof(flag)).wait(); // flag = 0
+    queue->sycl_stream()->memcpy(flag.get_ptr(), info, sizeof(flag)).wait(); // flag = 0
     /*
     DPCT1049:150: The work-group size passed to the SYCL kernel may exceed the
     limit. To get the device limit, query info::device::max_work_group_size.
@@ -144,7 +142,7 @@ magmablas_zlag2c_sparse(
                        [=](sycl::nd_item<3> item_ct1) {
                            magmaint_zlag2c_sparse(M, N, A, SA, item_ct1);
                        });
-    q_ct1.memcpy(info, flag.get_ptr(), sizeof(flag)).wait(); // info = flag
+    queue->sycl_stream()->memcpy(info, flag.get_ptr(), sizeof(flag)).wait(); // info = flag
 }
 
 

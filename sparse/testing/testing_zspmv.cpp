@@ -107,11 +107,13 @@ int main(  int argc, char** argv )
     #if defined(PRECISION_s)
         accuracy = 1e-4;
     #endif
-    
+
+    #ifdef MAGMA_HAVE_CUDA	
     cusparseMatDescr_t descrA=NULL;
     cusparseHandle_t cusparseHandle = NULL;
     cusparseMatDescr_t descr = NULL;
-    
+    #endif
+
     #ifdef MAGMA_WITH_MKL
         magma_int_t *pntre=NULL;
     #endif
@@ -289,6 +291,7 @@ int main(  int argc, char** argv )
         magma_zmfree(&dA_SELLP, queue );
 
 
+#ifdef MAGMA_HAVE_CUDA
         // SpMV on GPU (CUSPARSE - CSR)
         // CUSPARSE context
         cusparseHandle = magma_queue_get_cusparse_handle( queue );
@@ -336,6 +339,7 @@ int main(  int argc, char** argv )
         magma_zmfree( &hcheck, queue );
         magma_zmfree( &dy, queue );
 
+#endif
 
 #if defined(MAGMA_HAVE_CUDA) && CUDA_VERSION < 11000
         // Test hybrid matix format for CUDA before version 11 ===
@@ -382,13 +386,14 @@ int main(  int argc, char** argv )
         descrA=NULL;
         hybA=NULL;
 #endif // end test for HYB matrix format
-
+#ifdef MAGMA_HAVE_CUDA
         cusparseDestroyMatDescr( descr  );
         descr = NULL;
-        
+#endif        
         // print everything in matlab-readable output
         // cuSPARSE-CSR cuSPARSE-HYB  SELLP
         // runtime performance 
+#ifdef MAGMA_HAVE_CUDA
         // printf("%% MKL cuSPARSE-CSR cuSPARSE-HYB  ELL SELLP \n");
         // printf("%% runtime performance (GFLOP/s)\n");
         // printf("data = [\n");
@@ -397,6 +402,15 @@ int main(  int argc, char** argv )
         printf(" %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e \n",
                  mkltime, mklgflops, cuCSRtime, cuCSRgflops, cuHYBtime, cuHYBgflops, 
                  elltime, ellgflops, sellptime, sellpgflops);
+#else
+	// printf("%% MKL(CPU) CSR5\n");
+        // printf("%% runtime performance (GFLOP/s)\n");
+        // printf("data = [\n");
+        printf(" MKL(CPU) (sec GFlop/s)\n");
+        printf("================================================================================\n");
+        printf(" %.2e %.2e\n",
+                 mkltime, mklgflops);
+#endif
 
         // free CPU memory
         magma_zmfree( &hA, queue );
