@@ -62,6 +62,12 @@
 
 #endif
 
+#if defined(MAGMA_HAVE_SYCL)
+
+#define magma_unsupported_sparse(fname) ((magma_int_t)(fprintf(stderr, "MAGMA: Unsupported (sparse) function '" #fname "'\n"),MAGMA_ERR_NOT_SUPPORTED))
+#define MAGMA_SIVERGENCE MAGMA_DIVERGENCE
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {

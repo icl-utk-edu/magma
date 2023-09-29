@@ -82,6 +82,11 @@ magma_zpbicg(
                 
     // need to transpose the matrix
     magma_z_matrix AT={Magma_CSR}, Ah1={Magma_CSR}, Ah2={Magma_CSR};
+
+    // solver variables
+    magmaDoubleComplex alpha, rho, beta, rho_new, ptq;
+    double res, nomb, nom0, r0;
+
     
     CHECK( magma_zvinit( &r, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &rt,Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
@@ -95,10 +100,6 @@ magma_zpbicg(
     CHECK( magma_zvinit( &zt,Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
 
     
-    // solver variables
-    magmaDoubleComplex alpha, rho, beta, rho_new, ptq;
-    double res, nomb, nom0, r0;
-
         // transpose the matrix
     magma_zmtransfer( A, &Ah1, Magma_DEV, Magma_CPU, queue );
     magma_zmconvert( Ah1, &Ah2, A.storage_type, Magma_CSR, queue );

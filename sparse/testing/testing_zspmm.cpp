@@ -102,9 +102,10 @@ int main(  int argc, char** argv )
     #ifdef MAGMA_WITH_MKL
         magma_int_t *pntre=NULL;
     #endif
+    #ifdef MAGMA_HAVE_CUDA
     cusparseHandle_t cusparseHandle = NULL;
     cusparseMatDescr_t descr = NULL;
-
+    #endif
     magmaDoubleComplex c_one  = MAGMA_Z_MAKE(1.0, 0.0);
     magmaDoubleComplex c_zero = MAGMA_Z_MAKE(0.0, 0.0);
     
@@ -250,7 +251,7 @@ int main(  int argc, char** argv )
         TESTING_CHECK( magma_zmtransfer( dy, &hrefvec , Magma_DEV, Magma_CPU, queue ));
         magma_zmfree(&dA, queue );
 
-
+        #ifdef MAGMA_HAVE_CUDA
         // convert to SELLP and copy to GPU
         TESTING_CHECK( magma_zmconvert(  hA, &hA_SELLP, Magma_CSR, Magma_SELLP, queue ));
         TESTING_CHECK( magma_zmtransfer( hA_SELLP, &dA_SELLP, Magma_CPU, Magma_DEV, queue ));
@@ -278,7 +279,6 @@ int main(  int argc, char** argv )
             printf("%% tester spmm SELL-P:  failed\n");
         magma_zmfree( &hcheck, queue );
         magma_zmfree(&dA_SELLP, queue );
-
 
 
         // SpMV on GPU (CUSPARSE - CSR)
@@ -329,6 +329,7 @@ int main(  int argc, char** argv )
         //#endif
 
         printf("\n\n");
+        #endif
 
         // free CPU memory
         magma_zmfree( &hA, queue );

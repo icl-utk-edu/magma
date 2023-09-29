@@ -12,7 +12,7 @@
 
 // CSC Sync-Free SpTRSM kernel
 // see paper by W. Liu, A. Li, J. D. Hogg, I. S. Duff, and B. Vinter. (2016).
-// "A Synchronization-Free Algorithm for Parallel Sparse Triangular Solves". 
+// "A Synchronization-Free Algorithm for Parallel Sparse Triangular Solves".
 // 22nd International European Conference on Parallel and Distributed Computing 
 // (Euro-Par '16). pp. 617-630.
 
@@ -70,7 +70,7 @@ void sptrsm_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
     if (global_x_id >= m) return;
 
     // substitution is forward or backward
-    global_x_id = substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ? 
+    global_x_id = substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ?
                   global_x_id : m - 1 - global_x_id;
 
     // Initialize
@@ -111,24 +111,24 @@ void sptrsm_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
     }
 
     // Producer
-    const magma_index_t start_ptr = 
-              substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ? 
+    const magma_index_t start_ptr =
+              substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ?
               d_cscColPtr[global_x_id]+1 : d_cscColPtr[global_x_id];
-    const magma_index_t stop_ptr  = 
-              substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ? 
+    const magma_index_t stop_ptr  =
+              substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ?
               d_cscColPtr[global_x_id+1] : d_cscColPtr[global_x_id+1]-1;
 
     if (opt == MAGMA_CSC_SYNCFREE_OPT_WARP_NNZ)
     {
-        for (magma_index_t jj = start_ptr + lane_id; 
+        for (magma_index_t jj = start_ptr + lane_id;
                            jj < stop_ptr; jj += MAGMA_CSC_SYNCFREE_WARP_SIZE)
         {
-            const magma_index_t j = 
-                      substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ? 
+            const magma_index_t j =
+                      substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ?
                       jj : stop_ptr - 1 - (jj - start_ptr);
             const magma_index_t rowIdx = d_cscRowIdx[j];
             for (magma_index_t k = 0; k < rhs; k++)
-                atomicAddmagmaDoubleComplex(&d_x[rowIdx * rhs + k], 
+                atomicAddmagmaDoubleComplex(&d_x[rowIdx * rhs + k],
                     d_x[global_x_id * rhs + k] * d_cscVal[j]);
             /*
             DPCT1078:74: Consider replacing memory_order::acq_rel
@@ -146,13 +146,13 @@ void sptrsm_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
     {
         for (magma_index_t jj = start_ptr; jj < stop_ptr; jj++)
         {
-            const magma_index_t j = 
-                      substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ? 
+            const magma_index_t j =
+                      substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ?
                       jj : stop_ptr - 1 - (jj - start_ptr);
             const magma_index_t rowIdx = d_cscRowIdx[j];
-            for (magma_index_t k = lane_id; 
+            for (magma_index_t k = lane_id;
                                k < rhs; k+=MAGMA_CSC_SYNCFREE_WARP_SIZE)
-                atomicAddmagmaDoubleComplex(&d_x[rowIdx * rhs + k], 
+                atomicAddmagmaDoubleComplex(&d_x[rowIdx * rhs + k],
                     d_x[global_x_id * rhs + k] * d_cscVal[j]);
             /*
             DPCT1078:75: Consider replacing memory_order::acq_rel
@@ -174,13 +174,13 @@ void sptrsm_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
         {
             for (magma_index_t jj = start_ptr; jj < stop_ptr; jj++)
             {
-                const magma_index_t j = 
-                      substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ? 
+                const magma_index_t j =
+                      substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ?
                       jj : stop_ptr - 1 - (jj - start_ptr);
                 const magma_index_t rowIdx = d_cscRowIdx[j];
-                for (magma_index_t k = lane_id; 
+                for (magma_index_t k = lane_id;
                                    k < rhs; k+=MAGMA_CSC_SYNCFREE_WARP_SIZE)
-                    atomicAddmagmaDoubleComplex(&d_x[rowIdx * rhs + k], 
+                    atomicAddmagmaDoubleComplex(&d_x[rowIdx * rhs + k],
                         d_x[global_x_id * rhs + k] * d_cscVal[j]);
                 /*
                 DPCT1078:76: Consider replacing
@@ -197,15 +197,15 @@ void sptrsm_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
         }
         else
         {
-            for (magma_index_t jj = start_ptr + lane_id; 
+            for (magma_index_t jj = start_ptr + lane_id;
                              jj < stop_ptr; jj += MAGMA_CSC_SYNCFREE_WARP_SIZE)
             {
                 const magma_index_t j = 
-                      substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ? 
+                      substitution == MAGMA_CSC_SYNCFREE_SUBSTITUTION_FORWARD ?
                       jj : stop_ptr - 1 - (jj - start_ptr);
                 const magma_index_t rowIdx = d_cscRowIdx[j];
                 for (magma_index_t k = 0; k < rhs; k++)
-                    atomicAddmagmaDoubleComplex(&d_x[rowIdx * rhs + k], 
+                    atomicAddmagmaDoubleComplex(&d_x[rowIdx * rhs + k],
                         d_x[global_x_id * rhs + k] * d_cscVal[j]);
                 /*
                 DPCT1078:77: Consider replacing
@@ -226,29 +226,27 @@ void sptrsm_syncfree_executor(magmaIndex_ptr         d_cscColPtr,
 
 extern "C" magma_int_t
 magma_zgecscsyncfreetrsm_analysis(
-    magma_int_t             m, 
+    magma_int_t             m,
     magma_int_t             nnz,
     magmaDoubleComplex_ptr  dval,
     magmaIndex_ptr          dcolptr,
-    magmaIndex_ptr          drowind, 
-    magmaIndex_ptr          dgraphindegree, 
-    magmaIndex_ptr          dgraphindegree_bak, 
+    magmaIndex_ptr          drowind,
+    magmaIndex_ptr          dgraphindegree,
+    magmaIndex_ptr          dgraphindegree_bak,
     magma_queue_t           queue )
 {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
-    sycl::queue &q_ct1 = dev_ct1.default_queue();
     int info = MAGMA_SUCCESS;
 
     int num_threads = 128;
     int num_blocks = ceil ((double)nnz / (double)num_threads);
-    q_ct1.memset(dgraphindegree, 0, m * sizeof(magma_index_t)).wait();
+    queue->sycl_stream()->memset(dgraphindegree, 0, m * sizeof(magma_index_t)).wait();
     /*
     DPCT1049:78: The work-group size passed to the SYCL kernel may exceed
      * the limit. To get the device limit, query
      * info::device::max_work_group_size. Adjust the work-group size if needed.
 
      */
-    q_ct1.parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, num_blocks) *
+    queue->sycl_stream()->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, num_blocks) *
                                              sycl::range<3>(1, 1, num_threads),
                                          sycl::range<3>(1, 1, num_threads)),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -257,35 +255,33 @@ magma_zgecscsyncfreetrsm_analysis(
                        });
 
     // backup in-degree array
-    q_ct1.memcpy(dgraphindegree_bak, dgraphindegree, m * sizeof(int)).wait();
+    queue->sycl_stream()->memcpy(dgraphindegree_bak, dgraphindegree, m * sizeof(int)).wait();
     return info;
 }
 
 extern "C" magma_int_t
 magma_zgecscsyncfreetrsm_solve(
-    magma_int_t             m, 
+    magma_int_t             m,
     magma_int_t             nnz,
     magmaDoubleComplex_ptr  dval,
     magmaIndex_ptr          dcolptr,
     magmaIndex_ptr          drowind,
-    magmaIndex_ptr          dgraphindegree, 
-    magmaIndex_ptr          dgraphindegree_bak, 
+    magmaIndex_ptr          dgraphindegree,
+    magmaIndex_ptr          dgraphindegree_bak,
     magmaDoubleComplex_ptr  dx,
     magmaDoubleComplex_ptr  db,
     magma_int_t             substitution, 
     magma_int_t             rhs, 
     magma_queue_t           queue )
 {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
-    sycl::queue &q_ct1 = dev_ct1.default_queue();
     int info = MAGMA_SUCCESS;
 
     // get an unmodified in-degree array, only for benchmarking use
-    q_ct1.memcpy(dgraphindegree, dgraphindegree_bak, m * sizeof(magma_index_t))
+    queue->sycl_stream()->memcpy(dgraphindegree, dgraphindegree_bak, m * sizeof(magma_index_t))
         .wait();
 
     // clear d_x for atomic operations
-    q_ct1.memset(dx, 0, sizeof(magmaDoubleComplex) * m * rhs).wait();
+    queue->sycl_stream()->memset(dx, 0, sizeof(magmaDoubleComplex) * m * rhs).wait();
 
     int num_threads, num_blocks;
 
@@ -298,7 +294,7 @@ magma_zgecscsyncfreetrsm_solve(
      * info::device::max_work_group_size. Adjust the work-group size if needed.
 
      */
-    q_ct1.parallel_for(
+    queue->sycl_stream()->parallel_for(
         sycl::nd_range<3>(sycl::range<3>(1, 1, num_blocks) *
                               sycl::range<3>(1, 1, num_threads),
                           sycl::range<3>(1, 1, num_threads)),
@@ -310,6 +306,3 @@ magma_zgecscsyncfreetrsm_solve(
 
     return info;
 }
-
-
-

@@ -31,6 +31,7 @@
 
 int main( int argc, char** argv)
 {
+#ifdef MAGMA_HAVE_CUDA
     // generates the exact preconditioner for system IC
     // and uses then update sweeps for all others
     TESTING_CHECK( magma_init() );
@@ -270,5 +271,6 @@ cudaProfilerStop();
 
     magma_queue_destroy( queue );
     TESTING_CHECK( magma_finalize() );
+#endif
     return 0;
 }

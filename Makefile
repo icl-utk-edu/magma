@@ -425,7 +425,7 @@ else ifeq ($(BACKEND),hip)
   # No dynamic parallelism support in HIP
   #libsparse_dlink_obj   := $(SPARSE_DIR)/blas/dynamic.link.o
 else ifeq ($(BACKEND),dpcpp)
-  libsparse_dlink_obj   := $(SPARSE_DIR)/blas_sycl/dynamic.link.o
+ # libsparse_dlink_obj   := $(SPARSE_DIR)/blas_sycl/dynamic.link.o
 endif
 
 

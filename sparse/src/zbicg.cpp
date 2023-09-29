@@ -69,6 +69,10 @@ magma_zbicg(
     
     magma_int_t dofs = A.num_rows * b.num_cols;
 
+    // solver variables
+    magmaDoubleComplex alpha, rho, beta, rho_new, ptq;
+    double res, nomb, nom0, r0;
+
     // workspace
     magma_z_matrix r={Magma_CSR}, rt={Magma_CSR}, p={Magma_CSR}, pt={Magma_CSR}, 
                 z={Magma_CSR}, zt={Magma_CSR}, q={Magma_CSR}, y={Magma_CSR}, 
@@ -89,10 +93,6 @@ magma_zbicg(
     CHECK( magma_zvinit( &zt,Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
 
     
-    // solver variables
-    magmaDoubleComplex alpha, rho, beta, rho_new, ptq;
-    double res, nomb, nom0, r0;
-
         // transpose the matrix
     CHECK( magma_zmtransfer( A, &Ah1, Magma_DEV, Magma_CPU, queue ));
     CHECK( magma_zmconvert( Ah1, &Ah2, A.storage_type, Magma_CSR, queue ));
