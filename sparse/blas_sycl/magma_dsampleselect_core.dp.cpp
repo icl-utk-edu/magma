@@ -450,10 +450,11 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
                                   num_grouped_blocks_ct2, item_ct1);
             });
     });
+    constexpr auto mem_size = 1 << searchtree_height;
     stream->submit([&](sycl::handler &cgh) {
         sycl::accessor<int32_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
-            sums_acc_ct1(sycl::range<1>(size), cgh);
+            sums_acc_ct1(sycl::range<1>(mem_size), cgh);
 
         cgh.parallel_for(
             sycl::nd_range<3>(sycl::range<3>(1, 1, searchtree_width / 2),
@@ -492,8 +493,6 @@ void sampleselect_tailcall_nodp(sycl::queue *stream, double *__restrict__ in,
                                 double *__restrict__ tree,
                                 int32_t *__restrict__ count_tmp,
                                 double *__restrict__ out) {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
-    sycl::queue &q_ct1 = dev_ct1.default_queue();
     //if (threadIdx.x != 0) {
     //    return;
     //}
@@ -511,9 +510,9 @@ void sampleselect_tailcall_nodp(sycl::queue *stream, double *__restrict__ in,
     /* Load indexes */
 
     stream->wait();
-    q_ct1.memcpy((void *)&bi0, bucket_idx, sizeof(bi0));
-    q_ct1.memcpy((void *)&size, totalcounts + bi0, sizeof(size));
-    q_ct1.memcpy((void *)&rank, rank_out, sizeof(rank)).wait();
+    stream->memcpy((void *)&bi0, bucket_idx, sizeof(bi0));
+    stream->memcpy((void *)&size, totalcounts + bi0, sizeof(size));
+    stream->memcpy((void *)&rank, rank_out, sizeof(rank)).wait();
 
     launch_sampleselect_nodp(stream, in, tmp, tree, out, count_tmp, size, rank);
 }

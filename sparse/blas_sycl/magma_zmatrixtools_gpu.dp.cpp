@@ -11,9 +11,12 @@
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magmasparse_internal.h"
-#include <complex>
 
 #define PRECISION_z
+#define COMPLEX
+#ifdef COMPLEX
+#include <complex>
+#endif
 
 #define SWAP(a, b)  { tmp = a; a = b; b = tmp; }
 
@@ -454,89 +457,19 @@ cleanup:
 *******************************************************************************/
 
 extern "C" magma_int_t magma_zcsr_sort_gpu(magma_z_matrix *A,
-                                           magma_queue_t queue) try {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
-    sycl::queue &q_ct1 = dev_ct1.default_queue();
+                                           magma_queue_t queue) {
     magma_int_t info = 0;
-    sycl::queue *handle = NULL;
-    oneapi::mkl::index_base descrA;
+    oneapi::mkl::sparse::matrix_handle_t handle = nullptr;
+    oneapi::mkl::sparse::init_matrix_handle(&handle);
 
-    magmaDoubleComplex_ptr tmp=NULL, csrVal_sorted=NULL;
-    char* pBuffer;
-    int *P;
-    size_t pBufferSizeInBytes;
+    oneapi::mkl::sparse::set_csr_data(*queue->sycl_stream(), handle,
+		     A->num_rows, A->num_cols,
+                     oneapi::mkl::index_base::zero, A->drow, A->dcol, A->dval);
 
-//    /*
-//    DPCT1003:352: Migrated API does not return error code. (*, 0) is inserted.
-//    You may need to rewrite this code.
-//    */
-//    C, 0)HECK_CUSPARSE( (handle = &q_ct1);
-//    /*
-//    DPCT1003:353: Migrated API does not return error code. (*, 0) is inserted. You may need to rewrite this code.
-//    */
-//    C, 0)HECK_CUSPARSE( (handle = queue->sycl_stream());
-//    /*
-//    DPCT1003:354: Migrated API does not return error code. (*, 0) is inserted. You may need to rewrite this code.
-//    */
-//    C, 0)HECK_CUSPARSE( (descrA = oneapi::mkl::index_base::zero);
-//    /*
-//    DPCT1027:355: The call to cusparseSetMatType was replaced with 0 because the function call is redundant in DPC++.
-//    */
-//    CHECK_CUSPARSE( 0);
-//    /*
-//    DPCT1027:356: The call to cusparseSetMatDiagType was replaced with 0 because the function call is redundant in DPC++.
-//    */
-//    CHECK_CUSPARSE( 0);
-//    /*
-//    DPCT1003:357: Migrated API does not return error code. (*, 0) is inserted. You may need to rewrite this code.
-//    */
-//    CHECK_CUSPARSE( (descrA = oneapi::mkl::index_base::zero, 0));
-//    
-//    CHECK(magma_zmalloc(&csrVal_sorted, A->nnz));
-//   
-//    // step 1: allocate buffer
-//    /*
-//    DPCT1007:348: Migration of cusparseXcsrsort_bufferSizeExt is not supported by the Intel(R) DPC++ Compatibility Tool.
-//    */
-//    cusparseXcsrsort_bufferSizeExt(handle, A->num_rows, A->num_cols, 
-//        A->nnz, A->drow, A->dcol, &pBufferSizeInBytes);
-//    pBuffer = sycl::malloc_device<char>(pBufferSizeInBytes, q_ct1);
-//    
-//    // step 2: setup permutation vector P to identity
-//    P = sycl::malloc_device<int>(A->nnz, q_ct1);
-//    /*
-//    DPCT1007:349: Migration of cusparseCreateIdentityPermutation is not supported by the Intel(R) DPC++ Compatibility Tool.
-//    */
-//    cusparseCreateIdentityPermutation(handle, A->nnz, P);
-//    
-//    // step 3: sort CSR format
-//    /*
-//    DPCT1007:350: Migration of cusparseXcsrsort is not supported by the Intel(R) DPC++ Compatibility Tool.
-//    */
-//    cusparseXcsrsort(handle, A->num_rows, A->num_cols, A->nnz, 
-//        descrA, A->drow, A->dcol, P, pBuffer);
-//    
-//    // step 4: gather sorted csrVal
-//    /*
-//    DPCT1007:351: Migration of cusparseZgthr is not supported by the Intel(R) DPC++ Compatibility Tool.
-//    */
-//    cusparseZgthr(handle, A->nnz, (sycl::double2*)A->dval, (sycl::double2*)csrVal_sorted, P, 
-//        oneapi::mkl::index_base::zero);
-//    
-//    SWAP(A->dval, csrVal_sorted);
-//    
-//cleanup:
-//    /*
-//    DPCT1027:358: The call to cusparseDestroyMatDescr was replaced with 0 because the function call is redundant in DPC++.
-//    */
-//    0;
-//    handle = nullptr;
-//    magma_free(csrVal_sorted);
-//
-//    return info;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+    oneapi::mkl::sparse::sort_matrix(*queue->sycl_stream(), handle, {}); 
+    
+cleanup:
+    oneapi::mkl::sparse::release_matrix_handle(*queue->sycl_stream(), &handle);
+
+    return info;
 }

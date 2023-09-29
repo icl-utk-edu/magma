@@ -205,6 +205,7 @@ magma_zsampleselect_approx_nodp(
     int32_t* gpulocalcounts = gpucounts + searchtree_width;
     uint32_t bucketidx{};
 
+    constexpr auto size = 1 << searchtree_height; // for shared mem in sampleselect_findbucket
     CHECK(realloc_result);
 
     /*

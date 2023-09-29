@@ -11,7 +11,9 @@
 */
 #include "magmasparse_internal.h"
 
+#ifdef MAGMA_HAVE_CUDA
 #include <cuda.h>  // for CUDA_VERSION
+#endif
 
 #define PRECISION_z
 

@@ -74,7 +74,10 @@ magma_zparict(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    
+
+#ifdef MAGMA_HAVE_SYCL
+    return magma_unsupported_sparse(magma_zparict);
+#else    
 #ifdef _OPENMP
 
     real_Double_t start, end;
@@ -251,4 +254,5 @@ magma_zparict(
     magma_zmfree( &L_new, queue );
 #endif
     return info;
+#endif
 }

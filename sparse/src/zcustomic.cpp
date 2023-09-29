@@ -56,6 +56,7 @@ magma_zcustomicsetup(
     magma_z_preconditioner *precond,
     magma_queue_t queue )
 {
+#ifndef MAGMA_HAVE_SYCL
     magma_int_t info = 0;
     
     magma_z_matrix hA={Magma_CSR};
@@ -87,7 +88,9 @@ magma_zcustomicsetup(
         
 cleanup:
     magma_zmfree( &hA, queue );
-    
     return info;
+#else
+    magma_unsupported_sparse(magma_zcustomicsetup);
+#endif    
 }
     
