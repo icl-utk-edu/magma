@@ -223,7 +223,14 @@ int main(  int argc, char** argv )
         end = magma_sync_wtime( queue );
         printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (standard CSR).\n",
                                         (end-start)/200, FLOPS*200/(end-start) );
-        
+        #ifdef MAGMA_HAVE_SYCL
+	// For SYCL, magma_*_spmv is just calling MKL. We will not do the direct cuSPARSE test later
+	// (for obvious reasons), so store the MKL information in those variables for printing.
+	// Note that mkltime and mklgflops would be for "standard"/CPU-only MKL, rather than
+	// oneMKL, which can run on the device and is used by magma_*_spmv.
+	cuCSRtime = (end-start)/200;
+	cuCSRgflops = FLOPS*200/(end-start);
+        #endif
         magma_zmfree(&dA, queue );
         TESTING_CHECK( magma_zmtransfer( dy, &hrefvec , Magma_DEV, Magma_CPU, queue ));
         ref = 0.0;
@@ -456,10 +463,10 @@ int main(  int argc, char** argv )
 	// printf("%% MKL(CPU) CSR5\n");
         // printf("%% runtime performance (GFLOP/s)\n");
         // printf("data = [\n");
-        printf(" MKL(CPU) (sec GFlop/s) CSR5 (s GFlop/s)\n");
+        printf(" MKL CPU (sec GFlop/s)   MKL CSR (sec GFlop/s)  ELL (sec GFlop/s)   Sell (s  GFlop/s)  CSR5 (s GFlop/s)\n");
         printf("================================================================================\n");
-        printf(" %.2e %.2e   %.2e %.2e\n",
-                 mkltime, mklgflops, csr5time, csr5gflops); 
+        printf(" %.2e %.2e       %.2e %.2e       %.2e %.2e    %.2e %.2e    %.2e %.2e\n",
+                 mkltime, mklgflops, cuCSRtime, cuCSRgflops, elltime, ellgflops, sellptime, sellpgflops, csr5time, csr5gflops);
 #endif
 
         // free CPU memory

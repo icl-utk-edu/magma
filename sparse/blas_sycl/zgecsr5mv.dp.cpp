@@ -255,6 +255,7 @@ spmv_tile(
           magmaDoubleComplex      *d_calibrator,
           magmaDoubleComplex      *d_y,
     const magma_index_t            par_id,
+    const magma_index_t            p,
     const int                      lane_id,
     const int                      bunch_id,
     const int                      bit_y_offset,
@@ -267,11 +268,13 @@ spmv_tile(
 {
     magma_uindex_t row_start, row_stop;
 
-    if (item_ct1.get_local_id(2) <
-        MAGMA_CSR5_THREAD_GROUP / MAGMA_CSR5_OMEGA + 1)
-    {
-        s_row_start_stop[item_ct1.get_local_id(2)] =
-            d_tile_ptr[par_id + item_ct1.get_local_id(2)];
+    if (par_id < p - 1) {
+      if (item_ct1.get_local_id(2) <
+          MAGMA_CSR5_THREAD_GROUP / MAGMA_CSR5_OMEGA + 1)
+      {
+          s_row_start_stop[item_ct1.get_local_id(2)] =
+              d_tile_ptr[par_id + item_ct1.get_local_id(2)];
+      }
     }
     /*
     DPCT1065:0: Consider replacing sycl::nd_item::barrier() with
@@ -280,31 +283,33 @@ spmv_tile(
     */
     item_ct1.barrier();
 
-    row_start = s_row_start_stop[bunch_id];
-    row_stop  = s_row_start_stop[bunch_id + 1] & 0x7FFFFFFF;
+    if (par_id < p - 1) {
+      row_start = s_row_start_stop[bunch_id];
+      row_stop  = s_row_start_stop[bunch_id + 1] & 0x7FFFFFFF;
 
-    if (row_start == row_stop) // fast track through reduction
-    {
-        tile_fast_track<c_sigma>
-                (d_value_tile, d_x, d_column_index_tile, d_calibrator,
-                 &s_sum[bunch_id * MAGMA_CSR5_OMEGA],
-                 lane_id, par_id, alpha);
-    }
-    else
-    {
-        const bool empty_rows = (row_start >> 31) & 0x1;
-        row_start &= 0x7FFFFFFF;
+      if (row_start == row_stop) // fast track through reduction
+      {
+          tile_fast_track<c_sigma>
+                  (d_value_tile, d_x, d_column_index_tile, d_calibrator,
+                   &s_sum[bunch_id * MAGMA_CSR5_OMEGA],
+                   lane_id, par_id, alpha);
+      }
+      else
+      {
+          const bool empty_rows = (row_start >> 31) & 0x1;
+          row_start &= 0x7FFFFFFF;
 
-        d_y = &d_y[row_start+1];
+          d_y = &d_y[row_start+1];
 
-        tile_normal_track<c_sigma>
-                (d_column_index_tile, d_value_tile, d_x,
-                 d_tile_desc, d_tile_desc_offset_ptr,
-                 d_tile_desc_offset, d_calibrator, d_y,
-                 &s_sum[bunch_id * MAGMA_CSR5_OMEGA],
-                 &s_scan[bunch_id * (MAGMA_CSR5_OMEGA + 1)],
-                 par_id, lane_id,
-                 bit_y_offset, bit_scansum_offset, empty_rows, alpha);
+          tile_normal_track<c_sigma>
+                  (d_column_index_tile, d_value_tile, d_x,
+                   d_tile_desc, d_tile_desc_offset_ptr,
+                   d_tile_desc_offset, d_calibrator, d_y,
+                   &s_sum[bunch_id * MAGMA_CSR5_OMEGA],
+                   &s_scan[bunch_id * (MAGMA_CSR5_OMEGA + 1)],
+                   par_id, lane_id,
+                   bit_y_offset, bit_scansum_offset, empty_rows, alpha);
+      }
     }
 }
 
@@ -341,14 +346,15 @@ spmv_csr5_compute_kernel(
         MAGMA_CSR5_OMEGA;
     const int bunch_id = item_ct1.get_local_id(2) / MAGMA_CSR5_OMEGA;
 
-    if (par_id >= p - 1)
-        return;
+//    if (par_id >= p - 1)
+//        return;
+//        Moved check to spmv_tile function due to barriers (SYCL restriction)
 
     spmv_tile<c_sigma>(
         &d_column_index[par_id * MAGMA_CSR5_OMEGA * c_sigma],
         &d_value[par_id * MAGMA_CSR5_OMEGA * c_sigma], d_row_pointer, d_x,
         d_tile_ptr, &d_tile_desc[par_id * MAGMA_CSR5_OMEGA * num_packet],
-        d_tile_desc_offset_ptr, d_tile_desc_offset, d_calibrator, d_y, par_id,
+        d_tile_desc_offset_ptr, d_tile_desc_offset, d_calibrator, d_y, par_id, p,
         lane_id, bunch_id, bit_y_offset, bit_scansum_offset, alpha, item_ct1,
         s_sum, s_scan, s_row_start_stop);
 }
@@ -408,7 +414,10 @@ spmv_csr5_calibrate_kernel(
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
-        item_ct1.barrier();
+    }
+    item_ct1.barrier();
+    if (s_tile_ptr[0] == s_tile_ptr[MAGMA_CSR5_THREAD_GROUP - 1])
+    {
         if (local_id < 32) s_calibrator[local_id] += s_calibrator[local_id+32];
         if (local_id < 16) s_calibrator[local_id] += s_calibrator[local_id+16];
         if (local_id < 8) s_calibrator[local_id] += s_calibrator[local_id+8];
