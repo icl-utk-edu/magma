@@ -197,7 +197,7 @@ magma_zmconvert(
 #ifndef MAGMA_HAVE_SYCL
     cusparseHandle_t cusparseHandle = 0;
     cusparseMatDescr_t descr = 0;
-
+#endif
     // make sure the target structure is empty
     magma_zmfree( B, queue );
     B->ownership = MagmaTrue;
@@ -1636,6 +1636,12 @@ magma_zmconvert(
         if ( old_format == Magma_CSR && new_format == Magma_CSR ) {
             CHECK( magma_zmtransfer( A, B, Magma_DEV, Magma_DEV, queue ));
         }
+#ifdef MAGMA_HAVE_SYCL
+	else {
+          printf("%% error: format conversion not supported on GPU for SYCL.\n");
+          magma_unsupported_sparse(magma_zmconvert);
+	}
+#else
         // CSR to DENSE
         if ( old_format == Magma_CSR && new_format == Magma_DENSE ) {
             // use for now the workaround of using the CPU
@@ -1967,13 +1973,16 @@ magma_zmconvert(
             CHECK( magma_zmconvert( hA, &hB, old_format, new_format, queue ));
             CHECK( magma_zmtransfer( hB, B, Magma_CPU, A.memory_location, queue ));
         }
+#endif // Check for SYCL
     }
 
 cleanup:
+#ifndef MAGMA_HAVE_SYCL
     cusparseDestroyMatDescr(descr);
     cusparseDestroy(cusparseHandle);
     descr = NULL;
     cusparseHandle = NULL;
+#endif
     magma_free( nnz_per_row );
     magma_free_cpu( row_tmp );
     magma_free_cpu( col_tmp );
@@ -1997,6 +2006,5 @@ cleanup:
     if ( info != 0 ) {
         magma_zmfree( B, queue );
     }
-#endif
     return info;
 }
