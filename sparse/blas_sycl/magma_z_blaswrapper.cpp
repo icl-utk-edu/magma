@@ -134,15 +134,6 @@ magma_z_spmv(
 {
     magma_int_t info = 0;
 
-    magma_z_matrix x2={Magma_CSR};
-    magma_z_matrix dA={Magma_CSR};
-    magma_z_matrix dx={Magma_CSR};
-    magma_z_matrix dy={Magma_CSR};
-
-#ifdef MAGMA_HAVE_CUDA //Phuong
-    cusparseHandle_t cusparseHandle = 0;
-    cusparseMatDescr_t descr = 0;
-#endif
     // make sure RHS is a dense matrix
     if ( x.storage_type != Magma_DENSE ) {
          printf("error: only dense vectors are supported for SpMV.\n");
@@ -167,31 +158,24 @@ magma_z_spmv(
                  A.storage_type == Magma_CSRL  ||
                  A.storage_type == Magma_CSRU )
             {
-#ifdef MAGMA_HAVE_CUDA //Phuong
-                cusparseHandle = magma_queue_get_cusparse_handle( queue );
-                CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
-                
-                CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
-                CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
-                                 
-                cusparseZcsrmv( cusparseHandle,CUSPARSE_OPERATION_NON_TRANSPOSE,
-                                A.num_rows, A.num_cols, A.nnz, (cuDoubleComplex*)&alpha, descr,
-                                (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)x.dval, (cuDoubleComplex*)&beta, (cuDoubleComplex*)y.dval );
-#endif
+              oneapi::mkl::sparse::matrix_handle_t A_handle = nullptr;
+              oneapi::mkl::sparse::init_matrix_handle(&A_handle);
+              oneapi::mkl::sparse::set_csr_data(*queue->sycl_stream(), A_handle,
+                       A.num_rows, A.num_cols,
+                       oneapi::mkl::index_base::zero, A.drow, A.dcol, A.dval);
+	      oneapi::mkl::sparse::optimize_gemv(*queue->sycl_stream(),
+		       oneapi::mkl::transpose::nontrans, A_handle, {});
+              oneapi::mkl::sparse::gemv(*queue->sycl_stream(), oneapi::mkl::transpose::nontrans,
+	               (magmaDoubleComplex)alpha, A_handle,
+	               (magmaDoubleComplex*)x.dval, (magmaDoubleComplex)beta,
+		       (magmaDoubleComplex*)y.dval, {});
+              oneapi::mkl::sparse::release_matrix_handle(*queue->sycl_stream(), &A_handle);
             }
             else if ( A.storage_type == Magma_CSC )
             {
-#ifdef MAGMA_HAVE_CUDA //Phuong
-                cusparseHandle = magma_queue_get_cusparse_handle( queue );
-                CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
-                
-                CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
-                CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
-                
-                cusparseZcsrmv( cusparseHandle,CUSPARSE_OPERATION_TRANSPOSE,
-                              A.num_rows, A.num_cols, A.nnz, (cuDoubleComplex*)&alpha, descr,
-                              (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)x.dval, (cuDoubleComplex*)&beta, (cuDoubleComplex*)y.dval );
-#endif
+	       printf("error: Device spmv not supported for this matrix type");
+	       printf(" (Magma_CSC) with SYCL backend.\n");
+               return magma_unsupported_sparse(magma_z_spmv);
             }
             else if ( A.storage_type == Magma_ELL ) {
                 //printf("using ELLPACKT kernel for SpMV: ");
@@ -248,20 +232,9 @@ magma_z_spmv(
             }
             else if ( A.storage_type == Magma_BCSR ) {
 
-#ifdef MAGMA_HAVE_CUDA //Phuong
-                //printf("using CUSPARSE BCSR kernel for SpMV: ");
-               // CUSPARSE context //
-               cusparseDirection_t dirA = CUSPARSE_DIRECTION_ROW;
-               int mb = magma_ceildiv( A.num_rows, A.blocksize );
-               int nb = magma_ceildiv( A.num_cols, A.blocksize );
-
-               cusparseHandle = magma_queue_get_cusparse_handle( queue );
-               CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
-               cusparseZbsrmv( cusparseHandle, dirA,
-                   CUSPARSE_OPERATION_NON_TRANSPOSE, mb, nb, A.numblocks,
-                   (cuDoubleComplex*)&alpha, descr, (cuDoubleComplex*)A.dval, A.drow, A.dcol, A.blocksize, (cuDoubleComplex*)x.dval,
-                   (cuDoubleComplex*)&beta, (cuDoubleComplex*)y.dval );
-#endif
+	       printf("error: Device spmv not supported for this matrix type");
+	       printf(" (Magma_BCSR) with SYCL backend.\n");
+               return magma_unsupported_sparse(magma_z_spmv);
             }
             else {
                 printf("error: format not supported.\n");
@@ -271,42 +244,30 @@ magma_z_spmv(
         else if ( A.num_cols < x.num_rows || x.num_cols > 1 ) {
             magma_int_t num_vecs = x.num_rows / A.num_cols * x.num_cols;
             if ( A.storage_type == Magma_CSR ) {
-#ifdef MAGMA_HAVE_CUDA //Phuong
-                cusparseHandle = magma_queue_get_cusparse_handle( queue );
-                CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
-                CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
-                CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
+	        oneapi::mkl::layout b_layout = (x.major == MagmaColMajor) ?
+			       oneapi::mkl::layout::col_major : oneapi::mkl::layout::row_major;
+		std::int64_t ldb = (x.major == MagmaColMajor) ? A.num_rows : A.num_cols;
 
-                if ( x.major == MagmaColMajor) {
-                    cusparseZcsrmm(cusparseHandle,
-                                   CUSPARSE_OPERATION_NON_TRANSPOSE,
-                                   A.num_rows,   num_vecs, A.num_cols, A.nnz,
-                                   (cuDoubleComplex*)&alpha, descr, (cuDoubleComplex*)A.dval, A.drow, A.dcol,
-                                   (cuDoubleComplex*)x.dval, A.num_cols, (cuDoubleComplex*)&beta, (cuDoubleComplex*)y.dval, A.num_cols);
-                } else if ( x.major == MagmaRowMajor) {
-                    /*cusparseZcsrmm2(cusparseHandle,
-                    CUSPARSE_OPERATION_NON_TRANSPOSE,
-                    CUSPARSE_OPERATION_TRANSPOSE,
-                    A.num_rows,   num_vecs, A.num_cols, A.nnz,
-                    &alpha, descr, A.dval, A.drow, A.dcol,
-                    x.dval, A.num_cols, &beta, y.dval, A.num_cols);
-                    */
-                    printf("error: format not supported.\n");
-                    info = MAGMA_ERR_NOT_SUPPORTED;
-                } else if ( A.storage_type == Magma_CSC )
-                    {
-                        cusparseHandle = magma_queue_get_cusparse_handle( queue );
-                        CHECK_CUSPARSE( cusparseCreateMatDescr( &descr ));
-                        
-                        CHECK_CUSPARSE( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
-                        CHECK_CUSPARSE( cusparseSetMatIndexBase( descr, CUSPARSE_INDEX_BASE_ZERO ));
-                        
-                        cusparseZcsrmm( cusparseHandle,CUSPARSE_OPERATION_TRANSPOSE,
-                                        A.num_rows,   num_vecs, A.num_cols, A.nnz,
-                                        (cuDoubleComplex*)&alpha, descr, (cuDoubleComplex*)A.dval, A.drow, A.dcol,
-                                        (cuDoubleComplex*)x.dval, A.num_cols, (cuDoubleComplex*)&beta, (cuDoubleComplex*)y.dval, A.num_cols);
-                    }
-#endif
+                oneapi::mkl::sparse::matrix_handle_t A_handle = nullptr;
+                oneapi::mkl::sparse::init_matrix_handle(&A_handle);
+                oneapi::mkl::sparse::set_csr_data(*queue->sycl_stream(), A_handle,
+                         A.num_rows, A.num_cols,
+                         oneapi::mkl::index_base::zero, A.drow, A.dcol, A.dval);
+
+		oneapi::mkl::sparse::gemm(*queue->sycl_stream(), b_layout,
+                oneapi::mkl::transpose::nontrans, oneapi::mkl::transpose::nontrans,
+                (magmaDoubleComplex)alpha, A_handle,
+		(magmaDoubleComplex*)x.dval, (std::int64_t) x.num_cols,
+	        ldb, (magmaDoubleComplex)beta,
+	        (magmaDoubleComplex*)y.dval, (std::int64_t) A.num_cols, {});
+
+                oneapi::mkl::sparse::release_matrix_handle(*queue->sycl_stream(), &A_handle);
+                }
+	    else if ( A.storage_type == Magma_CSC )
+            {
+	       printf("error: Device spmv not supported for this matrix type");
+	       printf(" (Magma_CSC) with SYCL backend.\n");
+               return magma_unsupported_sparse(magma_z_spmv);
             } else if ( A.storage_type == Magma_SELLP ) {
                 if ( x.major == MagmaRowMajor) {
                     CHECK( magma_zmgesellpmv( MagmaNoTrans, A.num_rows, A.num_cols,
@@ -314,10 +275,12 @@ magma_z_spmv(
                                               alpha, A.dval, A.dcol, A.drow, x.dval, beta, y.dval, queue ));
                 } else if ( x.major == MagmaColMajor) {
                     // transpose first to row major
+                    magma_z_matrix x2={Magma_CSR};
                     CHECK( magma_zvtranspose( x, &x2, queue ));
                     CHECK( magma_zmgesellpmv( MagmaNoTrans, A.num_rows, A.num_cols,
                                               num_vecs, A.blocksize, A.numblocks, A.alignment,
                                               alpha, A.dval, A.dcol, A.drow, x2.dval, beta, y.dval, queue ));
+	            magma_zmfree(&x2, queue );
                 }
             }
             /*if ( A.storage_type == Magma_DENSE ) {
@@ -335,29 +298,29 @@ magma_z_spmv(
     }
     // CPU case missing!
     else {
+        magma_z_matrix dA={Magma_CSR};
+        magma_z_matrix dx={Magma_CSR};
+        magma_z_matrix dy={Magma_CSR};
         CHECK( magma_zmtransfer( x, &dx, x.memory_location, Magma_DEV, queue ));
         CHECK( magma_zmtransfer( y, &dy, y.memory_location, Magma_DEV, queue ));
         CHECK( magma_zmtransfer( A, &dA, A.memory_location, Magma_DEV, queue ));
-        CHECK( magma_z_spmv( alpha, dA, dx, beta, dy, queue ) );
-        magma_zmfree(&x, queue );
+
+	CHECK( magma_z_spmv( alpha, dA, dx, beta, dy, queue ) );
+
+	magma_zmfree(&x, queue );
         magma_zmfree(&y, queue );
         magma_zmfree(&A, queue );
         CHECK( magma_zmtransfer( dx, &x, dx.memory_location, Magma_CPU, queue ));
         CHECK( magma_zmtransfer( dy, &y, dy.memory_location, Magma_CPU, queue ));
         CHECK( magma_zmtransfer( dA, &A, dA.memory_location, Magma_CPU, queue ));
 
+        magma_zmfree(&dx, queue );
+        magma_zmfree(&dy, queue );
+        magma_zmfree(&dA, queue );
+
     }
 
 cleanup:
-#ifdef MAGMA_HAVE_CUDA
-    cusparseDestroyMatDescr( descr );
-    descr = 0;
-#endif
-    magma_zmfree(&x2, queue );
-    magma_zmfree(&dx, queue );
-    magma_zmfree(&dy, queue );
-    magma_zmfree(&dA, queue );
-    
     return info;
 }
 
