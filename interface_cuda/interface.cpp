@@ -528,7 +528,11 @@ magma_is_devptr( const void* A )
                   #endif
 
                 #elif defined(MAGMA_HAVE_HIP)
-                return (attr.memoryType == hipMemoryTypeDevice);
+		  #if ROCM_VERSION >= 60000
+		    return (attr.type == hipMemoryTypeDevice);
+		  #else
+                    return (attr.memoryType == hipMemoryTypeDevice);
+		  #endif
                 #endif
             }
             else if ( err == cudaErrorInvalidValue ) {
