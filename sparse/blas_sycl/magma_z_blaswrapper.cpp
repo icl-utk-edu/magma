@@ -163,8 +163,6 @@ magma_z_spmv(
               oneapi::mkl::sparse::set_csr_data(*queue->sycl_stream(), A_handle,
                        A.num_rows, A.num_cols,
                        oneapi::mkl::index_base::zero, A.drow, A.dcol, A.dval);
-	      oneapi::mkl::sparse::optimize_gemv(*queue->sycl_stream(),
-		       oneapi::mkl::transpose::nontrans, A_handle, {});
               oneapi::mkl::sparse::gemv(*queue->sycl_stream(), oneapi::mkl::transpose::nontrans,
 	               (magmaDoubleComplex)alpha, A_handle,
 	               (magmaDoubleComplex*)x.dval, (magmaDoubleComplex)beta,
