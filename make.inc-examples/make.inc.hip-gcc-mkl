@@ -92,7 +92,7 @@ FPIC        = -fPIC
 #   the compiler sometimes, so we need to add -L here too if there are problems
 FOPENMP     = -fopenmp
 #FOPENMP     =
-#FOPENMP     = -fopenmp -L$(ROCM_PATH)/lib -I$(ROCM_PATH/include
+#FOPENMP     = -fopenmp -L$(ROCM_PATH)/lib -I$(ROCM_PATH)/include
 
 # now, generate our flags
 CFLAGS      = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c99

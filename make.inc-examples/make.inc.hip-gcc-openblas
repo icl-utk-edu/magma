@@ -153,7 +153,7 @@ ifeq ($(BACKEND),cuda)
     INC    += -I$(CUDADIR)/include
     LIBDIR += -L$(CUDADIR)/lib64
 else ifeq ($(BACKEND),hip)
-    INC    += -I$(ROCM_PATH/include
+    INC    += -I$(ROCM_PATH)/include
     LIBDIR += -L$(ROCM_PATH)/lib
 endif
 
