@@ -1858,7 +1858,11 @@ magma_ztrmm(
                     cublas_diag_const( diag ),
 		    int(m), int(n),
 		    (cuDoubleComplex*)&alpha, (const cuDoubleComplex*)dA, int(ldda),
-		    (cuDoubleComplex*)dB, int(lddb) );
+		    (cuDoubleComplex*)dB, int(lddb)
+    #if (ROCM_VERSION >= 60000)
+		    , (cuDoubleComplex*)dB, int(lddb)
+    #endif
+		    );
     #else
         cublasZtrmm(
                     queue->cublas_handle(),

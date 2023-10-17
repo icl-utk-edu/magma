@@ -7,20 +7,20 @@
 #//////////////////////////////////////////////////////////////////////////////
 
 # --------------------
-# MAGMA configuration: HIP, GCC, OpenBLAS
+# MAGMA configuration: ROCM, GCC, OpenBLAS
 
 # -*-
 # Most things here are similar to CUDA, and this script is designed to build
-#   with CUDA and without HIP (by setting BACKEND=cuda).
+#   with CUDA and without ROCM (by setting BACKEND=cuda).
 
 # -*-
-# If there are any problems building with this new HIP setup specifically,
+# If there are any problems building with this new ROCM setup specifically,
 #   you can email Cade Brown <cbrow216@vols.utk.edu> with your issues
 
 # -*-
 # note: when creating an application on top of hipMAGMA, you may need to use
-#   the HIP compiler (or some C++) compiler, even if your application is
-#   expecting the C interface of MAGMA. This is due to the way HIP defines
+#   the ROCM compiler (or some C++) compiler, even if your application is
+#   expecting the C interface of MAGMA. This is due to the way ROCM defines
 #   its types as C++ types. So, you can replace `CC=gcc` with `CC=hipcc`,
 #   and your project should compile fine.
 
@@ -28,13 +28,13 @@
 # --------------------
 # configuration
 
-# should MAGMA be built on CUDA (NVIDIA only) or HIP (AMD or NVIDIA)
+# should MAGMA be built on CUDA (NVIDIA only) or ROCM (AMD or NVIDIA)
 # enter 'cuda' or 'hip' respectively
 BACKEND      = hip
 
 # set these to their real paths
 OPENBLASDIR ?= /usr/local/openblas
-HIPDIR      ?= /opt/rocm/hip
+ROCM_PATH   ?= /opt/rocm
 CUDADIR     ?= /usr/local/cuda
 
 # require either hip or cuda
@@ -46,7 +46,7 @@ endif
 # programs
 
 # set compilers
-# (for HIP, set all compilers to 'hipcc')
+# (for ROCM, set all compilers to 'hipcc')
 CC           = hipcc
 CXX          = hipcc
 FORT        ?= gfortran
@@ -66,7 +66,7 @@ ARCH        ?= ar
 ARCHFLAGS   ?= cr
 RANLIB      ?= ranlib
 
-# sparse directory (uncomment to try & build MAGMA sparse/ on HIP
+# sparse directory (uncomment to try & build MAGMA sparse/ on ROCM
 #SPARSE_DIR  = sparse_hip
 
 # --------------------
@@ -96,7 +96,7 @@ FPIC        = -fPIC
 #   the compiler sometimes, so we need to add -L here too if there are problems
 FOPENMP     = -fopenmp
 #FOPENMP     =
-#FOPENMP     = -fopenmp -L$(HIPDIR)/../aomp/lib -I$(HIPDIR)/../aomp/include
+#FOPENMP     = -fopenmp -L$(ROCM_PATH)/lib -I$(ROCM_PATH)/include
 
 # now, generate our flags
 CFLAGS      = -O3 $(FPIC) $(FOPENMP) -DNDEBUG -DADD_ -Wall -std=c99
@@ -108,12 +108,15 @@ LDFLAGS     =     $(FPIC) $(FOPENMP)
 # add in the default for device compiling
 DEVCCFLAGS  = -O3 -DNDEBUG -DADD_
 
+# Add ROCM_VERSION for device compilation
+DEVCCFLAGS += -DROCM_VERSION=$(shell ./tools/get-rocm-version.sh)
+
 # add the flags in a backend-specific way
 ifeq ($(BACKEND),cuda)
     DEVCCFLAGS += -Xcompiler "$(FPIC)" -Xcompiler "$(FOPENMP)" -std=c++11
 else ifeq ($(BACKEND),hip)
     DEVCCFLAGS += $(FPIC) $(FOPENMP) -std=c++11
-    # check for older versions of HIP
+    # check for older versions of ROCM
     ifeq ($(shell hipconfig --version | cut -b -3),3.0)
         $(info Building with HIP 3.0)
         # they don't have hipblasComplex yet, so replace it manually
@@ -150,8 +153,8 @@ ifeq ($(BACKEND),cuda)
     INC    += -I$(CUDADIR)/include
     LIBDIR += -L$(CUDADIR)/lib64
 else ifeq ($(BACKEND),hip)
-    INC    += -I$(HIPDIR)/../include
-    LIBDIR += -L$(HIPDIR)/../aomp/lib -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib
+    INC    += -I$(ROCM_PATH)/include
+    LIBDIR += -L$(ROCM_PATH)/lib
 endif
 
 

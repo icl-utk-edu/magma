@@ -22,7 +22,7 @@ BACKEND     ?= cuda
 
 # set these to their real paths
 CUDADIR     ?= /usr/local/cuda
-HIPDIR      ?= /opt/rocm/hip
+ROCM_PATH   ?= /opt/rocm
 
 # require either hip or cuda
 ifeq (,$(findstring $(BACKEND),"hip cuda"))
@@ -261,11 +261,11 @@ else ifeq ($(BACKEND),hip)
     ## Suggestion by Mark (from SLATE)
     # Valid architecture numbers
     # TODO: remove veryold ones?
-    VALID_GFXS = 600 601 602 700 701 702 703 704 705 801 802 803 805 810 900 902 904 906 908 909 90a 90c 1010 1011 1012 1030 1031 1032 1033
+    VALID_GFXS = 600 601 602 700 701 702 703 704 705 801 802 803 805 810 900 902 904 906 908 909 90a 940 941 942 90c 1010 1011 1012 1030 1031 1032 1033
 
 
 	# Generated GFX option
-    TARGET_GFX      = --amdgpu-target=gfx$(gfx)
+    TARGET_GFX      = --offload-arch=gfx$(gfx)
 
     # Get gencode options for all sm_XX in cuda_arch_.
     AMD_GFX    := $(filter %, $(foreach gfx, $(VALID_GFXS),$(if $(findstring gfx$(gfx), $(HIP_ARCH_)),$(TARGET_GFX))))
@@ -842,6 +842,7 @@ d_ext := cu
 else ifeq ($(BACKEND),hip)
 d_ext := cpp
 CXXFLAGS += -D__HIP_PLATFORM_HCC__
+CXXFLAGS += -DROCM_VERSION=$(shell ./tools/get-rocm-version.sh)
 endif
 
 
