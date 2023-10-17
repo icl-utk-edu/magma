@@ -53,6 +53,7 @@ void magma_assert( bool condition, const char* msg, ... )
         va_list va;
         va_start( va, msg );
         vprintf( msg, va );
+        va_end( va );
         printf( "\n" );
         exit(1);
     }
@@ -69,6 +70,7 @@ void magma_assert_warn( bool condition, const char* msg, ... )
         va_list va;
         va_start( va, msg );
         vprintf( msg, va );
+        va_end( va );
         printf( "\n" );
     }
 }

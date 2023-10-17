@@ -11,14 +11,14 @@
 # --------------------
 # configuration
 
-# should MAGMA be built on CUDA (NVIDIA only) or HIP (AMD or NVIDIA)
+# should MAGMA be built on CUDA (NVIDIA only) or ROCM (AMD or NVIDIA)
 # enter 'cuda' or 'hip' respectively
 BACKEND     ?= cuda
 
 # set these to their real paths
 OPENBLASDIR ?= /usr/local/openblas
 CUDADIR     ?= /usr/local/cuda
-HIPDIR      ?= /opt/rocm/hip
+ROCM_PATH   ?= /opt/rocm
 
 # require either hip or cuda
 ifeq (,$(findstring $(BACKEND),hip cuda))
@@ -111,14 +111,14 @@ ifeq ($(BACKEND),cuda)
     LIB    += -lcublas -lcusparse -lcudart -lcudadevrt
 endif
 
-# add appropriate HIP flags
+# add appropriate ROCM flags
 ifeq ($(BACKEND),hip)
     -include make.check-hip
 
     DEVCCFLAGS += $(FPIC) -std=c++11
 
-    INC    += -I$(HIPDIR)/../include
-    LIBDIR += -L$(HIPDIR)/../aomp/lib -L$(HIPDIR)/../hipblas/lib -L$(HIPDIR)/../hipsparse/lib
+    INC    += -I$(ROCM_PATH)/include
+    LIBDIR += -L$(ROCM_PATH)/lib
     LIB    += -lhipblas -lhipsparse
 endif
 

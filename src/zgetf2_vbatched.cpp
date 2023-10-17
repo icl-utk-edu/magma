@@ -157,7 +157,7 @@ magma_zgetf2_vbatched(
     magma_int_t **ipiv_array, magma_int_t *info_array,
     magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue)
 {
-    magma_int_t arginfo = 0;
+    magma_int_t arginfo = -1;
 
     // first, test the fused panel
     arginfo = magma_zgetf2_fused_vbatched(

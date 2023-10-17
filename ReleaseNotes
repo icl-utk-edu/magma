@@ -25,9 +25,19 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
- 2.7.1 - XXX
+2.7.2 - Aug 25, 2023
+    * Add expert interfaces for LU, QR, and Cholesky factorizations
+    * Add tuning specifications for LU, QR, and Cholesky factorizations
+    * Tuning for Ampere and later GPUs
+    * Fused LU panel for AMD GPUs
+    * Bug fixes for batched LU on singular matrices
+
+2.7.1 - Feb 23, 2023
+    * Add support for CUDA 12
     * Add a new interface for batch GEMV that accepts a pointer + stride
+    * Add sparse test matrices to the release tarball
     * Performance improvement for batch GEMV targeting square sizes up to 32
+    * Update CMakeLists compiler flags for Windows
  
 2.7.0 - Nov 9, 2022
     * Add support for builds targeting NVIDIA's Hopper architecture

@@ -106,8 +106,6 @@ void zscal_zgeru_device( int m,
 {
     const int tx  = threadIdx.x;
     const int gtx = blockIdx.x * blockDim.x + tx;
-    // checkinfo to avoid computation of the singular matrix
-    if( (*info) != 0 ) return;
 
     magmaDoubleComplex rA[N], reg;
     __shared__ magmaDoubleComplex shared_y[N];
@@ -117,15 +115,13 @@ void zscal_zgeru_device( int m,
     }
     __syncthreads();
 
-    if (shared_y[0] == MAGMA_Z_ZERO) {
-        (*info) = step + gbstep + 1;
-        return;
-    }
-
     // terminate threads that are out of the range
     if (gtx == 0 || gtx >= m) return;
 
-    reg = MAGMA_Z_DIV(MAGMA_Z_ONE, shared_y[0]);
+    double rTmp = fabs(MAGMA_Z_REAL( shared_y[0] ) ) + fabs( MAGMA_Z_IMAG( shared_y[0] ) );
+
+    reg = (rTmp == MAGMA_D_ZERO) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, shared_y[0]);
+
     #pragma unroll
     for(int i = 0; i < N; i++)
         rA[i] = dA[ i* lda + gtx ];
@@ -149,18 +145,14 @@ void zscal_zgeru_generic_device( int m, int n,
 {
     const int tx  = threadIdx.x;
     const int gtx = blockIdx.x * blockDim.x + tx;
-    // checkinfo to avoid computation of the singular matrix
-    if( (*info) != 0 ) return;
     if (gtx == 0 || gtx >= m) return;
 
     magmaDoubleComplex rA, reg;
+    double rTmp;
+    rA   = dA[0];
+    rTmp = fabs(MAGMA_Z_REAL( rA ) ) + fabs( MAGMA_Z_IMAG( rA ) );
 
-    if (dA[0] == MAGMA_Z_ZERO) {
-        (*info) = step + gbstep + 1;
-        return;
-    }
-
-    reg = MAGMA_Z_DIV(MAGMA_Z_ONE, dA[0]);
+    reg = (rTmp == MAGMA_D_ZERO) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, rA);
     rA  = dA[ gtx ];
     rA *= reg;
 
@@ -168,7 +160,6 @@ void zscal_zgeru_generic_device( int m, int n,
     #pragma unroll
     for(int i = 1; i < n; i++)
         dA[i * lda + gtx] -= rA * dA[i * lda + 0];
-
 }
 
 /******************************************************************************/
@@ -231,7 +222,6 @@ zgetf2_fused_device( int m, int minmn, magmaDoubleComplex rA[WIDTH], magma_int_t
     const int ty = threadIdx.y;
 
     magmaDoubleComplex reg       = MAGMA_Z_ZERO;
-    magmaDoubleComplex update    = MAGMA_Z_ZERO;
 
     int max_id;
     double rx_abs_max = MAGMA_D_ZERO;
@@ -262,23 +252,30 @@ zgetf2_fused_device( int m, int minmn, magmaDoubleComplex rA[WIDTH], magma_int_t
         rx_abs_max = dsx[i];
         max_id = isx[i];
         linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;
-        update = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
+        if(tx == 0) {
+            sipiv[i] = max_id;
+        }
         __syncthreads();
 
-        if(rowid == max_id){
-            sipiv[i] = max_id;
-            rowid = i;
+        if( rowid == max_id ) {
             #pragma unroll
             for(int j = 0; j < WIDTH; j++){
-                sx[j] = update * rA[j];
+                sx[j] = rA[j];
             }
-        }
-        else if(rowid == i){
-            rowid = max_id;
         }
         __syncthreads();
 
-        reg = (linfo == 0 ) ? MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] ) : MAGMA_Z_ONE;
+        if( rx_abs_max != MAGMA_D_ZERO ) {
+            if(rowid == max_id){
+                rowid = i;
+            }
+            else if(rowid == i){
+                rowid = max_id;
+            }
+        }
+        __syncthreads();
+
+        reg = (rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] );
         // scal and ger
         if( rowid > i ){
             rA[i] *= reg;
