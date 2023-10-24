@@ -339,7 +339,7 @@ int main( int argc, char** argv)
             }
 
             if ( opts.check ) {
-                if( info != 0 ) {
+                if( info < 0 ) {
                     error = -1;
                 }
                 else {
