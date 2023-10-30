@@ -27,8 +27,6 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (batchCount == 1 && M == 34 && N == 34 && KL == 10 && KU == 7)
-
 double get_band_LU_error(
             magma_int_t M, magma_int_t N,
             magma_int_t KL, magma_int_t KU,
@@ -184,8 +182,23 @@ int main( int argc, char** argv)
 
             /* Initialize the matrix */
             lapackf77_zlarnv( &ione, ISEED, &n2, h_A );
+            // random initialization of h_A seems to produce
+            // some matrices that are singular, the additive statements below
+            // seem to avoid that
+            #pragma omp parallel for schedule(dynamic)
+            for(int s = 0; s < batchCount; s++) {
+                magmaDoubleComplex* hA = h_A + s*ldab*N;
+                for(int j = 0; j < ldab*N; j++) {
+                    MAGMA_Z_REAL( hA[j] ) += 20.;
+                    #if defined(PRECISION_c) || defined(PRECISION_z)
+                    MAGMA_Z_IMAG( hA[j] ) += 20.;
+                    #endif
+                }
+            }
+
             columns = Nband * batchCount;
             lapackf77_zlacpy( MagmaFullStr, &Mband, &columns, h_A, &ldab, h_R, &ldab );
+
 
             /* ====================================================================
                Performs operation using MAGMA
@@ -193,9 +206,6 @@ int main( int argc, char** argv)
             magma_zsetmatrix( Mband, columns, h_R, ldab, dA, lddab, opts.queue );
             magma_zset_pointer( dA_array, dA, lddab, 0, 0, lddab*Nband, batchCount, opts.queue );
             magma_iset_pointer( dipiv_array, dipiv_magma, 1, 0, 0, min_mn, batchCount, opts.queue );
-
-            if(cond)
-                magma_zprint_gpu(Mband, N, dA, lddab, opts.queue);
 
             if(opts.version == 1) {
                 // top-level API accepting ptr arrays
@@ -273,9 +283,6 @@ int main( int argc, char** argv)
                         dinfo_magma, batchCount, opts.queue );
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
-
-            if(cond)
-                magma_zprint_gpu(Mband, N, dA, lddab, opts.queue);
 
             magma_perf = gflops / magma_time;
             magma_zgetmatrix( Mband, Nband*batchCount, dA, lddab, h_Amagma, ldab, opts.queue );

@@ -28,6 +28,8 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
+#define PRECISION_z
+
 // multiplies a square band matrix ( Nband x Nband ) with
 // a dense matrix (Nband x N)
 static void
@@ -117,7 +119,6 @@ int main(int argc, char **argv)
     opts.parse_opts( argc, argv );
 
     double tol = opts.tolerance * lapackf77_dlamch("E");
-
     nrhs       = opts.nrhs;
     KL         = opts.kl;
     KU         = opts.ku;
@@ -161,6 +162,20 @@ int main(int argc, char **argv)
             /* Initialize the matrices */
             lapackf77_zlarnv( &ione, ISEED, &sizeA, h_A );
             lapackf77_zlarnv( &ione, ISEED, &sizeB, h_B );
+
+            // random initialization of h_A seems to produce
+            // some matrices that are singular, the additive statements below
+            // seem to avoid that
+            #pragma omp parallel for schedule(dynamic)
+            for(int s = 0; s < batchCount; s++) {
+                magmaDoubleComplex* hA = h_A + s*lda*N;
+                for(int j = 0; j < lda*N; j++) {
+                    MAGMA_Z_REAL( hA[j] ) += 20.;
+                    #if defined(PRECISION_c) || defined(PRECISION_z)
+                    MAGMA_Z_IMAG( hA[j] ) += 20.;
+                    #endif
+                }
+            }
 
             magma_zsetmatrix( Nband, N*batchCount,    h_A, lda, d_A, ldda, opts.queue );
             magma_zsetmatrix( N,     nrhs*batchCount, h_B, ldb, d_B, lddb, opts.queue );
@@ -266,7 +281,6 @@ int main(int argc, char **argv)
             // Residual
             //=====================================================================
             magma_zgetmatrix( N, nrhs*batchCount, d_B, lddb, h_X, ldb, opts.queue );
-
             error = 0;
             for (magma_int_t s=0; s < batchCount; s++) {
                 magmaDoubleComplex* hA = h_A + s * lda * N + KL;
@@ -286,7 +300,6 @@ int main(int argc, char **argv)
                 Rnorm = lapackf77_zlange("I", &N, &nrhs, hB, &ldb, work);
 
                 double err = Rnorm/(N*Anorm*Xnorm);
-
                 if (std::isnan(err) || std::isinf(err)) {
                     error = err;
                     break;
@@ -326,6 +339,7 @@ int main(int argc, char **argv)
                 #endif
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;
+
                 printf( "%10lld %5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %s\n",
                         (long long) batchCount, (long long) N, (long long) nrhs,
                         cpu_perf, 1000.*cpu_time, gpu_perf, 1000.*gpu_time,
