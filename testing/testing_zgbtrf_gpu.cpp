@@ -34,7 +34,7 @@
 double get_residual(
     magma_int_t M, magma_int_t N,
     magma_int_t KL, magma_int_t KU,
-    magmaDoubleComplex *AB,  magma_int_t ldab,
+    magmaDoubleComplex *AB,  magma_int_t LDAB,
     magmaDoubleComplex *LUB, magma_int_t *IPIV )
 {
     if ( M != N ) {
@@ -59,7 +59,7 @@ double get_residual(
     blasf77_zcopy( &N, b, &ione, x, &ione );
 
     // solve Ax = b
-    lapackf77_zgbtrs(MagmaNoTransStr, &N, &KL, &KU, &ione, *LUB, &ldab, IPIV, x, &n, &info );
+    lapackf77_zgbtrs(MagmaNoTransStr, &N, &KL, &KU, &ione, LUB, &LDAB, IPIV, x, &N, &info );
     if (info != 0) {
         printf("lapackf77_zgbtrs returned error %lld: %s.\n",
                (long long) info, magma_strerror( info ));
@@ -67,21 +67,20 @@ double get_residual(
 
     // compute r = Ax - b, saved in b
     blasf77_zgbmv( MagmaNoTransStr, &N, &N, &KL, &KU,
-                           &c_one,     AB + KL , &lda,
+                           &c_one,     AB + KL , &LDAB,
                                        x       , &ione,
                            &c_neg_one, b       , &ione);
 
     // compute residual |Ax - b| / (n*|A|*|x|)
     double norm_x, norm_A, norm_r, work[1];
-    norm_A = lapackf77_zlangb( "F", &N, &KL, &KU, AB + KL, &ldab, work);
+    norm_A = lapackf77_zlangb( "F", &N, &KL, &KU, AB + KL, &LDAB, work);
     norm_r = lapackf77_zlange( "F", &N, &ione, b, &N, work );
     norm_x = lapackf77_zlange( "F", &N, &ione, x, &N, work );
 
     magma_free_cpu( x );
     magma_free_cpu( b );
 
-    //printf( "r=%.2e, A=%.2e, x=%.2e, n=%lld\n", norm_r, norm_A, norm_x, (long long) n );
-    return norm_r / (n * norm_A * norm_x);
+    return norm_r / (N * norm_A * norm_x);
 }
 
 
@@ -212,7 +211,7 @@ int main( int argc, char** argv)
     printf("%% ## INFO ##: Gflop/s calculation is not available\n");
     printf("%% Lower bandwidth (KL) = %lld\n", (long long)KL);
     printf("%% Upper bandwidth (KU) = %lld\n", (long long)KU);
-    printf("%% M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
+    printf("%% M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   |Ax-b|/(N*|A|*|x|)\n");
     printf("%%=======================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -344,8 +343,13 @@ int main( int argc, char** argv)
                     }
 
                     if(pivot_ok && error == 0) {
-                        //error = get_band_LU_error(M, N, KL, KU, h_R,  ldab, h_Amagma, ipiv);
-                        error = get_residual(M, N, KL, KU, h_R,  ldab, h_Amagma, ipiv );
+                        if (M == N) {
+                            error = get_residual(M, N, KL, KU, h_R,  ldab, h_Amagma, ipiv );
+                        }
+                        else {
+                            printf("  [INFO]: residual check defined only for square matrices ");
+                            error = 0;
+                        }
                     }
                     else {
                         error = -1;

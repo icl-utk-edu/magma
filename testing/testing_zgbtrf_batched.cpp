@@ -27,6 +27,69 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
+// On input, LUB and IPIV is LU factorization of AB.
+// Requires m == n.
+// Generates random RHS b and solves Ax=b.
+// Returns residual, |Ax - b| / (n |A| |x|).
+double get_residual(
+    magma_int_t M, magma_int_t N,
+    magma_int_t KL, magma_int_t KU,
+    magmaDoubleComplex *AB,  magma_int_t LDAB,
+    magmaDoubleComplex *LUB, magma_int_t *IPIV )
+{
+    if ( M != N ) {
+        printf( "\nERROR: residual check defined only for square matrices\n" );
+        return -1;
+    }
+
+    const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
+    const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
+    const magma_int_t ione = 1;
+
+    // this seed should be DIFFERENT than used in init_matrix
+    // (else x is column of A, so residual can be exactly zero)
+    magma_int_t ISEED[4] = {0,0,0,1};
+    magma_int_t info = 0;
+    magmaDoubleComplex *x, *b;
+
+    // initialize RHS
+    TESTING_CHECK( magma_zmalloc_cpu( &x, N ));
+    TESTING_CHECK( magma_zmalloc_cpu( &b, N ));
+    lapackf77_zlarnv( &ione, ISEED, &N, b );
+    blasf77_zcopy( &N, b, &ione, x, &ione );
+
+    // solve Ax = b
+    lapackf77_zgbtrs(MagmaNoTransStr, &N, &KL, &KU, &ione, LUB, &LDAB, IPIV, x, &N, &info );
+    if (info != 0) {
+        printf("lapackf77_zgbtrs returned error %lld: %s.\n",
+               (long long) info, magma_strerror( info ));
+    }
+
+    // compute r = Ax - b, saved in b
+    blasf77_zgbmv( MagmaNoTransStr, &N, &N, &KL, &KU,
+                           &c_one,     AB + KL , &LDAB,
+                                       x       , &ione,
+                           &c_neg_one, b       , &ione);
+
+    // compute residual |Ax - b| / (n*|A|*|x|)
+    double norm_x, norm_A, norm_r, work[1];
+    norm_A = lapackf77_zlangb( "F", &N, &KL, &KU, AB + KL, &LDAB, work);
+    norm_r = lapackf77_zlange( "F", &N, &ione, b, &N, work );
+    norm_x = lapackf77_zlange( "F", &N, &ione, x, &N, work );
+
+    magma_free_cpu( x );
+    magma_free_cpu( b );
+
+    return norm_r / (N * norm_A * norm_x);
+}
+
+
+// On input, LUB and IPIV is LU factorization of A.
+// Works for any m, n.
+// Uses init_matrix() to re-generate original A as needed.
+// Returns error in factorization, |PA - LU| / (n |A|)
+// This allocates 4 more matrices, in dense format (not in band format)
+
 double get_band_LU_error(
             magma_int_t M, magma_int_t N,
             magma_int_t KL, magma_int_t KU,
@@ -152,7 +215,7 @@ int main( int argc, char** argv)
     printf("%% ## INFO ##: Gflop/s calculation is not available\n");
     printf("%% Lower bandwidth (KL) = %lld\n", (long long)KL);
     printf("%% Upper bandwidth (KU) = %lld\n", (long long)KU);
-    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
+    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   |Ax-b|/(N*|A|*|x|)\n");
     printf("%%=======================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -367,7 +430,8 @@ int main( int argc, char** argv)
                         }
 
                         if(pivot_ok && err == 0) {
-                            err = get_band_LU_error(M, N, KL, KU, h_R + i * ldab*N,  ldab, h_Amagma + i * ldab*N, ipiv + i * min_mn);
+                            //err = get_band_LU_error(M, N, KL, KU, h_R + i * ldab*N,  ldab, h_Amagma + i * ldab*N, ipiv + i * min_mn);
+                            err = get_residual(M, N, KL, KU, h_R + i * ldab*N,  ldab, h_Amagma + i * ldab*N, ipiv + i * min_mn);
                             if (std::isnan(err) || std::isinf(err)) {
                                 error = err;
                             }
