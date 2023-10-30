@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     printf("%% ## INFO ##: Gflop/s calculation is not available\n");
     printf("%% Lower bandwidth (KL) = %lld\n", (long long)KL);
     printf("%% Upper bandwidth (KU) = %lld\n", (long long)KU);
-    printf("%% BatchCount   N  NRHS   CPU Gflop/s (ms)   GPU Gflop/s (ms)   ||B - AX|| / N*||A||*||X||\n");
+    printf("%% N  NRHS   CPU Gflop/s (ms)   GPU Gflop/s (ms)   ||B - AX|| / N*||A||*||X||\n");
     printf("%%============================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -90,6 +90,18 @@ int main(int argc, char **argv)
             /* Initialize the matrices */
             lapackf77_zlarnv( &ione, ISEED, &sizeA, h_A );
             lapackf77_zlarnv( &ione, ISEED, &sizeB, h_B );
+
+            // random initialization of h_A seems to produce
+            // some matrices that are singular, the additive statements below
+            // seem to avoid that
+            #pragma omp parallel for schedule(dynamic)
+            for(int j = 0; j < lda*N; j++) {
+                MAGMA_Z_REAL( h_A[j] ) += 20.;
+                #if defined(PRECISION_c) || defined(PRECISION_z)
+                MAGMA_Z_IMAG( h_A[j] ) += 20.;
+                #endif
+            }
+
 
             magma_zsetmatrix( Nband, N,    h_A, lda, d_A, ldda, opts.queue );
             magma_zsetmatrix( N,     nrhs, h_B, ldb, d_B, lddb, opts.queue );
@@ -143,7 +155,7 @@ int main(int argc, char **argv)
             magma_zgetmatrix( N, nrhs, d_B, lddb, h_X, ldb, opts.queue );
 
             error = 0;
-            Anorm = lapackf77_zlangb("I", &N, &KL, &KU, h_A, &lda, work);
+            Anorm = lapackf77_zlangb("I", &N, &KL, &KU, h_A + KL, &lda, work);
             Xnorm = lapackf77_zlange("I", &N, &nrhs, h_X, &ldb, work);
 
             for(magma_int_t j = 0; j < nrhs; j++) {
