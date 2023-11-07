@@ -108,31 +108,31 @@ magma_int_t magmaf_malloc( void** ptr, magma_int_t* bytes )
     return magma_malloc( ptr, *bytes );
 }
 
-#define magmaf_smalloc FORTRAN_NAME( magmaf_smalloc, MAGMAF_smalloc )
+#define magmaf_smalloc FORTRAN_NAME( magmaf_smalloc, MAGMAF_SMALLOC )
 magma_int_t magmaf_smalloc( float** ptr, magma_int_t* n )
 {
     return magma_smalloc( ptr, *n );
 }
 
-#define magmaf_dmalloc FORTRAN_NAME( magmaf_dmalloc, MAGMAF_dmalloc )
+#define magmaf_dmalloc FORTRAN_NAME( magmaf_dmalloc, MAGMAF_DMALLOC )
 magma_int_t magmaf_dmalloc( double** ptr, magma_int_t* n )
 {
     return magma_dmalloc( ptr, *n );
 }
 
-#define magmaf_cmalloc FORTRAN_NAME( magmaf_cmalloc, MAGMAF_cmalloc )
+#define magmaf_cmalloc FORTRAN_NAME( magmaf_cmalloc, MAGMAF_CMALLOC )
 magma_int_t magmaf_cmalloc( magmaFloatComplex** ptr, magma_int_t* n )
 {
     return magma_cmalloc( ptr, *n );
 }
 
-#define magmaf_zmalloc FORTRAN_NAME( magmaf_zmalloc, MAGMAF_zmalloc )
+#define magmaf_zmalloc FORTRAN_NAME( magmaf_zmalloc, MAGMAF_ZMALLOC )
 magma_int_t magmaf_zmalloc( magmaDoubleComplex** ptr, magma_int_t* n )
 {
     return magma_zmalloc( ptr, *n );
 }
 
-#define magmaf_free FORTRAN_NAME( magmaf_free, MAGMAF_free )
+#define magmaf_free FORTRAN_NAME( magmaf_free, MAGMAF_FREE )
 magma_int_t magmaf_free( void** ptr )
 {
     return magma_free( *ptr );
@@ -147,31 +147,31 @@ magma_int_t magmaf_malloc_cpu( void** ptr, magma_int_t* bytes )
     return magma_malloc_cpu( ptr, *bytes );
 }
 
-#define magmaf_smalloc_cpu FORTRAN_NAME( magmaf_smalloc_cpu, MAGMAF_smalloc_cpu )
+#define magmaf_smalloc_cpu FORTRAN_NAME( magmaf_smalloc_cpu, MAGMAF_SMALLOC_CPU )
 magma_int_t magmaf_smalloc_cpu( float** ptr, magma_int_t* n )
 {
     return magma_smalloc_cpu( ptr, *n );
 }
 
-#define magmaf_dmalloc_cpu FORTRAN_NAME( magmaf_dmalloc_cpu, MAGMAF_dmalloc_cpu )
+#define magmaf_dmalloc_cpu FORTRAN_NAME( magmaf_dmalloc_cpu, MAGMAF_DMALLOC_CPU )
 magma_int_t magmaf_dmalloc_cpu( double** ptr, magma_int_t* n )
 {
     return magma_dmalloc_cpu( ptr, *n );
 }
 
-#define magmaf_cmalloc_cpu FORTRAN_NAME( magmaf_cmalloc_cpu, MAGMAF_cmalloc_cpu )
+#define magmaf_cmalloc_cpu FORTRAN_NAME( magmaf_cmalloc_cpu, MAGMAF_CMALLOC_CPU )
 magma_int_t magmaf_cmalloc_cpu( magmaFloatComplex** ptr, magma_int_t* n )
 {
     return magma_cmalloc_cpu( ptr, *n );
 }
 
-#define magmaf_zmalloc_cpu FORTRAN_NAME( magmaf_zmalloc_cpu, MAGMAF_zmalloc_cpu )
+#define magmaf_zmalloc_cpu FORTRAN_NAME( magmaf_zmalloc_cpu, MAGMAF_ZMALLOC_CPU )
 magma_int_t magmaf_zmalloc_cpu( magmaDoubleComplex** ptr, magma_int_t* n )
 {
     return magma_zmalloc_cpu( ptr, *n );
 }
 
-#define magmaf_free_cpu FORTRAN_NAME( magmaf_free_cpu, MAGMAF_free_cpu )
+#define magmaf_free_cpu FORTRAN_NAME( magmaf_free_cpu, MAGMAF_FREE_CPU )
 magma_int_t magmaf_free_cpu( void** ptr )
 {
     return magma_free_cpu( *ptr );
@@ -186,31 +186,31 @@ magma_int_t magmaf_malloc_pinned( void** ptr, magma_int_t* bytes )
     return magma_malloc_pinned( ptr, *bytes );
 }
 
-#define magmaf_smalloc_pinned FORTRAN_NAME( magmaf_smalloc_pinned, MAGMAF_smalloc_pinned )
+#define magmaf_smalloc_pinned FORTRAN_NAME( magmaf_smalloc_pinned, MAGMAF_SMALLOC_PINNED )
 magma_int_t magmaf_smalloc_pinned( float** ptr, magma_int_t* n )
 {
     return magma_smalloc_pinned( ptr, *n );
 }
 
-#define magmaf_dmalloc_pinned FORTRAN_NAME( magmaf_dmalloc_pinned, MAGMAF_dmalloc_pinned )
+#define magmaf_dmalloc_pinned FORTRAN_NAME( magmaf_dmalloc_pinned, MAGMAF_DMALLOC_PINNED )
 magma_int_t magmaf_dmalloc_pinned( double** ptr, magma_int_t* n )
 {
     return magma_dmalloc_pinned( ptr, *n );
 }
 
-#define magmaf_cmalloc_pinned FORTRAN_NAME( magmaf_cmalloc_pinned, MAGMAF_cmalloc_pinned )
+#define magmaf_cmalloc_pinned FORTRAN_NAME( magmaf_cmalloc_pinned, MAGMAF_CMALLOC_PINNED )
 magma_int_t magmaf_cmalloc_pinned( magmaFloatComplex** ptr, magma_int_t* n )
 {
     return magma_cmalloc_pinned( ptr, *n );
 }
 
-#define magmaf_zmalloc_pinned FORTRAN_NAME( magmaf_zmalloc_pinned, MAGMAF_zmalloc_pinned )
+#define magmaf_zmalloc_pinned FORTRAN_NAME( magmaf_zmalloc_pinned, MAGMAF_ZMALLOC_PINNED )
 magma_int_t magmaf_zmalloc_pinned( magmaDoubleComplex** ptr, magma_int_t* n )
 {
     return magma_zmalloc_pinned( ptr, *n );
 }
 
-#define magmaf_free_pinned FORTRAN_NAME( magmaf_free_pinned, MAGMAF_free_pinned )
+#define magmaf_free_pinned FORTRAN_NAME( magmaf_free_pinned, MAGMAF_FREE_PINNED )
 magma_int_t magmaf_free_pinned( void** ptr )
 {
     return magma_free_pinned( *ptr );
