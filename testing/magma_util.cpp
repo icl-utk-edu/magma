@@ -103,6 +103,8 @@ const char *usage =
 "\n"
 "The following options apply to only some routines.\n"
 "  --batch x        number of matrices for the batched routines, default 1000.\n"
+"  --kl x           number of sub-diagonals in a band matrix, default 1.\n"
+"  --ku x           number of super diagonals in a band matrix, default 1.\n"
 "  --cache x        cache size to flush, in MiB, default 2 MiB * NUM_THREADS.\n"
 "  --nb x           Block size, default set automatically.\n"
 "  --nrhs x         Number of right hand sides, default 1.\n"
@@ -176,6 +178,9 @@ magma_opts::magma_opts( magma_opts_t flag )
     this->itype    = 1;
     this->version  = 1;
     this->verbose  = 0;
+
+    this->kl = 1;
+    this->ku = 1;
 
     this->fraction_lo = 0.;
     this->fraction_up = 1.;
@@ -471,6 +476,17 @@ void magma_opts::parse_opts( int argc, char** argv )
             magma_assert( this->batchcount > 0,
                           "error: --batch %s is invalid; ensure batch > 0.\n", argv[i] );
         }
+        else if ( strcmp("--kl", argv[i]) == 0 && i+1 < argc ) {
+            this->kl = atoi( argv[++i] );
+            magma_assert( this->kl >= 0,
+                          "error: --kl %s is invalid; ensure kl >= 0.\n", argv[i] );
+        }
+        else if ( strcmp("--ku", argv[i]) == 0 && i+1 < argc ) {
+            this->ku = atoi( argv[++i] );
+            magma_assert( this->ku >= 0,
+                          "error: --ku %s is invalid; ensure ku >= 0.\n", argv[i] );
+        }
+
         // ----- boolean arguments
         // check results
         else if ( strcmp("-c",         argv[i]) == 0 ||

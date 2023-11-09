@@ -1,4 +1,3 @@
-
 /*
    -- MAGMA (version 2.0) --
    Univ. of Tennessee, Knoxville

@@ -73,6 +73,10 @@ libmagma_src += \
 	$(cdir)/zgetrf_mgpu.cpp		\
 	$(cdir)/zgetrf2_mgpu.cpp	\
 	$(cdir)/zgerbt_gpu.cpp		\
+	\
+	$(cdir)/zgbsv_gpu.cpp		\
+	$(cdir)/zgbtrf_gpu.cpp		\
+
 
 # LU, CPU interface
 libmagma_src += \
@@ -291,6 +295,10 @@ libmagma_src += \
 # ----------
 # Batched, GPU interface
 libmagma_src += \
+	$(cdir)/zgbsv_batched.cpp		\
+	$(cdir)/zgbtrf_batched.cpp		\
+	$(cdir)/zgbtrs_batched.cpp		\
+	\
 	$(cdir)/zgetf2_batched.cpp		\
 	$(cdir)/zgetf2_nopiv_batched.cpp	\
 	$(cdir)/zgetrf_panel_batched.cpp	\

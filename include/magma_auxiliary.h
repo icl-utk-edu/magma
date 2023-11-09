@@ -238,8 +238,17 @@ magma_mem_size( magma_queue_t queue );
 magma_int_t
 magma_getdevice_multiprocessor_count();
 
+magma_int_t
+magma_getdevice_num_threads_block();
+
+magma_int_t
+magma_getdevice_num_threads_multiprocessor();
+
 size_t
 magma_getdevice_shmem_block();
+
+size_t
+magma_getdevice_shmem_block_optin();
 
 size_t
 magma_getdevice_shmem_multiprocessor();
@@ -398,6 +407,13 @@ magmaFloatComplex    magma_csqrt( magmaFloatComplex  x );
 /// @return Complex square root of x. @ingroup magma_sqrt
 magmaDoubleComplex   magma_zsqrt( magmaDoubleComplex x );
 
+
+// =============================================================================
+// integer print functions
+
+void magma_iprint( magma_int_t m, magma_int_t n, const magma_int_t *A, magma_int_t lda );
+
+void magma_iprint_gpu( magma_int_t m, magma_int_t n, magma_int_t* dA, magma_int_t ldda, magma_queue_t queue );
 
 #ifdef __cplusplus
 }

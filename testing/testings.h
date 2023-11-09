@@ -168,33 +168,37 @@ class magma_opts
 public:
     // constructor
     magma_opts( magma_opts_t flag=MagmaOptsDefault );
-    
+
     // parse command line
     void parse_opts( int argc, char** argv );
-    
+
     // set range, vl, vu, il, iu for eigen/singular value problems (gesvdx, syevdx, ...)
     void get_range( magma_int_t n, magma_range_t* range,
                     double* vl, double* vu,
                     magma_int_t* il, magma_int_t* iu );
-    
+
     void get_range( magma_int_t n, magma_range_t* range,
                     float* vl, float* vu,
                     magma_int_t* il, magma_int_t* iu );
-    
+
     // deallocate queues, etc.
     void cleanup();
-    
+
     // matrix size
     magma_int_t ntest;
     magma_int_t msize[ MAX_NTEST ];
     magma_int_t nsize[ MAX_NTEST ];
     magma_int_t ksize[ MAX_NTEST ];
     magma_int_t batchcount;
-    
+
+    // lower/upper bandwidths
+    magma_int_t kl;
+    magma_int_t ku;
+
     magma_int_t default_nstart;
     magma_int_t default_nend;
     magma_int_t default_nstep;
-    
+
     // scalars
     magma_int_t device;
     magma_int_t cache;
@@ -211,7 +215,7 @@ public:
     magma_int_t version;
     magma_int_t check;
     magma_int_t verbose;
-    
+
     // ranges for eigen/singular values (gesvdx, heevdx, ...)
     double      fraction_lo;
     double      fraction_up;
@@ -219,14 +223,14 @@ public:
     magma_int_t irange_up;
     double      vrange_lo;
     double      vrange_up;
-    
+
     double      tolerance;
-    
+
     // boolean arguments
     bool magma;
     bool lapack;
     bool warmup;
-    
+
     // lapack options
     magma_uplo_t    uplo;
     magma_trans_t   transA;
@@ -236,7 +240,7 @@ public:
     magma_vec_t     jobz;    // heev:   no eigen vectors
     magma_vec_t     jobvr;   // geev:   no right eigen vectors
     magma_vec_t     jobvl;   // geev:   no left  eigen vectors
-    
+
     // vectors of options
     std::vector< magma_svd_work_t > svd_work;
     std::vector< magma_vec_t > jobu;
@@ -251,7 +255,7 @@ public:
     // queue for default device
     magma_queue_t   queue;
     magma_queue_t   queues2[3];  // 2 queues + 1 extra NULL entry to catch errors
-    
+
     #ifdef MAGMA_HAVE_CUDA
     // handle for directly calling cublas
     cublasHandle_t  handle;
