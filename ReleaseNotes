@@ -25,6 +25,19 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+2.8.0 - XXX XX, XXXX
+    * New functionality: band LU factorization and solve
+      - magma_{s,d,c,z}gbtrf_native computes the LU factorization of a band matrix
+        using partial pivoting with row interchanges. This is equivalent to the
+        LAPACK GBTRF routine.
+      - magma_{s,d,c,z}gbsv_native computes the solution to a system of linear
+        equations A * X = B, where A is a band matrix and X and B are general dense
+        matrices. This is equivalent to the LAPACK GBSV routine.
+      - magma_{s,d,c,z}gbtrf_batched and magma_{s,d,c,z}gbtrf_batched_strided are
+        the batched and the stride-batched versions of GBTRF, respectively.
+      - magma_{s,d,c,z}gbsv_batched and magma_{s,d,c,z}gbsv_batched_strided are
+        the batched and the stride-batched versions of GBSV, respectively.
+
 2.7.2 - Aug 25, 2023
     * Add expert interfaces for LU, QR, and Cholesky factorizations
     * Add tuning specifications for LU, QR, and Cholesky factorizations
@@ -38,18 +51,18 @@ single (s), double (d), single-complex (c), double-complex (z).
     * Add sparse test matrices to the release tarball
     * Performance improvement for batch GEMV targeting square sizes up to 32
     * Update CMakeLists compiler flags for Windows
- 
+
 2.7.0 - Nov 9, 2022
     * Add support for builds targeting NVIDIA's Hopper architecture
-    * New routine: magma_dshposv_gpu and magma_dshposv_native solve Ax = b, for a 
-      symmetric positive definite matrix 'A', using FP16 during the Cholesky 
-      factorization. GMRES-based iterative refinement is used to recover the solution 
-      up to double precision accuracy. The '_gpu' suffix denotes a hybrid CPU-GPU 
-      factorization, while '_native' denotes a GPU-only factorization 
+    * New routine: magma_dshposv_gpu and magma_dshposv_native solve Ax = b, for a
+      symmetric positive definite matrix 'A', using FP16 during the Cholesky
+      factorization. GMRES-based iterative refinement is used to recover the solution
+      up to double precision accuracy. The '_gpu' suffix denotes a hybrid CPU-GPU
+      factorization, while '_native' denotes a GPU-only factorization
     * Performance improvement for the batch QR factorization routine
     * Performance improvement for the variable size batch LU factorization routine
     * Bug fixes, performance optimizations, benchmark additions, and maintenance
-      updates to support current and new MAGMA routines, latest NVIDIA and AMD 
+      updates to support current and new MAGMA routines, latest NVIDIA and AMD
       math libraries and GPU hardware
 
  2.6.2 - Mar 15, 2022
