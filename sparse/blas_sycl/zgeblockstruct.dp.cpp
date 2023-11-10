@@ -213,11 +213,6 @@ magma_zmisai_blockstruct_gpu(
     sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
     sycl::range<3> block(blocksize3, blocksize2, blocksize1);
 
-    /*
-    DPCT1049:165: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto A_num_rows_ct0 = A->num_rows;
         auto A_drow_ct2 = A->drow;
@@ -246,11 +241,6 @@ magma_zmisai_blockstruct_gpu(
 
     // for now: no offset
     if( uplotype == MagmaLower ){printf("enter here\n");
-        /*
-        DPCT1049:166: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto A_num_rows_ct0 = A->num_rows;
@@ -266,11 +256,6 @@ magma_zmisai_blockstruct_gpu(
                                  });
             });
     } else {
-        /*
-        DPCT1049:167: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto A_num_rows_ct0 = A->num_rows;

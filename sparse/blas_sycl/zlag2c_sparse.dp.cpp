@@ -131,11 +131,6 @@ magmablas_zlag2c_sparse(
     sycl::range<3> grid(1, 1, magma_ceildiv(M, BLOCKSIZE));
 
     queue->sycl_stream()->memcpy(flag.get_ptr(), info, sizeof(flag)).wait(); // flag = 0
-    /*
-    DPCT1049:150: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * sycl::range<3>(1, 1, BLOCKSIZE),
                                          sycl::range<3>(1, 1, BLOCKSIZE)),
@@ -232,11 +227,6 @@ magma_zlag2c_CSR_DENSE(
         sycl::range<3> Bs(1, 1, BLOCKSIZE);
         sycl::range<3> Gs(1, 1, magma_ceildiv(A.num_rows, BLOCKSIZE));
 
-        /*
-        DPCT1049:151: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto B_val_ct5 = B->val;
@@ -276,11 +266,6 @@ magma_zlag2c_CSR_DENSE_alloc(
         sycl::range<3> Bs(1, 1, BLOCKSIZE);
         sycl::range<3> Gs(1, 1, magma_ceildiv(A.num_rows, BLOCKSIZE));
 
-        /*
-        DPCT1049:152: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto B_val_ct2 = B->val;
@@ -306,11 +291,6 @@ magma_zlag2c_CSR_DENSE_convert(
         sycl::range<3> Bs(1, 1, BLOCKSIZE);
         sycl::range<3> Gs(1, 1, magma_ceildiv(A.num_rows, BLOCKSIZE));
 
-        /*
-        DPCT1049:153: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto B_val_ct5 = B->val;

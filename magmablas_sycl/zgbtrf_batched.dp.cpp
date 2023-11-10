@@ -381,11 +381,6 @@ magma_zgbtrf_batched(
               case 30: zgbtrf_batched_np_kernel<30, magma_ceilpow2(30)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
               case 31: zgbtrf_batched_np_kernel<31, magma_ceilpow2(31)><<<grid, threads, shmem, queue->sycl_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
             */
-        /*
-        DPCT1049:273: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
             case 32: ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,

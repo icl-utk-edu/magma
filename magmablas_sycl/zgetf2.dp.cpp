@@ -172,11 +172,6 @@ void magma_zgetf2_swap(
     /* zswap two row vectors: ith and jth */
     sycl::range<3> threads(1, 1, zswap_bs);
     sycl::range<3> grid(1, 1, magma_ceildiv(n, zswap_bs));
-    /*
-    DPCT1049:561: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -258,11 +253,6 @@ void magma_zscal_zgeru(
     code is correct.
     */
     size_t shared_size = sizeof(magmaDoubleComplex) * (n);
-    /*
-    DPCT1049:565: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>

@@ -123,11 +123,6 @@ magma_zbcsrvalcpy(
         int dimgrid3 = magma_ceildiv( num_zblocks, 65535 );
         sycl::range<3> dimGrid(1, dimgrid1, dimgrid2);
 
-        /*
-        DPCT1049:420: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(dimGrid * dimBlock, dimBlock),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -137,11 +132,6 @@ magma_zbcsrvalcpy(
 
         sycl::range<3> dimGrid2(1, dimgrid1, dimgrid3);
 
-        /*
-        DPCT1049:421: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(dimGrid2 * dimBlock, dimBlock),
                        [=](sycl::nd_item<3> item_ct1) {

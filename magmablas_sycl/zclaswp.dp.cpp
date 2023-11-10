@@ -133,11 +133,6 @@ magmablas_zclaswp(
     sycl::range<3> threads(1, 1, NB);
 
     if (incx >= 0)
-        /*
-        DPCT1049:249: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {
@@ -145,11 +140,6 @@ magmablas_zclaswp(
                                               item_ct1);
                            });
     else
-        /*
-        DPCT1049:250: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {

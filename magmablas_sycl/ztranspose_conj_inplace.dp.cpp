@@ -217,11 +217,6 @@ magmablas_ztranspose_conj_inplace(
     // block assignment differs depending on whether nblock is odd or even.
     if ( nblock % 2 == 1 ) {
         sycl::range<3> grid(1, (nblock + 1) / 2, nblock);
-        /*
-        DPCT1049:1408: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 2,
@@ -243,11 +238,6 @@ magmablas_ztranspose_conj_inplace(
     }
     else {
         sycl::range<3> grid(1, nblock / 2, nblock + 1);
-        /*
-        DPCT1049:1409: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 2,

@@ -660,11 +660,6 @@ magma_zgecsr5mv(
     magma_int_t num_blocks = magma_ceildiv( m, num_threads ); 
     //ceil ((double)m / (double)num_threads);
 
-    /*
-    DPCT1049:3: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(sycl::range<3>(1, 1, num_blocks) *
@@ -682,12 +677,6 @@ magma_zgecsr5mv(
     switch (sigma)
     {
     case 4:
-        /*
-        DPCT1049:4: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -717,12 +706,6 @@ magma_zgecsr5mv(
         });
         break;
     case 5:
-        /*
-        DPCT1049:5: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -752,12 +735,6 @@ magma_zgecsr5mv(
         });
         break;
     case 6:
-        /*
-        DPCT1049:6: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -787,12 +764,6 @@ magma_zgecsr5mv(
         });
         break;
     case 7:
-        /*
-        DPCT1049:7: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -822,12 +793,6 @@ magma_zgecsr5mv(
         });
         break;
     case 8:
-        /*
-        DPCT1049:8: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -857,12 +822,6 @@ magma_zgecsr5mv(
         });
         break;
     case 9:
-        /*
-        DPCT1049:9: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -892,12 +851,6 @@ magma_zgecsr5mv(
         });
         break;
     case 10:
-        /*
-        DPCT1049:10: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -928,12 +881,6 @@ magma_zgecsr5mv(
         break;
 
     case 11:
-        /*
-        DPCT1049:11: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -963,12 +910,6 @@ magma_zgecsr5mv(
         });
         break;
     case 12:
-        /*
-        DPCT1049:12: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -998,12 +939,6 @@ magma_zgecsr5mv(
         });
         break;
     case 13:
-        /*
-        DPCT1049:13: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1033,12 +968,6 @@ magma_zgecsr5mv(
         });
         break;
     case 14:
-        /*
-        DPCT1049:14: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1068,12 +997,6 @@ magma_zgecsr5mv(
         });
         break;
     case 15:
-        /*
-        DPCT1049:15: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1103,12 +1026,6 @@ magma_zgecsr5mv(
         });
         break;
     case 16:
-        /*
-        DPCT1049:16: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1138,12 +1055,6 @@ magma_zgecsr5mv(
         });
         break;
     case 17:
-        /*
-        DPCT1049:17: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1173,12 +1084,6 @@ magma_zgecsr5mv(
         });
         break;
     case 18:
-        /*
-        DPCT1049:18: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1208,12 +1113,6 @@ magma_zgecsr5mv(
         });
         break;
     case 19:
-        /*
-        DPCT1049:19: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1243,12 +1142,6 @@ magma_zgecsr5mv(
         });
         break;
     case 20:
-        /*
-        DPCT1049:20: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1279,12 +1172,6 @@ magma_zgecsr5mv(
         break;
 
     case 21:
-        /*
-        DPCT1049:21: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1314,12 +1201,6 @@ magma_zgecsr5mv(
         });
         break;
     case 22:
-        /*
-        DPCT1049:22: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1349,12 +1230,6 @@ magma_zgecsr5mv(
         });
         break;
     case 23:
-        /*
-        DPCT1049:23: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1384,12 +1259,6 @@ magma_zgecsr5mv(
         });
         break;
     case 24:
-        /*
-        DPCT1049:24: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1419,12 +1288,6 @@ magma_zgecsr5mv(
         });
         break;
     case 25:
-        /*
-        DPCT1049:25: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1454,12 +1317,6 @@ magma_zgecsr5mv(
         });
         break;
     case 26:
-        /*
-        DPCT1049:26: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1489,12 +1346,6 @@ magma_zgecsr5mv(
         });
         break;
     case 27:
-        /*
-        DPCT1049:27: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1524,12 +1375,6 @@ magma_zgecsr5mv(
         });
         break;
     case 28:
-        /*
-        DPCT1049:28: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1559,12 +1404,6 @@ magma_zgecsr5mv(
         });
         break;
     case 29:
-        /*
-        DPCT1049:29: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1594,12 +1433,6 @@ magma_zgecsr5mv(
         });
         break;
     case 30:
-        /*
-        DPCT1049:30: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1630,12 +1463,6 @@ magma_zgecsr5mv(
         break;
 
     case 31:
-        /*
-        DPCT1049:31: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1665,12 +1492,6 @@ magma_zgecsr5mv(
         });
         break;
     case 32:
-        /*
-        DPCT1049:32: The work-group size passed to the SYCL kernel may
-        exceed the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if
-        needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(
                 sycl::range<1>(MAGMA_CSR5_THREAD_GROUP), cgh);
@@ -1704,11 +1525,6 @@ magma_zgecsr5mv(
     num_threads = MAGMA_CSR5_THREAD_GROUP;
     num_blocks = ceil((double)(p-1)/(double)num_threads);
 
-    /*
-    DPCT1049:33: The work-group size passed to the SYCL kernel may exceed
-    the limit. To get the device limit, query
-    info::device::max_work_group_size. Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<volatile magma_index_t, 1>
@@ -1733,11 +1549,6 @@ magma_zgecsr5mv(
     num_threads = MAGMA_CSR5_OMEGA;
     num_blocks = m - tail_tile_start;
 
-    /*
-    DPCT1049:34: The work-group size passed to the SYCL kernel may exceed
-    the limit. To get the device limit, query
-    info::device::max_work_group_size. Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->submit([&](sycl::handler &cgh) {
             sycl::local_accessor<magmaDoubleComplex, 1> s_sum_acc_ct1(

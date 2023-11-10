@@ -742,11 +742,6 @@ magma_zmdotc(
     int b = 1;        
 
     if (k>1) {
-        /*
-        DPCT1049:43: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -762,11 +757,6 @@ magma_zmdotc(
             });
     }
     else {
-        /*
-        DPCT1049:45: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -805,12 +795,6 @@ magma_zmdotc(
         while (Gs[2] > 1) {
             Gs_next[2] = magma_ceildiv(Gs[2], Bs[2]);
             if (Gs_next[2] == 1) Gs_next[2] = 2;
-            /*
-            DPCT1049:46: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -838,12 +822,6 @@ magma_zmdotc(
         while (Gs[2] > 1) {
             Gs_next[2] = magma_ceildiv(Gs[2], Bs[2]);
             if (Gs_next[2] == 1) Gs_next[2] = 2;
-            /*
-            DPCT1049:47: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,

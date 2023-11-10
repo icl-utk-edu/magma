@@ -90,11 +90,6 @@ magma_zjacobisetup_vector_gpu(
     sycl::range<3> grid(1, 1, magma_ceildiv(num_rows, BLOCK_SIZE));
     int num_vecs = b.num_rows / num_rows;
     magma_int_t threads = BLOCK_SIZE;
-    /*
-    DPCT1049:362: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto x_val_ct5 = x->val;
 
@@ -175,11 +170,6 @@ magma_zjacobi_diagscal(
     sycl::range<3> grid(1, 1, magma_ceildiv(num_rows, 512));
     int num_vecs = b.num_rows*b.num_cols/num_rows;
     magma_int_t threads = 512;
-    /*
-    DPCT1049:363: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto c_val_ct4 = c->val;
 
@@ -259,11 +249,6 @@ magma_zjacobiupdate(
 {
     sycl::range<3> grid(1, 1, magma_ceildiv(t.num_rows, BLOCK_SIZE));
     magma_int_t threads = BLOCK_SIZE;
-    /*
-    DPCT1049:364: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto x_dval_ct5 = x->dval;
 
@@ -379,11 +364,6 @@ magma_zjacobispmvupdate(
         // magma_z_spmv( c_one, A, *x, c_zero, t, queue );                // t =  A * x
         // zjacobiupdate_kernel<<< grid, threads, 0, queue->sycl_stream()>>>( t.num_rows, t.num_cols, t.dval, b.dval, d.dval, x->dval );
         // merged in one implies asynchronous update
-        /*
-        DPCT1049:366: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto x_dval_ct8 = x->dval;
@@ -503,11 +483,6 @@ magma_zjacobispmvupdate_bw(
         // magma_z_spmv( c_one, A, *x, c_zero, t, queue );                // t =  A * x
         // zjacobiupdate_kernel<<< grid, threads, 0, queue->sycl_stream()>>>( t.num_rows, t.num_cols, t.dval, b.dval, d.dval, x->dval );
         // merged in one implies asynchronous update
-        /*
-        DPCT1049:368: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto x_dval_ct8 = x->dval;
@@ -659,11 +634,6 @@ magma_zjacobispmvupdateselect(
            int(grid[2]));
 
     for( magma_int_t i=0; i<maxiter; i++ ) {
-        /*
-        DPCT1049:370: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::stream stream_ct1(64 * 1024, 80, cgh);
@@ -771,11 +741,6 @@ magma_zftjacobicontractions(
     sycl::range<3> grid(1, 1, magma_ceildiv(xk.num_rows, BLOCK_SIZE));
     magma_int_t threads = BLOCK_SIZE;
 
-    /*
-    DPCT1049:373: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto z_dval_ct4 = z->dval;
         auto c_dval_ct5 = c->dval;
@@ -911,11 +876,6 @@ magma_zftjacobiupdatecheck(
     sycl::range<3> grid(1, 1, magma_ceildiv(xnew->num_rows, BLOCK_SIZE));
     magma_int_t threads = BLOCK_SIZE;
 
-    /*
-    DPCT1049:375: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto xold_num_rows_ct0 = xold->num_rows;
         auto xold_dval_ct2 = xold->dval;

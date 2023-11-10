@@ -34,69 +34,6 @@
 #define BLOCK_SIZE 512
 
 
-#if CUDA_VERSION >= 11000
-// todo: destroy descriptor and see if the original code descriptors have to be changed
-/*
-DPCT1007:667: Migration of cusparseCreateCsr is not supported by the Intel(R)
-DPC++ Compatibility Tool.
-*/
-/*
-DPCT1007:668: Migration of cusparseCreateDnVec is not supported by the Intel(R)
-DPC++ Compatibility Tool.
-*/
-/*
-DPCT1007:669: Migration of cusparseSpMV_bufferSize is not supported by the
-Intel(R) DPC++ Compatibility Tool.
-*/
-/*
-DPCT1007:670: Migration of cusparseSpMV is not supported by the Intel(R) DPC++
-Compatibility Tool.
-*/
-/*
-        descr = oneapi::mkl::index_base::zero;
-        oneapiSparseZcsrmv(oneapiSparseHandle, oneapi::mkl::transpose::nontrans,
-                       A.num_rows, A.num_cols, A.nnz, (std::complex<double> *)&c_one,
-                       descr, (std::complex<double> *)A.dval, A.drow, A.dcol,
-                       (std::complex<double> *)dd, (std::complex<double> *)&c_zero,
-                       (std::complex<double> *)dz);
-      oneapi::mkl:sparse::set_csr_data (
-        handle,
-        rows,
-        cols,
-        descr,
-        intType *row_ptr,
-        intType *col_ind,
-        fp *val);
-                       */
-#define cusparseZcsrmv(handle, op,\
-    rows, cols, nnz, alpha,\
-    descr, dval, drow, dcol,\
-    x, beta,\
-    y)                                       \
-    {                                                                          \
-        cusparseSpMatDescr_t descrA;                                           \
-        cusparseDnVecDescr_t descrX, descrY;                                   \
-        cusparseCreateCsr(&descrA, rows, cols, nnz, (void *)drow,              \
-                          (void *)dcol, (void *)dval, CUSPARSE_INDEX_32I,      \
-                          CUSPARSE_INDEX_32I, oneapi::mkl::index_base::zero,   \
-                          5);                                                  \
-        cusparseCreateDnVec(&descrX, cols, x, 5);                              \
-        cusparseCreateDnVec(&descrY, rows, y, 5);                              \
-                                                                               \
-        size_t bufsize;                                                        \
-        void *buf;                                                             \
-        cusparseSpMV_bufferSize(handle, op, (void *)alpha, descrA, descrX,     \
-                                (void *)beta, descrY, 5, CUSPARSE_CSRMV_ALG1,  \
-                                &bufsize);                                     \
-        if (bufsize > 0)                                                       \
-            magma_malloc(&buf, bufsize);                                       \
-        cusparseSpMV(handle, op, (void *)alpha, descrA, descrX, (void *)beta,  \
-                     descrY, 5, CUSPARSE_CSRMV_ALG1, buf);                     \
-        if (bufsize > 0)                                                       \
-            magma_free(buf);                                                   \
-    }
-#endif
-
 // These routines merge multiple kernels from zmergecg into one
 // for a description see 
 // "Reformulated Conjugate Gradient for the Energy-Aware 
@@ -1582,6 +1519,8 @@ magma_zcgmerge_spmv1(
     sycl::range<3> Bs(1, 1, local_block_size);
     sycl::range<3> Gs(1, 1, magma_ceildiv(A.num_rows, local_block_size));
     sycl::range<3> Gs_next(1, 1, 1);
+    int nthreads_max = queue->sycl_stream()->get_device()
+                            .get_info<sycl::info::device::max_work_group_size>();
     /*
     DPCT1083:659: The size of local memory in the migrated code may be different
     from the original code. Check that the allocated memory size in the migrated
@@ -1592,11 +1531,6 @@ magma_zcgmerge_spmv1(
     int b = 1;        
 
     if ( A.storage_type == Magma_CSR )
-        /*
-        DPCT1049:658: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1612,11 +1546,6 @@ magma_zcgmerge_spmv1(
                                  });
             });
     else if ( A.storage_type == Magma_ELLPACKT )
-        /*
-        DPCT1049:660: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1632,11 +1561,6 @@ magma_zcgmerge_spmv1(
                                  });
             });
     else if ( A.storage_type == Magma_ELL )
-        /*
-        DPCT1049:661: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1686,11 +1610,6 @@ magma_zcgmerge_spmv1(
         cusparseHandle = nullptr;
         cusparseHandle = 0;
         //descr = 0;
-        /*
-        DPCT1049:664: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1706,12 +1625,6 @@ magma_zcgmerge_spmv1(
             });
     }
     else if ( A.storage_type == Magma_SELLP && A.alignment == 1 ) {
-            /*
-            DPCT1049:671: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1729,9 +1642,9 @@ magma_zcgmerge_spmv1(
     }
     else if ( A.storage_type == Magma_SELLP && A.alignment > 1) {
             int num_threadssellp = A.blocksize*A.alignment;
-            magma_int_t arch = magma_getdevice_arch();
-            if ( arch < 200 && num_threadssellp > 256 )
-                printf("error: too much shared memory requested.\n");
+            if ( num_threadssellp > nthreads_max)
+              printf("error: too many threads requested (%d) for this device (max %d).\n",
+               num_threadssellp, nthreads_max);
 
             sycl::range<3> block(1, A.alignment, A.blocksize);
             int dimgrid1 = int( sqrt( double( A.numblocks )));
@@ -1746,12 +1659,6 @@ magma_zcgmerge_spmv1(
             int Mssellp = num_threadssellp * sizeof(magmaDoubleComplex);
 
             if ( A.alignment == 8)
-                /*
-                DPCT1049:673: The work-group size passed to the SYCL kernel may
-                exceed the limit. To get the device limit, query
-                info::device::max_work_group_size. Adjust the work-group size if
-                needed.
-                */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1769,12 +1676,6 @@ magma_zcgmerge_spmv1(
                 });
 
             else if ( A.alignment == 16)
-                /*
-                DPCT1049:675: The work-group size passed to the SYCL kernel may
-                exceed the limit. To get the device limit, query
-                info::device::max_work_group_size. Adjust the work-group size if
-                needed.
-                */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1792,12 +1693,6 @@ magma_zcgmerge_spmv1(
                 });
 
             else if ( A.alignment == 32)
-                /*
-                DPCT1049:676: The work-group size passed to the SYCL kernel may
-                exceed the limit. To get the device limit, query
-                info::device::max_work_group_size. Adjust the work-group size if
-                needed.
-                */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1820,11 +1715,6 @@ magma_zcgmerge_spmv1(
         // in case of using SELLP, we can't efficiently merge the 
         // dot product and the first reduction loop into the SpMV kernel
         // as the SpMV grid would result in low occupancy.
-        /*
-        DPCT1049:672: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1852,9 +1742,9 @@ magma_zcgmerge_spmv1(
 
     int real_row_length = magma_roundup( A.max_nnz_row, A.alignment );
 
-    magma_int_t arch = magma_getdevice_arch();
-    if ( arch < 200 && num_threads > 256 )
-        printf("error: too much shared memory requested.\n");
+    if ( num_threads > nthreads_max)
+              printf("error: too many threads requested (%d) for this device (max %d).\n",
+               num_threads, nthreads_max);
 
     int dimgrid1 = int( sqrt( double( num_blocks )));
     int dimgrid2 = magma_ceildiv( num_blocks, dimgrid1 );
@@ -1869,11 +1759,6 @@ magma_zcgmerge_spmv1(
     // printf("launch kernel: %dx%d %d %d\n", grid.x, grid.y, num_threads , Ms);
 
     if ( A.alignment == 32 ) {
-        /*
-        DPCT1049:678: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1893,11 +1778,6 @@ magma_zcgmerge_spmv1(
                 });
     }
     else if ( A.alignment == 16 ) {
-        /*
-        DPCT1049:680: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1917,11 +1797,6 @@ magma_zcgmerge_spmv1(
                 });
     }
     else if ( A.alignment == 8 ) {
-        /*
-        DPCT1049:681: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1948,11 +1823,6 @@ magma_zcgmerge_spmv1(
         // dot product and the first reduction loop into the SpMV kernel
         // as the SpMV grid would result in low occupancy.
 
-        /*
-        DPCT1049:677: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1971,11 +1841,6 @@ magma_zcgmerge_spmv1(
     while (Gs[2] > 1) {
         Gs_next[2] = magma_ceildiv(Gs[2], Bs[2]);
         if (Gs_next[2] == 1) Gs_next[2] = 2;
-        /*
-        DPCT1049:682: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -2003,11 +1868,6 @@ magma_zcgmerge_spmv1(
     magma_zcopyvector( 1, aux1, 1, skp+4, 1, queue );
     sycl::range<3> Bs2(1, 1, 2);
     sycl::range<3> Gs2(1, 1, 1);
-    /*
-    DPCT1049:657: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs2 * Bs2, Bs2),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -2251,11 +2111,6 @@ magma_zcgmerge_xrbeta(
     int Ms = 2 * local_block_size * sizeof(magmaDoubleComplex);
     magmaDoubleComplex_ptr aux1 = d1, aux2 = d2;
     int b = 1;
-    /*
-    DPCT1049:693: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -2272,11 +2127,6 @@ magma_zcgmerge_xrbeta(
     while (Gs[2] > 1) {
         Gs_next[2] = magma_ceildiv(Gs[2], Bs[2]);
         if (Gs_next[2] == 1) Gs_next[2] = 2;
-        /*
-        DPCT1049:697: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -2304,11 +2154,6 @@ magma_zcgmerge_xrbeta(
     magma_zcopyvector( 1, aux1, 1, skp+1, 1, queue );
     sycl::range<3> Bs2(1, 1, 2);
     sycl::range<3> Gs2(1, 1, 1);
-    /*
-    DPCT1049:695: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs2 * Bs2, Bs2),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -2317,11 +2162,6 @@ magma_zcgmerge_xrbeta(
 
     sycl::range<3> Bs3(1, 1, local_block_size);
     sycl::range<3> Gs3(1, 1, magma_ceildiv(n, local_block_size));
-    /*
-    DPCT1049:696: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs3 * Bs3, Bs3),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -2575,11 +2415,6 @@ magma_zpcgmerge_xrbeta1(
     int local_block_size=256;
     sycl::range<3> Bs(1, 1, local_block_size);
     sycl::range<3> Gs(1, 1, magma_ceildiv(n, local_block_size));
-    /*
-    DPCT1049:710: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -2667,11 +2502,6 @@ magma_zpcgmerge_xrbeta2(
     magmaDoubleComplex_ptr aux1 = d1, aux2 = d2;
     int b = 1;
 
-    /*
-    DPCT1049:711: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -2687,11 +2517,6 @@ magma_zpcgmerge_xrbeta2(
     while (Gs[2] > 1) {
         Gs_next[2] = magma_ceildiv(Gs[2], Bs[2]);
         if (Gs_next[2] == 1) Gs_next[2] = 2;
-        /*
-        DPCT1049:715: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -2720,11 +2545,6 @@ magma_zpcgmerge_xrbeta2(
     magma_zcopyvector( 1, aux1+n, 1, skp+6, 1, queue );
     sycl::range<3> Bs2(1, 1, 2);
     sycl::range<3> Gs2(1, 1, 1);
-    /*
-    DPCT1049:713: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs2 * Bs2, Bs2),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -2733,11 +2553,6 @@ magma_zpcgmerge_xrbeta2(
 
     sycl::range<3> Bs3(1, 1, local_block_size);
     sycl::range<3> Gs3(1, 1, magma_ceildiv(n, local_block_size));
-    /*
-    DPCT1049:714: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs3 * Bs3, Bs3),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -3017,11 +2832,6 @@ magma_zjcgmerge_xrbeta(
     magmaDoubleComplex_ptr aux1 = d1, aux2 = d2;
     int b = 1;
 
-    /*
-    DPCT1049:729: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -3038,11 +2848,6 @@ magma_zjcgmerge_xrbeta(
     while (Gs[2] > 1) {
         Gs_next[2] = magma_ceildiv(Gs[2], Bs[2]);
         if (Gs_next[2] == 1) Gs_next[2] = 2;
-        /*
-        DPCT1049:733: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -3071,11 +2876,6 @@ magma_zjcgmerge_xrbeta(
     magma_zcopyvector( 1, aux1+n, 1, skp+6, 1, queue );
     sycl::range<3> Bs2(1, 1, 2);
     sycl::range<3> Gs2(1, 1, 1);
-    /*
-    DPCT1049:731: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs2 * Bs2, Bs2),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -3084,11 +2884,6 @@ magma_zjcgmerge_xrbeta(
 
     sycl::range<3> Bs3(1, 1, local_block_size);
     sycl::range<3> Gs3(1, 1, magma_ceildiv(n, local_block_size));
-    /*
-    DPCT1049:732: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs3 * Bs3, Bs3),
                        [=](sycl::nd_item<3> item_ct1) {

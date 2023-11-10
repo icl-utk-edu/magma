@@ -185,11 +185,6 @@ magma_zbajac_csr(
     sycl::range<3> block(1, blocksize2, blocksize1);
     if ( R.nnz > 0 ) { 
         if ( localiters == 1 )
-        /*
-        DPCT1049:229: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     auto x_dval_ct8 = x->dval;
@@ -203,12 +198,6 @@ magma_zbajac_csr(
                                      });
                 });
         else
-            /*
-            DPCT1049:230: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,

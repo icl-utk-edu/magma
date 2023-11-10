@@ -95,11 +95,6 @@ magma_zbicgmerge1(
 {
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(n, BLOCK_SIZE));
-    /*
-    DPCT1049:190: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -181,11 +176,6 @@ magma_zbicgmerge2(
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(n, BLOCK_SIZE));
 
-    /*
-    DPCT1049:191: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -286,11 +276,6 @@ magma_zbicgmerge3(
 {
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(n, BLOCK_SIZE));
-    /*
-    DPCT1049:192: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(Gs * Bs, Bs), [=](sycl::nd_item<3> item_ct1) {
@@ -376,33 +361,18 @@ magma_zbicgmerge4(
     sycl::range<3> Bs(1, 1, 1);
     sycl::range<3> Gs(1, 1, 1);
     if ( type == 1 )
-        /*
-        DPCT1049:193: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                            [=](sycl::nd_item<3> item_ct1) {
                                magma_zbicgmerge4_kernel_1(skp, item_ct1);
                            });
     else if ( type == 2 )
-        /*
-        DPCT1049:194: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                            [=](sycl::nd_item<3> item_ct1) {
                                magma_zbicgmerge4_kernel_2(skp, item_ct1);
                            });
     else if ( type == 3 )
-        /*
-        DPCT1049:195: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                            [=](sycl::nd_item<3> item_ct1) {

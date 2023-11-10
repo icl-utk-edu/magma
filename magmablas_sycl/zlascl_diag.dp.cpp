@@ -135,11 +135,6 @@ magmablas_zlascl_diag(
     sycl::range<3> grid(1, magma_ceildiv(n, NB), magma_ceildiv(m, MB));
 
     if (type == MagmaLower) {
-        /*
-        DPCT1049:1241: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {
@@ -148,11 +143,6 @@ magmablas_zlascl_diag(
                            });
     }
     else if (type == MagmaUpper) {
-        /*
-        DPCT1049:1242: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {

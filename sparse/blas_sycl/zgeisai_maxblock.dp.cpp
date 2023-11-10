@@ -194,11 +194,6 @@ magma_zgeisai_maxblock(
      CHECK(magma_z_spmm(MAGMA_Z_ONE, T, L4, &L5, queue));
 
     // check for pattern L
-    /*
-    DPCT1049:404: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * block, block),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -207,11 +202,6 @@ magma_zgeisai_maxblock(
                                                         item_ct1);
                        });
     // check for pattern L2
-    /*
-    DPCT1049:405: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * block, block),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -220,11 +210,6 @@ magma_zgeisai_maxblock(
                                                         item_ct1);
                        });
     // check for pattern L3
-    /*
-    DPCT1049:406: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * block, block),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -233,11 +218,6 @@ magma_zgeisai_maxblock(
                                                         item_ct1);
                        });
     // check for pattern L4
-    /*
-    DPCT1049:407: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * block, block),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -246,11 +226,6 @@ magma_zgeisai_maxblock(
                                                         item_ct1);
                        });
     // check for pattern L5
-    /*
-    DPCT1049:408: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * block, block),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -262,11 +237,6 @@ magma_zgeisai_maxblock(
     //now allocate the roptr for MT
     CHECK( magma_index_malloc( &MT->drow, L.num_rows+1 ) );
     // global nonzero count + generate rowptr
-    /*
-    DPCT1049:409: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto MT_drow_ct2 = MT->drow;
 
@@ -294,11 +264,6 @@ magma_zgeisai_maxblock(
     MT->fill_mode = T.fill_mode;
 
     // now insert the data needed
-    /*
-    DPCT1049:410: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto MT_drow_ct5 = MT->drow;
         auto MT_dcol_ct6 = MT->dcol;
@@ -313,11 +278,6 @@ magma_zgeisai_maxblock(
                          });
     });
 
-    /*
-    DPCT1049:411: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto MT_drow_ct5 = MT->drow;
         auto MT_dcol_ct6 = MT->dcol;
@@ -332,11 +292,6 @@ magma_zgeisai_maxblock(
                          });
     });
 
-    /*
-    DPCT1049:412: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto MT_drow_ct5 = MT->drow;
         auto MT_dcol_ct6 = MT->dcol;
@@ -351,11 +306,6 @@ magma_zgeisai_maxblock(
                          });
     });
 
-    /*
-    DPCT1049:413: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto MT_drow_ct5 = MT->drow;
         auto MT_dcol_ct6 = MT->dcol;
@@ -370,11 +320,6 @@ magma_zgeisai_maxblock(
                          });
     });
 
-    /*
-    DPCT1049:414: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto MT_drow_ct5 = MT->drow;
         auto MT_dcol_ct6 = MT->dcol;

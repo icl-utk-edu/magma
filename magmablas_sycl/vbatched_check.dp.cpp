@@ -51,11 +51,6 @@ magma_getrf_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:232: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -129,11 +124,6 @@ magma_gemm_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:233: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -223,11 +213,6 @@ magma_trsm_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:234: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -316,11 +301,6 @@ magma_syrk_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:235: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -377,11 +357,6 @@ magma_herk_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:236: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -469,11 +444,6 @@ magma_syr2k_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:237: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -535,11 +505,6 @@ magma_her2k_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:238: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -629,11 +594,6 @@ magma_hemm_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:239: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -723,11 +683,6 @@ magma_gemv_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:240: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -807,11 +762,6 @@ magma_hemv_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:241: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -884,11 +834,6 @@ magma_axpy_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:242: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -964,11 +909,6 @@ magma_trmm_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:243: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -1046,11 +986,6 @@ magma_potrf_vbatched_checker(
     // launch the checker kernel
     sycl::range<3> grid(1, 1, magma_ceildiv(batchCount, CHECKER_TX));
     sycl::range<3> threads(1, 1, CHECKER_TX);
-    /*
-    DPCT1049:244: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {

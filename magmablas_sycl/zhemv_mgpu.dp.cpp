@@ -917,12 +917,6 @@ magmablas_zhemv_mgpu(
         sycl::range<3> threads_sum(1, 1, NB_X);
 
         if ( upper ) {
-            /*
-            DPCT1049:958: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queues[dev]->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 2,
@@ -951,12 +945,6 @@ magmablas_zhemv_mgpu(
                                      });
                 });
 
-            /*
-            DPCT1049:959: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queues[dev]->sycl_stream()))
                 ->parallel_for(
                     sycl::nd_range<3>(grid * threads_sum, threads_sum),
@@ -967,12 +955,6 @@ magmablas_zhemv_mgpu(
                     });
         }
         else {
-            /*
-            DPCT1049:960: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queues[dev]->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 2,
@@ -1001,12 +983,6 @@ magmablas_zhemv_mgpu(
                                      });
                 });
 
-            /*
-            DPCT1049:961: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queues[dev]->sycl_stream()))
                 ->parallel_for(
                     sycl::nd_range<3>(grid * threads_sum, threads_sum),

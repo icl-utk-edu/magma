@@ -435,11 +435,6 @@ magmablas_zgeam(
                          queue);
     else if ( transA == MagmaNoTrans && transB == MagmaNoTrans ){
         sycl::range<3> grid(1, magma_ceildiv(n, NB), magma_ceildiv(m, NB));
-        /*
-        DPCT1049:288: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {
@@ -448,11 +443,6 @@ magmablas_zgeam(
                            });
     }
     else if ( transA == MagmaNoTrans )
-        /*
-        DPCT1049:289: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 2,
@@ -468,11 +458,6 @@ magmablas_zgeam(
                                  });
             });
     else if ( transB == MagmaNoTrans )
-        /*
-        DPCT1049:290: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 2,
@@ -488,11 +473,6 @@ magmablas_zgeam(
                                  });
             });
     else
-        /*
-        DPCT1049:291: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 2,

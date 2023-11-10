@@ -240,12 +240,6 @@ magma_zgecscsyncfreetrsm_analysis(
     int num_threads = 128;
     int num_blocks = ceil ((double)nnz / (double)num_threads);
     queue->sycl_stream()->memset(dgraphindegree, 0, m * sizeof(magma_index_t)).wait();
-    /*
-    DPCT1049:78: The work-group size passed to the SYCL kernel may exceed
-     * the limit. To get the device limit, query
-     * info::device::max_work_group_size. Adjust the work-group size if needed.
-
-     */
     queue->sycl_stream()->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, num_blocks) *
                                              sycl::range<3>(1, 1, num_threads),
                                          sycl::range<3>(1, 1, num_threads)),
@@ -288,12 +282,6 @@ magma_zgecscsyncfreetrsm_solve(
     num_threads = 4 * MAGMA_CSC_SYNCFREE_WARP_SIZE;
     num_blocks = ceil ((double)m / 
                          (double)(num_threads/MAGMA_CSC_SYNCFREE_WARP_SIZE));
-    /*
-    DPCT1049:79: The work-group size passed to the SYCL kernel may exceed
-     * the limit. To get the device limit, query
-     * info::device::max_work_group_size. Adjust the work-group size if needed.
-
-     */
     queue->sycl_stream()->parallel_for(
         sycl::nd_range<3>(sycl::range<3>(1, 1, num_blocks) *
                               sycl::range<3>(1, 1, num_threads),
