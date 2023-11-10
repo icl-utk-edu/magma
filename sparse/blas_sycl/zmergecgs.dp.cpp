@@ -107,11 +107,6 @@ magma_zcgs_1(
 {
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(num_rows, BLOCK_SIZE));
-    /*
-    DPCT1049:482: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -195,11 +190,6 @@ magma_zcgs_2(
 {
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(num_rows, BLOCK_SIZE));
-    /*
-    DPCT1049:483: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(Gs * Bs, Bs), [=](sycl::nd_item<3> item_ct1) {
@@ -295,11 +285,6 @@ magma_zcgs_3(
 {
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(num_rows, BLOCK_SIZE));
-    /*
-    DPCT1049:484: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -395,11 +380,6 @@ magma_zcgs_4(
 {
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(num_rows, BLOCK_SIZE));
-    /*
-    DPCT1049:485: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                        [=](sycl::nd_item<3> item_ct1) {

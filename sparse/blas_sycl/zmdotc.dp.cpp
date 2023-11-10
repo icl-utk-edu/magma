@@ -318,11 +318,6 @@ magma_zmdotc1(
     magmaDoubleComplex_ptr aux1 = d1, aux2 = d2;
     int b = 1;
 
-    /*
-    DPCT1049:253: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -338,11 +333,6 @@ magma_zmdotc1(
     while (Gs[2] > 1) {
         Gs_next[2] = magma_ceildiv(Gs[2], Bs[2]);
         if (Gs_next[2] == 1) Gs_next[2] = 2;
-        /*
-        DPCT1049:255: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -754,11 +744,6 @@ magma_zmdotc2(
     magmaDoubleComplex_ptr aux1 = d1, aux2 = d2;
     int b = 1;
 
-    /*
-    DPCT1049:277: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -774,11 +759,6 @@ magma_zmdotc2(
     while (Gs[2] > 1) {
         Gs_next[2] = magma_ceildiv(Gs[2], Bs[2]);
         if (Gs_next[2] == 1) Gs_next[2] = 2;
-        /*
-        DPCT1049:279: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1214,11 +1194,6 @@ magma_zmdotc3(
     int b = 1;        
     // magma_zmdotc3_gpumemzero<<< Gs, Bs, 0, queue->sycl_stream() >>>( d1, n );
 
-    /*
-    DPCT1049:302: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -1235,11 +1210,6 @@ magma_zmdotc3(
     while (Gs[2] > 1) {
         Gs_next[2] = magma_ceildiv(Gs[2], Bs[2]);
         if (Gs_next[2] == 1) Gs_next[2] = 2;
-        /*
-        DPCT1049:304: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -1692,11 +1662,6 @@ magma_zmdotc4(
     magmaDoubleComplex_ptr aux1 = d1, aux2 = d2;
     int b = 1;
 
-    /*
-    DPCT1049:327: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -1713,11 +1678,6 @@ magma_zmdotc4(
     while (Gs[2] > 1) {
         Gs_next[2] = magma_ceildiv(Gs[2], Bs[2]);
         if (Gs_next[2] == 1) Gs_next[2] = 2;
-        /*
-        DPCT1049:329: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,

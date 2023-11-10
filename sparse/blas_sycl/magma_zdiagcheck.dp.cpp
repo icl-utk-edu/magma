@@ -91,11 +91,6 @@ magma_zdiagcheck(
     CHECK( magma_imalloc_cpu( &hinfo, 1 ) );
     hinfo[0] = 0;
     magma_isetvector( 1, hinfo, 1, dinfo, 1, queue );
-    /*
-    DPCT1049:803: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
                                          sycl::range<3>(1, 1, threads)),

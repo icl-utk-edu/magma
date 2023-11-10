@@ -148,11 +148,6 @@ magma_zlarfg_gpu(
     //magmablas_dznrm2_cols(n, 1, dx0, n, dxnorm);
     magmablas_dznrm2_cols(n-1, 1, dx0+1, n, dxnorm, queue);
 
-    /*
-    DPCT1049:1200: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magmaDoubleComplex, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>

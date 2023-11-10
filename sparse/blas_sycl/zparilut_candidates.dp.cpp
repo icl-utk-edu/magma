@@ -509,11 +509,6 @@ magma_zparilut_candidates_gpu(
     U_new->storage_type = Magma_CSR;
     U_new->memory_location = Magma_DEV;
 
-    /*
-    DPCT1049:839: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid1 * block1, block1),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -522,11 +517,6 @@ magma_zparilut_candidates_gpu(
                                L.drow, L.dcol, U.drow, U.dcol, insertedL,
                                insertedU, item_ct1);
                        });
-    /*
-    DPCT1049:840: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid1 * block1, block1),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -557,11 +547,6 @@ magma_zparilut_candidates_gpu(
     //CHECK(magma_zindexinit_gpu(U_new->nnz, U_new->drowidx, queue));
     // we don't need to init rowidx and col
     // the uninitilazed values will be removed anyways
-    /*
-    DPCT1049:841: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto L_new_drow_ct9 = L_new->drow;
         auto L_new_drowidx_ct10 = L_new->drowidx;
@@ -583,11 +568,6 @@ magma_zparilut_candidates_gpu(
                     U_new_dval_ct17, insertedU, item_ct1);
             });
     });
-    /*
-    DPCT1049:842: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto L_new_drow_ct9 = L_new->drow;
         auto L_new_drowidx_ct10 = L_new->drowidx;

@@ -165,11 +165,6 @@ magma_zgeelltmv(
     definition and is not valid for all macro uses. Adjust the code.
     */
     if (beta == MAGMA_Z_ZERO) {
-        /*
-        DPCT1049:799: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
@@ -179,11 +174,6 @@ magma_zgeelltmv(
                                            dcolind, dx, beta, dy, item_ct1);
                 });
     } else {
-        /*
-        DPCT1049:800: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
@@ -294,11 +284,6 @@ magma_zgeelltmv_shift(
     magmaDoubleComplex tmp_shift;
     //magma_zsetvector(1,&lambda,1,&tmp_shift,1); 
     tmp_shift = lambda;
-    /*
-    DPCT1049:801: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
                                          sycl::range<3>(1, 1, threads)),

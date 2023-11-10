@@ -91,52 +91,39 @@ magma_zsampleselect(
     magma_queue_t queue )
 {    
     magma_int_t info = 0;
-    magma_int_t arch = magma_getdevice_arch();
 
-    if( arch >= 300 ) {
-        magma_int_t num_blocks = magma_ceildiv(total_size, block_size);
-        magma_int_t required_size = sizeof(double) * (total_size * 2 + searchtree_size)
-                                    + sizeof(int32_t) * sampleselect_alloc_size(total_size);
-        auto realloc_result = realloc_if_necessary(tmp_ptr, tmp_size, required_size);
+    magma_int_t num_blocks = magma_ceildiv(total_size, block_size);
+    magma_int_t required_size = sizeof(double) * (total_size * 2 + searchtree_size)
+                                + sizeof(int32_t) * sampleselect_alloc_size(total_size);
+    auto realloc_result = realloc_if_necessary(tmp_ptr, tmp_size, required_size);
 
-        double* gputmp1 = (double*)*tmp_ptr;
-        double* gputmp2 = gputmp1 + total_size;
-        double* gputree = gputmp2 + total_size;
-        double* gpuresult = gputree + searchtree_size;
-        int32_t* gpuints = (int32_t*)(gpuresult + 1);
+    double* gputmp1 = (double*)*tmp_ptr;
+    double* gputmp2 = gputmp1 + total_size;
+    double* gputree = gputmp2 + total_size;
+    double* gpuresult = gputree + searchtree_size;
+    int32_t* gpuints = (int32_t*)(gpuresult + 1);
 
-        CHECK(realloc_result);
+    CHECK(realloc_result);
 
-        /*
-        DPCT1049:60: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        ((sycl::queue *)(queue->sycl_stream()))
-            ->parallel_for(
-                sycl::nd_range<3>(sycl::range<3>(1, 1, num_blocks) *
-                                      sycl::range<3>(1, 1, block_size),
-                                  sycl::range<3>(1, 1, block_size)),
-                [=](sycl::nd_item<3> item_ct1) {
-                    magma_sampleselect::compute_abs(val, gputmp1, total_size,
-                                                    item_ct1);
-                });
-        ((sycl::queue *)(queue->sycl_stream()))
-            ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, 1),
-                                             sycl::range<3>(1, 1, 1)),
-                           [=](sycl::nd_item<3> item_ct1) {
-                               magma_sampleselect::sampleselect(
-                                   gputmp1, gputmp2, gputree, gpuints,
-                                   total_size, subset_size, gpuresult);
-                           });
-        magma_dgetvector(1, gpuresult, 1, thrs, 1, queue );
-        *thrs = std::sqrt(*thrs);   
-
-    }
-    else {
-        printf("error: this functionality needs CUDA architecture >= 3.5\n");
-        info = MAGMA_ERR_NOT_SUPPORTED;
-    }
+    ((sycl::queue *)(queue->sycl_stream()))
+        ->parallel_for(
+            sycl::nd_range<3>(sycl::range<3>(1, 1, num_blocks) *
+                                  sycl::range<3>(1, 1, block_size),
+                              sycl::range<3>(1, 1, block_size)),
+            [=](sycl::nd_item<3> item_ct1) {
+                magma_sampleselect::compute_abs(val, gputmp1, total_size,
+                                                item_ct1);
+            });
+    ((sycl::queue *)(queue->sycl_stream()))
+        ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, 1),
+                                         sycl::range<3>(1, 1, 1)),
+                       [=](sycl::nd_item<3> item_ct1) {
+                           magma_sampleselect::sampleselect(
+                               gputmp1, gputmp2, gputree, gpuints,
+                               total_size, subset_size, gpuresult);
+                       });
+    magma_dgetvector(1, gpuresult, 1, thrs, 1, queue );
+    *thrs = std::sqrt(*thrs);   
 
 cleanup:
     return info;
@@ -213,11 +200,6 @@ magma_zsampleselect_approx(
     constexpr auto size = 1 << searchtree_height; // for shared mem size in sampleselect_findbucket
     CHECK(realloc_result);
 
-    /*
-    DPCT1049:61: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, num_blocks) *
                                              sycl::range<3>(1, 1, block_size),
@@ -248,11 +230,6 @@ magma_zsampleselect_approx(
                                  leaves_acc_ct1.get_pointer());
                          });
     });
-    /*
-    DPCT1049:63: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -272,11 +249,6 @@ magma_zsampleselect_approx(
                     local_counts_acc_ct1.get_pointer());
             });
     });
-    /*
-    DPCT1049:64: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto num_grouped_blocks_ct2 = num_grouped_blocks;
 

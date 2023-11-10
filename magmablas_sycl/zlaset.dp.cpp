@@ -363,12 +363,6 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                 nn = (j == super_grid[1] - 1 ? n % super_NB : super_NB);
                 grid[1] = magma_ceildiv(nn, BLK_Y);
                 if ( i == j ) {  // diagonal super block
-                    /*
-                    DPCT1049:1245: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
@@ -380,12 +374,6 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                             });
                 }
                 else {           // off diagonal super block
-                    /*
-                    DPCT1049:1246: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
@@ -408,12 +396,6 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                 nn = (j == super_grid[1] - 1 ? n % super_NB : super_NB);
                 grid[1] = magma_ceildiv(nn, BLK_Y);
                 if ( i == j ) {  // diagonal super block
-                    /*
-                    DPCT1049:1247: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
@@ -425,12 +407,6 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                             });
                 }
                 else {           // off diagonal super block
-                    /*
-                    DPCT1049:1248: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(grid * threads, threads),
@@ -478,12 +454,6 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                     nn = (j == super_grid[1] - 1 ? n % super_NB : super_NB);
                     grid[1] = magma_ceildiv(nn, BLK_Y);
                     if ( i == j ) {  // diagonal super block
-                        /*
-                        DPCT1049:1252: The work-group size passed to the SYCL
-                        kernel may exceed the limit. To get the device limit,
-                        query info::device::max_work_group_size. Adjust the
-                        work-group size if needed.
-                        */
                         ((sycl::queue *)(queue->sycl_stream()))
                             ->parallel_for(
                                 sycl::nd_range<3>(grid * threads, threads),
@@ -495,12 +465,6 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
                                 });
                     }
                     else {           // off diagonal super block
-                        /*
-                        DPCT1049:1253: The work-group size passed to the SYCL
-                        kernel may exceed the limit. To get the device limit,
-                        query info::device::max_work_group_size. Adjust the
-                        work-group size if needed.
-                        */
                         ((sycl::queue *)(queue->sycl_stream()))
                             ->parallel_for(
                                 sycl::nd_range<3>(grid * threads, threads),
@@ -539,12 +503,6 @@ void magmablas_zlaset_internal_batched(
                             magma_ceildiv(m, BLK_X));
 
         if (uplo == MagmaLower) {
-            /*
-            DPCT1049:1254: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
@@ -554,12 +512,6 @@ void magmablas_zlaset_internal_batched(
                                });
         }
         else if (uplo == MagmaUpper) {
-            /*
-            DPCT1049:1255: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
@@ -569,12 +521,6 @@ void magmablas_zlaset_internal_batched(
                                });
         }
         else {
-            /*
-            DPCT1049:1256: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
@@ -656,12 +602,6 @@ void magmablas_zlaset_vbatched(
                             magma_ceildiv(max_m, BLK_X));
 
         if (uplo == MagmaLower) {
-            /*
-            DPCT1049:1257: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
@@ -671,12 +611,6 @@ void magmablas_zlaset_vbatched(
                                });
         }
         else if (uplo == MagmaUpper) {
-            /*
-            DPCT1049:1258: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
@@ -686,12 +620,6 @@ void magmablas_zlaset_vbatched(
                                });
         }
         else {
-            /*
-            DPCT1049:1259: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {

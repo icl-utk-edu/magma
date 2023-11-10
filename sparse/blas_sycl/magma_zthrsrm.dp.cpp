@@ -138,11 +138,6 @@ magma_zthrsholdrm_gpu(
     magma_index_malloc(&new_rownnz,A->num_rows);
     magma_index_malloc(&B.drow,A->num_rows+1);
 
-    /*
-    DPCT1049:530: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto A_num_rows_ct0 = A->num_rows;
         auto A_drow_ct1 = A->drow;
@@ -162,11 +157,6 @@ magma_zthrsholdrm_gpu(
     magma_zmalloc(&B.dval,B.nnz);
     magma_index_malloc(&B.rowidx,B.nnz);
     magma_index_malloc(&B.dcol,B.nnz);
-    /*
-    DPCT1049:531: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto A_num_rows_ct0 = A->num_rows;
         auto A_drow_ct1 = A->drow;

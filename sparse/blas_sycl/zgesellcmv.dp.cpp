@@ -147,11 +147,6 @@ magma_zgesellcmv(
     // (~2M rows for blocksize 32)
     sycl::range<3> grid(1, 1, slices);
     magma_int_t threads = blocksize;
-    /*
-    DPCT1049:123: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
                                          sycl::range<3>(1, 1, threads)),

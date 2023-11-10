@@ -94,11 +94,6 @@ ztrsv_notrans_outplace_batched(
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> grid(ibatch, 1, 1);
 
-        /*
-        DPCT1049:1506: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -147,11 +142,6 @@ ztrsv_trans_outplace_batched(
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> grid(ibatch, 1, 1);
 
-        /*
-        DPCT1049:1508: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,

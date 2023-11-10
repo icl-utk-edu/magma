@@ -124,11 +124,6 @@ void herk_template_vbatched_nt(
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> dimGrid(ibatch, magma_ceildiv(max_n, BLK_N),
                                magma_ceildiv(max_n, BLK_M));
-        /*
-        DPCT1049:144: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -174,11 +169,6 @@ void herk_template_vbatched_tn(
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> dimGrid(ibatch, magma_ceildiv(max_n, BLK_N),
                                magma_ceildiv(max_n, BLK_M));
-        /*
-        DPCT1049:145: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,

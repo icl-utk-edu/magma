@@ -100,11 +100,6 @@ magma_zmergeblockkrylov(
     sycl::range<3> Bs(1, num_cols, BLOCK_SIZE);
 
     sycl::range<3> Gs(1, 1, magma_ceildiv(num_rows, BLOCK_SIZE));
-    /*
-    DPCT1049:189: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                        [=](sycl::nd_item<3> item_ct1) {

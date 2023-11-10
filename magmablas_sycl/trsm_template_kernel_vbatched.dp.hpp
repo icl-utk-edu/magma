@@ -287,12 +287,6 @@ void trsm_template_vbatched_lNx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             sycl::range<3> grid(ibatch, 1, magma_ceildiv(max_n, NRHS));
 
-            /*
-            DPCT1049:1482: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
@@ -318,12 +312,6 @@ void trsm_template_vbatched_lNx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             sycl::range<3> grid(ibatch, 1, magma_ceildiv(max_n, NRHS));
 
-            /*
-            DPCT1049:1483: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
@@ -366,12 +354,6 @@ void trsm_template_vbatched_lTx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             sycl::range<3> grid(ibatch, 1, magma_ceildiv(max_n, NRHS));
 
-            /*
-            DPCT1049:1484: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
@@ -398,12 +380,6 @@ void trsm_template_vbatched_lTx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             sycl::range<3> grid(ibatch, 1, magma_ceildiv(max_n, NRHS));
 
-            /*
-            DPCT1049:1485: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
@@ -447,12 +423,6 @@ void trsm_template_vbatched_rNx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             sycl::range<3> grid(ibatch, 1, magma_ceildiv(max_m, NRHS));
 
-            /*
-            DPCT1049:1486: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
 	    // NNB: shared mem sizes based on trsm_template_device.cuh
 	    // values (for all kernels in this file)
             ((sycl::queue *)(queue->sycl_stream()))
@@ -480,12 +450,6 @@ void trsm_template_vbatched_rNx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             sycl::range<3> grid(ibatch, 1, magma_ceildiv(max_m, NRHS));
 
-            /*
-            DPCT1049:1487: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
@@ -528,12 +492,6 @@ void trsm_template_vbatched_rTx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             sycl::range<3> grid(ibatch, 1, magma_ceildiv(max_m, NRHS));
 
-            /*
-            DPCT1049:1488: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 1, sycl::access_mode::read_write,
@@ -560,12 +518,6 @@ void trsm_template_vbatched_rTx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             sycl::range<3> grid(ibatch, 1, magma_ceildiv(max_m, NRHS));
 
-            /*
-            DPCT1049:1489: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 1, sycl::access_mode::read_write,

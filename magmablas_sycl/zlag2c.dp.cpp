@@ -171,11 +171,6 @@ magmablas_zlag2c(
     q_ct1.memcpy(magma_zlag2c_flag.get_ptr(), info, sizeof(magma_zlag2c_flag))
         .wait(); // magma_zlag2c_flag = 0
 
-    /*
-    DPCT1049:1097: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         magma_zlag2c_flag.init(*((sycl::queue *)(queue->sycl_stream())));
 

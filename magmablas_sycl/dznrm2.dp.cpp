@@ -97,11 +97,6 @@ magmablas_dznrm2_check(
 {
     sycl::range<3> threads(1, 1, BLOCK_SIZE);
     sycl::range<3> blocks(1, 1, n);
-    /*
-    DPCT1049:158: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -174,11 +169,6 @@ magmablas_dznrm2_sm(
 {
     sycl::range<3> threads(1, BLOCK_SIZEy, BLOCK_SIZEx);
     sycl::range<3> blocks(1, 1, 1);
-    /*
-    DPCT1049:160: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 2, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -234,11 +224,6 @@ magmablas_dznrm2_adjust(
 {
     sycl::range<3> threads(1, 1, k);
     sycl::range<3> blocks(1, 1, 1);
-    /*
-    DPCT1049:162: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -307,11 +292,6 @@ magmablas_dznrm2_row_check_adjust(
 {
     sycl::range<3> threads(1, 1, BS);
     sycl::range<3> blocks(1, 1, magma_ceildiv(k, BS));
-    /*
-    DPCT1049:163: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(blocks * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -337,11 +317,6 @@ magmablas_dznrm2_cols(
 {
     sycl::range<3> threads(1, 1, BLOCK_SIZE);
     sycl::range<3> blocks(1, 1, n);
-    /*
-    DPCT1049:164: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>

@@ -122,12 +122,6 @@ magmablas_ztrsv_outofplace(
             if (diag == MagmaNonUnit)
             {
                 if (flag == 0) {
-                    /*
-                    DPCT1049:1512: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -154,12 +148,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1514: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -189,12 +177,6 @@ magmablas_ztrsv_outofplace(
             else if (diag == MagmaUnit)
             {
                 if (flag == 0) {
-                    /*
-                    DPCT1049:1515: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -221,12 +203,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1516: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -260,12 +236,6 @@ magmablas_ztrsv_outofplace(
             {
                 if (flag == 0)
                 {
-                    /*
-                    DPCT1049:1517: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -292,12 +262,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1518: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -328,12 +292,6 @@ magmablas_ztrsv_outofplace(
             {
                 if (flag == 0)
                 {
-                    /*
-                    DPCT1049:1519: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -360,12 +318,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1520: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -401,12 +353,6 @@ magmablas_ztrsv_outofplace(
             if (diag == MagmaNonUnit) {
                 if (flag == 0)
                 {
-                    /*
-                    DPCT1049:1521: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -433,12 +379,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1522: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -468,12 +408,6 @@ magmablas_ztrsv_outofplace(
             else if (diag == MagmaUnit) {
                 if (flag == 0)
                 {
-                    /*
-                    DPCT1049:1523: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -500,12 +434,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1524: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -538,12 +466,6 @@ magmablas_ztrsv_outofplace(
             if (diag == MagmaNonUnit) {
                 if (flag == 0)
                 {
-                    /*
-                    DPCT1049:1525: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -570,12 +492,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1526: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -605,12 +521,6 @@ magmablas_ztrsv_outofplace(
             else if (diag == MagmaUnit) {
                 if (flag == 0)
                 {
-                    /*
-                    DPCT1049:1527: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -637,12 +547,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1528: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -678,12 +582,6 @@ magmablas_ztrsv_outofplace(
             if (diag == MagmaNonUnit) {
                 if (flag == 0)
                 {
-                    /*
-                    DPCT1049:1529: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -710,12 +608,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1530: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -745,12 +637,6 @@ magmablas_ztrsv_outofplace(
             else if (diag == MagmaUnit) {
                 if (flag == 0)
                 {
-                    /*
-                    DPCT1049:1531: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -777,12 +663,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1532: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -815,12 +695,6 @@ magmablas_ztrsv_outofplace(
             if (diag == MagmaNonUnit) {
                 if (flag == 0)
                 {
-                    /*
-                    DPCT1049:1533: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -847,12 +721,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1534: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -882,12 +750,6 @@ magmablas_ztrsv_outofplace(
             else if (diag == MagmaUnit) {
                 if (flag == 0)
                 {
-                    /*
-                    DPCT1049:1535: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,
@@ -914,12 +776,6 @@ magmablas_ztrsv_outofplace(
                         });
                 }
                 else {
-                    /*
-                    DPCT1049:1536: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<uint8_t, 1,

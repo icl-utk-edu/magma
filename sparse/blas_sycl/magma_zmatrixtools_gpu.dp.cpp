@@ -80,11 +80,6 @@ magma_zvalinit_gpu(
     int dimgrid3 = 1;
     sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
     sycl::range<3> block(1, blocksize2, blocksize1);
-    /*
-    DPCT1049:344: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * block, block),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -149,11 +144,6 @@ magma_zindexinit_gpu(
     int dimgrid3 = 1;
     sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
     sycl::range<3> block(1, blocksize2, blocksize1);
-    /*
-    DPCT1049:345: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * block, block),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -376,11 +366,6 @@ magma_zmatrix_cup_gpu(
     CHECK(magma_index_malloc(&inserted, num_rows));
     CHECK(magma_zindexinit_gpu(num_rows, inserted, queue));
 
-    /*
-    DPCT1049:346: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid1 * block1, block1),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -396,11 +381,6 @@ magma_zmatrix_cup_gpu(
     CHECK(magma_index_malloc(&U->drowidx, U->nnz));
     CHECK(magma_index_malloc(&U->dcol, U->nnz));
 
-    /*
-    DPCT1049:347: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto U_drow_ct7 = U->drow;
         auto U_drowidx_ct8 = U->drowidx;

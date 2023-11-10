@@ -73,11 +73,6 @@ magma_izamax_vbatched(
     sycl::range<3> grid(1, 1, batchCount);
     sycl::range<3> threads(1, 1, zamax);
 
-    /*
-    DPCT1049:636: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         /*
         DPCT1083:1668: The size of local memory in the migrated code may be
@@ -157,11 +152,6 @@ magma_zswap_vbatched(
     sycl::range<3> grid(1, 1, batchCount);
     sycl::range<3> threads(1, 1, zamax);
 
-    /*
-    DPCT1049:638: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -231,11 +221,6 @@ magma_int_t magma_zscal_zgeru_vbatched(
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> grid(ibatch, 1, magma_ceildiv(max_M, tbx));
 
-        /*
-        DPCT1049:639: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {
@@ -442,11 +427,6 @@ extern "C" magma_int_t magma_zgetf2_fused_sm_vbatched(
     if( check_launch_only == 1 ) return arginfo;
 
     void *kernel_args[] = {&max_M, &max_N, &max_minMN, &max_MxN, &m, &n, &dA_array, &Ai, &Aj, &ldda, &dipiv_array, &ipiv_i, &info_array, &gbstep, &batchCount};
-    /*
-    DPCT1049:649: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     // TODO: error handling
     int e = 0; //fix
     ((sycl::queue *)(queue->sycl_stream()))

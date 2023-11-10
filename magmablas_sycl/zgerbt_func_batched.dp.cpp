@@ -57,11 +57,6 @@ magmablas_zprbt_mtv_batched(
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> grid(1, ibatch, magma_ceildiv(n, 4 * block_length));
 
-        /*
-        DPCT1049:496: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
@@ -70,11 +65,6 @@ magmablas_zprbt_mtv_batched(
                     magmablas_zapply_transpose_vector_kernel_batched(
                         n / 2, du, n, db_array + i, 0, item_ct1);
                 });
-        /*
-        DPCT1049:497: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
@@ -86,11 +76,6 @@ magmablas_zprbt_mtv_batched(
 
         threads = block_length;
         grid = sycl::range<3>(1, 1, magma_ceildiv(n, 2 * block_length));
-        /*
-        DPCT1049:498: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
@@ -139,11 +124,6 @@ magmablas_zprbt_mv_batched(
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> grid(1, ibatch, magma_ceildiv(n, 2 * block_length));
-        /*
-        DPCT1049:499: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
@@ -155,11 +135,6 @@ magmablas_zprbt_mv_batched(
 
         threads = block_length;
         grid = sycl::range<3>(1, 1, magma_ceildiv(n, 4 * block_length));
-        /*
-        DPCT1049:500: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
@@ -168,11 +143,6 @@ magmablas_zprbt_mv_batched(
                     magmablas_zapply_vector_kernel_batched(
                         n / 2, dv, n, db_array + i, 0, item_ct1);
                 });
-        /*
-        DPCT1049:501: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
@@ -236,11 +206,6 @@ magmablas_zprbt_batched(
         sycl::range<3> grid(ibatch, magma_ceildiv(n, 4 * block_width),
                             magma_ceildiv(n, 4 * block_height));
 
-        /*
-        DPCT1049:502: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -270,11 +235,6 @@ magmablas_zprbt_batched(
                             v2_acc_ct1.get_pointer());
                     });
             });
-        /*
-        DPCT1049:503: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -304,11 +264,6 @@ magmablas_zprbt_batched(
                             v2_acc_ct1.get_pointer());
                     });
             });
-        /*
-        DPCT1049:504: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -338,11 +293,6 @@ magmablas_zprbt_batched(
                             v2_acc_ct1.get_pointer());
                     });
             });
-        /*
-        DPCT1049:505: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -375,11 +325,6 @@ magmablas_zprbt_batched(
 
         sycl::range<3> grid2(ibatch, magma_ceildiv(n, 2 * block_width),
                              magma_ceildiv(n, 2 * block_height));
-        /*
-        DPCT1049:506: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
