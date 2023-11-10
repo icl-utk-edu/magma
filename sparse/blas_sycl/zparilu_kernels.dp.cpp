@@ -118,11 +118,6 @@ magma_zparilu_csr(
     int dimgrid3 = 1;
     sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
     sycl::range<3> block(1, blocksize2, blocksize1);
-    /*
-    DPCT1049:419: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * block, block),
                        [=](sycl::nd_item<3> item_ct1) {

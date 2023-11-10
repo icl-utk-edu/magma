@@ -275,9 +275,11 @@ magma_zgeellrtmv(
 
     int real_row_length = magma_roundup( nnz_per_row, alignment );
 
-    magma_int_t arch = magma_getdevice_arch();
-    if ( arch < 200 && num_threads > 256 )
-        printf("error: too much shared memory requested.\n");
+    int nthreads_max = queue->sycl_stream()->get_device()
+                            .get_info<sycl::info::device::max_work_group_size>();
+    if ( num_threads > nthreads_max)
+        printf("error: too many threads requested (%d) for this device (max %d).\n",
+               num_threads, nthreads_max);
 
     int dimgrid1 = int( sqrt( double( num_blocks )));
     int dimgrid2 = magma_ceildiv( num_blocks, dimgrid1 );
@@ -292,11 +294,6 @@ magma_zgeellrtmv(
     // printf("launch kernel: %dx%d %d %d\n", grid.x, grid.y, num_threads, Ms);
 
     if ( alignment == 32 ) {
-        /*
-        DPCT1049:185: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -315,11 +312,6 @@ magma_zgeellrtmv(
             });
     }
     else if ( alignment == 16 ) {
-        /*
-        DPCT1049:187: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -338,11 +330,6 @@ magma_zgeellrtmv(
             });
     }
     else if ( alignment == 8 ) {
-        /*
-        DPCT1049:188: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,

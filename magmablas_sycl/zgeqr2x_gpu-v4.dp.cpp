@@ -146,12 +146,6 @@ magma_zgeqr2x4_gpu(
             if (i-b > 0) {
                 /* Compute the (i-1)th column of T */
                 if ( i-1 > 0 ) {
-                    /*
-                    DPCT1049:436: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 1,
@@ -172,12 +166,6 @@ magma_zgeqr2x4_gpu(
                                         item_ct1, sum_acc_ct1.get_pointer());
                                 });
                         });
-                    /*
-                    DPCT1049:437: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
                             sycl::accessor<magmaDoubleComplex, 1,
@@ -200,12 +188,6 @@ magma_zgeqr2x4_gpu(
                 }
 
                 /* dwork = V**H c */
-                /*
-                DPCT1049:438: The work-group size passed to the SYCL kernel may
-                exceed the limit. To get the device limit, query
-                info::device::max_work_group_size. Adjust the work-group size if
-                needed.
-                */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 1,
@@ -227,12 +209,6 @@ magma_zgeqr2x4_gpu(
                     });
 
                 /* dwork = T**H dwork2 */
-                /*
-                DPCT1049:439: The work-group size passed to the SYCL kernel may
-                exceed the limit. To get the device limit, query
-                info::device::max_work_group_size. Adjust the work-group size if
-                needed.
-                */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 1,
@@ -256,12 +232,6 @@ magma_zgeqr2x4_gpu(
                     sycl::range<3> blocks3(1, 1,
                                            magma_ceildiv(m - b, BLOCK_SIZE));
                     sycl::range<3> threads3(1, 1, BLOCK_SIZE);
-                    /*
-                    DPCT1049:440: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->parallel_for(
                             sycl::nd_range<3>(blocks3 * threads3, threads3),
@@ -275,12 +245,6 @@ magma_zgeqr2x4_gpu(
 
             /*   Adjust the dnorm[i] to hold the norm of A(i:m,i) */
             if ( i > 0 ) {
-                /*
-                DPCT1049:441: The work-group size passed to the SYCL kernel may
-                exceed the limit. To get the device limit, query
-                info::device::max_work_group_size. Adjust the work-group size if
-                needed.
-                */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<double, 1, sycl::access_mode::read_write,
@@ -319,12 +283,6 @@ magma_zgeqr2x4_gpu(
             }
         }
         if ( i-1 > 0 ) {
-            /*
-            DPCT1049:443: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
@@ -343,12 +301,6 @@ magma_zgeqr2x4_gpu(
                                                 sum_acc_ct1.get_pointer());
                         });
                 });
-            /*
-            DPCT1049:444: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,

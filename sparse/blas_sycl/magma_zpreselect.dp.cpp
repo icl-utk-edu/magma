@@ -112,11 +112,6 @@ magma_zpreselect_gpu(
     CHECK( magma_zmalloc( &oneA->dval, oneA->nnz ) );
     
     if( order == 1 ){ // don't copy the first
-        /*
-        DPCT1049:736: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto A_num_rows_ct0 = A->num_rows;
@@ -138,11 +133,6 @@ magma_zpreselect_gpu(
         //     }
         // }
     } else { // don't copy the last
-        /*
-        DPCT1049:737: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto A_num_rows_ct0 = A->num_rows;

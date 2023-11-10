@@ -135,11 +135,6 @@ magma_ztfqmr_1(
 {
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(num_rows, BLOCK_SIZE));
-    /*
-    DPCT1049:156: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(Gs * Bs, Bs), [=](sycl::nd_item<3> item_ct1) {
@@ -233,11 +228,6 @@ magma_ztfqmr_2(
 {
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(num_rows, BLOCK_SIZE));
-    /*
-    DPCT1049:157: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -323,11 +313,6 @@ magma_ztfqmr_3(
 {
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(num_rows, BLOCK_SIZE));
-    /*
-    DPCT1049:158: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -417,11 +402,6 @@ magma_ztfqmr_4(
 {
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(num_rows, BLOCK_SIZE));
-    /*
-    DPCT1049:159: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -532,11 +512,6 @@ magma_ztfqmr_5(
 {
     sycl::range<3> Bs(1, 1, BLOCK_SIZE);
     sycl::range<3> Gs(1, 1, magma_ceildiv(num_rows, BLOCK_SIZE));
-    /*
-    DPCT1049:160: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(Gs * Bs, Bs), [=](sycl::nd_item<3> item_ct1) {

@@ -597,11 +597,6 @@ magma_zmdotc_shfl(
     else if (1) { // 1D block kernel seems to be always faster
         sycl::range<3> block(1, 1, BLOCK_SIZE);
         sycl::range<3> grid(1, 1, magma_ceildiv(n, block[2]));
-        /*
-        DPCT1049:829: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 /*
@@ -625,12 +620,6 @@ magma_zmdotc_shfl(
             });
         int j;
         for (j=0; j < k; j++) {
-            /*
-            DPCT1049:830: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     /*
@@ -645,8 +634,8 @@ magma_zmdotc_shfl(
                             cgh);
 
                     cgh.parallel_for(
-                        sycl::nd_range<3>(sycl::range<3>(1, 1, 1024),
-                                          sycl::range<3>(1, 1, 1024)),
+                        sycl::nd_range<3>(sycl::range<3>(1, 1, BLOCK_SIZE),
+                                          sycl::range<3>(1, 1, BLOCK_SIZE)),
                         [=](sycl::nd_item<3> item_ct1)
                             [[intel::reqd_sub_group_size(32)]] {
                                 deviceReduceKernel<magmaDoubleComplex>(
@@ -658,15 +647,12 @@ magma_zmdotc_shfl(
     } else {
         sycl::range<3> block(1, k,
                              magma_roundup(magma_ceildiv(BLOCK_SIZE, k), 32));
-        while (block[2] * block[1] > 1024) {
+        int max_wg_size = queue->sycl_stream()->get_device()
+                            .get_info<sycl::info::device::max_work_group_size>(); 
+        while (block[2] * block[1] > max_wg_size) {
             block[2] -= 32;
         }
         sycl::range<3> grid(1, 1, magma_ceildiv(n, block[2]));
-        /*
-        DPCT1049:831: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 /*
@@ -691,12 +677,6 @@ magma_zmdotc_shfl(
             });
         int j;
         for (j=0; j < k; j++) {
-            /*
-            DPCT1049:832: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     /*
@@ -711,8 +691,8 @@ magma_zmdotc_shfl(
                             cgh);
 
                     cgh.parallel_for(
-                        sycl::nd_range<3>(sycl::range<3>(1, 1, 1024),
-                                          sycl::range<3>(1, 1, 1024)),
+                        sycl::nd_range<3>(sycl::range<3>(1, 1, BLOCK_SIZE),
+                                          sycl::range<3>(1, 1, BLOCK_SIZE)),
                         [=](sycl::nd_item<3> item_ct1)
                             [[intel::reqd_sub_group_size(32)]] {
                                 deviceReduceKernel<magmaDoubleComplex>(

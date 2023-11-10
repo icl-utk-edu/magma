@@ -334,12 +334,6 @@ magmablas_convert_sp2hp(
         for (unsigned int j = 0; j < super_grid[1]; ++j) { // full row
             nn = (j == super_grid[1] - 1 ? n % super_NB : super_NB);
             grid[1] = magma_ceildiv(nn, BLK_Y);
-            /*
-            DPCT1049:184: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
@@ -396,12 +390,6 @@ magmablas_convert_hp2sp(
         for (unsigned int j = 0; j < super_grid[1]; ++j) { // full row
             nn = (j == super_grid[1] - 1 ? n % super_NB : super_NB);
             grid[1] = magma_ceildiv(nn, BLK_Y);
-            /*
-            DPCT1049:185: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
@@ -459,12 +447,6 @@ magmablas_convert_dp2hp(
         for (unsigned int j = 0; j < super_grid[1]; ++j) { // full row
             nn = (j == super_grid[1] - 1 ? n % super_NB : super_NB);
             grid[1] = magma_ceildiv(nn, BLK_Y);
-            /*
-            DPCT1049:186: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {
@@ -522,12 +504,6 @@ magmablas_convert_hp2dp(
         for (unsigned int j = 0; j < super_grid[1]; ++j) { // full row
             nn = (j == super_grid[1] - 1 ? n % super_NB : super_NB);
             grid[1] = magma_ceildiv(nn, BLK_Y);
-            /*
-            DPCT1049:187: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                [=](sycl::nd_item<3> item_ct1) {

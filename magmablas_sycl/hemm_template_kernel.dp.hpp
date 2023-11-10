@@ -98,12 +98,6 @@ void hemm_template(
     sycl::range<3> grid(1, magma_ceildiv(n, BLK_N), magma_ceildiv(m, BLK_M));
     if( side == MagmaLeft ){
         if(uplo == MagmaLower){
-            /*
-            DPCT1049:851: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 2, sycl::access_mode::read_write,
@@ -123,12 +117,6 @@ void hemm_template(
                                      });
                 });
         }else{
-            /*
-            DPCT1049:852: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 2, sycl::access_mode::read_write,
@@ -150,12 +138,6 @@ void hemm_template(
         }
     }else{
         if(uplo == MagmaLower){
-            /*
-            DPCT1049:853: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 2, sycl::access_mode::read_write,
@@ -175,12 +157,6 @@ void hemm_template(
                                      });
                 });
         }else{
-            /*
-            DPCT1049:854: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<T, 2, sycl::access_mode::read_write,

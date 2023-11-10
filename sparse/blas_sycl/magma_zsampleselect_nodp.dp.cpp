@@ -109,11 +109,6 @@ magma_zsampleselect_nodp(
 
     CHECK(realloc_result);
 
-    /*
-    DPCT1049:36: The work-group size passed to the SYCL kernel may exceed
-    the limit. To get the device limit, query
-    info::device::max_work_group_size. Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
     ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, num_blocks) *
                                          sycl::range<3>(1, 1, block_size),
@@ -208,11 +203,6 @@ magma_zsampleselect_approx_nodp(
     constexpr auto size = 1 << searchtree_height; // for shared mem in sampleselect_findbucket
     CHECK(realloc_result);
 
-    /*
-    DPCT1049:37: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, num_blocks) *
                                              sycl::range<3>(1, 1, block_size),
@@ -241,11 +231,6 @@ magma_zsampleselect_approx_nodp(
                                  leaves_acc_ct1.get_pointer());
                          });
     });
-    /*
-    DPCT1049:39: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::local_accessor<double, 1> local_tree_acc_ct1(
             sycl::range<1>(searchtree_size), cgh);
@@ -263,11 +248,6 @@ magma_zsampleselect_approx_nodp(
                     local_counts_acc_ct1.get_pointer());
             });
     });
-    /*
-    DPCT1049:40: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto num_grouped_blocks_ct2 = num_grouped_blocks;
 
