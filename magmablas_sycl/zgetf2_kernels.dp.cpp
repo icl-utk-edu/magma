@@ -162,11 +162,6 @@ magma_izamax_batched(
 
     int chunk = magma_ceildiv( length, zamax );
 
-    /*
-    DPCT1049:584: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         /*
         DPCT1083:1662: The size of local memory in the migrated code may be
@@ -217,11 +212,6 @@ magma_izamax_native(
         sycl::range<3> grid(1, 1, 1);
         sycl::range<3> threads(1, 1, zamax);
 
-        /*
-        DPCT1049:585: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 /*
@@ -375,11 +365,6 @@ magma_zswap_batched( magma_int_t n,
     sycl::range<3> grid(1, 1, batchCount);
     sycl::range<3> threads(1, 1, zamax);
 
-    /*
-    DPCT1049:589: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -412,11 +397,6 @@ magma_zswap_native( magma_int_t n, magmaDoubleComplex_ptr x, magma_int_t incx,
     sycl::range<3> grid(1, 1, 1);
     sycl::range<3> threads(1, 1, zamax);
 
-    /*
-    DPCT1049:590: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<int, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -517,12 +497,6 @@ magma_zscal_zgeru_batched(
         sycl::range<3> grid(ibatch, 1, magma_ceildiv(m, tbx));
 
         switch(n){
-            /*
-            DPCT1049:591: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 1: ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,
@@ -744,11 +718,6 @@ magma_zscal_zgeru_native(
     sycl::range<3> grid(1, 1, magma_ceildiv(m, tbx));
     sycl::range<3> threads(1, 1, tbx);
     switch(n){
-        /*
-        DPCT1049:600: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 1: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,

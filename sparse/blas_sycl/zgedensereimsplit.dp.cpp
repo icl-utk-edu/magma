@@ -84,11 +84,6 @@ magma_zgedensereimsplit(
     int n = A.num_cols;
     sycl::range<3> grid(1, 1, magma_ceildiv(m, BLOCK_SIZE));
     magma_int_t threads = BLOCK_SIZE;
-    /*
-    DPCT1049:515: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto ReA_dval_ct4 = ReA->dval;
         auto ImA_dval_ct5 = ImA->dval;

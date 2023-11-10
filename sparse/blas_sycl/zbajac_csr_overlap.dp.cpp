@@ -1196,12 +1196,6 @@ magma_zbajac_csr_overlap(
             int dimgrid3 = 1;
             sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
             sycl::range<3> block(1, blocksize2, blocksize1);
-            /*
-            DPCT1049:63: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::local_accessor<magmaDoubleComplex, 1> local_x_acc_ct1(
@@ -1232,12 +1226,6 @@ magma_zbajac_csr_overlap(
             int dimgrid3 = 1;
             sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
             sycl::range<3> block(1, blocksize2, blocksize1);
-            /*
-            DPCT1049:64: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::local_accessor<magmaDoubleComplex, 1> local_x_acc_ct1(
@@ -1276,12 +1264,6 @@ magma_zbajac_csr_overlap(
             int dimgrid3 = 1;
             sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
             sycl::range<3> block(1, blocksize2, blocksize1);
-            /*
-            DPCT1049:65: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::local_accessor<magmaDoubleComplex, 1> local_x_acc_ct1(
@@ -1336,12 +1318,6 @@ magma_zbajac_csr_overlap(
             int dimgrid3 = 1;
             sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
             sycl::range<3> block(1, blocksize2, blocksize1);
-            /*
-            DPCT1049:66: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::local_accessor<magmaDoubleComplex, 1> local_x_acc_ct1(
@@ -1428,12 +1404,6 @@ magma_zbajac_csr_overlap(
             int dimgrid3 = 1;
             sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
             sycl::range<3> block(1, blocksize2, blocksize1);
-            /*
-            DPCT1049:67: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::local_accessor<magmaDoubleComplex, 1> local_x_acc_ct1(
@@ -1584,12 +1554,6 @@ magma_zbajac_csr_overlap(
             int dimgrid3 = 1;
             sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
             sycl::range<3> block(1, blocksize2, blocksize1);
-            /*
-            DPCT1049:68: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             /*
             DPCT1042:954: The size of the arguments passed to the SYCL kernel
             exceeds the minimum size limit (1024) for a non-custom SYCL device.
@@ -1875,12 +1839,6 @@ magma_zbajac_csr_overlap(
             int dimgrid3 = 1;
             sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
             sycl::range<3> block(1, blocksize2, blocksize1);
-            /*
-            DPCT1049:69: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             /*
             DPCT1042:956: The size of the arguments passed to the SYCL kernel
             exceeds the minimum size limit (1024) for a non-custom SYCL device.

@@ -138,11 +138,6 @@ magma_zlarfgx_gpu(
     sycl::range<3> blocks(1, 1, magma_ceildiv(n, BLOCK_SIZE));
     sycl::range<3> threads(1, 1, BLOCK_SIZE);
 
-    /*
-    DPCT1049:1205: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magmaDoubleComplex, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -201,11 +196,6 @@ magma_zlarfgtx_gpu(
     }
     else {
         /* Compute the iter-th column of T */
-        /*
-        DPCT1049:1207: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -224,11 +214,6 @@ magma_zlarfgtx_gpu(
                     });
             });
 
-        /*
-        DPCT1049:1208: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,

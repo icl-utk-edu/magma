@@ -21,14 +21,9 @@
 #define WRP 32
 #define WRQ 4
 
-  // for CUDA_VERSION
-
-#if (CUDA_VERSION >= 7000)
-
-
 void ztrsv_lower_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes)
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
 
@@ -79,7 +74,7 @@ void ztrsv_lower_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB
 
 void ztrsv_upper_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes)
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
 
@@ -130,7 +125,7 @@ void ztrsv_upper_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB
 
 void ztrsv_lower_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -161,7 +156,7 @@ void ztrsv_lower_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -192,7 +187,7 @@ void ztrsv_lower_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -223,7 +218,7 @@ void ztrsv_lower_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -254,7 +249,7 @@ void ztrsv_lower_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -285,7 +280,7 @@ void ztrsv_lower_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -316,7 +311,7 @@ void ztrsv_lower_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -347,7 +342,7 @@ void ztrsv_lower_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -378,7 +373,7 @@ void ztrsv_lower_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -409,7 +404,7 @@ void ztrsv_lower_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -440,7 +435,7 @@ void ztrsv_lower_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -471,7 +466,7 @@ void ztrsv_lower_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -502,7 +497,7 @@ void ztrsv_lower_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -533,7 +528,7 @@ void ztrsv_lower_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -564,7 +559,7 @@ void ztrsv_lower_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -595,7 +590,7 @@ void ztrsv_lower_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -626,7 +621,7 @@ void ztrsv_lower_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -657,7 +652,7 @@ void ztrsv_lower_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -688,7 +683,7 @@ void ztrsv_lower_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -719,7 +714,7 @@ void ztrsv_lower_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -750,7 +745,7 @@ void ztrsv_lower_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -781,7 +776,7 @@ void ztrsv_lower_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -812,7 +807,7 @@ void ztrsv_lower_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -843,7 +838,7 @@ void ztrsv_lower_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -874,7 +869,7 @@ void ztrsv_lower_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -905,7 +900,7 @@ void ztrsv_lower_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -936,7 +931,7 @@ void ztrsv_lower_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -967,7 +962,7 @@ void ztrsv_lower_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -998,7 +993,7 @@ void ztrsv_lower_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1029,7 +1024,7 @@ void ztrsv_lower_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1060,7 +1055,7 @@ void ztrsv_lower_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1091,7 +1086,7 @@ void ztrsv_lower_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_lower_32kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1199,7 +1194,7 @@ void ztrsv_lower_32kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB,
 
 void ztrsv_upper_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1230,7 +1225,7 @@ void ztrsv_upper_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1261,7 +1256,7 @@ void ztrsv_upper_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1292,7 +1287,7 @@ void ztrsv_upper_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1323,7 +1318,7 @@ void ztrsv_upper_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1354,7 +1349,7 @@ void ztrsv_upper_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1385,7 +1380,7 @@ void ztrsv_upper_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1416,7 +1411,7 @@ void ztrsv_upper_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1447,7 +1442,7 @@ void ztrsv_upper_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1478,7 +1473,7 @@ void ztrsv_upper_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1509,7 +1504,7 @@ void ztrsv_upper_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1540,7 +1535,7 @@ void ztrsv_upper_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1571,7 +1566,7 @@ void ztrsv_upper_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1602,7 +1597,7 @@ void ztrsv_upper_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1633,7 +1628,7 @@ void ztrsv_upper_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1664,7 +1659,7 @@ void ztrsv_upper_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1695,7 +1690,7 @@ void ztrsv_upper_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1726,7 +1721,7 @@ void ztrsv_upper_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1757,7 +1752,7 @@ void ztrsv_upper_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1788,7 +1783,7 @@ void ztrsv_upper_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1819,7 +1814,7 @@ void ztrsv_upper_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1850,7 +1845,7 @@ void ztrsv_upper_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1881,7 +1876,7 @@ void ztrsv_upper_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1912,7 +1907,7 @@ void ztrsv_upper_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1943,7 +1938,7 @@ void ztrsv_upper_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -1974,7 +1969,7 @@ void ztrsv_upper_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -2005,7 +2000,7 @@ void ztrsv_upper_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -2036,7 +2031,7 @@ void ztrsv_upper_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -2067,7 +2062,7 @@ void ztrsv_upper_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -2098,7 +2093,7 @@ void ztrsv_upper_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -2129,7 +2124,7 @@ void ztrsv_upper_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -2160,7 +2155,7 @@ void ztrsv_upper_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 void ztrsv_upper_32kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int j = blockIdx.y * gridDim.x + blockIdx.x;
     int idn = threadIdx.x;
     magmaDoubleComplex rB;
@@ -2565,7 +2560,7 @@ magma_zlowertrisystems_32kernel_s(
     magma_index_t *sizes,
     magma_index_t *locations )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int row = blockIdx.y * gridDim.x + blockIdx.x;
     int tid = threadIdx.x;
     magmaDoubleComplex rB;    // registers for trsv
@@ -2670,7 +2665,7 @@ magma_zuppertrisystems_32kernel_s(
     magma_index_t *sizes,
     magma_index_t *locations )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int row = blockIdx.y * gridDim.x + blockIdx.x;
     int tid = threadIdx.x;
     magmaDoubleComplex rB;    // registers for trsv
@@ -2775,7 +2770,7 @@ magma_zlowertrisystems_32kernel(
     magma_index_t *sizes,
     magma_index_t *locations )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int row = blockIdx.y * gridDim.x + blockIdx.x;
     int tid = threadIdx.x;
     magmaDoubleComplex rB;    // registers for trsv
@@ -2864,7 +2859,7 @@ magma_zuppertrisystems_32kernel(
     magma_index_t *Mcol,
     magmaDoubleComplex *Mval )
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
+#if defined(REAL)
     int row = blockIdx.y * gridDim.x + blockIdx.x;
     int tid = threadIdx.x;
 
@@ -2935,8 +2930,6 @@ magma_zuppertrisystems_32kernel(
 #endif
 }// kernel
 
-#endif  // CUDA >= 7000
-
 
 /**
     Purpose
@@ -3006,14 +2999,6 @@ magma_zisaigenerator_32_gpu(
 {
     magma_int_t info = 0;
 
-#if (CUDA_VERSION >= 7000)
-    magma_int_t arch = magma_getdevice_arch();
-
-    /*
-    DPCT1026:174: The call to cudaDeviceSetCacheConfig was removed because DPC++
-    currently does not support setting cache config on devices.
-    */
-
     // routine 1
     int r1bs1 = WARP_SIZE;
     int r1bs2 = 1;
@@ -3042,166 +3027,14 @@ magma_zisaigenerator_32_gpu(
 
     int recursive = magma_ceildiv( M->num_rows, 32000 );
 
-    if (arch >= 300) {
-        /*
-        DPCT1049:175: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        ((sycl::queue *)(queue->sycl_stream()))
-            ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
-                           [=](sycl::nd_item<3> item_ct1) {
-                               magma_zgpumemzero_32kernel(
-                                   rhs, L.num_rows, WARP_SIZE, 1, item_ct1);
-                           });
+    ((sycl::queue *)(queue->sycl_stream()))
+        ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
+                       [=](sycl::nd_item<3> item_ct1) {
+                           magma_zgpumemzero_32kernel(
+                               rhs, L.num_rows, WARP_SIZE, 1, item_ct1);
+                       });
 
-        if (uplotype == MagmaLower) {
-            /*
-            DPCT1049:177: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
-            ((sycl::queue *)(queue->sycl_stream()))
-                ->submit([&](sycl::handler &cgh) {
-                    auto M_num_rows_ct0 = M->num_rows;
-                    auto M_drow_ct1 = M->drow;
-                    auto M_dcol_ct2 = M->dcol;
-                    auto M_dval_ct3 = M->dval;
-
-                    cgh.parallel_for(
-                        sycl::nd_range<3>(r1grid * r1block, r1block),
-                        [=](sycl::nd_item<3> item_ct1) {
-                            magma_zlocations_lower_32kernel(
-                                M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
-                                M_dval_ct3, sizes, locations, trisystems, rhs,
-                                item_ct1);
-                        });
-                });
-        }
-        else {
-            /*
-            DPCT1049:178: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
-            ((sycl::queue *)(queue->sycl_stream()))
-                ->submit([&](sycl::handler &cgh) {
-                    auto M_num_rows_ct0 = M->num_rows;
-                    auto M_drow_ct1 = M->drow;
-                    auto M_dcol_ct2 = M->dcol;
-                    auto M_dval_ct3 = M->dval;
-
-                    cgh.parallel_for(
-                        sycl::nd_range<3>(r1grid * r1block, r1block),
-                        [=](sycl::nd_item<3> item_ct1) {
-                            magma_zlocations_upper_32kernel(
-                                M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
-                                M_dval_ct3, sizes, locations, trisystems, rhs,
-                                item_ct1);
-                        });
-                });
-        }
-        /*
-        if (uplotype == MagmaLower) {
-            printf("in here lower\n");
-            magma_zlowertrisystems_32kernel<<< r1grid, r1block, 0, queue->sycl_stream() >>>(
-                L.num_rows,
-                L.drow,
-                L.dcol,
-                L.dval,
-                M->drow,
-                M->dcol,
-                M->dval,
-                sizes,
-                locations );
-        }
-        else {
-            printf("in here upper\n");
-            magma_zuppertrisystems_32kernel<<< r1grid, r1block, 0, queue->sycl_stream() >>>(
-                L.num_rows,
-                L.drow,
-                L.dcol,
-                L.dval,
-                M->drow,
-                M->dcol,
-                M->dval );
-        }
-        */
-
-        // chunk it recursively into batches of 3200
-        for (int z=0; z < recursive; z++) {
-            int limit = min(32000, L.num_rows-32000*z);
-
-            /*
-            DPCT1049:179: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
-            ((sycl::queue *)(queue->sycl_stream()))
-                ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
-                               [=](sycl::nd_item<3> item_ct1) {
-                                   magma_zgpumemzero_32kernel(
-                                       trisystems, limit, WARP_SIZE, WARP_SIZE,
-                                       item_ct1);
-                               });
-
-            /*
-            DPCT1049:180: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
-            ((sycl::queue *)(queue->sycl_stream()))
-                ->parallel_for(sycl::nd_range<3>(r3grid * r3block, r3block),
-                               [=](sycl::nd_item<3> item_ct1) {
-                                   magma_zfilltrisystems_32kernel(
-                                       32000 * z, limit, L.drow, L.dcol, L.dval,
-                                       sizes, locations, trisystems, rhs,
-                                       item_ct1);
-                               });
-
-            // routine 2
-            if (uplotype == MagmaLower) {
-                /*
-                DPCT1049:181: The work-group size passed to the SYCL kernel may
-                exceed the limit. To get the device limit, query
-                info::device::max_work_group_size. Adjust the work-group size if
-                needed.
-                */
-                ((sycl::queue *)(queue->sycl_stream()))
-                    ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
-                                   [=](sycl::nd_item<3> item_ct1) {
-                                       ztrsv_lower_32kernel_switch(
-                                           trisystems, rhs + 32000 * 32 * z,
-                                           sizes + 32000 * z, limit, item_ct1);
-                                   });
-            }
-            else {
-                /*
-                DPCT1049:182: The work-group size passed to the SYCL kernel may
-                exceed the limit. To get the device limit, query
-                info::device::max_work_group_size. Adjust the work-group size if
-                needed.
-                */
-                ((sycl::queue *)(queue->sycl_stream()))
-                    ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
-                                   [=](sycl::nd_item<3> item_ct1) {
-                                       ztrsv_upper_32kernel_switch(
-                                           trisystems, rhs + 32000 * 32 * z,
-                                           sizes + 32000 * z, limit, item_ct1);
-                                   });
-            }
-        }
-
-        // routine 3
-        /*
-        DPCT1049:176: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
+    if (uplotype == MagmaLower) {
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto M_num_rows_ct0 = M->num_rows;
@@ -3209,22 +3042,118 @@ magma_zisaigenerator_32_gpu(
                 auto M_dcol_ct2 = M->dcol;
                 auto M_dval_ct3 = M->dval;
 
-                cgh.parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
-                                 [=](sycl::nd_item<3> item_ct1) {
-                                     magma_zbackinsert_32kernel(
-                                         M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
-                                         M_dval_ct3, sizes, rhs, item_ct1);
-                                 });
+                cgh.parallel_for(
+                    sycl::nd_range<3>(r1grid * r1block, r1block),
+                    [=](sycl::nd_item<3> item_ct1) {
+                        magma_zlocations_lower_32kernel(
+                            M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
+                            M_dval_ct3, sizes, locations, trisystems, rhs,
+                            item_ct1);
+                    });
             });
     }
     else {
-        info = MAGMA_ERR_NOT_SUPPORTED;
+        ((sycl::queue *)(queue->sycl_stream()))
+            ->submit([&](sycl::handler &cgh) {
+                auto M_num_rows_ct0 = M->num_rows;
+                auto M_drow_ct1 = M->drow;
+                auto M_dcol_ct2 = M->dcol;
+                auto M_dval_ct3 = M->dval;
+
+                cgh.parallel_for(
+                    sycl::nd_range<3>(r1grid * r1block, r1block),
+                    [=](sycl::nd_item<3> item_ct1) {
+                        magma_zlocations_upper_32kernel(
+                            M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
+                            M_dval_ct3, sizes, locations, trisystems, rhs,
+                            item_ct1);
+                    });
+            });
     }
-#else
-    // CUDA < 7000
-    printf( "%% error: ISAI preconditioner requires CUDA > 7.0.\n" );
-    info = MAGMA_ERR_NOT_SUPPORTED;
-#endif
+    /*
+    if (uplotype == MagmaLower) {
+        printf("in here lower\n");
+        magma_zlowertrisystems_32kernel<<< r1grid, r1block, 0, queue->sycl_stream() >>>(
+            L.num_rows,
+            L.drow,
+            L.dcol,
+            L.dval,
+            M->drow,
+            M->dcol,
+            M->dval,
+            sizes,
+            locations );
+    }
+    else {
+        printf("in here upper\n");
+        magma_zuppertrisystems_32kernel<<< r1grid, r1block, 0, queue->sycl_stream() >>>(
+            L.num_rows,
+            L.drow,
+            L.dcol,
+            L.dval,
+            M->drow,
+            M->dcol,
+            M->dval );
+    }
+    */
+
+    // chunk it recursively into batches of 3200
+    for (int z=0; z < recursive; z++) {
+        int limit = min(32000, L.num_rows-32000*z);
+
+        ((sycl::queue *)(queue->sycl_stream()))
+            ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
+                           [=](sycl::nd_item<3> item_ct1) {
+                               magma_zgpumemzero_32kernel(
+                                   trisystems, limit, WARP_SIZE, WARP_SIZE,
+                                   item_ct1);
+                           });
+
+        ((sycl::queue *)(queue->sycl_stream()))
+            ->parallel_for(sycl::nd_range<3>(r3grid * r3block, r3block),
+                           [=](sycl::nd_item<3> item_ct1) {
+                               magma_zfilltrisystems_32kernel(
+                                   32000 * z, limit, L.drow, L.dcol, L.dval,
+                                   sizes, locations, trisystems, rhs,
+                                   item_ct1);
+                           });
+
+        // routine 2
+        if (uplotype == MagmaLower) {
+            ((sycl::queue *)(queue->sycl_stream()))
+                ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
+                               [=](sycl::nd_item<3> item_ct1) {
+                                   ztrsv_lower_32kernel_switch(
+                                       trisystems, rhs + 32000 * 32 * z,
+                                       sizes + 32000 * z, limit, item_ct1);
+                               });
+        }
+        else {
+            ((sycl::queue *)(queue->sycl_stream()))
+                ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
+                               [=](sycl::nd_item<3> item_ct1) {
+                                   ztrsv_upper_32kernel_switch(
+                                       trisystems, rhs + 32000 * 32 * z,
+                                       sizes + 32000 * z, limit, item_ct1);
+                               });
+        }
+    }
+
+    // routine 3
+    ((sycl::queue *)(queue->sycl_stream()))
+        ->submit([&](sycl::handler &cgh) {
+            auto M_num_rows_ct0 = M->num_rows;
+            auto M_drow_ct1 = M->drow;
+            auto M_dcol_ct2 = M->dcol;
+            auto M_dval_ct3 = M->dval;
+
+            cgh.parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
+                             [=](sycl::nd_item<3> item_ct1) {
+                                 magma_zbackinsert_32kernel(
+                                     M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
+                                     M_dval_ct3, sizes, rhs, item_ct1);
+                             });
+        });
 
     return info;
 }

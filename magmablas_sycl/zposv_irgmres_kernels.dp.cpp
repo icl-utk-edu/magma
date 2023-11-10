@@ -150,11 +150,6 @@ magmablas_zextract_diag_sqrt(
     const int nblocks = magma_ceildiv(min_mn, 256);
     sycl::range<3> grid(1, 1, nblocks);
     sycl::range<3> threads(1, 1, bx);
-    /*
-    DPCT1049:6: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -195,11 +190,6 @@ magmablas_zscal_shift_hpd(
     sycl::range<3> threads(1, DIMY, DIMX);
     sycl::range<3> grid(1, magma_ceildiv(n, DIMY), magma_ceildiv(n, DIMX));
 
-    /*
-    DPCT1049:7: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -235,11 +225,6 @@ magmablas_zdimv_invert(
     sycl::range<3> threads(1, 1, nthreads);
     sycl::range<3> grid(1, 1, magma_ceildiv(n, nthreads));
 
-    /*
-    DPCT1049:8: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {

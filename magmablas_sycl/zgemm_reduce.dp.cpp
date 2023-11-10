@@ -37,7 +37,6 @@ void zgemm_reduce_kernel(
     sycl::nd_item<3> item_ct1,
     sycl::accessor<magmaDoubleComplex, 3, sycl::access_mode::read_write, sycl::access::target::local> sum)
 {
-#if (DPCT_COMPATIBILITY_TEMP >= 200) || defined(MAGMA_HAVE_HIP)
     const int tx = item_ct1.get_local_id(2);
 
     if (item_ct1.get_group(2) * BLK_M + item_ct1.get_local_id(1) < m &&
@@ -82,7 +81,6 @@ void zgemm_reduce_kernel(
                                [item_ct1.get_local_id(0)];
         }
     }
-#endif
 }
 
 

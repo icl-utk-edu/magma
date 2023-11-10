@@ -93,11 +93,6 @@ magmablas_hlag2s(
     sycl::range<3> threads(1, BLK_Y, BLK_X);
     sycl::range<3> grid(1, min(max_gridy, magma_ceildiv(n, BLK_Y)),
                         magma_ceildiv(m, BLK_X));
-    /*
-    DPCT1049:0: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -140,11 +135,6 @@ magmablas_hlag2s_batched(
         magma_int_t batch = min(maxBatch, batchCount-i);
         sycl::range<3> grid(batch, magma_ceildiv(n, BLK_Y),
                             magma_ceildiv(m, BLK_X));
-        /*
-        DPCT1049:1: The work-group size passed to the SYCL kernel may exceed the
-        limit. To get the device limit, query info::device::max_work_group_size.
-        Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                            [=](sycl::nd_item<3> item_ct1) {

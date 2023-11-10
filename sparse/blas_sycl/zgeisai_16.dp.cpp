@@ -1565,7 +1565,6 @@ magma_zisaigenerator_16_gpu(
 {
     magma_int_t info = 0;
 
-#if (CUDA_VERSION >= 7000)
     magma_int_t arch = magma_getdevice_arch();
 
     /*
@@ -1601,140 +1600,14 @@ magma_zisaigenerator_16_gpu(
 
     int recursive = magma_ceildiv( M->num_rows, 32000 );
 
-    if (arch >= 300) {
-        /*
-        DPCT1049:98: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        ((sycl::queue *)(queue->sycl_stream()))
-            ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
-                           [=](sycl::nd_item<3> item_ct1) {
-                               magma_zgpumemzero_16kernel(
-                                   rhs, L.num_rows, WARP_SIZE, 1, item_ct1);
-                           });
+    ((sycl::queue *)(queue->sycl_stream()))
+        ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
+                       [=](sycl::nd_item<3> item_ct1) {
+                           magma_zgpumemzero_16kernel(
+                               rhs, L.num_rows, WARP_SIZE, 1, item_ct1);
+                       });
 
-        if (uplotype == MagmaLower) {
-            /*
-            DPCT1049:100: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
-            ((sycl::queue *)(queue->sycl_stream()))
-                ->submit([&](sycl::handler &cgh) {
-                    auto M_num_rows_ct0 = M->num_rows;
-                    auto M_drow_ct1 = M->drow;
-                    auto M_dcol_ct2 = M->dcol;
-                    auto M_dval_ct3 = M->dval;
-
-                    cgh.parallel_for(
-                        sycl::nd_range<3>(r1grid * r1block, r1block),
-                        [=](sycl::nd_item<3> item_ct1) {
-                            magma_zlocations_lower_16kernel(
-                                M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
-                                M_dval_ct3, sizes, locations, trisystems, rhs,
-                                item_ct1);
-                        });
-                });
-        }
-        else {
-            /*
-            DPCT1049:101: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
-            ((sycl::queue *)(queue->sycl_stream()))
-                ->submit([&](sycl::handler &cgh) {
-                    auto M_num_rows_ct0 = M->num_rows;
-                    auto M_drow_ct1 = M->drow;
-                    auto M_dcol_ct2 = M->dcol;
-                    auto M_dval_ct3 = M->dval;
-
-                    cgh.parallel_for(
-                        sycl::nd_range<3>(r1grid * r1block, r1block),
-                        [=](sycl::nd_item<3> item_ct1) {
-                            magma_zlocations_upper_16kernel(
-                                M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
-                                M_dval_ct3, sizes, locations, trisystems, rhs,
-                                item_ct1);
-                        });
-                });
-        }
-
-        // chunk it recursively into batches of 1600
-        for( int z=0; z<recursive; z++ ){
-            int limit = min(32000, L.num_rows-32000*z);
-
-            /*
-            DPCT1049:102: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
-            ((sycl::queue *)(queue->sycl_stream()))
-                ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
-                               [=](sycl::nd_item<3> item_ct1) {
-                                   magma_zgpumemzero_16kernel(
-                                       trisystems, limit, WARP_SIZE, WARP_SIZE,
-                                       item_ct1);
-                               });
-
-            /*
-            DPCT1049:103: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
-            ((sycl::queue *)(queue->sycl_stream()))
-                ->parallel_for(sycl::nd_range<3>(r3grid * r3block, r3block),
-                               [=](sycl::nd_item<3> item_ct1) {
-                                   magma_zfilltrisystems_16kernel(
-                                       32000 * z, limit, L.drow, L.dcol, L.dval,
-                                       sizes, locations, trisystems, rhs,
-                                       item_ct1);
-                               });
-
-            // routine 2
-            if (uplotype == MagmaLower) {
-                /*
-                DPCT1049:104: The work-group size passed to the SYCL kernel may
-                exceed the limit. To get the device limit, query
-                info::device::max_work_group_size. Adjust the work-group size if
-                needed.
-                */
-                ((sycl::queue *)(queue->sycl_stream()))
-                    ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
-                                   [=](sycl::nd_item<3> item_ct1) {
-                                       ztrsv_lower_16kernel_switch(
-                                           trisystems, rhs + 32000 * 16 * z,
-                                           sizes + 32000 * z, limit, item_ct1);
-                                   });
-            }
-            else {
-                /*
-                DPCT1049:105: The work-group size passed to the SYCL kernel may
-                exceed the limit. To get the device limit, query
-                info::device::max_work_group_size. Adjust the work-group size if
-                needed.
-                */
-                ((sycl::queue *)(queue->sycl_stream()))
-                    ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
-                                   [=](sycl::nd_item<3> item_ct1) {
-                                       ztrsv_upper_16kernel_switch(
-                                           trisystems, rhs + 32000 * 16 * z,
-                                           sizes + 32000 * z, limit, item_ct1);
-                                   });
-            }
-        }
-
-        // routine 3
-        /*
-        DPCT1049:99: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
+    if (uplotype == MagmaLower) {
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto M_num_rows_ct0 = M->num_rows;
@@ -1742,22 +1615,92 @@ magma_zisaigenerator_16_gpu(
                 auto M_dcol_ct2 = M->dcol;
                 auto M_dval_ct3 = M->dval;
 
-                cgh.parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
-                                 [=](sycl::nd_item<3> item_ct1) {
-                                     magma_zbackinsert_16kernel(
-                                         M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
-                                         M_dval_ct3, sizes, rhs, item_ct1);
-                                 });
+                cgh.parallel_for(
+                    sycl::nd_range<3>(r1grid * r1block, r1block),
+                    [=](sycl::nd_item<3> item_ct1) {
+                        magma_zlocations_lower_16kernel(
+                            M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
+                            M_dval_ct3, sizes, locations, trisystems, rhs,
+                            item_ct1);
+                    });
             });
     }
     else {
-        info = MAGMA_ERR_NOT_SUPPORTED;
+        ((sycl::queue *)(queue->sycl_stream()))
+            ->submit([&](sycl::handler &cgh) {
+                auto M_num_rows_ct0 = M->num_rows;
+                auto M_drow_ct1 = M->drow;
+                auto M_dcol_ct2 = M->dcol;
+                auto M_dval_ct3 = M->dval;
+
+                cgh.parallel_for(
+                    sycl::nd_range<3>(r1grid * r1block, r1block),
+                    [=](sycl::nd_item<3> item_ct1) {
+                        magma_zlocations_upper_16kernel(
+                            M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
+                            M_dval_ct3, sizes, locations, trisystems, rhs,
+                            item_ct1);
+                    });
+            });
     }
-#else
-    // CUDA < 7000
-    printf( "%% error: ISAI preconditioner requires CUDA > 6.0.\n" );
-    info = MAGMA_ERR_NOT_SUPPORTED;
-#endif
+
+    // chunk it recursively into batches of 1600
+    for( int z=0; z<recursive; z++ ){
+        int limit = min(32000, L.num_rows-32000*z);
+
+        ((sycl::queue *)(queue->sycl_stream()))
+            ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
+                           [=](sycl::nd_item<3> item_ct1) {
+                               magma_zgpumemzero_16kernel(
+                                   trisystems, limit, WARP_SIZE, WARP_SIZE,
+                                   item_ct1);
+                           });
+
+        ((sycl::queue *)(queue->sycl_stream()))
+            ->parallel_for(sycl::nd_range<3>(r3grid * r3block, r3block),
+                           [=](sycl::nd_item<3> item_ct1) {
+                               magma_zfilltrisystems_16kernel(
+                                   32000 * z, limit, L.drow, L.dcol, L.dval,
+                                   sizes, locations, trisystems, rhs,
+                                   item_ct1);
+                           });
+
+        // routine 2
+        if (uplotype == MagmaLower) {
+            ((sycl::queue *)(queue->sycl_stream()))
+                ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
+                               [=](sycl::nd_item<3> item_ct1) {
+                                   ztrsv_lower_16kernel_switch(
+                                       trisystems, rhs + 32000 * 16 * z,
+                                       sizes + 32000 * z, limit, item_ct1);
+                               });
+        }
+        else {
+            ((sycl::queue *)(queue->sycl_stream()))
+                ->parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
+                               [=](sycl::nd_item<3> item_ct1) {
+                                   ztrsv_upper_16kernel_switch(
+                                       trisystems, rhs + 32000 * 16 * z,
+                                       sizes + 32000 * z, limit, item_ct1);
+                               });
+        }
+    }
+
+    // routine 3
+    ((sycl::queue *)(queue->sycl_stream()))
+        ->submit([&](sycl::handler &cgh) {
+            auto M_num_rows_ct0 = M->num_rows;
+            auto M_drow_ct1 = M->drow;
+            auto M_dcol_ct2 = M->dcol;
+            auto M_dval_ct3 = M->dval;
+
+            cgh.parallel_for(sycl::nd_range<3>(r1grid * r1block, r1block),
+                             [=](sycl::nd_item<3> item_ct1) {
+                                 magma_zbackinsert_16kernel(
+                                     M_num_rows_ct0, M_drow_ct1, M_dcol_ct2,
+                                     M_dval_ct3, sizes, rhs, item_ct1);
+                             });
+        });
 
     return info;
 }
