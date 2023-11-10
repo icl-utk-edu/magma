@@ -257,11 +257,6 @@ magma_zgetrf_batched_smallsq_noshfl(
      */
 
     switch(m){
-        /*
-        DPCT1049:736: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 1: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -277,11 +272,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:738: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 2: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -297,11 +287,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:739: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 3: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -317,11 +302,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:740: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 4: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -337,11 +317,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:741: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 5: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -357,11 +332,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:742: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 6: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -377,11 +347,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:743: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 7: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -397,11 +362,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:744: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 8: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -417,11 +377,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:745: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 9: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -437,11 +392,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:746: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 10: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -458,11 +408,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:747: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 11: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -481,11 +426,6 @@ magma_zgetrf_batched_smallsq_noshfl(
             break;
 
 // here are the offending cases
-        /*
-        DPCT1049:748: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 12: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -502,11 +442,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:749: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 13: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -523,11 +458,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:750: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 14: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -544,11 +474,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:751: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 15: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -565,11 +490,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:752: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 16: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -586,11 +506,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:753: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 17: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -607,11 +522,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:754: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 18: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -628,11 +538,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:755: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 19: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -649,11 +554,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:756: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 20: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -670,11 +570,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:757: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 21: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -691,11 +586,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:758: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 22: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -712,11 +602,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:759: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 23: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -733,11 +618,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:760: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 24: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -754,11 +634,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:761: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 25: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -775,11 +650,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:762: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 26: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -797,11 +667,6 @@ magma_zgetrf_batched_smallsq_noshfl(
             });
             break;
 
-        /*
-        DPCT1049:763: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 27: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -818,11 +683,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:764: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 28: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -839,11 +699,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:765: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 29: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -860,11 +715,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:766: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 30: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -881,11 +731,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:767: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 31: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -902,11 +747,6 @@ magma_zgetrf_batched_smallsq_noshfl(
                     });
             });
             break;
-        /*
-        DPCT1049:768: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 32: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,

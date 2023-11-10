@@ -121,11 +121,6 @@ magmablas_slag2h(
     sycl::range<3> grid(1, min(65000, magma_ceildiv(n, BLK_Y)),
                         magma_ceildiv(m, BLK_X));
 
-    /*
-    DPCT1049:0: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto magma_flag_ct7 = magma_flag.get_ptr();
 
@@ -189,11 +184,6 @@ magmablas_slag2h_batched(
 
         sycl::range<3> grid(batch, magma_ceildiv(n, BLK_Y),
                             magma_ceildiv(m, BLK_X));
-        /*
-        DPCT1049:1: The work-group size passed to the SYCL kernel may exceed the
-        limit. To get the device limit, query info::device::max_work_group_size.
-        Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 auto magma_flag_array_ct7 = magma_flag_array.get_ptr();

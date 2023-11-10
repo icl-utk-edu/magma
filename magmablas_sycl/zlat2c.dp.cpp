@@ -241,11 +241,6 @@ magmablas_zlat2c(
         .wait(); // magma_zlat2c_flag = 0
 
     if (uplo == MagmaLower) {
-        /*
-        DPCT1049:1281: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 magma_zlat2c_flag.init(
@@ -262,11 +257,6 @@ magmablas_zlat2c(
             });
     }
     else if (uplo == MagmaUpper) {
-        /*
-        DPCT1049:1282: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 magma_zlat2c_flag.init(

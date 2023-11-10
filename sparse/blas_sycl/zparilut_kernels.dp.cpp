@@ -233,11 +233,6 @@ magma_zparilut_sweep_gpu(
     currently does not support setting cache config on devices.
     */
 
-    /*
-    DPCT1049:69: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto A_num_rows_ct0 = A->num_rows;
         auto A_drow_ct1 = A->drow;
@@ -265,11 +260,6 @@ magma_zparilut_sweep_gpu(
                          });
     });
 
-    /*
-    DPCT1049:70: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto A_num_rows_ct0 = A->num_rows;
         auto A_drow_ct1 = A->drow;
@@ -428,11 +418,6 @@ magma_zparilut_residuals_gpu(
     currently does not support setting cache config on devices.
     */
 
-    /*
-    DPCT1049:72: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto R_nnz_ct10 = R->nnz;
         auto R_drowidx_ct11 = R->drowidx;

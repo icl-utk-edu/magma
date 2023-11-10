@@ -362,11 +362,6 @@ magma_zmprepare_batched_gpu(
     sycl::range<3> grid2(dimgrid23, dimgrid22, dimgrid21);
     sycl::range<3> block2(1, blocksize22, blocksize21);
 
-    /*
-    DPCT1049:493: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * block, block),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -374,11 +369,6 @@ magma_zmprepare_batched_gpu(
                                                WARP_SIZE, WARP_SIZE, item_ct1);
                        });
 
-    /*
-    DPCT1049:494: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * block, block),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -397,11 +387,6 @@ magma_zmprepare_batched_gpu(
 
 
     if( uplotype == MagmaLower ){
-        /*
-        DPCT1049:496: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * block, block),
                            [=](sycl::nd_item<3> item_ct1) {
@@ -410,11 +395,6 @@ magma_zmprepare_batched_gpu(
                                    sizes, locations, trisystems, rhs, item_ct1);
                            });
     } else {
-        /*
-        DPCT1049:497: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(grid * block, block),
                            [=](sycl::nd_item<3> item_ct1) {
@@ -426,11 +406,6 @@ magma_zmprepare_batched_gpu(
 
     // magma_zprint_gpu( 32, 32, L.dval, 32, queue );
 
-    /*
-    DPCT1049:495: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid2 * block2, block2),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -542,11 +517,6 @@ magma_zmbackinsert_batched_gpu(
     sycl::range<3> grid(dimgrid3, dimgrid2, dimgrid1);
     sycl::range<3> block(1, blocksize2, blocksize1);
 
-    /*
-    DPCT1049:498: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         auto M_num_rows_ct0 = M->num_rows;
         auto M_drow_ct1 = M->drow;

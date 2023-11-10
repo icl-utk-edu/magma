@@ -452,12 +452,6 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
             //load panel in shared memory and factorize it and copy back to gloabl memory
             //intend for small panel to avoid overfill of shared memory.
             //this kernel is composed of device routine and thus clean
-            /*
-            DPCT1049:381: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     /*
@@ -501,12 +495,6 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
         }
         else if ( total_shmem_column_sm_kernel <= shmem_max ) {
             //load one column vector in shared memory and householder it and used it to update trailing matrix which is global memory
-            /*
-            DPCT1049:382: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     /*
@@ -549,12 +537,6 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
         }
         else {
             //not use dynamic shared memory at all
-            /*
-            DPCT1049:383: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 0,

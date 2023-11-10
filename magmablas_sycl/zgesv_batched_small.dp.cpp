@@ -490,12 +490,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
         }
         else {
             void *kernel_args[] = {&n, &nrhs, &dA_array, &ldda, &dipiv_array, &dB_array, &lddb, &dinfo_array};
-            /*
-            DPCT1049:526: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -529,12 +523,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
     else {
         void *kernel_args[] = {&dA_array, &ldda, &dipiv_array, &dB_array, &lddb, &dinfo_array};
         switch(n){
-            /*
-            DPCT1049:527: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 1: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -561,12 +549,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:528: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 2: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -593,12 +575,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:529: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 3: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -625,12 +601,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:530: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 4: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -657,12 +627,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:531: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 5: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -689,12 +653,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:532: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 6: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -721,12 +679,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:533: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 7: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -753,12 +705,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:534: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 8: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -785,12 +731,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:535: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 9: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -817,12 +757,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:536: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 10: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -849,12 +783,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:537: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 11: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -881,12 +809,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:538: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 12: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -913,12 +835,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:539: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 13: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -945,12 +861,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:540: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 14: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -977,12 +887,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:541: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 15: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1009,12 +913,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:542: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 16: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1041,12 +939,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:543: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 17: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1073,12 +965,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:544: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 18: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1105,12 +991,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:545: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 19: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1137,12 +1017,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:546: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 20: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1169,12 +1043,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:547: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 21: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1201,12 +1069,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:548: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 22: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1233,12 +1095,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:549: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 23: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1265,12 +1121,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:550: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 24: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1297,12 +1147,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:551: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 25: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1329,12 +1173,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:552: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 26: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1361,12 +1199,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:553: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 27: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1393,12 +1225,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:554: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 28: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1425,12 +1251,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:555: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 29: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1457,12 +1277,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:556: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 30: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1489,12 +1303,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:557: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 31: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,
@@ -1521,12 +1329,6 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                             });
                     });
                 break;
-            /*
-            DPCT1049:558: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             case 32: ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<uint8_t, 1,

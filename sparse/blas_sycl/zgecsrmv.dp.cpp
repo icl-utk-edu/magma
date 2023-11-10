@@ -161,11 +161,6 @@ magma_zgecsrmv(
 {
     sycl::range<3> grid(1, 1, magma_ceildiv(m, BLOCK_SIZE));
     magma_int_t threads = BLOCK_SIZE;
-    /*
-    DPCT1049:518: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
                                          sycl::range<3>(1, 1, threads)),
@@ -270,11 +265,6 @@ magma_zgecsrmv_shift(
 {
     sycl::range<3> grid(1, 1, magma_ceildiv(m, BLOCK_SIZE));
     magma_int_t threads = BLOCK_SIZE;
-    /*
-    DPCT1049:519: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
                                          sycl::range<3>(1, 1, threads)),

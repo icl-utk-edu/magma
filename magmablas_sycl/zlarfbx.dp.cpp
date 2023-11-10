@@ -132,11 +132,6 @@ magma_zlarfbx_gpu(
     magma_queue_t queue )
 {
     /* dwork = V**H c     */
-    /*
-    DPCT1049:1182: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -152,11 +147,6 @@ magma_zlarfbx_gpu(
     });
 
     /* dwork = T**H dwork */
-    /*
-    DPCT1049:1183: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -174,11 +164,6 @@ magma_zlarfbx_gpu(
     /* c = c - V dwork    */
     sycl::range<3> blocks3(1, 1, magma_ceildiv(m, BLOCK_SIZE));
     sycl::range<3> threads3(1, 1, BLOCK_SIZE);
-    /*
-    DPCT1049:1181: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(blocks3 * threads3, threads3),
                        [=](sycl::nd_item<3> item_ct1) {

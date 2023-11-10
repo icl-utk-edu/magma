@@ -345,15 +345,6 @@ magma_zisai_generator_regs(
 {
     magma_int_t info = 0;
     
-
-#if (CUDA_VERSION >= 7000)
-    magma_int_t arch = magma_getdevice_arch();
-
-    /*
-    DPCT1026:570: The call to cudaDeviceSetCacheConfig was removed because DPC++
-    currently does not support setting cache config on devices.
-    */
-
     int r2bs1 = 32;
     int r2bs2 = 4;
     int necessary_blocks = magma_ceildiv(L.num_rows, r2bs2);
@@ -363,61 +354,38 @@ magma_zisai_generator_regs(
     sycl::range<3> r2block(1, r2bs2, r2bs1);
     sycl::range<3> r2grid(r2dg3, r2dg2, r2dg1);
 
-    if (arch >= 300) {
-        if (uplotype == MagmaLower) { //printf("in here lower new kernel\n");
-            /*
-            DPCT1049:571: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
-            ((sycl::queue *)(queue->sycl_stream()))
-                ->submit([&](sycl::handler &cgh) {
-                    auto M_row_ct4 = M->row;
-                    auto M_col_ct5 = M->col;
-                    auto M_val_ct6 = M->val;
+    if (uplotype == MagmaLower) { //printf("in here lower new kernel\n");
+        ((sycl::queue *)(queue->sycl_stream()))
+            ->submit([&](sycl::handler &cgh) {
+                auto M_row_ct4 = M->row;
+                auto M_col_ct5 = M->col;
+                auto M_val_ct6 = M->val;
 
-                    cgh.parallel_for(
-                        sycl::nd_range<3>(r2grid * r2block, r2block),
-                        [=](sycl::nd_item<3> item_ct1) {
-                            magma_zlowerisai_regs_inv_switch(
-                                L.num_rows, L.row, L.col, L.val, M_row_ct4,
-                                M_col_ct5, M_val_ct6, item_ct1);
-                        });
-                });
-        }
-        else { // printf("in here upper new kernel\n");
-            /*
-            DPCT1049:572: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
-            ((sycl::queue *)(queue->sycl_stream()))
-                ->submit([&](sycl::handler &cgh) {
-                    auto M_row_ct4 = M->row;
-                    auto M_col_ct5 = M->col;
-                    auto M_val_ct6 = M->val;
+                cgh.parallel_for(
+                    sycl::nd_range<3>(r2grid * r2block, r2block),
+                    [=](sycl::nd_item<3> item_ct1) {
+                        magma_zlowerisai_regs_inv_switch(
+                            L.num_rows, L.row, L.col, L.val, M_row_ct4,
+                            M_col_ct5, M_val_ct6, item_ct1);
+                    });
+            });
+    }
+    else { // printf("in here upper new kernel\n");
+        ((sycl::queue *)(queue->sycl_stream()))
+            ->submit([&](sycl::handler &cgh) {
+                auto M_row_ct4 = M->row;
+                auto M_col_ct5 = M->col;
+                auto M_val_ct6 = M->val;
 
-                    cgh.parallel_for(
-                        sycl::nd_range<3>(r2grid * r2block, r2block),
-                        [=](sycl::nd_item<3> item_ct1) {
-                            magma_zupperisai_regs_inv_switch(
-                                L.num_rows, L.row, L.col, L.val, M_row_ct4,
-                                M_col_ct5, M_val_ct6, item_ct1);
-                        });
-                });
-        }
+                cgh.parallel_for(
+                    sycl::nd_range<3>(r2grid * r2block, r2block),
+                    [=](sycl::nd_item<3> item_ct1) {
+                        magma_zupperisai_regs_inv_switch(
+                            L.num_rows, L.row, L.col, L.val, M_row_ct4,
+                            M_col_ct5, M_val_ct6, item_ct1);
+                    });
+            });
     }
-    else {
-       printf( "%% error: ISAI preconditioner requires CUDA ARCHITECTURE >= 300.\n" );
-       info = MAGMA_ERR_NOT_SUPPORTED;
-    }
-#else
-    // CUDA < 7000
-    printf( "%% error: ISAI preconditioner requires CUDA >= 7.0.\n" );
-    info = MAGMA_ERR_NOT_SUPPORTED;
-#endif
 
     return info;
 }

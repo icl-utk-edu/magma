@@ -51,11 +51,6 @@ void stepinit_ipiv(magma_int_t **ipiv_array,
                  magma_int_t batchCount, magma_queue_t queue)
 
 {
-    /*
-    DPCT1049:198: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, batchCount) *
                                              sycl::range<3>(1, 1, pm),

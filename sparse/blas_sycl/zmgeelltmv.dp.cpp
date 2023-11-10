@@ -149,11 +149,6 @@ magma_zmgeelltmv(
     definition and is not valid for all macro uses. Adjust the code.
     */
     if (beta == MAGMA_Z_ZERO) {
-        /*
-        DPCT1049:423: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
@@ -171,11 +166,6 @@ magma_zmgeelltmv(
                     });
             });
     } else {
-        /*
-        DPCT1049:425: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,

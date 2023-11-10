@@ -394,11 +394,6 @@ magma_zgetf2_native_fused(
     shmem = (shmem / 2);
     int *update_flag = (int*) flags;    // update_flag is an int, not magma_int_t
     size_t max_n_npages = max(n,npages);
-    /*
-    DPCT1049:674: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, max_n_npages),
                                          sycl::range<3>(1, 1, max_n_npages)),
@@ -408,11 +403,6 @@ magma_zgetf2_native_fused(
                        });
     // The case statement should cover up to ( xGETF2_CHAIN_MAX_M / ntx )
     switch(npages){
-        /*
-        DPCT1049:675: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 1: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -442,11 +432,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:676: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 2: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -476,11 +461,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:677: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 3: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -510,11 +490,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:678: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 4: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -544,11 +519,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:679: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 5: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -578,11 +548,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:680: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 6: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -612,11 +577,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:681: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 7: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -646,11 +606,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:682: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 8: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -680,11 +635,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:683: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 9: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -714,11 +664,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:684: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 10: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -748,11 +693,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:685: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 11: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -782,11 +722,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:686: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 12: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -816,11 +751,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:687: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 13: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -850,11 +780,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:688: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 14: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -884,11 +809,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:689: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 15: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -918,11 +838,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:690: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 16: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -952,11 +867,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:691: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 17: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -986,11 +896,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:692: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 18: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1020,11 +925,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:693: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 19: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1054,11 +954,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:694: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 20: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1089,11 +984,6 @@ magma_zgetf2_native_fused(
             });
             break;
 #if defined(PRECISION_s) || defined(PRECISION_d)
-        /*
-        DPCT1049:168: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 21: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1123,11 +1013,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:169: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 22: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1157,11 +1042,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:170: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 23: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1191,11 +1071,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:171: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 24: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1225,11 +1100,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:172: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 25: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1259,11 +1129,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:173: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 26: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1293,11 +1158,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:174: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 27: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1327,11 +1187,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:175: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 28: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1361,11 +1216,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:176: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 29: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1395,11 +1245,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:177: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 30: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1429,11 +1274,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:178: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 31: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1463,11 +1303,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:179: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 32: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1497,11 +1332,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:180: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 33: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1531,11 +1361,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:181: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 34: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1565,11 +1390,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:182: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 35: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1599,11 +1419,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:183: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 36: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1633,11 +1448,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:184: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 37: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1667,11 +1477,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:185: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 38: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1701,11 +1506,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:186: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 39: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1735,11 +1535,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:187: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 40: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1769,11 +1564,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:188: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 41: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1803,11 +1593,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:189: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 42: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1837,11 +1622,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:190: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 43: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1871,11 +1651,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:191: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 44: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1905,11 +1680,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:192: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 45: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1939,11 +1709,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:193: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 46: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -1975,11 +1740,6 @@ magma_zgetf2_native_fused(
             break;
         #endif // defined(PRECISION_s) || defined(PRECISION_d)
         #if defined(PRECISION_s)
-        /*
-        DPCT1049:194: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 47: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2009,11 +1769,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:195: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 48: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2043,11 +1798,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:196: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 49: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2077,11 +1827,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:197: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 50: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2111,11 +1856,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:198: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 51: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2145,11 +1885,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:199: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 52: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2179,11 +1914,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:200: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 53: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2213,11 +1943,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:201: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 54: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2247,11 +1972,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:202: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 55: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2281,11 +2001,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:203: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 56: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2315,11 +2030,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:204: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 57: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2349,11 +2059,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:205: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 58: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2383,11 +2088,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:206: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 59: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2417,11 +2117,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:207: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 60: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2451,11 +2146,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:208: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 61: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2485,11 +2175,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:209: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 62: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2519,11 +2204,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:210: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 63: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2553,11 +2233,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:211: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 64: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2587,11 +2262,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:212: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 65: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2621,11 +2291,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:213: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 66: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2655,11 +2320,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:214: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 67: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2689,11 +2349,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:215: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 68: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2723,11 +2378,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:216: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 69: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2757,11 +2407,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:217: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 70: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2791,11 +2436,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:218: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 71: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2825,11 +2465,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:219: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 72: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2859,11 +2494,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:220: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 73: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2893,11 +2523,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:221: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 74: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2927,11 +2552,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:222: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 75: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2961,11 +2581,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:223: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 76: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -2995,11 +2610,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:224: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 77: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -3029,11 +2639,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:225: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 78: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -3063,11 +2668,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:226: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 79: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,
@@ -3097,11 +2697,6 @@ magma_zgetf2_native_fused(
                                  });
             });
             break;
-        /*
-        DPCT1049:227: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         case 80: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::accessor<magmaDoubleComplex, 1,

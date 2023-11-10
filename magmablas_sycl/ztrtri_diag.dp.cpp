@@ -145,12 +145,6 @@ magmablas_ztrtri_diag(
             //printf( "n %d, jb %d, grid %d x %d (%d x %d)\n", n, jb, grid.x, grid.y, grid.y / npages, npages );
             switch (jb) {
                 case 16:
-                    /*
-                    DPCT1049:1564: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -166,12 +160,6 @@ magmablas_ztrtri_diag(
                                     sB_acc_ct1);
                             });
                     });
-                    /*
-                    DPCT1049:1559: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -189,12 +177,6 @@ magmablas_ztrtri_diag(
                     });
                     break;
                 case 32:
-                    /*
-                    DPCT1049:1565: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -210,12 +192,6 @@ magmablas_ztrtri_diag(
                                     sB_acc_ct1);
                             });
                     });
-                    /*
-                    DPCT1049:1560: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -233,12 +209,6 @@ magmablas_ztrtri_diag(
                     });
                     break;
                 case 64:
-                    /*
-                    DPCT1049:1566: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -254,12 +224,6 @@ magmablas_ztrtri_diag(
                                     sB_acc_ct1);
                             });
                     });
-                    /*
-                    DPCT1049:1561: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -277,12 +241,6 @@ magmablas_ztrtri_diag(
                     });
                     break;
                 default:
-                    /*
-                    DPCT1049:1567: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -298,12 +256,6 @@ magmablas_ztrtri_diag(
                                     sB_acc_ct1);
                             });
                     });
-                    /*
-                    DPCT1049:1562: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -319,12 +271,6 @@ magmablas_ztrtri_diag(
                                     sB_acc_ct1);
                             });
                     });
-                    /*
-                    DPCT1049:1563: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                    [=](sycl::nd_item<3> item_ct1) {
@@ -369,12 +315,6 @@ magmablas_ztrtri_diag(
 
             switch (jb) {
                 case 16:
-                    /*
-                    DPCT1049:1573: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -390,12 +330,6 @@ magmablas_ztrtri_diag(
                                     sB_acc_ct1);
                             });
                     });
-                    /*
-                    DPCT1049:1568: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -413,12 +347,6 @@ magmablas_ztrtri_diag(
                     });
                     break;
                 case 32:
-                    /*
-                    DPCT1049:1574: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -434,12 +362,6 @@ magmablas_ztrtri_diag(
                                     sB_acc_ct1);
                             });
                     });
-                    /*
-                    DPCT1049:1569: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -457,12 +379,6 @@ magmablas_ztrtri_diag(
                     });
                     break;
                 case 64:
-                    /*
-                    DPCT1049:1575: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -478,12 +394,6 @@ magmablas_ztrtri_diag(
                                     sB_acc_ct1);
                             });
                     });
-                    /*
-                    DPCT1049:1570: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -501,12 +411,6 @@ magmablas_ztrtri_diag(
                     });
                     break;
                 default:
-                    /*
-                    DPCT1049:1576: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -522,12 +426,6 @@ magmablas_ztrtri_diag(
                                     sB_acc_ct1);
                             });
                     });
-                    /*
-                    DPCT1049:1571: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
                         sycl::accessor<magmaDoubleComplex, 2,
@@ -543,12 +441,6 @@ magmablas_ztrtri_diag(
                                     sB_acc_ct1);
                             });
                     });
-                    /*
-                    DPCT1049:1572: The work-group size passed to the SYCL kernel
-                    may exceed the limit. To get the device limit, query
-                    info::device::max_work_group_size. Adjust the work-group
-                    size if needed.
-                    */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                    [=](sycl::nd_item<3> item_ct1) {

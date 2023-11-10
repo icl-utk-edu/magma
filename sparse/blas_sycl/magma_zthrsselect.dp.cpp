@@ -270,11 +270,6 @@ magma_zthrsholdselect(
     // go over value array, each threads finds a first "largest" element 
     // and writes to thrs1. Then do reduction to find the largest value overall.
     // start = magma_sync_wtime( queue );
-    /*
-    DPCT1049:522: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(grid1 * block1, block1), [=
@@ -282,33 +277,18 @@ magma_zthrsholdselect(
                 magma_zfindlargest_kernel(total_size, val, float_val, thrs1,
                                           item_ct1);
             });
-    /*
-    DPCT1049:523: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(grid2 * block1, block1), [=
     ](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]] {
                 magma_zreduce_thrs(thrs1, thrs2, item_ct1);
             });
-    /*
-    DPCT1049:524: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(grid3 * block1, block1), [=
     ](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]] {
                 magma_zreduce_thrs(thrs2, thrs1, item_ct1);
             });
-    /*
-    DPCT1049:525: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(grid4 * block1, block1), [=
@@ -333,11 +313,6 @@ magma_zthrsholdselect(
     // now start the thresholding
     // first kernel checks how many elements are smaller than the threshold
     start = magma_sync_wtime( queue );
-    /*
-    DPCT1049:526: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
         sycl::accessor<float, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -354,33 +329,18 @@ magma_zthrsholdselect(
             });
     });
     // second kernel identifies the largest of these thresholds
-    /*
-    DPCT1049:527: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(grid2 * block1, block1), [=
     ](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]] {
                 magma_zreduce_thrs(thrs1, thrs2, item_ct1);
             });
-    /*
-    DPCT1049:528: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(grid3 * block1, block1), [=
     ](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]] {
                 magma_zreduce_thrs(thrs2, thrs1, item_ct1);
             });
-    /*
-    DPCT1049:529: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
             sycl::nd_range<3>(grid4 * block1, block1), [=

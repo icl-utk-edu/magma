@@ -409,11 +409,6 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
     auto oracles = (uint32_t*)(localcounts + num_grouped_blocks * searchtree_width);
 
     // count buckets
-    /*
-    DPCT1049:138: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     stream->submit([&](sycl::handler &cgh) {
         sycl::accessor<double, 1, sycl::access_mode::read_write,
                        sycl::access::target::local>
@@ -433,11 +428,6 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
                                     local_counts_acc_ct1.get_pointer());
             });
     });
-    /*
-    DPCT1049:139: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     stream->submit([&](sycl::handler &cgh) {
         auto num_grouped_blocks_ct2 = num_grouped_blocks;
 
@@ -464,11 +454,6 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
                                         item_ct1, sums_acc_ct1.get_pointer());
             });
     });
-    /*
-    DPCT1049:140: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     stream->submit([&](sycl::handler &cgh) {
         sycl::accessor<int32_t, 0, sycl::access_mode::read_write,
                        sycl::access::target::local>

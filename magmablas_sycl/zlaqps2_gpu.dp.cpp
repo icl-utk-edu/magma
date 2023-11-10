@@ -211,12 +211,6 @@ magma_zlaqps2_gpu(
                                  dA(rk, k), ione,
                          c_zero, dauxv, ione, queue ); */
 
-            /*
-            DPCT1049:1147: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::accessor<magmaDoubleComplex, 1,

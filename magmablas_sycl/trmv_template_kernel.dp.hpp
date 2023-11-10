@@ -47,11 +47,6 @@ void trmv_template(
 
     sycl::range<3> threads(1, 1, NB);
     sycl::range<3> grid(1, 1, 1);
-    /*
-    DPCT1049:1452: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     // From trmv_small_template_device:
     // const int slda = NB+1;
     // used this definition in creation of shared memory accessor here

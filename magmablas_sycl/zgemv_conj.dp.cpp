@@ -130,11 +130,6 @@ magmablas_zgemv_conj(
     sycl::range<3> grid(1, 1, blocks);
     sycl::range<3> threads(1, 1, num_threads);
 
-    /*
-    DPCT1049:362: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
