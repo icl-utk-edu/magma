@@ -165,6 +165,7 @@ zgbsv_batched_kernel_fused_sm(
             for(int i = tx; i < nupdates ; i+= ntx) {
                 sB(j-i-1,rhs) -= s * sA(kv-i-1,j);
             }
+            __syncthreads();
         }
     }
     __syncthreads();
