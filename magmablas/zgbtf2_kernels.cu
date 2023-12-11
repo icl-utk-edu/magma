@@ -495,7 +495,7 @@ void zgbtf2_native_kernel_v2(
     const int total_columns    = min(n-gbstep, nbx * nb1);
     const int total_factorize  = min(total_columns, NB); //min(nbx * nb, total_columns);
     const int my_total_columns = (total_columns / nbx) + ((bx < (total_columns % nbx)) ? 1 : 0);
-    const int my_last_column   = (my_total_columns-1) * nbx + bx;
+    //const int my_last_column   = (my_total_columns-1) * nbx + bx;
 
     int col_start = 0, col_end = 0, lj = 0, glj = 0;
     for(int j = bx; j < total_columns; j += nbx) {
