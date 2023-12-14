@@ -128,14 +128,6 @@ if (MAGMA_ENABLE_CUDA)
     # sm_xx is binary, compute_xx is PTX for forward compatability
     # MIN_ARCH is lowest requested version
 
-    if(WIN32)
-        # Disable separable compilation on Windows because object linking list
-        # becomes too long when building multiple archs and MSVC throws errors
-        set(CUDA_SEPARABLE_COMPILATION OFF)
-    else()
-        set(CUDA_SEPARABLE_COMPILATION ON)
-    endif()
-
     set(__cuda_architectures)
 
     include_directories( ${CUDAToolkit_INCLUDE_DIRS} )
