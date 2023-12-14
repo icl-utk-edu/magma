@@ -140,6 +140,18 @@ if (MAGMA_ENABLE_CUDA)
 
     include_directories( ${CUDAToolkit_INCLUDE_DIRS} )
 
+    if (DEFINED CMAKE_CUDA_ARCHITECTURES AND DEFINED MAGMA_CUDA_ARCH_MIN)
+        # Allow more control over targeted CUDA archs by skipping name to
+        # number arch conversion below
+        set(MIN_ARCH "${MAGMA_CUDA_ARCH_MIN}")
+        set(GPU_TARGET "")
+        message( STATUS "    compile for CUDA ${CMAKE_CUDA_ARCHITECTURES}" )
+    else()
+        # Both must be set manually to skip logic below
+        unset(CMAKE_CUDA_ARCHITECTURES)
+        unset(MAGMA_CUDA_ARCH_MIN)
+    endif()
+
     if (GPU_TARGET MATCHES Fermi)
         set( GPU_TARGET "${GPU_TARGET} sm_20" )
     endif()
@@ -296,7 +308,9 @@ if (MAGMA_ENABLE_CUDA)
         message( FATAL_ERROR "GPU_TARGET must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
     endif()
 
-    set(CMAKE_CUDA_ARCHITECTURES "${__cuda_architectures}")
+    if (NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+        set(CMAKE_CUDA_ARCHITECTURES "${__cuda_architectures}")
+    endif()
 
     add_library(magma_nvcc_flags INTERFACE)
     if (COMPILER_SUPPORTS_FPIC)
@@ -313,7 +327,9 @@ if (MAGMA_ENABLE_CUDA)
     endif(COMPILER_SUPPORTS_FPIC)
 
     set(MAGMA_HAVE_CUDA "1")
-    set(MAGMA_CUDA_ARCH_MIN "${MIN_ARCH}")
+    if (NOT DEFINED MAGMA_CUDA_ARCH_MIN)
+        set(MAGMA_CUDA_ARCH_MIN "${MIN_ARCH}")
+    endif()
     message( STATUS "Define -DMAGMA_HAVE_CUDA -DMAGMA_CUDA_ARCH_MIN=${MIN_ARCH}" )
   else()
     message( STATUS "Could not find CUDA" )
