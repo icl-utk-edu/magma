@@ -296,7 +296,7 @@ if (MAGMA_ENABLE_CUDA)
         message( FATAL_ERROR "GPU_TARGET must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
     endif()
 
-    set(CUDA_ARCHITECTURES "${__cuda_architectures}")
+    set(CMAKE_CUDA_ARCHITECTURES "${__cuda_architectures}")
 
     add_library(magma_nvcc_flags INTERFACE)
     if (COMPILER_SUPPORTS_FPIC)
@@ -397,7 +397,7 @@ if (MAGMA_ENABLE_HIP)
     set_property(TARGET hip::device APPEND PROPERTY COMPATIBLE_INTERFACE_BOOL INTERFACE_HIP_DEVICE_COMPILE)
     set_property(TARGET hip::device PROPERTY INTERFACE_HIP_DEVICE_COMPILE ON)
     set(GPU_ARCH_FLAGS ${DEVCCFLAGS})
-    
+
     #add_compile_options(${GPU_ARCH_FLAGS})
   else()
     message( STATUS "Could not find HIP" )
@@ -533,7 +533,7 @@ if (MAGMA_ENABLE_CUDA)
 else()
   include_directories( magmablas_hip )  # e.g., shuffle.cuh
 endif()
-  
+
 # Need to check sizeof(void*) after setting flags above;
 # CMAKE_SIZEOF_VOID_P can be wrong.
 include( CheckTypeSize )
@@ -616,7 +616,7 @@ else()
 	roc::hipsparse
 	)
     endif()
-    
+
     if (USE_FORTRAN)
         # make list of Fortran .mod files to install
         foreach( filename ${libmagma_all} )
@@ -809,7 +809,7 @@ message( STATUS "    CMAKE_INSTALL_PREFIX:  ${CMAKE_INSTALL_PREFIX}" )
 message( STATUS "    CFLAGS:                ${CMAKE_C_FLAGS}" )
 message( STATUS "    CXXFLAGS:              ${CMAKE_CXX_FLAGS}" )
 if (MAGMA_ENABLE_CUDA)
-  message( STATUS "    NVCCFLAGS:             ${CUDA_NVCC_FLAGS}" )
+  message( STATUS "    NVCCFLAGS:             ${CMAKE_CUDA_FLAGS}" )
 else()
   message( STATUS "    DEVCCFLAGS:            ${DEVCCFLAGS}" )
 endif()
