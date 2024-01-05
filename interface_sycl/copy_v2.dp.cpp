@@ -60,22 +60,18 @@ extern "C" void magma_setvector_internal(magma_int_t n, magma_int_t elemSize,
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
     }
-    int status;
-    /*
-    DPCT1018:24: The cublasSetVectorAsync was migrated, but due to parameter(s)
-    int(incx) and/or int(incy) could not be evaluated, the generated code
-    performance may be sub-optimal.
-    */
+    else {
+        stream = &dpct::get_default_queue();
+    }
+    int status = 0;
     /*
     DPCT1003:25: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    status = (dpct::matrix_mem_copy((void *)dy_dst, (void *)hx_src, int(incy),
-                                    int(incx), 1, int(n), int(elemSize),
-                                    dpct::automatic, *stream, true),
-              0);
-    if ( queue != NULL )
-        stream->wait();
+    You may need to rewrite this code. */
+    stream->ext_oneapi_memcpy2d(
+		  dy_dst, size_t(incy) * elemSize,
+		  hx_src, size_t(incx) * elemSize,
+                  size_t(elemSize), size_t(n));
+    stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -129,22 +125,18 @@ extern "C" void magma_setvector_async_internal(
         stream = queue->sycl_stream();
     }
     else {
+        stream = &dpct::get_default_queue();
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    int status;
-    /*
-    DPCT1018:26: The cublasSetVectorAsync was migrated, but due to parameter(s)
-    int(incx) and/or int(incy) could not be evaluated, the generated code
-    performance may be sub-optimal.
-    */
+    int status = 0;
     /*
     DPCT1003:27: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
     */
-    status = (dpct::matrix_mem_copy((void *)dy_dst, (void *)hx_src, int(incy),
-                                    int(incx), 1, int(n), int(elemSize),
-                                    dpct::automatic, *stream, true),
-              0);
+    stream->ext_oneapi_memcpy2d(
+		  dy_dst, size_t(incy) * elemSize,
+		  hx_src, size_t(incx) * elemSize,
+                  size_t(elemSize), size_t(n));
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -197,22 +189,19 @@ extern "C" void magma_getvector_internal(magma_int_t n, magma_int_t elemSize,
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
     }
-    int status;
-    /*
-    DPCT1018:28: The cublasGetVectorAsync was migrated, but due to parameter(s)
-    int(incx) and/or int(incy) could not be evaluated, the generated code
-    performance may be sub-optimal.
-    */
+    else {
+        stream = &dpct::get_default_queue();
+    }
+    int status = 0;
     /*
     DPCT1003:29: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
     */
-    status = (dpct::matrix_mem_copy((void *)hy_dst, (void *)dx_src, int(incy),
-                                    int(incx), 1, int(n), int(elemSize),
-                                    dpct::automatic, *stream, true),
-              0);
-    if ( queue != NULL )
-        stream->wait();
+    stream->ext_oneapi_memcpy2d(
+		  hy_dst, size_t(incy) * elemSize,
+		  dx_src, size_t(incx) * elemSize,
+                  size_t(elemSize), size_t(n));
+    stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -266,22 +255,18 @@ extern "C" void magma_getvector_async_internal(
         stream = queue->sycl_stream();
     }
     else {
+        stream = &dpct::get_default_queue();
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    int status;
-    /*
-    DPCT1018:30: The cublasGetVectorAsync was migrated, but due to parameter(s)
-    int(incx) and/or int(incy) could not be evaluated, the generated code
-    performance may be sub-optimal.
-    */
+    int status = 0;
     /*
     DPCT1003:31: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
     */
-    status = (dpct::matrix_mem_copy((void *)hy_dst, (void *)dx_src, int(incy),
-                                    int(incx), 1, int(n), int(elemSize),
-                                    dpct::automatic, *stream, true),
-              0);
+    stream->ext_oneapi_memcpy2d(
+		  hy_dst, size_t(incy) * elemSize,
+		  dx_src, size_t(incx) * elemSize,
+                  size_t(elemSize), size_t(n));
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -337,15 +322,17 @@ extern "C" void magma_copyvector_internal(magma_int_t n, magma_int_t elemSize,
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
     }
+    else {
+        stream = &dpct::get_default_queue();
+    }
     if ( incx == 1 && incy == 1 ) {
-        int status;
+        int status = 0;
         /*
         DPCT1003:32: Migrated API does not return error code. (*, 0) is
         inserted. You may need to rewrite this code.
         */
-        status = (stream->memcpy(dy_dst, dx_src, int(n * elemSize)), 0);
-        if ( queue != NULL )
-            stream->wait();
+        status = (stream->memcpy(dy_dst, dx_src, size_t(n) * elemSize), 0);
+        stream->wait();
         check_xerror( status, func, file, line );
         MAGMA_UNUSED( status );
     }
@@ -404,15 +391,16 @@ extern "C" void magma_copyvector_async_internal(
         stream = queue->sycl_stream();
     }
     else {
+        stream = &dpct::get_default_queue();
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
     if ( incx == 1 && incy == 1 ) {
-        int status;
+        int status = 0;
         /*
         DPCT1003:33: Migrated API does not return error code. (*, 0) is
         inserted. You may need to rewrite this code.
         */
-        status = (stream->memcpy(dy_dst, dx_src, int(n * elemSize)), 0);
+        status = (stream->memcpy(dy_dst, dx_src, size_t(n) * elemSize), 0);
         check_xerror( status, func, file, line );
         MAGMA_UNUSED( status );
     }
@@ -476,7 +464,7 @@ extern "C" void magma_setmatrix_internal(magma_int_t m, magma_int_t n,
     else {
         stream = &dpct::get_default_queue();
     }
-    int status;
+    int status = 0;
     /*
     DPCT1018:34: The cublasSetMatrixAsync was migrated, but due to parameter(s)
     int(lda) and/or int(lddb) could not be evaluated, the generated code
@@ -486,10 +474,11 @@ extern "C" void magma_setmatrix_internal(magma_int_t m, magma_int_t n,
     DPCT1003:35: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
     */
-    status = (dpct::matrix_mem_copy((void *)dB_dst, (void *)hA_src, int(lddb),
-                                    int(lda), int(m), int(n), int(elemSize),
-                                    dpct::automatic, *stream, false),
-              0);
+    stream->ext_oneapi_memcpy2d(
+		  dB_dst, size_t(lddb) * elemSize,
+		  hA_src, size_t(lda) * elemSize,
+		  size_t(m) * elemSize, size_t(n));
+    stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -548,7 +537,7 @@ extern "C" void magma_setmatrix_async_internal(
     else {
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    int status;
+    int status = 0;
     /*
     DPCT1018:36: The cublasSetMatrixAsync was migrated, but due to parameter(s)
     int(lda) and/or int(lddb) could not be evaluated, the generated code
@@ -558,10 +547,10 @@ extern "C" void magma_setmatrix_async_internal(
     DPCT1003:37: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
     */
-    status = (dpct::matrix_mem_copy((void *)dB_dst, (void *)hA_src, int(lddb),
-                                    int(lda), int(m), int(n), int(elemSize),
-                                    dpct::automatic, *stream, true),
-              0);
+    stream->ext_oneapi_memcpy2d(
+		  dB_dst, size_t(lddb) * elemSize,
+		  hA_src, size_t(lda) * elemSize,
+		  size_t(m) * elemSize, size_t(n));
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -619,7 +608,7 @@ magma_getmatrix_internal(magma_int_t m, magma_int_t n, magma_int_t elemSize,
     else {
         stream = &dpct::get_default_queue();
     }
-    int status;
+    int status = 0;
     /*
     DPCT1018:38: The cublasGetMatrixAsync was migrated, but due to parameter(s)
     int(ldda) and/or int(ldb) could not be evaluated, the generated code
@@ -629,10 +618,11 @@ magma_getmatrix_internal(magma_int_t m, magma_int_t n, magma_int_t elemSize,
     DPCT1003:39: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
     */
-    status = (dpct::matrix_mem_copy((void *)hB_dst, (void *)dA_src, int(ldb),
-                                    int(ldda), int(m), int(n), int(elemSize),
-                                    dpct::automatic, *stream, false),
-              0);
+    stream->ext_oneapi_memcpy2d(
+		  hB_dst, size_t(ldb) * elemSize,
+		  dA_src, size_t(ldda) * elemSize,
+		  size_t(m) * elemSize, size_t(n));
+    stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -688,9 +678,10 @@ extern "C" void magma_getmatrix_async_internal(
         stream = queue->sycl_stream();
     }
     else {
+        stream = &dpct::get_default_queue();
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    int status;
+    int status = 0;
     /*
     DPCT1018:40: The cublasGetMatrixAsync was migrated, but due to parameter(s)
     int(ldda) and/or int(ldb) could not be evaluated, the generated code
@@ -700,10 +691,10 @@ extern "C" void magma_getmatrix_async_internal(
     DPCT1003:41: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
     */
-    status = (dpct::matrix_mem_copy((void *)hB_dst, (void *)dA_src, int(ldb),
-                                    int(ldda), int(m), int(n), int(elemSize),
-                                    dpct::automatic, *stream, true),
-              0);
+    stream->ext_oneapi_memcpy2d(
+		  hB_dst, size_t(ldb) * elemSize,
+		  dA_src, size_t(ldda) * elemSize,
+		  size_t(m) * elemSize, size_t(n));
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -761,17 +752,16 @@ extern "C" void magma_copymatrix_internal(
     else {
         stream = &dpct::get_default_queue();
     }
-    int status;
+    int status = 0;
     /*
     DPCT1003:42: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
     */
-    status = (dpct::async_dpct_memcpy(dB_dst, int(lddb * elemSize), dA_src,
-                                      int(ldda * elemSize), int(m * elemSize),
-                                      int(n), dpct::device_to_device, *stream),
-              0);
-    if ( queue != NULL )
-        stream->wait();
+    stream->ext_oneapi_memcpy2d(
+		  dB_dst, size_t(lddb) * elemSize,
+		  dA_src, size_t(ldda) * elemSize,
+		  size_t(m) * elemSize, size_t(n));
+    stream->wait();
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
@@ -828,17 +818,18 @@ extern "C" void magma_copymatrix_async_internal(
         stream = queue->sycl_stream();
     }
     else {
+        stream = &dpct::get_default_queue();
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    int status;
+    int status = 0;
     /*
     DPCT1003:43: Migrated API does not return error code. (*, 0) is inserted.
     You may need to rewrite this code.
     */
-    status = (dpct::async_dpct_memcpy(dB_dst, int(lddb * elemSize), dA_src,
-                                      int(ldda * elemSize), int(m * elemSize),
-                                      int(n), dpct::device_to_device, *stream),
-              0);
+    stream->ext_oneapi_memcpy2d(
+		  dB_dst, size_t(lddb) * elemSize,
+		  dA_src, size_t(ldda) * elemSize,
+		  size_t(m) * elemSize, size_t(n));
     check_xerror( status, func, file, line );
     MAGMA_UNUSED( status );
 }
