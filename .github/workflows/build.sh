@@ -17,7 +17,7 @@ if [ "$blas" = "openblas" ]; then
 else
    module load intel-oneapi-mkl
 fi
-[ "$compiler" = "intel" ] && module load intel-parallel-studio
+[ "$compiler" = "intel" ] && module load intel-oneapi-compilers
 
 if [ "$device" = "gpu_nvidia" ]; then
    export CUDADIR=/usr/local/cuda
