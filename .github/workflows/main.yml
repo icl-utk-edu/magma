@@ -30,6 +30,6 @@ jobs:
       fail-fast: false
     runs-on: slurm:${{ matrix.device }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout
       - name: Build
         run: .github/workflows/build.sh ${{matrix.maker}} ${{matrix.device}} ${{matrix.blas}} ${{matrix.compiler}}
