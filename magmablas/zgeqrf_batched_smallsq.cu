@@ -100,7 +100,6 @@ zgeqrf_batched_sq1d_reg_kernel(
             if(tx == i){
                 dtau[i] = tau;
                 rA[i]   = MAGMA_Z_ONE;
-                tmp     = zero_nrm ? alpha : tmp;
             }
         }
 

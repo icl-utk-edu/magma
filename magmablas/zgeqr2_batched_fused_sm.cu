@@ -53,7 +53,7 @@ zgeqr2_fused_sm_kernel_batched(
     double* snorm = (double*) (sTmp); // must be set after offsetting w.r.t. ty
 
     magmaDoubleComplex alpha, tau, tmp, scale = MAGMA_Z_ZERO;
-    double norm = MAGMA_D_ZERO, beta;
+    double norm = MAGMA_D_ZERO, norm_no_alpha = MAGMA_D_ZERO, beta;
 
     if( tx == 0 ){
         (*info) = 0;
@@ -75,13 +75,20 @@ zgeqr2_fused_sm_kernel_batched(
     for(int j = 0; j < N; j++){
         alpha = sA(j,j);
 
-        zgeqr2_compute_norm(M-j, &sA(j,j), snorm, tx, ntx);
+        zgeqr2_compute_norm(M-j-1, &sA(j+1,j), snorm, tx, ntx);
         // there is a sync at the end of zgeqr2_compute_norm
+        norm_no_alpha = snorm[0];
+        norm = norm_no_alpha + MAGMA_Z_REAL(alpha) * MAGMA_Z_REAL(alpha) + MAGMA_Z_IMAG(alpha) * MAGMA_Z_IMAG(alpha);
+        norm = sqrt(norm);
+        bool zero_nrm = (norm_no_alpha == 0) && (MAGMA_Z_IMAG(alpha) == 0);
 
-        norm = sqrt(snorm[0]);
-        beta = -copysign(norm, real(alpha));
-        scale = MAGMA_Z_DIV( MAGMA_Z_ONE,  alpha - MAGMA_Z_MAKE(beta, 0));
-        tau = MAGMA_Z_MAKE( (beta - real(alpha)) / beta, -imag(alpha) / beta );
+        tau   = MAGMA_Z_ZERO;
+        scale = MAGMA_Z_ONE;
+        if(!zero_nrm) {
+            beta = -copysign(norm, real(alpha));
+            scale = MAGMA_Z_DIV( MAGMA_Z_ONE,  alpha - MAGMA_Z_MAKE(beta, 0));
+            tau = MAGMA_Z_MAKE( (beta - real(alpha)) / beta, -imag(alpha) / beta );
+        }
 
         if(tx == 0) {
             stau[j] = tau;
@@ -97,7 +104,8 @@ zgeqr2_fused_sm_kernel_batched(
         // copy the first portion of the column into tmp
         // since M > N and ntx >= N, this portion must
         // have the diagonal
-        tmp = (tx == j) ? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO) : sA(tx, j);
+        alpha = (zero_nrm) ? alpha : MAGMA_Z_MAKE(beta, MAGMA_D_ZERO);
+        tmp   = (tx ==  j) ? alpha : sA(tx, j);
 
         // write the column into global memory
         dA[j * ldda + tx] = tmp;
