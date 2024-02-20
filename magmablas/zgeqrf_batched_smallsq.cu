@@ -19,7 +19,7 @@
 #ifdef MAGMA_HAVE_HIP
 #define block_sync    __syncthreads
 #else
-#define block_sync    magmablas_syncwarp
+#define block_sync    __syncthreads
 #endif
 
 #if defined(MAGMA_HAVE_HIP)
@@ -41,11 +41,12 @@ zgeqrf_batched_sq1d_reg_kernel(
     magma_int_t *info_array, magma_int_t batchCount)
 {
     extern __shared__ magmaDoubleComplex zdata[];
-    const int tx = threadIdx.x;
-    const int ty = threadIdx.y;
-    const int batchid = blockIdx.x * blockDim.y + ty;
+    constexpr int mtx_per_tb = (ZGEQRF_BATCH_SQ1D_MAX_THREADS/N);
+    const int tx = threadIdx.x % N;
+    const int ty = threadIdx.x / N;
+    const int batchid = blockIdx.x * mtx_per_tb + ty;
     if(batchid >= batchCount) return;
-    if(tx >= N) return;
+    if(ty      >= mtx_per_tb) return;
 
     const int slda  = SLDA(N);
     magmaDoubleComplex* dA   = dA_array[batchid] + Aj * ldda + Ai;
@@ -53,7 +54,7 @@ zgeqrf_batched_sq1d_reg_kernel(
     magma_int_t* info = &info_array[batchid];
     // shared memory pointers
     magmaDoubleComplex* sA = (magmaDoubleComplex*)(zdata + ty * slda * N);
-    double* sdw = (double*)(zdata + blockDim.y * slda * N);
+    double* sdw = (double*)(zdata + mtx_per_tb * slda * N);
     sdw += ty * N;
 
     magmaDoubleComplex rA[N] = {MAGMA_Z_ZERO};
@@ -224,7 +225,7 @@ magma_zgeqrf_batched_smallsq(
     magma_int_t nth   = m;//magma_ceilpow2(m);
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
     dim3 grid(gridx, 1, 1);
-    dim3 threads(nth, ntcol, 1);
+    dim3 threads(nth * ntcol, 1, 1);
 
     void *kernel_args[] = {&dA_array, &Ai, &Aj, &ldda, &dtau_array, &taui, &info_array, &batchCount};
 
