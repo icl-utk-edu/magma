@@ -10,12 +10,7 @@
 
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
-    // for CUDA_VERSION
 #include "magma_internal.h"
-
-#if defined(MAGMA_HAVE_HIP)
-#include <hip/hip_fp16.h>
-#endif
 
 #define BLK_X 32
 #define BLK_Y 4

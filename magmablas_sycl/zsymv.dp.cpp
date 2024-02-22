@@ -65,8 +65,7 @@ zsymv_kernel_L(
     sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
     magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj)
 {
-#if defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c) ||    \
-    (DPCT_COMPATIBILITY_TEMP >= 200) || defined(MAGMA_HAVE_HIP)
+#if defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c)
 
     // treats sA as 16x64 block
     #define sA16(i_, j_) (sA[(i_)][(j_)])  // i.e., sA[ (i_)*(NB_X+3) + (j_) ]
@@ -548,7 +547,7 @@ zsymv_kernel_L(
               + sA16(3, tx);
         work[blk*NB_X + tx] = total;  // store at work( blk*NB_X + tx, blk )
     }
-#endif  /* PRECISION_[sdc] || (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
+#endif  /* PRECISION_[sdc]*/
 }
 // end zsymv_kernel_L
 

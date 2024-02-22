@@ -523,12 +523,6 @@ catch (sycl::exception const &exc) {
   std::exit(1);
 }
 
-#if CUDA_VERSION >= 11000
-#define magma_memoryType() type
-#else
-#define magma_memoryType() memoryType
-#endif
-
 /***************************************************************************//**
     For debugging purposes, determines whether a pointer points to CPU or GPU memory.
 

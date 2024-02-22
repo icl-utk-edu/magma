@@ -11,7 +11,7 @@
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magmasparse_internal.h"
-#include "shuffle.cuh"
+#include "shuffle.dp.hpp"
 #include <cmath>
 
 #define PRECISION_z
@@ -21,11 +21,14 @@
 #define WRP 32
 #define WRQ 4
 
-void ztrsv_lower_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes)
+
+void ztrsv_lower_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes,
+                                  sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
 
     magmaDoubleComplex rB[ 2 ];
     magmaDoubleComplex rA[ 2 ];
@@ -54,7 +57,7 @@ void ztrsv_lower_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB
         if (k%WARP_SIZE == idn)
             rB[k/WARP_SIZE] /= rA[k/WARP_SIZE];
 
-        magmaDoubleComplex top = magmablas_zshfl(rB[k/WARP_SIZE], k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB[k/WARP_SIZE], k%WARP_SIZE, item_ct1);
 
         #pragma unroll
         for (n = 0; n < 2; n++)
@@ -67,16 +70,17 @@ void ztrsv_lower_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB
         if (n*WARP_SIZE+idn < N)
             dB[n*WARP_SIZE+idn] = rB[n];
 
-#endif
 }
 
 
 
-void ztrsv_upper_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes)
+void ztrsv_upper_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB, int *sizes,
+                                  sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
 
     magmaDoubleComplex rB[ 2 ];
     magmaDoubleComplex rA[ 2 ];
@@ -104,7 +108,7 @@ void ztrsv_upper_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB
         if (k%WARP_SIZE == idn)
             rB[k/WARP_SIZE] /= rA[k/WARP_SIZE];
 
-        magmaDoubleComplex top = magmablas_zshfl(rB[k/WARP_SIZE], k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB[k/WARP_SIZE], k%WARP_SIZE, item_ct1);
 
         #pragma unroll
         for (n = 0; n < 2; n++)
@@ -123,11 +127,13 @@ void ztrsv_upper_32kernel_general(magmaDoubleComplex *dA, magmaDoubleComplex *dB
 
 
 
-void ztrsv_lower_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -142,7 +148,7 @@ void ztrsv_lower_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -154,11 +160,13 @@ void ztrsv_lower_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -173,7 +181,7 @@ void ztrsv_lower_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -185,11 +193,13 @@ void ztrsv_lower_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -204,7 +214,7 @@ void ztrsv_lower_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -216,11 +226,13 @@ void ztrsv_lower_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -235,7 +247,7 @@ void ztrsv_lower_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -247,11 +259,13 @@ void ztrsv_lower_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -266,7 +280,7 @@ void ztrsv_lower_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -278,11 +292,13 @@ void ztrsv_lower_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -297,7 +313,7 @@ void ztrsv_lower_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -309,11 +325,13 @@ void ztrsv_lower_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -328,7 +346,7 @@ void ztrsv_lower_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -340,11 +358,13 @@ void ztrsv_lower_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -359,7 +379,7 @@ void ztrsv_lower_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -371,11 +391,13 @@ void ztrsv_lower_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -390,7 +412,7 @@ void ztrsv_lower_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -402,11 +424,13 @@ void ztrsv_lower_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -421,7 +445,7 @@ void ztrsv_lower_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -433,11 +457,13 @@ void ztrsv_lower_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -452,7 +478,7 @@ void ztrsv_lower_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -464,11 +490,13 @@ void ztrsv_lower_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -483,7 +511,7 @@ void ztrsv_lower_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -495,11 +523,13 @@ void ztrsv_lower_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -514,7 +544,7 @@ void ztrsv_lower_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -526,11 +556,13 @@ void ztrsv_lower_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -545,7 +577,7 @@ void ztrsv_lower_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -557,11 +589,13 @@ void ztrsv_lower_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -576,7 +610,7 @@ void ztrsv_lower_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -588,11 +622,13 @@ void ztrsv_lower_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -607,7 +643,7 @@ void ztrsv_lower_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -619,11 +655,13 @@ void ztrsv_lower_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -638,7 +676,7 @@ void ztrsv_lower_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -650,11 +688,13 @@ void ztrsv_lower_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -669,7 +709,7 @@ void ztrsv_lower_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -681,11 +721,13 @@ void ztrsv_lower_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -700,7 +742,7 @@ void ztrsv_lower_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -712,11 +754,13 @@ void ztrsv_lower_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -731,7 +775,7 @@ void ztrsv_lower_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -743,11 +787,13 @@ void ztrsv_lower_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -762,7 +808,7 @@ void ztrsv_lower_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -774,11 +820,13 @@ void ztrsv_lower_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -793,7 +841,7 @@ void ztrsv_lower_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -805,11 +853,13 @@ void ztrsv_lower_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -824,7 +874,7 @@ void ztrsv_lower_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -836,11 +886,13 @@ void ztrsv_lower_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -855,7 +907,7 @@ void ztrsv_lower_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -867,11 +919,13 @@ void ztrsv_lower_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -886,7 +940,7 @@ void ztrsv_lower_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -898,11 +952,13 @@ void ztrsv_lower_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -917,7 +973,7 @@ void ztrsv_lower_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -929,11 +985,13 @@ void ztrsv_lower_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -948,7 +1006,7 @@ void ztrsv_lower_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -960,11 +1018,13 @@ void ztrsv_lower_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -979,7 +1039,7 @@ void ztrsv_lower_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -991,11 +1051,13 @@ void ztrsv_lower_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1010,7 +1072,7 @@ void ztrsv_lower_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -1022,11 +1084,13 @@ void ztrsv_lower_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1041,7 +1105,7 @@ void ztrsv_lower_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -1053,11 +1117,13 @@ void ztrsv_lower_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1072,7 +1138,7 @@ void ztrsv_lower_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -1084,11 +1150,13 @@ void ztrsv_lower_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_lower_32kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_lower_32kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1103,7 +1171,7 @@ void ztrsv_lower_32kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn > k)
             rB -= (top*rA);
     }
@@ -1123,80 +1191,82 @@ void ztrsv_lower_32kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB,
         int N = sizes[j];
         switch( N ) {
             case  1:
-                ztrsv_lower_32kernel_1( dA, dB ); break;
+                ztrsv_lower_32kernel_1(dA, dB, item_ct1); break;
             case  2:
-                ztrsv_lower_32kernel_2( dA, dB ); break;
+                ztrsv_lower_32kernel_2(dA, dB, item_ct1); break;
             case  3:
-                ztrsv_lower_32kernel_3( dA, dB ); break;
+                ztrsv_lower_32kernel_3(dA, dB, item_ct1); break;
             case  4:
-                ztrsv_lower_32kernel_4( dA, dB ); break;
+                ztrsv_lower_32kernel_4(dA, dB, item_ct1); break;
             case  5:
-                ztrsv_lower_32kernel_5( dA, dB ); break;
+                ztrsv_lower_32kernel_5(dA, dB, item_ct1); break;
             case  6:
-                ztrsv_lower_32kernel_6( dA, dB ); break;
+                ztrsv_lower_32kernel_6(dA, dB, item_ct1); break;
             case  7:
-                ztrsv_lower_32kernel_7( dA, dB ); break;
+                ztrsv_lower_32kernel_7(dA, dB, item_ct1); break;
             case  8:
-                ztrsv_lower_32kernel_8( dA, dB ); break;
+                ztrsv_lower_32kernel_8(dA, dB, item_ct1); break;
             case  9:
-                ztrsv_lower_32kernel_9( dA, dB ); break;
+                ztrsv_lower_32kernel_9(dA, dB, item_ct1); break;
             case  10:
-                ztrsv_lower_32kernel_10( dA, dB ); break;
+                ztrsv_lower_32kernel_10(dA, dB, item_ct1); break;
             case  11:
-                ztrsv_lower_32kernel_11( dA, dB ); break;
+                ztrsv_lower_32kernel_11(dA, dB, item_ct1); break;
             case  12:
-                ztrsv_lower_32kernel_12( dA, dB ); break;
+                ztrsv_lower_32kernel_12(dA, dB, item_ct1); break;
             case  13:
-                ztrsv_lower_32kernel_13( dA, dB ); break;
+                ztrsv_lower_32kernel_13(dA, dB, item_ct1); break;
             case  14:
-                ztrsv_lower_32kernel_14( dA, dB ); break;
+                ztrsv_lower_32kernel_14(dA, dB, item_ct1); break;
             case  15:
-                ztrsv_lower_32kernel_15( dA, dB ); break;
+                ztrsv_lower_32kernel_15(dA, dB, item_ct1); break;
             case  16:
-                ztrsv_lower_32kernel_16( dA, dB ); break;
+                ztrsv_lower_32kernel_16(dA, dB, item_ct1); break;
             case  17:
-                ztrsv_lower_32kernel_17( dA, dB ); break;
+                ztrsv_lower_32kernel_17(dA, dB, item_ct1); break;
             case  18:
-                ztrsv_lower_32kernel_18( dA, dB ); break;
+                ztrsv_lower_32kernel_18(dA, dB, item_ct1); break;
             case  19:
-                ztrsv_lower_32kernel_19( dA, dB ); break;
+                ztrsv_lower_32kernel_19(dA, dB, item_ct1); break;
             case  20:
-                ztrsv_lower_32kernel_20( dA, dB ); break;
+                ztrsv_lower_32kernel_20(dA, dB, item_ct1); break;
             case  21:
-                ztrsv_lower_32kernel_21( dA, dB ); break;
+                ztrsv_lower_32kernel_21(dA, dB, item_ct1); break;
             case  22:
-                ztrsv_lower_32kernel_22( dA, dB ); break;
+                ztrsv_lower_32kernel_22(dA, dB, item_ct1); break;
             case  23:
-                ztrsv_lower_32kernel_23( dA, dB ); break;
+                ztrsv_lower_32kernel_23(dA, dB, item_ct1); break;
             case  24:
-                ztrsv_lower_32kernel_24( dA, dB ); break;
+                ztrsv_lower_32kernel_24(dA, dB, item_ct1); break;
             case  25:
-                ztrsv_lower_32kernel_25( dA, dB ); break;
+                ztrsv_lower_32kernel_25(dA, dB, item_ct1); break;
             case  26:
-                ztrsv_lower_32kernel_26( dA, dB ); break;
+                ztrsv_lower_32kernel_26(dA, dB, item_ct1); break;
             case  27:
-                ztrsv_lower_32kernel_27( dA, dB ); break;
+                ztrsv_lower_32kernel_27(dA, dB, item_ct1); break;
             case  28:
-                ztrsv_lower_32kernel_28( dA, dB ); break;
+                ztrsv_lower_32kernel_28(dA, dB, item_ct1); break;
             case  29:
-                ztrsv_lower_32kernel_29( dA, dB ); break;
+                ztrsv_lower_32kernel_29(dA, dB, item_ct1); break;
             case  30:
-                ztrsv_lower_32kernel_30( dA, dB ); break;
+                ztrsv_lower_32kernel_30(dA, dB, item_ct1); break;
             case  31:
-                ztrsv_lower_32kernel_31( dA, dB ); break;
+                ztrsv_lower_32kernel_31(dA, dB, item_ct1); break;
             case  32:
-                ztrsv_lower_32kernel_32( dA, dB ); break;
+                ztrsv_lower_32kernel_32(dA, dB, item_ct1); break;
             default:
-                ztrsv_lower_32kernel_general( dA, dB, sizes ); break;
+                ztrsv_lower_32kernel_general(dA, dB, sizes, item_ct1); break;
         }
     }
 }
 
-void ztrsv_upper_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1211,7 +1281,7 @@ void ztrsv_upper_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1223,11 +1293,13 @@ void ztrsv_upper_32kernel_1(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1242,7 +1314,7 @@ void ztrsv_upper_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1254,11 +1326,13 @@ void ztrsv_upper_32kernel_2(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1273,7 +1347,7 @@ void ztrsv_upper_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1285,11 +1359,13 @@ void ztrsv_upper_32kernel_3(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1304,7 +1380,7 @@ void ztrsv_upper_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1316,11 +1392,13 @@ void ztrsv_upper_32kernel_4(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1335,7 +1413,7 @@ void ztrsv_upper_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1347,11 +1425,13 @@ void ztrsv_upper_32kernel_5(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1366,7 +1446,7 @@ void ztrsv_upper_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1378,11 +1458,13 @@ void ztrsv_upper_32kernel_6(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1397,7 +1479,7 @@ void ztrsv_upper_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1409,11 +1491,13 @@ void ztrsv_upper_32kernel_7(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1428,7 +1512,7 @@ void ztrsv_upper_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1440,11 +1524,13 @@ void ztrsv_upper_32kernel_8(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                            sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1459,7 +1545,7 @@ void ztrsv_upper_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1471,11 +1557,13 @@ void ztrsv_upper_32kernel_9(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1490,7 +1578,7 @@ void ztrsv_upper_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1502,11 +1590,13 @@ void ztrsv_upper_32kernel_10(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1521,7 +1611,7 @@ void ztrsv_upper_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1533,11 +1623,13 @@ void ztrsv_upper_32kernel_11(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1552,7 +1644,7 @@ void ztrsv_upper_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1564,11 +1656,13 @@ void ztrsv_upper_32kernel_12(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1583,7 +1677,7 @@ void ztrsv_upper_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1595,11 +1689,13 @@ void ztrsv_upper_32kernel_13(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1614,7 +1710,7 @@ void ztrsv_upper_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1626,11 +1722,13 @@ void ztrsv_upper_32kernel_14(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1645,7 +1743,7 @@ void ztrsv_upper_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1657,11 +1755,13 @@ void ztrsv_upper_32kernel_15(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1676,7 +1776,7 @@ void ztrsv_upper_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1688,11 +1788,13 @@ void ztrsv_upper_32kernel_16(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1707,7 +1809,7 @@ void ztrsv_upper_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1719,11 +1821,13 @@ void ztrsv_upper_32kernel_17(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1738,7 +1842,7 @@ void ztrsv_upper_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1750,11 +1854,13 @@ void ztrsv_upper_32kernel_18(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1769,7 +1875,7 @@ void ztrsv_upper_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1781,11 +1887,13 @@ void ztrsv_upper_32kernel_19(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1800,7 +1908,7 @@ void ztrsv_upper_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1812,11 +1920,13 @@ void ztrsv_upper_32kernel_20(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1831,7 +1941,7 @@ void ztrsv_upper_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1843,11 +1953,13 @@ void ztrsv_upper_32kernel_21(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1862,7 +1974,7 @@ void ztrsv_upper_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1874,11 +1986,13 @@ void ztrsv_upper_32kernel_22(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1893,7 +2007,7 @@ void ztrsv_upper_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1905,11 +2019,13 @@ void ztrsv_upper_32kernel_23(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1924,7 +2040,7 @@ void ztrsv_upper_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1936,11 +2052,13 @@ void ztrsv_upper_32kernel_24(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1955,7 +2073,7 @@ void ztrsv_upper_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1967,11 +2085,13 @@ void ztrsv_upper_32kernel_25(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -1986,7 +2106,7 @@ void ztrsv_upper_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -1998,11 +2118,13 @@ void ztrsv_upper_32kernel_26(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -2017,7 +2139,7 @@ void ztrsv_upper_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2029,11 +2151,13 @@ void ztrsv_upper_32kernel_27(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -2048,7 +2172,7 @@ void ztrsv_upper_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2060,11 +2184,13 @@ void ztrsv_upper_32kernel_28(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -2079,7 +2205,7 @@ void ztrsv_upper_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2091,11 +2217,13 @@ void ztrsv_upper_32kernel_29(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -2110,7 +2238,7 @@ void ztrsv_upper_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2122,11 +2250,13 @@ void ztrsv_upper_32kernel_30(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -2141,7 +2271,7 @@ void ztrsv_upper_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2153,11 +2283,13 @@ void ztrsv_upper_32kernel_31(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
 
 
 
-void ztrsv_upper_32kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
+void ztrsv_upper_32kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB ,
+                             sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int j = blockIdx.y * gridDim.x + blockIdx.x;
-    int idn = threadIdx.x;
+#if (defined( REAL ))
+    int j = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+            item_ct1.get_group(2);
+    int idn = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;
     magmaDoubleComplex rA;
     dA += (j)*WARP_SIZE*WARP_SIZE;
@@ -2172,7 +2304,7 @@ void ztrsv_upper_32kernel_32(magmaDoubleComplex *dA, magmaDoubleComplex *dB )
         rA = dA[k*WARP_SIZE+idn];
         if (k%WARP_SIZE == idn)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( idn < k)
             rB -= (bottom*rA);
     }
@@ -2192,71 +2324,71 @@ void ztrsv_upper_32kernel_switch(magmaDoubleComplex *dA, magmaDoubleComplex *dB,
         int N = sizes[j];
         switch( N ) {
             case  1:
-                ztrsv_upper_32kernel_1( dA, dB ); break;
+                ztrsv_upper_32kernel_1(dA, dB, item_ct1); break;
             case  2:
-                ztrsv_upper_32kernel_2( dA, dB ); break;
+                ztrsv_upper_32kernel_2(dA, dB, item_ct1); break;
             case  3:
-                ztrsv_upper_32kernel_3( dA, dB ); break;
+                ztrsv_upper_32kernel_3(dA, dB, item_ct1); break;
             case  4:
-                ztrsv_upper_32kernel_4( dA, dB ); break;
+                ztrsv_upper_32kernel_4(dA, dB, item_ct1); break;
             case  5:
-                ztrsv_upper_32kernel_5( dA, dB ); break;
+                ztrsv_upper_32kernel_5(dA, dB, item_ct1); break;
             case  6:
-                ztrsv_upper_32kernel_6( dA, dB ); break;
+                ztrsv_upper_32kernel_6(dA, dB, item_ct1); break;
             case  7:
-                ztrsv_upper_32kernel_7( dA, dB ); break;
+                ztrsv_upper_32kernel_7(dA, dB, item_ct1); break;
             case  8:
-                ztrsv_upper_32kernel_8( dA, dB ); break;
+                ztrsv_upper_32kernel_8(dA, dB, item_ct1); break;
             case  9:
-                ztrsv_upper_32kernel_9( dA, dB ); break;
+                ztrsv_upper_32kernel_9(dA, dB, item_ct1); break;
             case  10:
-                ztrsv_upper_32kernel_10( dA, dB ); break;
+                ztrsv_upper_32kernel_10(dA, dB, item_ct1); break;
             case  11:
-                ztrsv_upper_32kernel_11( dA, dB ); break;
+                ztrsv_upper_32kernel_11(dA, dB, item_ct1); break;
             case  12:
-                ztrsv_upper_32kernel_12( dA, dB ); break;
+                ztrsv_upper_32kernel_12(dA, dB, item_ct1); break;
             case  13:
-                ztrsv_upper_32kernel_13( dA, dB ); break;
+                ztrsv_upper_32kernel_13(dA, dB, item_ct1); break;
             case  14:
-                ztrsv_upper_32kernel_14( dA, dB ); break;
+                ztrsv_upper_32kernel_14(dA, dB, item_ct1); break;
             case  15:
-                ztrsv_upper_32kernel_15( dA, dB ); break;
+                ztrsv_upper_32kernel_15(dA, dB, item_ct1); break;
             case  16:
-                ztrsv_upper_32kernel_16( dA, dB ); break;
+                ztrsv_upper_32kernel_16(dA, dB, item_ct1); break;
             case  17:
-                ztrsv_upper_32kernel_17( dA, dB ); break;
+                ztrsv_upper_32kernel_17(dA, dB, item_ct1); break;
             case  18:
-                ztrsv_upper_32kernel_18( dA, dB ); break;
+                ztrsv_upper_32kernel_18(dA, dB, item_ct1); break;
             case  19:
-                ztrsv_upper_32kernel_19( dA, dB ); break;
+                ztrsv_upper_32kernel_19(dA, dB, item_ct1); break;
             case  20:
-                ztrsv_upper_32kernel_20( dA, dB ); break;
+                ztrsv_upper_32kernel_20(dA, dB, item_ct1); break;
             case  21:
-                ztrsv_upper_32kernel_21( dA, dB ); break;
+                ztrsv_upper_32kernel_21(dA, dB, item_ct1); break;
             case  22:
-                ztrsv_upper_32kernel_22( dA, dB ); break;
+                ztrsv_upper_32kernel_22(dA, dB, item_ct1); break;
             case  23:
-                ztrsv_upper_32kernel_23( dA, dB ); break;
+                ztrsv_upper_32kernel_23(dA, dB, item_ct1); break;
             case  24:
-                ztrsv_upper_32kernel_24( dA, dB ); break;
+                ztrsv_upper_32kernel_24(dA, dB, item_ct1); break;
             case  25:
-                ztrsv_upper_32kernel_25( dA, dB ); break;
+                ztrsv_upper_32kernel_25(dA, dB, item_ct1); break;
             case  26:
-                ztrsv_upper_32kernel_26( dA, dB ); break;
+                ztrsv_upper_32kernel_26(dA, dB, item_ct1); break;
             case  27:
-                ztrsv_upper_32kernel_27( dA, dB ); break;
+                ztrsv_upper_32kernel_27(dA, dB, item_ct1); break;
             case  28:
-                ztrsv_upper_32kernel_28( dA, dB ); break;
+                ztrsv_upper_32kernel_28(dA, dB, item_ct1); break;
             case  29:
-                ztrsv_upper_32kernel_29( dA, dB ); break;
+                ztrsv_upper_32kernel_29(dA, dB, item_ct1); break;
             case  30:
-                ztrsv_upper_32kernel_30( dA, dB ); break;
+                ztrsv_upper_32kernel_30(dA, dB, item_ct1); break;
             case  31:
-                ztrsv_upper_32kernel_31( dA, dB ); break;
+                ztrsv_upper_32kernel_31(dA, dB, item_ct1); break;
             case  32:
-                ztrsv_upper_32kernel_32( dA, dB ); break;
+                ztrsv_upper_32kernel_32(dA, dB, item_ct1); break;
             default:
-                ztrsv_upper_32kernel_general( dA, dB, sizes ); break;
+                ztrsv_upper_32kernel_general(dA, dB, sizes, item_ct1); break;
         }
     }
 }
@@ -2283,7 +2415,7 @@ magma_zgpumemzero_32kernel(
     }
 
     for( int j=0; j<dim_y; j++)
-        d[i * dim_x * dim_y + j * dim_y + idx] = MAGMA_Z_ZERO;
+        d[i * dim_x * dim_y + j * dim_y + idx] = sycl::double2(0.0, 0.0);
 }
 
 void
@@ -2310,10 +2442,6 @@ magma_zlocations_lower_32kernel(
     int count = end-start;
     if( i == 0 ){
         sizes[j] = count;
-        /*
-        DPCT1064:168: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         rhs[j * WARP_SIZE] = MAGMA_Z_ONE;
     }
 
@@ -2350,10 +2478,6 @@ magma_zlocations_trunc_lower_32kernel(
     if( count <= BLOCKSIZE ){ // normal case
         if( i == 0 ){
             sizes[j] = count;
-            /*
-            DPCT1064:169: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             rhs[j * WARP_SIZE] = MAGMA_Z_ONE;
         }
         if ( i<count ){
@@ -2366,10 +2490,6 @@ magma_zlocations_trunc_lower_32kernel(
         count = BLOCKSIZE;
         if (i == 0) {
             sizes[j] = count;
-            /*
-            DPCT1064:170: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             rhs[j * WARP_SIZE] = MAGMA_Z_ONE;
         }
 
@@ -2403,10 +2523,6 @@ magma_zlocations_upper_32kernel(
     int count = end-start;
     if( i == 0 ){
         sizes[j] = count;
-        /*
-        DPCT1064:171: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         rhs[j * WARP_SIZE + count - 1] = MAGMA_Z_ONE;
     }
 
@@ -2442,10 +2558,6 @@ magma_zlocations_trunc_upper_32kernel(
     if( count <= BLOCKSIZE ){ // normal case
         if( i == 0 ){
             sizes[j] = count;
-            /*
-            DPCT1064:172: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             rhs[j * WARP_SIZE + count - 1] = MAGMA_Z_ONE;
         }
         if ( i<count ){
@@ -2458,10 +2570,6 @@ magma_zlocations_trunc_upper_32kernel(
         count = BLOCKSIZE;
         if (i == 0) {
             sizes[j] = count;
-            /*
-            DPCT1064:173: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             rhs[j * WARP_SIZE + count - 1] = MAGMA_Z_ONE;
         }
 
@@ -2558,15 +2666,16 @@ magma_zlowertrisystems_32kernel_s(
     magma_index_t *Mcol,
     magmaDoubleComplex *Mval,
     magma_index_t *sizes,
-    magma_index_t *locations )
+    magma_index_t *locations ,
+    sycl::nd_item<3> item_ct1,
+    magmaDoubleComplex *dA)
 {
-#if defined(REAL)
-    int row = blockIdx.y * gridDim.x + blockIdx.x;
-    int tid = threadIdx.x;
+#if (defined( REAL ))
+    int row = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+              item_ct1.get_group(2);
+    int tid = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;    // registers for trsv
     magmaDoubleComplex rA;
-
-    __shared__ magmaDoubleComplex dA[32*32];
 
     // only if within this chunk
     if ( row>=n ){
@@ -2581,7 +2690,7 @@ magma_zlowertrisystems_32kernel_s(
 
     // set dA to 0
     for( int j=0; j<32; j++ ){
-        dA[ j*32 + tid ] = MAGMA_Z_ZERO;
+        dA[j * 32 + tid] = MAGMA_Z_ZERO;
     }
     /*
     // for debuggging: let thred 0 do everything
@@ -2642,7 +2751,7 @@ magma_zlowertrisystems_32kernel_s(
         rA = dA[k*WARP_SIZE+tid];
         if (k%WARP_SIZE == tid)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( tid > k)
             rB -= (top*rA);
     }
@@ -2663,15 +2772,16 @@ magma_zuppertrisystems_32kernel_s(
     magma_index_t *Mcol,
     magmaDoubleComplex *Mval,
     magma_index_t *sizes,
-    magma_index_t *locations )
+    magma_index_t *locations ,
+    sycl::nd_item<3> item_ct1,
+    magmaDoubleComplex *dA)
 {
-#if defined(REAL)
-    int row = blockIdx.y * gridDim.x + blockIdx.x;
-    int tid = threadIdx.x;
+#if (defined( REAL ))
+    int row = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+              item_ct1.get_group(2);
+    int tid = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;    // registers for trsv
     magmaDoubleComplex rA;
-
-    __shared__ magmaDoubleComplex dA[32*32];
 
     // only if within this chunk
     if ( row>=n ){
@@ -2686,7 +2796,7 @@ magma_zuppertrisystems_32kernel_s(
 
     // set dA to 0
     for( int j=0; j<32; j++ ){
-        dA[ j*32 + tid ] = MAGMA_Z_ZERO;
+        dA[j * 32 + tid] = MAGMA_Z_ZERO;
     }
     /*
     // for debuggging: let thred 0 do everything
@@ -2738,7 +2848,7 @@ magma_zuppertrisystems_32kernel_s(
     // second: solve the triangular systems - in registers
 
     // Read B to regs.
-    rB = (tid == size-1) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
+    rB = (tid == size - 1) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
 
     // Triangular solve in regs.
     #pragma unroll
@@ -2747,7 +2857,7 @@ magma_zuppertrisystems_32kernel_s(
         rA = dA[k*WARP_SIZE+tid];
         if (k%WARP_SIZE == tid)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( tid < k)
             rB -= (bottom*rA);
     }
@@ -2768,11 +2878,13 @@ magma_zlowertrisystems_32kernel(
     magma_index_t *Mcol,
     magmaDoubleComplex *Mval,
     magma_index_t *sizes,
-    magma_index_t *locations )
+    magma_index_t *locations ,
+    sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int row = blockIdx.y * gridDim.x + blockIdx.x;
-    int tid = threadIdx.x;
+#if (defined( REAL ))
+    int row = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+              item_ct1.get_group(2);
+    int tid = item_ct1.get_local_id(2);
     magmaDoubleComplex rB;    // registers for trsv
     magmaDoubleComplex rA;
 
@@ -2791,7 +2903,7 @@ magma_zlowertrisystems_32kernel(
 
     // set dA to 0
     for( int j=0; j<32; j++ ){
-        dA[ j ] = MAGMA_Z_ZERO;
+        dA[j] = MAGMA_Z_ZERO;
     }
 
     // for debuggging: let thred 0 do everything
@@ -2838,7 +2950,7 @@ magma_zlowertrisystems_32kernel(
         rA = dA[ k ];
         if (k%WARP_SIZE == tid)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%WARP_SIZE, item_ct1);
         if ( tid > k)
             rB -= (top*rA);
     }
@@ -2857,11 +2969,13 @@ magma_zuppertrisystems_32kernel(
     const magmaDoubleComplex * __restrict__ Aval,
     magma_index_t *Mrow,
     magma_index_t *Mcol,
-    magmaDoubleComplex *Mval )
+    magmaDoubleComplex *Mval ,
+    sycl::nd_item<3> item_ct1)
 {
-#if defined(REAL)
-    int row = blockIdx.y * gridDim.x + blockIdx.x;
-    int tid = threadIdx.x;
+#if (defined( REAL ))
+    int row = item_ct1.get_group(1) * item_ct1.get_group_range(2) +
+              item_ct1.get_group(2);
+    int tid = item_ct1.get_local_id(2);
 
     magmaDoubleComplex rB;    // registers for trsv
     magmaDoubleComplex rA[32];
@@ -2881,7 +2995,7 @@ magma_zuppertrisystems_32kernel(
 
     // set rA to 0
     for( int j=0; j<32; j++ ){
-        rA[ j ] = MAGMA_Z_ZERO;
+        rA[j] = MAGMA_Z_ZERO;
     }
 
     // generate the triangular systems
@@ -2912,7 +3026,7 @@ magma_zuppertrisystems_32kernel(
 
     // second: solve the triangular systems - in registers
     // we know how RHS looks like
-    rB = (tid == size-1) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
+    rB = (tid == size - 1) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
 
     // Triangular solve in regs.
     #pragma unroll
@@ -2920,7 +3034,7 @@ magma_zuppertrisystems_32kernel(
     {
         if (k%32 == tid)
             rB /= rA[k];
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%32);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%32, item_ct1);
         if ( tid < k)
             rB -= (bottom*rA[k]);
     }
@@ -2929,6 +3043,8 @@ magma_zuppertrisystems_32kernel(
 
 #endif
 }// kernel
+
+#endif  // CUDA >= 7000
 
 
 /**
