@@ -37,9 +37,7 @@ zlanhe_inf_kernel_lower(
     int n_full_block, int n_mod_bs , sycl::nd_item<3> item_ct1,
     sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> la)
 {
-//#if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c) ||   \
-     DPCT_COMPATIBILITY_TEMP >= 200) ||                                        \
-    defined(MAGMA_HAVE_HIP)
+#if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c))
     int tx = item_ct1.get_local_id(2);
     int ty = item_ct1.get_local_id(1);
 
@@ -307,7 +305,7 @@ zlanhe_inf_kernel_lower(
             dwork[ind] = res;
         }
     }
-//#endif /* (PRECISION_s || PRECISION_d || PRECISION_c || __CUDA_ARCH__ >= 200 || defined(MAGMA_HAVE_HIP)) */
+#endif /* (PRECISION_s || PRECISION_d || PRECISION_c */
 }
 
 
@@ -329,9 +327,7 @@ zlanhe_inf_kernel_upper(
     int n_full_block, int n_mod_bs , sycl::nd_item<3> item_ct1,
     sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> la)
 {
-//#if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c) ||   \
-     DPCT_COMPATIBILITY_TEMP >= 200) ||                                        \
-    defined(MAGMA_HAVE_HIP)
+#if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c))
     int tx = item_ct1.get_local_id(2);
     int ty = item_ct1.get_local_id(1);
 
@@ -614,7 +610,7 @@ zlanhe_inf_kernel_upper(
             dwork[ind] = res;
         }
     }
-//#endif /* (PRECISION_s || PRECISION_d || PRECISION_c || __CUDA_ARCH__ >= 200 || defined(MAGMA_HAVE_HIP)) */
+#endif /* (PRECISION_s || PRECISION_d || PRECISION_c */
 }
 
 

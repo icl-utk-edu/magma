@@ -12,10 +12,7 @@
 */
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
-    // for CUDA_VERSION
 #include "magma_internal.h"
-
-#if CUDA_VERSION >= 7500 || defined(MAGMA_HAVE_HIP)
 
 // To deal with really large matrices, this launchs multiple super blocks,
 // each with up to 64K-1 x 64K-1 thread blocks, which is up to 4194240 x 4194240 matrix with BLK=64.
@@ -516,5 +513,3 @@ magmablas_convert_hp2dp(
     }
 
 }
-
-#endif

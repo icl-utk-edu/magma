@@ -10,8 +10,6 @@
        @precisions normal z -> s d c
 */
 #include "magmasparse_internal.h"
-#include <cuda.h>  // for CUDA_VERSION
-
 
 #define PRECISION_z
 

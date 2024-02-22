@@ -36,7 +36,6 @@ void hlaswp_kernel(
     magmaHalf *dAT, int ldda,
     hlaswp_params_t params , sycl::nd_item<3> item_ct1)
 {
-#if CUDA_VERSION >= 7500
     int tid = item_ct1.get_local_id(2) +
               item_ct1.get_local_range(2) * item_ct1.get_group(2);
     if ( tid < n ) {
@@ -52,7 +51,6 @@ void hlaswp_kernel(
             A1 += ldda;  // A1 = dA + i1*ldx
         }
     }
-#endif
 }
 
 

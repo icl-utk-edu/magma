@@ -415,32 +415,8 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
 
     // max. dynamic shared memory allowed per thread-block
     int shmem_max = 0;
-//    #if CUDA_VERSION >= 9000
-//    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
-//    if ( total_shmem_sm_kernel <= shmem_max) {
-        /*
-        DPCT1007:379: Migration of cudaFuncSetAttribute is not supported by the
-        Intel(R) DPC++ Compatibility Tool.
-        */
-//        cudaFuncSetAttribute(zgeqr2_sm_kernel_batched,
-//                             cudaFuncAttributeMaxDynamicSharedMemorySize,
-//                             dynamic_shmem_sm_kernel);
-//    }
-
-//    if ( total_shmem_column_sm_kernel <= shmem_max) {
-        /*
-        DPCT1007:380: Migration of cudaFuncSetAttribute is not supported by the
-        Intel(R) DPC++ Compatibility Tool.
-        */
-//        cudaFuncSetAttribute(zgeqr2_column_sm_kernel_batched,
-//                             cudaFuncAttributeMaxDynamicSharedMemorySize,
-//                             dynamic_shmem_column_sm_kernel);
-//    }
-//    #else
-//    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
-//    #endif    // CUDA_VERSION >= 9000
-
-
+    shmem_max = queue->sycl_stream()->get_device().get_info<sycl::info::device::local_mem_size>();
+    
     magma_int_t max_batchCount = queue->get_maxBatch();
     sycl::range<3> threads(1, 1, BLOCK_SIZE);
 
