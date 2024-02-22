@@ -11,7 +11,7 @@
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magmasparse_internal.h"
-#include "shuffle.cuh"
+#include "shuffle.dp.hpp"
 #include <cmath>
 
 #define PRECISION_z

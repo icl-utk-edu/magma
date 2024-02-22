@@ -862,7 +862,6 @@ void gemm_template_device_nn(
     T* sB, int sldb,
     T* sC, int sldc , sycl::nd_item<3> item_ct1)
 {
-#if (DPCT_COMPATIBILITY_TEMP >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
 
@@ -1053,7 +1052,6 @@ void gemm_template_device_nn(
             }
         }
     }
-#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
 }
 
 
@@ -1072,7 +1070,6 @@ void gemm_template_device_nt(
     T* sB, int sldb,
     T* sC, int sldc , sycl::nd_item<3> item_ct1)
 {
-#if (DPCT_COMPATIBILITY_TEMP >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
 
@@ -1267,7 +1264,6 @@ void gemm_template_device_nt(
             }
         }
     }
-#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
 }
 
 
@@ -1286,7 +1282,6 @@ void gemm_template_device_tn(
     T* sB, int sldb,
     T* sC, int sldc , sycl::nd_item<3> item_ct1)
 {
-#if (DPCT_COMPATIBILITY_TEMP >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
 
@@ -1484,7 +1479,6 @@ void gemm_template_device_tn(
             }
         }
     }
-#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
 }
 
 
@@ -1503,7 +1497,6 @@ void gemm_template_device_tt(
     T* sB, int sldb,
     T* sC, int sldc , sycl::nd_item<3> item_ct1)
 {
-#if (DPCT_COMPATIBILITY_TEMP >= 200) || defined(MAGMA_HAVE_HIP)
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
 
@@ -1702,7 +1695,6 @@ void gemm_template_device_tt(
             }
         }
     }
-#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
 }
 
 #endif //GEMM_TEMPLATE_DEVICE_CUH

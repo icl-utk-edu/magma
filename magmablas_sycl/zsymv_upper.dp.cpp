@@ -61,8 +61,7 @@ SYCL_EXTERNAL void zsymv_kernel_U(
         sA,
     magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj)
 {
-#if defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c) ||    \
-    (DPCT_COMPATIBILITY_TEMP >= 200) || defined(MAGMA_HAVE_HIP)
+#if defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c) 
 
     // treats sA as 16x64 block
     #define sA16(i_, j_) (sA[(i_)][(j_)])  // i.e., sA[ (i_)*(NB_X+3) + (j_) ]
