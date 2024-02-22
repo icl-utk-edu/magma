@@ -22,7 +22,6 @@
 #include "atomicopsmagmaDoubleComplex.h"
 #include <cmath>
 
-  // for CUDA_VERSION
 
 #define MAGMA_CSC_SYNCFREE_WARP_SIZE 32
 

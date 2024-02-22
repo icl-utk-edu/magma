@@ -38,10 +38,8 @@ zgemvn_template_kernel_fermi(
     magmaDoubleComplex       * __restrict__ y, int incy,
     sycl::nd_item<3> item_ct1, magmaDoubleComplex *sdata)
 {
-#if (DPCT_COMPATIBILITY_TEMP >= 200) || defined(MAGMA_HAVE_HIP)
     gemvn_template_device<magmaDoubleComplex, DIM_X, DIM_Y, TILE_SIZE>(
         m, n, alpha, A, lda, x, incx, beta, y, incy, item_ct1, sdata);
-#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
 }
 
 
@@ -56,10 +54,8 @@ zgemvc_template_kernel_fermi(
     magmaDoubleComplex       * __restrict__ y, int incy,
     sycl::nd_item<3> item_ct1, magmaDoubleComplex *sdata)
 {
-#if (DPCT_COMPATIBILITY_TEMP >= 200) || defined(MAGMA_HAVE_HIP)
     gemvc_template_device<magmaDoubleComplex, DIM_X, DIM_Y, TILE_SIZE, trans>(
         m, n, alpha, A, lda, x, incx, beta, y, incy, item_ct1, sdata);
-#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
 }
 
 

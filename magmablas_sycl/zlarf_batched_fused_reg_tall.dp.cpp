@@ -12,7 +12,6 @@
 
 #include <CL/sycl.hpp>
 #include <dpct/dpct.hpp>
-    // for CUDA_VERSION
 #include "magma_internal.h"
 #include "magma_templates.h"
 #include "zlarf_batched_fused.dp.hpp"

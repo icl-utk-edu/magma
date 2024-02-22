@@ -19,27 +19,9 @@ magmablas_satomic_add(float* address, float val)
 static __inline__ double 
 magmablas_datomic_add(double* address, double val)
 {
-
-// NOTE: HIP doesn't define anything specific for double atomics, but Im assuming int64 atomics are valid.
-// SEE HERE: https://github.com/ROCm-Developer-Tools/HIP/blob/master/docs/markdown/hip_porting_guide.md#hip_arch-defines
-#if (DPCT_COMPATIBILITY_TEMP < 600) ||                                         \
-    !(__HIP_ARCH_HAS_GLOBAL_INT64_ATOMICS__) // atomic add for double precision
-                                             // is natively supported on sm_60
-    unsigned long long int* address_as_ull =
-    (unsigned long long int*)address;
-    unsigned long long int old = *address_as_ull, assumed;
-    do {
-        assumed = old;
-        old = dpct::atomic_compare_exchange_strong<
-            unsigned long long, sycl::access::address_space::generic_space>(
-            address_as_ull, assumed,
-            (unsigned long long)(sycl::bit_cast<long long>(
-                val + sycl::bit_cast<double, long long>(assumed))));
-    } while (assumed != old);
-    return sycl::bit_cast<double, long long>(old);
-#else
-    return atomicAdd(address, val);
-#endif
+    return dpct::atomic_fetch_add<double,
+                                  sycl::access::address_space::generic_space>(
+        address, val);
 }
 
 /******************************************************************************/
