@@ -14,10 +14,6 @@
 
 #include "magmasparse_internal.h"
 
-#if !defined(MAGMA_HAVE_SYCL)
-#include <cuda.h>  // for CUDA_VERSION
-#endif
-
 extern __inline__ void 
 atomicAdddouble(double *addr, double val)
 {

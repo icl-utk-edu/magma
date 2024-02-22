@@ -24,10 +24,6 @@
 #define WRP 32
 #define WRQ 4
 
-  // for CUDA_VERSION
-
-#if (CUDA_VERSION >= 7000) // only for cuda>6000
-
 
 const int MaxBlockSize = 32;
 
@@ -41,11 +37,15 @@ const magma_index_t * __restrict__ Acol,
 const magmaDoubleComplex * __restrict__ Aval,
 magma_index_t *Mrow,
 magma_index_t *Mcol,
-magmaDoubleComplex *Mval )
+magmaDoubleComplex *Mval ,
+sycl::nd_item<3> item_ct1)
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
-    int tid = threadIdx.x;
-    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
+#if (defined( REAL ))
+    int tid = item_ct1.get_local_id(2);
+    int row = item_ct1.get_group_range(2) * item_ct1.get_group(1) *
+                  item_ct1.get_local_range(1) +
+              item_ct1.get_group(2) * item_ct1.get_local_range(1) +
+              item_ct1.get_local_id(1);
 
     if( tid >= block_size )
         return;
@@ -64,7 +64,7 @@ magmaDoubleComplex *Mval )
     // set dA to 0
     #pragma unroll
     for( int j = 0; j < block_size; j++ ){
-        dA[ j ] = MAGMA_Z_ZERO;
+        dA[j] = MAGMA_Z_ZERO;
     }
 
     // generate the triangular systems
@@ -91,7 +91,7 @@ magmaDoubleComplex *Mval )
 
     // second: solve the triangular systems - in registers
     // we know how RHS looks like
-    rB = ( tid == 0 ) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
+    rB = (tid == 0) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
 
         // Triangular solve in regs.
     #pragma unroll
@@ -100,7 +100,7 @@ magmaDoubleComplex *Mval )
         rA = dA[ k ];
         if (k%block_size == tid)
             rB /= rA;
-        magmaDoubleComplex top = magmablas_zshfl(rB, k%block_size);
+        magmaDoubleComplex top = magmablas_zshfl(rB, k%block_size, item_ct1);
         if ( tid > k)
             rB -= (top*rA);
     }
@@ -109,7 +109,6 @@ magmaDoubleComplex *Mval )
     Mval[ mstart + tid ] = rB;
 
 #endif
-
 }
 
 template <int block_size>
@@ -117,14 +116,14 @@ __dpct_inline__ void magma_zlowerisai_regs_inv_select(
     int N, magma_int_t num_rows, const magma_index_t *__restrict__ Arow,
     const magma_index_t *__restrict__ Acol,
     const magmaDoubleComplex *__restrict__ Aval, magma_index_t *Mrow,
-    magma_index_t *Mcol, magmaDoubleComplex *Mval)
+    magma_index_t *Mcol, magmaDoubleComplex *Mval, sycl::nd_item<3> item_ct1)
 {
     if (N == block_size) {
         magma_zlowerisai_regs_inv_kernel<block_size>(
-                num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
+            num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval, item_ct1);
     } else {
-        magma_zlowerisai_regs_inv_select<block_size-1>(
-                N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
+        magma_zlowerisai_regs_inv_select<block_size - 1>(
+            N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval, item_ct1);
     }
 }
 
@@ -133,7 +132,7 @@ __dpct_inline__ void magma_zlowerisai_regs_inv_select<0>(
     int N, magma_int_t num_rows, const magma_index_t *__restrict__ Arow,
     const magma_index_t *__restrict__ Acol,
     const magmaDoubleComplex *__restrict__ Aval, magma_index_t *Mrow,
-    magma_index_t *Mcol, magmaDoubleComplex *Mval)
+    magma_index_t *Mcol, magmaDoubleComplex *Mval, sycl::nd_item<3> item_ct1)
 {
     ;
     // out of range - do nothing.
@@ -159,7 +158,7 @@ sycl::nd_item<3> item_ct1)
     if( row < num_rows ){
         int N = Mrow[ row+1 ] - Mrow[ row ];
         magma_zlowerisai_regs_inv_select<MaxBlockSize>(
-                N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
+                N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval, item_ct1);
     }
 }
 
@@ -173,11 +172,15 @@ const magma_index_t * __restrict__ Acol,
 const magmaDoubleComplex * __restrict__ Aval,
 magma_index_t *Mrow,
 magma_index_t *Mcol,
-magmaDoubleComplex *Mval )
+magmaDoubleComplex *Mval ,
+sycl::nd_item<3> item_ct1)
 {
-#if (defined(REAL) && (DPCT_COMPATIBILITY_TEMP >= 300))
-    int tid = threadIdx.x;
-    int row = gridDim.x*blockIdx.y*blockDim.y + blockIdx.x*blockDim.y + threadIdx.y;
+#if (defined( REAL ))
+    int tid = item_ct1.get_local_id(2);
+    int row = item_ct1.get_group_range(2) * item_ct1.get_group(1) *
+                  item_ct1.get_local_range(1) +
+              item_ct1.get_group(2) * item_ct1.get_local_range(1) +
+              item_ct1.get_local_id(1);
 
     if( tid >= block_size )
         return;
@@ -196,7 +199,7 @@ magmaDoubleComplex *Mval )
     // set dA to 0
     #pragma unroll
     for( int j = 0; j < block_size; j++ ){
-        dA[ j ] = MAGMA_Z_ZERO;
+        dA[j] = MAGMA_Z_ZERO;
     }
 
     // generate the triangular systems
@@ -223,7 +226,7 @@ magmaDoubleComplex *Mval )
 
     // second: solve the triangular systems - in registers
     // we know how RHS looks like
-    rB = ( tid == block_size-1 ) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
+    rB = (tid == block_size - 1) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
 
         // Triangular solve in regs.
     #pragma unroll
@@ -232,7 +235,7 @@ magmaDoubleComplex *Mval )
         rA = dA[ k ];
         if (k%block_size == tid)
             rB /= rA;
-        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%block_size);
+        magmaDoubleComplex bottom = magmablas_zshfl(rB, k%block_size, item_ct1);
         if ( tid < k)
             rB -= (bottom*rA);
     }
@@ -248,14 +251,14 @@ __dpct_inline__ void magma_zupperisai_regs_inv_select(
     int N, magma_int_t num_rows, const magma_index_t *__restrict__ Arow,
     const magma_index_t *__restrict__ Acol,
     const magmaDoubleComplex *__restrict__ Aval, magma_index_t *Mrow,
-    magma_index_t *Mcol, magmaDoubleComplex *Mval)
+    magma_index_t *Mcol, magmaDoubleComplex *Mval, sycl::nd_item<3> item_ct1)
 {
     if (N == block_size) {
         magma_zupperisai_regs_inv_kernel<block_size>(
-                num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
+            num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval, item_ct1);
     } else {
-        magma_zupperisai_regs_inv_select<block_size-1>(
-                N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
+        magma_zupperisai_regs_inv_select<block_size - 1>(
+            N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval, item_ct1);
     }
 }
 
@@ -264,7 +267,7 @@ __dpct_inline__ void magma_zupperisai_regs_inv_select<0>(
     int N, magma_int_t num_rows, const magma_index_t *__restrict__ Arow,
     const magma_index_t *__restrict__ Acol,
     const magmaDoubleComplex *__restrict__ Aval, magma_index_t *Mrow,
-    magma_index_t *Mcol, magmaDoubleComplex *Mval)
+    magma_index_t *Mcol, magmaDoubleComplex *Mval, sycl::nd_item<3> item_ct1)
 {
     ;
     // out of range - do nothing.
@@ -290,11 +293,9 @@ sycl::nd_item<3> item_ct1)
     if( row < num_rows ){
         int N = Mrow[ row+1 ] - Mrow[ row ];
         magma_zupperisai_regs_inv_select<MaxBlockSize>(
-                N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval);
+                N, num_rows, Arow, Acol, Aval, Mrow, Mcol, Mval, item_ct1);
     }
 }
-
-#endif
 
 
 /**

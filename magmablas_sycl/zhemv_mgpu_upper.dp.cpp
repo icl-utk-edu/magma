@@ -61,8 +61,7 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
         sA,
     magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj)
 {
-#if defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c) ||    \
-    (DPCT_COMPATIBILITY_TEMP >= 200) || defined(MAGMA_HAVE_HIP)
+#if defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c)
 
     // treats sA as 16x64 block
     #define sA16(i_, j_) (sA[(i_)][(j_)])  // i.e., sA[ (i_)*(NB_X+3) + (j_) ]
@@ -612,7 +611,7 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
               + sA16(3, tx);
         work[blk*NB_X + tx] = total;  //MAGMA_Z_MAKE( tx, blk );  // store at work( blk*NB_X + tx, blk )
     }
-#endif  /* PRECISION_[sdc] || (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
+#endif  /* PRECISION_[sdc]*/
 }
 // end zhemv_kernel_U_mgpu
 
