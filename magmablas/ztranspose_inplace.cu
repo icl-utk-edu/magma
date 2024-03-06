@@ -26,7 +26,7 @@
 // grid [ A20 A21 A22 ] covers matrix as [ A20 A21 A22 |  .   .  ]
 //      [ A30 A31 A32 ]                  [ A30 A31 A32 | A01  .  ]
 //      [ A40 A41 A42 ]                  [ A40 A41 A42 | A02 A12 ]
-// 
+//
 // See ztranspose_inplace_even for description of threads.
 
 __global__ void ztranspose_inplace_odd(
@@ -46,7 +46,7 @@ __global__ void ztranspose_inplace_odd(
     ii *= NB;
     jj *= NB;
 
-    magmaDoubleComplex *A = matrix + ii+i + (jj+j)*lda;
+    magmaDoubleComplex *A = matrix + ii+i + (size_t)(jj+j)*(size_t)lda;
     if ( ii == jj ) {
         if ( ii+i < n && jj+j < n ) {
             sA[j][i] = *A;
@@ -57,7 +57,7 @@ __global__ void ztranspose_inplace_odd(
         }
     }
     else {
-        magmaDoubleComplex *B = matrix + jj+i + (ii+j)*lda;
+        magmaDoubleComplex *B = matrix + jj+i + (size_t)(ii+j)*(size_t)lda;
         if ( ii+i < n && jj+j < n ) {
             sA[j][i] = *A;
         }
@@ -143,28 +143,28 @@ __global__ void ztranspose_inplace_even(
     Purpose
     -------
     ztranspose_inplace_q transposes a square N-by-N matrix in-place.
-    
+
     Same as ztranspose_inplace, but adds queue argument.
-    
+
     Arguments
     ---------
     @param[in]
     n       INTEGER
             The number of rows & columns of the matrix dA.  N >= 0.
-    
+
     @param[in]
     dA      COMPLEX_16 array, dimension (LDDA,N)
             The N-by-N matrix dA.
             On exit, dA(j,i) = dA_original(i,j), for 0 <= i,j < N.
-    
+
     @param[in]
     ldda    INTEGER
             The leading dimension of the array dA.  LDDA >= N.
-    
+
     @param[in]
     queue   magma_queue_t
             Queue to execute in.
-    
+
     @ingroup magma_transpose
 *******************************************************************************/
 extern "C" void
@@ -178,15 +178,15 @@ magmablas_ztranspose_inplace(
         info = -1;
     else if ( ldda < n )
         info = -3;
-    
+
     if ( info != 0 ) {
         magma_xerbla( __func__, -(info) );
         return;  //info;
     }
-    
+
     dim3 threads( NB, NB );
     int nblock = magma_ceildiv( n, NB );
-    
+
     // need 1/2 * (nblock+1) * nblock to cover lower triangle and diagonal of matrix.
     // block assignment differs depending on whether nblock is odd or even.
     if ( nblock % 2 == 1 ) {
