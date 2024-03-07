@@ -85,9 +85,13 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_imalloc(&d_K, batchCount+1) );
 
     // allocate space for the leading dim
+    TESTING_CHECK( magma_imalloc_cpu(&h_lda, batchCount) );
+    TESTING_CHECK( magma_imalloc_cpu(&h_ldb, batchCount) );
+    TESTING_CHECK( magma_imalloc_cpu(&h_ldc, batchCount) );
     TESTING_CHECK( magma_imalloc_cpu(&h_ldda, batchCount) );
     TESTING_CHECK( magma_imalloc_cpu(&h_lddb, batchCount) );
     TESTING_CHECK( magma_imalloc_cpu(&h_lddc, batchCount) );
+
     // leading dimension arrays on the GPU should be at least of size (batchCount+1)
     TESTING_CHECK( magma_imalloc(&d_ldda, batchCount+1) );
     TESTING_CHECK( magma_imalloc(&d_lddb, batchCount+1) );
@@ -128,23 +132,22 @@ int main( int argc, char** argv)
 
             // assign pointers h_lda, Am, and An
             if ( opts.transA == MagmaNoTrans ) {
-                h_lda = Am = h_M;
+                Am = h_M;
                 An = h_K;
             }
             else {
-                h_lda = Am = h_K;
+                Am = h_K;
                 An = h_M;
             }
             // assign pointers h_ldb, Bm, and Bn
             if ( opts.transB == MagmaNoTrans ) {
-                h_ldb = Bm = h_K;
+                Bm = h_K;
                 Bn = h_N;
             }
             else {
-                h_ldb = Bm = h_N;
+                Bm = h_N;
                 Bn = h_K;
             }
-            h_ldc = h_M;
 
             // guarantee reproducible sizes
             srand(1000);
@@ -157,12 +160,16 @@ int main( int argc, char** argv)
             for (int i = 0; i < batchCount; i++) {
                 h_M[i] = 1 + (rand() % M);
                 h_N[i] = 1 + (rand() % N);
-                h_K[i] = 1 + (rand() % K);
+                h_K[i] = 0 + (rand() % K);    // allow h_K[i] to be zero, for which C is just scaled if beta != 1
                 max_M = max( max_M, h_M[i] );
                 max_N = max( max_N, h_N[i] );
                 max_K = max( max_K, h_K[i] );
 
                 gflops += FLOPS_ZGEMM( h_M[i], h_N[i], h_K[i] ) / 1e9;
+
+                h_lda[i]  = max(1, Am[i]);
+                h_ldb[i]  = max(1, Bm[i]);
+                h_ldc[i]  = max(1, h_M[i]);
 
                 h_ldda[i] = magma_roundup( h_lda[i], opts.align );  // multiple of 32 by default
                 h_lddb[i] = magma_roundup( h_ldb[i], opts.align );  // multiple of 32 by default
@@ -240,13 +247,25 @@ int main( int argc, char** argv)
             }
 
             magma_time = magma_sync_wtime( opts.queue );
-            magmablas_zgemm_vbatched(opts.transA, opts.transB,
+            if(opts.version == 1) {
+                magmablas_zgemm_vbatched(opts.transA, opts.transB,
                              d_M, d_N, d_K,
                              alpha, d_A_array, d_ldda,
                                     d_B_array, d_lddb,
                              beta,  d_C_array, d_lddc,
                              batchCount,
                              opts.queue);
+            }
+            else{
+                magmablas_zgemm_vbatched_max_nocheck(opts.transA, opts.transB,
+                             d_M, d_N, d_K,
+                             alpha, d_A_array, d_ldda,
+                                    d_B_array, d_lddb,
+                             beta,  d_C_array, d_lddc,
+                             batchCount,
+                             max_M, max_N, max_K,
+                             opts.queue);
+            }
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
 
             magma_perf = gflops / magma_time;
@@ -350,6 +369,9 @@ int main( int argc, char** argv)
     magma_free_cpu( h_M );
     magma_free_cpu( h_N );
     magma_free_cpu( h_K );
+    magma_free_cpu( h_lda );
+    magma_free_cpu( h_ldb );
+    magma_free_cpu( h_ldc );
     magma_free_cpu( h_ldda );
     magma_free_cpu( h_lddb );
     magma_free_cpu( h_lddc );

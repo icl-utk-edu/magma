@@ -43,11 +43,12 @@ magma_zgeqrf_panel_fused_update_batched(
 
             // check launch first of both register and sm versions
             // checks for shmem requirement and #threads
+            // when check_launch is 1, use batchCount = 1
             magma_int_t nthreads        = magma_get_zgeqr2_fused_sm_batched_nthreads(m-j, ib);
-            magma_int_t zgeqr2_reg_info = magma_zgeqr2_fused_reg_batched(m-j, ib, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, info_array, 1, batchCount, queue );
-            magma_int_t zgeqr2_sm_info  = magma_zgeqr2_fused_sm_batched(m-j, ib, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, info_array, nthreads, 1, batchCount, queue );
-            magma_int_t zlarf_reg_info  = magma_zlarf_fused_reg_batched(m-j, n-(j+ib), nb, ib, dA_array, Ai+j, Aj+j+ib, ldda, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, 1, batchCount, queue );
-            magma_int_t zlarf_sm_info   = magma_zlarf_fused_sm_batched(m-j, n-(j+ib), nb, ib, dA_array, Ai+j, Aj+j+ib, ldda, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, nthreads, 1, batchCount, queue );
+            magma_int_t zgeqr2_reg_info = magma_zgeqr2_fused_reg_batched(m-j, ib, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, info_array, 1, 1, queue );
+            magma_int_t zgeqr2_sm_info  = magma_zgeqr2_fused_sm_batched(m-j, ib, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, info_array, nthreads, 1, 1, queue );
+            magma_int_t zlarf_reg_info  = magma_zlarf_fused_reg_batched(m-j, n-(j+ib), nb, ib, dA_array, Ai+j, Aj+j+ib, ldda, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, 1, 1, queue );
+            magma_int_t zlarf_sm_info   = magma_zlarf_fused_sm_batched(m-j, n-(j+ib), nb, ib, dA_array, Ai+j, Aj+j+ib, ldda, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, nthreads, 1, 1, queue );
 
             magma_int_t zgeqr2_reg_ok = (zgeqr2_reg_info == 0) ? 1 : 0;
             magma_int_t zgeqr2_sm_ok  = (zgeqr2_sm_info  == 0) ? 1 : 0;
