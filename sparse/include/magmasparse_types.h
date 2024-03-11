@@ -20,9 +20,6 @@
 #include <omp.h>
 #endif
 
-// includes CUDA
-#include <cusparse_v2.h>
-
 /* (author: Cade Brown <cbrow216@vols.utk.edu>
  *
  * There have been changes to cuSPARSE in 10.2, specifically many removed hybrid formatting/partitioning, some
@@ -632,7 +629,7 @@ typedef struct magma_s_vector
 #if CUDA_VERSION >= 12000
     #define csrsm2Info_t int
 #endif
-    
+
 #if CUDA_VERSION < 11031 || defined(MAGMA_HAVE_HIP)
 typedef struct magma_solve_info_t
 {
