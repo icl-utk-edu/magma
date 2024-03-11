@@ -6,9 +6,11 @@
 #ifdef MAGMA_HAVE_HIP
 #define SHFL_FULL_MASK 0xffffffffffffffff
 #define DEFAULT_WIDTH  64
+typedef unsigned long long shfl_mask_t;
 #else
 #define SHFL_FULL_MASK 0xffffffff
 #define DEFAULT_WIDTH  32
+typedef unsigned shfl_mask_t;
 #endif
 
 // cuda 9.0 supports double precision shuffle
@@ -18,7 +20,7 @@
 /******************************************************************************/
 /**                       SHUFFLE BY INDEX                                   **/
 /******************************************************************************/
-__device__ static inline int magmablas_ishfl(int var, int srcLane, int width=DEFAULT_WIDTH, unsigned mask=SHFL_FULL_MASK)
+__device__ static inline int magmablas_ishfl(int var, int srcLane, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
@@ -41,7 +43,7 @@ return 0;
 
 
 /******************************************************************************/
-__device__ static inline float magmablas_sshfl(float var, int srcLane, int width=DEFAULT_WIDTH, unsigned mask=SHFL_FULL_MASK)
+__device__ static inline float magmablas_sshfl(float var, int srcLane, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,7 +66,7 @@ return MAGMA_S_ZERO;
 
 
 /******************************************************************************/
-__device__ static inline double magmablas_dshfl(double var, int srcLane, int width=DEFAULT_WIDTH, unsigned mask=SHFL_FULL_MASK)
+__device__ static inline double magmablas_dshfl(double var, int srcLane, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +109,7 @@ return MAGMA_D_ZERO;
 
 
 /******************************************************************************/
-__device__ static inline magmaFloatComplex magmablas_cshfl(magmaFloatComplex var, int srcLane, int width=DEFAULT_WIDTH, unsigned mask=SHFL_FULL_MASK)
+__device__ static inline magmaFloatComplex magmablas_cshfl(magmaFloatComplex var, int srcLane, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
     magmaFloatComplex r;
     r.x = magmablas_sshfl(var.x, srcLane, width, mask);
@@ -117,7 +119,7 @@ __device__ static inline magmaFloatComplex magmablas_cshfl(magmaFloatComplex var
 
 
 /******************************************************************************/
-__device__ static inline magmaDoubleComplex magmablas_zshfl(magmaDoubleComplex var, int srcLane, int width=DEFAULT_WIDTH, unsigned mask=SHFL_FULL_MASK)
+__device__ static inline magmaDoubleComplex magmablas_zshfl(magmaDoubleComplex var, int srcLane, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
     magmaDoubleComplex r;
     r.x = magmablas_dshfl(var.x, srcLane, width, mask);
@@ -129,7 +131,7 @@ __device__ static inline magmaDoubleComplex magmablas_zshfl(magmaDoubleComplex v
 /******************************************************************************/
 /**                  SHUFFLE BY BITWISE XOR TO OWN LANE                      **/
 /******************************************************************************/
-__device__ static inline int magmablas_ishfl_xor(int var, int laneMask, int width=DEFAULT_WIDTH, unsigned mask=SHFL_FULL_MASK)
+__device__ static inline int magmablas_ishfl_xor(int var, int laneMask, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
@@ -153,7 +155,7 @@ return 0;
 
 
 /******************************************************************************/
-__device__ static inline float magmablas_sshfl_xor(float var, int laneMask, int width=DEFAULT_WIDTH, unsigned mask=SHFL_FULL_MASK)
+__device__ static inline float magmablas_sshfl_xor(float var, int laneMask, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
@@ -177,7 +179,7 @@ return MAGMA_S_ZERO;
 
 
 /******************************************************************************/
-__device__ static inline double magmablas_dshfl_xor(double var, int laneMask, int width=DEFAULT_WIDTH, unsigned mask=SHFL_FULL_MASK)
+__device__ static inline double magmablas_dshfl_xor(double var, int laneMask, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
 #ifdef MAGMA_HAVE_HIP
 ////////////////////////////////////////////////////////////////////////////////
@@ -221,7 +223,7 @@ return MAGMA_D_ZERO;
 
 
 /******************************************************************************/
-__device__ static inline magmaFloatComplex magmablas_cshfl_xor(magmaFloatComplex var, int laneMask, int width=DEFAULT_WIDTH, unsigned mask=SHFL_FULL_MASK)
+__device__ static inline magmaFloatComplex magmablas_cshfl_xor(magmaFloatComplex var, int laneMask, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
     magmaFloatComplex r;
     r.x = magmablas_sshfl_xor(var.x, laneMask, width, mask);
@@ -231,7 +233,7 @@ __device__ static inline magmaFloatComplex magmablas_cshfl_xor(magmaFloatComplex
 
 
 /******************************************************************************/
-__device__ static inline magmaDoubleComplex magmablas_zshfl_xor(magmaDoubleComplex var, int laneMask, int width=DEFAULT_WIDTH, unsigned mask=SHFL_FULL_MASK)
+__device__ static inline magmaDoubleComplex magmablas_zshfl_xor(magmaDoubleComplex var, int laneMask, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
     magmaDoubleComplex r;
     r.x = magmablas_dshfl_xor(var.x, laneMask, width, mask);
