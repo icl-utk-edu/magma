@@ -19,16 +19,21 @@
 #ifdef MAGMA_HAVE_HIP
 #define block_sync    __syncthreads
 #else
-#define block_sync    magmablas_syncwarp
+#define block_sync    __syncthreads
 #endif
 
+#if defined(MAGMA_HAVE_HIP)
+#define ZGEQRF_BATCH_SQ1D_MAX_THREADS    (64)
+
+#elif defined(MAGMA_HAVE_CUDA)
+#define ZGEQRF_BATCH_SQ1D_MAX_THREADS    (128)
+
+#endif
 
 #define SLDA(N)    ( (N==15||N==23||N==31)? (N+2) : (N+1) )
 template<int N>
-#ifdef MAGMA_HAVE_HIP
-__launch_bounds__(64) // one warp
-#endif
 __global__
+__launch_bounds__(ZGEQRF_BATCH_SQ1D_MAX_THREADS)
 void
 zgeqrf_batched_sq1d_reg_kernel(
     magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
@@ -36,11 +41,12 @@ zgeqrf_batched_sq1d_reg_kernel(
     magma_int_t *info_array, magma_int_t batchCount)
 {
     extern __shared__ magmaDoubleComplex zdata[];
-    const int tx = threadIdx.x;
-    const int ty = threadIdx.y;
-    const int batchid = blockIdx.x * blockDim.y + ty;
+    constexpr int mtx_per_tb = (ZGEQRF_BATCH_SQ1D_MAX_THREADS/N);
+    const int tx = threadIdx.x % N;
+    const int ty = threadIdx.x / N;
+    const int batchid = blockIdx.x * mtx_per_tb + ty;
     if(batchid >= batchCount) return;
-    if(tx >= N) return;
+    if(ty      >= mtx_per_tb) return;
 
     const int slda  = SLDA(N);
     magmaDoubleComplex* dA   = dA_array[batchid] + Aj * ldda + Ai;
@@ -48,12 +54,12 @@ zgeqrf_batched_sq1d_reg_kernel(
     magma_int_t* info = &info_array[batchid];
     // shared memory pointers
     magmaDoubleComplex* sA = (magmaDoubleComplex*)(zdata + ty * slda * N);
-    double* sdw = (double*)(zdata + blockDim.y * slda * N);
+    double* sdw = (double*)(zdata + mtx_per_tb * slda * N);
     sdw += ty * N;
 
     magmaDoubleComplex rA[N] = {MAGMA_Z_ZERO};
     magmaDoubleComplex alpha, tau, tmp, zsum, scale = MAGMA_Z_ZERO;
-    double sum = MAGMA_D_ZERO, norm = MAGMA_D_ZERO, beta;
+    double norm_no_alpha = MAGMA_D_ZERO, norm = MAGMA_D_ZERO, beta;
 
     if( tx == 0 ){
         (*info) = 0;
@@ -68,34 +74,39 @@ zgeqrf_batched_sq1d_reg_kernel(
     }
 
     #pragma unroll
-    for(int i = 0; i < N-1; i++){
+    for(int i = 0; i < N; i++){
         sA[ i * slda + tx] = rA[i];
         sdw[tx] = ( MAGMA_Z_REAL(rA[i]) * MAGMA_Z_REAL(rA[i]) + MAGMA_Z_IMAG(rA[i]) * MAGMA_Z_IMAG(rA[i]) );
         block_sync();
         alpha = sA[i * slda + i];
-        sum = MAGMA_D_ZERO;
+        norm_no_alpha = MAGMA_D_ZERO;
         #pragma unroll
-        for(int j = i; j < N; j++){
-            sum += sdw[j];
+        for(int j = i+1; j < N; j++){
+            norm_no_alpha += sdw[j];
         }
-        norm = sqrt(sum);
-        beta = -copysign(norm, real(alpha));
-        scale = MAGMA_Z_DIV( MAGMA_Z_ONE,  alpha - MAGMA_Z_MAKE(beta, 0));
-        tau = MAGMA_Z_MAKE( (beta - real(alpha)) / beta, -imag(alpha) / beta );
+        norm = norm_no_alpha + sdw[i];
+        bool zero_nrm = (norm_no_alpha == 0) && (MAGMA_Z_IMAG(alpha) == 0);
 
-        if(tx == i){
-            dtau[i] = tau;
+        norm = sqrt(norm);
+        tmp   = rA[i];
+        tau   = MAGMA_Z_ZERO;
+        scale = MAGMA_Z_ONE;
+
+        if(!zero_nrm) {
+            beta = -copysign(norm, real(alpha));
+            scale = (tx > i) ? MAGMA_Z_DIV( MAGMA_Z_ONE,  alpha - MAGMA_Z_MAKE(beta, 0)) : scale;
+            tau   = MAGMA_Z_MAKE( (beta - real(alpha)) / beta, -imag(alpha) / beta );
+            rA[i] *= scale;
+            tmp = (tx == i)? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO) : rA[i];
+            if(tx == i){
+                dtau[i] = tau;
+                rA[i]   = MAGMA_Z_ONE;
+            }
         }
 
-        tmp = (tx == i)? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO) : rA[i] * scale;
-
-        if(tx >= i){
-            rA[i] = tmp;
-        }
-
-        dA[ i * ldda + tx ] = rA[i];
-        rA[i] = (tx == i) ? MAGMA_Z_ONE  : rA[i];
-        rA[i] = (tx < i ) ? MAGMA_Z_ZERO : rA[i];
+        dA[ i * ldda + tx ] = tmp;
+        rA[i] = (tx == i)   ? MAGMA_Z_ONE  : rA[i];
+        rA[i] = (tx < i )   ? MAGMA_Z_ZERO : rA[i];
         tmp = MAGMA_Z_CONJ( rA[i] ) * MAGMA_Z_CONJ( tau );
 
         block_sync();
@@ -119,8 +130,6 @@ zgeqrf_batched_sq1d_reg_kernel(
         }
         block_sync();
     }
-    // write the last column
-    dA[ (N-1) * ldda + tx ] = rA[N-1];
 }
 
 /***************************************************************************//**
@@ -209,19 +218,14 @@ magma_zgeqrf_batched_smallsq(
 
     if( m == 0 || n == 0) return 0;
 
-    #ifdef MAGMA_HAVE_HIP
-    const magma_int_t ntcol = max(1, 64/n);
-    #else
-    const magma_int_t ntcol = magma_get_zgeqrf_batched_ntcol(m, n);
-    #endif
-
+    magma_int_t ntcol = max(1, ZGEQRF_BATCH_SQ1D_MAX_THREADS/n); //magma_get_zgeqrf_batched_ntcol(m, n);
     magma_int_t shmem = ( SLDA(m) * m * sizeof(magmaDoubleComplex) );
     shmem            += ( m * sizeof(double) );
     shmem            *= ntcol;
-    magma_int_t nth   = magma_ceilpow2(m);
+    magma_int_t nth   = m;//magma_ceilpow2(m);
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
     dim3 grid(gridx, 1, 1);
-    dim3 threads(nth, ntcol, 1);
+    dim3 threads(nth * ntcol, 1, 1);
 
     void *kernel_args[] = {&dA_array, &Ai, &Aj, &ldda, &dtau_array, &taui, &info_array, &batchCount};
 

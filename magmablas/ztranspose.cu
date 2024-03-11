@@ -55,8 +55,8 @@ ztranspose_device(
     int iby = blockIdx.y*NB;
     int i, j;
 
-    A  += ibx + tx + (iby + ty)*lda;
-    AT += iby + tx + (ibx + ty)*ldat;
+    A  += ibx + tx + (size_t)(iby + ty)*(size_t)lda;
+    AT += iby + tx + (size_t)(ibx + ty)*(size_t)ldat;
 
     #pragma unroll
     for( int tile=0; tile < NB/NX; ++tile ) {
@@ -91,7 +91,7 @@ ztranspose_device(
 
         // move to next subtile
         A  += NX;
-        AT += NX*ldat;
+        AT += (size_t)NX*(size_t)ldat;
     }
 }
 
