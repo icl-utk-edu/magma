@@ -170,7 +170,8 @@ struct magma_device_info* g_magma_devices = NULL;
 
     @ingroup magma_init
 *******************************************************************************/
-extern "C" magma_int_t magma_init() try {
+extern "C" magma_int_t magma_init()
+{ 
     magma_int_t info = 0;
 
     g_mutex.lock();
@@ -179,14 +180,9 @@ extern "C" magma_int_t magma_init() try {
             // query number of devices
             int err;
             g_magma_devices_cnt = 0;
-            /*
-            DPCT1003:45: Migrated API does not return error code. (*, 0) is
-            inserted. You may need to rewrite this code.
-            */
-            err =
-                (g_magma_devices_cnt = dpct::dev_mgr::instance().device_count(),
-                 0);
-            if (err != 0 && err != 100) {
+            try {
+                g_magma_devices_cnt = dpct::dev_mgr::instance().device_count();
+            } catch(...) {
                 info = MAGMA_ERR_UNKNOWN;
                 goto cleanup;
             }
@@ -204,19 +200,14 @@ extern "C" magma_int_t magma_init() try {
             // query each device
             for( int dev=0; dev < g_magma_devices_cnt; ++dev ) {
                if (!(dpct::dev_mgr::instance().get_device(dev).is_host())) {
-                dpct::device_info prop;
-                /*
-                DPCT1003:46: Migrated API does not return error code. (*, 0) is
-                inserted. You may need to rewrite this code.
-                */
-                err =
-                    (dpct::dev_mgr::instance().get_device(dev).get_device_info(
-                         prop),
-                     0);
-                if ( err != 0 ) {
+                 dpct::device_info prop;
+                 try { 
+                   dpct::dev_mgr::instance().get_device(dev).get_device_info(
+                           prop);
+                 }
+		 catch(sycl::exception const &exc) {
                     info = MAGMA_ERR_UNKNOWN;
-                }
-                else {
+                 }
                     g_magma_devices[dev].memory = prop.get_global_mem_size();
                     /*
                     DPCT1019:47: local_mem_size in SYCL is not a complete
@@ -226,25 +217,14 @@ extern "C" magma_int_t magma_init() try {
                     g_magma_devices[dev].shmem_block =
                         prop.get_local_mem_size();
                     
-		    // TODO:sharedMemPerMultiprocessor not part of dpct prop
-                    #ifdef MAGMA_HAVE_CUDA
-                    /*
-                    DPCT1005:48: The SYCL device version is different from CUDA
-                    Compute Compatibility. You may need to rewrite this code.
-                    */
                     g_magma_devices[dev].cuda_arch =
-                        prop.get_major_version() * 100 +
-                        prop.get_minor_version() * 10;
-                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor;
-                    #elif defined(MAGMA_HAVE_HIP)
-                    g_magma_devices[dev].cuda_arch       = prop.gcnArch;
-                    g_magma_devices[dev].shmem_multiproc = prop.maxSharedMemoryPerMultiProcessor;
-                    #endif
-
+                       dpct::dev_mgr::instance().get_device(dev).get_info<sycl::info::device::vendor_id>();
+		    // TODO:sharedMemPerMultiprocessor not part of dpct prop
+//                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor;
                     g_magma_devices[dev].multiproc_count =
                         prop.get_max_compute_units();
-                }
-              }
+               
+	       }
 	    }
 
             #ifndef MAGMA_NO_V1
@@ -276,11 +256,7 @@ cleanup:
     g_mutex.unlock();
 
     return info;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+
 }
 
 /***************************************************************************//**
@@ -376,7 +352,8 @@ magma_warn_leaks( const std::map< void*, size_t >& pointers, const char* type )
     Used in testing.
     @ingroup magma_testing
 *******************************************************************************/
-extern "C" void magma_print_environment() try {
+extern "C" void magma_print_environment()
+{
     magma_int_t major, minor, micro;
     magma_version( &major, &minor, &micro );
 
@@ -393,34 +370,21 @@ extern "C" void magma_print_environment() try {
 
     // SYCL, OpenCL, OpenMP, MKL, ACML versions all printed on same line
     std::string sycl_runtime, sycl_driver;
-    int err;
-    /*
-    DPCT1003:49: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    /*
-    DPCT1043:50: The version-related API is different in SYCL. An initial code
-    was generated, but you need to adjust it.
-    */
-    err =
-        (sycl_driver =
-             dpct::get_current_device().get_info<sycl::info::device::version>(),
-         0);
-    check_error( err );
-    /*
-    DPCT1003:51: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    /*
-    DPCT1043:52: The version-related API is different in SYCL. An initial code
-    was generated, but you need to adjust it.
-    */
-    err =
-        (sycl_runtime =
-             dpct::get_current_device().get_info<sycl::info::device::version>(),
-         0);
-    if (err != 100) {
-        check_error( err );
+    try {
+        sycl_driver =
+             dpct::get_current_device().get_info<sycl::info::device::version>();
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
+    }
+    try { 
+       sycl_runtime =
+             dpct::get_current_device().get_info<sycl::info::device::version>();
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
     }
     printf( "%% SYCL runtime %s, driver %s. ", sycl_runtime.c_str(), sycl_driver.c_str() );
 
@@ -460,24 +424,23 @@ extern "C" void magma_print_environment() try {
 
     // print devices
     int ndevices = 0;
-    /*
-    DPCT1003:53: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    err = (ndevices = dpct::dev_mgr::instance().device_count(), 0);
-    if (err != 100) {
-        check_error( err );
+    try {
+      ndevices = dpct::dev_mgr::instance().device_count();
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+            << ", line:" << __LINE__ << std::endl;
     }
     for( int dev = 0; dev < ndevices; ++dev ) {
         if (!(dpct::dev_mgr::instance().get_device(dev).is_host())) {
         dpct::device_info prop;
-        /*
-        DPCT1003:54: Migrated API does not return error code. (*, 0) is
-        inserted. You may need to rewrite this code.
-        */
-        err = (dpct::dev_mgr::instance().get_device(dev).get_device_info(prop),
-               0);
-        check_error( err );
+        try {
+          dpct::dev_mgr::instance().get_device(dev).get_device_info(prop);
+        }
+        catch (sycl::exception const &exc) {
+           std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+        }
 
         #ifdef MAGMA_HAVE_SYCL
         printf("%% device %d: %s, %.1f MHz clock, %.1f MiB memory, capability "
@@ -495,44 +458,17 @@ extern "C" void magma_print_environment() try {
                */
                prop.get_minor_version());
 
-        /*
-        DPCT1005:57: The SYCL device version is different from CUDA Compute
-        Compatibility. You may need to rewrite this code.
-        */
-	//TODO
-/*        int arch =
-            prop.get_major_version() * 100 + prop.get_minor_version() * 10; */
-/*        if ( arch < MAGMA_CUDA_ARCH_MIN ) {
-            printf("\n"
-                   "==============================================================================\n"
-                   "WARNING: MAGMA was compiled only for CUDA capability %.1f and higher;\n"
-                   "device %d has only capability %.1f; some routines will not run correctly!\n"
-                   "==============================================================================\n\n",
-                   MAGMA_CUDA_ARCH_MIN/100., dev, arch/100. );
-        } */
         #endif
       }
     }
-    MAGMA_UNUSED( err );
     time_t t = time( NULL );
     printf( "%% %s", ctime( &t ));
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
     For debugging purposes, determines whether a pointer points to CPU or GPU memory.
 
-    On CUDA architecture 2.0 cards with unified addressing, CUDA can tell if
-    it is a device pointer or pinned host pointer.
-    For malloc'd host pointers, cudaPointerGetAttributes returns error,
-    implying it is a (non-pinned) host pointer.
-
-    On older cards, this cannot determine if it is CPU or GPU memory.
-
+    Only works if using USM (not buffers).
     @param[in] A    pointer to test
 
     @return  1:  if A is a device pointer (definitely),
@@ -542,112 +478,51 @@ catch (sycl::exception const &exc) {
     @ingroup magma_util
 *******************************************************************************/
 extern "C" magma_int_t magma_is_devptr(const void *A) try {
-    int err;
-    dpct::device_info prop;
-//    cudaPointerAttributes attr;
-//    int dev;  // must be int
-//    err = dev = dpct::dev_mgr::instance().current_device_id();
-//    if ( ! err ) {
-//        /*
-//        DPCT1003:59: Migrated API does not return error code. (*, 0) is
-//        inserted. You may need to rewrite this code.
-//        */
-//        err = (dpct::dev_mgr::instance().get_device(dev).get_device_info(prop),
-//               0);
-////TODO: how to handle this with SYCL?
-//#ifdef MAGMA_HAVE_CUDA
-//        if ( ! err && prop.unifiedAddressing ) {
-//        #elif defined(MAGMA_HAVE_HIP)
-//        // in HIP, assume all can.
-//        /There's no corresponding property, and examples show no need to check any properties
-//        if ( ! err ) {
-//        #endif
-//
-//            // I think the cudaPointerGetAttributes prototype is wrong, missing const (mgates)
-//            /*
-//            DPCT1007:60: Migration of cudaPointerGetAttributes is not supported
-//            by the Intel(R) DPC++ Compatibility Tool.
-//            */
-//  /*          err = cudaPointerGetAttributes(&attr, const_cast<void *>(A));
-//            if ( ! err ) {
-//                // definitely know type
-//                #ifdef MAGMA_HAVE_CUDA
-//                  #if CUDA_VERSION >= 11000
-//                    return (attr.type == cudaMemoryTypeDevice);
-//                  #else
-//                    return (attr.memoryType == cudaMemoryTypeDevice);
-//                  #endif
-//
-//                #elif defined(MAGMA_HAVE_HIP)
-//                return (attr.memoryType == hipMemoryTypeDevice);
-//                #endif
-//            } */
-//            /*
-//            DPCT1002:62: Special case error handling if-stmt was detected. You
-//            may need to rewrite this code.
-//            */
-//  //          else if (err == 1) {
-//                // clear error; see http://icl.cs.utk.edu/magma/forum/viewtopic.php?f=2&t=529
-//                /*
-//                DPCT1001:61: The statement could not be removed.
-//                */
-//                /*
-//                DPCT1026:63: The call to cudaGetLastError was removed because
-//                the function call is redundant in DPC++.
-//                */
-//    //            // infer as host pointer
-//   //             return 0;
-//    //        }
-//    //    }
-//    //}
-//    // clear error
-//    /*
-//    DPCT1026:58: The call to cudaGetLastError was removed because the function
-//    call is redundant in DPC++.
-//    */
-//    // unknown, e.g., device doesn't support unified addressing
-    return -1;
+
+    sycl::usm::alloc ptr_type = get_pointer_type(A, 
+                           dpct::get_default_queue().get_context());
+    if (ptr_type == sycl::usm::alloc::host)
+      return 0;
+    else if (ptr_type == sycl::usm::alloc::device)
+      return 1;
+    else
+      return -1;
 }
 catch (sycl::exception const &exc) {
   std::cerr << exc.what() << "Exception caught at file:" << __FILE__
             << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 // =============================================================================
 // device support
 
 /***************************************************************************//**
-    Returns CUDA architecture capability for the current device.
-    This requires magma_init() to be called first to cache the information.
-    Version is an integer xyz, where x is major, y is minor, and z is micro,
-    the same as __CUDA_ARCH__. Thus for architecture 1.3.0 it returns 130.
+    Returns the unique vendor_id for this device. The name is cuda_arch due to
+    historical reasons with MAGMA development.
 
     @return CUDA_ARCH for the current device.
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" magma_int_t magma_getdevice_arch() try {
+extern "C" magma_int_t magma_getdevice_arch()
+{
     int dev;
-    int err;
-    err = dev = dpct::dev_mgr::instance().current_device_id();
-    check_error( err );
-    MAGMA_UNUSED( err );
+    try {
+      dev = dpct::dev_mgr::instance().current_device_id();
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
     if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
         fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
         return 0;
     }
     return g_magma_devices[dev].cuda_arch;
 }
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
-}
 
 /***************************************************************************//**
     Fills in devices array with the available devices.
-    (This makes much more sense in OpenCL than in CUDA.)
 
     @param[out]
     devices     Array of dimension (size).
@@ -663,27 +538,22 @@ catch (sycl::exception const &exc) {
     @ingroup magma_device
 *******************************************************************************/
 extern "C" void magma_getdevices(magma_device_t *devices, magma_int_t size,
-                                 magma_int_t *num_dev) try {
-    int err;
+                                 magma_int_t *num_dev)
+{
     int cnt;
-    /*
-    DPCT1003:64: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    err = (cnt = dpct::dev_mgr::instance().device_count(), 0);
-    check_error( err );
-    MAGMA_UNUSED( err );
+    try {
+      cnt = dpct::dev_mgr::instance().device_count();
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
 
     cnt = min( cnt, int(size) );
     for( int i = 0; i < cnt; ++i ) {
         devices[i] = i;
     }
     *num_dev = cnt;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -695,18 +565,17 @@ catch (sycl::exception const &exc) {
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" void magma_getdevice(magma_device_t *device) try {
+extern "C" void magma_getdevice(magma_device_t *device)
+{
     int dev;
-    int err;
-    err = dev = dpct::dev_mgr::instance().current_device_id();
+    try {
+      dev = dpct::dev_mgr::instance().current_device_id();
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
     *device = dev;
-    check_error( err );
-    MAGMA_UNUSED( err );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -719,23 +588,11 @@ catch (sycl::exception const &exc) {
     @ingroup magma_device
 *******************************************************************************/
 extern "C" void magma_setdevice(magma_device_t device) try {
-    int err;
-    /*
-    DPCT1093:65: The "int(device)" may not be the best XPU device. Adjust the
-    selected device if needed.
-    */
-    /*
-    DPCT1003:66: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    err = (dpct::dev_mgr::instance().select_device(int(device)), 0);
-    check_error( err );
-    MAGMA_UNUSED( err );
+    dpct::dev_mgr::instance().select_device(int(device));
 }
 catch (sycl::exception const &exc) {
   std::cerr << exc.what() << "Exception caught at file:" << __FILE__
             << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -746,22 +603,21 @@ catch (sycl::exception const &exc) {
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" magma_int_t magma_getdevice_multiprocessor_count() try {
+extern "C" magma_int_t magma_getdevice_multiprocessor_count()
+{
     int dev;
-    int err;
-    err = dev = dpct::dev_mgr::instance().current_device_id();
-    check_error( err );
-    MAGMA_UNUSED( err );
+    try {
+      dev = dpct::dev_mgr::instance().current_device_id();
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
     if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
         fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
         return 0;
     }
     return g_magma_devices[dev].multiproc_count;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -772,22 +628,21 @@ catch (sycl::exception const &exc) {
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" size_t magma_getdevice_shmem_block() try {
+extern "C" size_t magma_getdevice_shmem_block()
+{
     int dev;
-    int err;
-    err = dev = dpct::dev_mgr::instance().current_device_id();
-    check_error( err );
-    MAGMA_UNUSED( err );
+    try {
+      dev = dpct::dev_mgr::instance().current_device_id();
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
     if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
         fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
         return 0;
     }
     return g_magma_devices[dev].shmem_block;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -798,22 +653,21 @@ catch (sycl::exception const &exc) {
 
     @ingroup magma_device
 *******************************************************************************/
-extern "C" size_t magma_getdevice_shmem_multiprocessor() try {
+extern "C" size_t magma_getdevice_shmem_multiprocessor()
+{
     int dev;
-    int err;
-    err = dev = dpct::dev_mgr::instance().current_device_id();
-    check_error( err );
-    MAGMA_UNUSED( err );
+    try {
+      dev = dpct::dev_mgr::instance().current_device_id();
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
     if ( g_magma_devices == NULL || dev < 0 || dev >= g_magma_devices_cnt ) {
         fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
         return 0;
     }
     return g_magma_devices[dev].shmem_multiproc;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -826,32 +680,19 @@ catch (sycl::exception const &exc) {
     @ingroup magma_queue
 *******************************************************************************/
 extern "C" size_t magma_mem_size(magma_queue_t queue) try {
-    // CUDA would only need a device ID, but OpenCL requires a queue.
     size_t freeMem, totalMem;
     magma_device_t orig_dev;
     magma_getdevice( &orig_dev );
     magma_setdevice( magma_queue_get_device( queue ));
-    /*
-    DPCT1003:67: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    /*
-    DPCT1072:68: DPC++ currently does not support getting the available memory
-    on the current device. You may need to adjust the code.
-    */
-    int err =
-        (totalMem =
-             dpct::get_current_device().get_device_info().get_global_mem_size(),
-         0);
-    check_error( err );
-    MAGMA_UNUSED( err );
+    totalMem = dpct::get_current_device().get_device_info().get_global_mem_size();
+    freeMem = dpct::get_current_device()
+                .get_info<sycl::ext::intel::info::device::free_memory>();
     magma_setdevice( orig_dev );
     return freeMem;
 }
 catch (sycl::exception const &exc) {
   std::cerr << exc.what() << "Exception caught at file:" << __FILE__
             << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 // =============================================================================
@@ -945,7 +786,8 @@ extern "C" sycl::queue *magma_queue_get_syclsparse_handle(magma_queue_t queue)
 void magma_queue_create_internal(magma_device_t device,
                                             magma_queue_t *queue_ptr,
                                             const char *func, const char *file,
-                                            int line) try {
+                                            int line)
+{
     magma_queue_t queue;
     magma_malloc_cpu( (void**)&queue, sizeof(*queue) );
     assert( queue != NULL );
@@ -967,43 +809,35 @@ void magma_queue_create_internal(magma_device_t device,
 
     magma_setdevice( device );
 
-    int err;
-    /*
-    DPCT1003:69: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    err = (queue->stream__ = dpct::get_current_device().create_queue(), 0);
-    check_xerror( err, func, file, line );
+    try {
+      queue->stream__ = dpct::get_current_device().create_queue();
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
     queue->own__ |= own_stream;
 
 #if defined(MAGMA_HAVE_SYCL)
-    int stat;
-    /*
-    DPCT1003:70: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stat = (queue->syclblas__ = queue->stream__, 0);
-    check_xerror( stat, func, file, line );
+    try {
+      queue->syclblas__ = queue->stream__;
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
     queue->own__ |= own_syclblas;
 
-    int stat2;
-    /*
-    DPCT1003:72: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stat2 = (queue->syclsparse__ = queue->stream__, 0);
-    check_xerror( stat2, func, file, line );
+    try {
+      queue->syclsparse__ = queue->stream__;
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
     queue->own__ |= own_syclsparse;
 #endif
 
-    MAGMA_UNUSED( err );
-    MAGMA_UNUSED( stat );
-    MAGMA_UNUSED( stat2 );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -1041,7 +875,8 @@ extern "C" void
 magma_queue_create_from_sycl_internal(
     magma_device_t device, sycl::queue *sycl_queue, sycl::queue *syclblas_handle,
     sycl::queue *syclsparse_handle, magma_queue_t *queue_ptr, const char *func,
-    const char *file, int line) try {
+    const char *file, int line)
+{
     magma_queue_t queue;
     magma_malloc_cpu( (void**)&queue, sizeof(*queue) );
     assert( queue != NULL );
@@ -1063,51 +898,45 @@ magma_queue_create_from_sycl_internal(
     // stream can be NULL
     queue->stream__ = sycl_queue;
 
-    // allocate cublas handle if given as NULL
-    int stat;
+    // allocate handle if given as NULL
     if ( syclblas_handle == NULL ) {
-        /*
-        DPCT1003:74: Migrated API does not return error code. (*, 0) is
-        inserted. You may need to rewrite this code.
-        */
-        stat = (syclblas_handle = &dpct::get_default_queue(), 0);
-        check_xerror( stat, func, file, line );
+        try {
+          syclblas_handle = &dpct::get_default_queue();
+        }
+        catch (sycl::exception const &exc) {
+          std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                    << ", line:" << __LINE__ << std::endl;
+        }
         queue->own__ |= own_syclblas;
     }
     queue->syclblas__ = syclblas_handle;
-    /*
-    DPCT1003:75: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stat = (queue->syclblas__ = queue->stream__, 0);
-    check_xerror( stat, func, file, line );
+    try {
+      queue->syclblas__ = queue->stream__;
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
 
     // allocate syclsparse handle if given as NULL
-    int stat2;
     if ( syclsparse_handle == NULL ) {
-        /*
-        DPCT1003:76: Migrated API does not return error code. (*, 0) is
-        inserted. You may need to rewrite this code.
-        */
-        stat2 = (syclsparse_handle = &dpct::get_default_queue(), 0);
-        check_xerror( stat, func, file, line );
+        try {
+          syclsparse_handle = &dpct::get_default_queue();
+        }
+        catch (sycl::exception const &exc) {
+          std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                    << ", line:" << __LINE__ << std::endl;
+        }
         queue->own__ |= own_syclsparse;
     }
     queue->syclsparse__ = syclsparse_handle;
-    /*
-    DPCT1003:77: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stat2 = (queue->syclsparse__ = queue->stream__, 0);
-    check_xerror( stat2, func, file, line );
-
-    MAGMA_UNUSED( stat );
-    MAGMA_UNUSED( stat2 );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+    try {
+      queue->syclsparse__ = queue->stream__;
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
 }
 #endif
 
@@ -1129,35 +958,23 @@ catch (sycl::exception const &exc) {
 *******************************************************************************/
 extern "C" void magma_queue_destroy_internal(magma_queue_t queue,
                                              const char *func, const char *file,
-                                             int line) try {
+                                             int line)
+{
     if ( queue != NULL ) {
         if ( *queue->syclblas__ != dpct::get_default_queue() && (queue->own__ & own_syclblas)) {
-            /*
-            DPCT1003:78: Migrated API does not return error code. (*, 0) is
-            inserted. You may need to rewrite this code.
-            */
-            int stat = (queue->syclblas__ = nullptr, 0);
-            check_xerror( stat, func, file, line );
-            MAGMA_UNUSED( stat );
+            queue->syclblas__ = nullptr;
         }
         if ( *queue->syclsparse__ != dpct::get_default_queue() && (queue->own__ & own_syclsparse)) {
-            /*
-            DPCT1003:79: Migrated API does not return error code. (*, 0) is
-            inserted. You may need to rewrite this code.
-            */
-            int stat = (queue->syclsparse__ = nullptr, 0);
-            check_xerror( stat, func, file, line );
-            MAGMA_UNUSED( stat );
+            queue->syclsparse__ = nullptr;
         }
         if ( *queue->stream__ != dpct::get_default_queue() && (queue->own__ & own_stream)) {
-            /*
-            DPCT1003:80: Migrated API does not return error code. (*, 0) is
-            inserted. You may need to rewrite this code.
-            */
-            int err =
-                (dpct::get_current_device().destroy_queue(queue->stream__), 0);
-            check_xerror( err, func, file, line );
-            MAGMA_UNUSED( err );
+            try { 
+              dpct::get_current_device().destroy_queue(queue->stream__);
+            }
+            catch (sycl::exception const &exc) {
+              std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                        << ", line:" << __LINE__ << std::endl;
+            }
         }
 
         if( queue->ptrArray__ != NULL ) magma_free( queue->ptrArray__ );
@@ -1174,11 +991,6 @@ extern "C" void magma_queue_destroy_internal(magma_queue_t queue,
         magma_free_cpu( queue );
     }
 }
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
-}
 
 /***************************************************************************//**
     @fn magma_queue_sync( queue )
@@ -1192,29 +1004,26 @@ catch (sycl::exception const &exc) {
     @ingroup magma_queue
 *******************************************************************************/
 extern "C" void magma_queue_sync_internal(magma_queue_t queue, const char *func,
-                                          const char *file, int line) try {
-    int err;
+                                          const char *file, int line)
+{
     if ( queue != NULL ) {
-        /*
-        DPCT1003:81: Migrated API does not return error code. (*, 0) is
-        inserted. You may need to rewrite this code.
-        */
-        err = (queue->sycl_stream()->wait(), 0);
+        try {
+          queue->sycl_stream()->wait();
+        }
+        catch (sycl::exception const &exc) {
+          std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                    << ", line:" << __LINE__ << std::endl;
+        }
     }
     else {
-        /*
-        DPCT1003:82: Migrated API does not return error code. (*, 0) is
-        inserted. You may need to rewrite this code.
-        */
-        err = (dpct::get_default_queue().wait(), 0);
+        try {
+          dpct::get_default_queue().wait();
+        }
+        catch (sycl::exception const &exc) {
+          std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                    << ", line:" << __LINE__ << std::endl;
+        }
     }
-    check_xerror( err, func, file, line );
-    MAGMA_UNUSED( err );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 // =============================================================================
@@ -1228,20 +1037,12 @@ catch (sycl::exception const &exc) {
 
     @ingroup magma_event
 *******************************************************************************/
-extern "C" void magma_event_create(magma_event_t *event) try {
-    int err;
+extern "C" void magma_event_create(magma_event_t *event)
+{
     /*
     DPCT1027:83: The call to cudaEventCreate was replaced with 0 because this
     call is redundant in DPC++.
     */
-    err = 0;
-    check_error( err );
-    MAGMA_UNUSED( err );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -1252,20 +1053,12 @@ catch (sycl::exception const &exc) {
 
     @ingroup magma_event
 *******************************************************************************/
-extern "C" void magma_event_create_untimed(magma_event_t *event) try {
-    int err;
+extern "C" void magma_event_create_untimed(magma_event_t *event)
+{
     /*
     DPCT1027:84: The call to cudaEventCreateWithFlags was replaced with 0
     because this call is redundant in DPC++.
     */
-    err = 0;
-    check_error( err );
-    MAGMA_UNUSED( err );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//*
@@ -1277,22 +1070,12 @@ catch (sycl::exception const &exc) {
     @ingroup magma_event
 *******************************************************************************/
 //TODO: can we disregard this entirely for SYCL?  Considering DPCT message...
-extern "C" void magma_event_destroy(magma_event_t event) try {
-   // if ( event != NULL ) {
-        int err;
+extern "C" void magma_event_destroy(magma_event_t event)
+{
         /*
         DPCT1027:85: The call to cudaEventDestroy was replaced with 0 because
         this call is redundant in DPC++.
         */
-        err = 0;
-        check_error( err );
-        MAGMA_UNUSED( err );
-   // }
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -1308,28 +1091,22 @@ catch (sycl::exception const &exc) {
     @ingroup magma_event
 *******************************************************************************/
 extern "C" void magma_event_record(magma_event_t event,
-                                   magma_queue_t queue) try {
-    int err;
-std::chrono::time_point<std::chrono::steady_clock> event_ct1;
+                                   magma_queue_t queue)
+{
+    std::chrono::time_point<std::chrono::steady_clock> event_ct1;
     /*
     DPCT1012:86: Detected kernel execution time measurement pattern and
     generated an initial code for time measurements in SYCL. You can change the
     way time is measured depending on your goals.
     */
-    /*
-    DPCT1024:87: The original code returned the error code that was further
-    consumed by the program logic. This original code was replaced with 0. You
-    may need to rewrite the program logic consuming the error code.
-    */
     event_ct1 = std::chrono::steady_clock::now();
-    err = (event = queue->sycl_stream()->ext_oneapi_submit_barrier(), 0);
-    check_error( err );
-    MAGMA_UNUSED( err );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+    try {
+      event = queue->sycl_stream()->ext_oneapi_submit_barrier();
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
+    }
 }
 
 /***************************************************************************//**
@@ -1341,19 +1118,11 @@ catch (sycl::exception const &exc) {
     @ingroup magma_event
 *******************************************************************************/
 extern "C" void magma_event_sync(magma_event_t event) try {
-    int err;
-    /*
-    DPCT1003:90: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    err = (event.wait_and_throw(), 0);
-    check_error( err );
-    MAGMA_UNUSED( err );
+    event.wait_and_throw();
 }
 catch (sycl::exception const &exc) {
   std::cerr << exc.what() << "Exception caught at file:" << __FILE__
             << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -1369,20 +1138,15 @@ catch (sycl::exception const &exc) {
     @ingroup magma_event
 *******************************************************************************/
 extern "C" void magma_queue_wait_event(magma_queue_t queue,
-                                       magma_event_t event) try {
-    int err;
-    /*
-    DPCT1003:88: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    err = (event = queue->sycl_stream()->ext_oneapi_submit_barrier({event}), 0);
-    check_error( err );
-    MAGMA_UNUSED( err );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+                                       magma_event_t event)
+{
+    try {
+      event = queue->sycl_stream()->ext_oneapi_submit_barrier({event});
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
+    }
 }
 
 #endif // MAGMA_HAVE_SYCL
