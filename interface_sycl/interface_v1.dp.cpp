@@ -54,19 +54,11 @@ extern int g_magma_devices_cnt;
     @ingroup magma_device
 *******************************************************************************/
 extern "C" void magma_device_sync() try {
-    int err;
-    /*
-    DPCT1003:89: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    err = (dpct::get_current_device().queues_wait_and_throw(), 0);
-    check_error( err );
-    MAGMA_UNUSED( err );
+    dpct::get_current_device().queues_wait_and_throw();
 }
 catch (sycl::exception const &exc) {
   std::cerr << exc.what() << "Exception caught at file:" << __FILE__
             << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 // =============================================================================

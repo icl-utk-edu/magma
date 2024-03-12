@@ -55,18 +55,19 @@ std::map< void*, size_t > g_pointers_pin;
 
     @ingroup magma_malloc
 *******************************************************************************/
-extern "C" magma_int_t magma_malloc(magma_ptr *ptrPtr, size_t size) try {
+extern "C" magma_int_t magma_malloc(magma_ptr *ptrPtr, size_t size)
+{
     // malloc and free sometimes don't work for size=0, so allocate some minimal size
     if ( size == 0 )
         size = sizeof(magmaDoubleComplex);
-    /*
-    DPCT1003:1: Migrated API does not return error code. (*, 0) is inserted. You
-    may need to rewrite this code.
-    */
-    if (0 != (*ptrPtr = (magma_ptr)sycl::malloc_device(
-                  size, dpct::get_default_queue()),
-              0)) {
-        return MAGMA_ERR_DEVICE_ALLOC;
+    try {
+      *ptrPtr = (magma_ptr)sycl::malloc_device(
+                    size, dpct::get_default_queue());
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
+       return MAGMA_ERR_DEVICE_ALLOC;
     }
 
     #ifdef DEBUG_MEMORY
@@ -76,11 +77,6 @@ extern "C" magma_int_t magma_malloc(magma_ptr *ptrPtr, size_t size) try {
     #endif
 
     return MAGMA_SUCCESS;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -97,7 +93,8 @@ catch (sycl::exception const &exc) {
     @ingroup magma_malloc
 *******************************************************************************/
 extern "C" magma_int_t magma_free_internal(magma_ptr ptr, const char *func,
-                                           const char *file, int line) try {
+                                           const char *file, int line)
+{
 #ifdef DEBUG_MEMORY
     g_pointers_mutex.lock();
     if ( ptr != NULL && g_pointers_dev.count( ptr ) == 0 ) {
@@ -109,19 +106,15 @@ extern "C" magma_int_t magma_free_internal(magma_ptr ptr, const char *func,
     g_pointers_mutex.unlock();
     #endif
 
-    /*
-    DPCT1003:2: Migrated API does not return error code. (*, 0) is inserted. You
-    may need to rewrite this code.
-    */
-    int err = (sycl::free(ptr, dpct::get_default_queue()), 0);
-    check_xerror( err, func, file, line );
+    try {
+      sycl::free(ptr, dpct::get_default_queue());
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
+    }
 
     return MAGMA_SUCCESS;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -249,24 +242,24 @@ magma_free_cpu( void* ptr )
 
     @ingroup magma_malloc_pinned
 *******************************************************************************/
-extern "C" magma_int_t magma_malloc_pinned(void **ptrPtr, size_t size) try {
+extern "C" magma_int_t magma_malloc_pinned(void **ptrPtr, size_t size)
+{
     // malloc and free sometimes don't work for size=0, so allocate some minimal size
     // (for pinned memory, the error is detected in free)
     if ( size == 0 )
         size = sizeof(magmaDoubleComplex);
     /*
-    DPCT1003:3: Migrated API does not return error code. (*, 0) is inserted. You
-    may need to rewrite this code.
-    */
-    /*
     DPCT1048:0: The original value cudaHostAllocPortable is not meaningful in
     the migrated code and was removed or replaced with 0. You may need to check
     the migrated code.
     */
-    if (0 !=
-        (*ptrPtr = (void *)sycl::malloc_host(size, dpct::get_default_queue()),
-         0)) {
-        return MAGMA_ERR_HOST_ALLOC;
+    try {
+      *ptrPtr = (void *)sycl::malloc_host(size, dpct::get_default_queue());
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+      return MAGMA_ERR_HOST_ALLOC;
     }
 
     #ifdef DEBUG_MEMORY
@@ -276,11 +269,6 @@ extern "C" magma_int_t magma_malloc_pinned(void **ptrPtr, size_t size) try {
     #endif
 
     return MAGMA_SUCCESS;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -298,7 +286,8 @@ catch (sycl::exception const &exc) {
 *******************************************************************************/
 extern "C" magma_int_t magma_free_pinned_internal(void *ptr, const char *func,
                                                   const char *file,
-                                                  int line) try {
+                                                  int line)
+{
 #ifdef DEBUG_MEMORY
     g_pointers_mutex.lock();
     if ( ptr != NULL && g_pointers_pin.count( ptr ) == 0 ) {
@@ -310,19 +299,14 @@ extern "C" magma_int_t magma_free_pinned_internal(void *ptr, const char *func,
     g_pointers_mutex.unlock();
     #endif
 
-    /*
-    DPCT1003:4: Migrated API does not return error code. (*, 0) is inserted. You
-    may need to rewrite this code.
-    */
-    int err = (sycl::free(ptr, dpct::get_default_queue()), 0);
-    check_xerror( err, func, file, line );
-
+    try {
+      sycl::free(ptr, dpct::get_default_queue());
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
     return MAGMA_SUCCESS;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -341,56 +325,37 @@ catch (sycl::exception const &exc) {
 *******************************************************************************/
 extern "C" magma_int_t
 magma_mem_info(size_t * freeMem, size_t * totalMem) {
-    /*
-    DPCT1072:5: DPC++ currently does not support getting the available memory on
-    the current device. You may need to adjust the code.
-    */
-	// NNB: see https://github.com/intel/llvm/issues/5713
-	// this is currently in an Intel-specific extension to SYCL, not portable!
-	// TODO: remove use of dpct get_current_device entirely
     sycl::device d = dpct::get_current_device();
-	// TODO: sycl::ext::intel::info not availble in oneapi/eng-compiler/2022.10.15.004
-	//   even though the SYCL_EXT_INTEL_DEVICE_INFO is 3, just as in
-	//   the 2022.10.15.006 module (where it is found)
-	//   But all latest versions don't have version 4, which is required for the
-	//   free memory calculation to work.
-	//   We should change to the below lines when it is available?
-    //    *totalMem = d.get_info<sycl::info::device::global_mem_size>();
-    //    *freeMem = d.get_info<sycl::ext::intel::info::device::free_memory>();
-    *totalMem =
-        dpct::get_current_device().get_device_info().get_global_mem_size();
-    *freeMem = (*totalMem); // FIX this when extension available!
+    *totalMem = d.get_info<sycl::info::device::global_mem_size>();
+    *freeMem = d.get_info<sycl::ext::intel::info::device::free_memory>();
     return MAGMA_SUCCESS;
 }
 
-extern "C" magma_int_t magma_memset(void *ptr, int value, size_t count) try {
-    /*
-    DPCT1003:6: Migrated API does not return error code. (*, 0) is inserted. You
-    may need to rewrite this code.
-    */
-    return (dpct::get_default_queue().memset(ptr, value, count).wait(), 0);
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+extern "C" magma_int_t magma_memset(void *ptr, int value, size_t count)
+{
+    try {
+      dpct::get_default_queue().memset(ptr, value, count).wait();
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+      return MAGMA_ERR;
+    }
+    return MAGMA_SUCCESS;
 }
 
 extern "C" magma_int_t magma_memset_async(void *ptr, int value, size_t count,
-                                          magma_queue_t queue) try {
+                                          magma_queue_t queue)
+{
 #ifdef MAGMA_HAVE_SYCL
-//    return cudaMemsetAsync(ptr, value, count, queue);
-    /*
-    DPCT1003:7: Migrated API does not return error code. (*, 0) is inserted. You
-    may need to rewrite this code.
-    */
-    return (queue->sycl_stream()->memset(ptr, value, count), 0);
+    try {
+      queue->sycl_stream()->memset(ptr, value, count);
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+      return MAGMA_ERR;
+    }
+    return MAGMA_SUCCESS;
 #endif
 }
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
-}
-
-//#endif // MAGMA_HAVE_CUDA
