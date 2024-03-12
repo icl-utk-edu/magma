@@ -206,7 +206,7 @@ magmablas_zgemv(
     }
 
     // Quick return if possible.
-    IF ( m == 0 || n == 0 || (alpha == MAGMA_Z_ZERO && beta == MAGMA_Z_ONE) ) return;
+    if( m == 0 || n == 0 || (alpha == MAGMA_Z_ZERO && beta == MAGMA_Z_ONE) ) return;
 
     // --------------------
     // CUDA ARCH 2.x (Fermi) version
