@@ -55,7 +55,8 @@ extern "C" void magma_setvector_internal(magma_int_t n, magma_int_t elemSize,
                                          void const *hx_src, magma_int_t incx,
                                          magma_ptr dy_dst, magma_int_t incy,
                                          magma_queue_t queue, const char *func,
-                                         const char *file, int line) try {
+                                         const char *file, int line)
+{
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
@@ -63,22 +64,17 @@ extern "C" void magma_setvector_internal(magma_int_t n, magma_int_t elemSize,
     else {
         stream = &dpct::get_default_queue();
     }
-    int status = 0;
-    /*
-    DPCT1003:25: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code. */
-    stream->ext_oneapi_memcpy2d(
+    try {
+      stream->ext_oneapi_memcpy2d(
 		  dy_dst, size_t(incy) * elemSize,
 		  hx_src, size_t(incx) * elemSize,
                   size_t(elemSize), size_t(n));
-    stream->wait();
-    check_xerror( status, func, file, line );
-    MAGMA_UNUSED( status );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+      stream->wait();
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
+    }
 }
 
 /***************************************************************************//**
@@ -118,7 +114,8 @@ catch (sycl::exception const &exc) {
 extern "C" void magma_setvector_async_internal(
     magma_int_t n, magma_int_t elemSize, void const *hx_src, magma_int_t incx,
     magma_ptr dy_dst, magma_int_t incy, magma_queue_t queue, const char *func,
-    const char *file, int line) try {
+    const char *file, int line)
+{
     // for backwards compatability, accepts NULL queue to mean NULL stream.
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
@@ -128,22 +125,16 @@ extern "C" void magma_setvector_async_internal(
         stream = &dpct::get_default_queue();
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    int status = 0;
-    /*
-    DPCT1003:27: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stream->ext_oneapi_memcpy2d(
+    try {
+      stream->ext_oneapi_memcpy2d(
 		  dy_dst, size_t(incy) * elemSize,
 		  hx_src, size_t(incx) * elemSize,
                   size_t(elemSize), size_t(n));
-    check_xerror( status, func, file, line );
-    MAGMA_UNUSED( status );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
+    }
 }
 
 /***************************************************************************//**
@@ -184,7 +175,8 @@ extern "C" void magma_getvector_internal(magma_int_t n, magma_int_t elemSize,
                                          magma_int_t incx, void *hy_dst,
                                          magma_int_t incy, magma_queue_t queue,
                                          const char *func, const char *file,
-                                         int line) try {
+                                         int line)
+{
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
@@ -192,23 +184,17 @@ extern "C" void magma_getvector_internal(magma_int_t n, magma_int_t elemSize,
     else {
         stream = &dpct::get_default_queue();
     }
-    int status = 0;
-    /*
-    DPCT1003:29: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stream->ext_oneapi_memcpy2d(
+    try {
+      stream->ext_oneapi_memcpy2d(
 		  hy_dst, size_t(incy) * elemSize,
 		  dx_src, size_t(incx) * elemSize,
                   size_t(elemSize), size_t(n));
-    stream->wait();
-    check_xerror( status, func, file, line );
-    MAGMA_UNUSED( status );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+      stream->wait();
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
+    }
 }
 
 /***************************************************************************//**
@@ -248,7 +234,8 @@ catch (sycl::exception const &exc) {
 extern "C" void magma_getvector_async_internal(
     magma_int_t n, magma_int_t elemSize, magma_const_ptr dx_src,
     magma_int_t incx, void *hy_dst, magma_int_t incy, magma_queue_t queue,
-    const char *func, const char *file, int line) try {
+    const char *func, const char *file, int line)
+{
     // for backwards compatability, accepts NULL queue to mean NULL stream.
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
@@ -258,22 +245,16 @@ extern "C" void magma_getvector_async_internal(
         stream = &dpct::get_default_queue();
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    int status = 0;
-    /*
-    DPCT1003:31: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stream->ext_oneapi_memcpy2d(
+    try {
+      stream->ext_oneapi_memcpy2d(
 		  hy_dst, size_t(incy) * elemSize,
 		  dx_src, size_t(incx) * elemSize,
                   size_t(elemSize), size_t(n));
-    check_xerror( status, func, file, line );
-    MAGMA_UNUSED( status );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
+    }
 }
 
 /***************************************************************************//**
@@ -317,7 +298,8 @@ extern "C" void magma_copyvector_internal(magma_int_t n, magma_int_t elemSize,
                                           magma_int_t incx, magma_ptr dy_dst,
                                           magma_int_t incy, magma_queue_t queue,
                                           const char *func, const char *file,
-                                          int line) try {
+                                          int line)
+{
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
@@ -326,25 +308,19 @@ extern "C" void magma_copyvector_internal(magma_int_t n, magma_int_t elemSize,
         stream = &dpct::get_default_queue();
     }
     if ( incx == 1 && incy == 1 ) {
-        int status = 0;
-        /*
-        DPCT1003:32: Migrated API does not return error code. (*, 0) is
-        inserted. You may need to rewrite this code.
-        */
-        status = (stream->memcpy(dy_dst, dx_src, size_t(n) * elemSize), 0);
-        stream->wait();
-        check_xerror( status, func, file, line );
-        MAGMA_UNUSED( status );
+        try {
+          stream->memcpy(dy_dst, dx_src, size_t(n) * elemSize);
+          stream->wait();
+        }
+        catch (sycl::exception const &exc) {
+          std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                    << ", line:" << __LINE__ << std::endl;
+        }
     }
     else {
         magma_copymatrix_internal(
             1, n, elemSize, dx_src, incx, dy_dst, incy, queue, func, file, line );
     }
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -384,7 +360,8 @@ catch (sycl::exception const &exc) {
 extern "C" void magma_copyvector_async_internal(
     magma_int_t n, magma_int_t elemSize, magma_const_ptr dx_src,
     magma_int_t incx, magma_ptr dy_dst, magma_int_t incy, magma_queue_t queue,
-    const char *func, const char *file, int line) try {
+    const char *func, const char *file, int line)
+{
     // for backwards compatability, accepts NULL queue to mean NULL stream.
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
@@ -395,24 +372,18 @@ extern "C" void magma_copyvector_async_internal(
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
     if ( incx == 1 && incy == 1 ) {
-        int status = 0;
-        /*
-        DPCT1003:33: Migrated API does not return error code. (*, 0) is
-        inserted. You may need to rewrite this code.
-        */
-        status = (stream->memcpy(dy_dst, dx_src, size_t(n) * elemSize), 0);
-        check_xerror( status, func, file, line );
-        MAGMA_UNUSED( status );
+        try {
+          stream->memcpy(dy_dst, dx_src, size_t(n) * elemSize);
+        }
+        catch (sycl::exception const &exc) {
+          std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                    << ", line:" << __LINE__ << std::endl;
+        }
     }
     else {
         magma_copymatrix_async_internal(
             1, n, elemSize, dx_src, incx, dy_dst, incy, queue, func, file, line );
     }
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**
@@ -456,7 +427,8 @@ extern "C" void magma_setmatrix_internal(magma_int_t m, magma_int_t n,
                                          void const *hA_src, magma_int_t lda,
                                          magma_ptr dB_dst, magma_int_t lddb,
                                          magma_queue_t queue, const char *func,
-                                         const char *file, int line) try {
+                                         const char *file, int line)
+{
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
@@ -464,28 +436,17 @@ extern "C" void magma_setmatrix_internal(magma_int_t m, magma_int_t n,
     else {
         stream = &dpct::get_default_queue();
     }
-    int status = 0;
-    /*
-    DPCT1018:34: The cublasSetMatrixAsync was migrated, but due to parameter(s)
-    int(lda) and/or int(lddb) could not be evaluated, the generated code
-    performance may be sub-optimal.
-    */
-    /*
-    DPCT1003:35: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stream->ext_oneapi_memcpy2d(
-		  dB_dst, size_t(lddb) * elemSize,
-		  hA_src, size_t(lda) * elemSize,
-		  size_t(m) * elemSize, size_t(n));
-    stream->wait();
-    check_xerror( status, func, file, line );
-    MAGMA_UNUSED( status );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+    try {
+      stream->ext_oneapi_memcpy2d(
+  		    dB_dst, size_t(lddb) * elemSize,
+		    hA_src, size_t(lda) * elemSize,
+		    size_t(m) * elemSize, size_t(n));
+      stream->wait();
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
 }
 
 /***************************************************************************//**
@@ -528,7 +489,8 @@ catch (sycl::exception const &exc) {
 extern "C" void magma_setmatrix_async_internal(
     magma_int_t m, magma_int_t n, magma_int_t elemSize, void const *hA_src,
     magma_int_t lda, magma_ptr dB_dst, magma_int_t lddb, magma_queue_t queue,
-    const char *func, const char *file, int line) try {
+    const char *func, const char *file, int line)
+{
     // for backwards compatability, accepts NULL queue to mean NULL stream.
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
@@ -537,27 +499,16 @@ extern "C" void magma_setmatrix_async_internal(
     else {
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    int status = 0;
-    /*
-    DPCT1018:36: The cublasSetMatrixAsync was migrated, but due to parameter(s)
-    int(lda) and/or int(lddb) could not be evaluated, the generated code
-    performance may be sub-optimal.
-    */
-    /*
-    DPCT1003:37: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stream->ext_oneapi_memcpy2d(
-		  dB_dst, size_t(lddb) * elemSize,
+    try {
+      stream->ext_oneapi_memcpy2d(
+  		  dB_dst, size_t(lddb) * elemSize,
 		  hA_src, size_t(lda) * elemSize,
 		  size_t(m) * elemSize, size_t(n));
-    check_xerror( status, func, file, line );
-    MAGMA_UNUSED( status );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
 }
 
 /***************************************************************************//**
@@ -600,7 +551,8 @@ extern "C" void
 magma_getmatrix_internal(magma_int_t m, magma_int_t n, magma_int_t elemSize,
                          magma_const_ptr dA_src, magma_int_t ldda, void *hB_dst,
                          magma_int_t ldb, magma_queue_t queue, const char *func,
-                         const char *file, int line) try {
+                         const char *file, int line)
+{
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
@@ -608,28 +560,17 @@ magma_getmatrix_internal(magma_int_t m, magma_int_t n, magma_int_t elemSize,
     else {
         stream = &dpct::get_default_queue();
     }
-    int status = 0;
-    /*
-    DPCT1018:38: The cublasGetMatrixAsync was migrated, but due to parameter(s)
-    int(ldda) and/or int(ldb) could not be evaluated, the generated code
-    performance may be sub-optimal.
-    */
-    /*
-    DPCT1003:39: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stream->ext_oneapi_memcpy2d(
+    try {
+      stream->ext_oneapi_memcpy2d(
 		  hB_dst, size_t(ldb) * elemSize,
 		  dA_src, size_t(ldda) * elemSize,
 		  size_t(m) * elemSize, size_t(n));
-    stream->wait();
-    check_xerror( status, func, file, line );
-    MAGMA_UNUSED( status );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+      stream->wait();
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
 }
 
 /***************************************************************************//**
@@ -672,7 +613,8 @@ catch (sycl::exception const &exc) {
 extern "C" void magma_getmatrix_async_internal(
     magma_int_t m, magma_int_t n, magma_int_t elemSize, magma_const_ptr dA_src,
     magma_int_t ldda, void *hB_dst, magma_int_t ldb, magma_queue_t queue,
-    const char *func, const char *file, int line) try {
+    const char *func, const char *file, int line)
+{
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
@@ -681,27 +623,16 @@ extern "C" void magma_getmatrix_async_internal(
         stream = &dpct::get_default_queue();
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    int status = 0;
-    /*
-    DPCT1018:40: The cublasGetMatrixAsync was migrated, but due to parameter(s)
-    int(ldda) and/or int(ldb) could not be evaluated, the generated code
-    performance may be sub-optimal.
-    */
-    /*
-    DPCT1003:41: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stream->ext_oneapi_memcpy2d(
+    try {
+      stream->ext_oneapi_memcpy2d(
 		  hB_dst, size_t(ldb) * elemSize,
 		  dA_src, size_t(ldda) * elemSize,
 		  size_t(m) * elemSize, size_t(n));
-    check_xerror( status, func, file, line );
-    MAGMA_UNUSED( status );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+    }
+    catch (sycl::exception const &exc) {
+      std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                << ", line:" << __LINE__ << std::endl;
+    }
 }
 
 /***************************************************************************//**
@@ -744,7 +675,8 @@ catch (sycl::exception const &exc) {
 extern "C" void magma_copymatrix_internal(
     magma_int_t m, magma_int_t n, magma_int_t elemSize, magma_const_ptr dA_src,
     magma_int_t ldda, magma_ptr dB_dst, magma_int_t lddb, magma_queue_t queue,
-    const char *func, const char *file, int line) try {
+    const char *func, const char *file, int line)
+{
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
         stream = queue->sycl_stream();
@@ -752,23 +684,17 @@ extern "C" void magma_copymatrix_internal(
     else {
         stream = &dpct::get_default_queue();
     }
-    int status = 0;
-    /*
-    DPCT1003:42: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stream->ext_oneapi_memcpy2d(
+    try {
+      stream->ext_oneapi_memcpy2d(
 		  dB_dst, size_t(lddb) * elemSize,
 		  dA_src, size_t(ldda) * elemSize,
 		  size_t(m) * elemSize, size_t(n));
-    stream->wait();
-    check_xerror( status, func, file, line );
-    MAGMA_UNUSED( status );
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
+      stream->wait();
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
+    }
 }
 
 /***************************************************************************//**
@@ -811,7 +737,8 @@ catch (sycl::exception const &exc) {
 extern "C" void magma_copymatrix_async_internal(
     magma_int_t m, magma_int_t n, magma_int_t elemSize, magma_const_ptr dA_src,
     magma_int_t ldda, magma_ptr dB_dst, magma_int_t lddb, magma_queue_t queue,
-    const char *func, const char *file, int line) try {
+    const char *func, const char *file, int line)
+{
     // for backwards compatability, accepts NULL queue to mean NULL stream.
     sycl::queue *stream = NULL;
     if ( queue != NULL ) {
@@ -821,22 +748,15 @@ extern "C" void magma_copymatrix_async_internal(
         stream = &dpct::get_default_queue();
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    int status = 0;
-    /*
-    DPCT1003:43: Migrated API does not return error code. (*, 0) is inserted.
-    You may need to rewrite this code.
-    */
-    stream->ext_oneapi_memcpy2d(
+    try {
+      stream->ext_oneapi_memcpy2d(
 		  dB_dst, size_t(lddb) * elemSize,
 		  dA_src, size_t(ldda) * elemSize,
 		  size_t(m) * elemSize, size_t(n));
-    check_xerror( status, func, file, line );
-    MAGMA_UNUSED( status );
+    }
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
+    }
 }
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
-}
-
 #endif // MAGMA_HAVE_SYCL
