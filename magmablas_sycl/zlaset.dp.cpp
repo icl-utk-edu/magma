@@ -424,27 +424,18 @@ extern "C" void magmablas_zlaset(magma_uplo_t uplo, magma_int_t m,
         // if continuous in memory & set to zero, cudaMemset is faster.
         // TODO: use cudaMemset2D ?
         if (m == ldda &&
-            /*
-            DPCT1064:1249: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             MAGMA_Z_EQUAL(offdiag, MAGMA_Z_ZERO) &&
-            /*
-            DPCT1064:1250: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             MAGMA_Z_EQUAL(diag, MAGMA_Z_ZERO))
         {
             size_t size = m*n;
-            /*
-            DPCT1003:1251: Migrated API does not return error code. (*, 0) is
-            inserted. You may need to rewrite this code.
-            */
-            int err = (queue->sycl_stream()->memset(
-                           dA, 0, size * sizeof(magmaDoubleComplex)),
-                       0);
-            assert(err == 0);
-            MAGMA_UNUSED( err );
+            try {
+              queue->sycl_stream()->memset(dA, 0, size * sizeof(magmaDoubleComplex));
+            }
+            catch (sycl::exception const &exc) {
+             std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                       << ", line:" << __LINE__ << std::endl;
+             std::abort;
+           }
         }
         else {
             for (unsigned int i = 0; i < super_grid[2]; ++i) {
