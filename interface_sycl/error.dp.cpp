@@ -4,56 +4,8 @@
 #include "magma_internal.h"
 #include "error.h"
 
-// TODO: error handling needs total overhaul for SYCL
-
-/***************************************************************************//**
-    @return String describing cuBLAS errors (cublasStatus_t).
-    CUDA provides cudaGetErrorString, but not cublasGetErrorString.
-
-    @param[in]
-    err     Error code.
-
-    @ingroup magma_error_internal
-*******************************************************************************/
-#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
-extern "C" const char *magma_cublasGetErrorString(int err)
-{
-    switch( err ) {
-        case 0:
-            return "success";
-
-        case 1:
-            return "not initialized";
-
-        case 3:
-            return "out of memory";
-
-        case 7:
-            return "invalid value";
-
-        case 8:
-            return "architecture mismatch";
-
-        case 11:
-            return "memory mapping error";
-
-        case 13:
-            return "execution failed";
-
-        case 14:
-            return "internal error";
-
-        default:
-            return "unknown CUBLAS error code";
-    }
-}
-#endif
-
 /***************************************************************************//**
     Prints error message to stderr.
-    C++ function overloaded for different error types (CUDA,
-    cuBLAS, MAGMA errors). Note CUDA and cuBLAS errors are enums,
-    so can be differentiated.
     Used by the check_error() and check_xerror() macros.
 
     @param[in]
@@ -70,47 +22,6 @@ extern "C" const char *magma_cublasGetErrorString(int err)
 
     @ingroup magma_error_internal
 *******************************************************************************/
-#ifdef MAGMA_HAVE_CUDA
-void magma_xerror(int err, const char *func, const char *file, int line)
-{
-}
-#endif
-
-
-/******************************************************************************/
-/// @see magma_xerror
-/// @ingroup magma_error_internal
-#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
-void magma_xerror(int err, const char *func, const char *file, int line)
-{
-    if (err != 0) {
-        fprintf( stderr, "CUBLAS error: %s (%d) in %s at %s:%d\n",
-                 magma_cublasGetErrorString( err ), err, func, file, line );
-    }
-}
-#endif
-
-
-
-/******************************************************************************/
-/// @see magma_xerror
-/// @ingroup magma_error_internal
-#ifdef MAGMA_HAVE_HIP
-void magma_xerror( hipError_t err, const char* func, const char* file, int line)
-{
-
-    if (err != HIP_SUCCESS) {
-        fprintf( stderr, "HIP error: %s (%d) in %s at %s:%d\n",
-                hipGetErrorString( err ), err, func, file, line );
-    }
-
-}
-#endif
-
-
-/******************************************************************************/
-/// @see magma_xerror
-/// @ingroup magma_error_internal
 void magma_xerror( magma_int_t err, const char* func, const char* file, int line )
 {
     if ( err != MAGMA_SUCCESS ) {
@@ -118,8 +29,6 @@ void magma_xerror( magma_int_t err, const char* func, const char* file, int line
                  magma_strerror( err ), (long long) err, func, file, line );
     }
 }
-
-
 
 /***************************************************************************//**
     @return String describing MAGMA errors (magma_int_t).
@@ -216,34 +125,6 @@ const char* magma_strerror( magma_int_t err )
 
         case MAGMA_ERR_BADPRECOND:
             return "bad preconditioner";
-
-        // map cusparse errors to magma errors
-        case MAGMA_ERR_CUSPARSE_NOT_INITIALIZED:
-            return "cusparse: not initialized";
-
-        case MAGMA_ERR_CUSPARSE_ALLOC_FAILED:
-            return "cusparse: allocation failed";
-
-        case MAGMA_ERR_CUSPARSE_INVALID_VALUE:
-            return "cusparse: invalid value";
-
-        case MAGMA_ERR_CUSPARSE_ARCH_MISMATCH:
-            return "cusparse: architecture mismatch";
-
-        case MAGMA_ERR_CUSPARSE_MAPPING_ERROR:
-            return "cusparse: mapping error";
-
-        case MAGMA_ERR_CUSPARSE_EXECUTION_FAILED:
-            return "cusparse: execution failed";
-
-        case MAGMA_ERR_CUSPARSE_INTERNAL_ERROR:
-            return "cusparse: internal error";
-
-        case MAGMA_ERR_CUSPARSE_MATRIX_TYPE_NOT_SUPPORTED:
-            return "cusparse: matrix type not supported";
-
-        case MAGMA_ERR_CUSPARSE_ZERO_PIVOT:
-            return "cusparse: zero pivot";
 
         default:
             return "unknown MAGMA error code";
