@@ -120,8 +120,6 @@ magma_zpotf2_native(
         return arginfo;
     }
 
-    magma_memset_async((void*)device_info, 0, sizeof(magma_int_t), queue);
-
     magmaDoubleComplex alpha = MAGMA_Z_NEG_ONE;
     magmaDoubleComplex beta  = MAGMA_Z_ONE;
 
@@ -256,6 +254,7 @@ magma_zpotf2_gpu(
 
     magma_int_t* device_info;
     magma_imalloc(&device_info, 1);
+    magma_memset_async((void*)device_info, 0, sizeof(magma_int_t), queue);
 
     magma_zpotf2_native(uplo, n, dA, ldda, 0, device_info, queue );
 
