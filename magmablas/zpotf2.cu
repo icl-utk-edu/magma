@@ -235,18 +235,6 @@ magma_zpotf2_gpu(
     magma_queue_t queue,
     magma_int_t *info )
 {
-#define dA(i_, j_)  (dA + (i_) + (j_)*ldda)
-
-#ifdef MAGMA_HAVE_CUDA
-#define magma_zpotf2_gemv magmablas_zgemv
-
-#else
-#define magma_zpotf2_gemv magmablas_zgemv
-
-#endif
-
-    magma_int_t j;
-
     *info = 0;
     if ( uplo != MagmaUpper && uplo != MagmaLower) {
         *info = -1;
@@ -268,49 +256,8 @@ magma_zpotf2_gpu(
 
     magma_int_t* device_info;
     magma_imalloc(&device_info, 1);
-    magma_memset_async((void*)device_info, 0, sizeof(magma_int_t), queue);
 
-    magmaDoubleComplex alpha = MAGMA_Z_NEG_ONE;
-    magmaDoubleComplex beta  = MAGMA_Z_ONE;
-
-    if (uplo == MagmaUpper) {
-        for (j = 0; j < n; j++) {
-            zpotf2_zdotc( j, dA(0,j), 1, j, device_info, queue ); // including zdotc product and update a(j,j)
-            if (j < n) {
-                #ifdef COMPLEX
-                magmablas_zlacgv( j, dA(0, j), 1, queue );
-                #endif
-                magma_zpotf2_gemv( MagmaTrans, j, n-j-1,
-                             alpha, dA(0, j+1), ldda,
-                                    dA(0, j),   1,
-                             beta,  dA(j, j+1), ldda, queue );
-
-                #ifdef COMPLEX
-                magmablas_zlacgv( j, dA(0, j), 1, queue );
-                #endif
-                zpotf2_zdscal( n-j, dA(j,j), ldda, device_info, queue );
-            }
-        }
-    }
-    else {
-        for (j = 0; j < n; j++) {
-            zpotf2_zdotc( j, dA(j,0), ldda, j, device_info, queue ); // including zdotc product and update a(j,j)
-            if (j < n) {
-                #ifdef COMPLEX
-                magmablas_zlacgv( j, dA(j, 0), ldda, queue );
-                #endif
-                magma_zpotf2_gemv( MagmaNoTrans, n-j-1, j,
-                             alpha, dA(j+1, 0), ldda,
-                                    dA(j,0),    ldda,
-                             beta,  dA(j+1, j), 1, queue );
-
-                #ifdef COMPLEX
-                magmablas_zlacgv( j, dA(j, 0), ldda, queue );
-                #endif
-                zpotf2_zdscal( n-j, dA(j,j), 1, device_info, queue );
-            }
-        }
-    }
+    magma_zpotf2_native(uplo, n, dA, ldda, 0, device_info, queue );
 
     magma_getvector(1, sizeof(magma_int_t), device_info, 1, info, 1, queue);
     magma_free(device_info);
@@ -494,6 +441,8 @@ void magmablas_zlacgv(
     magma_int_t n, magmaDoubleComplex *x, magma_int_t incx,
     magma_queue_t queue )
 {
+    if(n <= 0) return;
+
     dim3 threads(zlacgv_bs, 1, 1);
     int num_blocks = magma_ceildiv( n, zlacgv_bs );
     dim3 grid(num_blocks,1);
