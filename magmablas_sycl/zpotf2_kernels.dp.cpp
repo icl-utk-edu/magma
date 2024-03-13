@@ -251,8 +251,7 @@ magma_zpotrf_lpout_batched(
             */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(sycl::range<1>(shared_mem_size),
                                            cgh);
 
@@ -275,8 +274,7 @@ magma_zpotrf_lpout_batched(
             */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(sycl::range<1>(shared_mem_size),
                                            cgh);
 
@@ -347,8 +345,7 @@ magma_zpotrf_lpin_batched(
     if( n % POTF2_NB == 0){
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shared_mem_size), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -363,8 +360,7 @@ magma_zpotrf_lpin_batched(
     else{
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shared_mem_size), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -456,8 +452,7 @@ magma_zpotf2_lpout(
             */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(sycl::range<1>(shared_mem_size),
                                            cgh);
 
@@ -478,8 +473,7 @@ magma_zpotf2_lpout(
             */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(sycl::range<1>(shared_mem_size),
                                            cgh);
 
@@ -527,8 +521,7 @@ magma_zpotf2_lpin(
     if( n % POTF2_NB == 0){
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shared_mem_size), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -543,8 +536,7 @@ magma_zpotf2_lpin(
     else{
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shared_mem_size), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

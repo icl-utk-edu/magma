@@ -98,8 +98,7 @@ magmablas_dznrm2_check(
     sycl::range<3> threads(1, 1, BLOCK_SIZE);
     sycl::range<3> blocks(1, 1, n);
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 1>
             sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
@@ -118,7 +117,7 @@ magmablas_dznrm2_smkernel(
     int m, int n,
     magmaDoubleComplex *dA, int ldda,
     double *dxnorm , sycl::nd_item<3> item_ct1,
-    sycl::accessor<double, 2, sycl::access_mode::read_write, sycl::access::target::local> sum)
+    sycl::local_accessor<double, 2> sum)
 {
     const int tx = item_ct1.get_local_id(2);
     const int ty = item_ct1.get_local_id(1);
@@ -170,8 +169,7 @@ magmablas_dznrm2_sm(
     sycl::range<3> threads(1, BLOCK_SIZEy, BLOCK_SIZEx);
     sycl::range<3> blocks(1, 1, 1);
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<double, 2, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 2>
             sum_acc_ct1(
                 sycl::range<2>(BLOCK_SIZEx, BLOCK_SIZEy + 1),
                 cgh);
@@ -225,8 +223,7 @@ magmablas_dznrm2_adjust(
     sycl::range<3> threads(1, 1, k);
     sycl::range<3> blocks(1, 1, 1);
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 1>
             sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
@@ -318,8 +315,7 @@ magmablas_dznrm2_cols(
     sycl::range<3> threads(1, 1, BLOCK_SIZE);
     sycl::range<3> blocks(1, 1, n);
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 1>
             sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),

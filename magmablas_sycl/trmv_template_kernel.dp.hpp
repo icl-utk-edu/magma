@@ -53,11 +53,9 @@ void trmv_template(
     // (originally added as `slda` by dpct; see CUDA version of
     // device function for reference)
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<T, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<T, 1>
             sA_acc_ct1(sycl::range<1>(/*slda*/(NB+1) * NB), cgh);
-        sycl::accessor<T, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<T, 1>
             sX_acc_ct1(sycl::range<1>(NB), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

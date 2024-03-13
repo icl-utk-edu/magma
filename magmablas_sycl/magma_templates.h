@@ -1206,8 +1206,7 @@ magma_sum_reduce_n( int n, int i, T* x , sycl::nd_item<3> item_ct1)
 *******************************************************************************/
 template< int m, int n, typename T >
 void
-magma_sum_reduce_2d( int i, int j, sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                    sycl::access::target::local> x,
+magma_sum_reduce_2d( int i, int j, sycl::local_accessor<T, 2> x,
 		     sycl::nd_item<3> item_ct1)
 {
     /*
@@ -1340,8 +1339,7 @@ magma_sum_reduce_2d( int i, int j, sycl::accessor<T, 2, sycl::access_mode::read_
 template< int m0, int m1, int m2, typename T >
 void
 magma_sum_reduce_3d( int i, int j, int k,
-		     sycl::accessor<T, 3, sycl::access_mode::read_write,
-		                    sycl::access::target::local> x,
+		     sycl::local_accessor<T, 3> x,
                      sycl::nd_item<3> item_ct1)
 {
     /*

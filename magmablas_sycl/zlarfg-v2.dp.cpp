@@ -149,8 +149,7 @@ magma_zlarfg_gpu(
     magmablas_dznrm2_cols(n-1, 1, dx0+1, n, dxnorm, queue);
 
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 0, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 0>
             scale_acc_ct1(cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),

@@ -35,7 +35,7 @@ zlanhe_inf_kernel_lower(
     const magmaDoubleComplex * __restrict__ A, int lda,
     double * __restrict__ dwork,
     int n_full_block, int n_mod_bs , sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> la)
+    sycl::local_accessor<magmaDoubleComplex, 2> la)
 {
 #if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c))
     int tx = item_ct1.get_local_id(2);
@@ -325,7 +325,7 @@ zlanhe_inf_kernel_upper(
     const magmaDoubleComplex * __restrict__ A, int lda,
     double * __restrict__ dwork,
     int n_full_block, int n_mod_bs , sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> la)
+    sycl::local_accessor<magmaDoubleComplex, 2> la)
 {
 #if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c))
     int tx = item_ct1.get_local_id(2);
@@ -631,9 +631,7 @@ zlanhe_inf(
     if ( uplo == MagmaLower) {
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 2,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 2>
                     la_acc_ct1(sycl::range<2>(inf_bs, inf_bs+1),
                                cgh);
 
@@ -648,9 +646,7 @@ zlanhe_inf(
     else {
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 2,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 2>
                     la_acc_ct1(sycl::range<2>(inf_bs, inf_bs+1),
                                cgh);
 
@@ -867,8 +863,7 @@ magmablas_zlanhe(
         zlanhe_max( uplo, n, dA, ldda, dwork, queue );
     }
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 1>
             smax_acc_ct1(sycl::range<1>(512), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, 512),

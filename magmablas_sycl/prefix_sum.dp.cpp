@@ -130,8 +130,7 @@ magma_prefix_sum_internal_w(
     Adjust the work-group size if needed.
     */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magma_int_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magma_int_t, 1>
             sdata_acc_ct1(sycl::range<1>(SCAN_SEG_SIZE), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid_sum * threads_sum, threads_sum),
@@ -154,8 +153,7 @@ magma_prefix_sum_internal_w(
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magma_int_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magma_int_t, 1>
                     sdata_acc_ct1(sycl::range<1>(SCAN_SEG_SIZE), cgh);
 
                 cgh.parallel_for(

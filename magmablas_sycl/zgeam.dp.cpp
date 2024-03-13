@@ -96,7 +96,7 @@ zgeam_kernel_nc(
     magmaDoubleComplex beta,
     const magmaDoubleComplex *B, int ldb,
     magmaDoubleComplex *C, int ldc, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
 
     int tx = item_ct1.get_local_id(2);
@@ -165,7 +165,7 @@ zgeam_kernel_cn(
     magmaDoubleComplex beta,
     const magmaDoubleComplex *B, int ldb,
     magmaDoubleComplex *C, int ldc, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sA)
+    sycl::local_accessor<magmaDoubleComplex, 2> sA)
 {
 
     int tx = item_ct1.get_local_id(2);
@@ -234,7 +234,7 @@ zgeam_kernel_cc(
     magmaDoubleComplex beta,
     const magmaDoubleComplex *B, int ldb,
     magmaDoubleComplex *C, int ldc, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sA)
+    sycl::local_accessor<magmaDoubleComplex, 2> sA)
 {
 
     int tx = item_ct1.get_local_id(2);
@@ -445,9 +445,7 @@ magmablas_zgeam(
     else if ( transA == MagmaNoTrans )
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 2,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 2>
                     sB_acc_ct1(sycl::range<2>(NB, NX+1), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -460,9 +458,7 @@ magmablas_zgeam(
     else if ( transB == MagmaNoTrans )
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 2,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 2>
                     sA_acc_ct1(sycl::range<2>(NB, NX+1), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -475,9 +471,7 @@ magmablas_zgeam(
     else
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 2,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 2>
                     sA_acc_ct1(sycl::range<2>(NB, NX+1), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

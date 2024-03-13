@@ -70,7 +70,7 @@ void magma_zlarf_kernel(
 void magma_zlarf_smkernel(
     int m, int n, magmaDoubleComplex *dv, magmaDoubleComplex *dtau,
     magmaDoubleComplex *dc, int lddc , sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sum)
+    sycl::local_accessor<magmaDoubleComplex, 2> sum)
 {
     if ( ! MAGMA_Z_EQUAL(*dtau, MAGMA_Z_ZERO) ) {
         const int i = item_ct1.get_local_id(2), col = item_ct1.get_local_id(1);
@@ -139,8 +139,7 @@ magma_zlarf_sm(
     sycl::range<3> threads(1, BLOCK_SIZEy, BLOCK_SIZEx);
 
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 2>
             sum_acc_ct1(
                 sycl::range<2>(BLOCK_SIZEx, BLOCK_SIZEy + 1),
                 cgh);
@@ -177,9 +176,7 @@ magma_zlarf_gpu(
     if ( n > 0 ) {
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

@@ -132,11 +132,9 @@ void hemv_diag_template_vbatched(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sX_acc_ct1(sycl::range<1>(NB), cgh);
 
                 cgh.parallel_for(
@@ -173,11 +171,9 @@ void hemv_lower_template_vbatched(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sA_acc_ct1(sycl::range<1>(NB * (NB + 1)), cgh);
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sX_acc_ct1(sycl::range<1>(NB), cgh);
 
                 cgh.parallel_for(
@@ -214,11 +210,9 @@ void hemv_upper_template_vbatched(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sA_acc_ct1(sycl::range<1>(NB * (NB + 1)), cgh);
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sX_acc_ct1(sycl::range<1>(NB), cgh);
 
                 cgh.parallel_for(

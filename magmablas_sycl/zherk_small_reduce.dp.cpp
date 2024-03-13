@@ -343,8 +343,7 @@ magmablas_zherk_small_reduce(
         */
         case 1: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -363,8 +362,7 @@ magmablas_zherk_small_reduce(
         */
         case 2: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -383,8 +381,7 @@ magmablas_zherk_small_reduce(
         */
         case 3: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -403,8 +400,7 @@ magmablas_zherk_small_reduce(
         */
         case 4: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -423,8 +419,7 @@ magmablas_zherk_small_reduce(
         */
         case 5: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -443,8 +438,7 @@ magmablas_zherk_small_reduce(
         */
         case 6: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -463,8 +457,7 @@ magmablas_zherk_small_reduce(
         */
         case 7: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -483,8 +476,7 @@ magmablas_zherk_small_reduce(
         */
         case 8: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -503,8 +495,7 @@ magmablas_zherk_small_reduce(
         */
         case 9: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -523,8 +514,7 @@ magmablas_zherk_small_reduce(
         */
         case 10: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -543,8 +533,7 @@ magmablas_zherk_small_reduce(
         */
         case 11: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -563,8 +552,7 @@ magmablas_zherk_small_reduce(
         */
         case 12: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -583,8 +571,7 @@ magmablas_zherk_small_reduce(
         */
         case 13: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -603,8 +590,7 @@ magmablas_zherk_small_reduce(
         */
         case 14: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -623,8 +609,7 @@ magmablas_zherk_small_reduce(
         */
         case 15: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -643,8 +628,7 @@ magmablas_zherk_small_reduce(
         */
         case 16: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -663,8 +647,7 @@ magmablas_zherk_small_reduce(
         */
         case 17: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -683,8 +666,7 @@ magmablas_zherk_small_reduce(
         */
         case 18: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -703,8 +685,7 @@ magmablas_zherk_small_reduce(
         */
         case 19: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -723,8 +704,7 @@ magmablas_zherk_small_reduce(
         */
         case 20: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -743,8 +723,7 @@ magmablas_zherk_small_reduce(
         */
         case 21: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -763,8 +742,7 @@ magmablas_zherk_small_reduce(
         */
         case 22: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -783,8 +761,7 @@ magmablas_zherk_small_reduce(
         */
         case 23: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -803,8 +780,7 @@ magmablas_zherk_small_reduce(
         */
         case 24: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -823,8 +799,7 @@ magmablas_zherk_small_reduce(
         */
         case 25: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -843,8 +818,7 @@ magmablas_zherk_small_reduce(
         */
         case 26: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -863,8 +837,7 @@ magmablas_zherk_small_reduce(
         */
         case 27: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -883,8 +856,7 @@ magmablas_zherk_small_reduce(
         */
         case 28: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -903,8 +875,7 @@ magmablas_zherk_small_reduce(
         */
         case 29: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -923,8 +894,7 @@ magmablas_zherk_small_reduce(
         */
         case 30: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -943,8 +913,7 @@ magmablas_zherk_small_reduce(
         */
         case 31: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -963,8 +932,7 @@ magmablas_zherk_small_reduce(
         */
         case 32: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

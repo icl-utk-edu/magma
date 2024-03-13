@@ -150,8 +150,7 @@ void gemm_template_nn(
     sycl::range<3> dimBlock(1, DIM_Y, DIM_X);
     sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N), magma_ceildiv(m, BLK_M));
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
         cgh.parallel_for(
@@ -186,8 +185,7 @@ void gemm_template_nt(
     sycl::range<3> dimBlock(1, DIM_Y, DIM_X);
     sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N), magma_ceildiv(m, BLK_M));
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
         cgh.parallel_for(
@@ -222,8 +220,7 @@ void gemm_template_tn(
     sycl::range<3> dimBlock(1, DIM_Y, DIM_X);
     sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N), magma_ceildiv(m, BLK_M));
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
         cgh.parallel_for(
@@ -258,8 +255,7 @@ void gemm_template_tt(
     sycl::range<3> dimBlock(1, DIM_Y, DIM_X);
     sycl::range<3> dimGrid(1, magma_ceildiv(n, BLK_N), magma_ceildiv(m, BLK_M));
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
         cgh.parallel_for(

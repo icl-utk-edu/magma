@@ -435,25 +435,18 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
                     may be different from the original code. Check that the
                     allocated memory size in the migrated code is correct.
                     */
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(
                             sycl::range<1>(sizeof(magmaDoubleComplex) *
                                            (m * k)),
                             cgh);
-                    sycl::accessor<magmaDoubleComplex, 0,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 0>
                         scale_acc_ct1(cgh);
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
-                    sycl::accessor<double, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<double, 1>
                         swork_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
-                    sycl::accessor<double, 0, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<double, 0>
                         sscale_acc_ct1(cgh);
 
                     cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -478,24 +471,17 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
                     may be different from the original code. Check that the
                     allocated memory size in the migrated code is correct.
                     */
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(
                             sycl::range<1>(sizeof(magmaDoubleComplex) * (m)),
                             cgh);
-                    sycl::accessor<magmaDoubleComplex, 0,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 0>
                         scale_acc_ct1(cgh);
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
-                    sycl::accessor<double, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<double, 1>
                         swork_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
-                    sycl::accessor<double, 0, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<double, 0>
                         sscale_acc_ct1(cgh);
 
                     cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -515,19 +501,13 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
             //not use dynamic shared memory at all
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<magmaDoubleComplex, 0,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 0>
                         scale_acc_ct1(cgh);
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
-                    sycl::accessor<double, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<double, 1>
                         swork_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
-                    sycl::accessor<double, 0, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<double, 0>
                         sscale_acc_ct1(cgh);
 
                     cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

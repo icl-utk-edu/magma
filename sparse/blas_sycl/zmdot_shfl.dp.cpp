@@ -604,8 +604,7 @@ magma_zmdotc_shfl(
                 be different from the original code. Check that the allocated
                 memory size in the migrated code is correct.
                 */
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(
                         sycl::range<1>(32 * sizeof(magmaDoubleComplex)), cgh);
 
@@ -627,8 +626,7 @@ magma_zmdotc_shfl(
                     may be different from the original code. Check that the
                     allocated memory size in the migrated code is correct.
                     */
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(
                             sycl::range<1>(32 * sizeof(magmaDoubleComplex)),
                             cgh);
@@ -660,8 +658,7 @@ magma_zmdotc_shfl(
                 be different from the original code. Check that the allocated
                 memory size in the migrated code is correct.
                 */
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(
                         sycl::range<1>(32 * k * sizeof(magmaDoubleComplex)),
                         cgh);
@@ -684,8 +681,7 @@ magma_zmdotc_shfl(
                     may be different from the original code. Check that the
                     allocated memory size in the migrated code is correct.
                     */
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(
                             sycl::range<1>(32 * sizeof(magmaDoubleComplex)),
                             cgh);

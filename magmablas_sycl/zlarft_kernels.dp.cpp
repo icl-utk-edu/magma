@@ -150,8 +150,7 @@ void magmablas_zlarft_ztrmv_sm32x32(
     */
     size_t shmem = sizeof(magmaDoubleComplex) * (m * m);
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -189,8 +188,7 @@ void magmablas_zlarft_ztrmv_sm32x32_batched(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -318,8 +316,7 @@ void magmablas_zlarft_recztrmv_sm32x32(
     */
     size_t shmem = sizeof(magmaDoubleComplex) * (m * n);
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -356,8 +353,7 @@ void magmablas_zlarft_recztrmv_sm32x32_batched(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
