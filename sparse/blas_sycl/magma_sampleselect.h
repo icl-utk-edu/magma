@@ -8,7 +8,7 @@
        @author Tobias Ribizel
 */
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include <limits>
 #include "magmasparse_internal.h"

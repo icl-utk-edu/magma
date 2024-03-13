@@ -16,7 +16,7 @@
        in the library. The actual kernels are in ztrtri_lower.cu and ztrtri_upper.cu
 */
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magma_internal.h"
 

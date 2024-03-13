@@ -1,7 +1,7 @@
 #ifndef ICL_MAGMA_SYNC_CUH
 #define ICL_MAGMA_SYNC_CUH
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magma_internal.h"
 

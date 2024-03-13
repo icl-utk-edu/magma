@@ -23,7 +23,7 @@
 // define 0 for large initializations
 #define Z0 MAGMA_Z_ZERO
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "batched_kernel_param.h"
 #if   defined(TRTRI_BATCHED)
