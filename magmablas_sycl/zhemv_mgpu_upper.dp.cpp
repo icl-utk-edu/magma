@@ -56,8 +56,7 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
     magmaDoubleComplex const *__restrict__ x, int incx,
     magmaDoubleComplex *__restrict__ work, int my_gpu_id, int ngpu,
     int block_offset, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local>
+    sycl::local_accessor<magmaDoubleComplex, 2>
         sA,
     magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj)
 {

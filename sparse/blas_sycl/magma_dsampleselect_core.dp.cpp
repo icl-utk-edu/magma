@@ -359,8 +359,7 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
         info::device::max_work_group_size. Adjust the work-group size if needed.
         */
         stream->submit([&](sycl::handler &cgh) {
-            sycl::accessor<double, 1, sycl::access_mode::read_write,
-                           sycl::access::target::local>
+            sycl::local_accessor<double, 1>
                 data_acc_ct1(sycl::range<1>(bitonic_cutoff), cgh);
 
             cgh.parallel_for(
@@ -383,11 +382,9 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
     Adjust the work-group size if needed.
     */
     stream->submit([&](sycl::handler &cgh) {
-        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 1>
             sample_buffer_acc_ct1(sycl::range<1>(sample_size), cgh);
-        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 1>
             leaves_acc_ct1(sycl::range<1>(searchtree_width), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, sample_size),
@@ -410,11 +407,9 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
 
     // count buckets
     stream->submit([&](sycl::handler &cgh) {
-        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 1>
             local_tree_acc_ct1(sycl::range<1>(searchtree_size), cgh);
-        sycl::accessor<int32_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<int32_t, 1>
             local_counts_acc_ct1(sycl::range<1>(searchtree_width), cgh);
 
         cgh.parallel_for(
@@ -442,8 +437,7 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
     });
     constexpr auto mem_size = 1 << searchtree_height;
     stream->submit([&](sycl::handler &cgh) {
-        sycl::accessor<int32_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<int32_t, 1>
             sums_acc_ct1(sycl::range<1>(mem_size), cgh);
 
         cgh.parallel_for(
@@ -455,8 +449,7 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
             });
     });
     stream->submit([&](sycl::handler &cgh) {
-        sycl::accessor<int32_t, 0, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<int32_t, 0>
             count_acc_ct1(cgh);
 
         cgh.parallel_for(

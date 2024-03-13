@@ -191,11 +191,9 @@ magmablas_zscal_shift_hpd(
     sycl::range<3> grid(1, magma_ceildiv(n, DIMY), magma_ceildiv(n, DIMX));
 
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             sD_row_acc_ct1(sycl::range<1>(DIMX), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             sD_col_acc_ct1(sycl::range<1>(DIMY), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

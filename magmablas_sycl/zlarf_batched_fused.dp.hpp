@@ -295,8 +295,7 @@ magma_zlarf_fused_reg_kernel_driver_batched(
     }
 
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-       sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+       sycl::local_accessor<magmaDoubleComplex, 1>
                        dpct_local_acc_ct1(sycl::range<1>(shmem/sizeof(magmaDoubleComplex)), cgh); // NNB: I added this manually, dpct didn't finish --
 				                                                                  // check if size is correct
       cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

@@ -345,8 +345,7 @@ magma_zbicgmerge_spmv1(
     if ( A.storage_type == Magma_CSR)
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(Ms), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
@@ -365,8 +364,7 @@ magma_zbicgmerge_spmv1(
         if (Gs_next[2] == 1) Gs_next[2] = 2;
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(Ms / 2), cgh);
 
                 cgh.parallel_for(
@@ -776,8 +774,7 @@ magma_zbicgmerge_spmv2(
     if ( A.storage_type == Magma_CSR)
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(Ms), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
@@ -796,8 +793,7 @@ magma_zbicgmerge_spmv2(
         if (Gs_next[2] == 1) Gs_next[2] = 2;
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(Ms / 2), cgh);
 
                 cgh.parallel_for(
@@ -1102,8 +1098,7 @@ magma_zbicgmerge_xrbeta(
     magmaDoubleComplex_ptr aux1 = d1, aux2 = d2;
     int b = 1;
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(sycl::range<1>(Ms), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
@@ -1119,8 +1114,7 @@ magma_zbicgmerge_xrbeta(
         if (Gs_next[2] == 1) Gs_next[2] = 2;
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(Ms / 2), cgh);
 
                 cgh.parallel_for(

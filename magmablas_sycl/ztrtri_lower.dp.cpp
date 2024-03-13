@@ -39,7 +39,7 @@ void
 triple_zgemm16_part1_lower_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     triple_zgemm16_part1_lower_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -51,7 +51,7 @@ void
 triple_zgemm16_part2_lower_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     triple_zgemm16_part2_lower_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -63,7 +63,7 @@ void
 triple_zgemm32_part1_lower_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     triple_zgemm32_part1_lower_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -75,7 +75,7 @@ void
 triple_zgemm32_part2_lower_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     triple_zgemm32_part2_lower_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -87,7 +87,7 @@ void
 triple_zgemm64_part1_lower_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     triple_zgemm64_part1_lower_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -99,7 +99,7 @@ void
 triple_zgemm64_part2_lower_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     triple_zgemm64_part2_lower_device(n, Ain, lda, d_dinvA, jb, npages,
                                       item_ct1, sB);
@@ -111,7 +111,7 @@ void
 triple_zgemm_above64_part1_lower_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     triple_zgemm_above64_part1_lower_device(n, Ain, lda, d_dinvA, jb, npages,
                                             item_ct1, sB);
@@ -123,7 +123,7 @@ void
 triple_zgemm_above64_part2_lower_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     triple_zgemm_above64_part2_lower_device(n, Ain, lda, d_dinvA, jb, npages,
                                             item_ct1, sB);

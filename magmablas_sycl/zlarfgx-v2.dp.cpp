@@ -139,11 +139,9 @@ magma_zlarfgx_gpu(
     sycl::range<3> threads(1, 1, BLOCK_SIZE);
 
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 0, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 0>
             scale_acc_ct1(cgh);
-        sycl::accessor<double, 0, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 0>
             xnorm_acc_ct1(cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
@@ -198,9 +196,7 @@ magma_zlarfgtx_gpu(
         /* Compute the iter-th column of T */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
                 cgh.parallel_for(
@@ -216,9 +212,7 @@ magma_zlarfgtx_gpu(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sum_acc_ct1(sycl::range<1>(128), cgh);
 
                 cgh.parallel_for(

@@ -94,11 +94,9 @@ void trmm_template_lNx(
     Adjust the work-group size if needed.
     */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<T, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<T, 1>
             sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-        sycl::accessor<T, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<T, 1>
             sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -130,11 +128,9 @@ void trmm_template_lTx(
     Adjust the work-group size if needed.
     */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<T, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<T, 1>
             sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-        sycl::accessor<T, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<T, 1>
             sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -166,11 +162,9 @@ void trmm_template_rNx(
     Adjust the work-group size if needed.
     */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<T, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<T, 1>
             sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-        sycl::accessor<T, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<T, 1>
             sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -202,11 +196,9 @@ void trmm_template_rTx(
     Adjust the work-group size if needed.
     */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<T, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<T, 1>
             sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-        sycl::accessor<T, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<T, 1>
             sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

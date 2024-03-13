@@ -239,8 +239,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 1: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -260,8 +259,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 2: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -281,8 +279,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 3: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -302,8 +299,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 4: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -323,8 +319,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 5: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -344,8 +339,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 6: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -365,8 +359,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 7: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -386,8 +379,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 8: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -407,8 +399,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 9: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -428,8 +419,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 10: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -449,8 +439,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 11: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -470,8 +459,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 12: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -491,8 +479,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 13: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -512,8 +499,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 14: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -533,8 +519,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 15: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -554,8 +539,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 16: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -575,8 +559,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 17: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -596,8 +579,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 18: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -617,8 +599,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 19: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -638,8 +619,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 20: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -659,8 +639,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 21: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -680,8 +659,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 22: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -701,8 +679,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 23: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -722,8 +699,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 24: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -743,8 +719,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 25: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -764,8 +739,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 26: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -785,8 +759,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 27: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -806,8 +779,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 28: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -827,8 +799,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 29: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -848,8 +819,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 30: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -869,8 +839,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 31: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -890,8 +859,7 @@ magma_zgetf2_nopiv_internal_batched(
         */
         case 32: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(

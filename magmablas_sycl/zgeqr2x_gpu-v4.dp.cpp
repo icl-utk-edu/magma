@@ -148,9 +148,7 @@ magma_zgeqr2x4_gpu(
                 if ( i-1 > 0 ) {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sum_acc_ct1(sycl::range<1>(BLOCK_SIZE),
                                             cgh);
 
@@ -168,9 +166,7 @@ magma_zgeqr2x4_gpu(
                         });
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sum_acc_ct1(sycl::range<1>(128), cgh);
 
                             cgh.parallel_for(
@@ -190,9 +186,7 @@ magma_zgeqr2x4_gpu(
                 /* dwork = V**H c */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
-                        sycl::accessor<magmaDoubleComplex, 1,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local>
+                        sycl::local_accessor<magmaDoubleComplex, 1>
                             sum_acc_ct1(sycl::range<1>(BLOCK_SIZE),
                                         cgh);
 
@@ -211,9 +205,7 @@ magma_zgeqr2x4_gpu(
                 /* dwork = T**H dwork2 */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
-                        sycl::accessor<magmaDoubleComplex, 1,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local>
+                        sycl::local_accessor<magmaDoubleComplex, 1>
                             sum_acc_ct1(sycl::range<1>(128), cgh);
 
                         cgh.parallel_for(
@@ -247,8 +239,7 @@ magma_zgeqr2x4_gpu(
             if ( i > 0 ) {
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
-                        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                                       sycl::access::target::local>
+                        sycl::local_accessor<double, 1>
                             sum_acc_ct1(sycl::range<1>(BLOCK_SIZE),
                                         cgh);
 
@@ -285,9 +276,7 @@ magma_zgeqr2x4_gpu(
         if ( i-1 > 0 ) {
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         sum_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
                     cgh.parallel_for(
@@ -303,9 +292,7 @@ magma_zgeqr2x4_gpu(
                 });
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         sum_acc_ct1(sycl::range<1>(128), cgh);
 
                     cgh.parallel_for(
