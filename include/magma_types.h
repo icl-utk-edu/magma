@@ -138,7 +138,7 @@ typedef double real_Double_t;
     }
     #endif
 #elif defined(MAGMA_HAVE_SYCL)
-    #include <CL/sycl.hpp>
+    #include <sycl/sycl.hpp>
     #include <dpct/dpct.hpp>
     
     #define MKL_Complex8  std::complex<float>

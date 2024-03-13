@@ -10,7 +10,7 @@
        @precisions normal z -> s d c
 */
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 ////////////////////////////////////////////////////////////////////////////////
 #define SLDA(n)              ( (((n)+1)%4) == 0 ? (n) : (n+1) )

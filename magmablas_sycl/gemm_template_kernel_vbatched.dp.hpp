@@ -12,7 +12,7 @@
 #ifndef GEMM_TEMPLATE_KERNEL_VBATCHED_CUH
 #define GEMM_TEMPLATE_KERNEL_VBATCHED_CUH
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "gemm_template_device_defs.dp.hpp"
 #include "gemm_template_device.dp.hpp"

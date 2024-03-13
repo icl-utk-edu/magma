@@ -8,7 +8,7 @@
        @precisions normal z -> c d s
 
 */
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magmasparse_internal.h"
 #include "shuffle.dp.hpp"
