@@ -12,7 +12,7 @@
 #define TRSM_TEMPLATE_SHFL_KERNEL_BATCHED_CUH
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "gemm_template_device_defs.dp.hpp"
 #include "trsm_template_device.dp.hpp"

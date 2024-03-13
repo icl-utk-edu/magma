@@ -13,7 +13,7 @@
        @author Azzam Haidar
 
 */
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magma_internal.h"
 #include "commonblas_z.h"

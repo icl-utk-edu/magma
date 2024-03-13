@@ -12,7 +12,7 @@
 #ifndef MAGMABLAS_GEMV_TEMPLATE_H
 #define MAGMABLAS_GEMV_TEMPLATE_H
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "gemm_template_device_defs.dp.hpp" // use make_FloatingPoint
 

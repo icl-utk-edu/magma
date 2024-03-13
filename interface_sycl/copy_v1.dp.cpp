@@ -9,7 +9,7 @@
 */
 #ifndef MAGMA_NO_V1
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magma_internal.h"
 #include "magmablas_v1.h"  // includes v1 prototypes; does NOT map routine names

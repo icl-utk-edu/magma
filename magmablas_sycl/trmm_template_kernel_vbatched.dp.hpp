@@ -12,7 +12,7 @@
 #define TRMM_TEMPLATE_KERNEL_BATCHED_CUH
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "gemm_template_device_defs.dp.hpp"
 #include "trmm_template_device.dp.hpp"

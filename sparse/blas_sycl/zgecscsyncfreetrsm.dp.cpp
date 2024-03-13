@@ -16,7 +16,7 @@
 // 22nd International European Conference on Parallel and Distributed Computing 
 // (Euro-Par '16). pp. 617-630.
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magmasparse_internal.h"
 #include "atomicopsmagmaDoubleComplex.h"

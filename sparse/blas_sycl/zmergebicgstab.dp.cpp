@@ -9,7 +9,7 @@
        @author Hartwig Anzt
 
 */
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magmasparse_internal.h"
 

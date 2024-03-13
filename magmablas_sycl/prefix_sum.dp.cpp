@@ -13,7 +13,7 @@
 // Based on original implementation by Mark Harris, Shubhabrata Sengupta, and John D. Owens 
 // http://http.developer.nvidia.com/GPUGems3/gpugems3_ch39.html
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magma_internal.h"
 
