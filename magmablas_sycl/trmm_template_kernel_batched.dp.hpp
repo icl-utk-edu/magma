@@ -108,11 +108,9 @@ void trmm_template_batched_lNx(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -148,11 +146,9 @@ void trmm_template_batched_lTx(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
                 cgh.parallel_for(
@@ -188,11 +184,9 @@ void trmm_template_batched_rNx(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -228,11 +222,9 @@ void trmm_template_batched_rTx(
         sycl::range<3> grid(ibatch, 1, magma_ceildiv(m, NB));
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
                 cgh.parallel_for(

@@ -215,8 +215,7 @@ static int zgemv_batched_smallsq_kernel_driver(
     if( transA == MagmaNoTrans ) {
         int e = 0; // TODO: error handling
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-           sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+           sycl::local_accessor<uint8_t, 1>
                        dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
              cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
@@ -231,8 +230,7 @@ static int zgemv_batched_smallsq_kernel_driver(
     else {
         int e = 0;
         ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-           sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+           sycl::local_accessor<uint8_t, 1>
                        dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
              cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {

@@ -317,8 +317,7 @@ magmablas_zlange(
                            });
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     smax_acc_ct1(sycl::range<1>(512), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, 512),
@@ -340,8 +339,7 @@ magmablas_zlange(
                            });
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     smax_acc_ct1(sycl::range<1>(512), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, 512),
@@ -357,8 +355,7 @@ magmablas_zlange(
         sycl::range<3> grid(1, 1, n);
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     ssum_acc_ct1(sycl::range<1>(NB_X), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -370,8 +367,7 @@ magmablas_zlange(
             });
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     smax_acc_ct1(sycl::range<1>(512), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, 512),
@@ -387,8 +383,7 @@ magmablas_zlange(
         sycl::range<3> grid(1, 1, n);
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     ssum_acc_ct1(sycl::range<1>(NB_X), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -400,8 +395,7 @@ magmablas_zlange(
             });
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sum_acc_ct1(sycl::range<1>(512), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, 512),

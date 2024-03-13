@@ -48,7 +48,7 @@ ztranspose_device(
     int m, int n,
     const magmaDoubleComplex *A, int lda,
     magmaDoubleComplex *AT,      int ldat, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sA)
+    sycl::local_accessor<magmaDoubleComplex, 2> sA)
 {
 
     int tx = item_ct1.get_local_id(2);
@@ -116,7 +116,7 @@ void ztranspose_kernel(
     int m, int n,
     const magmaDoubleComplex *A, int lda,
     magmaDoubleComplex *AT,      int ldat, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sA)
+    sycl::local_accessor<magmaDoubleComplex, 2> sA)
 {
     ztranspose_device(m, n, A, lda, AT, ldat, item_ct1, sA);
 }
@@ -126,7 +126,7 @@ void ztranspose_kernel_batched(
     int m, int n,
     magmaDoubleComplex **dA_array,  int lda,
     magmaDoubleComplex **dAT_array, int ldat, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sA)
+    sycl::local_accessor<magmaDoubleComplex, 2> sA)
 {
     int batchid = item_ct1.get_group(0);
     ztranspose_device(m, n, dA_array[batchid], lda, dAT_array[batchid], ldat,
@@ -138,7 +138,7 @@ void ztranspose_kernel_batched_stride(
     int m, int n, int stride,
     magmaDoubleComplex *dA_array,  int lda,
     magmaDoubleComplex *dAT_array, int ldat, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sA)
+    sycl::local_accessor<magmaDoubleComplex, 2> sA)
 {
     int batchid = item_ct1.get_group(0) * stride;
     ztranspose_device(m, n, dA_array + batchid, lda, dAT_array + batchid, ldat,
@@ -213,8 +213,7 @@ magmablas_ztranspose(
     sycl::range<3> threads(1, NY, NX);
     sycl::range<3> grid(1, magma_ceildiv(n, NB), magma_ceildiv(m, NB));
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 2>
             sA_acc_ct1(sycl::range<2>(NB, NX+1), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -308,9 +307,7 @@ magmablas_ztranspose_batched(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 2,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 2>
                     sA_acc_ct1(sycl::range<2>(NB, NX+1), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -362,9 +359,7 @@ magmablas_ztranspose_batched_stride(
         sycl::range<3> grid(ibatch, magma_ceildiv(n, NB), magma_ceildiv(m, NB));
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 2,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 2>
                     sA_acc_ct1(sycl::range<2>(NB, NX+1), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

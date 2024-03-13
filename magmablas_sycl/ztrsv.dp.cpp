@@ -124,13 +124,9 @@ magmablas_ztrsv_outofplace(
                 if (flag == 0) {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
                                               cgh);
 
@@ -150,13 +146,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
                                               cgh);
 
@@ -179,13 +171,9 @@ magmablas_ztrsv_outofplace(
                 if (flag == 0) {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
                                               cgh);
 
@@ -205,13 +193,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
                                               cgh);
 
@@ -238,13 +222,9 @@ magmablas_ztrsv_outofplace(
                 {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
                                               cgh);
 
@@ -264,13 +244,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
                                               cgh);
 
@@ -294,13 +270,9 @@ magmablas_ztrsv_outofplace(
                 {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
                                               cgh);
 
@@ -320,13 +292,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
                                               cgh);
 
@@ -355,13 +323,9 @@ magmablas_ztrsv_outofplace(
                 {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -381,13 +345,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -410,13 +370,9 @@ magmablas_ztrsv_outofplace(
                 {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -436,13 +392,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -468,13 +420,9 @@ magmablas_ztrsv_outofplace(
                 {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -494,13 +442,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -523,13 +467,9 @@ magmablas_ztrsv_outofplace(
                 {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -549,13 +489,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -584,13 +520,9 @@ magmablas_ztrsv_outofplace(
                 {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -610,13 +542,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -639,13 +567,9 @@ magmablas_ztrsv_outofplace(
                 {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -665,13 +589,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -697,13 +617,9 @@ magmablas_ztrsv_outofplace(
                 {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -723,13 +639,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -752,13 +664,9 @@ magmablas_ztrsv_outofplace(
                 {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 
@@ -778,13 +686,9 @@ magmablas_ztrsv_outofplace(
                 else {
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<uint8_t, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::accessor<magmaDoubleComplex, 1,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 1>
                                 sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
                                               cgh);
 

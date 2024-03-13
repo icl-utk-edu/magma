@@ -296,8 +296,7 @@ magma_zgeellrtmv(
     if ( alignment == 32 ) {
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(Ms), cgh);
 
                 cgh.parallel_for(
@@ -314,8 +313,7 @@ magma_zgeellrtmv(
     else if ( alignment == 16 ) {
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(Ms), cgh);
 
                 cgh.parallel_for(
@@ -332,8 +330,7 @@ magma_zgeellrtmv(
     else if ( alignment == 8 ) {
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(Ms), cgh);
 
                 cgh.parallel_for(

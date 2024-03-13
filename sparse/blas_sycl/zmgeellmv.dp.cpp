@@ -143,8 +143,7 @@ magma_zmgeellmv(
     unsigned int MEM_SIZE =
         num_vecs * BLOCK_SIZE * sizeof(magmaDoubleComplex); // num_vecs vectors
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(sycl::range<1>(MEM_SIZE), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),

@@ -96,8 +96,7 @@ zhemv_kernel_U(
     magmaDoubleComplex const * __restrict__ x, int incx,
     magmaDoubleComplex       * __restrict__ work,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local> sA,
+    sycl::local_accessor<magmaDoubleComplex, 2> sA,
     magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj );
 
 SYCL_EXTERNAL void
@@ -118,8 +117,7 @@ zsymv_kernel_U(
     magmaDoubleComplex const * __restrict__ x, int incx,
     magmaDoubleComplex       * __restrict__ work,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local> sA,
+    sycl::local_accessor<magmaDoubleComplex, 2> sA,
     magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj );
 
 SYCL_EXTERNAL void
@@ -143,8 +141,7 @@ zhemv_kernel_U_mgpu(
     int ngpu,
     int block_offset,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write,
-                   sycl::access::target::local> sA,
+    sycl::local_accessor<magmaDoubleComplex, 2> sA,
     magmaDoubleComplex *sx_blk,
     magmaDoubleComplex *sx_jj);
 

@@ -35,7 +35,7 @@ void zgemm_reduce_kernel(
     magmaDoubleComplex beta,
     magmaDoubleComplex      * __restrict__ dC, int ldc,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 3, sycl::access_mode::read_write, sycl::access::target::local> sum)
+    sycl::local_accessor<magmaDoubleComplex, 3> sum)
 {
     const int tx = item_ct1.get_local_id(2);
 
@@ -140,9 +140,7 @@ magmablas_zgemm_reduce(
     */
     ((sycl::queue *)(queue->sycl_stream()))
         ->submit([&](sycl::handler &cgh) {
-            sycl::accessor<magmaDoubleComplex, 3,
-                           sycl::access_mode::read_write,
-                           sycl::access::target::local>
+            sycl::local_accessor<magmaDoubleComplex, 3>
                 sum_acc_ct1(
                     sycl::range<3>(BLK_K, BLK_M+1, BLK_N+1),
                     cgh);

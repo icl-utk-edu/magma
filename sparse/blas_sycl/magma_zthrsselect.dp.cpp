@@ -314,8 +314,7 @@ magma_zthrsholdselect(
     // first kernel checks how many elements are smaller than the threshold
     start = magma_sync_wtime( queue );
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<float, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<float, 1>
             sval_acc_ct1(sycl::range<1>(BLOCK_SIZE), cgh);
 
         auto thrs_ct4 = thrs[0];

@@ -92,8 +92,7 @@ void magma_getrf_vbatched_setup(
     */
     const int shmem = nthreads * 4 * sizeof(int);
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, nthreads),
@@ -173,8 +172,7 @@ magma_int_t magma_ivec_max( magma_int_t vecsize,
     }
 
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<int, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<int, 1>
             swork_acc_ct1(sycl::range<1>(MAX_REDUCE_SEGMENT), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -191,8 +189,7 @@ magma_int_t magma_ivec_max( magma_int_t vecsize,
         grid[2] = magma_ceildiv(new_vecsize, MAX_REDUCE_SEGMENT);
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     swork_acc_ct1(sycl::range<1>(MAX_REDUCE_SEGMENT),
                                   cgh);
 
@@ -281,8 +278,7 @@ magma_int_t magma_isum_reduce( magma_int_t vecsize,
     }
 
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<int, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<int, 1>
             swork_acc_ct1(sycl::range<1>(ISUM_REDUCE_SEGMENT), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -299,8 +295,7 @@ magma_int_t magma_isum_reduce( magma_int_t vecsize,
         grid[2] = magma_ceildiv(new_vecsize, ISUM_REDUCE_SEGMENT);
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     swork_acc_ct1(sycl::range<1>(ISUM_REDUCE_SEGMENT),
                                   cgh);
 
@@ -818,8 +813,7 @@ void magma_imax_size_1(magma_int_t *n, magma_int_t l, magma_queue_t queue)
     sycl::range<3> grid(1, 1, 1);
     sycl::range<3> threads(1, 1, AUX_MAX_TX);
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<int, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<int, 1>
             swork_acc_ct1(sycl::range<1>(AUX_MAX_SEGMENT), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -878,8 +872,7 @@ void magma_imax_size_2(magma_int_t *m, magma_int_t *n, magma_int_t l, magma_queu
     sycl::range<3> grid(1, 1, 2);
     sycl::range<3> threads(1, 1, AUX_MAX_TX);
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<int, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<int, 1>
             swork_acc_ct1(sycl::range<1>(AUX_MAX_SEGMENT), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -940,8 +933,7 @@ void magma_imax_size_3(magma_int_t *m, magma_int_t *n, magma_int_t *k, magma_int
     sycl::range<3> grid(1, 1, 3);
     sycl::range<3> threads(1, 1, AUX_MAX_TX);
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<int, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<int, 1>
             swork_acc_ct1(sycl::range<1>(AUX_MAX_SEGMENT), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

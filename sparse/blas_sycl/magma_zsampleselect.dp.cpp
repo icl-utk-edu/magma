@@ -214,11 +214,9 @@ magma_zsampleselect_approx(
     Adjust the work-group size if needed.
     */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 1>
             sample_buffer_acc_ct1(sycl::range<1>(sample_size), cgh);
-        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 1>
             leaves_acc_ct1(sycl::range<1>(searchtree_width), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, sample_size),
@@ -231,11 +229,9 @@ magma_zsampleselect_approx(
                          });
     });
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 1>
             local_tree_acc_ct1(sycl::range<1>(searchtree_size), cgh);
-        sycl::accessor<int32_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<int32_t, 1>
             local_counts_acc_ct1(sycl::range<1>(searchtree_width), cgh);
 
         cgh.parallel_for(
@@ -263,8 +259,7 @@ magma_zsampleselect_approx(
             });
     });
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<int32_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<int32_t, 1>
             sums_acc_ct1(sycl::range<1>(size), cgh);
 
         cgh.parallel_for(

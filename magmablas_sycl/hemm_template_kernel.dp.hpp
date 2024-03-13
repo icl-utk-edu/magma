@@ -27,8 +27,8 @@ void hemm_template_ll_kernel(
     const T* B, int LDB,
           T* C, int LDC,
     T alpha, T beta, sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     hemm_template_device_ll<T, DIM, BLK_M, BLK_N, (BLK_M / DIM), (BLK_N / DIM),
                             CONJA>(M, N, A, LDA, B, LDB, C, LDC, alpha, beta,
@@ -43,8 +43,8 @@ void hemm_template_lu_kernel(
     const T* B, int LDB,
           T* C, int LDC,
     T alpha, T beta, sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     hemm_template_device_lu<T, DIM, BLK_M, BLK_N, (BLK_M / DIM), (BLK_N / DIM),
                             CONJA>(M, N, A, LDA, B, LDB, C, LDC, alpha, beta,
@@ -59,8 +59,8 @@ void hemm_template_rl_kernel(
     const T* B, int LDB,
           T* C, int LDC,
     T alpha, T beta, sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     hemm_template_device_rl<T, DIM, BLK_M, BLK_N, (BLK_M / DIM), (BLK_N / DIM),
                             CONJA>(M, N, A, LDA, B, LDB, C, LDC, alpha, beta,
@@ -75,8 +75,8 @@ void hemm_template_ru_kernel(
     const T* B, int LDB,
           T* C, int LDC,
     T alpha, T beta, sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     hemm_template_device_ru<T, DIM, BLK_M, BLK_N, (BLK_M / DIM), (BLK_N / DIM),
                             CONJA>(M, N, A, LDA, B, LDB, C, LDC, alpha, beta,
@@ -100,11 +100,9 @@ void hemm_template(
         if(uplo == MagmaLower){
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<T, 2>
                         sA_acc_ct1(sycl::range<2>(BLK_M, BLK_M + 1), cgh);
-                    sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<T, 2>
                         sB_acc_ct1(sycl::range<2>(BLK_N, BLK_M + 1), cgh);
 
                     cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -119,11 +117,9 @@ void hemm_template(
         }else{
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<T, 2>
                         sA_acc_ct1(sycl::range<2>(BLK_M, BLK_M + 1), cgh);
-                    sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<T, 2>
                         sB_acc_ct1(sycl::range<2>(BLK_N, BLK_M + 1), cgh);
 
                     cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -140,11 +136,9 @@ void hemm_template(
         if(uplo == MagmaLower){
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<T, 2>
                         sA_acc_ct1(sycl::range<2>(BLK_N, BLK_N + 1), cgh);
-                    sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<T, 2>
                         sB_acc_ct1(sycl::range<2>(BLK_N, BLK_M + 1), cgh);
 
                     cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -159,11 +153,9 @@ void hemm_template(
         }else{
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<T, 2>
                         sA_acc_ct1(sycl::range<2>(BLK_N, BLK_N + 1), cgh);
-                    sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<T, 2>
                         sB_acc_ct1(sycl::range<2>(BLK_N, BLK_M + 1), cgh);
 
                     cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

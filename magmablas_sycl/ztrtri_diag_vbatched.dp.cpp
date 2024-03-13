@@ -150,9 +150,7 @@ magmablas_ztrtri_diag_vbatched(
             sycl::range<3> diaggrid(ibatch, 1, nblocks); // emulate 3D grid
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         sB_acc_ct1(sycl::range<1>(IB*IB), cgh);
 
                     cgh.parallel_for(
@@ -186,9 +184,7 @@ magmablas_ztrtri_diag_vbatched(
                     case 16:
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -202,9 +198,7 @@ magmablas_ztrtri_diag_vbatched(
                         });
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -220,9 +214,7 @@ magmablas_ztrtri_diag_vbatched(
                     case 32:
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -236,9 +228,7 @@ magmablas_ztrtri_diag_vbatched(
                         });
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -254,9 +244,7 @@ magmablas_ztrtri_diag_vbatched(
                     case 64:
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -270,9 +258,7 @@ magmablas_ztrtri_diag_vbatched(
                         });
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -288,9 +274,7 @@ magmablas_ztrtri_diag_vbatched(
                     default:
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -304,9 +288,7 @@ magmablas_ztrtri_diag_vbatched(
                         });
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -335,9 +317,7 @@ magmablas_ztrtri_diag_vbatched(
             sycl::range<3> diaggrid(ibatch, 1, nblocks); // emulate 3D grid
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         sB_acc_ct1(sycl::range<1>(IB*IB), cgh);
 
                     cgh.parallel_for(
@@ -366,9 +346,7 @@ magmablas_ztrtri_diag_vbatched(
                     case 16:
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -382,9 +360,7 @@ magmablas_ztrtri_diag_vbatched(
                         });
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -400,9 +376,7 @@ magmablas_ztrtri_diag_vbatched(
                     case 32:
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -416,9 +390,7 @@ magmablas_ztrtri_diag_vbatched(
                         });
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -434,9 +406,7 @@ magmablas_ztrtri_diag_vbatched(
                     case 64:
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -450,9 +420,7 @@ magmablas_ztrtri_diag_vbatched(
                         });
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -468,9 +436,7 @@ magmablas_ztrtri_diag_vbatched(
                     default:
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(
@@ -484,9 +450,7 @@ magmablas_ztrtri_diag_vbatched(
                         });
                     ((sycl::queue *)(queue->sycl_stream()))
                         ->submit([&](sycl::handler &cgh) {
-                            sycl::accessor<magmaDoubleComplex, 2,
-                                           sycl::access_mode::read_write,
-                                           sycl::access::target::local>
+                            sycl::local_accessor<magmaDoubleComplex, 2>
                                 sB_acc_ct1(sycl::range<2>(16, 17), cgh);
 
                             cgh.parallel_for(

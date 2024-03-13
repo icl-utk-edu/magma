@@ -183,7 +183,7 @@ static void
 triple_zgemm16_part1_upper_device(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     const int by = item_ct1.get_group(1) / npages;
     const int page = item_ct1.get_group(1) % npages;
@@ -297,7 +297,7 @@ static void
 triple_zgemm16_part2_upper_device(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     const int by = item_ct1.get_group(1) / npages;
     const int page = item_ct1.get_group(1) % npages;
@@ -411,7 +411,7 @@ static void
 triple_zgemm32_part1_upper_device(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     const int by = item_ct1.get_group(1) / npages;
     const int page = item_ct1.get_group(1) % npages;
@@ -525,7 +525,7 @@ static void
 triple_zgemm32_part2_upper_device(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     const int by = item_ct1.get_group(1) / npages;
     const int page = item_ct1.get_group(1) % npages;
@@ -640,7 +640,7 @@ static void
 triple_zgemm64_part1_upper_device(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     const int by = item_ct1.get_group(1) / npages;
     const int page = item_ct1.get_group(1) % npages;
@@ -753,7 +753,7 @@ static void
 triple_zgemm64_part2_upper_device(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     const int by = item_ct1.get_group(1) / npages;
     const int page = item_ct1.get_group(1) % npages;
@@ -867,7 +867,7 @@ static void
 triple_zgemm_above64_part1_upper_device(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     const int by = item_ct1.get_group(1) / npages;
     const int page = item_ct1.get_group(1) % npages;
@@ -989,7 +989,7 @@ static void
 triple_zgemm_above64_part2_upper_device(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_dinvA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     const int by = item_ct1.get_group(1) / npages;
     const int page = item_ct1.get_group(1) % npages;

@@ -324,8 +324,7 @@ magma_zcopyscale(
     sycl::range<3> Gs2(1, 1, magma_ceildiv(n, BLOCK_SIZE));
 
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(sycl::range<1>(Ms), cgh);
 
         cgh.parallel_for(
@@ -355,8 +354,7 @@ magma_dznrm2scale(
     sycl::range<3> blocks(1, 1, 1);
     sycl::range<3> threads(1, 1, 512);
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<double, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<double, 1>
             sum_acc_ct1(sycl::range<1>(512), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),

@@ -180,11 +180,9 @@ void trmm_template_vbatched_lNx(
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
                 cgh.parallel_for(
@@ -224,11 +222,9 @@ void trmm_template_vbatched_lTx(
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
                 cgh.parallel_for(
@@ -268,11 +264,9 @@ void trmm_template_vbatched_rNx(
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
                 cgh.parallel_for(
@@ -312,11 +306,9 @@ void trmm_template_vbatched_rTx(
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sA_acc_ct1(sycl::range<1>(NB * NB), cgh);
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sB_acc_ct1(sycl::range<1>(NB * NB), cgh);
 
                 cgh.parallel_for(

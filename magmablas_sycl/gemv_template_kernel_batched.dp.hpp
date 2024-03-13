@@ -60,8 +60,7 @@ void gemvn_template_batched(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<T, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<T, 1>
                     sdata_acc_ct1(sycl::range<1>(DIM_X * DIM_Y), cgh);
 
                 cgh.parallel_for(
@@ -121,8 +120,7 @@ void gemvc_template_batched(
         if (trans == MagmaConjTrans) {
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<T, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<T, 1>
                         sdata_acc_ct1(sycl::range<1>(DIM_X * DIM_Y), cgh);
 
                     cgh.parallel_for(
@@ -141,8 +139,7 @@ void gemvc_template_batched(
         else if (trans == MagmaTrans) {
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<T, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<T, 1>
                         sdata_acc_ct1(sycl::range<1>(DIM_X * DIM_Y), cgh);
 
                     cgh.parallel_for(

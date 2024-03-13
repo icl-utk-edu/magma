@@ -71,7 +71,7 @@ zgemm_kernel_16(
     magmaDoubleComplex *B, int ldb,
     magmaDoubleComplex *C, int ldc,
     magmaDoubleComplex alpha, int jb, int tx, int ty, sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
     const magmaDoubleComplex *Blast = B + jb;
 
@@ -149,51 +149,35 @@ ztrtri_diag_lower_kernel(
 
 SYCL_EXTERNAL void
 triple_zgemm16_part1_lower_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm16_part2_lower_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part1_lower_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part2_lower_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part1_lower_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part2_lower_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part1_lower_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part2_lower_kernel(
-    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part3_lower_kernel(
@@ -209,49 +193,49 @@ SYCL_EXTERNAL void
 triple_zgemm16_part1_upper_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
+    sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm16_part2_upper_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
+    sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part1_upper_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
+    sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part2_upper_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
+    sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part1_upper_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
+    sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part2_upper_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
+    sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part1_upper_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
+    sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part2_upper_kernel(
     int n, const magmaDoubleComplex *Ain, int lda, magmaDoubleComplex *d_invA, int jb, int npages,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB);
+    sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part3_upper_kernel(
@@ -270,51 +254,35 @@ ztrtri_diag_lower_kernel_batched(
 
 SYCL_EXTERNAL void
 triple_zgemm16_part1_lower_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm16_part2_lower_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part1_lower_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part2_lower_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part1_lower_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part2_lower_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part1_lower_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part2_lower_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part3_lower_kernel_batched(
@@ -328,51 +296,35 @@ ztrtri_diag_upper_kernel_batched(
 
 SYCL_EXTERNAL void
 triple_zgemm16_part1_upper_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm16_part2_upper_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part1_upper_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part2_upper_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part1_upper_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part2_upper_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part1_upper_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part2_upper_kernel_batched(
-    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    int n, magmaDoubleComplex const * const * Ain_array, int lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part3_upper_kernel_batched(
@@ -388,51 +340,35 @@ ztrtri_diag_lower_kernel_vbatched(
 
 SYCL_EXTERNAL void
 triple_zgemm16_part1_lower_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm16_part2_lower_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part1_lower_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part2_lower_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part1_lower_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part2_lower_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part1_lower_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part2_lower_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part3_lower_kernel_vbatched(
@@ -445,51 +381,35 @@ ztrtri_diag_upper_kernel_vbatched(
 
 SYCL_EXTERNAL void
 triple_zgemm16_part1_upper_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm16_part2_upper_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part1_upper_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm32_part2_upper_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part1_upper_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm64_part2_upper_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part1_upper_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part2_upper_kernel_vbatched(
-    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::accessor<magmaDoubleComplex, 2,
-                                       sycl::access_mode::read_write,
-                                       sycl::access::target::local> sB);
+    magma_int_t* n, magmaDoubleComplex const * const * Ain_array, magma_int_t* lda, magmaDoubleComplex **dinvA_array, int jb, int npages, sycl::nd_item<3> item_ct1, sycl::local_accessor<magmaDoubleComplex, 2> sB);
 
 SYCL_EXTERNAL void
 triple_zgemm_above64_part3_upper_kernel_vbatched(

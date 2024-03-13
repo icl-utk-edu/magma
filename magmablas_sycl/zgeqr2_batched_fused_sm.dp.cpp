@@ -231,8 +231,7 @@ extern "C" magma_int_t magma_zgeqr2_fused_sm_batched(
     void *kernel_args[] = {&m, &n, &dA_array, &Ai, &Aj, &ldda, &dtau_array, &taui, &info_array, &batchCount};
     ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                     auto M_ct0 = *(int *)kernel_args[0];

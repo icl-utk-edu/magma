@@ -405,19 +405,13 @@ magma_zgetf2_native_fused(
     switch(npages){
         case 1: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -434,19 +428,13 @@ magma_zgetf2_native_fused(
             break;
         case 2: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -463,19 +451,13 @@ magma_zgetf2_native_fused(
             break;
         case 3: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -492,19 +474,13 @@ magma_zgetf2_native_fused(
             break;
         case 4: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -521,19 +497,13 @@ magma_zgetf2_native_fused(
             break;
         case 5: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -550,19 +520,13 @@ magma_zgetf2_native_fused(
             break;
         case 6: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -579,19 +543,13 @@ magma_zgetf2_native_fused(
             break;
         case 7: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -608,19 +566,13 @@ magma_zgetf2_native_fused(
             break;
         case 8: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -637,19 +589,13 @@ magma_zgetf2_native_fused(
             break;
         case 9: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -666,19 +612,13 @@ magma_zgetf2_native_fused(
             break;
         case 10: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -695,19 +635,13 @@ magma_zgetf2_native_fused(
             break;
         case 11: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -724,19 +658,13 @@ magma_zgetf2_native_fused(
             break;
         case 12: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -753,19 +681,13 @@ magma_zgetf2_native_fused(
             break;
         case 13: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -782,19 +704,13 @@ magma_zgetf2_native_fused(
             break;
         case 14: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -811,19 +727,13 @@ magma_zgetf2_native_fused(
             break;
         case 15: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -840,19 +750,13 @@ magma_zgetf2_native_fused(
             break;
         case 16: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -869,19 +773,13 @@ magma_zgetf2_native_fused(
             break;
         case 17: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -898,19 +796,13 @@ magma_zgetf2_native_fused(
             break;
         case 18: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -927,19 +819,13 @@ magma_zgetf2_native_fused(
             break;
         case 19: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -956,19 +842,13 @@ magma_zgetf2_native_fused(
             break;
         case 20: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -986,19 +866,13 @@ magma_zgetf2_native_fused(
 #if defined(PRECISION_s) || defined(PRECISION_d)
         case 21: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1015,19 +889,13 @@ magma_zgetf2_native_fused(
             break;
         case 22: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1044,19 +912,13 @@ magma_zgetf2_native_fused(
             break;
         case 23: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1073,19 +935,13 @@ magma_zgetf2_native_fused(
             break;
         case 24: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1102,19 +958,13 @@ magma_zgetf2_native_fused(
             break;
         case 25: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1131,19 +981,13 @@ magma_zgetf2_native_fused(
             break;
         case 26: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1160,19 +1004,13 @@ magma_zgetf2_native_fused(
             break;
         case 27: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1189,19 +1027,13 @@ magma_zgetf2_native_fused(
             break;
         case 28: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1218,19 +1050,13 @@ magma_zgetf2_native_fused(
             break;
         case 29: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1247,19 +1073,13 @@ magma_zgetf2_native_fused(
             break;
         case 30: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1276,19 +1096,13 @@ magma_zgetf2_native_fused(
             break;
         case 31: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1305,19 +1119,13 @@ magma_zgetf2_native_fused(
             break;
         case 32: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1334,19 +1142,13 @@ magma_zgetf2_native_fused(
             break;
         case 33: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1363,19 +1165,13 @@ magma_zgetf2_native_fused(
             break;
         case 34: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1392,19 +1188,13 @@ magma_zgetf2_native_fused(
             break;
         case 35: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1421,19 +1211,13 @@ magma_zgetf2_native_fused(
             break;
         case 36: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1450,19 +1234,13 @@ magma_zgetf2_native_fused(
             break;
         case 37: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1479,19 +1257,13 @@ magma_zgetf2_native_fused(
             break;
         case 38: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1508,19 +1280,13 @@ magma_zgetf2_native_fused(
             break;
         case 39: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1537,19 +1303,13 @@ magma_zgetf2_native_fused(
             break;
         case 40: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1566,19 +1326,13 @@ magma_zgetf2_native_fused(
             break;
         case 41: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1595,19 +1349,13 @@ magma_zgetf2_native_fused(
             break;
         case 42: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1624,19 +1372,13 @@ magma_zgetf2_native_fused(
             break;
         case 43: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1653,19 +1395,13 @@ magma_zgetf2_native_fused(
             break;
         case 44: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1682,19 +1418,13 @@ magma_zgetf2_native_fused(
             break;
         case 45: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1711,19 +1441,13 @@ magma_zgetf2_native_fused(
             break;
         case 46: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1742,19 +1466,13 @@ magma_zgetf2_native_fused(
         #if defined(PRECISION_s)
         case 47: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1771,19 +1489,13 @@ magma_zgetf2_native_fused(
             break;
         case 48: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1800,19 +1512,13 @@ magma_zgetf2_native_fused(
             break;
         case 49: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1829,19 +1535,13 @@ magma_zgetf2_native_fused(
             break;
         case 50: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1858,19 +1558,13 @@ magma_zgetf2_native_fused(
             break;
         case 51: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1887,19 +1581,13 @@ magma_zgetf2_native_fused(
             break;
         case 52: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1916,19 +1604,13 @@ magma_zgetf2_native_fused(
             break;
         case 53: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1945,19 +1627,13 @@ magma_zgetf2_native_fused(
             break;
         case 54: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -1974,19 +1650,13 @@ magma_zgetf2_native_fused(
             break;
         case 55: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2003,19 +1673,13 @@ magma_zgetf2_native_fused(
             break;
         case 56: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2032,19 +1696,13 @@ magma_zgetf2_native_fused(
             break;
         case 57: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2061,19 +1719,13 @@ magma_zgetf2_native_fused(
             break;
         case 58: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2090,19 +1742,13 @@ magma_zgetf2_native_fused(
             break;
         case 59: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2119,19 +1765,13 @@ magma_zgetf2_native_fused(
             break;
         case 60: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2148,19 +1788,13 @@ magma_zgetf2_native_fused(
             break;
         case 61: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2177,19 +1811,13 @@ magma_zgetf2_native_fused(
             break;
         case 62: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2206,19 +1834,13 @@ magma_zgetf2_native_fused(
             break;
         case 63: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2235,19 +1857,13 @@ magma_zgetf2_native_fused(
             break;
         case 64: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2264,19 +1880,13 @@ magma_zgetf2_native_fused(
             break;
         case 65: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2293,19 +1903,13 @@ magma_zgetf2_native_fused(
             break;
         case 66: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2322,19 +1926,13 @@ magma_zgetf2_native_fused(
             break;
         case 67: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2351,19 +1949,13 @@ magma_zgetf2_native_fused(
             break;
         case 68: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2380,19 +1972,13 @@ magma_zgetf2_native_fused(
             break;
         case 69: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2409,19 +1995,13 @@ magma_zgetf2_native_fused(
             break;
         case 70: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2438,19 +2018,13 @@ magma_zgetf2_native_fused(
             break;
         case 71: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2467,19 +2041,13 @@ magma_zgetf2_native_fused(
             break;
         case 72: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2496,19 +2064,13 @@ magma_zgetf2_native_fused(
             break;
         case 73: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2525,19 +2087,13 @@ magma_zgetf2_native_fused(
             break;
         case 74: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2554,19 +2110,13 @@ magma_zgetf2_native_fused(
             break;
         case 75: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2583,19 +2133,13 @@ magma_zgetf2_native_fused(
             break;
         case 76: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2612,19 +2156,13 @@ magma_zgetf2_native_fused(
             break;
         case 77: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2641,19 +2179,13 @@ magma_zgetf2_native_fused(
             break;
         case 78: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2670,19 +2202,13 @@ magma_zgetf2_native_fused(
             break;
         case 79: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -2699,19 +2225,13 @@ magma_zgetf2_native_fused(
             break;
         case 80: ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sx_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<double, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<double, 1>
                     sabs_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     smax_id_acc_ct1(sycl::range<1>(ntx), cgh);
-                sycl::accessor<magmaDoubleComplex, 0,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 0>
                     sreg_acc_ct1(cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
