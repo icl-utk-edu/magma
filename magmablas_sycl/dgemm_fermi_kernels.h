@@ -14,7 +14,7 @@
 
        See [zcds]gemm_fermi.cu for description of related files.
 */
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magma_internal.h"
 

@@ -15,7 +15,7 @@
 
 #ifndef MAGMABLAS_ZPOTF2_DEVICES_Z_H
 #define MAGMABLAS_ZPOTF2_DEVICES_Z_H
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 
 //extern __shared__ magmaDoubleComplex shared_data[];

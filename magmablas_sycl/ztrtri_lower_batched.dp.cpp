@@ -16,7 +16,7 @@
        It's convenient to have separate files for lower & upper, to diff the sources.
 */
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magma_internal.h"
 
