@@ -255,8 +255,7 @@ void gemm_template_vbatched_nn(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -300,8 +299,7 @@ void gemm_template_vbatched_nt(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -345,8 +343,7 @@ void gemm_template_vbatched_tn(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(
@@ -391,8 +388,7 @@ void gemm_template_vbatched_tt(
 
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                 cgh.parallel_for(

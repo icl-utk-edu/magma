@@ -57,7 +57,7 @@ zhemv_kernel_L_mgpu(
     int my_gpu_id,
     int ngpu,
     int block_offset , sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
+    sycl::local_accessor<magmaDoubleComplex, 2> sA,
     magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj)
 {
     // treats sA as 16x64 block
@@ -916,19 +916,13 @@ magmablas_zhemv_mgpu(
         if ( upper ) {
             ((sycl::queue *)(queues[dev]->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<magmaDoubleComplex, 2,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 2>
                         sA_acc_ct1(sycl::range<2>(quarter_NB_X,
                                                   NB_X + 3),
                                    cgh);
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         sx_blk_acc_ct1(sycl::range<1>(NB_X), cgh);
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         sx_jj_acc_ct1(sycl::range<1>(NB_X), cgh);
 
                     cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -954,19 +948,13 @@ magmablas_zhemv_mgpu(
         else {
             ((sycl::queue *)(queues[dev]->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<magmaDoubleComplex, 2,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 2>
                         sA_acc_ct1(sycl::range<2>(quarter_NB_X,
                                                   NB_X + 2),
                                    cgh);
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         sx_blk_acc_ct1(sycl::range<1>(NB_X), cgh);
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         sx_jj_acc_ct1(sycl::range<1>(NB_X), cgh);
 
                     cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

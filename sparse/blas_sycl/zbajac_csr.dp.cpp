@@ -200,9 +200,7 @@ magma_zbajac_csr(
         else
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<magmaDoubleComplex, 1,
-                                   sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<magmaDoubleComplex, 1>
                         local_x_acc_ct1(sycl::range<1>(BLOCKSIZE), cgh);
 
                     auto x_dval_ct9 = x->dval;
