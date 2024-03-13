@@ -29,8 +29,8 @@ void hemm_template_batched_ll_kernel(
     T alpha, T beta,
     int roffA, int coffA, int roffB, int coffB, int roffC, int coffC ,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     const int batchid = item_ct1.get_group(0);
 
@@ -51,8 +51,8 @@ void hemm_template_batched_lu_kernel(
     T alpha, T beta,
     int roffA, int coffA, int roffB, int coffB, int roffC, int coffC ,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     const int batchid = item_ct1.get_group(0);
 
@@ -73,8 +73,8 @@ void hemm_template_batched_rl_kernel(
     T alpha, T beta,
     int roffA, int coffA, int roffB, int coffB, int roffC, int coffC ,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     const int batchid = item_ct1.get_group(0);
 
@@ -95,8 +95,8 @@ void hemm_template_batched_ru_kernel(
     T alpha, T beta,
     int roffA, int coffA, int roffB, int coffB, int roffC, int coffC ,
     sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     const int batchid = item_ct1.get_group(0);
 
@@ -137,11 +137,9 @@ void hemm_template_batched(
                 */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
-                        sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                       sycl::access::target::local>
+                        sycl::local_accessor<T, 2>
                             sA_acc_ct1(sycl::range<2>(BLK_M, BLK_M + 1), cgh);
-                        sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                       sycl::access::target::local>
+                        sycl::local_accessor<T, 2>
                             sB_acc_ct1(sycl::range<2>(BLK_N, BLK_M + 1), cgh);
 
                         cgh.parallel_for(
@@ -170,11 +168,9 @@ void hemm_template_batched(
                 */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
-                        sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                       sycl::access::target::local>
+                        sycl::local_accessor<T, 2>
                             sA_acc_ct1(sycl::range<2>(BLK_M, BLK_M + 1), cgh);
-                        sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                       sycl::access::target::local>
+                        sycl::local_accessor<T, 2>
                             sB_acc_ct1(sycl::range<2>(BLK_N, BLK_M + 1), cgh);
 
                         cgh.parallel_for(
@@ -205,11 +201,9 @@ void hemm_template_batched(
                 */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
-                        sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                       sycl::access::target::local>
+                        sycl::local_accessor<T, 2>
                             sA_acc_ct1(sycl::range<2>(BLK_N, BLK_N + 1), cgh);
-                        sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                       sycl::access::target::local>
+                        sycl::local_accessor<T, 2>
                             sB_acc_ct1(sycl::range<2>(BLK_N, BLK_M + 1), cgh);
 
                         cgh.parallel_for(
@@ -238,11 +232,9 @@ void hemm_template_batched(
                 */
                 ((sycl::queue *)(queue->sycl_stream()))
                     ->submit([&](sycl::handler &cgh) {
-                        sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                       sycl::access::target::local>
+                        sycl::local_accessor<T, 2>
                             sA_acc_ct1(sycl::range<2>(BLK_N, BLK_N + 1), cgh);
-                        sycl::accessor<T, 2, sycl::access_mode::read_write,
-                                       sycl::access::target::local>
+                        sycl::local_accessor<T, 2>
                             sB_acc_ct1(sycl::range<2>(BLK_N, BLK_M + 1), cgh);
 
                         cgh.parallel_for(

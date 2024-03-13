@@ -79,8 +79,7 @@ zgemvn_template_fermi(
     Adjust the work-group size if needed.
     */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             sdata_acc_ct1(sycl::range<1>(DIM_X * DIM_Y), cgh);
 
         cgh.parallel_for(
@@ -116,9 +115,7 @@ zgemvc_template_fermi(
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sdata_acc_ct1(sycl::range<1>(DIM_X * DIM_Y), cgh);
 
                 cgh.parallel_for(
@@ -139,9 +136,7 @@ zgemvc_template_fermi(
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 1,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 1>
                     sdata_acc_ct1(sycl::range<1>(DIM_X * DIM_Y), cgh);
 
                 cgh.parallel_for(

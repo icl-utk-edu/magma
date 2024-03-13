@@ -278,14 +278,11 @@ magmablas_zheinertia(
     if (upper)
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     pe_acc_ct1(sycl::range<1>(NTHREADS), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     ne_acc_ct1(sycl::range<1>(NTHREADS), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     ze_acc_ct1(sycl::range<1>(NTHREADS), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -300,14 +297,11 @@ magmablas_zheinertia(
     else
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     pe_acc_ct1(sycl::range<1>(NTHREADS), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     ne_acc_ct1(sycl::range<1>(NTHREADS), cgh);
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     ze_acc_ct1(sycl::range<1>(NTHREADS), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

@@ -36,8 +36,8 @@ void hemm_template_device_ll(
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
     T alpha, T beta , sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     const int tx = item_ct1.get_local_id(2); // thread's m dimension
     const int ty = item_ct1.get_local_id(1); // thread's n dimension
@@ -310,8 +310,8 @@ void hemm_template_device_lu(
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
     T alpha, T beta , sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     const int tx = item_ct1.get_local_id(2); // thread's m dimension
     const int ty = item_ct1.get_local_id(1); // thread's n dimension
@@ -589,8 +589,8 @@ void hemm_template_device_rl(
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
     T alpha, T beta , sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     const int tx = item_ct1.get_local_id(2); // thread's m dimension
     const int ty = item_ct1.get_local_id(1); // thread's n dimension
@@ -869,8 +869,8 @@ void hemm_template_device_ru(
     const T* __restrict__ B, int LDB,
     T*       __restrict__ C, int LDC,
     T alpha, T beta , sycl::nd_item<3> item_ct1,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<T, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<T, 2> sA,
+    sycl::local_accessor<T, 2> sB)
 {
     const int tx = item_ct1.get_local_id(2); // thread's m dimension
     const int ty = item_ct1.get_local_id(1); // thread's n dimension

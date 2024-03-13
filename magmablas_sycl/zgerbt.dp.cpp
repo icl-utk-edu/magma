@@ -197,17 +197,13 @@ magmablas_zprbt(
                         magma_ceildiv(n, 4 * block_height));
 
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             u1_acc_ct1(sycl::range<1>(block_height), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             u2_acc_ct1(sycl::range<1>(block_height), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             v1_acc_ct1(sycl::range<1>(block_width), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             v2_acc_ct1(sycl::range<1>(block_width), cgh);
 
         cgh.parallel_for(
@@ -220,17 +216,13 @@ magmablas_zprbt(
             });
     });
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             u1_acc_ct1(sycl::range<1>(block_height), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             u2_acc_ct1(sycl::range<1>(block_height), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             v1_acc_ct1(sycl::range<1>(block_width), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             v2_acc_ct1(sycl::range<1>(block_width), cgh);
 
         cgh.parallel_for(
@@ -243,17 +235,13 @@ magmablas_zprbt(
             });
     });
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             u1_acc_ct1(sycl::range<1>(block_height), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             u2_acc_ct1(sycl::range<1>(block_height), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             v1_acc_ct1(sycl::range<1>(block_width), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             v2_acc_ct1(sycl::range<1>(block_width), cgh);
 
         cgh.parallel_for(
@@ -266,17 +254,13 @@ magmablas_zprbt(
             });
     });
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             u1_acc_ct1(sycl::range<1>(block_height), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             u2_acc_ct1(sycl::range<1>(block_height), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             v1_acc_ct1(sycl::range<1>(block_width), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             v2_acc_ct1(sycl::range<1>(block_width), cgh);
 
         cgh.parallel_for(
@@ -294,17 +278,13 @@ magmablas_zprbt(
     sycl::range<3> grid2(1, magma_ceildiv(n, 2 * block_width),
                          magma_ceildiv(n, 2 * block_height));
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             u1_acc_ct1(sycl::range<1>(block_height), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             u2_acc_ct1(sycl::range<1>(block_height), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             v1_acc_ct1(sycl::range<1>(block_width), cgh);
-        sycl::accessor<magmaDoubleComplex, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 1>
             v2_acc_ct1(sycl::range<1>(block_width), cgh);
 
         cgh.parallel_for(

@@ -25,8 +25,8 @@ void gemm_kernel_name(precision)(
     FloatingPoint_t*       __restrict__ C, int LDC,
     FloatingPoint_t alpha, FloatingPoint_t beta,
     int offsetA, int offsetB , sycl::nd_item<3> item_ct1,
-    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<FloatingPoint_t, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<FloatingPoint_t, 2> sA,
+    sycl::local_accessor<FloatingPoint_t, 2> sB)
 {
     devfunc_name(precision)(M, N, K, A, LDA, B, LDB, C, LDC, alpha, beta,
                             offsetA, offsetB, item_ct1, sA, sB);

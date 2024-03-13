@@ -744,8 +744,7 @@ magma_zmdotc(
     if (k>1) {
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(Ms), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
@@ -759,8 +758,7 @@ magma_zmdotc(
     else {
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(Ms), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(Gs * Bs, Bs),
@@ -797,8 +795,7 @@ magma_zmdotc(
             if (Gs_next[2] == 1) Gs_next[2] = 2;
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(sycl::range<1>(Ms / 2), cgh);
 
                     cgh.parallel_for(
@@ -824,8 +821,7 @@ magma_zmdotc(
             if (Gs_next[2] == 1) Gs_next[2] = 2;
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(sycl::range<1>(Ms / 2), cgh);
 
                     cgh.parallel_for(

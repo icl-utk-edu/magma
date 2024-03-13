@@ -271,8 +271,7 @@ void zpotf2_zdotc(
     Adjust the work-group size if needed.
     */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, threadSize),
@@ -324,8 +323,7 @@ void zpotf2_zdscal(
     Adjust the work-group size if needed.
     */
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<magmaDoubleComplex, 0, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<magmaDoubleComplex, 0>
             factor_acc_ct1(cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

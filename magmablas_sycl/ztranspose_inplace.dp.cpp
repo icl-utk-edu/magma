@@ -34,8 +34,8 @@
 void ztranspose_inplace_odd(
     int n,
     magmaDoubleComplex *matrix, int lda , sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sA,
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
 
     int i = item_ct1.get_local_id(2);
@@ -111,8 +111,8 @@ void ztranspose_inplace_odd(
 void ztranspose_inplace_even(
     int n,
     magmaDoubleComplex *matrix, int lda , sycl::nd_item<3> item_ct1,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sA,
-    sycl::accessor<magmaDoubleComplex, 2, sycl::access_mode::read_write, sycl::access::target::local> sB)
+    sycl::local_accessor<magmaDoubleComplex, 2> sA,
+    sycl::local_accessor<magmaDoubleComplex, 2> sB)
 {
 
     int i = item_ct1.get_local_id(2);
@@ -220,13 +220,9 @@ magmablas_ztranspose_inplace(
         sycl::range<3> grid(1, (nblock + 1) / 2, nblock);
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 2,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 2>
                     sA_acc_ct1(sycl::range<2>(NB, NB+1), cgh);
-                sycl::accessor<magmaDoubleComplex, 2,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 2>
                     sB_acc_ct1(sycl::range<2>(NB, NB+1), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -241,13 +237,9 @@ magmablas_ztranspose_inplace(
         sycl::range<3> grid(1, nblock / 2, nblock + 1);
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<magmaDoubleComplex, 2,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 2>
                     sA_acc_ct1(sycl::range<2>(NB, NB+1), cgh);
-                sycl::accessor<magmaDoubleComplex, 2,
-                               sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<magmaDoubleComplex, 2>
                     sB_acc_ct1(sycl::range<2>(NB, NB+1), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),

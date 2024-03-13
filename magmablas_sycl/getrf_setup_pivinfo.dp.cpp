@@ -180,8 +180,7 @@ setup_pivinfo( magma_int_t *pivinfo, magma_int_t *ipiv,
         */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
-                sycl::accessor<int, 1, sycl::access_mode::read_write,
-                               sycl::access::target::local>
+                sycl::local_accessor<int, 1>
                     spivinfo_acc_ct1(sycl::range<1>(10240), cgh);
 
                 cgh.parallel_for(

@@ -79,8 +79,7 @@ magma_izamax_vbatched(
         different from the original code. Check that the allocated memory size
         in the migrated code is correct.
         */
-        sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<uint8_t, 1>
             dpct_local_acc_ct1(
                 sycl::range<1>(zamax * (sizeof(double) + sizeof(int))), cgh);
 
@@ -153,8 +152,7 @@ magma_zswap_vbatched(
     sycl::range<3> threads(1, 1, zamax);
 
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-        sycl::accessor<int, 0, sycl::access_mode::read_write,
-                       sycl::access::target::local>
+        sycl::local_accessor<int, 0>
             jp_acc_ct1(cgh);
 
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -431,8 +429,7 @@ extern "C" magma_int_t magma_zgetf2_fused_sm_vbatched(
     int e = 0; //fix
     ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
 		    //TODO: adjust this?
@@ -660,8 +657,7 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_vbatched(
     int e = 0;
     ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
-                    sycl::accessor<uint8_t, 1, sycl::access_mode::read_write,
-                                   sycl::access::target::local>
+                    sycl::local_accessor<uint8_t, 1>
                         dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
 
                     cgh.parallel_for(
