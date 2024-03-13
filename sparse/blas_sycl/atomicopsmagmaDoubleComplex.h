@@ -12,7 +12,7 @@
 #ifndef MAGMASPARSE_ATOMICOPS_MAGMADOUBLECOMPLEX_H
 #define MAGMASPARSE_ATOMICOPS_MAGMADOUBLECOMPLEX_H
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magmasparse_internal.h"
 

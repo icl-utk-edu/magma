@@ -12,7 +12,7 @@
 #ifndef GEMV_TEMPLATE_KERNEL_VBATCHED_CUH
 #define GEMV_TEMPLATE_KERNEL_VBATCHED_CUH
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "gemm_template_device_defs.dp.hpp" // use make_FloatingPoint
 #include "gemv_template_device.dp.hpp"

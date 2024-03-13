@@ -16,7 +16,7 @@
 //  Sparse Matrix-Vector Multiplication". 
 // 29th ACM International Conference on Supercomputing (ICS15). pp. 339-350.
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <dpct/dpct.hpp>
 #include "magmasparse_internal.h"
 #include "atomicopsmagmaDoubleComplex.h"
