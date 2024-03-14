@@ -140,6 +140,9 @@ magma_zpotrf_mgpu(
             }
         }
         magma_setdevice(0);
+        // setting h = 1 produces failures for ngpus >= 4
+        // set h = 2 as a temp. fix
+        // TODO: investigate the correct value for h
         h = 2; //ngpu; //magma_ceildiv( n, nb );
         if (MAGMA_SUCCESS != magma_zmalloc_pinned( &work, n*nb*h )) {
             *info = MAGMA_ERR_HOST_ALLOC;
