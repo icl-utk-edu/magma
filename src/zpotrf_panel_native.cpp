@@ -143,33 +143,31 @@ magma_zpotrf_rectile_native(
         // update on A22 then panel on A22.
         magma_int_t n1 = n/2;
         magma_int_t n2 = n-n1;
-        magma_int_t p1 = 0;
-        magma_int_t p2 = n1;
 
         if(uplo == MagmaLower) {
             // panel on A11
             magma_zpotrf_rectile_native(
                 uplo, n1, recnb,
-                dA(/*p1*/0, /*p1*/0), ldda,
-                gbstep/*+p1*/, dinfo, info, queue );
+                dA(0, 0), ldda,
+                gbstep, dinfo, info, queue );
 
             // TRSM on A21
             magma_ztrsm(
                 MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit,
                 n2, n1,
-                c_one, dA(/*p1*/0, /*p1*/0), ldda,
-                       dA(/*p2*/n1, /*p1*/0), ldda, queue );
+                c_one, dA(0, 0), ldda,
+                       dA(n1, 0), ldda, queue );
 
             // update A22
             magma_zherk(
                 MagmaLower, MagmaNoTrans, n2, n1,
-                d_neg_one, dA(/*p2*/n1, /*p1*/0), ldda,
-                d_one,     dA(/*p2*/n1, /*p2*/n1), ldda, queue );
+                d_neg_one, dA(n1, 0), ldda,
+                d_one,     dA(n1, n1), ldda, queue );
 
             // panel on A22
             magma_zpotrf_rectile_native(
                 uplo, n2, recnb,
-                dA(/*p2*/n1, /*p2*/n1), ldda,
+                dA(n1, n1), ldda,
                 gbstep+n1, dinfo, info, queue );
         }
         else {
