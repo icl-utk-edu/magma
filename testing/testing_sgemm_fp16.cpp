@@ -47,7 +47,7 @@ magma_sgemm_fp16_v1(
                       (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
                       CUDA_R_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
       #endif
-    #else
+    #elif MAGMA_HAVE_HIP
     magma_int_t hinfo = 0;
     magma_int_t Am = (transA == MagmaNoTrans) ? m : k;
     magma_int_t An = (transA == MagmaNoTrans) ? k : m;
@@ -93,7 +93,7 @@ magma_sgemm_fp16_v2(
                                         (const void*) dhB, CUDA_R_16F, (int)lddb,
                   (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
                   CUDA_R_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
-    #else
+    #elif MAGMA_HAVE_HIP
     hipblasGemmEx( magma_queue_get_hipblas_handle( queue ),
 		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
 		           int(m), int(n), int(k),
