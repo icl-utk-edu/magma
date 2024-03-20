@@ -20,10 +20,12 @@ endif()
 # MAGMA requires one backend to be enabled
 option(MAGMA_ENABLE_CUDA     "Enable the CUDA backend"  OFF)
 option(MAGMA_ENABLE_HIP      "Enable the HIP  backend"  OFF)
+option(MAGMA_ENABLE_SYCL     "Enable the SYCL backend"  OFF)
 
 # check if one backend has been enabled
 if (NOT MAGMA_ENABLE_CUDA AND
-    NOT MAGMA_ENABLE_HIP
+    NOT MAGMA_ENABLE_HIP AND
+    NOT MAGMA_ENABLE_SYCL
     )
   message(STATUS "MAGMA requires one enabled backend!")
   message(STATUS "Building CUDA backend")
@@ -300,6 +302,22 @@ if (MAGMA_ENABLE_HIP)
   endif()
 endif()
 
+if (MAGMA_ENABLE_SYCL)
+  find_package( IntelSYCL )
+  if (IntelSYCL_FOUND)
+    message( STATUS "Found SYCL ${SYCL_LANGUAGE_VERSION} ${SYCL_IMPLEMENTATION_ID}" )
+    message( STATUS "SYCL_INCLUDE_DIRS:   ${SYCL_INCLUDE_DIR}"   )
+
+    include_directories( ${SYCL_INCLUDE_DIRS} )
+
+    set(MAGMA_HAVE_SYCL "1")
+    message( STATUS "Define -DMAGMA_HAVE_SYCL" )
+  else()
+    message( STATUS "Could not find Intel SYCL" )
+  endif()
+  set(CMAKE_CXX_STANDARD  17)
+endif()
+
 # ----------------------------------------
 # locate LAPACK libraries
 
@@ -363,8 +381,10 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY lib )
 # list of sources
 if (MAGMA_ENABLE_CUDA)
   include( ${CMAKE_SOURCE_DIR}/CMake.src.cuda )
-else()
+elseif (MAGMA_ENABLE_HIP)
   include( ${CMAKE_SOURCE_DIR}/CMake.src.hip )
+else()
+  include( ${CMAKE_SOURCE_DIR}/CMake.src.dpcpp )
 endif()
 
 # ----------------------------------------
@@ -393,8 +413,10 @@ include_directories( include )
 include_directories( control )
 if (MAGMA_ENABLE_CUDA)
   include_directories( magmablas )  # e.g., shuffle.cuh
+elseif (MAGMA_ENABLE_HIP)
+  include_directories( magmablas_hip )
 else()
-  include_directories( magmablas_hip )  # e.g., shuffle.cuh
+  include_directories( magmablas_sycl )
 endif()
 
 # Need to check sizeof(void*) after setting flags above;
@@ -459,8 +481,8 @@ else()
         CUDA::cublas
         CUDA::cusparse
         magma_nvcc_flags
-        )
-    else()
+	)
+    elseif (MAGMA_ENABLE_HIP)
       find_package( hipBLAS )
       if (hipBLAS_FOUND)
         message( STATUS "Found rocBLAS ${rocBLAS_VERSION}" )
@@ -477,6 +499,17 @@ else()
         roc::hipblas
         roc::hipsparse
         )
+    else ()
+       find_package (MKL) #oneMKL
+       add_library( magma ${libmagma_all} )
+       add_sycl_to_target( TARGET magma SOURCES magmablas_sycl/*.dp.cpp)
+       add_sycl_to_target( TARGET magma SOURCES interface_sycl/*.dp.cpp)
+       target_link_libraries( magma
+        ${blas_fix}
+        ${LAPACK_LIBRARIES}
+        IntelSYCL::SYCL_CXX
+        MKL::MKL_DPCPP
+       )
     endif()
 
     if (USE_FORTRAN)
@@ -535,9 +568,12 @@ target_link_libraries( tester
 if (MAGMA_ENABLE_CUDA)
   include_directories( sparse/include )
   include_directories( sparse/control )
-else()
+elseif (MAGMA_ENABLE_HIP)
   include_directories( sparse_hip/include )
   include_directories( sparse_hip/control )
+else()
+  include_directories( sparse/include )
+  include_directories( sparse/control )
 endif()
 include_directories( testing )
 
@@ -552,7 +588,7 @@ if (MAGMA_ENABLE_CUDA)
     CUDA::cusparse
     magma_nvcc_flags
     )
-else()
+elseif(MAGMA_ENABLE_HIP)
   add_library( magma_sparse ${libsparse_all} )
   target_link_libraries( magma_sparse
     magma
@@ -560,6 +596,16 @@ else()
     hip::device
     roc::hipblas
     roc::hipsparse
+    )
+else()
+  add_library( magma_sparse ${libsparse_all} )
+  add_sycl_to_target(TARGET magma_sparse SOURCES sparse/blas_sycl/*.dp.cpp)
+  target_link_libraries( magma_sparse
+    magma
+    ${blas_fix}
+    ${LAPACK_LIBRARIES}
+    IntelSYCL::SYCL_CXX
+    MKL::MKL_DPCPP
     )
 endif()
 add_custom_target( sparse-lib DEPENDS magma_sparse )
@@ -596,8 +642,10 @@ add_custom_target( testing DEPENDS ${testing} )
 
 if (MAGMA_ENABLE_CUDA)
   set(SPARSE_TEST_DIR "sparse/testing")
-else()
+elseif (MAGMA_ENABLE_HIP)
   set(SPARSE_TEST_DIR "sparse_hip/testing")
+else()
+  set(SPARSE_TEST_DIR "sparse/testing")
 endif()
 
 
@@ -621,8 +669,10 @@ install( TARGETS magma magma_sparse
          ARCHIVE DESTINATION lib )
 if (MAGMA_ENABLE_CUDA)
   file( GLOB headers include/*.h sparse/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
-else()
+elseif(MAGMA_ENABLE_HIP)
   file( GLOB headers include/*.h sparse_hip/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
+else()
+  file( GLOB headers include/*.h sparse/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
 endif()
 if (USE_FORTRAN)
     install( FILES ${headers} ${modules}
@@ -646,10 +696,13 @@ set( CXXFLAGS "${CMAKE_CXX_FLAGS}" )
 if (MAGMA_ENABLE_CUDA)
   string( REPLACE ";" " " LIBS
           "${LAPACK_LIBS} -L${CUDAToolkit_LIBRARY_DIR} -lcudart -lcublas -lcusparse")
-else()
+elseif (MAGMA_ENABLE_HIP)
   string( REPLACE ";" " " LIBS
           "${LAPACK_LIBS} ${HIP} ${rocBLAS} ${rocSPARSE}" )
 #         "${LAPACK_LIBS} hip::device roc::hipblas roc::hipsparse" )
+else()
+  string( REPLACE ";" " " LIBS
+    "${blas_fix_lib} ${LAPACK_LIBS} -L${SYCL_LIBRARY_DIR} -lsycl -L${MKL_ROOT}/lib -lmkl_sycl" )
 endif()
 set( MAGMA_REQUIRED "" )
 configure_file( "${pkgconfig}.in" "${pkgconfig}" @ONLY )
@@ -676,9 +729,12 @@ if (MAGMA_ENABLE_CUDA)
   message( STATUS "    CUDA_CUDART_LIBRARY:   CUDA::cudart"   )
   message( STATUS "    CUDA_CUBLAS_LIBRARIES: CUDA::cublas" )
   message( STATUS "    CUDA_cusparse_LIBRARY: CUDA::cusparse" )
-else()
+elseif (MAGMA_ENABLE_HIP)
   message( STATUS "    HIP_LIBRARY:   hip::device"   )
   message( STATUS "    HIP_BLAS_LIBRARIES: roc::hipblas" )
   message( STATUS "    HIP_sparse_LIBRARY: roc::hipsparse" )
+else ()
+  message( STATUS "    SYCL_LIBRARY:   IntelSYCL::SYCL_CXX"   )
+  message( STATUS "    ONEMKL_LIBRARIES: MKL::MKL_DPCPP" )
 endif()
 message( STATUS "    Fortran modules:       ${modules}" )
