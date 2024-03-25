@@ -4,8 +4,8 @@
 -----------------------------------------------------
 
 MAGMA is intended for CUDA enabled NVIDIA GPUs and HIP enabled AMD GPUs.
-It supports NVIDIA's Kepler, Maxwell, Pascal, Volta, Turing, and Ampere GPUs,
-and AMD's HIP GPUs.
+It supports NVIDIA's Kepler, Maxwell, Pascal, Volta, Turing, Ampere, and Hopper
+GPUs, and AMD's HIP GPUs.
 
 Included are routines for the following algorithms:
 
@@ -25,7 +25,7 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
-2.8.0 - XXX XX, XXXX
+2.8.0 - Mar 25, 2024
     * New functionality: band LU factorization and solve
       - magma_{s,d,c,z}gbtrf_native computes the LU factorization of a band matrix
         using partial pivoting with row interchanges. This is equivalent to the
@@ -37,6 +37,15 @@ single (s), double (d), single-complex (c), double-complex (z).
         the batched and the stride-batched versions of GBTRF, respectively.
       - magma_{s,d,c,z}gbsv_batched and magma_{s,d,c,z}gbsv_batched_strided are
         the batched and the stride-batched versions of GBSV, respectively.
+    * Native Cholesky factorization, magma_{s,d,c,z}potrf_native, now supports uplo = MagmaUpper
+    * Bug fixes:
+      - Batch QR factorization: fix numerical behavior for some corner cases
+      - Variable-size batch GEMM: fix numerical behavior when k = 0 and beta != 1
+      - GESV: fix failures for very large matrices (beyond 46k)
+      - Batch GESV: fix failure when the number of right hand sides is larger than 1024
+      - Fix compilation for rocm-6
+      - Multi-GPU syevd: fix failures on very large matrices
+      - Multi-GPU potrf: fix failures on 4 or more GPUs
 
 2.7.2 - Aug 25, 2023
     * Add expert interfaces for LU, QR, and Cholesky factorizations
