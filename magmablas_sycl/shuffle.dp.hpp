@@ -6,127 +6,73 @@
 #include "magma_internal.h"
 
 #define SHFL_FULL_MASK 0xffffffff
+#define DEFAULT_WIDTH  32
+typedef unsigned shfl_mask_t;
 
-// cuda 9.0 supports double precision shuffle
-// but it is slower than the split by 32
-// enable this flag to use the cuda version
-//#define USE_CUDA_DP_SHFL
 /******************************************************************************/
 /**                       SHUFFLE BY INDEX                                   **/
 /******************************************************************************/
 static inline int magmablas_ishfl(int var, int srcLane,
-                                  sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
+                                  const sycl::nd_item<3> &item_ct1, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
      /*
-     DPCT1023:253: The DPC++ sub-group does not support mask options for
-     dpct::select_from_sub_group.
+     DPCT1108:131: '__shfl_sync' was migrated with the experimental feature
+     masked sub_group function which may not be supported by all compilers or
+     runtimes. You may need to adjust the code.
      */
-     return dpct::select_from_sub_group(item_ct1.get_sub_group(), var, srcLane,
-                                        width);
+     return dpct::experimental::select_from_sub_group(
+         mask, item_ct1.get_sub_group(), var, srcLane, width);
 }
 
 
 /******************************************************************************/
 static inline float magmablas_sshfl(float var, int srcLane,
-                                    sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
+                                    const sycl::nd_item<3> &item_ct1, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
      /*
-     DPCT1023:254: The DPC++ sub-group does not support mask options for
-     dpct::select_from_sub_group.
+     DPCT1108:132: '__shfl_sync' was migrated with the experimental feature
+     masked sub_group function which may not be supported by all compilers or
+     runtimes. You may need to adjust the code.
      */
-     return dpct::select_from_sub_group(item_ct1.get_sub_group(), var, srcLane,
-                                        width);
+     return dpct::experimental::select_from_sub_group(
+         mask, item_ct1.get_sub_group(), var, srcLane, width);
 }
 
 
 /******************************************************************************/
 static inline double magmablas_dshfl(double var, int srcLane,
-                                     sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
+                                     const sycl::nd_item<3> &item_ct1, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
-// TODO!
-// Version without mask still uses device assembly code, cannot just 
-// use select_from_sub_group
-
-//#if DPCT_COMPATIBILITY_TEMP >= 300
-//#if __CUDACC_VER_MAJOR__ < 9 || defined(MAGMA_HAVE_HIP)
-//    // Split the double number into 2 32b registers.
-//    int lo, hi;
-//    asm volatile("mov.b64 {%0,%1}, %2;" : "=r"(lo), "=r"(hi):"d"(var));
-//    // Shuffle the two 32b registers.
-//    lo = __shfl(lo, srcLane, width);
-//    hi = __shfl(hi, srcLane, width);
-//    // Recreate the 64b number.
-//    asm volatile("mov.b64 %0, {%1,%2};" : "=d"(var) : "r"(lo), "r"(hi));
-//    return var;
-//#else
-//    #ifdef USE_CUDA_DP_SHFL
-//    return __shfl_sync(mask, var, srcLane, width);
-//    #else
-//    // Split the double number into 2 32b registers.
-//    int lo, hi;
-//    /*
-//    DPCT1053:255: Migration of device assembly code is not supported.
-//    */
-//    asm volatile("mov.b64 {%0,%1}, %2;" : "=r"(lo), "=r"(hi) : "d"(var));
-//    // Shuffle the two 32b registers.
-//    /*
-//    DPCT1023:257: The DPC++ sub-group does not support mask options for
-//    dpct::select_from_sub_group.
-//    */
-//    /*
-//    DPCT1096:1664: The right-most dimension of the work-group used in the SYCL
-//    kernel that calls this function may be less than "32". The function
-//    "dpct::select_from_sub_group" may return an unexpected result on the CPU
-//    device. Modify the size of the work-group to ensure that the value of the
-//    right-most dimension is a multiple of "32".
-//    */
-//    lo = dpct::select_from_sub_group(item_ct1.get_sub_group(), lo, srcLane,
-//                                     width);
-//    /*
-//    DPCT1023:258: The DPC++ sub-group does not support mask options for
-//    dpct::select_from_sub_group.
-//    */
-//    /*
-//    DPCT1096:1665: The right-most dimension of the work-group used in the SYCL
-//    kernel that calls this function may be less than "32". The function
-//    "dpct::select_from_sub_group" may return an unexpected result on the CPU
-//    device. Modify the size of the work-group to ensure that the value of the
-//    right-most dimension is a multiple of "32".
-//    */
-//    hi = dpct::select_from_sub_group(item_ct1.get_sub_group(), hi, srcLane,
-//                                     width);
-//    // Recreate the 64b number.
-//    /*
-//    DPCT1053:256: Migration of device assembly code is not supported.
-//    */
-//    asm volatile("mov.b64 %0, {%1,%2};" : "=d"(var) : "r"(lo), "r"(hi));
-//    return var;
-//    #endif
-//#endif
-//#else    // pre-Kepler GPUs
-return MAGMA_D_ZERO;
-//#endif
+     /*
+     DPCT1108:132: '__shfl_sync' was migrated with the experimental feature
+     masked sub_group function which may not be supported by all compilers or
+     runtimes. You may need to adjust the code.
+     */
+     return dpct::experimental::select_from_sub_group(
+         mask, item_ct1.get_sub_group(), var, srcLane, width);
 }
 
 
 /******************************************************************************/
 static inline magmaFloatComplex magmablas_cshfl(magmaFloatComplex var, int srcLane,
-                                                sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
+                                                const sycl::nd_item<3> &item_ct1, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
-    magmaFloatComplex r;
-    r = MAGMA_C_MAKE(magmablas_sshfl(var.real(), srcLane, item_ct1, width, mask),
-		            magmablas_sshfl(var.imag(), srcLane, item_ct1, width, mask));
+    float r_real, r_imag;
+    r_real = magmablas_sshfl(MAGMA_C_REAL(var), srcLane, item_ct1, width, mask);
+    r_imag = magmablas_sshfl(MAGMA_C_IMAG(var), srcLane, item_ct1, width, mask);
+    magmaFloatComplex r = MAGMA_C_MAKE(r_real, r_imag);
     return r;
 }
 
 
 /******************************************************************************/
 static inline magmaDoubleComplex magmablas_zshfl(magmaDoubleComplex var, int srcLane,
-                                                 sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
+                                                 const sycl::nd_item<3> &item_ct1, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
-    magmaDoubleComplex r;
-    r = MAGMA_Z_MAKE(magmablas_dshfl(var.real(), srcLane, item_ct1, width, mask),
-                     magmablas_dshfl(var.imag(), srcLane, item_ct1, width, mask));
+    double r_real, r_imag;
+    r_real = magmablas_dshfl(MAGMA_Z_REAL(var), srcLane, item_ct1, width, mask);
+    r_imag = magmablas_dshfl(MAGMA_Z_IMAG(var), srcLane, item_ct1, width, mask);
+    magmaDoubleComplex r = MAGMA_Z_MAKE(r_real, r_imag);
     return r;
 }
 
@@ -135,106 +81,68 @@ static inline magmaDoubleComplex magmablas_zshfl(magmaDoubleComplex var, int src
 /**                  SHUFFLE BY BITWISE XOR TO OWN LANE                      **/
 /******************************************************************************/
 static inline int magmablas_ishfl_xor(int var, int laneMask,
-                                      sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
+                                      const sycl::nd_item<3> &item_ct1, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
     /*
-    DPCT1023:259: The DPC++ sub-group does not support mask options for
-    dpct::permute_sub_group_by_xor.
+    DPCT1108:137: '__shfl_xor_sync' was migrated with the experimental feature
+    masked sub_group function which may not be supported by all compilers or
+    runtimes. You may need to adjust the code.
     */
-    return dpct::permute_sub_group_by_xor(item_ct1.get_sub_group(), var,
-                                          laneMask, width);
+    return dpct::experimental::permute_sub_group_by_xor(
+        mask, item_ct1.get_sub_group(), var, laneMask, width);
 }
 
 
 /******************************************************************************/
 static inline float magmablas_sshfl_xor(float var, int laneMask,
-                                        sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
+                                        const sycl::nd_item<3> &item_ct1, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
     /*
-    DPCT1023:260: The DPC++ sub-group does not support mask options for
-    dpct::permute_sub_group_by_xor.
+    DPCT1108:138: '__shfl_xor_sync' was migrated with the experimental feature
+    masked sub_group function which may not be supported by all compilers or
+    runtimes. You may need to adjust the code.
     */
-    return dpct::permute_sub_group_by_xor(item_ct1.get_sub_group(), var,
-                                          laneMask, width);
+    return dpct::experimental::permute_sub_group_by_xor(
+        mask, item_ct1.get_sub_group(), var, laneMask, width);
 }
 
 
 /******************************************************************************/
 static inline double magmablas_dshfl_xor(double var, int laneMask,
-                                         sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
+                                         const sycl::nd_item<3> &item_ct1, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
-
-// TODO!
-//  same problem as magmablas_dshfl above
-//#if DPCT_COMPATIBILITY_TEMP >= 300
-//#if __CUDACC_VER_MAJOR__ < 9 || defined(MAGMA_HAVE_HIP)
-//    // Split the double number into 2 32b registers.
-//    int lo, hi;
-//    asm volatile("mov.b64 {%0,%1}, %2;" : "=r"(lo), "=r"(hi):"d"(var));
-//    // Shuffle the two 32b registers.
-//    lo = __shfl_xor(lo, laneMask, width);
-//    hi = __shfl_xor(hi, laneMask, width);
-//    // Recreate the 64b number.
-//    asm volatile("mov.b64 %0, {%1,%2};" : "=d"(var) : "r"(lo), "r"(hi));
-//    return var;
-//#else
-//    #ifdef USE_CUDA_DP_SHFL
-//    return __shfl_xor_sync(mask, var, lanemask, width);
-//    #else
-//    // Split the double number into 2 32b registers.
-//    int lo, hi;
-//    /*
-//    DPCT1053:261: Migration of device assembly code is not supported.
-//    */
-//    asm volatile("mov.b64 {%0,%1}, %2;" : "=r"(lo), "=r"(hi) : "d"(var));
-//    // Shuffle the two 32b registers.
-//    /*
-//    DPCT1023:263: The DPC++ sub-group does not support mask options for
-//    dpct::permute_sub_group_by_xor.
-//    */
-//    lo = dpct::permute_sub_group_by_xor(item_ct1.get_sub_group(), lo, laneMask,
-//                                        width);
-//    /*
-//    DPCT1023:264: The DPC++ sub-group does not support mask options for
-//    dpct::permute_sub_group_by_xor.
-//    */
-//    hi = dpct::permute_sub_group_by_xor(item_ct1.get_sub_group(), hi, laneMask,
-//                                        width);
-//    // Recreate the 64b number.
-//    /*
-//    DPCT1053:262: Migration of device assembly code is not supported.
-//    */
-//    asm volatile("mov.b64 %0, {%1,%2};" : "=d"(var) : "r"(lo), "r"(hi));
-//    return var;
-//    #endif
-//#endif
-//#else    // pre-Kepler GPUs
-return MAGMA_D_ZERO;
-//#endif
+    /*
+    DPCT1108:138: '__shfl_xor_sync' was migrated with the experimental feature
+    masked sub_group function which may not be supported by all compilers or
+    runtimes. You may need to adjust the code.
+    */
+    return dpct::experimental::permute_sub_group_by_xor(
+        mask, item_ct1.get_sub_group(), var, laneMask, width);
 }
 
 
 /******************************************************************************/
 static inline magmaFloatComplex magmablas_cshfl_xor(magmaFloatComplex var, int laneMask,
-                                                    sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
+                                                    const sycl::nd_item<3> &item_ct1, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
-    magmaFloatComplex r;
-    r = MAGMA_C_MAKE(magmablas_sshfl_xor(var.real(), laneMask, item_ct1, width, mask),
-                     magmablas_sshfl_xor(var.imag(), laneMask, item_ct1, width, mask));
+    float r_real, r_imag;
+    r_real = magmablas_sshfl_xor(MAGMA_C_REAL(var), laneMask, item_ct1, width, mask);
+    r_imag = magmablas_sshfl_xor(MAGMA_C_IMAG(var), laneMask, item_ct1, width, mask);
+    magmaFloatComplex r = MAGMA_C_MAKE(r_real, r_imag);
     return r;
 }
 
 
 /******************************************************************************/
 static inline magmaDoubleComplex magmablas_zshfl_xor(magmaDoubleComplex var, int laneMask,
-                                                     sycl::nd_item<3> item_ct1, int width=32, unsigned mask=SHFL_FULL_MASK) 
+                                                     const sycl::nd_item<3> &item_ct1, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
-    magmaDoubleComplex r;
-    r = MAGMA_Z_MAKE(magmablas_dshfl_xor(var.real(), laneMask, item_ct1, width, mask),
-                     magmablas_dshfl_xor(var.imag(), laneMask, item_ct1, width, mask));
+    double r_real, r_imag;
+    r_real = magmablas_dshfl_xor(MAGMA_Z_REAL(var), laneMask, item_ct1, width, mask);
+    r_imag = magmablas_dshfl_xor(MAGMA_Z_IMAG(var), laneMask, item_ct1, width, mask);
+    magmaDoubleComplex r = MAGMA_Z_MAKE(r_real, r_imag);
     return r;
 }
 
-
-#endif    // ICL_MAGMA_SHUFFLE_CUH
+#endif    // ICL_MAGMA_SHUFFLE_DPCPP
 
