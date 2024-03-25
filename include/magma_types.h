@@ -144,8 +144,11 @@ typedef double real_Double_t;
     #define MKL_Complex8  std::complex<float>
     #define MKL_Complex16 std::complex<double>
 
-    #include <oneapi/mkl.hpp>
-    #include <dpct/blas_utils.hpp>
+    #include <oneapi/mkl/export.hpp>
+    #include <oneapi/mkl/types.hpp>
+    #include <oneapi/mkl/blas.hpp>
+    #include <oneapi/mkl/lapack.hpp>
+    #include <oneapi/mkl/spblas.hpp>
 
     #ifdef __cplusplus
     extern "C" {

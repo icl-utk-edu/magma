@@ -68,18 +68,13 @@ magma_zgemm_batched_core(
       int64_t m_ct3 = int(m), n_ct4 = int(n), k_ct5 = int(k),
               lda_ct6 = int(ldda), ldb_ct7 = int(lddb), ldc_ct8 = int(lddc),
               group_size_ct9 = int(batchCount);
-      std::complex<double> alpha_ct10 =
-                               dpct::get_value((BackendFloat_t *)&alpha,
-                                               *queue->syclblas_handle()),
-                           beta_ct11 = dpct::get_value((BackendFloat_t *)&beta,
-                                                       *queue->syclblas_handle());
       oneapi::mkl::blas::column_major::gemm_batch(
           *queue->syclblas_handle(), &transpose_ct1, &transpose_ct2, &m_ct3,
-          &n_ct4, &k_ct5, &alpha_ct10,
+          &n_ct4, &k_ct5, &alpha,
           (const std::complex<double> **)(const BackendFloat_t **)dA_array,
           &lda_ct6,
           (const std::complex<double> **)(const BackendFloat_t **)dB_array,
-          &ldb_ct7, &beta_ct11,
+          &ldb_ct7, &beta,
           (std::complex<double> **)(BackendFloat_t **)dC_array, &ldc_ct8, 1,
           &group_size_ct9, {});
         }
@@ -98,19 +93,13 @@ magma_zgemm_batched_core(
         int64_t m_ct14 = int(m), n_ct15 = int(n), k_ct16 = int(k),
                 lda_ct17 = int(ldda), ldb_ct18 = int(lddb),
                 ldc_ct19 = int(lddc), group_size_ct20 = int(batch);
-        std::complex<double> alpha_ct21 =
-                                 dpct::get_value((BackendFloat_t *)&alpha,
-                                                 *queue->syclblas_handle()),
-                             beta_ct22 =
-                                 dpct::get_value((BackendFloat_t *)&beta,
-                                                 *queue->syclblas_handle());
         oneapi::mkl::blas::column_major::gemm_batch(
             *queue->syclblas_handle(), &transpose_ct12, &transpose_ct13, &m_ct14,
-            &n_ct15, &k_ct16, &alpha_ct21,
+            &n_ct15, &k_ct16, &alpha,
             (const std::complex<double> **)(const BackendFloat_t **)dAarray,
             &lda_ct17,
             (const std::complex<double> **)(const BackendFloat_t **)dBarray,
-            &ldb_ct18, &beta_ct22,
+            &ldb_ct18, &beta,
             (std::complex<double> **)(BackendFloat_t **)dCarray, &ldc_ct19, 1,
             &group_size_ct20, {});
             }
