@@ -662,38 +662,21 @@ magma_zrotmg(
     double *param,
     magma_queue_t queue )
 {
-   double *d1_ct1 = d1;
-   double *d2_ct2 = d2;
-   double *x1_ct3 = x1;
-   double *param_ct4 = param;
-   if (sycl::get_pointer_type(d1, queue->sycl_stream()->get_context()) !=
-           sycl::usm::alloc::device &&
-       sycl::get_pointer_type(d1, queue->sycl_stream()->get_context()) !=
-           sycl::usm::alloc::shared) {
-     d1_ct1 = sycl::malloc_shared<double>(8, dpct::get_default_queue());
-     d2_ct2 = d1_ct1 + 1;
-     x1_ct3 = d1_ct1 + 2;
-     param_ct4 = d1_ct1 + 3;
-     *d1_ct1 = *d1;
-     *d2_ct2 = *d2;
-     *x1_ct3 = *x1;
+   // Copy y1 to the host, if necessary. In oneMKL 2023.2 and older, y1 must
+   // be a value on the host (or from a USM shared allocation). This is unlike
+   // cuBLAS, where y1 is a pointer and can be on host or device.
+   // In oneMKL 2024.0, y1 can be a pointer or a value, so this code may
+   // eventually be able to be dropped (mixing of host/device pointers
+   // works for USM version of rotmg, so host or device is OK).
+   double *y1_h;
+   if (sycl::get_pointer_type(y1, queue->sycl_stream()->get_context()) 
+		   == sycl::usm::alloc::device) { 
+     queue->sycl_stream()->memcpy((void *) y1_h, (void *) y1, sizeof(double)).wait();
+   } else {
+     *y1_h = *y1;
    }
    oneapi::mkl::blas::column_major::rotmg(
-       *queue->sycl_stream(), d1_ct1, d2_ct2, x1_ct3,
-       dpct::get_value(y1, *queue->sycl_stream()), param_ct4);
-   if (sycl::get_pointer_type(d1, queue->sycl_stream()->get_context()) !=
-           sycl::usm::alloc::device &&
-       sycl::get_pointer_type(d1, queue->sycl_stream()->get_context()) !=
-           sycl::usm::alloc::shared) {
-     queue->sycl_stream()->wait();
-     *d1 = *d1_ct1;
-     *d2 = *d2_ct2;
-     *x1 = *x1_ct3;
-     dpct::get_default_queue()
-         .memcpy(param, param_ct4, sizeof(double) * 5)
-         .wait();
-     sycl::free(d1_ct1, dpct::get_default_queue());
-   }
+       *queue->sycl_stream(), d1, d2, x1, *y1_h, param).wait();
 }
 #endif // REAL
 

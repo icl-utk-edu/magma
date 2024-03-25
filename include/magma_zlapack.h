@@ -173,14 +173,6 @@ extern "C" {
 #define lapackf77_zstt21   FORTRAN_NAME( zstt21, ZSTT21 )
 #define lapackf77_zunt01   FORTRAN_NAME( zunt01, ZUNT01 )
 
-#ifndef LAPACK_EXCEPT
-  #if defined(MAGMA_HAVE_SYCL)
-      #define LAPACK_EXCEPT noexcept
-  #else
-      #define LAPACK_EXCEPT
-  #endif
-#endif
-
 /*
  * BLAS functions (alphabetical order)
  */
@@ -320,12 +312,12 @@ void blasf77_zrotg(  magmaDoubleComplex *ca, const magmaDoubleComplex *cb,
 void blasf77_zrot(   const magma_int_t *n,
                      magmaDoubleComplex *x, const magma_int_t *incx,
                      magmaDoubleComplex *y, const magma_int_t *incy,
-                     const double *c, const magmaDoubleComplex *s ) LAPACK_EXCEPT;
+                     const double *c, const magmaDoubleComplex *s );
 
 void blasf77_zdrot(  const magma_int_t *n,
                      magmaDoubleComplex *x, const magma_int_t *incx,
                      magmaDoubleComplex *y, const magma_int_t *incy,
-                     const double *c, const double *s ) LAPACK_EXCEPT;
+                     const double *c, const double *s );
 
 void blasf77_ztrmm(  const char *side, const char *uplo, const char *transa, const char *diag,
                      const magma_int_t *m, const magma_int_t *n,
@@ -385,7 +377,7 @@ void   lapackf77_dbdsdc( const char *uplo, const char *compq,
                          double *VT, const magma_int_t *ldvt,
                          double *Q, magma_int_t *IQ,
                          double *work, magma_int_t *iwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 #endif  // MAGMA_REAL
 
 void   lapackf77_zbdsqr( const char *uplo,
@@ -395,7 +387,7 @@ void   lapackf77_zbdsqr( const char *uplo,
                          magmaDoubleComplex *U, const magma_int_t *ldu,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
                          double *work,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgbtrf( const magma_int_t  *m,  const magma_int_t *n,
                          const magma_int_t  *kl, const magma_int_t *ku,
@@ -408,14 +400,14 @@ void   lapackf77_zgebak( const char *job, const char *side,
                          const magma_int_t *ilo, const magma_int_t *ihi,
                          const double *scale, const magma_int_t *m,
                          magmaDoubleComplex *V, const magma_int_t *ldv,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgebal( const char *job,
                          const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magma_int_t *ilo, magma_int_t *ihi,
                          double *scale,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgebd2( const magma_int_t *m, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
@@ -423,7 +415,7 @@ void   lapackf77_zgebd2( const magma_int_t *m, const magma_int_t *n,
                          magmaDoubleComplex *tauq,
                          magmaDoubleComplex *taup,
                          magmaDoubleComplex *work,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgebrd( const magma_int_t *m, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
@@ -431,7 +423,7 @@ void   lapackf77_zgebrd( const magma_int_t *m, const magma_int_t *n,
                          magmaDoubleComplex *tauq,
                          magmaDoubleComplex *taup,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgbbrd( const char *vect, const magma_int_t *m,
                          const magma_int_t *n, const magma_int_t *ncc,
@@ -445,7 +437,7 @@ void   lapackf77_zgbbrd( const char *vect, const magma_int_t *m,
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgbsv( const magma_int_t *n, 
                         const magma_int_t *kl, const magma_int_t *ku, 
@@ -453,7 +445,7 @@ void   lapackf77_zgbsv( const magma_int_t *n,
                         magmaDoubleComplex *ab, const magma_int_t *ldab, 
                         magma_int_t *ipiv, 
                         magmaDoubleComplex *B, const magma_int_t *ldb, 
-                        magma_int_t *info ) LAPACK_EXCEPT;
+                        magma_int_t *info );
 
 void   lapackf77_zgbtrs( const char *trans,
                          const magma_int_t *n,
@@ -478,40 +470,40 @@ void   lapackf77_zgeev(  const char *jobvl, const char *jobvr,
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgehd2( const magma_int_t *n,
                          const magma_int_t *ilo, const magma_int_t *ihi,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *tau,
                          magmaDoubleComplex *work,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgehrd( const magma_int_t *n,
                          const magma_int_t *ilo, const magma_int_t *ihi,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgelqf( const magma_int_t *m, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgels(  const char *trans,
                          const magma_int_t *m, const magma_int_t *n, const magma_int_t *nrhs,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *B, const magma_int_t *ldb,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgeqlf( const magma_int_t *m, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgeqp3( const magma_int_t *m, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
@@ -521,19 +513,19 @@ void   lapackf77_zgeqp3( const magma_int_t *m, const magma_int_t *n,
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgeqrf( const magma_int_t *m, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgerqf( const magma_int_t *m, const magma_int_t *n, 
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *tau, 
                          magmaDoubleComplex *work, const magma_int_t *lwork, 
-                         magma_int_t *info) LAPACK_EXCEPT;
+                         magma_int_t *info);
 
 void   lapackf77_zgesdd( const char *jobz,
                          const magma_int_t *m, const magma_int_t *n,
@@ -546,13 +538,13 @@ void   lapackf77_zgesdd( const char *jobz,
                          double *rwork,
                          #endif
                          magma_int_t *iwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgesv(  const magma_int_t *n, const magma_int_t *nrhs,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magma_int_t *ipiv,
                          magmaDoubleComplex *B,  const magma_int_t *ldb,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgesvd( const char *jobu, const char *jobvt,
                          const magma_int_t *m, const magma_int_t *n,
@@ -564,25 +556,25 @@ void   lapackf77_zgesvd( const char *jobu, const char *jobvt,
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgetrf( const magma_int_t *m, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magma_int_t *ipiv,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgetri( const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          const magma_int_t *ipiv,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgetrs( const char *trans,
                          const magma_int_t *n, const magma_int_t *nrhs,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
                          const magma_int_t *ipiv,
                          magmaDoubleComplex *B, const magma_int_t *ldb,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zgglse( const magma_int_t *m, const magma_int_t *n, const magma_int_t *p,
                          magmaDoubleComplex *A, const magma_int_t *lda,
@@ -590,26 +582,26 @@ void   lapackf77_zgglse( const magma_int_t *m, const magma_int_t *n, const magma
                          magmaDoubleComplex *c, magmaDoubleComplex *d, 
                          magmaDoubleComplex *x,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info) LAPACK_EXCEPT;
+                         magma_int_t *info);
 
 void   lapackf77_zggrqf( const magma_int_t *m, const magma_int_t *p, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *tauA, magmaDoubleComplex *B,
                          const magma_int_t *ldb, magmaDoubleComplex *tauB,
                          magmaDoubleComplex *work, const magma_int_t *lwork, 
-                         magma_int_t *info) LAPACK_EXCEPT;
+                         magma_int_t *info);
 
 void   lapackf77_zhetf2( const char *uplo, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magma_int_t *ipiv,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zhetrs( const char *uplo,
                          const magma_int_t *n, const magma_int_t *nrhs,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
                          const magma_int_t *ipiv,
                          magmaDoubleComplex *B, const magma_int_t *ldb,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zhbtrd( const char *vect, const char *uplo,
                          const magma_int_t *n, const magma_int_t *kd,
@@ -617,7 +609,7 @@ void   lapackf77_zhbtrd( const char *vect, const char *uplo,
                          double *d, double *e,
                          magmaDoubleComplex *Q, const magma_int_t *ldq,
                          magmaDoubleComplex *work,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zheev(  const char *jobz, const char *uplo,
                          const magma_int_t *n,
@@ -627,7 +619,7 @@ void   lapackf77_zheev(  const char *jobz, const char *uplo,
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zheevd( const char *jobz, const char *uplo,
                          const magma_int_t *n,
@@ -638,7 +630,7 @@ void   lapackf77_zheevd( const char *jobz, const char *uplo,
                          double *rwork, const magma_int_t *lrwork,
                          #endif
                          magma_int_t *iwork, const magma_int_t *liwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zheevr( const char *jobz, const char *range, const char *uplo,
                          const magma_int_t *n,
@@ -654,7 +646,7 @@ void   lapackf77_zheevr( const char *jobz, const char *range, const char *uplo,
                          double *rwork, const magma_int_t *lrwork,
                          #endif
                          magma_int_t *iwork, const magma_int_t *liwork,
-                         magma_int_t *info) LAPACK_EXCEPT;
+                         magma_int_t *info);
 
 void   lapackf77_zheevx( const char *jobz, const char *range, const char *uplo,
                          const magma_int_t *n,
@@ -669,7 +661,7 @@ void   lapackf77_zheevx( const char *jobz, const char *range, const char *uplo,
                          double *rwork,
                          #endif
                          magma_int_t *iwork, magma_int_t *ifail,
-                         magma_int_t *info) LAPACK_EXCEPT;
+                         magma_int_t *info);
 
 void   lapackf77_zhegs2( const magma_int_t *itype, const char *uplo,
                          const magma_int_t *n,
@@ -678,7 +670,7 @@ void   lapackf77_zhegs2( const magma_int_t *itype, const char *uplo,
                          const
                          #endif
                          magmaDoubleComplex *B, const magma_int_t *ldb,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zhegst( const magma_int_t *itype, const char *uplo,
                          const magma_int_t *n,
@@ -687,7 +679,7 @@ void   lapackf77_zhegst( const magma_int_t *itype, const char *uplo,
                          const
                          #endif
                          magmaDoubleComplex *B, const magma_int_t *ldb,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zhegvd( const magma_int_t *itype, const char *jobz, const char *uplo,
                          const magma_int_t *n,
@@ -699,21 +691,21 @@ void   lapackf77_zhegvd( const magma_int_t *itype, const char *jobz, const char 
                          double *rwork, const magma_int_t *lrwork,
                          #endif
                          magma_int_t *iwork, const magma_int_t *liwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zhesv( const char *uplo,
                         const magma_int_t *n, const magma_int_t *nrhs,
                         magmaDoubleComplex *A, const magma_int_t *lda, magma_int_t *ipiv,
                         magmaDoubleComplex *B, const magma_int_t *ldb,
                         magmaDoubleComplex *work, const magma_int_t *lwork,
-                        magma_int_t *info ) LAPACK_EXCEPT;
+                        magma_int_t *info );
 
 void   lapackf77_zhetd2( const char *uplo,
                          const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          double *d, double *e,
                          magmaDoubleComplex *tau,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zhetrd( const char *uplo,
                          const magma_int_t *n,
@@ -721,14 +713,14 @@ void   lapackf77_zhetrd( const char *uplo,
                          double *d, double *e,
                          magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zhetrf( const char *uplo,
                          const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magma_int_t *ipiv,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zhseqr( const char *job, const char *compz,
                          const magma_int_t *n,
@@ -741,7 +733,7 @@ void   lapackf77_zhseqr( const char *job, const char *compz,
                          #endif
                          magmaDoubleComplex *Z, const magma_int_t *ldz,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zlabrd( const magma_int_t *m, const magma_int_t *n, const magma_int_t *nb,
                          magmaDoubleComplex *A, const magma_int_t *lda,
@@ -749,41 +741,41 @@ void   lapackf77_zlabrd( const magma_int_t *m, const magma_int_t *n, const magma
                          magmaDoubleComplex *tauq,
                          magmaDoubleComplex *taup,
                          magmaDoubleComplex *X, const magma_int_t *ldx,
-                         magmaDoubleComplex *Y, const magma_int_t *ldy ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *Y, const magma_int_t *ldy );
 
 #ifdef MAGMA_COMPLEX
 void   lapackf77_zlacgv( const magma_int_t *n,
-                         magmaDoubleComplex *x, const magma_int_t *incx ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *x, const magma_int_t *incx );
 #endif
 
 #ifdef MAGMA_COMPLEX
 void   lapackf77_zlacp2( const char *uplo,
                          const magma_int_t *m, const magma_int_t *n,
                          const double *A, const magma_int_t *lda,
-                         magmaDoubleComplex *B, const magma_int_t *ldb ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *B, const magma_int_t *ldb );
 #endif
 
 void   lapackf77_zlacpy( const char *uplo,
                          const magma_int_t *m, const magma_int_t *n,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
-                         magmaDoubleComplex *B, const magma_int_t *ldb ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *B, const magma_int_t *ldb );
 
 #ifdef MAGMA_COMPLEX
 void   lapackf77_zlacrm( const magma_int_t *m, const magma_int_t *n,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
                          const double             *B, const magma_int_t *ldb,
                          magmaDoubleComplex       *C, const magma_int_t *ldc,
-                         double *rwork ) LAPACK_EXCEPT;
+                         double *rwork );
 #endif
 
 #ifdef MAGMA_COMPLEX
 void   lapackf77_zladiv( magmaDoubleComplex *ret_val,
                          const magmaDoubleComplex *x,
-                         const magmaDoubleComplex *y ) LAPACK_EXCEPT;
+                         const magmaDoubleComplex *y );
 #else // MAGMA_REAL
 void   lapackf77_zladiv( const double *a, const double *b,
                          const double *c, const double *d,
-                         double *p, double *q ) LAPACK_EXCEPT;
+                         double *p, double *q );
 #endif
 
 void   lapackf77_zlahef( const char *uplo,
@@ -792,7 +784,7 @@ void   lapackf77_zlahef( const char *uplo,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magma_int_t *ipiv,
                          magmaDoubleComplex *work, const magma_int_t *ldwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 double lapackf77_zlangb( const char *norm,
                          const magma_int_t *n, const magma_int_t *kl, const magma_int_t *ku,
@@ -802,79 +794,79 @@ double lapackf77_zlangb( const char *norm,
 double lapackf77_zlange( const char *norm,
                          const magma_int_t *m, const magma_int_t *n,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
-                         double *work ) LAPACK_EXCEPT;
+                         double *work );
 
 double lapackf77_zlanhe( const char *norm, const char *uplo,
                          const magma_int_t *n,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
-                         double *work ) LAPACK_EXCEPT;
+                         double *work );
 
 double lapackf77_zlanht( const char *norm, const magma_int_t *n,
-                         const double *d, const magmaDoubleComplex *e ) LAPACK_EXCEPT;
+                         const double *d, const magmaDoubleComplex *e );
 
 double lapackf77_zlansy( const char *norm, const char *uplo,
                          const magma_int_t *n,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
-                         double *work ) LAPACK_EXCEPT;
+                         double *work );
 
 double lapackf77_zlantr( const char *norm, const char *uplo, const char *diag,
                          const magma_int_t *m, const magma_int_t *n,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
-                         double *work ) LAPACK_EXCEPT;
+                         double *work );
 
 void   lapackf77_zlaqp2( const magma_int_t *m, const magma_int_t *n, const magma_int_t *offset,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magma_int_t *jpvt,
                          magmaDoubleComplex *tau,
                          double *vn1, double *vn2,
-                         magmaDoubleComplex *work ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *work );
 
 #ifdef MAGMA_COMPLEX
 void   lapackf77_zlarcm( const magma_int_t *m, const magma_int_t *n,
                          const double             *A, const magma_int_t *lda,
                          const magmaDoubleComplex *B, const magma_int_t *ldb,
                          magmaDoubleComplex       *C, const magma_int_t *ldc,
-                         double *rwork ) LAPACK_EXCEPT;
+                         double *rwork );
 #endif
 
 void   lapackf77_zlarf(  const char *side, const magma_int_t *m, const magma_int_t *n,
                          const magmaDoubleComplex *v, const magma_int_t *incv,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
-                         magmaDoubleComplex *work ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *work );
 
 void   lapackf77_zlarfb( const char *side, const char *trans, const char *direct, const char *storev,
                          const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
                          const magmaDoubleComplex *V, const magma_int_t *ldv,
                          const magmaDoubleComplex *T, const magma_int_t *ldt,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
-                         magmaDoubleComplex *work, const magma_int_t *ldwork ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *work, const magma_int_t *ldwork );
 
 void   lapackf77_zlarfg( const magma_int_t *n,
                          magmaDoubleComplex *alpha,
                          magmaDoubleComplex *x, const magma_int_t *incx,
-                         magmaDoubleComplex *tau ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *tau );
 
 void   lapackf77_zlarft( const char *direct, const char *storev,
                          const magma_int_t *n, const magma_int_t *k,
                          const magmaDoubleComplex *V, const magma_int_t *ldv,
                          const magmaDoubleComplex *tau,
-                         magmaDoubleComplex *T, const magma_int_t *ldt ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *T, const magma_int_t *ldt );
 
 void   lapackf77_zlarfx( const char *side, const magma_int_t *m, const magma_int_t *n,
                          const magmaDoubleComplex *V,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
-                         magmaDoubleComplex *work ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *work );
 
 void   lapackf77_zlarnv( const magma_int_t *idist, magma_int_t *iseed, const magma_int_t *n,
-                         magmaDoubleComplex *x ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *x );
 
 void   lapackf77_zlartg( const magmaDoubleComplex *f,
                          const magmaDoubleComplex *g,
                          double *cs,
                          magmaDoubleComplex *sn,
-                         magmaDoubleComplex *r ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *r );
 
 void   lapackf77_zlascl( const char *type,
                          const magma_int_t *kl, const magma_int_t *ku,
@@ -882,26 +874,26 @@ void   lapackf77_zlascl( const char *type,
                          const double *cto,
                          const magma_int_t *m, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zlaset( const char *uplo,
                          const magma_int_t *m, const magma_int_t *n,
                          const magmaDoubleComplex *alpha,
                          const magmaDoubleComplex *beta,
-                         magmaDoubleComplex *A, const magma_int_t *lda ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *A, const magma_int_t *lda );
 
 void   lapackf77_zlaswp( const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          const magma_int_t *k1, const magma_int_t *k2,
                          const magma_int_t *ipiv,
-                         const magma_int_t *incx ) LAPACK_EXCEPT;
+                         const magma_int_t *incx );
 
 void   lapackf77_zlatrd( const char *uplo,
                          const magma_int_t *n, const magma_int_t *nb,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          double *e,
                          magmaDoubleComplex *tau,
-                         magmaDoubleComplex *work, const magma_int_t *ldwork ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *work, const magma_int_t *ldwork );
 
 void   lapackf77_zlatrs( const char *uplo, const char *trans, const char *diag,
                          const char *normin,
@@ -909,41 +901,41 @@ void   lapackf77_zlatrs( const char *uplo, const char *trans, const char *diag,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *x, double *scale,
                          double *cnorm,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zlauum( const char *uplo,
                          const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zlavhe( const char *uplo, const char *trans, const char *diag,
                          magma_int_t *n, magma_int_t *nrhs,
                          magmaDoubleComplex *A, magma_int_t *lda,
                          magma_int_t *ipiv,
                          magmaDoubleComplex *B, magma_int_t *ldb,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zposv(  const char *uplo,
                          const magma_int_t *n, const magma_int_t *nrhs,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *B,  const magma_int_t *ldb,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zpotrf( const char *uplo,
                          const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zpotri( const char *uplo,
                          const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zpotrs( const char *uplo,
                          const magma_int_t *n, const magma_int_t *nrhs,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *B, const magma_int_t *ldb,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zstedc( const char *compz,
                          const magma_int_t *n,
@@ -954,7 +946,7 @@ void   lapackf77_zstedc( const char *compz,
                          double *rwork, const magma_int_t *lrwork,
                          #endif
                          magma_int_t *iwork, const magma_int_t *liwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zstein( const magma_int_t *n,
                          const double *d, const double *e,
@@ -964,7 +956,7 @@ void   lapackf77_zstein( const magma_int_t *n,
                          const magma_int_t *isplit,
                          magmaDoubleComplex *Z, const magma_int_t *ldz,
                          double *work, magma_int_t *iwork, magma_int_t *ifailv,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zstemr( const char *jobz, const char *range,
                          const magma_int_t *n,
@@ -977,14 +969,14 @@ void   lapackf77_zstemr( const char *jobz, const char *range,
                          const magma_int_t *nzc, magma_int_t *isuppz, magma_int_t *tryrac,
                          double *work, const magma_int_t *lwork,
                          magma_int_t *iwork, const magma_int_t *liwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zsteqr( const char *compz,
                          const magma_int_t *n,
                          double *d, double *e,
                          magmaDoubleComplex *Z, const magma_int_t *ldz,
                          double *work,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 #ifdef MAGMA_COMPLEX
 void   lapackf77_zsymv(  const char *uplo,
@@ -993,20 +985,20 @@ void   lapackf77_zsymv(  const char *uplo,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
                          const magmaDoubleComplex *x, const magma_int_t *incx,
                          const magmaDoubleComplex *beta,
-                               magmaDoubleComplex *y, const magma_int_t *incy ) LAPACK_EXCEPT;
+                               magmaDoubleComplex *y, const magma_int_t *incy );
 
 void   lapackf77_zsyr(   const char *uplo,
                          const magma_int_t *n,
                          const magmaDoubleComplex *alpha,
                          const magmaDoubleComplex *x, const magma_int_t *incx,
-                               magmaDoubleComplex *A, const magma_int_t *lda ) LAPACK_EXCEPT;
+                               magmaDoubleComplex *A, const magma_int_t *lda );
 
 void   lapackf77_zsysv(  const char *uplo,
                          const magma_int_t *n, const magma_int_t *nrhs,
                          magmaDoubleComplex *A, const magma_int_t *lda, magma_int_t *ipiv,
                          magmaDoubleComplex *B, const magma_int_t *ldb,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 #endif  // MAGMA_COMPLEX
 
@@ -1028,7 +1020,7 @@ void   lapackf77_ztrevc( const char *side, const char *howmny,
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_ztrevc3( const char *side, const char *howmny,
                           #ifdef MAGMA_COMPLEX
@@ -1047,57 +1039,57 @@ void   lapackf77_ztrevc3( const char *side, const char *howmny,
                           #ifdef MAGMA_COMPLEX
                           double *rwork, const magma_int_t *lrwork,
                           #endif
-                          magma_int_t *info ) LAPACK_EXCEPT;
+                          magma_int_t *info );
 
 void   lapackf77_ztrtri( const char *uplo, const char *diag,
                          const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zung2r( const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *work,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zungbr( const char *vect,
                          const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zunghr( const magma_int_t *n,
                          const magma_int_t *ilo, const magma_int_t *ihi,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zunglq( const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zungql( const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zungqr( const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zungtr( const char *uplo,
                          const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zunm2r( const char *side, const char *trans,
                          const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
@@ -1105,7 +1097,7 @@ void   lapackf77_zunm2r( const char *side, const char *trans,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
                          magmaDoubleComplex *work,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zunmbr( const char *vect, const char *side, const char *trans,
                          const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
@@ -1113,7 +1105,7 @@ void   lapackf77_zunmbr( const char *vect, const char *side, const char *trans,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zunmlq( const char *side, const char *trans,
                          const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
@@ -1121,7 +1113,7 @@ void   lapackf77_zunmlq( const char *side, const char *trans,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zunmql( const char *side, const char *trans,
                          const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
@@ -1129,7 +1121,7 @@ void   lapackf77_zunmql( const char *side, const char *trans,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zunmqr( const char *side, const char *trans,
                          const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
@@ -1137,7 +1129,7 @@ void   lapackf77_zunmqr( const char *side, const char *trans,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zunmrq( const char *side, const char *trans, 
                          const magma_int_t *m, const magma_int_t *n, const magma_int_t *k, 
@@ -1145,7 +1137,7 @@ void   lapackf77_zunmrq( const char *side, const char *trans,
                          const magmaDoubleComplex *tau, 
                          magmaDoubleComplex *C, const magma_int_t *ldc,
                          magmaDoubleComplex *work, const magma_int_t *lwork, 
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_zunmtr( const char *side, const char *uplo, const char *trans,
                          const magma_int_t *m, const magma_int_t *n,
@@ -1153,7 +1145,7 @@ void   lapackf77_zunmtr( const char *side, const char *uplo, const char *trans,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 /*
  * Real precision extras
@@ -1169,7 +1161,7 @@ void   lapackf77_dstebz( const char *range, const char *order,
                          magma_int_t *iblock, magma_int_t *isplit,
                          double *work,
                          magma_int_t *iwork,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_dlaln2( const magma_int_t *ltrans,
                          const magma_int_t *na, const magma_int_t *nw,
@@ -1180,16 +1172,16 @@ void   lapackf77_dlaln2( const magma_int_t *ltrans,
                          const double *wr, const double *wi,
                          double *x, const magma_int_t *ldx,
                          double *scale, double *xnorm,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
-double lapackf77_dlamc3( const double *a, const double *b ) LAPACK_EXCEPT;
+double lapackf77_dlamc3( const double *a, const double *b );
 
 void   lapackf77_dlamrg( const magma_int_t *n1, const magma_int_t *n2,
                          const double *a,
                          const magma_int_t *dtrd1, const magma_int_t *dtrd2,
-                         magma_int_t *index ) LAPACK_EXCEPT;
+                         magma_int_t *index );
 
-double lapackf77_dlapy3( const double *x, const double *y, const double *z ) LAPACK_EXCEPT;
+double lapackf77_dlapy3( const double *x, const double *y, const double *z );
 
 void   lapackf77_dlaed2( magma_int_t *k, const magma_int_t *n, const magma_int_t *n1,
                          double *d,
@@ -1199,7 +1191,7 @@ void   lapackf77_dlaed2( magma_int_t *k, const magma_int_t *n, const magma_int_t
                          double *dlamda, double *w, double *q2,
                          magma_int_t *indx, magma_int_t *indxc, magma_int_t *indxp,
                          magma_int_t *coltyp,
-                         magma_int_t *info) LAPACK_EXCEPT;
+                         magma_int_t *info);
 
 void   lapackf77_dlaed4( const magma_int_t *n, const magma_int_t *i,
                          const double *d,
@@ -1207,10 +1199,10 @@ void   lapackf77_dlaed4( const magma_int_t *n, const magma_int_t *i,
                          double *delta,
                          const double *rho,
                          double *dlam,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 void   lapackf77_dlasrt( const char *id, const magma_int_t *n, double *d,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 /*
  * Testing functions
@@ -1224,7 +1216,7 @@ void   lapackf77_zbdt01( const magma_int_t *m, const magma_int_t *n, const magma
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         double *resid ) LAPACK_EXCEPT;
+                         double *resid );
 
 void   lapackf77_zget22( const char *transa, const char *transe, const char *transw, const magma_int_t *n,
                          magmaDoubleComplex *A, const magma_int_t *lda,
@@ -1239,7 +1231,7 @@ void   lapackf77_zget22( const char *transa, const char *transe, const char *tra
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         double *result ) LAPACK_EXCEPT;
+                         double *result );
 
 void   lapackf77_zhet21( const magma_int_t *itype, const char *uplo,
                          const magma_int_t *n, const magma_int_t *kband,
@@ -1252,7 +1244,7 @@ void   lapackf77_zhet21( const magma_int_t *itype, const char *uplo,
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         double *result ) LAPACK_EXCEPT;
+                         double *result );
 
 void   lapackf77_zhet22( const magma_int_t *itype, const char *uplo,
                          const magma_int_t *n, const magma_int_t *m, const magma_int_t *kband,
@@ -1265,7 +1257,7 @@ void   lapackf77_zhet22( const magma_int_t *itype, const char *uplo,
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         double *result ) LAPACK_EXCEPT;
+                         double *result );
 
 void   lapackf77_zhst01( const magma_int_t *n, const magma_int_t *ilo, const magma_int_t *ihi,
                          magmaDoubleComplex *A, const magma_int_t *lda,
@@ -1275,7 +1267,7 @@ void   lapackf77_zhst01( const magma_int_t *n, const magma_int_t *ilo, const mag
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         double *result ) LAPACK_EXCEPT;
+                         double *result );
 
 void   lapackf77_zstt21( const magma_int_t *n, const magma_int_t *kband,
                          double *AD,
@@ -1287,7 +1279,7 @@ void   lapackf77_zstt21( const magma_int_t *n, const magma_int_t *kband,
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         double *result ) LAPACK_EXCEPT;
+                         double *result );
 
 void   lapackf77_zunt01( const char *rowcol, const magma_int_t *m, const magma_int_t *n,
                          magmaDoubleComplex *U, const magma_int_t *ldu,
@@ -1295,19 +1287,19 @@ void   lapackf77_zunt01( const char *rowcol, const magma_int_t *m, const magma_i
                          #ifdef MAGMA_COMPLEX
                          double *rwork,
                          #endif
-                         double *resid ) LAPACK_EXCEPT;
+                         double *resid );
 
 void   lapackf77_zlarfy( const char *uplo, const magma_int_t *n,
                          const magmaDoubleComplex *V, const magma_int_t *incv,
                          const magmaDoubleComplex *tau,
                          magmaDoubleComplex *C, const magma_int_t *ldc,
-                         magmaDoubleComplex *work ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *work );
 
 double lapackf77_zqpt01( const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
                          magmaDoubleComplex *A,
                          magmaDoubleComplex *Af, const magma_int_t *lda,
                          magmaDoubleComplex *tau, magma_int_t *jpvt,
-                         magmaDoubleComplex *work, const magma_int_t *lwork ) LAPACK_EXCEPT;
+                         magmaDoubleComplex *work, const magma_int_t *lwork );
 
 void   lapackf77_zqrt02( const magma_int_t *m, const magma_int_t *n, const magma_int_t *k,
                          magmaDoubleComplex *A,
@@ -1317,7 +1309,7 @@ void   lapackf77_zqrt02( const magma_int_t *m, const magma_int_t *n, const magma
                          magmaDoubleComplex *tau,
                          magmaDoubleComplex *work, const magma_int_t *lwork,
                          double *rwork,
-                         double *result ) LAPACK_EXCEPT;
+                         double *result );
 
 void   lapackf77_zlatms( const magma_int_t *m, const magma_int_t *n,
                          const char *dist, magma_int_t *iseed, const char *sym,
@@ -1327,7 +1319,7 @@ void   lapackf77_zlatms( const magma_int_t *m, const magma_int_t *n,
                          const magma_int_t *kl, const magma_int_t *ku, const char *pack,
                          magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *work,
-                         magma_int_t *info ) LAPACK_EXCEPT;
+                         magma_int_t *info );
 
 #ifdef __cplusplus
 }
