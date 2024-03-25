@@ -108,6 +108,5 @@ magma_hgemmx(
           *queue->sycl_stream(), syclblas_trans_const(transA),
           syclblas_trans_const(transB), int(m), int(n), int(k), alpha,
           (sycl::half *)dA, int(ldda), (sycl::half *)dB, int(lddb),
-          dpct::get_value((float *)&beta, *queue->sycl_stream()),
-          (float *)dC, int(lddc));
+          beta, (float *)dC, int(lddc));
 }
