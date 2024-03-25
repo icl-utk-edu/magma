@@ -14,6 +14,7 @@
 #include "magmasparse_internal.h"
 #undef max
 
+#define DEFAULT_WIDTH 32
 namespace magma_sampleselect {
 
 constexpr int32_t sample_size_log2 = 10;
@@ -140,11 +141,8 @@ inline int32_t warp_aggr_atomic_count_mask(int32_t* atomic, uint32_t amask, uint
                                    sycl::access::address_space::generic_space>(
           atomic, sycl::popcount(mask));
     }
-    /*
-    DPCT1023:52: The DPC++ sub-group does not support mask options for
-    dpct::select_from_sub_group.
-    */
-    ofs = dpct::select_from_sub_group(item_ct1.get_sub_group(), ofs, 0);
+    ofs = dpct::experimental::select_from_sub_group(amask, item_ct1.get_sub_group(), ofs, 0,
+		                                    DEFAULT_WIDTH);
     auto local_ofs = prefix_popc(mask, lane_idx);
     return ofs + local_ofs;
 }
@@ -169,20 +167,12 @@ inline void store_packed_bytes(uint32_t* output, uint32_t amask, uint32_t byte, 
     // pack 4 consecutive bytes into an integer
     uint32_t result = byte;
     // ------00 -> ----1100
-    /*
-    DPCT1023:53: The DPC++ sub-group does not support mask options for
-    dpct::permute_sub_group_by_xor.
-    */
     result |=
-        dpct::permute_sub_group_by_xor(item_ct1.get_sub_group(), result, 1, 4)
+        dpct::experimental::permute_sub_group_by_xor(amask, item_ct1.get_sub_group(), result, 1, 4)
         << 8;
     // ----1100 -> 33221100
-    /*
-    DPCT1023:54: The DPC++ sub-group does not support mask options for
-    dpct::permute_sub_group_by_xor.
-    */
     result |=
-        dpct::permute_sub_group_by_xor(item_ct1.get_sub_group(), result, 2, 4)
+        dpct::experimental::permute_sub_group_by_xor(amask, item_ct1.get_sub_group(), result, 2, 4)
         << 16;
     if (idx % 4 == 0) {
         output[idx / 4] = result;
@@ -199,12 +189,8 @@ inline uint32_t load_packed_bytes(const uint32_t* input, uint32_t amask, int32_t
         packed = input[pack_idx];
     }
     // distribute the data onto all threads
-    /*
-    DPCT1023:55: The DPC++ sub-group does not support mask options for
-    dpct::select_from_sub_group.
-    */
-    packed = dpct::select_from_sub_group(item_ct1.get_sub_group(), packed,
-                                         (pack_idx * 4) % warp_size, 4);
+    packed = dpct::experimental::select_from_sub_group(amask, item_ct1.get_sub_group(), packed,
+                                                       (pack_idx * 4) % warp_size, 4);
     packed >>= char_idx * 8;
     packed &= 255;
     return packed;

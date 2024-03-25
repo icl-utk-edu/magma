@@ -25,7 +25,7 @@
 #define REDUCE_FOR_VOLTA 5
 #define BLOCK_FOR_VOLTA 32
 
-
+#define DEFAULT_WIDTH 32
 
 // kernel for finding the largest element
 void 
@@ -58,20 +58,8 @@ magma_zfindlargest_kernel(
     // now reduce among threads of the warp
         #pragma unroll
         for (int z=0; z<32; z++) {
-            /*
-            DPCT1023:520: The DPC++ sub-group does not support mask options for
-            dpct::select_from_sub_group.
-            */
-            /*
-            DPCT1096:879: The right-most dimension of the work-group used in the
-            SYCL kernel that calls this function may be less than "32". The
-            function "dpct::select_from_sub_group" may return an unexpected
-            result on the CPU device. Modify the size of the work-group to
-            ensure that the value of the right-most dimension is a multiple of
-            "32".
-            */
             sval = dpct::select_from_sub_group(item_ct1.get_sub_group(), sval,
-                                               (tidx + 1) % 32);
+                                               (tidx + 1) % 32, DEFAULT_WIDTH);
             maxval = sval > maxval ? sval : maxval ;
         }
     max[bidx] = maxval;
@@ -156,19 +144,8 @@ magma_zreduce_thrs(
 
     #pragma unroll
     for (int z=0; z<31; z++) {
-        /*
-        DPCT1023:521: The DPC++ sub-group does not support mask options for
-        dpct::select_from_sub_group.
-        */
-        /*
-        DPCT1096:880: The right-most dimension of the work-group used in the
-        SYCL kernel that calls this function may be less than "32". The function
-        "dpct::select_from_sub_group" may return an unexpected result on the CPU
-        device. Modify the size of the work-group to ensure that the value of
-        the right-most dimension is a multiple of "32".
-        */
         val = dpct::select_from_sub_group(item_ct1.get_sub_group(), val,
-                                          (tidx + 1) % 32);
+                                          (tidx + 1) % 32, DEFAULT_WIDTH);
         maxval = val > maxval ? val : maxval ;
     }
 
