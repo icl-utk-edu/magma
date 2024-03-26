@@ -14,6 +14,53 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
+#define GBTRF_ADJUST_JU_MAX_THREADS (128)
+
+/******************************************************************************/
+// This kernel must be called before pivot adjustment
+
+void
+gbtrf_adjust_ju_kernel_batched(
+    int n, int ku,
+    magma_int_t** dipiv_array, int* ju_array, int gbstep, int batchCount,
+    const sycl::nd_item<3> &item_ct1)
+{
+    const int batchid = item_ct1.get_group(2) * item_ct1.get_local_range(2) +
+                        item_ct1.get_local_id(2); // global thread x-index
+
+    //ju = max(ju, min(j+ku+jp, n-1));
+    if( batchid < batchCount ) {
+        magma_int_t* ipiv = dipiv_array[batchid];
+        int jp   = (int)(ipiv[gbstep]) - 1;    // undo fortran indexing
+        int ju1  = (gbstep == 0) ? 0 : ju_array[batchid];
+        int ju2  = max(ju1, min(gbstep+ku+jp, n-1));
+        ju_array[batchid] = ju2;
+    }
+}
+
+/******************************************************************************/
+// auxiliary routine for gbtrf that calculates the last column index to be
+// affected by the factorization
+// Note that ju_array is internal, so it is always `int`, not `magma_int_t`
+extern "C"
+void magma_gbtrf_adjust_ju(
+        magma_int_t n, magma_int_t ku,
+        magma_int_t** dipiv_array, int* ju_array, magma_int_t gbstep,
+        magma_int_t batchCount, magma_queue_t queue)
+{
+    const int nthreads = GBTRF_ADJUST_JU_MAX_THREADS;
+    const int nblocks  = magma_ceildiv(batchCount, nthreads);
+    sycl::range<3> threads(1, 1, nthreads);
+    sycl::range<3> grid(1, 1, nblocks);
+    ((sycl::queue *)(queue->sycl_stream()))
+        ->parallel_for(sycl::nd_range<3>(grid * threads, threads),
+                       [=](sycl::nd_item<3> item_ct1) {
+                           gbtrf_adjust_ju_kernel_batched(n, ku, dipiv_array,
+                                                          ju_array, gbstep,
+                                                          batchCount, item_ct1);
+                       });
+}
+
 // =============================================================================
 // Auxiliary routine to compute piv final destination for the current step
 
