@@ -9,7 +9,7 @@
 */
 
 #include "magma_internal.h"
-#ifdef MAGMA_HAVE_CUDA
+#ifndef MAGMA_HAVE_HIP
 #include"./gbtrf_tuning/dgbtrf_batch_a100.h"
 #else
 #include"./gbtrf_tuning/dgbtrf_batch_mi250x.h"
@@ -46,7 +46,7 @@ magma_get_zgbtrf_batched_params(
     // array of size 16x16. Each entry is for the even values
     // of (kl, ku) in the range [2, 4, 6, ..., 32]
     // TODO: generate tuning data for z-precision
-    #ifdef MAGMA_HAVE_CUDA
+    #ifndef MAGMA_HAVE_HIP
     *nb      = dgbtrf_batch_nb_a100[ikl][iku];
     *threads = dgbtrf_batch_th_a100[ikl][iku];
     #else
@@ -78,7 +78,7 @@ magma_get_cgbtrf_batched_params(
     // array of size 16x16. Each entry is for the even values
     // of (kl, ku) in the range [2, 4, 6, ..., 32]
     // TODO: generate tuning data for c-precision
-    #ifdef MAGMA_HAVE_CUDA
+    #ifndef MAGMA_HAVE_HIP
     *nb      = dgbtrf_batch_nb_a100[ikl][iku];
     *threads = dgbtrf_batch_th_a100[ikl][iku];
     #else
@@ -109,7 +109,7 @@ magma_get_dgbtrf_batched_params(
     // the tuning data for nb and threads are stored in 2D
     // array of size 16x16. Each entry is for the even values
     // of (kl, ku) in the range [2, 4, 6, ..., 32]
-    #ifdef MAGMA_HAVE_CUDA
+    #ifndef MAGMA_HAVE_HIP
     *nb      = dgbtrf_batch_nb_a100[ikl][iku];
     *threads = dgbtrf_batch_th_a100[ikl][iku];
     #else
@@ -141,7 +141,7 @@ magma_get_sgbtrf_batched_params(
     // array of size 16x16. Each entry is for the even values
     // of (kl, ku) in the range [2, 4, 6, ..., 32]
     // TODO: generate tuning data for s-precision
-    #ifdef MAGMA_HAVE_CUDA
+    #ifndef MAGMA_HAVE_HIP
     *nb      = dgbtrf_batch_nb_a100[ikl][iku];
     *threads = dgbtrf_batch_th_a100[ikl][iku];
     #else
