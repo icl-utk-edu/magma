@@ -25,6 +25,7 @@ hdr += \
 	$(cdir)/zlaswp_device.dp.hpp		\
 	$(cdir)/zgeqr2_batched_fused.dp.hpp	\
 	$(cdir)/zlarf_batched_fused.dp.hpp	\
+	$(cdir)/zgbtf2_devicefunc.dp.hpp	\
 
 # alphabetic order by base name (ignoring precision)
 libmagma_src += \
@@ -129,6 +130,11 @@ libmagma_src += \
 
 # batched files, alphabetic order by base name (ignoring precision)
 libmagma_src += \
+	$(cdir)/zgbsv_kernels.dp.cpp	\
+	$(cdir)/zgbtf2_kernels.dp.cpp		\
+    $(cdir)/zgbtrf_batched_fused_sm.dp.cpp  \
+    $(cdir)/zgbtrf_batched_sliding_window_sm.dp.cpp  \
+    $(cdir)/zgbtrs_kernels.dp.cpp  \
 	$(cdir)/zgeadd_batched.dp.cpp		\
 	$(cdir)/zgemm_batched.dp.cpp		\
 	$(cdir)/cgemm_batched_core.dp.cpp		\
@@ -154,7 +160,6 @@ libmagma_src += \
 	$(cdir)/zgetf2_kernels.dp.cpp		\
 	$(cdir)/zgetrf_batched_smallsq_noshfl.dp.cpp\
 	$(cdir)/zgetrf_batched_smallsq_shfl.dp.cpp	\
-    $(cdir)/zgbtrf_batched.dp.cpp               \
 	$(cdir)/getrf_setup_pivinfo.dp.cpp		\
 	$(cdir)/zhemm_batched_core.dp.cpp		\
 	$(cdir)/zher2k_batched.dp.cpp		\
