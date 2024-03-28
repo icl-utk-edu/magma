@@ -38,6 +38,8 @@ izamax_kernel_batched(
     int tx = item_ct1.get_local_id(2);
     const magmaDoubleComplex *x = x_array[batchid] + xj * lda + xi;
     magma_int_t *ipiv           = ipiv_array[batchid] + ipiv_i;
+    magma_int_t *info = &info_array[batchid];
+    int linfo = ( (gbstep+step) == 0) ? 0 : *info;
 
     double *shared_x = sdata;
     int *shared_idx = (int*)(shared_x + zamax);
@@ -46,9 +48,8 @@ izamax_kernel_batched(
 
     if (tx == 0) {
         *ipiv  = shared_idx[0] + step + 1; // Fortran Indexing & adjust ipiv
-        if (shared_x[0] == MAGMA_D_ZERO) {
-            info_array[batchid] = shared_idx[0] + step + gbstep + 1;
-        }
+        linfo  = ( shared_x[0] == MAGMA_D_ZERO && linfo == 0) ? (shared_idx[0]+step+gbstep+1) : linfo;
+        *info = (magma_int_t)linfo;
     }
 }
 
@@ -65,13 +66,13 @@ izamax_kernel_native(
 
     double *shared_x = sdata;
     int *shared_idx = (int*)(shared_x + zamax);
+    int linfo = ( (gbstep+step) == 0) ? 0 : *info;
 
     izamax_devfunc(length, x, incx, shared_x, shared_idx, item_ct1);
     if (tx == 0) {
         *ipiv  = shared_idx[0] + step + 1; // Fortran Indexing
-        if (shared_x[0] == MAGMA_D_ZERO) {
-            (*info) = shared_idx[0] + step + gbstep + 1;
-        }
+        linfo  = ( shared_x[0] == MAGMA_D_ZERO && linfo == 0) ? (shared_idx[0]+step+gbstep+1) : linfo;
+        *info = (magma_int_t)linfo;
     }
 }
 
@@ -276,7 +277,11 @@ void zswap_kernel_batched(
     magmaDoubleComplex *x = x_array[batchid] + xj * incx + xi;
     magma_int_t *ipiv = ipiv_array[batchid] + xi;
 
-    zswap_device(n, x, incx, step, ipiv, item_ct1, jp);
+    magmaDoubleComplex* xpiv = x_array[batchid] + (xj+step) * incx + (xi+step);
+    double rx_abs = fabs( MAGMA_Z_REAL(xpiv[0]) ) + fabs( MAGMA_Z_IMAG(xpiv[0]) );
+    if( rx_abs != MAGMA_D_ZERO) {
+        zswap_device(n, x, incx, step, ipiv, item_ct1, jp);
+    }
 }
 
 
@@ -1245,9 +1250,10 @@ zcomputecolumn_kernel_shared_batched( int m, int paneloffset, int step,
     magmaDoubleComplex *shared_A = shared_data;
 
     int tid = item_ct1.get_local_id(2);
+    int linfo = ((gboff + gbstep) == 0 ) ? 0 : info_array[batchid];
 
     // checkinfo to avoid computation of the singular matrix
-    if (info_array[batchid] != 0 ) return;
+//    if (info_array[batchid] != 0 ) return;
 
 
     int nchunk = magma_ceildiv( m, MAX_NTHREADS );
@@ -1283,9 +1289,8 @@ zcomputecolumn_kernel_shared_batched( int m, int paneloffset, int step,
         ipiv[gboff]  = shared_idx[0] + gboff + 1; // Fortran Indexing
         *alpha = shared_A[shared_idx[0] + step];
         //printf("@ step %d ipiv=%d where gboff=%d  shared_idx %d alpha %5.3f\n",step,ipiv[gboff],gboff,shared_idx[0],alpha);
-        if (shared_x[0] == MAGMA_D_ZERO) {
-            info_array[batchid] = shared_idx[0] + gboff + gbstep + 1;
-        }
+        linfo  = ( shared_x[0] == MAGMA_D_ZERO && linfo == 0) ? (shared_idx[0]+gboff+gbstep+1) : linfo;
+        info_array[batchid] = (magma_int_t)linfo;
     }
     /*
     DPCT1065:624: Consider replacing sycl::nd_item::barrier() with
@@ -1293,16 +1298,18 @@ zcomputecolumn_kernel_shared_batched( int m, int paneloffset, int step,
     performance if there is no access to global memory.
     */
     item_ct1.barrier();
-    if (shared_x[0] == MAGMA_D_ZERO) return;
+//    if (shared_x[0] == MAGMA_D_ZERO) return;
     /*
     DPCT1065:625: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
     performance if there is no access to global memory.
     */
-    item_ct1.barrier();
+//    item_ct1.barrier();
 
-    // DO NO PUT THE IF CONDITION HERE SINCE izamax_devfunc HAS __syncthreads INSIDE.
-    zscal5_device(m - step, shared_A + step, *alpha, item_ct1);
+    if( shared_x[0] != MAGMA_D_ZERO ) {
+        zscal5_device( m-step, shared_A+step, *alpha, item_ct1);
+        // there is sync at the end of zscal5_device
+    }
 
     // put back the pivot that has been scaled with itself menaing =1
     if (tid == 0) shared_A[shared_idx[0] + step] = *alpha;
