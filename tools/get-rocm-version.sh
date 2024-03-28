@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DEBUG=0
-[ $1 ] && ROCM_PATH=$1 || ROCM_PATH="${ROCM_PATH:-/opt/rocm}"
+[[ -d $1 ]] && ROCM_PATH=$1 || ROCM_PATH="${ROCM_PATH:-/opt/rocm}"
 HEADER_PATH_ONE=${ROCM_PATH}/include/rocm-core/rocm_version.h
 HEADER_PATH_TWO=${ROCM_PATH}/include/rocm_version.h
 PACKAGE_PATH_ONE=${ROCM_PATH}/.info/version-dev
