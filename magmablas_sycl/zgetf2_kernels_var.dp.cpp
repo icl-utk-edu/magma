@@ -46,6 +46,8 @@ izamax_kernel_vbatched(
 
     magmaDoubleComplex *dA = dA_array[batchid] + Aj * my_ldda + Ai;
     magma_int_t *ipiv = ipiv_array[batchid] + ipiv_i;
+    magma_int_t *info = &info_array[batchid];
+    int linfo = ( (gbstep+step) == 0) ? 0 : *info;
     int tx = item_ct1.get_local_id(2);
 
     double *shared_x = sdata;
@@ -55,9 +57,8 @@ izamax_kernel_vbatched(
 
     if (tx == 0) {
         *ipiv = shared_idx[0] + step + 1; // Fortran Indexing & adjust pivot
-        if (shared_x[0] == MAGMA_D_ZERO) {
-            info_array[batchid] = shared_idx[0] + step + gbstep + 1;
-        }
+        linfo  = ( shared_x[0] == MAGMA_D_ZERO && linfo == 0) ? (shared_idx[0]+step+gbstep+1) : linfo;
+        *info = (magma_int_t)linfo;
     }
 }
 
@@ -131,11 +132,23 @@ void zswap_kernel_vbatched(
     */
     item_ct1.barrier();
 
-    if (*jp == 0) return; // no swapping required
+     // no swapping if pivot is already on the diagonal
+    if (*jp == 0) return;
 
-    magmaDoubleComplex *dA  = dA_array[batchid] + Aj * my_ldda + Ai;
-    magmaDoubleComplex *dA1 = dA;
-    magmaDoubleComplex *dA2 = dA + *jp;
+    magmaDoubleComplex *dAorg = dA_array[batchid];
+    magmaDoubleComplex *dA    = dAorg + Aj * my_ldda + Ai;
+    magmaDoubleComplex *dA1   = dA;
+    magmaDoubleComplex *dA2   = dA + *jp;
+
+    // read the abs. value of the pivot:
+    // in src/zgetf2_vbatched.cpp izamax is called at dA(Ai+gbj, Aj+gbj)
+    // while zswap is called at dA(Ai+gbj, Aj), so for this kernel
+    // the pivot is at Ai (local value) and (Aj + piv_adjustment)
+    magmaDoubleComplex rA = dAorg[ (Aj+piv_adjustment) * my_ldda + Ai ];
+    double rx_abs_max = fabs( MAGMA_Z_REAL(rA) ) + fabs( MAGMA_Z_IMAG(rA) );
+
+    // swap only if the pivot is non-zero
+    if(rx_abs_max == MAGMA_D_ZERO) return;
 
     zswap_device_v2(my_N, dA1, my_ldda, dA2, my_ldda, item_ct1);
 }
@@ -241,7 +254,7 @@ zgetf2_fused_sm_kernel_vbatched(
         magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex** dA_array, int Ai, int Aj, magma_int_t* ldda,
         magma_int_t** dipiv_array, int ipiv_i,
-        magma_int_t *info,  int gbstep, int batchCount ,
+        magma_int_t *info_array,  int gbstep, int batchCount,
         sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
     auto zdata = (magmaDoubleComplex *)dpct_local;
@@ -259,6 +272,7 @@ zgetf2_fused_sm_kernel_vbatched(
     int my_minmn     = min(my_M, my_N);
     magmaDoubleComplex* dA = dA_array[batchid] + Aj * my_ldda + Ai;
     magma_int_t* dipiv     = dipiv_array[batchid] + ipiv_i;
+    magma_int_t* info      = &info_array[batchid];
 
     // check offsets
     if( my_M <= Ai || my_N <= Aj || my_minmn <= ipiv_i ) return;
@@ -327,7 +341,7 @@ zgetf2_fused_sm_kernel_vbatched(
         item_ct1.barrier();
 
         // swap
-        if(max_id != j) {
+        if(rx_abs_max != MAGMA_D_ZERO && max_id != j) {
             for(int i = tx; i < my_N; i+=ntx) {
                 reg          = sA(j     ,i);
                 sA(j,i)      = sA(max_id,i);
@@ -341,18 +355,12 @@ zgetf2_fused_sm_kernel_vbatched(
         */
         item_ct1.barrier();
 
-        if( linfo == 0 ) {
-            /*
-            DPCT1064:645: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
-            reg = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(j, j));
-            for(int i = (tx+j+1); i < my_M; i+=ntx) {
-                rTmp    = reg * sA(i,j);
-                sA(i,j) = rTmp;
-                for(int jj = j+1; jj < my_N; jj++) {
-                    sA(i,jj) -= rTmp * sA(j,jj);
-                }
+        reg = (rx_abs_max == MAGMA_D_ZERO) ? MAGMA_Z_ONE : MAGMA_Z_DIV( MAGMA_Z_ONE, sA(j,j) );
+        for(int i = (tx+j+1); i < my_M; i+=ntx) {
+            rTmp    = reg * sA(i,j);
+            sA(i,j) = rTmp;
+            for(int jj = j+1; jj < my_N; jj++) {
+                sA(i,jj) -= rTmp * sA(j,jj);
             }
         }
         /*
@@ -522,22 +530,20 @@ zgetf2_fused_kernel_vbatched(
     int orginfo = (gbstep == 0) ? 0 : info_array[batchid];
     int linfo   = 0;
     const int slda = SLDA(max_M);
-    /*
-    DPCT1064:654: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     magmaDoubleComplex rA[max_N] = {MAGMA_Z_ZERO};
 
     // init sA into identity
     magmaDoubleComplex* sA = (magmaDoubleComplex*)data;
     #pragma unroll
     for(int j = 0; j < max_N; j++) {
-        /*
-        DPCT1064:655: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        sA[j * slda + tx] = MAGMA_Z_ZERO;
+        sA[j * slda + tx] = (j == tx) ? MAGMA_Z_ONE : MAGMA_Z_ZERO;
     }
+    /*
+    DPCT1065:650: Consider replacing sycl::nd_item::barrier() with
+    sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
+    performance if there is no access to global memory.
+    */
+    item_ct1.barrier();
 
     // read A into sm then mv to reg
     if(tx < my_M) {
@@ -585,9 +591,9 @@ zgetf2_fused_kernel_vbatched(
     */
     item_ct1.barrier();
 
-    // ignore any info beyond minmn
+    // ignore any info beyond minmn (linfo at this point uses 1-based index)
     // (meaning singularity is encountered at the padded matrix)
-    linfo = (linfo >= my_minmn) ? 0 : linfo;
+    linfo = (linfo > my_minmn) ? 0 : linfo;
     linfo = (orginfo == 0) ? linfo : orginfo;
 
     if(tx == 0){
@@ -713,9 +719,8 @@ magma_zgetf2_fused_vbatched(
     if(info < 0) return info;
 
 
-    info = -1; // init a negative value
+    info = -1;
     switch(max_N) {
-        #if 1
         case  1: info = magma_zgetf2_fused_kernel_driver_vbatched< 1>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case  2: info = magma_zgetf2_fused_kernel_driver_vbatched< 2>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case  3: info = magma_zgetf2_fused_kernel_driver_vbatched< 3>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
@@ -748,7 +753,6 @@ magma_zgetf2_fused_vbatched(
         case 30: info = magma_zgetf2_fused_kernel_driver_vbatched<30>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case 31: info = magma_zgetf2_fused_kernel_driver_vbatched<31>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
         case 32: info = magma_zgetf2_fused_kernel_driver_vbatched<32>(max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array, ipiv_i, info_array, batchCount, queue); break;
-        #endif
         default: ;
     }
 
