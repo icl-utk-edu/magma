@@ -51,7 +51,7 @@ void ztranspose_inplace_odd(
     ii *= NB;
     jj *= NB;
 
-    magmaDoubleComplex *A = matrix + ii+i + (jj+j)*lda;
+    magmaDoubleComplex *A = matrix + ii+i + (size_t)(jj+j)*(size_t)lda;
     if ( ii == jj ) {
         if ( ii+i < n && jj+j < n ) {
             sA[j][i] = *A;
@@ -67,7 +67,7 @@ void ztranspose_inplace_odd(
         }
     }
     else {
-        magmaDoubleComplex *B = matrix + jj+i + (ii+j)*lda;
+        magmaDoubleComplex *B = matrix + jj+i + (size_t)(ii+j)*(size_t)lda;
         if ( ii+i < n && jj+j < n ) {
             sA[j][i] = *A;
         }
@@ -127,7 +127,7 @@ void ztranspose_inplace_even(
     ii *= NB;
     jj *= NB;
 
-    magmaDoubleComplex *A = matrix + ii+i + (jj+j)*lda;
+    magmaDoubleComplex *A = matrix + ii+i + (size_t)(jj+j)*(size_t)lda;
     if ( ii == jj ) {
         if ( ii+i < n && jj+j < n ) {
             sA[j][i] = *A;
@@ -143,7 +143,7 @@ void ztranspose_inplace_even(
         }
     }
     else {
-        magmaDoubleComplex *B = matrix + jj+i + (ii+j)*lda;
+        magmaDoubleComplex *B = matrix + jj+i + (size_t)(ii+j)*(size_t)lda;
         if ( ii+i < n && jj+j < n ) {
             sA[j][i] = *A;
         }

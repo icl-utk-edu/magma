@@ -48,7 +48,7 @@ void zlaswp_kernel(
         
         for( int i1 = 0; i1 < params.npivots; ++i1 ) {
             int i2 = params.ipiv[i1];
-            magmaDoubleComplex *A2 = dAT + i2*ldda;
+	    magmaDoubleComplex *A2 = dAT + (size_t)i2*(size_t)ldda;
             magmaDoubleComplex temp = *A1;
             *A1 = *A2;
             *A2 = temp;
@@ -122,8 +122,9 @@ magmablas_zlaswp(
     const magma_int_t *ipiv, magma_int_t inci,
     magma_queue_t queue )
 {
-    #define dAT(i_, j_) (dAT + (i_)*ldda + (j_))
     
+    #define dAT(i_, j_) (dAT + (size_t)(i_)*(size_t)ldda + (j_))
+
     magma_int_t info = 0;
     if ( n < 0 )
         info = -1;
