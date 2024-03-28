@@ -50,7 +50,12 @@ void gemm_template_vbatched_nn_kernel(
     my_N = min( my_N, max_N );
     my_K = min( my_K, max_K );
 
-    if(my_M <= 0 || my_N <= 0 || my_K <= 0) return;
+    if(my_M <= 0 || my_N <= 0 || my_K < 0) return;
+
+    // now either my_M or my_N is +ve, but my_K >= 0
+    // check for my_K == 0 && beta == 1, for which C is unchanged
+    if(my_K == 0 && beta == make_FloatingPoint(1.,0.)) return;
+
     if( Aarray[batchid] == NULL || Barray[batchid] == NULL || Carray[batchid] == NULL ) return;
     if (item_ct1.get_group(2) >= magma_ceildiv(my_M, BLK_M)) return;
     if (item_ct1.get_group(1) >= magma_ceildiv(my_N, BLK_N)) return;
@@ -103,7 +108,12 @@ void gemm_template_vbatched_nt_kernel(
     my_N = min( my_N, max_N );
     my_K = min( my_K, max_K );
 
-    if(my_M <= 0 || my_N <= 0 || my_K <= 0) return;
+    if(my_M <= 0 || my_N <= 0 || my_K < 0) return;
+
+    // now either my_M or my_N is +ve, but my_K >= 0
+    // check for my_K == 0 && beta == 1, for which C is unchanged
+    if(my_K == 0 && beta == make_FloatingPoint(1.,0.)) return;
+
     if( Aarray[batchid] == NULL || Barray[batchid] == NULL || Carray[batchid] == NULL ) return;
     if (item_ct1.get_group(2) >= (my_M + BLK_M - 1) / BLK_M) return;
     if (item_ct1.get_group(1) >= (my_N + BLK_N - 1) / BLK_N) return;
@@ -156,7 +166,12 @@ void gemm_template_vbatched_tn_kernel(
     my_N = min( my_N, max_N );
     my_K = min( my_K, max_K );
 
-    if(my_M <= 0 || my_N <= 0 || my_K <= 0) return;
+    if(my_M <= 0 || my_N <= 0 || my_K < 0) return;
+
+    // now either my_M or my_N is +ve, but my_K >= 0
+    // check for my_K == 0 && beta == 1, for which C is unchanged
+    if(my_K == 0 && beta == make_FloatingPoint(1.,0.)) return;
+
     if( Aarray[batchid] == NULL || Barray[batchid] == NULL || Carray[batchid] == NULL ) return;
     if (item_ct1.get_group(2) >= (my_M + BLK_M - 1) / BLK_M) return;
     if (item_ct1.get_group(1) >= (my_N + BLK_N - 1) / BLK_N) return;
@@ -209,7 +224,12 @@ void gemm_template_vbatched_tt_kernel(
     my_N = min( my_N, max_N );
     my_K = min( my_K, max_K );
 
-    if(my_M <= 0 || my_N <= 0 || my_K <= 0) return;
+    if(my_M <= 0 || my_N <= 0 || my_K < 0) return;
+
+    // now either my_M or my_N is +ve, but my_K >= 0
+    // check for my_K == 0 && beta == 1, for which C is unchanged
+    if(my_K == 0 && beta == make_FloatingPoint(1.,0.)) return;
+
     if( Aarray[batchid] == NULL || Barray[batchid] == NULL || Carray[batchid] == NULL ) return;
     if (item_ct1.get_group(2) >= (my_M + BLK_M - 1) / BLK_M) return;
     if (item_ct1.get_group(1) >= (my_N + BLK_N - 1) / BLK_N) return;

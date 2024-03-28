@@ -41,7 +41,7 @@ magmablas_cgemm_vbatched_core(
     magmaFloatComplex              ** dC_array, magma_int_t Ci, magma_int_t Cj, magma_int_t* lddc,
     magma_int_t batchCount, magma_queue_t queue )
 {
-    if(max_m <=0 || max_n <= 0 || max_k <= 0) return;
+    if(max_m <=0 || max_n <= 0 || max_k < 0) return;
 
     magma_int_t shape = 0;
     if      (transA == MagmaNoTrans   && transB == MagmaNoTrans)   { shape = 0; } // nn
