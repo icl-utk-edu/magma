@@ -96,9 +96,10 @@ int main(int argc, char **argv)
             // seem to avoid that
             #pragma omp parallel for schedule(dynamic)
             for(int j = 0; j < lda*N; j++) {
-                MAGMA_Z_REAL( h_A[j] ) += 20.;
                 #if defined(PRECISION_c) || defined(PRECISION_z)
-                MAGMA_Z_IMAG( h_A[j] ) += 20.;
+                h_A[j]= MAGMA_Z_MAKE(MAGMA_Z_REAL(h_A[j]) + 20., MAGMA_Z_IMAG(h_A[j]) + 20.);
+                #else
+		h_A[j] += 20.;
                 #endif
             }
 
