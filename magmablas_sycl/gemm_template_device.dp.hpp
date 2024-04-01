@@ -79,7 +79,7 @@ void gemm_template_device_prefetch_nn (
     T alpha, T beta,
     T* sA, int slda,
     T* sB, int sldb,
-    T* sC, int sldc , sycl::nd_item<3> item_ct1)
+    T* sC, int sldc , const sycl::nd_item<3> &item_ct1)
 {
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
@@ -121,19 +121,20 @@ void gemm_template_device_prefetch_nn (
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YA)
+    if(K > 0) {
         #pragma unroll
-        for (m = 0; m < BLK_M; m += DIM_XA)
-            sA(m+idxA,n+idyA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_K; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_M; m += DIM_XA)
+                sA(m+idxA,n+idyA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_N; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XB)
-            sB(m+idxB,n+idyB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_N; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XB)
+                sB(m+idxB,n+idyB) = fetch(B, m, n, boundB);
+    }
     /*
     DPCT1065:0: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -273,7 +274,7 @@ void gemm_template_device_prefetch_nt (
     T alpha, T beta,
     T* sA, int slda,
     T* sB, int sldb,
-    T* sC, int sldc , sycl::nd_item<3> item_ct1)
+    T* sC, int sldc , const sycl::nd_item<3> &item_ct1)
 {
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
@@ -315,20 +316,21 @@ void gemm_template_device_prefetch_nt (
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    // Load A dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YA)
+    if(K > 0) {
+        // Load A dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_M; m += DIM_XA)
-            sA(m+idxA,n+idyA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_K; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_M; m += DIM_XA)
+                sA(m+idxA,n+idyA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_N; m += DIM_XB)
-            sB(n+idyB,m+idxB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_K; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_N; m += DIM_XB)
+                sB(n+idyB,m+idxB) = fetch(B, m, n, boundB);
+    }
     /*
     DPCT1065:3: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -468,7 +470,7 @@ void gemm_template_device_prefetch_tn (
     T alpha, T beta,
     T* sA, int slda,
     T* sB, int sldb,
-    T* sC, int sldc , sycl::nd_item<3> item_ct1)
+    T* sC, int sldc , const sycl::nd_item<3> &item_ct1)
 {
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
@@ -511,20 +513,21 @@ void gemm_template_device_prefetch_tn (
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    // Load A dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_M; n += DIM_YA)
+    if(K > 0) {
+        // Load A dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XA)
-            sA(n+idyA,m+idxA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_M; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XA)
+                sA(n+idyA,m+idxA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_N; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XB)
-            sB(m+idxB,n+idyB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_N; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XB)
+                sB(m+idxB,n+idyB) = fetch(B, m, n, boundB);
+    }
     /*
     DPCT1065:6: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -664,7 +667,7 @@ void gemm_template_device_prefetch_tt (
     T alpha, T beta,
     T* sA, int slda,
     T* sB, int sldb,
-    T* sC, int sldc , sycl::nd_item<3> item_ct1)
+    T* sC, int sldc , const sycl::nd_item<3> &item_ct1)
 {
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
@@ -706,20 +709,21 @@ void gemm_template_device_prefetch_tt (
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    // Load A dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_M; n += DIM_YA)
+    if(K > 0) {
+        // Load A dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XA)
-            sA(n+idyA,m+idxA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_M; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XA)
+                sA(n+idyA,m+idxA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_N; m += DIM_XB)
-            sB(n+idyB,m+idxB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_K; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_N; m += DIM_XB)
+                sB(n+idyB,m+idxB) = fetch(B, m, n, boundB);
+    }
     /*
     DPCT1065:9: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -860,7 +864,7 @@ void gemm_template_device_nn(
     T alpha, T beta,
     T* sA, int slda,
     T* sB, int sldb,
-    T* sC, int sldc , sycl::nd_item<3> item_ct1)
+    T* sC, int sldc , const sycl::nd_item<3> &item_ct1)
 {
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
@@ -900,18 +904,19 @@ void gemm_template_device_nn(
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YA)
+    if(K > 0) {
         #pragma unroll
-        for (m = 0; m < BLK_M; m += DIM_XA)
-            sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_K; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_M; m += DIM_XA)
+                sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
 
-    #pragma unroll
-    for (n = 0; n < BLK_N; n += DIM_YB)
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XB)
-            sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_N; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XB)
+                sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
+    }
     /*
     DPCT1065:12: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -1068,7 +1073,7 @@ void gemm_template_device_nt(
     T alpha, T beta,
     T* sA, int slda,
     T* sB, int sldb,
-    T* sC, int sldc , sycl::nd_item<3> item_ct1)
+    T* sC, int sldc , const sycl::nd_item<3> &item_ct1)
 {
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
@@ -1108,19 +1113,20 @@ void gemm_template_device_nt(
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YA)
+    if(K > 0) {
         #pragma unroll
-        for (m = 0; m < BLK_M; m += DIM_XA)
-            sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_K; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_M; m += DIM_XA)
+                sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_N; m += DIM_XB)
-            sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_K; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_N; m += DIM_XB)
+                sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
+    }
     /*
     DPCT1065:15: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -1280,7 +1286,7 @@ void gemm_template_device_tn(
     T alpha, T beta,
     T* sA, int slda,
     T* sB, int sldb,
-    T* sC, int sldc , sycl::nd_item<3> item_ct1)
+    T* sC, int sldc , const sycl::nd_item<3> &item_ct1)
 {
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
@@ -1322,19 +1328,20 @@ void gemm_template_device_tn(
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    // Load A dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_M; n += DIM_YA)
+    if(K > 0) {
+        // Load A dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XA)
-            sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_M; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XA)
+                sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
 
-    #pragma unroll
-    for (n = 0; n < BLK_N; n += DIM_YB)
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XB)
-            sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_N; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XB)
+                sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
+    }
     /*
     DPCT1065:18: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -1495,7 +1502,7 @@ void gemm_template_device_tt(
     T alpha, T beta,
     T* sA, int slda,
     T* sB, int sldb,
-    T* sC, int sldc , sycl::nd_item<3> item_ct1)
+    T* sC, int sldc , const sycl::nd_item<3> &item_ct1)
 {
     int idx = item_ct1.get_local_id(2); // thread's m dimension
     int idy = item_ct1.get_local_id(1); // thread's n dimension
@@ -1537,20 +1544,21 @@ void gemm_template_device_tt(
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    // Load A dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_M; n += DIM_YA)
+    if(K > 0) {
+        // Load A dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XA)
-            sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_M; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XA)
+                sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_N; m += DIM_XB)
-            sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_K; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_N; m += DIM_XB)
+                sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
+    }
     /*
     DPCT1065:21: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
