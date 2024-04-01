@@ -54,12 +54,8 @@ zgeqr2_fused_sm_kernel_batched(
     sTmp  += ty * ntx;
     double* snorm = (double*) (sTmp); // must be set after offsetting w.r.t. ty
 
-    /*
-    DPCT1064:423: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     magmaDoubleComplex alpha, tau, tmp, scale = MAGMA_Z_ZERO;
-    double norm = MAGMA_D_ZERO, beta;
+    double norm = MAGMA_D_ZERO, norm_no_alpha = MAGMA_D_ZERO, beta;
 
     if( tx == 0 ){
         (*info) = 0;
@@ -67,10 +63,6 @@ zgeqr2_fused_sm_kernel_batched(
 
     // init tau
     if(tx < N) {
-        /*
-        DPCT1064:424: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         stau[tx] = MAGMA_Z_ZERO;
     }
 
@@ -90,28 +82,23 @@ zgeqr2_fused_sm_kernel_batched(
     for(int j = 0; j < N; j++){
         alpha = sA(j,j);
 
-        zgeqr2_compute_norm(M - j, &sA(j, j), snorm, tx, ntx, item_ct1);
+        zgeqr2_compute_norm(M-j-1, &sA(j+1,j), snorm, tx, ntx, item_ct1);
         // there is a sync at the end of zgeqr2_compute_norm
 
-        norm = sycl::sqrt(snorm[0]);
-        beta = -sycl::copysign(norm, real(alpha));
-        /*
-        DPCT1064:428: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        scale = MAGMA_Z_DIV(MAGMA_Z_ONE, alpha - MAGMA_Z_MAKE(beta, 0));
-        /*
-        DPCT1064:429: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        tau = MAGMA_Z_MAKE((beta - real(alpha)) / beta, -imag(alpha) / beta);
+        norm_no_alpha = snorm[0];
+        norm = norm_no_alpha + MAGMA_Z_REAL(alpha) * MAGMA_Z_REAL(alpha) + MAGMA_Z_IMAG(alpha) * MAGMA_Z_IMAG(alpha);
+        norm = sycl::sqrt(norm);
+        bool zero_nrm = (norm_no_alpha == 0) && (MAGMA_Z_IMAG(alpha) == 0);
+        tau   = MAGMA_Z_ZERO;
+        scale = MAGMA_Z_ONE;
+        if(!zero_nrm) {
+            beta = -sycl::copysign(norm, real(alpha));
+            scale = MAGMA_Z_DIV( MAGMA_Z_ONE,  alpha - MAGMA_Z_MAKE(beta, 0));
+            tau = MAGMA_Z_MAKE( (beta - real(alpha)) / beta, -imag(alpha) / beta );
+        }
 
         if(tx == 0) {
             stau[j] = tau;
-            /*
-            DPCT1064:430: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             sA(j, j) = MAGMA_Z_ONE;
         }
 
@@ -129,11 +116,8 @@ zgeqr2_fused_sm_kernel_batched(
         // copy the first portion of the column into tmp
         // since M > N and ntx >= N, this portion must
         // have the diagonal
-        /*
-        DPCT1064:431: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        tmp = (tx == j) ? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO) : sA(tx, j);
+        alpha = (zero_nrm) ? alpha : MAGMA_Z_MAKE(beta, MAGMA_D_ZERO);
+        tmp   = (tx ==  j) ? alpha : sA(tx, j);
 
         // write the column into global memory
         dA[j * ldda + tx] = tmp;

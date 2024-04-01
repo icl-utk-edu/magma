@@ -189,7 +189,7 @@ zgeqr2_fused_reg_kernel_batched(
     magmaDoubleComplex alpha, tau,
         tmp = MAGMA_Z_ZERO,
         scale = MAGMA_Z_ZERO;
-    double sum = MAGMA_D_ZERO, norm = MAGMA_D_ZERO, beta, ibeta;
+    double sum = MAGMA_D_ZERO, norm = MAGMA_D_ZERO, norm_no_alpha = MAGMA_D_ZERO, beta;
     int i = 0;
 
     if( tx == 0 ){
@@ -215,8 +215,9 @@ zgeqr2_fused_reg_kernel_batched(
             rA[j] = dA[ j * ldda + tx ];
         }
         sA(tx, 0) = rA[0];
-        sum += MAGMA_Z_REAL( rA[0] ) * MAGMA_Z_REAL( rA[0] ) +
-               MAGMA_Z_IMAG( rA[0] ) * MAGMA_Z_IMAG( rA[0] ) ;
+        tmp       = (tx < 1) ? MAGMA_Z_ZERO : rA[0];    // exclude first element (alpha)
+        sum += MAGMA_Z_REAL( tmp ) * MAGMA_Z_REAL( tmp ) +
+               MAGMA_Z_IMAG( tmp ) * MAGMA_Z_IMAG( tmp ) ;
     }
     snorm[ tx ] = sum;
     /*
@@ -311,7 +312,15 @@ zgeqr2_fused_reg_kernel_batched(
                 for( i = 0; i < 8; i++ ) {
                     sum += snorm[i];
                 }
-                snorm[0] = sycl::sqrt(sum);
+                #if 0
+                snorm[0] = sqrt( sum );
+                sum      = sum - (MAGMA_Z_REAL(alpha) * MAGMA_Z_REAL(alpha)) - (MAGMA_Z_IMAG(alpha) * MAGMA_Z_IMAG(alpha));
+                snorm[1] = sum;
+                #else
+                snorm[1] = sum;  // store norm^2 without alpha
+                sum     += (MAGMA_Z_REAL(alpha) * MAGMA_Z_REAL(alpha)) + (MAGMA_Z_IMAG(alpha) * MAGMA_Z_IMAG(alpha));
+                snorm[0] = sycl::sqrt( sum );
+                #endif
             }
             /*
             DPCT1065:10: Consider replacing sycl::nd_item::barrier() with
@@ -321,40 +330,27 @@ zgeqr2_fused_reg_kernel_batched(
             item_ct1.barrier();
         } // end of computing the norm
 
-        norm  = snorm[0];
-        beta = -sycl::copysign(norm, real(alpha));
-        ibeta = 1 / beta;
-        /*
-        DPCT1064:18: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        scale = (tx > j)
-                    ? MAGMA_Z_DIV(MAGMA_Z_ONE, alpha - MAGMA_Z_MAKE(beta, 0))
-                    : MAGMA_Z_ONE;
-        /*
-        DPCT1064:19: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        tau = MAGMA_Z_MAKE((beta - real(alpha)) * ibeta, -imag(alpha) * ibeta);
+        norm          = snorm[0];
+        norm_no_alpha = snorm[1];
+        bool zero_nrm = (norm_no_alpha == 0) && (MAGMA_Z_IMAG(alpha) == 0);
 
-        if(tx == j) {
-            stau[j] = tau;
-            /*
-            DPCT1064:20: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
-            rA[j] = MAGMA_Z_ONE;
+        tmp   = rA[j];
+        tau   = MAGMA_Z_ZERO;
+        scale = MAGMA_Z_ONE;
+        if(!zero_nrm ) {
+            beta  = -sycl::copysign(norm, real(alpha));
+            scale = (tx > j) ? MAGMA_Z_DIV( MAGMA_Z_ONE,  alpha - MAGMA_Z_MAKE(beta, 0)) : scale;
+            tau   = MAGMA_Z_MAKE( (beta - real(alpha))  / beta, -imag(alpha) / beta );
+            rA[j] *= scale;
+            tmp    = (tx == j) ? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO) : rA[j];
+            if(tx == j) {
+                stau[j] = tau;
+                rA[j]   = MAGMA_Z_ONE;
+            }
         }
 
-        // scale the current column below the diagonal
-        rA[j] *= scale;
-        /*
-        DPCT1064:21: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        tmp = (tx == j) ? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO)
-                        : rA[j]; // this does not need a sync
-        rA[j] = (tx < j) ? MAGMA_Z_ZERO : rA[j];
+        rA[j]  = (tx == i) ? MAGMA_Z_ONE  : rA[j];
+        rA[j]  = (tx <  j) ? MAGMA_Z_ZERO : rA[j];
 
         // write the column into global memory
         if( tx < m ) {
@@ -437,8 +433,7 @@ zgeqr2_fused_reg_kernel_batched(
             if(j < N-1) {
                 rA[j+1]    -= rA[j] * sY[j+1];
                 sA(tx,j+1)  = rA[j+1]; // for alpha next iteration
-                tmp = (tx < (j + 1)) ? MAGMA_Z_ZERO
-                                     : rA[j + 1];
+		tmp         = (tx < (j+2)) ? MAGMA_Z_ZERO : rA[j+1];    // exclude first element (alpha)
                 snorm[ tx ] = MAGMA_Z_REAL(tmp) * MAGMA_Z_REAL(tmp) +
                               MAGMA_Z_IMAG(tmp) * MAGMA_Z_IMAG(tmp) ;
             }
