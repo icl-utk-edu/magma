@@ -62,7 +62,9 @@ magma_zlaswp_rowparallel_batched( magma_int_t n,
 
     if (n == 0 ) return;
     int height = k2-k1;
-    if ( height  > 1024)
+    int nthreads_max = queue->sycl_stream()->get_device()
+	    .get_info<sycl::info::device::max_work_group_size>();
+    if ( height  > nthreads_max)
     {
         fprintf( stderr, "%s: n=%lld > 1024, not supported\n", __func__, (long long) n );
     }
@@ -81,12 +83,6 @@ magma_zlaswp_rowparallel_batched( magma_int_t n,
             size in the migrated code is correct.
             */
             size_t shmem = sizeof(magmaDoubleComplex) * height * n;
-            /*
-            DPCT1049:1261: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::local_accessor<uint8_t, 1>
@@ -111,12 +107,6 @@ magma_zlaswp_rowparallel_batched( magma_int_t n,
             size in the migrated code is correct.
             */
             size_t shmem = sizeof(magmaDoubleComplex) * height * SWP_WIDTH;
-            /*
-            DPCT1049:1263: The work-group size passed to the SYCL kernel may
-            exceed the limit. To get the device limit, query
-            info::device::max_work_group_size. Adjust the work-group size if
-            needed.
-            */
             ((sycl::queue *)(queue->sycl_stream()))
                 ->submit([&](sycl::handler &cgh) {
                     sycl::local_accessor<uint8_t, 1>
@@ -152,10 +142,12 @@ magma_zlaswp_rowparallel_native(
 {
     if (n == 0 ) return;
     int height = k2-k1;
-    if ( height  > MAX_NTHREADS)
+    int nthreads_max = queue->sycl_stream()->get_device()
+	    .get_info<sycl::info::device::max_work_group_size>();
+    if ( height  > nthreads_max)
     {
         fprintf( stderr, "%s: height=%lld > %lld, magma_zlaswp_rowparallel_q not supported\n",
-                 __func__, (long long) n, (long long) MAX_NTHREADS );
+                 __func__, (long long) n, (long long) nthreads_max );
     }
 
     int blocks = magma_ceildiv( n, SWP_WIDTH );
@@ -169,11 +161,6 @@ magma_zlaswp_rowparallel_native(
         in the migrated code is correct.
         */
         size_t shmem = sizeof(magmaDoubleComplex) * height * n;
-        /*
-        DPCT1049:1265: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::local_accessor<uint8_t, 1>
@@ -197,11 +184,6 @@ magma_zlaswp_rowparallel_native(
         in the migrated code is correct.
         */
         size_t shmem = sizeof(magmaDoubleComplex) * height * SWP_WIDTH;
-        /*
-        DPCT1049:1267: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
                 sycl::local_accessor<uint8_t, 1>
@@ -291,23 +273,20 @@ magma_zlaswp_rowserial_batched(magma_int_t n, magmaDoubleComplex** dA_array, mag
 {
     if (n == 0) return;
 
-    int blocks = magma_ceildiv( n, BLK_SIZE );
     magma_int_t max_batchCount = queue->get_maxBatch();
+    int nthreads_max = queue->sycl_stream()->get_device()
+	         .get_info<sycl::info::device::max_work_group_size>();
+    magma_int_t threads = min(n, nthreads_max);
+    int blocks = magma_ceildiv( n, threads );
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> grid(ibatch, 1, blocks);
 
-        magma_int_t max_BLK_SIZE__n = max(BLK_SIZE, n);
-        /*
-        DPCT1049:1269: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
-                sycl::nd_range<3>(grid * sycl::range<3>(1, 1, max_BLK_SIZE__n),
-                                  sycl::range<3>(1, 1, max_BLK_SIZE__n)),
+                sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
+                                  sycl::range<3>(1, 1, threads)),
                 [=](sycl::nd_item<3> item_ct1) {
                     zlaswp_rowserial_kernel_batched(
                         n, dA_array + i, lda, k1, k2, ipiv_array + i, item_ct1);
@@ -327,19 +306,15 @@ magma_zlaswp_rowserial_native(magma_int_t n, magmaDoubleComplex_ptr dA, magma_in
 {
     if (n == 0) return;
 
-    int blocks = magma_ceildiv( n, BLK_SIZE );
+    int nthreads_max = queue->sycl_stream()->get_device()
+	    .get_info<sycl::info::device::max_work_group_size>();
+    magma_int_t threads = min(n, nthreads_max);
+    int blocks = magma_ceildiv( n, threads );
     sycl::range<3> grid(1, 1, blocks);
-
-    size_t max_BLK_SIZE_n = max(BLK_SIZE, n);
-    /*
-    DPCT1049:1270: The work-group size passed to the SYCL kernel may exceed the
-    limit. To get the device limit, query info::device::max_work_group_size.
-    Adjust the work-group size if needed.
-    */
     ((sycl::queue *)(queue->sycl_stream()))
         ->parallel_for(
-            sycl::nd_range<3>(grid * sycl::range<3>(1, 1, max_BLK_SIZE_n),
-                              sycl::range<3>(1, 1, max_BLK_SIZE_n)),
+            sycl::nd_range<3>(grid * sycl::range<3>(1, 1, threads),
+                              sycl::range<3>(1, 1, threads)),
             [=](sycl::nd_item<3> item_ct1) {
                 zlaswp_rowserial_kernel_native(n, dA, lda, k1, k2, dipiv,
                                                item_ct1);
@@ -446,17 +421,12 @@ magma_zlaswp_columnserial_batched(magma_int_t n, magmaDoubleComplex** dA_array, 
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         sycl::range<3> grid(ibatch, 1, blocks);
 
-        magma_int_t min_ZLASWP_COL_NTH__n = min(ZLASWP_COL_NTH, n);
-        /*
-        DPCT1049:1271: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
+        magma_int_t min_ZLASWP_COL_NTH_n = min(ZLASWP_COL_NTH, n);
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(
                 sycl::nd_range<3>(
-                    grid * sycl::range<3>(1, 1, min_ZLASWP_COL_NTH__n),
-                    sycl::range<3>(1, 1, min_ZLASWP_COL_NTH__n)),
+                    grid * sycl::range<3>(1, 1, min_ZLASWP_COL_NTH_n),
+                    sycl::range<3>(1, 1, min_ZLASWP_COL_NTH_n)),
                 [=](sycl::nd_item<3> item_ct1) {
                     zlaswp_columnserial_kernel_batched(
                         n, dA_array + i, lda, k1, k2, ipiv_array + i, item_ct1);
