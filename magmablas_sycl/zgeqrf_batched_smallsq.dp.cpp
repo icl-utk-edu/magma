@@ -18,19 +18,11 @@
 #include "sync.dp.hpp"
 #include "batched_kernel_param.h"
 
-#ifdef MAGMA_HAVE_HIP
-#define block_sync    __syncthreads
-#else
-#define block_sync    magmablas_syncwarp
-#endif
-
-
+#define BLOCK_SYNC   item_ct1.barrier()
+#define ZGEQRF_BATCH_SQ1D_MAX_THREADS    (128)
 #define SLDA(N)    ( (N==15||N==23||N==31)? (N+2) : (N+1) )
-template<int N>
-#ifdef MAGMA_HAVE_HIP
-__launch_bounds__(64) // one warp
-#endif
 
+template<int N>
 void
 zgeqrf_batched_sq1d_reg_kernel(
     magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
@@ -39,12 +31,12 @@ zgeqrf_batched_sq1d_reg_kernel(
     uint8_t *dpct_local)
 {
     auto zdata = (magmaDoubleComplex *)dpct_local;
-    const int tx = item_ct1.get_local_id(2);
-    const int ty = item_ct1.get_local_id(1);
-    const int batchid =
-        item_ct1.get_group(2) * item_ct1.get_local_range(1) + ty;
+    constexpr int mtx_per_tb = (ZGEQRF_BATCH_SQ1D_MAX_THREADS/N);
+    const int tx = item_ct1.get_local_id(2) % N;
+    const int ty = item_ct1.get_local_id(2) / N;
+    const int batchid = item_ct1.get_group(2) * mtx_per_tb + ty;
     if(batchid >= batchCount) return;
-    if(tx >= N) return;
+    if(ty      >= mtx_per_tb) return;
 
     const int slda  = SLDA(N);
     magmaDoubleComplex* dA   = dA_array[batchid] + Aj * ldda + Ai;
@@ -52,26 +44,18 @@ zgeqrf_batched_sq1d_reg_kernel(
     magma_int_t* info = &info_array[batchid];
     // shared memory pointers
     magmaDoubleComplex* sA = (magmaDoubleComplex*)(zdata + ty * slda * N);
-    double *sdw = (double *)(zdata + item_ct1.get_local_range(1) * slda * N);
+    double* sdw = (double*)(zdata + mtx_per_tb * slda * N);
     sdw += ty * N;
 
-    /*
-    DPCT1064:445: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     magmaDoubleComplex rA[N] = {MAGMA_Z_ZERO};
     magmaDoubleComplex alpha, tau, tmp, zsum, scale = MAGMA_Z_ZERO;
-    double sum = MAGMA_D_ZERO, norm = MAGMA_D_ZERO, beta;
+    double norm_no_alpha = MAGMA_D_ZERO, norm = MAGMA_D_ZERO, beta;
 
     if( tx == 0 ){
         (*info) = 0;
     }
 
     // init tau
-    /*
-    DPCT1064:446: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     dtau[tx] = MAGMA_Z_ZERO;
     // read
     #pragma unroll
@@ -80,75 +64,62 @@ zgeqrf_batched_sq1d_reg_kernel(
     }
 
     #pragma unroll
-    for(int i = 0; i < N-1; i++){
+    for(int i = 0; i < N; i++){
         sA[ i * slda + tx] = rA[i];
         sdw[tx] = ( MAGMA_Z_REAL(rA[i]) * MAGMA_Z_REAL(rA[i]) + MAGMA_Z_IMAG(rA[i]) * MAGMA_Z_IMAG(rA[i]) );
-        block_sync(item_ct1);
+        BLOCK_SYNC;
         alpha = sA[i * slda + i];
-        sum = MAGMA_D_ZERO;
+	norm_no_alpha = MAGMA_D_ZERO;
         #pragma unroll
-        for(int j = i; j < N; j++){
-            sum += sdw[j];
+	for(int j = i+1; j < N; j++){
+            norm_no_alpha += sdw[j];
         }
-        norm = sycl::sqrt(sum);
-        beta = -sycl::copysign(norm, real(alpha));
-        scale = MAGMA_Z_DIV( MAGMA_Z_ONE,  alpha - MAGMA_Z_MAKE(beta, 0));
-        tau = MAGMA_Z_MAKE( (beta - real(alpha)) / beta, -imag(alpha) / beta );
+        norm = norm_no_alpha + sdw[i];
+        bool zero_nrm = (norm_no_alpha == 0) && (MAGMA_Z_IMAG(alpha) == 0);
 
-        if(tx == i){
-            dtau[i] = tau;
+	norm = sycl::sqrt(norm);
+        tmp   = rA[i];
+        tau   = MAGMA_Z_ZERO;
+        scale = MAGMA_Z_ONE;
+
+        if(!zero_nrm) {
+            beta = -sycl::copysign(norm, real(alpha));
+            scale = (tx > i) ? MAGMA_Z_DIV( MAGMA_Z_ONE,  alpha - MAGMA_Z_MAKE(beta, 0)) : scale;
+            tau   = MAGMA_Z_MAKE( (beta - real(alpha)) / beta, -imag(alpha) / beta );
+            rA[i] *= scale;
+            tmp = (tx == i)? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO) : rA[i];
+            if(tx == i){
+                dtau[i] = tau;
+                rA[i]   = MAGMA_Z_ONE;
+            }
         }
 
-        /*
-        DPCT1064:447: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        tmp = (tx == i) ? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO) : rA[i] * scale;
-
-        if(tx >= i){
-            rA[i] = tmp;
-        }
-
-        dA[ i * ldda + tx ] = rA[i];
-        /*
-        DPCT1064:448: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        rA[i] = (tx == i) ? MAGMA_Z_ONE : rA[i];
-        /*
-        DPCT1064:449: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        rA[i] = (tx < i) ? MAGMA_Z_ZERO : rA[i];
+        dA[ i * ldda + tx ] = tmp;
+        rA[i] = (tx == i)   ? MAGMA_Z_ONE  : rA[i];
+        rA[i] = (tx < i )   ? MAGMA_Z_ZERO : rA[i];
         tmp = MAGMA_Z_CONJ( rA[i] ) * MAGMA_Z_CONJ( tau );
 
-        block_sync(item_ct1);
+        BLOCK_SYNC;
 #pragma unroll
         for(int j = i+1; j < N; j++){
             sA[j * slda + tx] = rA[j] * tmp;
         }
-        block_sync(item_ct1);
+        BLOCK_SYNC;
 
-        /*
-        DPCT1064:450: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         zsum = MAGMA_Z_ZERO;
 #pragma unroll
         for(int j = i; j < N; j++){
             zsum += sA[tx * slda + j];
         }
         sA[tx * slda + N] = zsum;
-        block_sync(item_ct1);
+        BLOCK_SYNC;
 
 #pragma unroll
         for(int j = i+1; j < N; j++){
             rA[j] -= rA[i] * sA[j * slda + N];
         }
-        block_sync(item_ct1);
+        BLOCK_SYNC;
     }
-    // write the last column
-    dA[ (N-1) * ldda + tx ] = rA[N-1];
 }
 
 /***************************************************************************//**
@@ -236,20 +207,14 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
 
     if( m == 0 || n == 0) return 0;
 
-    #ifdef MAGMA_HAVE_HIP
-    const magma_int_t ntcol = max(1, 64/n);
-    #else
-    const magma_int_t ntcol = magma_get_zgeqrf_batched_ntcol(m, n);
-    #endif
-
+    magma_int_t ntcol = max(1, ZGEQRF_BATCH_SQ1D_MAX_THREADS/n); //magma_get_zgeqrf_batched_ntcol(m, n);
     magma_int_t shmem = ( SLDA(m) * m * sizeof(magmaDoubleComplex) );
     shmem            += ( m * sizeof(double) );
     shmem            *= ntcol;
-    magma_int_t nth   = magma_ceilpow2(m);
+    magma_int_t nth   = m;//magma_ceilpow2(m);
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
     sycl::range<3> grid(1, 1, gridx);
-    sycl::range<3> threads(1, ntcol, nth);
-
+    sycl::range<3> threads(1, 1, nth * ntcol);
     void *kernel_args[] = {&dA_array, &Ai, &Aj, &ldda, &dtau_array, &taui, &info_array, &batchCount};
 
     int e = 0;
