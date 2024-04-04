@@ -180,66 +180,29 @@ zgesv_batched_small_kernel(
     }
 }
 
-
-void
-zgesv_batched_small_sm_kernel(
-    magma_int_t n, magma_int_t nrhs,
-    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t** dipiv_array,
-    magmaDoubleComplex **dB_array, magma_int_t lddb,
-    magma_int_t* dinfo_array , sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
+__inline__ void
+zgesv_batched_small_sm_device(
+    const int tx,
+    int n, int nrhs,
+    magmaDoubleComplex *sA, int slda, int *sipiv,
+    magmaDoubleComplex *sB, int sldb,
+    magmaDoubleComplex *sx, double *dsx,
+    int &linfo , const sycl::nd_item<3> &item_ct1)
 {
-    auto zdata = (magmaDoubleComplex *)dpct_local;
-    const int tx = item_ct1.get_local_id(2);
-    const int batchid = item_ct1.get_group(2);
-
-    magmaDoubleComplex* dA = dA_array[batchid];
-    magmaDoubleComplex* dB = dB_array[batchid];
-    magma_int_t* ipiv      = dipiv_array[batchid];
-    magma_int_t* info      = &dinfo_array[batchid];
-
-    /*
-    DPCT1064:514: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
+    int max_id;
+    double rx_abs_max = MAGMA_D_ZERO;
     magmaDoubleComplex reg = MAGMA_Z_ZERO;
-    /*
-    DPCT1064:515: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     magmaDoubleComplex update = MAGMA_Z_ZERO;
 
-    int max_id;
-    int linfo = 0;
-    double rx_abs_max = MAGMA_D_ZERO;
+    linfo = 0;
 
-    const int slda = SLDA(n);
-    const int sldb = SLDA(n);
-    magmaDoubleComplex *sA = (magmaDoubleComplex*)(zdata);
-    magmaDoubleComplex *sB = sA + slda * n;
-    magmaDoubleComplex *sx = sB + sldb * nrhs;
-    double* dsx = (double*)(sx + n);
-    int* sipiv  = (int*)(dsx + n);
-
-    for(int i = 0; i < n; i++){
-        sA(tx,i) = dA[ i * ldda + tx ];
-    }
-
-    for(int i = 0; i < nrhs; i++) {
-        sB(tx,i) = dB[ i * lddb + tx ];
-    }
-    /*
-    DPCT1065:512: Consider replacing sycl::nd_item::barrier() with
-    sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
-    performance if there is no access to global memory.
-    */
-    item_ct1.barrier();
-
-#pragma unroll
+    #pragma unroll
     for(int i = 0; i < n; i++) {
         // izamax and find pivot
-        dsx[tx] = sycl::fabs(MAGMA_Z_REAL(sA(tx, i))) + sycl::fabs(MAGMA_Z_IMAG(sA(tx, i)));
+        dsx[tx] = sycl::fabs(MAGMA_Z_REAL(sA(tx, i))) +
+                  sycl::fabs(MAGMA_Z_IMAG(sA(tx, i)));
         /*
-        DPCT1065:516: Consider replacing sycl::nd_item::barrier() with
+        DPCT1065:133: Consider replacing sycl::nd_item::barrier() with
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
@@ -253,11 +216,7 @@ zgesv_batched_small_sm_kernel(
             }
         }
         linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (i+1) : linfo;
-        /*
-        DPCT1064:519: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        update = (rx_abs_max == MAGMA_D_ZERO) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
+        update = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
 
         // write pivot index
         if(tx == 0){
@@ -277,18 +236,13 @@ zgesv_batched_small_sm_kernel(
             }
         }
         /*
-        DPCT1065:517: Consider replacing sycl::nd_item::barrier() with
+        DPCT1065:134: Consider replacing sycl::nd_item::barrier() with
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
         item_ct1.barrier();
 
-        /*
-        DPCT1064:520: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
-        reg = (rx_abs_max == MAGMA_D_ZERO) ? MAGMA_Z_ONE
-                                           : MAGMA_Z_DIV(MAGMA_Z_ONE, sA(i, i));
+        reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sA(i,i) );
         // scal and ger
         if( tx > i ){
             sA(tx,i) *= reg;
@@ -301,12 +255,77 @@ zgesv_batched_small_sm_kernel(
             }
         }
         /*
-        DPCT1065:518: Consider replacing sycl::nd_item::barrier() with
+        DPCT1065:135: Consider replacing sycl::nd_item::barrier() with
         sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
         better performance if there is no access to global memory.
         */
         item_ct1.barrier();
     }
+
+    for(int i = n-1; i >= 0; i--) {
+        for(int j = 0; j < nrhs; j++) {
+            reg       = MAGMA_Z_DIV(sB(i, j), sA(i,i));
+            /*
+            DPCT1065:136: Consider replacing sycl::nd_item::barrier() with
+            sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+            better performance if there is no access to global memory.
+            */
+            item_ct1.barrier();
+            sB(tx, j) = (tx <  i) ? sB(tx, j) - reg * sA(tx,i): sB(tx, j);
+            sB(tx, j) = (tx == i) ? reg : sB(tx, j);
+            /*
+            DPCT1065:137: Consider replacing sycl::nd_item::barrier() with
+            sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
+            better performance if there is no access to global memory.
+            */
+            item_ct1.barrier();
+        }
+    }
+}
+
+void
+zgesv_batched_small_sm_kernel(
+    magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t** dipiv_array,
+    magmaDoubleComplex **dB_array, magma_int_t lddb,
+    magma_int_t* dinfo_array , const sycl::nd_item<3> &item_ct1,
+    uint8_t *dpct_local)
+{
+    auto zdata = (magmaDoubleComplex *)dpct_local;
+    const int tx = item_ct1.get_local_id(2);
+    const int batchid = item_ct1.get_group(2);
+    int linfo = 0;
+
+    magmaDoubleComplex* dA = dA_array[batchid];
+    magmaDoubleComplex* dB = dB_array[batchid];
+    magma_int_t* ipiv      = dipiv_array[batchid];
+    magma_int_t* info      = &dinfo_array[batchid];
+
+    const int slda = SLDA(n);
+    const int sldb = SLDA(n);
+    magmaDoubleComplex *sA = (magmaDoubleComplex*)(zdata);
+    magmaDoubleComplex *sB = sA + slda * n;
+    magmaDoubleComplex *sx = sB + sldb * nrhs;
+    double* dsx = (double*)(sx + n);
+    int* sipiv  = (int*)(dsx + n);
+
+    for(int i = 0; i < n; i++){
+        sA(tx,i) = dA[ i * ldda + tx ];
+    }
+
+    for(int i = 0; i < nrhs; i++) {
+        sB(tx,i) = dB[ i * lddb + tx ];
+    }
+    /*
+    DPCT1065:138: Consider replacing sycl::nd_item::barrier() with
+    sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
+    performance if there is no access to global memory.
+    */
+    item_ct1.barrier();
+
+    zgesv_batched_small_sm_device(tx, n, nrhs, sA, slda, sipiv, sB, sldb, sx,
+                                  dsx, linfo, item_ct1);
+    // there is a sync at the end of this device function
 
     if(tx == 0){
         (*info) = (magma_int_t)( linfo );
@@ -318,33 +337,7 @@ zgesv_batched_small_sm_kernel(
         dA[ i * ldda + tx ] = sA(tx, i);
     }
 
-    for(int i = n-1; i >= 0; i--) {
-        for(int j = 0; j < nrhs; j++) {
-            reg       = MAGMA_Z_DIV(sB(i, j), sA(i,i));
-            /*
-            DPCT1065:521: Consider replacing sycl::nd_item::barrier() with
-            sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
-            better performance if there is no access to global memory.
-            */
-            item_ct1.barrier();
-            sB(tx, j) = (tx <  i) ? sB(tx, j) - reg * sA(tx,i): sB(tx, j);
-            sB(tx, j) = (tx == i) ? reg : sB(tx, j);
-            /*
-            DPCT1065:522: Consider replacing sycl::nd_item::barrier() with
-            sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
-            better performance if there is no access to global memory.
-            */
-            item_ct1.barrier();
-        }
-    }
-
-    // write
-    /*
-    DPCT1065:513: Consider replacing sycl::nd_item::barrier() with
-    sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
-    performance if there is no access to global memory.
-    */
-    item_ct1.barrier();
+    // write B
     for(int j = 0; j < nrhs; j++) {
         dB[j * lddb + tx] = sB(tx, j);
     }
