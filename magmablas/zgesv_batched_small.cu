@@ -162,45 +162,21 @@ zgesv_batched_small_kernel(
 }
 
 
-__global__ void
-zgesv_batched_small_sm_kernel(
-    magma_int_t n, magma_int_t nrhs,
-    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t** dipiv_array,
-    magmaDoubleComplex **dB_array, magma_int_t lddb,
-    magma_int_t* dinfo_array )
+__device__ __inline__ void
+zgesv_batched_small_sm_device(
+    const int tx,
+    int n, int nrhs,
+    magmaDoubleComplex *sA, int slda, int *sipiv,
+    magmaDoubleComplex *sB, int sldb,
+    magmaDoubleComplex *sx, double *dsx,
+    int &linfo )
 {
-    extern __shared__ magmaDoubleComplex zdata[];
-    const int tx = threadIdx.x;
-    const int batchid = blockIdx.x ;
-
-    magmaDoubleComplex* dA = dA_array[batchid];
-    magmaDoubleComplex* dB = dB_array[batchid];
-    magma_int_t* ipiv      = dipiv_array[batchid];
-    magma_int_t* info      = &dinfo_array[batchid];
-
+    int max_id;
+    double rx_abs_max = MAGMA_D_ZERO;
     magmaDoubleComplex reg    = MAGMA_Z_ZERO;
     magmaDoubleComplex update = MAGMA_Z_ZERO;
 
-    int max_id;
-    int linfo = 0;
-    double rx_abs_max = MAGMA_D_ZERO;
-
-    const int slda = SLDA(n);
-    const int sldb = SLDA(n);
-    magmaDoubleComplex *sA = (magmaDoubleComplex*)(zdata);
-    magmaDoubleComplex *sB = sA + slda * n;
-    magmaDoubleComplex *sx = sB + sldb * nrhs;
-    double* dsx = (double*)(sx + n);
-    int* sipiv  = (int*)(dsx + n);
-
-    for(int i = 0; i < n; i++){
-        sA(tx,i) = dA[ i * ldda + tx ];
-    }
-
-    for(int i = 0; i < nrhs; i++) {
-        sB(tx,i) = dB[ i * lddb + tx ];
-    }
-    __syncthreads();
+    linfo = 0;
 
     #pragma unroll
     for(int i = 0; i < n; i++) {
@@ -252,6 +228,54 @@ zgesv_batched_small_sm_kernel(
         __syncthreads();
     }
 
+    for(int i = n-1; i >= 0; i--) {
+        for(int j = 0; j < nrhs; j++) {
+            reg       = MAGMA_Z_DIV(sB(i, j), sA(i,i));
+            __syncthreads();
+            sB(tx, j) = (tx <  i) ? sB(tx, j) - reg * sA(tx,i): sB(tx, j);
+            sB(tx, j) = (tx == i) ? reg : sB(tx, j);
+            __syncthreads();
+        }
+    }
+}
+
+__global__ void
+zgesv_batched_small_sm_kernel(
+    magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, magma_int_t** dipiv_array,
+    magmaDoubleComplex **dB_array, magma_int_t lddb,
+    magma_int_t* dinfo_array )
+{
+    extern __shared__ magmaDoubleComplex zdata[];
+    const int tx = threadIdx.x;
+    const int batchid = blockIdx.x ;
+    int linfo = 0;
+
+    magmaDoubleComplex* dA = dA_array[batchid];
+    magmaDoubleComplex* dB = dB_array[batchid];
+    magma_int_t* ipiv      = dipiv_array[batchid];
+    magma_int_t* info      = &dinfo_array[batchid];
+
+    const int slda = SLDA(n);
+    const int sldb = SLDA(n);
+    magmaDoubleComplex *sA = (magmaDoubleComplex*)(zdata);
+    magmaDoubleComplex *sB = sA + slda * n;
+    magmaDoubleComplex *sx = sB + sldb * nrhs;
+    double* dsx = (double*)(sx + n);
+    int* sipiv  = (int*)(dsx + n);
+
+    for(int i = 0; i < n; i++){
+        sA(tx,i) = dA[ i * ldda + tx ];
+    }
+
+    for(int i = 0; i < nrhs; i++) {
+        sB(tx,i) = dB[ i * lddb + tx ];
+    }
+    __syncthreads();
+
+    zgesv_batched_small_sm_device( tx, n, nrhs, sA, slda, sipiv, sB, sldb, sx, dsx, linfo );
+    // there is a sync at the end of this device function
+
     if(tx == 0){
         (*info) = (magma_int_t)( linfo );
     }
@@ -262,18 +286,7 @@ zgesv_batched_small_sm_kernel(
         dA[ i * ldda + tx ] = sA(tx, i);
     }
 
-    for(int i = n-1; i >= 0; i--) {
-        for(int j = 0; j < nrhs; j++) {
-            reg       = MAGMA_Z_DIV(sB(i, j), sA(i,i));
-            __syncthreads();
-            sB(tx, j) = (tx <  i) ? sB(tx, j) - reg * sA(tx,i): sB(tx, j);
-            sB(tx, j) = (tx == i) ? reg : sB(tx, j);
-            __syncthreads();
-        }
-    }
-
-    // write
-    __syncthreads();
+    // write B
     for(int j = 0; j < nrhs; j++) {
         dB[j * lddb + tx] = sB(tx, j);
     }

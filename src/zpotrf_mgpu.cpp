@@ -105,7 +105,7 @@ magma_zpotrf_mgpu(
 
     magma_device_t orig_dev;
     magma_getdevice( &orig_dev );
-    
+
     if (ngpu == 1 && ((nb <= 1) || (nb >= n)) ) {
         /*  Use unblocked code. */
         magma_setdevice(0);
@@ -140,7 +140,10 @@ magma_zpotrf_mgpu(
             }
         }
         magma_setdevice(0);
-        h = 1; //ngpu; //magma_ceildiv( n, nb );
+        // setting h = 1 produces failures for ngpus >= 4
+        // set h = 2 as a temp. fix
+        // TODO: investigate the correct value for h
+        h = 2; //ngpu; //magma_ceildiv( n, nb );
         if (MAGMA_SUCCESS != magma_zmalloc_pinned( &work, n*nb*h )) {
             *info = MAGMA_ERR_HOST_ALLOC;
             return *info;
@@ -162,16 +165,16 @@ magma_zpotrf_mgpu(
                 magma_queue_sync( queues[d][j] );
                 magma_queue_destroy( queues[d][j] );
             }
-            
+
             for( j=0; j < 5; j++ )
                 magma_event_destroy( event[d][j] );
-            
+
             magma_free( dwork[d] );
         }
         magma_free_pinned( work );
     } /* end of not lapack */
 
     magma_setdevice( orig_dev );
-    
+
     return *info;
 } /* magma_zpotrf_mgpu */

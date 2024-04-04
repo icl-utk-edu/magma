@@ -1021,7 +1021,6 @@ INPUT                  = \
 	../magmablas/zgetmatrix_transpose.cpp                       \
 	../magmablas/zgetmatrix_transpose_mgpu.cpp                  \
 	../magmablas/zgetrf_batched_smallsq_noshfl.cu               \
-	../magmablas/zgetrf_batched_smallsq_shfl.cu                 \
 	../magmablas/zhemm_batched_core.cu                          \
 	../magmablas/zhemm_mgpu.cpp                                 \
 	../magmablas/zhemm_vbatched.cpp                             \

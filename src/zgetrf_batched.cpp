@@ -109,19 +109,8 @@ magma_zgetrf_batched(
         if (min_mn == 0 ) return arginfo;
 
     /* Special case for tiny square matrices */
-    if( m == n && m <= 32 ){
-        #ifdef MAGMA_HAVE_CUDA
-        magma_int_t arch = magma_getdevice_arch();
-        if(arch >= 700){
-            return magma_zgetrf_batched_smallsq_noshfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );
-        }
-        else{
-            return magma_zgetrf_batched_smallsq_shfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );
-        }
-        #else
+    if( m == n && m <= 32 )
         return magma_zgetrf_batched_smallsq_noshfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );
-        #endif
-    }
 
     //cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
     magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
