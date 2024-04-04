@@ -123,14 +123,14 @@ zhemv_kernel_L_mgpu(
 
     // --------------------
     // move to block row
-    work += blk*lda;     // work is work(0, blk)
+    work += (size_t)blk * (size_t)lda;     // work is work(0, blk)
 
     A += blk_ind;        // A is A(blk_ind, 0)
-    A += ty2*lda + tx2;  // A is A(blk_ind + tx2, ty2)
+    A += (size_t)ty2 * (size_t)lda + tx2;  // A is A(blk_ind + tx2, ty2)
     if ( blk % ngpu == my_gpu_id ) {
         // this GPU owns this diagonal block, so
         // move to 32x32 diag block
-        A += (blk/ngpu)*NB_X*lda;  // A is A(blk_ind + tx2, blk_ind + ty2)
+        A += (size_t)(blk/ngpu) * (size_t)NB_X * (size_t)lda;  // A is A(blk_ind + tx2, blk_ind + ty2)
 
         // load 32x32 diag block A(blk_ind + 0:31, blk_ind + 0:31) into sA,
         // as four 32x8 sections one after another:
@@ -145,11 +145,6 @@ zhemv_kernel_L_mgpu(
                     sA32(tx2, ty2 + j) = A[j*lda];
                 }
                 else {
-                    /*
-                    DPCT1064:945: Migrated make_cuDoubleComplex call is used in
-                    a macro definition and is not valid for all macro uses.
-                    Adjust the code.
-                    */
                     sA32(tx2, ty2 + j) = MAGMA_Z_ZERO;
                 }
             }
@@ -188,10 +183,6 @@ zhemv_kernel_L_mgpu(
 
         // multiply 32x32 diag block * x
         // each thread does partial row sA(tx2, ty2*4 : ty2*4 + 3)
-        /*
-        DPCT1064:946: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         psum = MAGMA_Z_ZERO;
 #pragma unroll
         for (int j=0; j < 4; j++) {
@@ -229,7 +220,7 @@ zhemv_kernel_L_mgpu(
 
         // --------------------
         // move to next 32x32 diag block, then repeat steps from first diag block
-        A += half_NB_X + half_NB_X*lda;  // A is A(blk_ind + NB/2 + tx2, blk_ind + NB/2 + ty2)
+        A += half_NB_X + (size_t)half_NB_X * (size_t)lda;  // A is A(blk_ind + NB/2 + tx2, blk_ind + NB/2 + ty2)
 
         // load 32x32 diag block A[block + 0:31, block + 0:31] into sA
         if ( partial ) {
@@ -318,7 +309,7 @@ zhemv_kernel_L_mgpu(
 
         // --------------------
         // move to off-diag 32x32 block
-        A -= half_NB_X*lda;  // A is A(blk_ind + NB/2 + tx2, blk_ind + ty2)
+        A -= (size_t)half_NB_X * (size_t)lda;  // A is A(blk_ind + NB/2 + tx2, blk_ind + ty2)
 
         // load 32x32 block of A into sA,
         // as four 32x8 sections one after another:
@@ -367,10 +358,6 @@ zhemv_kernel_L_mgpu(
         //__syncthreads();  // no sync needed here
 
         // multiply transposed 32x32 block (above diag)
-        /*
-        DPCT1064:949: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         psum_t = MAGMA_Z_ZERO;
 #pragma unroll
         for (int j=0; j < 4; j++) {
@@ -435,12 +422,13 @@ zhemv_kernel_L_mgpu(
         // move to leftmost 64x64 block in block row, and
         // switch thread offset from (tx2,ty2) 32x8 block to (tx,ty) 64x4 block
         A -= half_NB_X;            // A is A(blk_ind + tx2, blk_ind + ty2)
-        A -= (blk/ngpu)*NB_X*lda;  // A is A(blk_ind + tx2,           ty2)
+        A -= (size_t)(blk/ngpu) * (size_t)NB_X * (size_t)lda;  // A is A(blk_ind + tx2,           ty2)
+
     }
 
     // finish switching thread offset
-    A -= ty2*lda + tx2;  // A is A(blk_ind, 0)
-    A += 4*ty*lda + tx;  // A is A(blk_ind + tx, 4*ty)
+    A -= (size_t)ty2    * (size_t)lda + tx2;  // A is A(blk_ind, 0)
+    A += (size_t)(4*ty) * (size_t)lda + tx;  // A is A(blk_ind + tx, 4*ty)
 
     if ( partial && tx >= partial ) {
         A = A - tx + (partial - 1);  // A is A(blk_ind + partial-1, 4*ty), the bottom-most valid row
@@ -459,11 +447,6 @@ zhemv_kernel_L_mgpu(
         // only the first block column (jj=0, on GPU 0) deals with offset
         if ( ty == 0 ) {
             if ( jj == 0 && tx < block_offset ) {
-                /*
-                DPCT1064:953: Migrated make_cuDoubleComplex call is used in a
-                macro definition and is not valid for all macro uses. Adjust the
-                code.
-                */
                 sx_jj[tx] = MAGMA_Z_ZERO;
             }
             else {
@@ -528,7 +511,7 @@ zhemv_kernel_L_mgpu(
             psums_t[k] = psum_t;
 
             // move right to next 64x16 block
-            A += lda * quarter_NB_X;  // A is A(blk_ind + tx#, jj*NB_x + (k+1)*NB_X/4 + 4*ty), # tx or partial
+            A += (size_t)lda * (size_t)quarter_NB_X;  // A is A(blk_ind + tx#, jj*NB_x + (k+1)*NB_X/4 + 4*ty), # tx or partial
         }
         // already at next 64x64 block
         // A is A(blk_ind + tx#, (jj+1)*NB_x + 4*ty), # tx or partial
