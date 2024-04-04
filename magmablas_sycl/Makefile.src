@@ -159,7 +159,6 @@ libmagma_src += \
 	$(cdir)/zgesv_batched_small.dp.cpp		\
 	$(cdir)/zgetf2_kernels.dp.cpp		\
 	$(cdir)/zgetrf_batched_smallsq_noshfl.dp.cpp\
-	$(cdir)/zgetrf_batched_smallsq_shfl.dp.cpp	\
 	$(cdir)/getrf_setup_pivinfo.dp.cpp		\
 	$(cdir)/zhemm_batched_core.dp.cpp		\
 	$(cdir)/zher2k_batched.dp.cpp		\
