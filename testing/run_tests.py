@@ -1272,6 +1272,7 @@ batched = (
 	('testing_ztrmm_batched',     batch + '-SR -U -T -DU  -c',  n + tall, ''),
 
 	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
+	# version 1 (invert diag. block, out-of-place)
 	('testing_ztrsm_batched',     batch + '-SL -L    -DN  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -L    -DU  -c',  n + wide, ''),
 	('testing_ztrsm_batched',     batch + '-SL -L -C -DN  -c',  n + wide, ''),
@@ -1299,6 +1300,36 @@ batched = (
 	('testing_ztrsm_batched',     batch + '-SR -U -C -DU  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -U -T -DN  -c',  n + tall, ''),
 	('testing_ztrsm_batched',     batch + '-SR -U -T -DU  -c',  n + tall, ''),
+
+	# left/right, lower/upper, no-trans/conj-trans, non-unit/unit diag
+	# version 2 (invert diag. block, in-place)
+	('testing_ztrsm_batched',     batch + '-SL -L    -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -L    -DU  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -L -C -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -L -C -DU  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -L -T -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -L -T -DU  -c --version 2',  n + wide, ''),
+
+	('testing_ztrsm_batched',     batch + '-SL -U    -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -U    -DU  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -U -C -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -U -C -DU  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -U -T -DN  -c --version 2',  n + wide, ''),
+	('testing_ztrsm_batched',     batch + '-SL -U -T -DU  -c --version 2',  n + wide, ''),
+
+	('testing_ztrsm_batched',     batch + '-SR -L    -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -L    -DU  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -L -C -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -L -C -DU  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -L -T -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -L -T -DU  -c --version 2',  n + tall, ''),
+
+	('testing_ztrsm_batched',     batch + '-SR -U    -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -U    -DU  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -U -C -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -U -C -DU  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -U -T -DN  -c --version 2',  n + tall, ''),
+	('testing_ztrsm_batched',     batch + '-SR -U -T -DU  -c --version 2',  n + tall, ''),
 
 	# lower/upper, no-trans/conj-trans, non-unit/unit diag
 	('testing_ztrsv_batched',     batch + '    -L    -DN  -c',  n,    ''),
@@ -1643,7 +1674,7 @@ def run( cmd ):
 	words = re.split( ' +', cmd.strip() )
 
 	# stdout & stderr are merged
-	p = subprocess.Popen( words, bufsize=1, stdout=PIPE, stderr=STDOUT )
+	p = subprocess.Popen( words, stdout=PIPE, stderr=STDOUT )
 
 	okay  = 0
 	fail  = 0
@@ -1814,8 +1845,7 @@ else:
 	msg += '%5d tests in %d commands passed\n' % (nokay, ntest)
 	msg += '%5d tests failed accuracy test\n' % (nfail)
 	msg += '%5d errors detected (crashes, CUDA errors, etc.)\n' % (nerror)
-	f = failures.keys()
-	f.sort()
+	f = sorted( failures.keys() )
 	msg += 'routines with failures:\n    ' + '\n    '.join( f ) + '\n'
 # end
 
