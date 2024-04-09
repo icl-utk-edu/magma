@@ -21,6 +21,7 @@
 #include "magma_operators.h"  // for MAGMA_Z_DIV
 #include "testings.h"
 
+#define cond (M == 16 && N <= N)
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing ztrsm
 */
@@ -52,7 +53,7 @@ int main( int argc, char** argv)
     magmaDoubleComplex_ptr dA, dB;
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magmaDoubleComplex c_one = MAGMA_Z_ONE;
-    magmaDoubleComplex alpha = MAGMA_Z_MAKE(  0.29, -0.86 );
+    magmaDoubleComplex alpha = MAGMA_Z_ONE; //MAGMA_Z_MAKE(  0.29, -0.86 );
     int status = 0;
 
     magma_opts opts;
@@ -124,7 +125,8 @@ int main( int argc, char** argv)
             assert( info == 0 );
 
             lapackf77_zlarnv( &ione, ISEED, &sizeB, hB );
-            lapackf77_zlacpy( MagmaFullStr, &M, &N, hB, &ldb, hBlapack, &lda );
+            lapackf77_zlacpy( MagmaFullStr, &M, &N, hB, &ldb, hBlapack, &ldb );
+            lapackf77_zlacpy( MagmaFullStr, &M, &N, hB, &ldb, hBmagma,  &ldb );
             magma_zsetmatrix( Ak, Ak, hA, lda, dA(0,0), ldda, opts.queue );
 
             /* =====================================================================
@@ -133,24 +135,35 @@ int main( int argc, char** argv)
             #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
                 magma_zsetmatrix( M, N, hB, ldb, dB(0,0), lddb, opts.queue );
 
-                magma_time = magma_sync_wtime( opts.queue );
+                if(cond) {
+                    magma_zprint_gpu(Ak, Ak, dA, ldda, opts.queue);
+                    magma_zprint_gpu( M,  N, dB, lddb, opts.queue);
+                }
+
+
                 if (opts.ngpu == 1) {
+                    magma_time = magma_sync_wtime( opts.queue );
                     magmablas_ztrsm( opts.side, opts.uplo, opts.transA, opts.diag,
                                      M, N,
                                      alpha, dA(0,0), ldda,
                                             dB(0,0), lddb, opts.queue );
+                    magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+                    magma_zgetmatrix( M, N, dB(0,0), lddb, hBmagma, ldb, opts.queue );
                 }
                 else {
+                    magma_time = magma_wtime();
                     magma_ztrsm_m( abs_ngpu, opts.side, opts.uplo, opts.transA, opts.diag,
                                    M, N,
-                                   alpha, dA(0,0), ldda,
-                                          dB(0,0), lddb );
+                                   alpha, hA,      lda,
+                                          hBmagma, ldb );
+                    magma_time = magma_wtime() - magma_time;
                 }
-                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
                 magma_perf = gflops / magma_time;
-
-                magma_zgetmatrix( M, N, dB(0,0), lddb, hBmagma, ldb, opts.queue );
             #endif
+
+            if(cond) {
+                    magma_zprint(M, N, hBmagma, ldb);
+            }
 
             /* =====================================================================
                Performs operation using cuBLAS / clBLAS
@@ -166,6 +179,10 @@ int main( int argc, char** argv)
             dev_perf = gflops / dev_time;
 
             magma_zgetmatrix( M, N, dB(0,0), lddb, hBdev, ldb, opts.queue );
+            if(cond) {
+                printf("hipblas\n");
+                magma_zprint_gpu( M,  N, dB, lddb, opts.queue);
+            }
 
             /* =====================================================================
                Performs operation using CPU BLAS
