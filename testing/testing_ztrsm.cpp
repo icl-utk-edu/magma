@@ -21,7 +21,6 @@
 #include "magma_operators.h"  // for MAGMA_Z_DIV
 #include "testings.h"
 
-#define cond (M == 16 && N <= N)
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing ztrsm
 */
@@ -135,12 +134,6 @@ int main( int argc, char** argv)
             #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
                 magma_zsetmatrix( M, N, hB, ldb, dB(0,0), lddb, opts.queue );
 
-                if(cond) {
-                    magma_zprint_gpu(Ak, Ak, dA, ldda, opts.queue);
-                    magma_zprint_gpu( M,  N, dB, lddb, opts.queue);
-                }
-
-
                 if (opts.ngpu == 1) {
                     magma_time = magma_sync_wtime( opts.queue );
                     magmablas_ztrsm( opts.side, opts.uplo, opts.transA, opts.diag,
@@ -161,10 +154,6 @@ int main( int argc, char** argv)
                 magma_perf = gflops / magma_time;
             #endif
 
-            if(cond) {
-                    magma_zprint(M, N, hBmagma, ldb);
-            }
-
             /* =====================================================================
                Performs operation using cuBLAS / clBLAS
                =================================================================== */
@@ -179,10 +168,6 @@ int main( int argc, char** argv)
             dev_perf = gflops / dev_time;
 
             magma_zgetmatrix( M, N, dB(0,0), lddb, hBdev, ldb, opts.queue );
-            if(cond) {
-                printf("hipblas\n");
-                magma_zprint_gpu( M,  N, dB, lddb, opts.queue);
-            }
 
             /* =====================================================================
                Performs operation using CPU BLAS
