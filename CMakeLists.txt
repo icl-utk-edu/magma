@@ -399,7 +399,7 @@ if (MAGMA_ENABLE_HIP)
     set(GPU_ARCH_FLAGS ${DEVCCFLAGS})
 
     #add_compile_options(${GPU_ARCH_FLAGS})
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_HCC__" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_AMD__" )
     option(ROCM_CORE "Location of the rocm-core package")
     execute_process(COMMAND "${CMAKE_SOURCE_DIR}/tools/get-rocm-version.sh" "${ROCM_CORE}" OUTPUT_VARIABLE ROCM_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
     message(STATUS "ROCM_VERSION=${ROCM_VERSION}")
