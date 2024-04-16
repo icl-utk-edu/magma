@@ -138,8 +138,8 @@ typedef double real_Double_t;
 #elif defined(MAGMA_HAVE_HIP)
 
     // default to HCC
-    #if !defined(__HIP_PLATFORM_HCC__) && !defined(__HIP_PLATFORM_NVCC)
-      #define __HIP_PLATFORM_HCC__
+    #if !defined(__HIP_PLATFORM_AMD__) && !defined(__HIP_PLATFORM_NVCC)
+      #define __HIP_PLATFORM_AMD__
     #endif
 
     #include <hip/hip_version.h>
