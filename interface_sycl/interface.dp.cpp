@@ -139,7 +139,7 @@ struct magma_device_info
     size_t memory;
     size_t shmem_block;      // maximum shared memory per thread block in bytes
     size_t shmem_multiproc;  // maximum shared memory per multiprocessor in bytes
-    magma_int_t cuda_arch;
+    magma_int_t gpu_arch;
     magma_int_t multiproc_count;    // number of multiprocessors
 };
 
@@ -217,7 +217,7 @@ extern "C" magma_int_t magma_init()
                     g_magma_devices[dev].shmem_block =
                         prop.get_local_mem_size();
                     
-                    g_magma_devices[dev].cuda_arch =
+                    g_magma_devices[dev].gpu_arch =
                        dpct::dev_mgr::instance().get_device(dev).get_info<sycl::info::device::vendor_id>();
 		    // TODO:sharedMemPerMultiprocessor not part of dpct prop
 //                    g_magma_devices[dev].shmem_multiproc = prop.sharedMemPerMultiprocessor;
@@ -497,7 +497,7 @@ catch (sycl::exception const &exc) {
 // device support
 
 /***************************************************************************//**
-    Returns the unique vendor_id for this device. The name is cuda_arch due to
+    Returns the unique vendor_id for this device. The name is gpu_arch due to
     historical reasons with MAGMA development.
 
     @return CUDA_ARCH for the current device.
@@ -518,7 +518,7 @@ extern "C" magma_int_t magma_getdevice_arch()
         fprintf( stderr, "Error in %s: MAGMA not initialized (call magma_init() first) or bad device\n", __func__ );
         return 0;
     }
-    return g_magma_devices[dev].cuda_arch;
+    return g_magma_devices[dev].gpu_arch;
 }
 
 /***************************************************************************//**
