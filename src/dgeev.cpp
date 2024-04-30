@@ -87,7 +87,11 @@
             after another in the columns of VL, in the same order
             as their eigenvalues.
             If JOBVL = MagmaNoVec, VL is not referenced.
-            u(j) = VL(:,j), the j-th column of VL.
+            If the j-th eigenvalue is real, then u(j) = VL(:,j),
+            the j-th column of VL.
+            If the j-th and (j+1)-st eigenvalues form a complex
+            conjugate pair, then u(j)   = VL(:,j) + i*VL(:,j+1)
+            and                  u(j+1) = VL(:,j) - i*VL(:,j+1).
 
     @param[in]
     ldvl    INTEGER
@@ -100,7 +104,11 @@
             after another in the columns of VR, in the same order
             as their eigenvalues.
             If JOBVR = MagmaNoVec, VR is not referenced.
-            v(j) = VR(:,j), the j-th column of VR.
+            If the j-th eigenvalue is real, then v(j) = VR(:,j),
+            the j-th column of VR.
+            If the j-th and (j+1)-st eigenvalues form a complex
+            conjugate pair, then v(j)   = VR(:,j) + i*VR(:,j+1)
+            and                  v(j+1) = VR(:,j) - i*VR(:,j+1).
 
     @param[in]
     ldvr    INTEGER
@@ -151,10 +159,10 @@ magma_dgeev(
 {
     #define VL(i,j)  (VL + (i) + (j)*ldvl)
     #define VR(i,j)  (VR + (i) + (j)*ldvr)
-    
+
     const magma_int_t ione  = 1;
     const magma_int_t izero = 0;
-    
+
     double d__1, d__2;
     double r, cs, sn, scl;
     double dum[1], eps;
@@ -169,7 +177,7 @@ magma_dgeev(
     magma_flops_t flop_total=0, flop_gehrd=0, flop_unghr=0, flop_hseqr=0, flop_trevc=0, flop_sum=0;
     timer_start( time_total );
     flops_start( flop_total );
-    
+
     *info = 0;
     lquery = (lwork == -1);
     wantvl = (jobvl == MagmaVec);
@@ -194,7 +202,7 @@ magma_dgeev(
         minwrk = (2 +   nb)*n;
         optwrk = (2 + 2*nb)*n;
         work[0] = magma_dmake_lwork( optwrk );
-        
+
         if (lwork < minwrk && ! lquery) {
             *info = -13;
         }
@@ -212,7 +220,7 @@ magma_dgeev(
     if (n == 0) {
         return *info;
     }
-    
+
     #if defined(VERSION3)
     magmaDouble_ptr dT;
     if (MAGMA_SUCCESS != magma_dmalloc( &dT, nb*n )) {
@@ -295,7 +303,7 @@ magma_dgeev(
         #endif
         time_sum += timer_stop( time_unghr );
         flop_sum += flops_stop( flop_unghr );
-        
+
         timer_start( time_hseqr );
         flops_start( flop_hseqr );
         /* Perform QR iteration, accumulating Schur vectors in VL
@@ -336,7 +344,7 @@ magma_dgeev(
         #endif
         time_sum += timer_stop( time_unghr );
         flop_sum += flops_stop( flop_unghr );
-        
+
         /* Perform QR iteration, accumulating Schur vectors in VR
          * (Workspace: need N+1, prefer N+HSWORK (see comments) )
          *  - including N reserved for gebal/gebak, unused by dhseqr */
@@ -481,15 +489,15 @@ CLEANUP:
     #if defined(VERSION3)
     magma_free( dT );
     #endif
-    
+
     timer_stop( time_total );
     flops_stop( flop_total );
     timer_printf( "dgeev times n %5lld, gehrd %7.3f, unghr %7.3f, hseqr %7.3f, trevc %7.3f, total %7.3f, sum %7.3f\n",
                   (long long) n, time_gehrd, time_unghr, time_hseqr, time_trevc, time_total, time_sum );
     timer_printf( "dgeev flops n %5lld, gehrd %7lld, unghr %7lld, hseqr %7lld, trevc %7lld, total %7lld, sum %7lld\n",
                   (long long) n, flop_gehrd, flop_unghr, flop_hseqr, flop_trevc, flop_total, flop_sum );
-    
+
     work[0] = magma_dmake_lwork( optwrk );
-    
+
     return *info;
 } /* magma_dgeev */
