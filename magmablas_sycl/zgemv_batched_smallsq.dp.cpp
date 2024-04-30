@@ -189,7 +189,8 @@ static int zgemv_batched_smallsq_kernel_driver(
     const magmaDoubleComplex *dx, magma_int_t incx, magma_int_t stridex,
     const magmaDoubleComplex beta, magmaDoubleComplex **dy_array,
     magmaDoubleComplex *dy, magma_int_t incy, magma_int_t stridey,
-    magma_int_t batchCount, magma_queue_t queue) try {
+    magma_int_t batchCount, magma_queue_t queue)
+{
     magma_device_t device;
     magma_getdevice( &device );
     magma_int_t ntcol  = BATCH_GEMV_NTCOL(N);
@@ -213,8 +214,8 @@ static int zgemv_batched_smallsq_kernel_driver(
     sycl::range<3> grid(1, 1, nblocks);
     sycl::range<3> threads(1, ntcol, N);
     if( transA == MagmaNoTrans ) {
-        int e = 0; // TODO: error handling
-        ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
+       try {
+    	   ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
            sycl::local_accessor<uint8_t, 1>
                        dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
              cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -226,10 +227,13 @@ static int zgemv_batched_smallsq_kernel_driver(
                             item_ct1, dpct_local_acc_ct1.get_pointer());
                           });
 	   });
+       } catch (sycl::exception const &exc) {
+         return -100;
+       }
     }
     else {
-        int e = 0;
-        ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
+       try {
+          ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
            sycl::local_accessor<uint8_t, 1>
                        dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
              cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
@@ -242,14 +246,12 @@ static int zgemv_batched_smallsq_kernel_driver(
                             item_ct1, dpct_local_acc_ct1.get_pointer());
                          });
 	  });
+       } catch (sycl::exception const &exc) {
+         return -100;
+       }
     }
 
     return 0;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

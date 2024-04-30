@@ -115,8 +115,8 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::axpy(
                 *opts.handle, int(ld * n),
-                c_neg_one,
-                (magmaDoubleComplex *)dA, 1, (magmaDoubleComplex *)dB, 1);
+                MAGMA_Z_MKL_MAKE(c_neg_one),
+                MAGMA_Z_MKL_PTR(dA), 1, MAGMA_Z_MKL_PTR(dB), 1);
             #endif
             magma_zgetmatrix( m, n, dB, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &m, &k, C2, &ld, work );
@@ -140,7 +140,7 @@ int main( int argc, char** argv )
 	    int64_t *res_temp_ptr_ct1 =
             sycl::malloc_shared<int64_t>(1, *opts.queue->sycl_stream());
             oneapi::mkl::blas::column_major::iamax(*opts.handle, int(m),
-                                             (magmaDoubleComplex *)dA(0, j),
+                                             MAGMA_Z_MKL_PTR(dA) + j*ld,
                                              1, res_temp_ptr_ct1)
             .wait();
             int res_temp_host_ct2 = (int)*res_temp_ptr_ct1;
@@ -178,10 +178,10 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::gemv(
                 *opts.handle, syclblas_trans_const(trans[ia]), int(m), int(n),
-                alpha,
-                (magmaDoubleComplex *)dA, int(ld), (magmaDoubleComplex *)dB,
-                1, beta,
-                (magmaDoubleComplex *)dC2, 1);
+                MAGMA_Z_MKL_MAKE(alpha),
+                MAGMA_Z_MKL_PTR(dA), int(ld), MAGMA_Z_MKL_PTR(dB),
+                1, MAGMA_Z_MKL_MAKE(beta),
+                MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
@@ -192,8 +192,8 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
             oneapi::mkl::blas::column_major::axpy(
                 *opts.handle, int(size),
-                c_neg_one,
-                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+                MAGMA_Z_MKL_MAKE(c_neg_one),
+                MAGMA_Z_MKL_PTR(dC1), 1, MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             magma_zgetvector( size, dC2, 1, C2, 1, opts.queue );
             error = lapackf77_zlange( "F", &size, &ione, C2, &ld, work );
@@ -224,10 +224,10 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
             oneapi::mkl::blas::column_major::hemv(
                 *opts.handle, syclblas_uplo_const(uplo[iu]), int(m),
-                alpha,
-                (magmaDoubleComplex *)dA, int(ld), (magmaDoubleComplex *)dB,
-                1, beta,
-                (magmaDoubleComplex *)dC2, 1);
+                MAGMA_Z_MKL_MAKE(alpha),
+                MAGMA_Z_MKL_PTR(dA), int(ld), MAGMA_Z_MKL_PTR(dB),
+                1, MAGMA_Z_MKL_MAKE(beta),
+                MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
@@ -237,8 +237,8 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
             oneapi::mkl::blas::column_major::axpy(
                 *opts.handle, int(m),
-		c_neg_one,
-                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+		MAGMA_Z_MKL_MAKE(c_neg_one),
+                MAGMA_Z_MKL_PTR(dC1), 1, MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             magma_zgetvector( m, dC2, 1, C2, 1, opts.queue );
             error = lapackf77_zlange( "F", &m, &ione, C2, &ld, work );
@@ -282,8 +282,8 @@ int main( int argc, char** argv )
 	    oneapi::mkl::blas::column_major::trsv(
                 *opts.handle, syclblas_uplo_const(uplo[iu]),
                 syclblas_trans_const(trans[it]), syclblas_diag_const(diag[id]),
-                int(m), (magmaDoubleComplex *)dA, int(ld),
-                (magmaDoubleComplex *)dC2, 1);
+                int(m), MAGMA_Z_MKL_PTR(dA), int(ld),
+                MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
@@ -293,8 +293,8 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::axpy(
                 *opts.handle, int(m),
-                c_neg_one,
-                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+                MAGMA_Z_MKL_MAKE(c_neg_one),
+                MAGMA_Z_MKL_PTR(dC1), 1, MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             magma_zgetvector( m, dC2, 1, C2, 1, opts.queue );
             error = lapackf77_zlange( "F", &m, &ione, C2, &ld, work );
@@ -332,10 +332,10 @@ int main( int argc, char** argv )
 	    oneapi::mkl::blas::column_major::gemm(
                 *opts.handle, syclblas_trans_const(trans[ia]),
                 syclblas_trans_const(trans[ib]), int(m), int(n), int(k),
-                alpha,
-                (magmaDoubleComplex *)dA, int(ld), (magmaDoubleComplex *)dB,
-                int(ld), beta,
-                (magmaDoubleComplex *)dC2, int(ld));
+                MAGMA_Z_MKL_MAKE(alpha),
+                MAGMA_Z_MKL_PTR(dA), int(ld), MAGMA_Z_MKL_PTR(dB),
+                int(ld), MAGMA_Z_MKL_MAKE(beta),
+                MAGMA_Z_MKL_PTR(dC2), int(ld));
             #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
@@ -345,8 +345,8 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::axpy(
                 *opts.handle, int(ld * n),
-                c_neg_one,
-                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+                MAGMA_Z_MKL_MAKE(c_neg_one),
+                MAGMA_Z_MKL_PTR(dC1), 1, MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             magma_zgetmatrix( m, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &m, &n, C2, &ld, work );
@@ -381,10 +381,10 @@ int main( int argc, char** argv )
 	    oneapi::mkl::blas::column_major::hemm(
                 *opts.handle, syclblas_side_const(side[is]),
                 syclblas_uplo_const(uplo[iu]), int(m), int(n),
-                alpha,
-                (magmaDoubleComplex *)dA, int(ld), (magmaDoubleComplex *)dB,
-                int(ld), beta,
-                (magmaDoubleComplex *)dC2, int(ld));
+                MAGMA_Z_MKL_MAKE(alpha),
+                MAGMA_Z_MKL_PTR(dA), int(ld), MAGMA_Z_MKL_PTR(dB),
+                int(ld), MAGMA_Z_MKL_MAKE(beta),
+                MAGMA_Z_MKL_PTR(dC2), int(ld));
             #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
@@ -394,8 +394,8 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::axpy(
                 *opts.handle, int(ld * n),
-                c_neg_one,
-                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+                MAGMA_Z_MKL_MAKE(c_neg_one),
+                MAGMA_Z_MKL_PTR(dC1), 1, MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             magma_zgetmatrix( m, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &m, &n, C2, &ld, work );
@@ -429,8 +429,8 @@ int main( int argc, char** argv )
 	    oneapi::mkl::blas::column_major::herk(
                 *opts.handle, syclblas_uplo_const(uplo[iu]),
                 syclblas_trans_const(trans[it]), int(n), int(k), dalpha,
-                (magmaDoubleComplex *)dA, int(ld), dbeta,
-                (magmaDoubleComplex *)dC2, int(ld));
+                MAGMA_Z_MKL_PTR(dA), int(ld), dbeta,
+                MAGMA_Z_MKL_PTR(dC2), int(ld));
             #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
@@ -440,8 +440,8 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
             oneapi::mkl::blas::column_major::axpy(
                 *opts.handle, int(ld * n),
-                c_neg_one,
-                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+                MAGMA_Z_MKL_MAKE(c_neg_one),
+                MAGMA_Z_MKL_PTR(dC1), 1, MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             magma_zgetmatrix( n, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &n, &n, C2, &ld, work );
@@ -476,9 +476,9 @@ int main( int argc, char** argv )
 	    oneapi::mkl::blas::column_major::her2k(
                 *opts.handle, syclblas_uplo_const(uplo[iu]),
                 syclblas_trans_const(trans[it]), int(n), int(k),
-                alpha,
-                (magmaDoubleComplex *)dA, int(ld), (magmaDoubleComplex *)dB,
-                int(ld), dbeta, (magmaDoubleComplex *)dC2, int(ld));
+                MAGMA_Z_MKL_MAKE(alpha),
+                MAGMA_Z_MKL_PTR(dA), int(ld), MAGMA_Z_MKL_PTR(dB),
+                int(ld), dbeta, MAGMA_Z_MKL_PTR(dC2), int(ld));
             #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
@@ -488,8 +488,8 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::axpy(
                 *opts.handle, int(ld * n),
-                c_neg_one,
-                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+                MAGMA_Z_MKL_MAKE(c_neg_one),
+                MAGMA_Z_MKL_PTR(dC1), 1, MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             magma_zgetmatrix( n, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &n, &n, C2, &ld, work );
@@ -530,9 +530,9 @@ int main( int argc, char** argv )
                 *opts.handle, syclblas_side_const(side[is]),
                 syclblas_uplo_const(uplo[iu]), syclblas_trans_const(trans[it]),
                 syclblas_diag_const(diag[id]), int(m), int(n),
-                alpha,
-                (magmaDoubleComplex *)dA, int(ld),
-                (magmaDoubleComplex *)dC2, int(ld));
+                MAGMA_Z_MKL_MAKE(alpha),
+                MAGMA_Z_MKL_PTR(dA), int(ld),
+                MAGMA_Z_MKL_PTR(dC2), int(ld));
             #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
@@ -542,8 +542,8 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::axpy(
                 *opts.handle, int(ld * n),
-                c_neg_one,
-                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+                MAGMA_Z_MKL_MAKE(c_neg_one),
+                MAGMA_Z_MKL_PTR(dC1), 1, MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             magma_zgetmatrix( m, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &n, &n, C2, &ld, work );
@@ -582,9 +582,9 @@ int main( int argc, char** argv )
                 *opts.handle, syclblas_side_const(side[is]),
                 syclblas_uplo_const(uplo[iu]), syclblas_trans_const(trans[it]),
                 syclblas_diag_const(diag[id]), int(m), int(n),
-                alpha,
-                (magmaDoubleComplex *)dA, int(ld),
-                (magmaDoubleComplex *)dC2, int(ld));
+                MAGMA_Z_MKL_MAKE(alpha),
+                MAGMA_Z_MKL_PTR(dA), int(ld),
+                MAGMA_Z_MKL_PTR(dC2), int(ld));
             #endif
             t2 = magma_sync_wtime( opts.queue ) - t2;
             
@@ -594,8 +594,8 @@ int main( int argc, char** argv )
             #elif defined(MAGMA_HAVE_SYCL)
 	    oneapi::mkl::blas::column_major::axpy(
                 *opts.handle, int(ld * n),
-                c_neg_one,
-                (magmaDoubleComplex *)dC1, 1, (magmaDoubleComplex *)dC2, 1);
+                MAGMA_Z_MKL_MAKE(c_neg_one),
+                MAGMA_Z_MKL_PTR(dC1), 1, MAGMA_Z_MKL_PTR(dC2), 1);
             #endif
             magma_zgetmatrix( m, n, dC2, ld, C2, ld, opts.queue );
             error = lapackf77_zlange( "F", &n, &n, C2, &ld, work );

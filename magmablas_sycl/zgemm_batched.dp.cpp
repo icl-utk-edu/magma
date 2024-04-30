@@ -21,33 +21,6 @@
 #define PRECISION_z
 
 
-/* on some platforms (i.e. hipMAGMA on ROCm stack), we define custom types
- *  * So, to keep the C++ compiler from giving errors, we cast arguments to internal
- *   * BLAS routines. The hipify script should replace `cu*Complex` with appropriate HIP types
- *    *
- *     * FUTURE READERS: If hipBLAS changes numbers to `hipblas*Complex` rather than `hip*Complex`,
- *      *   these will need more complicated macro if/else blocks
- *       */
-#ifdef PRECISION_z
-  #ifdef MAGMA_HAVE_HIP
-    typedef hipblasDoubleComplex BackendFloat_t;
-  #else
-    typedef std::complex<double> BackendFloat_t;
-  #endif
-#elif defined(PRECISION_c)
-  #ifdef MAGMA_HAVE_HIP
-    typedef hipblasComplex BackendFloat_t;
-  #else
-    typedef std::complex<float> BackendFloat_t;
-  #endif
-#elif defined(PRECISION_d)
-  typedef double BackendFloat_t;
-#else
-  typedef float BackendFloat_t;
-#endif
-
-
-
 void
 magma_zgemm_batched_core(
     magma_trans_t transA, magma_trans_t transB,
@@ -70,12 +43,12 @@ magma_zgemm_batched_core(
               group_size_ct9 = int(batchCount);
       oneapi::mkl::blas::column_major::gemm_batch(
           *queue->syclblas_handle(), &transpose_ct1, &transpose_ct2, &m_ct3,
-          &n_ct4, &k_ct5, &alpha,
-          (const std::complex<double> **)(const BackendFloat_t **)dA_array,
+          &n_ct4, &k_ct5, MAGMA_Z_MKL_PTR(&alpha),
+          (const std::complex<double> **)dA_array,
           &lda_ct6,
-          (const std::complex<double> **)(const BackendFloat_t **)dB_array,
-          &ldb_ct7, &beta,
-          (std::complex<double> **)(BackendFloat_t **)dC_array, &ldc_ct8, 1,
+          (const std::complex<double> **)dB_array,
+          &ldb_ct7, MAGMA_Z_MKL_PTR(&beta),
+          (std::complex<double> **)dC_array, &ldc_ct8, 1,
           &group_size_ct9, {});
         }
         else{
@@ -95,12 +68,12 @@ magma_zgemm_batched_core(
                 ldc_ct19 = int(lddc), group_size_ct20 = int(batch);
         oneapi::mkl::blas::column_major::gemm_batch(
             *queue->syclblas_handle(), &transpose_ct12, &transpose_ct13, &m_ct14,
-            &n_ct15, &k_ct16, &alpha,
-            (const std::complex<double> **)(const BackendFloat_t **)dAarray,
+            &n_ct15, &k_ct16, MAGMA_Z_MKL_PTR(&alpha),
+            (const std::complex<double> **)dAarray,
             &lda_ct17,
-            (const std::complex<double> **)(const BackendFloat_t **)dBarray,
-            &ldb_ct18, &beta,
-            (std::complex<double> **)(BackendFloat_t **)dCarray, &ldc_ct19, 1,
+            (const std::complex<double> **)dBarray,
+            &ldb_ct18, MAGMA_Z_MKL_PTR(&beta),
+            (std::complex<double> **)dCarray, &ldc_ct19, 1,
             &group_size_ct20, {});
             }
         }
