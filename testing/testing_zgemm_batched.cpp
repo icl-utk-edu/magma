@@ -204,17 +204,19 @@ int main( int argc, char** argv)
 		 std::int64_t M_arr[1] = {M};
 		 std::int64_t N_arr[1] = {N};
 		 std::int64_t K_arr[1] = {K};
-		 magmaDoubleComplex alpha_arr[1] = {alpha};
-		 magmaDoubleComplex beta_arr[1] = {beta};
+		 std::complex<double> alpha_arr[1] = {MAGMA_Z_MKL_MAKE(alpha)};
+		 std::complex<double> beta_arr[1] = {MAGMA_Z_MKL_MAKE(beta)};
                  std::int64_t batchCount_arr[1] = {batchCount};
                  oneapi::mkl::blas::column_major::gemm_batch(
                                  *opts.handle, transpose_ct1, transpose_ct2,
 				 M_arr, N_arr, K_arr,
                                  alpha_arr,
-                                 (const magmaDoubleComplex **)d_A_array, lda_arr,
-                                 (const magmaDoubleComplex **)d_B_array, ldb_arr,
+                                 const_cast<const std::complex<double>**>(reinterpret_cast<std::complex<double>**>(d_A_array)),
+				 lda_arr,
+                                 const_cast<const std::complex<double>**>(reinterpret_cast<std::complex<double>**>(d_B_array)),
+				 ldb_arr,
                                  beta_arr,
-                                 (magmaDoubleComplex**)d_C_array, ldc_arr, std::int64_t(1),
+                                 reinterpret_cast<std::complex<double>**> (d_C_array), ldc_arr, std::int64_t(1),
 				 batchCount_arr, {});
                 #endif
             }
@@ -246,11 +248,11 @@ int main( int argc, char** argv)
 		 oneapi::mkl::blas::column_major::gemm_batch(
                                  *opts.handle, transpose_ct1, transpose_ct2,
 				 std::int64_t(M),std::int64_t(N),std::int64_t(K),
-                                 (magmaDoubleComplex)alpha,
-                                 (const magmaDoubleComplex *)d_A_array, std::int64_t(ldda), stridea,
-                                 (const magmaDoubleComplex *)d_B_array, std::int64_t(lddb), strideb,
-				 (magmaDoubleComplex)beta,
-                                 (magmaDoubleComplex*)d_C_array, std::int64_t(lddc), stridec,
+                                 MAGMA_Z_MKL_MAKE(alpha),
+                                 MAGMA_Z_MKL_CONSTPTR(d_A), std::int64_t(ldda), stridea,
+                                 MAGMA_Z_MKL_CONSTPTR(d_B), std::int64_t(lddb), strideb,
+				 MAGMA_Z_MKL_MAKE(beta),
+                                 MAGMA_Z_MKL_PTR(d_C), std::int64_t(lddc), stridec,
 				 std::int64_t(batchCount), {});
                 #endif
             }
