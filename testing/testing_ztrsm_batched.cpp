@@ -227,12 +227,18 @@ int main( int argc, char** argv)
 	    oneapi::mkl::uplo upper_lower = syclblas_uplo_const(opts.uplo);
 	    oneapi::mkl::transpose trans = syclblas_trans_const(opts.transA);
 	    oneapi::mkl::diag unit_diag = syclblas_diag_const(opts.diag);
+	    std::int64_t M_l = (std::int64_t) M;
+	    std::int64_t N_l = (std::int64_t) N;
+	    std::int64_t ldda_l = (std::int64_t) ldda;
+	    std::int64_t lddb_l = (std::int64_t) lddb;
+	    std::int64_t batchCount_l = (std::int64_t) batchCount;
  	    oneapi::mkl::blas::column_major::trsm_batch( *opts.handle,
 			   &left_right, &upper_lower, &trans, &unit_diag,
-			   (std::int64_t*)(&M), (std::int64_t*)(&N), (magmaDoubleComplex*)&alpha,
-			   (const magmaDoubleComplex**) d_A_array, (std::int64_t*)(&ldda), 
-			   (magmaDoubleComplex**) d_B_array, (std::int64_t*)(&lddb),
-			   std::int64_t(1), (std::int64_t*)(&batchCount), {});
+			   &M_l, &N_l, MAGMA_Z_MKL_PTR(&alpha),
+			   const_cast<const std::complex<double>**>(reinterpret_cast<std::complex<double>**>(d_A_array)),
+			   &ldda_l, 
+			   reinterpret_cast<std::complex<double>**>(d_B_array), &lddb_l,
+			   std::int64_t(1), &batchCount_l, {});
 
             #endif
 
