@@ -155,9 +155,6 @@ typedef double real_Double_t;
     #include <sycl/sycl.hpp>
     #include <dpct/dpct.hpp>
     
-    #define MKL_Complex8  std::complex<float>
-    #define MKL_Complex16 std::complex<double>
-
     #include <oneapi/mkl/export.hpp>
     #include <oneapi/mkl/types.hpp>
     #include <oneapi/mkl/blas.hpp>
@@ -176,15 +173,41 @@ typedef double real_Double_t;
 
 //    typedef short            magmaHalf;
     typedef sycl::half         magmaHalf;
-        /*
-    // typedef sycl::double2 magmaDoubleComplex;
-    typedef MKL_Complex16 magmaDoubleComplex;
-    // typedef sycl::float2  magmaFloatComplex;
-    typedef MKL_Complex8 magmaFloatComplex;
-        */
 
-    typedef std::complex<float>   magmaFloatComplex;
-    typedef std::complex<double>   magmaDoubleComplex;
+    // Define a C-friendly struct with alignment that matches std::complex<>, which is used by oneMKL
+    #ifdef _MSC_VER  // Windows
+      #define __align_attr(n) __declspec(align(n))
+    #else
+      #define __align_attr(n) __attribute__((aligned(n)))
+    #endif
+    typedef struct __align_attr(8)
+    {
+      float x, y;
+    } floatComplex_t;
+   
+    typedef struct __align_attr(16)
+    {
+      double x, y;
+    } doubleComplex_t;
+
+    typedef floatComplex_t   magmaFloatComplex;
+    typedef doubleComplex_t  magmaDoubleComplex;
+
+    // Define some helpful macros for interfacing with oneMKL
+    #define MAGMA_Z_MKL_PTR(a) reinterpret_cast<std::complex<double>*>(a)
+    #define MAGMA_C_MKL_PTR(a) reinterpret_cast<std::complex<float>*>(a)
+    #define MAGMA_D_MKL_PTR(a) (a)
+    #define MAGMA_S_MKL_PTR(a) (a)
+
+    #define MAGMA_Z_MKL_CONSTPTR(a) reinterpret_cast<const std::complex<double>*>(a)
+    #define MAGMA_C_MKL_CONSTPTR(a) reinterpret_cast<const std::complex<float>*>(a)
+    #define MAGMA_D_MKL_CONSTPTR(a) const_cast<double*>(a)
+    #define MAGMA_S_MKL_CONSTPTR(a) const_cast<float*>(a)
+    
+    #define MAGMA_Z_MKL_MAKE(a) std::complex<double>((a).x,(a).y)
+    #define MAGMA_C_MKL_MAKE(a) std::complex<float>((a).x,(a).y)
+    #define MAGMA_D_MKL_MAKE(a) (a)
+    #define MAGMA_S_MKL_MAKE(a) (a)
 
     sycl::queue *magma_queue_get_sycl_stream(magma_queue_t queue);
     sycl::queue *magma_queue_get_syclblas_handle(magma_queue_t queue);
@@ -193,99 +216,169 @@ typedef double real_Double_t;
     /// @addtogroup magma_complex
     /// @{
 
-    #define MAGMA_Z_MAKE(r,i)     std::complex<double>(r,i)    ///< @return complex number r + i*sqrt(-1).
-    #define MAGMA_Z_REAL(a)       (a).real()                         ///< @return real component of a.
-    #define MAGMA_Z_IMAG(a)       (a).imag()                         ///< @return imaginary component of a.
-    #define MAGMA_Z_ADD(a, b)     ((a)+(b))                  ///< @return (a + b).
-    #define MAGMA_Z_SUB(a, b)     ((a)-(b))                  ///< @return (a - b).
-    #define MAGMA_Z_MUL(a, b)     ((a)*(b))                  ///< @return (a * b).
-    #define MAGMA_Z_DIV(a, b)     ((a)/(b))                  ///< @return (a / b).
-    #define MAGMA_Z_ABS(a)        abs(a)                     ///< @return absolute value, |a| = sqrt( real(a)^2 + imag(a)^2 ).
-    #define MAGMA_Z_ABS1(a)       (fabs((a).real()) + fabs((a).imag()))   ///< @return 1-norm absolute value, | real(a) | + | imag(a) |.
-    #define MAGMA_Z_CONJ(a)       magmaConj(a)                     ///< @return conjugate of a.
+    // Complex types
+    #define MAGMA_Z_MAKE(r,i)     ((magmaDoubleComplex){(double)(r), (double)(i)})   ///< @return complex number r + i*sqrt(-1).
+    #define MAGMA_Z_REAL(a)       (a).x                   ///< @return real component of a.
+    #define MAGMA_Z_IMAG(a)       (a).y                   ///< @return imaginary component of a.
+    #define MAGMA_Z_ADD(a, b) magmaCadd(a, b)             ///< @return (a + b).
+    #define MAGMA_Z_SUB(a, b) magmaCsub(a, b)             ///< @return (a - b).
+    #define MAGMA_Z_MUL(a, b) magmaCmul(a, b)             ///< @return (a * b).
+    #define MAGMA_Z_DIV(a, b) magmaCdiv(a, b)             ///< @return (a / b).
+    #define MAGMA_Z_ABS(a) (hypot(MAGMA_Z_REAL(a), MAGMA_Z_IMAG(a)))  ///< @return absolute value, |a| = sqrt( real(a)^2 + imag(a)^2 ).
+    #define MAGMA_Z_ABS1(a) (fabs(MAGMA_Z_REAL(a)) + fabs(MAGMA_Z_IMAG(a)))  ///< @return 1-norm absolute value, | real(a) | + | imag(a) |.
+    #define MAGMA_Z_CONJ(a) magmaConj(a)                  ///< @return conjugate of a.
+
+
+    /* basic arithmetic functions */
+    static inline magmaDoubleComplex magmaCadd(magmaDoubleComplex a, magmaDoubleComplex b) {
+        return MAGMA_Z_MAKE(a.x+b.x, a.y+b.y);
+    }
+    static inline magmaDoubleComplex magmaCsub(magmaDoubleComplex a, magmaDoubleComplex b) {
+        return MAGMA_Z_MAKE(a.x-b.x, a.y-b.y);
+    }
+    static inline magmaDoubleComplex magmaCmul(magmaDoubleComplex a, magmaDoubleComplex b) {
+        return MAGMA_Z_MAKE(a.x*b.x - a.y*b.y, a.x*b.y + a.y*b.x);
+    }
+    static inline magmaDoubleComplex magmaCdiv(magmaDoubleComplex a, magmaDoubleComplex b) {
+        double sqabs = b.x*b.x + b.y*b.y;
+        return MAGMA_Z_MAKE(
+            (a.x * b.x + a.y * b.y) / sqabs,
+            (a.y * b.x - a.x * b.y) / sqabs
+        );
+    }
     static inline magmaDoubleComplex magmaConj(magmaDoubleComplex a) {
-        return MAGMA_Z_MAKE(a.real(), -a.imag());
+        return MAGMA_Z_MAKE(a.x, -a.y);
     }
     static inline magmaDoubleComplex magmaCfma(magmaDoubleComplex a, magmaDoubleComplex b, magmaDoubleComplex c) {
-        return MAGMA_Z_ADD(MAGMA_Z_MUL(a, b), c);
+        return magmaCadd(magmaCmul(a, b), c);
     }
 
-    #define MAGMA_C_MAKE(r,i)     std::complex<float> (r,i)
-    #define MAGMA_C_REAL(a)       (a).real()
-    #define MAGMA_C_IMAG(a)       (a).imag()
-    #define MAGMA_C_ADD(a, b)     ((a)+(b))
-    #define MAGMA_C_SUB(a, b)     ((a)-(b))
-    #define MAGMA_C_MUL(a, b)     ((a)*(b))
-    #define MAGMA_C_DIV(a, b)     ((a)/(b))
-    #define MAGMA_C_ABS(a)        abs(a)
-    #define MAGMA_C_ABS1(a)       (fabs((a).real()) + fabs((a).imag()))
-    #define MAGMA_C_CONJ(a)       magmaConjf(a)
+    /* float complex */
+
+    /* functionality macros */
+    #define MAGMA_C_MAKE(r, i)   ((magmaFloatComplex){(float)(r), (float)(i)})
+    #define MAGMA_C_REAL(a) (a).x
+    #define MAGMA_C_IMAG(a) (a).y
+    #define MAGMA_C_ADD(a, b) magmaCaddf(a, b)
+    #define MAGMA_C_SUB(a, b) magmaCsubf(a, b)
+    #define MAGMA_C_MUL(a, b) magmaCmulf(a, b)
+    #define MAGMA_C_DIV(a, b) magmaCdivf(a, b)
+    #define MAGMA_C_ABS(a) (hypotf(MAGMA_C_REAL(a), MAGMA_C_IMAG(a)))
+    #define MAGMA_C_ABS1(a) (fabsf(MAGMA_C_REAL(a)) + fabs(MAGMA_C_IMAG(a)))
+    #define MAGMA_C_CONJ(a) magmaConjf(a)
+
+    /* basic arithmetic functions */
+    static inline magmaFloatComplex magmaCaddf(magmaFloatComplex a, magmaFloatComplex b) {
+        return MAGMA_C_MAKE(a.x+b.x, a.y+b.y);
+    }
+    static inline magmaFloatComplex magmaCsubf(magmaFloatComplex a, magmaFloatComplex b) {
+        return MAGMA_C_MAKE(a.x-b.x, a.y-b.y);
+    }
+    static inline magmaFloatComplex magmaCmulf(magmaFloatComplex a, magmaFloatComplex b) {
+        return MAGMA_C_MAKE(a.x*b.x - a.y*b.y, a.x*b.y + a.y*b.x);
+    }
+    static inline magmaFloatComplex magmaCdivf(magmaFloatComplex a, magmaFloatComplex b) {
+        float sqabs = b.x*b.x + b.y*b.y;
+        return MAGMA_C_MAKE(
+            (a.x * b.x + a.y * b.y) / sqabs,
+            (a.y * b.x - a.x * b.y) / sqabs
+        );
+    }
     static inline magmaFloatComplex magmaConjf(magmaFloatComplex a) {
-        return MAGMA_C_MAKE(a.real(), -a.imag());
+        return MAGMA_C_MAKE(a.x, -a.y);
     }
     static inline magmaFloatComplex magmaCfmaf(magmaFloatComplex a, magmaFloatComplex b, magmaFloatComplex c) {
-        return MAGMA_C_ADD(MAGMA_C_MUL(a, b), c);
+        return magmaCaddf(magmaCmulf(a, b), c);
     }
-
-    /// @}
-    // end group magma_complex
-
     #ifdef __cplusplus
     }
     #endif
+
 #elif defined(MAGMA_HAVE_HIP)
+    #include <hip/hip_fp16.h>
 
     // default to HCC
     #if !defined(__HIP_PLATFORM_AMD__) && !defined(__HIP_PLATFORM_NVCC)
       #define __HIP_PLATFORM_AMD__
     #endif
 
-    #include <hip/hip_version.h>
-    #include <hip/hip_runtime.h>
+    // opaque queue struct type
+    struct magma_queue;
+    typedef struct magma_queue* magma_queue_t;
+    typedef hipEvent_t  magma_event_t;
+    typedef magma_int_t magma_device_t;
 
-    // hipblas/hipsparse headers
-    #if HIP_VERSION >= 50200000
-    #include <hipblas/hipblas.h>
-    #include <hipsparse/hipsparse.h>
+    #ifdef __cplusplus
+    typedef __half           magmaHalf;
     #else
-    #include <hipblas.h>
-    #include <hipsparse.h>
+    // just define a half precision as a short, since they should be the same byte-size
+    typedef short            magmaHalf;
     #endif
 
-    // this macro allows you to define an unsupported function (primarily from hipBLAS)
-    // which will become a NOOP, and print an error message
-    #ifndef magma_unsupported
-    #define magma_unsupported(fname) ((hipblasStatus_t)(fprintf(stderr, "MAGMA: Unsupported function '" #fname "'\n"), HIPBLAS_STATUS_NOT_SUPPORTED))
-    #endif
+    hipStream_t       magma_queue_get_hip_stream      ( magma_queue_t queue );
+    hipblasHandle_t   magma_queue_get_hipblas_handle  ( magma_queue_t queue );
+    hipsparseHandle_t magma_queue_get_hipsparse_handle( magma_queue_t queue );
 
-    /* hipBLAS has not yet implemented some async variants of {Get,Set}{Vector,Matrix},
-     * So instead, we just do them synchronously. This will, of course, be slower & blocking
-     * But, it will still have the same effect, and so the result will still be correct
-     * TODO: Perhaps also emit a warning?
-     */
-    //#define hipblasGetVectorAsync(a, b, c, d, e, f, stream) hipblasGetVector(a, b, c, d, e, f)
-    //#define hipblasSetVectorAsync(a, b, c, d, e, f, stream) hipblasSetVector(a, b, c, d, e, f)
-    //#define hipblasGetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasGetMatrix(a, b, c ,d, e, f, g)
-    //#define hipblasSetMatrixAsync(a, b, c, d, e, f, g, stream) hipblasSetMatrix(a, b, c, d, e, f, g)
+    /* double complex */
 
-    /* Unsupported hipBLAS functionality
-     * Everything here is currently unsupported by hipBLAS, and as such, is a no-op,
-     * and an error message is printed out to stderr
-     *
-     * To generate a list of these, first remove all these macro definitions, run a `make clean`
-     * to clear caches, and then start running:
-     * $ make lib/libmagma.so -j64 2>&1 \
-     *     | grep "use of undeclared identifier" \
-     *     | awk '{gsub("'"'"'", "", $7) ; gsub(";", "", $7) ; print $7}'
-     *
-     * This should try and compile magma and print out any undeclared identifiers, which (
-     * assuming no other problems in the system), should be exactly the undefined hipBLAS
-     * functions. I know this is a little messy (the awk has 6 quote characters, to deal with
-     * multiple levels of shell escaping, for instance), but our build doesn't rely on this,
-     * its just a one time run to figure out which are undefined, then write a simple script
-     * to turn them into the macro #define s you see below:
-     */
+    //typedef hipblasDoubleComplex magmaDoubleComplex;
 
+    /* simple double complex definition that should be binary compatible with hipBLAS */
+    typedef struct {
+
+        // real, imag components
+        double x, y;
+
+    } magmaDoubleComplex;
+
+    /* functionality macros */
+    #define MAGMA_Z_MAKE(r, i)   ((magmaDoubleComplex){(double)(r), (double)(i)})
+    #define MAGMA_Z_REAL(a) (a).x
+    #define MAGMA_Z_IMAG(a) (a).y
+    #define MAGMA_Z_ADD(a, b) magmaCadd(a, b)
+    #define MAGMA_Z_SUB(a, b) magmaCsub(a, b)
+    #define MAGMA_Z_MUL(a, b) magmaCmul(a, b)
+    #define MAGMA_Z_DIV(a, b) magmaCdiv(a, b)
+    #define MAGMA_Z_ABS(a) (hypot(MAGMA_Z_REAL(a), MAGMA_Z_IMAG(a)))
+    #define MAGMA_Z_ABS1(a) (fabs(MAGMA_Z_REAL(a)) + fabs(MAGMA_Z_IMAG(a)))
+    #define MAGMA_Z_CONJ(a) magmaConj(a)
+
+    /* basic arithmetic functions */
+    __host__ __device__ static inline magmaDoubleComplex magmaCadd(magmaDoubleComplex a, magmaDoubleComplex b) {
+        return MAGMA_Z_MAKE(a.x+b.x, a.y+b.y);
+    }
+    __host__ __device__ static inline magmaDoubleComplex magmaCsub(magmaDoubleComplex a, magmaDoubleComplex b) {
+        return MAGMA_Z_MAKE(a.x-b.x, a.y-b.y);
+    }
+    __host__ __device__ static inline magmaDoubleComplex magmaCmul(magmaDoubleComplex a, magmaDoubleComplex b) {
+        return MAGMA_Z_MAKE(a.x*b.x - a.y*b.y, a.x*b.y + a.y*b.x);
+    }
+    __host__ __device__ static inline magmaDoubleComplex magmaCdiv(magmaDoubleComplex a, magmaDoubleComplex b) {
+        double sqabs = b.x*b.x + b.y*b.y;
+        return MAGMA_Z_MAKE(
+            (a.x * b.x + a.y * b.y) / sqabs,
+            (a.y * b.x - a.x * b.y) / sqabs
+        );
+    }
+    __host__ __device__ static inline magmaDoubleComplex magmaConj(magmaDoubleComplex a) {
+        return MAGMA_Z_MAKE(a.x, -a.y);
+    }
+    __host__ __device__ static inline magmaDoubleComplex magmaCfma(magmaDoubleComplex a, magmaDoubleComplex b, magmaDoubleComplex c) {
+        return magmaCadd(magmaCmul(a, b), c);
+    }
+
+    /* float complex */
+
+    //typedef hipComplex magmaFloatComplex;
+    //typedef hipblasComplex magmaFloatComplex;
+
+    /* basic definition of float complex that should be binary compatible with hipBLAS */
+    typedef struct {
+
+        // real, imag components
+        float x, y;
+
+    } magmaFloatComplex;
     #include <hip/hip_fp16.h>
 
     #ifdef __cplusplus
@@ -494,7 +587,7 @@ typedef double real_Double_t;
     }
     #endif
 #else
-    #error "One of MAGMA_HAVE_CUDA, MAGMA_HAVE_HIP, MAGMA_HAVE_OPENCL, or HAVE_MIC must be defined. For example, add -DMAGMA_HAVE_CUDA to CFLAGS, or #define MAGMA_HAVE_CUDA before #include <magma.h>. In MAGMA, this happens in Makefile."
+    #error "One of MAGMA_HAVE_CUDA, MAGMA_HAVE_HIP, MAGMA_HAVE_SYCL, MAGMA_HAVE_OPENCL, or HAVE_MIC must be defined. For example, add -DMAGMA_HAVE_CUDA to CFLAGS, or #define MAGMA_HAVE_CUDA before #include <magma.h>. In MAGMA, this happens in Makefile."
 #endif
 
 #ifdef __cplusplus
@@ -522,7 +615,7 @@ extern "C" {
 
 #define MAGMA_S_MAKE(r,i)         (r)
 #define MAGMA_S_REAL(x)           (x)
-#define MAGMA_S_IMAG(x)           (0.0)
+#define MAGMA_S_IMAG(x)           (0.0f)
 #define MAGMA_S_ADD(a, b)         ((a) + (b))
 #define MAGMA_S_SUB(a, b)         ((a) - (b))
 #define MAGMA_S_MUL(a, b)         ((a) * (b))

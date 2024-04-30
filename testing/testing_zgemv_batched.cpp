@@ -193,13 +193,16 @@ int main( int argc, char** argv)
 		std::int64_t batchCount_arr[1] = {batchCount};
 		std::int64_t M_arr[1] = {M};
 		std::int64_t N_arr[1] = {N};
-		magmaDoubleComplex alpha_arr[1] = {alpha};
-		magmaDoubleComplex beta_arr[1] = {beta};
+		std::complex<double> alpha_arr[1] = {MAGMA_Z_MKL_MAKE(alpha)};
+		std::complex<double> beta_arr[1] = {MAGMA_Z_MKL_MAKE(beta)};
 		oneapi::mkl::blas::column_major::gemv_batch(*opts.handle, transA,
 			         M_arr, N_arr, alpha_arr,
-                                 (const magmaDoubleComplex **)d_A_array, lda_arr,
-                                 (const magmaDoubleComplex**)d_X_array, incx_arr, beta_arr,
-				 (magmaDoubleComplex**)d_Y_array, incy_arr,
+                                 const_cast<const std::complex<double>**>(reinterpret_cast<std::complex<double>**>(d_A_array)),
+                                 lda_arr,
+                                 const_cast<const std::complex<double>**>(reinterpret_cast<std::complex<double>**>(d_X_array)),
+                                 incx_arr, beta_arr,
+                                 reinterpret_cast<std::complex<double>**>(d_Y_array),
+				 incy_arr,
 				 std::int64_t(1), batchCount_arr, {});
                 #endif
             }
@@ -232,13 +235,13 @@ int main( int argc, char** argv)
 		oneapi::mkl::blas::column_major::gemv_batch(*opts.handle,
 			         syclblas_trans_const(opts.transA),
                                  (std::int64_t) M,(std::int64_t) N,
-                                 alpha,
-                                 (const magmaDoubleComplex *) d_A,
+                                 MAGMA_Z_MKL_MAKE(alpha),
+                                 MAGMA_Z_MKL_CONSTPTR(d_A),
 				 (std::int64_t) ldda, (std::int64_t) ldda*N,
-                                 (const magmaDoubleComplex*) d_X,
+                                 MAGMA_Z_MKL_CONSTPTR(d_X),
 				 (std::int64_t) incx, (std::int64_t) incx*Xm,
-                                 beta,
-				 (magmaDoubleComplex*) d_Y,
+                                 MAGMA_Z_MKL_MAKE(beta),
+				 MAGMA_Z_MKL_PTR(d_Y),
 				 (std::int64_t) incy, (std::int64_t) incy*Ym,
 				 (std::int64_t) batchCount, {});
                 #endif
