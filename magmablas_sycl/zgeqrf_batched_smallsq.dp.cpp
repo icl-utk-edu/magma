@@ -33,7 +33,7 @@ zgeqrf_batched_sq1d_reg_kernel(
     auto zdata = (magmaDoubleComplex *)dpct_local;
     constexpr int mtx_per_tb = (ZGEQRF_BATCH_SQ1D_MAX_THREADS/N);
     const int tx = item_ct1.get_local_id(2) % N;
-    const int ty = item_ct1.get_local_id(1) / N;
+    const int ty = item_ct1.get_local_id(2) / N;
     const int batchid = item_ct1.get_group(2) * mtx_per_tb + ty;
     if(batchid >= batchCount) return;
     if(ty      >= mtx_per_tb) return;

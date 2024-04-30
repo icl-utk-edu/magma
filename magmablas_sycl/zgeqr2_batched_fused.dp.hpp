@@ -349,11 +349,8 @@ zgeqr2_fused_reg_kernel_batched(
             }
         }
 
-        // scale the current column below the diagonal
-        rA[j] *= scale;
-        tmp = (tx == j) ? MAGMA_Z_MAKE(beta, MAGMA_D_ZERO)
-                        : rA[j]; // this does not need a sync
-        rA[j] = (tx < j) ? MAGMA_Z_ZERO : rA[j];
+        rA[j]  = (tx == i) ? MAGMA_Z_ONE  : rA[j];
+        rA[j]  = (tx <  j) ? MAGMA_Z_ZERO : rA[j];
 
         // write the column into global memory
         if( tx < m ) {
