@@ -202,8 +202,8 @@ int main( int argc, char** argv)
 	    std::int64_t M_l = (std::int64_t) M;
 	    std::int64_t N_l = (std::int64_t) N;
 	    std::int64_t ldda_l = (std::int64_t) ldda;
-	    std::int64_t batchCount_l = (std::int64_t) batchCount_l;
-            std::int64_t scratchSize = oneapi::mkl::lapack::geqrf_batch_scratchpad_size<magmaDoubleComplex>(
+	    std::int64_t batchCount_l = (std::int64_t) batchCount;
+            std::int64_t scratchSize = oneapi::mkl::lapack::geqrf_batch_scratchpad_size<std::complex<double>>(
 			         *opts.handle,
 			         &M_l, &N_l, &ldda_l,
 				 std::int64_t(1), &batchCount_l);
@@ -211,10 +211,10 @@ int main( int argc, char** argv)
 	    TESTING_CHECK( magma_zmalloc( &scratchPad, (magma_int_t) scratchSize));
             oneapi::mkl::lapack::geqrf_batch( *opts.handle, 
 			         &M_l, &N_l,
-				 (magmaDoubleComplex**)dA_array, &ldda_l,
-				 (magmaDoubleComplex**)dtau_array,
+				 reinterpret_cast<std::complex<double>**>(dA_array), &ldda_l,
+				 reinterpret_cast<std::complex<double>**>(dtau_array),
 				 std::int64_t(1), &batchCount_l,
-				 scratchPad, scratchSize, {}); 
+				 MAGMA_Z_MKL_PTR(scratchPad), scratchSize, {}); 
             #endif
 
             device_time = magma_sync_wtime( opts.queue ) - device_time;
