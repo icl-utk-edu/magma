@@ -28,7 +28,7 @@ magma_int_t magma_ztrisolve(magma_z_matrix M, magma_solve_info_t solve_info, boo
   
     oneapi::mkl::sparse::set_csr_data(*queue->sycl_stream(), M_handle,
   		     M.num_rows, M.num_cols,
-                     oneapi::mkl::index_base::zero, M.drow, M.dcol, M.dval);
+                     oneapi::mkl::index_base::zero, M.drow, M.dcol, MAGMA_Z_MKL_PTR(M.dval));
  
     oneapi::mkl::uplo fill_mode = upper_triangular ? oneapi::mkl::uplo::upper : oneapi::mkl::uplo::lower;
 
@@ -44,7 +44,7 @@ magma_int_t magma_ztrisolve(magma_z_matrix M, magma_solve_info_t solve_info, boo
     // Now solve
     oneapi::mkl::sparse::trsv(*queue->sycl_stream(),
 		   fill_mode, M_op, diag_type, M_handle, 
-		   (magmaDoubleComplex*)b.dval, (magmaDoubleComplex*)x.dval, {});
+		   MAGMA_Z_MKL_PTR(b.dval), MAGMA_Z_MKL_PTR(x.dval), {});
 cleanup:
     oneapi::mkl::sparse::release_matrix_handle(*queue->sycl_stream(), &M_handle);
     return info;

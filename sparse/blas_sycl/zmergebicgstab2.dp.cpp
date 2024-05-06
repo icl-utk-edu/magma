@@ -167,7 +167,7 @@ magma_zbicgmerge_spmv1_kernel(
     */
     item_ct1.barrier();
 
-    temp[Idx] = (i < n) ? v[i] * r[i] : 0.0;
+    temp[Idx] = (i < n) ? v[i] * r[i] : MAGMA_Z_ZERO;
     /*
     DPCT1065:747: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -417,12 +417,12 @@ magma_zreduce_kernel_spmv2(
 
     for( j=0; j<2; j++){
         int i = item_ct1.get_group(2) * (blockSize * 2) + Idx;
-        temp[Idx + j * (blockSize)] = 0.0;
+        temp[Idx + j * (blockSize)] = MAGMA_Z_ZERO;
         while (i < Gs ) {
             temp[ Idx+j*(blockSize)  ] += vtmp[ i+j*n ];
             temp[Idx + j * (blockSize)] += (i + (blockSize) < Gs)
                                                ? vtmp[i + j * n + (blockSize)]
-                                               : 0.0;
+                                               : MAGMA_Z_ZERO;
             i += gridSize;
         }
     }
@@ -576,7 +576,7 @@ magma_zbicgmerge_spmv2_kernel(
     else {
         for( j=0; j<2; j++)
             temp[Idx + j * item_ct1.get_local_range(2)] =
-                0.0;
+                MAGMA_Z_ZERO;
     }
     /*
     DPCT1065:770: Consider replacing sycl::nd_item::barrier() with
@@ -876,7 +876,7 @@ magma_zbicgmerge_xrbeta_kernel(
     else {
         for( j=0; j<2; j++)
             temp[Idx + j * item_ct1.get_local_range(2)] =
-                0.0;
+                MAGMA_Z_ZERO;
     }
     /*
     DPCT1065:785: Consider replacing sycl::nd_item::barrier() with
