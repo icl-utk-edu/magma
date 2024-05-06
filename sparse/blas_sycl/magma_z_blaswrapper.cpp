@@ -87,11 +87,11 @@ magma_z_spmv(
               oneapi::mkl::sparse::init_matrix_handle(&A_handle);
               oneapi::mkl::sparse::set_csr_data(*queue->sycl_stream(), A_handle,
                        A.num_rows, A.num_cols,
-                       oneapi::mkl::index_base::zero, A.drow, A.dcol, A.dval);
+                       oneapi::mkl::index_base::zero, A.drow, A.dcol, MAGMA_Z_MKL_PTR(A.dval));
               oneapi::mkl::sparse::gemv(*queue->sycl_stream(), oneapi::mkl::transpose::nontrans,
-	               (magmaDoubleComplex)alpha, A_handle,
-	               (magmaDoubleComplex*)x.dval, (magmaDoubleComplex)beta,
-		       (magmaDoubleComplex*)y.dval, {});
+	               MAGMA_Z_MKL_MAKE(alpha), A_handle,
+	               MAGMA_Z_MKL_PTR(x.dval), MAGMA_Z_MKL_MAKE(beta),
+		       MAGMA_Z_MKL_PTR(y.dval), {});
               oneapi::mkl::sparse::release_matrix_handle(*queue->sycl_stream(), &A_handle);
             }
             else if ( A.storage_type == Magma_CSC )
@@ -175,14 +175,14 @@ magma_z_spmv(
                 oneapi::mkl::sparse::init_matrix_handle(&A_handle);
                 oneapi::mkl::sparse::set_csr_data(*queue->sycl_stream(), A_handle,
                          A.num_rows, A.num_cols,
-                         oneapi::mkl::index_base::zero, A.drow, A.dcol, A.dval);
+                         oneapi::mkl::index_base::zero, A.drow, A.dcol, MAGMA_Z_MKL_PTR(A.dval));
 
 		oneapi::mkl::sparse::gemm(*queue->sycl_stream(), b_layout,
                 oneapi::mkl::transpose::nontrans, oneapi::mkl::transpose::nontrans,
-                (magmaDoubleComplex)alpha, A_handle,
-		(magmaDoubleComplex*)x.dval, (std::int64_t) x.num_cols,
-	        ldb, (magmaDoubleComplex)beta,
-	        (magmaDoubleComplex*)y.dval, (std::int64_t) A.num_cols, {});
+                MAGMA_Z_MKL_MAKE(alpha), A_handle,
+		MAGMA_Z_MKL_PTR(x.dval), (std::int64_t) x.num_cols,
+	        ldb, MAGMA_Z_MKL_MAKE(beta),
+	        MAGMA_Z_MKL_PTR(y.dval), (std::int64_t) A.num_cols, {});
 
                 oneapi::mkl::sparse::release_matrix_handle(*queue->sycl_stream(), &A_handle);
                 }

@@ -20,13 +20,6 @@
 
 #define SWAP(a, b)  { tmp = a; a = b; b = tmp; }
 
-/* For hipSPARSE, they use a separate complex type than for hipBLAS */
-#ifdef MAGMA_HAVE_HIP
-  #define hipblasDoubleComplex hipDoubleComplex
-#endif
-
-
-
 void 
 magma_zvalinit_kernel(  
     const magma_int_t num_el, 
@@ -444,7 +437,7 @@ extern "C" magma_int_t magma_zcsr_sort_gpu(magma_z_matrix *A,
 
     oneapi::mkl::sparse::set_csr_data(*queue->sycl_stream(), handle,
 		     A->num_rows, A->num_cols,
-                     oneapi::mkl::index_base::zero, A->drow, A->dcol, A->dval);
+                     oneapi::mkl::index_base::zero, A->drow, A->dcol, MAGMA_Z_MKL_PTR(A->dval));
 
     oneapi::mkl::sparse::sort_matrix(*queue->sycl_stream(), handle, {}); 
     
