@@ -1575,15 +1575,7 @@ magma_zcgmerge_spmv1(
     else if ( A.storage_type == Magma_CUCSR ) {
         sycl::queue *cusparseHandle = 0;
         oneapi::mkl::index_base descr;
-        /*
-        DPCT1064:665: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         magmaDoubleComplex c_one = MAGMA_Z_ONE;
-        /*
-        DPCT1064:666: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
         cusparseHandle = &dpct::get_default_queue();
         cusparseHandle = queue->sycl_stream();

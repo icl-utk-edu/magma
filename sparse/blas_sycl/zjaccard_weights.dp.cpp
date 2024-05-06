@@ -88,7 +88,7 @@ magma_zjaccardweights_kernel(
             definition and is not valid for all macro uses. Adjust the code.
             */
             valJ[k] = MAGMA_Z_MAKE(
-                std::real(intersect) / std::real(sum_i + sum_j - intersect), 0.0);
+                MAGMA_Z_REAL(intersect) / MAGMA_Z_REAL(sum_i + sum_j - intersect), 0.0);
         } else {
             valJ[k] = MAGMA_Z_ONE;
         }

@@ -36,8 +36,8 @@ zgecsrreimsplit_kernel(
             DPCT1064:121: Migrated make_cuDoubleComplex call is used in a macro
             definition and is not valid for all macro uses. Adjust the code.
             */
-            ReA[j] = MAGMA_Z_MAKE(std::real(A[j]), 0.0);
-            ImA[j] = MAGMA_Z_MAKE(std::imag(A[j]), 0.0);
+            ReA[j] = MAGMA_Z_MAKE(MAGMA_Z_REAL(A[j]), 0.0);
+            ImA[j] = MAGMA_Z_MAKE(MAGMA_Z_IMAG(A[j]), 0.0);
         }
     }
 }

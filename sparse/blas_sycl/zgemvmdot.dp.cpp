@@ -31,7 +31,7 @@ magma_zgpumemzero(
 
     if (i < n) {
         for (int j = 0; j < k; j++)
-            d[i + j * n] = 0.0;
+            d[i + j * n] = MAGMA_Z_ZERO;
     }
 }
 
@@ -50,7 +50,7 @@ magma_zdot_kernel(
     int Idx = item_ct1.get_local_id(2);
     int i = item_ct1.get_group(2) * item_ct1.get_local_range(2) + Idx;
 
-    temp[Idx] = (i < n) ? v[i] * r[i] : 0.0;
+    temp[Idx] = (i < n) ? v[i] * r[i] : MAGMA_Z_ZERO;
     /*
     DPCT1065:0: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better
@@ -454,7 +454,7 @@ magma_zreduce_kernel_fast( int Gs,
     while (i < Gs ) {
         temp[ Idx  ] += vtmp[ i ];
         temp[Idx] += (i + blockSize < Gs) ? vtmp[i + blockSize]
-                                          : 0.0;
+                                          : MAGMA_Z_ZERO;
         i += gridSize;
     }
     /*
@@ -558,12 +558,12 @@ magma_zblockreduce_kernel_fast(
 
     for( j=0; j<k; j++){
         int i = item_ct1.get_group(2) * (blockSize * 2) + Idx;
-        temp[Idx + j * (blockSize)] = 0.0;
+        temp[Idx + j * (blockSize)] = MAGMA_Z_ZERO;
         while (i < Gs ) {
             temp[ Idx+j*(blockSize)  ] += vtmp[ i+j*n ];
             temp[Idx + j * (blockSize)] += (i + (blockSize) < Gs)
                                                ? vtmp[i + j * n + (blockSize)]
-                                               : 0.0;
+                                               : MAGMA_Z_ZERO;
             i += gridSize;
         }
     }
