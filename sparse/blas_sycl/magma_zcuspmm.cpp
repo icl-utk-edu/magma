@@ -86,19 +86,19 @@ magma_zcuspmm(
       oneapi::mkl::sparse::init_matrix_handle(&A_handle);
       oneapi::mkl::sparse::set_csr_data(*queue->sycl_stream(), A_handle,
                        A.num_rows, A.num_cols,
-                       oneapi::mkl::index_base::zero, A.drow, A.dcol, A.dval);
+                       oneapi::mkl::index_base::zero, A.drow, A.dcol, MAGMA_Z_MKL_PTR(A.dval));
 
       oneapi::mkl::sparse::init_matrix_handle(&B_handle);
       oneapi::mkl::sparse::set_csr_data(*queue->sycl_stream(), B_handle,
   		     B.num_rows, B.num_cols,
-                       oneapi::mkl::index_base::zero, B.drow, B.dcol, B.dval);
+                       oneapi::mkl::index_base::zero, B.drow, B.dcol, MAGMA_Z_MKL_PTR(B.dval));
       // For now, B must be sorted upon entry to matmat
       oneapi::mkl::sparse::sort_matrix(*queue->sycl_stream(), B_handle, {});
 
       oneapi::mkl::sparse::init_matrix_handle(&C_handle);
       oneapi::mkl::sparse::set_csr_data(*queue->sycl_stream(), C_handle,
   		     C.num_rows, C.num_cols,
-                       oneapi::mkl::index_base::zero, C.drow, C.dcol, C.dval);
+                       oneapi::mkl::index_base::zero, C.drow, C.dcol, MAGMA_Z_MKL_PTR(C.dval));
 
       oneapi::mkl::sparse::init_matmat_descr(&descr);
       // TODO: other options?

@@ -62,7 +62,7 @@ magma_zparic_csr_kernel(
             DPCT1064:154: Migrated make_cuDoubleComplex call is used in a macro
             definition and is not valid for all macro uses. Adjust the code.
             */
-            val[il - 1] = MAGMA_Z_MAKE(sycl::sqrt(sycl::fabs(std::real(s))), 0.0);
+            val[il - 1] = MAGMA_Z_MAKE(sycl::sqrt(sycl::fabs(MAGMA_Z_REAL(s))), 0.0);
         else  //sub-diagonal
             val[il-1] =  s / val[iu-1];
     }

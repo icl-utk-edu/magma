@@ -39,7 +39,8 @@ zcgecsrmv_mixed_prec_kernel(
         int start = drowptr[ row ];
         int end = drowptr[ row+1 ];
         for( j=start; j<end; j++){
-            magmaDoubleComplex val = doffdiagval[j];
+            magmaDoubleComplex val = MAGMA_Z_MAKE(MAGMA_Z_REAL(doffdiagval[j]),
+			                          MAGMA_Z_IMAG(doffdiagval[j]));
             dot += val * dx[ dcolind[j] ];
         }
         dy[ row ] =  dot *alpha + beta * dy[ row ];
