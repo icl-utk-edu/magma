@@ -124,7 +124,7 @@ magma_zpipelined_correction(
 
     auto temp = (magmaDoubleComplex *)dpct_local;
 
-    temp[i] = (i < k) ? skp[i] * skp[i] : 0.0;
+    temp[i] = (i < k) ? skp[i] * skp[i] : MAGMA_Z_ZERO;
     /*
     DPCT1065:388: Consider replacing sycl::nd_item::barrier() with
     sycl::nd_item::barrier(sycl::access::fence_space::local_space) for better

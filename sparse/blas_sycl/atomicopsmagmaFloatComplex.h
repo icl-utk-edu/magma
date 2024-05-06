@@ -18,9 +18,9 @@ extern __inline__ __device__ void
 atomicAddmagmaFloatComplex(magmaFloatComplex *addr, magmaFloatComplex val)
 {
   dpct::atomic_fetch_add<float, sycl::access::address_space::generic_space>(
-      (reinterpret_cast<float(*)[2]>(&addr[0]))[0], val.real());
+      (reinterpret_cast<float(*)[2]>(&addr[0]))[0], MAGMA_Z_REAL(val));
   dpct::atomic_fetch_add<float, sycl::access::address_space::generic_space>(
-      (reinterpret_cast<float(*)[2]>(&addr[0]))[1], val.imag());
+      (reinterpret_cast<float(*)[2]>(&addr[0]))[1], MAGMA_Z_IMAG(val));
 }
 
 #endif 

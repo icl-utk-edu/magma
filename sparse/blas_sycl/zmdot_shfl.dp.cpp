@@ -17,6 +17,7 @@
 #define BLOCK_SIZE 512
 
 #define PRECISION_z
+#define COMPLEX
 
 template<typename T>
 __inline__ 
@@ -55,7 +56,7 @@ T blockReduceSum_1D(T val, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
            item_ct1.get_local_range(2) /
                item_ct1.get_sub_group().get_local_range().get(0))
               ? shared[lane]
-              : MAGMA_Z_ZERO;
+              : 0.0;
 
     if (wid == 0) val =
         warpReduceSum<T>(val, item_ct1); // Final reduce within first warp
@@ -91,7 +92,7 @@ T blockReduceSum(T val, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
            item_ct1.get_local_range(2) /
                item_ct1.get_sub_group().get_local_range().get(0))
               ? shared[item_ct1.get_local_id(1) * 32 + lane]
-              : MAGMA_Z_ZERO;
+              : 0.0;
 
     if (wid == 0) val =
         warpReduceSum<T>(val, item_ct1); // Final reduce within first warp
@@ -100,7 +101,7 @@ T blockReduceSum(T val, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 
 
 template<typename T> 
-void deviceReduceKernel(const T * __restrict__ in, T * __restrict__ out, int N,
+void deviceReduceKernel(const T * in, T * out, int N,
                         sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
     T sum = 0.0;
@@ -135,15 +136,18 @@ magma_zblockdot_kernel_shuffle(
     if (i < n) {
         tmp = v[i+j*n] * r[i];
     } else {
-        /*
-        DPCT1064:828: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         tmp = MAGMA_Z_ZERO;
     }
-    tmp = blockReduceSum(tmp, item_ct1, dpct_local);
+    std::complex<double> std_tmp; // Need to use std::complex<double> for sycl::reduce_over_group
+    std_tmp = MAGMA_Z_MKL_MAKE(tmp);
+    std_tmp = blockReduceSum(std_tmp, item_ct1, dpct_local);
     if (item_ct1.get_local_id(2) == 0) {
-        vtmp[item_ct1.get_group(2) + j * item_ct1.get_group_range(2)] = tmp;
+        vtmp[item_ct1.get_group(2) + j * item_ct1.get_group_range(2)] = 
+#ifdef COMPLEX
+  		  MAGMA_Z_MAKE(std_tmp.real(), std_tmp.imag());
+#else
+    	          std_tmp;
+#endif
     }
 }
 
@@ -169,9 +173,16 @@ magma_zblockdot_kernel_shuffle_1dblock(
         } else {
             tmp = MAGMA_Z_ZERO;
         }
-        tmp = blockReduceSum_1D(tmp, item_ct1, dpct_local);
+        std::complex<double> std_tmp; // Need to use std::complex<double> for sycl::reduce_over_group
+        std_tmp = MAGMA_Z_MKL_MAKE(tmp);
+        std_tmp = blockReduceSum_1D(std_tmp, item_ct1, dpct_local);
         if (item_ct1.get_local_id(2) == 0) {
-            vtmp[item_ct1.get_group(2) + j * item_ct1.get_group_range(2)] = tmp;
+            vtmp[item_ct1.get_group(2) + j * item_ct1.get_group_range(2)] =
+#ifdef COMPLEX
+  		  MAGMA_Z_MAKE(std_tmp.real(), std_tmp.imag());
+#else
+    	          std_tmp;
+#endif
         }
     }
 }
@@ -236,10 +247,7 @@ magma_zmdotc_shfl(
     magmaDoubleComplex_ptr skp,
     magma_queue_t queue )
 {
-    if ( magma_getdevice_arch() < 300 ) {
-        return magma_zmdotc( n, k, v, r, d1, d2, skp, queue );
-    }
-    else if (1) { // 1D block kernel seems to be always faster
+    if(1){ // 1D block kernel seems to be always faster
         sycl::range<3> block(1, 1, BLOCK_SIZE);
         sycl::range<3> grid(1, 1, magma_ceildiv(n, block[2]));
         ((sycl::queue *)(queue->sycl_stream()))
@@ -281,8 +289,9 @@ magma_zmdotc_shfl(
                                           sycl::range<3>(1, 1, BLOCK_SIZE)),
                         [=](sycl::nd_item<3> item_ct1)
                             [[intel::reqd_sub_group_size(32)]] {
-                                deviceReduceKernel<magmaDoubleComplex>(
-                                    d1 + grid[2] * j, skp + j, grid[2],
+                                deviceReduceKernel<std::complex<double>>(
+                                    MAGMA_Z_MKL_PTR(d1 + grid[2] * j),
+				    MAGMA_Z_MKL_PTR(skp + j), grid[2],
                                     item_ct1, dpct_local_acc_ct1.get_pointer());
                             });
                 });
@@ -336,8 +345,9 @@ magma_zmdotc_shfl(
                                           sycl::range<3>(1, 1, BLOCK_SIZE)),
                         [=](sycl::nd_item<3> item_ct1)
                             [[intel::reqd_sub_group_size(32)]] {
-                                deviceReduceKernel<magmaDoubleComplex>(
-                                    d1 + grid[2] * j, skp + j, grid[2],
+                                deviceReduceKernel<std::complex<double>>(
+                                    MAGMA_Z_MKL_PTR(d1 + grid[2] * j),
+				    MAGMA_Z_MKL_PTR(skp + j), grid[2],
                                     item_ct1, dpct_local_acc_ct1.get_pointer());
                             });
                 });
