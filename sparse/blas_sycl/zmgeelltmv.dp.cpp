@@ -35,7 +35,7 @@ zmgeelltmv_kernel(
               item_ct1.get_local_id(2);
     if(row < num_rows ) {
         for( int i=0; i<num_vecs; i++ )
-            dot[item_ct1.get_local_id(2) + i * item_ct1.get_local_range(2)] = 0.0;
+            dot[item_ct1.get_local_id(2) + i * item_ct1.get_local_range(2)] = MAGMA_Z_ZERO;
         for ( int n = 0; n < num_cols_per_row; n++ ) {
             int col = dcolind [ num_rows * n + row ];
             magmaDoubleComplex val = dval [ num_rows * n + row ];
