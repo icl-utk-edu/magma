@@ -25,13 +25,15 @@ void zscal_zgeru_nopiv_tinypivots_kernel_vbatched(
         int max_m, int max_n,
         magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, int Ai, int Aj, magma_int_t *ldda,
-        double *dtol_array, magma_int_t *info_array)
+        double *dtol_array, double eps, magma_int_t *info_array, magma_int_t batchCount)
 {
     const int batchid = threadIdx.x + blockIdx.x * blockDim.x;
+    if(batchid >= batchCount) return;
+
     int my_M    = (int)M[batchid];
     int my_N    = (int)N[batchid];
     int my_ldda = (int)ldda[batchid];
-    double tol  = dtol_array[batchid];
+    double tol  = (dtol_array ? dtol_array[batchid] : eps);
 
     if( my_M <= Ai || my_N <= Aj ) return;
 
@@ -61,11 +63,12 @@ magma_int_t magma_zscal_zgeru_nopiv_vbatched(
 {
     const int tbx = 256;
     dim3 threads(tbx, 1, 1);
+    double eps = lapackf77_dlamch("Epsilon");
 
     // First check the pivots and replace the tiny ones by the operation's tolerance
     dim3 grid(magma_ceildiv(batchCount, tbx), 1, 1);
     zscal_zgeru_nopiv_tinypivots_kernel_vbatched<<<grid, threads, 0, queue->cuda_stream()>>>
-    (max_M, max_N, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array);
+    (max_M, max_N, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount);
 
     // Now call the regular scal and geru routine
     // TODO: the current implementation takes the info array but does not alter it 

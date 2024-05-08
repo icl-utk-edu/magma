@@ -90,12 +90,13 @@ magma_zgetrf_nopiv_vbatched_max_nocheck(
 /***************************************************************************//**
     Purpose
     -------
-    ZGETRF computes an LU factorization of a general M-by-N matrix A
-    using partial pivoting with row interchanges.
+    ZGETRF NOPIV computes an LU factorization of a general M-by-N matrix A
+    without pivoting. It replaces tiny pivots smaller than a specified tolerance
+    by that tolernace
 
     The factorization has the form
-        A = P * L * U
-    where P is a permutation matrix, L is lower triangular with unit
+        A = L * U
+    where L is lower triangular with unit
     diagonal elements (lower trapezoidal if m > n), and U is upper
     triangular (upper trapezoidal if m < n).
 
@@ -136,17 +137,18 @@ magma_zgetrf_nopiv_vbatched_max_nocheck(
             Each is a COMPLEX_16 array on the GPU, dimension (LDDA[i],N[i]).
             On entry, each pointer is an M[i]-by-N[i] matrix to be factored.
             On exit, the factors L and U from the factorization
-            A = P*L*U; the unit diagonal elements of L are not stored.
+            A = L*U; the unit diagonal elements of L are not stored.
 
     @param[in]
     ldda    Array of INTEGERs on the GPU
             Each is the leading dimension of each array A.  LDDA[i] >= max(1,M[i]).
 
-    @param[out]
-    dipiv_array  Array of pointers, dimension (batchCount), for corresponding matrices.
-            Each is an INTEGER array, dimension (min(M[i],N[i]))
-            The pivot indices; for 1 <= p <= min(M[i],N[i]), row p of the
-            matrix was interchanged with row IPIV(p).
+    @param[in]
+    dtol_array  Array of DOUBLEs, dimension (batchCount), for corresponding matrices.
+            Each is an the tolerance that is compared to the diagonal element before
+            the column is scaled by its inverse. If the value of the diagonal is less 
+            than the threshold, the diagonal is replaced by the threshold.
+            If the array is set to NULL, then the threshold is set to the machine epsilon
 
     @param[out]
     info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
@@ -190,8 +192,6 @@ magma_zgetrf_nopiv_vbatched_max_nocheck_work(
     // first calculate required workspace in bytes
     magma_int_t workspace_bytes = 0;
     workspace_bytes += batchCount * sizeof(magma_int_t);         // minmn array
-    workspace_bytes += max_m * batchCount * sizeof(magma_int_t); // pivinfo
-    workspace_bytes += batchCount * sizeof(magma_int_t*);        // dpivinfo_array
     workspace_bytes  = magma_roundup(workspace_bytes, 128);      // multiple of 128 bytes
 
     if( *lwork < 0 ) {
@@ -207,20 +207,17 @@ magma_zgetrf_nopiv_vbatched_max_nocheck_work(
         return -12;    // lwork is not enough
     }
 
-    // split workspace as needed by magma_zgetrf_vbatched_max_nocheck
-    magma_int_t** dpivinfo_array = (magma_int_t**) work;
-    magma_int_t* minmn           = (magma_int_t*)(dpivinfo_array + batchCount);
-    magma_int_t* pivinfo         = (magma_int_t*)(minmn + batchCount);
-
+    // split workspace as needed by magma_zgetrf_nopiv_vbatched_max_nocheck
+    magma_int_t* minmn           = (magma_int_t*)work;
+    
     // init
     magma_ivec_min_vv( batchCount, m, n, minmn, queue);
-    magma_iset_pointer(dpivinfo_array, pivinfo, 1, 0, 0, max_m, batchCount, queue );
 
     // blocking sizes
     magma_int_t nb, recnb;
     magma_get_zgetrf_vbatched_nbparam(max_m, max_n, &nb, &recnb);
 
-    // call magma_zgetrf_vbatched_max_nocheck
+    // call magma_zgetrf_nopiv_vbatched_max_nocheck
     return magma_zgetrf_nopiv_vbatched_max_nocheck(
                 m, n, minmn,
                 max_m, max_n, max_minmn, max_mxn,
@@ -233,12 +230,13 @@ magma_zgetrf_nopiv_vbatched_max_nocheck_work(
 /***************************************************************************//**
     Purpose
     -------
-    ZGETRF computes an LU factorization of a general M-by-N matrix A
-    using partial pivoting with row interchanges.
+    ZGETRF NOPIV computes an LU factorization of a general M-by-N matrix A
+    without pivoting. It replaces tiny pivots smaller than a specified tolerance
+    by that tolernace
 
     The factorization has the form
-        A = P * L * U
-    where P is a permutation matrix, L is lower triangular with unit
+        A = L * U
+    where L is lower triangular with unit
     diagonal elements (lower trapezoidal if m > n), and U is upper
     triangular (upper trapezoidal if m < n).
 
@@ -263,27 +261,25 @@ magma_zgetrf_nopiv_vbatched_max_nocheck_work(
             Each is a COMPLEX_16 array on the GPU, dimension (LDDA[i],N[i]).
             On entry, each pointer is an M[i]-by-N[i] matrix to be factored.
             On exit, the factors L and U from the factorization
-            A = P*L*U; the unit diagonal elements of L are not stored.
+            A = L*U; the unit diagonal elements of L are not stored.
 
     @param[in]
     ldda    Array of INTEGERs on the GPU
             Each is the leading dimension of each array A.  LDDA[i] >= max(1,M[i]).
 
-    @param[out]
-    dipiv_array  Array of pointers, dimension (batchCount), for corresponding matrices.
-            Each is an INTEGER array, dimension (min(M[i],N[i]))
-            The pivot indices; for 1 <= p <= min(M[i],N[i]), row p of the
-            matrix was interchanged with row IPIV(p).
+    @param[in]
+    dtol_array  Array of DOUBLEs, dimension (batchCount), for corresponding matrices.
+            Each is an the tolerance that is compared to the diagonal element before
+            the column is scaled by its inverse. If the value of the diagonal is less 
+            than the threshold, the diagonal is replaced by the threshold.
+            If the array is set to NULL, then the threshold is set to the machine epsilon
 
     @param[out]
     info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
       -     = 0:  successful exit
       -     < 0:  if INFO = -i, the i-th argument had an illegal value
                   or another error occured, such as memory allocation failed.
-      -     > 0:  if INFO = i, U(i,i) is exactly zero. The factorization
-                  has been completed, but the factor U is exactly
-                  singular, and division by zero will occur if it is used
-                  to solve a system of equations.
+      -     > 0:  if INFO = i, there were i tiny pivot replacements 
 
     @param[in]
     batchCount  INTEGER
