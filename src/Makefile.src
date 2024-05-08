@@ -330,8 +330,11 @@ libmagma_src += \
 # vbatched, GPU interface
 libmagma_src += \
 	$(cdir)/zgetf2_vbatched.cpp		\
+	$(cdir)/zgetf2_nopiv_vbatched.cpp		\
 	$(cdir)/zgetrf_panel_vbatched.cpp		\
 	$(cdir)/zgetrf_vbatched.cpp		\
+	$(cdir)/zgetrf_nopiv_panel_vbatched.cpp		\
+	$(cdir)/zgetrf_nopiv_vbatched.cpp		\
 	$(cdir)/zpotf2_vbatched.cpp		\
 	$(cdir)/zpotrf_panel_vbatched.cpp		\
 	$(cdir)/zpotrf_vbatched.cpp		\
