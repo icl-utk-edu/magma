@@ -11,8 +11,8 @@
 #include "magma_internal.h"
 
 // === Define what BLAS to use ============================================
-#undef  magma_ztrsm
-#define magma_ztrsm magmablas_ztrsm
+//#undef  magma_ztrsm
+//#define magma_ztrsm magmablas_ztrsm
 // === End defining what BLAS to use ======================================
 
 extern "C" magma_int_t
@@ -55,7 +55,7 @@ magma_zgetri_expert_gpu_work(
         *info = -1;
     else if (ldda < max(1,n))
         *info = -3;
-    else if ( lwork_device < n*nb )
+    else if ( lwork_device[0] < n*nb )
         *info = -10;
 
     if (*info != 0) {
@@ -67,13 +67,13 @@ magma_zgetri_expert_gpu_work(
     if ( n == 0 )
         return *info;
 
-    if (lwork_device >= ldda*n) {
+    if (lwork_device[0] >= ldda*n) {
         lddl = ldda;
     }
     else {
         lddl = n;
     }
-    dL = device_work;
+    dL = (magmaDoubleComplex_ptr)device_work;
 
     /* Invert the triangular factor U */
     magma_ztrtri_gpu( MagmaUpper, MagmaNonUnit, n, dA, ldda, info );
@@ -181,19 +181,6 @@ magma_zgetri_gpu(
     magmaDoubleComplex_ptr dwork, magma_int_t lwork,
     magma_int_t *info )
 {
-    #define dA(i, j)  (dA + (i) + (j)*ldda)
-    #define dL(i, j)  (dL + (i) + (j)*lddl)
-
-    /* Constants */
-    const magmaDoubleComplex c_zero    = MAGMA_Z_ZERO;
-    const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
-    const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
-
-    /* Local variables */
-    magmaDoubleComplex_ptr dL;
-    magma_int_t nb = magma_get_zgetri_nb( n );
-    magma_int_t j, jmax, jb, jp, lddl;
-
     magma_queue_t queue = NULL;
     magma_device_t cdev;
     magma_getdevice( &cdev );
