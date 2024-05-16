@@ -10,11 +10,6 @@
 */
 #include "magma_internal.h"
 
-// === Define what BLAS to use ============================================
-//#undef  magma_ztrsm
-//#define magma_ztrsm magmablas_ztrsm
-// === End defining what BLAS to use ======================================
-
 extern "C" magma_int_t
 magma_zgetri_expert_gpu_work(
     magma_int_t n,
