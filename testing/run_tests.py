@@ -814,6 +814,7 @@ lu = (
 	('testing_zgetrf_gpu', '--version 5 -c2', n,    ''), # zgetrf native expert api
 	('testing_zgetf2_gpu',             '-c',  n + tall,  ''),
 	('testing_zgetri_gpu',             '-c',  n,    ''),
+	('testing_zgetri_gpu', '--version 2 -c',  n,    ''),
 	('testing_zgetrf_mgpu',    ngpu + '-c2',  n,    ''),
 
 	# ----------
