@@ -318,7 +318,6 @@ magma_zgetrs_gpu(
     magma_getdevice( &cdev );
     magma_queue_create( cdev, &queue );
 
-    //printf("query ws\n");
     // query workspace
     magma_int_t lwork_host[1]   = {-1};
     magma_int_t lwork_device[1] = {-1};
