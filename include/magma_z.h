@@ -692,6 +692,16 @@ magma_zgetri_gpu(
     magma_int_t *info);
 
 magma_int_t
+magma_zgetri_expert_gpu_work(
+    magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda, magma_int_t *ipiv,
+    magma_int_t *info,
+    magma_mode_t mode,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zgetrs_gpu(
     magma_trans_t trans, magma_int_t n, magma_int_t nrhs,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,

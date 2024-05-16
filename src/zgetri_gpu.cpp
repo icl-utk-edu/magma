@@ -10,6 +10,84 @@
 */
 #include "magma_internal.h"
 
+/***************************************************************************//**
+    Purpose
+    -------
+    ZGETRI computes the inverse of a matrix using the LU factorization
+    computed by ZGETRF. This method inverts U and then computes inv(A) by
+    solving the system inv(A)*L = inv(U) for inv(A).
+
+    Note that it is generally both faster and more accurate to use ZGESV,
+    or ZGETRF and ZGETRS, to solve the system AX = B, rather than inverting
+    the matrix and multiplying to form X = inv(A)*B. Only in special
+    instances should an explicit inverse be computed with this routine.
+
+    Arguments
+    ---------
+    @param[in]
+    n       INTEGER
+            The order of the matrix A.  N >= 0.
+
+    @param[in,out]
+    dA      COMPLEX_16 array on the GPU, dimension (LDDA,N)
+            On entry, the factors L and U from the factorization
+            A = P*L*U as computed by ZGETRF_GPU.
+            On exit, if INFO = 0, the inverse of the original matrix A.
+
+    @param[in]
+    ldda    INTEGER
+            The leading dimension of the array A.  LDDA >= max(1,N).
+
+    @param[in]
+    ipiv    INTEGER array, dimension (N)
+            The pivot indices from ZGETRF; for 1 <= i <= N, row i of the
+            matrix was interchanged with row IPIV(i).
+
+    @param[out]
+    info    INTEGER
+      -     = 0:  successful exit
+      -     < 0:  if INFO = -i, the i-th argument had an illegal value
+      -     > 0:  if INFO = i, U(i,i) is exactly zero; the matrix is
+                  singular and its cannot be computed.
+
+    @param[in]
+    mode    magma_mode_t
+      -     specifies execution mode (hybrid vs. native)
+      -     currently ignored, reserved for future use
+
+    @param[in,out]
+    host_work  Workspace, allocated on host (CPU) memory. For faster CPU-GPU communication,
+               user can allocate it as pinned memory using magma_malloc_pinned()
+
+    @param[in,out]
+    lwork_host   INTEGER pointer
+                 The size of the workspace (host_work) in bytes
+                 - lwork_host[0] < 0: a workspace query is assumed, the routine
+                   calculates the required amount of workspace and returns
+                   it in lwork_host. The workspace itself is not referenced, and no
+                   factorization is performed.
+                -  lwork[0] >= 0: the routine assumes that the user has provided
+                   a workspace with the size in lwork_host.
+
+    @param[in,out]
+    device_work  Workspace, allocated on device (GPU) memory.
+
+    @param[in,out]
+    lwork_device   INTEGER pointer
+                   The size of the workspace (device_work) in bytes
+                   - lwork_device[0] < 0: a workspace query is assumed, the routine
+                     calculates the required amount of workspace and returns
+                     it in lwork_device. The workspace itself is not referenced, and no
+                     factorization is performed.
+                   - lwork_device[0] >= 0: the routine assumes that the user has provided
+                     a workspace with the size in lwork_device.
+
+    @param[in]
+    queue         magma_queue_t
+                  - created/destroyed by the user outside the routine
+                  - Used for kernel execution on the GPU
+    @ingroup magma_getri
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zgetri_expert_gpu_work(
     magma_int_t n,
@@ -35,7 +113,7 @@ magma_zgetri_expert_gpu_work(
 
     // calculate the required workspace in bytes
     magma_int_t h_workspace_bytes = 0;
-    magma_int_t d_workspace_bytes = n * nb;
+    magma_int_t d_workspace_bytes = n * nb * sizeof(magmaDoubleComplex);
 
     // check for workspace query
     if( *lwork_host < 0 || *lwork_device < 0 ) {
@@ -176,6 +254,8 @@ magma_zgetri_gpu(
     magmaDoubleComplex_ptr dwork, magma_int_t lwork,
     magma_int_t *info )
 {
+    magma_int_t lwork_bytes = lwork * sizeof(magmaDoubleComplex);
+
     magma_queue_t queue = NULL;
     magma_device_t cdev;
     magma_getdevice( &cdev );
@@ -193,7 +273,7 @@ magma_zgetri_gpu(
         *info = -1;
     else if (ldda < max(1,n))
         *info = -3;
-    else if ( lwork < lwork_device[0] )
+    else if ( lwork_bytes < lwork_device[0] )
         *info = -6;
 
     if (*info != 0) {
