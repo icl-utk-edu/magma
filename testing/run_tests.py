@@ -748,6 +748,11 @@ chol = (
 	('testing_ztrtri_gpu',      '-U -DU -c',  n,    ''),
 	('testing_ztrtri_gpu',      '-U -DN -c',  n,    ''),
 
+	('testing_ztrtri_gpu', '--version 2 -L -DU -c',  n,    ''),
+	('testing_ztrtri_gpu', '--version 2 -L -DN -c',  n,    ''),
+	('testing_ztrtri_gpu', '--version 2 -U -DU -c',  n,    ''),
+	('testing_ztrtri_gpu', '--version 2 -U -DN -c',  n,    ''),
+
 	('testing_zpotrf_mgpu', ngpu + '-L    -c',  n,    ''),
 	('testing_zpotrf_mgpu', ngpu + '-U    -c',  n,    ''),
 
