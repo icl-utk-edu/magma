@@ -117,7 +117,7 @@ int main( int argc, char** argv )
                     NULL, lwork_host, NULL, lwork_device, queues );
 
                 if(lwork_host[0] > 0) {
-                    TESTING_CHECK( magma_malloc_cpu(&host_work, lwork_host[0]) );
+                    TESTING_CHECK( magma_malloc_pinned(&host_work, lwork_host[0]) );
                 }
 
                 if(lwork_device[0] > 0) {
@@ -132,7 +132,7 @@ int main( int argc, char** argv )
 
                 magma_queue_destroy( queues[0] );
                 magma_queue_destroy( queues[1] );
-                if(host_work   != NULL) magma_free_cpu( host_work );
+                if(host_work   != NULL) magma_free_pinned( host_work );
                 if(device_work != NULL) magma_free( device_work );
             }
 
