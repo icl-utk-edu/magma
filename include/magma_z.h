@@ -58,6 +58,10 @@ magma_int_t magma_get_zbulge_nb_mgpu( magma_int_t n );
 magma_int_t magma_get_zbulge_vblksiz( magma_int_t n, magma_int_t nb, magma_int_t nbthreads );
 magma_int_t magma_get_zbulge_gcperf();
 
+// =============================================================================
+// Other auxiliary functions
+bool magma_zgetrf_gpu_recommend_cpu(magma_int_t m, magma_int_t n, magma_int_t nb);
+bool magma_zgetrf_native_recommend_notrans(magma_int_t m, magma_int_t n, magma_int_t nb);
 
 // =============================================================================
 // MAGMA function definitions
@@ -1711,6 +1715,15 @@ magma_ztrtri_gpu(
     magma_uplo_t uplo, magma_diag_t diag, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *info);
+
+magma_int_t
+magma_ztrtri_expert_gpu_work(
+    magma_uplo_t uplo, magma_diag_t diag, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *info,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_queue_t queues[2] );
 
 // ------------------------------------------------------------ zun routines
 // CUDA MAGMA only
