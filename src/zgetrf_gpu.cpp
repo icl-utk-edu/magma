@@ -17,6 +17,62 @@
 /***************************************************************************//**
     Purpose
     -------
+    magma_zgetrf_gpu_recommend_cpu returns true if magma_zgetrf_gpu is going to
+    use the CPU only for performing the LU factorization. This is often the case
+    for relatively small matrices.
+
+    Arguments
+    ---------
+    @param[in]
+    m       INTEGER
+            The number of rows of the matrix A.  M >= 0.
+
+    @param[in]
+    n       INTEGER
+            The number of columns of the matrix A.  N >= 0.
+
+    @param[in]
+    nb      INTEGER
+            The blocking size used during the factorization. nb > 0;
+
+    @ingroup magma_getrf
+*******************************************************************************/
+bool magma_zgetrf_gpu_recommend_cpu(magma_int_t m, magma_int_t n, magma_int_t nb)
+{
+    return nb <= 1 || 4*nb >= min(m,n);
+}
+
+/***************************************************************************//**
+    Purpose
+    -------
+    magma_zgetrf_native_recommend_notrans returns true if magma_zgetrf_native is going to
+    perform the LU factorization without transposing the matrix. This is often the case
+    for relatively small matrices.
+
+    Arguments
+    ---------
+    @param[in]
+    m       INTEGER
+            The number of rows of the matrix A.  M >= 0.
+
+    @param[in]
+    n       INTEGER
+            The number of columns of the matrix A.  N >= 0.
+
+    @param[in]
+    nb      INTEGER
+            The blocking size used during the factorization. nb > 0;
+
+    @ingroup magma_getrf
+*******************************************************************************/
+bool magma_zgetrf_native_recommend_notrans(magma_int_t m, magma_int_t n, magma_int_t nb)
+{
+    return nb <= 1 || 4*nb >= min(m,n);
+}
+
+/***************************************************************************//**
+    Purpose
+    -------
     ZGETRF computes an LU factorization of a general M-by-N matrix A
     using partial pivoting with row interchanges.
 
@@ -155,7 +211,7 @@ magma_zgetrf_expert_gpu_work(
     magma_int_t d_workspace_bytes = 0;
     lddat = (m == n) ? ldda : maxn;
     if (mode == MagmaHybrid) {
-        if ( nb <= 1 || 4*nb >= n ) {
+        if ( magma_zgetrf_gpu_recommend_cpu(m, n, nb) ) {
             h_workspace_bytes +=  m * n * sizeof(magmaDoubleComplex); // all of A
         }
         else {
@@ -236,22 +292,21 @@ magma_zgetrf_expert_gpu_work(
         magma_memset_async(dinfo, 0, sizeof(magma_int_t), queues[0]);
     }
 
-    // check for small sizes
-    if ( nb <= 1 || 4*nb >= min(m,n) ) {
-        if (mode == MagmaHybrid) {
-            magma_zgetmatrix( m, n, dA(0,0), ldda, work, m, queues[0]);
-            lapackf77_zgetrf( &m, &n, work, &m, ipiv, info );
-            magma_zsetmatrix( m, n, work, m, dA(0,0), ldda, queues[0]);
-            //magma_free_cpu( work );  work=NULL;
-            return *info;
-        }
-        else {
-            // use non-transposed panel factorization for the whole matrix
-            magma_zgetrf_recpanel_native( m, n, recnb, dA(0,0), ldda, dipiv, dipivinfo, dinfo, 0, events, queues[0], queues[1]);
-            magma_igetvector_async( minmn, dipiv, 1, ipiv, 1, queues[0] );
-            magma_igetvector_async( 1, dinfo, 1, info, 1, queues[0] );
-            return *info;
-        }
+    // check for small sizes - hybrid
+    if ( mode == MagmaHybrid && magma_zgetrf_gpu_recommend_cpu(m, n, nb) ) {
+        magma_zgetmatrix( m, n, dA(0,0), ldda, work, m, queues[0]);
+        lapackf77_zgetrf( &m, &n, work, &m, ipiv, info );
+        magma_zsetmatrix( m, n, work, m, dA(0,0), ldda, queues[0]);
+        return *info;
+    }
+
+    // check for small sizes - native
+    if ( mode == MagmaNative && magma_zgetrf_native_recommend_notrans(m, n, nb) ) {
+        // use non-transposed panel factorization for the whole matrix
+        magma_zgetrf_recpanel_native( m, n, recnb, dA(0,0), ldda, dipiv, dipivinfo, dinfo, 0, events, queues[0], queues[1]);
+        magma_igetvector_async( minmn, dipiv, 1, ipiv, 1, queues[0] );
+        magma_igetvector_async( 1, dinfo, 1, info, 1, queues[0] );
+        return *info;
     }
 
     // square matrices can be done in place;
