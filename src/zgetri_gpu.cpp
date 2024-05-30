@@ -96,7 +96,7 @@ magma_zgetri_expert_gpu_work(
     magma_mode_t mode,
     void* host_work,   magma_int_t *lwork_host,
     void* device_work, magma_int_t *lwork_device,
-    magma_queue_t queue )
+    magma_queue_t queues[2] )
 {
     #define dA(i, j)  (dA + (i) + (j)*ldda)
     #define dL(i, j)  (dL + (i) + (j)*lddl)
@@ -113,7 +113,20 @@ magma_zgetri_expert_gpu_work(
 
     // calculate the required workspace in bytes
     magma_int_t h_workspace_bytes = 0;
-    magma_int_t d_workspace_bytes = n * nb * sizeof(magmaDoubleComplex);
+    magma_int_t d_workspace_bytes = 0;
+
+    // getri workspace
+    magma_int_t lwork_host_getri   = 0;
+    magma_int_t lwork_device_getri = n * nb * sizeof(magmaDoubleComplex);
+
+    // trtri workspace
+    //magma_ztrtri_gpu( MagmaUpper, MagmaNonUnit, n, dA, ldda, info );
+    magma_int_t lwork_host_trtri[1]   = {-1};
+    magma_int_t lwork_device_trtri[1] = {-1};
+    magma_ztrtri_expert_gpu_work(MagmaUpper, MagmaNonUnit, n, NULL, ldda, info, NULL, lwork_host_trtri, NULL, lwork_device_trtri, NULL);
+
+    h_workspace_bytes = lwork_host_getri   + lwork_host_trtri[0];
+    d_workspace_bytes = lwork_device_getri + lwork_device_trtri[0];
 
     // check for workspace query
     if( *lwork_host < 0 || *lwork_device < 0 ) {
@@ -146,10 +159,23 @@ magma_zgetri_expert_gpu_work(
     else {
         lddl = n;
     }
+
+    // assign host pointer(s)
+    void *trtri_host_work=NULL;
+    trtri_host_work = (magmaDoubleComplex_ptr)host_work;
+
+    // assign device pointers
+    void *trtri_device_work=NULL;
     dL = (magmaDoubleComplex_ptr)device_work;
+    trtri_device_work = (void*)(dL) + lwork_device_getri;
 
     /* Invert the triangular factor U */
-    magma_ztrtri_gpu( MagmaUpper, MagmaNonUnit, n, dA, ldda, info );
+    //magma_ztrtri_gpu( MagmaUpper, MagmaNonUnit, n, dA, ldda, info );
+    magma_ztrtri_expert_gpu_work(
+        MagmaUpper, MagmaNonUnit, n, dA, ldda, info,
+        trtri_host_work,   lwork_host_trtri,
+        trtri_device_work, lwork_device_trtri, queues);
+
     if ( *info != 0 )
         return *info;
 
@@ -162,8 +188,8 @@ magma_zgetri_expert_gpu_work(
         // then zero the strictly lower trapezoid block column of A.
         magmablas_zlacpy( MagmaFull, n-j, jb,
                           dA(j,j), ldda,
-                          dL(j,0), lddl, queue );
-        magmablas_zlaset( MagmaLower, n-j-1, jb, c_zero, c_zero, dA(j+1,j), ldda, queue );
+                          dL(j,0), lddl, queues[0] );
+        magmablas_zlaset( MagmaLower, n-j-1, jb, c_zero, c_zero, dA(j+1,j), ldda, queues[0] );
 
         // compute current block column of Ainv
         // Ainv(:, j:j+jb-1)
@@ -174,20 +200,20 @@ magma_zgetri_expert_gpu_work(
             magma_zgemm( MagmaNoTrans, MagmaNoTrans, n, jb, n-j-jb,
                          c_neg_one, dA(0,j+jb), ldda,
                                     dL(j+jb,0), lddl,
-                         c_one,     dA(0,j),    ldda, queue );
+                         c_one,     dA(0,j),    ldda, queues[0] );
         }
         // TODO use magmablas work interface
         magma_ztrsm( MagmaRight, MagmaLower, MagmaNoTrans, MagmaUnit,
                      n, jb, c_one,
                      dL(j,0), lddl,
-                     dA(0,j), ldda, queue );
+                     dA(0,j), ldda, queues[0] );
     }
 
     // Apply column interchanges
     for( j = n-2; j >= 0; --j ) {
         jp = ipiv[j] - 1;
         if ( jp != j ) {
-            magmablas_zswap( n, dA(0,j), 1, dA(0,jp), 1, queue );
+            magmablas_zswap( n, dA(0,j), 1, dA(0,jp), 1, queues[0] );
         }
     }
 
@@ -256,17 +282,18 @@ magma_zgetri_gpu(
 {
     magma_int_t lwork_bytes = lwork * sizeof(magmaDoubleComplex);
 
-    magma_queue_t queue = NULL;
+    magma_queue_t queues[2] = {NULL};
     magma_device_t cdev;
     magma_getdevice( &cdev );
-    magma_queue_create( cdev, &queue );
+    magma_queue_create( cdev, &queues[0] );
+    magma_queue_create( cdev, &queues[1] );
 
     // query workspace
     magma_int_t lwork_host[1]   = {-1};
     magma_int_t lwork_device[1] = {-1};
     magma_zgetri_expert_gpu_work(
         n, NULL, ldda, NULL, info, MagmaNative,
-        NULL, lwork_host, NULL, lwork_device, queue );
+        NULL, lwork_host, NULL, lwork_device, queues );
 
     *info = 0;
     if (n < 0)
@@ -283,9 +310,10 @@ magma_zgetri_gpu(
 
     magma_zgetri_expert_gpu_work(
         n, dA, ldda, ipiv, info, MagmaNative,
-        NULL, lwork_host, dwork, &lwork, queue );
+        NULL, lwork_host, dwork, &lwork, queues );
 
-    magma_queue_destroy( queue );
+    magma_queue_destroy( queues[0] );
+    magma_queue_destroy( queues[1] );
 
     return *info;
 }

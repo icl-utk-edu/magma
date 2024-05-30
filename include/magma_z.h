@@ -703,7 +703,7 @@ magma_zgetri_expert_gpu_work(
     magma_mode_t mode,
     void* host_work,   magma_int_t *lwork_host,
     void* device_work, magma_int_t *lwork_device,
-    magma_queue_t queue );
+    magma_queue_t queues[2] );
 
 magma_int_t
 magma_zgetrs_gpu(

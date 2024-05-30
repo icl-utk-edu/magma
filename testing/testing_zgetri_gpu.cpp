@@ -102,13 +102,19 @@ int main( int argc, char** argv )
             }
             else{
                 // test expert api
+                magma_queue_t queues[2];
+                magma_device_t cdev;
+                magma_getdevice( &cdev );
+                magma_queue_create( cdev, &queues[0] );
+                magma_queue_create( cdev, &queues[1] );
+
                 // query workspace
                 void *host_work=NULL, *device_work=NULL;
                 magma_int_t lwork_host[1]   = {-1};
                 magma_int_t lwork_device[1] = {-1};
                 magma_zgetri_expert_gpu_work(
                     N, NULL, ldda, NULL, &info, MagmaNative,
-                    NULL, lwork_host, NULL, lwork_device, opts.queue );
+                    NULL, lwork_host, NULL, lwork_device, queues );
 
                 if(lwork_host[0] > 0) {
                     TESTING_CHECK( magma_malloc_cpu(&host_work, lwork_host[0]) );
@@ -118,12 +124,14 @@ int main( int argc, char** argv )
                     TESTING_CHECK( magma_malloc(&device_work, lwork_device[0]) );
                 }
 
-                gpu_time = magma_sync_wtime( opts.queue );
+                gpu_time = magma_sync_wtime( queues[0] );
                 magma_zgetri_expert_gpu_work(
                     N, d_A, ldda, ipiv, &info, MagmaNative,
-                    host_work, lwork_host, device_work, lwork_device, opts.queue );
-                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+                    host_work, lwork_host, device_work, lwork_device, queues );
+                gpu_time = magma_sync_wtime( queues[0] ) - gpu_time;
 
+                magma_queue_destroy( queues[0] );
+                magma_queue_destroy( queues[1] );
                 if(host_work   != NULL) magma_free_cpu( host_work );
                 if(device_work != NULL) magma_free( device_work );
             }
