@@ -36,7 +36,7 @@ zlarf_fused_sm_kernel_batched(
     magmaDoubleComplex **dA_array, int Ai, int Aj, int ldda,
     magmaDoubleComplex **dV_array, int Vi, int Vj, int lddv,
     magmaDoubleComplex **dtau_array, magma_int_t taui,
-    magma_int_t batchCount , sycl::nd_item<3> item_ct1, magmaDoubleComplex *dpct_local)
+    magma_int_t batchCount , sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
     auto zdata = (magmaDoubleComplex *)dpct_local;
     const int tx = item_ct1.get_local_id(2);
@@ -269,7 +269,8 @@ static magma_int_t magma_zlarf_fused_sm_kernel_driver_batched(
     magmaDoubleComplex **dV_array, magma_int_t Vi, magma_int_t Vj,
     magma_int_t lddv, magmaDoubleComplex **dtau_array, magma_int_t taui,
     magma_int_t nthreads, magma_int_t check_launch_only, magma_int_t batchCount,
-    magma_queue_t queue) try {
+    magma_queue_t queue)
+{
     magma_device_t device;
     magma_getdevice( &device );
     magma_int_t arginfo = 0;
@@ -306,12 +307,11 @@ static magma_int_t magma_zlarf_fused_sm_kernel_driver_batched(
 
     if( check_launch_only == 1 ) return arginfo;
 
-//    void *kernel_args[] = {&m, &n, &ib, &dA_array, &Ai, &Aj, &ldda, &dV_array, &Vi, &Vj, &lddv, &dtau_array, &taui, &batchCount};
 
-    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-       sycl::local_accessor<magmaDoubleComplex, 1>
-                       dpct_local_acc_ct1(sycl::range<1>(shmem/sizeof(magmaDoubleComplex)), cgh); // NNB: I added this manually, dpct didn't finish --
-				                                                                  // check if size is correct
+    try {
+      ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
+       sycl::local_accessor<uint8_t, 1>
+                       dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
       cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                        zlarf_fused_sm_kernel_batched<NB>(m, n, ib, dA_array, Ai, Aj, ldda,
@@ -319,25 +319,11 @@ static magma_int_t magma_zlarf_fused_sm_kernel_driver_batched(
 				       item_ct1, dpct_local_acc_ct1.get_pointer());
 		       });
       });
-    /*
-    DPCT1000:1176: Error handling if-stmt was detected but could not be
-    rewritten.
-    */ //TODO
-    int e = 0;
-    if (e != 0) {
-        //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
-        /*
-        DPCT1001:1175: The statement could not be removed.
-        */
-        arginfo = -100;
+    } catch (sycl::exception const &exc) {
+       arginfo = -100;
     }
 
     return arginfo;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
