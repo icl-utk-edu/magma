@@ -170,14 +170,10 @@ magma_zgetri_expert_gpu_work(
     trtri_device_work = (void*)(dL + (lwork_device_getri/sizeof(magmaDoubleComplex)) );
 
     /* Invert the triangular factor U */
-    #if 0
-    magma_ztrtri_gpu( MagmaUpper, MagmaNonUnit, n, dA, ldda, info );
-    #else
     magma_ztrtri_expert_gpu_work(
         MagmaUpper, MagmaNonUnit, n, dA, ldda, info,
         trtri_host_work,   lwork_host_trtri,
         trtri_device_work, lwork_device_trtri, queues);
-    #endif
 
     if ( *info != 0 )
         return *info;
@@ -314,7 +310,9 @@ magma_zgetri_gpu(
     // device work is already provided by the user
     // allocate host workspace
     void* host_work = NULL;
-    magma_malloc_pinned(&host_work, lwork_host[0]);
+    if(lwork_host[0] > 0) {
+        magma_malloc_pinned(&host_work, lwork_host[0]);
+    }
 
     magma_zgetri_expert_gpu_work(
         n, dA, ldda, ipiv, info, MagmaNative,
@@ -322,7 +320,9 @@ magma_zgetri_gpu(
 
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
-    magma_free_pinned( host_work );
+
+    if(host_work != NULL)
+        magma_free_pinned( host_work );
 
     return *info;
 }
