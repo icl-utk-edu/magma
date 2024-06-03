@@ -44,13 +44,13 @@ ztrsv_notrans_kernel_outplace_batched(
     magmaDoubleComplex **A_array, int lda,
     magmaDoubleComplex **b_array, int incb,
     magmaDoubleComplex **x_array, sycl::nd_item<3> item_ct1,
-    uint8_t *dpct_local, magmaDoubleComplex *sdata)
+    uint8_t *dpct_local)
 {
     int batchid = item_ct1.get_group(0);
 
     ztrsv_notrans_device<BLOCK_SIZE, DIM_X, DIM_Y, TILE_SIZE, flag, uplo, trans,
                          diag>(n, A_array[batchid], lda, b_array[batchid], incb,
-                               x_array[batchid], item_ct1, dpct_local, sdata);
+                               x_array[batchid], item_ct1, dpct_local);
 }
 
 
@@ -62,12 +62,12 @@ ztrsv_trans_kernel_outplace_batched(
     magmaDoubleComplex **A_array, int lda,
     magmaDoubleComplex **b_array, int incb,
     magmaDoubleComplex **x_array, sycl::nd_item<3> item_ct1,
-    uint8_t *dpct_local, magmaDoubleComplex *sdata)
+    uint8_t *dpct_local)
 {
     int batchid = item_ct1.get_group(0);
     ztrsv_trans_device<BLOCK_SIZE, DIM_X, DIM_Y, TILE_SIZE, flag, uplo, trans,
                        diag>(n, A_array[batchid], lda, b_array[batchid], incb,
-                             x_array[batchid], item_ct1, dpct_local, sdata);
+                             x_array[batchid], item_ct1, dpct_local);
 }
 
 /******************************************************************************/
@@ -82,12 +82,8 @@ ztrsv_notrans_outplace_batched(
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t max_batchCount = queue->get_maxBatch();
-    /*
-    DPCT1083:1507: The size of local memory in the migrated code may be
-    different from the original code. Check that the allocated memory size in
-    the migrated code is correct.
-    */
     size_t shmem = n * sizeof(magmaDoubleComplex);
+    shmem += DIM_X * DIM_Y; // for the shared memory in gemvn_template_device, called in ztrsv_notrans_device
     sycl::range<3> threads(1, 1, NUM_THREADS);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -98,8 +94,6 @@ ztrsv_notrans_outplace_batched(
             ->submit([&](sycl::handler &cgh) {
                 sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                sycl::local_accessor<magmaDoubleComplex, 1>
-                    sdata_acc_ct1(sycl::range<1>(DIM_X * DIM_Y), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                  [=](sycl::nd_item<3> item_ct1) {
@@ -108,8 +102,7 @@ ztrsv_notrans_outplace_batched(
                                          flag, uplo, trans, diag>(
                                          n, A_array + i, lda, b_array + i, incb,
                                          x_array + i, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer(),
-                                         sdata_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_pointer());
                                  });
             });
     }
@@ -127,12 +120,8 @@ ztrsv_trans_outplace_batched(
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t max_batchCount = queue->get_maxBatch();
-    /*
-    DPCT1083:1509: The size of local memory in the migrated code may be
-    different from the original code. Check that the allocated memory size in
-    the migrated code is correct.
-    */
     size_t shmem = n * sizeof(magmaDoubleComplex);
+    shmem += DIM_X * DIM_Y; // for the shared memory in gemvc_template_device, called in ztrsv_trans_device
     sycl::range<3> threads(1, 1, NUM_THREADS);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -143,8 +132,6 @@ ztrsv_trans_outplace_batched(
             ->submit([&](sycl::handler &cgh) {
                 sycl::local_accessor<uint8_t, 1>
                     dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                sycl::local_accessor<magmaDoubleComplex, 1>
-                    sdata_acc_ct1(sycl::range<1>(DIM_X * DIM_Y), cgh);
 
                 cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                                  [=](sycl::nd_item<3> item_ct1) {
@@ -153,8 +140,7 @@ ztrsv_trans_outplace_batched(
                                          flag, uplo, trans, diag>(
                                          n, A_array + i, lda, b_array + i, incb,
                                          x_array + i, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer(),
-                                         sdata_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_pointer());
                                  });
             });
     }
@@ -425,10 +411,6 @@ magmablas_ztrsv_recursive_outofplace_batched(
             }
 
             //assume x_array contains zero elements
-            /*
-            DPCT1064:1510: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             magmablas_zgemv_batched(MagmaNoTrans, jb, i, MAGMA_Z_ONE, dW0_displ_,
                                     lda, dW1_displ_, 1, MAGMA_Z_ONE, dW2_displ,
                                     1, batchCount, queue);
@@ -436,7 +418,6 @@ magmablas_ztrsv_recursive_outofplace_batched(
             magma_zdisplace_pointers(dW0_displ, A_array, lda,  col, col, batchCount, queue);
             magma_zdisplace_pointers(dW1_displ, b_array, 1, col*incb,   0, batchCount, queue);
             magma_zdisplace_pointers(dW2_displ, x_array, 1,    col,   0, batchCount, queue);
-
             magmablas_ztrsv_outofplace_batched(uplo, trans, diag,jb, dW0_displ, lda, dW1_displ, incb, dW2_displ, batchCount, queue, i);
         }
     }
@@ -465,11 +446,6 @@ magmablas_ztrsv_recursive_outofplace_batched(
 
 
             //assume x_array contains zero elements
-
-            /*
-            DPCT1064:1511: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             magmablas_zgemv_batched(trans, i, jb, MAGMA_Z_ONE, dW0_displ_, lda,
                                     dW1_displ_, 1, MAGMA_Z_ONE, dW2_displ, 1,
                                     batchCount, queue);
