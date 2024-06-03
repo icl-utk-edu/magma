@@ -111,10 +111,9 @@ int main(int argc, char **argv)
             for(int s = 0; s < batchCount; s++) {
                 magmaDoubleComplex* hA = h_A + s*lda*N;
                 for(int j = 0; j < lda*N; j++) {
+                    MAGMA_Z_REAL( hA[j] ) += 20.;
                     #if defined(PRECISION_c) || defined(PRECISION_z)
-                    h_A[j]= MAGMA_Z_MAKE(MAGMA_Z_REAL(h_A[j]) + 20., MAGMA_Z_IMAG(h_A[j]) + 20.);
-                    #else
-	   	    h_A[j] += 20.;
+                    MAGMA_Z_IMAG( hA[j] ) += 20.;
                     #endif
                 }
             }
