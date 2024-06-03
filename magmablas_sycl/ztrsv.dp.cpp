@@ -45,12 +45,10 @@ ztrsv_notrans_kernel_outplace(
     int n,
     const magmaDoubleComplex * __restrict__ A, int lda,
     magmaDoubleComplex *b, int incb,
-    magmaDoubleComplex *x, sycl::nd_item<3> item_ct1, uint8_t *dpct_local,
-    magmaDoubleComplex *sdata)
+    magmaDoubleComplex *x, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
     ztrsv_notrans_device<BLOCK_SIZE, DIM_X, DIM_Y, TILE_SIZE, flag, uplo, trans,
-                         diag>(n, A, lda, b, incb, x, item_ct1, dpct_local,
-                               sdata);
+                         diag>(n, A, lda, b, incb, x, item_ct1, dpct_local);
 }
 
 
@@ -63,12 +61,10 @@ ztrsv_trans_kernel_outplace(
     int n,
     const magmaDoubleComplex * __restrict__ A, int lda,
     magmaDoubleComplex *b, int incb,
-    magmaDoubleComplex *x, sycl::nd_item<3> item_ct1, uint8_t *dpct_local,
-    magmaDoubleComplex *sdata)
+    magmaDoubleComplex *x, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
     ztrsv_trans_device<BLOCK_SIZE, DIM_X, DIM_Y, TILE_SIZE, flag, uplo, trans,
-                       diag>(n, A, lda, b, incb, x, item_ct1, dpct_local,
-                             sdata);
+                       diag>(n, A, lda, b, incb, x, item_ct1, dpct_local);
 }
 
 
@@ -117,6 +113,7 @@ magmablas_ztrsv_outofplace(
 
     if (trans == MagmaNoTrans)
     {
+        shmem += DIM_X_N * DIM_Y_N; // For the gemv that gets called in ztrsv_*_device
         if (uplo == MagmaUpper)
         {
             if (diag == MagmaNonUnit)
@@ -126,9 +123,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -138,8 +132,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaNoTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -148,9 +141,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -160,8 +150,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaNoTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -173,9 +162,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -185,8 +171,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaNoTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -195,9 +180,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -207,8 +189,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaNoTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -224,9 +205,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -236,8 +214,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaNoTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -246,9 +223,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -258,8 +232,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaNoTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -272,9 +245,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -284,8 +254,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaNoTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -294,9 +263,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_N * DIM_Y_N),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -306,8 +272,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaNoTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -316,6 +281,7 @@ magmablas_ztrsv_outofplace(
     }
     else if (trans == MagmaTrans)
     {
+        shmem += DIM_X_T * DIM_Y_T;
         if (uplo == MagmaUpper)
         {
             if (diag == MagmaNonUnit) {
@@ -325,9 +291,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -337,8 +300,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -347,9 +309,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -359,8 +318,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -372,9 +330,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -384,8 +339,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -394,9 +348,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -406,8 +357,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -422,9 +372,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -434,8 +381,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -444,9 +390,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -456,8 +399,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -469,9 +411,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -481,8 +420,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -491,9 +429,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -503,8 +438,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -522,9 +456,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -534,8 +465,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaConjTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -544,9 +474,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -556,8 +483,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaConjTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -569,9 +495,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -581,8 +504,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaConjTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -591,9 +513,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -603,8 +522,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaConjTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -619,9 +537,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -631,8 +546,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaConjTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -641,9 +555,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -653,8 +564,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaConjTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -666,9 +576,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -678,8 +585,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaConjTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
@@ -688,9 +594,6 @@ magmablas_ztrsv_outofplace(
                         ->submit([&](sycl::handler &cgh) {
                             sycl::local_accessor<uint8_t, 1>
                                 dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-                            sycl::local_accessor<magmaDoubleComplex, 1>
-                                sdata_acc_ct1(sycl::range<1>(DIM_X_T * DIM_Y_T),
-                                              cgh);
 
                             cgh.parallel_for(
                                 sycl::nd_range<3>(blocks * threads, threads),
@@ -700,8 +603,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaConjTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer(),
-                                        sdata_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_pointer());
                                 });
                         });
                 }
