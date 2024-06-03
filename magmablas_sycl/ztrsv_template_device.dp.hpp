@@ -167,12 +167,13 @@ ztrsv_notrans_device(
     int n,
     const magmaDoubleComplex * __restrict__ A, int lda,
     magmaDoubleComplex *b, int incb,
-    magmaDoubleComplex *x, sycl::nd_item<3> item_ct1, uint8_t *dpct_local,
-    magmaDoubleComplex *sx)
+    magmaDoubleComplex *x, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
 
     int tx = item_ct1.get_local_id(2);
     int col = n;
+    magmaDoubleComplex *sdata = (magmaDoubleComplex*)dpct_local;
+    magmaDoubleComplex *sx = sdata + BLK_X * BLK_Y;
 
     if (flag == 0)
     {
@@ -201,8 +202,8 @@ ztrsv_notrans_device(
         {
             int jb = min(BLOCK_SIZE, (int)(n - i));
             col -= jb;
-
-            gemvn_template_device<magmaDoubleComplex, BLK_X, BLK_Y, TILE_SIZE>(jb, i, MAGMA_Z_ONE, A(col, col+jb), lda, sx+col+jb, 1, MAGMA_Z_ONE, sx+col, 1, item_ct1, sx);
+            gemvn_template_device<magmaDoubleComplex, BLK_X, BLK_Y, TILE_SIZE>(jb, i, MAGMA_Z_ONE, A(col, col+jb), lda, sx+col+jb, 1, MAGMA_Z_ONE, sx+col, 1,
+			                                                       item_ct1, sdata);
             /*
             DPCT1065:183: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
@@ -226,7 +227,8 @@ ztrsv_notrans_device(
             int jb = min(BLOCK_SIZE, (int)(n - i));
             col = i;
 
-            gemvn_template_device<magmaDoubleComplex, BLK_X, BLK_Y, TILE_SIZE>(jb, i, MAGMA_Z_ONE, A(col, 0), lda, sx, 1, MAGMA_Z_ONE, sx+col, 1, item_ct1, sx);
+            gemvn_template_device<magmaDoubleComplex, BLK_X, BLK_Y, TILE_SIZE>(jb, i, MAGMA_Z_ONE, A(col, 0), lda, sx, 1, MAGMA_Z_ONE, sx+col, 1,
+			                                                       item_ct1, sdata);
             /*
             DPCT1065:185: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
@@ -265,12 +267,13 @@ ztrsv_trans_device(
     int n,
     const magmaDoubleComplex * __restrict__ A, int lda,
     magmaDoubleComplex *b, int incb,
-    magmaDoubleComplex *x, sycl::nd_item<3> item_ct1, uint8_t *dpct_local,
-    magmaDoubleComplex *sx)
+    magmaDoubleComplex *x, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
 
     int tx = item_ct1.get_local_id(2);
     int col = n;
+    magmaDoubleComplex *sdata = (magmaDoubleComplex*)dpct_local;
+    magmaDoubleComplex *sx = sdata + BLK_X * BLK_Y;
 
     if (flag == 0)
     {
@@ -300,7 +303,8 @@ ztrsv_trans_device(
             int jb = min(BLOCK_SIZE, (int)(n - i));
             col -= jb;
             // zgemvc is used in tranposed cose
-            gemvc_template_device<magmaDoubleComplex, BLK_X, BLK_Y, TILE_SIZE, trans>(i, jb, MAGMA_Z_ONE, A(col+jb, col), lda, sx+col+jb, 1, MAGMA_Z_ONE, sx+col, 1, item_ct1, sx);
+            gemvc_template_device<magmaDoubleComplex, BLK_X, BLK_Y, TILE_SIZE, trans>(i, jb, MAGMA_Z_ONE, A(col+jb, col), lda, sx+col+jb, 1, MAGMA_Z_ONE, sx+col, 1,
+			                                                              item_ct1, sdata);
             /*
             DPCT1065:189: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
@@ -324,7 +328,8 @@ ztrsv_trans_device(
             int jb = min(BLOCK_SIZE, (int)(n - i));
             col = i;
 
-            gemvc_template_device<magmaDoubleComplex, BLK_X, BLK_Y, TILE_SIZE, trans>(i, jb, MAGMA_Z_ONE, A(0, col), lda, sx, 1, MAGMA_Z_ONE, sx+col, 1, item_ct1, sx);
+            gemvc_template_device<magmaDoubleComplex, BLK_X, BLK_Y, TILE_SIZE, trans>(i, jb, MAGMA_Z_ONE, A(0, col), lda, sx, 1, MAGMA_Z_ONE, sx+col, 1,
+			                                                              item_ct1, sdata);
             /*
             DPCT1065:191: Consider replacing sycl::nd_item::barrier() with
             sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
