@@ -82,8 +82,9 @@ ztrsv_notrans_outplace_batched(
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t max_batchCount = queue->get_maxBatch();
-    size_t shmem = n * sizeof(magmaDoubleComplex);
+    size_t shmem = n;
     shmem += DIM_X * DIM_Y; // for the shared memory in gemvn_template_device, called in ztrsv_notrans_device
+    shmem *= sizeof(magmaDoubleComplex);
     sycl::range<3> threads(1, 1, NUM_THREADS);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -120,8 +121,9 @@ ztrsv_trans_outplace_batched(
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t max_batchCount = queue->get_maxBatch();
-    size_t shmem = n * sizeof(magmaDoubleComplex);
+    size_t shmem = n;
     shmem += DIM_X * DIM_Y; // for the shared memory in gemvc_template_device, called in ztrsv_trans_device
+    shmem *= sizeof(magmaDoubleComplex);
     sycl::range<3> threads(1, 1, NUM_THREADS);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
