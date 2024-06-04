@@ -1617,6 +1617,15 @@ magma_zpotrs_gpu(
     magmaDoubleComplex_ptr dB, magma_int_t lddb,
     magma_int_t *info);
 
+magma_zpotrs_expert_gpu_work(
+    magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magmaDoubleComplex_ptr dB, magma_int_t lddb,
+    magma_int_t *info,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_queue_t queue );
+
 // ------------------------------------------------------------ zsy routines
 #ifdef MAGMA_COMPLEX
 // CUDA MAGMA only
