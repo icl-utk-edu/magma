@@ -187,12 +187,11 @@ magma_zgegqr_expert_gpu_work(
         // === Iterative, based on SVD =========================================
         magmaDoubleComplex *U, *VT, *vt, *R, *G, *hwork, *tau;
         double *S;
-
         R    = work;             // Size n * n
         G    = R    + n*n;       // Size n * n
         VT   = G    + n*n;       // Size n * n
 
-        hwork = work + 3*n*n
+        hwork = work + 3*n*n;
         //magma_zmalloc_cpu( &hwork, 32 + 2*n*n + 2*n );
         //if ( hwork == NULL ) {
         //    *info = MAGMA_ERR_HOST_ALLOC;
@@ -427,8 +426,8 @@ magma_zgegqr_gpu(
     // passed by the user without any information about their sizes.
     // Therefore, the expert API is used only to retrieve the workspace sizes without,
     // assuming the user has properly allocated the workspaces
-    magma_int_t lwork_host   = {-1};
-    magma_int_t lwork_device = {-1};
+    magma_int_t lwork_host[1]   = {-1};
+    magma_int_t lwork_device[1] = {-1};
     magma_zgegqr_expert_gpu_work( ikind, m, n, NULL, ldda, NULL, lwork_host, NULL, lwork_device, info, NULL );
 
     magma_zgegqr_expert_gpu_work(

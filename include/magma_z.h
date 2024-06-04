@@ -214,6 +214,14 @@ magma_zgegqr_gpu(
     magma_int_t *info);
 
 magma_int_t
+magma_zgegqr_expert_gpu_work(
+    magma_int_t ikind, magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA,   magma_int_t ldda,
+    void *host_work,   magma_int_t *lwork_host,
+    void *device_work, magma_int_t *lwork_device,
+    magma_int_t *info, magma_queue_t queue );
+
+magma_int_t
 magma_zgehrd(
     magma_int_t n, magma_int_t ilo, magma_int_t ihi,
     magmaDoubleComplex *A, magma_int_t lda,
