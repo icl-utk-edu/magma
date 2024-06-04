@@ -448,8 +448,8 @@ magma_zgbtf2_native_work(magma_int_t m, magma_int_t n, magma_int_t kl,
     }
 
     // device pointers
-    magma_int_t *ju    = (magma_int_t*)device_work;
-    magma_int_t *dinfo = ju + 1;
+    int *ju    = (int *)device_work;
+    magma_int_t *dinfo = (magma_int_t*) ju + 1;
 
     magma_int_t shmem = 0;
     shmem += mband  * sizeof(magmaDoubleComplex);
@@ -824,8 +824,8 @@ magma_zgbtf2_native_v2_work(magma_int_t m, magma_int_t n, magma_int_t kl,
     magma_int_t slda     = mband;
 
     // device pointers
-    magma_int_t *ju    = (magma_int_t*)device_work;
-    magma_int_t *dinfo = ju + 1;
+    int *ju    = (int*)device_work;
+    magma_int_t *dinfo = (magma_int_t*) ju + 1;
 
     magma_int_t shmem = 0;
     shmem += slda  * nb1 * sizeof(magmaDoubleComplex);
