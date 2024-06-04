@@ -22,7 +22,7 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
-#define TEST_ZGEGQR_EXPERT_API
+//#define TEST_ZGEGQR_EXPERT_API
 
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zgegqr
@@ -57,6 +57,9 @@ int main( int argc, char** argv)
     double tol = 10. * opts.tolerance * lapackf77_dlamch("E");
 
     printf("%% version %lld\n", (long long) opts.version );
+    #ifdef TEST_ZGEGQR_EXPERT_API
+    printf("%% Testing expert API\n");
+    #endif
     printf("%% M     N     CPU Gflop/s (ms)    GPU Gflop/s (ms)      ||I-Q'Q||_F / M     ||I-Q'Q||_I / M    ||A-Q R||_I\n");
     printf("%%                                                       MAGMA  /  LAPACK    MAGMA  /  LAPACK\n");
     printf("%%=========================================================================================================\n");
@@ -90,11 +93,10 @@ int main( int argc, char** argv)
 
             magma_int_t gegqr_lhwork[1] = {-1}; // size in bytes
             magma_int_t gegqr_ldwork[1] = {-1}; // size in bytes
-            agma_zgegqr_expert_gpu_work(
+            magma_zgegqr_expert_gpu_work(
                 opts.version, M, N, NULL, ldda,
                 NULL, gegqr_lhwork,
                 NULL, gegqr_ldwork, &info, opts.queue );
-
 
             lwork  = max( lwork,  magma_ceildiv(gegqr_lhwork[0], sizeof(magmaDoubleComplex)) );
             ldwork = max( ldwork, magma_ceildiv(gegqr_ldwork[0], sizeof(magmaDoubleComplex)) );
@@ -102,14 +104,6 @@ int main( int argc, char** argv)
             // update  gegqr_lhwork & gegqr_ldwork
             gegqr_lhwork[0] = lwork  * sizeof(magmaDoubleComplex);
             gegqr_ldwork[0] = ldwork * sizeof(magmaDoubleComplex);
-
-            //if(opts.version == 1) {
-            //    lwork = max(lwork, 5*N*N + 7*N + 64);
-            //}
-
-            //if (opts.version == 2) {
-            //    ldwork = 3*N*N + min_mn + 2;
-            //}
 
             TESTING_CHECK( magma_zmalloc_pinned( &tau,    min_mn ));
             TESTING_CHECK( magma_zmalloc_pinned( &h_work, lwork  ));
