@@ -344,6 +344,15 @@ magma_zgeqp3_gpu(
     #endif
     magma_int_t *info);
 
+magma_int_t
+magma_zgeqp3_expert_gpu_work(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *jpvt, magmaDoubleComplex *tau,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_int_t *info, magma_queue_t queue );
+
 // CUDA MAGMA only
 magma_int_t
 magma_zgeqr2_gpu(
