@@ -85,8 +85,8 @@
                      a workspace with the size in lwork_device.
 
     @param[in]
-    queues        magma_queue_t
-                  - created/destroyed by the user outside the routine
+    queue         magma_queue_t
+                  - created/destroyed by the user
 
     @ingroup magma_potrs
 *******************************************************************************/
