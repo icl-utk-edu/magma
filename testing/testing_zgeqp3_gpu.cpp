@@ -35,7 +35,7 @@ int main( int argc, char** argv)
     magmaDoubleComplex *h_A, *h_R, *tau, *h_work;
     magmaDoubleComplex_ptr d_A, dtau, d_work;
     magma_int_t *jpvt;
-    magma_int_t M, N, K, n2, lda, lwork, j, info, min_mn, nb;
+    magma_int_t M, N, K, n2, lda, lwork, j, info, min_mn;
     int status = 0;
 
     magma_opts opts;
@@ -59,7 +59,6 @@ int main( int argc, char** argv)
             min_mn = min(M, N);
             lda    = M;
             n2     = lda*N;
-            nb     = magma_get_zgeqp3_nb( M, N );
             gflops = FLOPS_ZGEQRF( M, N ) / 1e9;
 
             // get lwork from
