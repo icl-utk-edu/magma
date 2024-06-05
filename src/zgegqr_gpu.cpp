@@ -108,7 +108,7 @@
                   For all these cases the rank (< n) of the space is returned.
 
     @param[in]
-    queues        magma_queue_t
+    queue         magma_queue_t
                   - created/destroyed by the user outside the routine
 
     @ingroup magma_gegqr
