@@ -110,7 +110,7 @@ magma_zlaqps2_gpu(
     magma_int_t nb, magma_int_t *kb,
     magmaDoubleComplex_ptr dA,  magma_int_t ldda,
     magma_int_t *jpvt,
-    magmaDoubleComplex_ptr dtau, 
+    magmaDoubleComplex_ptr dtau,
     magmaDouble_ptr dvn1, magmaDouble_ptr dvn2,
     magmaDoubleComplex_ptr dauxv,
     magmaDoubleComplex_ptr dF,  magma_int_t lddf,
@@ -125,7 +125,7 @@ magma_zlaqps2_gpu(
     const magmaDoubleComplex c_one     = MAGMA_Z_MAKE( 1.,0.);
     const magmaDoubleComplex c_neg_one = MAGMA_Z_MAKE(-1.,0.);
     const magma_int_t ione = 1;
-    
+
     /* Local variables */
     magma_int_t i__1, i__2;
     magma_int_t k, rk;
@@ -186,9 +186,9 @@ magma_zlaqps2_gpu(
         }
 
         /* Incremental updating of F:
-           F(1:N,K) := F(1:N,K) - tau(K)*F(1:N,1:K-1)*A(RK:M,1:K-1)'*A(RK:M,K). 
+           F(1:N,K) := F(1:N,K) - tau(K)*F(1:N,1:K-1)*A(RK:M,1:K-1)'*A(RK:M,K).
            F(1:N,K) := tau(K)*A(RK:M,K+1:N)'*A(RK:M,K) - tau(K)*F(1:N,1:K-1)*A(RK:M,1:K-1)'*A(RK:M,K)
-                    := tau(K)(A(RK:M,K+1:N)' - F(1:N,1:K-1)*A(RK:M,1:K-1)') A(RK:M,K)  
+                    := tau(K)(A(RK:M,K+1:N)' - F(1:N,1:K-1)*A(RK:M,1:K-1)') A(RK:M,K)
            so, F is (updated A)*V */
         if (k > 0) {
             /*z__1 = MAGMA_Z_NEGATE( tauk );
@@ -215,17 +215,27 @@ magma_zlaqps2_gpu(
             i__2 = k + 1;
             /* left-looking update of rows,                     *
              * since F=A**H v with original A, so no right-looking */
+
+            #ifdef MAGMA_HAVE_HIP
+            // hipblas DGEMM has a bug for certain sizes in the call below
+            // replace it with magmablas until it is fixed
+            magmablas_zgemm( MagmaNoTrans, MagmaConjTrans, ione, i__1, i__2,
+                         c_neg_one, dA(rk, 0  ), ldda,
+                                    dF(k+1,0  ), lddf,
+                         c_one,     dA(rk, k+1), ldda, queue );
+            #else
             magma_zgemm( MagmaNoTrans, MagmaConjTrans, ione, i__1, i__2,
                          c_neg_one, dA(rk, 0  ), ldda,
                                     dF(k+1,0  ), lddf,
-                         c_one,     dA(rk, k+1), ldda, queue ); 
+                         c_one,     dA(rk, k+1), ldda, queue );
+            #endif
         }
 
         /* Update partial column norms. */
         if (rk < min(m, n+offset)-1) {
-            magmablas_dznrm2_row_check_adjust( n-k-1, tol3z, &dvn1[k+1], 
-                                               &dvn2[k+1], dA(rk,k+1), ldda, dlsticcs, queue ); 
-            
+            magmablas_dznrm2_row_check_adjust( n-k-1, tol3z, &dvn1[k+1],
+                                               &dvn2[k+1], dA(rk,k+1), ldda, dlsticcs, queue );
+
             magma_dgetvector( 1, &dlsticcs[0], 1, &lsticc, 1, queue );
         }
 
@@ -244,7 +254,7 @@ magma_zlaqps2_gpu(
     rk = offset + *kb - 1;
 
     /* Apply the block reflector to the rest of the matrix:
-       A(OFFSET+KB+1:M,KB+1:N) := A(OFFSET+KB+1:M,KB+1:N) - 
+       A(OFFSET+KB+1:M,KB+1:N) := A(OFFSET+KB+1:M,KB+1:N) -
                                   A(OFFSET+KB+1:M,1:KB)*F(KB+1:N,1:KB)'  */
     if (*kb < min(n, m - offset)) {
         i__1 = m - rk - 1;
@@ -263,6 +273,6 @@ magma_zlaqps2_gpu(
                                &dvn1[*kb], dlsticcs, queue );
         magma_dcopymatrix( n-*kb, 1, &dvn1[*kb], n, &dvn2[*kb], n, queue );
     }
-    
+
     return MAGMA_SUCCESS;
 } /* magma_zlaqps2_q */
