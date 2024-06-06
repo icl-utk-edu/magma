@@ -306,7 +306,7 @@ magma_zgeellrtmv(
                         zgeellrtmv_kernel_32(
                             m, n, alpha, dval, dcolind, drowlength, dx, beta,
                             dy, alignment, real_row_length, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -323,7 +323,7 @@ magma_zgeellrtmv(
                         zgeellrtmv_kernel_16(
                             m, n, alpha, dval, dcolind, drowlength, dx, beta,
                             dy, alignment, real_row_length, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -340,7 +340,7 @@ magma_zgeellrtmv(
                         zgeellrtmv_kernel_8(m, n, alpha, dval, dcolind,
                                             drowlength, dx, beta, dy, alignment,
                                             real_row_length, item_ct1,
-                                            dpct_local_acc_ct1.get_pointer());
+                                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

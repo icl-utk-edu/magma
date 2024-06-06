@@ -195,7 +195,7 @@ void gemm_template_batched_nn(
                             m, n, k, dA_array + i, ldda, dB_array + i, lddb,
                             dC_array + i, lddc, alpha, beta, roffA, coffA,
                             roffB, coffB, roffC, coffC, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -242,7 +242,7 @@ void gemm_template_batched_nt(
                             m, n, k, dA_array + i, ldda, dB_array + i, lddb,
                             dC_array + i, lddc, alpha, beta, roffA, coffA,
                             roffB, coffB, roffC, coffC, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -289,7 +289,7 @@ void gemm_template_batched_tn(
                             m, n, k, dA_array + i, ldda, dB_array + i, lddb,
                             dC_array + i, lddc, alpha, beta, roffA, coffA,
                             roffB, coffB, roffC, coffC, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -336,7 +336,7 @@ void gemm_template_batched_tt(
                             m, n, k, dA_array + i, ldda, dB_array + i, lddb,
                             dC_array + i, lddc, alpha, beta, roffA, coffA,
                             roffB, coffB, roffC, coffC, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

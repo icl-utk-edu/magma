@@ -198,9 +198,9 @@ void magmablas_zlarfg(
         cgh.parallel_for(sycl::nd_range<3>(blocks * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
                              zlarfg_kernel(n, dalpha, dx, incx, dtau, item_ct1,
-                                           swork_acc_ct1.get_pointer(),
-                                           sscale_acc_ct1.get_pointer(),
-                                           sscale2_acc_ct1.get_pointer());
+                                           swork_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                           sscale_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                           sscale2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }

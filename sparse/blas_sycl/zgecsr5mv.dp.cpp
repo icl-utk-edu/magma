@@ -699,9 +699,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -728,9 +728,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -757,9 +757,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -786,9 +786,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -815,9 +815,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -844,9 +844,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -873,9 +873,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -903,9 +903,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -932,9 +932,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -961,9 +961,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -990,9 +990,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1019,9 +1019,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1048,9 +1048,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1077,9 +1077,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1106,9 +1106,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1135,9 +1135,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1164,9 +1164,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1194,9 +1194,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1223,9 +1223,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1252,9 +1252,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1281,9 +1281,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1310,9 +1310,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1339,9 +1339,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1368,9 +1368,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1397,9 +1397,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1426,9 +1426,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1455,9 +1455,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1485,9 +1485,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1514,9 +1514,9 @@ magma_zgecsr5mv(
                         dtile_desc_offset_ptr, dtile_desc_offset,
                         dcalibrator, dy, p, num_packet, bit_y_offset,
                         bit_scansum_offset, alpha, item_ct1,
-                        s_sum_acc_ct1.get_pointer(),
-                        s_scan_acc_ct1.get_pointer(),
-                        s_row_start_stop_acc_ct1.get_pointer());
+                        s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_scan_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_row_start_stop_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         break;
@@ -1541,8 +1541,8 @@ magma_zgecsr5mv(
                 [=](sycl::nd_item<3> item_ct1) {
                     spmv_csr5_calibrate_kernel(
                         dtile_ptr, dcalibrator, dy, p, item_ct1,
-                        s_tile_ptr_acc_ct1.get_pointer(),
-                        s_calibrator_acc_ct1.get_pointer());
+                        s_tile_ptr_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                        s_calibrator_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
 
@@ -1562,7 +1562,7 @@ magma_zgecsr5mv(
                     spmv_csr5_tail_tile_kernel(drowptr, dcolind, dval, dx,
                                                dy, tail_tile_start, p,
                                                sigma, alpha, item_ct1,
-                                               s_sum_acc_ct1.get_pointer());
+                                               s_sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
 

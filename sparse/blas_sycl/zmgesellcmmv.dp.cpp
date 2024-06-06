@@ -1048,7 +1048,7 @@ magma_zmgesellpmv(
 //                                zmgesellptmv_kernel_4_3D<true>(
 //                                    m, n, num_vecs, blocksize, alignment, alpha,
 //                                    dval, dcolind, drowptr, dx, beta, dy,
-//                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+//                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
 //                            });
 //                    });
 //            else
@@ -1069,7 +1069,7 @@ magma_zmgesellpmv(
 //                                zmgesellptmv_kernel_4_3D<false>(
 //                                    m, n, num_vecs, blocksize, alignment, alpha,
 //                                    dval, dcolind, drowptr, dx, beta, dy,
-//                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+//                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
 //                            });
 //                    });
 //        }
@@ -1093,7 +1093,7 @@ magma_zmgesellpmv(
 //                                zmgesellptmv_kernel_8_3D<true>(
 //                                    m, n, num_vecs, blocksize, alignment, alpha,
 //                                    dval, dcolind, drowptr, dx, beta, dy,
-//                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+//                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
 //                            });
 //                    });
 //            else
@@ -1114,7 +1114,7 @@ magma_zmgesellpmv(
 //                                zmgesellptmv_kernel_8_3D<false>(
 //                                    m, n, num_vecs, blocksize, alignment, alpha,
 //                                    dval, dcolind, drowptr, dx, beta, dy,
-//                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+//                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
 //                            });
 //                    });
 //        }
@@ -1138,7 +1138,7 @@ magma_zmgesellpmv(
 //                                zmgesellptmv_kernel_16_3D<true>(
 //                                    m, n, num_vecs, blocksize, alignment, alpha,
 //                                    dval, dcolind, drowptr, dx, beta, dy,
-//                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+//                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
 //                            });
 //                    });
 //            else
@@ -1159,7 +1159,7 @@ magma_zmgesellpmv(
 //                                zmgesellptmv_kernel_16_3D<false>(
 //                                    m, n, num_vecs, blocksize, alignment, alpha,
 //                                    dval, dcolind, drowptr, dx, beta, dy,
-//                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+//                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
 //                            });
 //                    });
 //        }
@@ -1183,7 +1183,7 @@ magma_zmgesellpmv(
 //                                zmgesellptmv_kernel_32_3D<true>(
 //                                    m, n, num_vecs, blocksize, alignment, alpha,
 //                                    dval, dcolind, drowptr, dx, beta, dy,
-//                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+//                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
 //                            });
 //                    });
 //            else
@@ -1204,7 +1204,7 @@ magma_zmgesellpmv(
 //                                zmgesellptmv_kernel_32_3D<false>(
 //                                    m, n, num_vecs, blocksize, alignment, alpha,
 //                                    dval, dcolind, drowptr, dx, beta, dy,
-//                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+//                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
 //                            });
 //                    });
 //        }

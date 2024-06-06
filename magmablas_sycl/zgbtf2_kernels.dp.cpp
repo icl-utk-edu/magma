@@ -481,7 +481,7 @@ magma_zgbtf2_native_work(magma_int_t m, magma_int_t n, magma_int_t kl,
                                              ku, dA, ldda, ipiv,
                                              ju, gbstep, dinfo,
                                              item_ct1, atm_sync_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             }).wait();
 	}  
@@ -861,7 +861,7 @@ magma_zgbtf2_native_v2_work(magma_int_t m, magma_int_t n, magma_int_t kl,
                             m, n, nb, NB, kl, ku,
                             dA, ldda, ipiv, ju, gbstep,
                             dinfo, item_ct1, atm_sync_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             })
             .wait();

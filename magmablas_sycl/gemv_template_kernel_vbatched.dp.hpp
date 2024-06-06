@@ -60,14 +60,13 @@ void gemvn_template_vbatched(
             ->submit([&](sycl::handler &cgh) {
                 sycl::local_accessor<T, 1>
                     sdata_acc_ct1(sycl::range<1>(DIM_X * DIM_Y), cgh);
-
                 cgh.parallel_for(
                     sycl::nd_range<3>(grid * threads, threads),
                     [=](sycl::nd_item<3> item_ct1) {
                         gemvn_kernel_vbatched<T, DIM_X, DIM_Y, TILE_SIZE>(
                             m + i, n + i, alpha, dA_array + i, ldda + i,
                             dx_array + i, incx + i, beta, dy_array + i,
-                            incy + i, item_ct1, sdata_acc_ct1.get_pointer());
+                            incy + i, item_ct1, sdata_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -127,7 +126,7 @@ void gemvc_template_vbatched(
                                 m + i, n + i, alpha, dA_array + i, ldda + i,
                                 dx_array + i, incx + i, beta, dy_array + i,
                                 incy + i, item_ct1,
-                                sdata_acc_ct1.get_pointer());
+                                sdata_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -145,7 +144,7 @@ void gemvc_template_vbatched(
                                 m + i, n + i, alpha, dA_array + i, ldda + i,
                                 dx_array + i, incx + i, beta, dy_array + i,
                                 incy + i, item_ct1,
-                                sdata_acc_ct1.get_pointer());
+                                sdata_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }

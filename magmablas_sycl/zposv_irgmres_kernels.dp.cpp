@@ -200,8 +200,8 @@ magmablas_zscal_shift_hpd(
                          [=](sycl::nd_item<3> item_ct1) {
                              zscal_shift_hpd_kernel<DIMX, DIMY>(
                                  uplo, n, dA, ldda, dD, incd, miu, cn, eps,
-                                 item_ct1, sD_row_acc_ct1.get_pointer(),
-                                 sD_col_acc_ct1.get_pointer());
+                                 item_ct1, sD_row_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                 sD_col_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
