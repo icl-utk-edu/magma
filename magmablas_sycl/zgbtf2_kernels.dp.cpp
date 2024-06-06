@@ -462,8 +462,8 @@ magma_zgbtf2_native_work(magma_int_t m, magma_int_t n, magma_int_t kl,
         magma_int_t nblocks = min(ib+kv+1, n-gbstep);
         sycl::range<3> grid(1, 1, nblocks);
         dpct::global_memory<unsigned int, 0> d_sync_ct1(0);
-        unsigned *sync_ct1 = d_sync_ct1.get_ptr(dpct::get_default_queue());
-        dpct::get_default_queue().memset(sync_ct1, 0, sizeof(int)).wait();
+        unsigned *sync_ct1 = d_sync_ct1.get_ptr(*queue->sycl_stream());
+        queue->sycl_stream()->memset(sync_ct1, 0, sizeof(int)).wait();
         try {
   	  ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
@@ -841,8 +841,8 @@ magma_zgbtf2_native_v2_work(magma_int_t m, magma_int_t n, magma_int_t kl,
         sycl::range<3> grid(1, 1, nblocks);
 
         dpct::global_memory<unsigned int, 0> d_sync_ct1(0);
-        unsigned *sync_ct1 = d_sync_ct1.get_ptr(dpct::get_default_queue());
-        dpct::get_default_queue().memset(sync_ct1, 0, sizeof(int)).wait();
+        unsigned *sync_ct1 = d_sync_ct1.get_ptr(*queue->sycl_stream());
+        queue->sycl_stream()->memset(sync_ct1, 0, sizeof(int)).wait();
         try { 
 	  ((sycl::queue *)(queue->sycl_stream()))
             ->submit([&](sycl::handler &cgh) {
