@@ -152,7 +152,7 @@ magma_zmgeellmv(
                              zmgeellmv_kernel(m, n, num_vecs, nnz_per_row,
                                               alpha, dval, dcolind, dx, beta,
                                               dy, item_ct1,
-                                              dpct_local_acc_ct1.get_pointer());
+                                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 

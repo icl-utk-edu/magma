@@ -224,8 +224,8 @@ magma_zsampleselect_approx(
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_sampleselect::build_searchtree(
                                  gputmp, gputree, total_size, item_ct1,
-                                 sample_buffer_acc_ct1.get_pointer(),
-                                 leaves_acc_ct1.get_pointer());
+                                 sample_buffer_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                 leaves_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
@@ -241,8 +241,8 @@ magma_zsampleselect_approx(
             [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]] {
                 magma_sampleselect::count_buckets(
                     gputmp, gputree, gpulocalcounts, total_size, local_work,
-                    item_ct1, local_tree_acc_ct1.get_pointer(),
-                    local_counts_acc_ct1.get_pointer());
+                    item_ct1, local_tree_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                    local_counts_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
@@ -268,7 +268,7 @@ magma_zsampleselect_approx(
             [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]] {
                 magma_sampleselect::sampleselect_findbucket(
                     gpucounts, subset_size, gpubucketidx, gpurankout, item_ct1,
-                    sums_acc_ct1.get_pointer());
+                    sums_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
     magma_getvector(1, sizeof(uint32_t), gpubucketidx, 1, &bucketidx, 1, queue);

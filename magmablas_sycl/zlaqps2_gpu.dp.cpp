@@ -223,7 +223,7 @@ magma_zlaqps2_gpu(
                         [=](sycl::nd_item<3> item_ct1) {
                             magma_zgemv_kernel3(
                                 m - rk, dA(rk, 0), ldda, dA(rk, k), dauxv,
-                                dtau + k, item_ct1, sum_acc_ct1.get_pointer());
+                                dtau + k, item_ct1, sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
 

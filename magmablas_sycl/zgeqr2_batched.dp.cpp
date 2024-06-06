@@ -454,11 +454,11 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
                                          zgeqr2_sm_kernel_batched(
                                              m, k, dA_array + i, Ai, Aj, ldda,
                                              dtau_array + i, taui, item_ct1,
-                                             dpct_local_acc_ct1.get_pointer(),
-                                             scale_acc_ct1.get_pointer(),
-                                             sum_acc_ct1.get_pointer(),
-                                             swork_acc_ct1.get_pointer(),
-                                             sscale_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             scale_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             swork_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             sscale_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
         }
@@ -489,11 +489,11 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
                                          zgeqr2_column_sm_kernel_batched(
                                              m, k, dA_array + i, Ai, Aj, ldda,
                                              dtau_array + i, taui, item_ct1,
-                                             dpct_local_acc_ct1.get_pointer(),
-                                             scale_acc_ct1.get_pointer(),
-                                             sum_acc_ct1.get_pointer(),
-                                             swork_acc_ct1.get_pointer(),
-                                             sscale_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             scale_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             swork_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             sscale_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
         }
@@ -515,10 +515,10 @@ magma_zgeqr2_batched(magma_int_t m, magma_int_t n,
                                          zgeqr2_kernel_batched(
                                              m, k, dA_array + i, Ai, Aj, ldda,
                                              dtau_array + i, taui, item_ct1,
-                                             scale_acc_ct1.get_pointer(),
-                                             sum_acc_ct1.get_pointer(),
-                                             swork_acc_ct1.get_pointer(),
-                                             sscale_acc_ct1.get_pointer());
+                                             scale_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             swork_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             sscale_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
         }

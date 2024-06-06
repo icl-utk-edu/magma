@@ -58,12 +58,12 @@ void trmv_template(
         sycl::local_accessor<T, 1>
             sX_acc_ct1(sycl::range<1>(NB), cgh);
 
-        cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
+  	cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
                              trmv_small_template_kernel<T, NB, CONJA>(
                                  uplo, transA, diag, n, dA, ldda, dX, incx,
-                                 item_ct1, sA_acc_ct1.get_pointer(),
-                                 sX_acc_ct1.get_pointer());
+                                 item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				 sX_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }

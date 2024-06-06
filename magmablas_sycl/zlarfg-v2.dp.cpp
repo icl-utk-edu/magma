@@ -156,7 +156,7 @@ magma_zlarfg_gpu(
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_zlarfg_gpu_kernel(
                                  n, dx0, dx, dtau, dxnorm, dAkk, item_ct1,
-                                 scale_acc_ct1.get_pointer());
+                                 scale_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }

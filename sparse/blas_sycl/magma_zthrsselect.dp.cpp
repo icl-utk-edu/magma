@@ -301,7 +301,7 @@ magma_zthrsholdselect(
         ](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]] {
                 zthreshselect_kernel(sampling, total_size, subset_size,
                                      float_val, thrs_ct4, thrs1, dummy,
-                                     item_ct1, sval_acc_ct1.get_pointer());
+                                     item_ct1, sval_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
     // second kernel identifies the largest of these thresholds
