@@ -235,24 +235,15 @@ magma_izamax_native(
     }
     else {
         int ptr_mode;
-        /*
-        DPCT1026:586: The call to cublasGetPointerMode was removed because the
-        function call is redundant in DPC++.
-        */
-        /*
-        DPCT1026:587: The call to cublasSetPointerMode was removed because the
-        function call is redundant in DPC++.
-        */
-
         int64_t *res_temp_ptr_ct1 =
-            sycl::malloc_shared<int64_t>(1, dpct::get_default_queue());
+            sycl::malloc_shared<int64_t>(1, *queue->sycl_stream());
         oneapi::mkl::blas::column_major::iamax(*queue->syclblas_handle(), length,
                                                (std::complex<double> *)x, 1,
                                                res_temp_ptr_ct1)
             .wait();
         int res_temp_host_ct2 = (int)*res_temp_ptr_ct1;
         dpct::dpct_memcpy((int *)(ipiv), &res_temp_host_ct2, sizeof(int));
-        sycl::free(res_temp_ptr_ct1, dpct::get_default_queue());
+        sycl::free(res_temp_ptr_ct1, *queue->sycl_stream());
         ((sycl::queue *)(queue->sycl_stream()))
             ->parallel_for(sycl::nd_range<3>(sycl::range<3>(1, 1, 1),
                                              sycl::range<3>(1, 1, 1)),
@@ -1452,7 +1443,8 @@ template <int N>
 static magma_int_t magma_zgetf2_fused_kernel_driver_batched(
     magma_int_t m, magmaDoubleComplex **dA_array, magma_int_t ai,
     magma_int_t aj, magma_int_t ldda, magma_int_t **dipiv_array,
-    magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue) try {
+    magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue)
+{
     magma_int_t arginfo = 0;
     magma_device_t device;
     magma_getdevice( &device );
@@ -1481,36 +1473,22 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_batched(
         return arginfo;
     }
 
-//    void *kernel_args[] = {&m, &dA_array, &ai, &aj, &ldda, &dipiv_array, &info_array, &batchCount};
-    ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
-       sycl::local_accessor<uint8_t, 1>
-                       dpct_local_acc_ct1(sycl::range<1>(shmem), cgh); // NNB: I added this manually, dpct didn't finish --
-				                                      // check if size is correct
+    try {
+      ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
+         sycl::local_accessor<uint8_t, 1>
+                         dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+
       cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                        zgetf2_fused_kernel_batched<N>(m, dA_array, ai, aj, ldda, dipiv_array, info_array,
                             batchCount, item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                        });
 	});
-    /*
-    DPCT1000:633: Error handling if-stmt was detected but could not be
-    rewritten.
-    */
-    // TODO
-//    if (e != 0) {
-        //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
-        /*
-        DPCT1001:632: The statement could not be removed.
-        */
-//        arginfo = -100;
-//    }
+    } catch (sycl::exception const &exc) {
+      arginfo = -100;
+    }
 
     return arginfo;
-}
-catch (sycl::exception const &exc) {
-  std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-            << ", line:" << __LINE__ << std::endl;
-  std::exit(1);
 }
 
 /***************************************************************************//**

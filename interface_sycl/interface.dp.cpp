@@ -680,11 +680,10 @@ extern "C" size_t magma_getdevice_shmem_multiprocessor()
     @ingroup magma_queue
 *******************************************************************************/
 extern "C" size_t magma_mem_size(magma_queue_t queue) try {
-    size_t freeMem, totalMem;
+    size_t freeMem;
     magma_device_t orig_dev;
     magma_getdevice( &orig_dev );
     magma_setdevice( magma_queue_get_device( queue ));
-    totalMem = dpct::get_current_device().get_device_info().get_global_mem_size();
     freeMem = dpct::get_current_device()
                 .get_info<sycl::ext::intel::info::device::free_memory>();
     magma_setdevice( orig_dev );

@@ -211,8 +211,6 @@ magmablas_zlat2c(
     magma_queue_t queue,
     magma_int_t *info )
 {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
-    sycl::queue &q_ct1 = dev_ct1.default_queue();
     *info = 0;
     if ( uplo != MagmaLower && uplo != MagmaUpper )
         *info = -1;
@@ -237,7 +235,7 @@ magmablas_zlat2c(
 
     sycl::range<3> threads(1, 1, BLK_X);
     sycl::range<3> grid(1, magma_ceildiv(n, BLK_Y), magma_ceildiv(n, BLK_X));
-    q_ct1.memcpy(magma_zlat2c_flag.get_ptr(), info, sizeof(magma_zlat2c_flag))
+    queue->sycl_stream()->memcpy(magma_zlat2c_flag.get_ptr(), info, sizeof(magma_zlat2c_flag))
         .wait(); // magma_zlat2c_flag = 0
 
     if (uplo == MagmaLower) {
@@ -273,6 +271,6 @@ magmablas_zlat2c(
             });
     }
 
-    q_ct1.memcpy(info, magma_zlat2c_flag.get_ptr(), sizeof(magma_zlat2c_flag))
+    queue->sycl_stream()->memcpy(info, magma_zlat2c_flag.get_ptr(), sizeof(magma_zlat2c_flag))
         .wait(); // info = magma_zlat2c_flag
 }
