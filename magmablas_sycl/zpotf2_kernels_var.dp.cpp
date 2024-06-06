@@ -142,7 +142,7 @@ magma_zpotrf_lpout_vbatched(
                             zpotf2_smlpout_kernel_vbatched_v2(
                                 max_n, n + i, dA_array + i, lda + i, j, gbstep,
                                 info_array + i, item_ct1,
-                                dpct_local_acc_ct1.get_pointer());
+                                dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }

@@ -191,8 +191,8 @@ void trmm_template_vbatched_lNx(
                         trmm_template_vbatched_lNx_kernel<T, NB>(
                             uplo, diag, m + i, n + i, alpha, dA_array + i, Ai,
                             Aj, ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                            max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                            sB_acc_ct1.get_pointer());
+                            max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+			    sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -233,8 +233,8 @@ void trmm_template_vbatched_lTx(
                         trmm_template_vbatched_lTx_kernel<T, NB, CONJA>(
                             uplo, diag, m + i, n + i, alpha, dA_array + i, Ai,
                             Aj, ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                            max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                            sB_acc_ct1.get_pointer());
+                            max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+			    sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -275,8 +275,8 @@ void trmm_template_vbatched_rNx(
                         trmm_template_vbatched_rNx_kernel<T, NB>(
                             uplo, diag, m + i, n + i, alpha, dA_array + i, Ai,
                             Aj, ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                            max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                            sB_acc_ct1.get_pointer());
+                            max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+			    sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -317,8 +317,8 @@ void trmm_template_vbatched_rTx(
                         trmm_template_vbatched_rTx_kernel<T, NB, CONJA>(
                             uplo, diag, m + i, n + i, alpha, dA_array + i, Ai,
                             Aj, ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                            max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                            sB_acc_ct1.get_pointer());
+                            max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+			    sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

@@ -325,7 +325,7 @@ magmablas_zlange(
                                  [=](sycl::nd_item<3> item_ct1) {
                                      magma_max_nan_kernel(
                                          m, dwork, item_ct1,
-                                         (double *)smax_acc_ct1.get_pointer());
+                                         (double *)smax_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     }
@@ -347,7 +347,7 @@ magmablas_zlange(
                                  [=](sycl::nd_item<3> item_ct1) {
                                      magma_max_nan_kernel(
                                          m, dwork, item_ct1,
-                                         (double *)smax_acc_ct1.get_pointer());
+                                         (double *)smax_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     }
@@ -362,7 +362,7 @@ magmablas_zlange(
                                  [=](sycl::nd_item<3> item_ct1) {
                                      zlange_one_kernel(
                                          m, n, dA, ldda, dwork, item_ct1,
-                                         ssum_acc_ct1.get_pointer());
+                                         ssum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
         ((sycl::queue *)(queue->sycl_stream()))
@@ -375,7 +375,7 @@ magmablas_zlange(
                                  [=](sycl::nd_item<3> item_ct1) {
                                      magma_max_nan_kernel(
                                          n, dwork, item_ct1,
-                                         (double *)smax_acc_ct1.get_pointer());
+                                         (double *)smax_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             }); // note n instead of m
     }
@@ -390,7 +390,7 @@ magmablas_zlange(
                                  [=](sycl::nd_item<3> item_ct1) {
                                      zlange_fro_kernel(
                                          m, n, dA, ldda, dwork, item_ct1,
-                                         ssum_acc_ct1.get_pointer());
+                                         ssum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
         ((sycl::queue *)(queue->sycl_stream()))
@@ -403,7 +403,7 @@ magmablas_zlange(
                                  [=](sycl::nd_item<3> item_ct1) {
                                      magma_sum_reduce_kernel(
                                          n, dwork, item_ct1,
-                                         (double *)sum_acc_ct1.get_pointer());
+                                         (double *)sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             }); // note n instead of m
     }

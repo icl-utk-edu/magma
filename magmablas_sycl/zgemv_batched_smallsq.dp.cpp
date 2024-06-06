@@ -224,7 +224,7 @@ static int zgemv_batched_smallsq_kernel_driver(
                             alpha, dA_array, dA, ldda, strideA, 
                               dx_array, dx, incx, stridex,
                             beta,  dy_array, dy, incy, stridey, batchCount,
-                            item_ct1, dpct_local_acc_ct1.get_pointer());
+                            item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                           });
 	   });
        } catch (sycl::exception const &exc) {
@@ -243,7 +243,7 @@ static int zgemv_batched_smallsq_kernel_driver(
                            alpha, dA_array, dA, ldda, strideA, 
                               dx_array, dx, incx, stridex,
                             beta,  dy_array, dy, incy, stridey, batchCount,
-                            item_ct1, dpct_local_acc_ct1.get_pointer());
+                            item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
 	  });
        } catch (sycl::exception const &exc) {

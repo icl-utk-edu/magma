@@ -161,7 +161,7 @@ magma_zgeqr2x4_gpu(
                                     magma_zgemv_kernel3(
                                         m - i + 1, dA(i - 1, 0), ldda,
                                         dA(i - 1, i - 1), dwork2, dtau + i - 1,
-                                        item_ct1, sum_acc_ct1.get_pointer());
+                                        item_ct1, sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                     ((sycl::queue *)(queue->sycl_stream()))
@@ -178,7 +178,7 @@ magma_zgeqr2x4_gpu(
                                     magma_ztrmv_kernel2(
                                         dT(0, 0), k, dwork2, dT(0, i - 1),
                                         dtau + i - 1, item_ct1,
-                                        sum_acc_ct1.get_pointer());
+                                        sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -198,7 +198,7 @@ magma_zgeqr2x4_gpu(
                             [=](sycl::nd_item<3> item_ct1) {
                                 magma_zgemv_kernel1(m - b, dA(b, b), ldda,
                                                     dA(b, i), dwork2, item_ct1,
-                                                    sum_acc_ct1.get_pointer());
+                                                    sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
 
@@ -215,7 +215,7 @@ magma_zgeqr2x4_gpu(
                             [=](sycl::nd_item<3> item_ct1) {
                                 magma_ztrmv_tkernel(dT(b, b), k, dwork2,
                                                     dwork2 + i - b, item_ct1,
-                                                    sum_acc_ct1.get_pointer());
+                                                    sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
 
@@ -249,7 +249,7 @@ magma_zgeqr2x4_gpu(
                             [=](sycl::nd_item<3> item_ct1) {
                                 magma_dznrm2_adjust_kernel(
                                     dnorm + i, dA(0, i), item_ct1,
-                                    sum_acc_ct1.get_pointer());
+                                    sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
             }
@@ -287,7 +287,7 @@ magma_zgeqr2x4_gpu(
                             magma_zgemv_kernel3(m - i + 1, dA(i - 1, 0), ldda,
                                                 dA(i - 1, i - 1), dwork2,
                                                 dtau + i - 1, item_ct1,
-                                                sum_acc_ct1.get_pointer());
+                                                sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
             ((sycl::queue *)(queue->sycl_stream()))
@@ -302,7 +302,7 @@ magma_zgeqr2x4_gpu(
                         [=](sycl::nd_item<3> item_ct1) {
                             magma_ztrmv_kernel2(
                                 dT(0, 0), k, dwork2, dT(0, i - 1), dtau + i - 1,
-                                item_ct1, sum_acc_ct1.get_pointer());
+                                item_ct1, sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }

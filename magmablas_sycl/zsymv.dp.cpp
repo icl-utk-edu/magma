@@ -780,8 +780,8 @@ magmablas_zsymv_work(
                     sycl::nd_range<3>(grid * threads, threads),
                     [=](sycl::nd_item<3> item_ct1) {
                         zsymv_kernel_U(n, dA, ldda, dx, incx, dwork, item_ct1,
-                                       sA_acc_ct1, sx_blk_acc_ct1.get_pointer(),
-                                       sx_jj_acc_ct1.get_pointer());
+                                       sA_acc_ct1, sx_blk_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                       sx_jj_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
 
@@ -808,8 +808,8 @@ magmablas_zsymv_work(
                     sycl::nd_range<3>(grid * threads, threads),
                     [=](sycl::nd_item<3> item_ct1) {
                         zsymv_kernel_L(n, dA, ldda, dx, incx, dwork, item_ct1,
-                                       sA_acc_ct1, sx_blk_acc_ct1.get_pointer(),
-                                       sx_jj_acc_ct1.get_pointer());
+                                       sA_acc_ct1, sx_blk_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                       sx_jj_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
 

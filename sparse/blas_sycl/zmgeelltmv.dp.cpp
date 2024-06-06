@@ -161,7 +161,7 @@ magma_zmgeelltmv(
                         zmgeelltmv_kernel<true>(
                             m, n, num_vecs, nnz_per_row, alpha, dval, dcolind,
                             dx, beta, dy, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     } else {
@@ -177,7 +177,7 @@ magma_zmgeelltmv(
                         zmgeelltmv_kernel<false>(
                             m, n, num_vecs, nnz_per_row, alpha, dval, dcolind,
                             dx, beta, dy, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

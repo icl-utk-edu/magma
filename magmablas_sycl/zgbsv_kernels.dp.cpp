@@ -287,7 +287,7 @@ magma_int_t magma_zgbsv_batched_fused_sm_kernel_driver(
                         zgbsv_batched_kernel_fused_sm<MAX_THREADS>(
 			   n, kl, ku, nrhs, dA_array, ldda, ipiv_array, dB_array, lddb, 
 			   info_array, batchCount, item_ct1,
-			   dpct_local_acc_ct1.get_pointer());
+			   dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             }).wait();
       }  

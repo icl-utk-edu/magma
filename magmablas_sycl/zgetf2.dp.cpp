@@ -261,7 +261,7 @@ void magma_zscal_zgeru(
                          [=](sycl::nd_item<3> item_ct1) {
                              kernel_zscal_zgeru(
                                  m, n, dA, ldda, item_ct1,
-                                 dpct_local_acc_ct1.get_pointer());
+                                 dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }

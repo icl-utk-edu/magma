@@ -103,8 +103,8 @@ void trmm_template_lNx(
                          [=](sycl::nd_item<3> item_ct1) {
                              trmm_template_lNx_kernel<T, NB>(
                                  uplo, diag, m, n, alpha, dA, ldda, dB, lddb,
-                                 item_ct1, sA_acc_ct1.get_pointer(),
-                                 sB_acc_ct1.get_pointer());
+                                 item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				 sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -137,8 +137,8 @@ void trmm_template_lTx(
                          [=](sycl::nd_item<3> item_ct1) {
                              trmm_template_lTx_kernel<T, NB, CONJA>(
                                  uplo, diag, m, n, alpha, dA, ldda, dB, lddb,
-                                 item_ct1, sA_acc_ct1.get_pointer(),
-                                 sB_acc_ct1.get_pointer());
+                                 item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				 sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -171,8 +171,8 @@ void trmm_template_rNx(
                          [=](sycl::nd_item<3> item_ct1) {
                              trmm_template_rNx_kernel<T, NB>(
                                  uplo, diag, m, n, alpha, dA, ldda, dB, lddb,
-                                 item_ct1, sA_acc_ct1.get_pointer(),
-                                 sB_acc_ct1.get_pointer());
+                                 item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				 sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -205,8 +205,8 @@ void trmm_template_rTx(
                          [=](sycl::nd_item<3> item_ct1) {
                              trmm_template_rTx_kernel<T, NB, CONJA>(
                                  uplo, diag, m, n, alpha, dA, ldda, dB, lddb,
-                                 item_ct1, sA_acc_ct1.get_pointer(),
-                                 sB_acc_ct1.get_pointer());
+                                 item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				 sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }

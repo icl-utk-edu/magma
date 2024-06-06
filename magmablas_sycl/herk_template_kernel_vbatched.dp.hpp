@@ -138,7 +138,7 @@ void herk_template_vbatched_nt(
                             uplo, n + i, k + i, alpha, dA_array + i, ldda + i,
                             dB_array + i, lddb + i, beta, dC_array + i,
                             lddc + i, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -182,7 +182,7 @@ void herk_template_vbatched_tn(
                             uplo, n + i, k + i, alpha, dA_array + i, ldda + i,
                             dB_array + i, lddb + i, beta, dC_array + i,
                             lddc + i, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

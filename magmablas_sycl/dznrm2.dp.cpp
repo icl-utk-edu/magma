@@ -105,7 +105,7 @@ magmablas_dznrm2_check(
                          [=](sycl::nd_item<3> item_ct1) {
                              magmablas_dznrm2_check_kernel(
                                  m, dA, ldda, dxnorm, dlsticc, item_ct1,
-                                 sum_acc_ct1.get_pointer());
+                                 sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -230,7 +230,7 @@ magmablas_dznrm2_adjust(
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_dznrm2_adjust_kernel(
                                  dxnorm, dc, item_ct1,
-                                 sum_acc_ct1.get_pointer());
+                                 sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -322,7 +322,7 @@ magmablas_dznrm2_cols(
                          [=](sycl::nd_item<3> item_ct1) {
                              magmablas_dznrm2_kernel(m, dA, ldda, dxnorm,
                                                      item_ct1,
-                                                     sum_acc_ct1.get_pointer());
+                                                     sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 

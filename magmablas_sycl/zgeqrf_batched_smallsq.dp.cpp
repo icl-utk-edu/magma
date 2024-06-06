@@ -247,7 +247,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -278,7 +278,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -309,7 +309,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -340,7 +340,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -371,7 +371,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -402,7 +402,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -433,7 +433,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -464,7 +464,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -495,7 +495,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -526,7 +526,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -557,7 +557,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -588,7 +588,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -619,7 +619,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -650,7 +650,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -681,7 +681,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -712,7 +712,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -743,7 +743,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -774,7 +774,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -805,7 +805,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -836,7 +836,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -867,7 +867,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -898,7 +898,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -929,7 +929,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -960,7 +960,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -991,7 +991,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -1022,7 +1022,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -1053,7 +1053,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -1084,7 +1084,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -1115,7 +1115,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -1146,7 +1146,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -1177,7 +1177,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;
@@ -1208,7 +1208,7 @@ magma_zgeqrf_batched_smallsq(magma_int_t n, magmaDoubleComplex **dA_array,
                                              ldda_ct3, dtau_array_ct4, taui_ct5,
                                              info_array_ct6, batchCount_ct7,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
             break;

@@ -235,7 +235,7 @@ setup_pivinfo( magma_int_t *pivinfo, magma_int_t *ipiv,
                                       sycl::range<3>(1, 1, min_m_MAX_NTHREADS)),
                     [=](sycl::nd_item<3> item_ct1) {
                         setup_pivinfo_sm_kernel(pivinfo, ipiv, m, nb, item_ct1,
-                                                spivinfo_acc_ct1.get_pointer());
+                                                spivinfo_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

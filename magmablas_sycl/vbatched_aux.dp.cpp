@@ -100,7 +100,7 @@ void magma_getrf_vbatched_setup(
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_getrf_vbatched_setup_kernel(
                                  m, n, stats, batchCount, item_ct1,
-                                 dpct_local_acc_ct1.get_pointer());
+                                 dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -179,7 +179,7 @@ magma_int_t magma_ivec_max( magma_int_t vecsize,
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_ivec_max_kernel(vecsize, x, work, 0,
                                                    item_ct1,
-                                                   swork_acc_ct1.get_pointer());
+                                                   swork_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
     magma_int_t new_vecsize = grid[2];
@@ -198,7 +198,7 @@ magma_int_t magma_ivec_max( magma_int_t vecsize,
                                      magma_ivec_max_kernel(
                                          new_vecsize, work, (magma_int_t *)NULL,
                                          1, item_ct1,
-                                         swork_acc_ct1.get_pointer());
+                                         swork_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
         new_vecsize = grid[2];
@@ -285,7 +285,7 @@ magma_int_t magma_isum_reduce( magma_int_t vecsize,
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_isum_reduce_kernel(
                                  vecsize, x, work, 0, item_ct1,
-                                 swork_acc_ct1.get_pointer());
+                                 swork_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
     magma_int_t new_vecsize = grid[2];
@@ -304,7 +304,7 @@ magma_int_t magma_isum_reduce( magma_int_t vecsize,
                                      magma_isum_reduce_kernel(
                                          new_vecsize, work, (magma_int_t *)NULL,
                                          1, item_ct1,
-                                         swork_acc_ct1.get_pointer());
+                                         swork_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
         new_vecsize = grid[2];
@@ -819,7 +819,7 @@ void magma_imax_size_1(magma_int_t *n, magma_int_t l, magma_queue_t queue)
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_imax_size_kernel_1(
-                                 n, l, item_ct1, swork_acc_ct1.get_pointer());
+                                 n, l, item_ct1, swork_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -879,7 +879,7 @@ void magma_imax_size_2(magma_int_t *m, magma_int_t *n, magma_int_t l, magma_queu
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_imax_size_kernel_2(
                                  m, n, l, item_ct1,
-                                 swork_acc_ct1.get_pointer());
+                                 swork_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -940,7 +940,7 @@ void magma_imax_size_3(magma_int_t *m, magma_int_t *n, magma_int_t *k, magma_int
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_imax_size_kernel_3(
                                  m, n, k, l, item_ct1,
-                                 swork_acc_ct1.get_pointer());
+                                 swork_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }

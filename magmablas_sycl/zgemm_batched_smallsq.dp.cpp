@@ -188,7 +188,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -204,7 +204,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -220,7 +220,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -236,7 +236,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -252,7 +252,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -268,7 +268,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -284,7 +284,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -300,7 +300,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -316,7 +316,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -332,7 +332,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -348,7 +348,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -364,7 +364,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -380,7 +380,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -396,7 +396,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -412,7 +412,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -428,7 +428,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -444,7 +444,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -460,7 +460,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -476,7 +476,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -492,7 +492,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -508,7 +508,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -524,7 +524,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -540,7 +540,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -556,7 +556,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -572,7 +572,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -588,7 +588,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -604,7 +604,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -620,7 +620,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -636,7 +636,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -652,7 +652,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -668,7 +668,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -684,7 +684,7 @@ magmablas_zgemm_batched_smallsq(
                                          aj, ldda, dB_array, bi, bj, lddb, beta,
                                          dC_array, ci, cj, lddc, batchCount,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;

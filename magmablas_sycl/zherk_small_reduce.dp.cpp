@@ -351,7 +351,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<1>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -370,7 +370,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<2>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -389,7 +389,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<3>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -408,7 +408,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<4>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -427,7 +427,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<5>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -446,7 +446,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<6>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -465,7 +465,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<7>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -484,7 +484,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<8>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -503,7 +503,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<9>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -522,7 +522,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<10>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -541,7 +541,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<11>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -560,7 +560,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<12>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -579,7 +579,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<13>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -598,7 +598,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<14>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -617,7 +617,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<15>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -636,7 +636,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<16>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -655,7 +655,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<17>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -674,7 +674,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<18>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -693,7 +693,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<19>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -712,7 +712,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<20>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -731,7 +731,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<21>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -750,7 +750,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<22>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -769,7 +769,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<23>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -788,7 +788,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<24>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -807,7 +807,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<25>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -826,7 +826,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<26>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -845,7 +845,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<27>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -864,7 +864,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<28>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -883,7 +883,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<29>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -902,7 +902,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<30>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -921,7 +921,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<31>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;
@@ -940,7 +940,7 @@ magmablas_zherk_small_reduce(
                                      zherk_small_reduce_kernel<32>(
                                          uplo, trans, k, z_alpha, dA, ldda, dC,
                                          lddc, nthread_blocks, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
             break;

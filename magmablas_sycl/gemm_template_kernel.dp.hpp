@@ -160,7 +160,7 @@ void gemm_template_nn(
                                         DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA,
                                         CONJB>(
                     m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta,
-                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 }
@@ -195,7 +195,7 @@ void gemm_template_nt(
                                         DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA,
                                         CONJB>(
                     m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta,
-                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 }
@@ -230,7 +230,7 @@ void gemm_template_tn(
                                         DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA,
                                         CONJB>(
                     m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta,
-                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 }
@@ -265,7 +265,7 @@ void gemm_template_tt(
                                         DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA,
                                         CONJB>(
                     m, n, k, dA, ldda, dB, lddb, dC, lddc, alpha, beta,
-                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 }

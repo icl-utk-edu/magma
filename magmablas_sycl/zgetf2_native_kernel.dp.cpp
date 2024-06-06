@@ -398,11 +398,11 @@ zgetf2_native_kernel_driver(
                                      zgetf2_native_kernel<ntx, 1>(
                                          m, n, dA, ldda, ipiv, gbstep,
                                          update_flag, info, item_ct1,
-                                         sx_acc_ct1.get_pointer(),
-                                         sabs_acc_ct1.get_pointer(),
-                                         smax_id_acc_ct1.get_pointer(),
-                                         sreg_acc_ct1.get_pointer(),
-                                         spadding_acc_ct1.get_pointer());
+                                         sx_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                         sabs_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                         smax_id_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                         sreg_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                         spadding_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     } catch (sycl::exception const &exc) {
