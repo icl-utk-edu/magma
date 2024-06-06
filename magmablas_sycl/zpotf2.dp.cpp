@@ -388,7 +388,7 @@ void zpotf2_zdotc(
                          [=](sycl::nd_item<3> item_ct1) {
                              zpotf2_zdotc_kernel(n, x, incx, threadSize, 
 					         step, device_info, item_ct1,
-                                                 dpct_local_acc_ct1.get_pointer());
+                                                 dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -434,7 +434,7 @@ void zpotf2_zdscal(
                          [=](sycl::nd_item<3> item_ct1) {
                              zpotf2_zdscal_kernel(n, x, incx, device_info,
 					          item_ct1,
-                                                  factor_acc_ct1.get_pointer());
+                                                  factor_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }

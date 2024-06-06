@@ -146,7 +146,7 @@ magmablas_ztrtri_diag_batched(
                         [=](sycl::nd_item<3> item_ct1) {
                             ztrtri_diag_lower_kernel_batched(
                                 diag, n, dA_array + i, ldda, dinvA_array + i,
-                                item_ct1, sB_acc_ct1.get_pointer());
+                                item_ct1, sB_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
 
@@ -304,7 +304,7 @@ magmablas_ztrtri_diag_batched(
                         [=](sycl::nd_item<3> item_ct1) {
                             ztrtri_diag_upper_kernel_batched(
                                 diag, n, dA_array + i, ldda, dinvA_array + i,
-                                item_ct1, sB_acc_ct1.get_pointer());
+                                item_ct1, sB_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
 

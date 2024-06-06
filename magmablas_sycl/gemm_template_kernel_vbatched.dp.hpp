@@ -287,7 +287,7 @@ void gemm_template_vbatched_nn(
                             m + i, n + i, k + i, dA_array + i, Ai, Aj, ldda + i,
                             dB_array + i, Bi, Bj, lddb + i, dC_array + i, Ci,
                             Cj, lddc + i, alpha, beta, max_m, max_n, max_k,
-                            item_ct1, dpct_local_acc_ct1.get_pointer());
+                            item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -331,7 +331,7 @@ void gemm_template_vbatched_nt(
                             m + i, n + i, k + i, dA_array + i, Ai, Aj, ldda + i,
                             dB_array + i, Bi, Bj, lddb + i, dC_array + i, Ci,
                             Cj, lddc + i, alpha, beta, max_m, max_n, max_k,
-                            item_ct1, dpct_local_acc_ct1.get_pointer());
+                            item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -375,7 +375,7 @@ void gemm_template_vbatched_tn(
                             m + i, n + i, k + i, dA_array + i, Ai, Aj, ldda + i,
                             dB_array + i, Bi, Bj, lddb + i, dC_array + i, Ci,
                             Cj, lddc + i, alpha, beta, max_m, max_n, max_k,
-                            item_ct1, dpct_local_acc_ct1.get_pointer());
+                            item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -420,7 +420,7 @@ void gemm_template_vbatched_tt(
                             m + i, n + i, k + i, dA_array + i, Ai, Aj, ldda + i,
                             dB_array + i, Bi, Bj, lddb + i, dC_array + i, Ci,
                             Cj, lddc + i, alpha, beta, max_m, max_n, max_k,
-                            item_ct1, dpct_local_acc_ct1.get_pointer());
+                            item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

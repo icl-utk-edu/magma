@@ -137,7 +137,7 @@ magma_prefix_sum_internal_w(
                          [=](sycl::nd_item<3> item_ct1) {
                              prefix_sum_kernel(ivec, ovec, length, workspace, 1,
                                                item_ct1,
-                                               sdata_acc_ct1.get_pointer());
+                                               sdata_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 
@@ -161,7 +161,7 @@ magma_prefix_sum_internal_w(
                     [=](sycl::nd_item<3> item_ct1) {
                         prefix_sum_kernel(workspace, workspace, lwork,
                                           (magma_int_t *)NULL, 0, item_ct1,
-                                          sdata_acc_ct1.get_pointer());
+                                          sdata_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
 

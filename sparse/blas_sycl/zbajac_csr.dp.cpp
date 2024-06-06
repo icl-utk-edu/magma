@@ -211,7 +211,7 @@ magma_zbajac_csr(
                             magma_zbajac_csr_ls_kernel(
                                 localiters, D.num_rows, D.dval, D.drow, D.dcol,
                                 R.dval, R.drow, R.dcol, b.dval, x_dval_ct9,
-                                item_ct1, local_x_acc_ct1.get_pointer());
+                                item_ct1, local_x_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
     }

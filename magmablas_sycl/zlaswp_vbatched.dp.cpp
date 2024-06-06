@@ -344,7 +344,7 @@ magma_zlaswp_left_rowparallel_vbatched(
                         zlaswp_left_rowparallel_kernel_vbatched(
                             n, width, M, N, dA_array, Ai, Aj, ldda,
                             pivinfo_array, pivinfo_i, k1, k2, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -397,7 +397,7 @@ magma_zlaswp_right_rowparallel_vbatched(
                         zlaswp_right_rowparallel_kernel_vbatched(
                             n, width, M, N, dA_array, Ai, Aj, ldda,
                             pivinfo_array, pivinfo_i, k1, k2, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

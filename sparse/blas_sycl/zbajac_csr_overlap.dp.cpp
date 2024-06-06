@@ -1216,7 +1216,7 @@ magma_zbajac_csr_overlap(
                                 localiters, size, matrices, overlap, D_dval_ct4,
                                 D_drow_ct5, D_dcol_ct6, R_dval_ct7, R_drow_ct8,
                                 R_dcol_ct9, b.dval, x_dval_ct11, item_ct1,
-                                local_x_acc_ct1.get_pointer());
+                                local_x_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -1254,7 +1254,7 @@ magma_zbajac_csr_overlap(
                                 R_dcol_ct9, D_dval_ct10, D_drow_ct11,
                                 D_dcol_ct12, R_dval_ct13, R_drow_ct14,
                                 R_dcol_ct15, b.dval, x_dval_ct17, item_ct1,
-                                local_x_acc_ct1.get_pointer());
+                                local_x_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -1308,7 +1308,7 @@ magma_zbajac_csr_overlap(
                                 R_dcol_ct21, D_dval_ct22, D_drow_ct23,
                                 D_dcol_ct24, R_dval_ct25, R_drow_ct26,
                                 R_dcol_ct27, b.dval, x_dval_ct29, item_ct1,
-                                local_x_acc_ct1.get_pointer());
+                                local_x_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -1394,7 +1394,7 @@ magma_zbajac_csr_overlap(
                                 R_dcol_ct45, D_dval_ct46, D_drow_ct47,
                                 D_dcol_ct48, R_dval_ct49, R_drow_ct50,
                                 R_dcol_ct51, b.dval, x_dval_ct53, item_ct1,
-                                local_x_acc_ct1.get_pointer());
+                                local_x_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -1544,7 +1544,7 @@ magma_zbajac_csr_overlap(
                                 R_dcol_ct93, D_dval_ct94, D_drow_ct95,
                                 D_dcol_ct96, R_dval_ct97, R_drow_ct98,
                                 R_dcol_ct99, b.dval, x_dval_ct101, item_ct1,
-                                local_x_acc_ct1.get_pointer());
+                                local_x_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -1829,7 +1829,7 @@ magma_zbajac_csr_overlap(
                                 R_dcol_ct189, D_dval_ct190, D_drow_ct191,
                                 D_dcol_ct192, R_dval_ct193, R_drow_ct194,
                                 R_dcol_ct195, b.dval, x_dval_ct197, item_ct1,
-                                local_x_acc_ct1.get_pointer());
+                                local_x_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -2370,7 +2370,7 @@ magma_zbajac_csr_overlap(
                                 R_dcol_ct381, D_dval_ct382, D_drow_ct383,
                                 D_dcol_ct384, R_dval_ct385, R_drow_ct386,
                                 R_dcol_ct387, b.dval, x_dval_ct389, item_ct1,
-                                local_x_acc_ct1.get_pointer());
+                                local_x_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }

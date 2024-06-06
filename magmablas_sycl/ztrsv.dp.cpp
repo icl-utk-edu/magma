@@ -132,7 +132,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaNoTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -150,7 +150,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaNoTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -171,7 +171,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaNoTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -189,7 +189,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaNoTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -214,7 +214,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaNoTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -232,7 +232,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaNoTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -254,7 +254,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaNoTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -272,7 +272,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaNoTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -300,7 +300,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -318,7 +318,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -339,7 +339,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -357,7 +357,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -381,7 +381,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -399,7 +399,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -420,7 +420,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -438,7 +438,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -465,7 +465,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaConjTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -483,7 +483,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaConjTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -504,7 +504,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaUpper,
                                         MagmaConjTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -522,7 +522,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaUpper,
                                         MagmaConjTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -546,7 +546,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaConjTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -564,7 +564,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaConjTrans, MagmaNonUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -585,7 +585,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 0, MagmaLower,
                                         MagmaConjTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }
@@ -603,7 +603,7 @@ magmablas_ztrsv_outofplace(
                                         MagmaBigTileSize, 1, MagmaLower,
                                         MagmaConjTrans, MagmaUnit>(
                                         n, A, lda, b, incb, x, item_ct1,
-                                        dpct_local_acc_ct1.get_pointer());
+                                        dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                 });
                         });
                 }

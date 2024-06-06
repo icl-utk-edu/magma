@@ -89,7 +89,7 @@ magma_izamax_vbatched(
                              izamax_kernel_vbatched(
                                  length, M, N, dA_array, Ai, Aj, ldda,
                                  ipiv_array, ipiv_i, info_array, step, gbstep,
-                                 item_ct1, dpct_local_acc_ct1.get_pointer());
+                                 item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 
@@ -173,7 +173,7 @@ magma_zswap_vbatched(
                              zswap_kernel_vbatched(max_n, M, N, dA_array, Ai,
                                                    Aj, ldda, ipiv_array,
                                                    piv_adjustment, item_ct1,
-                                                   jp_acc_ct1.get_pointer());
+                                                   jp_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 
@@ -465,7 +465,7 @@ extern "C" magma_int_t magma_zgetf2_fused_sm_vbatched(
                                 max_MxN_ct3, M_ct4, N_ct5, dA_array_ct6, Ai_ct7,
                                 Aj_ct8, ldda_ct9, dipiv_array_ct10, ipiv_i_ct11,
                                 info_ct12, gbstep_ct13, batchCount_ct14,
-                                item_ct1, dpct_local_acc_ct1.get_pointer());
+                                item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
     /*
@@ -672,7 +672,7 @@ static magma_int_t magma_zgetf2_fused_kernel_driver_vbatched(
 			    zgetf2_fused_kernel_vbatched<max_N>(
 			        max_M, M, N, dA_array, Ai, Aj, ldda, dipiv_array,
 				ipiv_i, info_array, batchCount,
-                                item_ct1, dpct_local_acc_ct1.get_pointer());
+                                item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
     /*
