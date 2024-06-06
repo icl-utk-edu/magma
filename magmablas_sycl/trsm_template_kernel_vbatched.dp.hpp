@@ -294,14 +294,14 @@ void trsm_template_vbatched_lNx(
                     sycl::local_accessor<T, 1>
                         sB_acc_ct1(sycl::range<1>((NB + 1) * NRHS), cgh);
 
-                    cgh.parallel_for(
+		    cgh.parallel_for(
                         sycl::nd_range<3>(grid * threads, threads),
                         [=](sycl::nd_item<3> item_ct1) {
                             trsm_template_vbatched_lNL_kernel<T, NB, NRHS>(
                                 diag, m + i, n + i, alpha, dA_array + i, Ai, Aj,
                                 ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                                max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                                sB_acc_ct1.get_pointer());
+                                max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -323,8 +323,8 @@ void trsm_template_vbatched_lNx(
                             trsm_template_vbatched_lNU_kernel<T, NB, NRHS>(
                                 diag, m + i, n + i, alpha, dA_array + i, Ai, Aj,
                                 ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                                max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                                sB_acc_ct1.get_pointer());
+                                max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -364,8 +364,8 @@ void trsm_template_vbatched_lTx(
                                                               CONJA>(
                                 diag, m + i, n + i, alpha, dA_array + i, Ai, Aj,
                                 ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                                max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                                sB_acc_ct1.get_pointer());
+                                max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -388,8 +388,8 @@ void trsm_template_vbatched_lTx(
                                                               CONJA>(
                                 diag, m + i, n + i, alpha, dA_array + i, Ai, Aj,
                                 ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                                max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                                sB_acc_ct1.get_pointer());
+                                max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -430,8 +430,8 @@ void trsm_template_vbatched_rNx(
                             trsm_template_vbatched_rNL_kernel<T, NB, NRHS>(
                                 diag, m + i, n + i, alpha, dA_array + i, Ai, Aj,
                                 ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                                max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                                sB_acc_ct1.get_pointer());
+                                max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -453,8 +453,8 @@ void trsm_template_vbatched_rNx(
                             trsm_template_vbatched_rNU_kernel<T, NB, NRHS>(
                                 diag, m + i, n + i, alpha, dA_array + i, Ai, Aj,
                                 ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                                max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                                sB_acc_ct1.get_pointer());
+                                max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -494,8 +494,8 @@ void trsm_template_vbatched_rTx(
                                                               CONJA>(
                                 diag, m + i, n + i, alpha, dA_array + i, Ai, Aj,
                                 ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                                max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                                sB_acc_ct1.get_pointer());
+                                max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }
@@ -518,8 +518,8 @@ void trsm_template_vbatched_rTx(
                                                               CONJA>(
                                 diag, m + i, n + i, alpha, dA_array + i, Ai, Aj,
                                 ldda + i, dB_array + i, Bi, Bj, lddb + i, max_m,
-                                max_n, item_ct1, sA_acc_ct1.get_pointer(),
-                                sB_acc_ct1.get_pointer());
+                                max_n, item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+				sB_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
         }

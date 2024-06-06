@@ -367,7 +367,7 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
                                   sycl::range<3>(1, 1, bitonic_cutoff)),
                 [=](sycl::nd_item<3> item_ct1) {
                     select_bitonic_basecase(in, out, size, rank, item_ct1,
-                                            data_acc_ct1.get_pointer());
+                                            data_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                 });
         });
         stream->wait();
@@ -392,8 +392,8 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
                          [=](sycl::nd_item<3> item_ct1) {
                              build_searchtree(
                                  in, tree, size, item_ct1,
-                                 sample_buffer_acc_ct1.get_pointer(),
-                                 leaves_acc_ct1.get_pointer());
+                                 sample_buffer_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                 leaves_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 
@@ -419,8 +419,8 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
             [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]] {
                 count_buckets_write(in, tree, localcounts, oracles, size,
                                     local_work, item_ct1,
-                                    local_tree_acc_ct1.get_pointer(),
-                                    local_counts_acc_ct1.get_pointer());
+                                    local_tree_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                    local_counts_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
     stream->submit([&](sycl::handler &cgh) {
@@ -445,7 +445,7 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
                               sycl::range<3>(1, 1, searchtree_width / 2)),
             [=](sycl::nd_item<3> item_ct1) [[intel::reqd_sub_group_size(32)]] {
                 sampleselect_findbucket(totalcounts, rank, bucket_idx, rank_out,
-                                        item_ct1, sums_acc_ct1.get_pointer());
+                                        item_ct1, sums_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
     stream->submit([&](sycl::handler &cgh) {
@@ -459,7 +459,7 @@ void launch_sampleselect_nodp(sycl::queue *stream, double *__restrict__ in,
             [=](sycl::nd_item<3> item_ct1) {
                 collect_bucket_indirect(in, oracles, localcounts, tmp, size,
                                         bucket_idx, nullptr, local_work,
-                                        item_ct1, count_acc_ct1.get_pointer());
+                                        item_ct1, count_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 

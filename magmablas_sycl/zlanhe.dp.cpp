@@ -871,7 +871,7 @@ magmablas_zlanhe(
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_max_nan_kernel(
                                  n, dwork, item_ct1,
-                                 (double *)smax_acc_ct1.get_pointer());
+                                 (double *)smax_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
     magma_dgetvector( 1, &dwork[0], 1, &res, 1, queue );

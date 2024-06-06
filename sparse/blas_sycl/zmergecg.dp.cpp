@@ -1541,7 +1541,7 @@ magma_zcgmerge_spmv1(
                                      magma_zcgmerge_spmvcsr_kernel(
                                          A.num_rows, A.dval, A.drow, A.dcol, dd,
                                          dz, d1, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     else if ( A.storage_type == Magma_ELLPACKT )
@@ -1555,7 +1555,7 @@ magma_zcgmerge_spmv1(
                                      magma_zcgmerge_spmvellpack_kernel(
                                          A.num_rows, A.max_nnz_row, A.dval,
                                          A.dcol, dd, dz, d1, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     else if ( A.storage_type == Magma_ELL )
@@ -1569,7 +1569,7 @@ magma_zcgmerge_spmv1(
                                      magma_zcgmerge_spmvell_kernel(
                                          A.num_rows, A.max_nnz_row, A.dval,
                                          A.dcol, dd, dz, d1, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     else if ( A.storage_type == Magma_CUCSR ) {
@@ -1608,7 +1608,7 @@ magma_zcgmerge_spmv1(
                                  [=](sycl::nd_item<3> item_ct1) {
                                      magma_zcgmerge_spmvellpackrt_kernel2(
                                          A.num_rows, dz, dd, d1, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     }
@@ -1623,7 +1623,7 @@ magma_zcgmerge_spmv1(
                                      magma_zcgmerge_spmvell_kernelb1(
                                          A.num_rows, A.blocksize, A.dval,
                                          A.dcol, A.drow, dd, dz, d1, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     }
@@ -1657,7 +1657,7 @@ magma_zcgmerge_spmv1(
                             magma_zcgmerge_spmvsellpt_kernel_8(
                                 A.num_rows, A.blocksize, A.alignment, A.dval,
                                 A.dcol, A.drow, dd, dz, item_ct1,
-                                dpct_local_acc_ct1.get_pointer());
+                                dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
 
@@ -1673,7 +1673,7 @@ magma_zcgmerge_spmv1(
                             magma_zcgmerge_spmvsellpt_kernel_16(
                                 A.num_rows, A.blocksize, A.alignment, A.dval,
                                 A.dcol, A.drow, dd, dz, item_ct1,
-                                dpct_local_acc_ct1.get_pointer());
+                                dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
 
@@ -1689,7 +1689,7 @@ magma_zcgmerge_spmv1(
                             magma_zcgmerge_spmvsellpt_kernel_32(
                                 A.num_rows, A.blocksize, A.alignment, A.dval,
                                 A.dcol, A.drow, dd, dz, item_ct1,
-                                dpct_local_acc_ct1.get_pointer());
+                                dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
 
@@ -1708,7 +1708,7 @@ magma_zcgmerge_spmv1(
                                  [=](sycl::nd_item<3> item_ct1) {
                                      magma_zcgmerge_spmvellpackrt_kernel2(
                                          A.num_rows, dz, dd, d1, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     }
@@ -1755,7 +1755,7 @@ magma_zcgmerge_spmv1(
                             magma_zcgmerge_spmvellpackrt_kernel_32(
                                 A.num_rows, A.dval, A.dcol, A.drow, dd, dz, d1,
                                 A.alignment, real_row_length, item_ct1,
-                                dpct_local_acc_ct1.get_pointer());
+                                dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
     }
@@ -1773,7 +1773,7 @@ magma_zcgmerge_spmv1(
                             magma_zcgmerge_spmvellpackrt_kernel_16(
                                 A.num_rows, A.dval, A.dcol, A.drow, dd, dz, d1,
                                 A.alignment, real_row_length, item_ct1,
-                                dpct_local_acc_ct1.get_pointer());
+                                dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
     }
@@ -1791,7 +1791,7 @@ magma_zcgmerge_spmv1(
                             magma_zcgmerge_spmvellpackrt_kernel_8(
                                 A.num_rows, A.dval, A.dcol, A.drow, dd, dz, d1,
                                 A.alignment, real_row_length, item_ct1,
-                                dpct_local_acc_ct1.get_pointer());
+                                dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
     }
@@ -1812,7 +1812,7 @@ magma_zcgmerge_spmv1(
                                  [=](sycl::nd_item<3> item_ct1) {
                                      magma_zcgmerge_spmvellpackrt_kernel2(
                                          A.num_rows, dz, dd, d1, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     }
@@ -1832,7 +1832,7 @@ magma_zcgmerge_spmv1(
                     [=](sycl::nd_item<3> item_ct1) {
                         magma_zcgreduce_kernel_spmv1(
                             Gs[2], A.num_rows, aux1, aux2, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         Gs_next[2] = Gs_next[2] / 2;
@@ -2097,7 +2097,7 @@ magma_zcgmerge_xrbeta(
             sycl::nd_range<3>(Gs * Bs, Bs), [=](sycl::nd_item<3> item_ct1) {
                 magma_zcgmerge_xrbeta_kernel(n, dx, dr, dd, dz, skp, d1,
                                              item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 
@@ -2116,7 +2116,7 @@ magma_zcgmerge_xrbeta(
                     [=](sycl::nd_item<3> item_ct1) {
                         magma_zcgreduce_kernel_spmv1(
                             Gs[2], n, aux1, aux2, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         Gs_next[2] = Gs_next[2] / 2;
@@ -2398,7 +2398,7 @@ magma_zpcgmerge_xrbeta1(
         cgh.parallel_for(
             sycl::nd_range<3>(Gs * Bs, Bs), [=](sycl::nd_item<3> item_ct1) {
                 magma_zpcgmerge_xrbeta_kernel(n, dx, dr, dd, dz, skp, item_ct1,
-                                              dpct_local_acc_ct1.get_pointer());
+                                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 
@@ -2484,7 +2484,7 @@ magma_zpcgmerge_xrbeta2(
         cgh.parallel_for(
             sycl::nd_range<3>(Gs * Bs, Bs), [=](sycl::nd_item<3> item_ct1) {
                 magma_zmzdotc_one_kernel_1(n, dr, dh, d1, item_ct1,
-                                           dpct_local_acc_ct1.get_pointer());
+                                           dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 
@@ -2503,7 +2503,7 @@ magma_zpcgmerge_xrbeta2(
                     [=](sycl::nd_item<3> item_ct1) {
                         magma_zcgreduce_kernel_spmv2(
                             Gs[2], n, aux1, aux2, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         Gs_next[2] = Gs_next[2] / 2;
@@ -2813,7 +2813,7 @@ magma_zjcgmerge_xrbeta(
             sycl::nd_range<3>(Gs * Bs, Bs), [=](sycl::nd_item<3> item_ct1) {
                 magma_zjcgmerge_xrbeta_kernel(n, diag, dx, dr, dd, dz, dh, d1,
                                               skp, item_ct1,
-                                              dpct_local_acc_ct1.get_pointer());
+                                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 
@@ -2832,7 +2832,7 @@ magma_zjcgmerge_xrbeta(
                     [=](sycl::nd_item<3> item_ct1) {
                         magma_zcgreduce_kernel_spmv2(
                             Gs[2], n, aux1, aux2, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         Gs_next[2] = Gs_next[2] / 2;

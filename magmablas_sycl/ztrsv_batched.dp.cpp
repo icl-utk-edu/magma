@@ -103,7 +103,7 @@ ztrsv_notrans_outplace_batched(
                                          flag, uplo, trans, diag>(
                                          n, A_array + i, lda, b_array + i, incb,
                                          x_array + i, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     }
@@ -142,7 +142,7 @@ ztrsv_trans_outplace_batched(
                                          flag, uplo, trans, diag>(
                                          n, A_array + i, lda, b_array + i, incb,
                                          x_array + i, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     }

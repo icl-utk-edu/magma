@@ -222,9 +222,9 @@ magmablas_zprbt_batched(
                     [=](sycl::nd_item<3> item_ct1) {
                         magmablas_zelementary_multiplication_kernel_batched(
                             n / 2, dA_array + i, 0, ldda, du, 0, dv, 0,
-                            item_ct1, u1_acc_ct1.get_pointer(),
-                            u2_acc_ct1.get_pointer(), v1_acc_ct1.get_pointer(),
-                            v2_acc_ct1.get_pointer());
+                            item_ct1, u1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                            u2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), v1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                            v2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         ((sycl::queue *)(queue->sycl_stream()))
@@ -243,9 +243,9 @@ magmablas_zprbt_batched(
                     [=](sycl::nd_item<3> item_ct1) {
                         magmablas_zelementary_multiplication_kernel_batched(
                             n / 2, dA_array + i, ldda * n / 2, ldda, du, 0, dv,
-                            n / 2, item_ct1, u1_acc_ct1.get_pointer(),
-                            u2_acc_ct1.get_pointer(), v1_acc_ct1.get_pointer(),
-                            v2_acc_ct1.get_pointer());
+                            n / 2, item_ct1, u1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                            u2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), v1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                            v2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         ((sycl::queue *)(queue->sycl_stream()))
@@ -264,9 +264,9 @@ magmablas_zprbt_batched(
                     [=](sycl::nd_item<3> item_ct1) {
                         magmablas_zelementary_multiplication_kernel_batched(
                             n / 2, dA_array + i, n / 2, ldda, du, n / 2, dv, 0,
-                            item_ct1, u1_acc_ct1.get_pointer(),
-                            u2_acc_ct1.get_pointer(), v1_acc_ct1.get_pointer(),
-                            v2_acc_ct1.get_pointer());
+                            item_ct1, u1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                            u2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), v1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                            v2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         ((sycl::queue *)(queue->sycl_stream()))
@@ -286,8 +286,8 @@ magmablas_zprbt_batched(
                         magmablas_zelementary_multiplication_kernel_batched(
                             n / 2, dA_array + i, ldda * n / 2 + n / 2, ldda, du,
                             n / 2, dv, n / 2, item_ct1,
-                            u1_acc_ct1.get_pointer(), u2_acc_ct1.get_pointer(),
-                            v1_acc_ct1.get_pointer(), v2_acc_ct1.get_pointer());
+                            u1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), u2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                            v1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), v2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
 
@@ -309,9 +309,9 @@ magmablas_zprbt_batched(
                     [=](sycl::nd_item<3> item_ct1) {
                         magmablas_zelementary_multiplication_kernel_batched(
                             n, dA_array + i, 0, ldda, du, -ldda, dv, -ldda,
-                            item_ct1, u1_acc_ct1.get_pointer(),
-                            u2_acc_ct1.get_pointer(), v1_acc_ct1.get_pointer(),
-                            v2_acc_ct1.get_pointer());
+                            item_ct1, u1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                            u2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), v1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                            v2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

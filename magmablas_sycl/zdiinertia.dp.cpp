@@ -148,9 +148,9 @@ magmablas_zdiinertia(
         cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                          [=](sycl::nd_item<3> item_ct1) {
                              zdiinertia_kernel(n, dA, ldda, dneig, item_ct1,
-                                               pe_acc_ct1.get_pointer(),
-                                               ne_acc_ct1.get_pointer(),
-                                               ze_acc_ct1.get_pointer());
+                                               pe_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                               ne_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                               ze_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 

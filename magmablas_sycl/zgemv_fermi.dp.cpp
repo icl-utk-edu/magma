@@ -87,7 +87,7 @@ zgemvn_template_fermi(
             [=](sycl::nd_item<3> item_ct1) {
                 zgemvn_template_kernel_fermi<DIM_X, DIM_Y, TILE_SIZE>(
                     m, n, alpha, A, lda, x, incx, beta, y, incy, item_ct1,
-                    sdata_acc_ct1.get_pointer());
+                    sdata_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 }
@@ -124,7 +124,7 @@ zgemvc_template_fermi(
                         zgemvc_template_kernel_fermi<DIM_X, DIM_Y, TILE_SIZE,
                                                      MagmaConjTrans>(
                             m, n, alpha, A, lda, x, incx, beta, y, incy,
-                            item_ct1, sdata_acc_ct1.get_pointer());
+                            item_ct1, sdata_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -145,7 +145,7 @@ zgemvc_template_fermi(
                         zgemvc_template_kernel_fermi<DIM_X, DIM_Y, TILE_SIZE,
                                                      MagmaTrans>(
                             m, n, alpha, A, lda, x, incx, beta, y, incy,
-                            item_ct1, sdata_acc_ct1.get_pointer());
+                            item_ct1, sdata_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

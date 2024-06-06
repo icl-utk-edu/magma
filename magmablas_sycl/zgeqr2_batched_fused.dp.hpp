@@ -518,7 +518,7 @@ magma_zgeqr2_fused_reg_kernel_driver_batched(
                                  m, dA_array, Ai, Aj, ldda, dtau_array, taui,
                                  lwork_tmp, info_array, check_launch_only,
                                  batchCount, item_ct1,
-                                 dpct_local_acc_ct1.get_pointer());
+                                 dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 
