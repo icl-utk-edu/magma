@@ -157,7 +157,7 @@ void magmablas_zlarft_ztrmv_sm32x32(
                          [=](sycl::nd_item<3> item_ct1) {
                              zlarft_ztrmv_sm32x32_kernel(
                                  m, n, tau, Tin, ldtin, Tout, ldtout, item_ct1,
-                                 dpct_local_acc_ct1.get_pointer());
+                                 dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -197,7 +197,7 @@ void magmablas_zlarft_ztrmv_sm32x32_batched(
                         zlarft_ztrmv_sm32x32_kernel_batched(
                             m, n, tau_array + i, taui, Tin_array + i, Tini,
                             Tinj, ldtin, Tout_array + i, Touti, Toutj, ldtout,
-                            item_ct1, dpct_local_acc_ct1.get_pointer());
+                            item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -323,7 +323,7 @@ void magmablas_zlarft_recztrmv_sm32x32(
                          [=](sycl::nd_item<3> item_ct1) {
                              zlarft_recztrmv_sm32x32_kernel(
                                  m, n, tau, Trec, ldtrec, Ttri, ldttri,
-                                 item_ct1, dpct_local_acc_ct1.get_pointer());
+                                 item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -362,7 +362,7 @@ void magmablas_zlarft_recztrmv_sm32x32_batched(
                         zlarft_recztrmv_sm32x32_kernel_batched(
                             m, n, tau_array + i, taui, Trec_array + i, Treci,
                             Trecj, ldtrec, Ttri_array + i, Ttrii, Ttrij, ldttri,
-                            item_ct1, dpct_local_acc_ct1.get_pointer());
+                            item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

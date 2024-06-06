@@ -316,7 +316,7 @@ static magma_int_t magma_zlarf_fused_sm_kernel_driver_batched(
                        [=](sycl::nd_item<3> item_ct1) {
                        zlarf_fused_sm_kernel_batched<NB>(m, n, ib, dA_array, Ai, Aj, ldda,
 				       dV_array, Vi, Vj, lddv, dtau_array, taui, batchCount,
-				       item_ct1, dpct_local_acc_ct1.get_pointer());
+				       item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
 		       });
       });
     } catch (sycl::exception const &exc) {

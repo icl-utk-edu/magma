@@ -137,7 +137,7 @@ void herk_template_batched_nt(
                             DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>(
                             uplo, n, k, alpha, dA_array + i, ldda, dB_array + i,
                             lddb, beta, dC_array + i, lddc, ai, aj, bi, bj, ci,
-                            cj, item_ct1, dpct_local_acc_ct1.get_pointer());
+                            cj, item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -180,7 +180,7 @@ void herk_template_batched_tn(
                             DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>(
                             uplo, n, k, alpha, dA_array + i, ldda, dB_array + i,
                             lddb, beta, dC_array + i, lddc, ai, aj, bi, bj, ci,
-                            cj, item_ct1, dpct_local_acc_ct1.get_pointer());
+                            cj, item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

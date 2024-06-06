@@ -289,9 +289,9 @@ magmablas_zheinertia(
                                  [=](sycl::nd_item<3> item_ct1) {
                                      zheinertia_upper_kernel(
                                          n, dA, ldda, ipiv, dneig, item_ct1,
-                                         pe_acc_ct1.get_pointer(),
-                                         ne_acc_ct1.get_pointer(),
-                                         ze_acc_ct1.get_pointer());
+                                         pe_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                         ne_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                         ze_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     else
@@ -308,9 +308,9 @@ magmablas_zheinertia(
                                  [=](sycl::nd_item<3> item_ct1) {
                                      zheinertia_lower_kernel(
                                          n, dA, ldda, ipiv, dneig, item_ct1,
-                                         pe_acc_ct1.get_pointer(),
-                                         ne_acc_ct1.get_pointer(),
-                                         ze_acc_ct1.get_pointer());
+                                         pe_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                         ne_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                         ze_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
 

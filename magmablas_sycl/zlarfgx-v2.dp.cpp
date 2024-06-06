@@ -148,8 +148,8 @@ magma_zlarfgx_gpu(
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_zlarfgx_gpu_kernel(
                                  n, dx0, dx, dtau, dxnorm, dA, iter, item_ct1,
-                                 scale_acc_ct1.get_pointer(),
-                                 xnorm_acc_ct1.get_pointer());
+                                 scale_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                 xnorm_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 }
@@ -206,7 +206,7 @@ magma_zlarfgtx_gpu(
                     [=](sycl::nd_item<3> item_ct1) {
                         magma_zgemv_kernel3(n, V, ldv, dx0, dwork, dtau,
                                             item_ct1,
-                                            sum_acc_ct1.get_pointer());
+                                            sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
 
@@ -222,7 +222,7 @@ magma_zlarfgtx_gpu(
                     [=](sycl::nd_item<3> item_ct1) {
                         magma_ztrmv_kernel2(T, ldt, dwork, T + iter * ldt, dtau,
                                             item_ct1,
-                                            sum_acc_ct1.get_pointer());
+                                            sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

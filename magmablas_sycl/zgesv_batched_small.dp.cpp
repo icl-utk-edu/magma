@@ -506,7 +506,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                     n_ct0, nrhs_ct1, dA_array_ct2, ldda_ct3,
                                     dipiv_array_ct4, dB_array_ct5, lddb_ct6,
                                     dinfo_array_ct7, item_ct1,
-                                    dpct_local_acc_ct1.get_pointer());
+                                    dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
         }
@@ -534,7 +534,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<1>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -558,7 +558,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<2>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -582,7 +582,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<3>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -606,7 +606,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<4>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -630,7 +630,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<5>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -654,7 +654,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<6>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -678,7 +678,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<7>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -702,7 +702,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<8>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -726,7 +726,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<9>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -750,7 +750,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<10>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -774,7 +774,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<11>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -798,7 +798,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<12>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -822,7 +822,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<13>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -846,7 +846,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<14>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -870,7 +870,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<15>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -894,7 +894,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<16>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -918,7 +918,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<17>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -942,7 +942,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<18>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -966,7 +966,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<19>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -990,7 +990,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<20>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1014,7 +1014,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<21>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1038,7 +1038,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<22>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1062,7 +1062,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<23>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1086,7 +1086,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<24>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1110,7 +1110,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<25>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1134,7 +1134,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<26>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1158,7 +1158,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<27>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1182,7 +1182,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<28>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1206,7 +1206,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<29>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1230,7 +1230,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<30>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1254,7 +1254,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<31>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;
@@ -1278,7 +1278,7 @@ extern "C" magma_int_t magma_zgesv_batched_small(
                                 zgesv_batched_small_kernel<32>(
                                     dA_array_ct0, ldda_ct1, dipiv_array_ct2,
                                     dB_array_ct3, lddb_ct4, dinfo_array_ct5,
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                     });
                 break;

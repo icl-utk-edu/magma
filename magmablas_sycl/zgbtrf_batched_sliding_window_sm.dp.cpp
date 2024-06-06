@@ -555,7 +555,7 @@ static magma_int_t magma_zgbtrf_batched_sliding_window_loopout_sm_kernel_driver(
                              zgbtrf_batched_sliding_window_loopout_kernel_sm<NTX>(
                                  m, nb, n, kl, ku, dAB_array, abi, abj, lddab, ipiv_array,
 				 ju_array, info_array, batchCount, item_ct1,
-                                 dpct_local_acc_ct1.get_pointer());
+                                 dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
       });
     }
@@ -624,7 +624,7 @@ static magma_int_t magma_zgbtrf_batched_sliding_window_loopin_sm_kernel_driver(
 			     zgbtrf_batched_sliding_window_loopin_kernel_sm<NTX>(
                                  m, nb, n, kl, ku, dAB_array, lddab, ipiv_array,
 				 info_array, batchCount, item_ct1,
-                                 dpct_local_acc_ct1.get_pointer());
+                                 dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
       });
     }

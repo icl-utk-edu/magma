@@ -914,8 +914,8 @@ magmablas_zhemv_mgpu(
                                              n, dA_dev, ldda, dx_dev, 1,
                                              dwork_dev, new_gpu_id, ngpu,
                                              block_offset, item_ct1, sA_acc_ct1,
-                                             sx_blk_acc_ct1.get_pointer(),
-                                             sx_jj_acc_ct1.get_pointer());
+                                             sx_blk_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             sx_jj_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
 
@@ -946,8 +946,8 @@ magmablas_zhemv_mgpu(
                                              n, dA_dev, ldda, dx_dev, 1,
                                              dwork_dev, new_gpu_id, ngpu,
                                              block_offset, item_ct1, sA_acc_ct1,
-                                             sx_blk_acc_ct1.get_pointer(),
-                                             sx_jj_acc_ct1.get_pointer());
+                                             sx_blk_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                                             sx_jj_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
 

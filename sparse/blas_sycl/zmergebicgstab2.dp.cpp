@@ -353,7 +353,7 @@ magma_zbicgmerge_spmv1(
                                      magma_zbicgmerge_spmv1_kernel(
                                          n, A.dval, A.drow, A.dcol, dp, dr, dv,
                                          d1, item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     else
@@ -374,7 +374,7 @@ magma_zbicgmerge_spmv1(
                     [=](sycl::nd_item<3> item_ct1) {
                         magma_zreduce_kernel_spmv1(
                             Gs[2], n, aux1, aux2, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         Gs_next[2] = Gs_next[2] / 2;
@@ -782,7 +782,7 @@ magma_zbicgmerge_spmv2(
                                      magma_zbicgmerge_spmv2_kernel(
                                          n, A.dval, A.drow, A.dcol, ds, dt, d1,
                                          item_ct1,
-                                         dpct_local_acc_ct1.get_pointer());
+                                         dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                  });
             });
     else
@@ -803,7 +803,7 @@ magma_zbicgmerge_spmv2(
                     [=](sycl::nd_item<3> item_ct1) {
                         magma_zreduce_kernel_spmv2(
                             Gs[2], n, aux1, aux2, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         Gs_next[2] = Gs_next[2] / 2;
@@ -1105,7 +1105,7 @@ magma_zbicgmerge_xrbeta(
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_zbicgmerge_xrbeta_kernel(
                                  n, rr, r, p, s, t, x, skp, d1, item_ct1,
-                                 dpct_local_acc_ct1.get_pointer());
+                                 dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 
@@ -1124,7 +1124,7 @@ magma_zbicgmerge_xrbeta(
                     [=](sycl::nd_item<3> item_ct1) {
                         magma_zreduce_kernel_spmv2(
                             Gs[2], n, aux1, aux2, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         Gs_next[2] = Gs_next[2] / 2;

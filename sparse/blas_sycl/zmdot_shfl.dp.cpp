@@ -267,7 +267,7 @@ magma_zmdotc_shfl(
                                                                 32)]] {
                         magma_zblockdot_kernel_shuffle_1dblock(
                             n, k, v, r, d1, item_ct1,
-                            (uint8_t *)dpct_local_acc_ct1.get_pointer());
+                            (uint8_t *)dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         int j;
@@ -292,7 +292,7 @@ magma_zmdotc_shfl(
                                 deviceReduceKernel<std::complex<double>>(
                                     MAGMA_Z_MKL_PTR(d1 + grid[2] * j),
 				    MAGMA_Z_MKL_PTR(skp + j), grid[2],
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                 });
         }
@@ -323,7 +323,7 @@ magma_zmdotc_shfl(
                                                                 32)]] {
                         magma_zblockdot_kernel_shuffle(
                             n, k, v, r, d1, item_ct1,
-                            (uint8_t *)dpct_local_acc_ct1.get_pointer());
+                            (uint8_t *)dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
         int j;
@@ -348,7 +348,7 @@ magma_zmdotc_shfl(
                                 deviceReduceKernel<std::complex<double>>(
                                     MAGMA_Z_MKL_PTR(d1 + grid[2] * j),
 				    MAGMA_Z_MKL_PTR(skp + j), grid[2],
-                                    item_ct1, dpct_local_acc_ct1.get_pointer());
+                                    item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                             });
                 });
         }

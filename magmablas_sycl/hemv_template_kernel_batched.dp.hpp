@@ -102,8 +102,8 @@ void hemv_diag_template_batched(
                         hemv_diag_template_batched_kernel<T, NB, TY>(
                             uplo, n, alpha, dA_array + i, ldda, dX_array + i,
                             incx, beta, dY_array + i, incy, offA, offX, offY,
-                            item_ct1, sA_acc_ct1.get_pointer(),
-                            sX_acc_ct1.get_pointer());
+                            item_ct1, sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+			    sX_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -140,7 +140,8 @@ void hemv_lower_template_batched(
                         hemv_lower_template_batched_kernel<T, NB, TY>(
                             n, alpha, dA_array + i, ldda, dX_array + i, incx,
                             dY_array + i, incy, offA, offX, offY, item_ct1,
-                            sA_acc_ct1.get_pointer(), sX_acc_ct1.get_pointer());
+                            sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+			    sX_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -178,7 +179,8 @@ void hemv_upper_template_batched(
                         hemv_upper_template_batched_kernel<T, NB, TY>(
                             n, alpha, dA_array + i, ldda, dX_array + i, incx,
                             dY_array + i, incy, offA, offX, offY, item_ct1,
-                            sA_acc_ct1.get_pointer(), sX_acc_ct1.get_pointer());
+                            sA_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get(),
+			    sX_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }

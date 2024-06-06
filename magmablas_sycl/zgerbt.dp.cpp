@@ -211,8 +211,8 @@ magmablas_zprbt(
             [=](sycl::nd_item<3> item_ct1) {
                 magmablas_zelementary_multiplication_kernel(
                     n / 2, dA, 0, ldda, du, 0, dv, 0, item_ct1,
-                    u1_acc_ct1.get_pointer(), u2_acc_ct1.get_pointer(),
-                    v1_acc_ct1.get_pointer(), v2_acc_ct1.get_pointer());
+                    u1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), u2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                    v1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), v2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
@@ -230,8 +230,8 @@ magmablas_zprbt(
             [=](sycl::nd_item<3> item_ct1) {
                 magmablas_zelementary_multiplication_kernel(
                     n / 2, dA, ldda * n / 2, ldda, du, 0, dv, n / 2, item_ct1,
-                    u1_acc_ct1.get_pointer(), u2_acc_ct1.get_pointer(),
-                    v1_acc_ct1.get_pointer(), v2_acc_ct1.get_pointer());
+                    u1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), u2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                    v1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), v2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
@@ -249,8 +249,8 @@ magmablas_zprbt(
             [=](sycl::nd_item<3> item_ct1) {
                 magmablas_zelementary_multiplication_kernel(
                     n / 2, dA, n / 2, ldda, du, n / 2, dv, 0, item_ct1,
-                    u1_acc_ct1.get_pointer(), u2_acc_ct1.get_pointer(),
-                    v1_acc_ct1.get_pointer(), v2_acc_ct1.get_pointer());
+                    u1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), u2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                    v1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), v2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
     ((sycl::queue *)(queue->sycl_stream()))->submit([&](sycl::handler &cgh) {
@@ -268,9 +268,9 @@ magmablas_zprbt(
             [=](sycl::nd_item<3> item_ct1) {
                 magmablas_zelementary_multiplication_kernel(
                     n / 2, dA, ldda * n / 2 + n / 2, ldda, du, n / 2, dv, n / 2,
-                    item_ct1, u1_acc_ct1.get_pointer(),
-                    u2_acc_ct1.get_pointer(), v1_acc_ct1.get_pointer(),
-                    v2_acc_ct1.get_pointer());
+                    item_ct1, u1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                    u2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), v1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                    v2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 
@@ -292,8 +292,8 @@ magmablas_zprbt(
             [=](sycl::nd_item<3> item_ct1) {
                 magmablas_zelementary_multiplication_kernel(
                     n, dA, 0, ldda, du, -ldda, dv, -ldda, item_ct1,
-                    u1_acc_ct1.get_pointer(), u2_acc_ct1.get_pointer(),
-                    v1_acc_ct1.get_pointer(), v2_acc_ct1.get_pointer());
+                    u1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), u2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(),
+                    v1_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get(), v2_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
 }

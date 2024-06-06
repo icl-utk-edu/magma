@@ -248,7 +248,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<1, magma_ceilpow2(1)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -268,7 +268,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<2, magma_ceilpow2(2)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -288,7 +288,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<3, magma_ceilpow2(3)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -308,7 +308,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<4, magma_ceilpow2(4)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -328,7 +328,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<5, magma_ceilpow2(5)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -348,7 +348,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<6, magma_ceilpow2(6)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -368,7 +368,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<7, magma_ceilpow2(7)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -388,7 +388,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<8, magma_ceilpow2(8)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -408,7 +408,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<9, magma_ceilpow2(9)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -428,7 +428,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<10, magma_ceilpow2(10)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -448,7 +448,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<11, magma_ceilpow2(11)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -468,7 +468,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<12, magma_ceilpow2(12)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -488,7 +488,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<13, magma_ceilpow2(13)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -508,7 +508,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<14, magma_ceilpow2(14)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -528,7 +528,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<15, magma_ceilpow2(15)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -548,7 +548,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<16, magma_ceilpow2(16)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -568,7 +568,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<17, magma_ceilpow2(17)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -588,7 +588,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<18, magma_ceilpow2(18)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -608,7 +608,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<19, magma_ceilpow2(19)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -628,7 +628,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<20, magma_ceilpow2(20)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -648,7 +648,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<21, magma_ceilpow2(21)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -668,7 +668,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<22, magma_ceilpow2(22)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -688,7 +688,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<23, magma_ceilpow2(23)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -708,7 +708,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<24, magma_ceilpow2(24)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -728,7 +728,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<25, magma_ceilpow2(25)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -748,7 +748,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<26, magma_ceilpow2(26)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -768,7 +768,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<27, magma_ceilpow2(27)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -788,7 +788,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<28, magma_ceilpow2(28)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -808,7 +808,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<29, magma_ceilpow2(29)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -828,7 +828,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<30, magma_ceilpow2(30)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -848,7 +848,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<31, magma_ceilpow2(31)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;
@@ -868,7 +868,7 @@ magma_zgetf2_nopiv_internal_batched(
                         zgetf2_nopiv_batched_kernel<32, magma_ceilpow2(32)>(
                             m1, dA_array, ai, aj, ldda, info_array, gbstep,
                             batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_pointer());
+                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
             break;

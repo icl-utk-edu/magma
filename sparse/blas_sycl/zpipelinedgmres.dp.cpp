@@ -330,7 +330,7 @@ magma_zcopyscale(
         cgh.parallel_for(
             sycl::nd_range<3>(Gs * Bs, Bs), [=](sycl::nd_item<3> item_ct1) {
                 magma_zpipelined_correction(n, k, skp, r, v, item_ct1,
-                                            dpct_local_acc_ct1.get_pointer());
+                                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
             });
     });
     ((sycl::queue *)(queue->sycl_stream()))
@@ -361,7 +361,7 @@ magma_dznrm2scale(
                          [=](sycl::nd_item<3> item_ct1) {
                              magma_zpipelineddznrm2_kernel(
                                  m, r, lddr, drnorm, item_ct1,
-                                 sum_acc_ct1.get_pointer());
+                                 sum_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
     });
 

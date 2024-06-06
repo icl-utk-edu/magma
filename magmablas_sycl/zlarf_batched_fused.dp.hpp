@@ -303,7 +303,7 @@ magma_zlarf_fused_reg_kernel_driver_batched(
                        zlarf_fused_reg_kernel_batched<M32, NB, TPC>(m, n, ib,
 				       dA_array, Ai, Aj, ldda, dV_array, Vi, Vj,
 				       lddv, dtau_array, taui, check_launch_only, batchCount,
-				       item_ct1, dpct_local_acc_ct1.get_pointer());
+				       item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
 		       });
       });
     } catch (sycl::exception const &exc) {

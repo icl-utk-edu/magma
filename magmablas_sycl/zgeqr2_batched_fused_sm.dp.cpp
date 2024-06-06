@@ -237,7 +237,7 @@ extern "C" magma_int_t magma_zgeqr2_fused_sm_batched(
                                              Aj_ct4, ldda_ct5, dtau_array_ct6,
                                              taui_ct7, info_array_ct8,
                                              batchCount_ct9, item_ct1,
-                                             dpct_local_acc_ct1.get_pointer());
+                                             dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                                      });
                 });
     /*
