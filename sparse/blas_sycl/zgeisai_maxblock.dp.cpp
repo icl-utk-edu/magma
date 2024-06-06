@@ -246,8 +246,7 @@ magma_zgeisai_maxblock(
                                                          MT_drow_ct2, item_ct1);
                          });
     });
-    dpct::get_default_queue()
-        .memcpy(&nonzeros, MT->drow + L.num_rows, sizeof(magma_index_t))
+    queue->sycl_stream()->memcpy(&nonzeros, MT->drow + L.num_rows, sizeof(magma_index_t))
         .wait();
 
     //now allocate the memory needed

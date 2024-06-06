@@ -48,14 +48,14 @@ magma_izamax(
 {
     int result; /* not magma_int_t */
   int64_t *res_temp_ptr_ct1 =
-      sycl::malloc_shared<int64_t>(1, dpct::get_default_queue());
+      sycl::malloc_shared<int64_t>(1, *queue->sycl_stream());
   oneapi::mkl::blas::column_major::iamax(
       *queue->sycl_stream(), int(n),
       MAGMA_Z_MKL_CONSTPTR(dx), int(incx), res_temp_ptr_ct1)
       .wait();
   int res_temp_host_ct2 = (int)*res_temp_ptr_ct1;
   dpct::dpct_memcpy(&result, &res_temp_host_ct2, sizeof(int));
-  sycl::free(res_temp_ptr_ct1, dpct::get_default_queue());
+  sycl::free(res_temp_ptr_ct1, *queue->sycl_stream());
     return result;
 }
 
@@ -88,14 +88,14 @@ magma_izamin(
 {
     int result; /* not magma_int_t */
   int64_t *res_temp_ptr_ct3 =
-      sycl::malloc_shared<int64_t>(1, dpct::get_default_queue());
+      sycl::malloc_shared<int64_t>(1, *queue->sycl_stream());
   oneapi::mkl::blas::column_major::iamin(
       *queue->sycl_stream(), int(n),
       MAGMA_Z_MKL_CONSTPTR(dx), int(incx), res_temp_ptr_ct3)
       .wait();
   int res_temp_host_ct4 = (int)*res_temp_ptr_ct3;
   dpct::dpct_memcpy(&result, &res_temp_host_ct4, sizeof(int));
-  sycl::free(res_temp_ptr_ct3, dpct::get_default_queue());
+  sycl::free(res_temp_ptr_ct3, *queue->sycl_stream());
     return result;
 }
 
@@ -133,7 +133,7 @@ magma_dzasum(
       sycl::get_pointer_type(&result, queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
     res_temp_ptr_ct5 =
-        sycl::malloc_shared<double>(1, dpct::get_default_queue());
+        sycl::malloc_shared<double>(1, *queue->sycl_stream());
   }
   oneapi::mkl::blas::column_major::asum(
       *queue->sycl_stream(), int(n),
@@ -144,7 +144,7 @@ magma_dzasum(
           sycl::usm::alloc::shared) {
     queue->sycl_stream()->wait();
     result = *res_temp_ptr_ct5;
-    sycl::free(res_temp_ptr_ct5, dpct::get_default_queue());
+    sycl::free(res_temp_ptr_ct5, *queue->sycl_stream());
   }
     return result;
 }
@@ -278,7 +278,7 @@ magmaDoubleComplex magma_zdotc(
                              queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
     res_temp_ptr_ct6 =
-        sycl::malloc_shared<magmaDoubleComplex>(1, dpct::get_default_queue());
+        sycl::malloc_shared<magmaDoubleComplex>(1, *queue->sycl_stream());
   }
   oneapi::mkl::blas::column_major::dotc(
       *queue->sycl_stream(), int(n),
@@ -293,7 +293,7 @@ magmaDoubleComplex magma_zdotc(
           sycl::usm::alloc::shared) {
     queue->sycl_stream()->wait();
     result = *res_temp_ptr_ct6;
-    sycl::free(res_temp_ptr_ct6, dpct::get_default_queue());
+    sycl::free(res_temp_ptr_ct6, *queue->sycl_stream());
   }
     return result;
 }
@@ -342,7 +342,7 @@ magmaDoubleComplex magma_zdotu(
                              queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
     res_temp_ptr_ct7 =
-        sycl::malloc_shared<magmaDoubleComplex>(1, dpct::get_default_queue());
+        sycl::malloc_shared<magmaDoubleComplex>(1, *queue->sycl_stream());
   }
 #ifdef COMPLEX
   oneapi::mkl::blas::column_major::dotu(
@@ -361,7 +361,7 @@ magmaDoubleComplex magma_zdotu(
           sycl::usm::alloc::shared) {
     queue->sycl_stream()->wait();
     result = *res_temp_ptr_ct7;
-    sycl::free(res_temp_ptr_ct7, dpct::get_default_queue());
+    sycl::free(res_temp_ptr_ct7, *queue->sycl_stream());
   }
     return result;
 }
@@ -400,7 +400,7 @@ magma_dznrm2(
       sycl::get_pointer_type(&result, queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
     res_temp_ptr_ct8 =
-        sycl::malloc_shared<double>(1, dpct::get_default_queue());
+        sycl::malloc_shared<double>(1, *queue->sycl_stream());
   }
   oneapi::mkl::blas::column_major::nrm2(
       *queue->sycl_stream(), int(n),
@@ -411,7 +411,7 @@ magma_dznrm2(
           sycl::usm::alloc::shared) {
     queue->sycl_stream()->wait();
     result = *res_temp_ptr_ct8;
-    sycl::free(res_temp_ptr_ct8, dpct::get_default_queue());
+    sycl::free(res_temp_ptr_ct8, *queue->sycl_stream());
   }
     return result;
 }
@@ -572,8 +572,8 @@ magma_zrotg(
       sycl::get_pointer_type(a,
                              queue->sycl_stream()->get_context()) !=
           sycl::usm::alloc::shared) {
-    a_ct9 = sycl::malloc_shared<magmaDoubleComplex>(3, dpct::get_default_queue());
-    c_ct11 = sycl::malloc_shared<double>(1, dpct::get_default_queue());
+    a_ct9 = sycl::malloc_shared<magmaDoubleComplex>(3, *queue->sycl_stream());
+    c_ct11 = sycl::malloc_shared<double>(1, *queue->sycl_stream());
     b_ct10 = a_ct9 + 1;
     s_ct12 = a_ct9 + 2;
     *a_ct9 = *a;
@@ -595,8 +595,8 @@ magma_zrotg(
     *b = *b_ct10;
     *c = *c_ct11;
     *s = *s_ct12;
-    sycl::free(a_ct9, dpct::get_default_queue());
-    sycl::free(c_ct11, dpct::get_default_queue());
+    sycl::free(a_ct9, *queue->sycl_stream());
+    sycl::free(c_ct11, *queue->sycl_stream());
   }
 }
 

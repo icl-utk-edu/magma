@@ -83,8 +83,6 @@ magmablas_slag2h(
     magmaHalf* dHA, magma_int_t ldha,
     magma_int_t *info, magma_queue_t queue)
 {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
-    sycl::queue &q_ct1 = dev_ct1.default_queue();
     *info = 0;
     if ( m < 0 )
         *info = -1;
@@ -105,7 +103,7 @@ magmablas_slag2h(
         return;
     }
 
-    q_ct1.memcpy(magma_flag.get_ptr(), info, sizeof(magma_flag))
+    queue->sycl_stream()->memcpy(magma_flag.get_ptr(), info, sizeof(magma_flag))
         .wait(); // magma_flag = 0
 
     // there is no lapackf77_hlamch, please visit:
@@ -126,7 +124,7 @@ magmablas_slag2h(
                          });
     });
 
-    q_ct1.memcpy(info, magma_flag.get_ptr(), sizeof(magma_flag))
+    queue->sycl_stream()->memcpy(info, magma_flag.get_ptr(), sizeof(magma_flag))
         .wait(); // info = magma_flag
 }
 
@@ -140,8 +138,6 @@ magmablas_slag2h_batched(
     magma_int_t *info_array, magma_int_t batchCount,
     magma_queue_t queue)
 {
-    dpct::device_ext &dev_ct1 = dpct::get_current_device();
-    sycl::queue &q_ct1 = dev_ct1.default_queue();
     magma_int_t arginfo = 0;
     if ( m < 0 )
         arginfo = -1;
@@ -172,8 +168,8 @@ magmablas_slag2h_batched(
     const int maxBatch = MAX_BATCH;
     for(int i = 0; i < batchCount; i+=maxBatch){
         magma_int_t batch = min(maxBatch, batchCount-i);
-        q_ct1
-            .memcpy(magma_flag_array.get_ptr(), info_array + i,
+        queue->sycl_stream()->
+            memcpy(magma_flag_array.get_ptr(), info_array + i,
                     sizeof(magma_int_t))
             .wait();
 
@@ -192,8 +188,7 @@ magmablas_slag2h_batched(
                                  });
             });
 
-        q_ct1
-            .memcpy(info_array + i, magma_flag_array.get_ptr(),
+        queue->sycl_stream()->memcpy(info_array + i, magma_flag_array.get_ptr(),
                     sizeof(magma_int_t))
             .wait();
     }

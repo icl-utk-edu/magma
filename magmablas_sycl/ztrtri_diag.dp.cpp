@@ -102,10 +102,9 @@ magmablas_ztrtri_diag(
     
     int nblocks = magma_ceildiv( n, IB );
 
-    dpct::get_default_queue()
-        .memset(d_dinvA, 0,
+    queue->sycl_stream()->memset(d_dinvA, 0,
                 magma_roundup(n, NB) * NB * sizeof(magmaDoubleComplex))
-        .wait();
+               .wait();
 
     if ( uplo == MagmaLower ) {
         // invert diagonal IB x IB inner blocks
