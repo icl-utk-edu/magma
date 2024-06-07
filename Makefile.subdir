@@ -50,8 +50,10 @@ ifeq ($(BACKEND),cuda)
 else ifeq ($(BACKEND),hip)
     targets += interface_hip magmablas_hip
     targets += sparse_hip sparse_hip/blas sparse_hip/control sparse_hip/src sparse_hip/testing
+else ifeq ($(BACKEND),dpcpp)
+    targets += interface_sycl magmablas_sycl
+    targets += sparse/blas_sycl sparse/control sparse/src sparse/testing
 endif
-
 
 ifneq ($(MAKECMDGOALS),)
 

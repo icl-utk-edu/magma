@@ -556,7 +556,7 @@ else()
         ${blas_fix}
         ${LAPACK_LIBRARIES}
         IntelSYCL::SYCL_CXX
-        MKL::MKL_DPCPP
+        MKL::MKL_SYCL
        )
     endif()
 
@@ -657,7 +657,7 @@ else()
     ${blas_fix}
     ${LAPACK_LIBRARIES}
     IntelSYCL::SYCL_CXX
-    MKL::MKL_DPCPP
+    MKL::MKL_SYCL
     )
 endif()
 add_custom_target( sparse-lib DEPENDS magma_sparse )
@@ -790,6 +790,6 @@ elseif (MAGMA_ENABLE_HIP)
   message( STATUS "    HIP_sparse_LIBRARY: roc::hipsparse" )
 else ()
   message( STATUS "    SYCL_LIBRARY:   IntelSYCL::SYCL_CXX"   )
-  message( STATUS "    ONEMKL_LIBRARIES: MKL::MKL_DPCPP" )
+  message( STATUS "    ONEMKL_LIBRARIES: MKL::MKL_SYCL" )
 endif()
 message( STATUS "    Fortran modules:       ${modules}" )
