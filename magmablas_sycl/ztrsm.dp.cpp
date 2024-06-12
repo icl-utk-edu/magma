@@ -477,22 +477,15 @@ void magmablas_ztrsm(
         // continue to free
     }
     else {
-        /*
-        DPCT1064:1455: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         magmablas_zlaset(MagmaFull, dinvA_length, 1, MAGMA_Z_ZERO, MAGMA_Z_ZERO,
                          d_dinvA, dinvA_length, queue);
-        /*
-        DPCT1064:1456: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         magmablas_zlaset(MagmaFull, m, n, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dX, lddx,
                          queue);
         magmablas_ztrsm_work( side, uplo, transA, diag, m, n, alpha,
                                 dA, ldda, dB, lddb, dX, lddx, 1, d_dinvA, dinvA_length, queue );
     }
 
+    magma_queue_sync( queue );
     magma_free( d_dinvA );
     magma_free( dX );
 }
