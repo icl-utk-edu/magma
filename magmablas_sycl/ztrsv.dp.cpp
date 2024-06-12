@@ -818,5 +818,6 @@ magmablas_ztrsv(
 
     magmablas_zlacpy( MagmaFull, n, 1, dx, n, db, n, queue );
 
+    magma_queue_sync( queue );
     magma_free( dx );
 }
