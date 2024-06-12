@@ -478,6 +478,7 @@ magmablas_ztrtri_diag_vbatched(
     }
 
     // free allocated buffers
+    magma_queue_sync( queue );
     magma_free(mm);
     magma_free(nn);
 }

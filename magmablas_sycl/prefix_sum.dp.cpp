@@ -192,7 +192,8 @@ magma_prefix_sum_internal(magma_int_t* ivec, magma_int_t* ovec, magma_int_t leng
     magma_imalloc(&workspace, lwork);
     
     magma_prefix_sum_internal_w(ivec, ovec, length, workspace, lwork, queue);
-        
+
+    magma_queue_sync( queue );
     if(workspace != (magma_int_t*)NULL)magma_free( workspace );
 }
 //----------------------------------------------------------------------------------------

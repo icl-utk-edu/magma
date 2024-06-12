@@ -532,6 +532,7 @@ magma_zgbtf2_native(
 
     magma_zgbtf2_native_work(m, n, kl, ku, dA, ldda, ipiv, info, device_work, lwork, queue);
 
+    magma_queue_sync( queue );
     magma_free(device_work);
     return *info;
 }
@@ -913,6 +914,7 @@ magma_zgbtf2_native_v2(
 
     magma_zgbtf2_native_v2_work(m, n, kl, ku, dA, ldda, ipiv, info, device_work, lwork, queue);
 
+    magma_queue_sync( queue );
     magma_free(device_work);
     return *info;
 }

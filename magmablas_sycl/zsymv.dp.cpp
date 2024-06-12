@@ -968,7 +968,8 @@ magmablas_zsymv(
     
     magmablas_zsymv_work( uplo, n, alpha, dA, ldda, dx, incx, beta, dy, incy,
                           dwork, lwork, queue );
-    
+
+    magma_queue_sync( queue );
     magma_free( dwork );
     
     return info;

@@ -459,7 +459,7 @@ magmablas_ztrsv_recursive_outofplace_batched(
             magmablas_ztrsv_outofplace_batched(uplo, trans, diag, jb, dW0_displ, lda, dW1_displ, incb, dW2_displ, batchCount, queue, i);
         }
     }
-
+    magma_queue_sync( queue );
     magma_free(dW0_displ);
     magma_free(dW1_displ);
     magma_free(dW2_displ);
@@ -594,6 +594,7 @@ magmablas_ztrsv_batched(
 
     magmablas_ztrsv_work_batched(uplo, trans, diag, n, A_array, lda, b_array, incb, x_array, batchCount, queue);
 
+    magma_queue_sync( queue );
     magma_free(x);
     magma_free(x_array);
 }
