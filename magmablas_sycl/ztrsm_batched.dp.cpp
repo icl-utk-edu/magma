@@ -902,6 +902,7 @@ void magmablas_ztrsm_inv_batched(
                     dX_displ, dinvA_displ,
                     resetozero, batchCount, queue );
 
+    magma_queue_sync( queue );
     magma_free( dinvA );
     magma_free( dX );
     magma_free(dA_displ);
