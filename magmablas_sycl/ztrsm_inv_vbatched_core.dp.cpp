@@ -572,6 +572,7 @@ void magmablas_ztrsm_inv_outofplace_vbatched(
         }
     }
     // free workspace
+    magma_queue_sync( queue );
     magma_free(tmp);
 }
 
@@ -873,7 +874,7 @@ void magmablas_ztrsm_inv_vbatched_max_nocheck(
                     resetozero, batchCount,
                     max_m, max_n, queue );
 
-
+    magma_queue_sync( queue );
     magma_free( tmp );
     magma_free( dinvA );
     magma_free( dX );
