@@ -86,7 +86,7 @@ magma_zgesv_rbt_batched(
                   magma_int_t batchCount, magma_queue_t queue)
 {
     /* Local variables */
-    magma_int_t i, info;
+    magma_int_t info;
     info = 0;
     if (n < 0) {
         info = -1;
@@ -137,8 +137,7 @@ magma_zgesv_rbt_batched(
     magma_int_t *cpu_info = NULL;
     magma_imalloc_cpu( &cpu_info, batchCount );
     magma_getvector( batchCount, sizeof(magma_int_t), dinfo_array, 1, cpu_info, 1, queue);
-    for (i=0; i < batchCount; i++)
-    {
+    for(magma_int_t i=0; i < batchCount; i++) {
         if (cpu_info[i] != 0 ) {
             printf("magma_zgetrf_batched matrix %lld returned error %lld\n", (long long) i, (long long) cpu_info[i] );
             info = cpu_info[i];

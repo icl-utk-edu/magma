@@ -123,7 +123,6 @@ magma_zgerbt_batched(
     magma_int_t *info, magma_int_t batchCount, magma_queue_t queue)
 {
     magmaDoubleComplex *du, *dv;
-    magma_int_t i;
 
     /* Function Body */
     *info = 0;
