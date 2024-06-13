@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Azzam Haidar
 
        @precisions normal z -> s d c
@@ -136,7 +136,7 @@ magma_zgesv_rbt_batched(
     // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
     magma_int_t *cpu_info = NULL;
     magma_imalloc_cpu( &cpu_info, batchCount );
-    magma_getvector( batchCount, sizeof(magma_int_t), dinfo_array, 1, cpu_info, 1);
+    magma_getvector( batchCount, sizeof(magma_int_t), dinfo_array, 1, cpu_info, 1, queue);
     for (i=0; i < batchCount; i++)
     {
         if (cpu_info[i] != 0 ) {
@@ -151,7 +151,6 @@ magma_zgesv_rbt_batched(
 
     info = magma_zgetrs_nopiv_batched( MagmaNoTrans, n, nrhs, dA_array, ldda, dB_array, lddb, dinfo_array, batchCount, queue );
 
-
     /* The solution of A.x = b is Vy computed on the GPU */
     magmaDoubleComplex *dv;
 
@@ -162,10 +161,7 @@ magma_zgesv_rbt_batched(
 
     magma_zsetvector( 2*n, hv, 1, dv, 1, queue );
 
-    for (i = 0; i < nrhs; i++)
-        magmablas_zprbt_mv_batched(n, dv, dB_array+(i), batchCount, queue);
-
-    //magma_zgetmatrix( n, nrhs, db, nn, B, ldb, queue );
+    magmablas_zprbt_mv_batched(n, nrhs, dv, dB_array, lddb, batchCount, queue);
 
     return info;
 }

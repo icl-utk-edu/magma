@@ -48,7 +48,7 @@ init_butterfly(
 
     Arguments
     ---------
-    
+
     @param[in]
     gen     magma_bool_t
      -         = MagmaTrue:     new matrices are generated for U and V
@@ -124,7 +124,7 @@ magma_zgerbt_batched(
 {
     magmaDoubleComplex *du, *dv;
     magma_int_t i;
-    
+
     /* Function Body */
     *info = 0;
     if ( ! (gen == MagmaTrue) &&
@@ -172,10 +172,7 @@ magma_zgerbt_batched(
     magmablas_zprbt_batched(n, dA_array, ldda, du, dv, batchCount, queue);
 
     /* Compute U^T.b on the GPU*/
-
-    // TODO fix for multiple RHS
-    for (i= 0; i < nrhs; i++)
-        magmablas_zprbt_mtv_batched(n, du, dB_array, batchCount, queue);
+    magmablas_zprbt_mtv_batched(n, nrhs, du, dB_array, lddb, batchCount, queue);
 
     magma_free( du );
     magma_free( dv );

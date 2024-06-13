@@ -877,14 +877,14 @@ magmablas_zprbt_batched(
 
 void
 magmablas_zprbt_mv_batched(
-    magma_int_t n,
-    magmaDoubleComplex *dv, magmaDoubleComplex **db_array,
+    magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex *dv, magmaDoubleComplex **db_array, magma_int_t lddb,
     magma_int_t batchCount, magma_queue_t queue);
 
 void
 magmablas_zprbt_mtv_batched(
-    magma_int_t n,
-    magmaDoubleComplex *du, magmaDoubleComplex **db_array,
+    magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex *du, magmaDoubleComplex **db_array, magma_int_t lddb,
     magma_int_t batchCount, magma_queue_t queue);
 
 void

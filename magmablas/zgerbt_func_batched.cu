@@ -44,8 +44,8 @@
 *******************************************************************************/
 extern "C" void
 magmablas_zprbt_mtv_batched(
-    magma_int_t n,
-    magmaDoubleComplex *du, magmaDoubleComplex **db_array,
+    magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex *du, magmaDoubleComplex **db_array, magma_int_t lddb,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t threads = block_length;
@@ -55,12 +55,12 @@ magmablas_zprbt_mtv_batched(
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 grid( magma_ceildiv( n, 4*block_length ), ibatch);
 
-        magmablas_zapply_transpose_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n/2, du, n, db_array+i, 0);
-        magmablas_zapply_transpose_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n/2, du, n+n/2, db_array+i, n/2);
+        magmablas_zapply_transpose_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n/2, nrhs, du,     n, db_array+i, lddb,   0);
+        magmablas_zapply_transpose_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n/2, nrhs, du, n+n/2, db_array+i, lddb, n/2);
 
         threads = block_length;
-        grid = magma_ceildiv( n, 2*block_length );
-        magmablas_zapply_transpose_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n, du, 0, db_array+i, 0);
+        grid.x = magma_ceildiv( n, 2*block_length );
+        magmablas_zapply_transpose_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n, nrhs, du, 0, db_array+i, lddb, 0);
     }
 }
 
@@ -91,8 +91,8 @@ magmablas_zprbt_mtv_batched(
 *******************************************************************************/
 extern "C" void
 magmablas_zprbt_mv_batched(
-    magma_int_t n,
-    magmaDoubleComplex *dv, magmaDoubleComplex **db_array,
+    magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex *dv, magmaDoubleComplex **db_array, magma_int_t lddb,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t threads = block_length;
@@ -101,12 +101,12 @@ magmablas_zprbt_mv_batched(
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 grid ( magma_ceildiv( n, 2*block_length ), ibatch);
-        magmablas_zapply_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n, dv, 0, db_array+i, 0);
+        magmablas_zapply_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n, nrhs, dv, 0, db_array+i, lddb, 0);
 
         threads = block_length;
-        grid = magma_ceildiv( n, 4*block_length );
-        magmablas_zapply_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n/2, dv, n, db_array+i, 0);
-        magmablas_zapply_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n/2, dv, n+n/2, db_array+i, n/2);
+        grid.x = magma_ceildiv( n, 4*block_length );
+        magmablas_zapply_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n/2, nrhs, dv,     n, db_array+i, lddb,   0);
+        magmablas_zapply_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n/2, nrhs, dv, n+n/2, db_array+i, lddb, n/2);
     }
 }
 
