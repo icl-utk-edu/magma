@@ -119,9 +119,7 @@ magma_zgesv_rbt_batched(
         return info;
     }
 
-
-
-    info = magma_zgerbt_batched(MagmaTrue, n, nrhs, dA_array, n, dB_array, n, hu, hv, &info, batchCount, queue);
+    info = magma_zgerbt_batched(MagmaTrue, n, nrhs, dA_array, ldda, dB_array, lddb, hu, hv, &info, batchCount, queue);
     if (info != MAGMA_SUCCESS)  {
         return info;
     }

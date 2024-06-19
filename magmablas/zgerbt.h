@@ -27,6 +27,13 @@ magmablas_zelementary_multiplication_kernel(
     magmaDoubleComplex *dv, magma_int_t offsetv);
 
 __global__ void
+magmablas_zelementary_multiplication_v2_kernel_batched(
+    int Am, int An,
+    magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+    magmaDoubleComplex *du, magma_int_t Ui,
+    magmaDoubleComplex *dv, magma_int_t Vi);
+
+__global__ void
 magmablas_zapply_vector_kernel(
     magma_int_t n,
     magmaDoubleComplex *du, magma_int_t offsetu,  magmaDoubleComplex *db, magma_int_t offsetb );
