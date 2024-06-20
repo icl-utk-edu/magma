@@ -37,7 +37,6 @@ zlanhe_inf_kernel_lower(
     int n_full_block, int n_mod_bs , sycl::nd_item<3> item_ct1,
     sycl::local_accessor<magmaDoubleComplex, 2> la)
 {
-#if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c))
     int tx = item_ct1.get_local_id(2);
     int ty = item_ct1.get_local_id(1);
 
@@ -305,7 +304,6 @@ zlanhe_inf_kernel_lower(
             dwork[ind] = res;
         }
     }
-#endif /* (PRECISION_s || PRECISION_d || PRECISION_c */
 }
 
 
@@ -327,7 +325,6 @@ zlanhe_inf_kernel_upper(
     int n_full_block, int n_mod_bs , sycl::nd_item<3> item_ct1,
     sycl::local_accessor<magmaDoubleComplex, 2> la)
 {
-#if (defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c))
     int tx = item_ct1.get_local_id(2);
     int ty = item_ct1.get_local_id(1);
 
@@ -610,7 +607,6 @@ zlanhe_inf_kernel_upper(
             dwork[ind] = res;
         }
     }
-#endif /* (PRECISION_s || PRECISION_d || PRECISION_c */
 }
 
 
@@ -828,14 +824,9 @@ magmablas_zlanhe(
     bool inf_norm = (norm == MagmaInfNorm || norm == MagmaOneNorm);
     bool max_norm = (norm == MagmaMaxNorm);
     
-    // inf_norm Double-Complex requires > 16 KB shared data (arch >= 200)
-//    #if defined(PRECISION_z)
-//    const bool inf_implemented = (magma_getdevice_arch() >= 200);
-//    #else
-//    const bool inf_implemented = true;
-//    #endif
+    const bool inf_implemented = true;
    
-    if ( ! (max_norm || (inf_norm))) // && inf_implemented)) ) 
+    if ( ! (max_norm || (inf_norm)))
         info = -1;
     else if ( uplo != MagmaUpper && uplo != MagmaLower )
         info = -2;
