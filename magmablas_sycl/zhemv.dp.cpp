@@ -64,8 +64,6 @@ zhemv_kernel_L(
     sycl::local_accessor<magmaDoubleComplex, 2> sA,
     magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj)
 {
-#if defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c)
-
     // treats sA as 16x64 block
     #define sA16(i_, j_) (sA[(i_)][(j_)])  // i.e., sA[ (i_)*(NB_X+3) + (j_) ]
     
@@ -111,10 +109,6 @@ zhemv_kernel_L(
             sx_blk[tx] = x[0];
         }
         else {
-            /*
-            DPCT1064:910: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             sx_blk[tx] = MAGMA_Z_ZERO;
         }
     }
@@ -265,10 +259,6 @@ zhemv_kernel_L(
     item_ct1.barrier();
 
     // multiply 32x32 diag block * x
-    /*
-    DPCT1064:911: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     psum = MAGMA_Z_ZERO;
 #pragma unroll
     for (int j=0; j < 4; j++) {
@@ -321,11 +311,6 @@ zhemv_kernel_L(
                 sA32(tx2, ty2 + j) = A[j*lda];
             }
             else {
-                /*
-                DPCT1064:912: Migrated make_cuDoubleComplex call is used in a
-                macro definition and is not valid for all macro uses. Adjust the
-                code.
-                */
                 sA32(tx2, ty2 + j) = MAGMA_Z_ZERO;
             }
         }
@@ -355,10 +340,6 @@ zhemv_kernel_L(
     //__syncthreads();  // no sync needed here
 
     // multiply transposed 32x32 block (above diag)
-    /*
-    DPCT1064:913: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     psum_t = MAGMA_Z_ZERO;
 #pragma unroll
     for (int j=0; j < 4; j++) {
@@ -482,10 +463,6 @@ zhemv_kernel_L(
             // use 16x16 thread grid (tx4, ty4) instead of 64x4 (tx, ty)
             // sum sixteen 16x4 sections in parallel:
             // columns 0,4,8,...,60; then 1,5,...,61; then 2,6,...,62; then 3,7,...,63
-            /*
-            DPCT1064:919: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             psum_t = MAGMA_Z_ZERO;
 #pragma unroll
             for (int j=0; j < 4; j++) {
@@ -559,7 +536,6 @@ zhemv_kernel_L(
               + sA16(3, tx);
         work[blk*NB_X + tx] = total;  // store at work( blk*NB_X + tx, blk )
     }
-#endif  /* PRECISION_[sdc]*/
 }
 // end zhemv_kernel_L
 
@@ -596,10 +572,6 @@ zhemv_kernel_L_sum(
     // Don't write outside [0, ..., n)
     if ( ind < n ) {
         work += ind + blk*lda;
-        /*
-        DPCT1064:920: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         magmaDoubleComplex Ax = MAGMA_Z_ZERO;
         for (int j = blk; j < blocks; ++j) {
             Ax += work[0];
@@ -761,10 +733,6 @@ magmablas_zhemv_work(
     /*
      * Quick return if possible.
      */
-    /*
-    DPCT1064:921: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     if ((n == 0) || (MAGMA_Z_EQUAL(alpha, MAGMA_Z_ZERO) &&
                      MAGMA_Z_EQUAL(beta, MAGMA_Z_ONE)))
         return info;
@@ -956,10 +924,6 @@ magmablas_zhemv(
     /*
      * Quick return if possible.
      */
-    /*
-    DPCT1064:926: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     if ((n == 0) || (MAGMA_Z_EQUAL(alpha, MAGMA_Z_ZERO) &&
                      MAGMA_Z_EQUAL(beta, MAGMA_Z_ONE)))
         return info;
