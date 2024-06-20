@@ -60,8 +60,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
         sA,
     magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj)
 {
-#if defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c)
-
     // treats sA as 16x64 block
     #define sA16(i_, j_) (sA[(i_)][(j_)])  // i.e., sA[ (i_)*(NB_X+3) + (j_) ]
     
@@ -137,11 +135,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
                     sA32(tx2, ty2 + j) = A[j*lda];
                 }
                 else {
-                    /*
-                    DPCT1064:980: Migrated make_cuDoubleComplex call is used in
-                    a macro definition and is not valid for all macro uses.
-                    Adjust the code.
-                    */
                     sA32(tx2, ty2 + j) = MAGMA_Z_ZERO;
                 }
             }
@@ -180,10 +173,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
 
         // multiply 32x32 diag block * x
         // each thread does partial row sA(tx2, ty2*4 : ty2*4 + 3)
-        /*
-        DPCT1064:981: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         psum = MAGMA_Z_ZERO;
 #pragma unroll
         for (int j=0; j < 4; j++) {
@@ -234,11 +223,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
                     sA32(tx2, ty2 + j) = A[j*lda];
                 }
                 else {
-                    /*
-                    DPCT1064:982: Migrated make_cuDoubleComplex call is used in
-                    a macro definition and is not valid for all macro uses.
-                    Adjust the code.
-                    */
                     sA32(tx2, ty2 + j) = MAGMA_Z_ZERO;
                 }
             }
@@ -274,10 +258,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
         item_ct1.barrier();
 
         // multiply 32x32 diag block * x
-        /*
-        DPCT1064:983: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         psum = MAGMA_Z_ZERO;
 #pragma unroll
         for (int j=0; j < 4; j++) {
@@ -330,11 +310,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
                     sA32(tx2, ty2 + j) = A[j*lda];
                 }
                 else {
-                    /*
-                    DPCT1064:984: Migrated make_cuDoubleComplex call is used in
-                    a macro definition and is not valid for all macro uses.
-                    Adjust the code.
-                    */
                     sA32(tx2, ty2 + j) = MAGMA_Z_ZERO;
                 }
             }
@@ -356,10 +331,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
         item_ct1.barrier();
 
         // multiply 32x32 block (below diag)
-        /*
-        DPCT1064:985: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         psum = MAGMA_Z_ZERO;
 #pragma unroll
         for (int j=0; j < 4; j++) {
@@ -368,10 +339,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
         //__syncthreads();  // no sync needed here
         
         // multiply transposed 32x32 block (above diag)
-        /*
-        DPCT1064:986: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         psum_t = MAGMA_Z_ZERO;
 #pragma unroll
         for (int j=0; j < 4; j++) {
@@ -468,11 +435,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
                 sx_jj[tx] = x[jj*NB_X*incx];
             }
             else {
-                /*
-                DPCT1064:990: Migrated make_cuDoubleComplex call is used in a
-                macro definition and is not valid for all macro uses. Adjust the
-                code.
-                */
                 sx_jj[tx] = MAGMA_Z_ZERO;
             }
         }
@@ -494,11 +456,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
                         rA[j] = A[j*lda];
                     }
                     else {
-                        /*
-                        DPCT1064:993: Migrated make_cuDoubleComplex call is used
-                        in a macro definition and is not valid for all macro
-                        uses. Adjust the code.
-                        */
                         rA[j] = MAGMA_Z_ZERO;
                     }
                 }
@@ -530,10 +487,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
             // use 16x16 thread grid (tx4, ty4) instead of 64x4 (tx, ty)
             // sum sixteen 16x4 sections in parallel:
             // columns 0,4,8,...,60; then 1,5,...,61; then 2,6,...,62; then 3,7,...,63
-            /*
-            DPCT1064:994: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             psum_t = MAGMA_Z_ZERO;
 #pragma unroll
             for (int j=0; j < 4; j++) {
@@ -610,7 +563,6 @@ SYCL_EXTERNAL void zhemv_kernel_U_mgpu(
               + sA16(3, tx);
         work[blk*NB_X + tx] = total;  //MAGMA_Z_MAKE( tx, blk );  // store at work( blk*NB_X + tx, blk )
     }
-#endif  /* PRECISION_[sdc]*/
 }
 // end zhemv_kernel_U_mgpu
 
@@ -674,10 +626,6 @@ zhemv_kernel_U_mgpu_sum(int n, magmaDoubleComplex alpha, int lda,
 
     // Don't write outside [block_offset, ..., n+block_offset)
     if ( ind >= block_offset && ind < n+block_offset ) {
-        /*
-        DPCT1064:995: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         magmaDoubleComplex Ax = MAGMA_Z_ZERO;
         work += ind;
         // if this GPU owns block-column blk, all blocks j=[0, ..., blk] contain data;

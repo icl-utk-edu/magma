@@ -65,8 +65,6 @@ zsymv_kernel_L(
     sycl::local_accessor<magmaDoubleComplex, 2> sA,
     magmaDoubleComplex *sx_blk, magmaDoubleComplex *sx_jj)
 {
-#if defined(PRECISION_s) || defined(PRECISION_d) || defined(PRECISION_c)
-
     // treats sA as 16x64 block
     #define sA16(i_, j_) (sA[(i_)][(j_)])  // i.e., sA[ (i_)*(NB_X+3) + (j_) ]
     
@@ -112,10 +110,6 @@ zsymv_kernel_L(
             sx_blk[tx] = x[0];
         }
         else {
-            /*
-            DPCT1064:1356: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             sx_blk[tx] = MAGMA_Z_ZERO;
         }
     }
@@ -470,10 +464,6 @@ zsymv_kernel_L(
             // use 16x16 thread grid (tx4, ty4) instead of 64x4 (tx, ty)
             // sum sixteen 16x4 sections in parallel:
             // columns 0,4,8,...,60; then 1,5,...,61; then 2,6,...,62; then 3,7,...,63
-            /*
-            DPCT1064:1362: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
             psum_t = MAGMA_Z_ZERO;
 #pragma unroll
             for (int j=0; j < 4; j++) {
@@ -547,7 +537,6 @@ zsymv_kernel_L(
               + sA16(3, tx);
         work[blk*NB_X + tx] = total;  // store at work( blk*NB_X + tx, blk )
     }
-#endif  /* PRECISION_[sdc]*/
 }
 // end zsymv_kernel_L
 
@@ -584,10 +573,6 @@ zsymv_kernel_L_sum(
     // Don't write outside [0, ..., n)
     if ( ind < n ) {
         work += ind + blk*lda;
-        /*
-        DPCT1064:1363: Migrated make_cuDoubleComplex call is used in a macro
-        definition and is not valid for all macro uses. Adjust the code.
-        */
         magmaDoubleComplex Ax = MAGMA_Z_ZERO;
         for (int j = blk; j < blocks; ++j) {
             Ax += work[0];
@@ -752,10 +737,6 @@ magmablas_zsymv_work(
     /*
      * Quick return if possible.
      */
-    /*
-    DPCT1064:1364: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     if ((n == 0) || (MAGMA_Z_EQUAL(alpha, MAGMA_Z_ZERO) &&
                      MAGMA_Z_EQUAL(beta, MAGMA_Z_ONE)))
         return info;
@@ -947,10 +928,6 @@ magmablas_zsymv(
     /*
      * Quick return if possible.
      */
-    /*
-    DPCT1064:1369: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     if ((n == 0) || (MAGMA_Z_EQUAL(alpha, MAGMA_Z_ZERO) &&
                      MAGMA_Z_EQUAL(beta, MAGMA_Z_ONE)))
         return info;
