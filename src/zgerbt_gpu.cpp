@@ -44,13 +44,13 @@ init_butterfly(
 
     Arguments
     ---------
-    
+
     @param[in]
     gen     magma_bool_t
      -         = MagmaTrue:     new matrices are generated for U and V
      -         = MagmaFalse:    matrices U and V given as parameter are used
 
-    
+
     @param[in]
     n       INTEGER
             The order of the matrix A.  n >= 0.
@@ -108,7 +108,7 @@ magma_zgerbt_gpu(
     magma_int_t *info)
 {
     #define dB(i_, j_) (dB + (i_) + (j_)*lddb)
-    
+
     /* Function Body */
     *info = 0;
     if ( ! (gen == MagmaTrue) &&
@@ -149,7 +149,7 @@ magma_zgerbt_gpu(
     magma_device_t cdev;
     magma_getdevice( &cdev );
     magma_queue_create( cdev, &queue );
-    
+
     /* Initialize Butterfly matrix on the CPU */
     if (gen == MagmaTrue)
         init_butterfly( 2*n, U, V );
@@ -162,9 +162,7 @@ magma_zgerbt_gpu(
     magmablas_zprbt( n, dA, ldda, dU, dV, queue );
 
     /* Compute U^T * b on the GPU*/
-    for (j= 0; j < nrhs; j++) {
-        magmablas_zprbt_mtv( n, dU, dB(0,j), queue );
-    }
+    magmablas_zprbt_mtv(n, nrhs, dU, dB, lddb, queue);
 
     magma_queue_destroy( queue );
     magma_free( dU );

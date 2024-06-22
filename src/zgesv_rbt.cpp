@@ -56,7 +56,7 @@
     B       COMPLEX_16 array, dimension (LDB,NRHS)
             On entry, the right hand side matrix B.
             On exit, the solution matrix X.
-    
+
     @param[in]
     ldb     INTEGER
             The leading dimension of the array B.  LDB >= max(1,N).
@@ -78,14 +78,14 @@ magma_zgesv_rbt(
     /* Constants */
     const magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
     const magmaDoubleComplex c_one  = MAGMA_Z_ONE;
-    
+
     /* Local variables */
     magma_int_t nn = magma_roundup( n, 4 );  // n + ((4-(n % 4))%4);
     magmaDoubleComplex *hu=NULL, *hv=NULL;
     magmaDoubleComplex_ptr dA=NULL, dB=NULL, dAo=NULL, dBo=NULL, dwork=NULL, dv=NULL;
     magma_int_t i, iter;
     magma_queue_t queue=NULL;
-    
+
     /* Function Body */
     *info = 0;
     if ( ! (refine == MagmaTrue) &&
@@ -137,7 +137,7 @@ magma_zgesv_rbt(
     magma_device_t cdev;
     magma_getdevice( &cdev );
     magma_queue_create( cdev, &queue );
-    
+
     magmablas_zlaset( MagmaFull, nn, nn, c_zero, c_one, dA, nn, queue );
 
     /* Send matrix to the GPU */
@@ -171,28 +171,26 @@ magma_zgesv_rbt(
     }
 
     magma_zsetvector( 2*nn, hv, 1, dv, 1, queue );
-    
-    for (i = 0; i < nrhs; i++) {
-        magmablas_zprbt_mv( nn, dv, dB+(i*nn), queue );
-    }
+
+    magmablas_zprbt_mv(nn, nrhs, dv, dB, nn, queue);
 
     magma_zgetmatrix( n, nrhs, dB, nn, B, ldb, queue );
 
 cleanup:
     magma_queue_destroy( queue );
-    
+
     magma_free_cpu( hu );
     magma_free_cpu( hv );
 
     magma_free( dA );
     magma_free( dv );
     magma_free( dB );
-    
+
     if (refine == MagmaTrue) {
         magma_free( dAo );
         magma_free( dBo );
         magma_free( dwork );
     }
-    
+
     return *info;
 }

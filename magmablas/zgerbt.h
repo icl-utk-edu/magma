@@ -21,46 +21,53 @@
 
 __global__ void
 magmablas_zelementary_multiplication_kernel(
-    magma_int_t n,
-    magmaDoubleComplex *dA, magma_int_t offsetA, magma_int_t ldda,
-    magmaDoubleComplex *du, magma_int_t offsetu,
-    magmaDoubleComplex *dv, magma_int_t offsetv);
+    int n,
+    magmaDoubleComplex *dA, int offsetA, int ldda,
+    magmaDoubleComplex *du, int offsetu,
+    magmaDoubleComplex *dv, int offsetv);
 
 __global__ void
-magmablas_zelementary_multiplication_v2_kernel_batched(
+magmablas_zelementary_multiplication_v2_kernel(
     int Am, int An,
-    magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
-    magmaDoubleComplex *du, magma_int_t Ui,
-    magmaDoubleComplex *dv, magma_int_t Vi);
+    magmaDoubleComplex *dA, int Ai, int Aj, int ldda,
+    magmaDoubleComplex *du, int Ui,
+    magmaDoubleComplex *dv, int Vi);
 
 __global__ void
 magmablas_zapply_vector_kernel(
-    magma_int_t n,
-    magmaDoubleComplex *du, magma_int_t offsetu,  magmaDoubleComplex *db, magma_int_t offsetb );
+    int n, int nrhs,
+    magmaDoubleComplex *du, int offsetu,  magmaDoubleComplex *db, int lddb, int offsetb );
 
 __global__ void
 magmablas_zapply_transpose_vector_kernel(
-    magma_int_t n,
-    magmaDoubleComplex *du, magma_int_t offsetu, magmaDoubleComplex *db, magma_int_t offsetb );
+    int n, int rhs,
+    magmaDoubleComplex *du, int offsetu, magmaDoubleComplex *db, int lddb, int offsetb );
 
 // =============================================================================
 // batched prototypes
 
 __global__ void
 magmablas_zelementary_multiplication_kernel_batched(
-    magma_int_t n,
-    magmaDoubleComplex **dA_array, magma_int_t offsetA, magma_int_t ldda,
-    magmaDoubleComplex *du, magma_int_t offsetu,
-    magmaDoubleComplex *dv, magma_int_t offsetv);
+    int n,
+    magmaDoubleComplex **dA_array, int offsetA, int ldda,
+    magmaDoubleComplex *du, int offsetu,
+    magmaDoubleComplex *dv, int offsetv);
+
+__global__ void
+magmablas_zelementary_multiplication_v2_kernel_batched(
+    int Am, int An,
+    magmaDoubleComplex **dA_array, int Ai, int Aj, int ldda,
+    magmaDoubleComplex *du, int Ui,
+    magmaDoubleComplex *dv, int Vi);
 
 __global__ void
 magmablas_zapply_vector_kernel_batched(
-    magma_int_t n, magma_int_t nrhs,
-    magmaDoubleComplex *du, magma_int_t offsetu, magmaDoubleComplex **db_array, magma_int_t lddb, magma_int_t offsetb );
+    int n, int nrhs,
+    magmaDoubleComplex *du, int offsetu, magmaDoubleComplex **db_array, int lddb, int offsetb );
 
 __global__ void
 magmablas_zapply_transpose_vector_kernel_batched(
-    magma_int_t n, magma_int_t nrhs,
-    magmaDoubleComplex *du, magma_int_t offsetu, magmaDoubleComplex **db_array, magma_int_t lddb, magma_int_t offsetb );
+    int n, int nrhs,
+    magmaDoubleComplex *du, int offsetu, magmaDoubleComplex **db_array, int lddb, int offsetb );
 
 #endif // ZGERBT_H

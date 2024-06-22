@@ -127,7 +127,7 @@ magma_zgerbt_batched(
     /* Function Body */
     *info = 0;
     if ( ! (gen == MagmaTrue) &&
-            ! (gen == MagmaFalse) ) {
+         ! (gen == MagmaFalse) ) {
         *info = -1;
     }
     else if (n < 0) {

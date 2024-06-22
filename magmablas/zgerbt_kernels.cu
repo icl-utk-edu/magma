@@ -22,12 +22,12 @@
 /******************************************************************************/
 static __device__ void
 magmablas_zelementary_multiplication_devfunc(
-    magma_int_t n,
-    magmaDoubleComplex *dA, magma_int_t ldda,
+    int n,
+    magmaDoubleComplex *dA, int ldda,
     magmaDoubleComplex *du,
     magmaDoubleComplex *dv)
 {
-    magma_int_t idx, idy;
+    int idx, idy;
 
     idx = blockIdx.x * blockDim.x + threadIdx.x;
     idy = blockIdx.y * blockDim.y + threadIdx.y;
@@ -137,10 +137,10 @@ magmablas_zelementary_multiplication_v2_devfunc(
 /******************************************************************************/
 __global__ void
 magmablas_zelementary_multiplication_kernel(
-    magma_int_t n,
-    magmaDoubleComplex *dA, magma_int_t offsetA, magma_int_t ldda,
-    magmaDoubleComplex *du, magma_int_t offsetu,
-    magmaDoubleComplex *dv, magma_int_t offsetv)
+    int n,
+    magmaDoubleComplex *dA, int offsetA, int ldda,
+    magmaDoubleComplex *du, int offsetu,
+    magmaDoubleComplex *dv, int offsetv)
 {
     magmablas_zelementary_multiplication_devfunc( n, dA+offsetA, ldda, du+offsetu, dv+offsetv );
 }
@@ -149,10 +149,10 @@ magmablas_zelementary_multiplication_kernel(
 /******************************************************************************/
 __global__ void
 magmablas_zelementary_multiplication_kernel_batched(
-    magma_int_t n,
-    magmaDoubleComplex **dA_array, magma_int_t offsetA, magma_int_t ldda,
-    magmaDoubleComplex *du, magma_int_t offsetu,
-    magmaDoubleComplex *dv, magma_int_t offsetv)
+    int n,
+    magmaDoubleComplex **dA_array, int offsetA, int ldda,
+    magmaDoubleComplex *du, int offsetu,
+    magmaDoubleComplex *dv, int offsetv)
 {
     int batchid = blockIdx.z;
     magmablas_zelementary_multiplication_devfunc( n, dA_array[batchid]+offsetA, ldda, du+offsetu, dv+offsetv );
@@ -161,11 +161,23 @@ magmablas_zelementary_multiplication_kernel_batched(
 
 /******************************************************************************/
 __global__ void
+magmablas_zelementary_multiplication_v2_kernel(
+    int Am, int An,
+    magmaDoubleComplex *dA, int Ai, int Aj, int ldda,
+    magmaDoubleComplex *du, int Ui,
+    magmaDoubleComplex *dv, int Vi)
+{
+    magmablas_zelementary_multiplication_v2_devfunc( Am, An, dA, Ai, Aj, ldda, du, Ui, dv, Vi );
+}
+
+
+/******************************************************************************/
+__global__ void
 magmablas_zelementary_multiplication_v2_kernel_batched(
     int Am, int An,
-    magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
-    magmaDoubleComplex *du, magma_int_t Ui,
-    magmaDoubleComplex *dv, magma_int_t Vi)
+    magmaDoubleComplex **dA_array, int Ai, int Aj, int ldda,
+    magmaDoubleComplex *du, int Ui,
+    magmaDoubleComplex *dv, int Vi)
 {
     int batchid = blockIdx.z;
     magmablas_zelementary_multiplication_v2_devfunc( Am, An, dA_array[batchid], Ai, Aj, ldda, du, Ui, dv, Vi );
@@ -175,7 +187,7 @@ magmablas_zelementary_multiplication_v2_kernel_batched(
 /******************************************************************************/
 static __device__ void
 magmablas_zapply_vector_devfunc(
-    magma_int_t n,
+    int n,
     magmaDoubleComplex *du, magmaDoubleComplex *db)
 {
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -201,18 +213,20 @@ magmablas_zapply_vector_devfunc(
 /******************************************************************************/
 __global__ void
 magmablas_zapply_vector_kernel(
-    magma_int_t n,
-    magmaDoubleComplex *du, magma_int_t offsetu,  magmaDoubleComplex *db, magma_int_t offsetb )
+    int n, int nrhs,
+    magmaDoubleComplex *du, int offsetu, magmaDoubleComplex *db, int lddb, int offsetb)
 {
-    magmablas_zapply_vector_devfunc(n, du+offsetu, db+offsetb);
+    for(int i = 0; i < nrhs; i++) {
+        magmablas_zapply_vector_devfunc(n, du+offsetu, db + i*lddb + offsetb);
+    }
 }
 
 
 /******************************************************************************/
 __global__ void
 magmablas_zapply_vector_kernel_batched(
-    magma_int_t n, magma_int_t nrhs,
-    magmaDoubleComplex *du, magma_int_t offsetu, magmaDoubleComplex **db_array, magma_int_t lddb, magma_int_t offsetb )
+    int n, int nrhs,
+    magmaDoubleComplex *du, int offsetu, magmaDoubleComplex **db_array, int lddb, int offsetb )
 {
     int batchid = blockIdx.y;
     for(int i = 0; i < nrhs; i++) {
@@ -224,7 +238,7 @@ magmablas_zapply_vector_kernel_batched(
 /******************************************************************************/
 static __device__ void
 magmablas_zapply_transpose_vector_devfunc(
-    magma_int_t n,
+    int n,
     magmaDoubleComplex *du,magmaDoubleComplex *db )
 {
     const int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -250,18 +264,20 @@ magmablas_zapply_transpose_vector_devfunc(
 /******************************************************************************/
 __global__ void
 magmablas_zapply_transpose_vector_kernel(
-    magma_int_t n,
-    magmaDoubleComplex *du, magma_int_t offsetu, magmaDoubleComplex *db, magma_int_t offsetb )
+    int n, int nrhs,
+    magmaDoubleComplex *du, int offsetu, magmaDoubleComplex *db, int lddb, int offsetb )
 {
-    magmablas_zapply_transpose_vector_devfunc(n, du+offsetu, db+offsetb);
+    for(int i = 0; i < nrhs; i++) {
+        magmablas_zapply_transpose_vector_devfunc(n, du+offsetu, db+ i*lddb + offsetb);
+    }
 }
 
 
 /******************************************************************************/
 __global__ void
 magmablas_zapply_transpose_vector_kernel_batched(
-    magma_int_t n, magma_int_t nrhs,
-    magmaDoubleComplex *du, magma_int_t offsetu, magmaDoubleComplex **db_array, magma_int_t lddb, magma_int_t offsetb )
+    int n, int nrhs,
+    magmaDoubleComplex *du, int offsetu, magmaDoubleComplex **db_array, int lddb, int offsetb )
 {
     int batchid = blockIdx.y;
     for(int i = 0; i < nrhs; i++) {
