@@ -107,7 +107,7 @@ magmablas_zelementary_multiplication_kernel_batched(
     magmaDoubleComplex *dv, int Vi)
 {
     int batchid = blockIdx.z;
-    magmablas_zelementary_multiplication_v2_devfunc( Am, An, dA_array[batchid], Ai, Aj, ldda, du, Ui, dv, Vi );
+    magmablas_zelementary_multiplication_devfunc( Am, An, dA_array[batchid], Ai, Aj, ldda, du, Ui, dv, Vi );
 }
 
 
