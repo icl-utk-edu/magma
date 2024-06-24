@@ -21,13 +21,6 @@
 
 __global__ void
 magmablas_zelementary_multiplication_kernel(
-    int n,
-    magmaDoubleComplex *dA, int offsetA, int ldda,
-    magmaDoubleComplex *du, int offsetu,
-    magmaDoubleComplex *dv, int offsetv);
-
-__global__ void
-magmablas_zelementary_multiplication_v2_kernel(
     int Am, int An,
     magmaDoubleComplex *dA, int Ai, int Aj, int ldda,
     magmaDoubleComplex *du, int Ui,
