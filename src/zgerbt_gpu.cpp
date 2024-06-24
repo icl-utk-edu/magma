@@ -133,10 +133,8 @@ magma_zgerbt_gpu(
     if (nrhs == 0 || n == 0)
         return *info;
 
-    magmaDoubleComplex_ptr dU=NULL, dV=NULL;
-    magma_int_t j;
-
     /* Allocate memory for the buterfly matrices */
+    magmaDoubleComplex_ptr dU=NULL, dV=NULL;
     if (MAGMA_SUCCESS != magma_zmalloc( &dU, 2*n ) ||
         MAGMA_SUCCESS != magma_zmalloc( &dV, 2*n )) {
         magma_free( dU );

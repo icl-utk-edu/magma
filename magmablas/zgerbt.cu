@@ -22,12 +22,17 @@
     Purpose
     -------
     ZPRBT_MVT compute B = UTB to randomize B
+    B is a matrix of size n x nrhs. Each column of B is randomized independently.
 
     Arguments
     ---------
     @param[in]
     n       INTEGER
-            The number of values of db.  n >= 0.
+            The number of rows of db.  n >= 0.
+
+    @param[in]
+    nrhs    INTEGER
+            The number of columns of db.  nrhs >= 0.
 
     @param[in]
     du     COMPLEX_16 array, dimension (n,2)
@@ -37,6 +42,10 @@
     db     COMPLEX_16 array, dimension (n)
             The n vector db computed by ZGESV_NOPIV_GPU
             On exit db = du*db
+
+    @param[in]
+    lddb    INTEGER
+            The leading dimension of db.
 
     @param[in]
     queue   magma_queue_t
@@ -60,21 +69,6 @@ magmablas_zprbt_mtv(
     threads = block_length;
     grid = magma_ceildiv( n, 2*block_length );
     magmablas_zapply_transpose_vector_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n, nrhs, du, 0, db, lddb, 0);
-
-/*
-    for(int i = 0; i < batchCount; i+=max_batchCount) {
-        magma_int_t ibatch = min(max_batchCount, batchCount-i);
-        dim3 grid( magma_ceildiv( n, 4*block_length ), ibatch);
-
-        magmablas_zapply_transpose_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n1, nrhs, du,    n, db_array+i, lddb,  0);
-        magmablas_zapply_transpose_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n2, nrhs, du, n+n1, db_array+i, lddb, n1);
-
-        threads = block_length;
-        grid.x = magma_ceildiv( n, 2*block_length );
-        magmablas_zapply_transpose_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n, nrhs, du, 0, db_array+i, lddb, 0);
-    }
-
-*/
 }
 
 
@@ -82,6 +76,7 @@ magmablas_zprbt_mtv(
     Purpose
     -------
     ZPRBT_MV compute B = VB to obtain the non randomized solution
+    B is a matrix of size n x nrhs. Each column of B is recovered independently.
 
     Arguments
     ---------
@@ -89,14 +84,22 @@ magmablas_zprbt_mtv(
     n       INTEGER
             The number of values of db.  n >= 0.
 
+    @param[in]
+    nrhs    INTEGER
+            The number of columns of db.  nrhs >= 0.
+
+    @param[in]
+    dv      COMPLEX_16 array, dimension (n,2)
+            The 2*n vector representing the random butterfly matrix V
+
     @param[in,out]
     db      COMPLEX_16 array, dimension (n)
             The n vector db computed by ZGESV_NOPIV_GPU
             On exit db = dv*db
 
     @param[in]
-    dv      COMPLEX_16 array, dimension (n,2)
-            The 2*n vector representing the random butterfly matrix V
+    lddb    INTEGER
+            The leading dimension of db.
 
     @param[in]
     queue   magma_queue_t
@@ -119,22 +122,8 @@ magmablas_zprbt_mv(
     threads = block_length;
     grid = magma_ceildiv( n, 4*block_length );
 
-    magmablas_zapply_vector_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n1, dv,    n, db, lddb,  0);
-    magmablas_zapply_vector_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n2, dv, n+n1, db, lddb, n1);
-
-/*
-    for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
-        magma_int_t ibatch = min(max_batchCount, batchCount-i);
-        dim3 grid ( magma_ceildiv( n, 2*block_length ), ibatch);
-        magmablas_zapply_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n, nrhs, dv, 0, db_array+i, lddb, 0);
-
-        threads = block_length;
-        grid.x = magma_ceildiv( n, 4*block_length );
-        magmablas_zapply_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n1, nrhs, dv,    n, db_array+i, lddb,  0);
-        magmablas_zapply_vector_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>(n2, nrhs, dv, n+n1, db_array+i, lddb, n1);
-    }
-
-*/
+    magmablas_zapply_vector_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n1, nrhs, dv,    n, db, lddb,  0);
+    magmablas_zapply_vector_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n2, nrhs, dv, n+n1, db, lddb, n1);
 }
 
 
@@ -187,27 +176,13 @@ magmablas_zprbt(
     dim3 grid( magma_ceildiv( n, 4*block_height ),
                magma_ceildiv( n, 4*block_width  ));
 
-    magmablas_zelementary_multiplication_v2_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n1, n1, dA,  0,  0, ldda, du,  0, dv,  0);
-    magmablas_zelementary_multiplication_v2_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n1, n2, dA,  0, n1, ldda, du,  0, dv, n1);
-    magmablas_zelementary_multiplication_v2_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n2, n1, dA, n1,  0, ldda, du, n1, dv,  0);
-    magmablas_zelementary_multiplication_v2_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n2, n2, dA, n1, n1, ldda, du, n1, dv, n1);
+    magmablas_zelementary_multiplication_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n1, n1, dA,  0,  0, ldda, du,  0, dv,  0);
+    magmablas_zelementary_multiplication_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n1, n2, dA,  0, n1, ldda, du,  0, dv, n1);
+    magmablas_zelementary_multiplication_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n2, n1, dA, n1,  0, ldda, du, n1, dv,  0);
+    magmablas_zelementary_multiplication_kernel<<< grid, threads, 0, queue->cuda_stream() >>>(n2, n2, dA, n1, n1, ldda, du, n1, dv, n1);
 
     dim3 threads2(block_height, block_width);
     dim3 grid2( magma_ceildiv( n, 2*block_height ),
                 magma_ceildiv( n, 2*block_width  ));
-    magmablas_zelementary_multiplication_v2_kernel<<< grid2, threads2, 0, queue->cuda_stream() >>>(n, n, dA, 0, 0, ldda, du, -n, dv, -n);
-
-/*
-        if(n > 0) {
-        magmablas_zelementary_multiplication_v2_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>( n1, n1, dA_array+i,  0,  0, ldda, du,  0, dv,  0);
-        magmablas_zelementary_multiplication_v2_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>( n1, n2, dA_array+i,  0, n1, ldda, du,  0, dv, n1);
-        magmablas_zelementary_multiplication_v2_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>( n2, n1, dA_array+i, n1,  0, ldda, du, n1, dv,  0);
-        magmablas_zelementary_multiplication_v2_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>( n2, n2, dA_array+i, n1, n1, ldda, du, n1, dv, n1);
-        }
-
-        dim3 grid2( magma_ceildiv( n, 2*block_height ), magma_ceildiv( n, 2*block_width  ), ibatch );
-        if(n > 0) {
-        magmablas_zelementary_multiplication_v2_kernel_batched<<< grid2, threads2, 0, queue->cuda_stream() >>>( n, n, dA_array+i, 0, 0, ldda, du, -n, dv, -n);
-        }
-*/
+    magmablas_zelementary_multiplication_kernel<<< grid2, threads2, 0, queue->cuda_stream() >>>(n, n, dA, 0, 0, ldda, du, -n, dv, -n);
 }

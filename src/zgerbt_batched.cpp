@@ -77,7 +77,7 @@ init_butterfly(
 
     @param[in,out]
     dB_array   Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array on the GPU, dimension (LDDB,N).
+            Each is a COMPLEX_16 array on the GPU, dimension (LDDB,NRHS).
             On entry, each pointer is an right hand side matrix B.
             On exit, each pointer is the solution matrix X.
 
