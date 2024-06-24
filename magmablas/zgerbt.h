@@ -41,13 +41,6 @@ magmablas_zapply_transpose_vector_kernel(
 
 __global__ void
 magmablas_zelementary_multiplication_kernel_batched(
-    int n,
-    magmaDoubleComplex **dA_array, int offsetA, int ldda,
-    magmaDoubleComplex *du, int offsetu,
-    magmaDoubleComplex *dv, int offsetv);
-
-__global__ void
-magmablas_zelementary_multiplication_v2_kernel_batched(
     int Am, int An,
     magmaDoubleComplex **dA_array, int Ai, int Aj, int ldda,
     magmaDoubleComplex *du, int Ui,
