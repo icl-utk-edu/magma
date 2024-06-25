@@ -67,17 +67,42 @@ subroutine magmablasf_dprbt( n, dA, ldda, du, dv, queue )
     magma_devptr_t   :: queue
 end
 
-subroutine magmablasf_dprbt_mv( n, dv, db, queue )
+subroutine magmablasf_dprbt_mv( n, nrhs, dv, db, lddb, queue )
     integer          :: n
+    integer          :: nrhs
     magma_devptr_t   :: dv
     magma_devptr_t   :: db
+    integer          :: lddb
     magma_devptr_t   :: queue
 end
 
-subroutine magmablasf_dprbt_mtv( n, du, db, queue )
+subroutine magmablasf_dprbt_mtv( n, nrhs, du, db, lddb, queue )
     integer          :: n
+    integer          :: nrhs
     magma_devptr_t   :: du
     magma_devptr_t   :: db
+    integer          :: lddb
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_dsytrs_gpu( uplo, n, nrhs, dA, ldda, ipiv, dB, lddb, info, queue )
+    character        :: uplo
+    integer          :: n
+    integer          :: nrhs
+    double precision :: dA(*)
+    integer          :: ldda
+    integer          :: ipiv(*)
+    double precision :: dB(*)
+    integer          :: lddb
+    integer          :: info
+    magma_devptr_t   :: queue
+end
+
+integer function magmablasf_ddiinertia( n, dA, ldda, dneig, queue )
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: dneig(*)
     magma_devptr_t   :: queue
 end
 
@@ -101,6 +126,33 @@ subroutine magmablasf_dgeadd2( m, n, alpha, dA, ldda, beta, dB, lddb, queue )
     double precision :: beta
     magma_devptr_t   :: dB
     integer          :: lddb
+    magma_devptr_t   :: queue
+end
+
+subroutine magmablasf_dgeam( transA, transB, m, n, alpha, dA, ldda, beta, dB, lddb, dC,  &
+        lddc, queue )
+    character        :: transA
+    character        :: transB
+    integer          :: m
+    integer          :: n
+    double precision :: alpha
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    double precision :: beta
+    magma_devptr_t   :: dB
+    integer          :: lddb
+    magma_devptr_t   :: dC
+    integer          :: lddc
+    magma_devptr_t   :: queue
+end
+
+integer function magmablasf_dsiinertia( uplo, n, dA, ldda, ipiv, dneig, queue )
+    character        :: uplo
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: dneig(*)
     magma_devptr_t   :: queue
 end
 
@@ -286,6 +338,29 @@ subroutine magmablasf_dlaswpx( n, dA, ldx, ldy, k1, k2, ipiv, inci, queue )
     integer          :: k2
     integer          :: ipiv(*)
     integer          :: inci
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_dlaswp_rowparallel_native( n, input, ldi, output, ldo, k1, k2, pivinfo,  &
+        queue )
+    integer          :: n
+    double precision :: input(*)
+    integer          :: ldi
+    double precision :: output(*)
+    integer          :: ldo
+    integer          :: k1
+    integer          :: k2
+    integer          :: pivinfo(*)
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_dlaswp_columnserial( n, dA, lda, k1, k2, dipiv, queue )
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: lda
+    integer          :: k1
+    integer          :: k2
+    integer          :: dipiv(*)
     magma_devptr_t   :: queue
 end
 
@@ -801,6 +876,17 @@ integer function magmaf_idamax( n, dx, incx, queue )
     magma_devptr_t   :: queue
 end
 
+subroutine magmaf_idamax_native( length, x, incx, ipiv, info, step, gbstep, queue )
+    integer          :: length
+    magma_devptr_t   :: x
+    integer          :: incx
+    integer          :: ipiv(*)
+    integer          :: info
+    integer          :: step
+    integer          :: gbstep
+    magma_devptr_t   :: queue
+end
+
 integer function magmaf_idamin( n, dx, incx, queue )
     integer          :: n
     magma_devptr_t   :: dx
@@ -896,12 +982,32 @@ subroutine magmaf_dscal( n, alpha, dx, incx, queue )
     magma_devptr_t   :: queue
 end
 
+subroutine magmaf_dscal_dger_native( m, n, dA, lda, info, step, gbstep, queue )
+    integer          :: m
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: lda
+    integer          :: info
+    integer          :: step
+    integer          :: gbstep
+    magma_devptr_t   :: queue
+end
+
 subroutine magmaf_dswap( n, dx, incx, dy, incy, queue )
     integer          :: n
     magma_devptr_t   :: dx
     integer          :: incx
     magma_devptr_t   :: dy
     integer          :: incy
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_dswap_native( n, x, incx, step, ipiv, queue )
+    integer          :: n
+    magma_devptr_t   :: x
+    integer          :: incx
+    integer          :: step
+    integer          :: ipiv(*)
     magma_devptr_t   :: queue
 end
 
@@ -983,6 +1089,18 @@ subroutine magmaf_dtrmv( uplo, trans, diag, n, dA, ldda, dx, incx, queue )
     magma_devptr_t   :: queue
 end
 
+subroutine magmablasf_dtrmv( uplo, trans, diag, n, dA, ldda, dx, incx, queue )
+    character        :: uplo
+    character        :: trans
+    character        :: diag
+    integer          :: n
+    double precision :: dA(*)
+    integer          :: ldda
+    double precision :: dx(*)
+    integer          :: incx
+    magma_devptr_t   :: queue
+end
+
 subroutine magmaf_dtrsv( uplo, trans, diag, n, dA, ldda, dx, incx, queue )
     character        :: uplo
     character        :: trans
@@ -1030,8 +1148,42 @@ subroutine magmaf_dsymm( side, uplo, m, n, alpha, dA, ldda, dB, lddb, beta, dC, 
     magma_devptr_t   :: queue
 end
 
+subroutine magmablasf_dsymm( side, uplo, m, n, alpha, dA, ldda, dB, lddb, beta, dC, lddc,  &
+        queue )
+    character        :: side
+    character        :: uplo
+    integer          :: m
+    integer          :: n
+    double precision :: alpha
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    magma_devptr_t   :: dB
+    integer          :: lddb
+    double precision :: beta
+    magma_devptr_t   :: dC
+    integer          :: lddc
+    magma_devptr_t   :: queue
+end
+
 subroutine magmaf_dsyr2k( uplo, trans, n, k, alpha, dA, ldda, dB, lddb, beta, dC, lddc,  &
         queue )
+    character        :: uplo
+    character        :: trans
+    integer          :: n
+    integer          :: k
+    double precision :: alpha
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    magma_devptr_t   :: dB
+    integer          :: lddb
+    double precision :: beta
+    magma_devptr_t   :: dC
+    integer          :: lddc
+    magma_devptr_t   :: queue
+end
+
+subroutine magmablasf_dsyr2k( uplo, trans, n, k, alpha, dA, ldda, dB, lddb, beta, dC,  &
+        lddc, queue )
     character        :: uplo
     character        :: trans
     integer          :: n
@@ -1061,6 +1213,36 @@ subroutine magmaf_dsyrk( uplo, trans, n, k, alpha, dA, ldda, beta, dC, lddc, que
     magma_devptr_t   :: queue
 end
 
+subroutine magmablasf_dsyrk( uplo, trans, n, k, alpha, dA, ldda, beta, dC, lddc, queue )
+    character        :: uplo
+    character        :: trans
+    integer          :: n
+    integer          :: k
+    double precision :: alpha
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    double precision :: beta
+    magma_devptr_t   :: dC
+    integer          :: lddc
+    magma_devptr_t   :: queue
+end
+
+subroutine magmablasf_dsyrk_small_reduce( uplo, trans, n, k, alpha, dA, ldda, beta, dC,  &
+        lddc, nthread_blocks, queue )
+    character        :: uplo
+    character        :: trans
+    integer          :: n
+    integer          :: k
+    double precision :: alpha
+    double precision :: dA(*)
+    integer          :: ldda
+    double precision :: beta
+    double precision :: dC(*)
+    integer          :: lddc
+    integer          :: nthread_blocks
+    magma_devptr_t   :: queue
+end
+
 subroutine magmaf_dtrmm( side, uplo, trans, diag, m, n, alpha, dA, ldda, dB, lddb, queue  &
         )
     character        :: side
@@ -1077,6 +1259,22 @@ subroutine magmaf_dtrmm( side, uplo, trans, diag, m, n, alpha, dA, ldda, dB, ldd
     magma_devptr_t   :: queue
 end
 
+subroutine magmablasf_dtrmm( side, uplo, transA, diag, m, n, alpha, dA, ldda, dB, lddb,  &
+        queue )
+    character        :: side
+    character        :: uplo
+    character        :: transA
+    character        :: diag
+    integer          :: m
+    integer          :: n
+    double precision :: alpha
+    double precision :: dA(*)
+    integer          :: ldda
+    double precision :: dB(*)
+    integer          :: lddb
+    magma_devptr_t   :: queue
+end
+
 subroutine magmaf_dtrsm( side, uplo, trans, diag, m, n, alpha, dA, ldda, dB, lddb, queue  &
         )
     character        :: side
@@ -1086,6 +1284,16 @@ subroutine magmaf_dtrsm( side, uplo, trans, diag, m, n, alpha, dA, ldda, dB, ldd
     integer          :: m
     integer          :: n
     double precision :: alpha
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    magma_devptr_t   :: dB
+    integer          :: lddb
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_dgetf2trsm_2d_native( m, n, dA, ldda, dB, lddb, queue )
+    integer          :: m
+    integer          :: n
     magma_devptr_t   :: dA
     integer          :: ldda
     magma_devptr_t   :: dB

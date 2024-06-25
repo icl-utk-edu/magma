@@ -124,26 +124,54 @@ void magmablasf_zprbt(
 
 #define magmablasf_zprbt_mv FORTRAN_NAME( magmablasf_zprbt_mv, MAGMABLASF_ZPRBT_MV )
 void magmablasf_zprbt_mv(
-    magma_int_t *n,
+    magma_int_t *n, magma_int_t *nrhs,
     devptr_t *dv,
-    devptr_t *db, magma_queue_t *queue )
+    devptr_t *db, magma_int_t *lddb, magma_queue_t *queue )
 {
     magmablas_zprbt_mv(
-        *n,
+        *n, *nrhs,
         magma_zdevptr(dv),
-        magma_zdevptr(db), *queue );
+        magma_zdevptr(db), *lddb, *queue );
 }
 
 #define magmablasf_zprbt_mtv FORTRAN_NAME( magmablasf_zprbt_mtv, MAGMABLASF_ZPRBT_MTV )
 void magmablasf_zprbt_mtv(
-    magma_int_t *n,
+    magma_int_t *n, magma_int_t *nrhs,
     devptr_t *du,
-    devptr_t *db, magma_queue_t *queue )
+    devptr_t *db, magma_int_t *lddb, magma_queue_t *queue )
 {
     magmablas_zprbt_mtv(
-        *n,
+        *n, *nrhs,
         magma_zdevptr(du),
-        magma_zdevptr(db), *queue );
+        magma_zdevptr(db), *lddb, *queue );
+}
+
+#define magmaf_zhetrs_gpu FORTRAN_NAME( magmaf_zhetrs_gpu, MAGMAF_ZHETRS_GPU )
+void magmaf_zhetrs_gpu(
+    const char* uplo, magma_int_t *n, magma_int_t *nrhs,
+    magmaDoubleComplex *dA, magma_int_t *ldda,
+    magma_int_t *ipiv,
+    magmaDoubleComplex *dB, magma_int_t *lddb,
+    magma_int_t *info, magma_queue_t *queue )
+{
+    magma_zhetrs_gpu(
+        magma_uplo_const(*uplo), *n, *nrhs,
+        dA, *ldda,
+        ipiv,
+        dB, *lddb,
+        info, *queue );
+}
+
+#define magmablasf_zdiinertia FORTRAN_NAME( magmablasf_zdiinertia, MAGMABLASF_ZDIINERTIA )
+magma_int_t magmablasf_zdiinertia(
+    magma_int_t *n,
+    devptr_t *dA, magma_int_t *ldda,
+    int *dneig, magma_queue_t *queue )
+{
+    return magmablas_zdiinertia(
+        *n,
+        magma_zdevptr(dA), *ldda,
+        dneig, *queue );
 }
 
 #define magmablasf_zgeadd FORTRAN_NAME( magmablasf_zgeadd, MAGMABLASF_ZGEADD )
@@ -168,6 +196,34 @@ void magmablasf_zgeadd2(
         *m, *n, *alpha,
         magma_zdevptr(dA), *ldda, *beta,
         magma_zdevptr(dB), *lddb, *queue );
+}
+
+#define magmablasf_zgeam FORTRAN_NAME( magmablasf_zgeam, MAGMABLASF_ZGEAM )
+void magmablasf_zgeam(
+    const char* transA, const char* transB, magma_int_t *m, magma_int_t *n, magmaDoubleComplex *alpha,
+    devptr_t *dA, magma_int_t *ldda, magmaDoubleComplex *beta,
+    devptr_t *dB, magma_int_t *lddb,
+    devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
+{
+    magmablas_zgeam(
+        magma_trans_const(*transA), magma_trans_const(*transB), *m, *n, *alpha,
+        magma_zdevptr(dA), *ldda, *beta,
+        magma_zdevptr(dB), *lddb,
+        magma_zdevptr(dC), *lddc, *queue );
+}
+
+#define magmablasf_zheinertia FORTRAN_NAME( magmablasf_zheinertia, MAGMABLASF_ZHEINERTIA )
+magma_int_t magmablasf_zheinertia(
+    const char* uplo, magma_int_t *n,
+    devptr_t *dA, magma_int_t *ldda,
+    magma_int_t *ipiv,
+    int *dneig, magma_queue_t *queue )
+{
+    return magmablas_zheinertia(
+        magma_uplo_const(*uplo), *n,
+        magma_zdevptr(dA), *ldda,
+        ipiv,
+        dneig, *queue );
 }
 
 #define magmablasf_zlacpy FORTRAN_NAME( magmablasf_zlacpy, MAGMABLASF_ZLACPY )
@@ -370,6 +426,32 @@ void magmablasf_zlaswpx(
         *n,
         magma_zdevptr(dA), *ldx, *ldy, *k1, *k2,
         ipiv, *inci, *queue );
+}
+
+#define magmaf_zlaswp_rowparallel_native FORTRAN_NAME( magmaf_zlaswp_rowparallel_native, MAGMAF_ZLASWP_ROWPARALLEL_NATIVE )
+void magmaf_zlaswp_rowparallel_native(
+    magma_int_t *n,
+    magmaDoubleComplex* input, magma_int_t *ldi,
+    magmaDoubleComplex* output, magma_int_t *ldo, magma_int_t *k1, magma_int_t *k2,
+    magma_int_t *pivinfo, magma_queue_t *queue )
+{
+    magma_zlaswp_rowparallel_native(
+        *n,
+        input, *ldi,
+        output, *ldo, *k1, *k2,
+        pivinfo, *queue );
+}
+
+#define magmaf_zlaswp_columnserial FORTRAN_NAME( magmaf_zlaswp_columnserial, MAGMAF_ZLASWP_COLUMNSERIAL )
+void magmaf_zlaswp_columnserial(
+    magma_int_t *n,
+    devptr_t *dA, magma_int_t *lda, magma_int_t *k1, magma_int_t *k2,
+    magma_int_t *dipiv, magma_queue_t *queue )
+{
+    magma_zlaswp_columnserial(
+        *n,
+        magma_zdevptr(dA), *lda, *k1, *k2,
+        dipiv, *queue );
 }
 
 #define magmablasf_zsymmetrize FORTRAN_NAME( magmablasf_zsymmetrize, MAGMABLASF_ZSYMMETRIZE )
@@ -962,6 +1044,20 @@ magma_int_t magmaf_izamax(
         magma_zdevptr(dx), *incx, *queue );
 }
 
+#define magmaf_izamax_native FORTRAN_NAME( magmaf_izamax_native, MAGMAF_IZAMAX_NATIVE )
+void magmaf_izamax_native(
+    magma_int_t *length,
+    devptr_t *x, magma_int_t *incx,
+    magma_int_t* ipiv,
+    magma_int_t *info, magma_int_t *step, magma_int_t *gbstep, magma_queue_t *queue )
+{
+    magma_izamax_native(
+        *length,
+        magma_zdevptr(x), *incx,
+        ipiv,
+        info, *step, *gbstep, *queue );
+}
+
 #define magmaf_izamin FORTRAN_NAME( magmaf_izamin, MAGMAF_IZAMIN )
 magma_int_t magmaf_izamin(
     magma_int_t *n,
@@ -1074,6 +1170,18 @@ void magmaf_zdscal(
         magma_zdevptr(dx), *incx, *queue );
 }
 
+#define magmaf_zscal_zgeru_native FORTRAN_NAME( magmaf_zscal_zgeru_native, MAGMAF_ZSCAL_ZGERU_NATIVE )
+void magmaf_zscal_zgeru_native(
+    magma_int_t *m, magma_int_t *n,
+    devptr_t *dA, magma_int_t *lda,
+    magma_int_t *info, magma_int_t *step, magma_int_t *gbstep, magma_queue_t *queue )
+{
+    magma_zscal_zgeru_native(
+        *m, *n,
+        magma_zdevptr(dA), *lda,
+        info, *step, *gbstep, *queue );
+}
+
 #define magmaf_zswap FORTRAN_NAME( magmaf_zswap, MAGMAF_ZSWAP )
 void magmaf_zswap(
     magma_int_t *n,
@@ -1084,6 +1192,18 @@ void magmaf_zswap(
         *n,
         magma_zdevptr(dx), *incx,
         magma_zdevptr(dy), *incy, *queue );
+}
+
+#define magmaf_zswap_native FORTRAN_NAME( magmaf_zswap_native, MAGMAF_ZSWAP_NATIVE )
+void magmaf_zswap_native(
+    magma_int_t *n,
+    devptr_t *x, magma_int_t *incx, magma_int_t *step,
+    magma_int_t* ipiv, magma_queue_t *queue )
+{
+    magma_zswap_native(
+        *n,
+        magma_zdevptr(x), *incx, *step,
+        ipiv, *queue );
 }
 
 #define magmaf_zgemv FORTRAN_NAME( magmaf_zgemv, MAGMAF_ZGEMV )
@@ -1220,6 +1340,18 @@ void magmaf_ztrmv(
         magma_zdevptr(dx), *incx, *queue );
 }
 
+#define magmablasf_ztrmv FORTRAN_NAME( magmablasf_ztrmv, MAGMABLASF_ZTRMV )
+void magmablasf_ztrmv(
+    const char* uplo, const char* trans, const char* diag, magma_int_t *n,
+    magmaDoubleComplex *dA, magma_int_t *ldda,
+    magmaDoubleComplex *dx, magma_int_t *incx, magma_queue_t *queue )
+{
+    magmablas_ztrmv(
+        magma_uplo_const(*uplo), magma_trans_const(*trans), magma_diag_const(*diag), *n,
+        dA, *ldda,
+        dx, *incx, *queue );
+}
+
 #define magmaf_ztrsv FORTRAN_NAME( magmaf_ztrsv, MAGMAF_ZTRSV )
 void magmaf_ztrsv(
     const char* uplo, const char* trans, const char* diag, magma_int_t *n,
@@ -1260,6 +1392,20 @@ void magmaf_zhemm(
         magma_zdevptr(dC), *lddc, *queue );
 }
 
+#define magmablasf_zhemm FORTRAN_NAME( magmablasf_zhemm, MAGMABLASF_ZHEMM )
+void magmablasf_zhemm(
+    const char* side, const char* uplo, magma_int_t *m, magma_int_t *n, magmaDoubleComplex *alpha,
+    devptr_t *dA, magma_int_t *ldda,
+    devptr_t *dB, magma_int_t *lddb, magmaDoubleComplex *beta,
+    devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
+{
+    magmablas_zhemm(
+        magma_side_const(*side), magma_uplo_const(*uplo), *m, *n, *alpha,
+        magma_zdevptr(dA), *ldda,
+        magma_zdevptr(dB), *lddb, *beta,
+        magma_zdevptr(dC), *lddc, *queue );
+}
+
 #define magmaf_zher2k FORTRAN_NAME( magmaf_zher2k, MAGMAF_ZHER2K )
 void magmaf_zher2k(
     const char* uplo, const char* trans, magma_int_t *n, magma_int_t *k, magmaDoubleComplex *alpha,
@@ -1268,6 +1414,20 @@ void magmaf_zher2k(
     devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
 {
     magma_zher2k(
+        magma_uplo_const(*uplo), magma_trans_const(*trans), *n, *k, *alpha,
+        magma_zdevptr(dA), *ldda,
+        magma_zdevptr(dB), *lddb, *beta,
+        magma_zdevptr(dC), *lddc, *queue );
+}
+
+#define magmablasf_zher2k FORTRAN_NAME( magmablasf_zher2k, MAGMABLASF_ZHER2K )
+void magmablasf_zher2k(
+    const char* uplo, const char* trans, magma_int_t *n, magma_int_t *k, magmaDoubleComplex *alpha,
+    devptr_t *dA, magma_int_t *ldda,
+    devptr_t *dB, magma_int_t *lddb, double *beta,
+    devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
+{
+    magmablas_zher2k(
         magma_uplo_const(*uplo), magma_trans_const(*trans), *n, *k, *alpha,
         magma_zdevptr(dA), *ldda,
         magma_zdevptr(dB), *lddb, *beta,
@@ -1286,6 +1446,30 @@ void magmaf_zherk(
         magma_zdevptr(dC), *lddc, *queue );
 }
 
+#define magmablasf_zherk FORTRAN_NAME( magmablasf_zherk, MAGMABLASF_ZHERK )
+void magmablasf_zherk(
+    const char* uplo, const char* trans, magma_int_t *n, magma_int_t *k, double *alpha,
+    devptr_t *dA, magma_int_t *ldda, double *beta,
+    devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
+{
+    magmablas_zherk(
+        magma_uplo_const(*uplo), magma_trans_const(*trans), *n, *k, *alpha,
+        magma_zdevptr(dA), *ldda, *beta,
+        magma_zdevptr(dC), *lddc, *queue );
+}
+
+#define magmablasf_zherk_small_reduce FORTRAN_NAME( magmablasf_zherk_small_reduce, MAGMABLASF_ZHERK_SMALL_REDUCE )
+void magmablasf_zherk_small_reduce(
+    const char* uplo, const char* trans, magma_int_t *n, magma_int_t *k, double *alpha,
+    magmaDoubleComplex* dA, magma_int_t *ldda, double *beta,
+    magmaDoubleComplex* dC, magma_int_t *lddc, magma_int_t *nthread_blocks, magma_queue_t *queue )
+{
+    magmablas_zherk_small_reduce(
+        magma_uplo_const(*uplo), magma_trans_const(*trans), *n, *k, *alpha,
+        dA, *ldda, *beta,
+        dC, *lddc, *nthread_blocks, *queue );
+}
+
 #define magmaf_zsymm FORTRAN_NAME( magmaf_zsymm, MAGMAF_ZSYMM )
 void magmaf_zsymm(
     const char* side, const char* uplo, magma_int_t *m, magma_int_t *n, magmaDoubleComplex *alpha,
@@ -1294,6 +1478,20 @@ void magmaf_zsymm(
     devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
 {
     magma_zsymm(
+        magma_side_const(*side), magma_uplo_const(*uplo), *m, *n, *alpha,
+        magma_zdevptr(dA), *ldda,
+        magma_zdevptr(dB), *lddb, *beta,
+        magma_zdevptr(dC), *lddc, *queue );
+}
+
+#define magmablasf_zsymm FORTRAN_NAME( magmablasf_zsymm, MAGMABLASF_ZSYMM )
+void magmablasf_zsymm(
+    const char* side, const char* uplo, magma_int_t *m, magma_int_t *n, magmaDoubleComplex *alpha,
+    devptr_t *dA, magma_int_t *ldda,
+    devptr_t *dB, magma_int_t *lddb, magmaDoubleComplex *beta,
+    devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
+{
+    magmablas_zsymm(
         magma_side_const(*side), magma_uplo_const(*uplo), *m, *n, *alpha,
         magma_zdevptr(dA), *ldda,
         magma_zdevptr(dB), *lddb, *beta,
@@ -1314,6 +1512,20 @@ void magmaf_zsyr2k(
         magma_zdevptr(dC), *lddc, *queue );
 }
 
+#define magmablasf_zsyr2k FORTRAN_NAME( magmablasf_zsyr2k, MAGMABLASF_ZSYR2K )
+void magmablasf_zsyr2k(
+    const char* uplo, const char* trans, magma_int_t *n, magma_int_t *k, magmaDoubleComplex *alpha,
+    devptr_t *dA, magma_int_t *ldda,
+    devptr_t *dB, magma_int_t *lddb, magmaDoubleComplex *beta,
+    devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
+{
+    magmablas_zsyr2k(
+        magma_uplo_const(*uplo), magma_trans_const(*trans), *n, *k, *alpha,
+        magma_zdevptr(dA), *ldda,
+        magma_zdevptr(dB), *lddb, *beta,
+        magma_zdevptr(dC), *lddc, *queue );
+}
+
 #define magmaf_zsyrk FORTRAN_NAME( magmaf_zsyrk, MAGMAF_ZSYRK )
 void magmaf_zsyrk(
     const char* uplo, const char* trans, magma_int_t *n, magma_int_t *k, magmaDoubleComplex *alpha,
@@ -1321,6 +1533,18 @@ void magmaf_zsyrk(
     devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
 {
     magma_zsyrk(
+        magma_uplo_const(*uplo), magma_trans_const(*trans), *n, *k, *alpha,
+        magma_zdevptr(dA), *ldda, *beta,
+        magma_zdevptr(dC), *lddc, *queue );
+}
+
+#define magmablasf_zsyrk FORTRAN_NAME( magmablasf_zsyrk, MAGMABLASF_ZSYRK )
+void magmablasf_zsyrk(
+    const char* uplo, const char* trans, magma_int_t *n, magma_int_t *k, magmaDoubleComplex *alpha,
+    devptr_t *dA, magma_int_t *ldda, magmaDoubleComplex *beta,
+    devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
+{
+    magmablas_zsyrk(
         magma_uplo_const(*uplo), magma_trans_const(*trans), *n, *k, *alpha,
         magma_zdevptr(dA), *ldda, *beta,
         magma_zdevptr(dC), *lddc, *queue );
@@ -1338,6 +1562,18 @@ void magmaf_ztrmm(
         magma_zdevptr(dB), *lddb, *queue );
 }
 
+#define magmablasf_ztrmm FORTRAN_NAME( magmablasf_ztrmm, MAGMABLASF_ZTRMM )
+void magmablasf_ztrmm(
+    const char* side, const char* uplo, const char* transA, const char* diag, magma_int_t *m, magma_int_t *n, magmaDoubleComplex *alpha,
+    magmaDoubleComplex *dA, magma_int_t *ldda,
+    magmaDoubleComplex *dB, magma_int_t *lddb, magma_queue_t *queue )
+{
+    magmablas_ztrmm(
+        magma_side_const(*side), magma_uplo_const(*uplo), magma_trans_const(*transA), magma_diag_const(*diag), *m, *n, *alpha,
+        dA, *ldda,
+        dB, *lddb, *queue );
+}
+
 #define magmaf_ztrsm FORTRAN_NAME( magmaf_ztrsm, MAGMAF_ZTRSM )
 void magmaf_ztrsm(
     const char* side, const char* uplo, const char* trans, const char* diag, magma_int_t *m, magma_int_t *n, magmaDoubleComplex *alpha,
@@ -1346,6 +1582,18 @@ void magmaf_ztrsm(
 {
     magma_ztrsm(
         magma_side_const(*side), magma_uplo_const(*uplo), magma_trans_const(*trans), magma_diag_const(*diag), *m, *n, *alpha,
+        magma_zdevptr(dA), *ldda,
+        magma_zdevptr(dB), *lddb, *queue );
+}
+
+#define magmaf_zgetf2trsm_2d_native FORTRAN_NAME( magmaf_zgetf2trsm_2d_native, MAGMAF_ZGETF2TRSM_2D_NATIVE )
+void magmaf_zgetf2trsm_2d_native(
+    magma_int_t *m, magma_int_t *n,
+    devptr_t *dA, magma_int_t *ldda,
+    devptr_t *dB, magma_int_t *lddb, magma_queue_t *queue )
+{
+    magma_zgetf2trsm_2d_native(
+        *m, *n,
         magma_zdevptr(dA), *ldda,
         magma_zdevptr(dB), *lddb, *queue );
 }

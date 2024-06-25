@@ -22,6 +22,11 @@ integer function magmaf_get_zgetrf_nb( m, n )
     integer          :: n
 end
 
+integer function magmaf_get_zgetrf_native_nb( m, n )
+    integer          :: m
+    integer          :: n
+end
+
 integer function magmaf_get_zgetri_nb( n )
     integer          :: n
 end
@@ -96,6 +101,116 @@ integer function magmaf_get_zbulge_vblksiz( n, nb, nbthreads )
 end
 
 integer function magmaf_get_zbulge_gcperf(  )
+end
+
+subroutine magmaf_zgbsv_native( n, kl, ku, nrhs, dA, ldda, dipiv, dB, lddb, info )
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    integer          :: nrhs
+    complex*16       :: dA(*)
+    integer          :: ldda
+    integer          :: dipiv(*)
+    complex*16       :: dB(*)
+    integer          :: lddb
+    integer          :: info
+end
+
+subroutine magmaf_zgbtf2_native_v2( m, n, kl, ku, dA, ldda, ipiv, info, queue )
+    integer          :: m
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    complex*16       :: dA(*)
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_zgbtf2_native_v2_work( m, n, kl, ku, dA, ldda, ipiv, info, device_work,  &
+        lwork, queue )
+    integer          :: m
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    complex*16       :: dA(*)
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+     :: device_work(*)
+    integer          :: lwork(*)
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_zgbsv_native_work( n, kl, ku, nrhs, dA, ldda, dipiv, dB, lddb, info,  &
+        device_work, lwork, queue )
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    integer          :: nrhs
+    complex*16       :: dA(*)
+    integer          :: ldda
+    integer          :: dipiv(*)
+    complex*16       :: dB(*)
+    integer          :: lddb
+    integer          :: info
+     :: device_work(*)
+    integer          :: lwork(*)
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_zgbtf2_native( m, n, kl, ku, dA, ldda, ipiv, info, queue )
+    integer          :: m
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    complex*16       :: dA(*)
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_zgbtf2_native_work( m, n, kl, ku, dA, ldda, ipiv, info, device_work,  &
+        lwork, queue )
+    integer          :: m
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    complex*16       :: dA(*)
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+     :: device_work(*)
+    integer          :: lwork(*)
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_zgbtrf_native( m, n, kl, ku, dAB, lddab, dipiv, info )
+    integer          :: m
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    complex*16       :: dAB(*)
+    integer          :: lddab
+    integer          :: dipiv(*)
+    integer          :: info
+end
+
+subroutine magmaf_zgbtrf_native_work( m, n, kl, ku, dAB, lddab, dipiv, info, device_work,  &
+        lwork, queue )
+    integer          :: m
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    complex*16       :: dAB(*)
+    integer          :: lddab
+    integer          :: dipiv(*)
+    integer          :: info
+     :: device_work(*)
+    integer          :: lwork(*)
+    magma_devptr_t   :: queue
 end
 
 subroutine magmaf_zgebrd( m, n, A, lda, d, e, tauq, taup, work, lwork, info )
@@ -399,6 +514,24 @@ subroutine magmaf_zgeqrf_gpu( m, n, dA, ldda, tau, dT, info )
     integer          :: info
 end
 
+subroutine magmaf_zgeqrf_expert_gpu_work( m, n, dA, ldda, tau, dT, info, mode, nb,  &
+        host_work, lwork_host, device_work, lwork_device, queues )
+    integer          :: m
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    complex*16       :: tau(*)
+    magma_devptr_t   :: dT
+    integer          :: info
+     :: mode
+    integer          :: nb
+     :: host_work(*)
+    integer          :: lwork_host(*)
+     :: device_work(*)
+    integer          :: lwork_device(*)
+    magma_devptr_t   :: queues(*)
+end
+
 subroutine magmaf_zgeqrf_m( ngpu, m, n, A, lda, tau, work, lwork, info )
     integer          :: ngpu
     integer          :: m
@@ -594,12 +727,55 @@ subroutine magmaf_zgetf2_gpu( m, n, dA, ldda, ipiv, queue, info )
     integer          :: info
 end
 
+subroutine magmaf_zgetf2_native_fused( m, n, dA, ldda, ipiv, gbstep, flags, info, queue )
+    integer          :: m
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: gbstep
+    integer          :: flags(*)
+    integer          :: info
+    magma_devptr_t   :: queue
+end
+
+integer function magmaf_zgetf2_native( m, n, dA, ldda, dipiv, dipivinfo, dinfo, gbstep,  &
+        events, queue, update_queue )
+    integer          :: m
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: dipiv(*)
+    integer          :: dipivinfo(*)
+    integer          :: dinfo(*)
+    integer          :: gbstep
+    magma_devptr_t   :: events(*)
+    magma_devptr_t   :: queue
+    magma_devptr_t   :: update_queue
+end
+
 subroutine magmaf_zgetf2_nopiv( m, n, A, lda, info )
     integer          :: m
     integer          :: n
     complex*16       :: A(*)
     integer          :: lda
     integer          :: info
+end
+
+integer function magmaf_zgetrf_recpanel_native( m, n, recnb, dA, ldda, dipiv, dipivinfo,  &
+        dinfo, gbstep, events, queue, update_queue )
+    integer          :: m
+    integer          :: n
+    integer          :: recnb
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: dipiv(*)
+    integer          :: dipivinfo(*)
+    integer          :: dinfo(*)
+    integer          :: gbstep
+    magma_devptr_t   :: events(*)
+    magma_devptr_t   :: queue
+    magma_devptr_t   :: update_queue
 end
 
 subroutine magmaf_zgetrf( m, n, A, lda, ipiv, info )
@@ -612,6 +788,45 @@ subroutine magmaf_zgetrf( m, n, A, lda, ipiv, info )
 end
 
 subroutine magmaf_zgetrf_gpu( m, n, dA, ldda, ipiv, info )
+    integer          :: m
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+end
+
+subroutine magmaf_zgetrf_expert_gpu_work( m, n, dA, ldda, ipiv, info, mode, nb, recnb,  &
+        host_work, lwork_host, device_work, lwork_device, events, queues )
+    integer          :: m
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+     :: mode
+    integer          :: nb
+    integer          :: recnb
+     :: host_work(*)
+    integer          :: lwork_host(*)
+     :: device_work(*)
+    integer          :: lwork_device(*)
+    magma_devptr_t   :: events(*)
+    magma_devptr_t   :: queues(*)
+end
+
+subroutine magmaf_zgetrf_gpu_expert( m, n, dA, ldda, ipiv, info, nb, mode )
+    integer          :: m
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+    integer          :: nb
+     :: mode
+end
+
+subroutine magmaf_zgetrf_native( m, n, dA, ldda, ipiv, info )
     integer          :: m
     integer          :: n
     magma_devptr_t   :: dA
@@ -1314,6 +1529,15 @@ subroutine magmaf_zhetrf( uplo, n, A, lda, ipiv, info )
     integer          :: info
 end
 
+subroutine magmaf_zhetrf_gpu( uplo, n, dA, ldda, ipiv, info )
+    character        :: uplo
+    integer          :: n
+    complex*16       :: dA(*)
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+end
+
 subroutine magmaf_zhetrf_aasen( uplo, cpu_panel, n, A, lda, ipiv, info )
     character        :: uplo
     integer          :: cpu_panel
@@ -1449,6 +1673,29 @@ subroutine magmaf_zpotf2_gpu( uplo, n, dA, ldda, queue, info )
     integer          :: info
 end
 
+integer function magmaf_zpotf2_native( uplo, n, dA, ldda, step, device_info, queue )
+    character        :: uplo
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: step
+    integer          :: device_info(*)
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_zpotrf_rectile_native( uplo, n, recnb, dA, ldda, gbstep, dinfo, info,  &
+        queue )
+    character        :: uplo
+    integer          :: n
+    integer          :: recnb
+    complex*16       :: dA(*)
+    integer          :: ldda
+    integer          :: gbstep
+    integer          :: dinfo(*)
+    integer          :: info
+    magma_devptr_t   :: queue
+end
+
 subroutine magmaf_zpotrf( uplo, n, A, lda, info )
     character        :: uplo
     integer          :: n
@@ -1457,7 +1704,43 @@ subroutine magmaf_zpotrf( uplo, n, A, lda, info )
     integer          :: info
 end
 
+subroutine magmaf_zpotrf_expert_gpu_work( uplo, n, dA, ldda, info, mode, nb, recnb,  &
+        host_work, lwork_host, device_work, lwork_device, events, queues )
+    character        :: uplo
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: info
+     :: mode
+    integer          :: nb
+    integer          :: recnb
+     :: host_work(*)
+    integer          :: lwork_host(*)
+     :: device_work(*)
+    integer          :: lwork_device(*)
+    magma_devptr_t   :: events(*)
+    magma_devptr_t   :: queues(*)
+end
+
+subroutine magmaf_zpotrf_expert_gpu( uplo, n, dA, ldda, info, nb, mode )
+    character        :: uplo
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: info
+    integer          :: nb
+     :: mode
+end
+
 subroutine magmaf_zpotrf_gpu( uplo, n, dA, ldda, info )
+    character        :: uplo
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: info
+end
+
+subroutine magmaf_zpotrf_native( uplo, n, dA, ldda, info )
     character        :: uplo
     integer          :: n
     magma_devptr_t   :: dA
@@ -2016,6 +2299,42 @@ subroutine magmaf_zq_to_panel( uplo, ib, A, lda, work )
     complex*16       :: A(*)
     integer          :: lda
     complex*16       :: work(*)
+end
+
+subroutine magmablasf_zextract_diag_sqrt( m, n, dA, ldda, dD, incd, queue )
+    integer          :: m
+    integer          :: n
+    complex*16       :: dA(*)
+    integer          :: ldda
+    double precision :: dD(*)
+    integer          :: incd
+    magma_devptr_t   :: queue
+end
+
+subroutine magmablasf_zscal_shift_hpd( uplo, n, dA, ldda, dD, incd, miu, cn, eps, queue )
+    character        :: uplo
+    integer          :: n
+    complex*16       :: dA(*)
+    integer          :: ldda
+    double precision :: dD(*)
+    integer          :: incd
+    double precision :: miu
+    double precision :: cn
+    double precision :: eps
+    magma_devptr_t   :: queue
+end
+
+subroutine magmablasf_zdimv_invert( n, alpha, dD, incd, dx, incx, beta, dy, incy, queue )
+    integer          :: n
+    complex*16       :: alpha
+    complex*16       :: dD(*)
+    integer          :: incd
+    complex*16       :: dx(*)
+    integer          :: incx
+    complex*16       :: beta
+    complex*16       :: dy(*)
+    integer          :: incy
+    magma_devptr_t   :: queue
 end
 
 end interface
