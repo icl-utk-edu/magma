@@ -173,38 +173,6 @@ subroutine magmaf_sgbtf2_native_v2( m, n, kl, ku, dA, ldda, ipiv, info, queue )
     magma_devptr_t   :: queue
 end
 
-subroutine magmaf_sgbtf2_native_v2_work( m, n, kl, ku, dA, ldda, ipiv, info, device_work,  &
-        lwork, queue )
-    integer          :: m
-    integer          :: n
-    integer          :: kl
-    integer          :: ku
-    real             :: dA(*)
-    integer          :: ldda
-    integer          :: ipiv(*)
-    integer          :: info
-     :: device_work(*)
-    integer          :: lwork(*)
-    magma_devptr_t   :: queue
-end
-
-subroutine magmaf_sgbsv_native_work( n, kl, ku, nrhs, dA, ldda, dipiv, dB, lddb, info,  &
-        device_work, lwork, queue )
-    integer          :: n
-    integer          :: kl
-    integer          :: ku
-    integer          :: nrhs
-    real             :: dA(*)
-    integer          :: ldda
-    integer          :: dipiv(*)
-    real             :: dB(*)
-    integer          :: lddb
-    integer          :: info
-     :: device_work(*)
-    integer          :: lwork(*)
-    magma_devptr_t   :: queue
-end
-
 subroutine magmaf_sgbtf2_native( m, n, kl, ku, dA, ldda, ipiv, info, queue )
     integer          :: m
     integer          :: n
@@ -217,21 +185,6 @@ subroutine magmaf_sgbtf2_native( m, n, kl, ku, dA, ldda, ipiv, info, queue )
     magma_devptr_t   :: queue
 end
 
-subroutine magmaf_sgbtf2_native_work( m, n, kl, ku, dA, ldda, ipiv, info, device_work,  &
-        lwork, queue )
-    integer          :: m
-    integer          :: n
-    integer          :: kl
-    integer          :: ku
-    real             :: dA(*)
-    integer          :: ldda
-    integer          :: ipiv(*)
-    integer          :: info
-     :: device_work(*)
-    integer          :: lwork(*)
-    magma_devptr_t   :: queue
-end
-
 subroutine magmaf_sgbtrf_native( m, n, kl, ku, dAB, lddab, dipiv, info )
     integer          :: m
     integer          :: n
@@ -241,21 +194,6 @@ subroutine magmaf_sgbtrf_native( m, n, kl, ku, dAB, lddab, dipiv, info )
     integer          :: lddab
     integer          :: dipiv(*)
     integer          :: info
-end
-
-subroutine magmaf_sgbtrf_native_work( m, n, kl, ku, dAB, lddab, dipiv, info, device_work,  &
-        lwork, queue )
-    integer          :: m
-    integer          :: n
-    integer          :: kl
-    integer          :: ku
-    real             :: dAB(*)
-    integer          :: lddab
-    integer          :: dipiv(*)
-    integer          :: info
-     :: device_work(*)
-    integer          :: lwork(*)
-    magma_devptr_t   :: queue
 end
 
 subroutine magmaf_sgebrd( m, n, A, lda, d, e, tauq, taup, work, lwork, info )
@@ -557,24 +495,6 @@ subroutine magmaf_sgeqrf_gpu( m, n, dA, ldda, tau, dT, info )
     integer          :: info
 end
 
-subroutine magmaf_sgeqrf_expert_gpu_work( m, n, dA, ldda, tau, dT, info, mode, nb,  &
-        host_work, lwork_host, device_work, lwork_device, queues )
-    integer          :: m
-    integer          :: n
-    magma_devptr_t   :: dA
-    integer          :: ldda
-    real             :: tau(*)
-    magma_devptr_t   :: dT
-    integer          :: info
-     :: mode
-    integer          :: nb
-     :: host_work(*)
-    integer          :: lwork_host(*)
-     :: device_work(*)
-    integer          :: lwork_device(*)
-    magma_devptr_t   :: queues(*)
-end
-
 subroutine magmaf_sgeqrf_m( ngpu, m, n, A, lda, tau, work, lwork, info )
     integer          :: ngpu
     integer          :: m
@@ -835,36 +755,6 @@ subroutine magmaf_sgetrf_gpu( m, n, dA, ldda, ipiv, info )
     integer          :: ldda
     integer          :: ipiv(*)
     integer          :: info
-end
-
-subroutine magmaf_sgetrf_expert_gpu_work( m, n, dA, ldda, ipiv, info, mode, nb, recnb,  &
-        host_work, lwork_host, device_work, lwork_device, events, queues )
-    integer          :: m
-    integer          :: n
-    magma_devptr_t   :: dA
-    integer          :: ldda
-    integer          :: ipiv(*)
-    integer          :: info
-     :: mode
-    integer          :: nb
-    integer          :: recnb
-     :: host_work(*)
-    integer          :: lwork_host(*)
-     :: device_work(*)
-    integer          :: lwork_device(*)
-    magma_devptr_t   :: events(*)
-    magma_devptr_t   :: queues(*)
-end
-
-subroutine magmaf_sgetrf_gpu_expert( m, n, dA, ldda, ipiv, info, nb, mode )
-    integer          :: m
-    integer          :: n
-    magma_devptr_t   :: dA
-    integer          :: ldda
-    integer          :: ipiv(*)
-    integer          :: info
-    integer          :: nb
-     :: mode
 end
 
 subroutine magmaf_sgetrf_native( m, n, dA, ldda, ipiv, info )
@@ -1559,34 +1449,6 @@ subroutine magmaf_spotrf( uplo, n, A, lda, info )
     real             :: A(*)
     integer          :: lda
     integer          :: info
-end
-
-subroutine magmaf_spotrf_expert_gpu_work( uplo, n, dA, ldda, info, mode, nb, recnb,  &
-        host_work, lwork_host, device_work, lwork_device, events, queues )
-    character        :: uplo
-    integer          :: n
-    magma_devptr_t   :: dA
-    integer          :: ldda
-    integer          :: info
-     :: mode
-    integer          :: nb
-    integer          :: recnb
-     :: host_work(*)
-    integer          :: lwork_host(*)
-     :: device_work(*)
-    integer          :: lwork_device(*)
-    magma_devptr_t   :: events(*)
-    magma_devptr_t   :: queues(*)
-end
-
-subroutine magmaf_spotrf_expert_gpu( uplo, n, dA, ldda, info, nb, mode )
-    character        :: uplo
-    integer          :: n
-    magma_devptr_t   :: dA
-    integer          :: ldda
-    integer          :: info
-    integer          :: nb
-     :: mode
 end
 
 subroutine magmaf_spotrf_gpu( uplo, n, dA, ldda, info )

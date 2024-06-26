@@ -222,44 +222,6 @@ void magmaf_cgbtf2_native_v2(
         info, *queue );
 }
 
-#define magmaf_cgbtf2_native_v2_work FORTRAN_NAME( magmaf_cgbtf2_native_v2_work, MAGMAF_CGBTF2_NATIVE_V2_WORK )
-void magmaf_cgbtf2_native_v2_work(
-    magma_int_t *m, magma_int_t *n, magma_int_t *kl, magma_int_t *ku,
-    magmaFloatComplex* dA, magma_int_t *ldda,
-    magma_int_t* ipiv,
-    magma_int_t* info,
-    void* device_work,
-    magma_int_t* lwork, magma_queue_t *queue )
-{
-    magma_cgbtf2_native_v2_work(
-        *m, *n, *kl, *ku,
-        dA, *ldda,
-        ipiv,
-        info,
-        device_work,
-        lwork, *queue );
-}
-
-#define magmaf_cgbsv_native_work FORTRAN_NAME( magmaf_cgbsv_native_work, MAGMAF_CGBSV_NATIVE_WORK )
-void magmaf_cgbsv_native_work(
-    magma_int_t *n, magma_int_t *kl, magma_int_t *ku, magma_int_t *nrhs,
-    magmaFloatComplex* dA, magma_int_t *ldda,
-    magma_int_t* dipiv,
-    magmaFloatComplex* dB, magma_int_t *lddb,
-    magma_int_t *info,
-    void* device_work,
-    magma_int_t* lwork, magma_queue_t *queue )
-{
-    magma_cgbsv_native_work(
-        *n, *kl, *ku, *nrhs,
-        dA, *ldda,
-        dipiv,
-        dB, *lddb,
-        info,
-        device_work,
-        lwork, *queue );
-}
-
 #define magmaf_cgbtf2_native FORTRAN_NAME( magmaf_cgbtf2_native, MAGMAF_CGBTF2_NATIVE )
 void magmaf_cgbtf2_native(
     magma_int_t *m, magma_int_t *n, magma_int_t *kl, magma_int_t *ku,
@@ -274,24 +236,6 @@ void magmaf_cgbtf2_native(
         info, *queue );
 }
 
-#define magmaf_cgbtf2_native_work FORTRAN_NAME( magmaf_cgbtf2_native_work, MAGMAF_CGBTF2_NATIVE_WORK )
-void magmaf_cgbtf2_native_work(
-    magma_int_t *m, magma_int_t *n, magma_int_t *kl, magma_int_t *ku,
-    magmaFloatComplex* dA, magma_int_t *ldda,
-    magma_int_t* ipiv,
-    magma_int_t* info,
-    void* device_work,
-    magma_int_t* lwork, magma_queue_t *queue )
-{
-    magma_cgbtf2_native_work(
-        *m, *n, *kl, *ku,
-        dA, *ldda,
-        ipiv,
-        info,
-        device_work,
-        lwork, *queue );
-}
-
 #define magmaf_cgbtrf_native FORTRAN_NAME( magmaf_cgbtrf_native, MAGMAF_CGBTRF_NATIVE )
 void magmaf_cgbtrf_native(
     magma_int_t *m, magma_int_t *n, magma_int_t *kl, magma_int_t *ku,
@@ -304,24 +248,6 @@ void magmaf_cgbtrf_native(
         dAB, *lddab,
         dipiv,
         info );
-}
-
-#define magmaf_cgbtrf_native_work FORTRAN_NAME( magmaf_cgbtrf_native_work, MAGMAF_CGBTRF_NATIVE_WORK )
-void magmaf_cgbtrf_native_work(
-    magma_int_t *m, magma_int_t *n, magma_int_t *kl, magma_int_t *ku,
-    magmaFloatComplex* dAB, magma_int_t *lddab,
-    magma_int_t* dipiv,
-    magma_int_t *info,
-    void* device_work,
-    magma_int_t* lwork, magma_queue_t *queue )
-{
-    magma_cgbtrf_native_work(
-        *m, *n, *kl, *ku,
-        dAB, *lddab,
-        dipiv,
-        info,
-        device_work,
-        lwork, *queue );
 }
 
 #define magmaf_cgebrd FORTRAN_NAME( magmaf_cgebrd, MAGMAF_CGEBRD )
@@ -748,32 +674,6 @@ void magmaf_cgeqrf_gpu(
         info );
 }
 
-#define magmaf_cgeqrf_expert_gpu_work FORTRAN_NAME( magmaf_cgeqrf_expert_gpu_work, MAGMAF_CGEQRF_EXPERT_GPU_WORK )
-void magmaf_cgeqrf_expert_gpu_work(
-    magma_int_t *m, magma_int_t *n,
-    devptr_t *dA, magma_int_t *ldda,
-    magmaFloatComplex *tau,
-    devptr_t *dT,
-    magma_int_t *info, magma_mode_t *mode, magma_int_t *nb,
-    void* host_work,
-    magma_int_t *lwork_host,
-    void* device_work,
-    magma_int_t *lwork_device,
-    magma_queue_t queues[2] )
-{
-    magma_cgeqrf_expert_gpu_work(
-        *m, *n,
-        magma_cdevptr(dA), *ldda,
-        tau,
-        magma_cdevptr(dT),
-        info, *mode, *nb,
-        host_work,
-        lwork_host,
-        device_work,
-        lwork_device,
-        queues );
-}
-
 #define magmaf_cgeqrf_m FORTRAN_NAME( magmaf_cgeqrf_m, MAGMAF_CGEQRF_M )
 void magmaf_cgeqrf_m(
     magma_int_t *ngpu, magma_int_t *m, magma_int_t *n,
@@ -1126,46 +1026,6 @@ void magmaf_cgetrf_gpu(
         magma_cdevptr(dA), *ldda,
         ipiv,
         info );
-}
-
-#define magmaf_cgetrf_expert_gpu_work FORTRAN_NAME( magmaf_cgetrf_expert_gpu_work, MAGMAF_CGETRF_EXPERT_GPU_WORK )
-void magmaf_cgetrf_expert_gpu_work(
-    magma_int_t *m, magma_int_t *n,
-    devptr_t *dA, magma_int_t *ldda,
-    magma_int_t *ipiv,
-    magma_int_t *info, magma_mode_t *mode, magma_int_t *nb, magma_int_t *recnb,
-    void* host_work,
-    magma_int_t *lwork_host,
-    void* device_work,
-    magma_int_t *lwork_device,
-    magma_event_t events[2],
-    magma_queue_t queues[2] )
-{
-    magma_cgetrf_expert_gpu_work(
-        *m, *n,
-        magma_cdevptr(dA), *ldda,
-        ipiv,
-        info, *mode, *nb, *recnb,
-        host_work,
-        lwork_host,
-        device_work,
-        lwork_device,
-        events,
-        queues );
-}
-
-#define magmaf_cgetrf_gpu_expert FORTRAN_NAME( magmaf_cgetrf_gpu_expert, MAGMAF_CGETRF_GPU_EXPERT )
-void magmaf_cgetrf_gpu_expert(
-    magma_int_t *m, magma_int_t *n,
-    devptr_t *dA, magma_int_t *ldda,
-    magma_int_t *ipiv,
-    magma_int_t *info, magma_int_t *nb, magma_mode_t *mode )
-{
-    magma_cgetrf_gpu_expert(
-        *m, *n,
-        magma_cdevptr(dA), *ldda,
-        ipiv,
-        info, *nb, *mode );
 }
 
 #define magmaf_cgetrf_native FORTRAN_NAME( magmaf_cgetrf_native, MAGMAF_CGETRF_NATIVE )
@@ -2164,42 +2024,6 @@ void magmaf_cpotrf(
         magma_uplo_const(*uplo), *n,
         A, *lda,
         info );
-}
-
-#define magmaf_cpotrf_expert_gpu_work FORTRAN_NAME( magmaf_cpotrf_expert_gpu_work, MAGMAF_CPOTRF_EXPERT_GPU_WORK )
-void magmaf_cpotrf_expert_gpu_work(
-    const char* uplo, magma_int_t *n,
-    devptr_t *dA, magma_int_t *ldda,
-    magma_int_t *info, magma_mode_t *mode, magma_int_t *nb, magma_int_t *recnb,
-    void* host_work,
-    magma_int_t *lwork_host,
-    void* device_work,
-    magma_int_t *lwork_device,
-    magma_event_t events[2],
-    magma_queue_t queues[2] )
-{
-    magma_cpotrf_expert_gpu_work(
-        magma_uplo_const(*uplo), *n,
-        magma_cdevptr(dA), *ldda,
-        info, *mode, *nb, *recnb,
-        host_work,
-        lwork_host,
-        device_work,
-        lwork_device,
-        events,
-        queues );
-}
-
-#define magmaf_cpotrf_expert_gpu FORTRAN_NAME( magmaf_cpotrf_expert_gpu, MAGMAF_CPOTRF_EXPERT_GPU )
-void magmaf_cpotrf_expert_gpu(
-    const char* uplo, magma_int_t *n,
-    devptr_t *dA, magma_int_t *ldda,
-    magma_int_t *info, magma_int_t *nb, magma_mode_t *mode )
-{
-    magma_cpotrf_expert_gpu(
-        magma_uplo_const(*uplo), *n,
-        magma_cdevptr(dA), *ldda,
-        info, *nb, *mode );
 }
 
 #define magmaf_cpotrf_gpu FORTRAN_NAME( magmaf_cpotrf_gpu, MAGMAF_CPOTRF_GPU )
