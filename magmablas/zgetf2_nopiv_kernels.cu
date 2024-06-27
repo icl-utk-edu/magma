@@ -18,7 +18,6 @@
 #include "batched_kernel_param.h"
 
 // This kernel uses registers for matrix storage, shared mem. for communication.
-// It also uses lazy swap.
 //extern __shared__ magmaDoubleComplex zdata[];
 
 template<int N>
@@ -26,20 +25,20 @@ __device__ void
 zgetf2_nopiv_device(int m, magmaDoubleComplex* dA, int ldda, magma_int_t *info, const int tx, magmaDoubleComplex* sx, int gbstep)
 {
     magmaDoubleComplex rA[N] = {MAGMA_Z_ZERO};
-    magmaDoubleComplex reg = MAGMA_Z_ZERO; 
-    
+    magmaDoubleComplex reg = MAGMA_Z_ZERO;
+
     int linfo = 0;
-    double abs;
+    double x_abs;
     // check from previous calls if the panel factorization failed previously
-    // this is necessary to report the correct info value 
+    // this is necessary to report the correct info value
     if(gbstep > 0 && *info != 0) return;
 
-    // read 
+    // read
     #pragma unroll
     for(int i = 0; i < N; i++){
         rA[i] = dA[ i * ldda + tx ];
     }
-        
+
     #pragma unroll
     for(int i = 0; i < N; i++){
         if(tx == i){
@@ -49,9 +48,8 @@ zgetf2_nopiv_device(int m, magmaDoubleComplex* dA, int ldda, magma_int_t *info, 
         }
         __syncthreads();
 
-        abs = fabs(MAGMA_Z_REAL( sx[i] )) + fabs(MAGMA_Z_IMAG( sx[i] ));
-        linfo = ( abs == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;
-        //linfo = ( abs  == MAGMA_D_ZERO ) ? min(linfo,gbstep+i+1):0;
+        x_abs = fabs(MAGMA_Z_REAL( sx[i] )) + fabs(MAGMA_Z_IMAG( sx[i] ));
+        linfo = ( x_abs == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;
         reg   = (linfo == 0 ) ? MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] ) : MAGMA_Z_ONE;
 
         // scal and ger
@@ -79,7 +77,7 @@ zgetf2_nopiv_device(int m, magmaDoubleComplex* dA, int ldda, magma_int_t *info, 
 /******************************************************************************/
 template<int N, int NPOW2>
 __global__ void
-zgetf2_nopiv_batched_kernel( int m, magmaDoubleComplex** dA_array, int ai, int aj, int ldda, 
+zgetf2_nopiv_batched_kernel( int m, magmaDoubleComplex** dA_array, int ai, int aj, int ldda,
                              magma_int_t* info_array, int gbstep, int batchCount)
 {
     extern __shared__ magmaDoubleComplex zdata[];
@@ -96,6 +94,67 @@ zgetf2_nopiv_batched_kernel( int m, magmaDoubleComplex** dA_array, int ai, int a
 
     zgetf2_nopiv_device<N>(m, dA, ldda, info, tx, sx, gbstep);
 }
+
+/******************************************************************************/
+static magma_int_t
+zgetf2_nopiv_batched_kernel_driver(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex** dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magma_int_t* info_array, magma_int_t gbstep,
+    magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    const magma_int_t ntcol = (m > 32) ? 1 : (2 * (32/m));
+    magma_int_t shmem = ntcol * magma_ceilpow2(n) * sizeof(magmaDoubleComplex);
+
+    void *kernel_args[] = {&m, &dA_array, &ai, &aj, &ldda, &info_array, &gbstep, &batchCount};
+    magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
+    dim3 threads(m, ntcol, 1);
+    dim3 grid(gridx, 1, 1);
+    cudaError_t e;
+    switch(n){
+        case  1: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel< 1, magma_ceilpow2( 1)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case  2: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel< 2, magma_ceilpow2( 2)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case  3: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel< 3, magma_ceilpow2( 3)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case  4: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel< 4, magma_ceilpow2( 4)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case  5: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel< 5, magma_ceilpow2( 5)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case  6: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel< 6, magma_ceilpow2( 6)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case  7: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel< 7, magma_ceilpow2( 7)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case  8: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel< 8, magma_ceilpow2( 8)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case  9: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel< 9, magma_ceilpow2( 9)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 10: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<10, magma_ceilpow2(10)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 11: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<11, magma_ceilpow2(11)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 12: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<12, magma_ceilpow2(12)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 13: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<13, magma_ceilpow2(13)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 14: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<14, magma_ceilpow2(14)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 15: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<15, magma_ceilpow2(15)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 16: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<16, magma_ceilpow2(16)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 17: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<17, magma_ceilpow2(17)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 18: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<18, magma_ceilpow2(18)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 19: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<19, magma_ceilpow2(19)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 20: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<20, magma_ceilpow2(20)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 21: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<21, magma_ceilpow2(21)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 22: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<22, magma_ceilpow2(22)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 23: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<23, magma_ceilpow2(23)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 24: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<24, magma_ceilpow2(24)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 25: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<25, magma_ceilpow2(25)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 26: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<26, magma_ceilpow2(26)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 27: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<27, magma_ceilpow2(27)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 28: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<28, magma_ceilpow2(28)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 29: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<29, magma_ceilpow2(29)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 30: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<30, magma_ceilpow2(30)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 31: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<31, magma_ceilpow2(31)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        case 32: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel<32, magma_ceilpow2(32)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
+        default: info = -100;
+    }
+
+    if( e != cudaSuccess ) {
+        info = -100;
+    }
+
+    return info;
+}
+
 /***************************************************************************//**
     Purpose
     -------
@@ -163,16 +222,20 @@ zgetf2_nopiv_batched_kernel( int m, magmaDoubleComplex** dA_array, int ai, int a
 
     @ingroup magma_getrf_batched
 *******************************************************************************/
-extern "C" magma_int_t 
-magma_zgetf2_nopiv_internal_batched( 
-    magma_int_t m, magma_int_t n, 
-    magmaDoubleComplex** dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda, 
-    magma_int_t* info_array, magma_int_t gbstep, 
+extern "C" magma_int_t
+magma_zgetf2_nopiv_internal_batched(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex** dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magma_int_t* info_array, magma_int_t gbstep,
     magma_int_t batchCount, magma_queue_t queue )
 {
     #define dAarray(i,j) dA_array, i, j
 
+    const magma_int_t max_threads = 256;
     magma_int_t arginfo = 0;
+    magma_int_t m1   = (m > max_threads) ? max_threads : m;
+    magma_int_t m2   = m - m1;
+
     if (m < 0) {
         arginfo = -1;
     } else if (n < 0 || n > 32 || (m > 512 && n > 16) ) {
@@ -195,57 +258,16 @@ magma_zgetf2_nopiv_internal_batched(
         return arginfo;
     }
 
-    magma_int_t m1 = (m > MAX_NTHREADS) ? MAX_NTHREADS : m;
-    magma_int_t m2 = m - m1;
+    arginfo = zgetf2_nopiv_batched_kernel_driver( m1, n, dA_array, ai, aj, ldda, info_array, gbstep, batchCount, queue );
 
-    const magma_int_t ntcol = (m1 > 32) ? 1 : (2 * (32/m1));
-    magma_int_t shmem = ntcol * magma_ceilpow2(n) * sizeof(magmaDoubleComplex);
-    magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
-    dim3 threads(m1, ntcol, 1);
-    dim3 grid(gridx, 1, 1);
-    switch(n){
-        case  1: zgetf2_nopiv_batched_kernel< 1, magma_ceilpow2( 1)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case  2: zgetf2_nopiv_batched_kernel< 2, magma_ceilpow2( 2)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case  3: zgetf2_nopiv_batched_kernel< 3, magma_ceilpow2( 3)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case  4: zgetf2_nopiv_batched_kernel< 4, magma_ceilpow2( 4)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case  5: zgetf2_nopiv_batched_kernel< 5, magma_ceilpow2( 5)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case  6: zgetf2_nopiv_batched_kernel< 6, magma_ceilpow2( 6)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case  7: zgetf2_nopiv_batched_kernel< 7, magma_ceilpow2( 7)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case  8: zgetf2_nopiv_batched_kernel< 8, magma_ceilpow2( 8)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case  9: zgetf2_nopiv_batched_kernel< 9, magma_ceilpow2( 9)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 10: zgetf2_nopiv_batched_kernel<10, magma_ceilpow2(10)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 11: zgetf2_nopiv_batched_kernel<11, magma_ceilpow2(11)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 12: zgetf2_nopiv_batched_kernel<12, magma_ceilpow2(12)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 13: zgetf2_nopiv_batched_kernel<13, magma_ceilpow2(13)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 14: zgetf2_nopiv_batched_kernel<14, magma_ceilpow2(14)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 15: zgetf2_nopiv_batched_kernel<15, magma_ceilpow2(15)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 16: zgetf2_nopiv_batched_kernel<16, magma_ceilpow2(16)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 17: zgetf2_nopiv_batched_kernel<17, magma_ceilpow2(17)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 18: zgetf2_nopiv_batched_kernel<18, magma_ceilpow2(18)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 19: zgetf2_nopiv_batched_kernel<19, magma_ceilpow2(19)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 20: zgetf2_nopiv_batched_kernel<20, magma_ceilpow2(20)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 21: zgetf2_nopiv_batched_kernel<21, magma_ceilpow2(21)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 22: zgetf2_nopiv_batched_kernel<22, magma_ceilpow2(22)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 23: zgetf2_nopiv_batched_kernel<23, magma_ceilpow2(23)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 24: zgetf2_nopiv_batched_kernel<24, magma_ceilpow2(24)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 25: zgetf2_nopiv_batched_kernel<25, magma_ceilpow2(25)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 26: zgetf2_nopiv_batched_kernel<26, magma_ceilpow2(26)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 27: zgetf2_nopiv_batched_kernel<27, magma_ceilpow2(27)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 28: zgetf2_nopiv_batched_kernel<28, magma_ceilpow2(28)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 29: zgetf2_nopiv_batched_kernel<29, magma_ceilpow2(29)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 30: zgetf2_nopiv_batched_kernel<30, magma_ceilpow2(30)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 31: zgetf2_nopiv_batched_kernel<31, magma_ceilpow2(31)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        case 32: zgetf2_nopiv_batched_kernel<32, magma_ceilpow2(32)><<<grid, threads, shmem, queue->cuda_stream()>>>(m1, dA_array, ai, aj, ldda, info_array, gbstep, batchCount); break;
-        default: printf("error: panel width %lld is not supported\n", (long long) n);
-    }
-
-    if(m2 > 0){
-        magmablas_ztrsm_recursive_batched( 
-            MagmaRight, MagmaUpper, MagmaNoTrans, MagmaNonUnit, 
-            m2, n, MAGMA_Z_ONE, 
-            dAarray(ai   ,aj), ldda, 
+    if(arginfo == 0 && m2 > 0) {
+        magmablas_ztrsm_recursive_batched(
+            MagmaRight, MagmaUpper, MagmaNoTrans, MagmaNonUnit,
+            m2, n, MAGMA_Z_ONE,
+            dAarray(ai   ,aj), ldda,
             dAarray(ai+m1,aj), ldda, batchCount, queue );
     }
+
 
     #undef dAarray
     return arginfo;
