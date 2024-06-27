@@ -114,7 +114,7 @@ magma_zgesv_rbt(
     // For now ignore refine and always set it to False
     // there is probably a bug in the refinement code for the HIP backend
     #ifdef MAGMA_HAVE_HIP
-    refine = MagmaFalse
+    refine = MagmaFalse;
     #endif
 
     if (MAGMA_SUCCESS != magma_zmalloc( &dA, nn*nn ) ||
