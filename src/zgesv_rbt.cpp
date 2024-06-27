@@ -80,7 +80,7 @@ magma_zgesv_rbt(
     const magmaDoubleComplex c_one  = MAGMA_Z_ONE;
 
     /* Local variables */
-    magma_int_t nn = magma_roundup( n, 4 );
+    magma_int_t nn = n;//magma_roundup( n, 4 );
     magmaDoubleComplex *hu=NULL, *hv=NULL;
     magmaDoubleComplex_ptr dA=NULL, dB=NULL, dAo=NULL, dBo=NULL, dwork=NULL, dv=NULL;
     magma_int_t iter;
