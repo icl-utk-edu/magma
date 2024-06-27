@@ -111,7 +111,7 @@ zgetf2_nopiv_batched_kernel_driver(
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
     dim3 threads(m, ntcol, 1);
     dim3 grid(gridx, 1, 1);
-    cudaError_t e;
+    cudaError_t e = cudaSuccess;
     switch(n){
         case  1: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel< 1, magma_ceilpow2( 1)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
         case  2: e = cudaLaunchKernel( (void*)zgetf2_nopiv_batched_kernel< 2, magma_ceilpow2( 2)>, grid, threads, kernel_args, shmem, queue->cuda_stream() ); break;
