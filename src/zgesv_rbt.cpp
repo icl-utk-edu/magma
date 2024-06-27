@@ -110,6 +110,13 @@ magma_zgesv_rbt(
     if (nrhs == 0 || n == 0)
         return *info;
 
+    // TODO: investigate failures on AMD GPUs
+    // For now ignore refine and always set it to False
+    // there is probably a bug in the refinement code for the HIP backend
+    #ifdef MAGMA_HAVE_HIP
+    refine = MagmaFalse
+    #endif
+
     if (MAGMA_SUCCESS != magma_zmalloc( &dA, nn*nn ) ||
         MAGMA_SUCCESS != magma_zmalloc( &dB, nn*nrhs ))
     {
@@ -159,10 +166,10 @@ magma_zgesv_rbt(
     magma_zgesv_nopiv_gpu( nn, nrhs, dA, nn, dB, nn, info );
 
     /* Iterative refinement */
+
     if (refine == MagmaTrue) {
         magma_zgerfs_nopiv_gpu( MagmaNoTrans, nn, nrhs, dAo, nn, dBo, nn, dB, nn, dwork, dA, &iter, info );
     }
-    //printf("iter = %lld\n", (long long) iter );
 
     /* The solution of A.x = b is Vy computed on the GPU */
     if (MAGMA_SUCCESS != magma_zmalloc( &dv, 2*nn )) {
