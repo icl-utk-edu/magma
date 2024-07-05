@@ -14,7 +14,7 @@
 */
 #include "magma_internal.h"
 
-#define FAST_HEMV
+//#define USE_MAGMABLAS_HEMV
 
 /***************************************************************************//**
     Purpose
@@ -152,7 +152,7 @@ magma_zhetrd(
     const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
     const double             d_one     = MAGMA_D_ONE;
-    
+
     /* Local variables */
     const char* uplo_ = lapack_uplo_const( uplo );
 
@@ -204,9 +204,9 @@ magma_zhetrd(
         *info = MAGMA_ERR_HOST_ALLOC;
         return *info;
     }
-    
+
     magmaDoubleComplex *dA;
-    #ifdef FAST_HEMV
+    #ifdef USE_MAGMABLAS_HEMV
     magma_int_t ldwork2 = ldda*magma_ceildiv(n,64);
     #else
     magma_int_t ldwork2 = 0;
@@ -218,7 +218,7 @@ magma_zhetrd(
     }
 
     magmaDoubleComplex *dwork  = dA + ldda*n;
-    #ifdef FAST_HEMV
+    #ifdef USE_MAGMABLAS_HEMV
     magmaDoubleComplex *dwork2 = dwork + 2*lddw*nb;
     #endif
 
@@ -233,12 +233,12 @@ magma_zhetrd(
         nx = n;
     else
         nx = 512;
-    
+
     magma_queue_t queue = NULL;
     magma_device_t cdev;
     magma_getdevice( &cdev );
     magma_queue_create( cdev, &queue );
-    
+
     // clear out dwork in case it has NANs (used as y in zhemv)
     // rest of dwork (used as work in magmablas_zhemv) doesn't need to be cleared
     magmablas_zlaset( MagmaFull, n, nb, c_zero, c_zero, dwork, lddw, queue );
@@ -255,12 +255,12 @@ magma_zhetrd(
             /* Reduce columns i:i+nb-1 to tridiagonal form and form the
                matrix W which is needed to update the unreduced part of
                the matrix */
-            
+
             /* Get the current panel (no need for the 1st iteration) */
             if (i != n-nb)
                 magma_zgetmatrix( i+nb, nb, dA(0, i), ldda, A(0, i), lda, queue );
-            
-            #ifdef FAST_HEMV
+
+            #ifdef USE_MAGMABLAS_HEMV
             magma_zlatrd2( uplo, i+nb, nb, A(0, 0), lda, e, tau,
                            work, ldw, work2, n, dA(0, 0), ldda, dwork, lddw,
                            dwork2, ldwork2, queue );
@@ -276,7 +276,7 @@ magma_zhetrd(
             magma_zher2k( uplo, MagmaNoTrans, i, nb, c_neg_one,
                           dA(0, i), ldda, dwork, lddw,
                           d_one, dA(0, 0), ldda, queue );
-            
+
             /* Copy superdiagonal elements back into A, and diagonal
                elements into D */
             for (j = i; j < i+nb; ++j) {
@@ -284,9 +284,9 @@ magma_zhetrd(
                 d[j] = MAGMA_Z_REAL( *A(j, j) );
             }
         }
-        
+
         magma_zgetmatrix( kk, kk, dA(0, 0), ldda, A(0, 0), lda, queue );
-        
+
         /* Use CPU code to reduce the last or only block */
         lapackf77_zhetrd( uplo_, &kk, A(0, 0), &lda, d, e, tau, work, &lwork, &iinfo );
     }
@@ -304,8 +304,8 @@ magma_zhetrd(
             /* Get the current panel (no need for the 1st iteration) */
             if (i != 0)
                 magma_zgetmatrix( n-i, nb, dA(i, i), ldda, A(i, i), lda, queue );
-            
-            #ifdef FAST_HEMV
+
+            #ifdef USE_MAGMABLAS_HEMV
             magma_zlatrd2( uplo, n-i, nb, A(i, i), lda, &e[i], &tau[i],
                            work, ldw, work2, n, dA(i, i), ldda, dwork, lddw,
                            dwork2, ldwork2, queue );
@@ -313,7 +313,7 @@ magma_zhetrd(
             magma_zlatrd(  uplo, n-i, nb, A(i, i), lda, &e[i], &tau[i],
                            work, ldw, work2, n, dA(i, i), ldda, dwork, lddw, queue );
             #endif
-            
+
             /* Update the unreduced submatrix A(i+ib:n,i+ib:n), using
                an update of the form:  A := A - V*W' - W*V' */
             magma_zsetmatrix( n-i, nb, work, ldw, dwork, lddw, queue );
@@ -321,7 +321,7 @@ magma_zhetrd(
             magma_zher2k( MagmaLower, MagmaNoTrans, n-i-nb, nb, c_neg_one,
                           dA(i+nb, i), ldda, &dwork[nb], lddw,
                           d_one, dA(i+nb, i+nb), ldda, queue );
-            
+
             /* Copy subdiagonal elements back into A, and diagonal
                elements into D */
             for (j = i; j < i+nb; ++j) {
@@ -333,16 +333,16 @@ magma_zhetrd(
         /* Use CPU code to reduce the last or only block */
         if (1 <= n-nx)
             magma_zgetmatrix( n-i, n-i, dA(i, i), ldda, A(i, i), lda, queue );
-        
+
         i_n = n-i;
         lapackf77_zhetrd( uplo_, &i_n, A(i, i), &lda, &d[i], &e[i],
                           &tau[i], work, &lwork, &iinfo );
     }
-    
+
     magma_free_cpu( work2 );
     magma_free( dA );
     magma_queue_destroy( queue );
-    
+
     work[0] = magma_zmake_lwork( lwkopt );
 
     #ifdef MAGMA_DISABLE_MKL_THREADING_ISSUE_BLAS1

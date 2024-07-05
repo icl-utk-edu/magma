@@ -13,7 +13,7 @@
  */
 #include "magma_internal.h"
 
-//#define FAST_HEMV
+//#define USE_MAGMABLAS_HEMV
 
 /***************************************************************************//**
     Purpose
@@ -125,7 +125,7 @@
             Note: the user must ensure that at least max(1,M) columns are
             supplied in the array Z; if RANGE = MagmaRangeV, the exact value of M
             is not known in advance and an upper bound must be used.
-*********   (workspace) If FAST_HEMV is defined DZ should be (LDDZ, max(1,N)) in both cases.
+*********   (workspace) If USE_MAGMABLAS_HEMV is defined DZ should be (LDDZ, max(1,N)) in both cases.
 
     @param[in]
     lddz    INTEGER
@@ -199,12 +199,12 @@ magma_zheevx_gpu(
 {
     /* Constants */
     const magma_int_t ione = 1;
-    
+
     /* Local variables */
     const char* uplo_  = lapack_uplo_const( uplo  );
     const char* jobz_  = lapack_vec_const( jobz  );
     const char* range_ = lapack_range_const( range );
-    
+
     const char* order_;
     magma_int_t indd, inde;
     magma_int_t imax;
@@ -222,9 +222,9 @@ magma_zheevx_gpu(
     double anrm;
     double sigma, d__1;
     double rmin, rmax;
-    
+
     magmaDouble_ptr dwork;
-    
+
     /* Function Body */
     bool lower  = (uplo  == MagmaLower);
     bool wantz  = (jobz  == MagmaVec);
@@ -232,7 +232,7 @@ magma_zheevx_gpu(
     bool valeig = (range == MagmaRangeV);
     bool indeig = (range == MagmaRangeI);
     bool lquery = (lwork == -1);
-    
+
     *info = 0;
     if (! (wantz || (jobz == MagmaNoVec))) {
         *info = -1;
@@ -263,24 +263,24 @@ magma_zheevx_gpu(
             }
         }
     }
-    
+
     magma_int_t nb = magma_get_zhetrd_nb(n);
-    
+
     lopt = n * (nb + 1);
-    
+
     work[0] = magma_zmake_lwork( lopt );
-    
+
     if (lwork < lopt && ! lquery) {
         *info = -21;
     }
-    
+
     if (*info != 0) {
         magma_xerbla( __func__, -(*info));
         return *info;
     } else if (lquery) {
         return *info;
     }
-    
+
     magma_queue_t queue;
     magma_device_t cdev;
     magma_getdevice( &cdev );
@@ -312,13 +312,13 @@ magma_zheevx_gpu(
         *info = MAGMA_ERR_DEVICE_ALLOC;
         return *info;
     }
-    
+
     --w;
     --work;
     --rwork;
     --iwork;
     --ifail;
-    
+
     /* Get machine constants. */
     safmin = lapackf77_dlamch("Safe minimum");
     eps = lapackf77_dlamch("Precision");
@@ -326,7 +326,7 @@ magma_zheevx_gpu(
     bignum = 1. / smlnum;
     rmin = magma_dsqrt(smlnum);
     rmax = magma_dsqrt(bignum);
-    
+
     /* Scale matrix to allowable range, if necessary. */
     anrm = magmablas_zlanhe( MagmaMaxNorm, uplo, n, dA, ldda, dwork, n, queue );
     iscale = 0;
@@ -341,7 +341,7 @@ magma_zheevx_gpu(
     if (iscale == 1) {
         d__1 = 1.;
         magmablas_zlascl( uplo, 0, 0, 1., sigma, n, n, dA, ldda, queue, info );
-        
+
         if (abstol > 0.) {
             abstol *= sigma;
         }
@@ -350,7 +350,7 @@ magma_zheevx_gpu(
             vu *= sigma;
         }
     }
-    
+
     /* Call ZHETRD to reduce Hermitian matrix to tridiagonal form. */
     indd = 1;
     inde = indd + n;
@@ -358,8 +358,8 @@ magma_zheevx_gpu(
     indtau = 1;
     indwrk = indtau + n;
     llwork = lwork - indwrk + 1;
-    
-#ifdef FAST_HEMV
+
+#ifdef USE_MAGMABLAS_HEMV
     magma_zhetrd2_gpu(uplo, n, dA, ldda, &rwork[indd], &rwork[inde],
                       &work[indtau], wA, ldwa, &work[indwrk], llwork, dZ, lddz*n, &iinfo);
 #else
@@ -368,7 +368,7 @@ magma_zheevx_gpu(
 #endif
 
     lopt = n + (magma_int_t)MAGMA_Z_REAL(work[indwrk]);
-    
+
     /* If all eigenvalues are desired and ABSTOL is less than or equal to
        zero, then call DSTERF or ZUNGTR and ZSTEQR.  If this fails for
        some eigenvalue, then try DSTEBZ. */
@@ -397,7 +397,7 @@ magma_zheevx_gpu(
             *m = n;
         }
     }
-    
+
     /* Otherwise, call DSTEBZ and, if eigenvectors are desired, ZSTEIN. */
     if (*m == 0) {
         *info = 0;
@@ -412,13 +412,13 @@ magma_zheevx_gpu(
 
         lapackf77_dstebz(range_, order_, &n, &vl, &vu, &il, &iu, &abstol, &rwork[indd], &rwork[inde], m,
                          &nsplit, &w[1], &iwork[indibl], &iwork[indisp], &rwork[indrwk], &iwork[indiwk], info);
-        
+
         if (wantz) {
             lapackf77_zstein(&n, &rwork[indd], &rwork[inde], m, &w[1], &iwork[indibl], &iwork[indisp],
                              wZ, &ldwz, &rwork[indrwk], &iwork[indiwk], &ifail[1], info);
-            
+
             magma_zsetmatrix( n, *m, wZ, ldwz, dZ, lddz, queue );
-            
+
             /* Apply unitary matrix used in reduction to tridiagonal
                form to eigenvectors returned by ZSTEIN. */
             magma_zunmtr_gpu(MagmaLeft, uplo, MagmaNoTrans, n, *m, dA, ldda, &work[indtau],
@@ -435,7 +435,7 @@ magma_zheevx_gpu(
         d__1 = 1. / sigma;
         blasf77_dscal(&imax, &d__1, &w[1], &ione);
     }
-    
+
     /* If eigenvalues are not in order, then sort them, along with
        eigenvectors. */
     if (wantz) {
@@ -448,7 +448,7 @@ magma_zheevx_gpu(
                     tmp1 = w[jj];
                 }
             }
-            
+
             if (i != 0) {
                 itmp1 = iwork[indibl + i - 1];
                 w[i] = w[j];
@@ -464,10 +464,10 @@ magma_zheevx_gpu(
             }
         }
     }
-    
+
     /* Set WORK[0] to optimal complex workspace size. */
     work[1] = magma_zmake_lwork( lopt );
-    
+
     magma_queue_destroy( queue );
     magma_free( dwork );
 
