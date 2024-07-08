@@ -25,6 +25,11 @@ integer function magmaf_get_sgetrf_nb( m, n )
     integer          :: n
 end
 
+integer function magmaf_get_sgetrf_native_nb( m, n )
+    integer          :: m
+    integer          :: n
+end
+
 integer function magmaf_get_sgetri_nb( n )
     integer          :: n
 end
@@ -101,6 +106,19 @@ end
 integer function magmaf_get_sbulge_gcperf(  )
 end
 
+subroutine magmaf_ssidi( uplo, A, lda, n, ipiv, det, inert, work, job, info )
+    character        :: uplo
+    real             :: A(*)
+    integer          :: lda
+    integer          :: n
+    integer          :: ipiv(*)
+    real             :: det(*)
+    integer          :: inert(*)
+    real             :: work(*)
+    integer          :: job
+    integer          :: info
+end
+
 subroutine magmaf_smove_eig( range, n, w, il, iu, vl, vu, mout )
     character        :: range
     integer          :: n
@@ -128,6 +146,54 @@ subroutine magmaf_sirange( k, indxq, iil, iiu, il, iu )
     integer          :: iiu(*)
     integer          :: il
     integer          :: iu
+end
+
+subroutine magmaf_sgbsv_native( n, kl, ku, nrhs, dA, ldda, dipiv, dB, lddb, info )
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    integer          :: nrhs
+    real             :: dA(*)
+    integer          :: ldda
+    integer          :: dipiv(*)
+    real             :: dB(*)
+    integer          :: lddb
+    integer          :: info
+end
+
+subroutine magmaf_sgbtf2_native_v2( m, n, kl, ku, dA, ldda, ipiv, info, queue )
+    integer          :: m
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    real             :: dA(*)
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_sgbtf2_native( m, n, kl, ku, dA, ldda, ipiv, info, queue )
+    integer          :: m
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    real             :: dA(*)
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_sgbtrf_native( m, n, kl, ku, dAB, lddab, dipiv, info )
+    integer          :: m
+    integer          :: n
+    integer          :: kl
+    integer          :: ku
+    real             :: dAB(*)
+    integer          :: lddab
+    integer          :: dipiv(*)
+    integer          :: info
 end
 
 subroutine magmaf_sgebrd( m, n, A, lda, d, e, tauq, taup, work, lwork, info )
@@ -622,12 +688,55 @@ subroutine magmaf_sgetf2_gpu( m, n, dA, ldda, ipiv, queue, info )
     integer          :: info
 end
 
+subroutine magmaf_sgetf2_native_fused( m, n, dA, ldda, ipiv, gbstep, flags, info, queue )
+    integer          :: m
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: gbstep
+    integer          :: flags(*)
+    integer          :: info
+    magma_devptr_t   :: queue
+end
+
+integer function magmaf_sgetf2_native( m, n, dA, ldda, dipiv, dipivinfo, dinfo, gbstep,  &
+        events, queue, update_queue )
+    integer          :: m
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: dipiv(*)
+    integer          :: dipivinfo(*)
+    integer          :: dinfo(*)
+    integer          :: gbstep
+    magma_devptr_t   :: events(*)
+    magma_devptr_t   :: queue
+    magma_devptr_t   :: update_queue
+end
+
 subroutine magmaf_sgetf2_nopiv( m, n, A, lda, info )
     integer          :: m
     integer          :: n
     real             :: A(*)
     integer          :: lda
     integer          :: info
+end
+
+integer function magmaf_sgetrf_recpanel_native( m, n, recnb, dA, ldda, dipiv, dipivinfo,  &
+        dinfo, gbstep, events, queue, update_queue )
+    integer          :: m
+    integer          :: n
+    integer          :: recnb
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: dipiv(*)
+    integer          :: dipivinfo(*)
+    integer          :: dinfo(*)
+    integer          :: gbstep
+    magma_devptr_t   :: events(*)
+    magma_devptr_t   :: queue
+    magma_devptr_t   :: update_queue
 end
 
 subroutine magmaf_sgetrf( m, n, A, lda, ipiv, info )
@@ -640,6 +749,15 @@ subroutine magmaf_sgetrf( m, n, A, lda, ipiv, info )
 end
 
 subroutine magmaf_sgetrf_gpu( m, n, dA, ldda, ipiv, info )
+    integer          :: m
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+end
+
+subroutine magmaf_sgetrf_native( m, n, dA, ldda, ipiv, info )
     integer          :: m
     integer          :: n
     magma_devptr_t   :: dA
@@ -1141,6 +1259,15 @@ subroutine magmaf_ssytrf( uplo, n, A, lda, ipiv, info )
     integer          :: info
 end
 
+subroutine magmaf_ssytrf_gpu( uplo, n, dA, ldda, ipiv, info )
+    character        :: uplo
+    integer          :: n
+    real             :: dA(*)
+    integer          :: ldda
+    integer          :: ipiv(*)
+    integer          :: info
+end
+
 subroutine magmaf_ssytrf_aasen( uplo, cpu_panel, n, A, lda, ipiv, info )
     character        :: uplo
     integer          :: cpu_panel
@@ -1293,6 +1420,29 @@ subroutine magmaf_spotf2_gpu( uplo, n, dA, ldda, queue, info )
     integer          :: info
 end
 
+integer function magmaf_spotf2_native( uplo, n, dA, ldda, step, device_info, queue )
+    character        :: uplo
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: step
+    integer          :: device_info(*)
+    magma_devptr_t   :: queue
+end
+
+subroutine magmaf_spotrf_rectile_native( uplo, n, recnb, dA, ldda, gbstep, dinfo, info,  &
+        queue )
+    character        :: uplo
+    integer          :: n
+    integer          :: recnb
+    real             :: dA(*)
+    integer          :: ldda
+    integer          :: gbstep
+    integer          :: dinfo(*)
+    integer          :: info
+    magma_devptr_t   :: queue
+end
+
 subroutine magmaf_spotrf( uplo, n, A, lda, info )
     character        :: uplo
     integer          :: n
@@ -1302,6 +1452,14 @@ subroutine magmaf_spotrf( uplo, n, A, lda, info )
 end
 
 subroutine magmaf_spotrf_gpu( uplo, n, dA, ldda, info )
+    character        :: uplo
+    integer          :: n
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: info
+end
+
+subroutine magmaf_spotrf_native( uplo, n, dA, ldda, info )
     character        :: uplo
     integer          :: n
     magma_devptr_t   :: dA
@@ -1823,6 +1981,42 @@ subroutine magmaf_sq_to_panel( uplo, ib, A, lda, work )
     real             :: A(*)
     integer          :: lda
     real             :: work(*)
+end
+
+subroutine magmablasf_sextract_diag_sqrt( m, n, dA, ldda, dD, incd, queue )
+    integer          :: m
+    integer          :: n
+    real             :: dA(*)
+    integer          :: ldda
+    real             :: dD(*)
+    integer          :: incd
+    magma_devptr_t   :: queue
+end
+
+subroutine magmablasf_sscal_shift_hpd( uplo, n, dA, ldda, dD, incd, miu, cn, eps, queue )
+    character        :: uplo
+    integer          :: n
+    real             :: dA(*)
+    integer          :: ldda
+    real             :: dD(*)
+    integer          :: incd
+    real             :: miu
+    real             :: cn
+    real             :: eps
+    magma_devptr_t   :: queue
+end
+
+subroutine magmablasf_sdimv_invert( n, alpha, dD, incd, dx, incx, beta, dy, incy, queue )
+    integer          :: n
+    real             :: alpha
+    real             :: dD(*)
+    integer          :: incd
+    real             :: dx(*)
+    integer          :: incx
+    real             :: beta
+    real             :: dy(*)
+    integer          :: incy
+    magma_devptr_t   :: queue
 end
 
 end interface

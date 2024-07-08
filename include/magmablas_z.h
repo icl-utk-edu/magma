@@ -78,16 +78,16 @@ magmablas_zprbt(
 
 void
 magmablas_zprbt_mv(
-    magma_int_t n,
+    magma_int_t n, magma_int_t nrhs,
     magmaDoubleComplex_ptr dv,
-    magmaDoubleComplex_ptr db,
+    magmaDoubleComplex_ptr db, magma_int_t lddb,
     magma_queue_t queue );
 
 void
 magmablas_zprbt_mtv(
-    magma_int_t n,
+    magma_int_t n, magma_int_t nrhs,
     magmaDoubleComplex_ptr du,
-    magmaDoubleComplex_ptr db,
+    magmaDoubleComplex_ptr db, magma_int_t lddb,
     magma_queue_t queue );
 
   /*

@@ -17,7 +17,7 @@
 #include "magma_timer.h"
 
 #define COMPLEX
-#define FAST_HEMV
+//#define USE_MAGMABLAS_HEMV
 
 /***************************************************************************//**
     Purpose
@@ -229,7 +229,7 @@ magma_zheevd_gpu(
         lrwmin = n;
         liwmin = 1;
     }
-    
+
     work[0]  = magma_zmake_lwork( lwmin );
     rwork[0] = magma_dmake_lwork( lrwmin );
     iwork[0] = liwmin;
@@ -332,7 +332,7 @@ magma_zheevd_gpu(
     magma_timer_t time=0;
     timer_start( time );
 
-#ifdef FAST_HEMV
+#ifdef USE_MAGMABLAS_HEMV
     magma_zhetrd2_gpu( uplo, n, dA, ldda, w, &rwork[inde],
                        &work[indtau], wA, ldwa, &work[indwrk], llwork,
                        dC, ldwork, &iinfo );

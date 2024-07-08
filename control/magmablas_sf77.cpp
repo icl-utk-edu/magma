@@ -102,26 +102,54 @@ void magmablasf_sprbt(
 
 #define magmablasf_sprbt_mv FORTRAN_NAME( magmablasf_sprbt_mv, MAGMABLASF_SPRBT_MV )
 void magmablasf_sprbt_mv(
-    magma_int_t *n,
+    magma_int_t *n, magma_int_t *nrhs,
     devptr_t *dv,
-    devptr_t *db, magma_queue_t *queue )
+    devptr_t *db, magma_int_t *lddb, magma_queue_t *queue )
 {
     magmablas_sprbt_mv(
-        *n,
+        *n, *nrhs,
         magma_sdevptr(dv),
-        magma_sdevptr(db), *queue );
+        magma_sdevptr(db), *lddb, *queue );
 }
 
 #define magmablasf_sprbt_mtv FORTRAN_NAME( magmablasf_sprbt_mtv, MAGMABLASF_SPRBT_MTV )
 void magmablasf_sprbt_mtv(
-    magma_int_t *n,
+    magma_int_t *n, magma_int_t *nrhs,
     devptr_t *du,
-    devptr_t *db, magma_queue_t *queue )
+    devptr_t *db, magma_int_t *lddb, magma_queue_t *queue )
 {
     magmablas_sprbt_mtv(
-        *n,
+        *n, *nrhs,
         magma_sdevptr(du),
-        magma_sdevptr(db), *queue );
+        magma_sdevptr(db), *lddb, *queue );
+}
+
+#define magmaf_ssytrs_gpu FORTRAN_NAME( magmaf_ssytrs_gpu, MAGMAF_SSYTRS_GPU )
+void magmaf_ssytrs_gpu(
+    const char* uplo, magma_int_t *n, magma_int_t *nrhs,
+    float *dA, magma_int_t *ldda,
+    magma_int_t *ipiv,
+    float *dB, magma_int_t *lddb,
+    magma_int_t *info, magma_queue_t *queue )
+{
+    magma_ssytrs_gpu(
+        magma_uplo_const(*uplo), *n, *nrhs,
+        dA, *ldda,
+        ipiv,
+        dB, *lddb,
+        info, *queue );
+}
+
+#define magmablasf_sdiinertia FORTRAN_NAME( magmablasf_sdiinertia, MAGMABLASF_SDIINERTIA )
+magma_int_t magmablasf_sdiinertia(
+    magma_int_t *n,
+    devptr_t *dA, magma_int_t *ldda,
+    int *dneig, magma_queue_t *queue )
+{
+    return magmablas_sdiinertia(
+        *n,
+        magma_sdevptr(dA), *ldda,
+        dneig, *queue );
 }
 
 #define magmablasf_sgeadd FORTRAN_NAME( magmablasf_sgeadd, MAGMABLASF_SGEADD )
@@ -146,6 +174,34 @@ void magmablasf_sgeadd2(
         *m, *n, *alpha,
         magma_sdevptr(dA), *ldda, *beta,
         magma_sdevptr(dB), *lddb, *queue );
+}
+
+#define magmablasf_sgeam FORTRAN_NAME( magmablasf_sgeam, MAGMABLASF_SGEAM )
+void magmablasf_sgeam(
+    const char* transA, const char* transB, magma_int_t *m, magma_int_t *n, float *alpha,
+    devptr_t *dA, magma_int_t *ldda, float *beta,
+    devptr_t *dB, magma_int_t *lddb,
+    devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
+{
+    magmablas_sgeam(
+        magma_trans_const(*transA), magma_trans_const(*transB), *m, *n, *alpha,
+        magma_sdevptr(dA), *ldda, *beta,
+        magma_sdevptr(dB), *lddb,
+        magma_sdevptr(dC), *lddc, *queue );
+}
+
+#define magmablasf_ssiinertia FORTRAN_NAME( magmablasf_ssiinertia, MAGMABLASF_SSIINERTIA )
+magma_int_t magmablasf_ssiinertia(
+    const char* uplo, magma_int_t *n,
+    devptr_t *dA, magma_int_t *ldda,
+    magma_int_t *ipiv,
+    int *dneig, magma_queue_t *queue )
+{
+    return magmablas_ssiinertia(
+        magma_uplo_const(*uplo), *n,
+        magma_sdevptr(dA), *ldda,
+        ipiv,
+        dneig, *queue );
 }
 
 #define magmablasf_slacpy FORTRAN_NAME( magmablasf_slacpy, MAGMABLASF_SLACPY )
@@ -348,6 +404,32 @@ void magmablasf_slaswpx(
         *n,
         magma_sdevptr(dA), *ldx, *ldy, *k1, *k2,
         ipiv, *inci, *queue );
+}
+
+#define magmaf_slaswp_rowparallel_native FORTRAN_NAME( magmaf_slaswp_rowparallel_native, MAGMAF_SLASWP_ROWPARALLEL_NATIVE )
+void magmaf_slaswp_rowparallel_native(
+    magma_int_t *n,
+    float* input, magma_int_t *ldi,
+    float* output, magma_int_t *ldo, magma_int_t *k1, magma_int_t *k2,
+    magma_int_t *pivinfo, magma_queue_t *queue )
+{
+    magma_slaswp_rowparallel_native(
+        *n,
+        input, *ldi,
+        output, *ldo, *k1, *k2,
+        pivinfo, *queue );
+}
+
+#define magmaf_slaswp_columnserial FORTRAN_NAME( magmaf_slaswp_columnserial, MAGMAF_SLASWP_COLUMNSERIAL )
+void magmaf_slaswp_columnserial(
+    magma_int_t *n,
+    devptr_t *dA, magma_int_t *lda, magma_int_t *k1, magma_int_t *k2,
+    magma_int_t *dipiv, magma_queue_t *queue )
+{
+    magma_slaswp_columnserial(
+        *n,
+        magma_sdevptr(dA), *lda, *k1, *k2,
+        dipiv, *queue );
 }
 
 #define magmablasf_ssymmetrize FORTRAN_NAME( magmablasf_ssymmetrize, MAGMABLASF_SSYMMETRIZE )
@@ -910,6 +992,20 @@ magma_int_t magmaf_isamax(
         magma_sdevptr(dx), *incx, *queue );
 }
 
+#define magmaf_isamax_native FORTRAN_NAME( magmaf_isamax_native, MAGMAF_ISAMAX_NATIVE )
+void magmaf_isamax_native(
+    magma_int_t *length,
+    devptr_t *x, magma_int_t *incx,
+    magma_int_t* ipiv,
+    magma_int_t *info, magma_int_t *step, magma_int_t *gbstep, magma_queue_t *queue )
+{
+    magma_isamax_native(
+        *length,
+        magma_sdevptr(x), *incx,
+        ipiv,
+        info, *step, *gbstep, *queue );
+}
+
 #define magmaf_isamin FORTRAN_NAME( magmaf_isamin, MAGMAF_ISAMIN )
 magma_int_t magmaf_isamin(
     magma_int_t *n,
@@ -1042,6 +1138,18 @@ void magmaf_sscal(
         magma_sdevptr(dx), *incx, *queue );
 }
 
+#define magmaf_sscal_sger_native FORTRAN_NAME( magmaf_sscal_sger_native, MAGMAF_SSCAL_SGER_NATIVE )
+void magmaf_sscal_sger_native(
+    magma_int_t *m, magma_int_t *n,
+    devptr_t *dA, magma_int_t *lda,
+    magma_int_t *info, magma_int_t *step, magma_int_t *gbstep, magma_queue_t *queue )
+{
+    magma_sscal_sger_native(
+        *m, *n,
+        magma_sdevptr(dA), *lda,
+        info, *step, *gbstep, *queue );
+}
+
 #define magmaf_sswap FORTRAN_NAME( magmaf_sswap, MAGMAF_SSWAP )
 void magmaf_sswap(
     magma_int_t *n,
@@ -1052,6 +1160,18 @@ void magmaf_sswap(
         *n,
         magma_sdevptr(dx), *incx,
         magma_sdevptr(dy), *incy, *queue );
+}
+
+#define magmaf_sswap_native FORTRAN_NAME( magmaf_sswap_native, MAGMAF_SSWAP_NATIVE )
+void magmaf_sswap_native(
+    magma_int_t *n,
+    devptr_t *x, magma_int_t *incx, magma_int_t *step,
+    magma_int_t* ipiv, magma_queue_t *queue )
+{
+    magma_sswap_native(
+        *n,
+        magma_sdevptr(x), *incx, *step,
+        ipiv, *queue );
 }
 
 #define magmaf_sgemv FORTRAN_NAME( magmaf_sgemv, MAGMAF_SGEMV )
@@ -1134,6 +1254,18 @@ void magmaf_strmv(
         magma_sdevptr(dx), *incx, *queue );
 }
 
+#define magmablasf_strmv FORTRAN_NAME( magmablasf_strmv, MAGMABLASF_STRMV )
+void magmablasf_strmv(
+    const char* uplo, const char* trans, const char* diag, magma_int_t *n,
+    float *dA, magma_int_t *ldda,
+    float *dx, magma_int_t *incx, magma_queue_t *queue )
+{
+    magmablas_strmv(
+        magma_uplo_const(*uplo), magma_trans_const(*trans), magma_diag_const(*diag), *n,
+        dA, *ldda,
+        dx, *incx, *queue );
+}
+
 #define magmaf_strsv FORTRAN_NAME( magmaf_strsv, MAGMAF_STRSV )
 void magmaf_strsv(
     const char* uplo, const char* trans, const char* diag, magma_int_t *n,
@@ -1174,6 +1306,20 @@ void magmaf_ssymm(
         magma_sdevptr(dC), *lddc, *queue );
 }
 
+#define magmablasf_ssymm FORTRAN_NAME( magmablasf_ssymm, MAGMABLASF_SSYMM )
+void magmablasf_ssymm(
+    const char* side, const char* uplo, magma_int_t *m, magma_int_t *n, float *alpha,
+    devptr_t *dA, magma_int_t *ldda,
+    devptr_t *dB, magma_int_t *lddb, float *beta,
+    devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
+{
+    magmablas_ssymm(
+        magma_side_const(*side), magma_uplo_const(*uplo), *m, *n, *alpha,
+        magma_sdevptr(dA), *ldda,
+        magma_sdevptr(dB), *lddb, *beta,
+        magma_sdevptr(dC), *lddc, *queue );
+}
+
 #define magmaf_ssyr2k FORTRAN_NAME( magmaf_ssyr2k, MAGMAF_SSYR2K )
 void magmaf_ssyr2k(
     const char* uplo, const char* trans, magma_int_t *n, magma_int_t *k, float *alpha,
@@ -1182,6 +1328,20 @@ void magmaf_ssyr2k(
     devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
 {
     magma_ssyr2k(
+        magma_uplo_const(*uplo), magma_trans_const(*trans), *n, *k, *alpha,
+        magma_sdevptr(dA), *ldda,
+        magma_sdevptr(dB), *lddb, *beta,
+        magma_sdevptr(dC), *lddc, *queue );
+}
+
+#define magmablasf_ssyr2k FORTRAN_NAME( magmablasf_ssyr2k, MAGMABLASF_SSYR2K )
+void magmablasf_ssyr2k(
+    const char* uplo, const char* trans, magma_int_t *n, magma_int_t *k, float *alpha,
+    devptr_t *dA, magma_int_t *ldda,
+    devptr_t *dB, magma_int_t *lddb, float *beta,
+    devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
+{
+    magmablas_ssyr2k(
         magma_uplo_const(*uplo), magma_trans_const(*trans), *n, *k, *alpha,
         magma_sdevptr(dA), *ldda,
         magma_sdevptr(dB), *lddb, *beta,
@@ -1200,6 +1360,30 @@ void magmaf_ssyrk(
         magma_sdevptr(dC), *lddc, *queue );
 }
 
+#define magmablasf_ssyrk FORTRAN_NAME( magmablasf_ssyrk, MAGMABLASF_SSYRK )
+void magmablasf_ssyrk(
+    const char* uplo, const char* trans, magma_int_t *n, magma_int_t *k, float *alpha,
+    devptr_t *dA, magma_int_t *ldda, float *beta,
+    devptr_t *dC, magma_int_t *lddc, magma_queue_t *queue )
+{
+    magmablas_ssyrk(
+        magma_uplo_const(*uplo), magma_trans_const(*trans), *n, *k, *alpha,
+        magma_sdevptr(dA), *ldda, *beta,
+        magma_sdevptr(dC), *lddc, *queue );
+}
+
+#define magmablasf_ssyrk_small_reduce FORTRAN_NAME( magmablasf_ssyrk_small_reduce, MAGMABLASF_SSYRK_SMALL_REDUCE )
+void magmablasf_ssyrk_small_reduce(
+    const char* uplo, const char* trans, magma_int_t *n, magma_int_t *k, float *alpha,
+    float* dA, magma_int_t *ldda, float *beta,
+    float* dC, magma_int_t *lddc, magma_int_t *nthread_blocks, magma_queue_t *queue )
+{
+    magmablas_ssyrk_small_reduce(
+        magma_uplo_const(*uplo), magma_trans_const(*trans), *n, *k, *alpha,
+        dA, *ldda, *beta,
+        dC, *lddc, *nthread_blocks, *queue );
+}
+
 #define magmaf_strmm FORTRAN_NAME( magmaf_strmm, MAGMAF_STRMM )
 void magmaf_strmm(
     const char* side, const char* uplo, const char* trans, const char* diag, magma_int_t *m, magma_int_t *n, float *alpha,
@@ -1212,6 +1396,18 @@ void magmaf_strmm(
         magma_sdevptr(dB), *lddb, *queue );
 }
 
+#define magmablasf_strmm FORTRAN_NAME( magmablasf_strmm, MAGMABLASF_STRMM )
+void magmablasf_strmm(
+    const char* side, const char* uplo, const char* transA, const char* diag, magma_int_t *m, magma_int_t *n, float *alpha,
+    float *dA, magma_int_t *ldda,
+    float *dB, magma_int_t *lddb, magma_queue_t *queue )
+{
+    magmablas_strmm(
+        magma_side_const(*side), magma_uplo_const(*uplo), magma_trans_const(*transA), magma_diag_const(*diag), *m, *n, *alpha,
+        dA, *ldda,
+        dB, *lddb, *queue );
+}
+
 #define magmaf_strsm FORTRAN_NAME( magmaf_strsm, MAGMAF_STRSM )
 void magmaf_strsm(
     const char* side, const char* uplo, const char* trans, const char* diag, magma_int_t *m, magma_int_t *n, float *alpha,
@@ -1220,6 +1416,18 @@ void magmaf_strsm(
 {
     magma_strsm(
         magma_side_const(*side), magma_uplo_const(*uplo), magma_trans_const(*trans), magma_diag_const(*diag), *m, *n, *alpha,
+        magma_sdevptr(dA), *ldda,
+        magma_sdevptr(dB), *lddb, *queue );
+}
+
+#define magmaf_sgetf2trsm_2d_native FORTRAN_NAME( magmaf_sgetf2trsm_2d_native, MAGMAF_SGETF2TRSM_2D_NATIVE )
+void magmaf_sgetf2trsm_2d_native(
+    magma_int_t *m, magma_int_t *n,
+    devptr_t *dA, magma_int_t *ldda,
+    devptr_t *dB, magma_int_t *lddb, magma_queue_t *queue )
+{
+    magma_sgetf2trsm_2d_native(
+        *m, *n,
         magma_sdevptr(dA), *ldda,
         magma_sdevptr(dB), *lddb, *queue );
 }
