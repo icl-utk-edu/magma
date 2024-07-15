@@ -11,8 +11,8 @@
 #include "magma_internal.h"
 
 // === Define what BLAS to use ============================================
-    #undef  magma_ztrsm
-    #define magma_ztrsm magmablas_ztrsm
+//#undef  magma_ztrsm
+//#define magma_ztrsm magmablas_ztrsm
 // === End defining what BLAS to use ======================================
 
 /***************************************************************************//**
@@ -75,14 +75,15 @@
     @ingroup magma_potrf
 *******************************************************************************/
 extern "C" magma_int_t
-magma_zpotrf(
+magma_zpotrf_expert(
     magma_uplo_t uplo, magma_int_t n,
-    magmaDoubleComplex *A, magma_int_t lda,
-    magma_int_t *info )
+    magmaDoubleComplex  *A, magma_int_t lda,
+    magmaDoubleComplex *dA, magma_int_t ldda,
+    magma_int_t *info, magma_queue_t *queues)
 {
     #define  A(i_, j_)  (A + (i_) + (j_)*lda)
     
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_, j_)  dA, ((i_) + (j_)*ldda)
     #else
     #define dA(i_, j_) (dA + (i_) + (j_)*ldda)
@@ -98,8 +99,7 @@ magma_zpotrf(
     const char* uplo_ = lapack_uplo_const( uplo );
     bool upper = (uplo == MagmaUpper);
     
-    magma_int_t j, jb, ldda, nb;
-    magmaDoubleComplex_ptr dA = NULL;
+    magma_int_t j, jb, nb;
     
     /* Check arguments */
     *info = 0;
@@ -121,30 +121,11 @@ magma_zpotrf(
     
     nb = magma_get_zpotrf_nb( n );
     
-    if (nb <= 1 || nb >= n) {
+    if (nb <= 1 || 2*nb >= n) {
         lapackf77_zpotrf( uplo_, &n, A, &lda, info );
     }
     else {
         /* Use hybrid blocked code. */
-        ldda = magma_roundup( n, 32 );
-        
-        magma_int_t ngpu = magma_num_gpus();
-        if ( ngpu > 1 ) {
-            /* call multi-GPU non-GPU-resident interface */
-            return magma_zpotrf_m( ngpu, uplo, n, A, lda, info );
-        }
-        
-        if (MAGMA_SUCCESS != magma_zmalloc( &dA, n*ldda )) {
-            /* alloc failed so call the non-GPU-resident version */
-            return magma_zpotrf_m( ngpu, uplo, n, A, lda, info );
-        }
-        
-        magma_queue_t queues[2] = { NULL, NULL };
-        magma_device_t cdev;
-        magma_getdevice( &cdev );
-        magma_queue_create( cdev, &queues[0] );
-        magma_queue_create( cdev, &queues[1] );
-        
         if (upper) {
             /* Compute the Cholesky factorization A = U'*U. */
             for (j=0; j < n; j += nb) {
@@ -250,11 +231,51 @@ magma_zpotrf(
                 }
             }
         }
+    }
+
+    return *info;
+} /* magma_zpotrf */
+
+/******************************************************************************
+    magma_zpotrf_expert with two queues.
+    @see magma_zpotrf_expert
+    @ingroup magma_potrf
+*******************************************************************************/
+extern "C" magma_int_t
+magma_zpotrf(
+    magma_uplo_t uplo, magma_int_t n,
+    magmaDoubleComplex *A, magma_int_t lda,
+    magma_int_t *info )
+{
+    magma_int_t nb   = magma_get_zpotrf_nb( n );
+    magma_int_t ngpu = magma_num_gpus();
+    magma_int_t ldda = magma_roundup( n, 32 );
+
+    magmaDoubleComplex_ptr dA = NULL;
+
+    magma_queue_t queues[2] = { NULL, NULL };
+
+    if ( 2*nb < n && ngpu <= 1) {
+        if (MAGMA_SUCCESS != magma_zmalloc( &dA, n*ldda )) {
+            /* alloc failed so call the non-GPU-resident version */
+            return magma_zpotrf_m( ngpu, uplo, n, A, lda, info );
+        }
+
+        magma_device_t cdev;
+        magma_getdevice( &cdev );
+        magma_queue_create( cdev, &queues[0] );
+        magma_queue_create( cdev, &queues[1] );
+        
+        magma_zpotrf_expert(uplo, n, A, lda, dA, ldda, info, queues );
+        
         magma_queue_destroy( queues[0] );
         magma_queue_destroy( queues[1] );
         
         magma_free( dA );
     }
-    
+    else {
+        /* call multi-GPU non-GPU-resident interface or cleanup code for small sizes */
+        return magma_zpotrf_expert( uplo, n, A, lda, dA, ldda, info, queues );
+    }
     return *info;
 } /* magma_zpotrf */

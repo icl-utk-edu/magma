@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+""" gen-hip-make - generate hipification makefiles for given directories
+
+This tool is written to convert an entire directory (in MAGMA) to another, HIP-compatible one, by creating a makefile
+
+The basic usage is:
+  $ ./tools/gen-hip-make dir1 dir2 ... > make.gen.hipMAGMA
+
+
+@author: Cade Brown <cbrow216@vols.utk.edu>
+
+"""
+
+## imports (all std)
+import argparse
+import sys
+import os
+import glob
+import re
+import shutil
+import errno
+import time
+
+# construct & parse given arguments
+parser = argparse.ArgumentParser(description='Hipify an entire directory')
+
+parser.add_argument('dirs', nargs='+', help='The directory to transform')
+
+args = parser.parse_args()
+
+# input directories
+dirs = args.dirs
+
+# output directories
+odirs = []
+
+for dr in dirs:
+    if dr.endswith('cuda'):
+        odirs += [dr.replace('cuda', 'hip', 1)]
+    elif '/' in dr:
+        odirs += [dr.replace('/', '_hip/', 1)]
+    else:
+        odirs += [dr + '_hip']
+
+
+
+print(f"""# -- GENERATED MAKEFILE --
+# This makefile generates {dirs} -> {odirs}
+
+# tool to 'hipify' it
+HIPIFY            ?= tools/hipify-perl
+
+# input & output directories
+DIRS              := {" ".join(dirs)}
+ODIRS             := {" ".join(odirs)}
+
+
+# -- Rules --
+
+all: $(ODIRS)
+
+clean: FORCE
+	rm -rf $(wildcard $(ODIRS))
+
+FORCE:
+
+.PHONY: all clean FORCE $(ODIRS)
+
+
+# -- Generated --
+
+
+""")
+
+
+# escapes directory slashes for regex
+def _escslash(dr):
+    return dr.replace('/', '\\/')
+
+for dr, odr in zip(dirs, odirs):
+    print (f"""
+
+{odr}: $(patsubst {dr}/%,{odr}/%,$(wildcard {dr}/*.cpp)) $(patsubst {dr}/%,{odr}/%,$(wildcard {dr}/*.h)) $(patsubst {dr}/%.cu,{odr}/%.hip.cpp,$(wildcard {dr}/*.cu)) $(patsubst {dr}/%.cuh,{odr}/%.hip.hpp,$(wildcard {dr}/*.cuh)) $(patsubst {dr}/%,{odr}/%,$(wildcard {dr}/Makefil*)) $(patsubst {dr}/%,{odr}/%,$(wildcard {dr}/*_config)) $(patsubst {dr}/%,{odr}/%,$(wildcard {dr}/*.f90 {dr}/*.F90)) FORCE
+
+{odr}/%.cpp: {dr}/%.cpp
+	@mkdir -p $(dir $@)
+	$(HIPIFY) $< > $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@ 
+	sed -i -e "s/CUBLAS/hipBLAS/g" $@
+
+{odr}/%.h: {dr}/%.h
+	@mkdir -p $(dir $@)
+	$(HIPIFY) $< > $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+
+{odr}/%.hip.cpp: {dr}/%.cu
+	@mkdir -p $(dir $@)
+	$(HIPIFY) $< > $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+
+{odr}/%.hip.hpp: {dr}/%.cuh
+	@mkdir -p $(dir $@)
+	$(HIPIFY) $< > $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+
+# converts *_config <- *_config
+# these are things like gemm_configs, so are architecture agnostic
+# so, just copy them
+{odr}/%_config: {dr}/%_config
+	@mkdir -p $(dir $@)
+	cp -rf $< $(dir $@)
+
+# copy in fortran sources
+{odr}/%.f90: {dr}/%.f90
+	@mkdir -p $(dir $@)
+	cp $^ $@
+{odr}/%.F90: {dr}/%.F90
+	@mkdir -p $(dir $@)
+	cp $^ $@
+
+# little hack so % acts like Makefile*.
+{odr}/Makefil%: {dr}/Makefil%
+	@mkdir -p $(dir $@)
+	cp $< $@
+	sed -i -e "s/:=  *{_escslash(dr)}/:= {_escslash(odr)}/g" $@
+	sed -i -e "s/\.cuh/.hip.hpp/g" $@
+	sed -i -e "s/\.cu/.hip.cpp/g" $@
+    
+""")
+
+print ("# -- Done --")

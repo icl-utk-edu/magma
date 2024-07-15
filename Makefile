@@ -1,3 +1,10 @@
+#--------------------------------------------------------------------
+# build process
+#
+#
+
+
+
 # ------------------------------------------------------------------------------
 # programs
 #
@@ -6,42 +13,95 @@
 
 include make.inc
 
-# defaults if nothing else is given in make.inc
-CC         ?= cc
-CXX        ?= c++
-NVCC       ?= nvcc
-FORT       ?=
-ifeq ($(FORT),)
-    $(warning No Fortran compiler was given in FORT in make.inc. Some testers will not be able to check their results.)
+# --------------------
+# configuration
+
+# should MAGMA be built on CUDA (NVIDIA only) or HIP (AMD or NVIDIA)
+# enter 'cuda' or 'hip' respectively
+BACKEND     ?= cuda
+
+# set these to their real paths
+CUDADIR     ?= /usr/local/cuda
+ROCM_PATH   ?= /opt/rocm
+
+# require either hip or cuda
+ifeq (,$(findstring $(BACKEND),"hip cuda"))
+    $(error "'BACKEND' should be either 'cuda' or 'hip' (got '$(BACKEND)')")
 endif
 
-ARCH       ?= ar
-ARCHFLAGS  ?= cr
-RANLIB     ?= ranlib
+# --------------------
+# programs
 
-# shared libraries require -fPIC
-#FPIC       = -fPIC
+# set compilers
+CC          ?= gcc
+CXX         ?= g++
+FORT        ?= gfortran
+HIPCC       ?= hipcc
+NVCC        ?= nvcc
+DEVCC       ?= NONE
 
-# may want -std=c99 for CFLAGS, -std=c++11 for CXXFLAGS
-CFLAGS     ?= -O3 $(FPIC) -DADD_ -Wall -MMD
-CXXFLAGS   ?= $(CFLAGS) -std=c++11
-NVCCFLAGS  ?= -O3         -DADD_ -Xcompiler "$(FPIC) -Wall -Wno-unused-function" -std=c++11
-FFLAGS     ?= -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
-F90FLAGS   ?= -O3 $(FPIC) -DADD_ -Wall -Wno-unused-dummy-argument
-LDFLAGS    ?= -O3 $(FPIC)
+# Configuration variables
+HAVE_CUDA  =
+HAVE_HIP   =
+CUDA_ARCH_MIN =
 
-INC        ?= -I$(CUDADIR)/include
+# CMake.src file, which depends on the backend
+CMAKESRC     = CMake.src.$(BACKEND)
 
-LIBDIR     ?= -L$(CUDADIR)/lib64
-LIB        ?= -lcudart -lcudadevrt -lcublas -lcusparse -llapack -lblas -lpthread -lm
+# set from 'BACKEND'
+ifeq ($(BACKEND),cuda)
+    DEVCC = $(NVCC)
+	HAVE_CUDA = 1
 
-GPU_TARGET ?= Kepler Maxwell Pascal
+else ifeq ($(BACKEND),hip)
+    DEVCC = $(HIPCC)
+	HAVE_HIP = 1
+
+    # if we are using HIP, make sure generated sources are up to date
+    # Technically, this 'recursive' make which we don't like to do, but also this is a simple solution
+    #   that allows that file to handle all code generation
+    # Another reason is that I don't want to flood the namespace (for example, that file also
+    #   defines an 'all' and 'clean' target as phonies)
+    # So, in the future that whole file may be integrated, but for now this seems simplest
+	# Detect number of jobs here, so it runs at an appropriate speed
+    MAKE_PID := $(shell echo $$PPID)
+    JOB_FLAG := $(filter -j%, $(subst -j ,-j,$(shell ps T | grep "^\s*$(MAKE_PID).*$(MAKE)")))
+    JOBS     := $(subst -j,,$(JOB_FLAG))
+    tmp := $(shell $(MAKE) -j$(JOBS) -f make.gen.hipMAGMA 1>&2)
+else
+    $(warning BACKEND: $(BACKEND) not recognized)
+endif
+
+# and utilities
+ARCH        ?= ar
+ARCHFLAGS   ?= cr
+RANLIB      ?= ranlib
+
+
+# --------------------
+# flags/settings
+
+# Use -fPIC to make shared (.so) and static (.a) library;
+# can be commented out if making only static library.
+FPIC        ?= -fPIC
+
+# now, generate our flags
+CFLAGS      ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp -std=c99
+CXXFLAGS    ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp -std=c++11
+FFLAGS      ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
+F90FLAGS    ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
+LDFLAGS     ?=     $(FPIC)                       -fopenmp
+
+ifndef $(and DEVCCFLAGS, NVCCFLAGS)
+    DEVCCFLAGS  ?= -O3         -DNDEBUG -DADD_
+endif
+# DEVCCFLAGS are populated later in `backend-specific`
 
 # Extension for object files: o for unix, obj for Windows?
 o_ext      ?= o
 
+# where to install to?
 prefix     ?= /usr/local/magma
-
 
 # ------------------------------------------------------------------------------
 # MAGMA-specific programs & flags
@@ -56,133 +116,176 @@ LIBS       = $(LIBDIR) $(LIB)
 # preprocessor flags. See below for MAGMA_INC
 CPPFLAGS   = $(INC) $(MAGMA_INC)
 
-CFLAGS    += -DHAVE_CUBLAS
-CXXFLAGS  += -DHAVE_CUBLAS
-
 # where testers look for MAGMA libraries
 RPATH      = -Wl,-rpath,${abspath ./lib}
 
-codegen    = python tools/codegen.py
+codegen    = ./tools/codegen.py
 
 
-# ------------------------------------------------------------------------------
-# NVCC options for the different cards
-# First, add smXX for architecture names
-ifneq ($(findstring Kepler, $(GPU_TARGET)),)
-    GPU_TARGET += sm_30 sm_35
-endif
-ifneq ($(findstring Maxwell, $(GPU_TARGET)),)
-    GPU_TARGET += sm_50
-endif
-ifneq ($(findstring Pascal, $(GPU_TARGET)),)
-    GPU_TARGET += sm_60
-endif
-ifneq ($(findstring Volta, $(GPU_TARGET)),)
-    GPU_TARGET += sm_70
-endif
-ifneq ($(findstring Turing, $(GPU_TARGET)),)
-    GPU_TARGET += sm_75
-endif
-ifneq ($(findstring Ampere, $(GPU_TARGET)),)
-    GPU_TARGET += sm_80
-endif
-# Remember to add to CMakeLists.txt too!
+ifeq ($(BACKEND),cuda)
+
+	# Add legacy flags
+	DEVCCFLAGS += $(NVCCFLAGS)
+
+	# ------------------------------------------------------------------------------
+	# NVCC options for the different cards
+	# First, add smXX for architecture names
+	# Internal CUDA architectures we support
+	# TODO: Filter on regex to discard the named architectures?
+	CUDA_ARCH_ := $(GPU_TARGET)
+	ifneq ($(findstring Kepler, $(GPU_TARGET)),)
+		CUDA_ARCH_ += sm_30
+		CUDA_ARCH_ += sm_35
+	endif
+	ifneq ($(findstring Maxwell, $(GPU_TARGET)),)
+		CUDA_ARCH_ += sm_50
+	endif
+	ifneq ($(findstring Pascal, $(GPU_TARGET)),)
+		CUDA_ARCH_ += sm_60
+	endif
+	ifneq ($(findstring Volta, $(GPU_TARGET)),)
+		CUDA_ARCH_ += sm_70
+	endif
+	ifneq ($(findstring Turing, $(GPU_TARGET)),)
+		CUDA_ARCH_ += sm_75
+	endif
+	ifneq ($(findstring Ampere, $(GPU_TARGET)),)
+		CUDA_ARCH_ += sm_80
+	endif
+	ifneq ($(findstring Hopper, $(GPU_TARGET)),)
+		CUDA_ARCH_ += sm_90
+	endif
 
 
-# Next, add compile options for specific smXX
-# sm_xx is binary, compute_xx is PTX for forward compatability
-# MIN_ARCH is lowest requested version
-#          Use it ONLY in magma_print_environment; elsewhere use __CUDA_ARCH__ or magma_getdevice_arch()
-# NV_SM    accumulates sm_xx for all requested versions
-# NV_COMP  is compute_xx for highest requested version
-#
-# See also $(info compile for ...) in Makefile
-NV_SM    :=
-NV_COMP  :=
+	# Remember to add to CMakeLists.txt too!
 
-ifneq ($(findstring sm_10, $(GPU_TARGET)),)
-    $(warning CUDA arch 1.x is no longer supported by CUDA >= 6.x and MAGMA >= 2.0)
+	# Next, add compile options for specific smXX
+	# sm_xx is binary, compute_xx is PTX for forward compatability
+	# MIN_ARCH is lowest requested version
+	#          Use it ONLY in magma_print_environment; elsewhere use __CUDA_ARCH__ or magma_getdevice_arch()
+	# NV_SM    accumulates sm_xx for all requested versions
+	# NV_COMP  is compute_xx for highest requested version
+	#
+	# See also $(info compile for ...) in Makefile
+
+
+    CUDA_ARCH_UNKNOWN_ = $(filter-out sm_% Kepler Maxwell Pascal Volta Turing Ampere Hopper, $(CUDA_ARCH_))
+    ifneq ($(CUDA_ARCH_UNKNOWN_),)
+        $(error ERROR: unknown `$(CUDA_ARCH_UNKNOWN_)` in GPU_TARGET)
+    endif
+
+	# Now, sort sm's
+    SMS      := $(patsubst sm_%,%,$(filter sm_%, $(CUDA_ARCH_)))
+    SMS      := $(shell printf "%s\n" $(SMS) | sort -n)
+
+
+    # code=sm_XX is binary, code=compute_XX is PTX
+    GENCODE_SM      = -gencode arch=compute_$(sm),code=sm_$(sm)
+    GENCODE_COMP    = -gencode arch=compute_$(sm),code=compute_$(sm)
+
+    # Get gencode options for all sm_XX in cuda_arch_.
+    NV_SM    := $(foreach sm,$(SMS),$(GENCODE_SM))
+    NV_COMP  := $(foreach sm,$(SMS),$(GENCODE_COMP))
+
+	# Check for empty
+    ifeq ($(NV_SM),)
+        $(error ERROR: unknown `GPU_TARGET=$(GPU_TARGET)`. Set cuda_arch to one or more of Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_XX from nvcc -h)
+    else
+        # Get last option (last 2 words) of nv_compute.
+        nwords := $(words $(NV_COMP))
+        nwords_1 := $(shell expr $(nwords) - 1)
+        NV_COMP_LAST := $(wordlist $(nwords_1), $(nwords), $(NV_COMP))
+    endif
+
+    # Use all sm_XX (binary), and the last compute_XX (PTX) for forward compatibility.
+    DEVCCFLAGS += $(NV_SM) $(NV_COMP_LAST)
+    LIBS += -lcublas -lcudart
+
+    # Get first (minimum) architecture
+	# (add zero, so its comparable to '__CUDA_ARCH__')
+    CUDA_ARCH_MIN := $(word 1, $(SMS))0
+    ifeq ($(CUDA_ARCH_MIN),)
+        $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_[0-9][0-9]. Please edit your make.inc file)
+    endif
+else ifeq ($(BACKEND),hip)
+
+	# ------------------------------------------------------------------------------
+	# hipcc backend
+	# Source: https://llvm.org/docs/AMDGPUUsage.html#target-triples
+
+	# Filter our human readable names and replace with numeric names
+    HIP_ARCH_ := $(GPU_TARGET)
+	ifneq ($(findstring kaveri, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx700
+	endif
+	ifneq ($(findstring hawaii, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx701
+	endif
+	ifneq ($(findstring kabini, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx703
+	endif
+	ifneq ($(findstring mullins, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx703
+	endif
+	ifneq ($(findstring bonaire, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx704
+	endif
+	ifneq ($(findstring carrizo, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx801
+	endif
+	ifneq ($(findstring iceland, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx802
+	endif
+	ifneq ($(findstring tonga, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx802
+	endif
+	ifneq ($(findstring fiji, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx803
+	endif
+	# These are in the documentation, and the leftmost column *seems* like a continuation
+	#   of gfx803
+	ifneq ($(findstring polaris10, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx803
+	endif
+	ifneq ($(findstring polaris11, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx803
+	endif
+
+	ifneq ($(findstring tongapro, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx805
+	endif
+	ifneq ($(findstring stoney, $(GPU_TARGET)),)
+		HIP_ARCH_ += gfx810
+	endif
+
+    ## Suggestion by Mark (from SLATE)
+    # Valid architecture numbers
+    # TODO: remove veryold ones?
+    VALID_GFXS = 600 601 602 700 701 702 703 704 705 801 802 803 805 810 900 902 904 906 908 909 90a 940 941 942 90c 1010 1011 1012 1030 1031 1032 1033
+
+
+	# Generated GFX option
+    TARGET_GFX      = --offload-arch=gfx$(gfx)
+
+    # Get gencode options for all sm_XX in cuda_arch_.
+    AMD_GFX    := $(filter %, $(foreach gfx, $(VALID_GFXS),$(if $(findstring gfx$(gfx), $(HIP_ARCH_)),$(TARGET_GFX))))
+
+    ifeq ($(AMD_GFX),)
+        $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of the targets for AMDGPUs (https://llvm.org/docs/AMDGPUUsage.html#target-triples), or valid gfx[0-9][0-9][0-9][0-9]?. Please edit your make.inc file)
+    else
+    endif
+
+    # Use all sm_XX (binary), and the last compute_XX (PTX) for forward compatibility.
+    DEVCCFLAGS += $(AMD_GFX)
+
+    # Get first (minimum) architecture
+	# NOTE: Not so useful for HIP
+    #MIN_ARCH := $(wordlist 1, 1, $(foreach gfx, $(VALID_GFXS),$(if $(findstring gfx$(gfx), $(HIP_ARCH_)),$(gfx))))
+	#ifeq ($(MIN_ARCH),)
+	#	$(error GPU_TARGET, currently $(GPU_TARGET), did not contain a minimum arch)
+	#endif
+
 endif
-ifneq ($(findstring sm_13, $(GPU_TARGET)),)
-    $(warning CUDA arch 1.x is no longer supported by CUDA >= 6.x and MAGMA >= 2.0)
-endif
-ifneq ($(findstring sm_20, $(GPU_TARGET)),)
-    MIN_ARCH ?= 200
-    NV_SM    += -gencode arch=compute_20,code=sm_20
-    NV_COMP  := -gencode arch=compute_20,code=compute_20
-    $(warning CUDA arch 2.x is no longer supported by CUDA >= 9.x)
-endif
-ifneq ($(findstring sm_30, $(GPU_TARGET)),)
-    MIN_ARCH ?= 300
-    NV_SM    += -gencode arch=compute_30,code=sm_30
-    NV_COMP  := -gencode arch=compute_30,code=compute_30
-endif
-ifneq ($(findstring sm_32, $(GPU_TARGET)),)
-    MIN_ARCH ?= 320
-    NV_SM    += -gencode arch=compute_32,code=sm_32
-    NV_COMP  := -gencode arch=compute_32,code=compute_32
-endif
-ifneq ($(findstring sm_35, $(GPU_TARGET)),)
-    MIN_ARCH ?= 350
-    NV_SM    += -gencode arch=compute_35,code=sm_35
-    NV_COMP  := -gencode arch=compute_35,code=compute_35
-endif
-ifneq ($(findstring sm_50, $(GPU_TARGET)),)
-    MIN_ARCH ?= 500
-    NV_SM    += -gencode arch=compute_50,code=sm_50
-    NV_COMP  := -gencode arch=compute_50,code=compute_50
-endif
-ifneq ($(findstring sm_52, $(GPU_TARGET)),)
-    MIN_ARCH ?= 520
-    NV_SM    += -gencode arch=compute_52,code=sm_52
-    NV_COMP  := -gencode arch=compute_52,code=compute_52
-endif
-ifneq ($(findstring sm_53, $(GPU_TARGET)),)
-    MIN_ARCH ?= 530
-    NV_SM    += -gencode arch=compute_53,code=sm_53
-    NV_COMP  := -gencode arch=compute_53,code=compute_53
-endif
-ifneq ($(findstring sm_60, $(GPU_TARGET)),)
-    MIN_ARCH ?= 600
-    NV_SM    += -gencode arch=compute_60,code=sm_60
-    NV_COMP  := -gencode arch=compute_60,code=compute_60
-endif
-ifneq ($(findstring sm_61, $(GPU_TARGET)),)
-    MIN_ARCH ?= 610
-    NV_SM    += -gencode arch=compute_61,code=sm_61
-    NV_COMP  := -gencode arch=compute_61,code=compute_61
-endif
-ifneq ($(findstring sm_62, $(GPU_TARGET)),)
-    MIN_ARCH ?= 620
-    NV_SM    += -gencode arch=compute_62,code=sm_62
-    NV_COMP  := -gencode arch=compute_62,code=compute_62
-endif
-ifneq ($(findstring sm_70, $(GPU_TARGET)),)
-    MIN_ARCH ?= 700
-    NV_SM    += -gencode arch=compute_70,code=sm_70
-    NV_COMP  := -gencode arch=compute_70,code=compute_70
-endif
-ifneq ($(findstring sm_71, $(GPU_TARGET)),)
-    MIN_ARCH ?= 710
-    NV_SM    += -gencode arch=compute_71,code=sm_71
-    NV_COMP  := -gencode arch=compute_71,code=compute_71
-endif
-ifneq ($(findstring sm_75, $(GPU_TARGET)),)
-    MIN_ARCH ?= 750
-    NV_SM    += -gencode arch=compute_75,code=sm_75
-    NV_COMP  := -gencode arch=compute_75,code=compute_75
-endif
-ifneq ($(findstring sm_80, $(GPU_TARGET)),)
-    MIN_ARCH ?= 800
-    NV_SM    += -gencode arch=compute_80,code=sm_80
-    NV_COMP  := -gencode arch=compute_80,code=compute_80
-endif
-ifeq ($(NV_COMP),)
-    $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]. Please edit your make.inc file)
-endif
-NVCCFLAGS += $(NV_SM) $(NV_COMP)
-CFLAGS    += -DMIN_CUDA_ARCH=$(MIN_ARCH)
-CXXFLAGS  += -DMIN_CUDA_ARCH=$(MIN_ARCH)
 
 
 # ------------------------------------------------------------------------------
@@ -220,26 +323,48 @@ subdirs := \
 	blas_fix            \
 	control             \
 	include             \
-	interface_cuda      \
 	src                 \
-	magmablas           \
-	testing             \
 	testing/lin         \
-	sparse              \
-	sparse/blas         \
-	sparse/control      \
-	sparse/include      \
-	sparse/src          \
-	sparse/testing      \
+
+# the directory in which the MAGMA sparse source is located
+# change to sparse_hip for hipified sources
+# right now, just use old one so the dense section still builds
+
+ifeq ($(BACKEND),cuda)
+	SPARSE_DIR ?= sparse
+	subdirs += interface_cuda
+	subdirs += testing
+	subdirs += magmablas
+
+    # add all sparse folders
+	# Don't do it for HIP yet
+    subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
+
+else ifeq ($(BACKEND),hip)
+	SPARSE_DIR ?= ./sparse_hip
+	subdirs += interface_hip
+	subdirs += magmablas_hip
+	subdirs += testing
+
+    subdirs += $(SPARSE_DIR) $(SPARSE_DIR)/blas $(SPARSE_DIR)/control $(SPARSE_DIR)/include $(SPARSE_DIR)/src $(SPARSE_DIR)/testing
+
+endif
+
+
+
 
 Makefiles := $(addsuffix /Makefile.src, $(subdirs))
+
+#$(info $$Makefiles=$(Makefiles))
 
 include $(Makefiles)
 
 -include Makefile.internal
 -include Makefile.local
--include Makefile.gen
+-include Makefile.gen.$(BACKEND)
 
+#$(info $$libmagma_src=$(libmagma_src))
+#$(info $$libmagma_all=$(libmagma_all))
 
 # ------------------------------------------------------------------------------
 # objects
@@ -265,13 +390,26 @@ sparse_testing_obj := $(addsuffix .$(o_ext), $(basename $(sparse_testing_all)))
 
 ifneq ($(libmagma_dynamic_src),)
 libmagma_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libmagma_dynamic_all)))
-libmagma_dlink_obj   := magmablas/dynamic.link.o
+  ifeq ($(BACKEND),cuda)
+    libmagma_dlink_obj   := magmablas/dynamic.link.o
+  else ifeq ($(BACKEND),hip)
+    libmagma_dlink_obj   := magmablas_hip/dynamic.link.o
+  endif
+
 libmagma_obj         += $(libmagma_dynamic_obj) $(libmagma_dlink_obj)
 endif
 
 ifneq ($(libsparse_dynamic_src),)
 libsparse_dynamic_obj := $(addsuffix .$(o_ext),      $(basename $(libsparse_dynamic_all)))
-libsparse_dlink_obj   := sparse/blas/dynamic.link.o
+
+ifeq ($(BACKEND),cuda)
+  libsparse_dlink_obj   := $(SPARSE_DIR)/blas/dynamic.link.o
+else ifeq ($(BACKEND),hip)
+  # No dynamic parallelism support in HIP
+  #libsparse_dlink_obj   := $(SPARSE_DIR)/blas/dynamic.link.o
+endif
+
+
 libsparse_obj         += $(libsparse_dynamic_obj) $(libsparse_dlink_obj)
 endif
 
@@ -311,16 +449,57 @@ force: ;
 
 
 # ----- include paths
-MAGMA_INC  = -I./include
+MAGMA_INC  = -I./include -I./testing
 
 $(libmagma_obj):       MAGMA_INC += -I./control
 $(libtest_obj):        MAGMA_INC += -I./testing
 $(testing_obj):        MAGMA_INC += -I./testing
+
+ifeq ($(BACKEND),cuda)
 $(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas -I./sparse/include -I./sparse/control
 $(sparse_testing_obj): MAGMA_INC += -I./sparse/include -I./sparse/control -I./testing
+else ifeq ($(BACKEND),hip)
+$(libsparse_obj):      MAGMA_INC += -I./control -I./magmablas_hip -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control
+$(sparse_testing_obj): MAGMA_INC += -I$(SPARSE_DIR)/include -I$(SPARSE_DIR)/control -I./testing
+endif
 
 
 # ----- headers
+
+# Configuration file
+CONFIG     := include/magma_config.h
+
+# add to a list of all headers
+header_all += $(CONFIG)
+# add to list of generated files
+libmagma_generated += $(CONFIG)
+
+# Dependencies of the config
+CONFIGDEPS := include/magma_config.h.in Makefile make.inc
+
+# All flags, for searching
+ALLFLAGS := $(CFLAGS) $(CXXFLAGS) $(DEVCCFLAGS)
+
+# Configuration header
+ifneq (,$(HAVE_CUDA))
+
+$(CONFIG): $(CONFIGDEPS)
+	cp $< $@
+	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#define MAGMA_HAVE_CUDA/g' $@
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#undef MAGMA_HAVE_HIP/g' $@
+
+else
+
+$(CONFIG): $(CONFIGDEPS)
+	cp $< $@
+	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#undef MAGMA_HAVE_CUDA/g' $@
+	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#define MAGMA_HAVE_HIP/g' $@
+
+endif
+
+
 # to test that headers are self-contained,
 # pre-compile each into a header.h.gch file using "g++ ... -c header.h"
 header_gch := $(addsuffix .gch, $(filter-out %.cuh, $(header_all)))
@@ -331,6 +510,8 @@ test_headers: $(header_gch)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
+
+
 # ----- libraries
 libmagma_a      := lib/libmagma.a
 libmagma_so     := lib/libmagma.so
@@ -339,6 +520,7 @@ libtest_a       := testing/libtest.a
 liblapacktest_a := testing/lin/liblapacktest.a
 libsparse_a     := lib/libmagma_sparse.a
 libsparse_so    := lib/libmagma_sparse.so
+
 
 # static libraries
 libs_a := \
@@ -353,6 +535,8 @@ libs_so := \
 	$(libmagma_so)		\
 	$(libsparse_so)		\
 
+#$(info $$libmagma_obj=$(libmagma_obj))
+
 # add objects to libraries
 $(libmagma_a):      $(libmagma_obj)
 $(libmagma_so):     $(libmagma_obj)
@@ -361,6 +545,8 @@ $(libtest_a):       $(libtest_obj)
 $(liblapacktest_a): $(liblapacktest_obj)
 $(libsparse_a):     $(libsparse_obj)
 $(libsparse_so):    $(libsparse_obj)
+
+
 
 # sparse requires libmagma
 $(libsparse_so): | $(libmagma_so)
@@ -420,11 +606,11 @@ test: testing
 
 testers_f: $(testers_f)
 
-sparse-test: sparse/testing
-sparse-testing: sparse/testing
+sparse-test: $(SPARSE_DIR)/testing
+sparse-testing: $(SPARSE_DIR)/testing
 
 docs:
-	cd docs && ${MAKE}
+	${MAKE} -C docs
 
 # cleangen is defined in Makefile.gen; cleanall also does cleanmake in Makefile.internal
 cleanall: clean cleangen
@@ -442,7 +628,7 @@ have_fpic = $(and $(findstring -fPIC, $(CFLAGS)),   \
                   $(findstring -fPIC, $(CXXFLAGS)), \
                   $(findstring -fPIC, $(FFLAGS)),   \
                   $(findstring -fPIC, $(F90FLAGS)), \
-                  $(findstring -fPIC, $(NVCCFLAGS)))
+                  $(findstring -fPIC, $(DEVCCFLAGS)))
 
 # --------------------
 # if all flags have -fPIC: compile shared & static
@@ -509,13 +695,21 @@ sparse-static: $(libsparse_a)
 # sub-directory targets
 
 control_obj          := $(filter          control/%.o, $(libmagma_obj))
-interface_cuda_obj   := $(filter   interface_cuda/%.o, $(libmagma_obj))
-magmablas_obj        := $(filter        magmablas/%.o, $(libmagma_obj))
 src_obj              := $(filter              src/%.o, $(libmagma_obj))
 
-sparse_control_obj   := $(filter   sparse/control/%.o, $(libsparse_obj))
-sparse_blas_obj      := $(filter      sparse/blas/%.o, $(libsparse_obj))
-sparse_src_obj       := $(filter       sparse/src/%.o, $(libsparse_obj))
+sparse_control_obj   := $(filter   $(SPARSE_DIR)/control/%.o, $(libsparse_obj))
+sparse_blas_obj      := $(filter      $(SPARSE_DIR)/blas/%.o, $(libsparse_obj))
+sparse_src_obj       := $(filter       $(SPARSE_DIR)/src/%.o, $(libsparse_obj))
+
+
+ifeq ($(BACKEND),cuda)
+  interface_cuda_obj   := $(filter   interface_cuda/%.o, $(libmagma_obj))
+  magmablas_obj        := $(filter        magmablas/%.o, $(libmagma_obj))
+else ifeq ($(BACKEND),hip)
+  interface_hip_obj   := $(filter     interface_hip/%.o, $(libmagma_obj))
+  magmablas_hip_obj   := $(filter     magmablas_hip/%.o, $(libmagma_obj))
+  #$(info $$magmablas_hip_obj=$(magmablas_hip_obj))
+endif
 
 
 # ----------
@@ -526,9 +720,16 @@ blas_fix:            $(libblas_fix_a)
 
 control:             $(control_obj)
 
-interface_cuda:      $(interface_cuda_obj)
 
-magmablas:           $(magmablas_obj)
+
+ifeq ($(BACKEND),cuda)
+	interface_cuda:      $(interface_cuda_obj)
+	magmablas:           $(magmablas_obj)
+else ifeq ($(BACKEND),hip)
+	interface_hip:       $(interface_hip_obj)
+	magmablas_hip:       $(magmablas_hip_obj)
+endif
+
 
 src:                 $(src_obj)
 
@@ -541,9 +742,10 @@ sparse/control: $(sparse_control_obj)
 sparse/src:     $(sparse_src_obj)
 
 sparse/testing: $(sparse_testers)
+$(SPARSE_DIR)/testing: $(sparse_testers)
 
 run_test: test
-	cd testing && python ./run_tests.py
+	cd testing && ./run_tests.py
 
 # ----------
 # sub-directory clean
@@ -556,11 +758,22 @@ blas_fix/clean:
 control/clean:
 	-rm -f $(control_obj) include/*.mod control/*.mod
 
+ifeq ($(BACKEND),cuda)
 interface_cuda/clean:
 	-rm -f $(interface_cuda_obj)
 
 magmablas/clean:
 	-rm -f $(magmablas_obj)
+
+else ifeq ($(BACKEND),hip)
+
+interface_hip/clean:
+	-rm -f $(interface_hip_obj)
+
+magmablas_hip/clean:
+	-rm -f $(magmablas_hip_obj)
+
+endif
 
 src/clean:
 	-rm -f $(src_obj)
@@ -602,6 +815,8 @@ sparse/testing/clean:
 
 .SUFFIXES:
 
+# object file rules
+
 %.$(o_ext): %.f
 	$(FORT) $(FFLAGS) -c -o $@ $<
 
@@ -616,41 +831,87 @@ sparse/testing/clean:
 %.$(o_ext): %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-%.$(o_ext): %.cpp
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-# assume C++ for headers; needed for Fortran wrappers
-%.i: %.h
-	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-%.i: %.c
-	$(CC) -E $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
-
-%.i: %.cpp
-	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 
 # ------------------------------------------------------------------------------
-# CUDA kernels
+# DEVICE kernels
 
-%.i: %.cu
-	$(NVCC) -E $(NVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+# set the device extension
+ifeq ($(BACKEND),cuda)
+d_ext := cu
+else ifeq ($(BACKEND),hip)
+d_ext := cpp
+CXXFLAGS += -D__HIP_PLATFORM_AMD__
+CXXFLAGS += -DROCM_VERSION=$(shell ./tools/get-rocm-version.sh)
+endif
 
-%.$(o_ext): %.cu
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-$(libmagma_dynamic_obj): %.$(o_ext): %.cu
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -I./sparse/include -dc -o $@ $<
+ifeq ($(BACKEND),cuda)
 
-$(libmagma_dlink_obj): $(libmagma_dynamic_obj)
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
+%.i: %.$(d_ext) | $(CONFIG)
+	$(DEVCC) -E $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-$(libsparse_dynamic_obj): %.$(o_ext): %.cu
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -I./sparse/include -dc -o $@ $<
+%.$(o_ext): %.$(d_ext) | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS)  -c -o $@ $<
 
-$(libsparse_dlink_obj): $(libsparse_dynamic_obj)
-	$(NVCC) $(NVCCFLAGS) $(CPPFLAGS) -dlink -I./sparse/include -o $@ $^
+%.o: %.cpp | $(CONFIG)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
+else ifeq ($(BACKEND),hip)
+
+%.hip.o: %.hip.cpp | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+%.o: %.cpp | $(CONFIG)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+# use `hipcc` for all .cpp's. It may be a bit slower (althought I haven't tested it)
+# but there's no good way to tell whether or not it fails for some reason. (buggy
+# hipcc is probably the culprit)
+#%.o: %.cpp
+#	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+endif
+
+# assume C++ for headers; needed for Fortran wrappers
+%.i: %.h | $(CONFIG)
+	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+%.i: %.c | $(CONFIG)
+	$(CC) -E $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+%.i: %.cpp | $(CONFIG)
+	$(CXX) -E $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+
+ifeq ($(BACKEND),cuda)
+$(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext) | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -dc -o $@ $<
+
+$(libmagma_dlink_obj): $(libmagma_dynamic_obj) | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
+
+$(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext) | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -dc -o $@ $<
+
+$(libsparse_dlink_obj): $(libsparse_dynamic_obj) | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
+
+else ifeq ($(BACKEND),hip)
+
+$(libmagma_dynamic_obj): %.$(o_ext): %.$(d_ext) | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -c -o $@ $<
+
+$(libmagma_dlink_obj): $(libmagma_dynamic_obj) | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -dlink -I$(SPARSE_DIR)/include -o $@ $^
+
+$(libsparse_dynamic_obj): %.$(o_ext): %.$(d_ext) | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -c -o $@ $<
+
+$(libsparse_dlink_obj): $(libsparse_dynamic_obj) | $(CONFIG)
+	$(DEVCC) $(DEVCCFLAGS) $(CPPFLAGS) -I$(SPARSE_DIR)/include -c -o $@ $^
+
+endif
 # ------------------------------------------------------------------------------
 # library rules
 
@@ -715,11 +976,12 @@ $(sparse_testers): %: %.$(o_ext)
 
 # ------------------------------------------------------------------------------
 # filter out MAGMA-specific options for pkg-config
+#TODO: add hip specific ones
 INSTALL_FLAGS := $(filter-out \
 	-DMAGMA_NOAFFINITY -DMAGMA_SETAFFINITY -DMAGMA_WITH_ACML -DMAGMA_WITH_MKL -DUSE_FLOCK \
-	-DMIN_CUDA_ARCH=100 -DMIN_CUDA_ARCH=200 -DMIN_CUDA_ARCH=300 \
-	-DMIN_CUDA_ARCH=350 -DMIN_CUDA_ARCH=500 -DMIN_CUDA_ARCH=600 -DMIN_CUDA_ARCH=610 \
-	-DHAVE_CUBLAS -DHAVE_clBLAS \
+	-DMAGMA_CUDA_ARCH_MIN=100 -DMAGMA_CUDA_ARCH_MIN=200 -DMAGMA_CUDA_ARCH_MIN=300 \
+	-DMAGMA_CUDA_ARCH_MIN=350 -DMAGMA_CUDA_ARCH_MIN=500 -DMAGMA_CUDA_ARCH_MIN=600 -DMAGMA_CUDA_ARCH_MIN=610 \
+	-DMAGMA_HAVE_CUDA -DMAGMA_HAVE_HIP -DMAGMA_HAVE_clBLAS \
 	-fno-strict-aliasing -fPIC -O0 -O1 -O2 -O3 -pedantic -std=c99 -stdc++98 -stdc++11 \
 	-Wall -Wshadow -Wno-long-long, $(CFLAGS))
 
@@ -732,15 +994,15 @@ install_dirs:
 	mkdir -p $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)/pkgconfig
 
 install: lib sparse-lib install_dirs
-	# MAGMA
+        # MAGMA
 	cp include/*.h         $(DESTDIR)$(prefix)/include
 	cp include/*.mod       $(DESTDIR)$(prefix)/include
-	cp sparse/include/*.h  $(DESTDIR)$(prefix)/include
+	cp $(SPARSE_DIR)/include/*.h  $(DESTDIR)$(prefix)/include
 	cp $(libs)             $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)
 	${MAKE} pkgconfig
 
 pkgconfig:
-	# pkgconfig
+        # pkgconfig
 	mkdir -p $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)/pkgconfig
 	cat lib/pkgconfig/magma.pc.in                   | \
 	sed -e s:@INSTALL_PREFIX@:"$(prefix)":          | \
@@ -826,6 +1088,8 @@ echo:
 	@echo "sparse_testing_all $(sparse_testing_all)\n"
 	@echo "sparse_testing_obj $(sparse_testing_obj)\n"
 	@echo "sparse_testers     $(sparse_testers)\n"
+	@echo "====="
+	@echo "CMake.src $(CMAKESRC)\n"
 	@echo "====="
 	@echo "dep     $(dep)"
 	@echo "deps    $(deps)\n"

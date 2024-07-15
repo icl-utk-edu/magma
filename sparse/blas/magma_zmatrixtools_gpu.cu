@@ -14,6 +14,12 @@
 
 #define SWAP(a, b)  { tmp = a; a = b; b = tmp; }
 
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#ifdef MAGMA_HAVE_HIP
+  #define hipblasDoubleComplex hipDoubleComplex
+#endif
+
+
 
 __global__ void 
 magma_zvalinit_kernel(  
@@ -325,6 +331,7 @@ magma_zmatrix_cup_gpu(
     U->storage_type = Magma_CSR;
     U->memory_location = Magma_DEV;
    
+
     int blocksize1 = 128;
     int blocksize2 = 1;
 
@@ -343,7 +350,8 @@ magma_zmatrix_cup_gpu(
         (num_rows, A.drow, A.dcol, B.drow, B.dcol, inserted);
     
     CHECK(magma_zget_row_ptr(num_rows, &U->nnz, inserted, U->drow, queue));
-        
+    
+
     CHECK(magma_zmalloc(&U->dval, U->nnz));
     CHECK(magma_index_malloc(&U->drowidx, U->nnz));
     CHECK(magma_index_malloc(&U->dcol, U->nnz));
@@ -396,7 +404,7 @@ extern "C" magma_int_t
 magma_zcsr_sort_gpu(
     magma_z_matrix *A,
     magma_queue_t queue)
-{
+{   
     magma_int_t info = 0;
     cusparseHandle_t handle=NULL;
     cusparseMatDescr_t descrA=NULL;
@@ -432,9 +440,24 @@ magma_zcsr_sort_gpu(
         descrA, A->drow, A->dcol, P, pBuffer);
     
     // step 4: gather sorted csrVal
-    cusparseZgthr(handle, A->nnz, A->dval, csrVal_sorted, P, 
-        CUSPARSE_INDEX_BASE_ZERO);
+#if CUDA_VERSION >= 12000
+    cusparseSpVecDescr_t vec_permutation;
+    cusparseDnVecDescr_t vec_values;
+    CHECK_CUSPARSE( cusparseCreateSpVec(&vec_permutation, A->nnz, A->nnz,
+                                        P, csrVal_sorted,
+                                        CUSPARSE_INDEX_32I,
+                                        CUSPARSE_INDEX_BASE_ZERO, CUDA_C_64F) );
+    CHECK_CUSPARSE( cusparseCreateDnVec(&vec_values, A->nnz, A->dval, CUDA_C_64F) );
+    CHECK_CUSPARSE( cusparseGather(handle, vec_values, vec_permutation) );
     
+    // destroy matrix/vector descriptors
+    CHECK_CUSPARSE( cusparseDestroySpVec(vec_permutation) );
+    CHECK_CUSPARSE( cusparseDestroyDnVec(vec_values) );
+#else
+    cusparseZgthr(handle, A->nnz, (cuDoubleComplex*)A->dval, (cuDoubleComplex*)csrVal_sorted, P, 
+        CUSPARSE_INDEX_BASE_ZERO);
+#endif
+
     SWAP(A->dval, csrVal_sorted);
     
 cleanup:

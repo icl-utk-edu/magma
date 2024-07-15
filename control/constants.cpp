@@ -562,11 +562,11 @@ const char* lapack_storev_const( magma_storev_t magma_const )
 // end group lapack_const
 
 
-#ifdef HAVE_clBLAS
+#ifdef MAGMA_HAVE_clBLAS
 // =============================================================================
 /// @addtogroup clblas_const
 /// Convert MAGMA constants to AMD clBLAS constants.
-/// Available if HAVE_clBLAS was defined when MAGMA was compiled.
+/// Available if MAGMA_HAVE_OPENCL was defined when MAGMA was compiled.
 /// TODO: we do not currently provide inverse converters (clBLAS => MAGMA).
 /// @{
 
@@ -663,14 +663,14 @@ clblasSide        clblas_side_const ( magma_side_t magma_const )
 // =============================================================================
 /// @}
 // end group clblas_const
-#endif  // HAVE_clBLAS
+#endif  // MAGMA_HAVE_OPENCL
 
 
-#ifdef HAVE_CUBLAS
+#ifdef MAGMA_HAVE_CUDA
 // =============================================================================
 /// @addtogroup cublas_const
 /// Convert MAGMA constants to NVIDIA cuBLAS constants.
-/// Available if HAVE_CUBLAS was defined when MAGMA was compiled.
+/// Available if MAGMA_HAVE_CUDA was defined when MAGMA was compiled.
 /// TODO: we do not currently provide inverse converters (cuBLAS => MAGMA).
 /// @{
 
@@ -755,8 +755,77 @@ cublasSideMode_t     cublas_side_const  ( magma_side_t magma_const )
 
 // =============================================================================
 /// @}
-#endif  // HAVE_CUBLAS
+#endif  // MAGMA_HAVE_CUDA
 
+
+
+#ifdef MAGMA_HAVE_HIP
+
+const int magma2hipblas_constants[] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0,                      // 100
+    0,                      // 101: MagmaRowMajor
+    0,                      // 102: MagmaColMajor
+    0, 0, 0, 0, 0, 0, 0, 0,
+    HIPBLAS_OP_N,           // 111: MagmaNoTrans
+    HIPBLAS_OP_T,           // 112: MagmaTrans
+    HIPBLAS_OP_C,           // 113: MagmaConjTrans
+    0, 0, 0, 0, 0, 0, 0,
+    HIPBLAS_FILL_MODE_UPPER,// 121: MagmaUpper
+    HIPBLAS_FILL_MODE_LOWER,// 122: MagmaLower
+    0, 0, 0, 0, 0, 0, 0, 0,
+    HIPBLAS_DIAG_NON_UNIT,  // 131: MagmaNonUnit
+    HIPBLAS_DIAG_UNIT,      // 132: MagmaUnit
+    0, 0, 0, 0, 0, 0, 0, 0,
+    HIPBLAS_SIDE_LEFT,      // 141: MagmaLeft
+    HIPBLAS_SIDE_RIGHT,     // 142: MagmaRight
+    0, 0, 0, 0, 0, 0, 0, 0
+};
+
+extern "C"
+hipblasOperation_t    hipblas_trans_const ( magma_trans_t magma_const )
+{
+    assert( magma_const >= MagmaNoTrans   );
+    assert( magma_const <= MagmaConjTrans );
+    return (hipblasOperation_t)  magma2hipblas_constants[ magma_const ];
+}
+
+extern "C"
+hipblasFillMode_t     hipblas_uplo_const  ( magma_uplo_t magma_const )
+{
+    assert( magma_const >= MagmaUpper );
+    assert( magma_const <= MagmaLower );
+    return (hipblasFillMode_t)   magma2hipblas_constants[ magma_const ];
+}
+
+extern "C"
+hipblasDiagType_t     hipblas_diag_const  ( magma_diag_t magma_const )
+{
+    assert( magma_const >= MagmaNonUnit );
+    assert( magma_const <= MagmaUnit    );
+    return (hipblasDiagType_t)   magma2hipblas_constants[ magma_const ];
+}
+
+extern "C"
+hipblasSideMode_t     hipblas_side_const  ( magma_side_t magma_const )
+{
+    assert( magma_const >= MagmaLeft  );
+    assert( magma_const <= MagmaRight );
+    return (hipblasSideMode_t)   magma2hipblas_constants[ magma_const ];
+}
+
+
+#endif // MAGMA_HAVE_HIP
 
 #ifdef HAVE_CBLAS
 // =============================================================================

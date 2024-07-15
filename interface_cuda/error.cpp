@@ -3,59 +3,6 @@
 #include "magma_internal.h"
 #include "error.h"
 
-/***************************************************************************//**
-    Prints error message to stderr.
-    C++ function overloaded for different error types (CUDA,
-    cuBLAS, MAGMA errors). Note CUDA and cuBLAS errors are enums,
-    so can be differentiated.
-    Used by the check_error() and check_xerror() macros.
-
-    @param[in]
-    err     Error code.
-
-    @param[in]
-    func    Function where error occurred; inserted by check_error().
-
-    @param[in]
-    file    File     where error occurred; inserted by check_error().
-
-    @param[in]
-    line    Line     where error occurred; inserted by check_error().
-
-    @ingroup magma_error_internal
-*******************************************************************************/
-void magma_xerror( cudaError_t err, const char* func, const char* file, int line )
-{
-    if ( err != cudaSuccess ) {
-        fprintf( stderr, "CUDA runtime error: %s (%d) in %s at %s:%d\n",
-                 cudaGetErrorString( err ), err, func, file, line );
-    }
-}
-
-
-/******************************************************************************/
-/// @see magma_xerror
-/// @ingroup magma_error_internal
-void magma_xerror( cublasStatus_t err, const char* func, const char* file, int line )
-{
-    if ( err != CUBLAS_STATUS_SUCCESS ) {
-        fprintf( stderr, "CUBLAS error: %s (%d) in %s at %s:%d\n",
-                 magma_cublasGetErrorString( err ), err, func, file, line );
-    }
-}
-
-
-/******************************************************************************/
-/// @see magma_xerror
-/// @ingroup magma_error_internal
-void magma_xerror( magma_int_t err, const char* func, const char* file, int line )
-{
-    if ( err != MAGMA_SUCCESS ) {
-        fprintf( stderr, "MAGMA error: %s (%lld) in %s at %s:%d\n",
-                 magma_strerror( err ), (long long) err, func, file, line );
-    }
-}
-
 
 /***************************************************************************//**
     @return String describing cuBLAS errors (cublasStatus_t).
@@ -66,6 +13,7 @@ void magma_xerror( magma_int_t err, const char* func, const char* file, int line
 
     @ingroup magma_error_internal
 *******************************************************************************/
+#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
 extern "C"
 const char* magma_cublasGetErrorString( cublasStatus_t err )
 {
@@ -98,6 +46,82 @@ const char* magma_cublasGetErrorString( cublasStatus_t err )
             return "unknown CUBLAS error code";
     }
 }
+#endif
+
+/***************************************************************************//**
+    Prints error message to stderr.
+    C++ function overloaded for different error types (CUDA,
+    cuBLAS, MAGMA errors). Note CUDA and cuBLAS errors are enums,
+    so can be differentiated.
+    Used by the check_error() and check_xerror() macros.
+
+    @param[in]
+    err     Error code.
+
+    @param[in]
+    func    Function where error occurred; inserted by check_error().
+
+    @param[in]
+    file    File     where error occurred; inserted by check_error().
+
+    @param[in]
+    line    Line     where error occurred; inserted by check_error().
+
+    @ingroup magma_error_internal
+*******************************************************************************/
+#ifdef MAGMA_HAVE_CUDA
+void magma_xerror( cudaError_t err, const char* func, const char* file, int line )
+{
+    if ( err != cudaSuccess ) {
+        fprintf( stderr, "CUDA runtime error: %s (%d) in %s at %s:%d\n",
+                 cudaGetErrorString( err ), err, func, file, line );
+    }
+}
+#endif
+
+
+/******************************************************************************/
+/// @see magma_xerror
+/// @ingroup magma_error_internal
+#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
+void magma_xerror( cublasStatus_t err, const char* func, const char* file, int line )
+{
+    if ( err != CUBLAS_STATUS_SUCCESS ) {
+        fprintf( stderr, "CUBLAS error: %s (%d) in %s at %s:%d\n",
+                 magma_cublasGetErrorString( err ), err, func, file, line );
+    }
+}
+#endif
+
+
+
+/******************************************************************************/
+/// @see magma_xerror
+/// @ingroup magma_error_internal
+#ifdef MAGMA_HAVE_HIP
+void magma_xerror( hipError_t err, const char* func, const char* file, int line)
+{
+
+    if (err != HIP_SUCCESS) {
+        fprintf( stderr, "HIP error: %s (%d) in %s at %s:%d\n",
+                hipGetErrorString( err ), err, func, file, line );
+    }
+
+}
+#endif
+
+
+/******************************************************************************/
+/// @see magma_xerror
+/// @ingroup magma_error_internal
+void magma_xerror( magma_int_t err, const char* func, const char* file, int line )
+{
+    if ( err != MAGMA_SUCCESS ) {
+        fprintf( stderr, "MAGMA error: %s (%lld) in %s at %s:%d\n",
+                 magma_strerror( err ), (long long) err, func, file, line );
+    }
+}
+
 
 
 /***************************************************************************//**

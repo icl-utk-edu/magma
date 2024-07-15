@@ -13,9 +13,16 @@
 #error "Since MAGMA_NO_V1 is defined, magma.h is invalid; use magma_v2.h"
 #endif
 
+// =============================================================================
+// MAGMA configuration
+#include "magma_config.h"
+
+
 // magma v1 includes cublas.h by default, unless cublas_v2.h has already been included
 #ifndef CUBLAS_V2_H_
+#if defined(MAGMA_HAVE_CUDA)
 #include <cublas.h>
+#endif
 #endif
 
 // Include the MAGMA v2 and v1 APIs,

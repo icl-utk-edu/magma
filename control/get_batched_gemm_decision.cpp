@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Azzam Haidar
        @author Ahmad Abdelfattah
 */
@@ -16,23 +16,23 @@ extern "C" {
 #endif
 
 // Definition of blocking sizes for NVIDIA cards
-#ifdef HAVE_CUBLAS
+#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
 
 // =============================================================================
 /// @addtogroup magma_tuning
 /// @{
 
-// auxiliary function to determine the limit of use for the specialized batch gemm 
+// auxiliary function to determine the limit of use for the specialized batch gemm
 // kernel on small square sizes (transpositions do not matter for this kernel)
 // helper function - intended for internal use only
 magma_int_t magma_get_zgemm_batched_smallsq_limit(magma_int_t n)
 {
     magma_int_t arch = magma_getdevice_arch();
-    if      (arch <= 300) return 22; 
+    if      (arch <= 300) return 22;
     else if (arch <= 600) return 28;
     else if (arch <= 700) return 27;
-    else                  return 16; 
-    
+    else                  return 16;
+
 }
 
 /******************************************************************************/
@@ -40,11 +40,11 @@ magma_int_t magma_get_zgemm_batched_smallsq_limit(magma_int_t n)
 magma_int_t magma_get_cgemm_batched_smallsq_limit(magma_int_t n)
 {
     magma_int_t arch = magma_getdevice_arch();
-    if      (arch <= 300) return 22; 
+    if      (arch <= 300) return 22;
     else if (arch <= 600) return 20;
     else if (arch <= 700) return 20;
-    else                  return 16; 
-    
+    else                  return 16;
+
 }
 
 /******************************************************************************/
@@ -52,11 +52,11 @@ magma_int_t magma_get_cgemm_batched_smallsq_limit(magma_int_t n)
 magma_int_t magma_get_dgemm_batched_smallsq_limit(magma_int_t n)
 {
     magma_int_t arch = magma_getdevice_arch();
-    if      (arch <= 300) return 23; 
+    if      (arch <= 300) return 23;
     else if (arch <= 600) return 23;
     else if (arch <= 700) return 22;
-    else                  return 16; 
-    
+    else                  return 16;
+
 }
 
 /******************************************************************************/
@@ -64,11 +64,11 @@ magma_int_t magma_get_dgemm_batched_smallsq_limit(magma_int_t n)
 magma_int_t magma_get_sgemm_batched_smallsq_limit(magma_int_t n)
 {
     magma_int_t arch = magma_getdevice_arch();
-    if      (arch <= 300) return 29; 
+    if      (arch <= 300) return 29;
     else if (arch <= 600) return 31;
     else if (arch <= 700) return 27;
-    else                  return 16; 
-    
+    else                  return 16;
+
 }
 
 // =============================================================================
@@ -93,7 +93,7 @@ magma_int_t magma_get_gemm_shape(magma_trans_t transA, magma_trans_t transB)
     else if (transA == MagmaConjTrans && transB == MagmaNoTrans)   { shape = 6; } // cn
     else if (transA == MagmaConjTrans && transB == MagmaTrans)     { shape = 7; } // ct
     else if (transA == MagmaConjTrans && transB == MagmaConjTrans) { shape = 8; } // cc
-    
+
     return shape;
 }
 
@@ -101,7 +101,7 @@ magma_int_t magma_get_gemm_shape(magma_trans_t transA, magma_trans_t transB)
 /***************************************************************************//**
     Decides which is better (magma or cublas_batched),
     regardless of the performance of cublas stream
-    
+
     @return true  (1) to use cuBLAS batched gemm
     @return false (0) to use MAGMA  batched gemm
 *******************************************************************************/
@@ -111,7 +111,7 @@ magma_int_t magma_srecommend_cublas_gemm_batched(
 {
     magma_int_t use_cublas_gemm_batched = 0;
     magma_int_t shape = magma_get_gemm_shape(transa, transb);
-    
+
     switch(shape)
     {
         case 0: // nn
@@ -121,7 +121,7 @@ magma_int_t magma_srecommend_cublas_gemm_batched(
                                                         );
             }
             break;
-        
+
         case 1: // nt
         case 2: // nc
             {
@@ -130,7 +130,7 @@ magma_int_t magma_srecommend_cublas_gemm_batched(
                                                         );
             }
             break;
-        
+
         case 3: // tn
         case 6: // cn
             {
@@ -139,7 +139,7 @@ magma_int_t magma_srecommend_cublas_gemm_batched(
                                                         );
             }
             break;
-            
+
         case 4: // tt
         case 5: // tc
         case 7: // ct
@@ -150,7 +150,7 @@ magma_int_t magma_srecommend_cublas_gemm_batched(
                                                         );
             }
             break;
-        
+
         default:;
     }
     return use_cublas_gemm_batched;
@@ -165,26 +165,22 @@ magma_int_t magma_drecommend_cublas_gemm_batched(
 {
     magma_int_t use_cublas_gemm_batched = 0;
     magma_int_t shape = magma_get_gemm_shape(transa, transb);
-    
+
     switch(shape)
     {
-        case 3: // tn
-        case 6: // cn
-            {
-                use_cublas_gemm_batched = (magma_int_t) (    (  m <  32 && k >  32 )
-                                                          || (  n <  32 && k >  32 )
-                                                          || (  m == 32 && n == 32 && k >= 128 ) );
-            }
-            break;
+        // fall back to cublas, since it is very optimized in general
+        // TODO: revisit tuning for other shapes, especially small sizes
         case 0: // nn
         case 1: // nt
         case 2: // nc
+        case 3: // tn
+        case 6: // cn
         case 4: // tt
         case 5: // tc
         case 7: // ct
         case 8: // cc
             {
-                use_cublas_gemm_batched = 0;
+                use_cublas_gemm_batched = 1;
             }
             break;
         default:;
@@ -202,7 +198,7 @@ magma_int_t magma_crecommend_cublas_gemm_batched(
 {
     magma_int_t use_cublas_gemm_batched = 0;
     magma_int_t shape = magma_get_gemm_shape(transa, transb);
-    
+
     switch(shape)
     {
         case 0: // nn
@@ -212,7 +208,7 @@ magma_int_t magma_crecommend_cublas_gemm_batched(
                                                         );
             }
             break;
-        
+
         case 1: // nt
         case 2: // nc
             {
@@ -220,7 +216,7 @@ magma_int_t magma_crecommend_cublas_gemm_batched(
                 use_cublas_gemm_batched = 0;
             }
             break;
-        
+
         case 3: // tn
         case 6: // cn
             {
@@ -228,7 +224,7 @@ magma_int_t magma_crecommend_cublas_gemm_batched(
                                                         );
             }
             break;
-            
+
         case 4: // tt
         case 5: // tc
         case 7: // ct
@@ -239,7 +235,7 @@ magma_int_t magma_crecommend_cublas_gemm_batched(
                                                         );
             }
             break;
-        
+
         default:;
     }
     return use_cublas_gemm_batched;
@@ -254,7 +250,7 @@ magma_int_t magma_zrecommend_cublas_gemm_batched(
 {
     magma_int_t use_cublas_gemm_batched = 0;
     magma_int_t shape = magma_get_gemm_shape(transa, transb);
-    
+
     switch(shape)
     {
         case 0: // nn
@@ -262,21 +258,21 @@ magma_int_t magma_zrecommend_cublas_gemm_batched(
                 use_cublas_gemm_batched = 1;
             }
             break;
-        
+
         case 1: // nt
         case 2: // nc
             {
                 use_cublas_gemm_batched = 1;
             }
             break;
-        
+
         case 3: // tn
         case 6: // cn
             {
                 use_cublas_gemm_batched = (magma_int_t)  (k < 32 ); // k < 32
             }
             break;
-            
+
         case 4: // tt
         case 5: // tc
         case 7: // ct
@@ -285,7 +281,7 @@ magma_int_t magma_zrecommend_cublas_gemm_batched(
                 use_cublas_gemm_batched = 1;
             }
             break;
-        
+
         default:;
     }
     return use_cublas_gemm_batched;
@@ -294,7 +290,7 @@ magma_int_t magma_zrecommend_cublas_gemm_batched(
 
 /***************************************************************************//**
     Decides if cublas stream should be used for a given gemm dimension/shape
-    
+
     @return true  (1) to use cuBLAS gemm (non-batched) with multiple streams.
     @return false (0) to use batched gemm
 *******************************************************************************/
@@ -304,7 +300,7 @@ magma_int_t magma_srecommend_cublas_gemm_stream(
 {
     magma_int_t use_cublas_gemm_stream = 0;
     magma_int_t shape = magma_get_gemm_shape(transa, transb);
-    
+
     switch(shape)
     {
         case 0: // nn
@@ -314,7 +310,7 @@ magma_int_t magma_srecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         case 1: // nt
         case 2: // nc
             {
@@ -323,7 +319,7 @@ magma_int_t magma_srecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         case 3: // tn
         case 6: // cn
             {
@@ -332,7 +328,7 @@ magma_int_t magma_srecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-            
+
         case 4: // tt
         case 5: // tc
         case 7: // ct
@@ -343,7 +339,7 @@ magma_int_t magma_srecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         default:;
     }
     return use_cublas_gemm_stream;
@@ -358,7 +354,7 @@ magma_int_t magma_drecommend_cublas_gemm_stream(
 {
     magma_int_t use_cublas_gemm_stream = 0;
     magma_int_t shape = magma_get_gemm_shape(transa, transb);
-    
+
     switch(shape)
     {
         case 0: // nn
@@ -368,7 +364,7 @@ magma_int_t magma_drecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         case 1: // nt
         case 2: // nc
             {
@@ -377,7 +373,7 @@ magma_int_t magma_drecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         case 3: // tn
         case 6: // cn
             {
@@ -387,7 +383,7 @@ magma_int_t magma_drecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-            
+
         case 4: // tt
         case 5: // tc
         case 7: // ct
@@ -399,7 +395,7 @@ magma_int_t magma_drecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         default:;
     }
     return use_cublas_gemm_stream;
@@ -414,7 +410,7 @@ magma_int_t magma_crecommend_cublas_gemm_stream(
 {
     magma_int_t use_cublas_gemm_stream = 0;
     magma_int_t shape = magma_get_gemm_shape(transa, transb);
-    
+
     switch(shape)
     {
         case 0: // nn
@@ -425,7 +421,7 @@ magma_int_t magma_crecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         case 1: // nt
         case 2: // nc
             {
@@ -435,7 +431,7 @@ magma_int_t magma_crecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         case 3: // tn
         case 6: // cn
             {
@@ -444,7 +440,7 @@ magma_int_t magma_crecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-            
+
         case 4: // tt
         case 5: // tc
         case 7: // ct
@@ -456,7 +452,7 @@ magma_int_t magma_crecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         default:;
     }
     return use_cublas_gemm_stream;
@@ -471,7 +467,7 @@ magma_int_t magma_zrecommend_cublas_gemm_stream(
 {
     magma_int_t use_cublas_gemm_stream = 0;
     magma_int_t shape = magma_get_gemm_shape(transa, transb);
-    
+
     switch(shape)
     {
         case 0: // nn
@@ -482,7 +478,7 @@ magma_int_t magma_zrecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         case 1: // nt
         case 2: // nc
             {
@@ -492,7 +488,7 @@ magma_int_t magma_zrecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         case 3: // tn
         case 6: // cn
             {
@@ -502,7 +498,7 @@ magma_int_t magma_zrecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-            
+
         case 4: // tt
         case 5: // tc
         case 7: // ct
@@ -514,7 +510,7 @@ magma_int_t magma_zrecommend_cublas_gemm_stream(
                                                         );
             }
             break;
-        
+
         default:;
     }
     return use_cublas_gemm_stream;
@@ -525,7 +521,7 @@ magma_int_t magma_zrecommend_cublas_gemm_stream(
 /// @}
 // end group magma_tuning
 
-#endif  // HAVE_CUBLAS
+#endif  // MAGMA_HAVE_CUDA
 
 #ifdef __cplusplus
 } // extern "C"

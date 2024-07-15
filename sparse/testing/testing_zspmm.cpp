@@ -34,6 +34,12 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
+#if CUDA_VERSION >= 12000
+  #define CUSPARSE_CSRMV_ALG2 CUSPARSE_SPMV_CSR_ALG2
+  #define CUSPARSE_CSRMV_ALG1 CUSPARSE_SPMV_CSR_ALG1
+  #define CUSPARSE_CSRMM_ALG1 CUSPARSE_SPMM_CSR_ALG1
+#endif
+
 #if CUDA_VERSION >= 11000
 #define cusparseZcsrmm(handle, op, rows, num_vecs, cols, nnz, alpha, descr, dval, drow, dcol,   \
                        x, ldx, beta, y, ldy)                                                    \
@@ -60,6 +66,17 @@
         if (bufsize > 0)                                                                        \
            magma_free(buf);                                                                     \
     }
+#endif
+
+#define PRECISION_z
+
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#if defined(MAGMA_HAVE_HIP)
+  #ifdef PRECISION_z
+    #define hipblasDoubleComplex hipDoubleComplex
+#elif defined(PRECISION_c)
+    #define hipblasComplex hipComplex
+  #endif
 #endif
 
 /* ////////////////////////////////////////////////////////////////////////////
@@ -283,10 +300,11 @@ int main(  int argc, char** argv )
 
         for (j=0; j < 10; j++) {
             cusparseZcsrmm(cusparseHandle,
-                               CUSPARSE_OPERATION_NON_TRANSPOSE,
-                               dA.num_rows,   n, dA.num_cols, dA.nnz,
-                               &alpha, descr, dA.dval, dA.drow, dA.dcol,
-                               dx.dval, dA.num_cols, &beta, dy.dval, dA.num_cols);
+                           CUSPARSE_OPERATION_NON_TRANSPOSE,
+                           dA.num_rows,   n, dA.num_cols, dA.nnz,
+                           (cuDoubleComplex*)&alpha, descr, (cuDoubleComplex*)dA.dval, dA.drow, dA.dcol,
+                           (cuDoubleComplex*)dx.dval, dA.num_cols, (cuDoubleComplex*)&beta, 
+                           (cuDoubleComplex*)dy.dval, dA.num_cols);
         }
         end = magma_sync_wtime( queue );
         printf( " > CUSPARSE: %.2e seconds %.2e GFLOP/s    (CSR).\n",

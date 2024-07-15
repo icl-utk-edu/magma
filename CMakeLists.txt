@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.8.1 )
+cmake_minimum_required( VERSION 3.18 )
 
 # ----------------------------------------
 # to disable Fortran, set this to "off"
@@ -16,6 +16,19 @@ endif()
 # to show compile commands, set this here or use 'make VERBOSE=1'
 #set(CMAKE_VERBOSE_MAKEFILE on)
 
+# ----------------------------------------
+# MAGMA requires one backend to be enabled
+option(MAGMA_ENABLE_CUDA     "Enable the CUDA backend"  OFF)
+option(MAGMA_ENABLE_HIP      "Enable the HIP  backend"  OFF)
+
+# check if one backend has been enabled
+if (NOT MAGMA_ENABLE_CUDA AND
+    NOT MAGMA_ENABLE_HIP
+    )
+  message(STATUS "MAGMA requires one enabled backend!")
+  message(STATUS "Building CUDA backend")
+  set( MAGMA_ENABLE_CUDA ON )
+endif()
 
 # ----------------------------------------
 # don't regenerate files during make.
@@ -54,6 +67,7 @@ include(CheckCXXCompilerFlag)
 include(CheckCCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+CHECK_CXX_COMPILER_FLAG("-fPIC" COMPILER_SUPPORTS_FPIC)
 if (COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 elseif(COMPILER_SUPPORTS_CXX0X)
@@ -98,33 +112,40 @@ if (OPENMP_FOUND)
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
 endif()
 
+if (MAGMA_ENABLE_CUDA)
+  enable_language(CUDA)
 
-# ----------------------------------------
-# locate CUDA libraries
-set( GPU_TARGET "Kepler Maxwell Pascal" CACHE STRING "CUDA architectures to compile for; one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]" )
-find_package( CUDA )
-if (CUDA_FOUND)
+  # ----------------------------------------
+  # locate CUDA libraries
+  set( GPU_TARGET "Kepler Maxwell Pascal" CACHE STRING "CUDA architectures to compile for; one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_[0-9][0-9]" )
+  find_package( CUDAToolkit )
+  if (CUDAToolkit_FOUND)
     message( STATUS "Found CUDA ${CUDA_VERSION}" )
-    message( STATUS "    CUDA_INCLUDE_DIRS:   ${CUDA_INCLUDE_DIRS}"   )
-    message( STATUS "    CUDA_CUDART_LIBRARY: ${CUDA_CUDART_LIBRARY}" )
-    #message( STATUS "    CUDA_LIBRARIES: ${CUDA_LIBRARIES}" )
-    #message( STATUS "    CUDA_CUBLAS_LIBRARIES: ${CUDA_CUBLAS_LIBRARIES}" )
-    include_directories( ${CUDA_INCLUDE_DIRS} )
+    message( STATUS "    CUDA_CUDART_LIBRARY: CUDA::cudart" )
+    #message( STATUS "    CUDA_CUBLAS_LIBRARIES: CUDA::cublas" )
 
-    set(CUDA_SEPARABLE_COMPILATION ON)
+    # NVCC options for the different cards
+    # sm_xx is binary, compute_xx is PTX for forward compatability
+    # MIN_ARCH is lowest requested version
 
-    # nvcc >= 6.5 supports -std=c++11, so propagate CXXFLAGS to NVCCFLAGS.
-    # Older nvcc didn't support -std=c++11, so previously we disabled propagation.
-    ##if (${CMAKE_CXX_FLAGS} MATCHES -std=)
-    ##    set( CUDA_PROPAGATE_HOST_FLAGS OFF )
-    ##endif()
+    if(WIN32)
+        # Disable separable compilation on Windows because object linking list
+        # becomes too long when building multiple archs and MSVC throws errors
+        set(CUDA_SEPARABLE_COMPILATION OFF)
+    else()
+        set(CUDA_SEPARABLE_COMPILATION ON)
+    endif()
+
+    set(__cuda_architectures)
+
+    include_directories( ${CUDAToolkit_INCLUDE_DIRS} )
 
     if (GPU_TARGET MATCHES Fermi)
         set( GPU_TARGET "${GPU_TARGET} sm_20" )
     endif()
 
     if (GPU_TARGET MATCHES Kepler)
-        set( GPU_TARGET "${GPU_TARGET} sm_30 sm_35" )
+        set( GPU_TARGET "${GPU_TARGET} sm_30 sm_35 sm_37" )
     endif()
 
     if (GPU_TARGET MATCHES Maxwell)
@@ -147,15 +168,12 @@ if (CUDA_FOUND)
         set( GPU_TARGET "${GPU_TARGET} sm_80" )
     endif()
 
-    # NVCC options for the different cards
-    # sm_xx is binary, compute_xx is PTX for forward compatability
-    # MIN_SM/MAX_SM is lowest/highest requested version
-    # NV_SM    accumulates sm_xx for all requested versions
-    # NV_COMP  is compute_xx for highest requested version
+    if (GPU_TARGET MATCHES Hopper)
+        set( GPU_TARGET "${GPU_TARGET} sm_90" )
+    endif()
+
+    # MIN_SM is lowest requested version
     set( MIN_SM 99 )
-    set( MAX_SM 0 )
-    set( NV_SM    "" )
-    set( NV_COMP  "" )
 
     string( REGEX MATCHALL "sm_[0-9][0-9]" sms "${GPU_TARGET}" )
     list( SORT sms ) # To make output easier to reason about
@@ -164,31 +182,131 @@ if (CUDA_FOUND)
         if (sm LESS MIN_SM)
             set( MIN_SM "${sm}" )
         endif()
-        if (sm GREATER MAX_SM)
-            set( MAX_SM "${sm}" )
-        endif()
-        list( APPEND NV_SM -gencode arch=compute_${sm},code=sm_${sm} )
+        list( APPEND __cuda_architectures "${sm}" )
         string( REGEX REPLACE "([0-9])([0-9])" "\\1.\\2" cuda_arch "${sm}" )
         message( STATUS "    compile for CUDA arch ${cuda_arch}" )
     endforeach()
 
-    if (NOT NV_SM)
+    if (NOT __cuda_architectures)
         message( FATAL_ERROR
                  "GPU_TARGET must contain one or more of "
-                 "Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, or valid sm_[0-9][0-9]"
+                 "Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_[0-9][0-9]. "
                  "Was: ${GPU_TARGET}" )
     endif()
 
+    set(CUDA_ARCHITECTURES "${__cuda_architectures}")
     set( MIN_ARCH ${MIN_SM}0 )
-    set( NV_COMP -gencode arch=compute_${MAX_SM},code=compute_${MAX_SM} )
 
-    # Note: CUDA_NVCC_FLAGS must be a list of flags, each one will be quoted by CMake later on
-    #       So use `-Xcompiler -fPIC` not `"-Xcompiler -fPIC"`, same for `-gencode arch=...`
-    list( APPEND CUDA_NVCC_FLAGS -Xcompiler -fPIC ${NV_SM} ${NV_COMP} ${FORTRAN_CONVENTION} )
-    add_definitions( -DHAVE_CUBLAS -DMIN_CUDA_ARCH=${MIN_ARCH} )
-    message( STATUS "Define -DHAVE_CUBLAS -DMIN_CUDA_ARCH=${MIN_ARCH}" )
+    add_library(magma_nvcc_flags INTERFACE)
+    if (COMPILER_SUPPORTS_FPIC)
+        target_compile_options(magma_nvcc_flags
+            INTERFACE
+            $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;-fPIC,${FORTRAN_CONVENTION}>
+        )
+    else()
+        # No Position Independent Code on Windows. Compiler will complain if you add that flag.
+        target_compile_options(magma_nvcc_flags
+            INTERFACE
+            $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;${FORTRAN_CONVENTION}>
+        )
+    endif()
+
+    set(MAGMA_HAVE_CUDA "1")
+    set(MAGMA_CUDA_ARCH_MIN "${MIN_ARCH}")
+    message( STATUS "Define -DMAGMA_HAVE_CUDA -DMAGMA_CUDA_ARCH_MIN=${MIN_ARCH}" )
+  else()
+    message( STATUS "Could not find CUDA" )
+  endif()
+
 endif()
 
+if (MAGMA_ENABLE_HIP)
+  set( GPU_TARGET "gfx900" CACHE STRING "HIP architectures to compile for" )
+  list(APPEND CMAKE_PREFIX_PATH /opt/rocm /opt/rocm/lib/cmake/hip)
+  find_package( HIP )
+  if (HIP_FOUND)
+    message( STATUS "Found HIP ${HIP_VERSION}" )
+    message( STATUS "    HIP_INCLUDE_DIRS:   ${HIP_INCLUDE_DIRS}"   )
+    message( STATUS "GPU_TARGET:  ${GPU_TARGET}"   )
+
+    include_directories( ${HIP_INCLUDE_DIRS} )
+
+    set(HIP_SEPARABLE_COMPILATION ON)
+
+    if (GPU_TARGET MATCHES kaveri)
+      set( GPU_TARGET ${GPU_TARGET} gfx700 )
+    endif()
+
+    if (GPU_TARGET MATCHES hawaii)
+      set( GPU_TARGET ${GPU_TARGET} gfx701 )
+    endif()
+
+    if (GPU_TARGET MATCHES kabini)
+      set( GPU_TARGET ${GPU_TARGET} gfx703 )
+    endif()
+
+    if (GPU_TARGET MATCHES mullins)
+      set( GPU_TARGET ${GPU_TARGET} gfx703 )
+    endif()
+
+    if (GPU_TARGET MATCHES bonaire)
+      set( GPU_TARGET ${GPU_TARGET} gfx704 )
+    endif()
+
+    if (GPU_TARGET MATCHES carrizo)
+      set( GPU_TARGET ${GPU_TARGET} gfx801 )
+    endif()
+
+    if (GPU_TARGET MATCHES iceland)
+      set( GPU_TARGET ${GPU_TARGET} gfx802 )
+    endif()
+
+    if (GPU_TARGET MATCHES tonga)
+      set( GPU_TARGET ${GPU_TARGET} gfx802 )
+    endif()
+
+    if (GPU_TARGET MATCHES fiji)
+      set( GPU_TARGET ${GPU_TARGET} gfx803 )
+    endif()
+
+    if (GPU_TARGET MATCHES polaris10)
+      set( GPU_TARGET ${GPU_TARGET} gfx803 )
+    endif()
+
+    if (GPU_TARGET MATCHES tongapro)
+      set( GPU_TARGET ${GPU_TARGET} gfx805 )
+    endif()
+
+    if (GPU_TARGET MATCHES stoney)
+      set( GPU_TARGET ${GPU_TARGET} gfx810 )
+    endif()
+
+    set( DEVCCFLAGS  "" )
+    set(VALID_GFXS "700;701;702;703;704;705;801;802;803;805;810;900;902;904;906;908;909;90c;1010;1011;1012;1030;1031;1032;1033")
+    foreach( GFX ${VALID_GFXS} )
+      if ( GPU_TARGET MATCHES gfx${GFX} )
+	set( DEVCCFLAGS ${DEVCCFLAGS} --offload-arch=gfx${GFX} )
+      endif()
+    endforeach()
+
+    set( DEVCCFLAGS ${DEVCCFLAGS} -fPIC ${FORTRAN_CONVENTION} )
+    set(MAGMA_HAVE_HIP "1")
+    message( STATUS "Define -DMAGMA_HAVE_HIP" )
+
+    set_property(TARGET hip::device APPEND PROPERTY COMPATIBLE_INTERFACE_BOOL INTERFACE_HIP_DEVICE_COMPILE)
+    set_property(TARGET hip::device PROPERTY INTERFACE_HIP_DEVICE_COMPILE ON)
+    set(GPU_ARCH_FLAGS ${DEVCCFLAGS})
+
+    #add_compile_options(${GPU_ARCH_FLAGS})
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_AMD__" )
+    option(ROCM_CORE "Location of the rocm-core package")
+    execute_process(COMMAND "${CMAKE_SOURCE_DIR}/tools/get-rocm-version.sh" "${ROCM_CORE}" OUTPUT_VARIABLE ROCM_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message(STATUS "ROCM_VERSION=${ROCM_VERSION}")
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DROCM_VERSION=${ROCM_VERSION}" )
+  else()
+    message( STATUS "Could not find HIP" )
+  endif()
+endif()
 
 # ----------------------------------------
 # locate LAPACK libraries
@@ -252,8 +370,11 @@ set( CMAKE_LIBRARY_OUTPUT_DIRECTORY lib )
 
 # ----------------------------------------
 # list of sources
-include( ${CMAKE_SOURCE_DIR}/CMake.src )
-
+if (MAGMA_ENABLE_CUDA)
+  include( ${CMAKE_SOURCE_DIR}/CMake.src.cuda )
+else()
+  include( ${CMAKE_SOURCE_DIR}/CMake.src.hip )
+endif()
 
 # ----------------------------------------
 # common flags
@@ -307,9 +428,15 @@ if (CMAKE_HOST_APPLE)
     ## set( CUDA_64_BIT_DEVICE_CODE OFF )
 endif()
 
+include_directories( "${CMAKE_BINARY_DIR}/include" )
+
 include_directories( include )
 include_directories( control )
-include_directories( magmablas )  # e.g., shuffle.cuh
+if (MAGMA_ENABLE_CUDA)
+  include_directories( magmablas )  # e.g., shuffle.cuh
+else()
+  include_directories( magmablas_hip )  # e.g., shuffle.cuh
+endif()
 
 # Need to check sizeof(void*) after setting flags above;
 # CMAKE_SIZEOF_VOID_P can be wrong.
@@ -319,6 +446,8 @@ if (USE_FORTRAN)
     set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Dmagma_devptr_t=\"integer\(kind=${SIZEOF_VOID_PTR}\)\"" )
 endif()
 
+# Configure config
+configure_file(${CMAKE_SOURCE_DIR}/include/magma_config.h.in  ${CMAKE_BINARY_DIR}/include/magma_config.h)
 
 # ----------------------------------------
 # compile MAGMA library
@@ -339,12 +468,13 @@ if (WIN32)
     #message( "libmagma_all_f   ${libmagma_all_f}"   )
 
     # on Windows, Fortran files aren't compiled if listed here...
-    cuda_add_library( magma ${libmagma_all_cpp} )
+    add_library( magma ${libmagma_all_cpp} )
     target_link_libraries( magma
         ${LAPACK_LIBRARIES}
-        ${CUDA_CUDART_LIBRARY}
-        ${CUDA_CUBLAS_LIBRARIES}
-        ${CUDA_cusparse_LIBRARY}
+        CUDA::cudart
+        CUDA::cublas
+        CUDA::cusparse
+        magma_nvcc_flags
     )
 
     # no Fortran files at the moment (how to test libmagma_all_f is not empty?),
@@ -354,21 +484,42 @@ if (WIN32)
     ## add_library( magmaf ${libmagma_all_f} )
     ## target_link_libraries( magmaf
     ##     ${LAPACK_LIBRARIES}
-    ##     ${CUDA_CUDART_LIBRARY}
-    ##     ${CUDA_CUBLAS_LIBRARIES}
-    ##     ${CUDA_cusparse_LIBRARY}
+    ##     CUDA::cudart
+    ##     CUDA::cublas
+    ##     CUDA::cusparse
     ## )
     ## make list of Fortran .mod files to install, as below
 else()
     # Unix doesn't seem to have a problem with mixing C, CUDA, and Fortran files
-    cuda_add_library( magma ${libmagma_all} )
-    target_link_libraries( magma
+    if (MAGMA_ENABLE_CUDA)
+    #message(FATAL_ERROR "${libmagma_all}")
+      add_library( magma ${libmagma_all} )
+      target_link_libraries( magma
         ${blas_fix}
         ${LAPACK_LIBRARIES}
-        ${CUDA_CUDART_LIBRARY}
-        ${CUDA_CUBLAS_LIBRARIES}
-        ${CUDA_cusparse_LIBRARY}
-    )
+        CUDA::cudart
+        CUDA::cublas
+        CUDA::cusparse
+        magma_nvcc_flags
+	)
+    else()
+      find_package( hipBLAS )
+      if (hipBLAS_FOUND)
+	message( STATUS "Found rocBLAS ${rocBLAS_VERSION}" )
+      endif()
+      find_package( hipSPARSE )
+      if (hipSPARSE_FOUND)
+	message( STATUS "Found rocSPARSE ${rocSPARSE_VERSION}" )
+      endif()
+      add_library( magma ${libmagma_all} )
+      target_link_libraries( magma
+	hip::host
+        ${blas_fix}
+        ${LAPACK_LIBRARIES}
+	roc::hipblas
+	roc::hipsparse
+	)
+    endif()
 
     if (USE_FORTRAN)
         # make list of Fortran .mod files to install
@@ -425,18 +576,38 @@ target_link_libraries( tester
 # compile MAGMA sparse library
 
 # sparse doesn't have Fortran at the moment, so no need for above shenanigans
-include_directories( sparse/include )
-include_directories( sparse/control )
+if (MAGMA_ENABLE_CUDA)
+  include_directories( sparse/include )
+  include_directories( sparse/control )
+else()
+  include_directories( sparse_hip/include )
+  include_directories( sparse_hip/control )
+endif()
 include_directories( testing )
-cuda_add_library( magma_sparse ${libsparse_all} )
-target_link_libraries( magma_sparse
+
+if (MAGMA_ENABLE_CUDA)
+  add_library( magma_sparse ${libsparse_all} )
+  set_property(TARGET magma_sparse PROPERTY CUDA_STANDARD 11)
+  target_link_libraries( magma_sparse
     magma
     ${blas_fix}
     ${LAPACK_LIBRARIES}
-    ${CUDA_CUDART_LIBRARY}
-    ${CUDA_CUBLAS_LIBRARIES}
-    ${CUDA_cusparse_LIBRARY}
-)
+    CUDA::cudart
+    CUDA::cublas
+    CUDA::cusparse
+    magma_nvcc_flags
+    )
+else()
+  add_library( magma_sparse ${libsparse_all} )
+  target_link_libraries( magma_sparse
+    magma
+    ${blas_fix}
+    ${LAPACK_LIBRARIES}
+    hip::device
+    roc::hipblas
+    roc::hipsparse
+    )
+endif()
 add_custom_target( sparse-lib DEPENDS magma_sparse )
 
 
@@ -468,10 +639,19 @@ add_custom_target( testing DEPENDS ${testing} )
 
 # ----------------------------------------
 # compile each sparse tester
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY sparse/testing )
+
+if (MAGMA_ENABLE_CUDA)
+  set(SPARSE_TEST_DIR "sparse/testing")
+else()
+  set(SPARSE_TEST_DIR "sparse_hip/testing")
+endif()
+
+
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${SPARSE_TEST_DIR}" )
+cmake_policy( SET CMP0037 OLD)
 foreach( TEST ${sparse_testing_all} )
     string( REGEX REPLACE "\\.(cpp|f90|F90)"     "" EXE ${TEST} )
-    string( REGEX REPLACE "sparse/testing/" "" EXE ${EXE} )
+    string( REGEX REPLACE "${SPARSE_TEST_DIR}/" "" EXE ${EXE} )
     #message( "${TEST} --> ${EXE}" )
     add_executable( ${EXE} ${TEST} )
     target_link_libraries( ${EXE} magma_sparse magma )
@@ -486,7 +666,11 @@ install( TARGETS magma magma_sparse ${blas_fix}
          RUNTIME DESTINATION bin
          LIBRARY DESTINATION lib
          ARCHIVE DESTINATION lib )
-file( GLOB headers include/*.h sparse/include/*.h )
+if (MAGMA_ENABLE_CUDA)
+  file( GLOB headers include/*.h sparse/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
+else()
+  file( GLOB headers include/*.h sparse_hip/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
+endif()
 if (USE_FORTRAN)
     install( FILES ${headers} ${modules}
              DESTINATION include )
@@ -496,14 +680,26 @@ endif()
 
 # ----------------------------------------
 # pkg-config
+get_target_property(MAGMA_INCLUDE magma INCLUDE_DIRECTORIES)
+foreach(dir ${MAGMA_INCLUDE})
+    string(APPEND INCLUDE_COMPILER_STRING "-I${dir} ")
+endforeach()
+set( MAGMA_INCLUDE "${INCLUDE_COMPILER_STRING}" )
 set( pkgconfig lib/pkgconfig/magma.pc )
 message( STATUS "pkgconfig ${pkgconfig}" )
 set( INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" )
 set( CFLAGS "${CMAKE_C_FLAGS}" )
+set( CXXFLAGS "${CMAKE_CXX_FLAGS}" )
 # CMake finds the Accelerate directory; we want -framework Accelerate for linking.
 string( REPLACE "/System/Library/Frameworks/Accelerate.framework" "-framework Accelerate" LAPACK_LIBS "${LAPACK_LIBRARIES}" )
-string( REPLACE ";" " " LIBS
-        "${blas_fix_lib} ${LAPACK_LIBS} ${CUDA_CUDART_LIBRARY} ${CUDA_CUBLAS_LIBRARIES} ${CUDA_cusparse_LIBRARY}" )
+if (MAGMA_ENABLE_CUDA)
+  string( REPLACE ";" " " LIBS
+    "${blas_fix_lib} ${LAPACK_LIBS} -L${CUDAToolkit_LIBRARY_DIR} -lcudart -lcublas -lcusparse")
+else()
+  string( REPLACE ";" " " LIBS
+     "${blas_fix_lib} ${LAPACK_LIBS} ${HIP} ${rocBLAS} ${rocSPARSE}" )
+#    "${blas_fix_lib} ${LAPACK_LIBS} hip::device roc::hipblas roc::hipsparse" )
+endif()
 set( MAGMA_REQUIRED "" )
 configure_file( "${pkgconfig}.in" "${pkgconfig}" @ONLY )
 install( FILES "${CMAKE_BINARY_DIR}/${pkgconfig}"
@@ -516,12 +712,23 @@ message( STATUS "Flags" )
 message( STATUS "    CMAKE_INSTALL_PREFIX:  ${CMAKE_INSTALL_PREFIX}" )
 message( STATUS "    CFLAGS:                ${CMAKE_C_FLAGS}" )
 message( STATUS "    CXXFLAGS:              ${CMAKE_CXX_FLAGS}" )
-message( STATUS "    NVCCFLAGS:             ${CUDA_NVCC_FLAGS}" )
+if (MAGMA_ENABLE_CUDA)
+  message( STATUS "    NVCCFLAGS:             ${CUDA_NVCC_FLAGS}" )
+else()
+  message( STATUS "    DEVCCFLAGS:            ${DEVCCFLAGS}" )
+endif()
 message( STATUS "    FFLAGS:                ${CMAKE_Fortran_FLAGS}" )
 message( STATUS "    LIBS:                  ${LIBS}" )
 message( STATUS "    blas_fix:              ${blas_fix}  (MacOS Accelerate only)" )
 message( STATUS "    LAPACK_LIBRARIES:      ${LAPACK_LIBRARIES}"      )
-message( STATUS "    CUDA_CUDART_LIBRARY:   ${CUDA_CUDART_LIBRARY}"   )
-message( STATUS "    CUDA_CUBLAS_LIBRARIES: ${CUDA_CUBLAS_LIBRARIES}" )
-message( STATUS "    CUDA_cusparse_LIBRARY: ${CUDA_cusparse_LIBRARY}" )
+message( STATUS "    INCLUDE_DIRECTORIES:   ${MAGMA_INCLUDE}"   )
+if (MAGMA_ENABLE_CUDA)
+  message( STATUS "    CUDA_CUDART_LIBRARY:   CUDA::cudart"   )
+  message( STATUS "    CUDA_CUBLAS_LIBRARIES: CUDA::cublas" )
+  message( STATUS "    CUDA_cusparse_LIBRARY: CUDA::cusparse" )
+else()
+  message( STATUS "    HIP_LIBRARY:   hip::device"   )
+  message( STATUS "    HIP_BLAS_LIBRARIES: roc::hipblas" )
+  message( STATUS "    HIP_sparse_LIBRARY: roc::hipsparse" )
+endif()
 message( STATUS "    Fortran modules:       ${modules}" )

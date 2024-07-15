@@ -12,59 +12,7 @@
 */
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
-
-#define BLK_SIZE 256
-#define ZLASWP_COL_NTH 32
-// SWP_WIDTH is number of threads in a block
-// 64 and 256 are better on Kepler;
-extern __shared__ magmaDoubleComplex shared_data[];
-
-
-/******************************************************************************/
-static __device__
-void zlaswp_rowparallel_devfunc(
-                              int n, int width, int height,
-                              magmaDoubleComplex *dA, int lda,
-                              magmaDoubleComplex *dout, int ldo,
-                              magma_int_t* pivinfo)
-{
-    //int height = k2- k1;
-    //int height = blockDim.x;
-    unsigned int tid = threadIdx.x;
-    dA   += SWP_WIDTH * blockIdx.x * lda;
-    dout += SWP_WIDTH * blockIdx.x * ldo;
-    magmaDoubleComplex *sdata = shared_data;
-
-    if (blockIdx.x == gridDim.x -1)
-    {
-        width = n - blockIdx.x * SWP_WIDTH;
-    }
-
-    if (tid < height)
-    {
-        int mynewroworig = pivinfo[tid]-1; //-1 to get the index in C
-        int itsreplacement = pivinfo[mynewroworig] -1; //-1 to get the index in C
-        //printf("%d: mynewroworig = %d, itsreplacement = %d\n", tid, mynewroworig, itsreplacement);
-        #pragma unroll
-        for (int i=0; i < width; i++)
-        {
-            sdata[ tid + i * height ]    = dA[ mynewroworig + i * lda ];
-            dA[ mynewroworig + i * lda ] = dA[ itsreplacement + i * lda ];
-        }
-    }
-    __syncthreads();
-
-    if (tid < height)
-    {
-        // copy back the upper swapped portion of A to dout
-        #pragma unroll
-        for (int i=0; i < width; i++)
-        {
-            dout[tid + i * ldo] = sdata[tid + i * height];
-        }
-    }
-}
-
+#include "zlaswp_device.cuh"
 
 /******************************************************************************/
 // parallel swap the swaped dA(1:nb,i:n) is stored in dout
@@ -243,7 +191,8 @@ magma_zlaswp_rowserial_batched(magma_int_t n, magmaDoubleComplex** dA_array, mag
 {
     if (n == 0) return;
 
-    int blocks = magma_ceildiv( n, BLK_SIZE );
+    magma_int_t threads = min(n, MAX_NTHREADS);
+    magma_int_t blocks  = magma_ceildiv( n, threads );
     magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -251,7 +200,7 @@ magma_zlaswp_rowserial_batched(magma_int_t n, magmaDoubleComplex** dA_array, mag
         dim3  grid(blocks, 1, ibatch);
 
         zlaswp_rowserial_kernel_batched
-        <<< grid, max(BLK_SIZE, n), 0, queue->cuda_stream() >>>
+        <<< grid, threads, 0, queue->cuda_stream() >>>
         (n, dA_array+i, lda, k1, k2, ipiv_array+i);
     }
 }
@@ -268,12 +217,13 @@ magma_zlaswp_rowserial_native(magma_int_t n, magmaDoubleComplex_ptr dA, magma_in
 {
     if (n == 0) return;
 
-    int blocks = magma_ceildiv( n, BLK_SIZE );
+    magma_int_t threads = min(n, MAX_NTHREADS);
+    magma_int_t blocks  = magma_ceildiv( n, threads );
     dim3  grid(blocks, 1, 1);
 
     zlaswp_rowserial_kernel_native
-        <<< grid, max(BLK_SIZE, n), 0, queue->cuda_stream() >>>
-        (n, dA, lda, k1, k2, dipiv);
+    <<< grid, threads, 0, queue->cuda_stream() >>>
+    (n, dA, lda, k1, k2, dipiv);
 }
 
 
@@ -367,8 +317,9 @@ magma_zlaswp_columnserial_batched(magma_int_t n, magmaDoubleComplex** dA_array, 
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3  grid(blocks, 1, ibatch);
 
+        magma_int_t min_ZLASWP_COL_NTH__n = min(ZLASWP_COL_NTH, n);
         zlaswp_columnserial_kernel_batched
-        <<< grid, min(ZLASWP_COL_NTH,n), 0, queue->cuda_stream() >>>
+        <<< grid, min_ZLASWP_COL_NTH__n, 0, queue->cuda_stream() >>>
         (n, dA_array+i, lda, k1, k2, ipiv_array+i);
     }
 }

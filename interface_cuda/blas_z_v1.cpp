@@ -16,7 +16,7 @@
 
 #define COMPLEX
 
-#ifdef HAVE_CUBLAS
+#ifdef MAGMA_HAVE_CUDA
 
 // These MAGMA v1 routines are all deprecated.
 // See blas_z_v2.cpp for documentation.
@@ -542,7 +542,7 @@ magma_ztrsm_v1(
         magmablasGetQueue() );
 }
 
-#endif // HAVE_CUBLAS
+#endif // MAGMA_HAVE_CUDA
 
 #undef COMPLEX
 

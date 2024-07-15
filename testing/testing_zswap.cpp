@@ -60,7 +60,7 @@ int main( int argc, char** argv)
     
     // OpenCL use:  cl_mem  , offset  (two arguments);
     // else   use:  pointer + offset  (one argument).
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
         #define d_A1(i_, j_)   d_A1    , (i_) + (j_)*ldda
         #define d_A2(i_, j_)   d_A2    , (i_) + (j_)*ldda
         #define d_ipiv(i_)     d_ipiv  , (i_)
@@ -252,7 +252,7 @@ int main( int argc, char** argv)
              * zswapblk, blocked version (2 matrices)
              */
             
-            #ifdef HAVE_CUBLAS
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
                 /* Row Major */
                 init_matrix( N, N, h_A1, lda, 0 );
                 init_matrix( N, N, h_A2, lda, 100 );

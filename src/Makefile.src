@@ -47,6 +47,9 @@ libmagma_src += \
 	$(cdir)/ztrtri.cpp		\
 	\
 	$(cdir)/zpotrf_m.cpp		\
+	$(cdir)/shpotrf_gpu.cpp		\
+	$(cdir)/dfgmres_spd_gpu.cpp	\
+	$(cdir)/dshposv_gmres_gpu.cpp \
 
 # ----------
 # LU, GPU interface
@@ -70,6 +73,10 @@ libmagma_src += \
 	$(cdir)/zgetrf_mgpu.cpp		\
 	$(cdir)/zgetrf2_mgpu.cpp	\
 	$(cdir)/zgerbt_gpu.cpp		\
+	\
+	$(cdir)/zgbsv_gpu.cpp		\
+	$(cdir)/zgbtrf_gpu.cpp		\
+
 
 # LU, CPU interface
 libmagma_src += \
@@ -192,7 +199,7 @@ libmagma_src += \
 	$(cdir)/zungtr.cpp		\
 	$(cdir)/zunmtr.cpp		\
 
-# symmetric eigenvalues, multi-GPU 
+# symmetric eigenvalues, multi-GPU
 libmagma_src += \
 	$(cdir)/zhetrd_mgpu.cpp		\
 	$(cdir)/zlatrd_mgpu.cpp		\
@@ -288,6 +295,10 @@ libmagma_src += \
 # ----------
 # Batched, GPU interface
 libmagma_src += \
+	$(cdir)/zgbsv_batched.cpp		\
+	$(cdir)/zgbtrf_batched.cpp		\
+	$(cdir)/zgbtrs_batched.cpp		\
+	\
 	$(cdir)/zgetf2_batched.cpp		\
 	$(cdir)/zgetf2_nopiv_batched.cpp	\
 	$(cdir)/zgetrf_panel_batched.cpp	\
@@ -318,6 +329,9 @@ libmagma_src += \
 # ----------
 # vbatched, GPU interface
 libmagma_src += \
+	$(cdir)/zgetf2_vbatched.cpp		\
+	$(cdir)/zgetrf_panel_vbatched.cpp		\
+	$(cdir)/zgetrf_vbatched.cpp		\
 	$(cdir)/zpotf2_vbatched.cpp		\
 	$(cdir)/zpotrf_panel_vbatched.cpp		\
 	$(cdir)/zpotrf_vbatched.cpp		\
@@ -334,12 +348,12 @@ $(cdir)/spotrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/dpotrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cpotrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/zpotrf_batched.$(o_ext): control/batched_kernel_param.h
-                                 
+
 $(cdir)/sgetrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/dgetrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cgetrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/zgetrf_batched.$(o_ext): control/batched_kernel_param.h
-                                 
+
 $(cdir)/sgeqrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/dgeqrf_batched.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cgeqrf_batched.$(o_ext): control/batched_kernel_param.h

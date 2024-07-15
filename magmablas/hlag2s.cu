@@ -11,6 +11,10 @@
 #include <cuda.h>    // for CUDA_VERSION
 #include "magma_internal.h"
 
+#if defined(MAGMA_HAVE_HIP)
+#include <hip/hip_fp16.h>
+#endif
+
 #define BLK_X 32
 #define BLK_Y 4
 
@@ -21,17 +25,13 @@ void hlag2s_device(
     magmaHalf_const_ptr A, int lda,
     float             *SA, int ldsa )
 {
-#if CUDA_VERSION >= 7500
+#if CUDA_VERSION >= 7500 || defined(MAGMA_HAVE_HIP)
     const int gtx = blockIdx.x * BLK_X + threadIdx.x;
     const int gty = blockIdx.y * BLK_Y + threadIdx.y;
 
-    for(int j = 0; j < n; j+= gridDim.y) {
-        const int gty_ = gty + j;
-        for(int i = 0; i < m; i+= gridDim.x) {
-            const int gtx_ = gtx + i;
-            if(gtx_ < m && gty_ < n) {
-                SA[gty_ * ldsa + gtx_] = __half2float( A[gty_ * lda + gtx_] );
-            }
+    for(int j = gty; j < n; j+= gridDim.y * BLK_Y) {
+        for(int i = gtx; i < m; i+= gridDim.x * BLK_X) {
+            SA[j * ldsa + i] = __half2float( A[j * lda + i] );
         }
     }
 #endif

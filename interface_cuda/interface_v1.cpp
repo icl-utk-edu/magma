@@ -12,13 +12,15 @@
 #include <stdio.h>
 #include <time.h>
 
+// these are included already in magma_internal.h & other headers
 #include <cuda_runtime.h>
-#include <cublas_v2.h>
+//#include <cublas_v2.h>
 
 #include "magma_internal.h"
 #include "error.h"
 
-#ifdef HAVE_CUBLAS
+
+#if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
 #ifndef MAGMA_NO_V1
 
 // -----------------------------------------------------------------------------
@@ -150,7 +152,11 @@ magma_queue_t magmablasGetQueue()
         }
         // create queue w/ NULL stream first time that NULL queue is used
         if ( g_null_queues[dev] == NULL ) {
+            #ifdef MAGMA_HAVE_CUDA
             magma_queue_create_from_cuda( dev, NULL, NULL, NULL, &g_null_queues[dev] );
+            #elif defined(MAGMA_HAVE_HIP)
+            magma_queue_create_from_hip( dev, NULL, NULL, NULL, &g_null_queues[dev] );
+            #endif
             //printf( "dev %lld create queue %p\n", (long long) dev, (void*) g_null_queues[dev] );
             assert( g_null_queues[dev] != NULL );
         }
@@ -179,4 +185,4 @@ magma_queue_create_v1_internal(
 }
 
 #endif // not MAGMA_NO_V1
-#endif // HAVE_CUBLAS
+#endif // MAGMA_HAVE_CUDA

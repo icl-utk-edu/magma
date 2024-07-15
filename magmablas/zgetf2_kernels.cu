@@ -16,74 +16,27 @@
 #include "batched_kernel_param.h"
 #include "magma_templates.h"
 #include "shuffle.cuh"
-
-/*
-    Purpose
-    -------
-    These are internal routines that might have many assumption.
-    They are used in zgetf2_batched.cpp
-*/
-
+#include "zgetf2_devicefunc.cuh"
 
 #define PRECISION_z
 
 #define A(i, j)  (A + (i) + (j)*lda)   // A(i, j) means at i row, j column
 
 /******************************************************************************/
-extern __shared__ magmaDoubleComplex shared_data[];
-extern __shared__ double sdata[];
-extern __shared__ int int_sdata[];
-
-
-/******************************************************************************/
-__device__ int
-izamax_devfunc(int length, const magmaDoubleComplex *x, int incx, double *shared_x, int *shared_idx)
-{
-    int tx = threadIdx.x;
-    magmaDoubleComplex res;
-    double  res1;
-    int nchunk = magma_ceildiv( length, zamax );
-
-    if ( tx < zamax ) {
-        shared_x[tx]   = 0.0;
-        shared_idx[tx] = tx; //-1; // -1 will crash the code in case matrix is singular, better is to put =tx and make check info at output
-    }
-    __syncthreads();
-
-    for (int s =0; s < nchunk; s++)
-    {
-        if ( (tx + s * zamax < length) && (tx < zamax) )
-        {
-            res = x[(tx + s * zamax) * incx];
-            res1 = fabs(MAGMA_Z_REAL(res)) + fabs(MAGMA_Z_IMAG(res));
-
-            if ( res1  > shared_x[tx] )
-            {
-                shared_x[tx] = res1;
-                shared_idx[tx] = tx + s * zamax;
-            }
-        }
-    }
-    __syncthreads();
-
-    if (length >= zamax) // there are more than 128 threads working ==> all shared_x shared_idx are initialized here so I can call the fixed getidmax
-        magma_getidmax<zamax>(tx, shared_x, shared_idx);
-    else
-        magma_getidmax_n(min(zamax,length), tx, shared_x, shared_idx);
-    return shared_idx[0];
-}
-
-/******************************************************************************/
 __global__ void
-izamax_kernel_batched(int length, int chunk, magmaDoubleComplex **x_array, int xi, int xj, int incx,
-                   int step, int lda, magma_int_t** ipiv_array, magma_int_t *info_array, int gbstep)
+izamax_kernel_batched(
+        int length, magmaDoubleComplex **x_array, int xi, int xj, int lda, int incx,
+        magma_int_t** ipiv_array, int ipiv_i,
+        magma_int_t *info_array, int step, int gbstep)
 {
+    extern __shared__ double sdata[];
     const int batchid = blockIdx.x;
-    magmaDoubleComplex *x_start = x_array[batchid] + xj * lda + xi;
-    const magmaDoubleComplex *x = &(x_start[step + step * lda]);
 
-    magma_int_t *ipiv = ipiv_array[batchid] + xi;
     int tx = threadIdx.x;
+    const magmaDoubleComplex *x = x_array[batchid] + xj * lda + xi;
+    magma_int_t *ipiv           = ipiv_array[batchid] + ipiv_i;
+    magma_int_t *info = &info_array[batchid];
+    int linfo = ( (gbstep+step) == 0) ? 0 : *info;
 
     double *shared_x = sdata;
     int *shared_idx = (int*)(shared_x + zamax);
@@ -91,31 +44,32 @@ izamax_kernel_batched(int length, int chunk, magmaDoubleComplex **x_array, int x
     izamax_devfunc(length, x, incx, shared_x, shared_idx);
 
     if (tx == 0) {
-        ipiv[step]  = shared_idx[0] + step + 1; // Fortran Indexing
-        if (shared_x[0] == MAGMA_D_ZERO) {
-            info_array[batchid] = shared_idx[0] + step + gbstep + 1;
-        }
+        *ipiv  = shared_idx[0] + step + 1; // Fortran Indexing & adjust ipiv
+        linfo  = ( shared_x[0] == MAGMA_D_ZERO && linfo == 0) ? (shared_idx[0]+step+gbstep+1) : linfo;
+        *info = (magma_int_t)linfo;
     }
 }
 
 
 /******************************************************************************/
 __global__ void
-izamax_kernel_native(int length, int chunk, magmaDoubleComplex_ptr x, int incx,
-                     int step, int lda, magma_int_t* ipiv, magma_int_t *info, int gbstep)
+izamax_kernel_native(
+        int length, magmaDoubleComplex_ptr x, int incx,
+        magma_int_t* ipiv, magma_int_t *info,
+        int step, int gbstep)
 {
+    extern __shared__ double sdata[];
     const int tx = threadIdx.x;
-    x += step * lda + step;
 
     double *shared_x = sdata;
     int *shared_idx = (int*)(shared_x + zamax);
+    int linfo = ( (gbstep+step) == 0) ? 0 : *info;
 
     izamax_devfunc(length, x, incx, shared_x, shared_idx);
     if (tx == 0) {
-        ipiv[step]  = shared_idx[0] + step + 1; // Fortran Indexing
-        if (shared_x[0] == MAGMA_D_ZERO) {
-            (*info) = shared_idx[0] + step + gbstep + 1;
-        }
+        *ipiv  = shared_idx[0] + step + 1; // Fortran Indexing
+        linfo  = ( shared_x[0] == MAGMA_D_ZERO && linfo == 0) ? (shared_idx[0]+step+gbstep+1) : linfo;
+        *info = (magma_int_t)linfo;
     }
 }
 
@@ -192,11 +146,12 @@ izamax_kernel_native(int length, int chunk, magmaDoubleComplex_ptr x, int incx,
     @ingroup magma_iamax_batched
 *******************************************************************************/
 extern "C" magma_int_t
-magma_izamax_batched(magma_int_t length,
-                     magmaDoubleComplex **x_array, magma_int_t xi, magma_int_t xj, magma_int_t incx,
-                     magma_int_t step,  magma_int_t lda,
-                     magma_int_t** ipiv_array, magma_int_t *info_array,
-                     magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue)
+magma_izamax_batched(
+        magma_int_t length,
+        magmaDoubleComplex **x_array, magma_int_t xi, magma_int_t xj, magma_int_t lda, magma_int_t incx,
+        magma_int_t** ipiv_array, magma_int_t ipiv_i,
+        magma_int_t step, magma_int_t gbstep, magma_int_t *info_array,
+        magma_int_t batchCount, magma_queue_t queue)
 {
     if (length == 0 ) return 0;
 
@@ -204,8 +159,9 @@ magma_izamax_batched(magma_int_t length,
     dim3 threads(zamax, 1, 1);
 
     int chunk = magma_ceildiv( length, zamax );
+
     izamax_kernel_batched<<< grid, threads, zamax * (sizeof(double) + sizeof(int)), queue->cuda_stream() >>>
-        (length, chunk, x_array, xi, xj, incx, step, lda, ipiv_array, info_array, gbstep);
+    (length, x_array, xi, xj, lda, incx, ipiv_array, ipiv_i, info_array, step, gbstep);
 
     return 0;
 }
@@ -224,11 +180,11 @@ __global__ void magma_zpivcast(magma_int_t* dipiv)
 
 /******************************************************************************/
 extern "C" magma_int_t
-magma_izamax_native( magma_int_t length,
-                     magmaDoubleComplex_ptr x, magma_int_t incx,
-                     magma_int_t step,  magma_int_t lda,
-                     magma_int_t* ipiv, magma_int_t *info,
-                     magma_int_t gbstep, magma_queue_t queue)
+magma_izamax_native(
+    magma_int_t length,
+    magmaDoubleComplex_ptr x, magma_int_t incx,
+    magma_int_t* ipiv, magma_int_t *info,
+    magma_int_t step, magma_int_t gbstep, magma_queue_t queue)
 {
     if (length == 0 ) return 0;
 
@@ -237,49 +193,34 @@ magma_izamax_native( magma_int_t length,
         dim3 grid(1, 1, 1);
         dim3 threads(zamax, 1, 1);
 
-        int chunk = magma_ceildiv( length, zamax );
         izamax_kernel_native<<< grid, threads, zamax * (sizeof(double) + sizeof(int)), queue->cuda_stream() >>>
-            (length, chunk, x, incx, step, lda, ipiv, info, gbstep);
+        (length, x, incx, ipiv, info, step, gbstep);
     }
     else {
+    #ifdef MAGMA_HAVE_CUDA
         cublasPointerMode_t ptr_mode;
         cublasGetPointerMode(queue->cublas_handle(), &ptr_mode);
         cublasSetPointerMode(queue->cublas_handle(), CUBLAS_POINTER_MODE_DEVICE);
 
-        cublasIzamax(queue->cublas_handle(), length, x + step * lda + step, 1, (int*)(ipiv+step));
-        magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv+step );
+        cublasIzamax(queue->cublas_handle(), length, x, 1, (int*)(ipiv));
+        magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv );
 
         cublasSetPointerMode(queue->cublas_handle(), ptr_mode);
-        adjust_ipiv( ipiv+step, 1, step, queue);
+    #elif defined(MAGMA_HAVE_HIP)
+        hipblasPointerMode_t ptr_mode;
+        hipblasGetPointerMode(queue->hipblas_handle(), &ptr_mode);
+        hipblasSetPointerMode(queue->hipblas_handle(), CUBLAS_POINTER_MODE_DEVICE);
+
+        hipblasIzamax(queue->hipblas_handle(), length, (const hipblasDoubleComplex*)x, 1, (int*)(ipiv));
+        magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv );
+
+        hipblasSetPointerMode(queue->hipblas_handle(), ptr_mode);
+    #endif
+
+        adjust_ipiv( ipiv, 1, step, queue);
     }
     return 0;
 }
-
-
-/******************************************************************************/
-__device__
-void zswap_device( magma_int_t n,
-                   magmaDoubleComplex_ptr x, magma_int_t incx,
-                   magma_int_t step, magma_int_t* ipiv)
-{
-    const int tx = threadIdx.x;
-
-    __shared__ int jp;
-
-    if (tx == 0){
-        jp = ipiv[step] - 1;
-    }
-    __syncthreads();
-
-    if (jp == step) return; // no pivot
-
-    if (tx < n) {
-        magmaDoubleComplex tmp = x[jp + tx * incx];
-        x[jp + tx * incx] = x[step + tx * incx];
-        x[step + tx * incx] = tmp;
-    }
-}
-
 
 /******************************************************************************/
 __global__
@@ -292,7 +233,11 @@ void zswap_kernel_batched(
     magmaDoubleComplex *x = x_array[batchid] + xj * incx + xi;
     magma_int_t *ipiv = ipiv_array[batchid] + xi;
 
-    zswap_device(n, x, incx, step, ipiv);
+    magmaDoubleComplex* xpiv = x_array[batchid] + (xj+step) * incx + (xi+step);
+    double rx_abs = fabs( MAGMA_Z_REAL(xpiv[0]) ) + fabs( MAGMA_Z_IMAG(xpiv[0]) );
+    if( rx_abs != MAGMA_D_ZERO) {
+        zswap_device(n, x, incx, step, ipiv);
+    }
 }
 
 
@@ -406,141 +351,64 @@ magma_zswap_native( magma_int_t n, magmaDoubleComplex_ptr x, magma_int_t incx,
         (n, x, incx, step, ipiv);
 }
 
-
-/******************************************************************************/
-template<int N>
-__device__
-void zscal_zgeru_device( int m, int step,
-                         magmaDoubleComplex_ptr dA, int lda,
-                         magma_int_t *info, int gbstep)
-{
-    const int tx  = threadIdx.x;
-    const int gtx = blockIdx.x * blockDim.x + tx;
-    // checkinfo to avoid computation of the singular matrix
-    if( (*info) != 0 ) return;
-
-    magmaDoubleComplex_ptr A = dA + step + step * lda;
-    magmaDoubleComplex rA[N], reg;
-    __shared__ magmaDoubleComplex shared_y[N];
-
-    if (tx < N) {
-        shared_y[tx] = A[lda * tx];
-    }
-    __syncthreads();
-
-    if (shared_y[0] == MAGMA_Z_ZERO) {
-        (*info) = step + gbstep + 1;
-        return;
-    }
-
-    // terminate threads that are out of the range
-    if (gtx == 0 || gtx >= m) return;
-
-    reg = MAGMA_Z_DIV(MAGMA_Z_ONE, shared_y[0]);
-    #pragma unroll
-    for(int i = 0; i < N; i++)
-        rA[i] = A[ i* lda + gtx ];
-
-    rA[0] *= reg;
-
-    #pragma unroll
-    for(int i = 1; i < N; i++)
-        rA[i] -= rA[0] * shared_y[i];
-
-    #pragma unroll
-    for(int i = 0; i < N; i++)
-        A[gtx + i * lda] = rA[i];
-}
-
-
-/******************************************************************************/
-__device__
-void zscal_zgeru_generic_device( int m, int n, int step,
-                         magmaDoubleComplex_ptr dA, int lda,
-                         magma_int_t *info, int gbstep)
-{
-    const int tx  = threadIdx.x;
-    const int gtx = blockIdx.x * blockDim.x + tx;
-    // checkinfo to avoid computation of the singular matrix
-    if( (*info) != 0 ) return;
-    if (gtx == 0 || gtx >= m) return;
-
-    magmaDoubleComplex_ptr A = dA + step + step * lda;
-    magmaDoubleComplex rA, reg;
-
-    if (A[0] == MAGMA_Z_ZERO) {
-        (*info) = step + gbstep + 1;
-        return;
-    }
-
-    reg = MAGMA_Z_DIV(MAGMA_Z_ONE, A[0]);
-    rA  = A[ gtx ];
-    rA *= reg;
-
-    A[ gtx ] = rA;
-    #pragma unroll
-    for(int i = 1; i < n; i++)
-        A[i * lda + gtx] -= rA * A[i * lda + 0];
-
-}
-
-
 /******************************************************************************/
 template<int N>
 __global__
-void zscal_zgeru_1d_kernel_native( int m, int step,
+void zscal_zgeru_1d_kernel_native( int m,
                                 magmaDoubleComplex_ptr dA, int lda,
-                                magma_int_t *info, int gbstep)
+                                magma_int_t *info, int step, int gbstep)
 {
     // This dev function has a return statement inside, be sure
     // not to merge it with another dev function. Otherwise, the
     // return statement should be converted into an if-statement
-    zscal_zgeru_device<N>(m, step, dA, lda, info, gbstep);
+    zscal_zgeru_device<N>(m, dA, lda, info, step, gbstep);
 }
 
 
 /******************************************************************************/
 __global__
-void zscal_zgeru_1d_generic_kernel_native( int m, int n, int step,
+void zscal_zgeru_1d_generic_kernel_native( int m, int n,
                                 magmaDoubleComplex_ptr dA, int lda,
-                                magma_int_t *info, int gbstep)
+                                magma_int_t *info, int step, int gbstep)
 {
     // This dev function has a return statement inside, be sure
     // not to merge it with another dev function. Otherwise, the
     // return statement should be converted into an if-statement
-    zscal_zgeru_generic_device(m, n, step, dA, lda, info, gbstep);
+    zscal_zgeru_generic_device(m, n, dA, lda, info, step, gbstep);
 }
 
 
 /******************************************************************************/
 template<int N>
 __global__
-void zscal_zgeru_1d_kernel_batched(int m, int step, magmaDoubleComplex **dA_array, int ai, int aj, int lda, magma_int_t *info_array, int gbstep)
+void zscal_zgeru_1d_kernel_batched(int m, magmaDoubleComplex **dA_array, int ai, int aj, int lda, magma_int_t *info_array, int step, int gbstep)
 {
     const int batchid = blockIdx.z;
     magmaDoubleComplex* dA = dA_array[batchid] + aj * lda + ai;
     magma_int_t *info = &info_array[batchid];
-    zscal_zgeru_device<N>(m, step, dA, lda, info, gbstep);
+    zscal_zgeru_device<N>(m, dA, lda, info, step, gbstep);
 }
 
 
 /******************************************************************************/
 __global__
-void zscal_zgeru_1d_generic_kernel_batched(int m, int n, int step, magmaDoubleComplex **dA_array, int ai, int aj, int lda, magma_int_t *info_array, int gbstep)
+void zscal_zgeru_1d_generic_kernel_batched(int m, int n, magmaDoubleComplex **dA_array, int ai, int aj, int lda, magma_int_t *info_array, int step, int gbstep)
 {
     const int batchid = blockIdx.z;
     magmaDoubleComplex* dA = dA_array[batchid] + aj * lda + ai;
     magma_int_t *info = &info_array[batchid];
-    zscal_zgeru_generic_device(m, n, step, dA, lda, info, gbstep);
+    zscal_zgeru_generic_device(m, n, dA, lda, info, step, gbstep);
 }
 
 
 /******************************************************************************/
 extern "C"
-magma_int_t magma_zscal_zgeru_batched(magma_int_t m, magma_int_t n, magma_int_t step,
-                                      magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t lda,
-                                      magma_int_t *info_array, magma_int_t gbstep,
-                                      magma_int_t batchCount, magma_queue_t queue)
+magma_int_t
+magma_zscal_zgeru_batched(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t lda,
+    magma_int_t *info_array, magma_int_t step, magma_int_t gbstep,
+    magma_int_t batchCount, magma_queue_t queue)
 {
     /*
     Specialized kernel which merged zscal and zgeru the two kernels
@@ -555,7 +423,7 @@ magma_int_t magma_zscal_zgeru_batched(magma_int_t m, magma_int_t n, magma_int_t 
     }
 
     magma_int_t max_batchCount = queue->get_maxBatch();
-    const int tbx = MAX_NTHREADS / 2;
+    const int tbx = 256;
     dim3 threads(tbx, 1, 1);
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
@@ -563,15 +431,15 @@ magma_int_t magma_zscal_zgeru_batched(magma_int_t m, magma_int_t n, magma_int_t 
         dim3 grid(magma_ceildiv(m,tbx), 1, ibatch);
 
         switch(n){
-            case  1:zscal_zgeru_1d_kernel_batched< 1><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  2:zscal_zgeru_1d_kernel_batched< 2><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  3:zscal_zgeru_1d_kernel_batched< 3><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  4:zscal_zgeru_1d_kernel_batched< 4><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  5:zscal_zgeru_1d_kernel_batched< 5><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  6:zscal_zgeru_1d_kernel_batched< 6><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  7:zscal_zgeru_1d_kernel_batched< 7><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            case  8:zscal_zgeru_1d_kernel_batched< 8><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);break;
-            default:zscal_zgeru_1d_generic_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>(m, n, step, dA_array+i, ai, aj, lda, info_array+i, gbstep);
+            case  1: zscal_zgeru_1d_kernel_batched< 1><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  2: zscal_zgeru_1d_kernel_batched< 2><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  3: zscal_zgeru_1d_kernel_batched< 3><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  4: zscal_zgeru_1d_kernel_batched< 4><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  5: zscal_zgeru_1d_kernel_batched< 5><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  6: zscal_zgeru_1d_kernel_batched< 6><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  7: zscal_zgeru_1d_kernel_batched< 7><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            case  8: zscal_zgeru_1d_kernel_batched< 8><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);break;
+            default: zscal_zgeru_1d_generic_kernel_batched<<<grid, threads, 0, queue->cuda_stream()>>>(m, n, dA_array+i, ai, aj, lda, info_array+i, step, gbstep);
         }
     }
     return 0;
@@ -582,9 +450,9 @@ magma_int_t magma_zscal_zgeru_batched(magma_int_t m, magma_int_t n, magma_int_t 
 extern "C"
 magma_int_t
 magma_zscal_zgeru_native(
-    magma_int_t m, magma_int_t n, magma_int_t step,
+    magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t lda,
-    magma_int_t *info, magma_int_t gbstep,
+    magma_int_t *info, magma_int_t step, magma_int_t gbstep,
     magma_queue_t queue)
 {
     /*
@@ -598,19 +466,19 @@ magma_zscal_zgeru_native(
         fprintf( stderr, "%s nb=%lld, > %lld, not supported\n", __func__, (long long) n, (long long) MAX_NTHREADS );
         return -15;
     }
-    const int tbx = MAX_NTHREADS / 2;
+    const int tbx = 256;
     dim3 grid(magma_ceildiv(m,tbx), 1, 1);
     dim3 threads(tbx, 1, 1);
     switch(n){
-        case 1:zscal_zgeru_1d_kernel_native<1><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 2:zscal_zgeru_1d_kernel_native<2><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 3:zscal_zgeru_1d_kernel_native<3><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 4:zscal_zgeru_1d_kernel_native<4><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 5:zscal_zgeru_1d_kernel_native<5><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 6:zscal_zgeru_1d_kernel_native<6><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 7:zscal_zgeru_1d_kernel_native<7><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        case 8:zscal_zgeru_1d_kernel_native<8><<<grid, threads, 0, queue->cuda_stream()>>>( m, step, dA, lda, info, gbstep);break;
-        default:zscal_zgeru_1d_generic_kernel_native<<<grid, threads, 0, queue->cuda_stream()>>>( m, n, step, dA, lda, info, gbstep);
+        case 1: zscal_zgeru_1d_kernel_native<1><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 2: zscal_zgeru_1d_kernel_native<2><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 3: zscal_zgeru_1d_kernel_native<3><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 4: zscal_zgeru_1d_kernel_native<4><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 5: zscal_zgeru_1d_kernel_native<5><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 6: zscal_zgeru_1d_kernel_native<6><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 7: zscal_zgeru_1d_kernel_native<7><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        case 8: zscal_zgeru_1d_kernel_native<8><<<grid, threads, 0, queue->cuda_stream()>>>( m, dA, lda, info, step, gbstep);break;
+        default: zscal_zgeru_1d_generic_kernel_native<<<grid, threads, 0, queue->cuda_stream()>>>( m, n, dA, lda, info, step, gbstep);
     }
     return 0;
 }
@@ -620,6 +488,9 @@ magma_zscal_zgeru_native(
 __global__
 void zgetf2trsm_kernel_batched(int ib, int n, magmaDoubleComplex **dA_array, int step, int lda)
 {
+
+    extern __shared__ magmaDoubleComplex shared_data[];
+
     /*
         this kernel does the safe nonblocked TRSM operation
         B = A^-1 * B
@@ -833,62 +704,13 @@ magma_zgetf2trsm_2d_native(
     dim3 threads(m8, m8, 1);
 
     switch(m8){
-        case  8:zgetf2trsm_2d_kernel< 8><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
-        case 16:zgetf2trsm_2d_kernel<16><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
-        case 24:zgetf2trsm_2d_kernel<24><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
-        case 32:zgetf2trsm_2d_kernel<32><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
+        case  8: zgetf2trsm_2d_kernel< 8><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
+        case 16: zgetf2trsm_2d_kernel<16><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
+        case 24: zgetf2trsm_2d_kernel<24><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
+        case 32: zgetf2trsm_2d_kernel<32><<<grid, threads, 0, queue->cuda_stream() >>>( m, n, dA, ldda, dB, lddb ); break;
         default:;
     }
 }
-
-
-/******************************************************************************/
-static __device__ void
-zupdate_device(int m, int step, magmaDoubleComplex* x, int ldx,  magmaDoubleComplex *A, int lda)
-{
-    int tid = threadIdx.x;
-    int nchunk = magma_ceildiv( m, MAX_NTHREADS );
-    int indx;
-    //magmaDoubleComplex reg = MAGMA_Z_ZERO;
-
-    // update the current column by all the previous one
-    #pragma unroll
-    for (int i=0; i < step; i++) {
-        for (int s=0; s < nchunk; s++)
-        {
-            indx = tid + s * MAX_NTHREADS;
-            if ( indx > i  && indx < m ) {
-                A[indx] -=  A[i] * x[indx + i*ldx];
-                //printf("         @ step %d tid %d updating x[tid]*y[i]=A %5.3f %5.3f = %5.3f  at i %d\n", step, tid, x[tid + i*ldx], A[i], A[tid],i);
-            }
-        }
-        __syncthreads();
-    }
-
-    //printf("         @ step %d tid %d adding %5.3f to A %5.3f make it %5.3f\n",step,tid,-reg,A[tid],A[tid]-reg);
-}
-
-
-/******************************************************************************/
-static __device__ void
-zscal5_device(int m, magmaDoubleComplex* x, magmaDoubleComplex alpha)
-{
-    int tid = threadIdx.x;
-    int nchunk = magma_ceildiv( m, MAX_NTHREADS );
-
-    for (int s=0; s < nchunk; s++)
-    {
-        if ( (tid + s * MAX_NTHREADS) < m ) {
-            #if 0
-            x[tid + s * MAX_NTHREADS] *= MAGMA_Z_DIV(MAGMA_Z_ONE, alpha);
-            #else
-            x[tid + s * MAX_NTHREADS] = x[tid + s * MAX_NTHREADS]/alpha;
-            #endif
-        }
-    }
-    __syncthreads();
-}
-
 
 /******************************************************************************/
 __global__ void
@@ -897,6 +719,8 @@ zcomputecolumn_kernel_shared_batched( int m, int paneloffset, int step,
                                       int lda, magma_int_t **ipiv_array, magma_int_t *info_array, int gbstep)
 {
     const int batchid = blockIdx.x;
+    extern __shared__ magmaDoubleComplex shared_data[];
+
     int gboff = paneloffset+step;
     magma_int_t *ipiv           = ipiv_array[batchid] + ai;
     magmaDoubleComplex *A_start = dA_array[batchid] + aj * lda + ai;
@@ -907,10 +731,11 @@ zcomputecolumn_kernel_shared_batched( int m, int paneloffset, int step,
     __shared__ double  shared_x[zamax];
     __shared__ int     shared_idx[zamax];
     __shared__ magmaDoubleComplex alpha;
-    int tid = threadIdx.x;
+    int tid   = threadIdx.x;
+    int linfo = ((gboff + gbstep) == 0 ) ? 0 : info_array[batchid];
 
     // checkinfo to avoid computation of the singular matrix
-    if (info_array[batchid] != 0 ) return;
+    //if (info_array[batchid] != 0 ) return;
 
 
     int nchunk = magma_ceildiv( m, MAX_NTHREADS );
@@ -927,7 +752,7 @@ zcomputecolumn_kernel_shared_batched( int m, int paneloffset, int step,
         __syncthreads();
     }
 
-    // if ( tid < (m-step) ) // DO NO TPUT THE IF CONDITION HERE SINCE izamax_devfunc HAS __syncthreads INSIDE.
+    // if ( tid < (m-step) ) // DO NO PUT THE IF CONDITION HERE SINCE izamax_devfunc HAS __syncthreads INSIDE.
     // So let all htreads call this routine it will handle correctly based on the size
     // note that izamax need only 128 threads, s
     izamax_devfunc(m-step, shared_A+step, 1, shared_x, shared_idx);
@@ -935,16 +760,21 @@ zcomputecolumn_kernel_shared_batched( int m, int paneloffset, int step,
         ipiv[gboff]  = shared_idx[0] + gboff + 1; // Fortran Indexing
         alpha = shared_A[shared_idx[0]+step];
         //printf("@ step %d ipiv=%d where gboff=%d  shared_idx %d alpha %5.3f\n",step,ipiv[gboff],gboff,shared_idx[0],alpha);
-        if (shared_x[0] == MAGMA_D_ZERO) {
-            info_array[batchid] = shared_idx[0] + gboff + gbstep + 1;
-        }
+        linfo  = ( shared_x[0] == MAGMA_D_ZERO && linfo == 0) ? (shared_idx[0]+gboff+gbstep+1) : linfo;
+        info_array[batchid] = (magma_int_t)linfo;
+        //if (shared_x[0] == MAGMA_D_ZERO) {
+        //    info_array[batchid] = shared_idx[0] + gboff + gbstep + 1;
+        //}
     }
     __syncthreads();
-    if (shared_x[0] == MAGMA_D_ZERO) return;
-    __syncthreads();
 
-    // DO NO PUT THE IF CONDITION HERE SINCE izamax_devfunc HAS __syncthreads INSIDE.
-    zscal5_device( m-step, shared_A+step, alpha);
+    //if (shared_x[0] == MAGMA_D_ZERO) return;
+    //__syncthreads();
+
+    if( shared_x[0] != MAGMA_D_ZERO ) {
+        zscal5_device( m-step, shared_A+step, alpha);
+        // there is sync at the end of zscal5_device
+    }
 
     // put back the pivot that has been scaled with itself menaing =1
     if (tid == 0)  shared_A[shared_idx[0] + step] = alpha;
@@ -997,116 +827,102 @@ magma_int_t magma_zcomputecolumn_batched( magma_int_t m, magma_int_t paneloffset
     return 0;
 }
 
-
 /******************************************************************************/
-template<int WIDTH>
-__device__ void
-zgetf2_fused_device( int m, magmaDoubleComplex* dA, int ldda, magma_int_t* dipiv,
-                   magmaDoubleComplex* swork, magma_int_t *info, int gbstep)
-{
-    const int tx = threadIdx.x;
-    const int ty = threadIdx.y;
-
-    magmaDoubleComplex rA[WIDTH] = {MAGMA_Z_ZERO};
-    magmaDoubleComplex reg       = MAGMA_Z_ZERO;
-    magmaDoubleComplex update    = MAGMA_Z_ZERO;
-
-    int max_id, rowid = tx;
-    int linfo = (gbstep == 0) ? 0 : *info;
-    double rx_abs_max = MAGMA_D_ZERO;
-    // check from previous calls if the panel factorization failed previously
-    // this is necessary to report the correct info value
-    //if(gbstep > 0 && *info != 0) return;
-
-    magmaDoubleComplex *sx = (magmaDoubleComplex*)(swork);
-    double* dsx = (double*)(sx + blockDim.y * WIDTH);
-    int* isx    = (int*)(dsx + blockDim.y * m);
-    int* sipiv  = (int*)(isx + blockDim.y * m);
-    sx    += ty * WIDTH;
-    dsx   += ty * m;
-    isx   += ty * m;
-    sipiv += ty * WIDTH;
-
-    // init sipiv
-    if(tx < WIDTH){
-        sipiv[tx] = 0;
-    }
-
-    // read
-    #pragma unroll
-    for(int i = 0; i < WIDTH; i++){
-        rA[i] = dA[ i * ldda + tx ];
-    }
-
-    #pragma unroll
-    for(int i = 0; i < WIDTH; i++){
-        // izamax and find pivot
-        dsx[ rowid ] = fabs(MAGMA_Z_REAL( rA[i] )) + fabs(MAGMA_Z_IMAG( rA[i] ));
-        isx[ tx ] = tx;
-        __syncthreads();
-        magma_getidmax_n(m-i, tx, dsx+i, isx+i); // this devfunc has syncthreads at the end
-        rx_abs_max = dsx[i];
-        max_id = isx[i];
-        linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;
-        update = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
-        __syncthreads();
-
-        if(rowid == max_id){
-            sipiv[i] = max_id;
-            rowid = i;
-            #pragma unroll
-            for(int j = 0; j < WIDTH; j++){
-                sx[j] = update * rA[j];
-            }
-        }
-        else if(rowid == i){
-            rowid = max_id;
-        }
-        __syncthreads();
-
-        reg = (linfo == 0 ) ? MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] ) : MAGMA_Z_ONE;
-        // scal and ger
-        if( rowid > i ){
-            rA[i] *= reg;
-            #pragma unroll
-            for(int j = i+1; j < WIDTH; j++){
-                rA[j] -= rA[i] * sx[j];
-            }
-        }
-    }
-
-    if(tx == 0){
-        (*info) = (magma_int_t)( linfo );
-    }
-    // write
-    if(tx < WIDTH){
-        dipiv[tx] = (magma_int_t)(sipiv[tx] + 1); // fortran indexing
-        //printf("--- ipiv[%d] --- = %d\n", tx, dipiv[tx]);
-    }
-
-    #pragma unroll
-    for(int i = 0; i < WIDTH; i++){
-        dA[ i * ldda + rowid ] = rA[i];
-    }
-}
-
-/******************************************************************************/
-extern __shared__ magmaDoubleComplex zdata[];
-template<int WIDTH>
+template<int N>
 __global__ void
-zgetf2_fused_batched_kernel( int m,
+zgetf2_fused_kernel_batched( int m,
                            magmaDoubleComplex** dA_array, int ai, int aj, int ldda,
                            magma_int_t** dipiv_array, magma_int_t* info_array, int batchCount)
 {
-     magmaDoubleComplex* swork = (magmaDoubleComplex*)zdata;
-     const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
-     if(batchid >= batchCount)return;
-     zgetf2_fused_device<WIDTH>(
-             m, dA_array[batchid] + aj * ldda + ai, ldda,
+    const int tx = threadIdx.x;
+    const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
+    if(batchid >= batchCount)return;
+
+    int rowid, gbstep = aj;
+    int linfo = (gbstep == 0) ? 0 : info_array[batchid];
+
+    // shared memory workspace
+    extern __shared__ magmaDoubleComplex zdata[];
+    magmaDoubleComplex* swork = (magmaDoubleComplex*)zdata;
+
+    // read
+    magmaDoubleComplex* dA = dA_array[batchid] + aj * ldda + ai;
+    magmaDoubleComplex  rA[N] = {MAGMA_Z_ZERO};
+    #pragma unroll
+    for(int i = 0; i < N; i++){
+        rA[i] = dA[ i * ldda + tx ];
+    }
+
+     zgetf2_fused_device<N>(
+             m, min(m,N), rA,
              dipiv_array[batchid] + ai,
-             swork, &info_array[batchid], aj);
+             swork, linfo, gbstep, rowid);
+
+    // write
+    if(tx == 0){
+        info_array[batchid] = (magma_int_t)( linfo );
+    }
+
+    #pragma unroll
+    for(int i = 0; i < N; i++){
+        dA[ i * ldda + rowid ] = rA[i];
+    }
+
 }
 
+/******************************************************************************/
+template<int N>
+static magma_int_t
+magma_zgetf2_fused_kernel_driver_batched(
+    magma_int_t m,
+    magmaDoubleComplex **dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magma_int_t **dipiv_array,
+    magma_int_t *info_array, magma_int_t batchCount,
+    magma_queue_t queue )
+{
+    magma_int_t arginfo = 0;
+    magma_device_t device;
+    magma_getdevice( &device );
+
+    magma_int_t ntcol = (m >= 32)? 1 : (32/m);
+    int shmem = 0, shmem_max = 0;   // not magma_int_t (causes problems with 64bit builds)
+    shmem += N * sizeof(magmaDoubleComplex);
+    shmem += m * sizeof(double);
+    shmem += m * sizeof(int);    // not magma_int_t
+    shmem += N * sizeof(int);    // not magma_int_t
+    shmem *= ntcol;
+
+    dim3 grid(magma_ceildiv(batchCount,ntcol), 1, 1);
+    dim3 threads(m, ntcol, 1);
+
+    // get max. dynamic shared memory on the GPU
+    int nthreads_max, nthreads = m * ntcol;
+    cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
+    #if CUDA_VERSION >= 9000
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
+    if (shmem <= shmem_max) {
+        cudaFuncSetAttribute(zgetf2_fused_kernel_batched<N>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    }
+    #else
+    cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
+    #endif    // CUDA_VERSION >= 9000
+
+    magma_int_t total_threads = nthreads * ntcol;
+    if ( total_threads > nthreads_max || shmem > shmem_max ) {
+        //printf("error: kernel %s requires too many threads or too much shared memory\n", __func__);
+        arginfo = -100;
+        return arginfo;
+    }
+
+    void *kernel_args[] = {&m, &dA_array, &ai, &aj, &ldda, &dipiv_array, &info_array, &batchCount};
+    cudaError_t e = cudaLaunchKernel((void*)zgetf2_fused_kernel_batched<N>, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    if( e != cudaSuccess ) {
+        //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
+        arginfo = -100;
+    }
+
+    return arginfo;
+}
 
 /***************************************************************************//**
     Purpose
@@ -1190,63 +1006,53 @@ magma_zgetf2_fused_batched(
     magma_int_t *info_array, magma_int_t batchCount,
     magma_queue_t queue)
 {
-    if(m < 0 || m > ZGETF2_FUSED_BATCHED_MAX_ROWS) {
-        fprintf( stderr, "%s: m = %4lld not supported, must be between 0 and %4lld\n",
-                 __func__, (long long) m, (long long) ZGETF2_FUSED_BATCHED_MAX_ROWS);
-        return -1;
+    magma_int_t info = 0;
+    if(m < 0) {
+        info = -1;
     }
     else if(n < 0 || n > 32){
         fprintf( stderr, "%s: n = %4lld not supported, must be between 0 and %4lld\n",
                  __func__, (long long) m, (long long) 32);
-        return -2;
+        info = -2;
     }
-    magma_int_t ntcol = (m > 32)? 1 : (2 * (32/m));
 
-    magma_int_t shared_size = 0;
-    shared_size += n * sizeof(magmaDoubleComplex);
-    shared_size += m * sizeof(double);
-    shared_size += m * sizeof(int);    // not magma_int_t
-    shared_size += n * sizeof(int);    // not magma_int_t
-    shared_size *= ntcol;
+    if(info < 0) return info;
 
-    dim3 grid(magma_ceildiv(batchCount,ntcol), 1, 1);
-    dim3 threads(m, ntcol, 1);
-
-    switch(n)
-    {
-        case  1: zgetf2_fused_batched_kernel< 1><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case  2: zgetf2_fused_batched_kernel< 2><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case  3: zgetf2_fused_batched_kernel< 3><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case  4: zgetf2_fused_batched_kernel< 4><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case  5: zgetf2_fused_batched_kernel< 5><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case  6: zgetf2_fused_batched_kernel< 6><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case  7: zgetf2_fused_batched_kernel< 7><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case  8: zgetf2_fused_batched_kernel< 8><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case  9: zgetf2_fused_batched_kernel< 9><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 10: zgetf2_fused_batched_kernel<10><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 11: zgetf2_fused_batched_kernel<11><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 12: zgetf2_fused_batched_kernel<12><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 13: zgetf2_fused_batched_kernel<13><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 14: zgetf2_fused_batched_kernel<14><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 15: zgetf2_fused_batched_kernel<15><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 16: zgetf2_fused_batched_kernel<16><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 17: zgetf2_fused_batched_kernel<17><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 18: zgetf2_fused_batched_kernel<18><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 19: zgetf2_fused_batched_kernel<19><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 20: zgetf2_fused_batched_kernel<20><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 21: zgetf2_fused_batched_kernel<21><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 22: zgetf2_fused_batched_kernel<22><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 23: zgetf2_fused_batched_kernel<23><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 24: zgetf2_fused_batched_kernel<24><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 25: zgetf2_fused_batched_kernel<25><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 26: zgetf2_fused_batched_kernel<26><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 27: zgetf2_fused_batched_kernel<27><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 28: zgetf2_fused_batched_kernel<28><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 29: zgetf2_fused_batched_kernel<29><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 30: zgetf2_fused_batched_kernel<30><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 31: zgetf2_fused_batched_kernel<31><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        case 32: zgetf2_fused_batched_kernel<32><<<grid, threads, shared_size, queue->cuda_stream()>>>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount); break;
-        default: fprintf( stderr, "%s: n = %4lld is not supported \n", __func__, (long long) n);
+    switch(n) {
+        case  1: info = magma_zgetf2_fused_kernel_driver_batched< 1>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case  2: info = magma_zgetf2_fused_kernel_driver_batched< 2>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case  3: info = magma_zgetf2_fused_kernel_driver_batched< 3>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case  4: info = magma_zgetf2_fused_kernel_driver_batched< 4>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case  5: info = magma_zgetf2_fused_kernel_driver_batched< 5>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case  6: info = magma_zgetf2_fused_kernel_driver_batched< 6>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case  7: info = magma_zgetf2_fused_kernel_driver_batched< 7>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case  8: info = magma_zgetf2_fused_kernel_driver_batched< 8>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case  9: info = magma_zgetf2_fused_kernel_driver_batched< 9>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 10: info = magma_zgetf2_fused_kernel_driver_batched<10>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 11: info = magma_zgetf2_fused_kernel_driver_batched<11>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 12: info = magma_zgetf2_fused_kernel_driver_batched<12>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 13: info = magma_zgetf2_fused_kernel_driver_batched<13>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 14: info = magma_zgetf2_fused_kernel_driver_batched<14>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 15: info = magma_zgetf2_fused_kernel_driver_batched<15>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 16: info = magma_zgetf2_fused_kernel_driver_batched<16>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 17: info = magma_zgetf2_fused_kernel_driver_batched<17>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 18: info = magma_zgetf2_fused_kernel_driver_batched<18>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 19: info = magma_zgetf2_fused_kernel_driver_batched<19>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 20: info = magma_zgetf2_fused_kernel_driver_batched<20>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 21: info = magma_zgetf2_fused_kernel_driver_batched<21>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 22: info = magma_zgetf2_fused_kernel_driver_batched<22>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 23: info = magma_zgetf2_fused_kernel_driver_batched<23>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 24: info = magma_zgetf2_fused_kernel_driver_batched<24>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 25: info = magma_zgetf2_fused_kernel_driver_batched<25>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 26: info = magma_zgetf2_fused_kernel_driver_batched<26>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 27: info = magma_zgetf2_fused_kernel_driver_batched<27>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 28: info = magma_zgetf2_fused_kernel_driver_batched<28>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 29: info = magma_zgetf2_fused_kernel_driver_batched<29>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 30: info = magma_zgetf2_fused_kernel_driver_batched<30>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 31: info = magma_zgetf2_fused_kernel_driver_batched<31>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        case 32: info = magma_zgetf2_fused_kernel_driver_batched<32>(m, dA_array, ai, aj, ldda, dipiv_array, info_array, batchCount, queue); break;
+        default: info = -100;
     }
-    return 0;
+
+    return info;
 }

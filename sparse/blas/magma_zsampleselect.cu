@@ -18,7 +18,7 @@
 
 namespace magma_sampleselect {
 
-__global__ void compute_abs(const magmaDoubleComplex* __restrict__ in, double* __restrict__ out, int32_t size) 
+static __global__ void compute_abs(const magmaDoubleComplex* __restrict__ in, double* __restrict__ out, int32_t size) 
 {
     auto idx = threadIdx.x + blockDim.x * blockIdx.x;
     if (idx >= size) {
@@ -89,7 +89,7 @@ magma_zsampleselect(
     magma_int_t info = 0;
     magma_int_t arch = magma_getdevice_arch();
 
-    if( arch >= 350 ) {
+    if( arch >= 300 ) {
         magma_int_t num_blocks = magma_ceildiv(total_size, block_size);
         magma_int_t required_size = sizeof(double) * (total_size * 2 + searchtree_size)
                                     + sizeof(int32_t) * sampleselect_alloc_size(total_size);
@@ -108,7 +108,8 @@ magma_zsampleselect(
         sampleselect<<<1, 1, 0, queue->cuda_stream()>>>
             (gputmp1, gputmp2, gputree, gpuints, total_size, subset_size, gpuresult);
         magma_dgetvector(1, gpuresult, 1, thrs, 1, queue );
-        *thrs = std::sqrt(*thrs);    
+        *thrs = std::sqrt(*thrs);   
+
     }
     else {
         printf("error: this functionality needs CUDA architecture >= 3.5\n");

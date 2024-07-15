@@ -11,7 +11,6 @@
 
        @precisions normal z -> s d c
 */
-#include <cuda_runtime.h>
 
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
@@ -193,7 +192,7 @@ magma_zpotrf_batched(
     magma_int_t *info_array,  magma_int_t batchCount, 
     magma_queue_t queue)
 {
-    cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
+    magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
     magma_int_t arginfo = 0;
     
     if ( uplo != MagmaUpper && uplo != MagmaLower) {

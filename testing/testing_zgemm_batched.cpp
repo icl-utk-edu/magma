@@ -68,13 +68,14 @@ int main( int argc, char** argv)
     double eps = lapackf77_dlamch("E");
     double tol = 3*eps;
 
-    printf("%% If running lapack (option --lapack), MAGMA and CUBLAS error are both computed\n"
-           "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to CUBLAS result.\n\n"
+    printf("%% If running lapack (option --lapack), MAGMA and %s error are both computed\n"
+           "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to %s result.\n\n"
            "%% transA = %s, transB = %s\n",
+           g_platform_str, g_platform_str,
            lapack_trans_const(opts.transA),
            lapack_trans_const(opts.transB));
     printf("%% version = %lld, %s\n", (long long)opts.version, opts.version == 1 ? "regular batch GEMM" : "strided batch GEMM");
-    printf("%% BatchCount     M     N     K   MAGMA Gflop/s (ms)   CUBLAS Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error   CUBLAS error\n");
+    printf("%% BatchCount     M     N     K   MAGMA Gflop/s (ms)   %s Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error   %s error\n", g_platform_str, g_platform_str);
     printf("%%========================================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -176,22 +177,46 @@ int main( int argc, char** argv)
             cublas_time = magma_sync_wtime( opts.queue );
 
             if(opts.version == 1){
-                cublasZgemmBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
+                #ifdef MAGMA_HAVE_CUDA
+                  cublasZgemmBatched(
+                                   opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                    int(M), int(N), int(K),
                                    (const cuDoubleComplex*)&alpha,
                                    (const cuDoubleComplex**) d_A_array, int(ldda),
                                    (const cuDoubleComplex**) d_B_array, int(lddb),
                                    (const cuDoubleComplex*)&beta,
                                    (cuDoubleComplex**)d_C_array, int(lddc), int(batchCount) );
+                #else
+                  hipblasZgemmBatched(
+                                   opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
+                                   int(M), int(N), int(K),
+                                   (const hipblasDoubleComplex*)&alpha,
+                                   (const hipblasDoubleComplex**) d_A_array, int(ldda),
+                                   (const hipblasDoubleComplex**) d_B_array, int(lddb),
+                                   (const hipblasDoubleComplex*)&beta,
+                                   (hipblasDoubleComplex**)d_C_array, int(lddc), int(batchCount) );
+                #endif
             }
             else{
-                cublasZgemmStridedBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
+                #ifdef MAGMA_HAVE_CUDA
+                cublasZgemmStridedBatched(
+                                   opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                    int(M), int(N), int(K),
                                    (const cuDoubleComplex*)&alpha,
                                    (const cuDoubleComplex*) d_A, int(ldda), ldda * An,
                                    (const cuDoubleComplex*) d_B, int(lddb), lddb * Bn,
                                    (const cuDoubleComplex*)&beta,
                                    (cuDoubleComplex*)d_C, int(lddc), lddc*N, int(batchCount) );
+                #else
+                hipblasZgemmStridedBatched(
+                                   opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
+                                   int(M), int(N), int(K),
+                                   (const hipblasDoubleComplex*)&alpha,
+                                   (const hipblasDoubleComplex*) d_A, int(ldda), ldda * An,
+                                   (const hipblasDoubleComplex*) d_B, int(lddb), lddb * Bn,
+                                   (const hipblasDoubleComplex*)&beta,
+                                   (hipblasDoubleComplex*)d_C, int(lddc), lddc*N, int(batchCount) );
+                #endif
             }
 
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;

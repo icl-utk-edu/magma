@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Mark Gates
        @author Tingxing Dong
        @author Azzam Haidar
@@ -35,10 +35,10 @@ zgemvn_template_kernel_fermi(
     const magmaDoubleComplex * __restrict__ x, int incx, magmaDoubleComplex beta,
     magmaDoubleComplex       * __restrict__ y, int incy)
 {
-#if (__CUDA_ARCH__ >= 200)
+#if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
     gemvn_template_device<magmaDoubleComplex, DIM_X, DIM_Y, TILE_SIZE>
         (m, n, alpha, A, lda, x, incx, beta, y, incy);
-#endif /* (__CUDA_ARCH__ >= 200) */
+#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
 }
 
 
@@ -52,10 +52,10 @@ zgemvc_template_kernel_fermi(
     const magmaDoubleComplex * __restrict__ x, int incx, magmaDoubleComplex beta,
     magmaDoubleComplex       * __restrict__ y, int incy)
 {
-#if (__CUDA_ARCH__ >= 200)
+#if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
     gemvc_template_device< magmaDoubleComplex, DIM_X, DIM_Y, TILE_SIZE, trans >
         (m, n, alpha, A, lda, x, incx, beta, y, incy);
-#endif /* (__CUDA_ARCH__ >= 200) */
+#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
 }
 
 
@@ -92,7 +92,7 @@ zgemvc_template_fermi(
 {
     dim3 grid    ( magma_ceildiv(n, TILE_SIZE), 1 );
     dim3 threads ( DIM_X, DIM_Y );
-    
+
     if (trans == MagmaConjTrans) {
         zgemvc_template_kernel_fermi< DIM_X, DIM_Y, TILE_SIZE, MagmaConjTrans >
             <<< grid, threads, 0, queue->cuda_stream() >>>
@@ -110,11 +110,11 @@ zgemvc_template_fermi(
     Purpose
     -------
     ZGEMV performs one of the matrix-vector operations
-    
+
         y := alpha*A*x    + beta*y,   or
         y := alpha*A**T*x + beta*y,   or
         y := alpha*A**H*x + beta*y,
-    
+
     where alpha and beta are scalars, x and y are vectors and A is an
     m by n matrix.
 
@@ -135,14 +135,14 @@ zgemvc_template_fermi(
     @param[in]
     n       INTEGER
             On entry, n specifies the number of columns of the matrix A
- 
+
     @param[in]
     alpha   COMPLEX_16
             On entry, ALPHA specifies the scalar alpha.
 
     @param[in]
     dA      COMPLEX_16 array of dimension ( LDDA, n ) on the GPU.
-   
+
     @param[in]
     ldda    INTEGER
             LDDA specifies the leading dimension of A.
@@ -151,11 +151,11 @@ zgemvc_template_fermi(
     dx      COMPLEX_16 array of dimension
             n if trans == MagmaNoTrans
             m if trans == MagmaTrans or MagmaConjTrans
-     
+
     @param[in]
     incx    Specifies the increment for the elements of X.
             INCX must not be zero.
-  
+
     @param[in]
     beta    COMPLEX_16
             On entry, BETA specifies the scalar beta. When BETA is
@@ -178,12 +178,12 @@ zgemvc_template_fermi(
 *******************************************************************************/
 extern "C" void
 magmablas_zgemv(
-    magma_trans_t trans, magma_int_t m, magma_int_t n, 
+    magma_trans_t trans, magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
     magmaDoubleComplex beta,
-    magmaDoubleComplex_ptr dy, magma_int_t incy, 
+    magmaDoubleComplex_ptr dy, magma_int_t incy,
     magma_queue_t queue)
 {
     magma_int_t info = 0;
@@ -199,11 +199,14 @@ magmablas_zgemv(
         info = -8;
     else if ( incy == 0 )
         info = -11;
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return;  //info;
     }
+
+    // Quick return if possible.
+    if( m == 0 || n == 0 || (alpha == MAGMA_Z_ZERO && beta == MAGMA_Z_ONE) ) return;
 
     // --------------------
     // CUDA ARCH 2.x (Fermi) version

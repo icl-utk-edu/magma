@@ -6,10 +6,10 @@ MAGMA README FILE
 * Quick start (make)
 
     Create a make.inc file to indicate your C/C++ compiler, Fortran compiler,
-    and where CUDA, CPU BLAS, and LAPACK are installed on your system.
+    and where CUDA, HIP, CPU BLAS, and LAPACK are installed on your system.
     Examples are given in the make.inc-examples directory for various
-    libraries and operating systems. The examples rely on paths such as $CUDADIR
-    and $MKLROOT being set in your environment.
+    libraries and operating systems. The examples rely on paths such as $CUDADIR, $ROCM_PATH,
+    and $MKLROOT being set in your environment. There are some examples in `make.inc-examples`
 
     To compile shared and static libraries in lib, and testers in testing and
     sparse/testing:
@@ -21,6 +21,10 @@ MAGMA README FILE
         make sparse-testing
         make install prefix=/usr/local/magma
 
+    MAGMA uses HIP code generation to compile for AMD GPUs.  MAGMA HIP sources will be
+    generated from interface_cuda, magmablas, and sparse into interface_hip, magmablas_hip, 
+    and sparse_hip, respectively.
+
 * Quick start (CMake)
 
     There is also a CMake option to configure and build MAGMA.
@@ -28,15 +32,15 @@ MAGMA README FILE
     On Unix & MacOS:
 
     Step 0: setup
-    If you downloaded an official release (e.g., magma-2.5.0.tar.gz), you can
+    If you downloaded an official release (e.g., magma-2.6.0.tar.gz), you can
     skip this step.
     If you checked out MAGMA from bitbucket, you first need to generate all
     the precisions. Currently this is done only by the Makefile, not by CMake.
-    Using a minimal make.inc configuration:
-        echo "FORT = true" > make.inc
+    Using a minimal make.inc configuration (with BACKEND=hip or cuda), e.g.,
+        echo -e 'BACKEND = hip\nFORT = true' > make.inc
         make generate
     That should run `python tools/codegen.py` on all the src files and
-    create CMake.src.
+    create CMake.src.{hip|cuda}
 
     Step 1: compile
         mkdir build
@@ -53,12 +57,19 @@ MAGMA README FILE
         make install
 
     Options include:
+        -DMAGMA_ENABLE_CUDA=ON to install MAGMA for CUDA. This is default. 
+        -DMAGMA_ENABLE_HIP=ON to install MAGMA for HIP. This option requires 
+            to specify the hipcc compiler, e.g.,
+            cmake -DMAGMA_ENABLE_HIP=ON -DCMAKE_CXX_COMPILER=hipcc ..
+
         -DCMAKE_INSTALL_PREFIX=/path/to/magma, directory to install MAGMA's
             headers and libraries, default /usr/local/magma.
 
         -DGPU_TARGET='target', where target includes one or more of:
-            Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere
-            or valid sm_[0-9][0-9].
+            Kepler, Maxwell, Pascal, Volta, Turing, Ampere
+            or valid sm_[0-9][0-9] for NVIDIA GPUs.
+            For AMD GPUs include one or more valid GPU gfx numbers
+            (https://llvm.org/docs/AMDGPUUsage.html#target-triples). 
 
         -DBLA_VENDOR=vendor, where vendor is one of:
             Intel10_64lp, Intel10_64lp_seq, Intel10_64ilp, Intel10_64ilp_seq,
@@ -91,7 +102,7 @@ MAGMA README FILE
     For more information, please refer to the MAGMA homepage and user forum:
 
         http://icl.utk.edu/magma/
-        http://icl.utk.edu/magma/forum/
+        https://groups.google.com/a/icl.utk.edu/g/magma-user
 
     The MAGMA project supports the package in the sense that reports of
     errors or poor performance will gain immediate attention from the

@@ -22,7 +22,7 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
-#if CUDA_VERSION < 9020
+#if defined(MAGMA_HAVE_CUDA) && (CUDA_VERSION < 9020)
 // conversion float to half are not defined for host in CUDA version <9.2
 // thus uses the conversion below when CUDA VERSION is < 9.2.
 #include <string.h>
@@ -110,7 +110,7 @@ static half approx_float_to_half(float fl)
             if (f.f > f16max.f) f.f = f16max.f;
             f.f *= magic.f;
         }
-    
+
     o.u = f.u >> 13; // Take the mantissa bits
     o.u |= sign >> 16;
     half tmp;
@@ -119,7 +119,7 @@ static half approx_float_to_half(float fl)
     return tmp;
 }
 
-// from half->float code - just for verification.                                                                         
+// from half->float code - just for verification.
 static float half_to_float(half hf)
 {
     FP16 h;
@@ -145,7 +145,7 @@ static float half_to_float(half hf)
     o.u |= (h.u & 0x8000) << 16;    // sign bit
     return o.f;
 }
-#endif
+#endif // defined(MAGMA_HAVE_CUDA) && (CUDA_VERSION < 9020)
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -153,19 +153,19 @@ static float half_to_float(half hf)
 #endif
 
 /* ////////////////////////////////////////////////////////////////////////////
-   (1) converts a matrix from float to half on the GPU 
+   (1) converts a matrix from float to half on the GPU
    (2) convert back to float and sent it to the CPU to compute the correct norm
 */
-void preprocess_matrix( 
-            magma_int_t M, magma_int_t N, 
-            float     *hA, magma_int_t lda, 
-            magmaHalf *dA, magma_int_t ldda, 
+void preprocess_matrix(
+            magma_int_t M, magma_int_t N,
+            float     *hA, magma_int_t lda,
+            magmaHalf *dA, magma_int_t ldda,
             magma_queue_t queue )
 {
     float *dwork;
-    magma_int_t info = 0; 
+    magma_int_t info = 0;
 
-    
+
     TESTING_CHECK( magma_smalloc(&dwork, lda*N) );               // alloc. dwork on GPU
     magma_ssetmatrix(M, N, hA, lda, dwork, lda, queue);          // send to the GPU
     magmablas_slag2h(M, N, dwork, lda, dA, ldda, &info, queue);  // convert: s -> h
@@ -178,38 +178,38 @@ void preprocess_matrix(
 }
 
 /* ////////////////////////////////////////////////////////////////////////////
-   (1) converts a matrix from half to float on the GPU 
+   (1) converts a matrix from half to float on the GPU
    (2) send the converted matrix to the CPU
 */
-void postprocess_matrix( 
-            magma_int_t M, magma_int_t N, 
-            magmaHalf *dA, magma_int_t ldda, 
-            float     *hA, magma_int_t lda, 
+void postprocess_matrix(
+            magma_int_t M, magma_int_t N,
+            magmaHalf *dA, magma_int_t ldda,
+            float     *hA, magma_int_t lda,
             magma_queue_t queue )
 {
     float *dwork;
 
     TESTING_CHECK( magma_smalloc(&dwork, lda*N) );
     magmablas_hlag2s(M, N, dA, ldda, dwork, lda, queue ); // convert h -> s
-    magma_sgetmatrix(M, N, dwork, lda, hA, lda, queue);   // send to CPU 
+    magma_sgetmatrix(M, N, dwork, lda, hA, lda, queue);   // send to CPU
 
     magma_free( dwork );
 }
 
 /* ////////////////////////////////////////////////////////////////////////////
-   (1) converts a matrix from float to half on the GPU 
+   (1) converts a matrix from float to half on the GPU
    (2) convert back to float and sent it to the CPU to compute the correct norm
-   (3) matrices in the batch are assumed to be within a fixed stride of 
+   (3) matrices in the batch are assumed to be within a fixed stride of
        lda*N (cpu) or ldda*N (gpu)
 */
-void preprocess_matrix_batched( 
-            magma_int_t M, magma_int_t N, 
-            float     *hA, magma_int_t lda, 
-            magmaHalf *dA, magma_int_t ldda, 
+void preprocess_matrix_batched(
+            magma_int_t M, magma_int_t N,
+            float     *hA, magma_int_t lda,
+            magmaHalf *dA, magma_int_t ldda,
             magma_int_t batchCount, magma_queue_t queue )
 {
     float *dwork;
-    magma_int_t info = 0; 
+    magma_int_t info = 0;
 
     TESTING_CHECK( magma_smalloc(&dwork, batchCount*lda*N) );               // alloc. dwork on GPU
     magma_ssetmatrix(M, batchCount*N, hA, lda, dwork, lda, queue);          // send to the GPU
@@ -223,22 +223,22 @@ void preprocess_matrix_batched(
 }
 
 /* ////////////////////////////////////////////////////////////////////////////
-   (1) converts a matrix from half to float on the GPU 
+   (1) converts a matrix from half to float on the GPU
    (2) send the converted matrix to the CPU
-   (3) matrices in the batch are assumed to be within a fixed stride of 
+   (3) matrices in the batch are assumed to be within a fixed stride of
        lda*N (cpu) or ldda*N (gpu)
 */
-void postprocess_matrix_batched( 
-            magma_int_t M, magma_int_t N, 
-            magmaHalf *dA, magma_int_t ldda, 
-            float     *hA, magma_int_t lda, 
+void postprocess_matrix_batched(
+            magma_int_t M, magma_int_t N,
+            magmaHalf *dA, magma_int_t ldda,
+            float     *hA, magma_int_t lda,
             magma_int_t batchCount, magma_queue_t queue )
 {
     float *dwork;
 
     TESTING_CHECK( magma_smalloc(&dwork, batchCount*lda*N) );
     magmablas_hlag2s(M, batchCount*N, dA, ldda, dwork, lda, queue ); // convert h -> s
-    magma_sgetmatrix(M, batchCount*N, dwork, lda, hA, lda, queue);   // send to CPU 
+    magma_sgetmatrix(M, batchCount*N, dwork, lda, hA, lda, queue);   // send to CPU
 
     magma_free( dwork );
 }
@@ -265,12 +265,12 @@ int main( int argc, char** argv)
     float *hA, *hB, *hC, *hC_magma, *hC_cublas;
     magmaHalf *dA, *dB, *dC;
     float c_neg_one = MAGMA_S_NEG_ONE;
-    #if CUDA_VERSION >= 9020
+    #if defined(MAGMA_HAVE_CUDA) && (CUDA_VERSION < 9020)
+    magmaHalf alpha = approx_float_to_half(0.29);
+    magmaHalf beta  = approx_float_to_half(-0.48);
+    #else
     magmaHalf alpha = 0.29;
     magmaHalf beta  = -0.48;
-    #else
-    magmaHalf alpha = approx_float_to_half(0.29); 
-    magmaHalf beta  = approx_float_to_half(-0.48);
     #endif
 
     magmaHalf **dA_array = NULL;
@@ -281,7 +281,7 @@ int main( int argc, char** argv)
     opts.parse_opts( argc, argv );
     opts.lapack |= opts.check; // check (-c) implies lapack (-l)
     batchCount = opts.batchcount;
-    
+
     float *Anorm, *Bnorm, *Cnorm;
     TESTING_CHECK( magma_smalloc_cpu( &Anorm, batchCount ));
     TESTING_CHECK( magma_smalloc_cpu( &Bnorm, batchCount ));
@@ -291,16 +291,17 @@ int main( int argc, char** argv)
     // also see: https://blogs.mathworks.com/cleve/2017/05/08/half-precision-16-bit-floating-point-arithmetic
     float eps = (float)(0.00097656);
     float tol = 3*eps;
-    
-    printf("%% If running lapack (option --lapack), MAGMA and CUBLAS error are both computed\n"
-           "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to CUBLAS result.\n\n"
+
+    printf("%% If running lapack (option --lapack), MAGMA and %s error are both computed\n"
+           "%% relative to CPU BLAS result. Else, MAGMA error is computed relative to %s result.\n\n"
            "%% transA = %s, transB = %s\n",
+           g_platform_str, g_platform_str,
            lapack_trans_const(opts.transA),
            lapack_trans_const(opts.transB));
-    printf("%% BatchCount     M     N     K   MAGMA Gflop/s (ms)   CUBLAS Gflop/s (ms)   CPU Gflop/s   (ms)     MAGMA error   CUBLAS error\n");
+    printf("%% BatchCount     M     N     K   MAGMA Gflop/s (ms)   %s Gflop/s (ms)   CPU Gflop/s   (ms)     MAGMA error   %s error\n", g_platform_str, g_platform_str);
     printf("%%                                (Half Precision)      (Half Precision)     (Single Precision)                               \n");
     printf("%%============================================================================================================================\n");
-    
+
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
             M = opts.msize[itest];
@@ -316,7 +317,7 @@ int main( int argc, char** argv)
                 lda = Am = K;
                 An = M;
             }
-            
+
             if ( opts.transB == MagmaNoTrans ) {
                 ldb = Bm = K;
                 Bn = N;
@@ -334,7 +335,6 @@ int main( int argc, char** argv)
             sizeA = lda*An*batchCount;
             sizeB = ldb*Bn*batchCount;
             sizeC = ldc*N*batchCount;
-
             TESTING_CHECK( magma_smalloc_cpu( &hA,  sizeA ));
             TESTING_CHECK( magma_smalloc_cpu( &hB,  sizeB ));
             TESTING_CHECK( magma_smalloc_cpu( &hC,  sizeC  ));
@@ -374,11 +374,11 @@ int main( int argc, char** argv)
             magma_hset_pointer( dC_array, dC, lddc, 0, 0, lddc*N,  batchCount, opts.queue );
 
             magma_time = magma_sync_wtime( opts.queue );
-            magmablas_hgemm_batched( 
-                        opts.transA, opts.transB, 
-                        M, N, K, 
-                        alpha, dA_array, ldda, 
-                               dB_array, lddb, 
+            magmablas_hgemm_batched(
+                        opts.transA, opts.transB,
+                        M, N, K,
+                        alpha, dA_array, ldda,
+                               dB_array, lddb,
                         beta,  dC_array, lddc, batchCount, opts.queue );
             magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
@@ -388,14 +388,26 @@ int main( int argc, char** argv)
                Performs operation using CUBLAS
                =================================================================== */
             preprocess_matrix( M, batchCount*N,  hC, ldc, dC, lddc, opts.queue );
+            #ifdef MAGMA_HAVE_CUDA
             cublasSetMathMode(opts.handle, CUBLAS_TENSOR_OP_MATH);
-            
+            #else
+            /* HIP */
+            #endif
+
             cublas_time = magma_sync_wtime( opts.queue );
+            #ifdef MAGMA_HAVE_CUDA
             cublasHgemmBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                int(M), int(N), int(K),
                                &alpha, (const magmaHalf**)dA_array, int(ldda),
                                        (const magmaHalf**)dB_array, int(lddb),
                                &beta,                     dC_array, int(lddc), int(batchCount) );
+            #else
+            hipblasHgemmBatched(opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
+                               int(M), int(N), int(K),
+                               (hipblasHalf*)&alpha, (const hipblasHalf**)dA_array, int(ldda),
+                                                     (const hipblasHalf**)dB_array, int(lddb),
+                               (hipblasHalf*)&beta,  (      hipblasHalf**)dC_array, int(lddc), int(batchCount) );
+            #endif
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
             cublas_perf = gflops / cublas_time;
             postprocess_matrix(M, batchCount*N, dC, lddc, hC_cublas, ldc, opts.queue );
@@ -404,12 +416,12 @@ int main( int argc, char** argv)
                Performs operation using CPU BLAS
                =================================================================== */
             if ( opts.lapack ) {
-                #if CUDA_VERSION >= 9020
-                float alpha_r32 = (float)alpha;
-                float beta_r32  = (float)beta;
-                #else
+                #if defined(MAGMA_HAVE_CUDA) && (CUDA_VERSION < 9020)
                 float alpha_r32 = half_to_float(alpha);
                 float beta_r32  = half_to_float(beta);
+                #else
+                float alpha_r32 = (float)alpha;
+                float beta_r32  = (float)beta;
                 #endif
                 cpu_time = magma_wtime();
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
@@ -432,7 +444,7 @@ int main( int argc, char** argv)
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;
             }
-            
+
             /* =====================================================================
                Check the result
                =================================================================== */
@@ -452,7 +464,7 @@ int main( int argc, char** argv)
                     error = lapackf77_slange( "F", &M, &N, &hC_magma[s*ldc*N], &ldc, work )
                           / normalize;
                     magma_error = magma_max_nan( error, magma_error );
-                    
+
                     // cublas error
                     blasf77_saxpy( &Csize, &c_neg_one, &hC[s*ldc*N], &ione, &hC_cublas[s*ldc*N], &ione );
                     error = lapackf77_slange( "F", &M, &N, &hC_cublas[s*ldc*N], &ldc, work )
@@ -495,7 +507,7 @@ int main( int argc, char** argv)
                        cublas_perf, 1000.*cublas_time,
                        magma_error, (okay ? "ok" : "failed") );
             }
-            
+
             magma_free_cpu( hA  );
             magma_free_cpu( hB  );
             magma_free_cpu( hC  );

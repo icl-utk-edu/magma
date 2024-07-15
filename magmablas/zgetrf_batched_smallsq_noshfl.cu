@@ -8,6 +8,10 @@
        @author Azzam Haidar
        @author Ahmad Abdelfattah
 
+       NOTE: There is a likely compiler bug affecting this file, specifically
+         the generated file in single precision (sgetrf). See below in the file
+         for an explanation.
+
        @precisions normal z -> s d c
 */
 
@@ -17,31 +21,43 @@
 #include "shuffle.cuh"
 #include "batched_kernel_param.h"
 
+// use this so magmasubs will replace with relevant precision, so we can comment out
+// the switch case that causes compilation failure
+#define PRECISION_z
+
+#ifdef MAGMA_HAVE_HIP
+#define NTCOL(M)             (max(1,64/M))
+#endif
+
 // This kernel uses registers for matrix storage, shared mem. for communication.
 // It also uses lazy swap.
-extern __shared__ magmaDoubleComplex zdata[];
 template<int N, int NPOW2>
-__global__ void
-zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda, 
+__global__
+#ifdef MAGMA_HAVE_HIP
+__launch_bounds__(NTCOL(N)*NPOW2)
+#endif
+void
+zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda,
                                 magma_int_t** ipiv_array, magma_int_t *info_array, int batchCount)
 {
+    extern __shared__ magmaDoubleComplex zdata[];
     const int tx = threadIdx.x;
-    const int ty = threadIdx.y; 
+    const int ty = threadIdx.y;
     const int batchid = blockIdx.x * blockDim.y + ty;
     if(batchid >= batchCount) return;
-    
+
     magmaDoubleComplex* dA = dA_array[batchid];
     magma_int_t* ipiv = ipiv_array[batchid];
     magma_int_t* info = &info_array[batchid];
-    
+
     magmaDoubleComplex rA[N]  = {MAGMA_Z_ZERO};
-    magmaDoubleComplex reg    = MAGMA_Z_ZERO; 
+    magmaDoubleComplex reg    = MAGMA_Z_ZERO;
     magmaDoubleComplex update = MAGMA_Z_ZERO;
-    
+
     int max_id, rowid = tx;
     int linfo = 0;
     double rx_abs_max = MAGMA_D_ZERO;
-    
+
     magmaDoubleComplex *sx = (magmaDoubleComplex*)(zdata);
     double* dsx = (double*)(sx + blockDim.y * NPOW2);
     int* sipiv = (int*)(dsx + blockDim.y * NPOW2);
@@ -49,21 +65,21 @@ zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda,
     dsx   += ty * NPOW2;
     sipiv += ty * NPOW2;
 
-    // read 
+    // read
     if( tx < N ){
         #pragma unroll
         for(int i = 0; i < N; i++){
             rA[i] = dA[ i * ldda + tx ];
         }
     }
-        
+
     #pragma unroll
     for(int i = 0; i < N; i++){
         // izamax and find pivot
         dsx[ rowid ] = fabs(MAGMA_Z_REAL( rA[i] )) + fabs(MAGMA_Z_IMAG( rA[i] ));
         magmablas_syncwarp();
         rx_abs_max = dsx[i];
-        max_id = i; 
+        max_id = i;
         #pragma unroll
         for(int j = i+1; j < N; j++){
             if( dsx[j] > rx_abs_max){
@@ -73,7 +89,7 @@ zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda,
         }
         linfo  = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (i+1) : linfo;
         update = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ZERO : MAGMA_Z_ONE;
-        
+
         if(rowid == max_id){
             sipiv[i] = max_id;
             rowid = i;
@@ -83,10 +99,10 @@ zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda,
             }
         }
         else if(rowid == i){
-            rowid = max_id; 
+            rowid = max_id;
         }
         magmablas_syncwarp();
-        
+
         reg = ( rx_abs_max == MAGMA_D_ZERO ) ? MAGMA_Z_ONE : MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] );
         // scal and ger
         if( rowid > i ){
@@ -116,7 +132,7 @@ zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda,
     Purpose
     -------
     zgetrf_batched_smallsq_noshfl computes the LU factorization of a square N-by-N matrix A
-    using partial pivoting with row interchanges. 
+    using partial pivoting with row interchanges.
     This routine can deal only with square matrices of size up to 32
 
     The factorization has the form
@@ -173,34 +189,54 @@ zgetrf_batched_smallsq_noshfl_kernel( magmaDoubleComplex** dA_array, int ldda,
 
     @ingroup magma_getrf_batched
 *******************************************************************************/
-extern "C" magma_int_t 
-magma_zgetrf_batched_smallsq_noshfl( 
-    magma_int_t n, 
-    magmaDoubleComplex** dA_array, magma_int_t ldda, 
-    magma_int_t** ipiv_array, magma_int_t* info_array, 
+extern "C" magma_int_t
+magma_zgetrf_batched_smallsq_noshfl(
+    magma_int_t n,
+    magmaDoubleComplex** dA_array, magma_int_t ldda,
+    magma_int_t** ipiv_array, magma_int_t* info_array,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
     magma_int_t m = n;
-    
+
     if( (m < 0) || ( m > 32 ) ){
         arginfo = -1;
     }
-    
+
     if (arginfo != 0) {
         magma_xerbla( __func__, -(arginfo) );
         return arginfo;
     }
-    
+
     if( m == 0) return 0;
-    
+
+    #ifdef MAGMA_HAVE_HIP
+    const magma_int_t ntcol = NTCOL(n);
+    #else
     const magma_int_t ntcol = magma_get_zgetrf_batched_ntcol(m, n);
+    #endif
     magma_int_t shmem  = ntcol * magma_ceilpow2(m) * sizeof(int);
                 shmem += ntcol * magma_ceilpow2(m) * sizeof(double);
                 shmem += ntcol * magma_ceilpow2(m) * sizeof(magmaDoubleComplex);
     dim3 threads(magma_ceilpow2(m), ntcol, 1);
     const magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
     dim3 grid(gridx, 1, 1);
+
+    /* @author: Cade Brown <cbrow216@vols.utk.edu>
+     * @date  : 2020-01-31
+     *
+     * Something very odd is happening with this file. The file never finishes compiling,
+     * causing compilation to hang indefinitely. I've only see it apply to  It is likely a bug in either:
+     *   * clang/clang++ compiler (C++ templating). I think it may be hanging on an invalid template parameter
+     *       or searching through template matches in an infinite loop
+     *   * LLVM code generation (specifically, the AMDGPU backend, as it seems that the compilation crashes
+     *       during code generation in LL IR).
+     *
+     * I've only observed this when the file `magmablas_hip/sgetrf_batched_smallsq_noshfl.hip.cpp` is generated,
+     * never zgetrf or other precisions.
+     *
+     */
+
     switch(m){
         case  1: zgetrf_batched_smallsq_noshfl_kernel< 1, magma_ceilpow2( 1)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case  2: zgetrf_batched_smallsq_noshfl_kernel< 2, magma_ceilpow2( 2)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
@@ -213,6 +249,9 @@ magma_zgetrf_batched_smallsq_noshfl(
         case  9: zgetrf_batched_smallsq_noshfl_kernel< 9, magma_ceilpow2( 9)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 10: zgetrf_batched_smallsq_noshfl_kernel<10, magma_ceilpow2(10)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 11: zgetrf_batched_smallsq_noshfl_kernel<11, magma_ceilpow2(11)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+
+
+// here are the offending cases
         case 12: zgetrf_batched_smallsq_noshfl_kernel<12, magma_ceilpow2(12)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 13: zgetrf_batched_smallsq_noshfl_kernel<13, magma_ceilpow2(13)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 14: zgetrf_batched_smallsq_noshfl_kernel<14, magma_ceilpow2(14)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
@@ -228,13 +267,19 @@ magma_zgetrf_batched_smallsq_noshfl(
         case 24: zgetrf_batched_smallsq_noshfl_kernel<24, magma_ceilpow2(24)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 25: zgetrf_batched_smallsq_noshfl_kernel<25, magma_ceilpow2(25)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 26: zgetrf_batched_smallsq_noshfl_kernel<26, magma_ceilpow2(26)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
+
         case 27: zgetrf_batched_smallsq_noshfl_kernel<27, magma_ceilpow2(27)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 28: zgetrf_batched_smallsq_noshfl_kernel<28, magma_ceilpow2(28)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 29: zgetrf_batched_smallsq_noshfl_kernel<29, magma_ceilpow2(29)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 30: zgetrf_batched_smallsq_noshfl_kernel<30, magma_ceilpow2(30)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 31: zgetrf_batched_smallsq_noshfl_kernel<31, magma_ceilpow2(31)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
         case 32: zgetrf_batched_smallsq_noshfl_kernel<32, magma_ceilpow2(32)><<<grid, threads, shmem, queue->cuda_stream()>>>(dA_array, ldda, ipiv_array, info_array, batchCount); break;
-        default: printf("error: size %lld is not supported\n", (long long) m);
+/**/
+
+        // replace the default error message with something so people can contact me
+        //default: printf("error: size %lld is not supported\n", (long long) m);
+        default: fprintf(stderr, "MAGMA: error in *getrf_batched_smallsq_noshfl, unsupported size '%lld'. Please contact Cade Brown <cbrow216@vols.utk.edu>, or some member of the MAGMA team with details about this application.\n", (long long)m);
+
     }
     return arginfo;
 }

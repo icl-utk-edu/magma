@@ -24,7 +24,7 @@ extern "C" {
 magma_int_t magma_init( void );
 magma_int_t magma_finalize( void );
 
-#ifdef HAVE_clBLAS
+#ifdef MAGMA_HAVE_OPENCL
 magma_int_t magma_init_opencl(
     cl_platform_id platform,
     cl_context context,
@@ -52,7 +52,6 @@ real_Double_t magma_sync_wtime( magma_queue_t queue );
 // =============================================================================
 // misc. functions
 
-// CUDA MAGMA only
 // magma GPU-complex PCIe connection
 magma_int_t magma_buildconnection_mgpu(
     magma_int_t gnode[MagmaMaxGPUs+2][MagmaMaxGPUs+2],
@@ -107,6 +106,17 @@ magma_free_pinned_internal(
     void *ptr,
     const char* func, const char* file, int line );
 
+// returns memory info (basically a wrapper around cudaMemGetInfo
+magma_int_t
+magma_mem_info(size_t* freeMem, size_t* totalMem);
+
+// wrapper around cudaMemset
+magma_int_t
+magma_memset(void * ptr, int value, size_t count);
+
+// wrapper around cudaMemsetAsync
+magma_int_t
+magma_memset_async(void * ptr, int value, size_t count, magma_queue_t queue);
 
 // type-safe convenience functions to avoid using (void**) cast and sizeof(...)
 // here n is the number of elements (floats, doubles, etc.) not the number of bytes.
@@ -228,8 +238,17 @@ magma_mem_size( magma_queue_t queue );
 magma_int_t
 magma_getdevice_multiprocessor_count();
 
+magma_int_t
+magma_getdevice_num_threads_block();
+
+magma_int_t
+magma_getdevice_num_threads_multiprocessor();
+
 size_t
 magma_getdevice_shmem_block();
+
+size_t
+magma_getdevice_shmem_block_optin();
 
 size_t
 magma_getdevice_shmem_multiprocessor();
@@ -242,6 +261,9 @@ magma_getdevice_shmem_multiprocessor();
 
 #define magma_queue_create_from_cuda(          device, cuda_stream, cublas_handle, cusparse_handle, queue_ptr ) \
         magma_queue_create_from_cuda_internal( device, cuda_stream, cublas_handle, cusparse_handle, queue_ptr, __func__, __FILE__, __LINE__ )
+
+#define magma_queue_create_from_hip(           device, hip_stream, hipblas_handle, hipsparse_handle, queue_ptr ) \
+        magma_queue_create_from_hip_internal( device, hip_stream, hipblas_handle, hipsparse_handle, queue_ptr, __func__, __FILE__, __LINE__ )
 
 #define magma_queue_create_from_opencl(          device, cl_queue, queue_ptr ) \
         magma_queue_create_from_opencl_internal( device, cl_queue, queue_ptr, __func__, __FILE__, __LINE__ )
@@ -258,7 +280,7 @@ magma_queue_create_internal(
     magma_queue_t* queue_ptr,
     const char* func, const char* file, int line );
 
-#ifdef HAVE_CUBLAS
+#ifdef MAGMA_HAVE_CUDA
 void
 magma_queue_create_from_cuda_internal(
     magma_device_t   device,
@@ -269,7 +291,20 @@ magma_queue_create_from_cuda_internal(
     const char* func, const char* file, int line );
 #endif
 
-#ifdef HAVE_clBLAS
+
+#ifdef MAGMA_HAVE_HIP
+void
+magma_queue_create_from_hip_internal(
+    magma_device_t    device,
+    hipStream_t       stream,
+    hipblasHandle_t   hipblas,
+    hipsparseHandle_t hipsparse,
+    magma_queue_t*    queue_ptr,
+    const char* func, const char* file, int line );
+#endif
+
+
+#ifdef MAGMA_HAVE_OPENCL
 magma_int_t
 magma_queue_create_from_opencl_internal(
     magma_device_t   device,
@@ -296,6 +331,9 @@ magma_queue_get_device( magma_queue_t queue );
 
 void
 magma_event_create( magma_event_t* event_ptr );
+
+void
+magma_event_create_untimed( magma_event_t* event_ptr );
 
 void
 magma_event_destroy( magma_event_t event );
@@ -369,6 +407,13 @@ magmaFloatComplex    magma_csqrt( magmaFloatComplex  x );
 /// @return Complex square root of x. @ingroup magma_sqrt
 magmaDoubleComplex   magma_zsqrt( magmaDoubleComplex x );
 
+
+// =============================================================================
+// integer print functions
+
+void magma_iprint( magma_int_t m, magma_int_t n, const magma_int_t *A, magma_int_t lda );
+
+void magma_iprint_gpu( magma_int_t m, magma_int_t n, magma_int_t* dA, magma_int_t ldda, magma_queue_t queue );
 
 #ifdef __cplusplus
 }

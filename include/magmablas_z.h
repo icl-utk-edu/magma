@@ -78,16 +78,16 @@ magmablas_zprbt(
 
 void
 magmablas_zprbt_mv(
-    magma_int_t n,
+    magma_int_t n, magma_int_t nrhs,
     magmaDoubleComplex_ptr dv,
-    magmaDoubleComplex_ptr db,
+    magmaDoubleComplex_ptr db, magma_int_t lddb,
     magma_queue_t queue );
 
 void
 magmablas_zprbt_mtv(
-    magma_int_t n,
+    magma_int_t n, magma_int_t nrhs,
     magmaDoubleComplex_ptr du,
-    magmaDoubleComplex_ptr db,
+    magmaDoubleComplex_ptr db, magma_int_t lddb,
     magma_queue_t queue );
 
   /*
@@ -225,6 +225,15 @@ magmablas_zhemv_mgpu_sync(
     magma_int_t nb,
     magma_queue_t queues[] );
 
+magma_int_t
+magma_zhetrs_gpu(
+    magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex *dA, magma_int_t ldda,
+    magma_int_t *ipiv,
+    magmaDoubleComplex *dB, magma_int_t lddb,
+    magma_int_t *info,
+    magma_queue_t queue );
+
 // Ichi's version, in src/zhetrd_mgpu.cpp
 void
 magma_zher2k_mgpu(
@@ -306,6 +315,15 @@ magmablas_zgeam(
     magmaDoubleComplex beta,
     magmaDoubleComplex_const_ptr dB, magma_int_t lddb,
     magmaDoubleComplex_ptr dC, magma_int_t lddc,
+    magma_queue_t queue );
+
+magma_int_t
+magmablas_zheinertia(
+    magma_uplo_t uplo,
+    magma_int_t n,
+    magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
+    magma_int_t *ipiv,
+    int *dneig,
     magma_queue_t queue );
 
 void
@@ -1034,9 +1052,8 @@ magma_int_t
 magma_izamax_native(
     magma_int_t length,
     magmaDoubleComplex_ptr x, magma_int_t incx,
-    magma_int_t step,  magma_int_t lda,
     magma_int_t* ipiv, magma_int_t *info,
-    magma_int_t gbstep, magma_queue_t queue);
+    magma_int_t step, magma_int_t gbstep, magma_queue_t queue);
 
 magma_int_t
 magma_izamin(
@@ -1144,9 +1161,9 @@ magma_zdscal(
 
 magma_int_t
 magma_zscal_zgeru_native(
-    magma_int_t m, magma_int_t n, magma_int_t step,
+    magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t lda,
-    magma_int_t *info, magma_int_t gbstep,
+    magma_int_t *info, magma_int_t step, magma_int_t gbstep,
     magma_queue_t queue);
 
 void

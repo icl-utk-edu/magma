@@ -12,12 +12,164 @@
 */
 #include "magma_internal.h"
 
+extern "C" magma_int_t
+magma_zlarfb_gemm_internal_batched(
+    magma_side_t side, magma_trans_t trans, magma_direct_t direct, magma_storev_t storev,
+    magma_int_t m, magma_int_t n, magma_int_t k,
+    magmaDoubleComplex_const_ptr dV_array[],    magma_int_t vi, magma_int_t vj, magma_int_t lddv,
+    magmaDoubleComplex_const_ptr dT_array[],    magma_int_t Ti, magma_int_t Tj, magma_int_t lddt,
+    magmaDoubleComplex_ptr dC_array[],          magma_int_t Ci, magma_int_t Cj, magma_int_t lddc,
+    magmaDoubleComplex_ptr dwork_array[],       magma_int_t ldwork,
+    magmaDoubleComplex_ptr dworkvt_array[],     magma_int_t ldworkvt,
+    magma_int_t batchCount, magma_queue_t queue)
+{
+    // Constants
+    const magmaDoubleComplex c_zero    = MAGMA_Z_ZERO;
+    const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
+    const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
+
+    /* Function Body */
+    magma_int_t info = 0;
+    if (m <= 0 || n <= 0) {
+        return info;
+    }
+
+    // Local variables
+    magma_int_t ldwvt = (m > n ?  k : m);
+    magma_int_t ldw;
+    if ( side == MagmaLeft ) {
+        ldw = k;
+    } else {
+        ldw = m;
+    }
+
+    // opposite of trans
+    magma_trans_t transt;
+    if (trans == MagmaNoTrans)
+        transt = Magma_ConjTrans;
+    else
+        transt = MagmaNoTrans;
+
+    // TODO: is this a bug that it isn't used?
+    MAGMA_UNUSED( transt );
+
+    // whether V is stored transposed or not
+    magma_trans_t notransV, transV;
+    if (storev == MagmaColumnwise) {
+        notransV = MagmaNoTrans;
+        transV   = Magma_ConjTrans;
+    }
+    else {
+        notransV = Magma_ConjTrans;
+        transV   = MagmaNoTrans;
+    }
+
+    if ( side == MagmaLeft ) {
+        // Form H C or H^H C
+        // Comments assume H C.
+        // When forming H^H C, T gets transposed via transt for m >= n or by trans for m < n.
+
+        // W = V^H C
+        magma_zgemm_batched_core( Magma_ConjTrans,notransV, /*NontransLeft*/
+                     k, n, m,
+                     c_one,  dV_array,    vi, vj, lddv,
+                             dC_array,    Ci, Cj, lddc,
+                     c_zero, dwork_array,  0,  0, ldw,
+                     batchCount, queue );
+
+        if (m <= n) {
+            // W2 = V T
+            magma_zgemm_batched_core( notransV, trans, /* (NoTrans), trans(ConjTrans),*/
+                         m, k, k,
+                         c_one,  dV_array,     vi, vj, lddv,
+                                 dT_array,     Ti, Tj, lddt,
+                         c_zero, dworkvt_array, 0,  0, ldwvt,
+                         batchCount, queue );
+
+            // C = C - W2 W = C - V T V^H C = (I - V T V^H) C = H C
+            magma_zgemm_batched_core( MagmaNoTrans, MagmaNoTrans,
+                         m, n, k,
+                         c_neg_one, dworkvt_array, 0,  0, ldwvt,
+                                    dwork_array,   0,  0, ldw,
+                         c_one,     dC_array,     Ci, Cj, lddc,
+                         batchCount, queue );
+        }
+        else {
+            // W2 = T W  = T  V^H C
+            magma_zgemm_batched_core( trans, MagmaNoTrans,
+                         k, n, k,
+                         c_one,  dT_array,     Ti, Tj, lddt,
+                                 dwork_array,   0,  0, ldw,
+                         c_zero, dworkvt_array, 0,  0, ldwvt,
+                         batchCount, queue );
+
+            // C = C - V W2 = C - V T V^H C = (I - V T V^H) C = H C
+            magma_zgemm_batched_core( notransV, MagmaNoTrans,
+                         m, n, k,
+                         c_neg_one, dV_array,     vi, vj,  lddv,
+                                    dworkvt_array, 0,  0,  ldwvt,
+                         c_one,     dC_array,      Ci, Cj, lddc,
+                         batchCount, queue );
+        }
+    }
+    else {
+        // Form C H or C H^H
+        // Comments assume C H.
+        // When forming C H^H, T gets transposed via trans.
+
+        // W = C V
+        magma_zgemm_batched_core( MagmaNoTrans, notransV,
+                     m, k, n,
+                     c_one,  dC_array,    Ci, Cj, lddc,
+                             dV_array,    vi, vj, lddv,
+                     c_zero, dwork_array,  0,  0, ldw,
+                     batchCount, queue );
+
+        if (m <= n) {
+            // W2 = W T = C V T
+            magma_zgemm_batched_core( MagmaNoTrans, trans,
+                         m, k, k,
+                         c_one,  dwork_array,    0,  0, ldw,
+                                 dT_array,      Ti, Tj, lddt,
+                         c_zero, dworkvt_array,  0,  0, ldwvt,
+                         batchCount, queue );
+
+            // C = C - W2 V^H = C - C V T V^H = C (I - V T V^H) = C H
+            magma_zgemm_batched_core( MagmaNoTrans, transV,
+                         m, n, k,
+                         c_neg_one, dworkvt_array, 0,  0, ldwvt,
+                                    dV_array,     vi, vj, lddv,
+                         c_one,     dC_array,     Ci, Cj, lddc,
+                         batchCount, queue );
+        }
+        else {
+            // W2 = T V^H
+            magma_zgemm_batched_core( trans, transV,
+                         k, n, k,
+                         c_one,  dT_array, Ti, Tj, lddt,
+                                 dV_array, vi, vj, lddv,
+                         c_zero, dworkvt_array, 0, 0, ldwvt,
+                         batchCount, queue );
+
+            // C = C - W W2 = C - C V T V^H = C (I - V T V^H) = C H
+            magma_zgemm_batched_core( MagmaNoTrans, MagmaNoTrans,
+                         m, n, k,
+                         c_neg_one, dwork_array,    0,  0, ldw,
+                                    dworkvt_array,  0,  0, ldwvt,
+                         c_one,     dC_array,      Ci, Cj, lddc,
+                         batchCount, queue );
+        }
+    }
+
+    return info;
+} /* magma_zlarfb_internal */
+
 /***************************************************************************//**
     Purpose
     -------
     ZLARFB applies a complex block reflector H or its transpose H^H to a
     COMPLEX_16 m by n matrix C, from the left.
-    
+
     __Note that this function assumes__ that the upper part of dV_array is 0
     because it is referenced. Same for upper/lower part of dT_array.
 
@@ -155,141 +307,15 @@ magma_zlarfb_gemm_batched(
     magmaDoubleComplex_ptr dworkvt_array[],     magma_int_t ldworkvt,
     magma_int_t batchCount, magma_queue_t queue)
 {
-    // Constants
-    const magmaDoubleComplex c_zero    = MAGMA_Z_ZERO;
-    const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
-    const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
+    magma_zlarfb_gemm_internal_batched(
+        side, trans, direct, storev,
+        m, n, k,
+        dV_array, 0, 0, lddv,
+        dT_array, 0, 0, lddt,
+        dC_array, 0, 0, lddc,
+        dwork_array, ldwork,
+        dworkvt_array,     ldworkvt,
+        batchCount, queue);
 
-    /* Function Body */
-    magma_int_t info = 0;
-    if (m <= 0 || n <= 0) {
-        return info;
-    }
-    
-    // Local variables
-    magma_int_t ldwvt = (m > n ?  k : m);
-    magma_int_t ldw;
-    if ( side == MagmaLeft ) {
-        ldw = k;
-    } else {
-        ldw = m;
-    }
-    // opposite of trans
-    magma_trans_t transt;
-    if (trans == MagmaNoTrans)
-        transt = Magma_ConjTrans;
-    else
-        transt = MagmaNoTrans;
-    
-    MAGMA_UNUSED( transt );  // TODO: is this a bug that it isn't used?
-    
-    // whether V is stored transposed or not
-    magma_trans_t notransV, transV;
-    if (storev == MagmaColumnwise) {
-        notransV = MagmaNoTrans;
-        transV   = Magma_ConjTrans;
-    }
-    else {
-        notransV = Magma_ConjTrans;
-        transV   = MagmaNoTrans;
-    }
-
-    if ( side == MagmaLeft ) {
-        // Form H C or H^H C
-        // Comments assume H C.
-        // When forming H^H C, T gets transposed via transt for m >= n or by trans for m < n.
-        
-        // W = V^H C                              
-        magma_zgemm_batched( Magma_ConjTrans,notransV, /*NontransLeft*/
-                     k, n, m,
-                     c_one,  dV_array,    lddv,
-                             dC_array,    lddc,
-                     c_zero, dwork_array, ldw,
-                     batchCount, queue );
-
-        if (m <= n) {
-            // W2 = V T
-            magma_zgemm_batched( notransV, trans, /* (NoTrans), trans(ConjTrans),*/
-                         m, k, k,
-                         c_one,  dV_array, lddv,
-                                 dT_array, lddt,
-                         c_zero, dworkvt_array, ldwvt,
-                         batchCount, queue );
-
-            // C = C - W2 W = C - V T V^H C = (I - V T V^H) C = H C
-            magma_zgemm_batched( MagmaNoTrans, MagmaNoTrans,
-                         m, n, k,
-                         c_neg_one, dworkvt_array,  ldwvt,
-                                    dwork_array,    ldw,
-                         c_one,     dC_array,       lddc,
-                         batchCount, queue );
-        }
-        else {
-            // W2 = T W  = T  V^H C
-            magma_zgemm_batched( trans, MagmaNoTrans,
-                         k, n, k,
-                         c_one,  dT_array, lddt,
-                                 dwork_array, ldw,
-                         c_zero, dworkvt_array, ldwvt,
-                         batchCount, queue );
-
-            // C = C - V W2 = C - V T V^H C = (I - V T V^H) C = H C
-            magma_zgemm_batched( notransV, MagmaNoTrans,
-                         m, n, k,
-                         c_neg_one, dV_array,  lddv,
-                                    dworkvt_array,  ldwvt,
-                         c_one,     dC_array,       lddc,
-                         batchCount, queue );
-        }
-    }
-    else {
-        // Form C H or C H^H
-        // Comments assume C H.
-        // When forming C H^H, T gets transposed via trans.
-        
-        // W = C V
-        magma_zgemm_batched( MagmaNoTrans, notransV,
-                     m, k, n,
-                     c_one,  dC_array,    lddc,
-                             dV_array,    lddv,
-                     c_zero, dwork_array, ldw,
-                     batchCount, queue );
-
-        if (m <= n) {
-            // W2 = W T = C V T
-            magma_zgemm_batched( MagmaNoTrans, trans,
-                         m, k, k,
-                         c_one,  dwork_array, ldw,
-                                 dT_array, lddt,
-                         c_zero, dworkvt_array, ldwvt,
-                         batchCount, queue );
-
-            // C = C - W2 V^H = C - C V T V^H = C (I - V T V^H) = C H
-            magma_zgemm_batched( MagmaNoTrans, transV,
-                         m, n, k,
-                         c_neg_one, dworkvt_array, ldwvt,
-                                    dV_array,    lddv,
-                         c_one,     dC_array,    lddc,
-                         batchCount, queue );
-        }
-        else {
-            // W2 = T V^H
-            magma_zgemm_batched( trans, transV,
-                         k, n, k,
-                         c_one,  dT_array, lddt,
-                                 dV_array, lddv,
-                         c_zero, dworkvt_array, ldwvt,
-                         batchCount, queue );
-
-            // C = C - W W2 = C - C V T V^H = C (I - V T V^H) = C H
-            magma_zgemm_batched( MagmaNoTrans, MagmaNoTrans,
-                         m, n, k,
-                         c_neg_one, dwork_array,   ldw,
-                                    dworkvt_array, ldwvt,
-                         c_one,     dC_array,      lddc,
-                         batchCount, queue );
-        }
-    }
-
-    return info;
+        return 0;
 } /* magma_zlarfb */

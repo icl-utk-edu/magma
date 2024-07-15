@@ -1,0 +1,22 @@
+/*
+    -- MAGMA (version 2.0) --
+       Univ. of Tennessee, Knoxville
+       Univ. of California, Berkeley
+       Univ. of Colorado, Denver
+       @date
+*/
+
+#ifndef MAGMA_CONFIG_H
+#define MAGMA_CONFIG_H
+
+
+// CUDA settings
+#cmakedefine MAGMA_HAVE_CUDA
+#cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@
+
+// HIP settings
+#cmakedefine MAGMA_HAVE_HIP
+
+
+
+#endif  // MAGMA_CONFIG_H

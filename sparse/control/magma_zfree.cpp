@@ -10,9 +10,11 @@
 */
 #include "magmasparse_internal.h"
 
+#include "../blas/magma_trisolve.h"
+
 // todo: see how to destroy info
 // there are different, e.g., cusparseDestroyCsrsv2Info(info), etc.
-#if CUDA_VERSION >= 11000
+#if CUDA_VERSION >= 11000 || defined(MAGMA_HAVE_HIP)
 #define cusparseDestroySolveAnalysisInfo(info) {;}
 #endif
 
@@ -604,23 +606,16 @@ magma_zprecondfree(
         magma_free_cpu( precond_par->UT.blockinfo );
         precond_par->UT.blockinfo = NULL;
     }
-    if ( precond_par->solver == Magma_ILU ||
-        precond_par->solver == Magma_PARILU ||
-        precond_par->solver == Magma_ICC||
-        precond_par->solver == Magma_PARIC ) {
-        if( precond_par->cuinfoL != NULL )
-            cusparseDestroySolveAnalysisInfo( precond_par->cuinfoL ); 
-        if( precond_par->cuinfoU != NULL )
-            cusparseDestroySolveAnalysisInfo( precond_par->cuinfoU ); 
-        // todo: error: invalid conversion from ‘long int’ to ‘cusparseSolvePolicy_t’ 
-        //precond_par->cuinfoL = NULL;
-        //precond_par->cuinfoU = NULL;
-        if( precond_par->cuinfoLT != NULL )
-            cusparseDestroySolveAnalysisInfo( precond_par->cuinfoLT ); 
-        if( precond_par->cuinfoUT != NULL )
-            cusparseDestroySolveAnalysisInfo( precond_par->cuinfoUT ); 
-        //precond_par->cuinfoLT = NULL;
-        //precond_par->cuinfoUT = NULL;
+    if ((precond_par->solver == Magma_ILU ||
+         precond_par->solver == Magma_PARILU ||
+         precond_par->solver == Magma_ICC ||
+         precond_par->solver == Magma_PARIC) &&
+        (precond_par->trisolver == Magma_CUSOLVE ||
+         precond_par->trisolver == 0)) {
+        magma_trisolve_free( &precond_par->cuinfoL );
+        magma_trisolve_free( &precond_par->cuinfoU );
+        magma_trisolve_free( &precond_par->cuinfoLT );
+        magma_trisolve_free( &precond_par->cuinfoUT );
     }
     if ( precond_par->LD.val != NULL ) {
         if ( precond_par->LD.memory_location == Magma_DEV )

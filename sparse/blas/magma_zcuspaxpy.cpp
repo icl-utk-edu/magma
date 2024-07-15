@@ -170,6 +170,17 @@ magma_zcuspaxpy(
         }
         CHECK( magma_index_malloc( &C.dcol, C.nnz ));
         CHECK( magma_zmalloc( &C.dval, C.nnz ));
+        #ifdef MAGMA_HAVE_HIP
+        hipsparseZcsrgeam( handle, A.num_rows, A.num_cols,
+                          (const hipDoubleComplex*)alpha,
+                          descrA, A.nnz,
+                          (const hipDoubleComplex*)A.dval, A.drow, A.dcol,
+                          (const hipDoubleComplex*)beta,
+                          descrB, B.nnz,
+                          (const hipDoubleComplex*)B.dval, B.drow, B.dcol,
+                          descrC,
+                          (hipDoubleComplex*)C.dval, C.drow, C.dcol );
+        #else
         cusparseZcsrgeam( handle, A.num_rows, A.num_cols,
                           alpha,
                           descrA, A.nnz,
@@ -179,6 +190,8 @@ magma_zcuspaxpy(
                           B.dval, B.drow, B.dcol,
                           descrC,
                           C.dval, C.drow, C.dcol );
+        #endif
+
         // end CUSPARSE context //
 
         CHECK( magma_zmtransfer( C, AB, Magma_DEV, Magma_DEV, queue ));

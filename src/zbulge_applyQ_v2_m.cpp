@@ -11,14 +11,13 @@
   
        @precisions normal z -> s d c
 */
-#include <cuda_runtime.h>
 
 #include "magma_internal.h"
 #include "magma_bulge.h"
 #include "magma_zbulgeinc.h"
 
 // =============================================================================
-#ifdef HAVE_clBLAS
+#ifdef MAGMA_HAVE_OPENCL
 #define dE(dev,i,j)  (dE[dev], (dE_offset + (i) + ldde*(j)))
 #else
 #define dE(dev,i,j)  (dE[dev] + (i) + ldde*(j))
@@ -131,7 +130,7 @@ magma_zbulge_applyQ_v2_m(
         }
         for( magma_int_t i = 0; i < nevents; ++i ) {
             //cudaEventCreateWithFlags(&myevent[dev][i],cudaEventDisableTiming);
-            magma_event_create(&myevent[dev][i]);
+            magma_event_create_untimed(&myevent[dev][i]);
         }
     }
 

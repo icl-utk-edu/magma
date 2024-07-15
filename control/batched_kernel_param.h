@@ -26,8 +26,6 @@
 #define BATRF_NB         128
 #define BATRF_RECNB       32
 #define BATF2_NB           8
-#define BASWP_WIDTH        4
-#define SWP_WIDTH          4
 
 #define BAQRF_NB         32
 

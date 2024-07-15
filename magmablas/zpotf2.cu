@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @precisions normal z -> s d c
 */
 #include "magma_internal.h"
@@ -13,8 +13,8 @@
 
 #define zdotc_max_bs 512  // 512 is max threads for 1.x cards
 
-void zpotf2_zdscal( magma_int_t n, magmaDoubleComplex *x, magma_int_t incx, magma_queue_t queue );
-void zpotf2_zdotc(  magma_int_t n, magmaDoubleComplex *x, magma_int_t incx, magma_queue_t queue );
+void zpotf2_zdscal( magma_int_t n, magmaDoubleComplex *x, magma_int_t incx, magma_int_t* device_info, magma_queue_t queue );
+void zpotf2_zdotc(magma_int_t n, magmaDoubleComplex *x, magma_int_t incx, int step, magma_int_t* device_info, magma_queue_t queue );
 
 #ifdef COMPLEX
 void magmablas_zlacgv( magma_int_t n, magmaDoubleComplex *x, magma_int_t incx, magma_queue_t queue );
@@ -22,6 +22,151 @@ void magmablas_zlacgv( magma_int_t n, magmaDoubleComplex *x, magma_int_t incx, m
 
 
 // TODO: this function could be in .cpp file -- it has no CUDA code in it.
+/***************************************************************************//**
+    Purpose
+    -------
+
+    zpotf2 computes the Cholesky factorization of a real symmetric
+    positive definite matrix A.
+
+    The factorization has the form
+        A = U**H * U,  if UPLO = MagmaUpper, or
+        A = L  * L**H, if UPLO = MagmaLower,
+    where U is an upper triangular matrix and L is lower triangular.
+
+    This is the unblocked version of the algorithm, calling Level 2 BLAS.
+    This version accepts a `device_info` argument for the status of the
+    factorization. Errors in the arguments are captured in a return code.
+
+    Arguments
+    ---------
+
+    @param[in]
+    uplo    magma_uplo_t
+            Specifies whether the upper or lower triangular part of the
+            symmetric matrix A is stored.
+      -     = MagmaUpper:  Upper triangular
+      -     = MagmaLower:  Lower triangular
+
+    @param[in]
+    n       INTEGER
+            The order of the matrix A.  N >= 0 and N <= 512.
+
+    @param[in,out]
+    dA      COMPLEX_16 array, dimension (LDDA,N)
+            On entry, the symmetric matrix A.  If UPLO = MagmaUpper, the leading
+            n by n upper triangular part of A contains the upper
+            triangular part of the matrix A, and the strictly lower
+            triangular part of A is not referenced.  If UPLO = MagmaLower, the
+            leading n by n lower triangular part of A contains the lower
+            triangular part of the matrix A, and the strictly upper
+            triangular part of A is not referenced.
+    \n
+            On exit, if INFO = 0, the factor U or L from the Cholesky
+            factorization A = U**H * U  or A = L * L**H.
+
+    @param[in]
+    ldda    INTEGER
+            The leading dimension of the array A.  LDDA >= max(1,N).
+
+    @param[in]
+    queue   magma_queue_t
+            Queue to execute in.
+
+    @param[out]
+    device_info  INTEGER (device memory)
+      -     = 0: successful exit
+      -     > 0: if INFO = k, the leading minor of order k is not
+                 positive definite, and the factorization could not be
+                 completed.
+
+    @ingroup magma_potf2
+*******************************************************************************/
+extern "C" magma_int_t
+magma_zpotf2_native(
+    magma_uplo_t uplo, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t step, magma_int_t *device_info,
+    magma_queue_t queue )
+{
+#define dA(i_, j_)  (dA + (i_) + (j_)*ldda)
+
+#ifdef MAGMA_HAVE_CUDA
+#define magma_zpotf2_gemv magmablas_zgemv
+
+#else
+#define magma_zpotf2_gemv magma_zgemv
+
+#endif
+
+    magma_int_t j;
+
+    magma_int_t arginfo = 0;
+    if ( uplo != MagmaUpper && uplo != MagmaLower) {
+        arginfo = -1;
+    } else if (n < 0 || n > zdotc_max_bs) {
+        arginfo = -2;
+    } else if (ldda < max(1,n)) {
+        arginfo = -4;
+    }
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    // Quick return if possible
+    if (n == 0) {
+        return arginfo;
+    }
+
+    magmaDoubleComplex alpha = MAGMA_Z_NEG_ONE;
+    magmaDoubleComplex beta  = MAGMA_Z_ONE;
+
+    if (uplo == MagmaUpper) {
+        for (j = 0; j < n; j++) {
+            zpotf2_zdotc( j, dA(0,j), 1, step+j, device_info, queue ); // including zdotc product and update a(j,j)
+            if (j < n) {
+                #ifdef COMPLEX
+                magmablas_zlacgv( j, dA(0, j), 1, queue );
+                #endif
+                magma_zpotf2_gemv( MagmaTrans, j, n-j-1,
+                             alpha, dA(0, j+1), ldda,
+                                    dA(0, j),   1,
+                             beta,  dA(j, j+1), ldda, queue );
+
+                #ifdef COMPLEX
+                magmablas_zlacgv( j, dA(0, j), 1, queue );
+                #endif
+                zpotf2_zdscal( n-j, dA(j,j), ldda, device_info, queue );
+            }
+        }
+    }
+    else {
+        for (j = 0; j < n; j++) {
+            zpotf2_zdotc( j, dA(j,0), ldda, step+j, device_info, queue ); // including zdotc product and update a(j,j)
+            if (j < n) {
+                #ifdef COMPLEX
+                magmablas_zlacgv( j, dA(j, 0), ldda, queue );
+                #endif
+                magma_zpotf2_gemv( MagmaNoTrans, n-j-1, j,
+                             alpha, dA(j+1, 0), ldda,
+                                    dA(j,0),    ldda,
+                             beta,  dA(j+1, j), 1, queue );
+
+                #ifdef COMPLEX
+                magmablas_zlacgv( j, dA(j, 0), ldda, queue );
+                #endif
+                zpotf2_zdscal( n-j, dA(j,j), 1, device_info, queue );
+            }
+        }
+    }
+
+    return arginfo;
+
+#undef magma_zpotf2_gemv
+}
+
 /***************************************************************************//**
     Purpose
     -------
@@ -88,10 +233,6 @@ magma_zpotf2_gpu(
     magma_queue_t queue,
     magma_int_t *info )
 {
-#define dA(i_, j_)  (dA + (i_) + (j_)*ldda)
-
-    magma_int_t j;
-
     *info = 0;
     if ( uplo != MagmaUpper && uplo != MagmaLower) {
         *info = -1;
@@ -111,63 +252,36 @@ magma_zpotf2_gpu(
         return *info;
     }
 
-    magmaDoubleComplex alpha = MAGMA_Z_NEG_ONE;
-    magmaDoubleComplex beta  = MAGMA_Z_ONE;
+    magma_int_t* device_info;
+    magma_imalloc(&device_info, 1);
+    magma_memset_async((void*)device_info, 0, sizeof(magma_int_t), queue);
 
-    if (uplo == MagmaUpper) {
-        for (j = 0; j < n; j++) {
-            zpotf2_zdotc( j, dA(0,j), 1, queue ); // including zdotc product and update a(j,j)
-            if (j < n) {
-                #ifdef COMPLEX
-                magmablas_zlacgv( j, dA(0, j), 1, queue );
-                #endif
-                magma_zgemv( MagmaTrans, j, n-j-1,
-                             alpha, dA(0, j+1), ldda,
-                                    dA(0, j),   1,
-                             beta,  dA(j, j+1), ldda, queue );
+    magma_zpotf2_native(uplo, n, dA, ldda, 0, device_info, queue );
 
-                #ifdef COMPLEX
-                magmablas_zlacgv( j, dA(0, j), 1, queue );
-                #endif
-                zpotf2_zdscal( n-j, dA(j,j), ldda, queue );
-            }
-        }
-    }
-    else {
-        for (j = 0; j < n; j++) {
-            zpotf2_zdotc( j, dA(j,0), ldda, queue ); // including zdotc product and update a(j,j)
-            if (j < n) {
-                #ifdef COMPLEX
-                magmablas_zlacgv( j, dA(j, 0), ldda, queue );
-                #endif
-                magma_zgemv( MagmaNoTrans, n-j-1, j,
-                             alpha, dA(j+1, 0), ldda,
-                                    dA(j,0),    ldda,
-                             beta,  dA(j+1, j), 1, queue );
-
-                #ifdef COMPLEX
-                magmablas_zlacgv( j, dA(j, 0), ldda, queue );
-                #endif
-                zpotf2_zdscal( n-j, dA(j,j), 1, queue );
-            }
-        }
-    }
+    magma_getvector(1, sizeof(magma_int_t), device_info, 1, info, 1, queue);
+    magma_free(device_info);
 
     return *info;
+
+#undef magma_zpotf2_gemv
 }
 
 #define zdscal_bs  32
 #define zdotc_bs  512
 #define zlacgv_bs 512
 
-// dynamically allocated shared memory, set to size number of threads when the kernel is launched.
-// See CUDA Guide B.2.3
-extern __shared__ double shared_data[];
 
-__global__ void kernel_zdotc(int n, magmaDoubleComplex *x, int incx, int threadSize)
+__global__ void zpotf2_zdotc_kernel(int n, magmaDoubleComplex *x, int incx, int threadSize, int step, magma_int_t* device_info)
 {
-    int tx = threadIdx.x;
 
+    // dynamically allocated shared memory, set to size number of threads when the kernel is launched.
+    // See CUDA Guide B.2.3
+    extern __shared__ double shared_data[];
+
+    // check for info from a previous factorization
+    if( step > 0 && device_info[0] != 0 ) return;
+
+    int tx = threadIdx.x;
     double *sdata = shared_data;
 
     magmaDoubleComplex res = MAGMA_Z_ZERO;
@@ -198,14 +312,19 @@ __global__ void kernel_zdotc(int n, magmaDoubleComplex *x, int incx, int threadS
     }
 
     if (tx == 0) {
-        double xreal = MAGMA_Z_REAL(x[n*incx]);
-        x[n*incx] = MAGMA_Z_MAKE( sqrt(xreal - sdata[0]), 0 );
+        double xreal = MAGMA_Z_REAL(x[n*incx]) - sdata[0];
+        if(xreal < 0) {
+            device_info[0] = (magma_int_t)step;
+        }
+        else{
+            x[n*incx] = MAGMA_Z_MAKE( sqrt(xreal), 0 );
+        }
     }
 }
 
 void zpotf2_zdotc(
     magma_int_t n, magmaDoubleComplex *x, magma_int_t incx,
-    magma_queue_t queue )
+    int step, magma_int_t* device_info, magma_queue_t queue )
 {
     /*
     Specialized Zdotc
@@ -237,14 +356,17 @@ void zpotf2_zdotc(
     }
 
     size_t shmem = threadSize * sizeof(double);
-    kernel_zdotc
-        <<< 1, threadSize, shmem, queue->cuda_stream() >>>
-        (n, x, incx, threadSize);
+    zpotf2_zdotc_kernel
+    <<< 1, threadSize, shmem, queue->cuda_stream() >>>
+    (n, x, incx, threadSize, step, device_info);
 }
 
-__global__ void kernel_zdscal(int n, magmaDoubleComplex *x, int incx)
+__global__ void zpotf2_zdscal_kernel(int n, magmaDoubleComplex *x, int incx, magma_int_t* device_info)
 {
     int id = blockIdx.x * zdscal_bs + threadIdx.x;
+
+    // check for info
+    if(device_info[0] != 0) return;
 
     __shared__ magmaDoubleComplex factor;
 
@@ -262,21 +384,21 @@ __global__ void kernel_zdscal(int n, magmaDoubleComplex *x, int incx)
 
 void zpotf2_zdscal(
     magma_int_t n, magmaDoubleComplex *x, magma_int_t incx,
-    magma_queue_t queue )
+    magma_int_t* device_info, magma_queue_t queue )
 {
     /* Specialized zdscal perform x[1:n-1] / x[0] */
     dim3 threads(zdscal_bs, 1, 1);
     int num_blocks = magma_ceildiv( n, zdscal_bs );
     dim3 grid(num_blocks,1);
-    kernel_zdscal
-        <<< grid, threads, 0, queue->cuda_stream() >>>
-        (n, x, incx);
+    zpotf2_zdscal_kernel
+    <<< grid, threads, 0, queue->cuda_stream() >>>
+    (n, x, incx, device_info);
 }
 
 
 #ifdef COMPLEX
 
-__global__ void kernel_zlacgv(int n, magmaDoubleComplex *x, int incx)
+__global__ void zpotf2_zlacgv_kernel(int n, magmaDoubleComplex *x, int incx)
 {
     int id = blockIdx.x * zlacgv_bs + threadIdx.x;
 
@@ -318,12 +440,14 @@ void magmablas_zlacgv(
     magma_int_t n, magmaDoubleComplex *x, magma_int_t incx,
     magma_queue_t queue )
 {
+    if(n <= 0) return;
+
     dim3 threads(zlacgv_bs, 1, 1);
     int num_blocks = magma_ceildiv( n, zlacgv_bs );
     dim3 grid(num_blocks,1);
-    kernel_zlacgv
-        <<< grid, threads, 0, queue->cuda_stream() >>>
-        (n, x, incx);
+    zpotf2_zlacgv_kernel
+    <<< grid, threads, 0, queue->cuda_stream() >>>
+    (n, x, incx);
 }
 
 #endif // COMPLEX

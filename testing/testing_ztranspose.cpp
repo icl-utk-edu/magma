@@ -35,7 +35,7 @@ int main( int argc, char** argv)
 
     // OpenCL use:  cl_mem  , offset  (two arguments);
     // else   use:  pointer + offset  (one argument).
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
         #define d_A(i_, j_)   d_A, ((i_) + (j_)*ldda)
         #define d_B(i_, j_)   d_B, ((i_) + (j_)*lddb)
     #else
@@ -133,7 +133,7 @@ int main( int argc, char** argv)
                 //magmablas_ztranspose( M-2, N-2, d_A(1,1), ldda, d_B(1,1), lddb, opts.queue );  // inset by 1 row & col
                 magmablas_ztranspose( M, N, d_A(0,0), ldda, d_B(0,0), lddb, opts.queue );
             }
-            #ifdef HAVE_CUBLAS
+            #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
             else {
                 //magmablas_ztranspose_conj( M-2, N-2, d_A(1,1), ldda, d_B(1,1), lddb, opts.queue );  // inset by 1 row & col
                 magmablas_ztranspose_conj( M, N, d_A(0,0), ldda, d_B(0,0), lddb, opts.queue );
@@ -153,7 +153,7 @@ int main( int argc, char** argv)
                     //magmablas_ztranspose_inplace( N-2, d_A(1,1), ldda, opts.queue );  // inset by 1 row & col
                     magmablas_ztranspose_inplace( N, d_A(0,0), ldda, opts.queue );
                 }
-                #ifdef HAVE_CUBLAS
+                #if defined(MAGMA_HAVE_CUDA) || defined(MAGMA_HAVE_HIP)
                 else {
                     //magmablas_ztranspose_conj_inplace( N-2, d_A(1,1), ldda, opts.queue );  // inset by 1 row & col
                     magmablas_ztranspose_conj_inplace( N, d_A(0,0), ldda, opts.queue );

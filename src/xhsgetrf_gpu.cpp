@@ -6,16 +6,19 @@
        @date
 
        @author Azzam Haidar
-       
+
 
 */
+#include "magma_config.h"
+
+#ifdef MAGMA_HAVE_CUDA
+
 #include <cuda.h>    // for CUDA_VERSION
 #include <cuda_runtime.h>
 
-#if CUDA_VERSION >= 7500
-#include <cuda_fp16.h>
+#endif
 
-#if CUDA_VERSION < 9020
+#if (defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 7500 && CUDA_VERSION < 9020)
 // conversion float to half are not defined for host in CUDA version <9.2
 // thus uses the conversion below when CUDA VERSION is < 9.2.
 #include <string.h>
@@ -46,11 +49,11 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// This code modified from the public domain code here: 
+// This code modified from the public domain code here:
 // https://gist.github.com/rygorous/2156668
 // The URL above includes more robust conversion routines
-// that handle Inf and NaN correctly. 
-// 
+// that handle Inf and NaN correctly.
+//
 // It is recommended to use the more robust versions in production code.
 
 typedef unsigned uint;
@@ -139,10 +142,8 @@ static float half_to_float(half hf)
     return o.f;
 }
 #endif
-#endif // CUDA_VERSION >= 7500
 
 #include "magma_internal.h"
-//#include "nvToolsExt.h"
 
 //#define MAGMA_PRINTF printf
 #define MAGMA_PRINTF(...)
@@ -151,7 +152,7 @@ static float half_to_float(half hf)
     Purpose
     -------
     XHSGETRF computes an LU factorization of a general M-by-N matrix A
-    using partial pivoting with row interchanges. It uses mixed precision 
+    using partial pivoting with row interchanges. It uses mixed precision
     FP32/FP16-w/o TensorCores factorization techniques.
 
     The factorization has the form
@@ -161,7 +162,7 @@ static float half_to_float(half hf)
     triangular (upper trapezoidal if m < n).
 
     This is the right-looking Level 3 BLAS version of the algorithm.
-    
+
     Arguments
     ---------
     @param[in]
@@ -216,38 +217,21 @@ magma_xhsgetrf_gpu(
     magma_mp_type_t enable_tc,
     magma_mp_type_t mp_algo_type )
 {
-#if CUDA_VERSION >= 7500
-    #ifdef HAVE_clBLAS
-    #define  dA(i_, j_) dA,  (dA_offset  + (i_)       + (j_)*ldda)
-    #define dAT(i_, j_) dAT, (dAT_offset + (i_)*lddat + (j_))
-    #define dAP(i_, j_) dAP, (             (i_)          + (j_)*maxm)
-    #else
+#if (defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 7500) || defined(MAGMA_HAVE_HIP)
     #define  dA(i_, j_) (dA  + (i_)       + (j_)*ldda)
     #define dAT(i_, j_) (dAT + (i_)*lddat + (j_))
     #define dAT_hp(i_, j_) (dAT_hp + (i_)*lddat + (j_))
     #define dAP(i_, j_) (dAP + (i_)       + (j_)*maxm)
-    #endif
 
     float c_one     = MAGMA_S_ONE;
     float c_neg_one = MAGMA_S_NEG_ONE;
-    #if 1
-    #if CUDA_VERSION >= 9020
+
+    #if (defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 9020) || defined(MAGMA_HAVE_HIP)
     const magmaHalf h_one     = (magmaHalf) 1.0;
     const magmaHalf h_neg_one = (magmaHalf)-1.0;
     #else
     const magmaHalf h_one = approx_float_to_half(1.0);
     const magmaHalf h_neg_one = approx_float_to_half(-1.0);
-    #endif
-    #else
-    FP32 float_one    = *((FP32*)&c_one);
-    FP16 half_one     = float_to_half_full(float_one);
-    magmaHalf h_one;
-    memcpy(&h_one, &half_one, sizeof(half));
-
-    FP32 float_negone = *((FP32*)&c_neg_one);
-    FP16 half_negone  = float_to_half_full(float_negone);
-    magmaHalf h_neg_one;
-    memcpy(&h_neg_one, &half_negone, sizeof(half));
     #endif
 
     magma_int_t iinfo, nb, jb, nextj, nextjb;
@@ -255,10 +239,12 @@ magma_xhsgetrf_gpu(
     magma_int_t i, j, rows, lddat, ldwork;
     magmaFloat_ptr dAT=NULL, dAP=NULL, work=NULL;
     magmaHalf *dAT_hp = NULL;
-        
-    cublasMath_t mode;
-    cublasStatus_t cuerr;
+
+    #ifdef MAGMA_HAVE_CUDA
     cublasGemmAlgo_t ALGO = CUBLAS_GEMM_DFALT;
+    #else
+    hipblasGemmAlgo_t ALGO = HIPBLAS_GEMM_DEFAULT;
+    #endif
 
 
 //#define CHECKFOR_NAN_INF
@@ -304,24 +290,10 @@ magma_xhsgetrf_gpu(
             goto cleanup;
         }
 
-#if 0
-        magmaHalf *dA_hp=NULL;
-        magma_malloc( (void**)&dA_hp,  ldda*n *sizeof(magmaHalf) );
-        magmablas_convert_sp2hp(m, n, dA, ldda, dA_hp, ldda, queues[0]);
-        
-        magmablas_convert_hp2sp(m, n, dA_hp, ldda, dA, ldda, queues[0]);      
-        magma_sgetmatrix( m, n, dA(0,0), ldda, work, m, queues[0] );
-        lapackf77_sgetrf( &m, &n, work, &m, ipiv, info );
-        magma_ssetmatrix( m, n, work, m, dA(0,0), ldda, queues[0] );
-        
-        magma_free_cpu( work );  work=NULL;
-
-#else
         magma_sgetmatrix( m, n, dA(0,0), ldda, work, m, queues[0] );
         lapackf77_sgetrf( &m, &n, work, &m, ipiv, info );
         magma_ssetmatrix( m, n, work, m, dA(0,0), ldda, queues[0] );
         magma_free_cpu( work );  work=NULL;
-#endif
     }
     else {
         /* Use hybrid blocked code. */
@@ -396,58 +368,79 @@ magma_xhsgetrf_gpu(
             nb     = magma_get_xgetrf_nb( minmn-nextj, minmn-nextj, jb, enable_tc, mp_algo_type );
             nextjb = min(nb, minmn-nextj);
 
-            magmablas_convert_hp2sp(nextjb, jb, 
-                    dAT_hp(j, nextj), lddat, 
+            magmablas_convert_hp2sp(nextjb, jb,
+                    dAT_hp(j, nextj), lddat,
                     dAT(j, nextj), lddat, queues[1]);
             magma_strsm( MagmaRight, MagmaUpper, MagmaNoTrans, MagmaUnit,
                     nextjb, jb,
                     c_one, dAT(j, j    ), lddat,
                     dAT(j, nextj), lddat, queues[1] );
-            magmablas_convert_sp2hp(nextjb, jb, 
-                    dAT(j, nextj), lddat, 
+            magmablas_convert_sp2hp(nextjb, jb,
+                    dAT(j, nextj), lddat,
                     dAT_hp(j, nextj), lddat, queues[1]);
             magma_queue_wait_event(queues[0], event[0]);
             magmablas_convert_sp2hp(jb, m-j, dAT(j,j), lddat, dAT_hp(j,j), lddat, queues[0]);
             magma_queue_sync( queues[0] );
-            
-            if( nextjb > 0 &&  (m-nextj) > 0 )
-            {
-                if( enable_tc ==  Magma_MP_ENABLE_TC_MATH )
-                {
+
+            if( nextjb > 0 &&  (m-nextj) > 0 ) {
+                if( enable_tc ==  Magma_MP_ENABLE_TC_MATH ) {
+                    #ifdef MAGMA_HAVE_CUDA
                     ALGO  = CUBLAS_GEMM_DFALT_TENSOR_OP;
-                    cuerr = cublasSetMathMode(queues[1]->cublas_handle(), CUBLAS_TENSOR_OP_MATH);
+                    cublasSetMathMode(queues[1]->cublas_handle(), CUBLAS_TENSOR_OP_MATH);
+                    #endif
                 }
-                if( mp_algo_type == Magma_MP_GEMEX_I16_O16_C32 )
-                {
-                    cublasGemmEx( queues[1]->cublas_handle(), 
+
+                if( mp_algo_type == Magma_MP_GEMEX_I16_O16_C32 ) {
+                    #ifdef MAGMA_HAVE_CUDA
+                    cublasGemmEx( queues[1]->cublas_handle(),
                             cublas_trans_const( MagmaNoTrans ), cublas_trans_const( MagmaNoTrans ),
                             int(nextjb), int(m-nextj), int(jb),
                             &c_neg_one, dAT_hp(j,     nextj), CUDA_R_16F, int(lddat),
-                            dAT_hp(nextj, j    ), CUDA_R_16F, int(lddat),
+                                        dAT_hp(nextj, j    ), CUDA_R_16F, int(lddat),
                             &c_one,     dAT_hp(nextj, nextj), CUDA_R_16F, int(lddat),
                             CUDA_R_32F, ALGO);
+                    #else
+                    hipblasGemmEx( queues[1]->hipblas_handle(),
+                            hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
+                            int(nextjb), int(m-nextj), int(jb),
+                            &c_neg_one, dAT_hp(j,     nextj), HIPBLAS_R_16F, int(lddat),
+                                        dAT_hp(nextj, j    ), HIPBLAS_R_16F, int(lddat),
+                            &c_one,     dAT_hp(nextj, nextj), HIPBLAS_R_16F, int(lddat),
+                            HIPBLAS_R_32F, ALGO);
+                    #endif
                 }
                 else if( mp_algo_type == Magma_MP_GEMEX_I16_O16_C16 ) {
-                    cublasGemmEx( queues[1]->cublas_handle(), 
+                    #ifdef MAGMA_HAVE_CUDA
+                    cublasGemmEx( queues[1]->cublas_handle(),
                             cublas_trans_const( MagmaNoTrans ), cublas_trans_const( MagmaNoTrans ),
                             int(nextjb), int(m-nextj), int(jb),
                             &h_neg_one, dAT_hp(j,     nextj), CUDA_R_16F, int(lddat),
-                            dAT_hp(nextj, j    ), CUDA_R_16F, int(lddat),
+                                        dAT_hp(nextj, j    ), CUDA_R_16F, int(lddat),
                             &h_one,     dAT_hp(nextj, nextj), CUDA_R_16F, int(lddat),
                             CUDA_R_16F, ALGO);
+                    #else
+                    hipblasGemmEx( queues[1]->hipblas_handle(),
+                            hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
+                            int(nextjb), int(m-nextj), int(jb),
+                            &h_neg_one, dAT_hp(j,     nextj), HIPBLAS_R_16F, int(lddat),
+                                        dAT_hp(nextj, j    ), HIPBLAS_R_16F, int(lddat),
+                            &h_one,     dAT_hp(nextj, nextj), HIPBLAS_R_16F, int(lddat),
+                            HIPBLAS_R_16F, ALGO);
+                    #endif
                 }
                 else if( mp_algo_type == Magma_MP_HGEMM ) {
-                    cublasHgemm( queues[1]->cublas_handle(), 
-                            cublas_trans_const( MagmaNoTrans ), cublas_trans_const( MagmaNoTrans ),
-                            int(nextjb), int(m-nextj), int(jb),
-                            &h_neg_one, dAT_hp(j,     nextj), int(lddat),
-                            dAT_hp(nextj, j    ), int(lddat),
-                            &h_one,     dAT_hp(nextj, nextj), int(lddat) );
+                    magma_hgemm( MagmaNoTrans, MagmaNoTrans,
+                            nextjb, m-nextj, jb,
+                            h_neg_one, dAT_hp(j,     nextj), lddat,
+                                       dAT_hp(nextj, j    ), lddat,
+                            h_one,     dAT_hp(nextj, nextj), lddat, queues[1] );
                 }
-                if( enable_tc ==  Magma_MP_ENABLE_TC_MATH )
-                {
+
+                if( enable_tc ==  Magma_MP_ENABLE_TC_MATH ) {
+                    #ifdef MAGMA_HAVE_CUDA
                     ALGO  = CUBLAS_GEMM_DFALT;
-                    cuerr = cublasSetMathMode(queues[1]->cublas_handle(), CUBLAS_DEFAULT_MATH);
+                    cublasSetMathMode(queues[1]->cublas_handle(), CUBLAS_DEFAULT_MATH);
+                    #endif
                 }
             }
             magmablas_convert_hp2sp(nextjb, m-nextj, dAT_hp(nextj, nextj), lddat, dAT(nextj, nextj), lddat, queues[1]);
@@ -455,55 +448,76 @@ magma_xhsgetrf_gpu(
             magma_queue_sync( queues[1] );
             magma_sgetmatrix_async( m-nextj, nextjb, dAP(0,0), maxm, work, ldwork, queues[0] );
 
-            magmablas_convert_hp2sp(n-(nextj+nextjb), jb, 
-                    dAT_hp(j, nextj+nextjb), lddat, 
+            magmablas_convert_hp2sp(n-(nextj+nextjb), jb,
+                    dAT_hp(j, nextj+nextjb), lddat,
                     dAT(j, nextj+nextjb), lddat, queues[1]);
             magma_strsm( MagmaRight, MagmaUpper, MagmaNoTrans, MagmaUnit,
                     n-(nextj+nextjb), jb,
                     c_one, dAT(j, j           ), lddat,
                     dAT(j, nextj+nextjb), lddat, queues[1] );
-            magmablas_convert_sp2hp(n-(nextj+nextjb), jb, 
-                    dAT(j, nextj+nextjb), lddat, 
+            magmablas_convert_sp2hp(n-(nextj+nextjb), jb,
+                    dAT(j, nextj+nextjb), lddat,
                     dAT_hp(j, nextj+nextjb), lddat, queues[1]);
 
-            if( (n-(nextj+nextjb)) > 0 &&  (m-nextj) > 0 )
-            {
-                if( enable_tc ==  Magma_MP_ENABLE_TC_MATH )
-                {
+            if( (n-(nextj+nextjb)) > 0 &&  (m-nextj) > 0 ) {
+                if( enable_tc ==  Magma_MP_ENABLE_TC_MATH ) {
+                    #ifdef MAGMA_HAVE_CUDA
                     ALGO  = CUBLAS_GEMM_DFALT_TENSOR_OP;
-                    cuerr = cublasSetMathMode(queues[1]->cublas_handle(), CUBLAS_TENSOR_OP_MATH);
+                    cublasSetMathMode(queues[1]->cublas_handle(), CUBLAS_TENSOR_OP_MATH);
+                    #endif
                 }
-                if( mp_algo_type == Magma_MP_GEMEX_I16_O16_C32 )
-                {
-                    cublasGemmEx( queues[1]->cublas_handle(), 
+
+                if( mp_algo_type == Magma_MP_GEMEX_I16_O16_C32 ) {
+                    #ifdef MAGMA_HAVE_CUDA
+                    cublasGemmEx( queues[1]->cublas_handle(),
                             cublas_trans_const( MagmaNoTrans ), cublas_trans_const( MagmaNoTrans ),
                             int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
                             &c_neg_one, dAT_hp(j,     nextj+nextjb), CUDA_R_16F, int(lddat),
-                            dAT_hp(nextj, j           ), CUDA_R_16F, int(lddat),
+                                        dAT_hp(nextj, j           ), CUDA_R_16F, int(lddat),
                             &c_one,     dAT_hp(nextj, nextj+nextjb), CUDA_R_16F, int(lddat),
                             CUDA_R_32F, ALGO);
+                    #else
+                    hipblasGemmEx( queues[1]->hipblas_handle(),
+                            hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
+                            int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
+                            &c_neg_one, dAT_hp(j,     nextj+nextjb), HIPBLAS_R_16F, int(lddat),
+                                        dAT_hp(nextj, j           ), HIPBLAS_R_16F, int(lddat),
+                            &c_one,     dAT_hp(nextj, nextj+nextjb), HIPBLAS_R_16F, int(lddat),
+                            HIPBLAS_R_32F, ALGO);
+                    #endif
                 }
                 else if( mp_algo_type == Magma_MP_GEMEX_I16_O16_C16 ) {
-                    cublasGemmEx( queues[1]->cublas_handle(), 
+                    #ifdef MAGMA_HAVE_CUDA
+                    cublasGemmEx( queues[1]->cublas_handle(),
                             cublas_trans_const( MagmaNoTrans ), cublas_trans_const( MagmaNoTrans ),
                             int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
                             &h_neg_one, dAT_hp(j,     nextj+nextjb), CUDA_R_16F, int(lddat),
-                            dAT_hp(nextj, j           ), CUDA_R_16F, int(lddat),
-                            &h_one,     dAT_hp(nextj, nextj+nextjb), CUDA_R_16F, int(lddat), 
+                                        dAT_hp(nextj, j           ), CUDA_R_16F, int(lddat),
+                            &h_one,     dAT_hp(nextj, nextj+nextjb), CUDA_R_16F, int(lddat),
                             CUDA_R_16F, ALGO);
+                    #else
+                    hipblasGemmEx( queues[1]->hipblas_handle(),
+                            hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
+                            int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
+                            &h_neg_one, dAT_hp(j,     nextj+nextjb), HIPBLAS_R_16F, int(lddat),
+                                        dAT_hp(nextj, j           ), HIPBLAS_R_16F, int(lddat),
+                            &h_one,     dAT_hp(nextj, nextj+nextjb), HIPBLAS_R_16F, int(lddat),
+                            HIPBLAS_R_16F, ALGO);
+                    #endif
                 }
                 else if( mp_algo_type == Magma_MP_HGEMM ) {
-                    cublasHgemm( queues[1]->cublas_handle(), 
-                            cublas_trans_const( MagmaNoTrans ), cublas_trans_const( MagmaNoTrans ),
-                            int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
-                            &h_neg_one, dAT_hp(j,     nextj+nextjb), int(lddat),
-                            dAT_hp(nextj, j           ), int(lddat),
-                            &h_one,     dAT_hp(nextj, nextj+nextjb), int(lddat) );
+                    magma_hgemm( MagmaNoTrans, MagmaNoTrans,
+                            maxn-(nextj+nextjb), m-nextj, jb,
+                            h_neg_one, dAT_hp(j,     nextj+nextjb), lddat,
+                                       dAT_hp(nextj,            j), lddat,
+                            h_one,     dAT_hp(nextj, nextj+nextjb), lddat, queues[1]);
                 }
-                if( enable_tc ==  Magma_MP_ENABLE_TC_MATH )
-                {
+
+                if( enable_tc ==  Magma_MP_ENABLE_TC_MATH ) {
+                    #ifdef MAGMA_HAVE_CUDA
                     ALGO  = CUBLAS_GEMM_DFALT;
-                    cuerr = cublasSetMathMode(queues[1]->cublas_handle(), CUBLAS_DEFAULT_MATH);
+                    cublasSetMathMode(queues[1]->cublas_handle(), CUBLAS_DEFAULT_MATH);
+                    #endif
                 }
             }
         }
@@ -517,11 +531,11 @@ magma_xhsgetrf_gpu(
             magmablas_stranspose( n, m, dAT(0,0), lddat, dA(0,0), ldda, queues[1] );
         }
     }
-    
+
 #ifdef CHECKFOR_NAN_INF
     magma_snan_inf_gpu( MagmaFull, m, n, dA, ldda, &c_gpu_nan, &c_gpu_inf, queues[1] );
     printf("from inside xhsgetrf here is c_gpu_nan %d c_gpu_inf %d\n",(int)c_gpu_nan, (int)c_gpu_inf);
-#endif    
+#endif
 cleanup:
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
@@ -534,9 +548,7 @@ cleanup:
     }
     magma_free( dAT_hp );
     magma_free_pinned( work );
-    
-    MAGMA_UNUSED( cuerr );
-    MAGMA_UNUSED( mode  );
+
     return *info;
 #else
     return MAGMA_ERR_NOT_SUPPORTED;
@@ -547,7 +559,7 @@ cleanup:
     Purpose
     -------
     HGETRF computes an LU factorization of a general M-by-N matrix A
-    using partial pivoting with row interchanges. It uses mixed precision 
+    using partial pivoting with row interchanges. It uses mixed precision
     FP32/FP16 techniques.
 
     The factorization has the form
@@ -557,7 +569,7 @@ cleanup:
     triangular (upper trapezoidal if m < n).
 
     This is the right-looking Level 3 BLAS version of the algorithm.
-    
+
     Arguments
     ---------
     @param[in]
@@ -593,11 +605,11 @@ cleanup:
                   singular, and division by zero will occur if it is used
                   to solve a system of equations.
 
-    More details can be found in 
-    Azzam Haidar, Stanimire Tomov, Jack Dongarra, and Nicholas J. Higham. 2018. 
-    Harnessing GPU tensor cores for fast FP16 arithmetic to speed up mixed-precision 
-    iterative refinement solvers. In Proceedings of the International Conference for 
-    High Performance Computing, Networking, Storage, and Analysis (SC '18). 
+    More details can be found in
+    Azzam Haidar, Stanimire Tomov, Jack Dongarra, and Nicholas J. Higham. 2018.
+    Harnessing GPU tensor cores for fast FP16 arithmetic to speed up mixed-precision
+    iterative refinement solvers. In Proceedings of the International Conference for
+    High Performance Computing, Networking, Storage, and Analysis (SC '18).
     IEEE Press, Piscataway, NJ, USA, Article 47, 11 pages.
 
     @ingroup magma_getrf
@@ -609,8 +621,8 @@ magma_hgetrf_gpu(
     magma_int_t *ipiv,
     magma_int_t *info )
 {
-    magma_xhsgetrf_gpu(m, n, dA, ldda, ipiv, info, 
+    magma_xhsgetrf_gpu(m, n, dA, ldda, ipiv, info,
             Magma_MP_ENABLE_DFLT_MATH, Magma_MP_HGEMM);
-    return *info; 
+    return *info;
 }
 

@@ -27,8 +27,8 @@ zcaxpycp_kernel(
 {
     const int i = threadIdx.x + blockIdx.x*NB;
     if ( i < m ) {
-        x[i] = MAGMA_Z_ADD( x[i], MAGMA_Z_MAKE( MAGMA_Z_REAL( r[i] ),
-                                                MAGMA_Z_IMAG( r[i] ) ) );
+        x[i] = MAGMA_Z_ADD( x[i], MAGMA_Z_MAKE( MAGMA_C_REAL( r[i] ),
+                                                MAGMA_C_IMAG( r[i] ) ) );
         w[i] = b[i];
     }
 }

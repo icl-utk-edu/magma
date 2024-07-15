@@ -11,33 +11,9 @@
 */
 #include "magmasparse_internal.h"
 
+#include "magma_trisolve.h"
+
 #define PRECISION_z
-
-#if CUDA_VERSION >= 11000
-#define cusparseCreateSolveAnalysisInfo(info) cusparseCreateCsrsm2Info(info)
-#else
-#define cusparseCreateSolveAnalysisInfo(info)                                                   \
-    CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( info ))
-#endif
-
-// todo: info is passed; buf has to be passed; linfo is local so who has to use it (!= info)?
-#if CUDA_VERSION >= 11000
-#define cusparseZcsrsv_analysis(handle, trans, m, nnz, descr, val, row, col, info)              \
-    {                                                                                           \
-        csrsv2Info_t linfo = 0;                                                                 \
-        int bufsize;                                                                            \
-        void *buf;                                                                              \
-        cusparseCreateCsrsv2Info(&linfo);                                                       \
-        cusparseZcsrsv2_bufferSize(handle, trans, m, nnz, descr, val, row, col,                 \
-                                   linfo, &bufsize);                                            \
-        if (bufsize > 0)                                                                        \
-           magma_malloc(&buf, bufsize);                                                         \
-        cusparseZcsrsv2_analysis(handle, trans, m, nnz, descr, val, row, col, linfo,            \
-                                 CUSPARSE_SOLVE_POLICY_USE_LEVEL, buf);                         \
-        if (bufsize > 0)                                                                        \
-           magma_free(buf);                                                                     \
-    }
-#endif
 
 // This file is deprecated and will be removed in future.
 // The ParILU/ParIC functionality is provided by 
@@ -80,10 +56,6 @@ magma_zparilusetup(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrL=NULL;
-    cusparseMatDescr_t descrU=NULL;
 
     magma_z_matrix hAh={Magma_CSR}, hA={Magma_CSR}, hL={Magma_CSR}, hU={Magma_CSR},
     hAcopy={Magma_CSR}, hAL={Magma_CSR}, hAU={Magma_CSR}, hAUt={Magma_CSR},
@@ -195,37 +167,12 @@ magma_zparilusetup(
     // magma_zmfree(&DU, queue );
     // magma_zmfree(&RU, queue );
 
-    // CUSPARSE context //
-    CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoL );
-    cusparseZcsrsv_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_NON_TRANSPOSE, precond->L.num_rows,
-                             precond->L.nnz, descrL,
-                             precond->L.val, precond->L.row, precond->L.col, precond->cuinfoL);
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_UPPER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoU );
-    cusparseZcsrsv_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_NON_TRANSPOSE, precond->U.num_rows,
-                             precond->U.nnz, descrU,
-                             precond->U.val, precond->U.row, precond->U.col, precond->cuinfoU);
+    CHECK(magma_ztrisolve_analysis(precond->L, &precond->cuinfoL, false, false, false, queue));
+    CHECK(magma_ztrisolve_analysis(precond->U, &precond->cuinfoU, true, false, false, queue));
+    
     
     
 cleanup:
-    cusparseDestroy( cusparseHandle );
-    cusparseDestroyMatDescr( descrL );
-    cusparseDestroyMatDescr( descrU );
-    cusparseHandle=NULL;
-    descrL=NULL;
-    descrU=NULL;
     magma_zmfree( &hAh, queue );
     magma_zmfree( &hA, queue );
     magma_zmfree( &hL, queue );
@@ -468,30 +415,8 @@ magma_zparicsetup(
     magma_zmfree(&hAL, queue );
     magma_zmfree(&hALt, queue );
 
-
-    // CUSPARSE context //
-    CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoL );
-    cusparseZcsrsv_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_NON_TRANSPOSE, precond->M.num_rows,
-                             precond->M.nnz, descrL,
-                             precond->M.val, precond->M.row, precond->M.col, precond->cuinfoL);
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_LOWER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoU );
-    cusparseZcsrsv_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_TRANSPOSE, precond->M.num_rows,
-                             precond->M.nnz, descrU,
-                             precond->M.val, precond->M.row, precond->M.col, precond->cuinfoU);
-
+    CHECK(magma_ztrisolve_analysis(precond->M, &precond->cuinfoL, false, false, false, queue));
+    CHECK(magma_ztrisolve_analysis(precond->M, &precond->cuinfoU, false, false, true, queue));
     
     cleanup:
     cusparseDestroy( cusparseHandle );

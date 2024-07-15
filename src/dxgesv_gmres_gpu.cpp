@@ -5,10 +5,10 @@
        Univ. of Colorado, Denver
        @date
 
-       @author Azzam Haidar 
+       @author Azzam Haidar
 
 */
-#if defined(HAVE_CUBLAS)
+#if defined(MAGMA_HAVE_CUDA)
 #include <cuda.h>    // for CUDA_VERSION
 #endif
 
@@ -21,8 +21,8 @@ magma_dgmres_cpu_destroy( double *gmdwork, double *gmhwork);
 
 extern "C" magma_int_t
 magma_dgmres_cpu_init(
-    magma_int_t n, 
-    double **gmdwork, 
+    magma_int_t n,
+    double **gmdwork,
     double **gmhwork, magma_int_t *lwork,
     magma_int_t maxiter, magma_int_t restrt,
     magma_int_t userinitguess,
@@ -45,7 +45,7 @@ magma_dgmres_cpu_solve(
     magma_int_t userinitguess,
     double *cntl, double tol, double inner_tol,
     magma_int_t *irc, magma_int_t *icntl,
-    magma_refinement_t facto_type, 
+    magma_refinement_t facto_type,
     magma_refinement_t solver_type,
     char *algoname,
     magma_queue_t queue);
@@ -61,11 +61,11 @@ magma_dgmres_cpu(
     magmaInt_ptr ipiv, magmaInt_ptr dipiv,
     magmaDouble_ptr dB, magma_int_t lddb,
     magmaDouble_ptr dX, magma_int_t lddx,
-    magmaFloat_ptr dSX, 
+    magmaFloat_ptr dSX,
     magma_int_t maxiter, magma_int_t restrt,
-    magma_int_t userinitguess, 
+    magma_int_t userinitguess,
     double tol, double innertol,
-    magma_refinement_t facto_type, 
+    magma_refinement_t facto_type,
     magma_refinement_t solver_type,
     char *algoname,
     magma_queue_t queue);
@@ -76,8 +76,8 @@ magma_dgmres_inner_cpu_destroy( double *gmdwork, double *gmhwork);
 
 extern "C" magma_int_t
 magma_dgmres_inner_cpu_init(
-    magma_int_t n, 
-    double **gmdwork, 
+    magma_int_t n,
+    double **gmdwork,
     double **gmhwork, magma_int_t *lwork,
     magma_int_t maxiter, magma_int_t restrt,
     magma_int_t userinitguess,
@@ -111,7 +111,7 @@ magma_dgmres_inner_cpu(
     magmaInt_ptr ipiv, magmaInt_ptr dipiv,
     magmaDouble_ptr dB, magma_int_t lddb,
     magmaDouble_ptr dX, magma_int_t lddx,
-    magmaFloat_ptr dSX, 
+    magmaFloat_ptr dSX,
     magma_int_t maxiter, magma_int_t restrt,
     magma_int_t userinitguess, double innertol,
     magma_refinement_t solver_type,
@@ -137,7 +137,7 @@ magma_dgmres_inner_cpu(
     @param[in]
     facto_type    magma_refinement_t
                   Specify the mixed precision factorization algorithm.
-                  Magma_PREC_SS for FP32 
+                  Magma_PREC_SS for FP32
                   Magma_PREC_SHT for FP16 Tensor Cores
                   More details will be released soon.
 
@@ -147,11 +147,11 @@ magma_dgmres_inner_cpu(
                   classical IR or GMRES etc.
                   More details will be released soon.
 
-    More details can be found in 
-    Azzam Haidar, Stanimire Tomov, Jack Dongarra, and Nicholas J. Higham. 2018. 
-    Harnessing GPU tensor cores for fast FP16 arithmetic to speed up mixed-precision 
-    iterative refinement solvers. In Proceedings of the International Conference for 
-    High Performance Computing, Networking, Storage, and Analysis (SC '18). 
+    More details can be found in
+    Azzam Haidar, Stanimire Tomov, Jack Dongarra, and Nicholas J. Higham. 2018.
+    Harnessing GPU tensor cores for fast FP16 arithmetic to speed up mixed-precision
+    iterative refinement solvers. In Proceedings of the International Conference for
+    High Performance Computing, Networking, Storage, and Analysis (SC '18).
     IEEE Press, Piscataway, NJ, USA, Article 47, 11 pages.
 
     @ingroup magma_gesv
@@ -164,7 +164,7 @@ magma_dxgesv_gmres_gpu(
     magmaDouble_ptr dB, magma_int_t lddb,
     magmaDouble_ptr dX, magma_int_t lddx,
     magmaDouble_ptr dworkd, magmaFloat_ptr dworks,
-    magma_refinement_t facto_type, 
+    magma_refinement_t facto_type,
     magma_refinement_t solver_type,
     magma_int_t *iter,
     magma_int_t *info,
@@ -178,7 +178,7 @@ magma_dxgesv_gmres_gpu(
     const double c_neg_one = MAGMA_D_NEG_ONE;
     const double c_one     = MAGMA_D_ONE;
     const magma_int_t ione = 1;
-    
+
     // Local variables
     magma_int_t lddasp, lddadp, lddr;
     magmaDouble_ptr dA_dprec=NULL, dR=NULL, dz=NULL;
@@ -189,7 +189,7 @@ magma_dxgesv_gmres_gpu(
     float fp32_Anrm, fp32_cte, fp32_eps;
     magma_mp_type_t facto_base, facto_gem, facto_tc;
     real_Double_t start_time=0.0;
-    
+
     #ifdef CHECKFOR_NAN_INF
     magma_int_t c_gpu_nan=-1, c_gpu_inf=-1;
     #endif
@@ -205,7 +205,7 @@ magma_dxgesv_gmres_gpu(
 
     //#if defined (USE_GMRES_CPU)
     double *gmdwork, *gmhwork;
-    magma_int_t irc[7], icntl[8]; 
+    magma_int_t irc[7], icntl[8];
     magma_int_t lwork;
     double cntl[5];
     double gmtol, innertol = 1e-4;
@@ -232,16 +232,6 @@ magma_dxgesv_gmres_gpu(
     else if ( lddx < max(1,n))
         *info = -11;
     // check cuda version and if device has tensor cores in case tensor cores was requested to be used.
-#if CUDA_VERSION < 9000
-    if (facto_type != Magma_PREC_SS){
-        *info = -14;
-    }
-#else
-    magma_int_t arch = magma_getdevice_arch();
-    if(arch < 530 && facto_type != Magma_PREC_SS){
-        *info = -14;
-    }
-#endif    
 
     switch (facto_type) {
         case Magma_PREC_HS :
@@ -362,7 +352,7 @@ magma_dxgesv_gmres_gpu(
             snprintf(solvername, sizeof(solvername),"GMGMDTRS");
             solver_outer_itermax = max( outer_iter_min, ITERMAX/inner_itermax );
             break;
-        default: 
+        default:
             snprintf(solvername, sizeof(solvername),"unknown_solver");
             solver_outer_itermax = ITERMAX;
             *info = -15;
@@ -374,7 +364,7 @@ magma_dxgesv_gmres_gpu(
         magma_xerbla( __func__, -(*info) );
         return *info;
     }
-    
+
     if ( n == 0 || nrhs == 0 )
         return *info;
 
@@ -383,17 +373,17 @@ magma_dxgesv_gmres_gpu(
     lddadp = magma_roundup(n,32);
     lddr   = magma_roundup(n,32);
 
-    
+
 //    dA_sprec = dworks;
 //    dSX = dA_sprec + lddasp*n;
     dSX = dworks;
     dR  = dworkd;
-    
+
     magma_queue_t queue;
     magma_device_t cdev;
     magma_getdevice( &cdev );
     magma_queue_create( cdev, &queue );
-    
+
     //==============================
     // Factorize A
     //==============================
@@ -420,7 +410,7 @@ magma_dxgesv_gmres_gpu(
         }
 
 /*
-        Azzam equilibrate or scale 
+        Azzam equilibrate or scale
         magma_int_t ILO, IHI;
         float *hA_sprec, *SCALE;
         magma_smalloc_cpu( &hA_sprec,    ldda* n   );
@@ -448,7 +438,7 @@ magma_dxgesv_gmres_gpu(
             magma_xshgetrf_gpu( n, n, dA_sprec, lddasp, ipiv, info, facto_tc, facto_gem);
         }
         *facto_time = magma_wtime() - start_time;
-        
+
         if (*info != 0) {
             *iter = -3;
             MAGMA_PRINTF("dsgesv_gmres magma_xgetrf_gpu error info %lld fallback to FP64\n", (long long) *info);
@@ -457,7 +447,7 @@ magma_dxgesv_gmres_gpu(
         // Azzam:insert the option if(solver_type == Magma_REFSLV_DTRS && facto_type != Magma_PREC_HD) here
     }
 
-    if( facto_type != Magma_PREC_HD && 
+    if( facto_type != Magma_PREC_HD &&
             (   solver_type == Magma_REFINE_IRDTRS || solver_type == Magma_REFINE_IRGMDTRS
              || solver_type == Magma_REFINE_GMDTRS || solver_type == Magma_REFINE_GMGMDTRS) )
     {
@@ -466,7 +456,7 @@ magma_dxgesv_gmres_gpu(
         }
         magmablas_slag2d( n, n, dA_sprec, lddasp, dA_dprec, lddadp, queue, info );
     }
-    if( ( facto_type == Magma_PREC_HD )  
+    if( ( facto_type == Magma_PREC_HD )
            && (   solver_type == Magma_REFINE_IRSTRS || solver_type == Magma_REFINE_IRGMSTRS
              || solver_type == Magma_REFINE_GMSTRS || solver_type == Magma_REFINE_GMGMSTRS) )
     {
@@ -495,7 +485,7 @@ magma_dxgesv_gmres_gpu(
     }
     //==============================
 
-    
+
 #if 1
         eps  = lapackf77_dlamch("Epsilon");
         Anrm = magmablas_dlange( MagmaInfNorm, n, n, dA, ldda, (double*)dworkd, n*nrhs, queue );
@@ -508,9 +498,9 @@ magma_dxgesv_gmres_gpu(
         gmtol = double(fp32_cte);
         cte   = double(fp32_cte);
 #endif
-        
+
     //==============================
-    // Creating initial guess for FGMRes 
+    // Creating initial guess for FGMRes
     // or the initial solution for IR
     //==============================
     // solve dA_sprec*dSX = dB in single precision
@@ -528,7 +518,7 @@ magma_dxgesv_gmres_gpu(
 
 //#define ajeter
 #ifdef ajeter
-    if(    solver_type == Magma_REFINE_GMSTRS || solver_type == Magma_REFINE_GMDTRS 
+    if(    solver_type == Magma_REFINE_GMSTRS || solver_type == Magma_REFINE_GMDTRS
         || solver_type == Magma_REFINE_GMGMSTRS || solver_type == Magma_REFINE_GMGMDTRS    )
     {
 
@@ -570,39 +560,39 @@ magma_dxgesv_gmres_gpu(
 #endif
 
     //==============================
-    //   FGMRes 
+    //   FGMRes
     //==============================
     if(   solver_type == Magma_REFINE_GMSTRS   || solver_type == Magma_REFINE_GMDTRS
        || solver_type == Magma_REFINE_GMGMSTRS || solver_type == Magma_REFINE_GMGMDTRS )
     {
         #if defined (USE_GMRES_GPU)
             // FGMRES  GPU need that X is initialized to "0"
-            magmablas_dlaset(MagmaFull, n, nrhs, 0.0, 0.0, dX, lddx, queue); 
-            magma_dfgmres_plu_gpu(trans, n, nrhs, dA, ldda, 
+            magmablas_dlaset(MagmaFull, n, nrhs, 0.0, 0.0, dX, lddx, queue);
+            magma_dfgmres_plu_gpu(trans, n, nrhs, dA, ldda,
                     dA_sprec, lddasp, dA_dprec, lddadp,
-                    ipiv, dipiv, dB, lddb, dX, lddx, dSX, 
-                    solver_outer_itermax, solver_outer_itermax, 
+                    ipiv, dipiv, dB, lddb, dX, lddx, dSX,
+                    solver_outer_itermax, solver_outer_itermax,
                     inner_itermax, inner_itermax,
                     0, gmtol, innertol, &rnorm0, iter,
                     solver_type, algoname, 0, queue);
         #elif defined (USE_GMRES_CPU)
             #if 0
-            magma_dgmres_cpu_init(n, &gmdwork, &gmhwork, &lwork, 
+            magma_dgmres_cpu_init(n, &gmdwork, &gmhwork, &lwork,
                     solver_outer_itermax, solver_outer_itermax, 0, cntl, gmtol,
                     irc, icntl);
-           
-            *iter = magma_dgmres_cpu_solve(trans, n, nrhs, dA, ldda, 
+
+            *iter = magma_dgmres_cpu_solve(trans, n, nrhs, dA, ldda,
                     dA_sprec, lddasp, dA_dprec, lddadp,
-                    ipiv, dipiv, dB, lddb, dX, lddx, dSX, 
+                    ipiv, dipiv, dB, lddb, dX, lddx, dSX,
                     gmdwork, gmhwork, lwork,
                     solver_outer_itermax, solver_outer_itermax, 0, cntl, gmtol, innertol,
                     irc, icntl, facto_type, solver_type, algoname, queue);
-           
+
             magma_dgmres_cpu_destroy(gmdwork, gmhwork);
             #else
-            *iter = magma_dgmres_cpu(trans, n, nrhs, dA, ldda, 
+            *iter = magma_dgmres_cpu(trans, n, nrhs, dA, ldda,
                     dA_sprec, lddasp, dA_dprec, lddadp,
-                    ipiv, dipiv, dB, lddb, dX, lddx, dSX, 
+                    ipiv, dipiv, dB, lddb, dX, lddx, dSX,
                     solver_outer_itermax, solver_outer_itermax, 0, gmtol, innertol,
                     facto_type, solver_type, algoname, queue);
             #endif
@@ -610,8 +600,8 @@ magma_dxgesv_gmres_gpu(
         goto cleanup;
     }
     //==============================
-    // ITERATIVE REFINEMENT using 
-    // IR or FGMRES to solve Ax = b 
+    // ITERATIVE REFINEMENT using
+    // IR or FGMRES to solve Ax = b
     //==============================
     else if (   solver_type == Magma_REFINE_IRSTRS   || solver_type == Magma_REFINE_IRDTRS
        || solver_type == Magma_REFINE_IRGMSTRS || solver_type == Magma_REFINE_IRGMDTRS )
@@ -652,7 +642,7 @@ magma_dxgesv_gmres_gpu(
 
             Rnrm = MAGMA_D_ABS(Rnrmv);
             //Rnrm = lapackf77_dlange( "F", &ione, &ione, &Rnrmv, &ione, work );
-            MAGMA_PRINTF("%s_IR_residual @ iter %lld using inner_iter %lld is Rnrm %10.5e    Xnrm*cte % 10.5e  Xnrm %10.5e   cte %10.5e  \n", 
+            MAGMA_PRINTF("%s_IR_residual @ iter %lld using inner_iter %lld is Rnrm %10.5e    Xnrm*cte % 10.5e  Xnrm %10.5e   cte %10.5e  \n",
                     algoname, (long long) 1, (long long) 0, Rnrm, Xnrm*cte, Xnrm, cte );
 
             if ( Rnrm >  Xnrm*cte ) {
@@ -668,7 +658,7 @@ refinement:
         if ( solver_type == Magma_REFINE_IRGMSTRS   || solver_type == Magma_REFINE_IRGMDTRS)
         {
             #if defined (USE_GMRES_CPU)
-            magma_dgmres_inner_cpu_init(n, &gmdwork, &gmhwork, &lwork, 
+            magma_dgmres_inner_cpu_init(n, &gmdwork, &gmhwork, &lwork,
                     inner_itermax, inner_itermax, 0, cntl, innertol,
                     irc, icntl);
             #else
@@ -693,21 +683,21 @@ refinement:
             }
             else if( solver_type == Magma_REFINE_IRGMSTRS   || solver_type == Magma_REFINE_IRGMDTRS)
             {
-                inner_iter = 0;       
+                inner_iter = 0;
                 #if defined (USE_GMRES_GPU)
-                magmablas_dlaset(MagmaFull, n, nrhs, 0.0, 0.0, dz, lddr, queue); 
+                magmablas_dlaset(MagmaFull, n, nrhs, 0.0, 0.0, dz, lddr, queue);
                 //inner_iter =
-                    magma_dfgmres_plu_gpu(trans, n, nrhs, dA, ldda, 
+                    magma_dfgmres_plu_gpu(trans, n, nrhs, dA, ldda,
                         dA_sprec, lddasp, dA_dprec, lddadp,
-                        ipiv, dipiv, dR, lddr, dz, lddr, dSX, 
+                        ipiv, dipiv, dR, lddr, dz, lddr, dSX,
                         inner_itermax, inner_itermax, inner_itermax, inner_itermax,
                         0, innertol, innertol, &rnorm0, &inner_iter,
                         solver_type, algoname, 1, queue);
                 magmablas_dlacpy( MagmaFull, n, nrhs, dz, lddr, dR, lddr, queue );
                 #elif defined (USE_GMRES_CPU)
-                inner_iter = magma_dgmres_inner_cpu_solve(trans, n, nrhs, dA, ldda, 
+                inner_iter = magma_dgmres_inner_cpu_solve(trans, n, nrhs, dA, ldda,
                         dA_sprec, lddasp, dA_dprec, lddadp,
-                        ipiv, dipiv, dR, lddr, dR, lddr, dSX, 
+                        ipiv, dipiv, dR, lddr, dR, lddr, dSX,
                         gmdwork, gmhwork, lwork,
                         inner_itermax, inner_itermax, 0, cntl, innertol,
                         irc, icntl, solver_type, queue);
@@ -780,10 +770,10 @@ refinement:
 
             snprintf(algoname_outer, sizeof(algoname_outer),"%s_outer_niter",algoname);
             snprintf(algoname_inner, sizeof(algoname_inner),"%s_inner_niter",algoname);
-            MAGMA_PRINTF("\n\ninfo===> %s %lld  %s is %lld \n\n", algoname_outer, (long long) iiter+1, algoname_inner, (long long) tot_inner_iter); 
-            
+            MAGMA_PRINTF("\n\ninfo===> %s %lld  %s is %lld \n\n", algoname_outer, (long long) iiter+1, algoname_inner, (long long) tot_inner_iter);
+
             //*iter = iiter;
-            *iter = ( solver_type == Magma_REFINE_IRGMSTRS   || solver_type == Magma_REFINE_IRGMDTRS) ? tot_inner_iter : iiter; 
+            *iter = ( solver_type == Magma_REFINE_IRGMSTRS   || solver_type == Magma_REFINE_IRGMDTRS) ? tot_inner_iter : iiter;
             goto cleanup;
             //return *info;
 L20:
@@ -805,7 +795,7 @@ L20:
         *iter = ( solver_type == Magma_REFINE_IRGMSTRS   || solver_type == Magma_REFINE_IRGMDTRS) ? -tot_inner_iter : -iiter+1;
         snprintf(algoname_outer, sizeof(algoname_outer),"%s_outer_niter",algoname);
         snprintf(algoname_inner, sizeof(algoname_inner),"%s_inner_niter",algoname);
-        MAGMA_PRINTF("\n\ninfo===> %s %lld  %s is %lld \n\n", algoname_outer, (long long) iiter, algoname_inner, (long long) tot_inner_iter); 
+        MAGMA_PRINTF("\n\ninfo===> %s %lld  %s is %lld \n\n", algoname_outer, (long long) iiter, algoname_inner, (long long) tot_inner_iter);
     }
 
 fallback:
@@ -849,18 +839,18 @@ cleanup:
     where A is an N-by-N matrix and X and B are N-by-NRHS matrices.
 
     DSGESV first attempts to factorize the matrix in real SINGLE PRECISION
-    and use this factorization within an iterative refinement procedure 
-    to produce a solution with real DOUBLE PRECISION norm-wise backward error 
+    and use this factorization within an iterative refinement procedure
+    to produce a solution with real DOUBLE PRECISION norm-wise backward error
     quality (see below). If the approach fails the method switches to a
     real DOUBLE PRECISION factorization and solve.
 
     The iterative refinement is not going to be a winning strategy if
     the ratio real SINGLE PRECISION performance over real DOUBLE PRECISION
-    performance is too small. A reasonable strategy should take the 
-    number of right-hand sides and the size of the matrix into account. 
-    This might be done with a call to ILAENV in the future. Up to now, we 
+    performance is too small. A reasonable strategy should take the
+    number of right-hand sides and the size of the matrix into account.
+    This might be done with a call to ILAENV in the future. Up to now, we
     always try iterative refinement.
-    
+
     The iterative refinement process is stopped if
         ITER > solver_outer_itermax
     or for all the RHS we have:
@@ -959,7 +949,7 @@ cleanup:
         +        -31: stop the iterative refinement after the 30th iteration
       -     > 0: iterative refinement has been successfully used.
                  Returns the number of iterations
- 
+
     @param[out]
     info   INTEGER
       -     = 0:  successful exit
@@ -986,13 +976,13 @@ magma_dsgesv_iteref_gpu(
     real_Double_t facto_time;
     magma_dxgesv_gmres_gpu(
             trans, n, nrhs,
-            dA, ldda, 
-            ipiv, dipiv, 
+            dA, ldda,
+            ipiv, dipiv,
             dB, lddb,
             dX, lddx,
             dworkd, dworks,
             Magma_PREC_SS,
-            Magma_REFINE_GMSTRS,            
+            Magma_REFINE_GMSTRS,
             iter, info, &facto_time);
     return *info;
 }
@@ -1005,18 +995,18 @@ magma_dsgesv_iteref_gpu(
     where A is an N-by-N matrix and X and B are N-by-NRHS matrices.
 
     DHGESV first attempts to factorize the matrix in real HALF PRECISION
-    and use this factorization within an iterative refinement procedure 
-    to produce a solution with real DOUBLE PRECISION norm-wise backward error 
+    and use this factorization within an iterative refinement procedure
+    to produce a solution with real DOUBLE PRECISION norm-wise backward error
     quality (see below). If the approach fails the method switches to a
     real DOUBLE PRECISION factorization and solve.
 
     The iterative refinement is not going to be a winning strategy if
     the ratio real HALF PRECISION performance over real DOUBLE PRECISION
-    performance is too small. A reasonable strategy should take the 
-    number of right-hand sides and the size of the matrix into account. 
-    This might be done with a call to ILAENV in the future. Up to now, we 
+    performance is too small. A reasonable strategy should take the
+    number of right-hand sides and the size of the matrix into account.
+    This might be done with a call to ILAENV in the future. Up to now, we
     always try iterative refinement.
-    
+
     The iterative refinement process is stopped if
         ITER > solver_outer_itermax
     or for all the RHS we have:
@@ -1115,7 +1105,7 @@ magma_dsgesv_iteref_gpu(
         +        -31: stop the iterative refinement after the 30th iteration
       -     > 0: iterative refinement has been successfully used.
                  Returns the number of iterations
- 
+
     @param[out]
     info   INTEGER
       -     = 0:  successful exit
@@ -1139,21 +1129,25 @@ magma_dhgesv_iteref_gpu(
     magma_int_t *iter,
     magma_int_t *info)
 {
-#if CUDA_VERSION >= 9000
+#if (defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 9000) || defined(MAGMA_HAVE_HIP)
+
+    #ifdef MAGMA_HAVE_CUDA
     magma_int_t arch = magma_getdevice_arch();
     if(arch < 530){
         return MAGMA_ERR_NOT_SUPPORTED;
     }
+    #endif
+
     real_Double_t facto_time;
     magma_dxgesv_gmres_gpu(
             trans, n, nrhs,
-            dA, ldda, 
-            ipiv, dipiv, 
+            dA, ldda,
+            ipiv, dipiv,
             dB, lddb,
             dX, lddx,
             dworkd, dworks,
             Magma_PREC_SHT,
-            Magma_REFINE_GMSTRS,            
+            Magma_REFINE_GMSTRS,
             iter, info, &facto_time);
     return *info;
 #else

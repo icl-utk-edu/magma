@@ -26,7 +26,7 @@
 */
 int main( int argc, char** argv)
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_, j_)  dA, ((i_) + (j_)*ldda)
     #define dx(i_)      dx, ((i_))
     #else
@@ -65,7 +65,7 @@ int main( int argc, char** argv)
     printf("%% uplo = %s, transA = %s, diag = %s \n",
            lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA),
            lapack_diag_const(opts.diag) );
-    printf("%%   N    MAGMA Gflop/s (ms)    CUBLAS Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error   CUBLAS error\n");
+    printf("%%   N    MAGMA Gflop/s (ms)    %s Gflop/s (ms)   CPU Gflop/s (ms)   MAGMA error   %s error\n", g_platform_str, g_platform_str);
     printf("%%=================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -146,7 +146,7 @@ int main( int argc, char** argv)
                 // See testing_zgemm for formula. Here K = N.
                 // initial C = 0, alpha = 1
                 blasf77_zaxpy( &N, &c_neg_one, hx, &ione, hxmagma, &ione );
-                dev_error = lapackf77_zlange( "F", &N, &ione, hxmagma, &N, work )
+                magma_error = lapackf77_zlange( "F", &N, &ione, hxmagma, &N, work )
                             / (sqrt(double(N+2))*Anorm*Xnorm);
 
                 blasf77_zaxpy( &N, &c_neg_one, hx, &ione, hxdev, &ione );

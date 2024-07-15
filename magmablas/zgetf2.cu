@@ -171,13 +171,15 @@ void magma_zgetf2_swap(
 /******************************************************************************/
 // dynamically allocated shared memory, set to size n when the kernel is launched.
 // See CUDA Guide B.2.3
-extern __shared__ magmaDoubleComplex shared_data[];
+//extern __shared__ magmaDoubleComplex shared_data[];
 
 
 /******************************************************************************/
 __global__
 void kernel_zscal_zgeru(int m, int n, magmaDoubleComplex *A, int lda)
 {
+    extern __shared__ magmaDoubleComplex shared_data[];
+
     magmaDoubleComplex *shared_y = shared_data;
 
     int tid = blockIdx.x * zgeru_bs + threadIdx.x;

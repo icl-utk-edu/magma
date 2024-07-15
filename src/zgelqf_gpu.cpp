@@ -156,7 +156,8 @@ magma_zgelqf_gpu(
         
         magmablas_ztranspose( m, n, dA, ldda, dAT, lddat, queue );
     }
-    
+
+    magma_queue_sync(queue);
     magma_zgeqrf2_gpu( n, m, dAT, lddat, tau, &iinfo );
     assert( iinfo >= 0 );
     if ( iinfo > 0 ) {

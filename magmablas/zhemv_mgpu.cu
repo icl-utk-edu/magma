@@ -21,23 +21,23 @@
 
 /***************************************************************************//**
     Lower case, compute block multiply, work = A*x, for any size n:
-    
+
            [ (A11*x1)   (A21^H*x2)          (A31^H*x3)                 ]   [ A11  A21^H  A31^H ]   [ x1 ]
     work = [   ---      (A21*x1 + A22*x2)   (A32^H*x3)                 ] = [ A21  A22    A32^H ] * [ x2 ]
            [   ---        ---               (A31*x1 + A32*x2 + A33*x3) ]   [ A31  A32    A33   ]   [ x3 ]
-    
+
     Uses a 64x4 thread block.
     For     diagonal tiles, covers a 64x64 tile using three 32x32 tiles (plus one gets transposed).
     For off-diagonal tiles, covers a 64x64 tile using four  64x16 tiles.
     In both cases, each thread multiplies 4 elements.
-    
+
     For rows past the bottom of the matrix, the A pointer is adjusted to be the
     last valid row of A, which multiple threads will read.
     Extra rows are ignored when saving results to work.
     Columns past the right edge are explicitly ignored when loading.
     x values past the bottom are set to zero, thus, extra columns are zeroed
     when multiplying.
-    
+
     Previously:
            [ (A11*x1)       ---                                          ]
     work = [ (A21^H*x2)   (A21*x1 + A22*x2)     ---                      ]
@@ -56,14 +56,14 @@ zhemv_kernel_L_mgpu(
     int ngpu,
     int block_offset )
 {
-#if (__CUDA_ARCH__ >= 200)
+#if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
 
     // treats sA as 16x64 block
     #define sA16(i_, j_) (sA[(i_)][(j_)])  // i.e., sA[ (i_)*(NB_X+3) + (j_) ]
-    
+
     // treats sA as 32x32 block
     #define sA32(i_, j_) (sA[0][(i_) + bank_shift*(j_)])
-    
+
     // 64x4 thread block
     const int tx  = threadIdx.x;
     const int ty  = threadIdx.y;
@@ -84,7 +84,7 @@ zhemv_kernel_L_mgpu(
     // so tx = 0, ..., partial-1 are valid rows, and tx >= partial are invalid.
     // Else, partial == 0.
     const int partial = (blk == gridDim.x - 1 ? ((n + block_offset) % NB_X) : 0);
-    
+
     magmaDoubleComplex psum, psum_t;
     magmaDoubleComplex total = MAGMA_Z_ZERO;
 
@@ -115,14 +115,14 @@ zhemv_kernel_L_mgpu(
 
     // --------------------
     // move to block row
-    work += blk*lda;     // work is work(0, blk)
+    work += (size_t)blk * (size_t)lda;     // work is work(0, blk)
 
     A += blk_ind;        // A is A(blk_ind, 0)
-    A += ty2*lda + tx2;  // A is A(blk_ind + tx2, ty2)
+    A += (size_t)ty2 * (size_t)lda + tx2;  // A is A(blk_ind + tx2, ty2)
     if ( blk % ngpu == my_gpu_id ) {
         // this GPU owns this diagonal block, so
         // move to 32x32 diag block
-        A += (blk/ngpu)*NB_X*lda;  // A is A(blk_ind + tx2, blk_ind + ty2)
+        A += (size_t)(blk/ngpu) * (size_t)NB_X * (size_t)lda;  // A is A(blk_ind + tx2, blk_ind + ty2)
 
         // load 32x32 diag block A(blk_ind + 0:31, blk_ind + 0:31) into sA,
         // as four 32x8 sections one after another:
@@ -187,7 +187,7 @@ zhemv_kernel_L_mgpu(
 
         // --------------------
         // move to next 32x32 diag block, then repeat steps from first diag block
-        A += half_NB_X + half_NB_X*lda;  // A is A(blk_ind + NB/2 + tx2, blk_ind + NB/2 + ty2)
+        A += half_NB_X + (size_t)half_NB_X * (size_t)lda;  // A is A(blk_ind + NB/2 + tx2, blk_ind + NB/2 + ty2)
 
         // load 32x32 diag block A[block + 0:31, block + 0:31] into sA
         if ( partial ) {
@@ -247,7 +247,7 @@ zhemv_kernel_L_mgpu(
 
         // --------------------
         // move to off-diag 32x32 block
-        A -= half_NB_X*lda;  // A is A(blk_ind + NB/2 + tx2, blk_ind + ty2)
+        A -= (size_t)half_NB_X * (size_t)lda;  // A is A(blk_ind + NB/2 + tx2, blk_ind + ty2)
 
         // load 32x32 block of A into sA,
         // as four 32x8 sections one after another:
@@ -325,17 +325,17 @@ zhemv_kernel_L_mgpu(
         // move to leftmost 64x64 block in block row, and
         // switch thread offset from (tx2,ty2) 32x8 block to (tx,ty) 64x4 block
         A -= half_NB_X;            // A is A(blk_ind + tx2, blk_ind + ty2)
-        A -= (blk/ngpu)*NB_X*lda;  // A is A(blk_ind + tx2,           ty2)
+        A -= (size_t)(blk/ngpu) * (size_t)NB_X * (size_t)lda;  // A is A(blk_ind + tx2,           ty2)
     }
 
     // finish switching thread offset
-    A -= ty2*lda + tx2;  // A is A(blk_ind, 0)
-    A += 4*ty*lda + tx;  // A is A(blk_ind + tx, 4*ty)
+    A -= (size_t)ty2    * (size_t)lda + tx2;  // A is A(blk_ind, 0)
+    A += (size_t)(4*ty) * (size_t)lda + tx;  // A is A(blk_ind + tx, 4*ty)
 
     if ( partial && tx >= partial ) {
         A = A - tx + (partial - 1);  // A is A(blk_ind + partial-1, 4*ty), the bottom-most valid row
     }
-    
+
     x -= blk_ind*incx;  // x is x(tx)
 
     // 16x16 thread block
@@ -389,12 +389,12 @@ zhemv_kernel_L_mgpu(
                 psum_t += sA16(tx4, ty4*4 + j);
             }
             __syncthreads();
-            
+
             // store partial row sums of transposed result, y_jj (locally)
             psums_t[k] = psum_t;
 
             // move right to next 64x16 block
-            A += lda * quarter_NB_X;  // A is A(blk_ind + tx#, jj*NB_x + (k+1)*NB_X/4 + 4*ty), # tx or partial
+            A += (size_t)lda * (size_t)quarter_NB_X;  // A is A(blk_ind + tx#, jj*NB_x + (k+1)*NB_X/4 + 4*ty), # tx or partial
         }
         // already at next 64x64 block
         // A is A(blk_ind + tx#, (jj+1)*NB_x + 4*ty), # tx or partial
@@ -436,7 +436,7 @@ zhemv_kernel_L_mgpu(
               + sA16(3, tx);
         work[blk*NB_X + tx] = total;  // store at work( blk*NB_X + tx, blk )
     }
-#endif  /* (__CUDA_ARCH__ >= 200) */
+#endif  /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
 }
 // end zhemv_kernel_L_mgpu
 
@@ -444,41 +444,41 @@ zhemv_kernel_L_mgpu(
 /***************************************************************************//**
     Lower case, sum up partial results per GPU.
     Each block sums one block row; each thread sums one row.
-    
+
     On input (for 3 blocks):
            [ (A11*x1)   (A21^H*x2)          (A31^H*x3)                 ]
     work = [   ---      (A21*x1 + A22*x2)   (A32^H*x3)                 ]
            [   ---        ---               (A31*x1 + A32*x2 + A33*x3) ]
-    
+
     On output:
               [ (A11*x1) + (A21^H*x2) + (A31^H*x3) ]
     y = alpha*[ (A21*x1 + A22*x2)     + (A32^H*x3) ]
               [ (A21*x1 + A22*x2 + A33*x3)         ]
     Note beta*y is not included here; see magmablas_zhemv_mgpu_sync.
-    
+
     The above workspace is distributed over multiple GPUs as diagrammed for 5 blocks:
-    
+
                   [ * x x x x ]  blk=0  * data for non-transposed row   w_blk = A_{blk,1:blk} * x_{1:blk}
     work[gpu=0] = [   *       ]  blk=1  x data for     transposed block w_jj  = A_{blk,jj}^H  * x_{blk}
                   [     * x x ]  blk=2  blanks are not set
                   [       *   ]  blk=3
                   [         * ]  blk=4
-    
+
                   [           ]  blk=0  (blank)
     work[gpu=1] = [   * x x x ]  blk=1
                   [     *     ]  blk=2
                   [       * x ]  blk=3
                   [         * ]  blk=4
-    
+
     On output, rows across are summed up.
     Entries left of the diagonal blocks are not accessed.
     Blank rows, where a GPU has no data to contribute, are explicitly set to zero in y.
-    
+
                   [ * + x + x + x ]
     y[gpu=0]    = [ *             ]
                   [ * + x         ]
                   [ *             ]
-    
+
                   [ 0             ]  (explicitly set to 0)
     y[gpu=1]    = [ * + x + x     ]
                   [ *             ]
@@ -574,14 +574,14 @@ zhemv_kernel_L_mgpu_sum(
             upper triangular part of A is not referenced.
             Note that the imaginary parts of the diagonal elements need
             not be set and are assumed to be zero.
-            
+
     @param[in]
     offset  INTEGER.
             Row & column offset to start of matrix A within the distributed d_lA
             structure. Note that N is the size of this multiply, excluding the
             offset, so the size of the original parent matrix is N+offset.
             Also, x and y do not have an offset.
-    
+
     @param[in]
     ldda    INTEGER.
             On entry, LDDA specifies the first dimension of A as declared
@@ -621,32 +621,32 @@ zhemv_kernel_L_mgpu_sum(
 
     @param
     hwork   (workspace) COMPLEX_16 array on the CPU, of dimension (lhwork).
-    
+
     @param[in]
     lhwork  INTEGER.
             The dimension of the array hwork. lhwork >= ngpu*nb.
-    
+
     @param
     dwork   (workspaces) Array of pointers, dimension (ngpu), to workspace on each GPU.
             dwork[dev] is a COMPLEX_16 array on GPU dev, of dimension (ldwork).
-    
+
     @param[in]
     ldwork  INTEGER.
             The dimension of each array dwork[dev].
             ldwork >= ldda*( ceil((n + offset % nb) / nb) + 1 ).
-    
+
     @param[in]
     ngpu    INTEGER.
             The number of GPUs to use.
-    
+
     @param[in]
     nb      INTEGER.
             The block size used for distributing d_lA. Must be 64.
-    
+
     @param[in]
     queues  magma_queue_t array of dimension (ngpu).
             queues[dev] is an execution queue on GPU dev.
-    
+
     @ingroup magma_hemv
 *******************************************************************************/
 extern "C"
@@ -666,6 +666,7 @@ magmablas_zhemv_mgpu(
     magma_int_t nb,
     magma_queue_t queues[] )
 {
+    #ifndef MAGMA_HAVE_HIP
     magma_int_t arch = magma_getdevice_arch();
     if ( arch < 200  ) {
         // --------------------
@@ -673,19 +674,20 @@ magmablas_zhemv_mgpu(
         fprintf( stderr, "%s not supported on CUDA arch 1.x\n", __func__ );
         return MAGMA_ERR_NOT_SUPPORTED;
     }
-    
+    #endif
+
     // --------------------
     // CUDA ARCH 2.x (Fermi) version
     bool upper = (uplo == MagmaUpper);
-    
+
     magma_int_t offset_block_id = offset / NB_X;
     magma_int_t offset_gpu_id   = offset_block_id % ngpu;
     magma_int_t block_offset    = offset % NB_X;
-    
+
     magma_int_t blocks = magma_ceildiv( n + block_offset, NB_X );
     magma_int_t ldwmin = ldda*(blocks + 1);
     magma_int_t lhwmin = n*ngpu;
-    
+
     /*
      * Test the input parameters.
      */
@@ -711,59 +713,59 @@ magmablas_zhemv_mgpu(
     } else if ( nb != NB_X ) {
         info = -17;
     }
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return info;
     }
-    
+
     /*
      * Quick return if possible.
      */
     if ( n == 0 )
         return info;
-    
+
     magma_device_t orig_dev;
     magma_getdevice( &orig_dev );
-    
+
     magma_int_t dev;
     for (dev=0; dev < ngpu; dev++) {
         magma_setdevice( dev );
-        
+
         // blocks before the offset block
         magma_int_t num_blocks_skipped = offset_block_id / ngpu;
         if ( dev < offset_gpu_id ) {
             num_blocks_skipped += 1;
         }
-        
+
         // shift dA to first block >= offset block that is owned by this GPU
         magmaDoubleComplex const *dA_dev    = d_lA[dev] + offset_block_id*NB_X + num_blocks_skipped*NB_X*ldda;
-        
+
         // first column of dwork is to broadcast x to all GPUs.
         // remaining blocks number of columns is for partial sums from
         // each block, as in single GPU version.
         magmaDoubleComplex       *dx_dev    = dwork[dev];
         magmaDoubleComplex       *dwork_dev = dwork[dev] + ldda;
-        
+
         // renumber GPUs starting from the offset block
         magma_int_t new_gpu_id = (dev + ngpu - offset_gpu_id) % ngpu;
-        
+
         dim3 grid( blocks, 1 );
-        
+
         // copy x to each GPU
         magma_zsetvector_async( n, x, incx, dx_dev + block_offset, 1, queues[dev] );
-        
+
         // perform work = A*x, partial row sums
         dim3 threads( NB_X, NB_Y );
-        
+
         // perform w = sum( work ), larger partial row sums
         dim3 threads_sum( NB_X, 1 );
-        
+
         if ( upper ) {
             zhemv_kernel_U_mgpu<<< grid, threads, 0, queues[dev]->cuda_stream() >>>(
                 n, dA_dev, ldda, dx_dev, 1, dwork_dev,
                 new_gpu_id, ngpu, block_offset );
-            
+
             zhemv_kernel_U_mgpu_sum<<< grid, threads_sum, 0, queues[dev]->cuda_stream() >>>(
                 n, alpha, ldda, dx_dev, 1, dwork_dev,
                 new_gpu_id, ngpu, block_offset );
@@ -772,13 +774,13 @@ magmablas_zhemv_mgpu(
             zhemv_kernel_L_mgpu<<< grid, threads, 0, queues[dev]->cuda_stream() >>>(
                 n, dA_dev, ldda, dx_dev, 1, dwork_dev,
                 new_gpu_id, ngpu, block_offset );
-            
+
             zhemv_kernel_L_mgpu_sum<<< grid, threads_sum, 0, queues[dev]->cuda_stream() >>>(
                 n, alpha, ldda, dx_dev, 1, dwork_dev,
                 new_gpu_id, ngpu, block_offset );
         }
     }
-    
+
     // 2nd loop in case hwork is not pinned, causing this to be sync instead of async.
     for (dev=0; dev < ngpu; dev++) {
         // copy w to CPU
@@ -786,9 +788,9 @@ magmablas_zhemv_mgpu(
         magmaDoubleComplex       *dx_dev    = dwork[dev];
         magma_zgetvector_async( n, dx_dev + block_offset, 1, &hwork[dev*n], 1, queues[dev] );
     }
-    
+
     // see magmablas_zhemv_mgpu_sync for final row sums
-    
+
     magma_setdevice( orig_dev );
     return info;
 }
@@ -798,7 +800,7 @@ magmablas_zhemv_mgpu(
     Synchronizes and acculumates final zhemv result.
     For convenience, the parameters are identical to magmablas_zhemv_mgpu
     (though some are unused here).
-    
+
     @see magmablas_zhemv_mgpu
     @ingroup magma_hemv
 *******************************************************************************/
@@ -820,11 +822,11 @@ magmablas_zhemv_mgpu_sync(
 {
     const magmaDoubleComplex c_one = MAGMA_Z_ONE;
     const magma_int_t ione = 1;
-    
+
     magma_device_t dev;
-    
+
     magma_int_t lhwmin  = n*ngpu;
-    
+
     /*
      * Test the input parameters.
      */
@@ -851,31 +853,31 @@ magmablas_zhemv_mgpu_sync(
     } else if ( nb != NB_X ) {
         info = -17;
     }
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return info;
     }
-    
+
     /*
      * Quick return if possible.
      */
     if ( n == 0 )
         return info;
-    
+
     magma_device_t orig_dev;
     magma_getdevice( &orig_dev );
-    
+
     // scale y = beta*y
     blasf77_zscal( &n, &beta, y, &incy );
-    
+
     // sum reduce, y += sum( hwork )
     for (dev=0; dev < ngpu; ++dev) {
         magma_setdevice( dev );
         magma_queue_sync( queues[dev] );
         blasf77_zaxpy( &n, &c_one, &hwork[dev*n], &ione, y, &ione );
     }
-    
+
     magma_setdevice( orig_dev );
     return info;
 }

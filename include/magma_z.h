@@ -75,6 +75,7 @@ magma_int_t magma_get_zbulge_gcperf();
 // only applicable to real [sd] precisions
 magma_int_t
 magma_dsidi(
+    magma_uplo_t uplo,
     double *A, magma_int_t lda, magma_int_t n, magma_int_t *ipiv,
     double *det, magma_int_t *inert,
     double *work, magma_int_t job,
@@ -95,7 +96,67 @@ magma_zirange(
     magma_int_t k, magma_int_t *indxq, magma_int_t *iil, magma_int_t *iiu, magma_int_t il, magma_int_t iu);
 #endif  // MAGMA_REAL
 
-// ------------------------------------------------------------ zge routines
+// ---------------------------------------------------------------- zgb routines
+magma_int_t
+magma_zgbsv_native(
+        magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
+        magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* dipiv,
+        magmaDoubleComplex* dB, magma_int_t lddb,
+        magma_int_t *info);
+
+magma_int_t
+magma_zgbtf2_native_v2(
+    magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
+    magma_int_t* info, magma_queue_t queue);
+
+magma_int_t
+magma_zgbtf2_native_v2_work(
+    magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
+    magma_int_t* info,
+    void* device_work, magma_int_t* lwork,
+    magma_queue_t queue);
+
+void
+magma_zgbsv_native_work(
+        magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
+        magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* dipiv,
+        magmaDoubleComplex* dB, magma_int_t lddb,
+        magma_int_t *info, void* device_work, magma_int_t* lwork,
+        magma_queue_t queue);
+
+magma_int_t
+magma_zgbtf2_native(
+    magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
+    magma_int_t* info, magma_queue_t queue);
+
+magma_int_t
+magma_zgbtf2_native_work(
+    magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
+    magma_int_t* info,
+    void* device_work, magma_int_t* lwork,
+    magma_queue_t queue);
+
+magma_int_t
+magma_zgbtrf_native(
+    magma_int_t m, magma_int_t n,
+    magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex* dAB, magma_int_t lddab, magma_int_t* dipiv,
+    magma_int_t *info);
+
+void
+magma_zgbtrf_native_work(
+    magma_int_t m, magma_int_t n,
+    magma_int_t kl, magma_int_t ku,
+    magmaDoubleComplex* dAB, magma_int_t lddab,
+    magma_int_t* dipiv, magma_int_t *info,
+    void* device_work, magma_int_t* lwork,
+    magma_queue_t queue);
+
+// ---------------------------------------------------------------- zgb routines
 magma_int_t
 magma_zgebrd(
     magma_int_t m, magma_int_t n,
@@ -339,6 +400,17 @@ magma_zgeqrf_gpu(
     magmaDoubleComplex_ptr dT,
     magma_int_t *info);
 
+magma_int_t
+magma_zgeqrf_expert_gpu_work(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magmaDoubleComplex *tau, magmaDoubleComplex_ptr dT,
+    magma_int_t *info,
+    magma_mode_t mode, magma_int_t nb,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_queue_t queues[2] );
+
 // CUDA MAGMA only
 magma_int_t
 magma_zgeqrf_m(
@@ -489,20 +561,21 @@ magma_zgetf2_gpu(
     magma_queue_t queue,
     magma_int_t *info);
 
-magma_int_t 
-magma_zgetf2_native_fused( 
-    magma_int_t m, magma_int_t n, 
-    magmaDoubleComplex_ptr dA, magma_int_t ldda, 
-    magma_int_t *ipiv, magma_int_t gbstep, 
-    magma_int_t *flags, 
+magma_int_t
+magma_zgetf2_native_fused(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *ipiv, magma_int_t gbstep,
+    magma_int_t *flags,
     magma_int_t *info, magma_queue_t queue );
 
 magma_int_t
 magma_zgetf2_native(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
-    magma_int_t *dipiv, magma_int_t* dipivinfo, 
-    magma_int_t *dinfo, magma_int_t gbstep, 
+    magma_int_t *dipiv, magma_int_t* dipivinfo,
+    magma_int_t *dinfo, magma_int_t gbstep,
+    magma_event_t events[2],
     magma_queue_t queue, magma_queue_t update_queue);
 
 // CUDA MAGMA only
@@ -514,11 +587,11 @@ magma_zgetf2_nopiv(
 
 magma_int_t
 magma_zgetrf_recpanel_native(
-    magma_int_t m, magma_int_t n,    
+    magma_int_t m, magma_int_t n, magma_int_t recnb,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t* dipiv, magma_int_t* dipivinfo,
-    magma_int_t *dinfo, magma_int_t gbstep, 
-    magma_queue_t queue, magma_queue_t update_queue );
+    magma_int_t *dinfo, magma_int_t gbstep,
+    magma_event_t events[2], magma_queue_t queue, magma_queue_t update_queue);
 
 magma_int_t
 magma_zgetrf(
@@ -533,6 +606,25 @@ magma_zgetrf_gpu(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *ipiv,
     magma_int_t *info);
+
+magma_int_t
+magma_zgetrf_expert_gpu_work(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *ipiv,
+    magma_int_t *info, magma_mode_t mode,
+    magma_int_t nb, magma_int_t recnb,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_event_t events[2], magma_queue_t queues[2] );
+
+magma_int_t
+magma_zgetrf_gpu_expert(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *ipiv,
+    magma_int_t *info,
+    magma_int_t nb, magma_mode_t mode);
 
 magma_int_t
 magma_zgetrf_native(
@@ -1050,7 +1142,7 @@ magma_int_t
 magma_zhetrf_gpu(
    magma_uplo_t uplo, magma_int_t n,
    magmaDoubleComplex *dA, magma_int_t ldda,
-   magma_int_t *ipiv, 
+   magma_int_t *ipiv,
    magma_int_t *info);
 
 // CUDA MAGMA only
@@ -1390,9 +1482,16 @@ magma_zpotf2_gpu(
     magma_int_t *info);
 
 magma_int_t
+magma_zpotf2_native(
+    magma_uplo_t uplo, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t step, magma_int_t *device_info,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zpotrf_rectile_native(
-    magma_uplo_t uplo, magma_int_t n, magma_int_t recnb,    
-    magmaDoubleComplex* dA,    magma_int_t ldda, magma_int_t gbstep, 
+    magma_uplo_t uplo, magma_int_t n, magma_int_t recnb,
+    magmaDoubleComplex* dA,    magma_int_t ldda, magma_int_t gbstep,
     magma_int_t *dinfo,  magma_int_t *info, magma_queue_t queue);
 
 magma_int_t
@@ -1400,6 +1499,24 @@ magma_zpotrf(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex *A, magma_int_t lda,
     magma_int_t *info);
+
+magma_int_t
+magma_zpotrf_expert_gpu_work(
+    magma_uplo_t uplo, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *info,
+    magma_mode_t mode,
+    magma_int_t nb, magma_int_t recnb,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_event_t events[2], magma_queue_t queues[2] );
+
+magma_int_t
+magma_zpotrf_expert_gpu(
+    magma_uplo_t uplo, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *info,
+    magma_int_t nb, magma_mode_t mode );
 
 magma_int_t
 magma_zpotrf_gpu(
@@ -1817,6 +1934,30 @@ void magma_zq_to_panel(
     magma_uplo_t uplo, magma_int_t ib,
     magmaDoubleComplex *A, magma_int_t lda,
     magmaDoubleComplex *work);
+
+/* auxiliary routines for posv-irgmres  */
+void
+magmablas_zextract_diag_sqrt(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex* dA, magma_int_t ldda,
+    double* dD, magma_int_t incd,
+    magma_queue_t queue);
+
+void
+magmablas_zscal_shift_hpd(
+    magma_uplo_t uplo, int n,
+    magmaDoubleComplex* dA, int ldda,
+    double* dD, int incd,
+    double miu, double cn, double eps,
+    magma_queue_t queue);
+
+void
+magmablas_zdimv_invert(
+    magma_int_t n,
+    magmaDoubleComplex alpha, magmaDoubleComplex* dD, magma_int_t incd,
+                              magmaDoubleComplex* dx, magma_int_t incx,
+    magmaDoubleComplex beta,  magmaDoubleComplex* dy, magma_int_t incy,
+    magma_queue_t queue);
 
 #ifdef __cplusplus
 }

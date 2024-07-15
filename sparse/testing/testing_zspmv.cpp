@@ -35,6 +35,12 @@
 #include "magma_operators.h"
 #include "testings.h"
 
+#if CUDA_VERSION >= 12000
+  #define CUSPARSE_CSRMV_ALG2 CUSPARSE_SPMV_CSR_ALG2
+  #define CUSPARSE_CSRMV_ALG1 CUSPARSE_SPMV_CSR_ALG1
+  #define CUSPARSE_CSRMM_ALG1 CUSPARSE_SPMM_CSR_ALG1
+#endif
+
 #if CUDA_VERSION >= 11000
 // todo: destroy descriptor and see if the original code descriptors have to be changed 
 #define cusparseZcsrmv(handle, op, rows, cols, nnz, alpha, descr, dval, drow, dcol, x, beta, y) \
@@ -64,6 +70,16 @@
     }
 #endif
 
+#define PRECISION_z
+
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#if defined(MAGMA_HAVE_HIP)
+  #ifdef PRECISION_z
+    #define hipblasDoubleComplex hipDoubleComplex
+#elif defined(PRECISION_c)
+    #define hipblasComplex hipComplex
+  #endif
+#endif
 
 /* ////////////////////////////////////////////////////////////////////////////
    -- testing sparse matrix vector product
@@ -303,7 +319,7 @@ int main(  int argc, char** argv )
         for(magma_int_t k=0; k < hA.num_rows; k++ ){
             res = res + MAGMA_Z_ABS(hcheck.val[k] - hrefvec.val[k]);
         }
-        //res /= ref;
+        //res /= ref
         res = ref == 0 ? res : res / ref;
         if ( res < accuracy ) {
             printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (CSR5).\n",
@@ -324,10 +340,8 @@ int main(  int argc, char** argv )
 
 
         // SpMV on GPU (CUSPARSE - CSR)
-        // CUSPARSE context //
-
-        TESTING_CHECK( cusparseCreate( &cusparseHandle ));
-        TESTING_CHECK( cusparseSetStream( cusparseHandle, magma_queue_get_cuda_stream(queue) ));
+        // CUSPARSE context
+        cusparseHandle = magma_queue_get_cusparse_handle( queue );
         TESTING_CHECK( cusparseCreateMatDescr( &descr ));
              
         TESTING_CHECK( cusparseSetMatType( descr, CUSPARSE_MATRIX_TYPE_GENERAL ));
@@ -343,8 +357,9 @@ int main(  int argc, char** argv )
         start = magma_sync_wtime( queue );
         for (j=0; j < 200; j++) {
             cusparseZcsrmv(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE,
-                        hA.num_rows, hA.num_cols, hA.nnz, &alpha, descr,
-                        dA.dval, dA.drow, dA.dcol, dx.dval, &beta, dy.dval);
+                               hA.num_rows, hA.num_cols, hA.nnz, (cuDoubleComplex*)&alpha, descr,
+                               (cuDoubleComplex*)dA.dval, dA.drow, dA.dcol, (cuDoubleComplex*)dx.dval, 
+                               (cuDoubleComplex*)&beta, (cuDoubleComplex*)dy.dval);
         }
         end = magma_sync_wtime( queue );
 
@@ -372,7 +387,7 @@ int main(  int argc, char** argv )
         magma_zmfree( &dy, queue );
 
 
-#if CUDA_VERSION < 11000
+#if defined(MAGMA_HAVE_CUDA) && CUDA_VERSION < 11000
         // Test hybrid matix format for CUDA before version 11 ===
         cusparseHybMat_t hybA=NULL;
         TESTING_CHECK( cusparseCreateMatDescr( &descrA ));
@@ -419,8 +434,6 @@ int main(  int argc, char** argv )
 #endif // end test for HYB matrix format
 
         cusparseDestroyMatDescr( descr  );
-        cusparseDestroy( cusparseHandle );
-        cusparseHandle = NULL;
         descr = NULL;
         
         // print everything in matlab-readable output
@@ -429,10 +442,11 @@ int main(  int argc, char** argv )
         // printf("%% MKL cuSPARSE-CSR cuSPARSE-HYB  ELL SELLP  CSR5\n");
         // printf("%% runtime performance (GFLOP/s)\n");
         // printf("data = [\n");
-        printf(" %.2e %.2e\t %.2e %.2e\t %.2e %.2e\t %.2e %.2e\t %.2e %.2e\t %.2e %.2e\n",
+        printf(" MKL (sec GFlop/s)   cuCSR (s GFlop/s)   cuHYB (s GFlop/s)   ELL (sec GFlop/s)   Sell (s  GFlop/s)   CSR5 (s GFlop/s)\n");
+        printf("=====================================================================================================================\n");
+        printf(" %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e\n",
                  mkltime, mklgflops, cuCSRtime, cuCSRgflops, cuHYBtime, cuHYBgflops, 
                  elltime, ellgflops, sellptime, sellpgflops, csr5time, csr5gflops);
-        // printf("];\n");
 
         // free CPU memory
         magma_zmfree( &hA, queue );

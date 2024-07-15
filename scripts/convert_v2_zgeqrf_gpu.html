@@ -133,7 +133,7 @@ magma_zgeqrf_gpu(
     magmaDoubleComplex_ptr dT,
     magma_int_t *info )
 {
-    #<span class="new">ifdef HAVE_clBLAS
+    #<span class="new">ifdef MAGMA_HAVE_OPENCL
     #</span>define dA(<span class="strike"><span class="old">a_1</span></span><span class="new">i_</span>, <span class="strike"><span class="old">a_2</span></span><span class="new">j_</span>)  <span class="strike"><span class="old">(</span></span>dA<span class="new">, (dA_offset</span> + (<span class="strike"><span class="old">a_2</span></span><span class="new">i_</span>) <span class="strike"><span class="old">*</span></span><span class="new">+</span> (<span class="strike"><span class="old">ldda</span></span><span class="new">j_</span>)<span class="strike"><span class="old">+</span></span><span class="new">*</span>(<span class="strike"><span class="old">a_1</span></span><span class="new">ldda</span>))
     #define dT(<span class="strike"><span class="old">a_1</span></span><span class="new">i_</span>)      <span class="strike"><span class="old">(</span></span>dT<span class="new">, (dT_offset</span> + (<span class="strike"><span class="old">a_1</span></span><span class="new">i_</span>)*nb)
     #define <span class="strike"><span class="old">d_ref</span></span><span class="new">dUT</span>(<span class="strike"><span class="old">a_1</span></span><span class="new">i_</span>)     <span class="strike"><span class="old">(</span></span>dT<span class="new">, (dT_offset</span> + (  minmn + (<span class="strike"><span class="old">a_1</span></span><span class="new">i_</span>))*nb)

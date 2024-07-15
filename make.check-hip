@@ -1,0 +1,19 @@
+# check for ROCM directory and give user hint how to set it
+ifeq ($(ROCM_PATH),)
+    rocm := $(shell which hipcc | perl -pe 's|/bin/hipcc||')
+    ifeq ($(rocm),)
+        rocm := /opt/rocm
+    endif
+    $(error Set $$ROCM_PATH, preferably in your environment, e.g., run "export ROCM_PATH=/opt/rocm" in ~/.bashrc, or "setenv ROCM_PATH $(rocm)" in ~/.cshrc)
+endif
+
+ifeq ($(wildcard $(ROCM_PATH)),)
+$(error $$ROCM_PATH=$(ROCM_PATH) does not exist. Please set $$ROCM_PATH to where ROCM is installed. (normally in /opt/rocm))
+endif
+
+# don't compile ROCM platform on CUDA
+ifeq ($(shell hipconfig 2>&1 | grep '^HIP_PLATFORM' | rev | cut -d' ' -f1 | rev),nvcc)
+$(warning Specified 'BACKEND=hip', but the ROCm platform gave 'nvcc', which means you're using HIP on NVIDIA (this is not recommended; try setting 'BACKEND' to 'cuda'))
+endif
+
+

@@ -11,12 +11,17 @@
 #include <cuda.h>    // for CUDA_VERSION
 #include "magma_internal.h"
 
+#if defined(MAGMA_HAVE_HIP)
+#include <hip/hip_fp16.h>
+#endif
+
 #define BLK_X 32
 #define BLK_Y 4
 #define MAX_BATCH    65000
 
-static __device__ magma_int_t flag = 0;
-static __device__ magma_int_t flag_array[ MAX_BATCH ] = { 0 };
+// TODO: static is not working for HIP; removed from cuda as well
+__device__ magma_int_t magma_flag = 0;
+__device__ magma_int_t magma_flag_array[ MAX_BATCH ] = { 0 };
 /******************************************************************************/
 __device__
 void slag2h_device(
@@ -25,24 +30,20 @@ void slag2h_device(
     magmaHalf *HA,  int ldha,
     float rmax, magma_int_t* dinfo)
 {
-#if CUDA_VERSION >= 7500
+#if CUDA_VERSION >= 7500 || defined(MAGMA_HAVE_HIP)
     const int gtx = blockIdx.x * BLK_X + threadIdx.x;
     const int gty = blockIdx.y * BLK_Y + threadIdx.y;
 
     float tmp;
     float neg_rmax = - rmax;
 
-    for(int j = 0; j < n; j += gridDim.y) {
-        const int gty_ = gty + j;
-        for(int i = 0; i < m; i+= gridDim.x){
-            const int gtx_ = gtx + i;
-            if(gtx_ < m && gty_ < n){
-                tmp = A[gty_ * lda + gtx_];
-                if ( (MAGMA_S_REAL(tmp) < neg_rmax) || (MAGMA_S_REAL(tmp) > rmax) ) {
-                    *dinfo  = 1;
-                }
-                HA[gty_ * ldha + gtx_] = __float2half( tmp );
+    for(int j = gty; j < n; j += gridDim.y * BLK_Y) {
+        for(int i = gtx; i < m; i+= gridDim.x * BLK_X){
+            tmp = A[j * lda + i];
+            if ( (MAGMA_S_REAL(tmp) < neg_rmax) || (MAGMA_S_REAL(tmp) > rmax) ) {
+                *dinfo  = 1;
             }
+            HA[j * ldha + i] = __float2half( tmp );
         }
     }
 #endif
@@ -51,6 +52,7 @@ void slag2h_device(
 
 /******************************************************************************/
 __global__
+__launch_bounds__(BLK_X*BLK_Y)
 void slag2h_kernel(
         int m, int n,
         float const *dA, int lda,
@@ -63,6 +65,7 @@ void slag2h_kernel(
 
 /******************************************************************************/
 __global__
+__launch_bounds__(BLK_X*BLK_Y)
 void slag2h_kernel_batched(
         int m, int n,
         float const * const * dAarray, int lda,
@@ -102,7 +105,7 @@ magmablas_slag2h(
         return;
     }
 
-    cudaMemcpyToSymbol( flag, info, sizeof(flag) );    // flag = 0
+    cudaMemcpyToSymbol( magma_flag, info, sizeof(magma_flag) );    // magma_flag = 0
 
     // there is no lapackf77_hlamch, please visit:
     // https://blogs.mathworks.com/cleve/2017/05/08/half-precision-16-bit-floating-point-arithmetic/
@@ -112,9 +115,9 @@ magmablas_slag2h(
     dim3 grid( magma_ceildiv(m, BLK_X), min(65000, magma_ceildiv(n, BLK_Y)), 1);
 
     slag2h_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
-    ( m, n, dA, lda, dHA, ldha, rmax, &flag );
+    ( m, n, dA, lda, dHA, ldha, rmax, &magma_flag );
 
-    cudaMemcpyFromSymbol( info, flag, sizeof(flag) );  // info = flag
+    cudaMemcpyFromSymbol( info, magma_flag, sizeof(magma_flag) );  // info = magma_flag
 
 }
 
@@ -158,12 +161,12 @@ magmablas_slag2h_batched(
     const int maxBatch = MAX_BATCH;
     for(int i = 0; i < batchCount; i+=maxBatch){
         magma_int_t batch = min(maxBatch, batchCount-i);
-        cudaMemcpyToSymbol( flag_array, info_array + i, sizeof(magma_int_t) );
+        cudaMemcpyToSymbol( magma_flag_array, info_array + i, sizeof(magma_int_t) );
 
         dim3 grid( magma_ceildiv(m, BLK_X), magma_ceildiv(n, BLK_Y), batch);
         slag2h_kernel_batched<<< grid, threads, 0, queue->cuda_stream() >>>
-        ( m, n, dAarray + i, lda, dHAarray + i, ldha, rmax, flag_array, queue);
+        ( m, n, dAarray + i, lda, dHAarray + i, ldha, rmax, magma_flag_array, queue);
 
-        cudaMemcpyFromSymbol( info_array + i, flag_array, sizeof(magma_int_t) );
+        cudaMemcpyFromSymbol( info_array + i, magma_flag_array, sizeof(magma_int_t) );
     }
 }

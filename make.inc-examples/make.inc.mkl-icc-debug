@@ -14,11 +14,12 @@
 #     Pascal         - NVIDIA compute capability 6.x cards
 #     Volta/Turing   - NVIDIA compute capability 7.x cards
 #     Ampere         - NVIDIA compute capability 8.x cards
-# The default is "Kepler Maxwell Pascal".
+#     Hopper         - NVIDIA compute capability 9.x cards
+# The default is "Volta Turing Ampere".
 # Note that NVIDIA no longer supports 1.x cards, as of CUDA 6.5.
 # See http://developer.nvidia.com/cuda-gpus
 #
-#GPU_TARGET ?= Kepler Maxwell Pascal
+GPU_TARGET ?= Volta Turing Ampere
 
 # --------------------
 # programs

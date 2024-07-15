@@ -179,6 +179,7 @@ magma_zgelqf(
     }
 
     // factor QR
+    magma_queue_sync(queue);
     magma_zgeqrf2_gpu( n, m, dAT(0,0), lddat, tau, &iinfo );
     assert( iinfo >= 0 );
     if ( iinfo > 0 ) {

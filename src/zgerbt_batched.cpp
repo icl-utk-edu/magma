@@ -48,7 +48,7 @@ init_butterfly(
 
     Arguments
     ---------
-    
+
     @param[in]
     gen     magma_bool_t
      -         = MagmaTrue:     new matrices are generated for U and V
@@ -77,7 +77,7 @@ init_butterfly(
 
     @param[in,out]
     dB_array   Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array on the GPU, dimension (LDDB,N).
+            Each is a COMPLEX_16 array on the GPU, dimension (LDDB,NRHS).
             On entry, each pointer is an right hand side matrix B.
             On exit, each pointer is the solution matrix X.
 
@@ -123,12 +123,11 @@ magma_zgerbt_batched(
     magma_int_t *info, magma_int_t batchCount, magma_queue_t queue)
 {
     magmaDoubleComplex *du, *dv;
-    magma_int_t i;
-    
+
     /* Function Body */
     *info = 0;
     if ( ! (gen == MagmaTrue) &&
-            ! (gen == MagmaFalse) ) {
+         ! (gen == MagmaFalse) ) {
         *info = -1;
     }
     else if (n < 0) {
@@ -172,10 +171,7 @@ magma_zgerbt_batched(
     magmablas_zprbt_batched(n, dA_array, ldda, du, dv, batchCount, queue);
 
     /* Compute U^T.b on the GPU*/
-
-    // TODO fix for multiple RHS
-    for (i= 0; i < nrhs; i++)
-        magmablas_zprbt_mtv_batched(n, du, dB_array, batchCount, queue);
+    magmablas_zprbt_mtv_batched(n, nrhs, du, dB_array, lddb, batchCount, queue);
 
     magma_free( du );
     magma_free( dv );

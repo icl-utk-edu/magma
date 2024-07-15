@@ -72,7 +72,7 @@ magma_ztrtri(
 {
     #define  A(i_, j_) ( A + (i_) + (j_)*lda )
     
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_, j_)  dA, ((i_) + (j_)*ldda)
     #else
     #define dA(i_, j_) (dA + (i_) + (j_)*ldda)

@@ -12,7 +12,7 @@
 */
 #include "magma_internal.h"
 
-#ifdef HAVE_clBLAS
+#ifdef MAGMA_HAVE_OPENCL
     #define dA( dev, i_, j_ )  dA[dev], ((i_) + (j_)*ldda)
 #else
     #define dA( dev, i_, j_ ) (dA[dev] + (i_) + (j_)*ldda)

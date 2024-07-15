@@ -101,7 +101,7 @@ magma_zgeqrf(
 {
     #define  A(i_,j_)  (A + (i_) + (j_)*lda)
     
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_,j_)  dA,    ((i_) + (j_)*ldda + dA_offset)
     #define dT(i_,j_)  dT,    ((i_) + (j_)*nb   + dT_offset)
     #define dwork(i_)  dwork, ((i_)             + dwork_offset)
@@ -145,6 +145,12 @@ magma_zgeqrf(
     min_mn = min( m, n );
     if (min_mn == 0) {
         work[0] = c_one;
+        return *info;
+    }
+    
+    if (nb <= 1 || 4*nb >= min(m,n) ) {
+        /* Use CPU code. */
+        lapackf77_zgeqrf( &m, &n, A, &lda, tau, work, &lwork, info );
         return *info;
     }
     

@@ -10,7 +10,6 @@
 
    @precisions normal z -> s d c
 */
-#include <cuda_runtime.h>
 
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
@@ -82,12 +81,12 @@
 extern "C" magma_int_t
 magma_zgetrf_batched(
         magma_int_t m, magma_int_t n,
-        magmaDoubleComplex **dA_array, 
+        magmaDoubleComplex **dA_array,
         magma_int_t ldda,
-        magma_int_t **ipiv_array, magma_int_t *info_array, 
+        magma_int_t **ipiv_array, magma_int_t *info_array,
         magma_int_t batchCount, magma_queue_t queue)
 {
-#define dAarray(i_, j_)  dA_array, i_, j_   
+#define dAarray(i_, j_)  dA_array, i_, j_
 #define ipiv_array(i_)    ipiv_array, i_
 
     magma_int_t min_mn = min(m, n);
@@ -110,17 +109,11 @@ magma_zgetrf_batched(
         if (min_mn == 0 ) return arginfo;
 
     /* Special case for tiny square matrices */
-    if( m == n && m <= 32 ){
-        magma_int_t arch = magma_getdevice_arch();
-        if(arch >= 700){
-            return magma_zgetrf_batched_smallsq_noshfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );
-        }
-        else{
-            return magma_zgetrf_batched_smallsq_shfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );
-        }
-    }
+    if( m == n && m <= 32 )
+        return magma_zgetrf_batched_smallsq_noshfl( m, dA_array, ldda, ipiv_array, info_array, batchCount, queue );
 
-    cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
+    //cudaMemset(info_array, 0, batchCount*sizeof(magma_int_t));
+    magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
 
     if ( m >  2048 || n > 2048 ) {
         #ifndef MAGMA_NOWARNING
@@ -137,7 +130,7 @@ magma_zgetrf_batched(
     magma_get_zgetrf_batched_nbparam(n, &nb, &recnb);
 
     magma_int_t **pivinfo_array    = NULL;
-    magma_int_t *pivinfo           = NULL; 
+    magma_int_t *pivinfo           = NULL;
     magma_imalloc( &pivinfo, batchCount*m );
     magma_malloc((void**)&pivinfo_array, batchCount * sizeof(*pivinfo_array));
 
@@ -153,17 +146,17 @@ magma_zgetrf_batched(
     magma_iset_pointer( pivinfo_array, pivinfo, 1, 0, 0, m, batchCount, queue );
 
 
-    for (i = 0; i < min_mn; i += nb) 
+    for (i = 0; i < min_mn; i += nb)
     {
         ib = min(nb, min_mn-i);
         pm = m-i;
         // panel
         arginfo = magma_zgetrf_recpanel_batched(
-                    pm, ib, recnb, 
-                    dAarray(i, i), ldda, 
-                    ipiv_array, pivinfo_array, 
+                    pm, ib, recnb,
+                    dAarray(i, i), ldda,
+                    ipiv_array, pivinfo_array,
                     info_array, i, batchCount, queue);
-        
+
         if (arginfo != 0 ) goto fin;
 
         // setup pivinfo before adjusting ipiv
@@ -171,41 +164,41 @@ magma_zgetrf_batched(
         adjust_ipiv_batched(ipiv_array(i), ib, i, batchCount, queue);
 
         // swap left
-        magma_zlaswp_rowparallel_batched( 
-                i, 
+        magma_zlaswp_rowparallel_batched(
+                i,
                 dAarray(i, 0), ldda,
                 dAarray(i, 0), ldda,
                 i, i+ib,
                 pivinfo_array, batchCount, queue );
 
         if ( (i + ib) < n){
-            // swap right      
-            magma_zlaswp_rowparallel_batched( 
-                    n-(i+ib), 
+            // swap right
+            magma_zlaswp_rowparallel_batched(
+                    n-(i+ib),
                     dAarray(i,i+ib), ldda,
-                    dAarray(i,i+ib), ldda, 
+                    dAarray(i,i+ib), ldda,
                     i, i+ib,
                     pivinfo_array, batchCount, queue );
 
             // trsm
             magmablas_ztrsm_recursive_batched(
-                MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit, 
-                ib, n-i-ib, MAGMA_Z_ONE, 
-                dAarray(i,   i), ldda, 
-                dAarray(i,i+ib), ldda,  
+                MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit,
+                ib, n-i-ib, MAGMA_Z_ONE,
+                dAarray(i,   i), ldda,
+                dAarray(i,i+ib), ldda,
                 batchCount, queue );
 
 
 
             if ( (i + ib) < m){
                 // gemm update
-                magma_zgemm_batched_core( 
-                        MagmaNoTrans, MagmaNoTrans, m-i-ib, n-i-ib, ib, 
-                        c_neg_one, dAarray(i+ib, i   ),  ldda, 
-                                   dAarray(i   , i+ib), ldda, 
-                        c_one,     dAarray(i+ib, i+ib), ldda, 
+                magma_zgemm_batched_core(
+                        MagmaNoTrans, MagmaNoTrans, m-i-ib, n-i-ib, ib,
+                        c_neg_one, dAarray(i+ib, i   ),  ldda,
+                                   dAarray(i   , i+ib), ldda,
+                        c_one,     dAarray(i+ib, i+ib), ldda,
                         batchCount, queue );
-            } // end of  if ( (i + ib) < m) 
+            } // end of  if ( (i + ib) < m)
         } // end of if ( (i + ib) < n)
     }// end of for
 

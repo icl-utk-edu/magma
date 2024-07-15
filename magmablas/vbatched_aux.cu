@@ -8,7 +8,7 @@
        @author Mark Gates
        @author Azzam Haidar
        @author Ahmad Abdelfattah
-       
+
 */
 
 #include "magma_internal.h"
@@ -19,31 +19,98 @@
 // =============================================================================
 // Auxiliary functions for vbatched routines
 
+/******************************************************************************/
+// lu setup
+// for a batch of different size matrices, extracts important info such as:
+// max_m, max_n, max_min_mn, max_mxn (biggest matrix)
+__global__
+void magma_getrf_vbatched_setup_kernel( magma_int_t *m, magma_int_t *n, magma_int_t *stats, int batchCount )
+{
+    extern __shared__ int sdata[];
+    const int tx  = threadIdx.x;
+    const int ntx = blockDim.x;
+    int im = 0, in = 0, max_m = 0, max_n = 0, max_min_mn = 0, max_mxn = 0;
+
+    // shared ptr's
+    int* smax_m      = (int*)sdata;
+    int* smax_n      = smax_m + ntx;
+    int* smax_min_mn = smax_n + ntx;
+    int* smax_mxn    = smax_min_mn + ntx;
+
+    for(int i = tx; i < batchCount; i+=ntx) {
+        im = (int)m[i];
+        in = (int)n[i];
+        max_m      = max(max_m, im);
+        max_n      = max(max_n, in);
+        max_min_mn = max(max_min_mn, min(im, in));
+        max_mxn    = max(max_mxn, im*in);
+    }
+
+    smax_m[tx]      = max_m;
+    smax_n[tx]      = max_n;
+    smax_min_mn[tx] = max_min_mn;
+    smax_mxn[tx]    = max_mxn;
+    __syncthreads();
+
+    // max reduce
+    #pragma unroll
+    for(int i = 1024; i > 0; i >>= 1) {
+        if(ntx > i) {
+            if ( tx < i && tx + i < ntx ) {
+                smax_m[tx]      = max( smax_m[tx], smax_m[tx+i] );
+                smax_n[tx]      = max( smax_n[tx], smax_n[tx+i] );
+                smax_min_mn[tx] = max( smax_min_mn[tx], smax_min_mn[tx+i] );
+                smax_mxn[tx]    = max( smax_mxn[tx], smax_mxn[tx+i] );
+            }
+        }
+        __syncthreads();
+    }
+
+    stats[0] = (magma_int_t)smax_m[0];
+    stats[1] = (magma_int_t)smax_n[0];
+    stats[2] = (magma_int_t)smax_min_mn[0];
+    stats[3] = (magma_int_t)smax_mxn[0];
+}
+
+//----------------
+// kernel driver
+//----------------
+extern "C"
+void magma_getrf_vbatched_setup(
+            magma_int_t *m, magma_int_t *n, magma_int_t *stats,
+            magma_int_t batchCount, magma_queue_t queue )
+{
+    const int nthreads =  min(batchCount, 512);
+    const int shmem    = nthreads * 4 * sizeof(int);
+    magma_getrf_vbatched_setup_kernel<<<1, nthreads, shmem, queue->cuda_stream()>>>
+    ( m, n, stats, batchCount );
+}
+
 
 /******************************************************************************/
 // max reduce kernel
 // 1) set overwrite to 0 ==> result is written to y and x is untouched
-//    set overwrite to 1 ==> result is written to x (x is destroyed) 
-// Each thread block gets the max of <MAX_REDUCE_SEGMENT> elements and 
+//    set overwrite to 1 ==> result is written to x (x is destroyed)
+// Each thread block gets the max of <MAX_REDUCE_SEGMENT> elements and
 // writes it to the workspace
 #define MAX_REDUCE_SEGMENT    (512)    // must be even
 #define MAX_REDUCE_TX         (MAX_REDUCE_SEGMENT/2)
-    
-__global__ 
-void magma_ivec_max_kernel( int vecsize, 
-                              magma_int_t* x, magma_int_t* y, 
+
+__global__
+void magma_ivec_max_kernel( int vecsize,
+                              magma_int_t* x, magma_int_t* y,
                               int overwrite)
 {
     const int tx  = threadIdx.x;
     const int bx  = blockIdx.x;
     const int gtx = bx * MAX_REDUCE_SEGMENT + tx;
-    
+
     __shared__ int swork[MAX_REDUCE_SEGMENT];
-        
+
     // init shmem
     swork[tx] = 0;
     swork[tx + MAX_REDUCE_TX] = 0;
-    
+
     // read the input segment into swork
     if(gtx < vecsize)swork[tx] = (int)x[gtx];
     if( (gtx + MAX_REDUCE_TX) < vecsize ) swork[tx + MAX_REDUCE_TX] = (int)x[gtx + MAX_REDUCE_TX];
@@ -64,9 +131,9 @@ void magma_ivec_max_kernel( int vecsize,
 //----------------
 // kernel driver
 //----------------
-extern "C" 
-magma_int_t magma_ivec_max( magma_int_t vecsize, 
-                              magma_int_t* x, 
+extern "C"
+magma_int_t magma_ivec_max( magma_int_t vecsize,
+                              magma_int_t* x,
                               magma_int_t* work, magma_int_t lwork, magma_queue_t queue)
 {
     dim3 threads(MAX_REDUCE_TX, 1, 1);
@@ -75,17 +142,17 @@ magma_int_t magma_ivec_max( magma_int_t vecsize,
         printf("error in %s: lwork must be at least %lld, input is %lld\n",
                __func__, (long long) grid.x, (long long) lwork );
     }
-    
+
     magma_ivec_max_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, work, 0);
     magma_int_t new_vecsize = grid.x;
-    
+
     while(new_vecsize > 1)
     {
         grid.x = magma_ceildiv( new_vecsize, MAX_REDUCE_SEGMENT );
-        magma_ivec_max_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(new_vecsize, work, NULL, 1);
+        magma_ivec_max_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(new_vecsize, work, (magma_int_t*)NULL, 1);
         new_vecsize = grid.x;
     }
-    
+
     // copy the result to cpu and return it
     magma_int_t vecmax = 0;
     magma_getvector(1, sizeof(magma_int_t), work, 1, &vecmax, 1, queue);
@@ -97,27 +164,27 @@ magma_int_t magma_ivec_max( magma_int_t vecsize,
 // integer sum (isum) reduce kernel
 // initially needed for vbatched trsm
 // 1) set overwrite to 0 ==> result is written to y and x is untouched
-//    set overwrite to 1 ==> result is written to x (x is destroyed) 
-// Each thread block gets the custom sum of <ISUM_REDUCE_SEGMENT> elements and 
+//    set overwrite to 1 ==> result is written to x (x is destroyed)
+// Each thread block gets the custom sum of <ISUM_REDUCE_SEGMENT> elements and
 // writes it to the workspace
 #define ISUM_REDUCE_SEGMENT    (512)    // must be even
 #define ISUM_REDUCE_TX         (ISUM_REDUCE_SEGMENT/2)
 
-__global__ 
-void magma_isum_reduce_kernel( int vecsize, 
-                              magma_int_t* x, magma_int_t* y, 
+__global__
+void magma_isum_reduce_kernel( int vecsize,
+                              magma_int_t* x, magma_int_t* y,
                               int overwrite)
 {
     const int tx  = threadIdx.x;
     const int bx  = blockIdx.x;
     const int gtx = bx * ISUM_REDUCE_SEGMENT + tx;
-    
+
     __shared__ int swork[ISUM_REDUCE_SEGMENT];
-        
+
     // init shmem
     swork[tx] = 0;
     swork[tx + ISUM_REDUCE_TX] = 0;
-    
+
     // read the input segment into swork
     if(gtx < vecsize)swork[tx] = (int)(x[gtx]);
     if( (gtx + ISUM_REDUCE_TX) < vecsize ) swork[tx + ISUM_REDUCE_TX] = (int)(x[gtx + ISUM_REDUCE_TX]);
@@ -138,9 +205,9 @@ void magma_isum_reduce_kernel( int vecsize,
 //----------------
 // kernel driver
 //----------------
-extern "C" 
-magma_int_t magma_isum_reduce( magma_int_t vecsize, 
-                              magma_int_t* x, 
+extern "C"
+magma_int_t magma_isum_reduce( magma_int_t vecsize,
+                              magma_int_t* x,
                               magma_int_t* work, magma_int_t lwork, magma_queue_t queue)
 {
     dim3 threads(ISUM_REDUCE_TX, 1, 1);
@@ -149,17 +216,17 @@ magma_int_t magma_isum_reduce( magma_int_t vecsize,
         printf("error in %s: lwork must be at least %lld, input is %lld\n",
                __func__, (long long) grid.x, (long long) lwork );
     }
-    
+
     magma_isum_reduce_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, work, 0);
     magma_int_t new_vecsize = grid.x;
-    
+
     while(new_vecsize > 1)
     {
         grid.x = magma_ceildiv( new_vecsize, ISUM_REDUCE_SEGMENT );
-        magma_isum_reduce_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(new_vecsize, work, NULL, 1);
+        magma_isum_reduce_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(new_vecsize, work, (magma_int_t*)NULL, 1);
         new_vecsize = grid.x;
     }
-    
+
     // copy the result to cpu and return it
     magma_int_t isum = 0;
     magma_getvector(1, sizeof(magma_int_t), work, 1, &isum, 1, queue);
@@ -169,10 +236,10 @@ magma_int_t magma_isum_reduce( magma_int_t vecsize,
 
 /******************************************************************************/
 // y[i] = a1 * x1[i] + a2 * x2[i]
-__global__ 
-void magma_ivec_add_kernel( int vecsize, 
-                                  magma_int_t a1, magma_int_t *x1, 
-                                  magma_int_t a2, magma_int_t *x2, 
+__global__
+void magma_ivec_add_kernel( int vecsize,
+                                  magma_int_t a1, magma_int_t *x1,
+                                  magma_int_t a2, magma_int_t *x2,
                                   magma_int_t *y)
 {
     const int indx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -185,10 +252,10 @@ void magma_ivec_add_kernel( int vecsize,
 //----------------
 // kernel driver
 //----------------
-extern "C" 
-void magma_ivec_add( magma_int_t vecsize, 
-                           magma_int_t a1, magma_int_t *x1, 
-                           magma_int_t a2, magma_int_t *x2, 
+extern "C"
+void magma_ivec_add( magma_int_t vecsize,
+                           magma_int_t a1, magma_int_t *x1,
+                           magma_int_t a2, magma_int_t *x2,
                            magma_int_t *y, magma_queue_t queue)
 {
     dim3 threads(BLK_X, 1, 1);
@@ -199,10 +266,10 @@ void magma_ivec_add( magma_int_t vecsize,
 
 /******************************************************************************/
 // y[i] = x1[i] * x2[i]
-__global__ 
-void magma_ivec_mul_kernel( int vecsize, 
-                                  magma_int_t *x1, 
-                                  magma_int_t *x2, 
+__global__
+void magma_ivec_mul_kernel( int vecsize,
+                                  magma_int_t *x1,
+                                  magma_int_t *x2,
                                   magma_int_t *y)
 {
     const int indx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -215,9 +282,9 @@ void magma_ivec_mul_kernel( int vecsize,
 //----------------
 // kernel driver
 //----------------
-extern "C" 
-void magma_ivec_mul( magma_int_t vecsize, 
-                           magma_int_t *x1, magma_int_t *x2, 
+extern "C"
+void magma_ivec_mul( magma_int_t vecsize,
+                           magma_int_t *x1, magma_int_t *x2,
                            magma_int_t *y, magma_queue_t queue)
 {
     dim3 threads(BLK_X, 1, 1);
@@ -240,22 +307,22 @@ __global__ void magma_ivec_ceildiv_kernel(int vecsize, magma_int_t *x, int nb, m
 //----------------
 // kernel driver
 //----------------
-extern "C" 
-void magma_ivec_ceildiv( magma_int_t vecsize, 
-                        magma_int_t *x, 
-                        magma_int_t nb, 
+extern "C"
+void magma_ivec_ceildiv( magma_int_t vecsize,
+                        magma_int_t *x,
+                        magma_int_t nb,
                         magma_int_t *y, magma_queue_t queue)
 {
     dim3 threads(BLK_X);
     dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1);
-    
+
     magma_ivec_ceildiv_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, nb, y);
 }
 
 
 /******************************************************************************/
 // roundup
-__global__ 
+__global__
 void magma_ivec_roundup_kernel(int vecsize, magma_int_t *x, int nb, magma_int_t *y)
 {
     const int indx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -268,15 +335,15 @@ void magma_ivec_roundup_kernel(int vecsize, magma_int_t *x, int nb, magma_int_t 
 //----------------
 // kernel driver
 //----------------
-extern "C" 
-void magma_ivec_roundup( magma_int_t vecsize, 
-                        magma_int_t *x, 
-                        magma_int_t nb, 
+extern "C"
+void magma_ivec_roundup( magma_int_t vecsize,
+                        magma_int_t *x,
+                        magma_int_t nb,
                         magma_int_t *y, magma_queue_t queue)
 {
     dim3 threads(BLK_X);
     dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1);
-    
+
     magma_ivec_roundup_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, nb, y);
 }
 
@@ -284,7 +351,7 @@ void magma_ivec_roundup( magma_int_t vecsize,
 /******************************************************************************/
 // set vector to a const value
 template<typename T>
-__global__ 
+__global__
 void magma_setvector_const_gpu_kernel(int vecsize, T *x, T value)
 {
     const int indx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -297,128 +364,128 @@ void magma_setvector_const_gpu_kernel(int vecsize, T *x, T value)
 //----------------
 // kernel drivers
 //----------------
-extern "C" 
-void magma_ivec_setc( magma_int_t vecsize, 
-                                magma_int_t *x, 
-                                magma_int_t value, 
+extern "C"
+void magma_ivec_setc( magma_int_t vecsize,
+                                magma_int_t *x,
+                                magma_int_t value,
                                 magma_queue_t queue)
 {
     dim3 threads(BLK_X);
     dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1);
-    
+
     magma_setvector_const_gpu_kernel<magma_int_t><<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, value);
 }
 
 //---------------
-extern "C" 
-void magma_zsetvector_const( magma_int_t vecsize, 
-                                magmaDoubleComplex *x, 
-                                magmaDoubleComplex value, 
+extern "C"
+void magma_zsetvector_const( magma_int_t vecsize,
+                                magmaDoubleComplex *x,
+                                magmaDoubleComplex value,
                                 magma_queue_t queue)
 {
     dim3 threads(BLK_X);
     dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1);
-    
+
     magma_setvector_const_gpu_kernel<magmaDoubleComplex><<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, value);
 }
 
 //---------------
-extern "C" 
-void magma_csetvector_const( magma_int_t vecsize, 
-                                magmaFloatComplex *x, 
-                                magmaFloatComplex value, 
+extern "C"
+void magma_csetvector_const( magma_int_t vecsize,
+                                magmaFloatComplex *x,
+                                magmaFloatComplex value,
                                 magma_queue_t queue)
 {
     dim3 threads(BLK_X);
     dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1);
-    
+
     magma_setvector_const_gpu_kernel<magmaFloatComplex><<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, value);
 }
 
 //---------------
-extern "C" 
-void magma_dsetvector_const( magma_int_t vecsize, 
-                                double *x, 
-                                double value, 
+extern "C"
+void magma_dsetvector_const( magma_int_t vecsize,
+                                double *x,
+                                double value,
                                 magma_queue_t queue)
 {
     dim3 threads(BLK_X);
     dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1);
-    
+
     magma_setvector_const_gpu_kernel<double><<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, value);
 }
 
 //---------------
-extern "C" 
-void magma_ssetvector_const( magma_int_t vecsize, 
-                                float *x, 
-                                float value, 
+extern "C"
+void magma_ssetvector_const( magma_int_t vecsize,
+                                float *x,
+                                float value,
                                 magma_queue_t queue)
 {
     dim3 threads(BLK_X);
     dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1);
-    
+
     magma_setvector_const_gpu_kernel<float><<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, value);
 }
 
 
 /******************************************************************************/
 // performs addition with a const value
-__global__ 
+__global__
 void magma_ivec_addc_kernel(int vecsize, magma_int_t *x, int value, magma_int_t *y)
 {
     const int indx = blockIdx.x * blockDim.x + threadIdx.x;
     if(indx < vecsize)
     {
-        y[indx] = (x[indx] + (magma_int_t)value); 
+        y[indx] = (x[indx] + (magma_int_t)value);
     }
 }
 
 //----------------
 // kernel driver
 //----------------
-extern "C" 
+extern "C"
 void magma_ivec_addc(magma_int_t vecsize, magma_int_t *x, magma_int_t value, magma_int_t *y, magma_queue_t queue)
 {
     dim3 threads(BLK_X);
     dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1);
-    
+
     magma_ivec_addc_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, value, y);
 }
 
 
 /******************************************************************************/
 // performs multiplication with a const value
-__global__ 
+__global__
 void magma_ivec_mulc_kernel(int vecsize, magma_int_t *x, int value, magma_int_t *y)
 {
     const int indx = blockIdx.x * blockDim.x + threadIdx.x;
     if(indx < vecsize)
     {
-        y[indx] = (x[indx] * (magma_int_t)value); 
+        y[indx] = (x[indx] * (magma_int_t)value);
     }
 }
 
 //----------------
 // kernel driver
 //----------------
-extern "C" 
+extern "C"
 void magma_ivec_mulc(magma_int_t vecsize, magma_int_t *x, magma_int_t value, magma_int_t *y, magma_queue_t queue)
 {
     dim3 threads(BLK_X);
     dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1);
-    
+
     magma_ivec_mulc_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, value, y);
 }
 
 
 /******************************************************************************/
 // performs a min. operation against a const value
-__global__ 
+__global__
 void magma_ivec_minc_kernel(int vecsize, magma_int_t *x, int value, magma_int_t *y)
 {
     const int indx = blockIdx.x * blockDim.x + threadIdx.x;
-    const magma_int_t value_l = (magma_int_t)value; 
+    const magma_int_t value_l = (magma_int_t)value;
     if(indx < vecsize)
     {
         y[indx] = ( value_l < x[indx] )? value_l : x[indx];
@@ -428,23 +495,47 @@ void magma_ivec_minc_kernel(int vecsize, magma_int_t *x, int value, magma_int_t 
 //----------------
 // kernel driver
 //----------------
-extern "C" 
+extern "C"
 void magma_ivec_minc(magma_int_t vecsize, magma_int_t *x, magma_int_t value, magma_int_t *y, magma_queue_t queue)
 {
     dim3 threads(BLK_X, 1, 1);
     dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1, 1);
-    
+
     magma_ivec_minc_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, value, y);
 }
 
 
 /******************************************************************************/
+// performs an element-wise min. operation between two vectors
+// result is stored in another vector (could be either of the two input vectors)
+__global__
+void magma_ivec_min_vv_kernel(int vecsize, magma_int_t *v1, magma_int_t *v2, magma_int_t *y)
+{
+    const int indx = blockIdx.x * blockDim.x + threadIdx.x;
+    if(indx < vecsize) {
+        y[indx] = min( v1[indx], v2[indx] );
+    }
+}
+
+//----------------
+// kernel driver
+//----------------
+extern "C"
+void magma_ivec_min_vv(magma_int_t vecsize, magma_int_t *v1, magma_int_t *v2, magma_int_t *y, magma_queue_t queue)
+{
+    dim3 threads(BLK_X, 1, 1);
+    dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1, 1);
+
+    magma_ivec_min_vv_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, v1, v2, y);
+}
+
+/******************************************************************************/
 // performs a max. operation against a const value
-__global__ 
+__global__
 void magma_ivec_maxc_kernel(int vecsize, magma_int_t *x, int value, magma_int_t *y)
 {
     const int indx = blockIdx.x * blockDim.x + threadIdx.x;
-    const magma_int_t value_l = (magma_int_t)value; 
+    const magma_int_t value_l = (magma_int_t)value;
     if(indx < vecsize)
     {
         y[indx] = ( value_l > x[indx] )? value_l : x[indx];
@@ -454,12 +545,12 @@ void magma_ivec_maxc_kernel(int vecsize, magma_int_t *x, int value, magma_int_t 
 //----------------
 // kernel driver
 //----------------
-extern "C" 
+extern "C"
 void magma_ivec_maxc(magma_int_t vecsize, magma_int_t* x, magma_int_t value, magma_int_t* y, magma_queue_t queue)
 {
     dim3 threads(BLK_X, 1, 1);
     dim3 grid( magma_ceildiv( vecsize, BLK_X ), 1, 1);
-    
+
     magma_ivec_maxc_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, x, value, y);
 }
 
@@ -478,8 +569,8 @@ __global__ void magma_compute_trsm_jb_kernel(int vecsize, magma_int_t *m, int tr
         int my_jb;
         if(my_m % tri_nb == 0) my_jb = tri_nb;
         else my_jb = (my_m % tri_nb);
-        
-        jbv[indx] = (magma_int_t)my_jb; 
+
+        jbv[indx] = (magma_int_t)my_jb;
     }
 }
 
@@ -492,7 +583,7 @@ void magma_compute_trsm_jb(magma_int_t vecsize, magma_int_t* m, magma_int_t tri_
     const int nthreads = 128;
     dim3 threads(nthreads);
     dim3 grid( magma_ceildiv( vecsize, nthreads ), 1);
-    
+
     magma_compute_trsm_jb_kernel<<<grid, threads, 0, queue->cuda_stream()>>>(vecsize, m, tri_nb, jbv);
 }
 
@@ -503,25 +594,25 @@ void magma_compute_trsm_jb(magma_int_t vecsize, magma_int_t* m, magma_int_t tri_
 #define AUX_MAX_TX         (AUX_MAX_SEGMENT)
 __global__ void magma_imax_size_kernel_1(magma_int_t *n, int l)
 {
-    magma_int_t *vec; 
-    const int tx = threadIdx.x; 
+    magma_int_t *vec;
+    const int tx = threadIdx.x;
     int i, value, lmax = 0;
     const int L = (l/AUX_MAX_SEGMENT) * AUX_MAX_SEGMENT;
-    
+
     __shared__ int swork[AUX_MAX_SEGMENT];
-    
+
     vec = n;
     for(i = 0; i < L; i+= AUX_MAX_SEGMENT){
         value = (int)vec[i + tx];
         lmax = ( value > lmax ) ? value : lmax;
     }
-    
+
     // last incomplete segment
     if(tx < l - L){
         value = (int)vec[L + tx];
         lmax = ( value > lmax ) ? value : lmax;
     }
-    
+
     swork[tx] = lmax;
     __syncthreads();
     magma_max_reduce<AUX_MAX_SEGMENT, int>(tx, swork);
@@ -546,28 +637,28 @@ void magma_imax_size_1(magma_int_t *n, magma_int_t l, magma_queue_t queue)
 /******************************************************************************/
 __global__ void magma_imax_size_kernel_2(magma_int_t *m, magma_int_t *n, int l)
 {
-    magma_int_t *vec; 
-    const int bx = blockIdx.x; 
-    const int tx = threadIdx.x; 
+    magma_int_t *vec;
+    const int bx = blockIdx.x;
+    const int tx = threadIdx.x;
     int i, value, lmax = 0;
     const int L = (l/AUX_MAX_SEGMENT) * AUX_MAX_SEGMENT;
-    
+
     __shared__ int swork[AUX_MAX_SEGMENT];
-    
+
     if     (bx == 0) vec = m;
-    else if(bx == 1) vec = n; 
-    
+    else if(bx == 1) vec = n;
+
     for(i = 0; i < L; i+= AUX_MAX_SEGMENT){
         value = (int)vec[i + tx];
         lmax = ( value > lmax ) ? value : lmax;
     }
-    
+
     // last incomplete segment
     if(tx < l - L){
         value = (int)vec[L + tx];
         lmax = ( value > lmax ) ? value : lmax;
     }
-    
+
     swork[tx] = lmax;
     __syncthreads();
     magma_max_reduce<AUX_MAX_SEGMENT, int>(tx, swork);
@@ -592,29 +683,29 @@ void magma_imax_size_2(magma_int_t *m, magma_int_t *n, magma_int_t l, magma_queu
 /******************************************************************************/
 __global__ void magma_imax_size_kernel_3(magma_int_t *m, magma_int_t *n, magma_int_t *k, int l)
 {
-    magma_int_t *vec; 
-    const int bx = blockIdx.x; 
-    const int tx = threadIdx.x; 
+    magma_int_t *vec;
+    const int bx = blockIdx.x;
+    const int tx = threadIdx.x;
     int i, value, lmax = 0;
     const int L = (l/AUX_MAX_SEGMENT) * AUX_MAX_SEGMENT;
-    
+
     __shared__ int swork[AUX_MAX_SEGMENT];
-    
+
     if     (bx == 0) vec = m;
-    else if(bx == 1) vec = n; 
+    else if(bx == 1) vec = n;
     else if(bx == 2) vec = k;
-    
+
     for(i = 0; i < L; i+= AUX_MAX_SEGMENT){
         value = (int)vec[i + tx];
         lmax = ( value > lmax ) ? value : lmax;
     }
-    
+
     // last incomplete segment
     if(tx < l - L){
         value = (int)vec[L + tx];
         lmax = ( value > lmax ) ? value : lmax;
     }
-    
+
     swork[tx] = lmax;
     __syncthreads();
     magma_max_reduce<AUX_MAX_SEGMENT, int>(tx, swork);

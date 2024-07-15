@@ -80,9 +80,13 @@
     @see magma_queue_get_cuda_stream
     @see magma_queue_get_cublas_handle
     @see magma_queue_get_cusparse_handle
+    @see magma_queue_get_hip_stream
+    @see magma_queue_get_hipblas_handle
+    @see magma_queue_get_hipsparse_handle
 
     @ingroup magma_queue
 *******************************************************************************/
+
 struct magma_queue
 {
 #ifdef __cplusplus
@@ -90,7 +94,7 @@ public:
     /// @return device associated with this queue
     magma_device_t   device()          { return device__;   }
 
-    #ifdef HAVE_CUBLAS
+    #ifdef MAGMA_HAVE_CUDA
     /// @return CUDA stream associated with this queue; requires CUDA.
     cudaStream_t     cuda_stream()     { return stream__;   }
 
@@ -114,6 +118,17 @@ public:
             dCarray__ = dBarray__ + maxbatch__;
         }
     }
+    
+    #ifdef MAGMA_HAVE_HIP
+    
+    hipStream_t      hip_stream()      { return stream__; };
+
+    hipblasHandle_t  hipblas_handle()  { return hipblas__; };
+
+    hipsparseHandle_t hipsparse_handle() { return hipsparse__; };
+
+    #endif
+
 
     /// @return the pointer array dAarray__.
     void** get_dAarray() {
@@ -142,7 +157,7 @@ protected:
         magma_device_t device, magma_queue_t* queuePtr,
         const char* func, const char* file, int line );
 
-    #ifdef HAVE_CUBLAS
+    #ifdef MAGMA_HAVE_CUDA
     friend
     void magma_queue_create_from_cuda_internal(
         magma_device_t   device,
@@ -152,6 +167,18 @@ protected:
         magma_queue_t*   queuePtr,
         const char* func, const char* file, int line );
     #endif
+
+    #ifdef MAGMA_HAVE_HIP
+    friend
+    void magma_queue_create_from_hip_internal(
+        magma_device_t    device,
+        hipStream_t       stream,
+        hipblasHandle_t   hipblas_handle,
+        hipsparseHandle_t hipsparse_handle,
+        magma_queue_t*    queuePtr,
+        const char* func, const char* file, int line );
+    #endif
+
 
     friend
     void magma_queue_destroy_internal(
@@ -169,11 +196,19 @@ protected:
     void**           dBarray__;     // pointer array (assigned from ptrArray, not allocated/freed)
     void**           dCarray__;     // pointer array (assigned from ptrArray, not allocated/freed)
 
-    #ifdef HAVE_CUBLAS
+    #ifdef MAGMA_HAVE_CUDA
     cudaStream_t     stream__;      // associated CUDA stream; may be NULL
     cublasHandle_t   cublas__;      // associated cuBLAS handle
     cusparseHandle_t cusparse__;    // associated cuSparse handle
-    #endif // HAVE_CUBLAS
+    #endif // MAGMA_HAVE_CUDA
+
+    #ifdef MAGMA_HAVE_HIP
+    hipStream_t      stream__;
+    //rocblas_handle rocblas__;
+    hipblasHandle_t  hipblas__;
+    hipsparseHandle_t hipsparse__;
+
+    #endif
 };
 
 #ifdef __cplusplus

@@ -21,22 +21,31 @@ hdr += \
 	$(cdir)/zpotf2_devicesfunc.cuh		\
 	$(cdir)/zlarfg_devicesfunc.cuh		\
 	$(cdir)/ztrsv_template_device.cuh	\
+	$(cdir)/zgetf2_devicefunc.cuh		\
+	$(cdir)/zlaswp_device.cuh		\
+	$(cdir)/zgeqr2_batched_fused.cuh	\
+	$(cdir)/zlarf_batched_fused.cuh	\
+	$(cdir)/zgbtf2_devicefunc.cuh	\
 
 # alphabetic order by base name (ignoring precision)
 libmagma_src += \
 	$(cdir)/zaxpycp.cu		\
 	$(cdir)/zcaxpycp.cu		\
-        $(cdir)/zdiinertia.cu           \
+    $(cdir)/zdiinertia.cu   \
 	$(cdir)/zgeadd.cu		\
 	$(cdir)/zgeadd2.cu		\
-        $(cdir)/zgeam.cu                \
-	$(cdir)/zgemm_fermi.cu		\
+    $(cdir)/zgeam.cu        \
+	$(cdir)/sgemm.cu		\
+	$(cdir)/dgemm.cu		\
+	$(cdir)/cgemm.cu		\
+	$(cdir)/zgemm.cu		\
 	$(cdir)/zgemm_reduce.cu		\
 	$(cdir)/zgemv_conj.cu		\
 	$(cdir)/zgemv_fermi.cu		\
 	$(cdir)/zgerbt.cu		\
 	$(cdir)/zgerbt_kernels.cu	\
-	$(cdir)/zgetmatrix_transpose.cpp	\
+	$(cdir)/zgetmatrix_transpose.cpp\
+    $(cdir)/zheinertia.cu           \
 	$(cdir)/zhemm.cu		\
 	$(cdir)/zhemv.cu		\
 	$(cdir)/zhemv_upper.cu		\
@@ -71,7 +80,7 @@ libmagma_src += \
 	$(cdir)/zlat2c.cu		\
 	$(cdir)/clat2z.cu		\
 	$(cdir)/dznrm2.cu		\
-	$(cdir)/zsetmatrix_transpose.cpp	\
+	$(cdir)/zsetmatrix_transpose.cpp\
 	$(cdir)/zswap.cu		\
 	$(cdir)/zswapblk.cu		\
 	$(cdir)/zswapdblk.cu		\
@@ -117,9 +126,15 @@ libmagma_src += \
 # native kernels
 libmagma_src += \
 	$(cdir)/zgetf2_native_kernel.cu		\
+        $(cdir)/zhetrs.cu                       \
 
 # batched files, alphabetic order by base name (ignoring precision)
 libmagma_src += \
+	$(cdir)/zgbsv_kernels.cu	\
+	$(cdir)/zgbtf2_kernels.cu		\
+    $(cdir)/zgbtrf_batched_fused_sm.cu  \
+    $(cdir)/zgbtrf_batched_sliding_window_sm.cu  \
+    $(cdir)/zgbtrs_kernels.cu  \
 	$(cdir)/zgeadd_batched.cu		\
 	$(cdir)/zgemm_batched.cpp		\
 	$(cdir)/cgemm_batched_core.cu		\
@@ -127,23 +142,33 @@ libmagma_src += \
 	$(cdir)/sgemm_batched_core.cu		\
 	$(cdir)/zgemm_batched_core.cu		\
 	$(cdir)/zgemm_batched_smallsq.cu		\
+	$(cdir)/zgemv_batched.cpp		\
 	$(cdir)/cgemv_batched_core.cu		\
 	$(cdir)/dgemv_batched_core.cu		\
 	$(cdir)/sgemv_batched_core.cu		\
 	$(cdir)/zgemv_batched_core.cu		\
+	$(cdir)/zgemv_batched_smallsq.cu		\
 	$(cdir)/zhemv_batched_core.cu		\
 	$(cdir)/zgeqr2_batched.cu		\
+	$(cdir)/zgeqr2_batched_fused_reg.cu		\
+	$(cdir)/zgeqr2_batched_fused_reg_medium.cu		\
+	$(cdir)/zgeqr2_batched_fused_reg_tall.cu		\
+	$(cdir)/zgeqr2_batched_fused_sm.cu		\
 	$(cdir)/zgeqrf_batched_smallsq.cu		\
 	$(cdir)/zgerbt_func_batched.cu		\
+	$(cdir)/zgesv_batched_small.cu		\
 	$(cdir)/zgetf2_kernels.cu		\
-	$(cdir)/zgetrf_batched_smallsq_noshfl.cu		\
-	$(cdir)/zgetrf_batched_smallsq_shfl.cu		\
+	$(cdir)/zgetrf_batched_smallsq_noshfl.cu\
 	$(cdir)/getrf_setup_pivinfo.cu		\
 	$(cdir)/zhemm_batched_core.cu		\
 	$(cdir)/zher2k_batched.cpp		\
 	$(cdir)/zherk_batched.cpp		\
 	$(cdir)/cherk_batched_core.cu		\
 	$(cdir)/zherk_batched_core.cu		\
+	$(cdir)/zlarf_batched_fused_reg.cu	\
+	$(cdir)/zlarf_batched_fused_reg_medium.cu	\
+	$(cdir)/zlarf_batched_fused_reg_tall.cu	\
+	$(cdir)/zlarf_batched_fused_sm.cu	\
 	$(cdir)/zlaswp_batched.cu		\
 	$(cdir)/zpotf2_kernels.cu		\
 	$(cdir)/set_pointer.cu			\
@@ -176,7 +201,8 @@ libmagma_src += \
 	$(cdir)/ssyrk_vbatched_core.cu	\
 	$(cdir)/dsyrk_vbatched_core.cu	\
 	$(cdir)/ztrmm_vbatched_core.cu	\
-	$(cdir)/ztrsm_vbatched_core.cu	\
+	$(cdir)/ztrsm_small_vbatched.cu	\
+	$(cdir)/ztrsm_inv_vbatched_core.cu	\
 	$(cdir)/ztrtri_diag_vbatched.cu	\
 
 libmagma_src += \
@@ -189,10 +215,14 @@ libmagma_src += \
 	$(cdir)/zsyr2k_vbatched.cpp		\
 	$(cdir)/zsyrk_vbatched.cpp		\
 	$(cdir)/ztrmm_vbatched.cpp		\
+	$(cdir)/ztrsm_vbatched_core.cpp	\
 	$(cdir)/ztrsm_vbatched.cpp		\
+	$(cdir)/ztrsm_inv_vbatched.cpp		\
 
 libmagma_src += \
-	$(cdir)/zpotf2_kernels_var.cu		\
+	$(cdir)/zgetf2_kernels_var.cu	\
+	$(cdir)/zlaswp_vbatched.cu		\
+	$(cdir)/zpotf2_kernels_var.cu	\
 
 # aux vbatched files
 libmagma_src += \
@@ -212,6 +242,10 @@ libmagma_src += \
 	$(cdir)/hlaconvert.cu	         \
 	$(cdir)/hlaswp.cu		         \
 	$(cdir)/hset_pointer.cu		     \
+
+# aux files for mixed-precision POSV-IRGMRES
+libmagma_src += \
+	$(cdir)/zposv_irgmres_kernels.cu    \
 
 # ----------------------------------------------------------------------
 # extra include dependencies
@@ -260,6 +294,26 @@ $(cdir)/dgeqr2_batched.$(o_ext): $(cdir)/dlarfg_devicesfunc.cuh
 $(cdir)/cgeqr2_batched.$(o_ext): $(cdir)/clarfg_devicesfunc.cuh
 $(cdir)/zgeqr2_batched.$(o_ext): $(cdir)/zlarfg_devicesfunc.cuh
 
+$(cdir)/sgeqr2_batched_fused_reg.$(o_ext): $(cdir)/sgeqr2_batched_fused.cuh
+$(cdir)/dgeqr2_batched_fused_reg.$(o_ext): $(cdir)/dgeqr2_batched_fused.cuh
+$(cdir)/cgeqr2_batched_fused_reg.$(o_ext): $(cdir)/cgeqr2_batched_fused.cuh
+$(cdir)/zgeqr2_batched_fused_reg.$(o_ext): $(cdir)/zgeqr2_batched_fused.cuh
+
+$(cdir)/sgeqr2_batched_fused_reg_medium.$(o_ext): $(cdir)/sgeqr2_batched_fused.cuh
+$(cdir)/dgeqr2_batched_fused_reg_medium.$(o_ext): $(cdir)/dgeqr2_batched_fused.cuh
+$(cdir)/cgeqr2_batched_fused_reg_medium.$(o_ext): $(cdir)/cgeqr2_batched_fused.cuh
+$(cdir)/zgeqr2_batched_fused_reg_medium.$(o_ext): $(cdir)/zgeqr2_batched_fused.cuh
+
+$(cdir)/sgeqr2_batched_fused_reg_tall.$(o_ext): $(cdir)/sgeqr2_batched_fused.cuh
+$(cdir)/dgeqr2_batched_fused_reg_tall.$(o_ext): $(cdir)/dgeqr2_batched_fused.cuh
+$(cdir)/cgeqr2_batched_fused_reg_tall.$(o_ext): $(cdir)/cgeqr2_batched_fused.cuh
+$(cdir)/zgeqr2_batched_fused_reg_tall.$(o_ext): $(cdir)/zgeqr2_batched_fused.cuh
+
+$(cdir)/sgeqr2_batched_fused_sm.$(o_ext): $(cdir)/sgeqr2_batched_fused.cuh
+$(cdir)/dgeqr2_batched_fused_sm.$(o_ext): $(cdir)/dgeqr2_batched_fused.cuh
+$(cdir)/cgeqr2_batched_fused_sm.$(o_ext): $(cdir)/cgeqr2_batched_fused.cuh
+$(cdir)/zgeqr2_batched_fused_sm.$(o_ext): $(cdir)/zgeqr2_batched_fused.cuh
+
 $(cdir)/sgetf2_kernels.$(o_ext): control/batched_kernel_param.h
 $(cdir)/dgetf2_kernels.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cgetf2_kernels.$(o_ext): control/batched_kernel_param.h
@@ -270,6 +324,21 @@ $(cdir)/dgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
 $(cdir)/zgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
 
+$(cdir)/slarf_batched_fused_reg.$(o_ext): $(cdir)/slarf_batched_fused.cuh
+$(cdir)/dlarf_batched_fused_reg.$(o_ext): $(cdir)/dlarf_batched_fused.cuh
+$(cdir)/clarf_batched_fused_reg.$(o_ext): $(cdir)/clarf_batched_fused.cuh
+$(cdir)/zlarf_batched_fused_reg.$(o_ext): $(cdir)/zlarf_batched_fused.cuh
+
+$(cdir)/slarf_batched_fused_reg_medium.$(o_ext): $(cdir)/slarf_batched_fused.cuh
+$(cdir)/dlarf_batched_fused_reg_medium.$(o_ext): $(cdir)/dlarf_batched_fused.cuh
+$(cdir)/clarf_batched_fused_reg_medium.$(o_ext): $(cdir)/clarf_batched_fused.cuh
+$(cdir)/zlarf_batched_fused_reg_medium.$(o_ext): $(cdir)/zlarf_batched_fused.cuh
+
+$(cdir)/slarf_batched_fused_reg_tall.$(o_ext): $(cdir)/slarf_batched_fused.cuh
+$(cdir)/dlarf_batched_fused_reg_tall.$(o_ext): $(cdir)/dlarf_batched_fused.cuh
+$(cdir)/clarf_batched_fused_reg_tall.$(o_ext): $(cdir)/clarf_batched_fused.cuh
+$(cdir)/zlarf_batched_fused_reg_tall.$(o_ext): $(cdir)/zlarf_batched_fused.cuh
+
 $(cdir)/spotf2_kernels.$(o_ext): $(cdir)/spotf2_devicesfunc.cuh
 $(cdir)/dpotf2_kernels.$(o_ext): $(cdir)/dpotf2_devicesfunc.cuh
 $(cdir)/cpotf2_kernels.$(o_ext): $(cdir)/cpotf2_devicesfunc.cuh
@@ -279,6 +348,16 @@ $(cdir)/spotf2_kernels_var.$(o_ext): $(cdir)/spotf2_devicesfunc.cuh
 $(cdir)/dpotf2_kernels_var.$(o_ext): $(cdir)/dpotf2_devicesfunc.cuh
 $(cdir)/cpotf2_kernels_var.$(o_ext): $(cdir)/cpotf2_devicesfunc.cuh
 $(cdir)/zpotf2_kernels_var.$(o_ext): $(cdir)/zpotf2_devicesfunc.cuh
+
+$(cdir)/sgetf2_kernels.$(o_ext): $(cdir)/sgetf2_devicefunc.cuh
+$(cdir)/dgetf2_kernels.$(o_ext): $(cdir)/dgetf2_devicefunc.cuh
+$(cdir)/cgetf2_kernels.$(o_ext): $(cdir)/cgetf2_devicefunc.cuh
+$(cdir)/zgetf2_kernels.$(o_ext): $(cdir)/zgetf2_devicefunc.cuh
+
+$(cdir)/sgetf2_kernels_var.$(o_ext): $(cdir)/sgetf2_devicefunc.cuh
+$(cdir)/dgetf2_kernels_var.$(o_ext): $(cdir)/dgetf2_devicefunc.cuh
+$(cdir)/cgetf2_kernels_var.$(o_ext): $(cdir)/cgetf2_devicefunc.cuh
+$(cdir)/zgetf2_kernels_var.$(o_ext): $(cdir)/zgetf2_devicefunc.cuh
 
 $(cdir)/ztrsv_batched.$(o_ext): $(cdir)/ztrsv_template_device.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/ctrsv_batched.$(o_ext): $(cdir)/ctrsv_template_device.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
@@ -336,6 +415,11 @@ $(cdir)/ctrmm_vbatched_core.$(o_ext): $(cdir)/trmm_template_kernel_vbatched.cuh 
 $(cdir)/dtrmm_vbatched_core.$(o_ext): $(cdir)/trmm_template_kernel_vbatched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 $(cdir)/strmm_vbatched_core.$(o_ext): $(cdir)/trmm_template_kernel_vbatched.cuh $(cdir)/trmm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 
+$(cdir)/ztrsm_small_vbatched.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/ctrsm_small_vbatched.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/dtrsm_small_vbatched.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/strsm_small_vbatched.$(o_ext): $(cdir)/trsm_template_kernel_vbatched.cuh $(cdir)/trsm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+
 $(cdir)/zhemm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 $(cdir)/chemm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 $(cdir)/dsymm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
@@ -366,6 +450,15 @@ $(cdir)/cgemm_fermi.$(o_ext): $(cdir)/cgemm_fermi_kernels.h $(cdir)/gemm_stencil
 $(cdir)/dgemm_fermi.$(o_ext): $(cdir)/dgemm_fermi_kernels.h $(cdir)/gemm_stencil.cuh $(cdir)/gemm_kernel.cuh $(cdir)/gemm_stencil_defs.h
 $(cdir)/sgemm_fermi.$(o_ext): $(cdir)/sgemm_fermi_kernels.h $(cdir)/gemm_stencil.cuh $(cdir)/gemm_kernel.cuh $(cdir)/gemm_stencil_defs.h
 
+$(cdir)/zlaswp_batched.$(o_ext): $(cdir)/zlaswp_device.cuh
+$(cdir)/claswp_batched.$(o_ext): $(cdir)/claswp_device.cuh
+$(cdir)/dlaswp_batched.$(o_ext): $(cdir)/dlaswp_device.cuh
+$(cdir)/slaswp_batched.$(o_ext): $(cdir)/slaswp_device.cuh
+
+$(cdir)/zlaswp_vbatched.$(o_ext): $(cdir)/zlaswp_device.cuh
+$(cdir)/claswp_vbatched.$(o_ext): $(cdir)/claswp_device.cuh
+$(cdir)/dlaswp_vbatched.$(o_ext): $(cdir)/dlaswp_device.cuh
+$(cdir)/slaswp_vbatched.$(o_ext): $(cdir)/slaswp_device.cuh
 
 # ----------------------------------------------------------------------
 # pop first directory

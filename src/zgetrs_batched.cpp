@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Azzam Haidar
 
        @precisions normal z -> s d c
@@ -41,22 +41,21 @@
             The number of right hand sides, i.e., the number of columns
             of the matrix B.  NRHS >= 0.
 
-    @param[in,out]
+    @param[in]
     dA_array    Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array on the GPU, dimension (LDDA,N).
-            On entry, each pointer is an M-by-N matrix to be factored.
-            On exit, the factors L and U from the factorization
-            A = P*L*U; the unit diagonal elements of L are not stored.
+            Each is COMPLEX_16 array on the GPU, dimension (LDDA,N)
+            The factors L and U from the factorization A = P*L*U as computed
+            by batched ZGETRF.
 
     @param[in]
     ldda    INTEGER
             The leading dimension of each array A.  LDDA >= max(1,M).
 
 
-    @param[out]
+    @param[in]
     dipiv_array  Array of pointers, dimension (batchCount), for corresponding matrices.
-            Each is an INTEGER array, dimension (min(M,N))
-            The pivot indices; for 1 <= i <= min(M,N), row i of the
+            Each is an INTEGER array, dimension (N)
+            The pivot indices from ZGETRF; for 1 <= i <= N, row i of the
             matrix was interchanged with row IPIV(i).
 
 
@@ -87,7 +86,7 @@ extern "C" magma_int_t
 magma_zgetrs_batched(
                   magma_trans_t trans, magma_int_t n, magma_int_t nrhs,
                   magmaDoubleComplex **dA_array, magma_int_t ldda,
-                  magma_int_t **dipiv_array, 
+                  magma_int_t **dipiv_array,
                   magmaDoubleComplex **dB_array, magma_int_t lddb,
                   magma_int_t batchCount, magma_queue_t queue)
 {
@@ -118,9 +117,9 @@ magma_zgetrs_batched(
 
     magmaDoubleComplex* dwork        = NULL; // dwork is workspace for ztrsv
     magmaDoubleComplex **dwork_array = NULL;
-    
+
     // batch trsv requires workspace
-    if(nrhs == 1){ 
+    if(nrhs == 1){
         magma_int_t dwork_msize = n*nrhs;    // TODO: resize workspace for trsv purpose only
         magma_malloc((void**)&dwork_array, batchCount * sizeof(*dwork_array));
         magma_zmalloc( &dwork, dwork_msize * batchCount );
@@ -141,23 +140,23 @@ magma_zgetrs_batched(
 
         if (nrhs > 1){
             // solve dwork = L^-1 * NRHS
-            magmablas_ztrsm_batched( MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit, 
-                    n, nrhs, MAGMA_Z_ONE, 
-                    dA_array, ldda, 
-                    dB_array, lddb, 
+            magmablas_ztrsm_batched( MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit,
+                    n, nrhs, MAGMA_Z_ONE,
+                    dA_array, ldda,
+                    dB_array, lddb,
                     batchCount, queue);
 
             // solve X = U^-1 * dwork
-            magmablas_ztrsm_batched( MagmaLeft, MagmaUpper, MagmaNoTrans, MagmaNonUnit, 
-                    n, nrhs, MAGMA_Z_ONE, 
-                    dA_array, ldda, 
-                    dB_array, lddb, 
+            magmablas_ztrsm_batched( MagmaLeft, MagmaUpper, MagmaNoTrans, MagmaNonUnit,
+                    n, nrhs, MAGMA_Z_ONE,
+                    dA_array, ldda,
+                    dB_array, lddb,
                     batchCount, queue);
         }
         else{
             // solve dwork = L^-1 * 1
             magmablas_ztrsv_outofplace_batched( MagmaLower, MagmaNoTrans, MagmaUnit,
-                n, 
+                n,
                 dA_array,       ldda, // dA
                 dB_array,        1, // dB
                 dwork_array,     // dX //output
@@ -165,9 +164,9 @@ magma_zgetrs_batched(
 
             // solve X = U^-1 * dwork
             magmablas_ztrsv_outofplace_batched( MagmaUpper, MagmaNoTrans, MagmaNonUnit,
-                n, 
+                n,
                 dA_array,       ldda, // dA
-                dwork_array,        1, // dB 
+                dwork_array,        1, // dB
                 dB_array,    // dX //output
                 batchCount, queue, 0 );
         }
@@ -175,35 +174,35 @@ magma_zgetrs_batched(
     else {
         if (nrhs > 1){
             /* Solve A**T * X = B  or  A**H * X = B. */
-            // solve 
-            magmablas_ztrsm_batched( MagmaLeft, MagmaUpper, trans, MagmaUnit, 
-                    n, nrhs, MAGMA_Z_ONE, 
-                    dA_array, ldda, 
-                    dB_array, lddb, 
+            // solve
+            magmablas_ztrsm_batched( MagmaLeft, MagmaUpper, trans, MagmaUnit,
+                    n, nrhs, MAGMA_Z_ONE,
+                    dA_array, ldda,
+                    dB_array, lddb,
                     batchCount, queue);
-            
-            // solve 
-            magmablas_ztrsm_batched( MagmaLeft, MagmaLower, trans, MagmaNonUnit, 
-                    n, nrhs, MAGMA_Z_ONE, 
-                    dA_array, ldda, 
-                    dB_array, lddb, 
+
+            // solve
+            magmablas_ztrsm_batched( MagmaLeft, MagmaLower, trans, MagmaNonUnit,
+                    n, nrhs, MAGMA_Z_ONE,
+                    dA_array, ldda,
+                    dB_array, lddb,
                     batchCount, queue);
         }
         else{
             /* Solve A**T * X = B  or  A**H * X = B. */
-            // solve 
-            magmablas_ztrsv_outofplace_batched( MagmaUpper, trans, MagmaUnit, 
-                n, 
+            // solve
+            magmablas_ztrsv_outofplace_batched( MagmaUpper, trans, MagmaUnit,
+                n,
                 dA_array,       ldda, // dA
                 dB_array,      1, // dB
                 dwork_array,       // dX //output
                 batchCount, queue, 0 );
 
-            // solve 
-            magmablas_ztrsv_outofplace_batched( MagmaLower, trans, MagmaNonUnit, 
-                n, 
+            // solve
+            magmablas_ztrsv_outofplace_batched( MagmaLower, trans, MagmaNonUnit,
+                n,
                 dA_array,       ldda, // dA
-                dwork_array,        1, // dB 
+                dwork_array,        1, // dB
                 dB_array,       // dX //output
                 batchCount, queue, 0 );
         }

@@ -1279,6 +1279,13 @@ magma_zparilut_gpu(
     magma_queue_t queue );
 
 magma_int_t
+magma_zparilut_gpu_nodp(
+    magma_z_matrix A,
+    magma_z_matrix b,
+    magma_z_preconditioner *precond,
+    magma_queue_t queue );
+
+magma_int_t
 magma_zparilut_insert(
     magma_int_t *num_rmL,
     magma_int_t *num_rmU,
@@ -1414,6 +1421,28 @@ magma_zsampleselect_approx(
     magma_ptr *tmp_ptr,
     magma_int_t *tmp_size,
     magma_queue_t queue );
+
+
+magma_int_t
+magma_zsampleselect_nodp(
+    magma_int_t total_size,
+    magma_int_t subset_size,
+    magmaDoubleComplex *val,
+    double *thrs,
+    magma_ptr *tmp_ptr,
+    magma_int_t *tmp_size,
+    magma_queue_t queue );
+
+magma_int_t
+magma_zsampleselect_approx_nodp(
+    magma_int_t total_size,
+    magma_int_t subset_size,
+    magmaDoubleComplex *val,
+    double *thrs,
+    magma_ptr *tmp_ptr,
+    magma_int_t *tmp_size,
+    magma_queue_t queue );
+
 
 // ISAI preconditioner
 

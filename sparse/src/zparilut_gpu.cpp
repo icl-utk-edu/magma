@@ -241,6 +241,7 @@ magma_zparilut_gpu(
         // GPU kernel
         end = magma_sync_wtime(queue); t_rm=end-start;
         
+
         // step 10: sweep
         start = magma_sync_wtime(queue);
         // GPU kernel

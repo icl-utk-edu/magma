@@ -26,7 +26,7 @@
 */
 int main( int argc, char** argv)
 {
-    #ifdef HAVE_clBLAS
+    #ifdef MAGMA_HAVE_OPENCL
     #define dA(i_, j_)  dA, ((i_) + (j_)*ldda)
     #define dx(i_)      dx, ((i_))
     #else
@@ -59,7 +59,7 @@ int main( int argc, char** argv)
 
     printf("%% uplo = %s, transA = %s, diag = %s\n",
            lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA), lapack_diag_const(opts.diag) );
-    printf("%%   N  CUBLAS Gflop/s (ms)   CPU Gflop/s (ms)   CUBLAS error\n");
+    printf("%%   N  %s Gflop/s (ms)   CPU Gflop/s (ms)   %s error\n", g_platform_str, g_platform_str);
     printf("%%===========================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {

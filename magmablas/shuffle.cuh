@@ -3,7 +3,15 @@
 
 #include "magma_internal.h"
 
+#ifdef MAGMA_HAVE_HIP
+#define SHFL_FULL_MASK 0xffffffffffffffff
+#define DEFAULT_WIDTH  64
+typedef unsigned long long shfl_mask_t;
+#else
 #define SHFL_FULL_MASK 0xffffffff
+#define DEFAULT_WIDTH  32
+typedef unsigned shfl_mask_t;
+#endif
 
 // cuda 9.0 supports double precision shuffle
 // but it is slower than the split by 32
@@ -12,40 +20,63 @@
 /******************************************************************************/
 /**                       SHUFFLE BY INDEX                                   **/
 /******************************************************************************/
-__device__ static inline int magmablas_ishfl(int var, int srcLane, int width=32, unsigned mask=SHFL_FULL_MASK) 
+__device__ static inline int magmablas_ishfl(int var, int srcLane, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
+#ifdef MAGMA_HAVE_HIP
+////////////////////////////////////////////////////////////////////////////////
+// HIP
+    return __shfl(var, srcLane);    // assume default warp size
+#else
+////////////////////////////////////////////////////////////////////////////////
+//CUDA
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(MAGMA_HAVE_HIP)
      return __shfl(var, srcLane, width);
 #else
      return __shfl_sync(mask, var, srcLane, width);
 #endif
 #else    // pre-Kepler GPUs
 return 0;
-#endif
+#endif   // __CUDA_ARCH__ >= 300
+#endif   // MAGMA_HAVE_HIP
 }
 
 
 /******************************************************************************/
-__device__ static inline float magmablas_sshfl(float var, int srcLane, int width=32, unsigned mask=SHFL_FULL_MASK) 
+__device__ static inline float magmablas_sshfl(float var, int srcLane, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
+#ifdef MAGMA_HAVE_HIP
+////////////////////////////////////////////////////////////////////////////////
+// HIP
+    return __shfl(var, srcLane);    // assume default warp size
+#else
+////////////////////////////////////////////////////////////////////////////////
+//CUDA
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(MAGMA_HAVE_HIP)
      return __shfl(var, srcLane, width);
 #else
      return __shfl_sync(mask, var, srcLane, width);
 #endif
 #else    // pre-Kepler GPUs
 return MAGMA_S_ZERO;
-#endif
+#endif   // __CUDA_ARCH__ >= 300
+#endif   // MAGMA_HAVE_HIP
 }
 
 
 /******************************************************************************/
-__device__ static inline double magmablas_dshfl(double var, int srcLane, int width=32, unsigned mask=SHFL_FULL_MASK) 
+__device__ static inline double magmablas_dshfl(double var, int srcLane, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
+#ifdef MAGMA_HAVE_HIP
+////////////////////////////////////////////////////////////////////////////////
+// HIP
+    return __shfl(var, srcLane);    // assume default warp size
+#else
+////////////////////////////////////////////////////////////////////////////////
+//CUDA
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(MAGMA_HAVE_HIP)
     // Split the double number into 2 32b registers.
     int lo, hi;
     asm volatile("mov.b64 {%0,%1}, %2;" : "=r"(lo), "=r"(hi):"d"(var));
@@ -72,14 +103,15 @@ __device__ static inline double magmablas_dshfl(double var, int srcLane, int wid
 #endif
 #else    // pre-Kepler GPUs
 return MAGMA_D_ZERO;
-#endif
+#endif   // __CUDA_ARCH__ >= 300
+#endif   // MAGMA_HAVE_HIP
 }
 
 
 /******************************************************************************/
-__device__ static inline magmaFloatComplex magmablas_cshfl(magmaFloatComplex var, int srcLane, int width=32, unsigned mask=SHFL_FULL_MASK) 
+__device__ static inline magmaFloatComplex magmablas_cshfl(magmaFloatComplex var, int srcLane, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
-    magmaFloatComplex r; 
+    magmaFloatComplex r;
     r.x = magmablas_sshfl(var.x, srcLane, width, mask);
     r.y = magmablas_sshfl(var.y, srcLane, width, mask);
     return r;
@@ -87,9 +119,9 @@ __device__ static inline magmaFloatComplex magmablas_cshfl(magmaFloatComplex var
 
 
 /******************************************************************************/
-__device__ static inline magmaDoubleComplex magmablas_zshfl(magmaDoubleComplex var, int srcLane, int width=32, unsigned mask=SHFL_FULL_MASK) 
+__device__ static inline magmaDoubleComplex magmablas_zshfl(magmaDoubleComplex var, int srcLane, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
-    magmaDoubleComplex r; 
+    magmaDoubleComplex r;
     r.x = magmablas_dshfl(var.x, srcLane, width, mask);
     r.y = magmablas_dshfl(var.y, srcLane, width, mask);
     return r;
@@ -99,10 +131,17 @@ __device__ static inline magmaDoubleComplex magmablas_zshfl(magmaDoubleComplex v
 /******************************************************************************/
 /**                  SHUFFLE BY BITWISE XOR TO OWN LANE                      **/
 /******************************************************************************/
-__device__ static inline int magmablas_ishfl_xor(int var, int laneMask, int width=32, unsigned mask=SHFL_FULL_MASK) 
+__device__ static inline int magmablas_ishfl_xor(int var, int laneMask, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
+#ifdef MAGMA_HAVE_HIP
+////////////////////////////////////////////////////////////////////////////////
+// HIP
+    return __shfl_xor(var, laneMask);    // assume default warp size
+#else
+////////////////////////////////////////////////////////////////////////////////
+//CUDA
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(MAGMA_HAVE_HIP)
     return __shfl_xor(var, laneMask, width);
 #else
     return __shfl_xor_sync(mask, var, laneMask, width);
@@ -110,15 +149,23 @@ __device__ static inline int magmablas_ishfl_xor(int var, int laneMask, int widt
 #else    // pre-Kepler GPUs
 return 0;
 #endif
+#endif   // MAGMA_HAVE_HIP
 
 }
 
 
 /******************************************************************************/
-__device__ static inline float magmablas_sshfl_xor(float var, int laneMask, int width=32, unsigned mask=SHFL_FULL_MASK) 
+__device__ static inline float magmablas_sshfl_xor(float var, int laneMask, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
+#ifdef MAGMA_HAVE_HIP
+////////////////////////////////////////////////////////////////////////////////
+// HIP
+    return __shfl_xor(var, laneMask);    // assume default warp size
+#else
+////////////////////////////////////////////////////////////////////////////////
+//CUDA
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(MAGMA_HAVE_HIP)
     return __shfl_xor(var, laneMask, width);
 #else
     return __shfl_xor_sync(mask, var, laneMask, width);
@@ -126,14 +173,23 @@ __device__ static inline float magmablas_sshfl_xor(float var, int laneMask, int 
 #else    // pre-Kepler GPUs
 return MAGMA_S_ZERO;
 #endif
+#endif   // MAGMA_HAVE_HIP
+
 }
 
 
 /******************************************************************************/
-__device__ static inline double magmablas_dshfl_xor(double var, int laneMask, int width=32, unsigned mask=SHFL_FULL_MASK) 
+__device__ static inline double magmablas_dshfl_xor(double var, int laneMask, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
+#ifdef MAGMA_HAVE_HIP
+////////////////////////////////////////////////////////////////////////////////
+// HIP
+    return __shfl_xor(var, laneMask);    // assume default warp size
+#else
+////////////////////////////////////////////////////////////////////////////////
+//CUDA
 #if __CUDA_ARCH__ >= 300
-#if __CUDACC_VER_MAJOR__ < 9
+#if __CUDACC_VER_MAJOR__ < 9 || defined(MAGMA_HAVE_HIP)
     // Split the double number into 2 32b registers.
     int lo, hi;
     asm volatile("mov.b64 {%0,%1}, %2;" : "=r"(lo), "=r"(hi):"d"(var));
@@ -161,13 +217,15 @@ __device__ static inline double magmablas_dshfl_xor(double var, int laneMask, in
 #else    // pre-Kepler GPUs
 return MAGMA_D_ZERO;
 #endif
+#endif   // MAGMA_HAVE_HIP
+
 }
 
 
 /******************************************************************************/
-__device__ static inline magmaFloatComplex magmablas_cshfl_xor(magmaFloatComplex var, int laneMask, int width=32, unsigned mask=SHFL_FULL_MASK) 
+__device__ static inline magmaFloatComplex magmablas_cshfl_xor(magmaFloatComplex var, int laneMask, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
-    magmaFloatComplex r; 
+    magmaFloatComplex r;
     r.x = magmablas_sshfl_xor(var.x, laneMask, width, mask);
     r.y = magmablas_sshfl_xor(var.y, laneMask, width, mask);
     return r;
@@ -175,9 +233,9 @@ __device__ static inline magmaFloatComplex magmablas_cshfl_xor(magmaFloatComplex
 
 
 /******************************************************************************/
-__device__ static inline magmaDoubleComplex magmablas_zshfl_xor(magmaDoubleComplex var, int laneMask, int width=32, unsigned mask=SHFL_FULL_MASK) 
+__device__ static inline magmaDoubleComplex magmablas_zshfl_xor(magmaDoubleComplex var, int laneMask, int width=DEFAULT_WIDTH, shfl_mask_t mask=SHFL_FULL_MASK)
 {
-    magmaDoubleComplex r; 
+    magmaDoubleComplex r;
     r.x = magmablas_dshfl_xor(var.x, laneMask, width, mask);
     r.y = magmablas_dshfl_xor(var.y, laneMask, width, mask);
     return r;

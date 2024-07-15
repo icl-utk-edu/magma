@@ -30,10 +30,10 @@ my @files2delete = qw(
     make.inc
     make.inc-examples/make.inc.ig.pgi
     scripts
+    make.gen.hipMAGMA
 
     sparse/python
 
-    sparse/testing/test_matrices
     sparse/testing/testing_zpardiso.cpp
     sparse/testing/testing_zparilu_weight.cpp
     sparse/testing/testing_zsolver_allufmc.cpp
@@ -52,10 +52,13 @@ my @files2delete = qw(
     tools/checklist_run_tests.pl
     tools/compare_prototypes.pl
     tools/fortran_wrappers.pl
-    tools/magmasubs.pyc
+    tools/magmasubs.py
     tools/parse-magma.py
     tools/trim_spaces.pl
     tools/wdiff.pl
+    tools/hipify-perl
+    tools/codegen.py
+    tools/gen-hip-make
 );
 # note: keep tools/{codegen.py, magmasubs.py}
 
@@ -155,7 +158,7 @@ EOT
                 myCmd("git commit -m 'version $major.$minor.$micro' include/magma_types.h docs/Doxyfile COPYRIGHT");
             }
 
-            print "Tag release in Mercurial (y/n)? ";
+            print "Tag release in Git (y/n)? ";
             $_ = <STDIN>;
             if ( m/\b(y|yes)\b/ ) {
                 myCmd("git tag v$version");
@@ -179,7 +182,7 @@ EOT
         }
     }
 
-    $cmd = "git archive --format=tar.gz v$major.$minor.$micro > $RELEASE_PATH/magma-$major.$minor.$micro.tar.gz";
+    $cmd = "git archive --format tar.gz HEAD > $RELEASE_PATH/magma-$major.$minor.$micro.tar.gz";
     myCmd($cmd);
 
     print "cd $RELEASE_PATH\n";
@@ -212,22 +215,31 @@ EOT
     # Need to define Fortran compiler to something that exists (true),
     # in order to include all Fortran files in CMake.src.
     print "Generate the different precisions\n";
-    myCmd("echo 'FORT = true' > make.inc");
+
+    # Generate hip files first
+    myCmd("echo -e 'GPU_TARGET = gfx700\nBACKEND = hip\nFORT = true' > make.inc");
+    myCmd("make generate");
+
+    # Generate cuda files
+    myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc");
+    
+    # Compile the documentation
+    print "Compile the documentation\n";                                                                                                     
+    myCmd("make docs");
+
     myCmd("make -j generate");
 
-    # Compile the documentation
-    print "Compile the documentation\n";
-    myCmd("make docs");
     myCmd("rm -f make.inc");
 
     # Remove non-required files (e.g., Makefile.gen)
+    # (including make.gen.hipMAGMA that Makefile would otherwise use to regenerate hip)
     myCmd("rm -rf @files2delete");
 
     # Remove the lines relative to include directory in root Makefile
     myCmd("perl -ni -e 'print unless /cd include/' $RELEASE_PATH/Makefile");
 
-    # Remove '.Makefile.gen files'
-    myCmd("find $RELEASE_PATH -name .Makefile.gen -exec rm -f {} \\;");
+    # Remove 'Makefile.gen files'? Looks like we need them (Makefile.gen.cuda or Makefile.gen.hip)
+    # myCmd("find $RELEASE_PATH -name Makefile.gen -exec rm -f {} \\;");
 
     chdir $dir;
 

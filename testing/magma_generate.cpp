@@ -383,7 +383,7 @@ void magma_generate_svd(
         }
         for (magma_int_t j = 0; j < A.n; ++j) {
             for (magma_int_t i = 0; i < A.m; ++i) {
-                *A(i,j) *= D[j];
+                *A(i,j) = *A(i,j) * D[j];
             }
         }
     }
@@ -470,7 +470,7 @@ void magma_generate_heev(
         }
         for (magma_int_t j = 0; j < n; ++j) {
             for (magma_int_t i = 0; i < n; ++i) {
-                *A(i,j) *= D[i] * D[j];
+                *A(i,j) = *A(i,j) * D[i] * D[j];
             }
         }
     }
@@ -528,88 +528,130 @@ void magma_generate_geevx(
 
     Further Details
     ---------------
-    The --matrix command line option specifies the matrix name according to the
-    table below. Where indicated, names take an optional distribution suffix (#)
-    and an optional scaling suffix (*). The default distribution is rand.
-    Examples: rand, rand_small, svd_arith, heev_geo_small.
+    The `--matrix` command line option specifies the matrix name according to the
+    tables below. Where indicated, names take an optional distribution suffix (%)
+    and an optional scaling suffix (^). The default distribution is `rand`.
 
-    The --cond and --condD command line options specify condition numbers as
-    described below. Default cond = sqrt( 1/eps ) = 6.7e7 for double, condD = 1.
+    The `--cond` and `--condD` command line options specify condition numbers as
+    described below. By default, cond = sqrt( 1/eps ) = 6.7e7 for double.
+    condD is for specialized eigenvalue and SVD tests; by default, condD = 1.
 
-    Sigma is a diagonal matrix with entries sigma_i for i = 1, ..., n;
-    Lambda is a diagonal matrix with entries lambda_i = sigma_i with random sign;
-    U and V are random orthogonal matrices from the Haar distribution
-    (See: Stewart, The efficient generation of random orthogonal matrices
-     with an application to condition estimators, 1980);
-    X is a random matrix.
+    Examples:
+
+        ./testing_zgemm --matrix rand_small
+        ./testing_zgemm --matrix svd_arith --cond 1e6
+        ./testing_zgemm --matrix svd_logrand_ufl --cond 1e6
+
+    In descriptions below:
+    - $\Sigma$ is a diagonal matrix with entries $\sigma_i$,
+      for $i = 1, ..., n$;
+    - $\Lambda$ is a diagonal matrix with entries $ \lambda_i = \pm \sigma_i $
+      with random sign, for $i = 1, ..., n$;
+    - $U$ and $V$ are random orthogonal matrices from the Haar distribution
+      (See: Stewart, The efficient generation of random orthogonal matrices
+       with an application to condition estimators, 1980);
+    - $X$ is a random matrix.
 
     See LAPACK Working Note (LAWN) 41:
-    Table  5 (Test matrices for the nonsymmetric eigenvalue problem)
-    Table 10 (Test matrices for the symmetric eigenvalue problem)
-    Table 11 (Test matrices for the singular value decomposition)
+    - Table  5: Test matrices for the nonsymmetric eigenvalue problem
+    - Table 10: Test matrices for the symmetric eigenvalue problem
+    - Table 11: Test matrices for the singular value decomposition
 
-    Matrix      Description
-    zero        all entries are 0
-    ones        all entries are 1
-    identity    diagonal entries are 1
-    jordan      diagonal and first subdiagonal entries are 1
-    kronecker   A(i,j) = 1 + (m/cond) * kronecker_delta(i,j)
+    Matrix types
+    ----------------------------
+    Matrix        |  Description
+    --------------|-------------
+    `zero      `  |  all entries are 0
+    `ones      `  |  all entries are 1
+    `identity  `  |  diagonal entries are 1
+    `jordan    `  |  diagonal and first subdiagonal entries are 1
+    `kronecker `  |  $A_{ij} = 1 + (m/cond) \delta_{ij} $
+    -- -- --      |  -- -- --
+    `rand^     `  |  matrix entries random uniform on (0, 1)          [note 1]
+    `rands^    `  |  matrix entries random uniform on (-1, 1)         [note 1]
+    `randn^    `  |  matrix entries random normal with mean 0, std 1  [note 1,2]
+    -- -- --      |  -- -- --
+    `diag%^    `  |  $A = \Sigma       $
+    `svd%^     `  |  $A = U \Sigma V^H $
+    `poev%^    `  |  $A = V \Sigma V^H $ (eigenvalues positive [note 3], i.e., matrix SPD)
+    `spd%^     `  |  alias for poev
+    `heev%^    `  |  $A = V \Lambda V^H$ (eigenvalues mixed signs)
+    `syev%^    `  |  alias for heev
+    `geev%^    `  |  $A = V T V^H,     $ with Schur-form $T$, $V$ orthogonal      [not yet implemented]
+    `geevx%^   `  |  $A = X T X^{-1},  $ with Schur-form $T$, $X$ ill-conditioned [not yet implemented]
 
-    rand*       matrix entries random uniform on (0, 1)
-    rands*      matrix entries random uniform on (-1, 1)
-    randn*      matrix entries random normal with mean 0, sigma 1
+    [1] rand, rands, randn do not use cond, so the condition number is arbitrary.
 
-    diag#*      A = Sigma
-    svd#*       A = U Sigma V^H
-    poev#*      A = V Sigma V^H  (eigenvalues positive [1], i.e., matrix SPD)
-    spd#*       alias for poev
-    heev#*      A = V Lambda V^H (eigenvalues mixed signs)
-    syev#*      alias for heev
-    geev#*      A = V T V^H, Schur-form T                       [not yet implemented]
-    geevx#*     A = X T X^{-1}, Schur-form T, X ill-conditioned [not yet implemented]
+    [2] For randn, $Expected( \log( cond ) ) = \log( 4.65 n )$ [Edelman, 1988].
 
-    # optional distribution suffix
-    _rand       sigma_i random uniform on (0, 1) [default]
-    _rands      sigma_i random uniform on (-1, 1)
-    _randn      sigma_i random normal with mean 0, std 1
-                [1] Note for _rands and _randn, Sigma contains negative values.
-                _rand* do not use cond, so the condition number is arbitrary.
-                For randn, Expected( log( cond ) ) = log( 4.65 n ) [Edelman, 1988].
 
-    _logrand    log(sigma_i) uniform on (log(1/cond), log(1))
-    _arith      sigma_i = 1 - (i - 1)/(n - 1)*(1 - 1/cond); sigma_{i+1} - sigma_i is constant
-    _geo        sigma_i = (cond)^{ -(i-1)/(n-1) };          sigma_{i+1} / sigma_i is constant
-    _cluster0   sigma = [ 1, 1/cond, ..., 1/cond ]; 1 unit value, n-1 small values
-    _cluster1   sigma = [ 1, ..., 1, 1/cond ];      n-1 unit values, 1 small value
-    _rarith     _arith,    reversed order
-    _rgeo       _geo,      reversed order
-    _rcluster0  _cluster0, reversed order
-    _rcluster1  _cluster1, reversed order
-    _specified  user specified sigma on input
+    [%] optional distribution suffix for Sigma or Lambda
+    ----------------------------
+    Suffix        |  Description
+    --------------|-------------
+    `_rand     `  |  $\sigma_i$ random uniform on (0, 1)          [default]
+    `_rands    `  |  $\sigma_i$ random uniform on (-1, 1);        [note 3]
+    `_randn    `  |  $\sigma_i$ random normal with mean 0, std 1; [note 3]
+    -- -- --      |  -- -- --
+    `_logrand  `  |  $\log( \sigma_i )$ uniform on $(\log(1/cond), \log(1))$
+    `_arith    `  |  $\sigma_i = 1 - (i - 1)/(n - 1)(1 - 1/cond); \sigma_{i+1} - \sigma_i $ is constant
+    `_geo      `  |  $\sigma_i = (cond)^{ -(i-1)/(n-1) };         \sigma_{i+1} / \sigma_i $ is constant
+    `_cluster0 `  |  $\sigma = [ 1, 1/cond, ..., 1/cond ]; $ has 1 unit value, $n-1$ small values
+    `_cluster1 `  |  $\sigma = [ 1, ..., 1, 1/cond ];      $ has $n-1$ unit values, 1 small value
+    `_rarith   `  |  `_arith`,    reversed order
+    `_rgeo     `  |  `_geo`,      reversed order
+    `_rcluster0`  |  `_cluster0`, reversed order
+    `_rcluster1`  |  `_cluster1`, reversed order
+    `_specified`  |  user specified $\Sigma$ on input
 
-    * optional scaling & modifier suffix
-    _ufl        scale near underflow         = 1e-308 for double
-    _ofl        scale near overflow          = 2e+308 for double
-    _small      scale near sqrt( underflow ) = 1e-154 for double
-    _large      scale near sqrt( overflow  ) = 6e+153 for double
-    _dominant   diagonally dominant: set A_ii = ± max( sum_j |A_ij|, sum_j |A_ji| )
-                Note _dominant changes the singular or eigenvalues.
+    [3] For `_rands`, `_randn`, $\Sigma$ contains negative values.
 
-    [below scaling by D implemented, scaling by K not yet implemented]
+
+    [^] optional scaling & modifier suffix
+    ----------------------------
+    Suffix        |  Description
+    --------------|-------------
+    `_ufl      `  |  scale near underflow         = 1e-308 for double
+    `_ofl      `  |  scale near overflow          = 2e+308 for double
+    `_small    `  |  scale near sqrt( underflow ) = 1e-154 for double
+    `_large    `  |  scale near sqrt( overflow  ) = 6e+153 for double
+    `_dominant `  |  diagonally dominant
+
+    For `_dominant`, set diagonal entries to row or column sum:
+    \[
+        A_{ii} = \max( \sum_j | A_{ij} |, \sum_k | A_{ki} | ).
+    \]
+    Note `_dominant` changes the singular or eigenvalues, and cond.
+
+
+    condD scaling
+    ----------------------------
+    Here, scaling by $D$ is implemented, scaling by $K$ is not yet implemented.
     If condD != 1, then:
-    For SVD, A = (U Sigma V^H) K D, where
-    K is diagonal such that columns of (U Sigma V^H K) have unit norm,
-    hence (A^T A) has unit diagonal,
-    and D has log-random entries in ( log(1/condD), log(1) ).
+    For SVD,
+    \[
+        A_0 = U \Sigma V^H, \\
+        A = A_0 K D,
+    \]
+    where
+    $K$ is diagonal such that columns of $U \Sigma V^H K$ have unit norm,
+    hence $A^T A$ has unit diagonal,
+    and $D$ has log-random entries in $( \log(1/condD), \log(1) )$.
 
-    For heev, A0 = U Lambda U^H, A = D K A0 K D, where
-    K is diagonal such that (K A0 K) has unit diagonal, and D is as above.
+    For heev,
+    \[
+        A_0 = U \Lambda U^H, \\
+        A = D K A_0 K D,
+    \]
+    where
+    $K$ is diagonal such that $K A_0 K$ has unit diagonal, and $D$ is as above.
 
-    Note using condD changes the singular or eigenvalues; on output, sigma
-    contains the singular or eigenvalues of A0, not of A.
+    Note using condD changes the singular or eigenvalues; on output, $\Sigma$
+    contains the singular or eigenvalues of $A_0$, not of $A$.
+
     See: Demmel and Veselic, Jacobi's method is more accurate than QR, 1992.
 
-    @ingroup testing
+    @ingroup magma_testing
 *******************************************************************************/
 template< typename FloatT >
 void magma_generate_matrix(

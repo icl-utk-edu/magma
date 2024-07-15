@@ -15,58 +15,15 @@
 #include <omp.h>
 #endif
 
+
+#include "../blas/magma_trisolve.h"
+
 #define PRECISION_z
 
-// todo: make it spacific  
-#if CUDA_VERSION >= 11000
-#define cusparseCreateSolveAnalysisInfo(info) {;}
-#else
-#define cusparseCreateSolveAnalysisInfo(info)                                                   \
-    CHECK_CUSPARSE( cusparseCreateSolveAnalysisInfo( info ))
-#endif
 
-// todo: info is passed; buf has to be passed 
-#if CUDA_VERSION >= 11000
-#define cusparseZcsrsv_analysis(handle, trans, m, nnz, descr, val, row, col, info)              \
-    {                                                                                           \
-        csrsv2Info_t linfo = 0;                                                                 \
-        int bufsize;                                                                            \
-        void *buf;                                                                              \
-        cusparseCreateCsrsv2Info(&linfo);                                                       \
-        cusparseZcsrsv2_bufferSize(handle, trans, m, nnz, descr, val, row, col,                 \
-                                   linfo, &bufsize);                                            \
-        if (bufsize > 0)                                                                        \
-           magma_malloc(&buf, bufsize);                                                         \
-        cusparseZcsrsv2_analysis(handle, trans, m, nnz, descr, val, row, col, linfo,            \
-                                 CUSPARSE_SOLVE_POLICY_USE_LEVEL, buf);                         \
-        if (bufsize > 0)                                                                        \
-           magma_free(buf);                                                                     \
-    }
-#endif
-
-// todo: check the info and linfo if we have to give it back; free memory?   
-#if CUDA_VERSION >= 11000
-#define cusparseZcsrsm_analysis(handle, op, rows, nnz, descrA, dval, drow, dcol, info )         \
-    {                                                                                           \
-        magmaDoubleComplex alpha = MAGMA_Z_ONE;                                                 \
-        cuDoubleComplex *B;                                                                     \
-        csrsm2Info_t linfo;                                                                     \
-        size_t bufsize;                                                                         \
-        void *buf;                                                                              \
-        cusparseCreateCsrsm2Info(&linfo);                                                       \
-        cusparseZcsrsm2_bufferSizeExt(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE,          \
-                                      rows, 1, nnz, (const cuDoubleComplex *)&alpha,            \
-                                      descrA, dval, drow, dcol,                                 \
-                                      B, rows, linfo, CUSPARSE_SOLVE_POLICY_NO_LEVEL, &bufsize);\
-        if (bufsize > 0)                                                                        \
-           magma_malloc(&buf, bufsize);                                                         \
-        cusparseZcsrsm2_analysis(handle, 0, op, CUSPARSE_OPERATION_NON_TRANSPOSE,               \
-                                 rows, 1, nnz, (const cuDoubleComplex *)&alpha,                 \
-                                 descrA, dval, drow, dcol,                                      \
-                                 B, rows, linfo, CUSPARSE_SOLVE_POLICY_NO_LEVEL, buf);          \
-        if (bufsize > 0)                                                                        \
-           magma_free(buf);                                                                     \
-    }
+/* For hipSPARSE, they use a separate complex type than for hipBLAS */
+#ifdef MAGMA_HAVE_HIP
+  #define hipblasDoubleComplex hipDoubleComplex
 #endif
 
 
@@ -127,9 +84,6 @@ magma_zparict(
                     
     double sum, sumL;//, sumU, thrsL_old=1e9, thrsU_old=1e9;
 
-    cusparseHandle_t cusparseHandle=NULL;
-    cusparseMatDescr_t descrL=NULL;
-    cusparseMatDescr_t descrU=NULL;
     magma_z_matrix hA={Magma_CSR}, A0={Magma_CSR}, hAT={Magma_CSR}, hL={Magma_CSR}, hU={Magma_CSR},
                     oneL={Magma_CSR}, LT={Magma_CSR},
                     L={Magma_CSR}, L_new={Magma_CSR};
@@ -253,34 +207,8 @@ magma_zparict(
     // for CUSPARSE
     CHECK( magma_zmtransfer( L, &precond->M, Magma_CPU, Magma_DEV , queue ));
 
-    // CUSPARSE context //
-    // lower triangular factor
-    CHECK_CUSPARSE( cusparseCreate( &cusparseHandle ));
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrL ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrL, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrL, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrL, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrL, CUSPARSE_FILL_MODE_LOWER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoL );
-    cusparseZcsrsv_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_NON_TRANSPOSE, precond->M.num_rows,
-                             precond->M.nnz, descrL,
-                             precond->M.dval, precond->M.drow, precond->M.dcol, 
-                             precond->cuinfoL );
-    
-    // upper triangular factor
-    CHECK_CUSPARSE( cusparseCreateMatDescr( &descrU ));
-    CHECK_CUSPARSE( cusparseSetMatType( descrU, CUSPARSE_MATRIX_TYPE_TRIANGULAR ));
-    CHECK_CUSPARSE( cusparseSetMatDiagType( descrU, CUSPARSE_DIAG_TYPE_NON_UNIT ));
-    CHECK_CUSPARSE( cusparseSetMatIndexBase( descrU, CUSPARSE_INDEX_BASE_ZERO ));
-    CHECK_CUSPARSE( cusparseSetMatFillMode( descrU, CUSPARSE_FILL_MODE_LOWER ));
-    cusparseCreateSolveAnalysisInfo( &precond->cuinfoU );
-    cusparseZcsrsm_analysis( cusparseHandle,
-                             CUSPARSE_OPERATION_TRANSPOSE, precond->M.num_rows,
-                             precond->M.nnz, descrU,
-                             precond->M.dval, precond->M.drow, precond->M.dcol, 
-                             precond->cuinfoU );
-    
+    CHECK(magma_ztrisolve_analysis(precond->M, &precond->cuinfoL, false, false, false, queue));
+    CHECK(magma_ztrisolve_analysis(precond->M, &precond->cuinfoU, false, false, true, queue));
     
     if( precond->trisolver != 0 && precond->trisolver != Magma_CUSOLVE ){
         //prepare for iterative solves
@@ -313,13 +241,6 @@ magma_zparict(
     }
 
     cleanup:
-
-    cusparseDestroy( cusparseHandle );
-    cusparseDestroyMatDescr( descrL );
-    cusparseDestroyMatDescr( descrU );
-    cusparseHandle=NULL;
-    descrL=NULL;
-    descrU=NULL;
     magma_zmfree( &hA, queue );
     magma_zmfree( &hAT, queue );
     magma_zmfree( &A0, queue );

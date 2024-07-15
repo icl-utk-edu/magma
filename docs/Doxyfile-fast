@@ -1021,7 +1021,6 @@ INPUT                  = \
 	../magmablas/zgetmatrix_transpose.cpp                       \
 	../magmablas/zgetmatrix_transpose_mgpu.cpp                  \
 	../magmablas/zgetrf_batched_smallsq_noshfl.cu               \
-	../magmablas/zgetrf_batched_smallsq_shfl.cu                 \
 	../magmablas/zhemm_batched_core.cu                          \
 	../magmablas/zhemm_mgpu.cpp                                 \
 	../magmablas/zhemm_vbatched.cpp                             \
@@ -2822,7 +2821,7 @@ INCLUDE_FILE_PATTERNS  =
 # Compile as if CUBLAS, CBLAS, and (for constants.cpp) clBLAS are available
 # Compile as C++.
 # Remove gcc attributes.
-PREDEFINED             = HAVE_CUBLAS HAVE_CBLAS HAVE_clBLAS \
+PREDEFINED             = MAGMA_HAVE_CUDA HAVE_CBLAS MAGMA_HAVE_OPENCL \
                          __cplusplus \
                          __attribute__(x)=
 

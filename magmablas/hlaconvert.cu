@@ -13,7 +13,7 @@
 #include <cuda.h>    // for CUDA_VERSION
 #include "magma_internal.h"
 
-#if CUDA_VERSION >= 7500
+#if CUDA_VERSION >= 7500 || defined(MAGMA_HAVE_HIP)
 
 // To deal with really large matrices, this launchs multiple super blocks,
 // each with up to 64K-1 x 64K-1 thread blocks, which is up to 4194240 x 4194240 matrix with BLK=64.
@@ -186,9 +186,7 @@ void convert_dp2hp_kernel(
     const double *dA, int ldda,
           magmaHalf *dB, int lddb )
 {
-#if CUDA_VERSION >= 7500
     convert_dp2hp_device(m, n, dA, ldda, dB, lddb);
-#endif
 }
 /******************************************************************************/
 /*
@@ -200,9 +198,7 @@ void convert_hp2dp_kernel(
     const magmaHalf *dA, int ldda,
           double *dB, int lddb )
 {
-#if CUDA_VERSION >= 7500
     convert_hp2dp_device(m, n, dA, ldda, dB, lddb);
-#endif
 }
 
 /******************************************************************************/
@@ -215,9 +211,7 @@ void convert_sp2hp_kernel(
     const float  *dA, int ldda,
           magmaHalf *dB, int lddb )
 {
-#if CUDA_VERSION >= 7500
     convert_sp2hp_device(m, n, dA, ldda, dB, lddb);
-#endif
 }
 /******************************************************************************/
 /*
@@ -229,9 +223,7 @@ void convert_hp2sp_kernel(
     const magmaHalf *dA, int ldda,
           float  *dB, int lddb )
 {
-#if CUDA_VERSION >= 7500
     convert_hp2sp_device(m, n, dA, ldda, dB, lddb);
-#endif
 }
 
 /***************************************************************************//**

@@ -18,6 +18,9 @@
 
 #include "magma_internal.h"
 
+// define 0 for large initializations
+#define Z0 MAGMA_Z_ZERO
+
 /*
     This inverts the diagonal IB by IB inner blocks of A,
     and stores the results in d_dinvA.
@@ -175,8 +178,8 @@ triple_zgemm16_part1_lower_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        magmaDoubleComplex rC[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        magmaDoubleComplex rA[4]  = {0, 0, 0, 0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // TODO this won't coalesce, will it? unless NX=32 (or maybe 16 with doubles, or 8 with double-complex)
@@ -291,8 +294,8 @@ triple_zgemm16_part2_lower_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        magmaDoubleComplex rC[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        magmaDoubleComplex rA[4]  = {0, 0, 0, 0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -394,8 +397,8 @@ triple_zgemm32_part1_lower_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        magmaDoubleComplex rC[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        magmaDoubleComplex rA[4]  = {0, 0, 0, 0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
         
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -498,8 +501,8 @@ triple_zgemm32_part2_lower_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        magmaDoubleComplex rC[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        magmaDoubleComplex rA[4]  = {0, 0, 0, 0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -601,8 +604,8 @@ triple_zgemm64_part1_lower_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        magmaDoubleComplex rC[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        magmaDoubleComplex rA[4]  = {0, 0, 0, 0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -705,8 +708,8 @@ triple_zgemm64_part2_lower_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        magmaDoubleComplex rC[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        magmaDoubleComplex rA[4]  = {0, 0, 0, 0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -817,8 +820,8 @@ triple_zgemm_above64_part1_lower_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        magmaDoubleComplex rC[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        magmaDoubleComplex rA[4]  = {0, 0, 0, 0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads
@@ -921,8 +924,8 @@ triple_zgemm_above64_part2_lower_device(
 
         // compute NT x 16 block of C
         // each thread computes one 1x16 row, C(id,0:15)
-        magmaDoubleComplex rC[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-        magmaDoubleComplex rA[4]  = {0, 0, 0, 0};
+        magmaDoubleComplex rC[16] = {Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0, Z0};
+        magmaDoubleComplex rA[4]  = {Z0, Z0, Z0, Z0};
 
         do {
             // load 16 x 16 block of B using NX x 4 threads

@@ -96,7 +96,7 @@ void magma_zlarfgx_gpu_kernel( int n, magmaDoubleComplex* dx0, magmaDoubleComple
     Generates Householder elementary reflector H = I - tau v v^T to reduce
         H [ dx0 ] = [ beta ]
           [ dx  ]   [ 0    ]
-    with beta = ¬±norm( [dx0, dx] ) = ¬±dxnorm[0].
+    with |beta| = norm( [dx0, dx] ) = dxnorm[0].
     Stores v over dx; first element of v is 1 and is not stored.
     Stores beta over dx0.
     Stores tau.
@@ -127,7 +127,7 @@ magma_zlarfgx_gpu(
     Generates Householder elementary reflector H = I - tau v v^T to reduce
         H [ dx0 ] = [ beta ]
           [ dx  ]   [ 0    ]
-    with beta = ¬±norm( [dx0, dx] ) = ¬±dxnorm[0].
+    with |beta| = norm( [dx0, dx] ) = dxnorm[0].
     Stores v over dx; first element of v is 1 and is not stored.
     Stores beta over dx0.
     Stores tau.
