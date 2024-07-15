@@ -173,17 +173,16 @@ if (MAGMA_ENABLE_CUDA)
     endif()
 
     # MIN_SM is lowest requested version
-    set( MIN_SM 99 )
+    set( MIN_SM 9999 )
 
-    string( REGEX MATCHALL "sm_[0-9][0-9]" sms "${GPU_TARGET}" )
-    list( SORT sms ) # To make output easier to reason about
+    string( REGEX MATCHALL "sm_[0-9]+[0-9]" sms "${GPU_TARGET}" )
     foreach (sm IN LISTS sms)
         string( REPLACE "sm_" "" sm "${sm}") # Remove sm_ prefix
         if (sm LESS MIN_SM)
             set( MIN_SM "${sm}" )
         endif()
         list( APPEND __cuda_architectures "${sm}" )
-        string( REGEX REPLACE "([0-9])([0-9])" "\\1.\\2" cuda_arch "${sm}" )
+        string( REGEX REPLACE "([0-9]+)([0-9])" "\\1.\\2" cuda_arch "${sm}" )
         message( STATUS "    compile for CUDA arch ${cuda_arch}" )
     endforeach()
 
@@ -194,6 +193,7 @@ if (MAGMA_ENABLE_CUDA)
                  "Was: ${GPU_TARGET}" )
     endif()
 
+    message( STATUS "CUDA_ARCHITECTURES ${__cuda_architectures}" )
     set(CUDA_ARCHITECTURES "${__cuda_architectures}")
     set( MIN_ARCH ${MIN_SM}0 )
 
