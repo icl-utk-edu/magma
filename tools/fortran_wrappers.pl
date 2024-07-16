@@ -58,13 +58,14 @@ my( $pre, $return, $prefix, $func, $is_gpu, $text, $rest, $comment,
 # ignore auxiliary functions which the user doesn't need
 # ignore PLASMA functions (tstrf, incpiv)
 # ignore misc functions in headers but not in library (larfg, getrf2, geqr2) (as of 2012-04-16)
+# ignore temporarily expert interfaces (e.g. accepting void*)
 my @ignore = qw(
 	[sdcz]geqrf_msub
 	[sdcz]getrf_msub
 	[sdcz]getrf2_msub
 	[sdcz]potrf_msub
 	[sdcz]potrf2_msub
-	
+
 	[cz]lahef
 	[sd]lasyf
 	[sd]sygvr
@@ -85,7 +86,7 @@ my @ignore = qw(
 	[sdcz]latrd2
 	[sdcz]tsqrt
 	[sdcz]tstrf
-	
+
 	[sdcz]getmatrix_1D_row_bcyclic
 	[sdcz]setmatrix_1D_row_bcyclic
 	[sdcz]getmatrix_1D_col_bcyclic
@@ -94,7 +95,16 @@ my @ignore = qw(
 	[sdcz]htodpo
 	[sdcz]dtohhe
 	[sdcz]dtohpo
+	[sdcz]gbtf2_native_v2_work
+	[sdcz]gbsv_native_work
+	[sdcz]gbtf2_native_work
+	[sdcz]gbtrf_native_work
+	[sdcz]geqrf_expert_gpu_work
+	[sdcz]getrf_expert_gpu_work
+	[sdcz]getrf_gpu_expert
+	[sdcz]potrf_expert_gpu_work
 );
+
 my $ignore = join( "|", @ignore );
 if ($verbose) {
 	print STDERR "ignore: $ignore\n";
@@ -133,7 +143,7 @@ my %f90types = (
 	'magmaDoubleComplex' => 'complex*16      ',
 	'magma_queue_t'      => 'magma_devptr_t  ',  # really host pointers, not device pointers,
 	'magma_event_t'      => 'magma_devptr_t  ',  # but reusing devptr is an easy solution.
-	
+
 	'magma_ptr'              => 'magma_devptr_t',
 	'magma_const_ptr'        => 'magma_devptr_t',
 	'magmaInt_ptr'           => 'magma_devptr_t',
@@ -151,22 +161,22 @@ for my $type ( keys %constants ) {
 my %devptrs = (
 	'magma_ptr'              => 'magma_devptr',
 	'magma_const_ptr'        => 'magma_devptr',
-	
+
 	'magma_int_t'            => 'magma_idevptr',
 	'float'                  => 'magma_sdevptr',
 	'double'                 => 'magma_ddevptr',
-	
+
 	'cuFloatComplex'         => 'magma_cdevptr',
 	'cuDoubleComplex'        => 'magma_zdevptr',
 	'magmaFloatComplex'      => 'magma_cdevptr',
 	'magmaDoubleComplex'     => 'magma_zdevptr',
-	
+
 	'magmaInt_ptr'           => 'magma_idevptr',
 	'magmaFloat_ptr'         => 'magma_sdevptr',
 	'magmaDouble_ptr'        => 'magma_ddevptr',
 	'magmaFloatComplex_ptr'  => 'magma_cdevptr',
 	'magmaDoubleComplex_ptr' => 'magma_zdevptr',
-	
+
 	'magmaInt_const_ptr'           => 'magma_idevptr',
 	'magmaFloat_const_ptr'         => 'magma_sdevptr',
 	'magmaDouble_const_ptr'        => 'magma_ddevptr',
@@ -265,7 +275,7 @@ my $i = 1;
 while ($_) {
 	#print STDERR $i, ': ', substr( $_, 0, 10 ), "\n";
 	#$i += 1;
-	
+
 	# look for function, e.g.: "magma_int_t magma_foo_gpu("
 	if (m/(.*?)^(magma_int_t|float|double|int|void)\s+(magma|magmablas)_(\w+?)(_gpu)?\s*(\(.*)/ms) {
 		# parse magma function
@@ -275,13 +285,13 @@ while ($_) {
 		$func   = $4;
 		$is_gpu = $5;
 		$text   = $6;
-		
+
 		# get arguments: "( ... )"
 		($args, $rest) = extract_bracketed( $text, '()' );
 		$args =~ s/\n/ /g;
 		$args =~ s/^\( *//;
 		$args =~ s/ *\)$//;
-		
+
 		# Most MAGMA functions return info; ignore the return value.
 		if ($return eq 'magma_int_t' and $args =~ m/\binfo\b/) {
 			$return = '';
@@ -289,19 +299,19 @@ while ($_) {
 		if ($return eq 'void') {
 			$return = ''
 		}
-		
+
 		if ($func =~ s/_internal//) {
 			print STDERR "Dropping internal args (func, file, line) on $func:\n    $args\n";
 			$args =~ s/,\s+const char\*\s+func,\s+const char\*\s+file,\s+int\s+line//;
 			print STDERR "=>  $args\n\n";
 		}
-		
+
 		@args = split( /, */, $args );
-		
+
 		$funcf = "${prefix}f_$func$is_gpu";
 		$wrapper = sprintf( "#define %s FORTRAN_NAME( %s, %s )\n",
 			${funcf}, $funcf, uc($funcf) );
-		
+
 		my $match = $func =~ m/^($ignore)$/;
 		if ($verbose) {
 			print STDERR "FUNC $func $match\n";
@@ -312,7 +322,7 @@ while ($_) {
 			$wrapper   = "";
 			$interface = "";
 		}
-		elsif ($func =~ m/^($ignore)$/ or $func =~ m/(_mgpu|_batch|_vbatch)/) {
+		elsif ($func =~ m/^($ignore)$/ or $func =~ m/(_mgpu|_batch|_vbatch|_expert)/) {
 			# ignore auxiliary functions and multi-GPU functions, since
 			# we haven't dealt with passing arrays of pointers in Fortran yet
 			$wrapper   = "";
@@ -325,13 +335,13 @@ while ($_) {
 		}
 		else {
 			$seen{ $funcf } = 1;
-			
+
 			if ($return) {
 				# function
 				# build up wrapper and the call inside the wrapper, argument by argument
 				$wrapper .= "$return ${funcf}(\n    ";
 				$call     = "return ${prefix}_$func$is_gpu(\n        ";
-				
+
 				# build up Fortran interface and variable definitions, argument by argument
 				my $t = $f90types{$return};
 				$t =~ s/ +$//;
@@ -343,12 +353,12 @@ while ($_) {
 				# build up wrapper and the call inside the wrapper, argument by argument
 				$wrapper .= "void ${funcf}(\n    ";
 				$call     = "${prefix}_$func$is_gpu(\n        ";
-				
+
 				# build up Fortran interface and variable definitions, argument by argument
 				$interface = "subroutine $funcf( ";
 				$vars      = "";
 			}
-			
+
 			$first_arg = 1;
 			foreach $arg (@args) {
 				$arg =~ s/\bconst +//g;
@@ -362,7 +372,7 @@ while ($_) {
 				$base_type =~ s/^ +//;
 				$base_type =~ s/ +$//;
 				#print STDERR "base_type $base_type\n";
-				
+
 				$is_ptr = ($type =~ m/\*/ or $type =~ m/_ptr$/ or $type2 ne "");
 				#print STDERR "  type $type, type2 $type2, var $var, is_ptr $is_ptr\n";
 				if ($is_ptr) {
@@ -422,7 +432,7 @@ while ($_) {
 				$first_arg = 0;
 			}
 			$wrapper .= " )\n{\n    $call );\n}\n\n";
-			
+
 			$interface .= " )\n";
 			$interface  = Text::Wrap::wrap( "", "        ", $interface );
 			$interface .= "${vars}end\n\n";
@@ -433,14 +443,14 @@ while ($_) {
 			#	$interface .= "end subroutine $funcf\n\n";
 			#}
 		}
-		
+
 		if ($pre and $verbose) {
 			print STDERR "WARNING: ignoring unrecognized text before function: <<<\n$pre>>>\n";
 		}
-		
+
 		$output_wrapper   .= $wrapper;
 		$output_interface .= $interface;
-		
+
 		$_ = $rest;
 		s/^ *;//;
 	}

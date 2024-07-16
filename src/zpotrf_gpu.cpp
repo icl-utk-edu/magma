@@ -492,8 +492,7 @@ magma_zpotrf_native(
     magma_int_t *info )
 {
     *info = 0;
-    if (uplo != MagmaLower) {
-        printf("%s currently only supports uplo = MagmaLower\n", __func__);
+    if (uplo != MagmaUpper && uplo != MagmaLower) {
         *info = -1;
     } else if (n < 0) {
         *info = -2;

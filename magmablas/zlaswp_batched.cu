@@ -191,16 +191,16 @@ magma_zlaswp_rowserial_batched(magma_int_t n, magmaDoubleComplex** dA_array, mag
 {
     if (n == 0) return;
 
-    int blocks = magma_ceildiv( n, BLK_SIZE );
+    magma_int_t threads = min(n, MAX_NTHREADS);
+    magma_int_t blocks  = magma_ceildiv( n, threads );
     magma_int_t max_batchCount = queue->get_maxBatch();
 
     for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3  grid(blocks, 1, ibatch);
 
-        magma_int_t max_BLK_SIZE__n = max(BLK_SIZE, n);
         zlaswp_rowserial_kernel_batched
-        <<< grid, max_BLK_SIZE__n, 0, queue->cuda_stream() >>>
+        <<< grid, threads, 0, queue->cuda_stream() >>>
         (n, dA_array+i, lda, k1, k2, ipiv_array+i);
     }
 }
@@ -217,13 +217,13 @@ magma_zlaswp_rowserial_native(magma_int_t n, magmaDoubleComplex_ptr dA, magma_in
 {
     if (n == 0) return;
 
-    int blocks = magma_ceildiv( n, BLK_SIZE );
+    magma_int_t threads = min(n, MAX_NTHREADS);
+    magma_int_t blocks  = magma_ceildiv( n, threads );
     dim3  grid(blocks, 1, 1);
 
-    size_t max_BLK_SIZE_n = max(BLK_SIZE, n);
     zlaswp_rowserial_kernel_native
-        <<< grid, max_BLK_SIZE_n, 0, queue->cuda_stream() >>>
-        (n, dA, lda, k1, k2, dipiv);
+    <<< grid, threads, 0, queue->cuda_stream() >>>
+    (n, dA, lda, k1, k2, dipiv);
 }
 
 

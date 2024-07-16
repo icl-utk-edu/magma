@@ -786,7 +786,7 @@ void   lapackf77_zlahef( const char *uplo,
                          magma_int_t *info );
 
 double lapackf77_zlangb( const char *norm,
-                         const magma_int_t *n, const magma_int_t *kl, magma_int_t *ku,
+                         const magma_int_t *n, const magma_int_t *kl, const magma_int_t *ku,
                          const magmaDoubleComplex *AB, const magma_int_t *ldab,
                          double *work );
 

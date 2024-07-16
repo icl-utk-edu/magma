@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Azzam Haidar
 
        @precisions normal z -> s d c
@@ -86,7 +86,7 @@ magma_zgesv_rbt_batched(
                   magma_int_t batchCount, magma_queue_t queue)
 {
     /* Local variables */
-    magma_int_t i, info;
+    magma_int_t info;
     info = 0;
     if (n < 0) {
         info = -1;
@@ -119,9 +119,7 @@ magma_zgesv_rbt_batched(
         return info;
     }
 
-
-
-    info = magma_zgerbt_batched(MagmaTrue, n, nrhs, dA_array, n, dB_array, n, hu, hv, &info, batchCount, queue);
+    info = magma_zgerbt_batched(MagmaTrue, n, nrhs, dA_array, ldda, dB_array, lddb, hu, hv, &info, batchCount, queue);
     if (info != MAGMA_SUCCESS)  {
         return info;
     }
@@ -136,9 +134,8 @@ magma_zgesv_rbt_batched(
     // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
     magma_int_t *cpu_info = NULL;
     magma_imalloc_cpu( &cpu_info, batchCount );
-    magma_getvector( batchCount, sizeof(magma_int_t), dinfo_array, 1, cpu_info, 1);
-    for (i=0; i < batchCount; i++)
-    {
+    magma_getvector( batchCount, sizeof(magma_int_t), dinfo_array, 1, cpu_info, 1, queue);
+    for(magma_int_t i=0; i < batchCount; i++) {
         if (cpu_info[i] != 0 ) {
             printf("magma_zgetrf_batched matrix %lld returned error %lld\n", (long long) i, (long long) cpu_info[i] );
             info = cpu_info[i];
@@ -151,7 +148,6 @@ magma_zgesv_rbt_batched(
 
     info = magma_zgetrs_nopiv_batched( MagmaNoTrans, n, nrhs, dA_array, ldda, dB_array, lddb, dinfo_array, batchCount, queue );
 
-
     /* The solution of A.x = b is Vy computed on the GPU */
     magmaDoubleComplex *dv;
 
@@ -162,10 +158,7 @@ magma_zgesv_rbt_batched(
 
     magma_zsetvector( 2*n, hv, 1, dv, 1, queue );
 
-    for (i = 0; i < nrhs; i++)
-        magmablas_zprbt_mv_batched(n, dv, dB_array+(i), batchCount, queue);
-
-    //magma_zgetmatrix( n, nrhs, db, nn, B, ldb, queue );
+    magmablas_zprbt_mv_batched(n, nrhs, dv, dB_array, lddb, batchCount, queue);
 
     return info;
 }

@@ -841,7 +841,7 @@ ifeq ($(BACKEND),cuda)
 d_ext := cu
 else ifeq ($(BACKEND),hip)
 d_ext := cpp
-CXXFLAGS += -D__HIP_PLATFORM_HCC__
+CXXFLAGS += -D__HIP_PLATFORM_AMD__
 CXXFLAGS += -DROCM_VERSION=$(shell ./tools/get-rocm-version.sh)
 endif
 

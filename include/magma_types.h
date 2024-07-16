@@ -138,8 +138,8 @@ typedef double real_Double_t;
 #elif defined(MAGMA_HAVE_HIP)
 
     // default to HCC
-    #if !defined(__HIP_PLATFORM_HCC__) && !defined(__HIP_PLATFORM_NVCC)
-      #define __HIP_PLATFORM_HCC__
+    #if !defined(__HIP_PLATFORM_AMD__) && !defined(__HIP_PLATFORM_NVCC)
+      #define __HIP_PLATFORM_AMD__
     #endif
 
     #include <hip/hip_version.h>
@@ -513,8 +513,8 @@ float  magma_cabsf( magmaFloatComplex  x );
 
 // -----------------------------------------------------------------------------
 #define MAGMA_VERSION_MAJOR 2
-#define MAGMA_VERSION_MINOR 7
-#define MAGMA_VERSION_MICRO 2
+#define MAGMA_VERSION_MINOR 8
+#define MAGMA_VERSION_MICRO 0
 
 // stage is "svn", "beta#", "rc#" (release candidate), or blank ("") for final release
 #define MAGMA_VERSION_STAGE "svn"

@@ -216,8 +216,8 @@ magma_init()
                     g_magma_devices[dev].multiproc_count       = prop.multiProcessorCount;
                     g_magma_devices[dev].shmem_block           = prop.sharedMemPerBlock;
 
-                    #ifdef MAGMA_HAVE_CUDA
                     g_magma_devices[dev].gpu_arch          = prop.major*100 + prop.minor*10;
+                    #ifdef MAGMA_HAVE_CUDA
                     g_magma_devices[dev].shmem_multiproc   = prop.sharedMemPerMultiprocessor;
                     // dynamic shared memory in CUDA has a special opt-in since CUDA 9
                     #if CUDA_VERSION >= 9000
@@ -227,7 +227,6 @@ magma_init()
                     #endif
 
                     #elif defined(MAGMA_HAVE_HIP)
-                    g_magma_devices[dev].gpu_arch          = prop.gcnArch;
                     g_magma_devices[dev].shmem_multiproc   = prop.maxSharedMemoryPerMultiProcessor;
                     g_magma_devices[dev].shmem_block_optin = prop.sharedMemPerBlock;
                     #endif
@@ -472,12 +471,12 @@ magma_print_environment()
         #endif
 
         #ifdef MAGMA_HAVE_HIP
-        printf( "%% device %d: %s, %.1f MHz clock, %.1f MiB memory, gcn arch %d\n",
+        printf( "%% device %d: %s, %.1f MHz clock, %.1f MiB memory, gcn arch %s\n",
                 dev,
                 prop.name,
                 prop.clockRate / 1000.,
                 prop.totalGlobalMem / (1024.*1024.),
-                prop.gcnArch );
+                prop.gcnArchName );
         #endif
     }
 

@@ -84,19 +84,20 @@ void gemm_template_device_prefetch_nn (
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YA)
+    if(K > 0) {
         #pragma unroll
-        for (m = 0; m < BLK_M; m += DIM_XA)
-            sA(m+idxA,n+idyA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_K; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_M; m += DIM_XA)
+                sA(m+idxA,n+idyA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_N; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XB)
-            sB(m+idxB,n+idyB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_N; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XB)
+                sB(m+idxB,n+idyB) = fetch(B, m, n, boundB);
+    }
     __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
@@ -263,20 +264,21 @@ void gemm_template_device_prefetch_nt (
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    // Load A dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YA)
+    if(K > 0) {
+        // Load A dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_M; m += DIM_XA)
-            sA(m+idxA,n+idyA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_K; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_M; m += DIM_XA)
+                sA(m+idxA,n+idyA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_N; m += DIM_XB)
-            sB(n+idyB,m+idxB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_K; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_N; m += DIM_XB)
+                sB(n+idyB,m+idxB) = fetch(B, m, n, boundB);
+    }
     __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
@@ -444,20 +446,21 @@ void gemm_template_device_prefetch_tn (
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    // Load A dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_M; n += DIM_YA)
+    if(K > 0) {
+        // Load A dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XA)
-            sA(n+idyA,m+idxA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_M; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XA)
+                sA(n+idyA,m+idxA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_N; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XB)
-            sB(m+idxB,n+idyB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_N; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XB)
+                sB(m+idxB,n+idyB) = fetch(B, m, n, boundB);
+    }
     __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
@@ -624,20 +627,21 @@ void gemm_template_device_prefetch_tt (
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    // Load A dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_M; n += DIM_YA)
+    if(K > 0) {
+        // Load A dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XA)
-            sA(n+idyA,m+idxA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_M; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XA)
+                sA(n+idyA,m+idxA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_N; m += DIM_XB)
-            sB(n+idyB,m+idxB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_K; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_N; m += DIM_XB)
+                sB(n+idyB,m+idxB) = fetch(B, m, n, boundB);
+    }
     __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
@@ -804,18 +808,19 @@ void gemm_template_device_nn(
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YA)
+    if(K > 0) {
         #pragma unroll
-        for (m = 0; m < BLK_M; m += DIM_XA)
-            sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_K; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_M; m += DIM_XA)
+                sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
 
-    #pragma unroll
-    for (n = 0; n < BLK_N; n += DIM_YB)
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XB)
-            sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_N; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XB)
+                sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
+    }
     __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
@@ -999,19 +1004,20 @@ void gemm_template_device_nt(
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YA)
+    if(K > 0) {
         #pragma unroll
-        for (m = 0; m < BLK_M; m += DIM_XA)
-            sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_K; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_M; m += DIM_XA)
+                sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_N; m += DIM_XB)
-            sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_K; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_N; m += DIM_XB)
+                sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
+    }
     __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
@@ -1200,19 +1206,20 @@ void gemm_template_device_tn(
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    // Load A dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_M; n += DIM_YA)
+    if(K > 0) {
+        // Load A dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XA)
-            sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_M; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XA)
+                sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
 
-    #pragma unroll
-    for (n = 0; n < BLK_N; n += DIM_YB)
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XB)
-            sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_N; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XB)
+                sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
+    }
     __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
@@ -1402,20 +1409,21 @@ void gemm_template_device_tt(
         for (m = 0; m < THR_M; m++)
             rC[n][m] = make_FloatingPoint(0.0, 0.0);
 
-    // Load A dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_M; n += DIM_YA)
+    if(K > 0) {
+        // Load A dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_K; m += DIM_XA)
-            sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
+        for (n = 0; n < BLK_M; n += DIM_YA)
+            #pragma unroll
+            for (m = 0; m < BLK_K; m += DIM_XA)
+                sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
 
-    // Load B dev->shmem
-    #pragma unroll
-    for (n = 0; n < BLK_K; n += DIM_YB)
+        // Load B dev->shmem
         #pragma unroll
-        for (m = 0; m < BLK_N; m += DIM_XB)
-            sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
-
+        for (n = 0; n < BLK_K; n += DIM_YB)
+            #pragma unroll
+            for (m = 0; m < BLK_N; m += DIM_XB)
+                sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
+    }
     __syncthreads();
 
     for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
