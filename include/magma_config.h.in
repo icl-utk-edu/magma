@@ -12,6 +12,7 @@
 
 // CUDA settings
 #cmakedefine MAGMA_HAVE_CUDA
+#cmakedefine MAGMA_CUDA_ARCH "@MAGMA_CUDA_ARCH@"
 #cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@
 
 // HIP settings

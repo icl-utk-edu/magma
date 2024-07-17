@@ -374,7 +374,7 @@ magma_print_environment()
 
 #if defined(MAGMA_HAVE_CUDA)
 
-    printf("%% Compiled with CUDA support for %.1f\n", MAGMA_CUDA_ARCH_MIN/100.);
+    printf( "%% Compiled for CUDA architectures %s\n", MAGMA_CUDA_ARCH );
 
     // CUDA, OpenCL, OpenMP, MKL, ACML versions all printed on same line
     int cuda_runtime=0, cuda_driver=0;
