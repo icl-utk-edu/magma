@@ -174,10 +174,9 @@ ifeq ($(BACKEND),cuda)
         $(error ERROR: unknown `$(CUDA_ARCH_UNKNOWN_)` in GPU_TARGET)
     endif
 
-	# Now, sort sm's
+    # Now, sort sm's
     SMS      := $(patsubst sm_%,%,$(filter sm_%, $(CUDA_ARCH_)))
     SMS      := $(shell printf "%s\n" $(SMS) | sort -n)
-
 
     # code=sm_XX is binary, code=compute_XX is PTX
     GENCODE_SM      = -gencode arch=compute_$(sm),code=sm_$(sm)
@@ -187,7 +186,7 @@ ifeq ($(BACKEND),cuda)
     NV_SM    := $(foreach sm,$(SMS),$(GENCODE_SM))
     NV_COMP  := $(foreach sm,$(SMS),$(GENCODE_COMP))
 
-	# Check for empty
+    # Check for empty
     ifeq ($(NV_SM),)
         $(error ERROR: unknown `GPU_TARGET=$(GPU_TARGET)`. Set cuda_arch to one or more of Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_XX from nvcc -h)
     else
@@ -202,7 +201,8 @@ ifeq ($(BACKEND),cuda)
     LIBS += -lcublas -lcudart
 
     # Get first (minimum) architecture
-	# (add zero, so its comparable to '__CUDA_ARCH__')
+    # Append zero, so it is comparable to '__CUDA_ARCH__'
+    CUDA_ARCH := $(SMS)
     CUDA_ARCH_MIN := $(word 1, $(SMS))0
     ifeq ($(CUDA_ARCH_MIN),)
         $(error GPU_TARGET, currently $(GPU_TARGET), must contain one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_[0-9][0-9]. Please edit your make.inc file)
@@ -485,6 +485,7 @@ ifneq (,$(HAVE_CUDA))
 
 $(CONFIG): $(CONFIGDEPS)
 	cp $< $@
+	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH "@MAGMA_CUDA_ARCH@"/#define MAGMA_CUDA_ARCH "$(CUDA_ARCH)"/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#define MAGMA_HAVE_CUDA/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#undef MAGMA_HAVE_HIP/g' $@
@@ -493,6 +494,7 @@ else
 
 $(CONFIG): $(CONFIGDEPS)
 	cp $< $@
+	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH "@MAGMA_CUDA_ARCH@"/#define MAGMA_CUDA_ARCH "$(CUDA_ARCH)"/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#undef MAGMA_HAVE_CUDA/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#define MAGMA_HAVE_HIP/g' $@
@@ -979,8 +981,7 @@ $(sparse_testers): %: %.$(o_ext)
 #TODO: add hip specific ones
 INSTALL_FLAGS := $(filter-out \
 	-DMAGMA_NOAFFINITY -DMAGMA_SETAFFINITY -DMAGMA_WITH_ACML -DMAGMA_WITH_MKL -DUSE_FLOCK \
-	-DMAGMA_CUDA_ARCH_MIN=100 -DMAGMA_CUDA_ARCH_MIN=200 -DMAGMA_CUDA_ARCH_MIN=300 \
-	-DMAGMA_CUDA_ARCH_MIN=350 -DMAGMA_CUDA_ARCH_MIN=500 -DMAGMA_CUDA_ARCH_MIN=600 -DMAGMA_CUDA_ARCH_MIN=610 \
+	-DMAGMA_CUDA_ARCH=% -DMAGMA_CUDA_ARCH_MIN=% \
 	-DMAGMA_HAVE_CUDA -DMAGMA_HAVE_HIP -DMAGMA_HAVE_clBLAS \
 	-fno-strict-aliasing -fPIC -O0 -O1 -O2 -O3 -pedantic -std=c99 -stdc++98 -stdc++11 \
 	-Wall -Wshadow -Wno-long-long, $(CFLAGS))

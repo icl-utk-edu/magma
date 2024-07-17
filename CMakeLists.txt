@@ -112,122 +112,115 @@ if (OPENMP_FOUND)
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
 endif()
 
+# ----------------------------------------
+# locate CUDA libraries
 if (MAGMA_ENABLE_CUDA)
-  enable_language(CUDA)
+    enable_language( CUDA )
 
-  # ----------------------------------------
-  # locate CUDA libraries
-  set( GPU_TARGET "Kepler Maxwell Pascal" CACHE STRING "CUDA architectures to compile for; one or more of Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_[0-9][0-9]" )
-  find_package( CUDAToolkit )
-  if (CUDAToolkit_FOUND)
-    message( STATUS "Found CUDA ${CUDA_VERSION}" )
-    message( STATUS "    CUDA_CUDART_LIBRARY: CUDA::cudart" )
-    #message( STATUS "    CUDA_CUBLAS_LIBRARIES: CUDA::cublas" )
+    set( CUDA_NAMES
+         "one or more of "
+         "Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, "
+         "or valid sm_XY or sm_XYZ" )
+    set( GPU_TARGET "" CACHE STRING
+         "CUDA architectures to compile for, overrides CMAKE_CUDA_ARCHITECTURES; ${CUDA_NAMES}" )
+    find_package( CUDAToolkit )
+    if (CUDAToolkit_FOUND)
+        message( STATUS "Found CUDA ${CUDA_VERSION}" )
+        message( STATUS "    CUDA_CUDART_LIBRARY: CUDA::cudart" )
+        #message( STATUS "    CUDA_CUBLAS_LIBRARIES: CUDA::cublas" )
 
-    # NVCC options for the different cards
-    # sm_xx is binary, compute_xx is PTX for forward compatability
-    # MIN_ARCH is lowest requested version
+        include_directories( ${CUDAToolkit_INCLUDE_DIRS} )
 
-    set(__cuda_architectures)
+        if (GPU_TARGET)
+            # Map names to architectures.
+            if (GPU_TARGET MATCHES Fermi)
+                set( GPU_TARGET "${GPU_TARGET} sm_20" )
+            endif()
 
-    include_directories( ${CUDAToolkit_INCLUDE_DIRS} )
+            if (GPU_TARGET MATCHES Kepler)
+                set( GPU_TARGET "${GPU_TARGET} sm_30 sm_35 sm_37" )
+            endif()
 
-    if (DEFINED CMAKE_CUDA_ARCHITECTURES AND DEFINED MAGMA_CUDA_ARCH_MIN)
-        # Allow more control over targeted CUDA archs by skipping name to
-        # number arch conversion below
-        set(MIN_ARCH "${MAGMA_CUDA_ARCH_MIN}")
-        set(GPU_TARGET "")
-        message( STATUS "    compile for CUDA ${CMAKE_CUDA_ARCHITECTURES}" )
-    else()
-        # Both must be set manually to skip logic below
-        unset(CMAKE_CUDA_ARCHITECTURES)
-        unset(MAGMA_CUDA_ARCH_MIN)
-    endif()
+            if (GPU_TARGET MATCHES Maxwell)
+                set( GPU_TARGET "${GPU_TARGET} sm_50" )
+            endif()
 
-    if (GPU_TARGET MATCHES Fermi)
-        set( GPU_TARGET "${GPU_TARGET} sm_20" )
-    endif()
+            if (GPU_TARGET MATCHES Pascal)
+                set( GPU_TARGET "${GPU_TARGET} sm_60" )
+            endif()
 
-    if (GPU_TARGET MATCHES Kepler)
-        set( GPU_TARGET "${GPU_TARGET} sm_30 sm_35 sm_37" )
-    endif()
+            if (GPU_TARGET MATCHES Volta)
+                set( GPU_TARGET "${GPU_TARGET} sm_70" )
+            endif()
 
-    if (GPU_TARGET MATCHES Maxwell)
-        set( GPU_TARGET "${GPU_TARGET} sm_50" )
-    endif()
+            if (GPU_TARGET MATCHES Turing)
+                set( GPU_TARGET "${GPU_TARGET} sm_75" )
+            endif()
 
-    if (GPU_TARGET MATCHES Pascal)
-        set( GPU_TARGET "${GPU_TARGET} sm_60" )
-    endif()
+            if (GPU_TARGET MATCHES Ampere)
+                set( GPU_TARGET "${GPU_TARGET} sm_80" )
+            endif()
 
-    if (GPU_TARGET MATCHES Volta)
-        set( GPU_TARGET "${GPU_TARGET} sm_70" )
-    endif()
+            if (GPU_TARGET MATCHES Hopper)
+                set( GPU_TARGET "${GPU_TARGET} sm_90" )
+            endif()
 
-    if (GPU_TARGET MATCHES Turing)
-        set( GPU_TARGET "${GPU_TARGET} sm_75" )
-    endif()
+            # Find all sm_XY and sm_XYZ, then strip off sm_.
+            string( REGEX MATCHALL "sm_[0-9][0-9]+" sms "${GPU_TARGET}" )
+            string( REPLACE "sm_" "" __cuda_architectures "${sms}" )
 
-    if (GPU_TARGET MATCHES Ampere)
-        set( GPU_TARGET "${GPU_TARGET} sm_80" )
-    endif()
+            if (NOT __cuda_architectures)
+                message( FATAL_ERROR
+                         "GPU_TARGET must contain ${CUDA_NAMES}. "
+                         "Was: ${GPU_TARGET}" )
+            endif()
 
-    if (GPU_TARGET MATCHES Hopper)
-        set( GPU_TARGET "${GPU_TARGET} sm_90" )
-    endif()
-
-    # MIN_SM is lowest requested version
-    set( MIN_SM 9999 )
-
-    string( REGEX MATCHALL "sm_[0-9]+[0-9]" sms "${GPU_TARGET}" )
-    foreach (sm IN LISTS sms)
-        string( REPLACE "sm_" "" sm "${sm}") # Remove sm_ prefix
-        if (sm LESS MIN_SM)
-            set( MIN_SM "${sm}" )
+            set( CMAKE_CUDA_ARCHITECTURES "${__cuda_architectures}" )
         endif()
-        list( APPEND __cuda_architectures "${sm}" )
-        string( REGEX REPLACE "([0-9]+)([0-9])" "\\1.\\2" cuda_arch "${sm}" )
-        message( STATUS "    compile for CUDA arch ${cuda_arch}" )
-    endforeach()
 
-    if (NOT __cuda_architectures)
-        message( FATAL_ERROR
-                 "GPU_TARGET must contain one or more of "
-                 "Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, or valid sm_[0-9][0-9]. "
-                 "Was: ${GPU_TARGET}" )
-    endif()
+        message( STATUS "    Compile for CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES}" )
+        set( MAGMA_CUDA_ARCH "${CMAKE_CUDA_ARCHITECTURES}" )
 
-    message( STATUS "CUDA_ARCHITECTURES ${__cuda_architectures}" )
-    if (NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
-        set(CMAKE_CUDA_ARCHITECTURES "${__cuda_architectures}")
-    endif()
-    set( MIN_ARCH ${MIN_SM}0 )
+        # Find minimum arch in CMAKE_CUDA_ARCHITECTURES, if they're all numeric.
+        set( min_arch 9999 )
+        foreach( arch ${CMAKE_CUDA_ARCHITECTURES} )
+            if (arch MATCHES "^([0-9]+)")  # 80-real, 80-virtual, etc. okay
+                if (CMAKE_MATCH_1 LESS min_arch)
+                    set( min_arch "${CMAKE_MATCH_1}" )
+                endif()
+            else()
+                set( min_arch 0 )  # arch like "native", min unknown
+                break()
+            endif()
+        endforeach()
+        # Append zero, so it is comparable to '__CUDA_ARCH__'
+        set( MAGMA_CUDA_ARCH_MIN "${min_arch}0" )
 
-    add_library(magma_nvcc_flags INTERFACE)
-    if (COMPILER_SUPPORTS_FPIC)
-        target_compile_options(magma_nvcc_flags
-            INTERFACE
-            $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;-fPIC,${FORTRAN_CONVENTION}>
-        )
+        add_library( magma_nvcc_flags INTERFACE )
+        if (COMPILER_SUPPORTS_FPIC)
+            target_compile_options(magma_nvcc_flags
+                INTERFACE
+                $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;-fPIC,${FORTRAN_CONVENTION}>
+            )
+        else()
+            # No Position Independent Code on Windows.
+            # Compiler will complain if you add that flag.
+            target_compile_options(magma_nvcc_flags
+                INTERFACE
+                $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;${FORTRAN_CONVENTION}>
+            )
+        endif()
+
+        set( MAGMA_HAVE_CUDA "1" )
+
+        message( STATUS "Define -DMAGMA_HAVE_CUDA -DMAGMA_CUDA_ARCH_MIN=${MAGMA_CUDA_ARCH_MIN}" )
     else()
-        # No Position Independent Code on Windows. Compiler will complain if you add that flag.
-        target_compile_options(magma_nvcc_flags
-            INTERFACE
-            $<$<COMPILE_LANGUAGE:CUDA>:--compiler-options;${FORTRAN_CONVENTION}>
-        )
+        message( STATUS "Could not find CUDA" )
     endif()
-
-    set(MAGMA_HAVE_CUDA "1")
-    if (NOT DEFINED MAGMA_CUDA_ARCH_MIN)
-        set(MAGMA_CUDA_ARCH_MIN "${MIN_ARCH}")
-    endif()
-    message( STATUS "Define -DMAGMA_HAVE_CUDA -DMAGMA_CUDA_ARCH_MIN=${MIN_ARCH}" )
-  else()
-    message( STATUS "Could not find CUDA" )
-  endif()
-
 endif()
 
+# ----------------------------------------
+# locate HIP/ROCm libraries
 if (MAGMA_ENABLE_HIP)
   set( GPU_TARGET "gfx900" CACHE STRING "HIP architectures to compile for" )
   list(APPEND CMAKE_PREFIX_PATH /opt/rocm /opt/rocm/lib/cmake/hip)
@@ -293,7 +286,7 @@ if (MAGMA_ENABLE_HIP)
     set(VALID_GFXS "700;701;702;703;704;705;801;802;803;805;810;900;902;904;906;908;909;90c;1010;1011;1012;1030;1031;1032;1033")
     foreach( GFX ${VALID_GFXS} )
       if ( GPU_TARGET MATCHES gfx${GFX} )
-	set( DEVCCFLAGS ${DEVCCFLAGS} --offload-arch=gfx${GFX} )
+        set( DEVCCFLAGS ${DEVCCFLAGS} --offload-arch=gfx${GFX} )
       endif()
     endforeach()
 
