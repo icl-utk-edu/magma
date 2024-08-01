@@ -215,6 +215,7 @@ magma_zmcsrcompressor_gpu(
                     });
             });
 
+        magma_queue_sync( queue );
         magma_free( A->dcol );
         magma_free( A->dval );
 
