@@ -334,6 +334,7 @@ magma_zgeisai_maxblock(
     });
 
 cleanup:
+    magma_queue_sync( queue );
     magma_free( sizes_d );
     magma_free( selections_d );
     magma_zmfree( &T, queue );
