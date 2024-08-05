@@ -438,6 +438,7 @@ fallback:
     }
 
 cleanup:
+    magma_queue_sync( queue );
     magma_queue_destroy( queue );
     return *info;
 }

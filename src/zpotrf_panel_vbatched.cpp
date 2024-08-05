@@ -55,6 +55,7 @@ magma_zpotrf_panel_vbatched(
                                            0, batchCount,
                                            max_n-nb, nb, queue );
     }
+    magma_queue_sync( queue );
     magma_free( n_minus_ib );
     return arginfo;
 }

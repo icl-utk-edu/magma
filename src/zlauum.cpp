@@ -217,6 +217,8 @@ magma_zlauum(
         }
     }
     
+    magma_queue_sync( queues[0] );
+    magma_queue_sync( queues[1] );
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
 

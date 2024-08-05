@@ -265,7 +265,7 @@ magma_zgeqp3_gpu(
                              &tau[j], &rwork[j], &rwork[n+j], dwork );
         }*/
     }
-
+    magma_queue_sync( queue );
     magma_queue_destroy( queue );
     
     magma_free( df );

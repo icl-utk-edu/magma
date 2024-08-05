@@ -161,6 +161,7 @@ magma_zgetrf_recpanel_nopiv_batched(
         if (arginfo != 0) return arginfo;
     }
 
+    magma_queue_sync( queue );
     magma_free(dA_displ);
     return 0;
 }

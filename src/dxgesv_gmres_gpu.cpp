@@ -823,6 +823,7 @@ fallback:
     MAGMA_UNUSED( cntl );
 
 cleanup:
+    magma_queue_sync( queue );
     magma_queue_destroy( queue );
     magma_free( dA_dprec );
     magma_free( dA_sprec );

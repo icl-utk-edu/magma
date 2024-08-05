@@ -401,6 +401,7 @@ magma_zgbsv_batched(
         info_array,
         device_work, lwork, batchCount, queue);
 
+    magma_queue_sync( queue );
     magma_free( device_work );
     return arginfo;
 }
@@ -463,6 +464,7 @@ magma_zgbsv_batched_strided(
         dB, lddb, strideB, info_array,
         device_work, lwork, batchCount, queue);
 
+    magma_queue_sync( queue );
     magma_free( device_work );
     return arginfo;
 

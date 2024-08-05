@@ -468,6 +468,7 @@ magma_zheevx_gpu(
     /* Set WORK[0] to optimal complex workspace size. */
     work[1] = magma_zmake_lwork( lopt );
 
+    magma_queue_sync( queue );
     magma_queue_destroy( queue );
     magma_free( dwork );
 
