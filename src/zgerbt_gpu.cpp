@@ -162,6 +162,7 @@ magma_zgerbt_gpu(
     /* Compute U^T * b on the GPU*/
     magmablas_zprbt_mtv(n, nrhs, dU, dB, lddb, queue);
 
+    magma_queue_sync( queue );
     magma_queue_destroy( queue );
     magma_free( dU );
     magma_free( dV );

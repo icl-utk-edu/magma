@@ -537,6 +537,8 @@ magma_xhsgetrf_gpu(
     printf("from inside xhsgetrf here is c_gpu_nan %d c_gpu_inf %d\n",(int)c_gpu_nan, (int)c_gpu_inf);
 #endif
 cleanup:
+    magma_queue_sync( queues[0] );
+    magma_queue_sync( queues[1] );
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
     magma_event_destroy( event[0] );

@@ -390,6 +390,7 @@ fallback:
     }
 
 cleanup:
+    magma_queue_sync( queue );
     magma_free( dworks );
     magma_free( dworkd );
     magma_free_cpu( hworks );

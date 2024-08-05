@@ -134,6 +134,7 @@ magma_zgbsv_native(
         dB, lddb,
         info, device_work, lwork, queue);
 
+    magma_queue_sync( queue );
     magma_free(device_work);
     magma_queue_destroy( queue );
 

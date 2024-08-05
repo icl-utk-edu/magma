@@ -241,6 +241,7 @@ magma_zgeqrf_batched(
                 info_array, device_work, device_lwork,
                 batchCount, queue);
 
+    magma_queue_sync( queue );
     if(device_work != NULL) magma_free(device_work);
     return arginfo;
 }
