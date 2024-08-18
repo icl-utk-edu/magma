@@ -173,6 +173,7 @@ magma_zgerbt_batched(
     /* Compute U^T.b on the GPU*/
     magmablas_zprbt_mtv_batched(n, nrhs, du, dB_array, lddb, batchCount, queue);
 
+    magma_queue_sync( queue );
     magma_free( du );
     magma_free( dv );
 

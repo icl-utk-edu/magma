@@ -264,6 +264,7 @@ magma_zicisaisetup(
     // magma_z_mvisu( precond->UD, queue ); 
      
 cleanup:
+    magma_queue_sync( queue );
     magma_free( sizes_d );
     magma_free_cpu( sizes_h );
     magma_free( locations_d );
