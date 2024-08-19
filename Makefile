@@ -524,6 +524,7 @@ else ifneq (,$(HAVE_SYCL))
 
 $(CONFIG): $(CONFIGDEPS)
 	cp $< $@
+	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH "@MAGMA_CUDA_ARCH@"/#define MAGMA_CUDA_ARCH "$(CUDA_ARCH)"/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_CUDA_ARCH_MIN @MAGMA_CUDA_ARCH_MIN@/#define MAGMA_CUDA_ARCH_MIN $(CUDA_ARCH_MIN)/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_CUDA/#undef MAGMA_HAVE_CUDA/g' $@
 	sed -i -e 's/#cmakedefine MAGMA_HAVE_HIP/#undef MAGMA_HAVE_HIP/g' $@
