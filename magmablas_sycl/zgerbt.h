@@ -22,39 +22,45 @@
 // classical prototypes
 
 SYCL_EXTERNAL void magmablas_zelementary_multiplication_kernel(
-    magma_int_t n, magmaDoubleComplex *dA, magma_int_t offsetA,
-    magma_int_t ldda, magmaDoubleComplex *du, magma_int_t offsetu,
-    magmaDoubleComplex *dv, magma_int_t offsetv, sycl::nd_item<3> item_ct1,
+    int Am, int An,
+    magmaDoubleComplex *dA, int Ai, int Aj, int ldda,
+    magmaDoubleComplex *du, int Ui,
+    magmaDoubleComplex *dv, int Vi, sycl::nd_item<3> item_ct1,
     magmaDoubleComplex *u1, magmaDoubleComplex *u2, magmaDoubleComplex *v1,
     magmaDoubleComplex *v2);
 
 SYCL_EXTERNAL void
-magmablas_zapply_vector_kernel(magma_int_t n, magmaDoubleComplex *du,
-                               magma_int_t offsetu, magmaDoubleComplex *db,
-                               magma_int_t offsetb, sycl::nd_item<3> item_ct1);
+magmablas_zapply_vector_kernel(int n, int nrhs,
+    magmaDoubleComplex *du, int offsetu,
+    magmaDoubleComplex *db, int lddb,
+    int offsetb, sycl::nd_item<3> item_ct1);
 
 SYCL_EXTERNAL void magmablas_zapply_transpose_vector_kernel(
-    magma_int_t n, magmaDoubleComplex *du, magma_int_t offsetu,
-    magmaDoubleComplex *db, magma_int_t offsetb, sycl::nd_item<3> item_ct1);
+    int n, int nrhs,
+    magmaDoubleComplex *du, int offsetu,
+    magmaDoubleComplex *db, int lddb, int offsetb, sycl::nd_item<3> item_ct1);
 
 // =============================================================================
 // batched prototypes
 
 SYCL_EXTERNAL void magmablas_zelementary_multiplication_kernel_batched(
-    magma_int_t n, magmaDoubleComplex **dA_array, magma_int_t offsetA,
-    magma_int_t ldda, magmaDoubleComplex *du, magma_int_t offsetu,
-    magmaDoubleComplex *dv, magma_int_t offsetv, sycl::nd_item<3> item_ct1,
+    int Am, int An,
+    magmaDoubleComplex **dA_array, int Ai, int Aj, int ldda,
+    magmaDoubleComplex *du, int Ui,
+    magmaDoubleComplex *dv, int Vi, sycl::nd_item<3> item_ct1,
     magmaDoubleComplex *u1, magmaDoubleComplex *u2, magmaDoubleComplex *v1,
     magmaDoubleComplex *v2);
 
 SYCL_EXTERNAL void magmablas_zapply_vector_kernel_batched(
-    magma_int_t n, magmaDoubleComplex *du, magma_int_t offsetu,
-    magmaDoubleComplex **db_array, magma_int_t offsetb,
+    int n, int nrhs,
+    magmaDoubleComplex *du, int offsetu,
+    magmaDoubleComplex **db_array, int lddb, int offsetb,
     sycl::nd_item<3> item_ct1);
 
 SYCL_EXTERNAL void magmablas_zapply_transpose_vector_kernel_batched(
-    magma_int_t n, magmaDoubleComplex *du, magma_int_t offsetu,
-    magmaDoubleComplex **db_array, magma_int_t offsetb,
+    int n, int nrhs,
+    magmaDoubleComplex *du, int offsetu,
+    magmaDoubleComplex **db_array, int lddb, int offsetb,
     sycl::nd_item<3> item_ct1);
 
 #endif // ZGERBT_H
