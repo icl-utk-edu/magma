@@ -181,20 +181,20 @@ magmablas_zprbt_v1(
 /******************************************************************************/
 extern "C" void
 magmablas_zprbt_mv_v1(
-    magma_int_t n,
-    magmaDoubleComplex *dv, magmaDoubleComplex *db)
+    magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex *dv, magmaDoubleComplex *db, magma_int_t lddb)
 {
-    magmablas_zprbt_mv(n, dv, db, magmablasGetQueue() );
+    magmablas_zprbt_mv(n, nrhs, dv, db, lddb, magmablasGetQueue() );
 }
 
 
 /******************************************************************************/
 extern "C" void
 magmablas_zprbt_mtv_v1(
-    magma_int_t n,
-    magmaDoubleComplex *du, magmaDoubleComplex *db)
+    magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex *du, magmaDoubleComplex *db, magma_int_t lddb)
 {
-    magmablas_zprbt_mtv(n, du, db, magmablasGetQueue() );
+    magmablas_zprbt_mtv(n, nrhs, du, db, lddb, magmablasGetQueue() );
 }
 
 
@@ -473,9 +473,9 @@ magmablas_zlaswp_sym_v1( magma_int_t n, magmaDoubleComplex *dA, magma_int_t lda,
 extern "C" void
 magmablas_dznrm2_check_v1(
     magma_int_t m, magma_int_t n,
-    magmaDoubleComplex_ptr dA, magma_int_t ldda, 
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magmaDouble_ptr dxnorm,
-    magmaDouble_ptr dlsticc ) 
+    magmaDouble_ptr dlsticc )
 {
     magmablas_dznrm2_check( m, n, dA, ldda, dxnorm, dlsticc, magmablasGetQueue() );
 }
@@ -497,7 +497,7 @@ extern "C" void
 magmablas_dznrm2_row_check_adjust_v1(
     magma_int_t k, double tol,
     magmaDouble_ptr dxnorm,
-    magmaDouble_ptr dxnorm2, 
+    magmaDouble_ptr dxnorm2,
     magmaDoubleComplex_ptr dC, magma_int_t lddc,
     magmaDouble_ptr dlsticc )
 {
@@ -509,8 +509,8 @@ magmablas_dznrm2_row_check_adjust_v1(
 extern "C" void
 magmablas_dznrm2_cols_v1(
     magma_int_t m, magma_int_t n,
-    magmaDoubleComplex_ptr dA, magma_int_t ldda, 
-    magmaDouble_ptr dxnorm ) 
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magmaDouble_ptr dxnorm )
 {
     magmablas_dznrm2_cols( m, n, dA, ldda, dxnorm, magmablasGetQueue() );
 }
