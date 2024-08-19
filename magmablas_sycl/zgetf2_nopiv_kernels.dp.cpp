@@ -20,7 +20,6 @@
 #include "batched_kernel_param.h"
 
 // This kernel uses registers for matrix storage, shared mem. for communication.
-// It also uses lazy swap.
 //extern __shared__ magmaDoubleComplex zdata[];
 
 template<int N>
@@ -28,29 +27,21 @@ void
 zgetf2_nopiv_device(int m, magmaDoubleComplex* dA, int ldda, magma_int_t *info, const int tx, magmaDoubleComplex* sx, int gbstep,
                     sycl::nd_item<3> item_ct1)
 {
-    /*
-    DPCT1064:695: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     magmaDoubleComplex rA[N] = {MAGMA_Z_ZERO};
-    /*
-    DPCT1064:696: Migrated make_cuDoubleComplex call is used in a macro
-    definition and is not valid for all macro uses. Adjust the code.
-    */
     magmaDoubleComplex reg = MAGMA_Z_ZERO;
 
     int linfo = 0;
-    double abs;
+    double x_abs;
     // check from previous calls if the panel factorization failed previously
-    // this is necessary to report the correct info value 
+    // this is necessary to report the correct info value
     if(gbstep > 0 && *info != 0) return;
 
-    // read 
+    // read
     #pragma unroll
     for(int i = 0; i < N; i++){
         rA[i] = dA[ i * ldda + tx ];
     }
-        
+
     #pragma unroll
     for(int i = 0; i < N; i++){
         if(tx == i){
@@ -58,16 +49,10 @@ zgetf2_nopiv_device(int m, magmaDoubleComplex* dA, int ldda, magma_int_t *info, 
             for(int j = 0; j < N; j++)
                 sx[j] = rA[j];
         }
-        /*
-        DPCT1065:697: Consider replacing sycl::nd_item::barrier() with
-        sycl::nd_item::barrier(sycl::access::fence_space::local_space) for
-        better performance if there is no access to global memory.
-        */
         item_ct1.barrier();
 
-        abs = sycl::fabs(MAGMA_Z_REAL(sx[i])) + sycl::fabs(MAGMA_Z_IMAG(sx[i]));
-        linfo = ( abs == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;
-        //linfo = ( abs  == MAGMA_D_ZERO ) ? min(linfo,gbstep+i+1):0;
+        x_abs = sycl::fabs(MAGMA_Z_REAL(sx[i])) + sycl::fabs(MAGMA_Z_IMAG(sx[i]));
+        linfo = ( x_abs == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;
         reg   = (linfo == 0 ) ? MAGMA_Z_DIV(MAGMA_Z_ONE, sx[i] ) : MAGMA_Z_ONE;
 
         // scal and ger
@@ -100,7 +85,7 @@ zgetf2_nopiv_device(int m, magmaDoubleComplex* dA, int ldda, magma_int_t *info, 
 /******************************************************************************/
 template<int N, int NPOW2>
 void
-zgetf2_nopiv_batched_kernel( int m, magmaDoubleComplex** dA_array, int ai, int aj, int ldda, 
+zgetf2_nopiv_batched_kernel( int m, magmaDoubleComplex** dA_array, int ai, int aj, int ldda,
                              magma_int_t* info_array, int gbstep, int batchCount,
                              sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
@@ -119,6 +104,513 @@ zgetf2_nopiv_batched_kernel( int m, magmaDoubleComplex** dA_array, int ai, int a
 
     zgetf2_nopiv_device<N>(m, dA, ldda, info, tx, sx, gbstep, item_ct1);
 }
+
+/******************************************************************************/
+static magma_int_t
+zgetf2_nopiv_batched_kernel_driver(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex** dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magma_int_t* info_array, magma_int_t gbstep,
+    magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_int_t info = 0;
+    const magma_int_t ntcol = (m > 32) ? 1 : (2 * (32/m));
+    magma_int_t shmem = ntcol * magma_ceilpow2(n) * sizeof(magmaDoubleComplex);
+
+    magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
+    sycl::range<3> threads(1, ntcol, m);
+    sycl::range<3> grid(1, 1, gridx);
+    try {
+      switch(n){
+          case 1: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<1, magma_ceilpow2(1)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 2: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<2, magma_ceilpow2(2)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 3: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<3, magma_ceilpow2(3)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 4: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<4, magma_ceilpow2(4)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 5: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<5, magma_ceilpow2(5)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 6: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<6, magma_ceilpow2(6)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 7: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<7, magma_ceilpow2(7)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 8: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<8, magma_ceilpow2(8)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 9: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<9, magma_ceilpow2(9)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 10: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<10, magma_ceilpow2(10)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 11: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<11, magma_ceilpow2(11)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 12: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<12, magma_ceilpow2(12)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 13: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<13, magma_ceilpow2(13)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 14: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<14, magma_ceilpow2(14)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 15: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<15, magma_ceilpow2(15)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 16: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<16, magma_ceilpow2(16)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 17: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<17, magma_ceilpow2(17)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 18: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<18, magma_ceilpow2(18)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 19: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<19, magma_ceilpow2(19)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 20: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<20, magma_ceilpow2(20)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 21: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<21, magma_ceilpow2(21)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 22: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<22, magma_ceilpow2(22)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 23: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<23, magma_ceilpow2(23)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 24: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<24, magma_ceilpow2(24)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 25: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<25, magma_ceilpow2(25)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 26: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<26, magma_ceilpow2(26)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 27: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<27, magma_ceilpow2(27)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 28: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<28, magma_ceilpow2(28)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 29: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<29, magma_ceilpow2(29)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 30: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<30, magma_ceilpow2(30)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 31: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<31, magma_ceilpow2(31)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          case 32: ((sycl::queue *)(queue->sycl_stream()))
+              ->submit([&](sycl::handler &cgh) {
+                  sycl::local_accessor<uint8_t, 1>
+                      dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
+  
+                  cgh.parallel_for(
+                      sycl::nd_range<3>(grid * threads, threads),
+                      [=](sycl::nd_item<3> item_ct1) {
+                          zgetf2_nopiv_batched_kernel<32, magma_ceilpow2(32)>(
+                              m, dA_array, ai, aj, ldda, info_array, gbstep,
+                              batchCount, item_ct1,
+                              dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
+                      });
+              });
+              break;
+          default: info = -100;
+      }
+    } catch (sycl::exception const &exc) {
+      info = -100;
+    }
+
+    return info;
+}
+
 /***************************************************************************//**
     Purpose
     -------
@@ -188,14 +680,18 @@ zgetf2_nopiv_batched_kernel( int m, magmaDoubleComplex** dA_array, int ai, int a
 *******************************************************************************/
 extern "C" magma_int_t 
 magma_zgetf2_nopiv_internal_batched( 
-    magma_int_t m, magma_int_t n, 
-    magmaDoubleComplex** dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda, 
-    magma_int_t* info_array, magma_int_t gbstep, 
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex** dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
+    magma_int_t* info_array, magma_int_t gbstep,
     magma_int_t batchCount, magma_queue_t queue )
 {
     #define dAarray(i,j) dA_array, i, j
 
+    const magma_int_t max_threads = 256;
     magma_int_t arginfo = 0;
+    magma_int_t m1   = (m > max_threads) ? max_threads : m;
+    magma_int_t m2   = m - m1;
+
     if (m < 0) {
         arginfo = -1;
     } else if (n < 0 || n > 32 || (m > 512 && n > 16) ) {
@@ -218,673 +714,16 @@ magma_zgetf2_nopiv_internal_batched(
         return arginfo;
     }
 
-    magma_int_t m1 = (m > MAX_NTHREADS) ? MAX_NTHREADS : m;
-    magma_int_t m2 = m - m1;
+    arginfo = zgetf2_nopiv_batched_kernel_driver( m1, n, dA_array, ai, aj, ldda, info_array, gbstep, batchCount, queue );
 
-    const magma_int_t ntcol = (m1 > 32) ? 1 : (2 * (32/m1));
-    /*
-    DPCT1083:700: The size of local memory in the migrated code may be different
-    from the original code. Check that the allocated memory size in the migrated
-    code is correct.
-    */
-    magma_int_t shmem = ntcol * magma_ceilpow2(n) * sizeof(magmaDoubleComplex);
-    magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
-    sycl::range<3> threads(1, ntcol, m1);
-    sycl::range<3> grid(1, 1, gridx);
-    switch(n){
-        /*
-        DPCT1049:699: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 1: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<1, magma_ceilpow2(1)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:701: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 2: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<2, magma_ceilpow2(2)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:702: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 3: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<3, magma_ceilpow2(3)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:703: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 4: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<4, magma_ceilpow2(4)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:704: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 5: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<5, magma_ceilpow2(5)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:705: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 6: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<6, magma_ceilpow2(6)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:706: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 7: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<7, magma_ceilpow2(7)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:707: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 8: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<8, magma_ceilpow2(8)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:708: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 9: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<9, magma_ceilpow2(9)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:709: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 10: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<10, magma_ceilpow2(10)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:710: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 11: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<11, magma_ceilpow2(11)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:711: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 12: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<12, magma_ceilpow2(12)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:712: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 13: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<13, magma_ceilpow2(13)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:713: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 14: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<14, magma_ceilpow2(14)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:714: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 15: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<15, magma_ceilpow2(15)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:715: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 16: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<16, magma_ceilpow2(16)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:716: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 17: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<17, magma_ceilpow2(17)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:717: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 18: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<18, magma_ceilpow2(18)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:718: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 19: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<19, magma_ceilpow2(19)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:719: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 20: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<20, magma_ceilpow2(20)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:720: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 21: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<21, magma_ceilpow2(21)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:721: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 22: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<22, magma_ceilpow2(22)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:722: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 23: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<23, magma_ceilpow2(23)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:723: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 24: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<24, magma_ceilpow2(24)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:724: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 25: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<25, magma_ceilpow2(25)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:725: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 26: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<26, magma_ceilpow2(26)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:726: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 27: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<27, magma_ceilpow2(27)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:727: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 28: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<28, magma_ceilpow2(28)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:728: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 29: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<29, magma_ceilpow2(29)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:729: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 30: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<30, magma_ceilpow2(30)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:730: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 31: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<31, magma_ceilpow2(31)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        /*
-        DPCT1049:731: The work-group size passed to the SYCL kernel may exceed
-        the limit. To get the device limit, query
-        info::device::max_work_group_size. Adjust the work-group size if needed.
-        */
-        case 32: ((sycl::queue *)(queue->sycl_stream()))
-            ->submit([&](sycl::handler &cgh) {
-                sycl::local_accessor<uint8_t, 1>
-                    dpct_local_acc_ct1(sycl::range<1>(shmem), cgh);
-
-                cgh.parallel_for(
-                    sycl::nd_range<3>(grid * threads, threads),
-                    [=](sycl::nd_item<3> item_ct1) {
-                        zgetf2_nopiv_batched_kernel<32, magma_ceilpow2(32)>(
-                            m1, dA_array, ai, aj, ldda, info_array, gbstep,
-                            batchCount, item_ct1,
-                            dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
-                    });
-            });
-            break;
-        default: printf("error: panel width %lld is not supported\n", (long long) n);
-    }
-
-    if(m2 > 0){
+    if(arginfo == 0 && m2 > 0) {
         magmablas_ztrsm_recursive_batched(
             MagmaRight, MagmaUpper, MagmaNoTrans, MagmaNonUnit,
-            /*
-            DPCT1064:732: Migrated make_cuDoubleComplex call is used in a macro
-            definition and is not valid for all macro uses. Adjust the code.
-            */
-            m2, n, MAGMA_Z_ONE, dAarray(ai, aj), ldda, dAarray(ai + m1, aj),
-            ldda, batchCount, queue);
+            m2, n, MAGMA_Z_ONE,
+            dAarray(ai   ,aj), ldda,
+            dAarray(ai+m1,aj), ldda, batchCount, queue );
     }
+
 
     #undef dAarray
     return arginfo;
