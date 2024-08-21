@@ -12,6 +12,10 @@
 
 #include "magma_internal.h"
 #if   defined(MAGMA_HAVE_CUDA)
+#if CUDA_VERSION >= 12060
+#undef max
+#undef min
+#endif
 #include <cooperative_groups.h>
 namespace cg = cooperative_groups;
 #elif defined(MAGMA_HAVE_HIP)
