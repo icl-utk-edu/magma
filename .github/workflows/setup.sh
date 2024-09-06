@@ -43,5 +43,6 @@ else # DEVICE == gpu_amd
 fi
 
 # cd into build directory if it exists (for cmake builds)
-[ -d build ] && cd build
-
+if [ -d build ]; then
+   cd build
+fi
