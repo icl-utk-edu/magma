@@ -36,6 +36,8 @@ jobs:
       COMPILER: ${{matrix.compiler}}
     steps:
       - uses: actions/checkout@v4
+      - name: Generate
+        run: .github/workflows/generate.sh
       - name: Configure
         run: .github/workflows/configure.sh
       - name: Build
