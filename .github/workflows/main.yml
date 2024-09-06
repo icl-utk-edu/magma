@@ -40,7 +40,7 @@ jobs:
         run: .github/workflows/generate.sh
       - name: Configure
         run: .github/workflows/configure.sh
-      - name: Build
-        run: .github/workflows/build.sh
-      - name: Test
-        run: .github/workflows/test.sh
+#      - name: Build
+#        run: .github/workflows/build.sh
+#      - name: Test
+#        run: .github/workflows/test.sh

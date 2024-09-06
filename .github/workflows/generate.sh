@@ -11,4 +11,4 @@ cp make.inc.openblas      make.inc.openblas-intel
 cd ..
 ln -sf make.inc-examples/make.inc.$BLAS-$COMPILER make.inc
 
-make generate
+make BACKEND=$BACKEND generate
