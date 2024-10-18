@@ -502,24 +502,25 @@ else()
         CUDA::cublas
         CUDA::cusparse
         magma_nvcc_flags
-	)
+        )
     else()
       find_package( hipBLAS )
       if (hipBLAS_FOUND)
-	message( STATUS "Found rocBLAS ${rocBLAS_VERSION}" )
+        message( STATUS "Found rocBLAS ${rocBLAS_VERSION}" )
       endif()
       find_package( hipSPARSE )
       if (hipSPARSE_FOUND)
-	message( STATUS "Found rocSPARSE ${rocSPARSE_VERSION}" )
+        message( STATUS "Found rocSPARSE ${rocSPARSE_VERSION}" )
       endif()
       add_library( magma ${libmagma_all} )
       target_link_libraries( magma
-	hip::host
+        hip::host
         ${blas_fix}
         ${LAPACK_LIBRARIES}
-	roc::hipblas
-	roc::hipsparse
-	)
+        hip::device
+        roc::hipblas
+        roc::hipsparse
+        )
     endif()
 
     if (USE_FORTRAN)
