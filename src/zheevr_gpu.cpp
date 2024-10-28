@@ -560,6 +560,7 @@ magma_zheevr_gpu(
     rwork[1] = magma_dmake_lwork( lrwmin );
     iwork[1] = liwmin;
 
+    magma_queue_sync( queue );
     magma_queue_destroy( queue );
     magma_free( dwork );
 

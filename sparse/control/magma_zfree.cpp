@@ -23,6 +23,8 @@
     -------
 
     Free the memory of a magma_z_matrix.
+    Note, this routine performs a magma_queue_sync on the queue passed
+    to it prior to freeing any memory.
 
 
     Arguments
@@ -187,6 +189,7 @@ magma_zmfree(
     }
 
     if ( A->memory_location == Magma_DEV ) {
+	magma_queue_sync( queue );
         if (A->storage_type == Magma_ELL || A->storage_type == Magma_ELLPACKT) {
             if (A->ownership) {
                 if ( magma_free( A->dval ) != MAGMA_SUCCESS ) {
@@ -444,7 +447,8 @@ magma_zmfree(
     -------
 
     Free a preconditioner.
-
+    Note, this routine performs a magma_queue_sync on the queue passed
+    to it prior to freeing any memory.
 
     Arguments
     ---------
@@ -465,6 +469,7 @@ magma_zprecondfree(
     magma_z_preconditioner *precond_par,
     magma_queue_t queue ){
 
+    magma_queue_sync( queue );
     if ( precond_par->d.val != NULL ) {
         magma_free( precond_par->d.val );
         precond_par->d.val = NULL;

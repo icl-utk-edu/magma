@@ -326,14 +326,12 @@ magma_zunmqr_gpu(
         magma_zsetmatrix( mi, ni, hC, mi, dC(ic, jc), lddc, queue );
     }
     
-    // TODO sync. For cases Q*C and C*Q^T, last call is magma_zlarfb_gpu,
-    // which is async magma_gemm calls, so zunmqr can be unfinished.
-
     // TODO: zgeqrs_gpu ASSUMES that hwork contains the last block of A and C.
     // That needs to be fixed, but until then, don't modify hwork[0] here.
     // In LAPACK: On exit, if INFO = 0, HWORK[0] returns the optimal LWORK.
     //hwork[0] = magma_zmake_lwork( lwkopt );
-    
+   
+    magma_queue_sync( queue );
     magma_queue_destroy( queue );
     
     return *info;

@@ -252,6 +252,8 @@ magma_zsytrf_nopiv_gpu(
     }
     
     trace_finalize( "zhetrf.svg","trace.css" );
+    magma_queue_sync( queues[0] );
+    magma_queue_sync( queues[1] );
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
     magma_event_destroy( event );

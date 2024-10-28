@@ -12,6 +12,10 @@
 
 #include "magma_internal.h"
 #if   defined(MAGMA_HAVE_CUDA)
+#if CUDA_VERSION >= 12060
+#undef max
+#undef min
+#endif
 #include <cooperative_groups.h>
 namespace cg = cooperative_groups;
 #elif defined(MAGMA_HAVE_HIP)
@@ -72,7 +76,7 @@ void magma_zgbtrf_set_fillin(
         magma_int_t batchCount, magma_queue_t queue)
 {
     // if kl = 0, use at least one thread to set ju
-    const int nthreads = min(kl+1, GBTF2_JU_FILLIN_MAX_THREADS);
+    const int nthreads = min(kl+1, (magma_int_t)GBTF2_JU_FILLIN_MAX_THREADS);
     const int nblocks  = magma_ceildiv(kl, nthreads);
     dim3 threads(nthreads, 1, 1);
     dim3 grid(nblocks, 1, batchCount);
@@ -119,7 +123,7 @@ magma_zgbtf2_zswap_batched(
     magma_int_t** dipiv_array, magma_int_t ipiv_offset,
     int* ju_array, magma_int_t gbstep, magma_int_t batchCount, magma_queue_t queue)
 {
-    const int nthreads = min(kl+ku+1, GBTF2_SWAP_MAX_THREADS);
+    const int nthreads = min(kl+ku+1, (magma_int_t)GBTF2_SWAP_MAX_THREADS);
     dim3 threads(nthreads, 1, 1);
     dim3 grid(batchCount, 1, 1);
 
@@ -386,7 +390,7 @@ magma_zgbtf2_native_work(
     }
 
     magma_int_t sm_count = magma_getdevice_multiprocessor_count();
-    magma_int_t nb       = max(8, sm_count - (kv + 1));
+    magma_int_t nb       = max((magma_int_t)8, sm_count - (kv + 1));
     magma_int_t nthreads = magma_roundup(kv+1,32);
 
     // device pointers
@@ -671,7 +675,7 @@ magma_zgbtf2_native_v2_work(
         magma_xerbla( __func__, -(*info) );
         return *info;
     }
-
+    magma_int_t ione= 1;
     magma_int_t nb  = 64;
     magma_int_t nb1 = nb+1;
     magma_int_t NB  = nb * (kv + 1);
@@ -693,7 +697,7 @@ magma_zgbtf2_native_v2_work(
     for(magma_int_t gbstep = 0; gbstep < n; gbstep += NB) {
         magma_int_t ib      = min(NB, n-gbstep);
         magma_int_t nblocks = min(ib, kv+1);
-        magma_int_t nb      = max(1, ib / nblocks);
+        magma_int_t nb      = max(ione, ib / nblocks);
         dim3 grid(nblocks, 1, 1);
 
         void *kernel_args[] = {&m, &n, &nb, &NB, &kl, &ku, &dA, &ldda, &ipiv, &ju, &gbstep, &dinfo};

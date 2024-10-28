@@ -452,6 +452,7 @@ magma_zgbtrf_batched(
         dipiv_array, info_array,
         device_work, lwork, batchCount, queue);
 
+    magma_queue_sync( queue );
     magma_free(device_work);
     return arginfo;
 }

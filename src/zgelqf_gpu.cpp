@@ -178,6 +178,7 @@ magma_zgelqf_gpu(
     }
 
 cleanup:
+    magma_queue_sync( queue );
     magma_queue_destroy( queue );
     
     return *info;

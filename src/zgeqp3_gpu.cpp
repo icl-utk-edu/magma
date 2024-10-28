@@ -419,6 +419,7 @@ magma_zgeqp3_gpu(
         NULL, lwork_host, (void*)dwork, lwork_device,
         info, queue );
 
+    magma_queue_sync( queue );
     magma_queue_destroy( queue );
 
     return *info;
