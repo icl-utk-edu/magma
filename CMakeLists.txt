@@ -119,7 +119,7 @@ if (MAGMA_ENABLE_CUDA)
 
     set( CUDA_NAMES
          "one or more of "
-         "Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Hopper, "
+         "Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Ada, Hopper, "
          "or valid sm_XY or sm_XYZ" )
     set( GPU_TARGET "" CACHE STRING
          "CUDA architectures to compile for, overrides CMAKE_CUDA_ARCHITECTURES; ${CUDA_NAMES}" )
@@ -142,15 +142,15 @@ if (MAGMA_ENABLE_CUDA)
             endif()
 
             if (GPU_TARGET MATCHES Maxwell)
-                set( GPU_TARGET "${GPU_TARGET} sm_50" )
+                set( GPU_TARGET "${GPU_TARGET} sm_50 sm_52 sm_53" )
             endif()
 
             if (GPU_TARGET MATCHES Pascal)
-                set( GPU_TARGET "${GPU_TARGET} sm_60" )
+                set( GPU_TARGET "${GPU_TARGET} sm_60 sm_61 sm_62" )
             endif()
 
             if (GPU_TARGET MATCHES Volta)
-                set( GPU_TARGET "${GPU_TARGET} sm_70" )
+                set( GPU_TARGET "${GPU_TARGET} sm_70 sm_72" )
             endif()
 
             if (GPU_TARGET MATCHES Turing)
@@ -158,15 +158,19 @@ if (MAGMA_ENABLE_CUDA)
             endif()
 
             if (GPU_TARGET MATCHES Ampere)
-                set( GPU_TARGET "${GPU_TARGET} sm_80" )
+                set( GPU_TARGET "${GPU_TARGET} sm_80 sm_86 sm_87" )
+            endif()
+
+            if (GPU_TARGET MATCHES Ada)
+                set( GPU_TARGET "${GPU_TARGET} sm_89" )
             endif()
 
             if (GPU_TARGET MATCHES Hopper)
-                set( GPU_TARGET "${GPU_TARGET} sm_90" )
+                set( GPU_TARGET "${GPU_TARGET} sm_90 sm_90a" )
             endif()
 
             # Find all sm_XY and sm_XYZ, then strip off sm_.
-            string( REGEX MATCHALL "sm_[0-9][0-9]+" sms "${GPU_TARGET}" )
+            string( REGEX MATCHALL "sm_[0-9][0-9a-z]+" sms "${GPU_TARGET}" )
             string( REPLACE "sm_" "" __cuda_architectures "${sms}" )
 
             if (NOT __cuda_architectures)
