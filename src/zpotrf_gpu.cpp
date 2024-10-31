@@ -74,7 +74,7 @@
 
     @param[in]
     mode    magma_mode_t
-      -     = MagmaNative:  Factorize dA using GPU only mode (only uplo=MagmaLower is available);
+      -     = MagmaNative:  Factorize dA using GPU only mode.
       -     = MagmaHybrid:  Factorize dA using Hybrid (CPU/GPU) mode.
 
     @param[in]

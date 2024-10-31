@@ -748,6 +748,11 @@ chol = (
 	('testing_ztrtri_gpu',      '-U -DU -c',  n,    ''),
 	('testing_ztrtri_gpu',      '-U -DN -c',  n,    ''),
 
+	('testing_ztrtri_gpu', '--version 2 -L -DU -c',  n,    ''),
+	('testing_ztrtri_gpu', '--version 2 -L -DN -c',  n,    ''),
+	('testing_ztrtri_gpu', '--version 2 -U -DU -c',  n,    ''),
+	('testing_ztrtri_gpu', '--version 2 -U -DN -c',  n,    ''),
+
 	('testing_zpotrf_mgpu', ngpu + '-L    -c',  n,    ''),
 	('testing_zpotrf_mgpu', ngpu + '-U    -c',  n,    ''),
 
@@ -814,6 +819,7 @@ lu = (
 	('testing_zgetrf_gpu', '--version 5 -c2', n,    ''), # zgetrf native expert api
 	('testing_zgetf2_gpu',             '-c',  n + tall,  ''),
 	('testing_zgetri_gpu',             '-c',  n,    ''),
+	('testing_zgetri_gpu', '--version 2 -c',  n,    ''),
 	('testing_zgetrf_mgpu',    ngpu + '-c2',  n,    ''),
 
 	# ----------

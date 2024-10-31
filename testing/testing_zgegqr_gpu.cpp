@@ -22,6 +22,8 @@
 #include "magma_lapack.h"
 #include "testings.h"
 
+//#define TEST_ZGEGQR_EXPERT_API
+
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zgegqr
 */
@@ -45,16 +47,19 @@ int main( int argc, char** argv)
     magma_opts opts;
     opts.parse_opts( argc, argv );
     opts.lapack |= opts.check;  // check (-c) implies lapack (-l)
-    
+
     // versions 1...4 are valid
     if (opts.version < 1 || opts.version > 4) {
         printf("Unknown version %lld; exiting\n", (long long) opts.version );
         return -1;
     }
-    
+
     double tol = 10. * opts.tolerance * lapackf77_dlamch("E");
-    
+
     printf("%% version %lld\n", (long long) opts.version );
+    #ifdef TEST_ZGEGQR_EXPERT_API
+    printf("%% Testing expert API\n");
+    #endif
     printf("%% M     N     CPU Gflop/s (ms)    GPU Gflop/s (ms)      ||I-Q'Q||_F / M     ||I-Q'Q||_I / M    ||A-Q R||_I\n");
     printf("%%                                                       MAGMA  /  LAPACK    MAGMA  /  LAPACK\n");
     printf("%%=========================================================================================================\n");
@@ -79,17 +84,26 @@ int main( int argc, char** argv)
             n2     = lda*N;
             ldda   = magma_roundup( M, opts.align );  // multiple of 32 by default
             gflops = FLOPS_ZGEQRF( M, N ) / 1e9 +  FLOPS_ZUNGQR( M, N, N ) / 1e9;
-            
+
             // query for workspace size
+            ldwork = N*N;
             lwork = -1;
             lapackf77_zgeqrf( &M, &N, unused, &M, unused, tmp, &lwork, &info );
             lwork = (magma_int_t)MAGMA_Z_REAL( tmp[0] );
-            lwork = max(lwork, 3*N*N);
-            
-            ldwork = N*N;
-            if (opts.version == 2) {
-                ldwork = 3*N*N + min_mn + 2;
-            }
+
+            magma_int_t gegqr_lhwork[1] = {-1}; // size in bytes
+            magma_int_t gegqr_ldwork[1] = {-1}; // size in bytes
+            magma_zgegqr_expert_gpu_work(
+                opts.version, M, N, NULL, ldda,
+                NULL, gegqr_lhwork,
+                NULL, gegqr_ldwork, &info, opts.queue );
+
+            lwork  = max( lwork,  magma_ceildiv(gegqr_lhwork[0], sizeof(magmaDoubleComplex)) );
+            ldwork = max( ldwork, magma_ceildiv(gegqr_ldwork[0], sizeof(magmaDoubleComplex)) );
+
+            // update  gegqr_lhwork & gegqr_ldwork
+            gegqr_lhwork[0] = lwork  * sizeof(magmaDoubleComplex);
+            gegqr_ldwork[0] = ldwork * sizeof(magmaDoubleComplex);
 
             TESTING_CHECK( magma_zmalloc_pinned( &tau,    min_mn ));
             TESTING_CHECK( magma_zmalloc_pinned( &h_work, lwork  ));
@@ -98,7 +112,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc_cpu( &h_A,   n2     ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_R,   n2     ));
             TESTING_CHECK( magma_dmalloc_cpu( &work,  M      ));
-            
+
             TESTING_CHECK( magma_zmalloc( &d_A,   ldda*N ));
             TESTING_CHECK( magma_zmalloc( &dtau,  min_mn ));
             TESTING_CHECK( magma_zmalloc( &dwork, ldwork ));
@@ -107,18 +121,25 @@ int main( int argc, char** argv)
             magma_generate_matrix( opts, M, N, h_A, lda );
             lapackf77_zlacpy( MagmaFullStr, &M, &N, h_A, &lda, h_R, &lda );
             magma_zsetmatrix( M, N, h_R, lda, d_A, ldda, opts.queue );
-            
+
             // warmup
             if ( opts.warmup ) {
                 magma_zgegqr_gpu( 1, M, N, d_A, ldda, dwork, h_work, &info );
                 magma_zsetmatrix( M, N, h_R, lda, d_A, ldda, opts.queue );
             }
-            
+
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
             gpu_time = magma_sync_wtime( opts.queue );
+            #ifndef TEST_ZGEGQR_EXPERT_API
             magma_zgegqr_gpu( opts.version, M, N, d_A, ldda, dwork, h_rwork, &info );
+            #else
+            magma_zgegqr_expert_gpu_work(
+                opts.version, M, N, d_A, ldda,
+                (void*)h_rwork, gegqr_lhwork,
+                (void*)dwork,   gegqr_ldwork, &info, opts.queue );
+            #endif
             gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             gpu_perf = gflops / gpu_time;
             if (info != 0) {
@@ -137,7 +158,7 @@ int main( int argc, char** argv)
             e5 = lapackf77_zlange("i", &M, &N, h_R, &lda, work) /
                  lapackf77_zlange("i", &M, &N, h_A, &lda, work);
             magma_zgetmatrix( M, N, d_A, ldda, h_R, lda, opts.queue );
- 
+
             if ( opts.lapack ) {
                 /* =====================================================================
                    Performs operation using LAPACK
@@ -154,7 +175,7 @@ int main( int argc, char** argv)
                     printf("lapackf77_zungqr returned error %lld: %s.\n",
                            (long long) info, magma_strerror( info ));
                 }
-                
+
                 /* =====================================================================
                    Check the result compared to LAPACK
                    =================================================================== */
@@ -187,11 +208,11 @@ int main( int argc, char** argv)
                 printf("%5lld %5lld     ---   (  ---  )   %7.2f (%7.2f)     ---  \n",
                        (long long) M, (long long) N, gpu_perf, 1000.*gpu_time );
             }
-            
+
             magma_free_pinned( tau    );
             magma_free_pinned( h_work );
             magma_free_pinned( h_rwork );
-           
+
             magma_free_cpu( h_A  );
             magma_free_cpu( h_R  );
             magma_free_cpu( work );
@@ -206,7 +227,7 @@ int main( int argc, char** argv)
             printf( "\n" );
         }
     }
-    
+
     opts.cleanup();
     TESTING_CHECK( magma_finalize() );
     return status;
