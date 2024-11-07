@@ -139,25 +139,18 @@ ifeq ($(BACKEND),cuda)
 	endif
 	ifneq ($(findstring Maxwell, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_50
-		CUDA_ARCH_ += sm_52
-		CUDA_ARCH_ += sm_53
 	endif
 	ifneq ($(findstring Pascal, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_60
-		CUDA_ARCH_ += sm_61
-		CUDA_ARCH_ += sm_62
 	endif
 	ifneq ($(findstring Volta, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_70
-		CUDA_ARCH_ += sm_72
 	endif
 	ifneq ($(findstring Turing, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_75
 	endif
 	ifneq ($(findstring Ampere, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_80
-		CUDA_ARCH_ += sm_86
-		CUDA_ARCH_ += sm_87
 	endif
 	ifneq ($(findstring Ada, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_89
@@ -166,7 +159,6 @@ ifeq ($(BACKEND),cuda)
 		CUDA_ARCH_ += sm_90
 		CUDA_ARCH_ += sm_90a
 	endif
-
 
 	# Remember to add to CMakeLists.txt too!
 
