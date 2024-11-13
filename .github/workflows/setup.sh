@@ -18,6 +18,11 @@ else
    spack load intel-oneapi-mkl
 fi
 
+if [ "$COMPILER" = "intel" ]; then
+   spack load intel-oneapi-compilers
+fi
+
+
 if [ "$DEVICE" = "gpu_nvidia" ]; then
    spack load cuda
    export CUDADIR=$CUDA_HOME
