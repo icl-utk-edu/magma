@@ -66,7 +66,7 @@
                    calculates the required amount of workspace and returns
                    it in lwork_host. The workspace itself is not referenced, and no
                    factorization is performed.
-                -  lwork[0] >= 0: the routine assumes that the user has provided
+                -  lwork_host[0] >= 0: the routine assumes that the user has provided
                    a workspace with the size in lwork_host.
 
     @param[in,out]
@@ -141,7 +141,9 @@ magma_zgetri_expert_gpu_work(
         *info = -1;
     else if (ldda < max(1,n))
         *info = -3;
-    else if ( lwork_device[0] < n*nb )
+    else if ( lwork_host[0] < h_workspace_bytes )
+        *info = -8;
+    else if ( lwork_device[0] < d_workspace_bytes )
         *info = -10;
 
     if (*info != 0) {
@@ -153,7 +155,8 @@ magma_zgetri_expert_gpu_work(
     if ( n == 0 )
         return *info;
 
-    if (lwork_device[0] >= ldda*n) {
+    magma_int_t lwork = lwork_device_getri / sizeof(magmaDoubleComplex);
+    if (lwork >= ldda*n) {
         lddl = ldda;
     }
     else {
@@ -316,7 +319,7 @@ magma_zgetri_gpu(
 
     magma_zgetri_expert_gpu_work(
         n, dA, ldda, ipiv, info, MagmaNative,
-        host_work, lwork_host, dwork, &lwork, queues );
+        host_work, lwork_host, (void*)dwork, &lwork_bytes, queues );
 
     magma_queue_destroy( queues[0] );
     magma_queue_destroy( queues[1] );
