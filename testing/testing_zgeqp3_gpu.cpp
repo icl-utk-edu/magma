@@ -61,7 +61,7 @@ int main( int argc, char** argv)
             n2     = lda*N;
             gflops = FLOPS_ZGEQRF( M, N ) / 1e9;
 
-            // get lwork from
+            // get lwork from expert interface
             magma_int_t geqp3_lhwork_bytes[1] = {-1};
             magma_int_t geqp3_ldwork_bytes[1] = {-1};
             magma_zgeqp3_expert_gpu_work(
