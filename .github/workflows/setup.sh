@@ -20,11 +20,8 @@ fi
 
 if [ "$COMPILER" = "intel" ]; then
    spack load intel-oneapi-compilers
-   # Update the makefile examples for the new Intel compiler names
-   which icc   || perl -pi -e 's/icc/icx/' make.inc-examples/*
-   which icpc  || perl -pi -e 's/icpc/icpx/' make.inc-examples/*
-   which ifort || perl -pi -e 's/ifort/ifx/' make.inc-examples/*
 fi
+
 
 if [ "$DEVICE" = "gpu_nvidia" ]; then
    spack load cuda
