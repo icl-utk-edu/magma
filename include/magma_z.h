@@ -58,6 +58,10 @@ magma_int_t magma_get_zbulge_nb_mgpu( magma_int_t n );
 magma_int_t magma_get_zbulge_vblksiz( magma_int_t n, magma_int_t nb, magma_int_t nbthreads );
 magma_int_t magma_get_zbulge_gcperf();
 
+// =============================================================================
+// Other auxiliary functions
+bool magma_zgetrf_gpu_recommend_cpu(magma_int_t m, magma_int_t n, magma_int_t nb);
+bool magma_zgetrf_native_recommend_notrans(magma_int_t m, magma_int_t n, magma_int_t nb);
 
 // =============================================================================
 // MAGMA function definitions
@@ -210,6 +214,14 @@ magma_zgegqr_gpu(
     magma_int_t *info);
 
 magma_int_t
+magma_zgegqr_expert_gpu_work(
+    magma_int_t ikind, magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA,   magma_int_t ldda,
+    void *host_work,   magma_int_t *lwork_host,
+    void *device_work, magma_int_t *lwork_device,
+    magma_int_t *info, magma_queue_t queue );
+
+magma_int_t
 magma_zgehrd(
     magma_int_t n, magma_int_t ilo, magma_int_t ihi,
     magmaDoubleComplex *A, magma_int_t lda,
@@ -331,6 +343,15 @@ magma_zgeqp3_gpu(
     double *rwork,
     #endif
     magma_int_t *info);
+
+magma_int_t
+magma_zgeqp3_expert_gpu_work(
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *jpvt, magmaDoubleComplex *tau,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_int_t *info, magma_queue_t queue );
 
 // CUDA MAGMA only
 magma_int_t
@@ -692,12 +713,33 @@ magma_zgetri_gpu(
     magma_int_t *info);
 
 magma_int_t
+magma_zgetri_expert_gpu_work(
+    magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda, magma_int_t *ipiv,
+    magma_int_t *info,
+    magma_mode_t mode,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_queue_t queues[2] );
+
+magma_int_t
 magma_zgetrs_gpu(
     magma_trans_t trans, magma_int_t n, magma_int_t nrhs,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *ipiv,
     magmaDoubleComplex_ptr dB, magma_int_t lddb,
     magma_int_t *info);
+
+magma_int_t
+magma_zgetrs_expert_gpu_work(
+    magma_trans_t trans, magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda, magma_int_t *ipiv,
+    magmaDoubleComplex_ptr dB, magma_int_t lddb,
+    magma_int_t *info,
+    magma_mode_t mode,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_queue_t queue );
 
 // CUDA MAGMA only
 magma_int_t
@@ -1584,6 +1626,16 @@ magma_zpotrs_gpu(
     magmaDoubleComplex_ptr dB, magma_int_t lddb,
     magma_int_t *info);
 
+magma_int_t
+magma_zpotrs_expert_gpu_work(
+    magma_uplo_t uplo, magma_int_t n, magma_int_t nrhs,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magmaDoubleComplex_ptr dB, magma_int_t lddb,
+    magma_int_t *info,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_queue_t queue );
+
 // ------------------------------------------------------------ zsy routines
 #ifdef MAGMA_COMPLEX
 // CUDA MAGMA only
@@ -1690,6 +1742,15 @@ magma_ztrtri_gpu(
     magma_uplo_t uplo, magma_diag_t diag, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *info);
+
+magma_int_t
+magma_ztrtri_expert_gpu_work(
+    magma_uplo_t uplo, magma_diag_t diag, magma_int_t n,
+    magmaDoubleComplex_ptr dA, magma_int_t ldda,
+    magma_int_t *info,
+    void* host_work,   magma_int_t *lwork_host,
+    void* device_work, magma_int_t *lwork_device,
+    magma_queue_t queues[2] );
 
 // ------------------------------------------------------------ zun routines
 // CUDA MAGMA only
