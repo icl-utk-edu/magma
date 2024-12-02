@@ -65,10 +65,16 @@ extern "C" void magma_setvector_internal(magma_int_t n, magma_int_t elemSize,
         stream = &dpct::get_default_queue();
     }
     try {
-      stream->ext_oneapi_memcpy2d(
+      // If increments are 1, just call one memcopy
+      if ((incx == 1) && (incy == 1)) {
+	 stream->memcpy((void *) dy_dst, (void *) hx_src, elemSize * (size_t) n);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
 		  dy_dst, size_t(incy) * elemSize,
 		  hx_src, size_t(incx) * elemSize,
                   size_t(elemSize), size_t(n));
+      }
       stream->wait();
     }
     catch (sycl::exception const &exc) {
@@ -126,10 +132,16 @@ extern "C" void magma_setvector_async_internal(
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
     try {
-      stream->ext_oneapi_memcpy2d(
+      // If increments are 1, just call one memcopy
+      if ((incx == 1) && (incy == 1)) {
+	 stream->memcpy((void *) dy_dst, (void *) hx_src, elemSize * (size_t) n);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
 		  dy_dst, size_t(incy) * elemSize,
 		  hx_src, size_t(incx) * elemSize,
                   size_t(elemSize), size_t(n));
+      }
     }
     catch (sycl::exception const &exc) {
        std::cerr << exc.what() << "Exception caught at file:" << __FILE__
@@ -185,10 +197,16 @@ extern "C" void magma_getvector_internal(magma_int_t n, magma_int_t elemSize,
         stream = &dpct::get_default_queue();
     }
     try {
-      stream->ext_oneapi_memcpy2d(
+      // If increments are 1, just call one memcopy
+      if ((incx == 1) && (incy == 1)) {
+	 stream->memcpy((void *) hy_dst, (void *) dx_src, elemSize * (size_t) n);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
 		  hy_dst, size_t(incy) * elemSize,
 		  dx_src, size_t(incx) * elemSize,
                   size_t(elemSize), size_t(n));
+      }
       stream->wait();
     }
     catch (sycl::exception const &exc) {
@@ -246,10 +264,16 @@ extern "C" void magma_getvector_async_internal(
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
     try {
-      stream->ext_oneapi_memcpy2d(
+      // If increments are 1, just call one memcopy
+      if ((incx == 1) && (incy == 1)) {
+	 stream->memcpy((void *) hy_dst, (void *) dx_src, elemSize * (size_t) n);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
 		  hy_dst, size_t(incy) * elemSize,
 		  dx_src, size_t(incx) * elemSize,
                   size_t(elemSize), size_t(n));
+      }
     }
     catch (sycl::exception const &exc) {
        std::cerr << exc.what() << "Exception caught at file:" << __FILE__
@@ -307,19 +331,22 @@ extern "C" void magma_copyvector_internal(magma_int_t n, magma_int_t elemSize,
     else {
         stream = &dpct::get_default_queue();
     }
-    if ( incx == 1 && incy == 1 ) {
-        try {
-          stream->memcpy(dy_dst, dx_src, size_t(n) * elemSize);
-          stream->wait();
-        }
-        catch (sycl::exception const &exc) {
-          std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-                    << ", line:" << __LINE__ << std::endl;
-        }
+    try {
+      // If increments are 1, just call one memcopy
+      if ((incx == 1) && (incy == 1)) {
+	 stream->memcpy((void *) dy_dst, (void *) dx_src, elemSize * (size_t) n);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
+		  dy_dst, size_t(incy) * elemSize,
+		  dx_src, size_t(incx) * elemSize,
+                  size_t(elemSize), size_t(n));
+      }
+      stream->wait();
     }
-    else {
-        magma_copymatrix_internal(
-            1, n, elemSize, dx_src, incx, dy_dst, incy, queue, func, file, line );
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
     }
 }
 
@@ -371,18 +398,21 @@ extern "C" void magma_copyvector_async_internal(
         stream = &dpct::get_default_queue();
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
-    if ( incx == 1 && incy == 1 ) {
-        try {
-          stream->memcpy(dy_dst, dx_src, size_t(n) * elemSize);
-        }
-        catch (sycl::exception const &exc) {
-          std::cerr << exc.what() << "Exception caught at file:" << __FILE__
-                    << ", line:" << __LINE__ << std::endl;
-        }
+    try {
+      // If increments are 1, just call one memcopy
+      if ((incx == 1) && (incy == 1)) {
+	 stream->memcpy((void *) dy_dst, (void *) dx_src, elemSize * (size_t) n);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
+		  dy_dst, size_t(incy) * elemSize,
+		  dx_src, size_t(incx) * elemSize,
+                  size_t(elemSize), size_t(n));
+      }
     }
-    else {
-        magma_copymatrix_async_internal(
-            1, n, elemSize, dx_src, incx, dy_dst, incy, queue, func, file, line );
+    catch (sycl::exception const &exc) {
+       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
+                 << ", line:" << __LINE__ << std::endl;
     }
 }
 
@@ -437,10 +467,17 @@ extern "C" void magma_setmatrix_internal(magma_int_t m, magma_int_t n,
         stream = &dpct::get_default_queue();
     }
     try {
-      stream->ext_oneapi_memcpy2d(
-  		    dB_dst, size_t(lddb) * elemSize,
-		    hA_src, size_t(lda) * elemSize,
+      // If leading dimensions are the same, just call one memcopy
+      if (lda == lddb) {
+         size_t copy_size = elemSize * ((n - 1) * (size_t)lddb + m);
+	 stream->memcpy((void *) dB_dst, (void *) hA_src, copy_size);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
+                    dB_dst, size_t(lddb) * elemSize,
+                    hA_src, size_t(lda) * elemSize,
 		    size_t(m) * elemSize, size_t(n));
+      }
       stream->wait();
     }
     catch (sycl::exception const &exc) {
@@ -500,10 +537,17 @@ extern "C" void magma_setmatrix_async_internal(
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
     try {
-      stream->ext_oneapi_memcpy2d(
+      // If leading dimensions are the same, just call one memcopy
+      if (lda == lddb) {
+         size_t copy_size = elemSize * ((n - 1) * (size_t)lddb + m);
+	 stream->memcpy((void *) dB_dst, (void *) hA_src, copy_size);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
   		  dB_dst, size_t(lddb) * elemSize,
 		  hA_src, size_t(lda) * elemSize,
 		  size_t(m) * elemSize, size_t(n));
+      }
     }
     catch (sycl::exception const &exc) {
       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
@@ -561,10 +605,17 @@ magma_getmatrix_internal(magma_int_t m, magma_int_t n, magma_int_t elemSize,
         stream = &dpct::get_default_queue();
     }
     try {
-      stream->ext_oneapi_memcpy2d(
+      // If leading dimensions are the same, just call one memcopy
+      if (ldda == ldb) {
+         size_t copy_size = elemSize * ((n - 1) * (size_t)ldda + m);
+	 stream->memcpy((void *) hB_dst, (void *) dA_src, copy_size);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
 		  hB_dst, size_t(ldb) * elemSize,
 		  dA_src, size_t(ldda) * elemSize,
 		  size_t(m) * elemSize, size_t(n));
+      }
       stream->wait();
     }
     catch (sycl::exception const &exc) {
@@ -624,10 +675,17 @@ extern "C" void magma_getmatrix_async_internal(
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
     try {
-      stream->ext_oneapi_memcpy2d(
+      // If leading dimensions are the same, just call one memcopy
+      if (ldda == ldb) {
+         size_t copy_size = elemSize * ((n - 1) * (size_t)ldda + m);
+	 stream->memcpy((void *) hB_dst, (void *) dA_src, copy_size);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
 		  hB_dst, size_t(ldb) * elemSize,
 		  dA_src, size_t(ldda) * elemSize,
 		  size_t(m) * elemSize, size_t(n));
+      }
     }
     catch (sycl::exception const &exc) {
       std::cerr << exc.what() << "Exception caught at file:" << __FILE__
@@ -685,10 +743,17 @@ extern "C" void magma_copymatrix_internal(
         stream = &dpct::get_default_queue();
     }
     try {
-      stream->ext_oneapi_memcpy2d(
+      // If leading dimensions are the same, just call one memcopy
+      if (ldda == lddb) {
+         size_t copy_size = elemSize * ((n - 1) * (size_t)lddb + m);
+	 stream->memcpy((void *) dB_dst, (void *) dA_src, copy_size);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
 		  dB_dst, size_t(lddb) * elemSize,
 		  dA_src, size_t(ldda) * elemSize,
 		  size_t(m) * elemSize, size_t(n));
+      }
       stream->wait();
     }
     catch (sycl::exception const &exc) {
@@ -749,10 +814,17 @@ extern "C" void magma_copymatrix_async_internal(
         fprintf( stderr, "Warning: %s got NULL queue\n", __func__ );
     }
     try {
-      stream->ext_oneapi_memcpy2d(
+      // If leading dimensions are the same, just call one memcopy
+      if (ldda == lddb) {
+         size_t copy_size = elemSize * ((n - 1) * (size_t)lddb + m);
+	 stream->memcpy((void *) dB_dst, (void *) dA_src, copy_size);
+      }
+      else {
+        stream->ext_oneapi_memcpy2d(
 		  dB_dst, size_t(lddb) * elemSize,
 		  dA_src, size_t(ldda) * elemSize,
 		  size_t(m) * elemSize, size_t(n));
+      }
     }
     catch (sycl::exception const &exc) {
        std::cerr << exc.what() << "Exception caught at file:" << __FILE__
