@@ -61,19 +61,19 @@ if (UNIX AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 # ----------------------------------------
-# use C++11 and C99
+# use C++14 and C99
 # see http://stackoverflow.com/questions/10851247/how-to-activate-c-11-in-cmake
 include(CheckCXXCompilerFlag)
 include(CheckCCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 CHECK_CXX_COMPILER_FLAG("-fPIC" COMPILER_SUPPORTS_FPIC)
-if (COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+if (COMPILER_SUPPORTS_CXX14)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 elseif(COMPILER_SUPPORTS_CXX0X)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 else()
-    message( WARNING "The compiler ${CMAKE_CXX_COMPILER} doesn't support the -std=c++11 flag. Some code may not compile.")
+    message( WARNING "The compiler ${CMAKE_CXX_COMPILER} doesn't support the -std=c++14 flag. Some code may not compile.")
 endif()
 
 CHECK_C_COMPILER_FLAG("-std=c99" COMPILER_SUPPORTS_C99)
@@ -593,7 +593,7 @@ include_directories( testing )
 
 if (MAGMA_ENABLE_CUDA)
   add_library( magma_sparse ${libsparse_all} )
-  set_property(TARGET magma_sparse PROPERTY CUDA_STANDARD 11)
+  set_property(TARGET magma_sparse PROPERTY CUDA_STANDARD 14)
   target_link_libraries( magma_sparse
     magma
     ${blas_fix}
