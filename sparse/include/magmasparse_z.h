@@ -368,6 +368,7 @@ magma_zindexsortval(
     magma_int_t last,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zorderstatistics is deprecated and will be removed in the next release")
 magma_int_t
 magma_zorderstatistics(
     magmaDoubleComplex *val,
@@ -377,6 +378,7 @@ magma_zorderstatistics(
     magmaDoubleComplex *element,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zorderstatistics_inc is deprecated and will be removed in the next release")
 magma_int_t
 magma_zorderstatistics_inc(
     magmaDoubleComplex *val,
@@ -387,6 +389,7 @@ magma_zorderstatistics_inc(
     magmaDoubleComplex *element,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmorderstatistics is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmorderstatistics(
     magmaDoubleComplex *val,
@@ -398,6 +401,7 @@ magma_zmorderstatistics(
     magmaDoubleComplex *element,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zpartition is deprecated and will be removed in the next release")
 magma_int_t
 magma_zpartition( 
     magmaDoubleComplex *a, 
@@ -405,11 +409,13 @@ magma_zpartition(
     magma_int_t pivot,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmedian5 is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmedian5( 
     magmaDoubleComplex *a, 
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zselect is deprecated and will be removed in the next release")
 magma_int_t
 magma_zselect( 
     magmaDoubleComplex *a, 
@@ -417,6 +423,7 @@ magma_zselect(
     magma_int_t k,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zselectrandom is deprecated and will be removed in the next release")
 magma_int_t
 magma_zselectrandom( 
     magmaDoubleComplex *a, 
@@ -424,6 +431,7 @@ magma_zselectrandom(
     magma_int_t k,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zdomainoverlap is deprecated and will be removed in the next release")
 magma_int_t
 magma_zdomainoverlap(
     magma_index_t num_rows,
@@ -561,6 +569,7 @@ magma_zvread(
     char * filename,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zvspread is deprecated and will be removed in the next release")
 magma_int_t
 magma_zvspread(
     magma_z_matrix *x, 
@@ -572,6 +581,7 @@ magma_zprint_matrix(
     magma_z_matrix A,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zdiameter is deprecated and will be removed in the next release")
 magma_int_t 
 magma_zdiameter(
     magma_z_matrix *A,
@@ -652,7 +662,6 @@ magma_zeigensolverinfo_init(
     magma_z_solver_par *solver_par,
     magma_queue_t queue );
 
-
 magma_int_t
 magma_zprecondfree(
     magma_z_preconditioner *precond,
@@ -672,7 +681,7 @@ magma_zKrylov_check( magma_solver_type solver );
  -- MAGMA_SPARSE parallel incomplete factorizations (ParILU / ParILUT)
 */
 
-
+MAGMA_DEPRECATE("magma_zparilusetup is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilusetup( 
     magma_z_matrix A, 
@@ -680,6 +689,7 @@ magma_zparilusetup(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilu_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilu_gpu( 
     magma_z_matrix A, 
@@ -687,6 +697,7 @@ magma_zparilu_gpu(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilu_cpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilu_cpu( 
     magma_z_matrix A, 
@@ -694,6 +705,7 @@ magma_zparilu_cpu(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparic_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparic_gpu( 
     magma_z_matrix A, 
@@ -701,6 +713,7 @@ magma_zparic_gpu(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparic_cpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparic_cpu( 
     magma_z_matrix A, 
@@ -708,6 +721,7 @@ magma_zparic_cpu(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparicsetup is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparicsetup( 
     magma_z_matrix A, 
@@ -715,6 +729,7 @@ magma_zparicsetup(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparicupdate is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparicupdate( 
     magma_z_matrix A, 
@@ -722,6 +737,7 @@ magma_zparicupdate(
     magma_int_t updates,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zapplyiteric_l is deprecated and will be removed in the next release")
 magma_int_t
 magma_zapplyiteric_l( 
     magma_z_matrix b, 
@@ -729,6 +745,7 @@ magma_zapplyiteric_l(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zapplyiteric_r is deprecated and will be removed in the next release")
 magma_int_t
 magma_zapplyiteric_r( 
     magma_z_matrix b, 
@@ -737,6 +754,7 @@ magma_zapplyiteric_r(
     magma_queue_t queue );
 
 
+MAGMA_DEPRECATE("magma_zparilu_csr is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilu_csr( 
     magma_z_matrix A,
@@ -744,6 +762,7 @@ magma_zparilu_csr(
     magma_z_matrix U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zpariluupdate is deprecated and will be removed in the next release")
 magma_int_t
 magma_zpariluupdate(
     magma_z_matrix A,
@@ -751,6 +770,7 @@ magma_zpariluupdate(
     magma_int_t updates,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparic_csr is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparic_csr( 
     magma_z_matrix A,
@@ -772,6 +792,7 @@ magma_zmfrobenius(
     double *norm,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_znonlinres is deprecated and will be removed in the next release")
 magma_int_t 
 magma_znonlinres(   
     magma_z_matrix A, 
@@ -781,6 +802,7 @@ magma_znonlinres(
     real_Double_t *res,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zilures is deprecated and will be removed in the next release")
 magma_int_t 
 magma_zilures(   
     magma_z_matrix A, 
@@ -791,6 +813,7 @@ magma_zilures(
     real_Double_t *nonlinres,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zicres is deprecated and will be removed in the next release")
 magma_int_t 
 magma_zicres(       
     magma_z_matrix A, 
@@ -801,6 +824,7 @@ magma_zicres(
     real_Double_t *nonlinres,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zinitguess is deprecated and will be removed in the next release")
 magma_int_t 
 magma_zinitguess( 
     magma_z_matrix A, 
@@ -808,12 +832,14 @@ magma_zinitguess(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zinitrecursiveLU is deprecated and will be removed in the next release")
 magma_int_t 
 magma_zinitrecursiveLU( 
     magma_z_matrix A, 
     magma_z_matrix *B,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmLdiagadd is deprecated and will be removed in the next release")
 magma_int_t 
 magma_zmLdiagadd( 
     magma_z_matrix *L,
@@ -837,6 +863,7 @@ magma_zmatrix_triu(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmatrix_cup is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmatrix_cup(
     magma_z_matrix A,
@@ -844,6 +871,7 @@ magma_zmatrix_cup(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmatrix_cup_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmatrix_cup_gpu(
     magma_z_matrix A,
@@ -851,6 +879,7 @@ magma_zmatrix_cup_gpu(
     magma_z_matrix *U,
     magma_queue_t queue);
 
+MAGMA_DEPRECATE("magma_zmatrix_cap is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmatrix_cap(
     magma_z_matrix A,
@@ -858,6 +887,7 @@ magma_zmatrix_cap(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmatrix_negcap is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmatrix_negcap(
     magma_z_matrix A,
@@ -865,6 +895,7 @@ magma_zmatrix_negcap(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmatrix_tril_negcap is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmatrix_tril_negcap(
     magma_z_matrix A,
@@ -872,6 +903,7 @@ magma_zmatrix_tril_negcap(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmatrix_triu_negcap is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmatrix_triu_negcap(
     magma_z_matrix A,
@@ -884,12 +916,14 @@ magma_zmatrix_addrowindex(
     magma_z_matrix *A,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmatrix_abssum is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmatrix_abssum(
     magma_z_matrix A,
     double *sum,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_thrsrm is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_thrsrm(
     magma_int_t order,
@@ -897,6 +931,7 @@ magma_zparilut_thrsrm(
     double *thrs,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_thrsrm_semilinked is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_thrsrm_semilinked(
     magma_z_matrix *U,
@@ -904,12 +939,14 @@ magma_zparilut_thrsrm_semilinked(
     double *thrs,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_rmselected is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_rmselected(
     magma_z_matrix R,
     magma_z_matrix *A,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_selectoneperrow is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_selectoneperrow(
     magma_int_t order,
@@ -917,6 +954,7 @@ magma_zparilut_selectoneperrow(
     magma_z_matrix *oneA,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_selecttwoperrow is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_selecttwoperrow(
     magma_int_t order,
@@ -924,6 +962,7 @@ magma_zparilut_selecttwoperrow(
     magma_z_matrix *oneA,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_selectoneperrowthrs_lower is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_selectoneperrowthrs_lower(
     magma_z_matrix L,
@@ -933,6 +972,7 @@ magma_zparilut_selectoneperrowthrs_lower(
     magma_z_matrix *oneA,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_selectoneperrowthrs_upper is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_selectoneperrowthrs_upper(
     magma_z_matrix L,
@@ -942,6 +982,7 @@ magma_zparilut_selectoneperrowthrs_upper(
     magma_z_matrix *oneA,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_selectonepercol is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_selectonepercol(
     magma_int_t order,
@@ -961,6 +1002,7 @@ magma_zcsrcoo_transpose(
     magma_z_matrix *B,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_transpose_select_one is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_transpose_select_one(
     magma_z_matrix A,
@@ -973,6 +1015,7 @@ magma_zmatrix_createrowptr(
     magma_index_t *row,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_insert_LU is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_insert_LU(
     magma_int_t num_rm,
@@ -983,6 +1026,7 @@ magma_zparilut_insert_LU(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_set_thrs is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_set_thrs(
     magma_int_t num_rm,
@@ -991,6 +1035,7 @@ magma_zparilut_set_thrs(
     magmaDoubleComplex *thrs,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_set_approx_thrs is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_set_approx_thrs(
     magma_int_t num_rm,
@@ -999,6 +1044,7 @@ magma_zparilut_set_approx_thrs(
     double *thrs,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_set_thrs_randomselect is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_set_thrs_randomselect(
     magma_int_t num_rm,
@@ -1007,6 +1053,7 @@ magma_zparilut_set_thrs_randomselect(
     double *thrs,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_set_thrs_randomselect_approx is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_set_thrs_randomselect_approx(
     magma_int_t num_rm,
@@ -1015,6 +1062,7 @@ magma_zparilut_set_thrs_randomselect_approx(
     double *thrs,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_set_thrs_randomselect_factors is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_set_thrs_randomselect_factors(
     magma_int_t num_rm,
@@ -1024,6 +1072,7 @@ magma_zparilut_set_thrs_randomselect_factors(
     double *thrs,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_set_exact_thrs is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_set_exact_thrs(
     magma_int_t num_rm,
@@ -1032,6 +1081,7 @@ magma_zparilut_set_exact_thrs(
     magmaDoubleComplex *thrs,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_set_approx_thrs_inc is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_set_approx_thrs_inc(
     magma_int_t num_rm,
@@ -1040,6 +1090,7 @@ magma_zparilut_set_approx_thrs_inc(
     magmaDoubleComplex *thrs,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_LU_approx_thrs is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_LU_approx_thrs(
     magma_int_t num_rm,
@@ -1049,22 +1100,26 @@ magma_zparilut_LU_approx_thrs(
     magmaDoubleComplex *thrs,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_reorder is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_reorder(
     magma_z_matrix *LU,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparict_sweep is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparict_sweep(
     magma_z_matrix *A,
     magma_z_matrix *LU,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_zero is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_zero(
     magma_z_matrix *A,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilu_sweep is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilu_sweep(
     magma_z_matrix A,
@@ -1072,6 +1127,7 @@ magma_zparilu_sweep(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilu_sweep_sync is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilu_sweep_sync(
     magma_z_matrix A,
@@ -1079,24 +1135,28 @@ magma_zparilu_sweep_sync(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparic_sweep is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparic_sweep(
     magma_z_matrix A,
     magma_z_matrix *L,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparic_sweep_sync is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparic_sweep_sync(
     magma_z_matrix A,
     magma_z_matrix *L,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparict_sweep_sync is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparict_sweep_sync(
     magma_z_matrix *A,
     magma_z_matrix *L,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_sweep_sync is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_sweep_sync(
     magma_z_matrix *A,
@@ -1104,6 +1164,7 @@ magma_zparilut_sweep_sync(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_sweep_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_sweep_gpu( 
     magma_z_matrix *A,
@@ -1111,6 +1172,7 @@ magma_zparilut_sweep_gpu(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_residuals_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_residuals_gpu( 
     magma_z_matrix A,
@@ -1119,6 +1181,7 @@ magma_zparilut_residuals_gpu(
     magma_z_matrix *R,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zthrsholdrm_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zthrsholdrm_gpu(
     magma_int_t order,
@@ -1126,6 +1189,7 @@ magma_zthrsholdrm_gpu(
     double* thrs,
     magma_queue_t queue);
 
+MAGMA_DEPRECATE("magma_zget_row_ptr is deprecated and will be removed in the next release")
 magma_int_t
 magma_zget_row_ptr(
     const magma_int_t num_rows,
@@ -1146,6 +1210,7 @@ magma_zindexinit_gpu(
     magmaIndex_ptr dind,
     magma_queue_t queue);
 
+MAGMA_DEPRECATE("magma_zparilut_align_residuals is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_align_residuals(
     magma_z_matrix L,
@@ -1154,6 +1219,7 @@ magma_zparilut_align_residuals(
     magma_z_matrix *Unew,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_preselect_scale is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_preselect_scale(
     magma_z_matrix *L,
@@ -1162,6 +1228,7 @@ magma_zparilut_preselect_scale(
     magma_z_matrix *oneU,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_thrsrm_U is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_thrsrm_U(
     magma_int_t order,
@@ -1170,6 +1237,7 @@ magma_zparilut_thrsrm_U(
     double *thrs,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_residuals is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_residuals(
     magma_z_matrix A,
@@ -1178,6 +1246,7 @@ magma_zparilut_residuals(
     magma_z_matrix *L_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_residuals_transpose is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_residuals_transpose(
     magma_z_matrix A,
@@ -1186,6 +1255,7 @@ magma_zparilut_residuals_transpose(
     magma_z_matrix *L_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_residuals_semilinked is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_residuals_semilinked(
     magma_z_matrix A,
@@ -1194,6 +1264,7 @@ magma_zparilut_residuals_semilinked(
     magma_z_matrix *L_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_sweep_semilinked is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_sweep_semilinked(
     magma_z_matrix *A,
@@ -1201,6 +1272,7 @@ magma_zparilut_sweep_semilinked(
     magma_z_matrix *US,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_sweep_list is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_sweep_list(
     magma_z_matrix *A,
@@ -1208,6 +1280,7 @@ magma_zparilut_sweep_list(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_residuals_list is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_residuals_list(
     magma_z_matrix A,
@@ -1216,6 +1289,7 @@ magma_zparilut_residuals_list(
     magma_z_matrix *L_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_sweep_linkedlist is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_sweep_linkedlist(
     magma_z_matrix *A,
@@ -1223,6 +1297,7 @@ magma_zparilut_sweep_linkedlist(
     magma_z_matrix *U,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_residuals_linkedlist is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_residuals_linkedlist(
     magma_z_matrix A,
@@ -1231,18 +1306,21 @@ magma_zparilut_residuals_linkedlist(
     magma_z_matrix *L_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_colmajor is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_colmajor(
     magma_z_matrix A,
     magma_z_matrix *AC,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_colmajorup is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_colmajorup(
     magma_z_matrix A,
     magma_z_matrix *AC,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparict is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparict(
     magma_z_matrix A,
@@ -1250,6 +1328,7 @@ magma_zparict(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparict_cpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparict_cpu(
     magma_z_matrix A,
@@ -1257,6 +1336,7 @@ magma_zparict_cpu(
     magma_z_preconditioner *precond,
     magma_queue_t queue);
 
+MAGMA_DEPRECATE("magma_zparilut is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut(
     magma_z_matrix A,
@@ -1264,6 +1344,7 @@ magma_zparilut(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_cpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_cpu(
     magma_z_matrix A,
@@ -1271,6 +1352,7 @@ magma_zparilut_cpu(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_gpu(
     magma_z_matrix A,
@@ -1278,6 +1360,7 @@ magma_zparilut_gpu(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_gpu_nodp is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_gpu_nodp(
     magma_z_matrix A,
@@ -1285,6 +1368,7 @@ magma_zparilut_gpu_nodp(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_insert is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_insert(
     magma_int_t *num_rmL,
@@ -1298,12 +1382,14 @@ magma_zparilut_insert(
     magma_z_matrix *UR,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_create_collinkedlist is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_create_collinkedlist(
     magma_z_matrix A,
     magma_z_matrix *B,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_candidates is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_candidates(
     magma_z_matrix L0,
@@ -1314,6 +1400,7 @@ magma_zparilut_candidates(
     magma_z_matrix *U_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_candidates_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_candidates_gpu(
     magma_z_matrix L0,
@@ -1324,6 +1411,7 @@ magma_zparilut_candidates_gpu(
     magma_z_matrix *U_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparict_candidates is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparict_candidates(
     magma_z_matrix L0,
@@ -1332,6 +1420,7 @@ magma_zparict_candidates(
     magma_z_matrix *L_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_candidates_semilinked is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_candidates_semilinked(
     magma_z_matrix L0,
@@ -1343,6 +1432,7 @@ magma_zparilut_candidates_semilinked(
     magma_z_matrix *U_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_candidates_linkedlist is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_candidates_linkedlist(
     magma_z_matrix L0,
@@ -1354,6 +1444,7 @@ magma_zparilut_candidates_linkedlist(
     magma_z_matrix *U_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_rm_thrs is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_rm_thrs(
     double *thrs,
@@ -1363,17 +1454,20 @@ magma_zparilut_rm_thrs(
     magma_index_t *rm_loc,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_count is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_count(
     magma_z_matrix L,
     magma_int_t *num,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_randlist is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_randlist(
     magma_z_matrix *LU,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_select_candidates_L is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_select_candidates_L(
     magma_int_t *num_rm,
@@ -1381,6 +1475,7 @@ magma_zparilut_select_candidates_L(
     magma_z_matrix *L_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_select_candidates_U is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_select_candidates_U(
     magma_int_t *num_rm,
@@ -1388,6 +1483,7 @@ magma_zparilut_select_candidates_U(
     magma_z_matrix *L_new,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zparilut_preselect is deprecated and will be removed in the next release")
 magma_int_t
 magma_zparilut_preselect(
     magma_int_t order,
@@ -1395,6 +1491,7 @@ magma_zparilut_preselect(
     magma_z_matrix *oneA,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zpreselect_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zpreselect_gpu(
     magma_int_t order,
@@ -1402,6 +1499,7 @@ magma_zpreselect_gpu(
     magma_z_matrix *oneA,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zsampleselect is deprecated and will be removed in the next release")
 magma_int_t
 magma_zsampleselect(
     magma_int_t total_size,
@@ -1412,6 +1510,7 @@ magma_zsampleselect(
     magma_int_t *tmp_size,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zsampleselect_approx is deprecated and will be removed in the next release")
 magma_int_t
 magma_zsampleselect_approx(
     magma_int_t total_size,
@@ -1423,6 +1522,7 @@ magma_zsampleselect_approx(
     magma_queue_t queue );
 
 
+MAGMA_DEPRECATE("magma_zsampleselect_nodp is deprecated and will be removed in the next release")
 magma_int_t
 magma_zsampleselect_nodp(
     magma_int_t total_size,
@@ -1433,6 +1533,7 @@ magma_zsampleselect_nodp(
     magma_int_t *tmp_size,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zsampleselect_approx_nodp is deprecated and will be removed in the next release")
 magma_int_t
 magma_zsampleselect_approx_nodp(
     magma_int_t total_size,
@@ -1446,6 +1547,7 @@ magma_zsampleselect_approx_nodp(
 
 // ISAI preconditioner
 
+MAGMA_DEPRECATE("magma_zmprepare_batched is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmprepare_batched(
     magma_uplo_t uplotype,
@@ -1459,6 +1561,7 @@ magma_zmprepare_batched(
     magmaDoubleComplex *rhs,    
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmtrisolve_batched is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmtrisolve_batched(
     magma_uplo_t uplotype,
@@ -1472,6 +1575,7 @@ magma_zmtrisolve_batched(
     magmaDoubleComplex *rhs,    
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmbackinsert_batched is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmbackinsert_batched(
     magma_uplo_t uplotype,
@@ -1484,6 +1588,7 @@ magma_zmbackinsert_batched(
     magmaDoubleComplex *rhs,    
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmprepare_batched_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmprepare_batched_gpu(
     magma_uplo_t uplotype,
@@ -1497,6 +1602,7 @@ magma_zmprepare_batched_gpu(
     magmaDoubleComplex *rhs,    
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmtrisolve_batched_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmtrisolve_batched_gpu(
     magma_uplo_t uplotype,
@@ -1510,6 +1616,7 @@ magma_zmtrisolve_batched_gpu(
     magmaDoubleComplex *rhs,    
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmbackinsert_batched_gpu is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmbackinsert_batched_gpu(
     magma_uplo_t uplotype,
@@ -1522,6 +1629,7 @@ magma_zmbackinsert_batched_gpu(
     magmaDoubleComplex *rhs,    
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_ziluisaisetup_lower is deprecated and will be removed in the next release")
 magma_int_t
 magma_ziluisaisetup_lower(
     magma_z_matrix L,
@@ -1529,6 +1637,7 @@ magma_ziluisaisetup_lower(
     magma_z_matrix *ISAIL,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_ziluisaisetup_upper is deprecated and will be removed in the next release")
 magma_int_t
 magma_ziluisaisetup_upper(
     magma_z_matrix U,
@@ -1536,6 +1645,7 @@ magma_ziluisaisetup_upper(
     magma_z_matrix *ISAIU,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zicisaisetup is deprecated and will be removed in the next release")
 magma_int_t
 magma_zicisaisetup(
     magma_z_matrix A,
@@ -1543,6 +1653,7 @@ magma_zicisaisetup(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zisai_l is deprecated and will be removed in the next release")
 magma_int_t
 magma_zisai_l(
     magma_z_matrix b,
@@ -1550,6 +1661,7 @@ magma_zisai_l(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zisai_r is deprecated and will be removed in the next release")
 magma_int_t
 magma_zisai_r(
     magma_z_matrix b,
@@ -1557,6 +1669,7 @@ magma_zisai_r(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zisai_l_t is deprecated and will be removed in the next release")
 magma_int_t
 magma_zisai_l_t(
     magma_z_matrix b,
@@ -1564,6 +1677,7 @@ magma_zisai_l_t(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zisai_r_t is deprecated and will be removed in the next release")
 magma_int_t
 magma_zisai_r_t(
     magma_z_matrix b,
@@ -1571,6 +1685,7 @@ magma_zisai_r_t(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmiluisai_sizecheck is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmiluisai_sizecheck(
     magma_z_matrix A,
@@ -1578,12 +1693,14 @@ magma_zmiluisai_sizecheck(
     magma_index_t *maxsize,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zgeisai_maxblock is deprecated and will be removed in the next release")
 magma_int_t
 magma_zgeisai_maxblock(
     magma_z_matrix L,
     magma_z_matrix *MT,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zisai_generator_regs is deprecated and will be removed in the next release")
 magma_int_t
 magma_zisai_generator_regs(
     magma_uplo_t uplotype,
@@ -1612,6 +1729,7 @@ magma_zcsr_sort_gpu(
 /* ////////////////////////////////////////////////////////////////////////////
  -- MAGMA_SPARSE supernodal and RCM reordering
 */
+MAGMA_DEPRECATE("magma_zmsupernodal is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmsupernodal(
     magma_int_t *max_bs,
@@ -1619,6 +1737,7 @@ magma_zmsupernodal(
     magma_z_matrix *S,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmvarsizeblockstruct is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmvarsizeblockstruct(
     magma_int_t n,
@@ -1721,6 +1840,7 @@ magma_ztfqmr(
     magma_z_solver_par *solver_par,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_ztfqmr_unrolled is deprecated and will be removed in the next release")
 magma_int_t
 magma_ztfqmr_unrolled(
     magma_z_matrix A, magma_z_matrix b, magma_z_matrix *x,
@@ -1765,12 +1885,14 @@ magma_zbicgstab_merge(
     magma_z_matrix *x, magma_z_solver_par *solver_par,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbicgstab_merge2 is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbicgstab_merge2(
     magma_z_matrix A, magma_z_matrix b, 
     magma_z_matrix *x, magma_z_solver_par *solver_par,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbicgstab_merge3 is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbicgstab_merge3(
     magma_z_matrix A, magma_z_matrix b, 
@@ -1883,6 +2005,7 @@ magma_zjacobi(
     magma_z_matrix *x, magma_z_solver_par *solver_par,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zjacobidomainoverlap is deprecated and will be removed in the next release")
 magma_int_t
 magma_zjacobidomainoverlap(
     magma_z_matrix A, 
@@ -1891,6 +2014,7 @@ magma_zjacobidomainoverlap(
     magma_z_solver_par *solver_par,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbaiter is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbaiter(
     magma_z_matrix A, magma_z_matrix b, 
@@ -1898,6 +2022,7 @@ magma_zbaiter(
     magma_z_preconditioner *precond_par,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbaiter_overlap is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbaiter_overlap(
     magma_z_matrix A, magma_z_matrix b,
@@ -1905,6 +2030,7 @@ magma_zbaiter_overlap(
     magma_z_preconditioner *precond_par,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zftjacobicontractions is deprecated and will be removed in the next release")
 magma_int_t
 magma_zftjacobicontractions(
     magma_z_matrix xkm2,
@@ -1914,6 +2040,7 @@ magma_zftjacobicontractions(
     magma_z_matrix *c,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zftjacobiupdatecheck is deprecated and will be removed in the next release")
 magma_int_t
 magma_zftjacobiupdatecheck(
     double delta,
@@ -1925,49 +2052,13 @@ magma_zftjacobiupdatecheck(
     magma_int_t *flag_fp,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_ziterref is deprecated and will be removed in the next release")
 magma_int_t
 magma_ziterref(
     magma_z_matrix A, magma_z_matrix b, 
     magma_z_matrix *x, magma_z_solver_par *solver_par, 
     magma_z_preconditioner *precond_par,
     magma_queue_t queue );
-
-magma_int_t
-magma_zbcsrlu(
-    magma_z_matrix A, magma_z_matrix b, 
-    magma_z_matrix *x, magma_z_solver_par *solver_par,
-    magma_queue_t queue );
-
-
-magma_int_t
-magma_zbcsrlutrf(
-    magma_z_matrix A, 
-    magma_z_matrix *M,
-    magma_int_t *ipiv, 
-    magma_int_t version,
-    magma_queue_t queue );
-
-magma_int_t
-magma_zbcsrlusv(
-    magma_z_matrix A, magma_z_matrix b, 
-    magma_z_matrix *x, magma_z_solver_par *solver_par, 
-    magma_int_t *ipiv,
-    magma_queue_t queue );
-
-
-
-magma_int_t
-magma_zilucg(
-    magma_z_matrix A, magma_z_matrix b, 
-    magma_z_matrix *x, magma_z_solver_par *solver_par,
-    magma_queue_t queue );
-
-magma_int_t
-magma_zilugmres(
-    magma_z_matrix A, magma_z_matrix b, 
-    magma_z_matrix *x, magma_z_solver_par *solver_par,
-    magma_queue_t queue ); 
-
 
 magma_int_t
 magma_zlobpcg_shift(
@@ -2016,20 +2107,9 @@ magma_zlsqr(
     magma_z_preconditioner *precond_par,
     magma_queue_t queue );
 
-/* ////////////////////////////////////////////////////////////////////////////
- -- MAGMA_SPARSE direct solvers (Data on GPU)
-*/
-
-magma_int_t 
-magma_zpardiso(
-    magma_z_matrix A, magma_z_matrix b, 
-    magma_z_matrix *x, magma_z_solver_par *solver_par,
-    magma_queue_t queue );
-
 /*/////////////////////////////////////////////////////////////////////////////
  -- MAGMA_SPARSE preconditioners (Data on GPU)
 */
-
 magma_int_t
 magma_zjacobisetup(
     magma_z_matrix A, 
@@ -2068,6 +2148,7 @@ magma_zjacobiiter_precond(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zjacobiiter_sys is deprecated and will be removed in the next release")
 magma_int_t
 magma_zjacobiiter_sys(
     magma_z_matrix A, 
@@ -2078,6 +2159,7 @@ magma_zjacobiiter_sys(
     magma_z_solver_par *solver_par,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zftjacobi is deprecated and will be removed in the next release")
 magma_int_t
 magma_zftjacobi(
     magma_z_matrix A, 
@@ -2086,7 +2168,6 @@ magma_zftjacobi(
     magma_z_solver_par *solver_par,
     magma_queue_t queue );
 
-// custom preconditioner
 magma_int_t
 magma_zapplycustomprecond_l(
     magma_z_matrix b, 
@@ -2109,6 +2190,7 @@ magma_zcuilusetup(
     magma_z_matrix A, magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zilut_saad is deprecated and will be removed in the next release")
 magma_int_t
 magma_zilut_saad( 
     magma_z_matrix A,
@@ -2116,13 +2198,13 @@ magma_zilut_saad(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zilut_saad_apply is deprecated and will be removed in the next release")
 magma_int_t
 magma_zilut_saad_apply( 
     magma_z_matrix b,
     magma_z_matrix *x,
     magma_z_preconditioner *precond,
     magma_queue_t queue );
-
 
 magma_int_t
 magma_zcumilusetup_transpose(
@@ -2158,13 +2240,13 @@ magma_zapplycuicc_r(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
-
 magma_int_t
 magma_zcumilusetup(
     magma_z_matrix A, 
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zcustomilusetup is deprecated and will be removed in the next release")
 magma_int_t
 magma_zcustomilusetup(
     magma_z_matrix A,
@@ -2172,6 +2254,7 @@ magma_zcustomilusetup(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zcustomicsetup is deprecated and will be removed in the next release")
 magma_int_t
 magma_zcustomicsetup(
     magma_z_matrix A,
@@ -2210,8 +2293,6 @@ magma_zapplycumilu_r_transpose(
     magma_z_preconditioner *precond,
     magma_queue_t queue );
 
-
-
 magma_int_t
 magma_zcumiccsetup(
     magma_z_matrix A, 
@@ -2238,8 +2319,7 @@ magma_zapplycumicc_r(
     magma_queue_t queue );
 
 
-// block-asynchronous iteration
-
+MAGMA_DEPRECATE("magma_zbajac_csr is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbajac_csr(
     magma_int_t localiters,
@@ -2249,6 +2329,7 @@ magma_zbajac_csr(
     magma_z_matrix *x,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbajac_csr_overlap is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbajac_csr_overlap(
     magma_int_t localiters,
@@ -2312,14 +2393,6 @@ magma_z_spmm(
     magma_queue_t queue );
 
 magma_int_t
-magma_zsymbilu( 
-    magma_z_matrix *A, 
-    magma_int_t levels, 
-    magma_z_matrix *L, 
-    magma_z_matrix *U,
-    magma_queue_t queue );
-
-magma_int_t
 magma_zcuspaxpy(
     magmaDoubleComplex_ptr alpha, magma_z_matrix A, 
     magmaDoubleComplex_ptr beta, magma_z_matrix B, 
@@ -2369,12 +2442,6 @@ magma_z_applyprecond_right(
     magma_queue_t queue );
 
 magma_int_t
-magma_z_initP2P(
-    magma_int_t *bandwidth_benchmark,
-    magma_int_t *num_gpus,
-    magma_queue_t queue );
-
-magma_int_t
 magma_zcompact(
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
@@ -2389,6 +2456,7 @@ magma_zcompactActive(
     magma_int_t *active,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zmlumerge is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmlumerge(    
     magma_z_matrix L, 
@@ -2425,7 +2493,7 @@ magma_zqr(
 /* ////////////////////////////////////////////////////////////////////////////
  -- MAGMA_SPARSE BLAS function definitions
 */
-
+MAGMA_DEPRECATE("magma_zgeaxp is deprecated and will be removed in the next release")
 magma_int_t
 magma_zgeaxpy(
     magmaDoubleComplex alpha,
@@ -2434,6 +2502,7 @@ magma_zgeaxpy(
     magma_z_matrix *Y,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zgecsrreimsplit is deprecated and will be removed in the next release")
 magma_int_t
 magma_zgecsrreimsplit(
     magma_z_matrix A,
@@ -2441,6 +2510,7 @@ magma_zgecsrreimsplit(
     magma_z_matrix *ImA,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zgedensereimsplit is deprecated and will be removed in the next release")
 magma_int_t
 magma_zgedensereimsplit(
     magma_z_matrix A,
@@ -2665,6 +2735,7 @@ magma_zmgesellpmv_blocked(
     magmaDoubleComplex_ptr dy,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zgecsr5mv is deprecated and will be removed in the next release")
 magma_int_t
 magma_zgecsr5mv(
     magma_trans_t           transA,
@@ -2716,16 +2787,7 @@ magma_zgecscsyncfreetrsm_solve(
     magma_int_t             rhs, 
     magma_queue_t           queue );
 
-magma_int_t
-magma_zmergedgs(
-    magma_int_t n, 
-    magma_int_t ldh,
-    magma_int_t k, 
-    magmaDoubleComplex_ptr dv, 
-    magmaDoubleComplex_ptr dr,
-    magmaDoubleComplex_ptr dskp,
-    magma_queue_t queue );
-
+MAGMA_DEPRECATE("magma_zcopyscale is deprecated and will be removed in the next release")
 magma_int_t
 magma_zcopyscale(    
     magma_int_t n, 
@@ -2735,6 +2797,7 @@ magma_zcopyscale(
     magmaDoubleComplex_ptr dskp,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_dznrm2scale is deprecated and will be removed in the next release")
 magma_int_t
 magma_dznrm2scale(    
     magma_int_t m, 
@@ -2780,6 +2843,7 @@ magma_zjacobispmvupdate(
     magma_z_matrix *x,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zjacobispmvupdate_bw is deprecated and will be removed in the next release")
 magma_int_t
 magma_zjacobispmvupdate_bw(
     magma_int_t maxiter,
@@ -2790,6 +2854,7 @@ magma_zjacobispmvupdate_bw(
     magma_z_matrix *x,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zjacobispmvupdateselect is deprecated and will be removed in the next release")
 magma_int_t
 magma_zjacobispmvupdateselect(
     magma_int_t maxiter,
@@ -2810,7 +2875,7 @@ magma_zjacobisetup_diagscal(
 
 
 //##################   kernel fusion for Krylov methods
-
+MAGMA_DEPRECATE("magma_zmergeblockkrylov is deprecated and will be removed in the next release")
 magma_int_t
 magma_zmergeblockkrylov(  
     magma_int_t num_rows, 
@@ -2820,6 +2885,7 @@ magma_zmergeblockkrylov(
     magmaDoubleComplex_ptr x,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbicgmerge1 is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbicgmerge1(    
     magma_int_t n, 
@@ -2830,6 +2896,7 @@ magma_zbicgmerge1(
     magma_queue_t queue );
 
 
+MAGMA_DEPRECATE("magma_zbicgmerge2 is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbicgmerge2(
     magma_int_t n, 
@@ -2839,6 +2906,7 @@ magma_zbicgmerge2(
     magmaDoubleComplex_ptr ds,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbicgmerge3 is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbicgmerge3(
     magma_int_t n, 
@@ -2850,6 +2918,7 @@ magma_zbicgmerge3(
     magmaDoubleComplex_ptr dr,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbicgmerge4 is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbicgmerge4(
     magma_int_t type, 
@@ -3280,6 +3349,7 @@ magma_zmdotc4(
     magmaDoubleComplex_ptr skp,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbicgmerge_spmv1 is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbicgmerge_spmv1( 
     magma_z_matrix A,
@@ -3291,6 +3361,7 @@ magma_zbicgmerge_spmv1(
     magmaDoubleComplex_ptr dskp,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbicgmerge_spmv2 is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbicgmerge_spmv2( 
     magma_z_matrix A,
@@ -3301,6 +3372,7 @@ magma_zbicgmerge_spmv2(
     magmaDoubleComplex_ptr dskp,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbicgmerge_xrbeta is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbicgmerge_xrbeta( 
     magma_int_t n,
@@ -3315,6 +3387,7 @@ magma_zbicgmerge_xrbeta(
     magmaDoubleComplex_ptr dskp,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbcsrswp is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbcsrswp(
     magma_int_t n,
@@ -3323,6 +3396,7 @@ magma_zbcsrswp(
     magmaDoubleComplex_ptr dx,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbcsrtrsv is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbcsrtrsv(
     magma_uplo_t uplo,
@@ -3334,6 +3408,7 @@ magma_zbcsrtrsv(
     magmaDoubleComplex_ptr dx,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbcsrvalcpy is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbcsrvalcpy(
     magma_int_t size_b, 
@@ -3344,6 +3419,7 @@ magma_zbcsrvalcpy(
     magmaDoubleComplex_ptr *dBval2,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbcsrluegemm is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbcsrluegemm(
     magma_int_t size_b, 
@@ -3354,6 +3430,7 @@ magma_zbcsrluegemm(
     magmaDoubleComplex_ptr *dC,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbcsrlupivloc is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbcsrlupivloc(
     magma_int_t size_b, 
@@ -3362,6 +3439,7 @@ magma_zbcsrlupivloc(
     magma_int_t *ipiv,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zbcsrblockinfo5 is deprecated and will be removed in the next release")
 magma_int_t
 magma_zbcsrblockinfo5(
     magma_int_t lustep,
@@ -3371,12 +3449,6 @@ magma_zbcsrblockinfo5(
     magma_index_t *blockinfo,
     magmaDoubleComplex_ptr dval,
     magmaDoubleComplex_ptr *AII,
-    magma_queue_t queue );
-
-
-magma_int_t
-magma_ztestasync( 
-    magma_z_matrix A,
     magma_queue_t queue );
 
 //##################   stencil operators
@@ -3399,6 +3471,7 @@ magma_zjaccard_weights(
     magma_z_matrix *J,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zthrsholdselect is deprecated and will be removed in the next release")
 magma_int_t
 magma_zthrsholdselect(
     magma_int_t sampling,
