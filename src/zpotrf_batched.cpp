@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Azzam Haidar
        @author Tingxing Dong
        @author Ahmad Abdelfattah
@@ -22,7 +22,80 @@ magma_zpotrf_lg_batched(
     magmaDoubleComplex **dA_array, magma_int_t ldda,
     magma_int_t *info_array,  magma_int_t batchCount, magma_queue_t queue)
 {
-#define dAarray(i,j)  dA_array, i, j   
+#define dAarray(i,j)  dA_array, i, j
+
+    magma_int_t arginfo = 0;
+    if ( uplo != MagmaUpper && uplo != MagmaLower) {
+        arginfo = -1;
+    } else if (n < 0) {
+        arginfo = -2;
+    } else if (ldda < max(1,n)) {
+        arginfo = -4;
+    }
+    else if(batchCount < 0) {
+        arginfo = -6;
+    }
+
+    if (uplo == MagmaUpper) {
+        printf("Upper side is not currently implemented\n");
+        arginfo = -1;
+    }
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    // Quick return if possible
+    if (n == 0 || batchCount  == 0) {
+        return arginfo;
+    }
+
+
+    magma_int_t j, k, ib;
+    double d_one = 1.0, d_neg_one = -1.0;
+    magmaDoubleComplex c_neg_one = MAGMA_Z_MAKE(-1.0, 0);
+    magmaDoubleComplex c_one     = MAGMA_Z_MAKE( 1.0, 0);
+    magma_device_t cdev;
+    magma_getdevice( &cdev );
+
+    magma_int_t nb, recnb;
+    magma_get_zpotrf_batched_nbparam(n, &nb, &recnb);
+
+    for (j = 0; j < n; j += nb) {
+        ib = min(nb, n-j);
+
+        // update panel
+        if( j > 0 ) {
+            magma_zgemm_batched_core(
+                MagmaNoTrans, MagmaConjTrans,
+                n-j, ib, j,
+                c_neg_one, dAarray(j, 0), ldda,
+                           dAarray(j, 0), ldda,
+                c_one,     dAarray(j, j), ldda,
+                batchCount, queue );
+        }
+
+        //  panel factorization
+        arginfo = magma_zpotrf_recpanel_batched(
+                            uplo, n-j, ib, recnb,
+                            dAarray(j, j), ldda,
+                            info_array, j, batchCount, queue);
+    }
+
+    return arginfo;
+
+#undef dAarray
+}
+
+/******************************************************************************/
+extern "C" magma_int_t
+magma_zpotrf_lg_old_batched(
+    magma_uplo_t uplo, magma_int_t n,
+    magmaDoubleComplex **dA_array, magma_int_t ldda,
+    magma_int_t *info_array,  magma_int_t batchCount, magma_queue_t queue)
+{
+#define dAarray(i,j)  dA_array, i, j
 
     magma_int_t arginfo = 0;
     magma_int_t j, k, ib, use_stream;
@@ -82,13 +155,13 @@ magma_zpotrf_lg_batched(
             // update
             if ( (n-j-ib) > 0) {
                 use_stream = magma_zrecommend_cublas_gemm_stream(MagmaNoTrans, MagmaConjTrans, n-j-ib, n-j-ib, ib);
-                if (use_stream){ 
+                if (use_stream){
                     // use streamed herk
-                    magma_queue_sync(queue); 
+                    magma_queue_sync(queue);
                     for (k=0; k < batchCount; k++){
-                        streamid = k%nbstreams;                                       
-                        magma_zherk( MagmaLower, MagmaNoTrans, n-j-ib, ib, 
-                            d_neg_one, (const magmaDoubleComplex*) cpuAarray[k] + j+ib+j*ldda     , ldda, 
+                        streamid = k%nbstreams;
+                        magma_zherk( MagmaLower, MagmaNoTrans, n-j-ib, ib,
+                            d_neg_one, (const magmaDoubleComplex*) cpuAarray[k] + j+ib+j*ldda     , ldda,
                             d_one,                                 cpuAarray[k] + j+ib+(j+ib)*ldda, ldda, queues[streamid] );
                     }
                     for (magma_int_t s=0; s < nbstreams; s++)
@@ -97,11 +170,11 @@ magma_zpotrf_lg_batched(
                 else{
                     magmablas_zherk_batched_core( uplo, MagmaNoTrans, n-j-ib, ib,
                                           c_neg_one, dAarray(j+ib, j), ldda,
-                                                     dAarray(j+ib, j), ldda,  
-                                          c_one,     dAarray(j+ib, j+ib), ldda, 
+                                                     dAarray(j+ib, j), ldda,
+                                          c_one,     dAarray(j+ib, j+ib), ldda,
                                           batchCount, queue );
                 }
-            } 
+            }
         }
     }
     if(create_stream){
@@ -131,7 +204,7 @@ fin:
     where U is an upper triangular matrix and L is lower triangular.
 
     This is the block version of the algorithm, calling Level 3 BLAS.
-    This is the fixed size batched version of the operation. 
+    This is the fixed size batched version of the operation.
 
     Arguments
     ---------
@@ -148,7 +221,7 @@ fin:
     @param[in,out]
     dA_array      Array of pointers, dimension (batchCount).
              Each is a COMPLEX_16 array on the GPU, dimension (LDDA,N)
-             On entry, each pointer is a Hermitian matrix dA.  
+             On entry, each pointer is a Hermitian matrix dA.
              If UPLO = MagmaUpper, the leading
              N-by-N upper triangular part of dA contains the upper
              triangular part of the matrix dA, and the strictly lower
@@ -157,7 +230,7 @@ fin:
              triangular part of the matrix dA, and the strictly upper
              triangular part of dA is not referenced.
     \n
-             On exit, if corresponding entry in info_array = 0, 
+             On exit, if corresponding entry in info_array = 0,
              each pointer is the factor U or L from the Cholesky
              factorization dA = U**H * U or dA = L * L**H.
 
@@ -174,7 +247,7 @@ fin:
       -     > 0:  if INFO = i, the leading minor of order i is not
                   positive definite, and the factorization could not be
                   completed.
-    
+
     @param[in]
     batchCount  INTEGER
                 The number of matrices to operate on.
@@ -189,12 +262,12 @@ extern "C" magma_int_t
 magma_zpotrf_batched(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex **dA_array, magma_int_t ldda,
-    magma_int_t *info_array,  magma_int_t batchCount, 
+    magma_int_t *info_array,  magma_int_t batchCount,
     magma_queue_t queue)
 {
     magma_memset(info_array, 0, batchCount*sizeof(magma_int_t));
     magma_int_t arginfo = 0;
-    
+
     if ( uplo != MagmaUpper && uplo != MagmaLower) {
         arginfo = -1;
     } else if (n < 0) {
@@ -212,12 +285,12 @@ magma_zpotrf_batched(
     if (n == 0) {
         return arginfo;
     }
-    
+
 
     magma_int_t crossover = magma_get_zpotrf_batched_crossover();
 
-    if (n > crossover){   
-        arginfo = magma_zpotrf_lg_batched(uplo, n, dA_array, ldda, info_array, batchCount, queue);
+    if (n > crossover){
+        arginfo = magma_zpotrf_lg_old_batched(uplo, n, dA_array, ldda, info_array, batchCount, queue);
     }
     else{
         #if defined(VERSION20)
