@@ -293,15 +293,7 @@ magma_zpotrf_batched(
         arginfo = magma_zpotrf_lg_old_batched(uplo, n, dA_array, ldda, info_array, batchCount, queue);
     }
     else{
-        #if defined(VERSION20)
             arginfo = magma_zpotrf_lpout_batched(uplo, n, dA_array, 0, 0, ldda, 0, info_array, batchCount, queue);
-        #elif defined(VERSION33)
-            arginfo = magma_zpotrf_v33_batched(uplo, n, dA_array, ldda, info_array, batchCount, queue);
-        #elif defined(VERSION31)
-            arginfo = magma_zpotrf_lpin_batched(uplo, n, dA_array, ldda, 0, info_array, batchCount, queue);
-        #else
-            printf("ERROR NO VERSION CHOSEN\n");
-        #endif
     }
     magma_queue_sync(queue);
 
