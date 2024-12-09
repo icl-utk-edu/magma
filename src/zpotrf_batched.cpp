@@ -52,8 +52,7 @@ magma_zpotrf_lg_batched(
     }
 
 
-    magma_int_t j, k, ib;
-    double d_one = 1.0, d_neg_one = -1.0;
+    magma_int_t j, ib;
     magmaDoubleComplex c_neg_one = MAGMA_Z_MAKE(-1.0, 0);
     magmaDoubleComplex c_one     = MAGMA_Z_MAKE( 1.0, 0);
     magma_device_t cdev;
