@@ -18,7 +18,7 @@
 /******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_lg_batched(
-    magma_uplo_t uplo, magma_int_t n,
+    magma_uplo_t uplo, magma_int_t n, magma_int_t nb, magma_int_t recnb,
     magmaDoubleComplex **dA_array, magma_int_t ldda,
     magma_int_t *info_array,  magma_int_t batchCount, magma_queue_t queue)
 {
@@ -59,9 +59,6 @@ magma_zpotrf_lg_batched(
     magma_device_t cdev;
     magma_getdevice( &cdev );
 
-    magma_int_t nb, recnb;
-    magma_get_zpotrf_batched_nbparam(n, &nb, &recnb);
-
     for (j = 0; j < n; j += nb) {
         ib = min(nb, n-j);
 
@@ -91,7 +88,7 @@ magma_zpotrf_lg_batched(
 /******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_lg_old_batched(
-    magma_uplo_t uplo, magma_int_t n,
+    magma_uplo_t uplo, magma_int_t n, magma_int_t nb, magma_int_t recnb,
     magmaDoubleComplex **dA_array, magma_int_t ldda,
     magma_int_t *info_array,  magma_int_t batchCount, magma_queue_t queue)
 {
@@ -124,9 +121,6 @@ magma_zpotrf_lg_old_batched(
                "=========================================================================================\n");
         #endif
     }
-
-    magma_int_t nb, recnb;
-    magma_get_zpotrf_batched_nbparam(n, &nb, &recnb);
 
     // queues for streamed herk
     create_stream = magma_zrecommend_cublas_gemm_stream(MagmaNoTrans, MagmaConjTrans, n-nb, n-nb, nb);
@@ -287,10 +281,13 @@ magma_zpotrf_batched(
     }
 
 
+    magma_int_t nb, recnb;
+    magma_get_zpotrf_batched_nbparam(n, &nb, &recnb);
+
     magma_int_t crossover = magma_get_zpotrf_batched_crossover();
 
     if (n > crossover){
-        arginfo = magma_zpotrf_lg_old_batched(uplo, n, dA_array, ldda, info_array, batchCount, queue);
+        arginfo = magma_zpotrf_lg_old_batched(uplo, n, nb, recnb, dA_array, ldda, info_array, batchCount, queue);
     }
     else{
             arginfo = magma_zpotrf_lpout_batched(uplo, n, dA_array, 0, 0, ldda, 0, info_array, batchCount, queue);

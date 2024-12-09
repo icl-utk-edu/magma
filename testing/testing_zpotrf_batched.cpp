@@ -205,10 +205,12 @@ int main( int argc, char** argv)
                 devsolver_destroy(handle);
             }
             else {
+                magma_int_t    nb = opts.nb;
+                magma_int_t recnb = opts.nrhs;
                 gpu_time = magma_sync_wtime( opts.queue );
                 info = 0;
                 magma_zpotrf_lg_batched(
-                    opts.uplo, N,
+                    opts.uplo, N, nb, recnb,
                     d_A_array, ldda, dinfo_magma,
                     batchCount, opts.queue);
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
