@@ -109,7 +109,7 @@ magma_zpotrf_batched_vendor(
 
 extern "C" magma_int_t
 magma_zpotrf_lg_batched(
-    magma_uplo_t uplo, magma_int_t n,
+    magma_uplo_t uplo, magma_int_t n, magma_int_t nb, magma_int_t recnb,
     magmaDoubleComplex **dA_array, magma_int_t ldda,
     magma_int_t *info_array,  magma_int_t batchCount, magma_queue_t queue);
 
