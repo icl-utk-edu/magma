@@ -16,14 +16,11 @@ cdir      := interface_cuda
 libmagma_src += \
 	$(cdir)/alloc.cpp	\
 	$(cdir)/blas_h_v2.cpp	\
-	$(cdir)/blas_z_v1.cpp	\
 	$(cdir)/blas_z_v2.cpp	\
-	$(cdir)/copy_v1.cpp	\
 	$(cdir)/copy_v2.cpp	\
 	$(cdir)/error.cpp	\
 	$(cdir)/connection_mgpu.cpp	\
 	$(cdir)/interface.cpp	\
-	$(cdir)/interface_v1.cpp	\
 
 
 # ----------------------------------------------------------------------
