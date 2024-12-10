@@ -32,6 +32,7 @@ extern "C" {
 #define magma_queue_create_v1( queue_ptr ) \
         magma_queue_create_v1_internal( queue_ptr, __func__, __FILE__, __LINE__ )
 
+MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void magma_queue_create_v1_internal(
     magma_queue_t* queue_ptr,
     const char* func, const char* file, int line );
@@ -49,14 +50,20 @@ void magma_queue_create_v1_internal(
 #define MAGMA_S_CNJG(a)     MAGMA_S_CONJ(a)
 
 // device_sync is not portable to OpenCL, and is generally not needed
+MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void magma_device_sync();
 
 
 // =============================================================================
 // Define magma queue
 // @deprecated
+MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 magma_int_t magmablasSetKernelStream( magma_queue_t queue );
+
+MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 magma_int_t magmablasGetKernelStream( magma_queue_t *queue );
+
+MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 magma_queue_t magmablasGetQueue();
 
 #ifdef __cplusplus
