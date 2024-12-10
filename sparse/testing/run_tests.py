@@ -196,7 +196,6 @@ parser.add_option(      '--jacobi-prec'      , action='store_true', dest='jacobi
 parser.add_option(      '--ilu-prec'         , action='store_true', dest='ilu_exact_prec', help='run ILU + exact solve preconditioner')
 parser.add_option(      '--ilu-jac'          , action='store_true', dest='ilu_jac_prec',   help='run ILU + Jacobi solve preconditioner')
 parser.add_option(      '--ilu-bjac'         , action='store_true', dest='ilu_bjac_prec',  help='run ILU + Block Jacobi solve preconditioner')
-parser.add_option(      '--ilu-isai-prec'    , action='store_true', dest='ilu_isai_prec' , help='run ILU + ISAI preconditioner')
 parser.add_option(      '--ilut-prec'        , action='store_true', dest='ilut_prec',      help='run threshold ILU + exact solve preconditioner')
 
 (opts, args) = parser.parse_args()
@@ -290,12 +289,10 @@ if (     not opts.jacobi_prec
      and not opts.ilu_exact_prec 
      and not opts.ilut_prec
      and not opts.ilu_jac_prec
-     and not opts.ilu_bjac_prec
-     and not opts.ilu_isai_prec ):
+     and not opts.ilu_bjac_prec):
     opts.jacobi_prec      = True
     opts.ilu_prec         = True
     opts.ilu_jac_prec     = True
-    opts.ilu_isai_prec    = True
     opts.ilu_bjac_prec    = True
     opts.ilut_prec        = True
 # end
@@ -432,17 +429,11 @@ if ( opts.jacobi_prec ):
 if ( opts.ilu_exact_prec ):
     precs += ['--precond ILU ']
 # end
-if ( opts.ilut_prec ):
-    precs += ['--precond PARILUT --prestart 1 --psweeps 5 --plevels 0 --prtol 0.05 --patol 0.2 ']
-# end
 if ( opts.ilu_jac_prec ):
     precs += ['--precond ILU --trisolver JACOBI --ppattern 1 --piters 5 ']
 # end
 if ( opts.ilu_bjac_prec ):
     precs += ['--precond ILU --trisolver JACOBI --ppattern 4 --piters 3 ']
-# end
-if ( opts.ilu_isai_prec ):
-    precs += ['--precond ILU --trisolver ISAI --ppattern 1 --piters 1 ']
 # end
 
 

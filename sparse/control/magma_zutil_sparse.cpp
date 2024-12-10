@@ -45,22 +45,16 @@ static const char *usage_sparse =
 " --precond x   Possibility to choose a preconditioner:\n"
 "               CG, BICGSTAB, GMRES, LOBPCG, JACOBI,\n"
 "               BAITER, IDR, CGS, TFQMR, QMR, BICG\n"
-"               BOMBARDMENT, ITERREF, ILU, PARILU, PARILUT, NONE.\n"
+"               BOMBARDMENT, ITERREF, ILU, NONE.\n"
 "                   --patol atol  Absolute residual stopping criterion for preconditioner.\n"
 "                   --prtol rtol  Relative residual stopping criterion for preconditioner.\n"
 "                   --piters k    Iteration count for iterative preconditioner.\n"
 "                   --plevels k   Number of ILU levels.\n"
-"                   --triolver k  Solver for triangular ILU factors: e.g. CUSOLVE, JACOBI, ISAI.\n"
-"                   --ppattern k  Pattern used for ISAI preconditioner.\n"
-"                   --psweeps x   Number of iterative ParILU sweeps.\n"
+"                   --triolver k  Solver for triangular ILU factors: e.g. CUSOLVE, JACOBI.\n"
 " --trisolver   Possibility to choose a triangular solver for ILU preconditioning: \n"
-"               e.g. CUSOLVE, ISPTRSV, JACOBI, VBJACOBI, ISAI.\n"
-" --ppattern k  Possibility to choose a pattern for the trisolver: ISAI(k) or Block Jacobi.\n"
-" --piters k    Number of preconditioner relaxation steps, e.g. for ISAI or (Block) Jacobi trisolver.\n"
-" --patol x     Set an absolute residual stopping criterion for the preconditioner.\n"
-"                      Corresponds to the relative fill-in in PARILUT.\n"
-" --prtol x     Set a relative residual stopping criterion for the preconditioner.\n"
-"                      Corresponds to the replacement ratio in PARILUT.\n";
+"               e.g. CUSOLVE, ISPTRSV, JACOBI, VBJACOBI.\n"
+" --ppattern k  Possibility to choose a pattern for the trisolver: Block Jacobi.\n"
+" --piters k    Number of preconditioner relaxation steps, e.g. for (Block) Jacobi trisolver.\n";
 
 
 /**
@@ -327,30 +321,6 @@ magma_zparse_opts(
             else if ( strcmp("ILU", argv[i]) == 0 || strcmp("IC", argv[i]) == 0 )  {
                 opts->precond_par.solver = Magma_ILU;
             }
-            else if ( strcmp("ILUT", argv[i]) == 0 || strcmp("ICT", argv[i]) == 0 )  {
-                opts->precond_par.solver = Magma_ILUT;
-            }
-            else if ( strcmp("PARILU", argv[i]) == 0 || strcmp("AIC", argv[i]) == 0 ) {
-                opts->precond_par.solver = Magma_PARILU;
-            }
-            else if ( strcmp("PARIC", argv[i]) == 0 ) {
-                opts->precond_par.solver = Magma_PARILU;
-            }
-            else if ( strcmp("PARICT", argv[i]) == 0 ) {
-                opts->precond_par.solver = Magma_PARICT;
-            }
-            else if ( strcmp("PARILUT", argv[i]) == 0 ) {
-                opts->precond_par.solver = Magma_PARILUT;
-            }
-            else if ( strcmp("CUSTOMIC", argv[i]) == 0 ) {
-                opts->precond_par.solver = Magma_CUSTOMIC;
-            }
-            else if ( strcmp("CUSTOMILU", argv[i]) == 0 ) {
-                opts->precond_par.solver = Magma_CUSTOMILU;
-            }
-            else if ( strcmp("ISAI", argv[i]) == 0 ) {
-                opts->precond_par.solver = Magma_ISAI;
-            }
             else if ( strcmp("NONE", argv[i]) == 0 ) {
                 opts->precond_par.solver = Magma_NONE;
             }
@@ -397,9 +367,6 @@ magma_zparse_opts(
             }
             else if ( strcmp("SYNCFREESOLVE", argv[i]) == 0 ) {
                 opts->precond_par.trisolver = Magma_SYNCFREESOLVE;
-            }
-            else if ( strcmp("ISAI", argv[i]) == 0 ) {
-                opts->precond_par.trisolver = Magma_ISAI;
             }
             else if ( strcmp("NONE", argv[i]) == 0 ) {
                 opts->precond_par.trisolver = Magma_NONE;
@@ -502,9 +469,6 @@ magma_zparse_opts(
     if ( ( opts->solver_par.solver == Magma_PCG || opts->solver_par.solver == Magma_PCGMERGE )
         && opts->precond_par.solver == Magma_ILU )
             opts->precond_par.solver = Magma_ICC;
-    if ( ( opts->solver_par.solver == Magma_PCG || opts->solver_par.solver == Magma_PCGMERGE )
-        && opts->precond_par.solver == Magma_PARILU )
-            opts->precond_par.solver = Magma_PARIC;
             
     // workaround for CG not being optimized for CSR5
     if ( opts->solver_par.solver == Magma_CGMERGE && opts->output_format == Magma_CSR5 )

@@ -130,14 +130,8 @@ magma_z_solver(
                     //CHECK( magma_zpidr_strms( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
             case  Magma_LOBPCG:
                     CHECK( magma_zlobpcg( A, &zopts->solver_par, &zopts->precond_par, queue )); break;
-            case  Magma_ITERREF:
-                    CHECK( magma_ziterref( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
             case  Magma_JACOBI:
                     CHECK( magma_zjacobi( A, b, x, &zopts->solver_par, queue )); break;
-            case  Magma_BAITER:
-                    CHECK( magma_zbaiter( A, b, x, &zopts->solver_par, &zopts->precond_par, queue ) ); break;
-            case  Magma_BAITERO:
-                    CHECK( magma_zbaiter_overlap( A, b, x, &zopts->solver_par, &zopts->precond_par, queue )); break;
             case  Magma_BOMBARD:
                     CHECK( magma_zbombard( A, b, x, &zopts->solver_par, queue ) ); break;
             case  Magma_BOMBARDMERGE:

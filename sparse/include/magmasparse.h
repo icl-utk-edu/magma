@@ -22,10 +22,6 @@
 #include "magmasparse_d.h"
 #include "magmasparse_s.h"
 
-// mixed precision
-#include "magmasparse_zc.h"
-#include "magmasparse_ds.h"
-
 /* ------------------------------------------------------------
  * MAGMASPARSE types
  * --------------------------------------------------------- */

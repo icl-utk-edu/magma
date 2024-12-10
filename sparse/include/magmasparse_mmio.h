@@ -127,23 +127,4 @@ int mm_is_valid(MM_typecode matcode);    /* too complex for a macro */
 #define MM_SKEW_STR       "skew-symmetric"
 
 
-/*  high level routines */
-
-MAGMA_DEPRECATE("mm_write_mtx_crd is deprecated and will be removed in the next release")
-int mm_write_mtx_crd(char fname[], magma_index_t M, magma_index_t N, magma_index_t nz, 
-      magma_index_t I[], magma_index_t J[], double val[], MM_typecode matcode);
-MAGMA_DEPRECATE("mm_read_mtx_crd_data is deprecated and will be removed in the next release")
-int mm_read_mtx_crd_data(FILE *f, magma_index_t M, magma_index_t N, magma_index_t nz, 
-      magma_index_t I[], magma_index_t J[], double val[], MM_typecode matcode);
-MAGMA_DEPRECATE("mm_read_mtx_crd_entry is deprecated and will be removed in the next release")
-int mm_read_mtx_crd_entry(FILE *f, magma_index_t *I, magma_index_t *J, 
-        double *real, double *img, MM_typecode matcode);
-
-MAGMA_DEPRECATE("mm_read_unsymmetric_sparse is deprecated and will be removed in the next release")
-int mm_read_unsymmetric_sparse(const char *fname, magma_index_t *M_, 
-        magma_index_t *N_, magma_index_t *nz_, 
-        double **val_, magma_index_t **I_, magma_index_t **J_);
-
-
-
 #endif
