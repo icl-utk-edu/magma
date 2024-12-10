@@ -18,11 +18,7 @@ hdr += \
 	$(cdir)/magma_z.h		\
 	$(cdir)/magma_zc.h		\
 	$(cdir)/magmablas_z.h		\
-	$(cdir)/magmablas_z_v1.h	\
-	$(cdir)/magmablas_z_v1_map.h	\
 	$(cdir)/magmablas_zc.h		\
-	$(cdir)/magmablas_zc_v1.h	\
-	$(cdir)/magmablas_zc_v1_map.h	\
 	$(cdir)/magma_zlapack.h		\
 	$(cdir)/magma_zbulge.h		\
 	$(cdir)/magma_zbulgeinc.h	\

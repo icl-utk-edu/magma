@@ -102,8 +102,6 @@ libmagma_src += \
 	$(cdir)/ztrtri_lower_batched.cu		\
 	$(cdir)/ztrtri_upper.cu		\
 	$(cdir)/ztrtri_upper_batched.cu		\
-	$(cdir)/magmablas_z_v1.cpp	\
-	$(cdir)/magmablas_zc_v1.cpp	\
 
 # multi-GPU
 libmagma_src += \
