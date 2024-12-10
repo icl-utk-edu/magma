@@ -226,20 +226,9 @@ magma_zsolverinfo(
                 printf("%%   Preconditioner used: ILU(%lld).\n",
                         (long long) precond_par->levels );
                 break;
-            case Magma_PARILU:
-                printf("%%   Preconditioner used: ParILU(%lld).\n",
-                        (long long) precond_par->levels );
-                break;
             case Magma_ICC:
                 printf("%%   Preconditioner used: IC(%lld).\n",
                         (long long) precond_par->levels );
-                break;
-            case Magma_PARIC:
-                printf("%%   Preconditioner used: ParIC(%lld).\n",
-                        (long long) precond_par->levels );
-                break;
-            case Magma_ISAI:
-                printf("%%   Preconditioner used: ParILU-SPAI.\n" );
                 break;
             default:
                 break;

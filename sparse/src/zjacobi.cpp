@@ -112,12 +112,10 @@ magma_zjacobi(
     {
         tempo1 = magma_sync_wtime( queue );
         solver_par->numiter = solver_par->numiter+jacobiiter_par.maxiter;
-        //CHECK( magma_zjacobiiter_sys( A, b, d, r, x, &jacobiiter_par, queue ) );
         CHECK( magma_zjacobispmvupdate(jacobiiter_par.maxiter, ACSR, r, b, d, x, queue ));
         solver_par->spmv_count = solver_par->spmv_count+jacobiiter_par.maxiter;
         tempo2 = magma_sync_wtime( queue );
         runtime += tempo2 - tempo1;
-        //CHECK( magma_zjacobispmvupdate_bw(jacobiiter_par.maxiter, A, r, b, d, x, queue ));
         if ( solver_par->verbose > 0 ) {
             CHECK(  magma_zresidualvec( ACSR, b, *x, &r, &residual, queue));
             solver_par->res_vec[(solver_par->numiter)/solver_par->verbose]
@@ -675,78 +673,3 @@ cleanup:
     return info;
 }   /* magma_zjacobiiter */
 
-
-
-    /**
-    Purpose
-    -------
-
-    Iterates the solution approximation according to
-       x^(k+1) = D^(-1) * b - D^(-1) * (L+U) * x^k
-       x^(k+1) =      c     -       M        * x^k.
-
-    This routine takes the system matrix A and the RHS b as input.
-
-    Arguments
-    ---------
-
-    @param[in]
-    A           magma_z_matrix
-                input matrix M = D^(-1) * (L+U)
-                
-    @param[in]
-    b           magma_z_matrix
-                input RHS b
-                
-    @param[in]
-    d           magma_z_matrix
-                input matrix diagonal elements diag(A)
-                
-    @param[in]
-    t           magma_z_matrix
-                temporary vector
-
-
-    @param[in,out]
-    x           magma_z_matrix*
-                iteration vector x
-
-    @param[in,out]
-    solver_par  magma_z_solver_par*
-                solver parameters
-    @param[in]
-    queue       magma_queue_t
-                Queue to execute in.
-
-    @ingroup magmasparse_z
-    ********************************************************************/
-
-extern "C" magma_int_t
-magma_zjacobiiter_sys(
-    magma_z_matrix A,
-    magma_z_matrix b,
-    magma_z_matrix d,
-    magma_z_matrix t,
-    magma_z_matrix *x,
-    magma_z_solver_par *solver_par,
-    magma_queue_t queue )
-{
-    magma_int_t info = 0;
-    
-    // local variables
-    magmaDoubleComplex c_zero = MAGMA_Z_ZERO, c_one = MAGMA_Z_ONE;
-
-    for( magma_int_t i=0; i<solver_par->maxiter; i++ ) {
-        CHECK( magma_z_spmv( c_one, A, *x, c_zero, t, queue ));        // t =  A * x
-        CHECK( magma_zjacobiupdate( t, b, d, x, queue ));
-        // swap so that x again contains solution, and y is ready to be used
-        //swap = *x;
-        //*x = t;
-        //t = swap;
-        //magma_zcopy( dofs, t.dval, 1 , x->dval, 1 );               // x = t
-    }
-    
-cleanup:
-    solver_par->info = info;
-    return info;
-}   /* magma_zjacobiiter_sys */

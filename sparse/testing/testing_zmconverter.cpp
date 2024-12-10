@@ -35,7 +35,7 @@ int main(  int argc, char** argv )
     magma_queue_create( 0, &queue );
 
     real_Double_t res;
-    magma_z_matrix Z={Magma_CSR}, Z2={Magma_CSR}, A={Magma_CSR}, A2={Magma_CSR}, 
+    magma_z_matrix Z={Magma_CSR}, A={Magma_CSR}, A2={Magma_CSR}, 
     AT={Magma_CSR}, AT2={Magma_CSR}, B={Magma_CSR};
     int i=1;
     TESTING_CHECK( magma_zparse_opts( argc, argv, &zopts, &i, queue ));
@@ -118,21 +118,11 @@ int main(  int argc, char** argv )
         else
             printf("%% conversion tester:  failed\n");
         
-        TESTING_CHECK( magma_zmlumerge( A2, B, &Z2, queue ));
-
-        TESTING_CHECK( magma_zmdiff( Z, Z2, &res, queue));        
-        printf("%% ||Z-Z2||_F = %8.2e\n", res);
-        if ( res < .000001 )
-            printf("%% LUmerge tester:  ok\n");
-        else
-            printf("%% LUmerge tester:  failed\n");
-
         magma_zmfree(&A, queue );
         magma_zmfree(&A2, queue );
         magma_zmfree(&AT, queue );
         magma_zmfree(&AT2, queue );
         magma_zmfree(&B, queue );
-        magma_zmfree(&Z2, queue );
         magma_zmfree(&Z, queue );
 
         i++;

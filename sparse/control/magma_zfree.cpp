@@ -612,9 +612,7 @@ magma_zprecondfree(
         precond_par->UT.blockinfo = NULL;
     }
     if ((precond_par->solver == Magma_ILU ||
-         precond_par->solver == Magma_PARILU ||
-         precond_par->solver == Magma_ICC ||
-         precond_par->solver == Magma_PARIC) &&
+         precond_par->solver == Magma_ICC) &&
         (precond_par->trisolver == Magma_CUSOLVE ||
          precond_par->trisolver == 0)) {
         magma_trisolve_free( &precond_par->cuinfoL );

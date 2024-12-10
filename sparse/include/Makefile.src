@@ -16,7 +16,6 @@ cdir      := sparse/include
 # plain headers do not need to be listed.
 hdr += \
 	$(cdir)/magmasparse_z.h               \
-	$(cdir)/magmasparse_zc.h              \
 	$(cdir)/magmasparse_types.h           \
 
 

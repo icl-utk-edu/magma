@@ -28,12 +28,9 @@ libsparse_src += \
 	$(cdir)/zbicg.cpp                     \
 	$(cdir)/zpbicg.cpp                    \
 	$(cdir)/zbicgstab_merge.cpp           \
-	$(cdir)/zbicgstab_merge2.cpp          \
-	$(cdir)/zbicgstab_merge3.cpp          \
 	$(cdir)/zqmr.cpp                      \
 	$(cdir)/zqmr_merge.cpp                \
 	$(cdir)/ztfqmr.cpp                    \
-	$(cdir)/ztfqmr_unrolled.cpp           \
 	$(cdir)/ztfqmr_merge.cpp              \
 	$(cdir)/zpqmr.cpp                     \
 	$(cdir)/zpqmr_merge.cpp               \
@@ -42,11 +39,7 @@ libsparse_src += \
 	$(cdir)/zidr.cpp                      \
 	$(cdir)/zidr_merge.cpp                \
 	$(cdir)/zidr_strms.cpp                \
-	$(cdir)/ziterref.cpp                  \
-	$(cdir)/zftjacobi.cpp                 \
 	$(cdir)/zjacobi.cpp                   \
-	$(cdir)/zbaiter.cpp                   \
-	$(cdir)/zbaiter_overlap.cpp           \
 	$(cdir)/zpcg.cpp                      \
 	$(cdir)/zcgs.cpp                      \
 	$(cdir)/zcgs_merge.cpp                \
@@ -92,34 +85,6 @@ libsparse_src += \
 #	$(cdir)/zungqr_chol.cpp               \
 #	$(cdir)/zungqr_iter.cpp               \
 
-# custom ILU
-libsparse_src += \
-	$(cdir)/zcustomic.cpp                 \
-	$(cdir)/zcustomilu.cpp                \
-
-# ParILU / ParILUT
-libsparse_src += \
-	$(cdir)/zparilu_gpu.cpp		\
-	$(cdir)/zparilu_cpu.cpp         \
-	$(cdir)/zparic_gpu.cpp          \
-        $(cdir)/zparic_cpu.cpp          \
-	$(cdir)/zparilut_gpu_nodp.cpp        \
-	$(cdir)/zparilut_gpu.cpp        \
-	$(cdir)/zparilut_cpu.cpp        \
-	$(cdir)/zparict_cpu.cpp         \
-	$(cdir)/zparilut.cpp                  \
-	$(cdir)/zparict.cpp   		      \
-
-# incomplete sparse approximate inverse
-libsparse_src += \
-    $(cdir)/zgeisai_apply.cpp             \
-    $(cdir)/zgeisai_lower.cpp             \
-    $(cdir)/zgeisai_upper.cpp             \
-
-# dummy to compensate for routines not included in release
-libsparse_src += \
-#	$(cdir)/zdummy.cpp                    \
-
 
 # orthogonalization schemes and wrappers to dense MAGMA
 libsparse_src += \
@@ -137,11 +102,6 @@ libsparse_src += \
 	$(cdir)/magma_z_solver_wrapper.cpp    \
 	$(cdir)/zresidual.cpp                 \
 	$(cdir)/zresidualvec.cpp              \
-
-# research functions
-libsparse_src += \
-	$(cdir)/zjacobidomainoverlap.cpp      \
-
 
 # ----------------------------------------------------------------------
 # pop first directory
