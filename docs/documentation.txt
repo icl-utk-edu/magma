@@ -186,11 +186,6 @@ using the `-D` compiler flag, e.g., `-DMAGMA_WITH_MKL` in CFLAGS.
     If linked with ACML 5 or later, allows MAGMA to get ACML's version.
     ACML's number of threads are set via OpenMP.
 
-- `MAGMA_NO_V1`
-
-    Disables MAGMA v1.x compatability. Skips compiling non-queue versions
-    of MAGMA BLAS routines, and simplifies magma_init().
-
 - `MAGMA_NOAFFINITY`
 
     Disables thread affinity, available in glibc 2.6 and later.

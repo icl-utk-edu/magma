@@ -11,8 +11,6 @@
        @precisions normal z -> s d c
 
 */
-#ifndef MAGMA_NO_V1
-
 #include "magma_internal.h"
 #include "trace.h"
 
@@ -512,4 +510,3 @@ magma_zpotrf_mgpu_right(
 #undef STREAM_ID
 
 #endif // needs updating to MAGMA v2 interfaces
-#endif // MAGMA_NO_V1

@@ -14,7 +14,6 @@
 
 #include <cuda_runtime.h>
 #include "magma_internal.h"
-#include "magmablas_v1.h"
 
 // set TRACE_METHOD = 2 to record start time as
 // later of CPU time and previous event's end time.
@@ -79,9 +78,8 @@ void trace_init( int ncore, int ngpu, int nqueue, magma_queue_t* queues )
             int t = dev*glog.nqueue + s;
             glog.gpu_id[t] = 0;
             glog.queues[t] = queues[t];
+	    magma_queue_sync(queues[t]);
         }
-        magma_setdevice( dev );
-        magma_device_sync();
     }
     // now that all GPUs are sync'd, record start time
     for( int dev = 0; dev < ngpu; ++dev ) {
@@ -94,8 +92,10 @@ void trace_init( int ncore, int ngpu, int nqueue, magma_queue_t* queues )
     }
     // sync again
     for( int dev = 0; dev < ngpu; ++dev ) {
-        magma_setdevice( dev );
-        magma_device_sync();
+        for( int s = 0; s < nqueue; ++s ) {
+            int t = dev*glog.nqueue + s;
+	    magma_queue_sync(queues[t]);
+        }
     }
     glog.cpu_first = magma_wtime();
 }
@@ -173,8 +173,10 @@ void trace_finalize( const char* filename, const char* cssfile )
     
     // sync devices
     for( int dev = 0; dev < glog.ngpu; ++dev ) {
-        magma_setdevice( dev );
-        magma_device_sync();
+        for( int s = 0; s < nqueue; ++s ) {
+            int t = dev*glog.nqueue + s;
+	    magma_queue_sync(queues[t]);
+        }
     }
     double time = magma_wtime() - glog.cpu_first;
     

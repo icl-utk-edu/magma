@@ -123,17 +123,6 @@ enum {
 // count of (init - finalize) calls
 static int g_init = 0;
 
-#ifndef MAGMA_NO_V1
-    magma_queue_t* g_null_queues = NULL;
-
-    #ifdef HAVE_PTHREAD_KEY
-    pthread_key_t g_magma_queue_key;
-    #else
-    magma_queue_t g_magma_queue = NULL;
-    #endif
-#endif // MAGMA_NO_V1
-
-
 // -----------------------------------------------------------------------------
 // subset of the CUDA device properties, set by magma_init()
 struct magma_device_info
@@ -232,29 +221,6 @@ magma_init()
                     #endif
                 }
             }
-
-            #ifndef MAGMA_NO_V1
-                #ifdef HAVE_PTHREAD_KEY
-                    // create thread-specific key
-                    // currently, this is needed only for MAGMA v1 compatability
-                    // see magma_init, magmablas(Set|Get)KernelStream, magmaGetQueue
-                    info = pthread_key_create( &g_magma_queue_key, NULL );
-                    if ( info != 0 ) {
-                        info = MAGMA_ERR_UNKNOWN;
-                        goto cleanup;
-                    }
-                #endif
-
-                // ----- queues with NULL streams (for backwards compatability with MAGMA 1.x)
-                // allocate array of queues with NULL stream
-                size = max( 1, g_magma_devices_cnt ) * sizeof(magma_queue_t);
-                magma_malloc_cpu( (void**) &g_null_queues, size );
-                if ( g_null_queues == NULL ) {
-                    info = MAGMA_ERR_HOST_ALLOC;
-                    goto cleanup;
-                }
-                memset( g_null_queues, 0, size );
-            #endif // MAGMA_NO_V1
         }
 cleanup:
         g_init += 1;  // increment (init - finalize) count
@@ -290,21 +256,6 @@ magma_finalize()
                     magma_free_cpu( g_magma_devices );
                     g_magma_devices = NULL;
                 }
-
-                #ifndef MAGMA_NO_V1
-                if ( g_null_queues != NULL ) {
-                    for( int dev=0; dev < g_magma_devices_cnt; ++dev ) {
-                        magma_queue_destroy( g_null_queues[dev] );
-                        g_null_queues[dev] = NULL;
-                    }
-                    magma_free_cpu( g_null_queues );
-                    g_null_queues = NULL;
-                }
-
-                #ifdef HAVE_PTHREAD_KEY
-                    pthread_key_delete( g_magma_queue_key );
-                #endif
-                #endif // MAGMA_NO_V1
 
                 #ifdef DEBUG_MEMORY
                 magma_warn_leaks( g_pointers_dev, "device" );
