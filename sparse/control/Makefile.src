@@ -14,7 +14,8 @@ cdir      := sparse/control
 
 libsparse_src += \
 	$(cdir)/error.cpp                     \
-	$(cdir)/magma_zdomainoverlap.cpp      \
+	$(cdir)/mmio.cpp                      \
+	$(cdir)/magma_zsort.cpp               \
 	$(cdir)/magma_zutil_sparse.cpp        \
 	$(cdir)/magma_zfree.cpp               \
 	$(cdir)/magma_zmatrixchar.cpp         \
@@ -23,7 +24,7 @@ libsparse_src += \
 	$(cdir)/magma_zmio.cpp                \
 	$(cdir)/magma_zsolverinfo.cpp         \
 	$(cdir)/magma_zcsrsplit.cpp           \
-	$(cdir)/magma_zpariluutils.cpp       \
+	$(cdir)/magma_zfrobenius.cpp          \
 	$(cdir)/magma_zmcsrpass.cpp           \
 	$(cdir)/magma_zmcsrpass_gpu.cpp       \
 	$(cdir)/magma_zmcsrcompressor.cpp     \
@@ -37,31 +38,13 @@ libsparse_src += \
 	$(cdir)/magma_zmtranspose_cpu.cpp     \
 	$(cdir)/magma_zmtransfer.cpp          \
 	$(cdir)/magma_zmilustruct.cpp         \
-	$(cdir)/magma_zselect.cpp             \
-	$(cdir)/magma_zsort.cpp               \
 	$(cdir)/magma_zvinit.cpp              \
 	$(cdir)/magma_zvio.cpp                \
 	$(cdir)/magma_zvtranspose.cpp         \
 	$(cdir)/magma_zvpass.cpp              \
 	$(cdir)/magma_zvpass_gpu.cpp          \
-	$(cdir)/mmio.cpp                      \
-	$(cdir)/magma_zgeisai_tools.cpp	      \
-	$(cdir)/magma_zmsupernodal.cpp        \
 	$(cdir)/magma_zmfrobenius.cpp	      \
 	$(cdir)/magma_zmatrix_tools.cpp       \
-
-libsparse_src += \
-	$(cdir)/magma_zparilu_kernels.cpp	\
-	$(cdir)/magma_zparic_kernels.cpp       \
-	$(cdir)/magma_zparilut_kernels.cpp       \
-	$(cdir)/magma_zparilut_tools.cpp      \
-	$(cdir)/magma_zparict_tools.cpp       \
-
-
-
-# dummy to compensate for routines not included in release
-libsparse_src += \
-#	$(cdir)/magma_zdummy.cpp                    \
 
 # ----------------------------------------------------------------------
 # pop first directory

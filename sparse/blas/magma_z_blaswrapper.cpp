@@ -221,17 +221,6 @@ magma_z_spmv(
 
                 //printf("done.\n");
             }
-            else if ( A.storage_type == Magma_CSR5 ) {
-                //printf("using CSR5 kernel for SpMV: ");
-                CHECK( magma_zgecsr5mv( MagmaNoTrans, A.num_rows, A.num_cols, 
-                   A.csr5_p, alpha, A.csr5_sigma, A.csr5_bit_y_offset, 
-                   A.csr5_bit_scansum_offset, A.csr5_num_packets, 
-                   A.dtile_ptr, A.dtile_desc, A.dtile_desc_offset_ptr, A.dtile_desc_offset, 
-                   A.dcalibrator, A.csr5_tail_tile_start, 
-                   A.dval, A.drow, A.dcol, x.dval, beta, y.dval, queue ));
-
-                //printf("done.\n");
-            }
             else if ( A.storage_type == Magma_DENSE ) {
                 //printf("using DENSE kernel for SpMV: ");
                 magmablas_zgemv( MagmaNoTrans, A.num_rows, A.num_cols, alpha,
