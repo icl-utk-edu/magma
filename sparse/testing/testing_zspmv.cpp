@@ -92,8 +92,7 @@ int main(  int argc, char** argv )
     magma_queue_t queue=NULL;
     magma_queue_create( 0, &queue );
     magma_z_matrix hA={Magma_CSR}, hA_SELLP={Magma_CSR}, hA_ELL={Magma_CSR}, 
-    dA={Magma_CSR}, dA_SELLP={Magma_CSR}, dA_ELL={Magma_CSR},
-    hA_CSR5={Magma_CSR}, dA_CSR5={Magma_CSR};
+    dA={Magma_CSR}, dA_SELLP={Magma_CSR}, dA_ELL={Magma_CSR};
     
     magma_z_matrix hx={Magma_CSR}, hy={Magma_CSR}, dx={Magma_CSR}, 
     dy={Magma_CSR}, hrefvec={Magma_CSR}, hcheck={Magma_CSR};
@@ -103,8 +102,7 @@ int main(  int argc, char** argv )
     real_Double_t start, end, res, ref;
     real_Double_t elltime = 0.0, ellgflops = 0.0, mkltime = 0.0, mklgflops = 0.0, 
                   cuCSRtime = 0.0, cuCSRgflops = 0.0, 
-                  cuHYBtime = 0.0, cuHYBgflops = 0.0, sellptime = 0.0, sellpgflops = 0.0, 
-                  csr5time = 0.0, csr5gflops = 0.0;
+                  cuHYBtime = 0.0, cuHYBgflops = 0.0, sellptime = 0.0, sellpgflops = 0.0; 
 
     magmaDoubleComplex c_one  = MAGMA_Z_MAKE(1.0, 0.0);
     magmaDoubleComplex c_zero = MAGMA_Z_MAKE(0.0, 0.0);
@@ -299,45 +297,6 @@ int main(  int argc, char** argv )
 
         magma_zmfree(&dA_SELLP, queue );
 
-        // convert to CSR5 and copy to GPU
-        TESTING_CHECK( magma_zmconvert(  hA, &hA_CSR5, Magma_CSR, Magma_CSR5, queue ));
-        TESTING_CHECK( magma_zmtransfer( hA_CSR5, &dA_CSR5, Magma_CPU, Magma_DEV, queue ));
-        magma_zmfree(&hA_CSR5, queue );
-        magma_zmfree( &dy, queue );
-        TESTING_CHECK( magma_zvinit( &dy, Magma_DEV, hA.num_rows, 1, c_zero, queue ));
-        // SpMV on GPU (CSR5)
-        start = magma_sync_wtime( queue );
-        for (j=0; j < 200; j++) {
-            info = magma_z_spmv( c_one, dA_CSR5, dx, c_zero, dy, queue );
-        }
-        if( info != 0 ){
-            printf("%% error: CSR5 not supported\n");    
-        }
-        end = magma_sync_wtime( queue );
-        TESTING_CHECK( magma_zmtransfer( dy, &hcheck , Magma_DEV, Magma_CPU, queue ));
-        res = 0.0;
-        for(magma_int_t k=0; k < hA.num_rows; k++ ){
-            res = res + MAGMA_Z_ABS(hcheck.val[k] - hrefvec.val[k]);
-        }
-        //res /= ref
-        res = ref == 0 ? res : res / ref;
-        if ( res < accuracy ) {
-            printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (CSR5).\n",
-                (end-start)/200, FLOPS*200/(end-start) );
-            printf("%% |x-y|_F/|y| = %8.2e Tester spmv CSR5:  ok\n", res);
-            csr5time = (end-start)/200;
-            csr5gflops = FLOPS*200/(end-start);
-        } else{
-            printf( "%% > MAGMA: %.2e seconds %.2e GFLOP/s    (CSR5).\n",
-                (end-start)/200, 0.0);
-            printf("%% |x-y|_F/|y| = %8.2e Tester spmv CSR5:  failed\n", res);
-            csr5time = NAN;
-            csr5gflops = NAN;
-        }
-        magma_zmfree( &hcheck, queue );
-
-        magma_zmfree(&dA_CSR5, queue );
-
 
         // SpMV on GPU (CUSPARSE - CSR)
         // CUSPARSE context
@@ -437,16 +396,16 @@ int main(  int argc, char** argv )
         descr = NULL;
         
         // print everything in matlab-readable output
-        // cuSPARSE-CSR cuSPARSE-HYB  SELLP  CSR5
+        // cuSPARSE-CSR cuSPARSE-HYB  SELLP
         // runtime performance 
-        // printf("%% MKL cuSPARSE-CSR cuSPARSE-HYB  ELL SELLP  CSR5\n");
+        // printf("%% MKL cuSPARSE-CSR cuSPARSE-HYB  ELL SELLP \n");
         // printf("%% runtime performance (GFLOP/s)\n");
         // printf("data = [\n");
-        printf(" MKL (sec GFlop/s)   cuCSR (s GFlop/s)   cuHYB (s GFlop/s)   ELL (sec GFlop/s)   Sell (s  GFlop/s)   CSR5 (s GFlop/s)\n");
-        printf("=====================================================================================================================\n");
-        printf(" %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e\n",
+        printf(" MKL (sec GFlop/s)   cuCSR (s GFlop/s)   cuHYB (s GFlop/s)   ELL (sec GFlop/s)   Sell (s  GFlop/s)\n");
+        printf("==================================================================================================\n");
+        printf(" %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e   %.2e %.2e \n",
                  mkltime, mklgflops, cuCSRtime, cuCSRgflops, cuHYBtime, cuHYBgflops, 
-                 elltime, ellgflops, sellptime, sellpgflops, csr5time, csr5gflops);
+                 elltime, ellgflops, sellptime, sellpgflops);
 
         // free CPU memory
         magma_zmfree( &hA, queue );

@@ -75,8 +75,6 @@ magma_z_precond(
                 CHECK( magma_zfgmres( A, b, x, &psolver_par, &pprecond, queue )); break;
         case  Magma_JACOBI:
                 CHECK( magma_zjacobi( A, b, x, &psolver_par, queue )); break;
-        case  Magma_BAITER:
-                CHECK( magma_zbaiter( A, b, x, &psolver_par, &pprecond, queue )); break;
         case  Magma_IDR:
                 CHECK( magma_zidr( A, b, x, &psolver_par, queue )); break;
         case  Magma_CGS:
@@ -85,8 +83,6 @@ magma_z_precond(
                 CHECK( magma_zqmr( A, b, x, &psolver_par, queue )); break;
         case  Magma_TFQMR:
                 CHECK( magma_ztfqmr( A, b, x, &psolver_par, queue )); break;
-        case  Magma_BAITERO:
-                CHECK( magma_zbaiter_overlap( A, b, x, &psolver_par, &pprecond, queue )); break;
         default:
                 CHECK( magma_zcg_res( A, b, x, &psolver_par, queue )); break;
     }
@@ -162,94 +158,12 @@ magma_z_precondsetup(
     }
     // ILU and related
     else if ( precond->solver == Magma_ILU ) {
-        if ( precond->trisolver == Magma_ISAI ||
-            precond->trisolver == Magma_JACOBI ||
-            precond->trisolver == Magma_VBJACOBI ){
-            info = magma_zcumilusetup( A, precond, queue );
-            info = magma_ziluisaisetup_lower( precond->L, precond->L, &precond->LD, queue );
-            info = magma_ziluisaisetup_upper( precond->U, precond->U, &precond->UD, queue );
-            if (info == Magma_CUSOLVE) {
-                precond->trisolver = Magma_CUSOLVE;
-                info = 0;
-            }
-        } else {
-            info = magma_zcumilusetup( A, precond, queue );
-        }
-    }
-    else if ( precond->solver == Magma_PARILU ) {
-        info = magma_zparilu_gpu( A, b, precond, queue );
-        if ( precond->trisolver == Magma_ISAI ||
-             precond->trisolver == Magma_JACOBI ||
-             precond->trisolver == Magma_VBJACOBI ){
-             info = magma_ziluisaisetup_lower( precond->L, precond->L, &precond->LD, queue );
-             info = magma_ziluisaisetup_upper( precond->U, precond->U, &precond->UD, queue );
-             if (info == Magma_CUSOLVE) {
-                precond->trisolver = Magma_CUSOLVE;
-                info = 0;
-             }
-        }
-    }
-    else if ( precond->solver == Magma_ILUT ) {
-        printf( "error: preconditioner requires OpenMP.\n" );
-        info = MAGMA_ERR_NOT_SUPPORTED;
-        //info = magma_zilut_saad( A, b, precond, queue );
+        info = magma_zcumilusetup( A, precond, queue );
     }
     
-    else if ( precond->solver == Magma_PARILUT ) {
-        #ifdef _OPENMP
-        /* Here, use No-Dynamic-Parallelism vresion or normal version depending on platform */
-            #ifdef MAGMA_HAVE_HIP
-            info = magma_zparilut_gpu_nodp(A, b, precond, queue);
-            #else
-            info = magma_zparilut_gpu( A, b, precond, queue );
-            #endif
-            if ( precond->trisolver == Magma_ISAI  ||
-                precond->trisolver == Magma_JACOBI ||
-                precond->trisolver == Magma_VBJACOBI ){
-                info = magma_ziluisaisetup_lower( precond->L, precond->L, &precond->LD, queue );
-                info = magma_ziluisaisetup_upper( precond->U, precond->U, &precond->UD, queue );
-                if (info == Magma_CUSOLVE) {
-                    precond->trisolver = Magma_CUSOLVE;
-                    info = 0;
-                }
-             }
-            precond->solver = Magma_PARILU; // handle as PARILU
-        #else
-            printf( "error: preconditioner requires OpenMP.\n" );
-            info = MAGMA_ERR_NOT_SUPPORTED;
-        #endif
-    }
-    else if ( precond->solver == Magma_CUSTOMILU ) {
-        info = magma_zcustomilusetup( A, b, precond, queue );
-        precond->solver = Magma_PARILU; // handle as PARILU
-    }
     // symmetric: Cholesky variant
     else if ( precond->solver == Magma_ICC ) {
-        if ( precond->trisolver == Magma_ISAI  ||
-             precond->trisolver == Magma_JACOBI ||
-             precond->trisolver == Magma_VBJACOBI ){
-            info = magma_zcumiccsetup( A, precond, queue );
-            info = magma_ziluisaisetup_lower( precond->L, precond->L, &precond->LD, queue );
-            info = magma_ziluisaisetup_upper( precond->U, precond->U, &precond->UD, queue );
-        } else {
-            info = magma_zcumiccsetup( A, precond, queue );
-        }
-    }
-    else if ( precond->solver == Magma_PARIC ) {
-        info = magma_zparic_gpu( A, b, precond, queue );
-    }
-    else if ( precond->solver == Magma_PARICT ) {
-        #ifdef _OPENMP
-            info = magma_zparict_cpu( A, b, precond, queue );
-            precond->solver = Magma_ICC; // handle as PARIC
-        #else
-            printf( "error: preconditioner requires OpenMP.\n" );
-            info = MAGMA_ERR_NOT_SUPPORTED;
-        #endif
-    }
-    else if ( precond->solver == Magma_CUSTOMIC ) {
-        info = magma_zcustomicsetup( A, b, precond, queue );
-        precond->solver = Magma_PARIC; // handle as PARIC
+        info = magma_zcumiccsetup( A, precond, queue );
     }
     // none case
     else if ( precond->solver == Magma_NONE ) {
@@ -265,20 +179,8 @@ magma_z_precondsetup(
           solver->solver == Magma_PBICG ||
           solver->solver == Magma_LSQR ) &&
         ( precond->solver == Magma_ILU      || 
-            precond->solver == Magma_PARILU   || 
-            precond->solver == Magma_ICC    || 
-            precond->solver == Magma_PARIC ) ) {  // also prepare the transpose
+            precond->solver == Magma_ICC ) ) { // also prepare the transpose
         info = magma_zcumilusetup_transpose( A, precond, queue );
-        if( info == 0 && 
-            ( precond->trisolver == Magma_ISAI  ||
-              precond->trisolver == Magma_JACOBI ||
-              precond->trisolver == Magma_VBJACOBI ) )
-        {
-                // simple solution: copy
-                info = info + magma_zmtranspose( precond->LD, &precond->LDT, queue );
-                info = info + magma_zmtranspose( precond->UD, &precond->UDT, queue );
-                // info = magma_ziluisaisetup_t( A, b, precond, queue );
-        }
     }
     
     tempo2 = magma_sync_wtime( queue );
@@ -431,46 +333,21 @@ magma_z_applyprecond_left(
         if ( precond->solver == Magma_JACOBI ) {
             CHECK( magma_zjacobi_diagscal( b.num_rows, precond->d, b, x, queue ));
         }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) && 
+        else if ( precond->solver == Magma_ILU &&
                   ( precond->trisolver == Magma_CUSOLVE ||
                     precond->trisolver == 0 ) ){
             CHECK( magma_zapplycumilu_l( b, x, precond, queue ));
         }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) && 
+        else if (  precond->solver == Magma_ILU &&
                   ( precond->trisolver == Magma_SYNCFREESOLVE ) ){
             CHECK( magma_zapplycumilu_l( b, x, precond, queue ));
         }
-        else if (precond->solver == Magma_ILUT) {
-            printf( "error: preconditioner requires OpenMP.\n" );
-            info = MAGMA_ERR_NOT_SUPPORTED;
-            //CHECK( magma_zilut_saad_apply( b, x, precond, queue ));
-        }
-        else if ( ( precond->solver == Magma_ICC ||
-                    precond->solver == Magma_PARIC ) && 
+        else if (  precond->solver == Magma_ICC &&
                   ( precond->trisolver == Magma_CUSOLVE ||
                     precond->trisolver == 0 ) ){
             CHECK( magma_zapplycumicc_l( b, x, precond, queue ));
         }
-        else if ( ( precond->solver == Magma_ICC ||
-                    precond->solver == Magma_PARIC ) && 
-                  ( precond->trisolver == Magma_ISAI ||
-                    precond->trisolver == Magma_JACOBI ||
-                    precond->trisolver == Magma_VBJACOBI ) ){
-            CHECK( magma_zisai_l( b, x, precond, queue ) );
-            // magma_z_spmv( MAGMA_Z_ONE, precond->L, b,MAGMA_Z_ZERO, *x, queue ); // SPAI
-        }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) && 
-                  ( precond->trisolver == Magma_ISAI ||
-                    precond->trisolver == Magma_JACOBI ||
-                    precond->trisolver == Magma_VBJACOBI ) ){
-            CHECK( magma_zisai_l( b, x, precond, queue ) );
-            // magma_z_spmv( MAGMA_Z_ONE, precond->L, b,MAGMA_Z_ZERO, *x, queue ); // SPAI
-        }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) ){
+        else if (  precond->solver == Magma_ILU ) {
             magma_z_solver( precond->L, b, x, &zopts, queue );
         }
         else if ( precond->solver == Magma_NONE ) {
@@ -487,27 +364,17 @@ magma_z_applyprecond_left(
         if ( precond->solver == Magma_JACOBI ) {
             CHECK( magma_zjacobi_diagscal( b.num_rows, precond->d, b, x, queue ));
         }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) && 
+        else if (  precond->solver == Magma_ILU && 
                   ( precond->trisolver == Magma_CUSOLVE ||
                     precond->trisolver == 0 ) ){
             CHECK( magma_zapplycumilu_l_transpose( b, x, precond, queue ));
         }
-        else if ( ( precond->solver == Magma_ICC ||
-                    precond->solver == Magma_PARIC ) && 
+        else if (  precond->solver == Magma_ICC &&
                   ( precond->trisolver == Magma_CUSOLVE ||
                     precond->trisolver == 0 ) ){
             CHECK( magma_zapplycumicc_l( b, x, precond, queue ));
         }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) && 
-                  ( precond->trisolver == Magma_ISAI ||
-                    precond->trisolver == Magma_JACOBI ||
-                    precond->trisolver == Magma_VBJACOBI ) ){
-            CHECK( magma_zisai_l_t( b, x, precond, queue ) );
-        }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) ){
+        else if (  precond->solver == Magma_ILU ) {
             magma_z_solver( precond->L, b, x, &zopts, queue );
         }
         else if ( precond->solver == Magma_NONE ) {
@@ -601,14 +468,12 @@ magma_z_applyprecond_right(
         if ( precond->solver == Magma_JACOBI ) {
             magma_zcopy( b.num_rows*b.num_cols, b.dval, 1, x->dval, 1, queue );    // x = b
         }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) && 
+        else if (  precond->solver == Magma_ILU && 
                   ( precond->trisolver == Magma_CUSOLVE ||
                     precond->trisolver == 0 ) ) {
             CHECK( magma_zapplycumilu_r( b, x, precond, queue ));
         }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) && 
+        else if (  precond->solver == Magma_ILU && 
                   ( precond->trisolver == Magma_SYNCFREESOLVE ) ){
             CHECK( magma_zapplycumilu_r( b, x, precond, queue ));
         }
@@ -617,39 +482,17 @@ magma_z_applyprecond_right(
             info = MAGMA_ERR_NOT_SUPPORTED;
             //magma_zcopy( b.num_rows*b.num_cols, b.dval, 1, x->dval, 1, queue );
         }
-        else if ( ( precond->solver == Magma_ICC ||
-                    precond->solver == Magma_PARIC ) && 
+        else if (  precond->solver == Magma_ICC &&
                   ( precond->trisolver == Magma_CUSOLVE ||
                     precond->trisolver == 0 ) ){
             CHECK( magma_zapplycumicc_r( b, x, precond, queue ));
         }
-        else if ( ( precond->solver == Magma_ICC ||
-                    precond->solver == Magma_PARIC ) && 
-                  ( precond->trisolver == Magma_ISAI ||
-                    precond->trisolver == Magma_JACOBI ||
-                    precond->trisolver == Magma_VBJACOBI ) ){
-            CHECK( magma_zisai_r( b, x, precond, queue ) );
-            // magma_z_spmv( MAGMA_Z_ONE, precond->L, b,MAGMA_Z_ZERO, *x, queue ); // SPAI
-        }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) && 
-                  ( precond->trisolver == Magma_ISAI ||
-                    precond->trisolver == Magma_JACOBI ||
-                    precond->trisolver == Magma_VBJACOBI ) ){
-            CHECK( magma_zisai_r( b, x, precond, queue ) );
-            // magma_z_spmv( MAGMA_Z_ONE, precond->L, b,MAGMA_Z_ZERO, *x, queue ); // SPAI
-        }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) ){
+        else if (  precond->solver == Magma_ILU ) { 
             magma_z_solver( precond->U, b, x, &zopts, queue );
         }
         else if ( precond->solver == Magma_NONE ) {
             magma_zcopy( b.num_rows*b.num_cols, b.dval, 1, x->dval, 1, queue );      //  x = b
         }
-      //  else if ( precond->solver == Magma_ISAI ) {
-      //      CHECK( magma_zisai_r( b, x, precond, queue ) );
-      //      // magma_z_spmv( MAGMA_Z_ONE, precond->U, b,MAGMA_Z_ZERO, *x, queue ); // SPAI
-      //  }
         else if ( precond->solver == Magma_FUNCTION ) {
             CHECK( magma_zapplycustomprecond_r( b, x, precond, queue ));
         }
@@ -661,28 +504,17 @@ magma_z_applyprecond_right(
         if ( precond->solver == Magma_JACOBI ) {
             magma_zcopy( b.num_rows*b.num_cols, b.dval, 1, x->dval, 1, queue );    // x = b
         }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) && 
+        else if (  precond->solver == Magma_ILU && 
                   ( precond->trisolver == Magma_CUSOLVE ||
                     precond->trisolver == 0 ) ){
             CHECK( magma_zapplycumilu_r_transpose( b, x, precond, queue ));
         }
-        else if ( ( precond->solver == Magma_ICC ||
-                    precond->solver == Magma_PARIC ) && 
+        else if (  precond->solver == Magma_ICC && 
                   ( precond->trisolver == Magma_CUSOLVE ||
                     precond->trisolver == 0 ) ){
             CHECK( magma_zapplycumicc_r( b, x, precond, queue ));
         }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) && 
-                  ( precond->trisolver == Magma_ISAI ||
-                    precond->trisolver == Magma_JACOBI ||
-                    precond->trisolver == Magma_VBJACOBI ) ){
-            CHECK( magma_zisai_r_t( b, x, precond, queue ) );
-            // magma_z_spmv( MAGMA_Z_ONE, precond->U, b,MAGMA_Z_ZERO, *x, queue ); // SPAI
-        }
-        else if ( ( precond->solver == Magma_ILU ||
-                    precond->solver == Magma_PARILU ) ){
+        else if (  precond->solver == Magma_ILU ) {
             magma_z_solver( precond->U, b, x, &zopts, queue );
         }
         else if ( precond->solver == Magma_NONE ) {

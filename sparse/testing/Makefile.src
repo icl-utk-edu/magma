@@ -22,7 +22,6 @@ sparse_testing_src += \
 	$(cdir)/testing_zmconverter.cpp       \
 	$(cdir)/testing_zsort.cpp             \
 	$(cdir)/testing_zmatrixinfo.cpp       \
-	$(cdir)/testing_zgetrowptr.cpp	      \
 
 # ----------
 # low level LA operations
@@ -33,7 +32,6 @@ sparse_testing_src += \
 	$(cdir)/testing_zspmv_check.cpp       \
 	$(cdir)/testing_zspmm.cpp             \
 	$(cdir)/testing_zmadd.cpp             \
-	$(cdir)/testing_zcspmv_mixed.cpp       \
 
 
 # ----------
@@ -67,8 +65,6 @@ sparse_testing_src += \
 # debugging
 sparse_testing_src += \
 	$(cdir)/testing_zsptrsv.cpp           \
-	$(cdir)/testing_zselect.cpp           \
-	$(cdir)/testing_zmatrixcapcup.cpp     \
 #	$(cdir)/testing_zbug.cpp              \
 #	$(cdir)/testing_ddebug.cpp            \
 #	$(cdir)/testing_zailumatrix.cpp       \
