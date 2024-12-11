@@ -44,6 +44,20 @@
   #endif
 #endif
 
+// Define a deprecation macro depending on compiler and C++/C version
+#if (__cplusplus >= 201402L) || (__STDC_VERSION__ >= 202311L) || ((__GNUC__ > 9) && !defined(__INTEL_COMPILER))
+    #define MAGMA_DEPRECATE(MSG) [[deprecated(MSG)]]
+#elif __GNUC__
+    #define MAGMA_DEPRECATE(MSG) __attribute__((deprecated(MSG)))
+#elif __clang__
+  #if __has_extension(attribute_deprecated_with_message)
+    #define MAGMA_DEPRECATE(MSG) __attribute__((deprecated(MSG)))
+  #else
+    #define MAGMA_DEPRECATE(MSG)
+  #endif
+#else
+    #define MAGMA_DEPRECATE(MSG)
+#endif
 
 // =============================================================================
 // To use int64_t, link with mkl_intel_ilp64 or similar (instead of mkl_intel_lp64).

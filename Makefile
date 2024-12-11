@@ -87,7 +87,7 @@ FPIC        ?= -fPIC
 
 # now, generate our flags
 CFLAGS      ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp -std=c99
-CXXFLAGS    ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp -std=c++11
+CXXFLAGS    ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -fopenmp -std=c++14
 FFLAGS      ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS    ?= -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
 LDFLAGS     ?=     $(FPIC)                       -fopenmp
@@ -986,7 +986,7 @@ INSTALL_FLAGS := $(filter-out \
 	-DMAGMA_NOAFFINITY -DMAGMA_SETAFFINITY -DMAGMA_WITH_ACML -DMAGMA_WITH_MKL -DUSE_FLOCK \
 	-DMAGMA_CUDA_ARCH=% -DMAGMA_CUDA_ARCH_MIN=% \
 	-DMAGMA_HAVE_CUDA -DMAGMA_HAVE_HIP -DMAGMA_HAVE_clBLAS \
-	-fno-strict-aliasing -fPIC -O0 -O1 -O2 -O3 -pedantic -std=c99 -stdc++98 -stdc++11 \
+	-fno-strict-aliasing -fPIC -O0 -O1 -O2 -O3 -pedantic -std=c99 -stdc++98 -stdc++14 \
 	-Wall -Wshadow -Wno-long-long, $(CFLAGS))
 
 INSTALL_LDFLAGS := $(filter-out -fPIC -Wall, $(LDFLAGS))

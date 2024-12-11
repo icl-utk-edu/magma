@@ -30,12 +30,14 @@ extern "C" {
 /* ////////////////////////////////////////////////////////////////////////////
  -- MAGMA_SPARSE Auxiliary functions
 */
+MAGMA_DEPRECATE("magma_vector_zlac2c is deprecated and will be removed in the next release")
 magma_int_t
 magma_vector_zlag2c(
     magma_z_matrix x,
     magma_c_matrix *y,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_sparse_matrix_zlac2c is deprecated and will be removed in the next release")
 magma_int_t
 magma_sparse_matrix_zlag2c(
     magma_z_matrix A,
@@ -43,18 +45,21 @@ magma_sparse_matrix_zlag2c(
     magma_queue_t queue );
 
 
+MAGMA_DEPRECATE("magma_vector_clag2z is deprecated and will be removed in the next release")
 magma_int_t
 magma_vector_clag2z(
     magma_c_matrix x,
     magma_z_matrix *y,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_sparse_matrix_clag2z is deprecated and will be removed in the next release")
 magma_int_t
 magma_sparse_matrix_clag2z(
     magma_c_matrix A,
     magma_z_matrix *B,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magmablas_zlag2c_sparse is deprecated and will be removed in the next release")
 void
 magmablas_zlag2c_sparse(
     magma_int_t M, 
@@ -66,7 +71,8 @@ magmablas_zlag2c_sparse(
     magma_queue_t queue,
     magma_int_t *info );
 
-void 
+MAGMA_DEPRECATE("magmablas_clag2z_sparse is deprecated and will be removed in the next release")
+void
 magmablas_clag2z_sparse(
     magma_int_t M, 
     magma_int_t N , 
@@ -77,18 +83,21 @@ magmablas_clag2z_sparse(
     magma_queue_t queue,
     magma_int_t *info );
 
+MAGMA_DEPRECATE("magma_zlag2c_CSR_DENSE is deprecated and will be removed in the next release")
 void 
 magma_zlag2c_CSR_DENSE(
     magma_z_matrix A,
     magma_c_matrix *B,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zlag2c_CSR_DENSE_alloc is deprecated and will be removed in the next release")
 void 
 magma_zlag2c_CSR_DENSE_alloc(
     magma_z_matrix A,
     magma_c_matrix *B,
     magma_queue_t queue );
 
+MAGMA_DEPRECATE("magma_zlag2c_CSR_DENSE_convert is deprecated and will be removed in the next release")
 void 
 magma_zlag2c_CSR_DENSE_convert(
     magma_z_matrix A,
@@ -108,15 +117,7 @@ magma_zlag2c_CSR_DENSE_convert(
  -- MAGMA_SPARSE function definitions / Data on GPU
 */
 
-magma_int_t
-magma_zcir(
-    magma_z_matrix A, 
-    magma_z_matrix b, 
-    magma_z_matrix *x,
-    magma_z_solver_par *solver_par, 
-    magma_z_preconditioner *precond_par,
-    magma_queue_t queue );
-
+MAGMA_DEPRECATE("magma_zlag2c_CSR_DENSE_convert is deprecated and will be removed in the next release")
 magma_int_t
 magma_zcgecsrmv_mixed_prec(
     magma_trans_t transA,

@@ -308,8 +308,8 @@ if ( not opts.small and not opts.med and not opts.large and not opts.nonsym ):
     opts.nonsym = True
 # end
 
-print 'opts', opts
-print 'args', args
+print('opts', opts)
+print('args', args)
 
 
 # ----------------------------------------------------------------------
@@ -637,15 +637,6 @@ for solver in IR:
 
 
 
-
-
-
-# ----------------------------------------------------------------------
-#print 'tests'
-#for t in tests:
-#    print t
-
-
 # ----------------------------------------------------------------------
 # runs command in a subprocess.
 # returns list (okay, fail, errors, status)
@@ -657,7 +648,7 @@ def run( cmd ):
     words = re.split( ' +', cmd.strip() )
     
     # stdout & stderr are merged
-    p = subprocess.Popen( words, bufsize=1, stdout=PIPE, stderr=STDOUT )
+    p = subprocess.Popen( words, stdout=PIPE, stderr=STDOUT )
     
     okay  = 0
     fail  = 0
@@ -667,10 +658,10 @@ def run( cmd ):
     slowconv = 0
     # read unbuffered ("for line in p.stdout" will buffer)
     while True:
-        line = p.stdout.readline()
+        line = p.stdout.readline().decode()
         if not line:
             break
-        print line.rstrip()
+        print(line.rstrip())
         if re.search( r'\bok *$', line ):
             okay += 1
         if re.search( 'failed', line ):
@@ -732,12 +723,9 @@ for test in tests:
     start = None
     
     # skip tests not in args, or duplicates, or non-existing
-    #if not os.path.exists( cmd ):
-    #    print >>sys.stderr, cmd, cmd, "doesn't exist"
-    if (    (args and not cmd in args)
+    if ((args and not cmd in args)
          or (not os.path.exists( cmd ))
-         or (seen.has_key( cmd_args )) ):
-        #print "skipping", cmd_args
+         or (cmd_args in seen.keys())):
         continue
     # end
     seen[ cmd_args ] = True
@@ -753,9 +741,9 @@ for test in tests:
         # end
         
         print
-        print '*'*100
-        print cmd_args
-        print '*'*100
+        print('*'*100)
+        print(cmd_args)
+        print('*'*100)
         sys.stdout.flush()
         
         if ( batch ):
@@ -777,7 +765,7 @@ for test in tests:
         
         if ( make ):
             m = 'make lib ' + cmd
-            print m
+            print(m)
             run( m )
         # end
         
@@ -815,7 +803,7 @@ for test in tests:
             pause = min( t, 5. )
             go = False
         else:
-            x = raw_input( '[enter to continue; M to make and re-run] ' )
+            x = input( '[enter to continue; M to make and re-run] ' )
             if ( x in ('m','M')):
                 make = True
             else:
@@ -837,7 +825,7 @@ else:
     msg += '%5d tests in %d commands passed\n' % (nokay, ntest)
     msg += '%5d tests failed accuracy test\n' % (nfail)
     msg += '%5d errors detected (crashes, CUDA errors, etc.)\n' % (nerror)
-    f = failures.keys()
+    f = list(failures.keys())
     f.sort()
     msg += 'routines with failures:\n    ' + '\n    '.join( f ) + '\n'
 # end
