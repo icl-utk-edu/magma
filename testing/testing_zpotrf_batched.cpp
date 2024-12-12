@@ -107,12 +107,6 @@ magma_zpotrf_batched_vendor(
     #endif
 }
 
-extern "C" magma_int_t
-magma_zpotrf_lg_batched(
-    magma_uplo_t uplo, magma_int_t n, magma_int_t nb, magma_int_t recnb,
-    magmaDoubleComplex **dA_array, magma_int_t ldda,
-    magma_int_t *info_array,  magma_int_t batchCount, magma_queue_t queue);
-
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zpotrf_batched
 */
@@ -213,7 +207,7 @@ int main( int argc, char** argv)
                 }
                 gpu_time = magma_sync_wtime( opts.queue );
                 info = 0;
-                magma_zpotrf_lg_batched(
+                magma_zpotrf_expert_batched(
                     opts.uplo, N, nb, recnb,
                     d_A_array, ldda, dinfo_magma,
                     batchCount, opts.queue);
