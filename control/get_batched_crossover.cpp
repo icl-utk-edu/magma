@@ -40,79 +40,93 @@ extern "C" {
 *******************************************************************************/
 void magma_get_zpotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_t *recnb)
 {
-    if (n <= ZPOTRF_SWITCH)
-    {
-        *nb    = ZPOTRF_SWITCH;
-        *recnb = ZPOTRF_SWITCH;
-        return;
+    // defaults
+    *nb    = 32;
+    *recnb = 16;
+
+    #if defined(MAGMA_HAVE_CUDA)
+    // tuning based on benchmarks using GH200
+    if ( n <= 224 ) {
+        *nb    = 512;
+        *recnb = 256;
     }
-    *nb    = 64;
-    *recnb = 32;
-    return;
+    else {
+        *nb    = 32;
+        *recnb = 16;
+    }
+
+    #elif defined(MAGMA_HAVE_HIP)
+    #endif
 }
 
 /// @see magma_get_zpotrf_batched_nbparam
 void magma_get_cpotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_t *recnb)
 {
-    if (n <= CPOTRF_SWITCH)
-    {
-        *nb    = CPOTRF_SWITCH;
-        *recnb = CPOTRF_SWITCH;
-        return;
-    }
+    // defaults
+    *nb    = 32;
+    *recnb = 16;
 
-    if (n <= 256)
-    {
-        *nb    = 256;
+    #if defined(MAGMA_HAVE_CUDA)
+    // tuning based on benchmarks using GH200
+    if ( n < 192 ) {
+        *nb    = 512;
         *recnb = 256;
     }
     else {
-        *nb    = 128;
-        *recnb =  32;
+        *nb    = 32;
+        *recnb = 16;
     }
-    return;
+
+    #elif defined(MAGMA_HAVE_HIP)
+    #endif
 }
 
 /// @see magma_get_zpotrf_batched_nbparam
 void magma_get_dpotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_t *recnb)
 {
-    if (n <= DPOTRF_SWITCH)
-    {
-        *nb    = DPOTRF_SWITCH;
-        *recnb = DPOTRF_SWITCH;
-        return;
+    // defaults
+    *nb    = 32;
+    *recnb = 16;
+
+    #if defined(MAGMA_HAVE_CUDA)
+    // tuning based on benchmarks using GH200
+    if ( n <= 160 ) {
+        *nb    = 512;
+        *recnb = 256;
     }
-    if (n <= 384)
-    {
-        *nb    = 384;
-        *recnb = 384;
+    else if (n <= 256 ){
+        *nb    = 512;
+        *recnb = 128;
     }
     else {
-        *nb    = 128;
-        *recnb =  32;
+        *nb    = 64;
+        *recnb = 32;
     }
-    return;
+
+    #elif defined(MAGMA_HAVE_HIP)
+    #endif
 }
 
 /// @see magma_get_zpotrf_batched_nbparam
 void magma_get_spotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_t *recnb)
 {
-    if (n <= SPOTRF_SWITCH)
-    {
-        *nb    = SPOTRF_SWITCH;
-        *recnb = SPOTRF_SWITCH;
-        return;
-    }
-    if (n <= 464)
-    {
+    // defaults
+    *nb    = 32;
+    *recnb = 16;
+
+    #if defined(MAGMA_HAVE_CUDA)
+    // tuning based on benchmarks using GH200
+    if ( n <= 192 ) {
         *nb    = 512;
-        *recnb = 512;
+        *recnb = 256;
     }
     else {
-        *nb    = 256;
-        *recnb =  64;
+        *nb    = 64;
+        *recnb = 32;
     }
-    return;
+
+    #elif defined(MAGMA_HAVE_HIP)
+    #endif
 }
 
 
@@ -506,66 +520,79 @@ magma_int_t magma_get_sgeqr2_fused_sm_batched_nthreads(magma_int_t m, magma_int_
 }
 
 /***************************************************************************//**
-    @return the crossover point between the _lg or the kernel directly
+    @return the crossover point between the blocked version or the kernel directly
 *******************************************************************************/
 magma_int_t magma_get_zpotrf_batched_crossover()
 {
-    magma_int_t arch = magma_getdevice_arch();
-    if(arch >= 700){
-        return 352;
-    }
-    else if(arch >= 600){
-        return 352;
-    }
-    else{
-        return 160;
-    }
+    // default
+    magma_int_t crossover = 128;
+    //magma_int_t arch = magma_getdevice_arch();
+
+    #if defined(MAGMA_HAVE_CUDA)
+        // based on tests on GH200
+        // TODO: revise crossover for Ampere
+        crossover = 224;
+
+    #elif defined(MAGMA_HAVE_HIP)
+    #endif
+
+    return crossover;
 }
 
 /// @see magma_get_zpotrf_batched_crossover
 magma_int_t magma_get_cpotrf_batched_crossover()
 {
-    magma_int_t arch = magma_getdevice_arch();
-    if(arch >= 700){
-        return 576;
-    }
-    else if(arch >= 600){
-        return 544;
-    }
-    else{
-        return 224;
-    }
+    // default
+    magma_int_t crossover = 128;
+    //magma_int_t arch = magma_getdevice_arch();
+
+    #if defined(MAGMA_HAVE_CUDA)
+        // based on tests on GH200
+        // TODO: revise crossover for Ampere
+        crossover = 160;
+
+    #elif defined(MAGMA_HAVE_HIP)
+    #endif
+
+    return crossover;
 }
 
 /// @see magma_get_zpotrf_batched_crossover
 magma_int_t magma_get_dpotrf_batched_crossover()
 {
-    magma_int_t arch = magma_getdevice_arch();
-    if(arch >= 700){
-        return 640;
-    }
-    else if(arch >= 600){
-        return 576;
-    }
-    else{
-        return 384;
-    }
+    // default
+    magma_int_t crossover = 128;
+    //magma_int_t arch = magma_getdevice_arch();
+
+    #if defined(MAGMA_HAVE_CUDA)
+        // based on tests on GH200
+        // TODO: revise crossover for Ampere
+        crossover = 160;
+
+    #elif defined(MAGMA_HAVE_HIP)
+    #endif
+
+    return crossover;
 }
 
 /// @see magma_get_zpotrf_batched_crossover
 magma_int_t magma_get_spotrf_batched_crossover()
 {
-    magma_int_t arch = magma_getdevice_arch();
-    if(arch >= 700){
-        return 608;
-    }
-    else if(arch >= 600){
-        return 544;
-    }
-    else{
-        return 432;
-    }
+    // default
+    magma_int_t crossover = 128;
+    //magma_int_t arch = magma_getdevice_arch();
+
+    #if defined(MAGMA_HAVE_CUDA)
+        // based on tests on GH200
+        // TODO: revise crossover for Ampere
+        crossover = 192;
+
+    #elif defined(MAGMA_HAVE_HIP)
+    #endif
+
+    return crossover;
 }
+
 /***************************************************************************//**
     @return the crossover point between the _lg or the kernel directly
 *******************************************************************************/
