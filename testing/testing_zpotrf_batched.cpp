@@ -207,6 +207,10 @@ int main( int argc, char** argv)
             else {
                 magma_int_t    nb = opts.nb;
                 magma_int_t recnb = opts.nrhs;
+
+                if(opts.nb <= 0) {
+                    magma_get_zpotrf_batched_nbparam(N, &nb, &recnb);
+                }
                 gpu_time = magma_sync_wtime( opts.queue );
                 info = 0;
                 magma_zpotrf_lg_batched(
@@ -232,7 +236,7 @@ int main( int argc, char** argv)
             if (status == -1)
                 goto cleanup;
 
-
+            if(opts.niter > 1 && iter == 0) printf("#");
             /* =====================================================================
                Performs operation using LAPACK
                =================================================================== */
@@ -308,7 +312,7 @@ cleanup:
             break;
 
         if ( opts.niter > 1 ) {
-            printf( "\n" );
+            printf( "#\n" );
         }
     }
 
