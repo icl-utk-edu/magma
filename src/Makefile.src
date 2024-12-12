@@ -115,7 +115,6 @@ libmagma_src += \
 	$(cdir)/zgeqrf_mgpu.cpp		\
 	\
 	$(cdir)/zgeqp3_gpu.cpp		\
-	$(cdir)/zlaqps_gpu.cpp		\
 
 # QR, CPU interface
 libmagma_src += \

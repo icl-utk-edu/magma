@@ -250,7 +250,6 @@ magma_zgeqp3_expert_gpu_work(
                 /* Factorize JB columns among columns J:N. */
                 n_j = n - j;
 
-                //magma_zlaqps_gpu    // this is a cpp-file
                 magma_zlaqps2_gpu   // this is a cuda-file
                     ( m, n_j, j, jb, &fjb,
                       dA(0, j), ldda,
