@@ -1380,17 +1380,6 @@ magma_zlaqps(
 
 // CUDA MAGMA only
 magma_int_t
-magma_zlaqps_gpu(
-    magma_int_t m, magma_int_t n, magma_int_t offset,
-    magma_int_t nb, magma_int_t *kb,
-    magmaDoubleComplex_ptr dA,  magma_int_t ldda,
-    magma_int_t *jpvt, magmaDoubleComplex *tau,
-    double *vn1, double *vn2,
-    magmaDoubleComplex_ptr dauxv,
-    magmaDoubleComplex_ptr dF, magma_int_t lddf);
-
-// CUDA MAGMA only
-magma_int_t
 magma_zlaqps2_gpu(
     magma_int_t m, magma_int_t n, magma_int_t offset,
     magma_int_t nb, magma_int_t *kb,

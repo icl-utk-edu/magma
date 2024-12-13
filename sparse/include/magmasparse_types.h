@@ -20,30 +20,6 @@
 #include <omp.h>
 #endif
 
-/* (author: Cade Brown <cbrow216@vols.utk.edu>
- *
- * There have been changes to cuSPARSE in 10.2, specifically many removed hybrid formatting/partitioning, some
- *   solvers, solve analysis, and sparse BLAS (doti, srmm, ...). So, those must be fixed in the cuSPARSE version.
- *
- * As a result, these functionalities are not even included as deprecated features in hipSPARSE, they are excluded entirely.
- *
- * In the future, `MAGMA_USE_SOLVEANALYSIS` and similar switches should default to 'off', once the cuSPARSE backend is fixed
- *
- *
- */
-
-// if defined, use the cusparseSolveAnalysisInfo_t structures & functionality
-//#define MAGMA_USE_SOLVEANALYSIS
-
-#if defined(MAGMA_HAVE_CUDA)
-// for now, enable, but this has been deprecated
-// eventually this should be disabled by default
-#define MAGMA_USE_SOLVEANALYSIS
-#elif defined(MAGMA_HAVE_HIP)
-
-#define MAGMA_USE_SOLVEANALYSIS
-#endif
-
 /* Currently unsupported hipsparse functions
  *
  * (these should be added in ROCm 3.5, or otherwise pretty soon)
@@ -416,63 +392,7 @@ extern "C"
     typedef magma_c_matrix magma_c_vector;
     typedef magma_z_matrix magma_z_vector;
 
-    /*
-typedef struct magma_z_vector
-{
-    magma_location_t   memory_location;         // CPU or DEV
-    magma_int_t        num_rows;                // number of rows
-    magma_int_t        num_cols;                // number of columns (in case of a block of vectors)
-    magma_int_t        nnz;                     // opt: number of nonzeros
-    union {
-        magmaDoubleComplex      *val;           // array containing values in CPU case
-        magmaDoubleComplex_ptr  dval;           // array containing values in DEV case
-    };
-    magma_order_t      major;                   // storage type:Row/Column-Major
-} magma_z_vector;
-
-typedef struct magma_c_vector
-{
-    magma_location_t   memory_location;         // CPU or DEV
-    magma_int_t        num_rows;                // number of rows
-    magma_int_t        num_cols;                // number of columns (in case of a block of vectors)
-    magma_int_t        nnz;                     // opt: number of nonzeros
-    union {
-        magmaFloatComplex       *val;           // array containing values in CPU case
-        magmaFloatComplex_ptr   dval;           // array containing values in DEV case
-    };
-    magma_order_t      major;                   // storage type:Row/Column-Major
-} magma_c_vector;
-
-
-typedef struct magma_d_vector
-{
-    magma_location_t   memory_location;         // CPU or DEV
-    magma_int_t        num_rows;                // number of rows
-    magma_int_t        num_cols;                // number of columns (in case of a block of vectors)
-    magma_int_t        nnz;                     // opt: number of nonzeros
-    union {
-        double                  *val;           // array containing values in CPU case
-        magmaDouble_ptr         dval;           // array containing values in DEV case
-    };
-    magma_order_t      major;                   // storage type:Row/Column-Major
-} magma_d_vector;
-
-
-typedef struct magma_s_vector
-{
-    magma_location_t   memory_location;         // CPU or DEV
-    magma_int_t        num_rows;                // number of rows
-    magma_int_t        num_cols;                // number of columns (in case of a block of vectors)
-    magma_int_t        nnz;                     // opt: number of nonzeros
-    union {
-        float                   *val;           // array containing values in CPU case
-        magmaFloat_ptr          dval;           // array containing values in DEV case
-    };
-    magma_order_t      major;                   // storage type:Row/Column-Major
-} magma_s_vector;
-*/
-
-    //*****************     solver parameters     ********************************//
+    /*****************     solver parameters     *******************************/
 
     typedef struct magma_z_solver_par
     {
