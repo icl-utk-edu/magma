@@ -56,6 +56,20 @@ void magma_get_zpotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
     }
 
     #elif defined(MAGMA_HAVE_HIP)
+    // tuning based on benchmarks using MI210
+    if( n <= 288 ) {
+        *nb    = 512;
+        *recnb = 256;
+    }
+    else if( n <= 544 ) {
+        *nb    = 64;
+        *recnb = 32;
+    }
+    else {
+        *nb    = 32;
+        *recnb = 16;
+    }
+
     #endif
 }
 
@@ -78,6 +92,16 @@ void magma_get_cpotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
     }
 
     #elif defined(MAGMA_HAVE_HIP)
+    // tuning based on benchmarks using MI210
+    if( n <= 160 ) {
+        *nb    = 512;
+        *recnb = 256;
+    }
+    else {
+        *nb    = 32;
+        *recnb = 16;
+    }
+
     #endif
 }
 
@@ -104,6 +128,32 @@ void magma_get_dpotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
     }
 
     #elif defined(MAGMA_HAVE_HIP)
+    // tuning based on benchmarks using MI210
+    if( n <= 224 ) {
+        *nb    = 512;
+        *recnb = 256;
+    }
+    else if ( n <= 352 ) {
+        *nb    = 512;
+        *recnb = 32;
+    }
+    else if ( n <= 512 ) {
+        *nb    = 64;
+        *recnb = 32;
+    }
+    else if ( n <= 896 ) {
+        *nb    = 128;
+        *recnb = 64;
+    }
+    else if ( n <= 992 ) {
+        *nb    = 256;
+        *recnb = 64;
+    }
+    else {
+        *nb    = 512;
+        *recnb = 64;
+    }
+
     #endif
 }
 
@@ -126,6 +176,24 @@ void magma_get_spotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
     }
 
     #elif defined(MAGMA_HAVE_HIP)
+    // tuning based on benchmarks using MI210
+    if( n <= 224 ) {
+        *nb    = 512;
+        *recnb = 256;
+    }
+    else if ( n <= 352 ) {
+        *nb    = 256;
+        *recnb = 128;
+    }
+    else if ( n <= 832 ) {
+        *nb    = 512;
+        *recnb = 256;
+    }
+    else {
+        *nb    = 256;
+        *recnb = 128;
+    }
+
     #endif
 }
 
