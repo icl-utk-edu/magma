@@ -55,28 +55,16 @@
 
 
 ============================================================
-@defgroup magma_internal            Internal routines
-@{
-    @defgroup magma_error_internal  Error handling
-    @defgroup magma_testing         Testing routines
-    @defgroup magma_thread          Thread management
-    @defgroup magma_timer           Timer utilities
-    @defgroup magma_panel2q         QR panel to q, q to panel
-    @defgroup magma_kernel          GPU Kernels
-@}
-
-
-============================================================
-@defgroup dense                     Dense linear algebra
+@defgroup dense                     Dense LA
 @brief    Designed to operate on large, dense matrices.
 @{
 
     ------------------------------------------------------------
     @defgroup group_solvers             Linear system solvers
-    @brief    Solves \f$ Ax = b \f$
+    @brief    Solves $Ax = b$
     @{
         @defgroup group_gesv            General matrices: LU
-        @brief    Solves \f$ Ax = b \f$ using LU factorization for general matrices
+        @brief    Solves $Ax = b$ using LU factorization for general matrices
         @{
             @defgroup magma_gesv        gesv:  Solves Ax = b using LU factorization (driver)
             @defgroup magma_getrf       getrf: LU factorization
@@ -98,7 +86,7 @@
         @}
 
         @defgroup group_gesv_rbt            General matrices: RBT + no pivoting LU
-        @brief    Solves \f$ Ax = b \f$ using RBT + no pivoting LU factorization for general matrices
+        @brief    Solves $Ax = b$ using RBT + no pivoting LU factorization for general matrices
         @{
             @defgroup magma_gesv_rbt        gesv_rbt: Solves Ax = b using RBT + LU factorization (driver)
             @defgroup magma_gerbt           gerbt: Apply random butterfly transformation (RBT)
@@ -111,16 +99,16 @@
         @}
 
         @defgroup group_gels            General matrices: least squares
-        @brief    Solves \f$ Ax \approx b \f$ where \f$ A \f$ is rectangular
+        @brief    Solves $Ax \approx b$ where $A$ is rectangular
         @see group_orthogonal
         @{
             @defgroup magma_gels        gels: Least squares solves Ax = b using QR factorization (driver)
-            @defgroup magma_gglse       gglse: Least squares solves Ax = b subject to Bx = d (driver) 
+            @defgroup magma_gglse       gglse: Least squares solves Ax = b subject to Bx = d (driver)
             @defgroup magma_geqrsv      geqrsv: Solves Ax = b using QR factorization (driver)
         @}
 
         @defgroup group_posv            Symmetric/Hermitian positive definite: Cholesky
-        @brief    Solves \f$ Ax = b \f$ using Cholesky factorization for SPD/HPD matrices
+        @brief    Solves $Ax = b$ using Cholesky factorization for SPD/HPD matrices
         @{
             @defgroup magma_posv        posv:  Solves Ax = b using Cholesky factorization (driver)
             @defgroup magma_potrf       potrf: Cholesky factorization
@@ -134,7 +122,7 @@
         @}
 
         @defgroup group_hesv            Symmetric/Hermitian indefinite
-        @brief    Solves \f$ Ax = b \f$ using indefinite factorization for Hermitian matrices
+        @brief    Solves $Ax = b$ using indefinite factorization for Hermitian matrices
         @{
             @defgroup magma_hesv        sy/hesv:  Solves Ax = b using symmetric/Hermitian indefinite factorization (driver)
             @defgroup magma_hetrf       sy/hetrf: symmetric/Hermitian indefinite factorization (Bunch-Kaufman pivoting)
@@ -153,7 +141,7 @@
         @}
 
         @defgroup group_sysv            Symmetric indefinite
-        @brief    Solves \f$ Ax = b \f$ using indefinite factorization for symmetric matrices
+        @brief    Solves $Ax = b$ using indefinite factorization for symmetric matrices
         @{
             @defgroup group_sysv_nopiv  No pivoting variant
             @{
@@ -166,10 +154,10 @@
 
     ------------------------------------------------------------
     @defgroup group_orthogonal          Orthogonal/unitary factorizations
-    @brief    Factor \f$ A \f$ using \f$ QR, RQ, QL, LQ \f$
+    @brief    Factor $A$ using $QR, RQ, QL, LQ$
     @{
         @defgroup group_qr              QR factorization
-        @brief    Factor \f$ A = QR \f$
+        @brief    Factor $A = QR$
         @{
             @defgroup magma_geqrf       geqrf: QR factorization
             @defgroup magma_geqp3       geqp3: QR factorization with column pivoting
@@ -189,7 +177,7 @@
         @}
 
         @defgroup group_rq              RQ factorization
-        @brief    Factor \f$ A = RQ \f$
+        @brief    Factor $A = RQ$
         @{
             @defgroup magma_gerqf       gerqf: RQ factorization
             @defgroup magma_ggrqf       ggrqf: generalized RQ factorization of an M-by-N matrix A and a P-by-N matrix B
@@ -198,7 +186,7 @@
         @}
 
         @defgroup group_ql              QL factorization
-        @brief    Factor \f$ A = QL \f$
+        @brief    Factor $A = QL$
         @{
             @defgroup magma_geqlf       geqlf: QL factorization
             @defgroup magma_unmql       or/unmql: Multiply by Q from QL factorization
@@ -206,7 +194,7 @@
         @}
 
         @defgroup group_lq              LQ factorization
-        @brief    Factor \f$ A = LQ \f$
+        @brief    Factor $A = LQ$
         @{
             @defgroup magma_gelqf       gelqf: LQ factorization
             @defgroup magma_unmlq       or/unmlq: Multiply by Q from LQ factorization
@@ -216,10 +204,10 @@
 
     ------------------------------------------------------------
     @defgroup group_eigenvalue          Eigenvalues
-    @brief    Solves \f$ Ax = \lambda x \f$
+    @brief    Solves $Ax = \lambda x$
     @{
         @defgroup group_geev            Non-symmetric eigenvalues
-        @brief    Solves \f$ Ax = \lambda x \f$ where \f$ A \f$ is general
+        @brief    Solves $Ax = \lambda x$ where $A$ is general
         @{
             @defgroup magma_geev        geev:  Non-symmetric eigenvalues (driver)
             @defgroup magma_gehrd       gehrd: Hessenberg reduction
@@ -236,7 +224,7 @@
         @}
 
         @defgroup group_heev            Symmetric/Hermitian eigenvalues
-        @brief    Solves \f$ Ax = \lambda x \f$ where \f$ A \f$ is symmetric/Hermitian
+        @brief    Solves $Ax = \lambda x$ where $A$ is symmetric/Hermitian
         @{
             @defgroup magma_heevx       sy/heevx:  Solves using QR iteration (expert)
             @defgroup magma_heevd       sy/heevd:  Solves using divide-and-conquer (driver)
@@ -267,11 +255,11 @@
         @}
 
         @defgroup group_hegv            Generalized Symmetric/Hermitian eigenvalues
-        @brief    Solves \f$ Ax  = \lambda B x \f$,
-                         \f$ ABx = \lambda   x \f$, or
-                         \f$ BAx = \lambda   x \f$
-                  where \f$ A, B \f$ are symmetric/Hermitian
-                  and \f$ B \f$ is positive definite.
+        @brief    Solves $Ax  = \lambda B x$,
+                         $ABx = \lambda   x$, or
+                         $BAx = \lambda   x$
+                  where $A, B$ are symmetric/Hermitian
+                  and $B$ is positive definite.
         @{
             @defgroup magma_hegvx       sy/hegvx:  Solves using QR iteration (expert)
             @defgroup magma_hegvd       sy/hegvd:  Solves using divide-and-conquer (driver)
@@ -286,7 +274,7 @@
 
     ------------------------------------------------------------
     @defgroup group_svd                 Singular Value Decomposition (SVD)
-    @brief    Factor \f$ A = U \Sigma V^T \f$
+    @brief    Factor $A = U \Sigma V^T$
     @{
         @defgroup magma_gesvd           gesvd: SVD using QR iteration
         @defgroup magma_gesdd           gesdd: SVD using divide-and-conquer
@@ -316,30 +304,30 @@
         @}
 
         @defgroup group_blas1           Level 1: vectors operations, O(n) work
-        @brief    Vector operations that perform \f$ O(n) \f$ work on \f$ O(n) \f$ data.
+        @brief    Vector operations that perform $O(n)$ work on $O(n)$ data.
                   These are memory bound, since every operation requires a memory read or write.
         @{
             @defgroup magma_asum        asum:  Sum vector
-            @brief    \f$ \sum_i |x_i| \f$
+            @brief    $\sum_i |x_i|$
 
             @defgroup magma_axpy        axpy:  Add vectors
-            @brief    \f$ y = \alpha x + y \f$
+            @brief    $y = \alpha x + y$
 
             @defgroup magma_copy        copy:  Copy vector
-            @brief    \f$ y = x \f$
+            @brief    $y = x$
 
             @defgroup magma__dot        dot:   Dot (inner) product
-            @brief    \f$ x^T y \f$
-                   or \f$ x^H y \f$
+            @brief    $x^T y$
+                   or $x^H y$
 
             @defgroup magma_iamax       iamax: Find max element
-            @brief    \f$ \text{argmax}_i\; |x_i| \f$
+            @brief    $\text{argmax}_i\; |x_i|$
 
             @defgroup magma_iamin       iamin: Find min element
-            @brief    \f$ \text{argmin}_i\; |x_i| \f$
+            @brief    $\text{argmin}_i\; |x_i|$
 
             @defgroup magma_nrm2        nrm2:  Vector 2 norm
-            @brief    \f$ ||x||_2 \f$
+            @brief    $||x||_2$
 
             @defgroup magma_rot         rot:   Apply Givens rotation
 
@@ -350,48 +338,48 @@
             @defgroup magma_rotmg       rotmg: Generate modified Givens rotation
 
             @defgroup magma_scal        scal:  Scale vector
-            @brief    \f$ x = \alpha x \f$
+            @brief    $x = \alpha x$
 
             @defgroup magma_swap        swap:  Swap vectors
-            @brief    \f$ x <=> y \f$
+            @brief    $x <=> y$
         @}
 
         @defgroup group_blas2           Level 2: matrix-vector operations, O(n^2) work
-        @brief    Matrix operations that perform \f$ O(n^2) \f$ work on \f$ O(n^2) \f$ data.
+        @brief    Matrix operations that perform $O(n^2)$ work on $O(n^2)$ data.
                   These are memory bound, since every operation requires a memory read or write.
         @{
             @defgroup magma_geadd       geadd:      Add matrices
-            @brief    \f$ B = \alpha A + \beta B \f$
+            @brief    $B = \alpha A + \beta B$
 
             @defgroup magma_gemv        gemv:       General matrix-vector multiply
-            @brief    \f$ y = \alpha Ax + \beta y \f$
+            @brief    $y = \alpha Ax + \beta y$
 
             @defgroup magma_ger         ger:        General matrix rank 1 update
-            @brief    \f$ A = \alpha xy^T + A \f$
+            @brief    $A = \alpha xy^T + A$
 
             @defgroup magma_hemv        hemv:       Hermitian matrix-vector multiply
-            @brief    \f$ y = \alpha Ax + \beta y \f$
+            @brief    $y = \alpha Ax + \beta y$
 
             @defgroup magma_her         her:        Hermitian rank 1 update
-            @brief    \f$ A = \alpha xx^T + A \f$
+            @brief    $A = \alpha xx^T + A$
 
             @defgroup magma_her2        her2:       Hermitian rank 2 update
-            @brief    \f$ A = \alpha xy^T + \alpha yx^T + A \f$
+            @brief    $A = \alpha xy^T + \alpha yx^T + A$
 
             @defgroup magma_symv        symv:       Symmetric matrix-vector multiply
-            @brief    \f$ y = \alpha Ax + \beta y \f$
+            @brief    $y = \alpha Ax + \beta y$
 
             @defgroup magma_syr         syr:        Symmetric rank 1 update
-            @brief    \f$ A = \alpha xx^T + A \f$
+            @brief    $A = \alpha xx^T + A$
 
             @defgroup magma_syr2        syr2:       Symmetric rank 2 update
-            @brief    \f$ A = \alpha xy^T + \alpha yx^T + A \f$
+            @brief    $A = \alpha xy^T + \alpha yx^T + A$
 
             @defgroup magma_trmv        trmv:       Triangular matrix-vector multiply
-            @brief    \f$ x = Ax \f$
+            @brief    $x = Ax$
 
             @defgroup magma_trsv        trsv:       Triangular matrix-vector solve
-            @brief    \f$ x = op(A^{-1})\; b \f$
+            @brief    $x = op(A^{-1})\; b$
 
             ----
 
@@ -400,75 +388,75 @@
             @defgroup magma_swapdblk    swapdblk:   Swap diagonal blocks
 
             @defgroup magma_symmetrize  symmetrize: Symmetrize matrix
-            @brief    \f$ \text{upper}(A) = \text{lower}(A)^T \f$
-                   or \f$ \text{lower}(A) = \text{upper}(A)^T \f$
+            @brief    $\text{upper}(A) = \text{lower}(A)^T$
+                   or $\text{lower}(A) = \text{upper}(A)^T$
 
             @defgroup magma_transpose   transpose:  Transpose matrix
-            @brief    \f$ B = A^T \f$
-                   or \f$ B = A^H \f$
+            @brief    $B = A^T$
+                   or $B = A^H$
 
             @defgroup magma_lacgv       lacgv:      Conjugate vector
-            @brief    \f$ x = conj(x) \f$
+            @brief    $x = conj(x)$
 
             @defgroup magma_lacpy       lacpy:      Copy matrix
-            @brief    \f$ B = A \f$
+            @brief    $B = A$
 
             @defgroup magma_lascl       lascl:      Scale matrix by scalar
-            @brief    \f$ A = \alpha A \f$
+            @brief    $A = \alpha A$
 
             @defgroup magma_lascl_diag  lascl_diag: Scale matrix by diagonal
-            @brief    \f$ A = D A \f$
+            @brief    $A = D A$
 
             @defgroup magma_lascl_2x2   lascl_2x2:  Scale matrix by 2-by-2 pivot
-            @brief    \f$ A = D A \f$
+            @brief    $A = D A$
 
             @defgroup magma_laset       laset:      Set matrix to constants
-            @brief    \f$ A_{ij} = \f$ diag    if \f$ i=j \f$;
-                      \f$ A_{ij} = \f$ offdiag otherwise.
+            @brief    $A_{ij} =$ diag    if $i=j$;
+                      $A_{ij} =$ offdiag otherwise.
 
             @defgroup magma_laset_band  laset_band: Set band of matrix to constants
-            @brief    \f$ A_{ij} = \f$ diag    if \f$ i=j \f$;
-                      \f$ A_{ij} = \f$ offdiag otherwise.
+            @brief    $A_{ij} =$ diag    if $i=j$;
+                      $A_{ij} =$ offdiag otherwise.
         @}
 
         @defgroup group_blas3           Level 3: matrix-matrix operations, O(n^3) work
-        @brief    Matrix-matrix operations that perform \f$ O(n^3) \f$ work on \f$ O(n^2) \f$ data.
+        @brief    Matrix-matrix operations that perform $O(n^3)$ work on $O(n^2)$ data.
                   These benefit from cache reuse, since many operations can be
                   performed for every read from main memory.
         @{
             @defgroup magma_gemm        gemm:  General matrix multiply: C = AB + C
-            @brief    \f$ C = \alpha \;op(A) \;op(B) + \beta C \f$
+            @brief    $C = \alpha \;op(A) \;op(B) + \beta C$
 
             @defgroup magma_hemm        hemm:  Hermitian matrix multiply
-            @brief    \f$ C = \alpha A B + \beta C \f$
-                   or \f$ C = \alpha B A + \beta C \f$ where \f$ A \f$ is Hermitian
+            @brief    $C = \alpha A B + \beta C$
+                   or $C = \alpha B A + \beta C$ where $A$ is Hermitian
 
             @defgroup magma_herk        herk:  Hermitian rank k update
-            @brief    \f$ C = \alpha A A^T + \beta C \f$ where \f$ C \f$ is Hermitian
+            @brief    $C = \alpha A A^T + \beta C$ where $C$ is Hermitian
 
             @defgroup magma_her2k       her2k: Hermitian rank 2k update
-            @brief    \f$ C = \alpha A B^T + \alpha B A^T + \beta C \f$ where \f$ C \f$ is Hermitian
+            @brief    $C = \alpha A B^T + \alpha B A^T + \beta C$ where $C$ is Hermitian
 
             @defgroup magma_symm        symm:  Symmetric matrix multiply
-            @brief    \f$ C = \alpha A B + \beta C \f$
-                   or \f$ C = \alpha B A + \beta C \f$ where \f$ A \f$ is symmetric
+            @brief    $C = \alpha A B + \beta C$
+                   or $C = \alpha B A + \beta C$ where $A$ is symmetric
 
             @defgroup magma_syrk        syrk:  Symmetric rank k update
-            @brief    \f$ C = \alpha A A^T + \beta C \f$ where \f$ C \f$ is symmetric
+            @brief    $C = \alpha A A^T + \beta C$ where $C$ is symmetric
 
             @defgroup magma_syr2k       syr2k: Symmetric rank 2k update
-            @brief    \f$ C = \alpha A B^T + \alpha B A^T + \beta C \f$ where \f$ C \f$ is symmetric
+            @brief    $C = \alpha A B^T + \alpha B A^T + \beta C$ where $C$ is symmetric
 
             @defgroup magma_trmm        trmm:  Triangular matrix multiply
-            @brief    \f$ B = \alpha \;op(A)\; B \f$
-                   or \f$ B = \alpha B \;op(A)   \f$ where \f$ A \f$ is triangular
+            @brief    $B = \alpha \;op(A)\; B$
+                   or $B = \alpha B \;op(A)  $ where $A$ is triangular
 
             @defgroup magma_trsm        trsm:  Triangular solve matrix
-            @brief    \f$ C = op(A)^{-1} B   \f$
-                   or \f$ C = B \;op(A)^{-1} \f$ where \f$ A \f$ is triangular
+            @brief    $C = op(A)^{-1} B  $
+                   or $C = B \;op(A)^{-1}$ where $A$ is triangular
 
             @defgroup magma_trtri       trtri: Triangular inverse; used in getri, potri
-            @brief    \f$ A = A^{-1} \f$ where \f$ A \f$ is triangular
+            @brief    $A = A^{-1}$ where $A$ is triangular
 
             @defgroup magma_trtri_diag  trtri_diag: Invert diagonal blocks of triangular matrix; used in trsm
         @}
@@ -499,17 +487,17 @@
 
 
 ============================================================
-@defgroup batched                   Batched
+@defgroup batched                   Batched LA
 @brief    Batched functions operate on a large set of small matrices
           in parallel, for instance, 10000 matrices of size 100 x 100.
 @{
 
     ------------------------------------------------------------
     @defgroup group_solvers_batched     Linear system solvers
-    @brief    Solves \f$ Ax = b \f$.
+    @brief    Solves $Ax = b$.
     @{
         @defgroup group_gesv_batched    General matrices: LU
-        @brief    Solves \f$ Ax = b \f$ using LU factorization for general matrices
+        @brief    Solves $Ax = b$ using LU factorization for general matrices
         @{
             @defgroup magma_gesv_batched        gesv:  Solves Ax = b using LU factorization (driver)
             @defgroup magma_getrf_batched       getrf: LU factorization
@@ -531,7 +519,7 @@
         @}
 
         @defgroup group_gesv_rbt_batched      General matrices: RBT + no pivoting LU
-        @brief    Solves \f$ Ax = b \f$ using RBT + no pivoting LU factorization for general matrices
+        @brief    Solves $Ax = b$ using RBT + no pivoting LU factorization for general matrices
         @{
             @defgroup magma_gesv_rbt_batched        gesv_rbt: Solves Ax = b using RBT + LU factorization (driver)
             @defgroup magma_gesv_rbt_aux_batched    Auxiliary routines
@@ -544,14 +532,14 @@
         @}
 
         @defgroup group_gels_batched      General matrices: least squares
-        @brief    Solves \f$ Ax \approx b \f$ where \f$ A \f$ is rectangular
+        @brief    Solves $Ax \approx b$ where $A$ is rectangular
         @see group_orthogonal
         @{
             @defgroup magma_gels_batched        gels: Least squares solves Ax = b using QR factorization (driver)
         @}
 
         @defgroup group_posv_batched      Symmetric/Hermitian positive definite: Cholesky
-        @brief    Solves \f$ Ax = b \f$ using Cholesky factorization for SPD/HPD matrices
+        @brief    Solves $Ax = b$ using Cholesky factorization for SPD/HPD matrices
         @{
             @defgroup magma_posv_batched        posv:  Solves Ax = b using Cholesky factorization (driver)
             @defgroup magma_potrf_batched       potrf: Cholesky factorization
@@ -566,7 +554,7 @@
         @}
 
         @defgroup group_hesv_batched      Hermitian indefinite
-        @brief    Solves \f$ Ax = b \f$ using indefinite factorization for Hermitian matrices
+        @brief    Solves $Ax = b$ using indefinite factorization for Hermitian matrices
         @{
             @defgroup magma_hesv_batched        hesv:  Solves Ax = b using symmetric indefinite factorization (driver)
             @defgroup magma_hesv_nopiv_batched  hesv:  Solves Ax = b using symmetric indefinite factorization - no pivoting (driver)
@@ -581,7 +569,7 @@
         @}
 
         @defgroup group_sysv_batched      Symmetric indefinite
-        @brief    Solves \f$ Ax = b \f$ using indefinite factorization for symmetric matrices
+        @brief    Solves $Ax = b$ using indefinite factorization for symmetric matrices
         @{
             @defgroup magma_sysv_batched        sysv:  Solves Ax = b using symmetric indefinite factorization (driver)
             @defgroup magma_sysv_nopiv_batched  sysv:  Solves Ax = b using symmetric indefinite factorization - no pivoting (driver)
@@ -598,10 +586,10 @@
 
     ------------------------------------------------------------
     @defgroup group_orthogonal_batched    Orthogonal/unitary factorizations
-    @brief    Factor \f$ A \f$ using \f$ QR, RQ, QL, LQ \f$
+    @brief    Factor $A$ using $QR, RQ, QL, LQ$
     @{
         @defgroup group_qr_batched        QR factorization
-        @brief    Factor \f$ A = QR \f$
+        @brief    Factor $A = QR$
         @{
             @defgroup magma_geqrf_batched       geqrf: QR factorization
             @defgroup magma_unmqr_batched       or/unmqr: Multiply by Q from QR factorization
@@ -614,7 +602,7 @@
         @}
 
         @defgroup group_rq_batched        RQ factorization
-        @brief    Factor \f$ A = RQ \f$
+        @brief    Factor $A = RQ$
         @{
             @defgroup magma_gerqf_batched       gerqf: RQ factorization
             @defgroup magma_unmrq_batched       or/unmrq: Multiply by Q from RQ factorization
@@ -622,7 +610,7 @@
         @}
 
         @defgroup group_ql_batched        QL factorization
-        @brief    Factor \f$ A = QL \f$
+        @brief    Factor $A = QL$
         @{
             @defgroup magma_geqlf_batched       geqlf: QL factorization
             @defgroup magma_unmql_batched       or/unmql: Multiply by Q from QL factorization
@@ -630,7 +618,7 @@
         @}
 
         @defgroup group_lq_batched        LQ factorization
-        @brief    Factor \f$ A = LQ \f$
+        @brief    Factor $A = LQ$
         @{
             @defgroup magma_gelqf_batched       gelqf: LQ factorization
             @defgroup magma_unmlq_batched       or/unmlq: Multiply by Q from LQ factorization
@@ -643,29 +631,29 @@
     @brief    Batched BLAS and Auxiliary functions.
     @{
         @defgroup group_blas1_batched           Level 1: vectors operations, O(n) work
-        @brief    Vector operations that perform \f$ O(n) \f$ work on \f$ O(n) \f$ data.
+        @brief    Vector operations that perform $O(n)$ work on $O(n)$ data.
         @{
             @defgroup magma_asum_batched        asum:  Sum vector
-            @brief    \f$ \sum_i |x_i| \f$
+            @brief    $\sum_i |x_i|$
 
             @defgroup magma_axpy_batched        axpy:  Add vectors
-            @brief    \f$ y = \alpha x + y \f$
+            @brief    $y = \alpha x + y$
 
             @defgroup magma_copy_batched        copy:  Copy vector
-            @brief    \f$ y = x \f$
+            @brief    $y = x$
 
             @defgroup magma__dot_batched        dot:   Dot (inner) product
-            @brief    \f$ x^T y \f$
-                   or \f$ x^H y \f$
+            @brief    $x^T y$
+                   or $x^H y$
 
             @defgroup magma_iamax_batched       iamax: Find max element
-            @brief    \f$ \text{argmax}_i\; |x_i| \f$
+            @brief    $\text{argmax}_i\; |x_i|$
 
             @defgroup magma_iamin_batched       iamin: Find min element
-            @brief    \f$ \text{argmin}_i\; |x_i| \f$
+            @brief    $\text{argmin}_i\; |x_i|$
 
             @defgroup magma_nrm2_batched        nrm2:  Vector 2 norm
-            @brief    \f$ ||x||_2 \f$
+            @brief    $||x||_2$
 
             @defgroup magma_rot_batched         rot:   Apply Givens rotation
 
@@ -676,48 +664,48 @@
             @defgroup magma_rotmg_batched       rotmg: Generate modified Givens rotation
 
             @defgroup magma_scal_batched        scal:  Scale vector
-            @brief    \f$ x = \alpha x \f$
+            @brief    $x = \alpha x$
 
             @defgroup magma_swap_batched        swap:  Swap vectors
-            @brief    \f$ x <=> y \f$
+            @brief    $x <=> y$
         @}
 
         @defgroup group_blas2_batched           Level 2: matrix-vector operations, O(n^2) work
-        @brief    Matrix operations that perform \f$ O(n^2) \f$ work on \f$ O(n^2) \f$ data.
+        @brief    Matrix operations that perform $O(n^2)$ work on $O(n^2)$ data.
               These are memory bound, since every operation requires a memory read or write.
         @{
             @defgroup magma_geadd_batched       geadd:      Add matrices
-            @brief    \f$ B = \alpha A + \beta B \f$
+            @brief    $B = \alpha A + \beta B$
 
             @defgroup magma_gemv_batched        gemv:       General matrix-vector multiply
-            @brief    \f$ y = \alpha Ax + \beta y \f$
+            @brief    $y = \alpha Ax + \beta y$
 
             @defgroup magma_ger_batched         ger:        General matrix rank 1 update
-            @brief    \f$ A = \alpha xy^T + A \f$
+            @brief    $A = \alpha xy^T + A$
 
             @defgroup magma_hemv_batched        hemv:       Hermitian matrix-vector multiply
-            @brief    \f$ y = \alpha Ax + \beta y \f$
+            @brief    $y = \alpha Ax + \beta y$
 
             @defgroup magma_her_batched         her:        Hermitian rank 1 update
-            @brief    \f$ A = \alpha xx^T + A \f$
+            @brief    $A = \alpha xx^T + A$
 
             @defgroup magma_her2_batched        her2:       Hermitian rank 2 update
-            @brief    \f$ A = \alpha xy^T + \alpha yx^T + A \f$
+            @brief    $A = \alpha xy^T + \alpha yx^T + A$
 
             @defgroup magma_symv_batched        symv:       Symmetric matrix-vector multiply
-            @brief    \f$ y = \alpha Ax + \beta y \f$
+            @brief    $y = \alpha Ax + \beta y$
 
             @defgroup magma_syr_batched         syr:        Symmetric rank 1 update
-            @brief    \f$ A = \alpha xx^T + A \f$
+            @brief    $A = \alpha xx^T + A$
 
             @defgroup magma_syr2_batched        syr2:       Symmetric rank 2 update
-            @brief    \f$ A = \alpha xy^T + \alpha yx^T + A \f$
+            @brief    $A = \alpha xy^T + \alpha yx^T + A$
 
             @defgroup magma_trmv_batched        trmv:       Triangular matrix-vector multiply
-            @brief    \f$ x = Ax \f$
+            @brief    $x = Ax$
 
             @defgroup magma_trsv_batched        trsv:       Triangular matrix-vector solve
-            @brief    \f$ x = op(A^{-1})\; b \f$
+            @brief    $x = op(A^{-1})\; b$
 
             ----
 
@@ -726,68 +714,68 @@
             @defgroup magma_swapdblk_batched    swapdblk:   Swap diagonal blocks
 
             @defgroup magma_symmetrize_batched  symmetrize: Symmetrize matrix
-            @brief    \f$ \text{upper}(A) = \text{lower}(A)^T \f$
-                   or \f$ \text{lower}(A) = \text{upper}(A)^T \f$
+            @brief    $\text{upper}(A) = \text{lower}(A)^T$
+                   or $\text{lower}(A) = \text{upper}(A)^T$
 
             @defgroup magma_transpose_batched   transpose:  Transpose matrix
-            @brief    \f$ B = A^T \f$
-                   or \f$ B = A^H \f$
+            @brief    $B = A^T$
+                   or $B = A^H$
 
             @defgroup magma_lacgv_batched       lacgv:      Conjugate vector
-            @brief    \f$ x = conj(x) \f$
+            @brief    $x = conj(x)$
 
             @defgroup magma_lacpy_batched       lacpy:      Copy matrix
-            @brief    \f$ B = A \f$
+            @brief    $B = A$
 
             @defgroup magma_lascl_batched       lascl:      Scale matrix by scalar
-            @brief    \f$ A = \alpha A \f$
+            @brief    $A = \alpha A$
 
             @defgroup magma_lascl2_batched      lascl2:     Scale matrix by diagonal
-            @brief    \f$ A = D A \f$
+            @brief    $A = D A$
 
             @defgroup magma_laset_batched       laset:      Set matrix to constants
-            @brief    \f$ A_{ij} = \f$ diag    if \f$ i=j \f$;
-                      \f$ A_{ij} = \f$ offdiag otherwise.
+            @brief    $A_{ij} =$ diag    if $i=j$;
+                      $A_{ij} =$ offdiag otherwise.
         @}
 
         @defgroup group_blas3_batched           Level 3: matrix-matrix operations, O(n^3) work
-        @brief    Matrix-matrix operations that perform \f$ O(n^3) \f$ work on \f$ O(n^2) \f$ data.
+        @brief    Matrix-matrix operations that perform $O(n^3)$ work on $O(n^2)$ data.
               These benefit from cache reuse, since many operations can be
               performed for every read from main memory.
         @{
             @defgroup magma_gemm_batched        gemm:  General matrix multiply: C = AB + C
-            @brief    \f$ C = \alpha \;op(A) \;op(B) + \beta C \f$
+            @brief    $C = \alpha \;op(A) \;op(B) + \beta C$
 
             @defgroup magma_hemm_batched        hemm:  Hermitian matrix multiply
-            @brief    \f$ C = \alpha A B + \beta C \f$
-                   or \f$ C = \alpha B A + \beta C \f$ where \f$ A \f$ is Hermitian
+            @brief    $C = \alpha A B + \beta C$
+                   or $C = \alpha B A + \beta C$ where $A$ is Hermitian
 
             @defgroup magma_herk_batched        herk:  Hermitian rank k update
-            @brief    \f$ C = \alpha A A^T + \beta C \f$ where \f$ C \f$ is Hermitian
+            @brief    $C = \alpha A A^T + \beta C$ where $C$ is Hermitian
 
             @defgroup magma_her2k_batched       her2k: Hermitian rank 2k update
-            @brief    \f$ C = \alpha A B^T + \alpha B A^T + \beta C \f$ where \f$ C \f$ is Hermitian
+            @brief    $C = \alpha A B^T + \alpha B A^T + \beta C$ where $C$ is Hermitian
 
             @defgroup magma_symm_batched        symm:  Symmetric matrix multiply
-            @brief    \f$ C = \alpha A B + \beta C \f$
-                   or \f$ C = \alpha B A + \beta C \f$ where \f$ A \f$ is symmetric
+            @brief    $C = \alpha A B + \beta C$
+                   or $C = \alpha B A + \beta C$ where $A$ is symmetric
 
             @defgroup magma_syrk_batched        syrk:  Symmetric rank k update
-            @brief    \f$ C = \alpha A A^T + \beta C \f$ where \f$ C \f$ is symmetric
+            @brief    $C = \alpha A A^T + \beta C$ where $C$ is symmetric
 
             @defgroup magma_syr2k_batched       syr2k: Symmetric rank 2k update
-            @brief    \f$ C = \alpha A B^T + \alpha B A^T + \beta C \f$ where \f$ C \f$ is symmetric
+            @brief    $C = \alpha A B^T + \alpha B A^T + \beta C$ where $C$ is symmetric
 
             @defgroup magma_trmm_batched        trmm:  Triangular matrix multiply
-            @brief    \f$ B = \alpha \;op(A)\; B \f$
-                   or \f$ B = \alpha B \;op(A)   \f$ where \f$ A \f$ is triangular
+            @brief    $B = \alpha \;op(A)\; B$
+                   or $B = \alpha B \;op(A)  $ where $A$ is triangular
 
             @defgroup magma_trsm_batched        trsm:  Triangular solve matrix
-            @brief    \f$ C = op(A)^{-1} B   \f$
-                   or \f$ C = B \;op(A)^{-1} \f$ where \f$ A \f$ is triangular
+            @brief    $C = op(A)^{-1} B  $
+                   or $C = B \;op(A)^{-1}$ where $A$ is triangular
 
             @defgroup magma_trtri_batched       trtri: Triangular inverse; used in getri, potri
-            @brief    \f$ A = A^{-1} \f$ where \f$ A \f$ is triangular
+            @brief    $A = A^{-1}$ where $A$ is triangular
 
             @defgroup magma_trtri_diag_batched  trtri_diag: Invert diagonal blocks of triangular matrix; used in trsm
         @}
@@ -823,15 +811,16 @@
 
 
 ============================================================
-@defgroup sparse  Sparse
+@defgroup sparse                   Sparse LA
 @brief    Routines for sparse linear algebra
 @{
+
     ------------------------------------------------------------
     @defgroup sparse_solvers       Sparse linear systems
-    @brief    Solve \f$ Ax = b \f$
+    @brief    Solve $Ax = b$
     @{
         @defgroup sparse_gesv      General matrices
-        @brief    Solve \f$ Ax = b \f$, for general \f$ A \f$
+        @brief    Solve $Ax = b$, for general $A$
         @{
             @defgroup magmasparse_sgesv single precision
             @defgroup magmasparse_dgesv double precision
@@ -840,8 +829,8 @@
         @}
 
         @defgroup sparse_posv      Symmetric/Hermitian positive definite
-        @brief    Solve \f$ Ax = b \f$,
-                  for symmetric/Hermitian positive definite (SPD) \f$ A \f$
+        @brief    Solve $Ax = b$,
+                  for symmetric/Hermitian positive definite (SPD) $A$
         @{
             @defgroup magmasparse_sposv single precision
             @defgroup magmasparse_dposv double precision
@@ -852,10 +841,10 @@
 
     ------------------------------------------------------------
     @defgroup sparse_eigenvalue    Sparse eigenvalues
-    @brief    Solve \f$ Ax = \lambda x \f$
+    @brief    Solve $Ax = \lambda x$
     @{
         @defgroup sparse_heev      Symmetric/Hermitian eigenvalues
-        @brief    Solve \f$ Ax = \lambda x \f$ for symmetric/Hermitian \f$ A \f$
+        @brief    Solve $Ax = \lambda x$ for symmetric/Hermitian $A$
         @{
             @defgroup magmasparse_ssyev single precision
             @defgroup magmasparse_dsyev double precision
@@ -866,10 +855,10 @@
 
     ------------------------------------------------------------
     @defgroup sparse_precond       Sparse preconditioners
-    @brief    Preconditioner for solving \f$ Ax = \lambda x \f$
+    @brief    Preconditioner for solving $Ax = \lambda x$
     @{
         @defgroup sparse_gepr      General matrix preconditioner
-        @brief    Preconditioners for non-symmetric \f$ A \f$
+        @brief    Preconditioners for non-symmetric $A$
         @{
             @defgroup magmasparse_sgepr single precision
             @defgroup magmasparse_dgepr double precision
@@ -878,7 +867,7 @@
         @}
 
         @defgroup sparse_hepr      Symmetric/Hermitian preconditioner
-        @brief    Preconditioners for symmetric/Hermitian \f$ A \f$
+        @brief    Preconditioners for symmetric/Hermitian $A$
         @{
             @defgroup magmasparse_shepr single precision
             @defgroup magmasparse_dhepr double precision
@@ -888,7 +877,7 @@
     @}
 
     ------------------------------------------------------------
-    @defgroup sparse_gpukernels    GPU kernels for sparse LA
+    @defgroup sparse_gpukernels    Sparse GPU kernels
     @{
         @defgroup sparse_gegpuk    GPU kernels for non-symmetric sparse LA
         @{
@@ -933,6 +922,28 @@
         @defgroup magmasparse_c single-complex precision
         @defgroup magmasparse_z double-complex precision
     @}
+@}
+
+============================================================
+@defgroup magma_internal            Internal routines
+@{
+    @defgroup magma_error_internal  Error handling
+    @defgroup magma_testing         Testing routines
+    @defgroup magma_thread          Thread management
+    @defgroup magma_timer           Timer utilities
+    @defgroup magma_panel2q         QR panel to q, q to panel
+    @defgroup magma_kernel          GPU Kernels
+@}
+
+============================================================
+@defgroup magma_deprecated          Deprecated
+@brief Deprecated routines will be removed in the next MAGMA release.
+       The MAGMA v1 interface is deprecated.
+       Portions of MAGMA-sparse are deprecated,
+       and all of MAGMA-sparse is "maintenance only".
+@{
+    @defgroup magma_deprecated_v1   Deprecated MAGMA v1 interface
+    @defgroup magma_deprecated_sparse  Deprecated MAGMA-sparse
 @}
 
 */

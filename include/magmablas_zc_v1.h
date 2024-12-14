@@ -22,6 +22,8 @@ extern "C" {
 #endif
 
   /* Mixed precision */
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zcaxpycp_v1(
@@ -31,6 +33,8 @@ magmablas_zcaxpycp_v1(
     magmaDoubleComplex_const_ptr b,
     magmaDoubleComplex_ptr w );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zclaswp_v1(
@@ -40,6 +44,8 @@ magmablas_zclaswp_v1(
     magma_int_t m,
     const magma_int_t *ipiv, magma_int_t incx );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlag2c_v1(
@@ -48,6 +54,8 @@ magmablas_zlag2c_v1(
     magmaFloatComplex_ptr        SA, magma_int_t ldsa,
     magma_int_t *info );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_clag2z_v1(
@@ -56,6 +64,8 @@ magmablas_clag2z_v1(
     magmaDoubleComplex_ptr        A, magma_int_t lda,
     magma_int_t *info );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlat2c_v1(
@@ -64,6 +74,8 @@ magmablas_zlat2c_v1(
     magmaFloatComplex_ptr        SA, magma_int_t ldsa,
     magma_int_t *info );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_clat2z_v1(

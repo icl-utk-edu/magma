@@ -37,6 +37,8 @@ extern "C" {
 #define magma_copyvector_v1(          n, elemSize, dx_src, incx, dy_dst, incy ) \
         magma_copyvector_v1_internal( n, elemSize, dx_src, incx, dy_dst, incy, __func__, __FILE__, __LINE__ )
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_setvector_v1_internal(
@@ -45,6 +47,8 @@ magma_setvector_v1_internal(
     magma_ptr   dy_dst, magma_int_t incy,
     const char* func, const char* file, int line );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_getvector_v1_internal(
@@ -53,6 +57,8 @@ magma_getvector_v1_internal(
     void           *hy_dst, magma_int_t incy,
     const char* func, const char* file, int line );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_copyvector_v1_internal(
@@ -74,6 +80,8 @@ magma_copyvector_v1_internal(
 #define magma_copymatrix_v1(          m, n, elemSize, dA_src, ldda, dB_dst, lddb ) \
         magma_copymatrix_v1_internal( m, n, elemSize, dA_src, ldda, dB_dst, lddb, __func__, __FILE__, __LINE__ )
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_setmatrix_v1_internal(
@@ -82,6 +90,8 @@ magma_setmatrix_v1_internal(
     magma_ptr   dB_dst, magma_int_t lddb,
     const char* func, const char* file, int line );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_getmatrix_v1_internal(
@@ -90,6 +100,8 @@ magma_getmatrix_v1_internal(
     void           *hB_dst, magma_int_t ldb,
     const char* func, const char* file, int line );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_copymatrix_v1_internal(
@@ -111,6 +123,8 @@ magma_copymatrix_v1_internal(
 #define magma_icopyvector_v1(          n, dx_src, incx, dy_dst, incy ) \
         magma_icopyvector_v1_internal( n, dx_src, incx, dy_dst, incy, __func__, __FILE__, __LINE__ )
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_isetvector_v1_internal(
@@ -125,6 +139,8 @@ magma_isetvector_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_igetvector_v1_internal(
@@ -139,6 +155,8 @@ magma_igetvector_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_icopyvector_v1_internal(
@@ -166,6 +184,8 @@ magma_icopyvector_v1_internal(
 #define magma_icopymatrix_v1(          m, n, dA_src, ldda, dB_dst, lddb ) \
         magma_icopymatrix_v1_internal( m, n, dA_src, ldda, dB_dst, lddb, __func__, __FILE__, __LINE__ )
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_isetmatrix_v1_internal(
@@ -180,6 +200,8 @@ magma_isetmatrix_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_igetmatrix_v1_internal(
@@ -194,6 +216,8 @@ magma_igetmatrix_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_icopymatrix_v1_internal(
@@ -221,6 +245,8 @@ magma_icopymatrix_v1_internal(
 #define magma_index_copyvector_v1(          n, dx_src, incx, dy_dst, incy ) \
         magma_index_copyvector_v1_internal( n, dx_src, incx, dy_dst, incy, __func__, __FILE__, __LINE__ )
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_index_setvector_v1_internal(
@@ -235,6 +261,8 @@ magma_index_setvector_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_index_getvector_v1_internal(
@@ -249,6 +277,8 @@ magma_index_getvector_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_index_copyvector_v1_internal(
@@ -276,6 +306,8 @@ magma_index_copyvector_v1_internal(
 #define magma_index_copymatrix_v1(          m, n, dA_src, ldda, dB_dst, lddb ) \
         magma_index_copymatrix_v1_internal( m, n, dA_src, ldda, dB_dst, lddb, __func__, __FILE__, __LINE__ )
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_index_setmatrix_v1_internal(
@@ -290,6 +322,8 @@ magma_index_setmatrix_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_index_getmatrix_v1_internal(
@@ -304,6 +338,8 @@ magma_index_getmatrix_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_index_copymatrix_v1_internal(

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # ===========================================================================
 # PLASMA's codegen.py is considered the definitive source.
@@ -65,7 +65,7 @@ ifneq ($(filter-out $(blas_generated),$(blas_src)),$(blas_templates))
 Makefile.blas.gen: force_gen
 endif
 endif
-							
+
 force_gen: ;
 
 ----------------------------------------------------------------------
@@ -133,6 +133,7 @@ try:
                 sub = sub.replace( r'\(',  r'(' )
                 sub = sub.replace( r'\)',  r')' )
                 sub = sub.replace( r'\.',  r'.' )
+                sub = sub.replace( r'\^',  r'^' )
                 subs_replace[key][i][j] = sub
             # end
         # end
@@ -152,14 +153,14 @@ class SourceFile( object ):
     If the file contains @precisions, it is a generator file.
     If the file contains @generated,  it is a generated file.
     It handles determining output files, Makefile rules, and generating other precisions.'''
-    
+
     # --------------------
     # matches "@precisions z -> s d c"
     #                                          ($1_)  ($2_)      ($3_________)
     precisions_re = re.compile( r"@precisions +(\w+) +(\w+) +-> +(\w+( +\w+)*)" )
-    
+
     generated_re  = re.compile( r"@generated" )
-    
+
     # --------------------
     def __init__( self, filename ):
         '''Creates a single file.
@@ -183,17 +184,17 @@ class SourceFile( object ):
             self._src   = None
             self._dsts  = []
     # end
-    
+
     # --------------------
     def is_generator( self ):
         '''True if this file can generate other precisions (has @precisions).'''
         return (self._table != None)
-    
+
     # --------------------
     def is_generated( self ):
         '''True if this file was generated (has @generated).'''
         return self._is_generated
-    
+
     # --------------------
     def get_filenames( self, precision=None ):
         '''Returns (files, precs) for the given precisions.
@@ -215,7 +216,7 @@ class SourceFile( object ):
         # end
         return (files, ps)
     # end
-    
+
     # --------------------
     def get_make_rules( self, precision=None ):
         '''Returns (files, precs, rules) for the given precisions.
@@ -231,7 +232,7 @@ class SourceFile( object ):
         # end
         return (files, precs, rules)
     # end
-    
+
     # --------------------
     def generate_files( self, precision=None ):
         '''Generates files for the given precisions.
@@ -247,7 +248,7 @@ class SourceFile( object ):
             fd.close()
         # end
     # end
-    
+
     # --------------------
     def _get_precisions( self, precision ):
         '''Given a precision or list of precisions,
@@ -265,7 +266,7 @@ class SourceFile( object ):
             ps = self._dsts
         return ps
     # end
-    
+
     # --------------------
     def _substitute( self, text, precision ):
         '''Apply substitutions to text for given precision.'''
@@ -274,7 +275,7 @@ class SourceFile( object ):
             subs_o = subs[         self._table ]  # original
             subs_s = subs_search[  self._table ]  # compiled as search regexp
             subs_r = subs_replace[ self._table ]  # with regexp removed for replacement
-            
+
             # Get which column is from and to.
             header = subs_o[0]
             jfrom = header.index( self._src )
@@ -284,7 +285,7 @@ class SourceFile( object ):
                    (self._filename, self._table, self._src, self._dsts), file=sys.stderr )
             traceback.print_exc()
             exit(1)
-        
+
         # Apply substitutions
         try:
             line = 0
@@ -301,7 +302,7 @@ class SourceFile( object ):
                    (line, self._table, subs_o[line]), file=sys.stderr )
             traceback.print_exc()
             exit(1)
-        
+
         # Replace @precision with @generated, file, rule, and timestamp
         gen = "@generated from %s, %s %s -> %s, %s" % (
             self._filename, self._table, self._src, precision, datetime.now().ctime())
@@ -337,7 +338,7 @@ def main():
         print( "\trm -f $(%s_generated)\n"      % (opts.prefix) )
         print( "generate: %s_generate\n"        % (opts.prefix) )
         print( "cleangen: %s_cleangen\n"        % (opts.prefix) )
-        
+
     elif opts.output:
         generated = []
         for filename in opts.args:
@@ -346,7 +347,7 @@ def main():
             generated += files
         # end
         print( " ".join( generated ) )
-        
+
     else:
         # default is to generate files
         for filename in opts.args:
