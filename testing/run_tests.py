@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # MAGMA (version 2.0) --
 # Univ. of Tennessee, Knoxville
@@ -361,8 +361,8 @@ if opts.no_svd  : opts.svd  = False
 if opts.no_batched  : opts.batched  = False
 if opts.no_vbatched : opts.vbatched = False
 
-#print 'opts', opts
-#print 'args', args
+#print( 'opts', opts )
+#print( 'args', args )
 
 ngpu  = '--ngpu '  + opts.ngpu  + ' '
 batch = '--batch ' + opts.batch + ' '
@@ -1691,7 +1691,7 @@ def run( cmd ):
 		line = p.stdout.readline().decode()
 		if not line:
 			break
-		print (line.rstrip())
+		print( line.rstrip() )
 		if re.search( r'\bok *$', line ):
 			okay += 1
 		if re.search( 'failed', line ):
@@ -1763,7 +1763,8 @@ for test in tests:
 			continue
 		# end
 		if (not os.path.exists( cmdp )):
-			print >>sys.stderr, cmdp, "doesn't exist (original name: " + cmd + ", precision: " + precision + ")"
+			print( cmdp, "doesn't exist (original name: " + cmd
+			       + ", precision: " + precision + ")", file=sys.stderr )
 			continue
 		# end
 		seen[ cmd_opts ] = True
