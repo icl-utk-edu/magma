@@ -55,19 +55,7 @@
 
 
 ============================================================
-@defgroup magma_internal            Internal routines
-@{
-    @defgroup magma_error_internal  Error handling
-    @defgroup magma_testing         Testing routines
-    @defgroup magma_thread          Thread management
-    @defgroup magma_timer           Timer utilities
-    @defgroup magma_panel2q         QR panel to q, q to panel
-    @defgroup magma_kernel          GPU Kernels
-@}
-
-
-============================================================
-@defgroup dense                     Dense linear algebra
+@defgroup dense                     Dense LA
 @brief    Designed to operate on large, dense matrices.
 @{
 
@@ -499,7 +487,7 @@
 
 
 ============================================================
-@defgroup batched                   Batched
+@defgroup batched                   Batched LA
 @brief    Batched functions operate on a large set of small matrices
           in parallel, for instance, 10000 matrices of size 100 x 100.
 @{
@@ -823,7 +811,7 @@
 
 
 ============================================================
-@defgroup sparse  Sparse
+@defgroup sparse                   Sparse LA
 @brief    Routines for sparse linear algebra
 @{
 
@@ -889,7 +877,7 @@
     @}
 
     ------------------------------------------------------------
-    @defgroup sparse_gpukernels    GPU kernels for sparse LA
+    @defgroup sparse_gpukernels    Sparse GPU kernels
     @{
         @defgroup sparse_gegpuk    GPU kernels for non-symmetric sparse LA
         @{
@@ -934,6 +922,28 @@
         @defgroup magmasparse_c single-complex precision
         @defgroup magmasparse_z double-complex precision
     @}
+@}
+
+============================================================
+@defgroup magma_internal            Internal routines
+@{
+    @defgroup magma_error_internal  Error handling
+    @defgroup magma_testing         Testing routines
+    @defgroup magma_thread          Thread management
+    @defgroup magma_timer           Timer utilities
+    @defgroup magma_panel2q         QR panel to q, q to panel
+    @defgroup magma_kernel          GPU Kernels
+@}
+
+============================================================
+@defgroup magma_deprecated          Deprecated
+@brief Deprecated routines will be removed in the next MAGMA release.
+       The MAGMA v1 interface is deprecated.
+       Portions of MAGMA-sparse are deprecated,
+       and all of MAGMA-sparse is "maintenance only".
+@{
+    @defgroup magma_deprecated_v1   Deprecated MAGMA v1 interface
+    @defgroup magma_deprecated_sparse  Deprecated MAGMA-sparse
 @}
 
 */
