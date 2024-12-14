@@ -637,7 +637,7 @@ GENERATE_BUGLIST       = YES
 # the documentation.
 # The default value is: YES.
 
-GENERATE_DEPRECATEDLIST = NO
+GENERATE_DEPRECATEDLIST = YES
 
 # The ENABLED_SECTIONS tag can be used to enable conditional documentation
 # sections, marked by \if <section_label> ... \endif and \cond <section_label>
@@ -802,6 +802,7 @@ INPUT                  = \
 	../magmablas                      \
 	../sparse/src                     \
 	../sparse/control                 \
+	../sparse/include                 \
 	../sparse/blas                    \
 	../testing/run_tests.py           \
 	../testing/magma_generate.cpp     \
@@ -845,8 +846,7 @@ RECURSIVE              = NO
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-# MAGMA - TODO needed since not recursive?
-EXCLUDE                = ../src/old ../old
+EXCLUDE                =
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -862,8 +862,7 @@ EXCLUDE_SYMLINKS       = NO
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories for example use the pattern */test/*
 
-# MAGMA - TODO "old" needed since not recursive?
-EXCLUDE_PATTERNS       = *_v1.h *_v1.cpp */old/* *geisai_32_develop.cu
+EXCLUDE_PATTERNS       =
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
