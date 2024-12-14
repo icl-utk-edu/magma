@@ -41,6 +41,8 @@ algorithm is used. Also included is MAGMA BLAS, a complementary to CUBLAS routin
 - A. Abdelfattah (UT Knoxville)
 - H. Anzt        (UT Knoxville)
 - M. Baboulin    (U Paris-Sud)
+- N. Beams       (UT Knoxville)
+- C. Brown       (UT Knoxville)
 - C. Cao         (UT Knoxville)
 - J. Demmel      (UC Berkeley)
 - T. Dong        (UT Knoxville)
