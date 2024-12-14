@@ -24,7 +24,7 @@
 /***************************************************************************//**
     Purpose
     -------
-    Generates a matrix  U = A \cup B. If both matrices have a nonzero value 
+    Generates a matrix $U = A \cup B$. If both matrices have a nonzero value
     in the same location, the value of A is used.
 
     Arguments
@@ -202,7 +202,7 @@ cleanup:
 /***************************************************************************//**
     Purpose
     -------
-    Generates a matrix with entries being in both matrices: U = A \cap B.
+    Generates a matrix with entries being in both matrices: $U = A \cap B$.
     The values in U are all ones.
 
     Arguments

@@ -288,7 +288,7 @@ magma_zmatrixcup_fill(
 /***************************************************************************//**
     Purpose
     -------
-    Generates a matrix  U = A \cup B. If both matrices have a nonzero value 
+    Generates a matrix $U = A \cup B$. If both matrices have a nonzero value
     in the same location, the value of A is used.
     
     This is the GPU version of the operation.
@@ -306,7 +306,7 @@ magma_zmatrixcup_fill(
 
     @param[out]
     U           magma_z_matrix*
-                U = A \cup B. If both matrices have a nonzero value 
+                $U = A \cup B$. If both matrices have a nonzero value
                 in the same location, the value of A is used.
 
     @param[in]
@@ -372,7 +372,7 @@ cleanup:
 /***************************************************************************//**
     Purpose
     -------
-    Generates a matrix  U = A \cup B. If both matrices have a nonzero value 
+    Generates a matrix $U = A \cup B$. If both matrices have a nonzero value
     in the same location, the value of A is used.
     
     This is the GPU version of the operation.
@@ -390,7 +390,7 @@ cleanup:
 
     @param[out]
     U           magma_z_matrix*
-                U = A \cup B. If both matrices have a nonzero value 
+                $U = A \cup B$. If both matrices have a nonzero value
                 in the same location, the value of A is used.
 
     @param[in]
