@@ -30,6 +30,8 @@ extern "C" {
 /* ////////////////////////////////////////////////////////////////////////////
  -- MAGMA_SPARSE Auxiliary functions
 */
+/// @deprecated
+/// @ingroup magma_deprecated_sparse
 MAGMA_DEPRECATE("magma_vector_zlac2c is deprecated and will be removed in the next release")
 magma_int_t
 magma_vector_zlag2c(
@@ -37,6 +39,8 @@ magma_vector_zlag2c(
     magma_c_matrix *y,
     magma_queue_t queue );
 
+/// @deprecated
+/// @ingroup magma_deprecated_sparse
 MAGMA_DEPRECATE("magma_sparse_matrix_zlac2c is deprecated and will be removed in the next release")
 magma_int_t
 magma_sparse_matrix_zlag2c(
@@ -45,6 +49,8 @@ magma_sparse_matrix_zlag2c(
     magma_queue_t queue );
 
 
+/// @deprecated
+/// @ingroup magma_deprecated_sparse
 MAGMA_DEPRECATE("magma_vector_clag2z is deprecated and will be removed in the next release")
 magma_int_t
 magma_vector_clag2z(
@@ -52,6 +58,8 @@ magma_vector_clag2z(
     magma_z_matrix *y,
     magma_queue_t queue );
 
+/// @deprecated
+/// @ingroup magma_deprecated_sparse
 MAGMA_DEPRECATE("magma_sparse_matrix_clag2z is deprecated and will be removed in the next release")
 magma_int_t
 magma_sparse_matrix_clag2z(
@@ -59,46 +67,56 @@ magma_sparse_matrix_clag2z(
     magma_z_matrix *B,
     magma_queue_t queue );
 
+/// @deprecated
+/// @ingroup magma_deprecated_sparse
 MAGMA_DEPRECATE("magmablas_zlag2c_sparse is deprecated and will be removed in the next release")
 void
 magmablas_zlag2c_sparse(
-    magma_int_t M, 
-    magma_int_t N , 
-    magmaDoubleComplex_const_ptr dA, 
-    magma_int_t lda, 
-    magmaFloatComplex_ptr dSA, 
+    magma_int_t M,
+    magma_int_t N ,
+    magmaDoubleComplex_const_ptr dA,
+    magma_int_t lda,
+    magmaFloatComplex_ptr dSA,
     magma_int_t ldsa,
     magma_queue_t queue,
     magma_int_t *info );
 
+/// @deprecated
+/// @ingroup magma_deprecated_sparse
 MAGMA_DEPRECATE("magmablas_clag2z_sparse is deprecated and will be removed in the next release")
 void
 magmablas_clag2z_sparse(
-    magma_int_t M, 
-    magma_int_t N , 
-    magmaFloatComplex_const_ptr dSA, 
-    magma_int_t ldsa, 
-    magmaDoubleComplex_ptr dA, 
+    magma_int_t M,
+    magma_int_t N ,
+    magmaFloatComplex_const_ptr dSA,
+    magma_int_t ldsa,
+    magmaDoubleComplex_ptr dA,
     magma_int_t lda,
     magma_queue_t queue,
     magma_int_t *info );
 
+/// @deprecated
+/// @ingroup magma_deprecated_sparse
 MAGMA_DEPRECATE("magma_zlag2c_CSR_DENSE is deprecated and will be removed in the next release")
-void 
+void
 magma_zlag2c_CSR_DENSE(
     magma_z_matrix A,
     magma_c_matrix *B,
     magma_queue_t queue );
 
+/// @deprecated
+/// @ingroup magma_deprecated_sparse
 MAGMA_DEPRECATE("magma_zlag2c_CSR_DENSE_alloc is deprecated and will be removed in the next release")
-void 
+void
 magma_zlag2c_CSR_DENSE_alloc(
     magma_z_matrix A,
     magma_c_matrix *B,
     magma_queue_t queue );
 
+/// @deprecated
+/// @ingroup magma_deprecated_sparse
 MAGMA_DEPRECATE("magma_zlag2c_CSR_DENSE_convert is deprecated and will be removed in the next release")
-void 
+void
 magma_zlag2c_CSR_DENSE_convert(
     magma_z_matrix A,
     magma_c_matrix *B,
@@ -117,6 +135,8 @@ magma_zlag2c_CSR_DENSE_convert(
  -- MAGMA_SPARSE function definitions / Data on GPU
 */
 
+/// @deprecated
+/// @ingroup magma_deprecated_sparse
 MAGMA_DEPRECATE("magma_zlag2c_CSR_DENSE_convert is deprecated and will be removed in the next release")
 magma_int_t
 magma_zcgecsrmv_mixed_prec(

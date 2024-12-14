@@ -27,18 +27,24 @@ extern "C" {
   /*
    * Transpose functions
    */
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_ztranspose_inplace_v1(
     magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_ztranspose_conj_inplace_v1(
     magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_ztranspose_v1(
@@ -46,6 +52,8 @@ magmablas_ztranspose_v1(
     magmaDoubleComplex_const_ptr dA,  magma_int_t ldda,
     magmaDoubleComplex_ptr       dAT, magma_int_t lddat );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_ztranspose_conj_v1(
@@ -53,6 +61,8 @@ magmablas_ztranspose_conj_v1(
     magmaDoubleComplex_const_ptr dA,  magma_int_t ldda,
     magmaDoubleComplex_ptr       dAT, magma_int_t lddat );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zgetmatrix_transpose_v1(
@@ -61,6 +71,8 @@ magmablas_zgetmatrix_transpose_v1(
     magmaDoubleComplex          *hA,    magma_int_t lda,
     magmaDoubleComplex_ptr       dwork, magma_int_t lddwork, magma_int_t nb );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zsetmatrix_transpose_v1(
@@ -72,6 +84,8 @@ magmablas_zsetmatrix_transpose_v1(
   /*
    * RBT-related functions
    */
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zprbt_v1(
@@ -80,6 +94,8 @@ magmablas_zprbt_v1(
     magmaDoubleComplex_ptr du,
     magmaDoubleComplex_ptr dv );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zprbt_mv_v1(
@@ -87,6 +103,8 @@ magmablas_zprbt_mv_v1(
     magmaDoubleComplex_ptr dv,
     magmaDoubleComplex_ptr db, magma_int_t lddb);
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zprbt_mtv_v1(
@@ -97,6 +115,8 @@ magmablas_zprbt_mtv_v1(
   /*
    * Multi-GPU copy functions
    */
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zgetmatrix_1D_col_bcyclic_v1(
@@ -105,6 +125,8 @@ magma_zgetmatrix_1D_col_bcyclic_v1(
     magmaDoubleComplex                *hA,   magma_int_t lda,
     magma_int_t ngpu, magma_int_t nb );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zsetmatrix_1D_col_bcyclic_v1(
@@ -113,6 +135,8 @@ magma_zsetmatrix_1D_col_bcyclic_v1(
     magmaDoubleComplex_ptr    dA[], magma_int_t ldda,
     magma_int_t ngpu, magma_int_t nb );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zgetmatrix_1D_row_bcyclic_v1(
@@ -121,6 +145,8 @@ magma_zgetmatrix_1D_row_bcyclic_v1(
     magmaDoubleComplex                *hA,   magma_int_t lda,
     magma_int_t ngpu, magma_int_t nb );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zsetmatrix_1D_row_bcyclic_v1(
@@ -133,6 +159,8 @@ magma_zsetmatrix_1D_row_bcyclic_v1(
   /*
    * LAPACK auxiliary functions (alphabetical order)
    */
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zgeadd_v1(
@@ -141,6 +169,8 @@ magmablas_zgeadd_v1(
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_ptr       dB, magma_int_t lddb );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zgeadd2_v1(
@@ -150,6 +180,8 @@ magmablas_zgeadd2_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dB, magma_int_t lddb );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlacpy_v1(
@@ -158,6 +190,8 @@ magmablas_zlacpy_v1(
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_ptr       dB, magma_int_t lddb );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlacpy_conj_v1(
@@ -165,6 +199,8 @@ magmablas_zlacpy_conj_v1(
     magmaDoubleComplex_ptr dA1, magma_int_t lda1,
     magmaDoubleComplex_ptr dA2, magma_int_t lda2 );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlacpy_sym_in_v1(
@@ -173,6 +209,8 @@ magmablas_zlacpy_sym_in_v1(
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_ptr       dB, magma_int_t lddb );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlacpy_sym_out_v1(
@@ -181,6 +219,8 @@ magmablas_zlacpy_sym_out_v1(
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_ptr       dB, magma_int_t lddb );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 double
 magmablas_zlange_v1(
@@ -189,6 +229,8 @@ magmablas_zlange_v1(
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDouble_ptr dwork, magma_int_t lwork );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 double
 magmablas_zlanhe_v1(
@@ -197,6 +239,8 @@ magmablas_zlanhe_v1(
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDouble_ptr dwork, magma_int_t lwork );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 double
 magmablas_zlansy_v1(
@@ -205,6 +249,8 @@ magmablas_zlansy_v1(
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDouble_ptr dwork, magma_int_t lwork );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlarfg_v1(
@@ -213,6 +259,8 @@ magmablas_zlarfg_v1(
     magmaDoubleComplex_ptr dx, magma_int_t incx,
     magmaDoubleComplex_ptr dtau );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlascl_v1(
@@ -222,6 +270,8 @@ magmablas_zlascl_v1(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *info );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlascl_2x2_v1(
@@ -230,6 +280,8 @@ magmablas_zlascl_2x2_v1(
     magmaDoubleComplex_ptr       dA, magma_int_t ldda,
     magma_int_t *info );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlascl2_v1(
@@ -239,6 +291,8 @@ magmablas_zlascl2_v1(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t *info );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlascl_diag_v1(
@@ -247,6 +301,8 @@ magmablas_zlascl_diag_v1(
     magmaDoubleComplex_ptr       dA, magma_int_t ldda,
     magma_int_t *info );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlaset_v1(
@@ -254,6 +310,8 @@ magmablas_zlaset_v1(
     magmaDoubleComplex offdiag, magmaDoubleComplex diag,
     magmaDoubleComplex_ptr dA, magma_int_t ldda );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlaset_band_v1(
@@ -261,6 +319,8 @@ magmablas_zlaset_band_v1(
     magmaDoubleComplex offdiag, magmaDoubleComplex diag,
     magmaDoubleComplex_ptr dA, magma_int_t ldda );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlaswp_v1(
@@ -269,6 +329,8 @@ magmablas_zlaswp_v1(
     magma_int_t k1, magma_int_t k2,
     const magma_int_t *ipiv, magma_int_t inci );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlaswp2_v1(
@@ -277,6 +339,8 @@ magmablas_zlaswp2_v1(
     magma_int_t k1, magma_int_t k2,
     magmaInt_const_ptr d_ipiv, magma_int_t inci );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlaswp_sym_v1(
@@ -285,6 +349,8 @@ magmablas_zlaswp_sym_v1(
     magma_int_t k1, magma_int_t k2,
     const magma_int_t *ipiv, magma_int_t inci );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zlaswpx_v1(
@@ -293,12 +359,16 @@ magmablas_zlaswpx_v1(
     magma_int_t k1, magma_int_t k2,
     const magma_int_t *ipiv, magma_int_t inci );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zsymmetrize_v1(
     magma_uplo_t uplo, magma_int_t m,
     magmaDoubleComplex_ptr dA, magma_int_t ldda );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zsymmetrize_tiles_v1(
@@ -306,6 +376,8 @@ magmablas_zsymmetrize_tiles_v1(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magma_int_t ntile, magma_int_t mstride, magma_int_t nstride );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_ztrtri_diag_v1(
@@ -316,6 +388,8 @@ magmablas_ztrtri_diag_v1(
   /*
    * to cleanup (alphabetical order)
    */
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_dznrm2_adjust_v1(
@@ -323,6 +397,8 @@ magmablas_dznrm2_adjust_v1(
     magmaDouble_ptr dxnorm,
     magmaDoubleComplex_ptr dc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_dznrm2_check_v1(
@@ -331,6 +407,8 @@ magmablas_dznrm2_check_v1(
     magmaDouble_ptr dxnorm,
     magmaDouble_ptr dlsticc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_dznrm2_cols_v1(
@@ -338,6 +416,8 @@ magmablas_dznrm2_cols_v1(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magmaDouble_ptr dxnorm );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_dznrm2_row_check_adjust_v1(
@@ -347,6 +427,8 @@ magmablas_dznrm2_row_check_adjust_v1(
     magmaDoubleComplex_ptr dC, magma_int_t lddc,
     magmaDouble_ptr dlsticc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 magma_int_t
 magma_zlarfb_gpu_v1(
@@ -357,6 +439,8 @@ magma_zlarfb_gpu_v1(
     magmaDoubleComplex_ptr dC,       magma_int_t lddc,
     magmaDoubleComplex_ptr dwork,    magma_int_t ldwork );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 magma_int_t
 magma_zlarfb_gpu_gemm_v1(
@@ -368,6 +452,8 @@ magma_zlarfb_gpu_gemm_v1(
     magmaDoubleComplex_ptr dwork,    magma_int_t ldwork,
     magmaDoubleComplex_ptr dworkvt,  magma_int_t ldworkvt );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zlarfbx_gpu_v1(
@@ -377,6 +463,8 @@ magma_zlarfbx_gpu_v1(
     magmaDoubleComplex_ptr c,
     magmaDoubleComplex_ptr dwork );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zlarfg_gpu_v1(
@@ -387,6 +475,8 @@ magma_zlarfg_gpu_v1(
     magmaDouble_ptr        dxnorm,
     magmaDoubleComplex_ptr dAkk );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zlarfgtx_gpu_v1(
@@ -400,6 +490,8 @@ magma_zlarfgtx_gpu_v1(
     magmaDoubleComplex_ptr T,  magma_int_t ldt,
     magmaDoubleComplex_ptr dwork );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zlarfgx_gpu_v1(
@@ -410,6 +502,8 @@ magma_zlarfgx_gpu_v1(
     magmaDouble_ptr        dxnorm,
     magmaDoubleComplex_ptr dA, magma_int_t iter );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zlarfx_gpu_v1(
@@ -425,6 +519,8 @@ magma_zlarfx_gpu_v1(
   /*
    * Level 1 BLAS (alphabetical order)
    */
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zaxpycp_v1(
@@ -433,6 +529,8 @@ magmablas_zaxpycp_v1(
     magmaDoubleComplex_ptr dx,
     magmaDoubleComplex_const_ptr db );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zswap_v1(
@@ -440,6 +538,8 @@ magmablas_zswap_v1(
     magmaDoubleComplex_ptr dx, magma_int_t incx,
     magmaDoubleComplex_ptr dy, magma_int_t incy );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zswapblk_v1(
@@ -451,6 +551,8 @@ magmablas_zswapblk_v1(
     const magma_int_t *ipiv, magma_int_t inci,
     magma_int_t offset );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zswapdblk_v1(
@@ -461,6 +563,8 @@ magmablas_zswapdblk_v1(
   /*
    * Level 2 BLAS (alphabetical order)
    */
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zgemv_v1(
@@ -471,6 +575,8 @@ magmablas_zgemv_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dy, magma_int_t incy );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zgemv_conj_v1(
@@ -480,6 +586,8 @@ magmablas_zgemv_conj_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr dy, magma_int_t incy );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 magma_int_t
 magmablas_zhemv_v1(
@@ -490,6 +598,8 @@ magmablas_zhemv_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dy, magma_int_t incy );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 magma_int_t
 magmablas_zsymv_v1(
@@ -503,6 +613,8 @@ magmablas_zsymv_v1(
   /*
    * Level 3 BLAS (alphabetical order)
    */
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zgemm_v1(
@@ -514,6 +626,8 @@ magmablas_zgemm_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zgemm_reduce_v1(
@@ -524,6 +638,8 @@ magmablas_zgemm_reduce_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zhemm_v1(
@@ -535,6 +651,8 @@ magmablas_zhemm_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zsymm_v1(
@@ -546,6 +664,8 @@ magmablas_zsymm_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zsyr2k_v1(
@@ -557,6 +677,8 @@ magmablas_zsyr2k_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zher2k_v1(
@@ -568,6 +690,8 @@ magmablas_zher2k_v1(
     double  beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zsyrk_v1(
@@ -578,6 +702,8 @@ magmablas_zsyrk_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_zherk_v1(
@@ -588,6 +714,8 @@ magmablas_zherk_v1(
     double  beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_ztrsm_v1(
@@ -597,6 +725,8 @@ magmablas_ztrsm_v1(
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_ptr       dB, magma_int_t lddb );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_ztrsm_outofplace_v1(
@@ -609,6 +739,8 @@ magmablas_ztrsm_outofplace_v1(
     magma_int_t flag,
     magmaDoubleComplex_ptr d_dinvA, magma_int_t dinvA_length );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magmablas_ztrsm_work_v1(
@@ -644,6 +776,8 @@ magmablas_ztrsm_work_v1(
 #define magma_zcopyvector_v1(          n, dx_src, incx, dy_dst, incy ) \
         magma_zcopyvector_v1_internal( n, dx_src, incx, dy_dst, incy, __func__, __FILE__, __LINE__ )
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_zsetvector_v1_internal(
@@ -658,6 +792,8 @@ magma_zsetvector_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_zgetvector_v1_internal(
@@ -672,6 +808,8 @@ magma_zgetvector_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_zcopyvector_v1_internal(
@@ -699,6 +837,8 @@ magma_zcopyvector_v1_internal(
 #define magma_zcopymatrix_v1(          m, n, dA_src, ldda, dB_dst, lddb ) \
         magma_zcopymatrix_v1_internal( m, n, dA_src, ldda, dB_dst, lddb, __func__, __FILE__, __LINE__ )
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_zsetmatrix_v1_internal(
@@ -713,6 +853,8 @@ magma_zsetmatrix_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_zgetmatrix_v1_internal(
@@ -727,6 +869,8 @@ magma_zgetmatrix_v1_internal(
                                  func, file, line );
 }
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 static inline void
 magma_zcopymatrix_v1_internal(
@@ -746,6 +890,8 @@ magma_zcopymatrix_v1_internal(
 // Level 1 BLAS (alphabetical order)
 
 // in cublas_v2, result returned through output argument
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 magma_int_t
 magma_izamax_v1(
@@ -753,6 +899,8 @@ magma_izamax_v1(
     magmaDoubleComplex_const_ptr dx, magma_int_t incx );
 
 // in cublas_v2, result returned through output argument
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 magma_int_t
 magma_izamin_v1(
@@ -760,12 +908,16 @@ magma_izamin_v1(
     magmaDoubleComplex_const_ptr dx, magma_int_t incx );
 
 // in cublas_v2, result returned through output argument
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 double
 magma_dzasum_v1(
     magma_int_t n,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zaxpy_v1(
@@ -774,6 +926,8 @@ magma_zaxpy_v1(
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
     magmaDoubleComplex_ptr       dy, magma_int_t incy );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zcopy_v1(
@@ -782,6 +936,8 @@ magma_zcopy_v1(
     magmaDoubleComplex_ptr       dy, magma_int_t incy );
 
 // in cublas_v2, result returned through output argument
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 magmaDoubleComplex
 magma_zdotc_v1(
@@ -790,6 +946,8 @@ magma_zdotc_v1(
     magmaDoubleComplex_const_ptr dy, magma_int_t incy );
 
 // in cublas_v2, result returned through output argument
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 magmaDoubleComplex
 magma_zdotu_v1(
@@ -798,12 +956,16 @@ magma_zdotu_v1(
     magmaDoubleComplex_const_ptr dy, magma_int_t incy );
 
 // in cublas_v2, result returned through output argument
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 double
 magma_dznrm2_v1(
     magma_int_t n,
     magmaDoubleComplex_const_ptr dx, magma_int_t incx );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zrot_v1(
@@ -812,6 +974,8 @@ magma_zrot_v1(
     magmaDoubleComplex_ptr dy, magma_int_t incy,
     double dc, magmaDoubleComplex ds );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zdrot_v1(
@@ -821,6 +985,8 @@ magma_zdrot_v1(
     double dc, double ds );
 
 #ifdef MAGMA_REAL
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zrotm_v1(
@@ -829,6 +995,8 @@ magma_zrotm_v1(
     magmaDouble_ptr dy, magma_int_t incy,
     magmaDouble_const_ptr param );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zrotmg_v1(
@@ -837,6 +1005,8 @@ magma_zrotmg_v1(
     magmaDouble_ptr param );
 #endif  // MAGMA_REAL
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zscal_v1(
@@ -844,6 +1014,8 @@ magma_zscal_v1(
     magmaDoubleComplex alpha,
     magmaDoubleComplex_ptr dx, magma_int_t incx );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zdscal_v1(
@@ -851,6 +1023,8 @@ magma_zdscal_v1(
     double alpha,
     magmaDoubleComplex_ptr dx, magma_int_t incx );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zswap_v1(
@@ -861,6 +1035,8 @@ magma_zswap_v1(
 // =============================================================================
 // Level 2 BLAS (alphabetical order)
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zgemv_v1(
@@ -872,6 +1048,8 @@ magma_zgemv_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dy, magma_int_t incy );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zgerc_v1(
@@ -881,6 +1059,8 @@ magma_zgerc_v1(
     magmaDoubleComplex_const_ptr dy, magma_int_t incy,
     magmaDoubleComplex_ptr       dA, magma_int_t ldda );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zgeru_v1(
@@ -890,6 +1070,8 @@ magma_zgeru_v1(
     magmaDoubleComplex_const_ptr dy, magma_int_t incy,
     magmaDoubleComplex_ptr       dA, magma_int_t ldda );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zhemv_v1(
@@ -901,6 +1083,8 @@ magma_zhemv_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dy, magma_int_t incy );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zher_v1(
@@ -910,6 +1094,8 @@ magma_zher_v1(
     magmaDoubleComplex_const_ptr dx, magma_int_t incx,
     magmaDoubleComplex_ptr       dA, magma_int_t ldda );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zher2_v1(
@@ -920,6 +1106,8 @@ magma_zher2_v1(
     magmaDoubleComplex_const_ptr dy, magma_int_t incy,
     magmaDoubleComplex_ptr       dA, magma_int_t ldda );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_ztrmv_v1(
@@ -928,6 +1116,8 @@ magma_ztrmv_v1(
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_ptr       dx, magma_int_t incx );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_ztrsv_v1(
@@ -939,6 +1129,8 @@ magma_ztrsv_v1(
 // =============================================================================
 // Level 3 BLAS (alphabetical order)
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zgemm_v1(
@@ -950,6 +1142,8 @@ magma_zgemm_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zsymm_v1(
@@ -961,6 +1155,8 @@ magma_zsymm_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zhemm_v1(
@@ -972,6 +1168,8 @@ magma_zhemm_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zsyr2k_v1(
@@ -983,6 +1181,8 @@ magma_zsyr2k_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zher2k_v1(
@@ -994,6 +1194,8 @@ magma_zher2k_v1(
     double beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zsyrk_v1(
@@ -1004,6 +1206,8 @@ magma_zsyrk_v1(
     magmaDoubleComplex beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_zherk_v1(
@@ -1014,6 +1218,8 @@ magma_zherk_v1(
     double beta,
     magmaDoubleComplex_ptr       dC, magma_int_t lddc );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_ztrmm_v1(
@@ -1023,6 +1229,8 @@ magma_ztrmm_v1(
     magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_ptr       dB, magma_int_t lddb );
 
+/// @deprecated
+/// @ingroup magma_deprecated_v1
 MAGMA_DEPRECATE("The MAGMA v1 interface is deprecated and will be removed in the next release")
 void
 magma_ztrsm_v1(
