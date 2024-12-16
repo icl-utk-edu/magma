@@ -195,7 +195,7 @@ magma_zpotrf_lpout_batched(
         magma_int_t shared_mem_size = ntcol * (sizeof(magmaDoubleComplex)*(nbth+POTF2_NB)*POTF2_NB);
         dim3 threads(nbth, ntcol);
 
-        if (shared_mem_size > 47000)
+        if ( shared_mem_size > magma_getdevice_shmem_block_optin() )
         {
             arginfo = -33;
             magma_xerbla( __func__, -(arginfo) );
@@ -252,7 +252,7 @@ magma_zpotrf_lpin_batched(
     dim3 grid(batchCount, 1, 1);
     dim3 threads(n, 1, 1);
     magma_int_t shared_mem_size = sizeof(magmaDoubleComplex) * (n+POTF2_NB)*POTF2_NB;
-    if (shared_mem_size > 47000) {
+    if ( shared_mem_size > magma_getdevice_shmem_block_optin() ) {
         arginfo = -33;
         magma_xerbla( __func__, -(arginfo) );
         return arginfo;
@@ -327,7 +327,7 @@ magma_zpotf2_lpout(
         magma_int_t shared_mem_size = sizeof(magmaDoubleComplex)*(nbth+POTF2_NB)*POTF2_NB;
         dim3 threads(nbth, 1, 1);
 
-        if (shared_mem_size > 47000)
+        if ( shared_mem_size > magma_getdevice_shmem_block_optin() )
         {
             arginfo = -33;
             magma_xerbla( __func__, -(arginfo) );
@@ -364,7 +364,7 @@ magma_zpotf2_lpin(
     dim3 grid(1, 1, 1);
     dim3 threads(n, 1, 1);
     magma_int_t shared_mem_size = sizeof(magmaDoubleComplex) * (n+POTF2_NB)*POTF2_NB;
-    if (shared_mem_size > 47000) {
+    if ( shared_mem_size > magma_getdevice_shmem_block_optin() ) {
         arginfo = -33;
         magma_xerbla( __func__, -(arginfo) );
         return arginfo;
