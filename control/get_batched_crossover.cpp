@@ -57,18 +57,16 @@ void magma_get_zpotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
 
     #elif defined(MAGMA_HAVE_HIP)
     // tuning based on benchmarks using MI210
-    if( n <= 288 ) {
-        *nb    = 512;
-        *recnb = 256;
-    }
-    else if( n <= 544 ) {
-        *nb    = 64;
-        *recnb = 32;
-    }
-    else {
-        *nb    = 32;
-        *recnb = 16;
-    }
+    // benchmarks show no clear winner, use fine-grain tuing
+    // based on sizes 32:32:1024
+    constexpr magma_int_t array_length = 32;
+    const magma_int_t  nb_array[array_length] = { 64, 128, 512,  64, 512, 512, 256, 512,  32,  32,  32,  64,  32,  32,  64,  64,  32,  32,  32,  32,  32,  32,  32,  32, 128,  32, 128,  32, 128, 128, 128,  32};
+    const magma_int_t rnb_array[array_length] = { 32,  32, 256,  32, 256, 256, 128, 256,  16,  16,  16,  32,  16,  16,  32,  32,  16,  16,  16,  16,  16,  16,  16,  16,  64,  16,  64,  16,  32,  32,  32,  16};
+    const magma_int_t n32 = magma_roundup(n, 32);
+    const magma_int_t i   = min( (n32 / 32) - 1, array_length-1 );
+
+    *nb    =  nb_array[i];
+    *recnb = rnb_array[i];
 
     #endif
 }
@@ -93,14 +91,16 @@ void magma_get_cpotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
 
     #elif defined(MAGMA_HAVE_HIP)
     // tuning based on benchmarks using MI210
-    if( n <= 160 ) {
-        *nb    = 512;
-        *recnb = 256;
-    }
-    else {
-        *nb    = 32;
-        *recnb = 16;
-    }
+    // benchmarks show no clear winner, use fine-grain tuing
+    // based on sizes 32:32:1024
+    constexpr magma_int_t array_length = 32;
+    const magma_int_t  nb_array[array_length] = { 64, 256, 256, 512, 512,  32,  32,  64,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32,  32};
+    const magma_int_t rnb_array[array_length] = { 32, 128, 128,  32, 256,  16,  16,  32,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16,  16};
+    const magma_int_t n32 = magma_roundup(n, 32);
+    const magma_int_t i   = min( (n32 / 32) - 1, array_length-1 );
+
+    *nb    =  nb_array[i];
+    *recnb = rnb_array[i];
 
     #endif
 }
@@ -129,30 +129,16 @@ void magma_get_dpotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
 
     #elif defined(MAGMA_HAVE_HIP)
     // tuning based on benchmarks using MI210
-    if( n <= 224 ) {
-        *nb    = 512;
-        *recnb = 256;
-    }
-    else if ( n <= 352 ) {
-        *nb    = 512;
-        *recnb = 32;
-    }
-    else if ( n <= 512 ) {
-        *nb    = 64;
-        *recnb = 32;
-    }
-    else if ( n <= 896 ) {
-        *nb    = 128;
-        *recnb = 64;
-    }
-    else if ( n <= 992 ) {
-        *nb    = 256;
-        *recnb = 64;
-    }
-    else {
-        *nb    = 512;
-        *recnb = 64;
-    }
+    // benchmarks show no clear winner, use fine-grain tuing
+    // based on sizes 32:32:1024
+    constexpr magma_int_t array_length = 32;
+    const magma_int_t  nb_array[array_length] = {512, 128, 512, 128, 512, 512, 512, 128, 128, 256, 128,  64, 128, 128,  64,  64, 256, 128, 512, 128, 256, 128, 128, 128, 128, 128, 256, 256, 256, 256, 128, 512};
+    const magma_int_t rnb_array[array_length] = {128,  64, 256,  32, 256, 256, 256,  32,  32,  64,  32,  32,  32,  64,  32,  32, 128,  64,  64,  32, 128,  64,  64,  32,  32,  64,  32,  32,  32,  64,  32,  64};
+    const magma_int_t n32 = magma_roundup(n, 32);
+    const magma_int_t i   = min( (n32 / 32) - 1, array_length-1 );
+
+    *nb    =  nb_array[i];
+    *recnb = rnb_array[i];
 
     #endif
 }
@@ -177,22 +163,16 @@ void magma_get_spotrf_batched_nbparam(magma_int_t n, magma_int_t *nb, magma_int_
 
     #elif defined(MAGMA_HAVE_HIP)
     // tuning based on benchmarks using MI210
-    if( n <= 224 ) {
-        *nb    = 512;
-        *recnb = 256;
-    }
-    else if ( n <= 352 ) {
-        *nb    = 256;
-        *recnb = 128;
-    }
-    else if ( n <= 832 ) {
-        *nb    = 512;
-        *recnb = 256;
-    }
-    else {
-        *nb    = 256;
-        *recnb = 128;
-    }
+    // benchmarks show no clear winner, use fine-grain tuing
+    // based on sizes 32:32:1024
+    constexpr magma_int_t array_length = 32;
+    const magma_int_t  nb_array[array_length] = { 64, 512, 256, 512, 512, 512, 512, 256,  64, 256, 512, 512, 256, 512, 512, 128, 128, 128, 512, 512,  64, 512, 512, 512,  64, 512,  64, 128, 256, 128,  64, 128};
+    const magma_int_t rnb_array[array_length] = { 32, 256, 128,  64, 256, 256, 256,  64,  32,  64, 256,  32, 128, 256, 256,  64,  32,  64,  32,  64,  32, 256, 256, 256,  32, 256,  32,  64, 128,  64,  32,  64};
+    const magma_int_t n32 = magma_roundup(n, 32);
+    const magma_int_t i   = min( (n32 / 32) - 1, array_length-1 );
+
+    *nb    =  nb_array[i];
+    *recnb = rnb_array[i];
 
     #endif
 }
@@ -593,15 +573,16 @@ magma_int_t magma_get_sgeqr2_fused_sm_batched_nthreads(magma_int_t m, magma_int_
 magma_int_t magma_get_zpotrf_batched_crossover()
 {
     // default
-    magma_int_t crossover = 128;
-    //magma_int_t arch = magma_getdevice_arch();
+    magma_int_t crossover = 256;
 
     #if defined(MAGMA_HAVE_CUDA)
-        // based on tests on GH200
-        // TODO: revise crossover for Ampere
-        crossover = 224;
+    // based on tests on GH200
+    // TODO: revise crossover for Ampere
+    crossover = 224;
 
     #elif defined(MAGMA_HAVE_HIP)
+    // based on tests on MI210
+    crossover = 256;
     #endif
 
     return crossover;
@@ -611,15 +592,16 @@ magma_int_t magma_get_zpotrf_batched_crossover()
 magma_int_t magma_get_cpotrf_batched_crossover()
 {
     // default
-    magma_int_t crossover = 128;
-    //magma_int_t arch = magma_getdevice_arch();
+    magma_int_t crossover = 256;
 
     #if defined(MAGMA_HAVE_CUDA)
-        // based on tests on GH200
-        // TODO: revise crossover for Ampere
-        crossover = 160;
+    // based on tests on GH200
+    // TODO: revise crossover for Ampere
+    crossover = 160;
 
     #elif defined(MAGMA_HAVE_HIP)
+    // based on tests on MI210
+    crossover = 256;
     #endif
 
     return crossover;
@@ -629,15 +611,17 @@ magma_int_t magma_get_cpotrf_batched_crossover()
 magma_int_t magma_get_dpotrf_batched_crossover()
 {
     // default
-    magma_int_t crossover = 128;
-    //magma_int_t arch = magma_getdevice_arch();
+    magma_int_t crossover = 640;
 
     #if defined(MAGMA_HAVE_CUDA)
-        // based on tests on GH200
-        // TODO: revise crossover for Ampere
-        crossover = 160;
+    // based on tests on GH200
+    // TODO: revise crossover for Ampere
+    crossover = 160;
 
     #elif defined(MAGMA_HAVE_HIP)
+    // based on tests on MI210
+    crossover = 224;
+
     #endif
 
     return crossover;
@@ -647,15 +631,17 @@ magma_int_t magma_get_dpotrf_batched_crossover()
 magma_int_t magma_get_spotrf_batched_crossover()
 {
     // default
-    magma_int_t crossover = 128;
-    //magma_int_t arch = magma_getdevice_arch();
+    magma_int_t crossover = 256;
 
     #if defined(MAGMA_HAVE_CUDA)
-        // based on tests on GH200
-        // TODO: revise crossover for Ampere
-        crossover = 192;
+    // based on tests on GH200
+    // TODO: revise crossover for Ampere
+    crossover = 192;
 
     #elif defined(MAGMA_HAVE_HIP)
+    // based on tests on MI210
+    crossover = 352;
+
     #endif
 
     return crossover;
