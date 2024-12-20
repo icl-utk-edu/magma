@@ -89,21 +89,23 @@ magma_malloc( magma_ptr* ptrPtr, size_t size )
     @param[in]
     size    Size in bytes to allocate. If size = 0, allocates some minimal size.
 
-     @param[in]
+    @param[in]
     queue    Magma queue whose CUDA stream is used to put the cudaMalloc on.
 
     @return MAGMA_SUCCESS
     @return MAGMA_ERR_DEVICE_ALLOC on failure
 
     Type-safe versions avoid the need for a (void**) cast and explicit sizeof.
-    @see magma_smalloc_q
-    @see magma_dmalloc_q
-    @see magma_cmalloc_q
-    @see magma_zmalloc_q
-    @see magma_imalloc_q
-    @see magma_index_malloc_q
+    @see magma_smalloc_async
+    @see magma_dmalloc_async
+    @see magma_cmalloc_async
+    @see magma_zmalloc_async
+    @see magma_imalloc_async
+    @see magma_index_malloc_async
+    @see magma_uindex_malloc_async
 
     @ingroup magma_malloc
+    
 *******************************************************************************/
 extern "C" magma_int_t
 magma_malloc_async( magma_ptr* ptrPtr, size_t size, magma_queue_t queue)
@@ -249,10 +251,10 @@ magma_malloc_cpu( void** ptrPtr, size_t size )
     }
 #endif
 #else
-        *ptrPtr = malloc( size );
-        if ( *ptrPtr == NULL ) {
-            return MAGMA_ERR_HOST_ALLOC;
-        }
+    *ptrPtr = malloc( size );
+    if ( *ptrPtr == NULL ) {
+        return MAGMA_ERR_HOST_ALLOC;
+    }
 #endif
 
     #ifdef DEBUG_MEMORY
@@ -413,16 +415,37 @@ magma_mem_info(size_t * freeMem, size_t * totalMem) {
     return MAGMA_SUCCESS;
 }
 
+/***************************************************************************//**
+    Sets memory chunk pointed to by ptr of size count to the byte value of value.
 
+    @param[in]
+    ptr    Address of the chunk of GPU memory to set.
+
+    @param[in]
+    count  Number of bytes to set starting at ptr.
+
+    @return CUDA_SUCCESS
+    @return CUDA_ERROR_* code on failure
+
+*******************************************************************************/
 extern "C" magma_int_t
 magma_memset(void * ptr, int value, size_t count) {
     return cudaMemset(ptr, value, count);
 }
 
+/***************************************************************************//**
+
+    @copydoc magma_memset
+
+    @param[in]
+    queue   magma_queue_t
+            A pointer to a magma_queue structure that will be used for the 
+            execution of this method, and all methods it calls.  queue != nullptr
+
+*******************************************************************************/
 extern "C" magma_int_t
 magma_memset_async(void * ptr, int value, size_t count, magma_queue_t queue) {
 #ifdef MAGMA_HAVE_CUDA
-//    return cudaMemsetAsync(ptr, value, count, queue);
     return cudaMemsetAsync(ptr, value, count, queue->cuda_stream());
 #elif defined(MAGMA_HAVE_HIP)
     return hipMemsetAsync(ptr, value, count, queue->hip_stream());

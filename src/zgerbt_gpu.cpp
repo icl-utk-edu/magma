@@ -170,6 +170,16 @@ magma_zgerbt_gpu(
     return *info;
 }
 
+/***************************************************************************//**
+
+    @copydoc magma_zgerbt_gpu
+
+    @param[in]
+    queue   magma_queue_t
+            A pointer to a magma_queue structure that will be used for the 
+            execution of this method, and all methods it calls.  queue != nullptr
+
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zgerbt_gpu_async(
         const magma_bool_t gen, const magma_int_t n, const magma_int_t nrhs,

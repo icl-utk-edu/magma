@@ -277,6 +277,26 @@ cleanup:
     return *info;
 }
 
+/***************************************************************************//**
+
+    @copydoc magma_zgerfs_nopiv_gpu
+
+    @param[in]
+    iter_max INTEGER
+            The maximum number of refinement iterations performed.
+
+    @param[in]
+    bwdmax  DOUBLE
+            Refine the solution if the error is above the threshold multiplied by
+            bwdmax. See @magma_zgerfs_nopiv_gpu for how error threshold is calculated.
+            Set to zero to perform all iterations specified in iter_max.
+
+    @param[in]
+    queue   magma_queue_t
+            A pointer to a magma_queue structure that will be used for the 
+            execution of this method, and all methods it calls.  queue != nullptr
+
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zgerfs_nopiv_gpu_async(
         magma_trans_t trans, magma_int_t n, magma_int_t nrhs,

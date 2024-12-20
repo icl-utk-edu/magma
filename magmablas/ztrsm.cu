@@ -742,6 +742,16 @@ void magmablas_ztrsm(
     magma_free( dX );
 }
 
+/***************************************************************************//**
+
+    @copydoc magmablas_ztrsm
+
+    @param[in]
+    queue   magma_queue_t
+            A pointer to a magma_queue structure that will be used for the 
+            execution of this method, and all methods it calls.  queue != nullptr
+
+*******************************************************************************/
 extern "C"
 void magmablas_ztrsm_async(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,

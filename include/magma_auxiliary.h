@@ -139,43 +139,43 @@ magma_memset_async(void * ptr, int value, size_t count, magma_queue_t queue);
 /// Type-safe version of magma_malloc(), for magma_int_t arrays. Allocates n*sizeof(magma_int_t) bytes.
 static inline magma_int_t magma_imalloc( magmaInt_ptr           *ptr_ptr, size_t n ) { return magma_malloc( (magma_ptr*) ptr_ptr, n*sizeof(magma_int_t)        ); }
 
-/// Type-safe version of magma_malloc(), for magma_int_t arrays. Allocates n*sizeof(magma_int_t) bytes.
+/// Type-safe asynchronous version of magma_malloc(), for magma_int_t arrays. Allocates n*sizeof(magma_int_t) bytes using CUDA stream specified in queue.
 static inline magma_int_t magma_imalloc_async( magmaInt_ptr           *ptr_ptr, size_t n, magma_queue_t queue ) { return magma_malloc_async( (magma_ptr*) ptr_ptr, n*sizeof(magma_int_t), queue ); }
 
 /// Type-safe version of magma_malloc(), for magma_index_t arrays. Allocates n*sizeof(magma_index_t) bytes.
 static inline magma_int_t magma_index_malloc( magmaIndex_ptr    *ptr_ptr, size_t n ) { return magma_malloc( (magma_ptr*) ptr_ptr, n*sizeof(magma_index_t)      ); }
 
-/// Type-safe version of magma_malloc(), for magma_index_t arrays. Allocates n*sizeof(magma_index_t) bytes.
+/// Type-safe asynchronous version of magma_malloc(), for magma_index_t arrays. Allocates n*sizeof(magma_index_t) bytes using CUDA stream specified in queue.
 static inline magma_int_t magma_index_malloc_async( magmaIndex_ptr    *ptr_ptr, size_t n, magma_queue_t queue ) { return magma_malloc_async( (magma_ptr*) ptr_ptr, n*sizeof(magma_index_t), queue ); }
 
 /// Type-safe version of magma_malloc(), for magma_uindex_t arrays. Allocates n*sizeof(magma_uindex_t) bytes.
 static inline magma_int_t magma_uindex_malloc( magmaUIndex_ptr    *ptr_ptr, size_t n ) { return magma_malloc( (magma_ptr*) ptr_ptr, n*sizeof(magma_uindex_t)      ); }
 
-/// Type-safe version of magma_malloc(), for magma_uindex_t arrays. Allocates n*sizeof(magma_uindex_t) bytes.
+/// Type-safe asynchronous version of magma_malloc(), for magma_uindex_t arrays. Allocates n*sizeof(magma_uindex_t) bytes using CUDA stream specified in queue.
 static inline magma_int_t magma_uindex_malloc_async( magmaUIndex_ptr    *ptr_ptr, size_t n, magma_queue_t queue ) { return magma_malloc_async( (magma_ptr*) ptr_ptr, n*sizeof(magma_uindex_t), queue); }
 
 /// Type-safe version of magma_malloc(), for float arrays. Allocates n*sizeof(float) bytes.
 static inline magma_int_t magma_smalloc( magmaFloat_ptr         *ptr_ptr, size_t n ) { return magma_malloc( (magma_ptr*) ptr_ptr, n*sizeof(float)              ); }
 
-/// Type-safe version of magma_malloc(), for float arrays. Allocates n*sizeof(float) bytes.
+/// Type-safe asynchronous version of magma_malloc(), for float arrays. Allocates n*sizeof(float) bytes using CUDA stream specified in queue.
 static inline magma_int_t magma_smalloc_async( magmaFloat_ptr         *ptr_ptr, size_t n, magma_queue_t queue ) { return magma_malloc_async( (magma_ptr*) ptr_ptr, n*sizeof(float), queue); }
 
 /// Type-safe version of magma_malloc(), for double arrays. Allocates n*sizeof(double) bytes.
 static inline magma_int_t magma_dmalloc( magmaDouble_ptr        *ptr_ptr, size_t n ) { return magma_malloc( (magma_ptr*) ptr_ptr, n*sizeof(double)             ); }
 
-/// Type-safe version of magma_malloc(), for double arrays. Allocates n*sizeof(double) bytes.
+/// Type-safe asynchronous version of magma_malloc(), for double arrays. Allocates n*sizeof(double) bytes using CUDA stream specified in queue.
 static inline magma_int_t magma_dmalloc_async( magmaDouble_ptr        *ptr_ptr, size_t n, magma_queue_t queue ) { return magma_malloc_async( (magma_ptr*) ptr_ptr, n*sizeof(double), queue); }
 
 /// Type-safe version of magma_malloc(), for magmaFloatComplex arrays. Allocates n*sizeof(magmaFloatComplex) bytes.
 static inline magma_int_t magma_cmalloc( magmaFloatComplex_ptr  *ptr_ptr, size_t n ) { return magma_malloc( (magma_ptr*) ptr_ptr, n*sizeof(magmaFloatComplex)  ); }
 
-/// Type-safe version of magma_malloc(), for magmaFloatComplex arrays. Allocates n*sizeof(magmaFloatComplex) bytes.
+/// Type-safe asynchronous version of magma_malloc(), for magmaFloatComplex arrays. Allocates n*sizeof(magmaFloatComplex) bytes using CUDA stream specified in queue.
 static inline magma_int_t magma_cmalloc_async( magmaFloatComplex_ptr  *ptr_ptr, size_t n, magma_queue_t queue ) { return magma_malloc_async( (magma_ptr*) ptr_ptr, n*sizeof(magmaFloatComplex), queue ); }
 
 /// Type-safe version of magma_malloc(), for magmaDoubleComplex arrays. Allocates n*sizeof(magmaDoubleComplex) bytes.
 static inline magma_int_t magma_zmalloc( magmaDoubleComplex_ptr *ptr_ptr, size_t n ) { return magma_malloc( (magma_ptr*) ptr_ptr, n*sizeof(magmaDoubleComplex) ); }
 
-/// Type-safe version of magma_malloc_async(), for magmaDoubleComplex arrays. Allocates n*sizeof(magmaDoubleComplex) bytes.
+/// Type-safe asynchronous version of magma_malloc_async(), for magmaDoubleComplex arrays. Allocates n*sizeof(magmaDoubleComplex) bytes using CUDA stream specified in queue.
 static inline magma_int_t magma_zmalloc_async( magmaDoubleComplex_ptr *ptr_ptr, size_t n, magma_queue_t queue ) { return magma_malloc_async( (magma_ptr*) ptr_ptr, n*sizeof(magmaDoubleComplex), queue ); }
 
 /// @}

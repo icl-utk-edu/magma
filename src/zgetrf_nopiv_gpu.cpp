@@ -210,6 +210,17 @@ magma_zgetrf_nopiv_gpu(
     return *info;
 } /* magma_zgetrf_nopiv_gpu */
 
+
+/***************************************************************************//**
+
+    @copydoc magma_zgetrf_nopiv_gpu
+
+    @param[in]
+    queue   magma_queue_t
+            A pointer to a magma_queue structure that will be used for the 
+            execution of this method, and all methods it calls.  queue != nullptr
+
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zgetrf_nopiv_gpu_async(
         magma_int_t m, magma_int_t n,

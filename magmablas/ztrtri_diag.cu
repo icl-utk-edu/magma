@@ -179,6 +179,17 @@ magmablas_ztrtri_diag(
     }
 }
 
+
+/***************************************************************************//**
+
+    @copydoc magmablas_ztrtri_diag
+
+    @param[in]
+    queue   magma_queue_t
+            A pointer to a magma_queue structure that will be used for the 
+            execution of this method, and all methods it calls.  queue != nullptr
+
+*******************************************************************************/
 extern "C" void
 magmablas_ztrtri_diag_async(
     magma_uplo_t uplo, magma_diag_t diag, magma_int_t n,

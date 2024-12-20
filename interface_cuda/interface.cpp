@@ -491,7 +491,7 @@ magma_is_devptr( const void* A )
                   #endif
 
                 #elif defined(MAGMA_HAVE_HIP)
-		  #if ROCM_VERSION >= 60000
+		  #if HIP_VERSION_MAJOR >= 6
 		    return (attr.type == hipMemoryTypeDevice);
 		  #else
                     return (attr.memoryType == hipMemoryTypeDevice);
