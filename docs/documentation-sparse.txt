@@ -3,7 +3,9 @@
 ********************************************************************************
 @page MAGMA-sparse Sparse Overview
 
-**IMPORTANT NOTE:** As of December 2024, the MAGMA-sparse package is considered
+IMPORTANT NOTE
+==============
+As of December 2024, the MAGMA-sparse package is considered
 to be "Legacy Support Mode" ONLY, meaning the MAGMA-sparse component is not under active
 development. Many sparse routines have been deprecated with MAGMA 2.9.0. Users are
 encouraged to consider switching to the Ginkgo library (https://ginkgo-project.github.io)

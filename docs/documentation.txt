@@ -437,24 +437,21 @@ routines call several computational routines to solve the entire problem.
 Here, curly braces { } group similar routines.
 Starred * routines are not yet implemented in MAGMA.
 
-Name                                                                                |  Description
------------                                                                         |  -----------
-: **Triangular factorizations** :                                                   |  **Description**
-\ref magma_getrf "getrf", \ref magma_potrf "potrf", \ref magma_hetrf "hetrf"        |  triangular factorization (LU, Cholesky, Indefinite)
-\ref magma_getrs "getrs", \ref magma_potrs "potrs", \ref magma_hetrs "hetrs"        |  triangular forward and back solve
-\ref magma_getri "getri", \ref magma_potri "potri"                                  |  triangular inverse
-\ref magma_getf2 "getf2", \ref magma_potf2 "potf2"                                  |  triangular panel factorization (BLAS-2)
-. **Orthogonal factorizations**                                                     |  **Description**
-ge{\ref magma_geqrf "qrf", \ref magma_geqlf "qlf",  \ref magma_gelqf "lqf",  rqf*}  |  QR, QL, LQ, RQ factorization
-\ref magma_geqp3 "geqp3"                                                            |  QR with column pivoting (BLAS-3)
-or{\ref magma_unmqr "mqr", \ref magma_unmql "mql",  \ref magma_unmlq "mlq",  mrq*}  |  multiply by Q after factorization (real)
-un{\ref magma_unmqr "mqr", \ref magma_unmql "mql",  \ref magma_unmlq "mlq",  mrq*}  |  multiply by Q after factorization (complex)
-or{\ref magma_ungqr "gqr", gql*, glq*, grq*}                                        |  generate Q after factorization (real)
-un{\ref magma_ungqr "gqr", gql*, glq*, grq*}                                        |  generate Q after factorization (complex)
-. **Eigenvalue & SVD**                                                              |  **Description**
-\ref magma_gehrd "gehrd"                                                            |  Hessenberg  reduction (in geev)
-\ref magma_hetrd "sytrd/hetrd"                                                      |  tridiagonal reduction (in syev, heev)
-\ref magma_gebrd "gebrd"                                                            |  bidiagonal  reduction (in gesvd)
+|           | Name                            |  Description                        |
+|:---------:|:--------------------------------|:------------------------------------|
+| Triangular factorizations | \ref magma_getrf "getrf", \ref magma_potrf "potrf", \ref magma_hetrf "hetrf"        |  triangular factorization (LU, Cholesky, Indefinite) |
+| ^ | \ref magma_getrs "getrs", \ref magma_potrs "potrs", \ref magma_hetrs "hetrs"        |  triangular forward and back solve |
+| ^ | \ref magma_getri "getri", \ref magma_potri "potri"                                  |  triangular inverse |
+| ^ | \ref magma_getf2 "getf2", \ref magma_potf2 "potf2"                                  |  triangular panel factorization (BLAS-2) |
+| Orthogonal factorizations | ge{\ref magma_geqrf "qrf", \ref magma_geqlf "qlf",  \ref magma_gelqf "lqf",  rqf*}  |  QR, QL, LQ, RQ factorization |
+| ^ | \ref magma_geqp3 "geqp3"                                                            |  QR with column pivoting (BLAS-3) |
+| ^ | or{\ref magma_unmqr "mqr", \ref magma_unmql "mql",  \ref magma_unmlq "mlq",  mrq*}  |  multiply by Q after factorization (real) |
+| ^ | un{\ref magma_unmqr "mqr", \ref magma_unmql "mql",  \ref magma_unmlq "mlq",  mrq*}  |  multiply by Q after factorization (complex) |
+| ^ | or{\ref magma_ungqr "gqr", gql*, glq*, grq*}                                        |  generate Q after factorization (real) |
+| ^ | un{\ref magma_ungqr "gqr", gql*, glq*, grq*}                                        |  generate Q after factorization (complex) |
+| Eigenvalue & SVD          | \ref magma_gehrd "gehrd"                                    |  Hessenberg  reduction (in geev) |
+| ^ | \ref magma_hetrd "sytrd/hetrd"                                                      |  tridiagonal reduction (in syev, heev) |
+| ^ | \ref magma_gebrd "gebrd"                                                            |  bidiagonal  reduction (in gesvd) |
 
 There are many other computational routines that are mostly internal to
 MAGMA and LAPACK, and not commonly called by end users.
