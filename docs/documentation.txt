@@ -41,6 +41,8 @@ algorithm is used. Also included is MAGMA BLAS, a complementary to CUBLAS routin
 - A. Abdelfattah (UT Knoxville)
 - H. Anzt        (UT Knoxville)
 - M. Baboulin    (U Paris-Sud)
+- N. Beams       (UT Knoxville)
+- C. Brown       (UT Knoxville)
 - C. Cao         (UT Knoxville)
 - J. Demmel      (UC Berkeley)
 - T. Dong        (UT Knoxville)
@@ -71,7 +73,7 @@ either in your `.cshrc/.bashrc` file, or in the `make.inc` file itself.
 
 #### CUDA
 
-All the `make.inc` files assume `$CUDADIR` is set in your environment.
+All the `make.inc` files assume `\$CUDADIR` is set in your environment.
 For bash (sh), put in `~/.bashrc` (with your system's path):
 
     export CUDADIR=/usr/loca/cuda
@@ -84,7 +86,7 @@ MAGMA is tested with CUDA >= 7.5. Some functionality requires a newer version.
 
 #### Intel MKL
 
-The MKL `make.inc` files assume `$MKLROOT` is set in your environment. To set it,
+The MKL `make.inc` files assume `\$MKLROOT` is set in your environment. To set it,
 for bash (sh), put in ~/.bashrc (with your system's path):
 
     source /opt/intel/bin/compilervars.sh intel64
@@ -98,7 +100,7 @@ other versions may work.
 
 #### AMD ACML
 
-The ACML `make.inc` file assumes `$ACMLDIR` is set in your environment.
+The ACML `make.inc` file assumes `\$ACMLDIR` is set in your environment.
 For bash (sh), put in ~/.bashrc (with your system's path):
 
     export ACMLDIR=/opt/acml-5.3.1
@@ -113,7 +115,7 @@ a couple testers fail to compile with ACML 4.
 
 #### ATLAS
 
-The ATLAS `make.inc` file assumes `$ATLASDIR` and `$LAPACKDIR` are set in your environment.
+The ATLAS `make.inc` file assumes `\$ATLASDIR` and `\$LAPACKDIR` are set in your environment.
 If not installed, install LAPACK from http://www.netlib.org/lapack/
 For bash (sh), put in ~/.bashrc (with your system's path):
 
@@ -127,7 +129,7 @@ For csh/tcsh, put in ~/.cshrc:
 
 #### OpenBLAS
 
-The OpenBLAS `make.inc` file assumes `$OPENBLASDIR` is set in your environment.
+The OpenBLAS `make.inc` file assumes `\$OPENBLASDIR` is set in your environment.
 For bash (sh), put in ~/.bashrc (with your system's path):
 
     export OPENBLASDIR=/opt/openblas
@@ -218,16 +220,16 @@ Run-time options
 --------------------------------------------------------------------------------
 These variables control MAGMA, BLAS, and LAPACK run-time behavior.
 
-- `$MAGMA_NUM_GPUS`
+- `\$MAGMA_NUM_GPUS`
 
-For multi-GPU functions, set `$MAGMA_NUM_GPUS` to the number of GPUs to use.
+For multi-GPU functions, set `\$MAGMA_NUM_GPUS` to the number of GPUs to use.
 
-- `$OMP_NUM_THREADS`
-- `$MKL_NUM_THREADS`
-- `$VECLIB_MAXIMUM_THREADS`
+- `\$OMP_NUM_THREADS`
+- `\$MKL_NUM_THREADS`
+- `\$VECLIB_MAXIMUM_THREADS`
 
-    For multi-core BLAS libraries, set `$OMP_NUM_THREADS` or `$MKL_NUM_THREADS`
-    or `$VECLIB_MAXIMUM_THREADS` to the number of CPU threads, depending on your
+    For multi-core BLAS libraries, set `\$OMP_NUM_THREADS` or `\$MKL_NUM_THREADS`
+    or `\$VECLIB_MAXIMUM_THREADS` to the number of CPU threads, depending on your
     BLAS library. See the documentation for your BLAS and LAPACK libraries.
 
 
@@ -299,9 +301,9 @@ To install libraries and include files in a given prefix, run:
 
 The default prefix is `/usr/local/magma`. You can also set `prefix` in `make.inc`.
 This installs
-MAGMA libraries in `${prefix}/lib`,
-MAGMA header files in `${prefix}/include`, and
-`${prefix}/lib/pkgconfig/magma.pc` for `pkg-config`.
+MAGMA libraries in `\${prefix}/lib`,
+MAGMA header files in `\${prefix}/include`, and
+`\${prefix}/lib/pkgconfig/magma.pc` for `pkg-config`.
 
 
 Tuning
@@ -309,7 +311,7 @@ Tuning
 You can modify the blocking factors for the algorithms of
 interest in `control/get_nb.cpp`.
 
-Performance results are included in `results/vA.B.C/cudaX.Y-zzz/*.txt`
+Performance results are included in `results/vA.B.C/cudaX.Y-zzz/\*.txt`
 for MAGMA version A.B.C, CUDA version X.Y, and GPU zzz.
 
 

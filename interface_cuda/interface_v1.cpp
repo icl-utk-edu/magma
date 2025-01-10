@@ -167,9 +167,10 @@ magma_queue_t magmablasGetQueue()
 }
 
 
-/******************************************************************************/
-// @deprecated
-// MAGMA v1 version that doesn't take device ID.
+/***************************************************************************//**
+    @deprecated
+    MAGMA v1 version that doesn't take device ID.
+*******************************************************************************/
 extern "C" void
 magma_queue_create_v1_internal(
     magma_queue_t* queue_ptr,

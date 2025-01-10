@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # MAGMA (version 2.0) --
 # Univ. of Tennessee, Knoxville
@@ -147,7 +147,7 @@ parser.add_option('-p', '--precisions',  action='store',      dest='precisions',
 parser.add_option(      '--start',       action='store',      dest='start',      help='start with given routine; useful to restart an interupted run')
 parser.add_option(      '--memcheck',    action='store_true', dest='memcheck',   help='run with cuda-memcheck (slow)')
 parser.add_option(      '--tol',         action='store',      dest='tol',        help='set tolerance')
-                                         
+
 parser.add_option('-s', '--small',       action='store_true', dest='small',      help='run small  tests, N < 300')
 parser.add_option('-m', '--medium',      action='store_true', dest='med',        help='run medium tests, N < 1000')
 parser.add_option('-l', '--large',       action='store_true', dest='large',      help='run large  tests, N > 1000')
@@ -184,14 +184,14 @@ parser.add_option(      '--qmr_merge'        , action='store_true', dest='qmr_me
 parser.add_option(      '--pcgs'             , action='store_true', dest='pcgs'          , help='run pcgs'          )
 parser.add_option(      '--pcgs_merge'       , action='store_true', dest='pcgs_merge'    , help='run pcgs_merge'    )
 parser.add_option(      '--pqmr'             , action='store_true', dest='pqmr'          , help='run pqmr'          )
-parser.add_option(      '--pqmr_merge'       , action='store_true', dest='pqmr_merge'    , help='run pqmr_merge'    )   
+parser.add_option(      '--pqmr_merge'       , action='store_true', dest='pqmr_merge'    , help='run pqmr_merge'    )
 parser.add_option(      '--bombard'          , action='store_true', dest='bombard'       , help='run bombard'       )
 parser.add_option(      '--bombard_merge'    , action='store_true', dest='bombard_merge' , help='run bombard_merge' )
 parser.add_option(      '--lsqr'             , action='store_true', dest='lsqr'          , help='run lsqr'          )
 parser.add_option(      '--bicg'             , action='store_true', dest='bicg'          , help='run bicg'          )
 parser.add_option(      '--pbicg'            , action='store_true', dest='pbicg'         , help='run pbicg'         )
 
-                                                                                           
+
 parser.add_option(      '--jacobi-prec'      , action='store_true', dest='jacobi_prec'   , help='run Jacobi preconditioner')
 parser.add_option(      '--ilu-prec'         , action='store_true', dest='ilu_exact_prec', help='run ILU + exact solve preconditioner')
 parser.add_option(      '--ilu-jac'          , action='store_true', dest='ilu_jac_prec',   help='run ILU + Jacobi solve preconditioner')
@@ -287,7 +287,7 @@ if (     not opts.cg
 
 # default if no preconditioners given all
 if (     not opts.jacobi_prec
-     and not opts.ilu_exact_prec 
+     and not opts.ilu_exact_prec
      and not opts.ilut_prec
      and not opts.ilu_jac_prec
      and not opts.ilu_bjac_prec
@@ -313,7 +313,7 @@ print('args', args)
 
 
 # ----------------------------------------------------------------------
-    
+
 # looping over formats
 formats = []
 if ( opts.csr ):
@@ -646,10 +646,10 @@ for solver in IR:
 # status is exit status of the command.
 def run( cmd ):
     words = re.split( ' +', cmd.strip() )
-    
+
     # stdout & stderr are merged
     p = subprocess.Popen( words, stdout=PIPE, stderr=STDOUT )
-    
+
     okay  = 0
     fail  = 0
     nospd = 0
@@ -668,7 +668,7 @@ def run( cmd ):
             fail += 1
         if re.search( 'exit|memory mapping error|CUDA runtime error|illegal value|ERROR SUMMARY: [1-9]', line ):
             error += 1
-        m = re.search( 'solver info: (-?\d+)', line )
+        m = re.search( r'solver info: (-?\d+)', line )
         if ( m ):
             info = int( m.group(1) )
             if ( info == 0 ):
@@ -683,7 +683,7 @@ def run( cmd ):
                 fail += 1
         # end
     # end
-    
+
     status = p.wait()
     return (okay, fail, error, status)
 # end
@@ -707,21 +707,21 @@ last_cmd = None
 
 for test in tests:
     (cmd, options, sizes, comments) = test
-    
+
     make = False
     disabled = (cmd[0] == '#')
     if ( disabled ):
         cmd = cmd[1:]
-    
+
     # command to run
     cmd_args = './' + cmd +' '+ options +' '+ sizes
     cmd_args = re.sub( '  +', ' ', cmd_args )  # compress spaces
-    
+
     # skip tests before start
     if ( start and not start.search( cmd_args )):
         continue
     start = None
-    
+
     # skip tests not in args, or duplicates, or non-existing
     if ((args and not cmd in args)
          or (not os.path.exists( cmd ))
@@ -729,23 +729,23 @@ for test in tests:
         continue
     # end
     seen[ cmd_args ] = True
-    
+
     if ( opts.memcheck ):
         cmd_args = 'cuda-memcheck ' + cmd_args
-    
+
     go = True
     while( go ):
         if pause > 0:
             time.sleep( pause )
             pause = 0
         # end
-        
+
         print
         print('*'*100)
         print(cmd_args)
         print('*'*100)
         sys.stdout.flush()
-        
+
         if ( batch ):
             if ( last_cmd and cmd != last_cmd ):
                 sys.stderr.write( '\n' )
@@ -753,7 +753,7 @@ for test in tests:
             sys.stderr.write( '%-70s' % cmd_args )
             sys.stderr.flush()
         # end
-        
+
         if ( disabled ):
             if ( comments ):
                 sys.stderr.write( '  (disabled: ' + comments + ')\n' )
@@ -762,23 +762,23 @@ for test in tests:
             go = False
             continue
         # end
-        
+
         if ( make ):
             m = 'make lib ' + cmd
             print(m)
             run( m )
         # end
-        
+
         t = time.time()
         (okay, fail, error, status) = run( cmd_args )
         t = time.time() - t
-        
+
         # count stats
         ntest  += 1
         nokay  += okay
         nfail  += fail
         nerror += error
-        
+
         errmsg = ''
         if ( fail > 0 ):
             errmsg += '  ** %d tests failed' % (fail)
@@ -787,7 +787,7 @@ for test in tests:
         if ( status < 0 ):
             errmsg += '  ** exit with signal %d' % (-status)
             nerror += 1  # count crash as an error
-        
+
         if ( errmsg != '' ):
             if ( batch ):
                 sys.stderr.write( errmsg + '\n' )  # to console
@@ -796,7 +796,7 @@ for test in tests:
         else:
             sys.stderr.write( '  ok\n' )
         # end
-        
+
         if ( batch ):
             # set to sleep a few seconds before next test,
             # to allow processor to cool off some between tests.
