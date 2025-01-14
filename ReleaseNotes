@@ -33,8 +33,8 @@ single (s), double (d), single-complex (c), double-complex (z).
       actively-maintained implementations of deprecated functionality.
       Deprecated routines will be removed in the next release.
     * [DEPRECATED] The MAGMA V1 interface is deprecated and will be removed in the next
-      release. This includes all routines specified in the headers under the "include"
-      subdirectory with the suffix "_v1.h"
+      release. This includes the "magma.h" header and all routines specified in the headers
+      under the "include" subdirectory with the suffix "_v1.h"
     * [NEW] Added expert interfaces for the following routines:
       - getrs_gpu (magma_<T>getrs_expert_gpu_work)
       - getri_gpu (magma_<T>getri_expert_gpu_work)
@@ -52,7 +52,7 @@ single (s), double (d), single-complex (c), double-complex (z).
       - Fix failures at certain sizes for several Hermitian eigensolver routines in
         double-complex precision
       - Fix 64-bit integer builds for CUDA-12.6
-      - Fixes and improvements to CMAK (CUDA backend)
+      - Fixes and improvements to CMake
       - Add support for Ada Lovelace architecture in Makefile
       - Fixes to documentation
 
