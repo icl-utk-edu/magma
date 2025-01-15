@@ -25,6 +25,37 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+2.9.0 - Jan 23, 2025
+    * [DEPRECATED] The MAGMA-sparse package is considered to be "Legacy Support Mode"
+      only, meaning the MAGMA-sparse component is not under active development. Many
+      sparse routines have been deprecated. Users are encouraged to consider switching
+      to the Ginkgo library (https://ginkgo-project.github.io) to find newer and
+      actively-maintained implementations of deprecated functionality.
+      Deprecated routines will be removed in the next release.
+    * [DEPRECATED] The MAGMA V1 interface is deprecated and will be removed in the next
+      release. This includes the "magma.h" header and all routines specified in the headers
+      under the "include" subdirectory with the suffix "_v1.h"
+    * [NEW] Added expert interfaces for the following routines:
+      - getrs_gpu (magma_<T>getrs_expert_gpu_work)
+      - getri_gpu (magma_<T>getri_expert_gpu_work)
+      - trtri_gpu (magma_<T>getri_expert_gpu_work)
+      - potrs_gpu (magma_<T>potrs_expert_gpu_work)
+      - gegqr_gpu (magma_<T>gegqr_expert_gpu_work)
+      - geqp3_gpu (magma_<T>geqp3_expert_gpu_work)
+    * [IMPORTANT] The workspace requirements of the following routines have been
+      updated. Users are advised to check the documentation for the new workspace sizes.
+      - magma_<T>gegqr_gpu
+      - magma_<T>geqp3_gpu (still backward compatible)
+    * Bug fixes and improvements:
+      - magma_zgeqp3_gpu: Fix failures at certain sizes (only double-complex)
+      - magma_<T>gesv_rbt_batched: Fix incorrect results for certain sizes
+      - Fix failures at certain sizes for several Hermitian eigensolver routines in
+        double-complex precision
+      - Fix 64-bit integer builds for CUDA-12.6
+      - Fixes and improvements to CMake
+      - Add support for Ada Lovelace architecture in Makefile
+      - Fixes to documentation
+
 2.8.0 - Mar 25, 2024
     * New functionality: band LU factorization and solve
       - magma_{s,d,c,z}gbtrf_native computes the LU factorization of a band matrix
