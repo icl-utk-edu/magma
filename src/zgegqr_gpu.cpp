@@ -373,9 +373,10 @@ magma_zgegqr_expert_gpu_work(
             n^2                    for ikind = 4
 
     @param[out]
-    work    (CPU workspace) COMPLEX_16 array, dimension:
-            5 n^2 + 7n + 64        for ikind = 1
-            3 n^2                  otherwise
+    work    (CPU workspace) COMPLEX_16 array.
+            The workspace size has changed for ikind = 1 since release 2.9.0
+            5 n^2 + 7n + 64        for ikind = 1  (not backward compatible)
+            3 n^2                  otherwise      (backward compatible)
             On exit, work(1:n^2) holds the rectangular matrix R.
             Preferably, for higher performance, work should be in pinned memory.
 

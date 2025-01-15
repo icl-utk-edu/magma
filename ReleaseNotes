@@ -43,9 +43,9 @@ single (s), double (d), single-complex (c), double-complex (z).
       - gegqr_gpu (magma_<T>gegqr_expert_gpu_work)
       - geqp3_gpu (magma_<T>geqp3_expert_gpu_work)
     * [IMPORTANT] The workspace requirements of the following routines have been
-      updated. Users must check the documentation for the new workspace sizes.
+      updated. Users are advised to check the documentation for the new workspace sizes.
       - magma_<T>gegqr_gpu
-      - magma_<T>geqp3_gpu
+      - magma_<T>geqp3_gpu (still backward compatible)
     * Bug fixes and improvements:
       - magma_zgeqp3_gpu: Fix failures at certain sizes (only double-complex)
       - magma_<T>gesv_rbt_batched: Fix incorrect results for certain sizes
