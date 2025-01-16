@@ -1820,7 +1820,7 @@ magma_zmconvert(
             // conversion using CUSPARSE
             cusparseZcsr2csc(cusparseHandle, A.num_rows, A.num_cols, A.nnz,
                              (cuDoubleComplex*)A.dval, A.drow, A.dcol,
-                             (cuDoubleComplex*)B->dval, B->drow, B->dcol,
+                             (cuDoubleComplex*)B->dval, B->dcol, B->drow,
                              CUSPARSE_ACTION_NUMERIC,
                              CUSPARSE_INDEX_BASE_ZERO);
         }
@@ -1849,7 +1849,7 @@ magma_zmconvert(
             // conversion using CUSPARSE
             cusparseZcsr2csc(cusparseHandle, A.num_cols, A.num_rows, A.nnz,
                              (cuDoubleComplex*)A.dval, A.dcol, A.drow,
-                             (cuDoubleComplex*)B->dval, B->dcol, B->drow,
+                             (cuDoubleComplex*)B->dval, B->drow, B->dcol,
                              CUSPARSE_ACTION_NUMERIC,
                              CUSPARSE_INDEX_BASE_ZERO);
         }
