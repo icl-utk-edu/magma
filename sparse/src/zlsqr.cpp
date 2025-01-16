@@ -133,7 +133,7 @@ magma_zlsqr(
         info = MAGMA_SUCCESS;
         goto cleanup;
     }
-    magma_zcopy( m, b.dval, 1, u.dval, 1, queue );  
+    magma_zcopy( m, r.dval, 1, u.dval, 1, queue );
     beta = magma_dznrm2( m, u.dval, 1, queue );
     magma_zscal( m, MAGMA_Z_MAKE(1./beta, 0.0 ), u.dval, 1, queue );
     normr = beta;
