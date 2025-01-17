@@ -1250,7 +1250,6 @@ INPUT                  = \
 	../sparse/src/zbicgstab_merge3.cpp                          \
 	../sparse/src/zbombard.cpp                                  \
 	../sparse/src/zbombard_merge.cpp                            \
-	../sparse/src/zbombard_symm_merge.cpp                       \
 	../sparse/src/zbpcg.cpp                                     \
 	../sparse/src/zcg.cpp                                       \
 	../sparse/src/zcg_merge.cpp                                 \
