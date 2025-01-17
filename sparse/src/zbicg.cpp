@@ -75,7 +75,7 @@ magma_zbicg(
                 yt={Magma_CSR},  qt={Magma_CSR};
                 
     // need to transpose the matrix
-    magma_z_matrix AT={Magma_CSR}, Ah1={Magma_CSR}, Ah2={Magma_CSR};
+    magma_z_matrix AT={Magma_CSR};
     
     CHECK( magma_zvinit( &r, Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
     CHECK( magma_zvinit( &rt,Magma_DEV, A.num_rows, b.num_cols, c_zero, queue ));
@@ -94,17 +94,7 @@ magma_zbicg(
     double res, nomb, nom0, r0;
 
         // transpose the matrix
-    CHECK( magma_zmtransfer( A, &Ah1, Magma_DEV, Magma_CPU, queue ));
-    CHECK( magma_zmconvert( Ah1, &Ah2, A.storage_type, Magma_CSR, queue ));
-    magma_zmfree(&Ah1, queue );
-    CHECK( magma_zmtransposeconjugate( Ah2, &Ah1, queue ));
-    magma_zmfree(&Ah2, queue );
-    Ah2.blocksize = A.blocksize;
-    Ah2.alignment = A.alignment;
-    CHECK( magma_zmconvert( Ah1, &Ah2, Magma_CSR, A.storage_type, queue ));
-    magma_zmfree(&Ah1, queue );
-    CHECK( magma_zmtransfer( Ah2, &AT, Magma_CPU, Magma_DEV, queue ));
-    magma_zmfree(&Ah2, queue );
+    CHECK( magma_zmtransposeconjugate( A, &AT, queue ));
     
     // solver setup
     CHECK(  magma_zresidualvec( A, b, *x, &r, &nom0, queue));
@@ -245,8 +235,6 @@ cleanup:
     magma_zmfree(&z, queue );
     magma_zmfree(&zt, queue );
     magma_zmfree(&AT, queue );
-    magma_zmfree(&Ah1, queue );
-    magma_zmfree(&Ah2, queue );
 
     solver_par->info = info;
     return info;

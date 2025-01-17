@@ -324,7 +324,7 @@ magma_z_cucsrtranspose(
         CHECK_CUSPARSE( cusparseSetMatIndexBase( descrA, CUSPARSE_INDEX_BASE_ZERO ));
         CHECK_CUSPARSE( cusparseSetMatIndexBase( descrB, CUSPARSE_INDEX_BASE_ZERO ));
         cusparseZcsr2csc( handle, A.num_rows, A.num_cols, A.nnz,
-                          (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)B->dval, B->dcol, B->drow,
+                          (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)B->dval, B->drow, B->dcol,
                           CUSPARSE_ACTION_NUMERIC,
                           CUSPARSE_INDEX_BASE_ZERO);
     } else if ( A.storage_type == Magma_CSR && A.memory_location == Magma_CPU ){
@@ -432,7 +432,7 @@ magma_zmtransposeconjugate(
         CHECK_CUSPARSE( cusparseSetMatIndexBase( descrA, CUSPARSE_INDEX_BASE_ZERO ));
         CHECK_CUSPARSE( cusparseSetMatIndexBase( descrB, CUSPARSE_INDEX_BASE_ZERO ));
         cusparseZcsr2csc( handle, A.num_rows, A.num_cols, A.nnz,
-                          (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)B->dval, B->dcol, B->drow,
+                          (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)B->dval, B->drow, B->dcol,
                           CUSPARSE_ACTION_NUMERIC,
                           CUSPARSE_INDEX_BASE_ZERO);
         CHECK( magma_zmconjugate( B, queue ));

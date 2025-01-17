@@ -103,7 +103,7 @@ magma_zbombard_merge(
     magma_z_matrix r_tld={Magma_CSR};
     
     // QMR
-    magma_z_matrix AT = {Magma_CSR}, Ah1 = {Magma_CSR}, Ah2 = {Magma_CSR},
+    magma_z_matrix AT = {Magma_CSR},
                     Q_r={Magma_CSR}, Q_x={Magma_CSR},
                     Q_v={Magma_CSR}, Q_w={Magma_CSR}, Q_wt={Magma_CSR},
                     Q_d={Magma_CSR}, Q_s={Magma_CSR}, Q_z={Magma_CSR}, Q_q={Magma_CSR}, 
@@ -213,18 +213,7 @@ magma_zbombard_merge(
     magma_zcopy( dofs, r_tld.dval, 1, Q_z.dval, 1, queue ); 
     magma_zcopy( dofs, x->dval, 1, Q_x.dval, 1, queue ); 
     // transpose the matrix
-    // transpose the matrix
-    magma_zmtransfer( A, &Ah1, Magma_DEV, Magma_CPU, queue );
-    magma_zmconvert( Ah1, &Ah2, A.storage_type, Magma_CSR, queue );
-    magma_zmfree(&Ah1, queue );
-    magma_zmtransposeconjugate( Ah2, &Ah1, queue );
-    magma_zmfree(&Ah2, queue );
-    Ah2.blocksize = A.blocksize;
-    Ah2.alignment = A.alignment;
-    magma_zmconvert( Ah1, &Ah2, Magma_CSR, A.storage_type, queue );
-    magma_zmfree(&Ah1, queue );
-    magma_zmtransfer( Ah2, &AT, Magma_CPU, Magma_DEV, queue );
-    magma_zmfree(&Ah2, queue );
+    magma_zmtransposeconjugate( A, &AT, queue );
     
     // TFQMR
     solver_par->init_res = nom0;
@@ -778,8 +767,6 @@ cleanup:
     //magma_zmfree(&Q_pt, queue );
     magma_zmfree(&Q_y,  queue );
     magma_zmfree(&Q_x,  queue );
-    magma_zmfree(&Ah1, queue );
-    magma_zmfree(&Ah2, queue );
     // TFQMR
     magma_zmfree(&T_r, queue );
     magma_zmfree(&T_x,  queue );

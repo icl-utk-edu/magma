@@ -79,7 +79,7 @@ magma_zlsqr(
     double s, nom0, r0, res=0, nomb, phibar, beta, alpha, c, rho, rhot, phi, thet, normr, normar, norma, sumnormd2, normd;
 
     // need to transpose the matrix
-    magma_z_matrix AT={Magma_CSR}, Ah1={Magma_CSR}, Ah2={Magma_CSR};
+    magma_z_matrix AT={Magma_CSR};
     
     // GPU workspace
     magma_z_matrix r={Magma_CSR},
@@ -99,18 +99,7 @@ magma_zlsqr(
 
     
     // transpose the matrix
-    CHECK( magma_zmtransfer( A, &Ah1, Magma_DEV, Magma_CPU, queue ) );
-    CHECK( magma_zmconvert( Ah1, &Ah2, A.storage_type, Magma_CSR, queue ) );
-    magma_zmfree(&Ah1, queue );
-    CHECK( magma_zmtransposeconjugate( Ah2, &Ah1, queue ) );
-    magma_zmfree(&Ah2, queue );
-    Ah2.blocksize = A.blocksize;
-    Ah2.alignment = A.alignment;
-    CHECK( magma_zmconvert( Ah1, &Ah2, Magma_CSR, A.storage_type, queue ) );
-    magma_zmfree(&Ah1, queue );
-    CHECK( magma_zmtransfer( Ah2, &AT, Magma_CPU, Magma_DEV, queue ) );
-    magma_zmfree(&Ah2, queue );
-    
+    CHECK( magma_zmtransposeconjugate( A, &AT, queue ) );
 
     
     // solver setup
@@ -133,7 +122,7 @@ magma_zlsqr(
         info = MAGMA_SUCCESS;
         goto cleanup;
     }
-    magma_zcopy( m, b.dval, 1, u.dval, 1, queue );  
+    magma_zcopy( m, r.dval, 1, u.dval, 1, queue );
     beta = magma_dznrm2( m, u.dval, 1, queue );
     magma_zscal( m, MAGMA_Z_MAKE(1./beta, 0.0 ), u.dval, 1, queue );
     normr = beta;
@@ -272,9 +261,6 @@ cleanup:
     magma_zmfree(&ut,  queue );
     magma_zmfree(&w,  queue );
     magma_zmfree(&AT, queue );
-    magma_zmfree(&Ah1, queue );
-    magma_zmfree(&Ah2, queue );
-
     
     solver_par->info = info;
     return info;
