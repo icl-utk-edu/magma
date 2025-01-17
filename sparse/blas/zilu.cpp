@@ -443,40 +443,15 @@ magma_zcumilusetup_transpose(
     magma_queue_t queue )
 {
     magma_int_t info = 0;
-    magma_z_matrix Ah1={Magma_CSR}, Ah2={Magma_CSR};
 
     // transpose the matrix
-    magma_zmtransfer( precond->L, &Ah1, Magma_DEV, Magma_CPU, queue );
-    magma_zmconvert( Ah1, &Ah2, A.storage_type, Magma_CSR, queue );
-    magma_zmfree(&Ah1, queue );
-    magma_zmtransposeconjugate( Ah2, &Ah1, queue );
-    magma_zmfree(&Ah2, queue );
-    Ah2.blocksize = A.blocksize;
-    Ah2.alignment = A.alignment;
-    magma_zmconvert( Ah1, &Ah2, Magma_CSR, A.storage_type, queue );
-    magma_zmfree(&Ah1, queue );
-    magma_zmtransfer( Ah2, &(precond->LT), Magma_CPU, Magma_DEV, queue );
-    magma_zmfree(&Ah2, queue );
-    
-    magma_zmtransfer( precond->U, &Ah1, Magma_DEV, Magma_CPU, queue );
-    magma_zmconvert( Ah1, &Ah2, A.storage_type, Magma_CSR, queue );
-    magma_zmfree(&Ah1, queue );
-    magma_zmtransposeconjugate( Ah2, &Ah1, queue );
-    magma_zmfree(&Ah2, queue );
-    Ah2.blocksize = A.blocksize;
-    Ah2.alignment = A.alignment;
-    magma_zmconvert( Ah1, &Ah2, Magma_CSR, A.storage_type, queue );
-    magma_zmfree(&Ah1, queue );
-    magma_zmtransfer( Ah2, &(precond->UT), Magma_CPU, Magma_DEV, queue );
-    magma_zmfree(&Ah2, queue );
+    magma_zmtransposeconjugate( precond->L, &(precond->LT), queue );
+    magma_zmtransposeconjugate( precond->U, &(precond->UT), queue );
    
     CHECK(magma_ztrisolve_analysis(precond->LT, &precond->cuinfoLT, true, false, false, queue));
     CHECK(magma_ztrisolve_analysis(precond->UT, &precond->cuinfoUT, false, false, false, queue));
 
 cleanup:
-    magma_zmfree(&Ah1, queue );
-    magma_zmfree(&Ah2, queue );
-
     return info;
 }
 
