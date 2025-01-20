@@ -550,20 +550,20 @@ extern "C"
     #define csrsm2Info_t int
 #endif
 
-#if CUDA_VERSION < 11031 || defined(MAGMA_HAVE_HIP)
 typedef struct magma_solve_info_t
 {
+    #if CUDA_VERSION < 11031 || defined(MAGMA_HAVE_HIP)
     csrsm2Info_t descr{};
-    void *buffer{};
-} magma_solve_info_t;
-//#define magma_ilu_info_t cusparseSolveAnalysisInfo_t
-#define magma_ilu_info_t csrsm2Info_t
-#else
-typedef struct magma_solve_info_t
-{
+    #else
     cusparseSpSMDescr_t descr{};
+    #endif
     void *buffer{};
 } magma_solve_info_t;
+// Older CUDA: use cusparseSolveAnalysisInfo_t
+#if (defined(MAGMA_HAVE_CUDA) && CUDA_VERSION < 11000) 
+#define magma_ilu_info_t cusparseSolveAnalysisInfo_t
+// HIP and newer CUDA: use csrsm2Info_t
+#else
 #define magma_ilu_info_t csrsm2Info_t
 #endif
 
