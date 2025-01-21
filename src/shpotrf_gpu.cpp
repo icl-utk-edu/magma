@@ -33,7 +33,7 @@ magma_sgemm_fp16(
     magma_queue_t queue )
 {
     #if (defined(MAGMA_HAVE_CUDA) && CUDA_VERSION >= 7500)
-        #ifdef CUDA_USE_FAST_SGEMM
+        #if (defined(CUDA_USE_FAST_SGEMM) && CUDA_VERSION >= 11000)
         cublasGemmEx( queue->cublas_handle(),
                       cublas_trans_const( transA ), cublas_trans_const( transB ),
                       (int)m, (int)n, (int)k,
