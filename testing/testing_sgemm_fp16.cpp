@@ -30,13 +30,23 @@ magma_sgemm_fp16_v1(
     magma_queue_t queue )
 {
     #ifdef MAGMA_HAVE_CUDA
-    cublasGemmEx( magma_queue_get_cublas_handle( queue ),
-                  cublas_trans_const( transA ), cublas_trans_const( transB ),
-                  (int)m, (int)n, (int)k,
-                  (const void*) &alpha, (const void*) dA, CUDA_R_32F, (int)ldda,
-                                        (const void*) dB, CUDA_R_32F, (int)lddb,
-                  (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
-                  CUBLAS_COMPUTE_32F_FAST_16F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
+      #if CUDA_VERSION >= 11000
+        cublasGemmEx( magma_queue_get_cublas_handle( queue ),
+                      cublas_trans_const( transA ), cublas_trans_const( transB ),
+                      (int)m, (int)n, (int)k,
+                      (const void*) &alpha, (const void*) dA, CUDA_R_32F, (int)ldda,
+                                            (const void*) dB, CUDA_R_32F, (int)lddb,
+                      (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
+                      CUBLAS_COMPUTE_32F_FAST_16F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
+      #else
+        cublasGemmEx( magma_queue_get_cublas_handle( queue ),
+                      cublas_trans_const( transA ), cublas_trans_const( transB ),
+                      (int)m, (int)n, (int)k,
+                      (const void*) &alpha, (const void*) dA, CUDA_R_32F, (int)ldda,
+                                            (const void*) dB, CUDA_R_32F, (int)lddb,
+                      (const void*) &beta,  (      void*) dC, CUDA_R_32F, (int)lddc,
+                      CUDA_R_32F, CUBLAS_GEMM_DEFAULT_TENSOR_OP );
+      #endif
     #else
     magma_int_t hinfo = 0;
     magma_int_t Am = (transA == MagmaNoTrans) ? m : k;

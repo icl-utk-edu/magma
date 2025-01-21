@@ -27,11 +27,11 @@
         size_t bufsize;                                                                        \
         void *buf;                                                                             \
         cusparseCsr2cscEx2_bufferSize(handle, m, n, nnz, valA, rowA, colA,                     \
-                                      valB, colB, rowB, CUDA_C_64F, action, base,              \
+                                      valB, rowB, colB, CUDA_C_64F, action, base,              \
                                       CUSPARSE_CSR2CSC_ALG1, &bufsize);                        \
         if (bufsize > 0)                                                                       \
            CHECK( magma_malloc(&buf, bufsize) );                                               \
-        cusparseCsr2cscEx2(handle, m, n, nnz, valA, rowA, colA, valB, colB, rowB,              \
+        cusparseCsr2cscEx2(handle, m, n, nnz, valA, rowA, colA, valB, rowB, colB,              \
                            CUDA_C_64F, action, base, CUSPARSE_CSR2CSC_ALG1, buf);              \
         if (bufsize > 0)                                                                       \
            magma_free(buf);                                                                    \
@@ -324,7 +324,7 @@ magma_z_cucsrtranspose(
         CHECK_CUSPARSE( cusparseSetMatIndexBase( descrA, CUSPARSE_INDEX_BASE_ZERO ));
         CHECK_CUSPARSE( cusparseSetMatIndexBase( descrB, CUSPARSE_INDEX_BASE_ZERO ));
         cusparseZcsr2csc( handle, A.num_rows, A.num_cols, A.nnz,
-                          (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)B->dval, B->drow, B->dcol,
+                          (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)B->dval, B->dcol, B->drow,
                           CUSPARSE_ACTION_NUMERIC,
                           CUSPARSE_INDEX_BASE_ZERO);
     } else if ( A.storage_type == Magma_CSR && A.memory_location == Magma_CPU ){
@@ -432,7 +432,7 @@ magma_zmtransposeconjugate(
         CHECK_CUSPARSE( cusparseSetMatIndexBase( descrA, CUSPARSE_INDEX_BASE_ZERO ));
         CHECK_CUSPARSE( cusparseSetMatIndexBase( descrB, CUSPARSE_INDEX_BASE_ZERO ));
         cusparseZcsr2csc( handle, A.num_rows, A.num_cols, A.nnz,
-                          (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)B->dval, B->drow, B->dcol,
+                          (cuDoubleComplex*)A.dval, A.drow, A.dcol, (cuDoubleComplex*)B->dval, B->dcol, B->drow,
                           CUSPARSE_ACTION_NUMERIC,
                           CUSPARSE_INDEX_BASE_ZERO);
         CHECK( magma_zmconjugate( B, queue ));

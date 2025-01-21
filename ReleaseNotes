@@ -46,6 +46,8 @@ single (s), double (d), single-complex (c), double-complex (z).
       updated. Users are advised to check the documentation for the new workspace sizes.
       - magma_<T>gegqr_gpu
       - magma_<T>geqp3_gpu (still backward compatible)
+    * The magma_*gbtf2_native and magma_*gbtf2_native_v2 routines have been disabled
+      for CUDA <11.0.
     * Bug fixes and improvements:
       - magma_zgeqp3_gpu: Fix failures at certain sizes (only double-complex)
       - magma_<T>gesv_rbt_batched: Fix incorrect results for certain sizes
@@ -55,6 +57,9 @@ single (s), double (d), single-complex (c), double-complex (z).
       - Fixes and improvements to CMake
       - Add support for Ada Lovelace architecture in Makefile
       - Fixes to documentation
+      - Fix shpotrf_gpu to work for CUDA <11.0
+      - Sparse: fix a bug in the use of cuSPARSE CSR -> CSC conversion for CUDA >=11.0
+      - Sparse: fix initialization in LSQR solver for non-zero initial guesses
 
 2.8.0 - Mar 25, 2024
     * New functionality: band LU factorization and solve
