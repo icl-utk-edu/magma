@@ -191,6 +191,7 @@ magma_zgbtf2_scal_ger_batched(
 }
 
 /******************************************************************************/
+#if CUDA_VERSION >= 11000
 __global__
 void zgbtf2_native_kernel(
     int m, int n, int nb, int kl, int ku,
@@ -415,6 +416,7 @@ magma_zgbtf2_native_work(
 
     return *info;
 }
+#endif
 
 /******************************************************************************/
 extern "C"
@@ -424,6 +426,10 @@ magma_zgbtf2_native(
     magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
     magma_int_t* info, magma_queue_t queue)
 {
+#if CUDA_VERSION < 11000
+    fprintf( stderr, "%s is not supported for CUDA < 11.0\n", __func__);
+    *info = MAGMA_ERR_NOT_SUPPORTED;
+#else
     magma_int_t kv    = kl + ku;
     magma_int_t mband = kv + 1 + kl;
 
@@ -454,12 +460,14 @@ magma_zgbtf2_native(
     magma_zgbtf2_native_work(m, n, kl, ku, dA, ldda, ipiv, info, device_work, lwork, queue);
 
     magma_free(device_work);
+#endif
     return *info;
 }
 
 /******************************************************************************/
 // kernel for gbtf2 using cooperative groups and 1D cyclic dist. of columns
 // among thread-blocks
+#if CUDA_VERSION >= 11000
 __global__
 void zgbtf2_native_kernel_v2(
     int m, int n, int nb, int NB, int kl, int ku,
@@ -713,6 +721,7 @@ magma_zgbtf2_native_v2_work(
 
     return *info;
 }
+#endif
 
 /******************************************************************************/
 extern "C"
@@ -722,6 +731,10 @@ magma_zgbtf2_native_v2(
     magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
     magma_int_t* info, magma_queue_t queue)
 {
+#if CUDA_VERSION < 11000
+    fprintf( stderr, "%s is not supported for CUDA < 11.0\n", __func__);
+    *info = MAGMA_ERR_NOT_SUPPORTED;
+#else
     magma_int_t kv    = kl + ku;
     magma_int_t mband = kv + 1 + kl;
 
@@ -752,6 +765,6 @@ magma_zgbtf2_native_v2(
     magma_zgbtf2_native_v2_work(m, n, kl, ku, dA, ldda, ipiv, info, device_work, lwork, queue);
 
     magma_free(device_work);
+#endif
     return *info;
 }
-
