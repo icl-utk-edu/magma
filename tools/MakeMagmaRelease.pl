@@ -103,13 +103,11 @@ sub MakeRelease
     );
     $year += 1900;
 
-    # Require recent doxygen, say >= 1.8.
-    # ICL machines have ancient versions of doxygen (1.4 and 1.6);
-    # the docs don't work at all.
+    # Require recent doxygen, say >= 1.12.
     my $doxygen = `doxygen --version`;
     chomp $doxygen;
     my($v) = $doxygen =~ m/^(\d+\.\d+)\.\d+$/;
-    my $doxygen_require = 1.8;
+    my $doxygen_require = 1.12;
     if ( $v < $doxygen_require ) {
         print <<EOT;
 =====================================================================
