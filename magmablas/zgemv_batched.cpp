@@ -137,9 +137,9 @@ magmablas_zgemv_batched(
 
     magmablas_zgemv_batched_core(
         trans, m, n,
-        alpha, dA_array, NULL, ldda, 0,
-               dx_array, NULL, incx, 0,
-        beta,  dy_array, NULL, incy, 0,
+        alpha, dA_array, ldda,
+               dx_array, incx,
+        beta,  dy_array, incy,
         batchCount, queue);
 }
 
@@ -273,10 +273,10 @@ magmablas_zgemv_batched_strided(
                     batchCount, queue);
         if( info == 0 ) return;
     }
-    magmablas_zgemv_batched_core(
+    magmablas_zgemv_batched_strided_core(
         trans, m, n,
-        alpha, NULL, dA, ldda, strideA,
-               NULL, dx, incx, stridex,
-        beta,  NULL, dy, incy, stridey,
+        alpha, dA, ldda, strideA,
+               dx, incx, stridex,
+        beta,  dy, incy, stridey,
         batchCount, queue);
 }

@@ -20,9 +20,10 @@
 
 #define version(s,v) s ## _V_ ## v
 
-// This is an internal routine, please see zgemv_batched.cpp for more details
-extern "C" void
-magmablas_zgemv_batched_core(
+/******************************************************************************/
+// This is an internal routine, interface could change, please see zgemv_batched.cpp for more details
+static void
+magmablas_zgemv_internal(
     magma_trans_t trans, magma_int_t m, magma_int_t n,
     const magmaDoubleComplex alpha,
     magmaDoubleComplex const * const * dA_array, const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA,
@@ -130,4 +131,44 @@ magmablas_zgemv_batched_core(
             }
         }
     }
+}
+
+/******************************************************************************/
+// This is an internal routine, interface could change, please see zgemv_batched.cpp for more details
+extern "C" void
+magmablas_zgemv_batched_core(
+    magma_trans_t trans, magma_int_t m, magma_int_t n,
+    const magmaDoubleComplex alpha,
+    magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
+    magmaDoubleComplex const * const * dx_array, magma_int_t incx,
+    const magmaDoubleComplex beta,
+    magmaDoubleComplex** dy_array, magma_int_t incy,
+    magma_int_t batchCount, magma_queue_t queue)
+{
+    magmablas_zgemv_internal(
+        trans, m, n,
+        alpha, dA_array, NULL, ldda, 0,
+               dx_array, NULL, incx, 0,
+        beta,  dy_array, NULL, incy, 0,
+        batchCount, queue);
+}
+
+/******************************************************************************/
+// This is an internal routine, interface could change, please see zgemv_batched.cpp for more details
+extern "C" void
+magmablas_zgemv_batched_strided_core(
+    magma_trans_t trans, magma_int_t m, magma_int_t n,
+    const magmaDoubleComplex alpha,
+    const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA,
+    const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex,
+    const magmaDoubleComplex beta,
+          magmaDoubleComplex* dy, magma_int_t incy, magma_int_t stridey,
+    magma_int_t batchCount, magma_queue_t queue)
+{
+    magmablas_zgemv_internal(
+        trans, m, n,
+    alpha, NULL, dA, ldda, strideA,
+           NULL, dx, incx, stridex,
+    beta,  NULL, dy, incy, stridey,
+    batchCount, queue);
 }
