@@ -22,7 +22,7 @@
 
 // This is an internal routine, please see sgemv_batched.cpp for more details
 extern "C" void
-magmablas_sgemv_batched_core(
+magmablas_sgemv_batched_internal(
     magma_trans_t trans, magma_int_t m, magma_int_t n,
     const float alpha,
     float const * const * dA_array, const float* dA, magma_int_t ldda, magma_int_t strideA,
