@@ -21,17 +21,28 @@ extern "C" void
 magmablas_zgemv_batched_core(
     magma_trans_t trans, magma_int_t m, magma_int_t n,
     const magmaDoubleComplex alpha,
-    magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
-    magmaDoubleComplex const * const * dx_array, magma_int_t incx,
+    magmaDoubleComplex const * const * dA_array, magma_int_t ldda, magma_int_t Ai, magma_int_t Aj,
+    magmaDoubleComplex const * const * dx_array, magma_int_t incx, magma_int_t xi,
     const magmaDoubleComplex beta,
-    magmaDoubleComplex** dy_array, magma_int_t incy,
+    magmaDoubleComplex** dy_array, magma_int_t incy, magma_int_t yi,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    magma_int_t info = 0;
+    if(m == n && n <= 32) {
+         info = magmablas_zgemv_batched_smallsq(
+                trans, n,
+                alpha, dA_array, ldda,
+                       dx_array, incx,
+                beta,  dy_array, incy,
+                batchCount, queue);
+        if(info == 0) return;
+    }
+
     magmablas_zgemv_batched_internal(
         trans, m, n,
-        alpha, dA_array, NULL, ldda, 0,
-               dx_array, NULL, incx, 0,
-        beta,  dy_array, NULL, incy, 0,
+        alpha, dA_array, NULL, ldda, 0, Ai, Aj,
+               dx_array, NULL, incx, 0, xi,
+        beta,  dy_array, NULL, incy, 0, yi,
         batchCount, queue);
 }
 
@@ -41,16 +52,27 @@ extern "C" void
 magmablas_zgemv_batched_strided_core(
     magma_trans_t trans, magma_int_t m, magma_int_t n,
     const magmaDoubleComplex alpha,
-    const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA,
-    const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex,
+    const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA, magma_int_t Ai, magma_int_t Aj,
+    const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex, magma_int_t xi,
     const magmaDoubleComplex beta,
-          magmaDoubleComplex* dy, magma_int_t incy, magma_int_t stridey,
+          magmaDoubleComplex* dy, magma_int_t incy, magma_int_t stridey, magma_int_t yi,
     magma_int_t batchCount, magma_queue_t queue)
 {
+     magma_int_t info = 0;
+    if(m == n && n <= 32) {
+        info = magmablas_zgemv_batched_strided_smallsq(
+                    trans, n,
+                    alpha, dA, ldda, strideA,
+                           dx, incx, stridex,
+                    beta,  dy, incy, stridey,
+                    batchCount, queue);
+        if( info == 0 ) return;
+    }
+
     magmablas_zgemv_batched_internal(
         trans, m, n,
-    alpha, NULL, dA, ldda, strideA,
-           NULL, dx, incx, stridex,
+    alpha, NULL, dA, ldda, strideA, Ai, Aj,
+           NULL, dx, incx, stridex, xi, yi,
     beta,  NULL, dy, incy, stridey,
     batchCount, queue);
 }
@@ -165,21 +187,11 @@ magmablas_zgemv_batched(
         return;  //info;
     }
 
-    if(m == n && n <= 32) {
-        info = magmablas_zgemv_batched_smallsq(
-                trans, n,
-                alpha, dA_array, ldda,
-                       dx_array, incx,
-                beta,  dy_array, incy,
-                batchCount, queue);
-        if(info == 0) return;
-    }
-
     magmablas_zgemv_batched_core(
         trans, m, n,
-        alpha, dA_array, ldda,
-               dx_array, incx,
-        beta,  dy_array, incy,
+        alpha, dA_array, ldda, 0, 0,
+               dx_array, incx, 0,
+        beta,  dy_array, incy, 0,
         batchCount, queue);
 }
 
@@ -304,19 +316,10 @@ magmablas_zgemv_batched_strided(
         return;  //info;
     }
 
-    if(m == n && n <= 32) {
-        info = magmablas_zgemv_batched_strided_smallsq(
-                    trans, n,
-                    alpha, dA, ldda, strideA,
-                           dx, incx, stridex,
-                    beta,  dy, incy, stridey,
-                    batchCount, queue);
-        if( info == 0 ) return;
-    }
     magmablas_zgemv_batched_strided_core(
         trans, m, n,
-        alpha, dA, ldda, strideA,
-               dx, incx, stridex,
-        beta,  dy, incy, stridey,
+        alpha, dA, ldda, strideA, 0, 0,
+               dx, incx, stridex, 0,
+        beta,  dy, incy, stridey, 0,
         batchCount, queue);
 }
