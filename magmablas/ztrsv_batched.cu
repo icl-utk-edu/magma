@@ -16,6 +16,7 @@
 #include "batched_kernel_param.h"
 
 #define PRECISION_z
+#include "trsv_template_kernel_batched.cuh"
 
 #define NB 256  //NB is the 1st level blocking in recursive blocking, BLOCK_SIZE is the 2ed level, NB=256, BLOCK_SIZE=64 is optimal for batched
 
@@ -32,6 +33,182 @@
 #include "ztrsv_template_device.cuh"
 
 #define A(i, j)  (A + (i) + (j)*lda)   // A(i, j) means at i row, j column
+
+
+/******************************************************************************/
+static void
+magmablas_ztrsv_small_batched(
+        magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
+        magma_int_t n,
+        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+        magmaDoubleComplex **dx_array, magma_int_t xi, magma_int_t incx,
+        magma_int_t batchCount, magma_queue_t queue )
+{
+    if     ( n <=  2 )
+        trsv_small_batched<magmaDoubleComplex,  2>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
+    else if( n <=  4 )
+        trsv_small_batched<magmaDoubleComplex,  4>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
+    else if( n <=  8 )
+        trsv_small_batched<magmaDoubleComplex,  8>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
+    else if( n <= 16 )
+        trsv_small_batched<magmaDoubleComplex, 16>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
+    else if( n <= 32 )
+        trsv_small_batched<magmaDoubleComplex, 32>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
+    else
+        printf("error in function %s: nrowA must be less than 32\n", __func__);
+}
+
+/******************************************************************************/
+static magma_int_t magma_get_ztrsv_batched_nb(magma_int_t n)
+{
+    if      ( n > 2048 ) return 2048;
+    else if ( n > 1024 ) return 1024;
+    else if ( n >  512 ) return 512;
+    else if ( n >  256 ) return 256;
+    else if ( n >  128 ) return 128;
+    else if ( n >   64 ) return  64;
+    else if ( n >   32 ) return  32;
+    else if ( n >   16 ) return  16;
+    else if ( n >    8 ) return   8;
+    else if ( n >    4 ) return   4;
+    else if ( n >    2 ) return   2;
+    else return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+extern "C" void
+magmablas_ztrsv_recursive_batched(
+        magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
+        magma_int_t n,
+        magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+        magmaDoubleComplex **dx_array, magma_int_t xi, magma_int_t incx,
+        magma_int_t batchCount, magma_queue_t queue )
+{
+#define dA_array(i,j) dA_array, i, j
+#define dx_array(i)   dx_array, i
+
+    const magmaDoubleComplex c_one    = MAGMA_Z_ONE;
+    const magmaDoubleComplex c_negone = MAGMA_Z_NEG_ONE;
+
+    magma_int_t shape = -1;
+    if      (transA == MagmaNoTrans  && uplo == MagmaLower) { shape = 0; } // NL
+    else if (transA == MagmaNoTrans  && uplo == MagmaUpper) { shape = 1; } // NU
+    else if (transA != MagmaNoTrans  && uplo == MagmaLower) { shape = 2; } // TL | CL
+    else if (transA != MagmaNoTrans  && uplo == MagmaUpper) { shape = 3; } // TU | CU
+
+    // stopping condition
+    if(n <= 32){
+        magmablas_ztrsv_small_batched(
+            uplo, transA, diag, n,
+            dA_array(Ai, Aj), ldda,
+            dx_array(xi), incx, batchCount, queue );
+        return;
+    }
+
+    switch(shape)
+    {
+        const int n2 = magma_get_ztrsv_batched_nb(n);
+        const int n1 = n - n2;
+
+        case 0: // Nl
+        {
+
+            magmablas_ztrsv_recursive_batched(
+                uplo, transA, diag, n1,
+                dA_array(Ai, Aj), ldda,
+                dx_array(xi    ), incx,
+                batchCount, queue );
+
+            magmablas_zgemv_batched_core(
+                transA, n2, n1,
+                c_negone, dA_array(Ai+n1, Aj), ldda,
+                          dx_array(xi       ), incx,
+                c_one,    dx_array(xi+n1    ), incx,
+                batchCount, queue );
+
+            magmablas_ztrsv_recursive_batched(
+                uplo, transA, diag, n2,
+                dA_array(Ai+n1, Aj+n1), ldda,
+                dx_array(xi+n1       ), incx,
+                batchCount, queue );
+        }
+        break;
+        ////////////////////////////////////////////////////////////////////////
+        case 1: // NU
+        {
+            magmablas_ztrsv_recursive_batched(
+                uplo, transA, diag, n2,
+                dA_array(Ai+n1, Aj+n1), ldda,
+                dx_array(xi+n1       ), incx,
+                batchCount, queue );
+
+            magmablas_zgemv_batched_core(
+                transA, n1, n2,
+                c_negone, dA_array(Ai, Aj+n1), ldda,
+                          dx_array(xi+n1    ), incx,
+                c_one,    dx_array(xi       ), incx,
+                batchCount, queue );
+
+            magmablas_ztrsv_recursive_batched(
+                uplo, transA, diag, n1,
+                dA_array(Ai, Aj), ldda,
+                dx_array(xi    ), incx,
+                batchCount, queue );
+        }
+        break;
+        ////////////////////////////////////////////////////////////////////////
+        case 2: // TL || CL
+        {
+            magmablas_ztrsv_recursive_batched(
+                uplo, transA, diag, n2,
+                dA_array(Ai+n1, Aj+n1), ldda,
+                dx_array(xi+n1       ), incx,
+                batchCount, queue );
+
+            magmablas_zgemv_batched_core(
+                transA, n2, n1,
+                c_negone, dA_array(Ai+n1, Aj), ldda,
+                          dx_array(xi+n1    ), incx,
+                c_one,    dx_array(xi       ), incx,
+                batchCount, queue );
+
+
+            magmablas_ztrsv_recursive_batched(
+                uplo, transA, diag, n1,
+                dA_array(Ai, Aj), ldda,
+                dx_array(xi    ), incx,
+                batchCount, queue );
+        }
+        break;
+        ////////////////////////////////////////////////////////////////////////
+        case 3: // TU | lCU
+        {
+            magmablas_ztrsv_recursive_batched(
+                uplo, transA, diag, n1,
+                dA_array(Ai, Aj), ldda,
+                dx_array(xi    ), incx,
+                batchCount, queue );
+
+            magmablas_zgemv_batched_core(
+                transA, n1, n2,
+                c_negone, dA_array(Ai, Aj+n1), ldda,
+                          dx_array(xi       ), incx,
+                c_one,    dx_array(xi+n1    ), incx,
+                batchCount, queue );
+
+            magmablas_ztrsv_recursive_batched(
+                uplo, transA, diag, n2,
+                dA_array(Ai+n1, Aj+n1), ldda,
+                dx_array(xi+n1       ), incx,
+                batchCount, queue );
+        }
+        break;
+        ////////////////////////////////////////////////////////////////////////
+        default:; // propose something
+    }
+#undef dA_array
+#undef dx_array
+}
 
 
 /******************************************************************************/
