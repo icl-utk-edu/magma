@@ -24,7 +24,7 @@ magmablas_zgemv_batched_core(
     magmaDoubleComplex const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
     magmaDoubleComplex const * const * dx_array, magma_int_t xi, magma_int_t incx,
     const magmaDoubleComplex beta,
-    magmaDoubleComplex** dy_array, magma_int_t yi,, magma_int_t incy,
+    magmaDoubleComplex** dy_array, magma_int_t yi, magma_int_t incy,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t info = 0;

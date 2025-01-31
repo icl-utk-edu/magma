@@ -928,8 +928,8 @@ magmablas_zgemv_batched_core(
     magmaDoubleComplex const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
     magmaDoubleComplex const * const * dx_array, magma_int_t xi, magma_int_t incx,
     const magmaDoubleComplex beta,
-    magmaDoubleComplex** dy_array, magma_int_t yi,, magma_int_t incy,
-    magma_int_t batchCount, magma_queue_t queue)
+    magmaDoubleComplex** dy_array, magma_int_t yi, magma_int_t incy,
+    magma_int_t batchCount, magma_queue_t queue);
 
 void
 magmablas_zgemv_batched_internal(
@@ -949,7 +949,7 @@ magmablas_zgemv_batched_strided_core(
     const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t xi, magma_int_t stridex,
     const magmaDoubleComplex beta,
           magmaDoubleComplex* dy, magma_int_t incy, magma_int_t yi, magma_int_t stridey,
-    magma_int_t batchCount, magma_queue_t queue)
+    magma_int_t batchCount, magma_queue_t queue);
 
 void
 magmablas_zgemv_batched(
