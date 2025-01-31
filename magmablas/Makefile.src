@@ -180,7 +180,8 @@ libmagma_src += \
 	$(cdir)/ztrsm_batched.cpp		\
 	$(cdir)/ztrsm_batched_core.cpp		\
 	$(cdir)/ztrsm_small_batched.cu		\
-	$(cdir)/ztrsv_batched.cu		\
+	$(cdir)/ztrsv_batched.cu			\
+	$(cdir)/ztrsv_small_batched.cu		\
 	$(cdir)/ztrtri_diag_batched.cu		\
 	$(cdir)/zgetf2_nopiv_kernels.cu		\
 
