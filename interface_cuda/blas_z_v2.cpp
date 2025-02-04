@@ -1859,7 +1859,7 @@ magma_ztrmm(
 		    int(m), int(n),
 		    (cuDoubleComplex*)&alpha, (const cuDoubleComplex*)dA, int(ldda),
 		    (cuDoubleComplex*)dB, int(lddb)
-    #if (ROCM_VERSION >= 60000)
+    #if (hipblasVersionMajor >= 2)
 		    , (cuDoubleComplex*)dB, int(lddb)
     #endif
 		    );
