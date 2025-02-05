@@ -27,7 +27,7 @@
 #endif
 
 
-#define h_A(i,j,s) (h_A + (i) + (j)*lda + (s)*lda*Ak)
+//#define h_A(i,j,s) (h_A + (i) + (j)*lda + (s)*lda*Ak)
 
 
 /* ////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
-    real_Double_t   gflops, magma_perf, magma_time=0, cublas_perf=0, cublas_time=0, cpu_perf=0, cpu_time=0;
+    real_Double_t   gflops, magma_perf, magma_time=0, device_perf=0, device_time=0, cpu_perf=0, cpu_time=0;
     double          magma_error, cublas_error, normx, normr, normA, work[1];
     magma_int_t i, j, s, N, info;
     magma_int_t Ak;
@@ -50,7 +50,7 @@ int main( int argc, char** argv)
 
     magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
 
-    magmaDoubleComplex *h_A, *h_b, *h_bcublas, *h_bmagma, *h_blapack, *h_x;
+    magmaDoubleComplex *h_A, *h_b, *h_bdev, *h_bmagma, *h_blapack, *h_x;
     magmaDoubleComplex *d_A, *d_b;
     magmaDoubleComplex **d_A_array = NULL;
     magmaDoubleComplex **d_b_array = NULL;
@@ -58,7 +58,6 @@ int main( int argc, char** argv)
     magmaDoubleComplex **dwork_array = NULL;
 
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
-    magmaDoubleComplex alpha = MAGMA_Z_ONE;
     int status = 0;
     magma_int_t batchCount;
 
@@ -90,7 +89,7 @@ int main( int argc, char** argv)
             TESTING_CHECK( magma_zmalloc_cpu( &h_b,       sizeB   ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_x,       sizeB   ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_blapack, sizeB   ));
-            TESTING_CHECK( magma_zmalloc_cpu( &h_bcublas, sizeB   ));
+            TESTING_CHECK( magma_zmalloc_cpu( &h_bdev, sizeB   ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_bmagma,  sizeB   ));
             TESTING_CHECK( magma_imalloc_cpu( &ipiv,      Ak      ));
 
@@ -116,7 +115,6 @@ int main( int argc, char** argv)
              * Copy L to U, since L seems okay when used with non-unit diagonal
              * (i.e., from U), while U fails when used with unit diagonal. */
             lapackf77_zlarnv( &ione, ISEED, &sizeA, h_A );
-
             for (s=0; s < batchCount; s++) {
                 magmaDoubleComplex* hAs = h_A + s * lda * Ak;
                 lapackf77_zgetrf( &Ak, &Ak, hAs, &lda, ipiv, &info );
@@ -171,9 +169,6 @@ int main( int argc, char** argv)
 
             magma_perf = gflops / magma_time;
 
-
-//magma_zprint(N, 1, h_bmagma, N);
-
             /* =====================================================================
                Performs operation using CUBLAS
                =================================================================== */
@@ -184,20 +179,27 @@ int main( int argc, char** argv)
             // CUBLAS version    6.5 has magmaDoubleComplex const**       dA_array, requiring cast.
             // Correctly, it should be   magmaDoubleComplex const* const* dA_array, to avoid requiring cast.
             #if CUDA_VERSION >= 6050
-                cublas_time = magma_sync_wtime( opts.queue );
+                magmaDoubleComplex alpha = MAGMA_Z_ONE;
+                device_time = magma_sync_wtime( opts.queue );
                 cublasZtrsmBatched(
                     opts.handle, cublas_side_const(MagmaLeft), cublas_uplo_const(opts.uplo),
                     cublas_trans_const(opts.transA), cublas_diag_const(opts.diag),
                     int(N), 1, &alpha,
                     (const magmaDoubleComplex**) d_A_array, int(ldda),
                     d_b_array, int(N), int(batchCount) );
-                cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;
-                cublas_perf = gflops / cublas_time;
-            #else
-                MAGMA_UNUSED( alpha );
+                device_time = magma_sync_wtime( opts.queue ) - device_time;
+                device_perf = gflops / device_time;
+            #elif defined(MAGMA_HAVE_HIP)
+                device_time = magma_sync_wtime( opts.queue );
+                hipblasZtrsvBatched(
+                    opts.handle, hipblas_uplo_const(opts.uplo), hipblas_trans_const(opts.transA), hipblas_diag_const(opts.diag),
+                    (int)N, (const hipblasDoubleComplex **)d_A_array, (int)ldda,
+                            (hipblasDoubleComplex **)d_b_array, (int)1, (int)batchCount );
+                device_time = magma_sync_wtime( opts.queue ) - device_time;
+                device_perf = gflops / device_time;
             #endif
 
-            magma_zgetmatrix( N, batchCount, d_b, N, h_bcublas, N, opts.queue );
+            magma_zgetmatrix( N, batchCount, d_b, N, h_bdev, N, opts.queue );
 
             /* =====================================================================
                Performs operation using CPU BLAS
@@ -236,15 +238,15 @@ int main( int argc, char** argv)
                 normA = lapackf77_zlange( "F", &N, &N, h_A + s * lda * Ak, &lda, work );
                 double err;
 
-                #if CUDA_VERSION >= 6050
-                normx = lapackf77_zlange( "F", &N, &ione, h_bcublas + s * N, &ione, work );
+                #if CUDA_VERSION >= 6050 || defined(MAGMA_HAVE_HIP)
+                normx = lapackf77_zlange( "F", &N, &ione, h_bdev + s * N, &ione, work );
                 blasf77_ztrmv( lapack_uplo_const(opts.uplo), lapack_trans_const(opts.transA), lapack_diag_const(opts.diag),
                                &N,
                                h_A + s * lda * Ak, &lda,
-                               h_bcublas + s * N, &ione );
+                               h_bdev + s * N, &ione );
 
-                blasf77_zaxpy( &N, &c_neg_one, h_b + s * N, &ione, h_bcublas + s * N, &ione );
-                normr = lapackf77_zlange( "F", &N, &ione, h_bcublas + s * N, &N, work );
+                blasf77_zaxpy( &N, &c_neg_one, h_b + s * N, &ione, h_bdev + s * N, &ione );
+                normr = lapackf77_zlange( "F", &N, &ione, h_bdev + s * N, &N, work );
                 err = normr / (normA*normx);
 
                 if (std::isnan(err) || std::isinf(err)) {
@@ -282,7 +284,7 @@ int main( int argc, char** argv)
                 printf("%10lld %5lld    %7.2f (%7.2f)     %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %8.2e   %s\n",
                         (long long) batchCount, (long long) N,
                         magma_perf,  1000.*magma_time,
-                        cublas_perf, 1000.*cublas_time,
+                        device_perf, 1000.*device_time,
                         cpu_perf,    1000.*cpu_time,
                         magma_error, cublas_error,
                         (okay ? "ok" : "failed"));
@@ -291,7 +293,7 @@ int main( int argc, char** argv)
                 printf("%10lld %5lld    %7.2f (%7.2f)     %7.2f (%7.2f)     ---   (  ---  )   %8.2e   %8.2e   %s\n",
                         (long long) batchCount, (long long) N,
                         magma_perf,  1000.*magma_time,
-                        cublas_perf, 1000.*cublas_time,
+                        device_perf, 1000.*device_time,
                         magma_error, cublas_error,
                         (okay ? "ok" : "failed"));
             }
@@ -300,7 +302,7 @@ int main( int argc, char** argv)
             magma_free_cpu( h_b );
             magma_free_cpu( h_x );
             magma_free_cpu( h_blapack );
-            magma_free_cpu( h_bcublas );
+            magma_free_cpu( h_bdev );
             magma_free_cpu( h_bmagma  );
             magma_free_cpu( ipiv );
 
