@@ -23,8 +23,8 @@ void trsv_init_data( int tx, int n,
                      T* sA, int slda,
                      T* sx)
 {
-    constexpr magmaDoubleComplex c_zero = make_FloatingPoint(0.0, 0.0);
-    constexpr magmaDoubleComplex c_one  = make_FloatingPoint(1.0, 0.0);
+    const T c_zero = make_FloatingPoint(0.0, 0.0);
+    const T c_one  = make_FloatingPoint(1.0, 0.0);
 
     // init sA and sx
     if(tx < NB){
@@ -94,7 +94,7 @@ void trsv_template_device_NL(
         T* A, int ldda,
         T* x, int incx)
 {
-#define sA(i, j) sA[j*slda + i]
+#define sA(i, j) sA[(j)*slda + (i)]
 
     constexpr int slda = NB;
     const     int   tx = threadIdx.x;
@@ -102,7 +102,7 @@ void trsv_template_device_NL(
     __shared__ T sA[slda * NB];
     __shared__ T sx[NB];
 
-    trsv_init_data<T, NB, 0>(tx, n, diag, A, ldda, x, incx, sA, slda, sx)
+    trsv_init_data<T, NB, 0>(tx, n, diag, A, ldda, x, incx, sA, slda, sx);
     __syncthreads();
 
     // solve
@@ -118,6 +118,9 @@ void trsv_template_device_NL(
         }
         __syncthreads();
     }
+    //#ifdef PRECISION_d
+    //printf("n=%d, %.4f\n", n, sx[tx]);
+    //#endif
 
     // write x
     trsv_write_x<T, NB>( tx, n, x, incx, sx );
@@ -129,11 +132,11 @@ void trsv_template_device_NL(
 template<typename T, const int NB>
 static __device__
 void trsv_template_device_NU(
-        magma_diag_t diag, int m, int n,
-        T alpha, T* A, int ldda,
-                 T* x, int incx)
+        magma_diag_t diag, int n,
+        T* A, int ldda,
+        T* x, int incx)
 {
-#define sA(i, j) sA[j*slda + i]
+#define sA(i, j) sA[(j)*slda + (i)]
 
     constexpr int slda = NB;
     const     int   tx = threadIdx.x;
@@ -141,7 +144,7 @@ void trsv_template_device_NU(
     __shared__ T sA[slda * NB];
     __shared__ T sx[NB];
 
-    trsv_init_data<T, NB, 0>(tx, n, diag, A, ldda, x, incx, sA, slda, sx)
+    trsv_init_data<T, NB, 0>(tx, n, diag, A, ldda, x, incx, sA, slda, sx);
     __syncthreads();
 
     // solve
@@ -169,11 +172,11 @@ void trsv_template_device_NU(
 template<typename T, const int NB, const int CONJA>
 static __device__
 void trsv_template_device_TL(
-        magma_diag_t diag, int m, int n,
-        T alpha, T* A, int ldda,
-                 T* x, int incx)
+        magma_diag_t diag, int n,
+        T* A, int ldda,
+        T* x, int incx)
 {
-#define sA(i, j) sA[j*slda + i]
+#define sA(i, j) sA[(j)*slda + (i)]
 
     constexpr int slda = NB;
     const     int   tx = threadIdx.x;
@@ -181,7 +184,7 @@ void trsv_template_device_TL(
     __shared__ T sA[slda * NB];
     __shared__ T sx[NB];
 
-    trsv_init_data<T, NB, CONJA>(tx, n, diag, A, ldda, x, incx, sA, slda, sx)
+    trsv_init_data<T, NB, CONJA>(tx, n, diag, A, ldda, x, incx, sA, slda, sx);
     __syncthreads();
 
     // solve
@@ -209,11 +212,11 @@ void trsv_template_device_TL(
 template<typename T, const int NB, const int CONJA>
 static __device__
 void trsv_template_device_TU(
-        magma_diag_t diag, int m, int n,
-        T alpha, T* A, int ldda,
-                 T* x, int incx)
+        magma_diag_t diag, int n,
+        T* A, int ldda,
+        T* x, int incx)
 {
-#define sA(i, j) sA[j*slda + i]
+#define sA(i, j) sA[(j)*slda + (i)]
 
     constexpr int slda = NB;
     const     int   tx = threadIdx.x;

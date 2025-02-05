@@ -16,6 +16,9 @@
 #include "batched_kernel_param.h"
 
 #define PRECISION_z
+
+#include "gemm_template_device_defs.cuh"
+#include "trsv_template_device.cuh"
 #include "trsv_template_kernel_batched.cuh"
 
 #define NB 256  //NB is the 1st level blocking in recursive blocking, BLOCK_SIZE is the 2ed level, NB=256, BLOCK_SIZE=64 is optimal for batched
@@ -105,11 +108,18 @@ magmablas_ztrsv_recursive_batched(
         return;
     }
 
-    switch(shape)
-    {
-        const int n2 = magma_get_ztrsv_batched_nb(n);
-        const int n1 = n - n2;
+    const int n2 = magma_get_ztrsv_batched_nb(n);
+    const int n1 = n - n2;
 
+
+//#define DBG
+#ifdef DBG
+    printf("n1 = %d, n2 = %d\n", n1, n2);
+    magmaDoubleComplex* tmpx = NULL;
+    magma_getvector(1, sizeof(magmaDoubleComplex*), dx_array, 1, &tmpx, 1, queue);
+#endif
+
+    switch(shape) {
         case 0: // Nl
         {
 
@@ -119,18 +129,28 @@ magmablas_ztrsv_recursive_batched(
                 dx_array(xi    ), incx,
                 batchCount, queue );
 
+            #ifdef DBG
+            magma_zprint_gpu(n, 1, tmpx, n, queue);
+            #endif
+
             magmablas_zgemv_batched_core(
                 transA, n2, n1,
                 c_negone, dA_array(Ai+n1, Aj), ldda,
                           dx_array(xi       ), incx,
                 c_one,    dx_array(xi+n1    ), incx,
                 batchCount, queue );
+            #ifdef DBG
+            magma_zprint_gpu(n, 1, tmpx, n, queue);
+            #endif
 
             magmablas_ztrsv_recursive_batched(
                 uplo, transA, diag, n2,
                 dA_array(Ai+n1, Aj+n1), ldda,
                 dx_array(xi+n1       ), incx,
                 batchCount, queue );
+            #ifdef DBG
+            magma_zprint_gpu(n, 1, tmpx, n, queue);
+            #endif
         }
         break;
         ////////////////////////////////////////////////////////////////////////

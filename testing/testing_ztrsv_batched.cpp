@@ -140,16 +140,39 @@ int main( int argc, char** argv)
             magma_zset_pointer( d_b_array, d_b, N, 0, 0, N, batchCount, opts.queue );
             magma_zset_pointer( dwork_array, dwork, N, 0, 0, N, batchCount, opts.queue );
 
-            magma_time = magma_sync_wtime( opts.queue );
 
-            magmablas_ztrsv_work_batched(opts.uplo, opts.transA, opts.diag,
+            if(opts.version == 1) {
+                #if 0
+                magma_time = magma_sync_wtime( opts.queue );
+                magmablas_ztrsv_work_batched(opts.uplo, opts.transA, opts.diag,
                                     N, d_A_array, ldda,
                                     d_b_array, 1, dwork_array, batchCount, opts.queue);
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+                magma_zgetmatrix( N, batchCount, dwork, N, h_bmagma, N, opts.queue );
+                #else
+                magma_time = magma_sync_wtime( opts.queue );
+                magmablas_ztrsv_batched(opts.uplo, opts.transA, opts.diag,
+                                    N, d_A_array, ldda,
+                                    d_b_array, 1, batchCount,
+                                    opts.queue);
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+                magma_zgetmatrix( N, batchCount, d_b, N, h_bmagma, N, opts.queue );
+                #endif
+            }
+            else {
+                magma_time = magma_sync_wtime( opts.queue );
+                magmablas_ztrsv_recursive_batched(
+                    opts.uplo, opts.transA, opts.diag, N,
+                    d_A_array, 0, 0, ldda,
+                    d_b_array, 0, 1, batchCount, opts.queue );
+                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
+                magma_zgetmatrix( N, batchCount, d_b, N, h_bmagma, N, opts.queue );
+            }
 
-            magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
-            magma_zgetmatrix( N, batchCount, dwork, N, h_bmagma, N, opts.queue );
 
+
+//magma_zprint(N, 1, h_bmagma, N);
 
             /* =====================================================================
                Performs operation using CUBLAS

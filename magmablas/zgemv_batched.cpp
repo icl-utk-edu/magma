@@ -31,9 +31,9 @@ magmablas_zgemv_batched_core(
     if(m == n && n <= 32) {
          info = magmablas_zgemv_batched_smallsq(
                 trans, n,
-                alpha, dA_array, ldda,
-                       dx_array, incx,
-                beta,  dy_array, incy,
+                alpha, dA_array, Ai, Aj, ldda,
+                       dx_array, xi, incx,
+                beta,  dy_array, yi, incy,
                 batchCount, queue);
         if(info == 0) return;
     }
@@ -62,9 +62,9 @@ magmablas_zgemv_batched_strided_core(
     if(m == n && n <= 32) {
         info = magmablas_zgemv_batched_strided_smallsq(
                     trans, n,
-                    alpha, dA, ldda, strideA,
-                           dx, incx, stridex,
-                    beta,  dy, incy, stridey,
+                    alpha, dA, Ai, Aj, ldda, strideA,
+                           dx, xi, incx, stridex,
+                    beta,  dy, yi, incy, stridey,
                     batchCount, queue);
         if( info == 0 ) return;
     }

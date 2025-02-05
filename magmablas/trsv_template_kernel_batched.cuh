@@ -12,10 +12,6 @@
 #define TRSV_TEMPLATE_KERNEL_BATCHED_CUH
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#include "gemm_template_device_defs.cuh"
-#include "trsv_template_device.cuh"
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB>
 static __global__
 __launch_bounds__(NB)
@@ -73,7 +69,7 @@ void trsv_template_batched_TL_kernel(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 template <typename T, const int NB, const int CONJA>
 static __global__
-__launch_bounds__(NRHS)
+__launch_bounds__(NB)
 void trsv_template_batched_TU_kernel(
         magma_diag_t diag, int n,
         T** Aarray, int ldda,
@@ -148,7 +144,7 @@ void trsv_small_batched(
                 magma_int_t ibatch = min(max_batchCount, batchCount-i);
                 dim3 grid( 1, 1, ibatch );
 
-                trsv_template_batched_NU_kernel<T, NB, NRHS>
+                trsv_template_batched_NU_kernel<T, NB>
                 <<< grid, threads, 0, queue->cuda_stream() >>>
                 (diag, n, dA_array+i, ldda, dx_array+i, incx, roffA, coffA, offx);
             }
