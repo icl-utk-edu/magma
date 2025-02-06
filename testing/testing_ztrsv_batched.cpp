@@ -55,8 +55,6 @@ int main( int argc, char** argv)
     magmaDoubleComplex **d_A_array = NULL;
     magmaDoubleComplex **d_b_array = NULL;
 
-    magmaDoubleComplex **dwork_array = NULL;
-
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     int status = 0;
     magma_int_t batchCount;
@@ -98,17 +96,7 @@ int main( int argc, char** argv)
 
             TESTING_CHECK( magma_malloc( (void**) &d_A_array,   batchCount * sizeof(magmaDoubleComplex*) ));
             TESTING_CHECK( magma_malloc( (void**) &d_b_array,   batchCount * sizeof(magmaDoubleComplex*) ));
-            TESTING_CHECK( magma_malloc( (void**) &dwork_array, batchCount * sizeof(magmaDoubleComplex*) ));
-
-
-            magmaDoubleComplex_ptr dwork=NULL; // invA and work are workspace in ztrsm
-            magma_int_t dwork_batchSize = N;
-            TESTING_CHECK( magma_zmalloc( &dwork, dwork_batchSize * batchCount ));
-
-            magma_zset_pointer( dwork_array, dwork, N, 0, 0, dwork_batchSize, batchCount, opts.queue );
-
             memset( h_bmagma, 0, batchCount*N*sizeof(magmaDoubleComplex) );
-            magmablas_zlaset( MagmaFull, N, batchCount, c_zero, c_zero, dwork, N, opts.queue );
 
             /* Initialize the matrices */
             /* Factor A into LU to get well-conditioned triangular matrix.
@@ -120,7 +108,7 @@ int main( int argc, char** argv)
                 lapackf77_zgetrf( &Ak, &Ak, hAs, &lda, ipiv, &info );
                 for( j = 0; j < Ak; ++j ) {
                     for( i = 0; i < j; ++i ) {
-                        hAs[j * lda + i] = hAs[i * lda + j];
+                        hAs[j * lda + i] = MAGMA_Z_MUL( MAGMA_Z_MAKE(0.1, 0), hAs[i * lda + j] );
                     }
                 }
             }
@@ -136,39 +124,16 @@ int main( int argc, char** argv)
 
             magma_zset_pointer( d_A_array, d_A, ldda, 0, 0, ldda*Ak, batchCount, opts.queue );
             magma_zset_pointer( d_b_array, d_b, N, 0, 0, N, batchCount, opts.queue );
-            magma_zset_pointer( dwork_array, dwork, N, 0, 0, N, batchCount, opts.queue );
 
-
-            if(opts.version == 1) {
-                #if 0
-                magma_time = magma_sync_wtime( opts.queue );
-                magmablas_ztrsv_work_batched(opts.uplo, opts.transA, opts.diag,
-                                    N, d_A_array, ldda,
-                                    d_b_array, 1, dwork_array, batchCount, opts.queue);
-                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
-                magma_zgetmatrix( N, batchCount, dwork, N, h_bmagma, N, opts.queue );
-                #else
-                magma_time = magma_sync_wtime( opts.queue );
-                magmablas_ztrsv_batched(opts.uplo, opts.transA, opts.diag,
+            magma_time = magma_sync_wtime( opts.queue );
+            magmablas_ztrsv_batched(opts.uplo, opts.transA, opts.diag,
                                     N, d_A_array, ldda,
                                     d_b_array, 1, batchCount,
                                     opts.queue);
-                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
-                magma_zgetmatrix( N, batchCount, d_b, N, h_bmagma, N, opts.queue );
-                #endif
-            }
-            else {
-                magma_time = magma_sync_wtime( opts.queue );
-                magmablas_ztrsv_recursive_batched(
-                    opts.uplo, opts.transA, opts.diag, N,
-                    d_A_array, 0, 0, ldda,
-                    d_b_array, 0, 1, batchCount, opts.queue );
-                magma_time = magma_sync_wtime( opts.queue ) - magma_time;
-                magma_zgetmatrix( N, batchCount, d_b, N, h_bmagma, N, opts.queue );
-            }
-
+            magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             magma_perf = gflops / magma_time;
 
+            magma_zgetmatrix( N, batchCount, d_b, N, h_bmagma, N, opts.queue );
             /* =====================================================================
                Performs operation using CUBLAS
                =================================================================== */
@@ -310,9 +275,6 @@ int main( int argc, char** argv)
             magma_free( d_b );
             magma_free( d_A_array );
             magma_free( d_b_array );
-
-            magma_free( dwork );
-            magma_free( dwork_array );
 
             fflush( stdout );
         }
