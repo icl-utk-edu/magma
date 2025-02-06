@@ -48,8 +48,6 @@ int main( int argc, char** argv)
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t *ipiv;
 
-    magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
-
     magmaDoubleComplex *h_A, *h_b, *h_bdev, *h_bmagma, *h_blapack, *h_x;
     magmaDoubleComplex *d_A, *d_b;
     magmaDoubleComplex **d_A_array = NULL;
