@@ -111,27 +111,14 @@ magmablas_ztrsv_recursive_batched(
     const int n2 = magma_get_ztrsv_batched_nb(n);
     const int n1 = n - n2;
 
-
-//#define DBG
-#ifdef DBG
-    printf("n1 = %d, n2 = %d\n", n1, n2);
-    magmaDoubleComplex* tmpx = NULL;
-    magma_getvector(1, sizeof(magmaDoubleComplex*), dx_array, 1, &tmpx, 1, queue);
-#endif
-
     switch(shape) {
         case 0: // Nl
         {
-
             magmablas_ztrsv_recursive_batched(
                 uplo, transA, diag, n1,
                 dA_array(Ai, Aj), ldda,
                 dx_array(xi    ), incx,
                 batchCount, queue );
-
-            #ifdef DBG
-            magma_zprint_gpu(n, 1, tmpx, n, queue);
-            #endif
 
             magmablas_zgemv_batched_core(
                 transA, n2, n1,
@@ -139,18 +126,12 @@ magmablas_ztrsv_recursive_batched(
                           dx_array(xi       ), incx,
                 c_one,    dx_array(xi+n1    ), incx,
                 batchCount, queue );
-            #ifdef DBG
-            magma_zprint_gpu(n, 1, tmpx, n, queue);
-            #endif
 
             magmablas_ztrsv_recursive_batched(
                 uplo, transA, diag, n2,
                 dA_array(Ai+n1, Aj+n1), ldda,
                 dx_array(xi+n1       ), incx,
                 batchCount, queue );
-            #ifdef DBG
-            magma_zprint_gpu(n, 1, tmpx, n, queue);
-            #endif
         }
         break;
         ////////////////////////////////////////////////////////////////////////
@@ -242,7 +223,8 @@ ztrsv_notrans_kernel_outplace_batched(
 {
     int batchid = blockIdx.z;
 
-    ztrsv_notrans_device<BLOCK_SIZE, DIM_X, DIM_Y, TILE_SIZE, flag, uplo, trans, diag>(n, A_array[batchid], lda, b_array[batchid], incb, x_array[batchid]);
+    ztrsv_notrans_device<BLOCK_SIZE, DIM_X, DIM_Y, TILE_SIZE, flag, uplo, trans, diag>
+    (n, A_array[batchid], lda, b_array[batchid], incb, x_array[batchid]);
 }
 
 
@@ -256,7 +238,8 @@ ztrsv_trans_kernel_outplace_batched(
     magmaDoubleComplex **x_array)
 {
     int batchid = blockIdx.z;
-    ztrsv_trans_device<BLOCK_SIZE, DIM_X, DIM_Y, TILE_SIZE, flag, uplo, trans, diag>(n, A_array[batchid], lda, b_array[batchid], incb, x_array[batchid]);
+    ztrsv_trans_device<BLOCK_SIZE, DIM_X, DIM_Y, TILE_SIZE, flag, uplo, trans, diag>
+    (n, A_array[batchid], lda, b_array[batchid], incb, x_array[batchid]);
 }
 
 /******************************************************************************/
@@ -741,6 +724,7 @@ magmablas_ztrsv_batched(
     magma_int_t batchCount,
     magma_queue_t queue)
 {
+    #if 0
     magma_int_t size_x = n * incb;
 
     magmaDoubleComplex *x=NULL;
@@ -755,4 +739,11 @@ magmablas_ztrsv_batched(
 
     magma_free(x);
     magma_free(x_array);
+    #else
+    magmablas_ztrsv_recursive_batched(
+        uplo, trans, diag, n,
+        A_array, 0, 0, lda,
+        b_array, 0, incb,
+        batchCount, queue );
+    #endif
 }

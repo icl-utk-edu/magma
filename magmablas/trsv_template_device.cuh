@@ -118,9 +118,6 @@ void trsv_template_device_NL(
         }
         __syncthreads();
     }
-    //#ifdef PRECISION_d
-    //printf("n=%d, %.4f\n", n, sx[tx]);
-    //#endif
 
     // write x
     trsv_write_x<T, NB>( tx, n, x, incx, sx );
@@ -156,7 +153,7 @@ void trsv_template_device_NU(
         __syncthreads();
 
         if(tx < i) {
-            sx[tx] -= sx[i] * sA(i, tx);
+            sx[tx] -= sx[i] * sA(tx, i);
         }
         __syncthreads();
     }
@@ -196,7 +193,7 @@ void trsv_template_device_TL(
         __syncthreads();
 
         if(tx < i) {
-            sx[tx] -= sx[i] * sA(tx, i);
+            sx[tx] -= sx[i] * sA(i, tx);
         }
         __syncthreads();
     }

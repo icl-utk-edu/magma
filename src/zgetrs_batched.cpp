@@ -90,6 +90,8 @@ magma_zgetrs_batched(
                   magmaDoubleComplex **dB_array, magma_int_t lddb,
                   magma_int_t batchCount, magma_queue_t queue)
 {
+#define USE_NEW_TRSV
+
     magma_int_t notran = (trans == MagmaNoTrans);
     magma_int_t info = 0;
     if ( (! notran) &&
@@ -118,6 +120,7 @@ magma_zgetrs_batched(
     magmaDoubleComplex* dwork        = NULL; // dwork is workspace for ztrsv
     magmaDoubleComplex **dwork_array = NULL;
 
+    #ifndef USE_NEW_TRSV
     // batch trsv requires workspace
     if(nrhs == 1){
         magma_int_t dwork_msize = n*nrhs;    // TODO: resize workspace for trsv purpose only
@@ -134,6 +137,7 @@ magma_zgetrs_batched(
         magmablas_zlaset( MagmaFull, dwork_msize, batchCount, MAGMA_Z_ZERO, MAGMA_Z_ZERO, dwork, dwork_msize, queue );
         magma_zset_pointer( dwork_array, dwork, n, 0, 0, dwork_msize, batchCount, queue );
     }
+    #endif
 
     if (notran) {
         magma_zlaswp_rowserial_batched( nrhs, dB_array, lddb, 1, n, dipiv_array, batchCount, queue );
@@ -154,6 +158,7 @@ magma_zgetrs_batched(
                     batchCount, queue);
         }
         else{
+            #ifndef USE_NEW_TRSV
             // solve dwork = L^-1 * 1
             magmablas_ztrsv_outofplace_batched( MagmaLower, MagmaNoTrans, MagmaUnit,
                 n,
@@ -169,6 +174,17 @@ magma_zgetrs_batched(
                 dwork_array,        1, // dB
                 dB_array,    // dX //output
                 batchCount, queue, 0 );
+            #else
+            magmablas_ztrsv_batched(
+                MagmaLower, MagmaNoTrans, MagmaUnit, n,
+                dA_array, ldda,
+                dB_array,    1, batchCount, queue );
+
+            magmablas_ztrsv_batched(
+                MagmaUpper, MagmaNoTrans, MagmaNonUnit, n,
+                dA_array, ldda,
+                dB_array,    1, batchCount, queue );
+            #endif
         }
     }
     else {
@@ -189,6 +205,7 @@ magma_zgetrs_batched(
                     batchCount, queue);
         }
         else{
+            #ifndef USE_NEW_TRSV
             /* Solve A**T * X = B  or  A**H * X = B. */
             // solve
             magmablas_ztrsv_outofplace_batched( MagmaUpper, trans, MagmaUnit,
@@ -205,17 +222,30 @@ magma_zgetrs_batched(
                 dwork_array,        1, // dB
                 dB_array,       // dX //output
                 batchCount, queue, 0 );
+            #else
+            magmablas_ztrsv_batched(
+                MagmaUpper, trans, MagmaUnit, n,
+                dA_array, ldda,
+                dB_array,    1, batchCount, queue);
+
+            magmablas_ztrsv_batched(
+                MagmaLower, trans, MagmaNonUnit, n,
+                dA_array, ldda,
+                dB_array,    1, batchCount, queue);
+            #endif
         }
 
         magma_zlaswp_rowserial_batched( nrhs, dB_array, lddb, 1, n, dipiv_array, batchCount, queue );
     }
 
+    #ifndef USE_NEW_TRSV
     magma_queue_sync(queue);
 
     if(nrhs == 1){
         magma_free(dwork_array);
         magma_free( dwork );
     }
+    #endif
 
     return info;
 }
