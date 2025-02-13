@@ -694,20 +694,6 @@ void magmablasf_strsv(
         magma_sdevptr(db), *incb, *queue );
 }
 
-#define magmablasf_strsv_outofplace FORTRAN_NAME( magmablasf_strsv_outofplace, MAGMABLASF_STRSV_OUTOFPLACE )
-void magmablasf_strsv_outofplace(
-    const char* uplo, const char* transA, const char* diag, magma_int_t *n,
-    devptr_t *dA, magma_int_t *ldda,
-    devptr_t *db, magma_int_t *incb,
-    devptr_t *dx, magma_queue_t *queue, magma_int_t *flag )
-{
-    magmablas_strsv_outofplace(
-        magma_uplo_const(*uplo), magma_trans_const(*transA), magma_diag_const(*diag), *n,
-        magma_sdevptr(dA), *ldda,
-        magma_sdevptr(db), *incb,
-        magma_sdevptr(dx), *queue, *flag );
-}
-
 #define magmablasf_sgemv FORTRAN_NAME( magmablasf_sgemv, MAGMABLASF_SGEMV )
 void magmablasf_sgemv(
     const char* trans, magma_int_t *m, magma_int_t *n, float *alpha,

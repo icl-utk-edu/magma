@@ -662,17 +662,6 @@ magmablas_ztrsv(
     magmaDoubleComplex_ptr       db, magma_int_t incb,
     magma_queue_t queue );
 
-// todo: move flag before queue?
-void
-magmablas_ztrsv_outofplace(
-    magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
-    magma_int_t n,
-    magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
-    magmaDoubleComplex_ptr db,       magma_int_t incb,
-    magmaDoubleComplex_ptr dx,
-    magma_queue_t queue,
-    magma_int_t flag );
-
 void
 magmablas_zgemv(
     magma_trans_t trans, magma_int_t m, magma_int_t n,
