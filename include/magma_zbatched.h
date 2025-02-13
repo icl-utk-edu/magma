@@ -300,22 +300,6 @@ magmablas_ztrsv_recursive_batched(
         magmaDoubleComplex **dx_array, magma_int_t xi, magma_int_t incx,
         magma_int_t batchCount, magma_queue_t queue );
 
-void magmablas_ztrsv_work_batched(
-    magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
-    magma_int_t n,
-    magmaDoubleComplex** dA_array,    magma_int_t ldda,
-    magmaDoubleComplex** dB_array,    magma_int_t incb,
-    magmaDoubleComplex** dX_array,
-    magma_int_t batchCount, magma_queue_t queue);
-
-void magmablas_ztrsv_outofplace_batched(
-    magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
-    magma_int_t n,
-    magmaDoubleComplex ** A_array, magma_int_t lda,
-    magmaDoubleComplex **b_array, magma_int_t incb,
-    magmaDoubleComplex **x_array,
-    magma_int_t batchCount, magma_queue_t queue, magma_int_t flag);
-
 void
 magmablas_ztrmm_batched_core(
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
