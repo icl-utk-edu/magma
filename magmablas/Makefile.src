@@ -20,7 +20,6 @@ hdr += \
 	$(cdir)/zgerbt.h		\
 	$(cdir)/zpotf2_devicesfunc.cuh		\
 	$(cdir)/zlarfg_devicesfunc.cuh		\
-	$(cdir)/ztrsv_template_device.cuh	\
 	$(cdir)/zgetf2_devicefunc.cuh		\
 	$(cdir)/zlaswp_device.cuh		\
 	$(cdir)/zgeqr2_batched_fused.cuh	\
