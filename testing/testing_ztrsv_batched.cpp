@@ -27,9 +27,6 @@
 #endif
 
 
-//#define h_A(i,j,s) (h_A + (i) + (j)*lda + (s)*lda*Ak)
-
-
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing ztrsm_batched
 */
@@ -39,7 +36,7 @@ int main( int argc, char** argv)
     magma_print_environment();
 
     real_Double_t   gflops, magma_perf, magma_time=0, device_perf=0, device_time=0, cpu_perf=0, cpu_time=0;
-    double          magma_error, cublas_error, normx, normr, normA, work[1];
+    double          magma_error, device_error, normx, normr, normA, work[1];
     magma_int_t i, j, s, N, info;
     magma_int_t Ak;
     magma_int_t sizeA, sizeB;
@@ -133,7 +130,7 @@ int main( int argc, char** argv)
 
             magma_zgetmatrix( N, batchCount, d_b, N, h_bmagma, N, opts.queue );
             /* =====================================================================
-               Performs operation using CUBLAS
+               Performs operation using CUBLAS/HIPBLAS
                =================================================================== */
             magma_zsetmatrix( N, batchCount, h_b, N, d_b, N, opts.queue );
             magma_zset_pointer( d_b_array, d_b, N, 0, 0, N, batchCount, opts.queue );
@@ -195,9 +192,9 @@ int main( int argc, char** argv)
                =================================================================== */
             // ||b - Ax|| / (||A||*||x||)
             magma_error  = 0;
-            cublas_error = 0;
+            device_error = 0;
             for (s=0; s < batchCount; s++) {
-                // error for CUBLAS
+                // error for CUBLAS/HIPBLAS
                 normA = lapackf77_zlange( "F", &N, &N, h_A + s * lda * Ak, &lda, work );
                 double err;
 
@@ -213,12 +210,12 @@ int main( int argc, char** argv)
                 err = normr / (normA*normx);
 
                 if (std::isnan(err) || std::isinf(err)) {
-                    printf("error for matrix %lld cublas_error = %7.2f where normr=%7.2f normx=%7.2f and normA=%7.2f\n",
+                    printf("error for matrix %lld device_error = %7.2f where normr=%7.2f normx=%7.2f and normA=%7.2f\n",
                             (long long) s, err, normr, normx, normA);
-                    cublas_error = err;
+                    device_error = err;
                     break;
                 }
-                cublas_error = max( err, cublas_error );
+                device_error = max( err, device_error );
                 #endif
 
                 // error for MAGMA
@@ -240,7 +237,7 @@ int main( int argc, char** argv)
                 }
                 magma_error = max( err, magma_error );
             }
-            bool okay = (magma_error < tol && cublas_error < tol);
+            bool okay = (magma_error < tol && device_error < tol);
             status += ! okay;
 
             if ( opts.lapack ) {
@@ -249,7 +246,7 @@ int main( int argc, char** argv)
                         magma_perf,  1000.*magma_time,
                         device_perf, 1000.*device_time,
                         cpu_perf,    1000.*cpu_time,
-                        magma_error, cublas_error,
+                        magma_error, device_error,
                         (okay ? "ok" : "failed"));
             }
             else {
@@ -257,7 +254,7 @@ int main( int argc, char** argv)
                         (long long) batchCount, (long long) N,
                         magma_perf,  1000.*magma_time,
                         device_perf, 1000.*device_time,
-                        magma_error, cublas_error,
+                        magma_error, device_error,
                         (okay ? "ok" : "failed"));
             }
 
