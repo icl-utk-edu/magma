@@ -180,7 +180,7 @@ echo "============================================================ should be fix
 # fixed
 echo "========== use @date instead of a specific hard-coded date"
 egrep '(January|February|March|April|May|June|July|August|September|October|November|December) +[0-9]{4} *$' $FILES \
-    | egrep -v 'testing/(checkdiag|lin|matgen)|blas_fix'
+    | egrep -v 'testing/(checkdiag|lin|matgen)'
 echo
 
 echo "========== cuda, cublas functions                                          *** should be fixed ***"

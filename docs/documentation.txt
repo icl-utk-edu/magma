@@ -140,16 +140,6 @@ For csh/tcsh, put in ~/.cshrc:
 
 Some bugs exist with OpenBLAS 0.2.19; see BUGS.txt.
 
-#### MacOS Accelerate (previously Veclib)
-
-Unfortunately, the MacOS Accelerate framework uses an old ABI for BLAS and
-LAPACK, where single precision functions -- such as `sdot`, `cdot`, `slange`,
-and `clange` -- return a double precision result. This makes them incompatibile
-with our C/C++ headers and with the Fortran code used in our testers. The fix is
-to substitute reference implementations of these functions, found in
-`magma/blas_fix`. Setting `blas_fix = 1` in `make.inc` will compile these into
-`magma/lib/libblas_fix.a`, with which your application should link.
-
 
 Linking to BLAS
 --------------------------------------------------------------------------------
@@ -221,10 +211,9 @@ For multi-GPU functions, set `\$MAGMA_NUM_GPUS` to the number of GPUs to use.
 
 - `\$OMP_NUM_THREADS`
 - `\$MKL_NUM_THREADS`
-- `\$VECLIB_MAXIMUM_THREADS`
 
     For multi-core BLAS libraries, set `\$OMP_NUM_THREADS` or `\$MKL_NUM_THREADS`
-    or `\$VECLIB_MAXIMUM_THREADS` to the number of CPU threads, depending on your
+    to the number of CPU threads, depending on your
     BLAS library. See the documentation for your BLAS and LAPACK libraries.
 
 

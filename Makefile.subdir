@@ -13,7 +13,6 @@
 # alphabetic order
 targets := \
 	all                  \
-	blas_fix             \
 	cleanall             \
 	cleandep             \
 	cleangen             \
