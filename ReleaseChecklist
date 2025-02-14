@@ -44,13 +44,12 @@ Compile & run with -DNDEBUG (no asserts)
 
 Compile & run on:
 	This script will compile and save output from each make.inc file:
-	tools/checklist_builds.csh [ acml atlas mkl-gcc mkl-icc mkl-gcc-ilp64 mkl-icc-ilp64 ... ]
-	
+	tools/checklist_builds.csh [ atlas mkl-gcc mkl-icc mkl-gcc-ilp64 mkl-icc-ilp64 ... ]
+
 	Linux
 		icc, gcc
 		MKL
 		MKL ILP64
-		ACML 5 or 6
 		OpenBLAS
 	Windows using CMake & MKL
 

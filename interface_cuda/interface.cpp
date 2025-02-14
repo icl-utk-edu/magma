@@ -26,15 +26,11 @@
 #include <mkl_service.h>
 #endif
 
-#if defined(MAGMA_WITH_ACML)
-#include <acml.h>
-#endif
-
 #include <cuda_runtime.h>
 
 // defining MAGMA_LAPACK_H is a hack to NOT include magma_lapack.h
-// via magma_internal.h here, since it conflicts with acml.h and we don't
-// need lapack here, but we want acml.h for the acmlversion() function.
+// via magma_internal.h here, since it conflicts with some vendor's
+// headers (acml.h), and we don't need lapack here.
 #define MAGMA_LAPACK_H
 
 #include "magma_internal.h"
@@ -327,7 +323,7 @@ magma_print_environment()
 
     printf( "%% Compiled for CUDA architectures %s\n", MAGMA_CUDA_ARCH );
 
-    // CUDA, OpenCL, OpenMP, MKL, ACML versions all printed on same line
+    // CUDA, OpenCL, OpenMP, MKL versions all printed on same line
     int cuda_runtime=0, cuda_driver=0;
     cudaError_t err;
     err = cudaDriverGetVersion( &cuda_driver );
@@ -379,13 +375,6 @@ magma_print_environment()
             mkl_version.MinorVersion,
             mkl_version.UpdateVersion,
             mkl_get_max_threads() );
-#endif
-
-#if defined(MAGMA_WITH_ACML)
-    // ACML 4 doesn't have acml_build parameter
-    int acml_major, acml_minor, acml_patch, acml_build;
-    acmlversion( &acml_major, &acml_minor, &acml_patch, &acml_build );
-    printf( "ACML %d.%d.%d.%d ", acml_major, acml_minor, acml_patch, acml_build );
 #endif
 
     printf( "\n" );

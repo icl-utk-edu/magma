@@ -98,21 +98,6 @@ For csh/tcsh, put in ~/.cshrc:
 MAGMA is tested with MKL 11.3.3 (2016), both LP64 and ILP64;
 other versions may work.
 
-#### AMD ACML
-
-The ACML `make.inc` file assumes `\$ACMLDIR` is set in your environment.
-For bash (sh), put in ~/.bashrc (with your system's path):
-
-    export ACMLDIR=/opt/acml-5.3.1
-
-For csh/tcsh, put in ~/.cshrc:
-
-    setenv ACMLDIR  /opt/acml-5.3.1
-
-MAGMA is tested with ACML 5.3.1; other versions may work.
-See comments in `make.inc.acml` regarding ACML 4;
-a couple testers fail to compile with ACML 4.
-
 #### ATLAS
 
 The ATLAS `make.inc` file assumes `\$ATLASDIR` and `\$LAPACKDIR` are set in your environment.
@@ -154,12 +139,19 @@ Set `-DADD_`, `-DUPCASE`, or `-DNOCHANGE`, respectively, in all FLAGS in your
 `make.inc` file to select the appropriate one. Use `nm` to examine your BLAS
 library:
 
-    acml-5.3.1/gfortran64_mp/lib> nm libacml_mp.a | grep -i 'T.*dgemm'
-    0000000000000000 T dgemm
-    00000000000004e0 T dgemm_
+    sh methane lib> nm libopenblas.so | grep -i dsyr2k
+    000000000017ee50 T cblas_dsyr2k
+    000000000017c8b0 T dsyr2k_           # Note this line
+    00000000001fa690 T dsyr2k_LN
+    00000000001fb2e0 T dsyr2k_LT
+    00000000001f8f70 T dsyr2k_UN
+    00000000001f9b70 T dsyr2k_UT
+    00000000001fcab0 T dsyr2k_kernel_L
+    00000000001fc750 T dsyr2k_kernel_U
 
-In this case, it shows that either `-DADD_ (dgemm_)` or `-DNOCHANGE (dgemm)`
-should work. The default in all make.inc files is `-DADD_`.
+In this case, it shows that `-DADD_ (dsyr2k_)` should work.
+The default in all example make.inc files is `-DADD_`,
+except for IBM ESSL, which uses `-DNOCHANGE`.
 
 
 Compile-time options
@@ -172,11 +164,6 @@ using the `-D` compiler flag, e.g., `-DMAGMA_WITH_MKL` in CFLAGS.
 
     If linked with MKL, allows MAGMA to get MKL's version and
     set MKL's number of threads.
-
-- `MAGMA_WITH_ACML`
-
-    If linked with ACML 5 or later, allows MAGMA to get ACML's version.
-    ACML's number of threads are set via OpenMP.
 
 - `MAGMA_NOAFFINITY`
 
