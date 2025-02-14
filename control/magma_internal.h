@@ -52,12 +52,12 @@
     #include <inttypes.h>
 
     // our magma_winthread doesn't have pthread_key;
-    // assume other platforms (Linux, MacOS, etc.) do.
+    // assume other platforms (Linux, etc.) do.
     #define HAVE_PTHREAD_KEY
 
 #endif
 
-// provide our own support for pthread_barrier on MacOS and Windows
+// provide our own support for pthread_barrier on Windows
 #include "pthread_barrier.h"
 
 #include "magma_v2.h"
@@ -118,9 +118,9 @@ public:
             dCarray__ = dBarray__ + maxbatch__;
         }
     }
-    
+
     #ifdef MAGMA_HAVE_HIP
-    
+
     hipStream_t      hip_stream()      { return stream__; };
 
     hipblasHandle_t  hipblas_handle()  { return hipblas__; };

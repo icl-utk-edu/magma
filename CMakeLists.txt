@@ -317,13 +317,13 @@ set(BLA_VENDOR "" CACHE STRING
 
 # List from CMake 3.17, minus some obsolete ones:
 # PhiPACK, Compaq CXML, DEC Alpha DXML, SunPerf, SGI SCSL, SGIMATH,
-# Intel, NAS (Apple veclib).
+# Intel, NAS.
+# macOS Accelerate is not supported, since Apple dropped CUDA.
 # FLAME is BLIS.
 set_property(CACHE BLA_VENDOR PROPERTY STRINGS
     "" "All" "Goto" "OpenBLAS" "FLAME" "ATLAS" "IBMESSL"
     "Intel10_64lp" "Intel10_64lp_seq" "Intel10_64ilp" "Intel10_64ilp_seq"
     "ACML" "ACML_MP" "ACML_GPU"
-    "Apple"
     "Arm" "Arm_mp" "Arm_ilp64" "Arm_ilp64_mp"
     "Generic")
 
@@ -397,38 +397,6 @@ else()
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function" )
 endif()
 
-if (CMAKE_HOST_APPLE)
-    # Use rpaths, which is on by default in CMake 3.
-    set( CMAKE_MACOSX_RPATH 1 )
-
-    # 64-bit veclib (Accelerate) has issues; substitute correct functions from LAPACK.
-    # (The issue is single precision functions that return doubles;
-    # if a consistent prototype is used, the problem goes away in C,
-    # but this is not feasible in Fortran.)
-    if (LAPACK_LIBRARIES MATCHES "Accelerate")
-        if (USE_FORTRAN)
-            message( STATUS "MacOS X: adding blas_fix library" )
-            add_library( blas_fix ${libblas_fix_src} )
-            target_link_libraries( blas_fix
-                ${LAPACK_LIBRARIES}
-            )
-            set( blas_fix blas_fix )
-            set( blas_fix_lib -lblas_fix )
-        else()
-            message( WARNING "\n      Warning: cannot compile blas_fix library for MacOS X without Fortran compiler.\n" )
-        endif()
-    endif()
-
-    set( CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} -DMAGMA_NOAFFINITY" )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMAGMA_NOAFFINITY" )
-
-    # previously, just compile as 32-bit, but CUDA 6.5 no longer has 32-bit FAT libraries
-    ## set( CMAKE_C_FLAGS       "${CMAKE_C_FLAGS} -m32" )
-    ## set( CMAKE_CXX_FLAGS     "${CMAKE_CXX_FLAGS} -m32" )
-    ## set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -m32" )
-    ## set( CUDA_64_BIT_DEVICE_CODE OFF )
-endif()
-
 include_directories( "${CMAKE_BINARY_DIR}/include" )
 
 include_directories( include )
@@ -496,7 +464,6 @@ else()
     #message(FATAL_ERROR "${libmagma_all}")
       add_library( magma ${libmagma_all} )
       target_link_libraries( magma
-        ${blas_fix}
         ${LAPACK_LIBRARIES}
         CUDA::cudart
         CUDA::cublas
@@ -515,7 +482,6 @@ else()
       add_library( magma ${libmagma_all} )
       target_link_libraries( magma
         hip::host
-        ${blas_fix}
         ${LAPACK_LIBRARIES}
         hip::device
         roc::hipblas
@@ -558,7 +524,6 @@ else()
     add_library( lapacktest ${liblapacktest_all_cpp} )
 endif()
 target_link_libraries( lapacktest
-    ${blas_fix}
     ${LAPACK_LIBRARIES}
 )
 
@@ -569,7 +534,6 @@ add_library( tester ${libtest_all} )
 target_link_libraries( tester
     magma
     lapacktest
-    ${blas_fix}
     ${LAPACK_LIBRARIES}
 )
 
@@ -592,7 +556,6 @@ if (MAGMA_ENABLE_CUDA)
   set_property(TARGET magma_sparse PROPERTY CUDA_STANDARD 14)
   target_link_libraries( magma_sparse
     magma
-    ${blas_fix}
     ${LAPACK_LIBRARIES}
     CUDA::cudart
     CUDA::cublas
@@ -603,7 +566,6 @@ else()
   add_library( magma_sparse ${libsparse_all} )
   target_link_libraries( magma_sparse
     magma
-    ${blas_fix}
     ${LAPACK_LIBRARIES}
     hip::device
     roc::hipblas
@@ -663,7 +625,7 @@ add_custom_target( sparse-testing DEPENDS ${sparse-testing} )
 
 # ----------------------------------------
 # what to install
-install( TARGETS magma magma_sparse ${blas_fix}
+install( TARGETS magma magma_sparse
          RUNTIME DESTINATION bin
          LIBRARY DESTINATION lib
          ARCHIVE DESTINATION lib )
@@ -691,15 +653,13 @@ message( STATUS "pkgconfig ${pkgconfig}" )
 set( INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" )
 set( CFLAGS "${CMAKE_C_FLAGS}" )
 set( CXXFLAGS "${CMAKE_CXX_FLAGS}" )
-# CMake finds the Accelerate directory; we want -framework Accelerate for linking.
-string( REPLACE "/System/Library/Frameworks/Accelerate.framework" "-framework Accelerate" LAPACK_LIBS "${LAPACK_LIBRARIES}" )
 if (MAGMA_ENABLE_CUDA)
   string( REPLACE ";" " " LIBS
-    "${blas_fix_lib} ${LAPACK_LIBS} -L${CUDAToolkit_LIBRARY_DIR} -lcudart -lcublas -lcusparse")
+          "${LAPACK_LIBS} -L${CUDAToolkit_LIBRARY_DIR} -lcudart -lcublas -lcusparse")
 else()
   string( REPLACE ";" " " LIBS
-     "${blas_fix_lib} ${LAPACK_LIBS} ${HIP} ${rocBLAS} ${rocSPARSE}" )
-#    "${blas_fix_lib} ${LAPACK_LIBS} hip::device roc::hipblas roc::hipsparse" )
+          "${LAPACK_LIBS} ${HIP} ${rocBLAS} ${rocSPARSE}" )
+#         "${LAPACK_LIBS} hip::device roc::hipblas roc::hipsparse" )
 endif()
 set( MAGMA_REQUIRED "" )
 configure_file( "${pkgconfig}.in" "${pkgconfig}" @ONLY )
@@ -720,7 +680,6 @@ else()
 endif()
 message( STATUS "    FFLAGS:                ${CMAKE_Fortran_FLAGS}" )
 message( STATUS "    LIBS:                  ${LIBS}" )
-message( STATUS "    blas_fix:              ${blas_fix}  (MacOS Accelerate only)" )
 message( STATUS "    LAPACK_LIBRARIES:      ${LAPACK_LIBRARIES}"      )
 message( STATUS "    INCLUDE_DIRECTORIES:   ${MAGMA_INCLUDE}"   )
 if (MAGMA_ENABLE_CUDA)

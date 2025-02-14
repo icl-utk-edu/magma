@@ -27,9 +27,6 @@ $(CMAKESRC): Makefile.gen.$(BACKEND)
 	echo "set( libmagma_all"                           >> $@
 	echo    "$(libmagma_all) )"          | $(newlines) >> $@
 	echo                                               >> $@
-	echo "set( libblas_fix_src"                        >> $@
-	echo    "$(libblas_fix_src) )"       | $(newlines) >> $@
-	echo                                               >> $@
 	echo "set( libtest_all"                            >> $@
 	echo    "$(libtest_all) )"           | $(newlines) >> $@
 	echo                                               >> $@

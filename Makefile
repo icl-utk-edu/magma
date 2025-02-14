@@ -106,11 +106,6 @@ prefix     ?= /usr/local/magma
 # ------------------------------------------------------------------------------
 # MAGMA-specific programs & flags
 
-ifeq ($(blas_fix),1)
-    # prepend -lblas_fix to LIB (it must come before LAPACK library/framework)
-    LIB := -lblas_fix $(LIB)
-endif
-
 LIBS       = $(LIBDIR) $(LIB)
 
 # preprocessor flags. See below for MAGMA_INC
@@ -323,7 +318,6 @@ libsparse_dynamic_src:=
 sparse_testing_src   :=
 
 subdirs := \
-	blas_fix            \
 	control             \
 	include             \
 	src                 \
@@ -384,7 +378,6 @@ ifeq ($(FORT),)
 endif
 
 libmagma_obj       := $(addsuffix .$(o_ext), $(basename $(libmagma_all)))
-libblas_fix_obj    := $(addsuffix .$(o_ext), $(basename $(libblas_fix_src)))
 libtest_obj        := $(addsuffix .$(o_ext), $(basename $(libtest_all)))
 liblapacktest_obj  := $(addsuffix .$(o_ext), $(basename $(liblapacktest_all2)))
 testing_obj        := $(addsuffix .$(o_ext), $(basename $(testing_all)))
@@ -418,7 +411,6 @@ endif
 
 deps :=
 deps += $(addsuffix .d, $(basename $(libmagma_all)))
-deps += $(addsuffix .d, $(basename $(libblas_fix_src)))
 deps += $(addsuffix .d, $(basename $(libtest_all)))
 deps += $(addsuffix .d, $(basename $(lapacktest_all2)))
 deps += $(addsuffix .d, $(basename $(testing_all)))
@@ -441,7 +433,6 @@ $(sparse_testing_obj): testing/testings.h
 
 # this allows "make force=force" to force re-compiling
 $(libmagma_obj):       $(force)
-$(libblas_fix_obj):    $(force)
 $(libtest_obj):        $(force)
 $(liblapacktest_obj):  $(force)
 $(testing_obj):        $(force)
@@ -520,7 +511,6 @@ test_headers: $(header_gch)
 # ----- libraries
 libmagma_a      := lib/libmagma.a
 libmagma_so     := lib/libmagma.so
-libblas_fix_a   := lib/libblas_fix.a
 libtest_a       := testing/libtest.a
 liblapacktest_a := testing/lin/liblapacktest.a
 libsparse_a     := lib/libmagma_sparse.a
@@ -532,7 +522,6 @@ libs_a := \
 	$(libmagma_a)		\
 	$(libtest_a)		\
 	$(liblapacktest_a)	\
-	$(libblas_fix_a)	\
 	$(libsparse_a)		\
 
 # shared libraries
@@ -545,7 +534,6 @@ libs_so := \
 # add objects to libraries
 $(libmagma_a):      $(libmagma_obj)
 $(libmagma_so):     $(libmagma_obj)
-$(libblas_fix_a):   $(libblas_fix_obj)
 $(libtest_a):       $(libtest_obj)
 $(liblapacktest_a): $(liblapacktest_obj)
 $(libsparse_a):     $(libsparse_obj)
@@ -570,26 +558,6 @@ sparse_testers := $(basename $(sparse_testing_all))
 $(testers):        $(libtest_a) $(liblapacktest_a)
 $(testers_f):      $(libtest_a) $(liblapacktest_a)
 $(sparse_testers): $(libtest_a)  # doesn't use liblapacktest
-
-# ----- blas_fix
-# if using blas_fix (e.g., on MacOS), libmagma requires libblas_fix
-ifeq ($(blas_fix),1)
-    $(libmagma_a):     | $(libblas_fix_a)
-    $(libmagma_so):    | $(libblas_fix_a)
-    $(testers):        | $(libblas_fix_a)
-    $(testers_f):      | $(libblas_fix_a)
-    $(sparse_testers): | $(libblas_fix_a)
-endif
-
-
-# ------------------------------------------------------------------------------
-# MacOS (darwin) needs shared library's path set
-# $OSTYPE may not be exported from the shell, so echo it
-ostype = ${shell echo $${OSTYPE}}
-ifneq ($(findstring darwin, ${ostype}),)
-    $(libmagma_so):  LDFLAGS += -install_name @rpath/$(notdir $(libmagma_so))
-    $(libsparse_so): LDFLAGS += -install_name @rpath/$(notdir $(libsparse_so))
-endif
 
 
 # ------------------------------------------------------------------------------
@@ -683,10 +651,6 @@ else
 endif
 # --------------------
 
-ifeq ($(blas_fix),1)
-    libs += $(libblas_fix_a)
-endif
-
 
 # ------------------------------------------------------------------------------
 # static libraries
@@ -720,8 +684,6 @@ endif
 # ----------
 # sub-directory builds
 include:             $(header_all)
-
-blas_fix:            $(libblas_fix_a)
 
 control:             $(control_obj)
 
@@ -757,9 +719,6 @@ run_test: test
 include/clean:
 	-rm -f $(shdr) $(dhdr) $(chdr)
 
-blas_fix/clean:
-	-rm -f $(libblas_fix_a) $(libblas_fix_obj)
-
 control/clean:
 	-rm -f $(control_obj) include/*.mod control/*.mod
 
@@ -794,7 +753,7 @@ testing/lin/clean:
 	-rm -f $(liblapacktest_a) $(liblapacktest_obj)
 
 # hmm... what should lib/clean do? just the libraries, not objects?
-lib/clean: blas_fix/clean sparse/clean
+lib/clean: sparse/clean
 	-rm -f $(libmagma_a) $(libmagma_so) $(libmagma_obj)
 
 sparse/clean: sparse/testing/clean
@@ -1065,10 +1024,6 @@ echo:
 	@echo "libsparse_obj      $(libsparse_obj)\n"
 	@echo "libsparse_a        $(libsparse_a)"
 	@echo "libsparse_so       $(libsparse_so)"
-	@echo "====="
-	@echo "blas_fix           $(blas_fix)"
-	@echo "libblas_fix_src    $(libblas_fix_src)"
-	@echo "libblas_fix_a      $(libblas_fix_a)"
 	@echo "====="
 	@echo "libtest_src        $(libtest_src)\n"
 	@echo "libtest_all        $(libtest_all)\n"

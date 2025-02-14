@@ -63,8 +63,6 @@ testing_src += \
 	$(cdir)/testing_parse_opts.cpp	\
 	$(cdir)/testing_zgenerate.cpp	\
 
-	#$(cdir)/testing_veclib.cpp	\
-
 # ----------
 # Cholesky, GPU interface
 testing_src += \
