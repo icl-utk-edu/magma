@@ -941,7 +941,7 @@ $(sparse_testers): %: %.$(o_ext)
 # filter out MAGMA-specific options for pkg-config
 #TODO: add hip specific ones
 INSTALL_FLAGS := $(filter-out \
-	-DMAGMA_NOAFFINITY -DMAGMA_SETAFFINITY -DMAGMA_WITH_ACML -DMAGMA_WITH_MKL -DUSE_FLOCK \
+	-DMAGMA_NOAFFINITY -DMAGMA_SETAFFINITY -DMAGMA_WITH_MKL \
 	-DMAGMA_CUDA_ARCH=% -DMAGMA_CUDA_ARCH_MIN=% \
 	-DMAGMA_HAVE_CUDA -DMAGMA_HAVE_HIP -DMAGMA_HAVE_clBLAS \
 	-fno-strict-aliasing -fPIC -O0 -O1 -O2 -O3 -pedantic -std=c99 -stdc++98 -stdc++14 \

@@ -170,7 +170,7 @@ echo
 # needs lots of work; also lots of exceptions
 echo "========== int instead of magma_int_t (in headers)                         *** required fix ***"
 egrep '\bint\b' $HEADERS \
-    | egrep -v 'int argc|int flock|quark|magma_timer\.h|commonblas_z\.h|magma_templates\.h|magma_winthread\.h|pthread_barrier\.h|cblas\.h|typedef int +magma_|const char\* func, const char\* file, int line|int mm_'
+    | egrep -v 'int argc|quark|magma_timer\.h|commonblas_z\.h|magma_templates\.h|magma_winthread\.h|pthread_barrier\.h|cblas\.h|typedef int +magma_|const char\* func, const char\* file, int line|int mm_'
 echo
 
 echo

@@ -323,7 +323,6 @@ set(BLA_VENDOR "" CACHE STRING
 set_property(CACHE BLA_VENDOR PROPERTY STRINGS
     "" "All" "Goto" "OpenBLAS" "FLAME" "ATLAS" "IBMESSL"
     "Intel10_64lp" "Intel10_64lp_seq" "Intel10_64ilp" "Intel10_64ilp_seq"
-    "ACML" "ACML_MP" "ACML_GPU"
     "Arm" "Arm_mp" "Arm_ilp64" "Arm_ilp64_mp"
     "Generic")
 
