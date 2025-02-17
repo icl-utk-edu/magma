@@ -16,6 +16,9 @@
 #include <stdint.h>
 #include <assert.h>
 
+#ifndef __cplusplus
+#include<stdbool.h>
+#endif
 
 // for backwards compatability
 #ifdef HAVE_clAmdBlas
