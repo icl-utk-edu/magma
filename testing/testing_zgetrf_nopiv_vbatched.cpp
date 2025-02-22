@@ -221,8 +221,7 @@ int main( int argc, char** argv)
                 magma_time = magma_sync_wtime( opts.queue );
                 info = magma_zgetrf_nopiv_vbatched(
                         d_M, d_N,
-                        dA_array, d_ldda,
-                        NULL, dinfo,
+                        dA_array, d_ldda, dinfo,
                         batchCount, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
@@ -236,7 +235,7 @@ int main( int argc, char** argv)
                         d_M, d_N, d_min_mn,
                         max_M, max_N, max_minMN, max_MxN, nb, 32,
                         dA_array, d_ldda,
-                        NULL, dinfo,
+                        NULL, 0, dinfo,
                         batchCount, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }

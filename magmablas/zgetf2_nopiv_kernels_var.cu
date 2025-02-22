@@ -43,6 +43,7 @@ void zscal_zgeru_nopiv_tinypivots_kernel_vbatched(
     magmaDoubleComplex rA = dA[0];
     double val = fabs(MAGMA_Z_REAL( rA )) + fabs(MAGMA_Z_IMAG( rA ));
 
+    // If the tolerance is zero this does nothing
     if(val < tol)
     {
         int sign = (MAGMA_Z_REAL( rA ) < 0 ? -1 : 1);
@@ -58,18 +59,24 @@ magma_int_t magma_zscal_zgeru_nopiv_vbatched(
         magma_int_t max_M, magma_int_t max_N,
         magma_int_t *M, magma_int_t *N,
         magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t *ldda,
-        double *dtol_array, magma_int_t *info_array, magma_int_t step, magma_int_t gbstep,
+        double *dtol_array, double eps, magma_int_t *info_array, magma_int_t step, magma_int_t gbstep,
         magma_int_t batchCount, magma_queue_t queue)
 {
     const int tbx = 256;
     dim3 threads(tbx, 1, 1);
-    double eps = lapackf77_dlamch("Epsilon");
+    
+    magma_int_t max_batchCount = queue->get_maxBatch();
 
     // First check the pivots and replace the tiny ones by the operation's tolerance
-    dim3 grid(magma_ceildiv(batchCount, tbx), 1, 1);
-    zscal_zgeru_nopiv_tinypivots_kernel_vbatched<<<grid, threads, 0, queue->cuda_stream()>>>
-    (max_M, max_N, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount);
+    if(dtol_array != NULL || eps != 0) {
+        for(magma_int_t i = 0; i < batchCount; i+=max_batchCount) {
+            magma_int_t ibatch = min(max_batchCount, batchCount-i);
+            dim3 grid(magma_ceildiv(ibatch,tbx), 1, 1);
 
+            zscal_zgeru_nopiv_tinypivots_kernel_vbatched<<<grid, threads, 0, queue->cuda_stream()>>>
+            (max_M, max_N, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount);
+        }
+    }
     // Now call the regular scal and geru routine
     // TODO: the current implementation takes the info array but does not alter it 
     // so it's safe to use this function. If that changes in the future, then this 
@@ -135,6 +142,8 @@ zgetf2_nopiv_fused_sm_kernel_vbatched(
         rx_abs_max = fabs(MAGMA_Z_REAL( sA(j,j) )) + fabs(MAGMA_Z_IMAG( sA(j,j) ));
         __syncthreads();
 
+        // If a non-zero tolerance is specified, replace the small diagonal elements 
+        // and increment the info to indicate the number of replacements 
         if(rx_abs_max < tol)
         {
             int sign = (MAGMA_Z_REAL( sA(j,j) ) < 0 ? -1 : 1);
@@ -143,6 +152,10 @@ zgetf2_nopiv_fused_sm_kernel_vbatched(
             linfo++;
             __syncthreads();
         }
+
+        // If the tolerance is zero, the above condition is never satisfied, so the info
+        // will be the first singularity 
+        linfo = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbstep+j+1) : linfo;
 
         reg = (rx_abs_max == MAGMA_D_ZERO) ? MAGMA_Z_ONE : MAGMA_Z_DIV( MAGMA_Z_ONE, sA(j,j) );
         for(int i = (tx+j+1); i < my_M; i+=ntx) {
@@ -173,7 +186,7 @@ magma_zgetf2_nopiv_fused_sm_vbatched(
     magma_int_t max_M, magma_int_t max_N, magma_int_t max_minMN, magma_int_t max_MxN,
     magma_int_t* m, magma_int_t* n,
     magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
-    double* dtol_array, magma_int_t* info_array, magma_int_t gbstep,
+    double* dtol_array, double eps, magma_int_t* info_array, magma_int_t gbstep,
     magma_int_t nthreads, magma_int_t check_launch_only,
     magma_int_t batchCount, magma_queue_t queue )
 {
@@ -219,8 +232,6 @@ magma_zgetf2_nopiv_fused_sm_vbatched(
     }
 
     if( check_launch_only == 1 ) return arginfo;
-
-    double eps = lapackf77_dlamch("Epsilon");
     
     void *kernel_args[] = {&max_M, &max_N, &max_minMN, &max_MxN, &m, &n, &dA_array, &Ai, &Aj, &ldda, &dtol_array, &eps, &info_array, &gbstep, &batchCount};
     cudaError_t e = cudaLaunchKernel((void*)zgetf2_nopiv_fused_sm_kernel_vbatched, grid, threads, kernel_args, shmem, queue->cuda_stream());
@@ -329,7 +340,7 @@ magma_zgetf2_nopiv_fused_kernel_driver_vbatched(
     magma_int_t max_M,
     magma_int_t* M, magma_int_t* N,
     magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
-    double* dtol_array, magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue )
+    double* dtol_array, double eps, magma_int_t *info_array, magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
     magma_device_t device;
@@ -371,8 +382,6 @@ magma_zgetf2_nopiv_fused_kernel_driver_vbatched(
         arginfo = -100;
         return arginfo;
     }
-    
-    double eps = lapackf77_dlamch("Epsilon");
 
     void *kernel_args[] = {&max_M, &M, &N, &dA_array, &Ai, &Aj, &ldda, &dtol_array, &eps, &info_array, &batchCount};
     cudaError_t e = cudaLaunchKernel((void*)zgetf2_nopiv_fused_kernel_vbatched<max_N>, grid, threads, kernel_args, shmem, queue->cuda_stream());
@@ -391,7 +400,7 @@ magma_zgetf2_nopiv_fused_vbatched(
     magma_int_t max_minMN, magma_int_t max_MxN,
     magma_int_t* M, magma_int_t* N,
     magmaDoubleComplex **dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
-    double* dtol_array, magma_int_t *info_array, magma_int_t batchCount,
+    double* dtol_array, double eps, magma_int_t *info_array, magma_int_t batchCount,
     magma_queue_t queue)
 {
     //printf("max_M = %d, max_N = %d\n", max_M, max_N);
@@ -409,38 +418,38 @@ magma_zgetf2_nopiv_fused_vbatched(
 
     info = -1;
     switch(max_N) {
-        case  1: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 1>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case  2: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 2>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case  3: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 3>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case  4: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 4>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case  5: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 5>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case  6: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 6>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case  7: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 7>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case  8: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 8>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case  9: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 9>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 10: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<10>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 11: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<11>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 12: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<12>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 13: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<13>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 14: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<14>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 15: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<15>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 16: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<16>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 17: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<17>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 18: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<18>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 19: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<19>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 20: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<20>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 21: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<21>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 22: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<22>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 23: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<23>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 24: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<24>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 25: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<25>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 26: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<26>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 27: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<27>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 28: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<28>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 29: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<29>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 30: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<30>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 31: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<31>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
-        case 32: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<32>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, info_array, batchCount, queue); break;
+        case  1: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 1>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case  2: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 2>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case  3: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 3>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case  4: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 4>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case  5: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 5>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case  6: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 6>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case  7: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 7>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case  8: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 8>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case  9: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched< 9>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 10: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<10>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 11: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<11>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 12: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<12>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 13: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<13>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 14: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<14>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 15: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<15>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 16: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<16>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 17: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<17>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 18: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<18>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 19: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<19>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 20: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<20>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 21: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<21>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 22: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<22>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 23: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<23>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 24: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<24>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 25: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<25>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 26: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<26>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 27: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<27>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 28: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<28>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 29: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<29>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 30: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<30>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 31: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<31>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
+        case 32: info = magma_zgetf2_nopiv_fused_kernel_driver_vbatched<32>(max_M, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount, queue); break;
         default: ;
     }
 
@@ -451,7 +460,7 @@ magma_zgetf2_nopiv_fused_vbatched(
         info = magma_zgetf2_nopiv_fused_sm_vbatched(
                     max_M, max_N, max_minMN, max_MxN,
                     M, N, dA_array, Ai, Aj, ldda,
-                    dtol_array,
+                    dtol_array, eps,
                     info_array, Aj, sm_nthreads, 0, batchCount, queue );
     }
 

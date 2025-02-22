@@ -22,7 +22,7 @@ magma_zgetrf_nopiv_recpanel_vbatched(
     magma_int_t max_m, magma_int_t max_n, magma_int_t max_minmn,
     magma_int_t max_mxn, magma_int_t min_recpnb,
     magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t* ldda,
-    double* dtol_array,
+    double* dtol_array, double eps,
     magma_int_t *info_array, magma_int_t gbstep,
     magma_int_t batchCount,  magma_queue_t queue)
 {
@@ -33,7 +33,7 @@ magma_zgetrf_nopiv_recpanel_vbatched(
             m, n, minmn,
             max_m, max_n, max_minmn, max_mxn,
             dA_array, Ai, Aj, ldda,
-            dtol_array, info_array,
+            dtol_array, eps, info_array,
             gbstep, batchCount, queue);
     }
     else {
@@ -45,7 +45,7 @@ magma_zgetrf_nopiv_recpanel_vbatched(
             m, n, minmn,
             max_m, max_n1, max_n1, new_max_minmn, min_recpnb,
             dA_array(Ai, Aj), ldda,
-            dtol_array,
+            dtol_array, eps,
             info_array, gbstep, batchCount, queue);
 
         // trsm
@@ -72,7 +72,7 @@ magma_zgetrf_nopiv_recpanel_vbatched(
             m, n, minmn,
             max_m-max_n1, max_n2, max_n2, new_max_minmn, min_recpnb,
             dA_array(Ai+max_n1, Aj+max_n1), ldda,
-            dtol_array,
+            dtol_array, eps,
             info_array, gbstep+max_n1, batchCount, queue);
     }
 

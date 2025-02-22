@@ -39,8 +39,10 @@ zgetf2_nopiv_fused_device( int m, int minmn, magmaDoubleComplex rA[WIDTH], doubl
         dsx[ rowid ] = fabs(MAGMA_Z_REAL( rA[i] )) + fabs(MAGMA_Z_IMAG( rA[i] ));
         __syncthreads();
         rx_abs_max = dsx[i];
-        if(rx_abs_max < tol)
-        {
+        
+        // If a non-zero tolerance is specified, replace the small diagonal elements 
+        // and increment the info to indicate the number of replacements 
+        if(rx_abs_max < tol) {
             if(tx == i)
             {
                 int sign = (MAGMA_Z_REAL( rA[i] ) < 0 ? -1 : 1);
@@ -50,6 +52,10 @@ zgetf2_nopiv_fused_device( int m, int minmn, magmaDoubleComplex rA[WIDTH], doubl
             linfo++;
             __syncthreads();
         }
+        
+        // If the tolerance is zero, the above condition is never satisfied, so the info
+        // will be the first singularity 
+        linfo = ( rx_abs_max == MAGMA_D_ZERO && linfo == 0) ? (gbstep+i+1) : linfo;
 
         if( rowid == i ) {
             #pragma unroll
