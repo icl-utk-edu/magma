@@ -74,7 +74,8 @@ magma_int_t magma_zscal_zgeru_nopiv_vbatched(
             dim3 grid(magma_ceildiv(ibatch,tbx), 1, 1);
 
             zscal_zgeru_nopiv_tinypivots_kernel_vbatched<<<grid, threads, 0, queue->cuda_stream()>>>
-            (max_M, max_N, M, N, dA_array, Ai, Aj, ldda, dtol_array, eps, info_array, batchCount);
+            (max_M, max_N, M+i, N+i, dA_array+i, Ai, Aj, ldda+i, (dtol_array ? dtol_array+i : NULL), 
+                eps, info_array+i, batchCount);
         }
     }
     // Now call the regular scal and geru routine
