@@ -91,7 +91,7 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_init() );
     magma_print_environment();
 
-    real_Double_t   gflops=0, magma_perf=0, magma_time=0, cpu_perf=0, cpu_time=0;
+    real_Double_t   gflops=0, magma_perf=0, magma_time=0, cpu_perf=0, cpu_time=0, replacement_tol=0;
     real_Double_t   NbyM;
     double          error;
     magma_int_t     hA_size = 0, dA_size = 0;
@@ -105,7 +105,7 @@ int main( int argc, char** argv)
 
     magma_int_t *h_M = NULL, *h_N = NULL, *h_lda  = NULL, *h_ldda = NULL, *h_min_mn = NULL;
     magma_int_t *d_M = NULL, *d_N = NULL, *d_ldda = NULL, *d_min_mn;
-    magma_int_t iM, iN, max_M=0, max_N=0, max_minMN=0, max_MxN=0, info;
+    magma_int_t iM, iN, max_M=0, max_N=0, max_minMN=0, max_MxN=0, replacements = 0, info;
     magma_int_t ione     = 1;
     magma_int_t ISEED[4] = {0,0,0,1};
     magma_int_t batchCount;
@@ -137,7 +137,7 @@ int main( int argc, char** argv)
     TESTING_CHECK( magma_malloc(    (void**)&dA_array,  batchCount * sizeof(magmaDoubleComplex*)) );
 
     printf("%%             max   max\n");
-    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   ||PA-LU||/(||A||*N)\n");
+    printf("%% BatchCount   M     N    CPU Gflop/s (ms)   MAGMA Gflop/s (ms)   Replacements   ||A-LU||/(||A||*N) \n");
     printf("%%==========================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         seed = rand();
@@ -231,11 +231,12 @@ int main( int argc, char** argv)
                 magma_time = magma_sync_wtime( opts.queue );
                 magma_int_t nb, recnb;
                 magma_get_zgetrf_vbatched_nbparam(max_M, max_N, &nb, &recnb);
+                replacement_tol=1e-7;
                 info = magma_zgetrf_nopiv_vbatched_max_nocheck(
                         d_M, d_N, d_min_mn,
                         max_M, max_N, max_minMN, max_MxN, nb, 32,
                         dA_array, d_ldda,
-                        NULL, 0, dinfo,
+                        NULL, replacement_tol, dinfo,
                         batchCount, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
@@ -249,31 +250,41 @@ int main( int argc, char** argv)
 
             // check info
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo, 1, hinfo, 1, opts.queue );
-            // for (int i=0; i < batchCount; i++) {
-            //     if (hinfo[i] != 0 ) {
-            //         printf("magma_zgetrf_batched matrix %lld returned internal error %lld\n",
-            //                 (long long) i, (long long) hinfo[i] );
-            //     }
-            // }
+            replacements = 0;
+            for (int i=0; i < batchCount; i++) {
+                if(replacement_tol != 0) {
+                    if(hinfo[i] >= 0) {
+                        replacements += hinfo[i];
+                    }
+                    else {
+                        printf("magma_zgetrf_batched matrix %lld returned internal error %lld\n",
+                            (long long) i, (long long) hinfo[i] );
+                    }
+                }
+                else if (hinfo[i] != 0 ) {
+                    printf("magma_zgetrf_batched matrix %lld returned internal error %lld\n",
+                            (long long) i, (long long) hinfo[i] );
+                }
+            }
 
-            // if (info != 0) {
-            //     printf("magma_zgetrf_batched returned argument error %lld: %s.\n",
-            //             (long long) info, magma_strerror( info ));
-            // }
+            if (info != 0) {
+                printf("magma_zgetrf_batched returned argument error %lld: %s.\n",
+                        (long long) info, magma_strerror( info ));
+            }
 
             /* =====================================================================
                Check the factorization
                =================================================================== */
             if ( opts.lapack ) {
-                printf("%10lld %5lld %5lld   %7.2f (%7.2f)    %7.2f (%7.2f) ",
+                printf("%10lld %5lld %5lld   %7.2f (%7.2f)    %7.2f (%7.2f)    %10d  ",
                        (long long) batchCount, (long long) max_M, (long long) max_N,
                        cpu_perf, cpu_time*1000.,
-                       magma_perf, magma_time*1000.  );
+                       magma_perf, magma_time*1000., replacements);
             }
             else {
-                printf("%10lld %5lld %5lld     ---   (  ---  )    %7.2f (%7.2f) ",
+                printf("%10lld %5lld %5lld     ---   (  ---  )    %7.2f (%7.2f)   %10d  ",
                        (long long) batchCount, (long long) max_M, (long long) max_N,
-                       magma_perf, magma_time*1000. );
+                       magma_perf, magma_time*1000., replacements );
             }
 
             if ( opts.check == 1 ) {
