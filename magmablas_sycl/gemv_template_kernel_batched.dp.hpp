@@ -23,15 +23,15 @@ template<typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE>
 void
 gemvn_kernel_batched(
     int m, int n, T alpha,
-    T const * const * A_array, T const * A, int lda, int strideA,
-    T const * const * x_array, T const * x, int incx, int stridex,
-    T beta, T**  y_array, T* y, int incy, int stridey ,
+    T const * const * A_array, T const * A, int  lda, int strideA, int Ai, int Aj,
+    T const * const * x_array, T const * x, int incx, int stridex, int xi,
+    T beta, T**       y_array, T       * y, int incy, int stridey, int yi,
     sycl::nd_item<3> item_ct1, T *sdata)
 {
     const int batchid = item_ct1.get_group(0);
-    const T* dA = (A_array == NULL) ? (A + batchid * strideA) : A_array[batchid];
-    const T* dx = (x_array == NULL) ? (x + batchid * stridex) : x_array[batchid];
-    T*       dy = (y_array == NULL) ? (y + batchid * stridey) : y_array[batchid];
+    const T* dA = (A_array == NULL) ? (A + batchid * strideA + Aj * lda + Ai) : ( A_array[batchid] + Aj * lda + Ai );
+    const T* dx = (x_array == NULL) ? (x + batchid * stridex + xi * incx)     : ( x_array[batchid] + xi * incx );
+    T*       dy = (y_array == NULL) ? (y + batchid * stridey + yi * incy)     : ( y_array[batchid] + yi * incy );
 
     gemvn_template_device<T, DIM_X, DIM_Y, TILE_SIZE>(
         m, n, alpha, dA, lda, dx, incx, beta, dy, incy, item_ct1, sdata);
@@ -42,9 +42,9 @@ gemvn_kernel_batched(
 template <typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE>
 void gemvn_template_batched(
     magma_int_t m, magma_int_t n, T alpha,
-    T const * const * dA_array, T const * dA, magma_int_t ldda, magma_int_t strideA,
-    T const * const * dx_array, T const * dx, magma_int_t incx, magma_int_t stridex,
-    T beta, T** dy_array, T* dy, magma_int_t incy, magma_int_t stridey,
+    T const * const * dA_array, T const * dA, magma_int_t ldda, magma_int_t strideA, magma_int_t Ai, magma_int_t Aj,
+    T const * const * dx_array, T const * dx, magma_int_t incx, magma_int_t stridex, magma_int_t xi,
+    T beta, T**       dy_array, T       * dy, magma_int_t incy, magma_int_t stridey, magma_int_t yi,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t max_batchCount = queue->get_maxBatch();
@@ -67,10 +67,10 @@ void gemvn_template_batched(
                     sycl::nd_range<3>(grid * threads, threads),
                     [=](sycl::nd_item<3> item_ct1) {
                         gemvn_kernel_batched<T, DIM_X, DIM_Y, TILE_SIZE>(
-                            m, n, alpha, dA_array_i, dA + (i * strideA), ldda,
-                            strideA, dx_array_i, dx + (i * stridex), incx,
-                            stridex, beta, dy_array_i, dy + (i * stridey), incy,
-                            stridey, item_ct1, sdata_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
+                            m, n, alpha, dA_array_i, dA+(i*strideA), ldda, strideA,
+                            Ai, Aj, dx_array_i, dx+(i*stridex), incx, stridex, xi,
+                            beta,  dy_array_i, dy+(i*stridey), incy, stridey, yi, item_ct1,
+			    sdata_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                     });
             });
     }
@@ -82,15 +82,15 @@ template<typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE, magm
 void
 gemvc_kernel_batched(
     int m, int n, T alpha,
-    T const * const * A_array, T const * A, int lda,  int strideA,
-    T const * const * x_array, T const * x, int incx, int stridex,
-    T beta, T**  y_array, T* y, int incy, int stridey ,
+    T const * const * A_array, T const * A, int lda,  int strideA, int Ai, int Aj,
+    T const * const * x_array, T const * x, int incx, int stridex, int xi,
+    T beta, T**       y_array, T       * y, int incy, int stridey, int yi,
     sycl::nd_item<3> item_ct1, T *sdata)
 {
     int batchid = item_ct1.get_group(0);
-    const T* dA = (A_array == NULL) ? (A + batchid * strideA) : A_array[batchid];
-    const T* dx = (x_array == NULL) ? (x + batchid * stridex) : x_array[batchid];
-    T*       dy = (y_array == NULL) ? (y + batchid * stridey) : y_array[batchid];
+    const T* dA = (A_array == NULL) ? (A + batchid * strideA + Aj * lda + Ai) : ( A_array[batchid] + Aj * lda + Ai );
+    const T* dx = (x_array == NULL) ? (x + batchid * stridex + xi * incx)     : ( x_array[batchid] + xi * incx );
+    T*       dy = (y_array == NULL) ? (y + batchid * stridey + yi * incy)     : ( y_array[batchid] + yi * incy );
 
     gemvc_template_device<T, DIM_X, DIM_Y, TILE_SIZE, trans>(
         m, n, alpha, dA, lda, dx, incx, beta, dy, incy, item_ct1, sdata);
@@ -101,9 +101,9 @@ gemvc_kernel_batched(
 template <typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE>
 void gemvc_template_batched(
     magma_trans_t trans, magma_int_t m, magma_int_t n, T alpha,
-    T const * const * dA_array, T const * dA, magma_int_t ldda, magma_int_t strideA,
-    T const * const * dx_array, T const * dx, magma_int_t incx, magma_int_t stridex,
-    T beta, T** dy_array, T* dy, magma_int_t incy, magma_int_t stridey,
+    T const * const * dA_array, T const * dA, magma_int_t ldda, magma_int_t strideA, magma_int_t Ai, magma_int_t Aj,
+    T const * const * dx_array, T const * dx, magma_int_t incx, magma_int_t stridex, magma_int_t xi,
+    T beta, T**       dy_array, T       * dy, magma_int_t incy, magma_int_t stridey, magma_int_t yi,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t max_batchCount = queue->get_maxBatch();
@@ -128,10 +128,9 @@ void gemvc_template_batched(
                         [=](sycl::nd_item<3> item_ct1) {
                             gemvc_kernel_batched<T, DIM_X, DIM_Y, TILE_SIZE,
                                                  MagmaConjTrans>(
-                                m, n, alpha, dA_array_i, dA + (i * strideA),
-                                ldda, strideA, dx_array_i, dx + (i * stridex),
-                                incx, stridex, beta, dy_array_i,
-                                dy + (i * stridey), incy, stridey, item_ct1,
+                                m, n, alpha, dA_array_i, dA+(i*strideA), ldda, strideA,
+                                Ai, Aj, dx_array_i, dx+(i*stridex), incx, stridex, xi,
+                                beta,  dy_array_i, dy+(i*stridey), incy, stridey, yi, item_ct1,
                                 sdata_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });
@@ -147,10 +146,9 @@ void gemvc_template_batched(
                         [=](sycl::nd_item<3> item_ct1) {
                             gemvc_kernel_batched<T, DIM_X, DIM_Y, TILE_SIZE,
                                                  MagmaTrans>(
-                                m, n, alpha, dA_array_i, dA + (i * strideA),
-                                ldda, strideA, dx_array_i, dx + (i * stridex),
-                                incx, stridex, beta, dy_array_i,
-                                dy + (i * stridey), incy, stridey, item_ct1,
+                                m, n, alpha, dA_array_i, dA+(i*strideA), ldda, strideA,
+                                Ai, Aj, dx_array_i, dx+(i*stridex), incx, stridex, xi,
+                                beta,  dy_array_i, dy+(i*stridey), incy, stridey, yi, item_ct1,
                                 sdata_acc_ct1.template get_multi_ptr<sycl::access::decorated::no>().get());
                         });
                 });

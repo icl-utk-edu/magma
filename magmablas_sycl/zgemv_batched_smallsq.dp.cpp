@@ -32,10 +32,10 @@ template<typename T, int N>
 void
 zgemvn_batched_smallsq_kernel(
         const T alpha,
-        T const * const * dA_array, const T* dA, int ldda, int strideA,
-        T const * const * dx_array, const T* dx, int incx, int stridex,
+        T const * const * dA_array, const T* dA, int ldda, int strideA, int Ai, int Aj,
+        T const * const * dx_array, const T* dx, int incx, int stridex, int xi,
         const T beta,
-        T**       dy_array,       T* dy, int incy, int stridey,
+        T**       dy_array,       T* dy, int incy, int stridey, int yi,
         const int batchCount, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
     auto zdata = (T *)dpct_local;
@@ -50,9 +50,9 @@ zgemvn_batched_smallsq_kernel(
     const T* x;
     T* y;
     if(batchid < batchCount) {
-      A = (dA_array == NULL) ? dA + batchid * strideA : dA_array[batchid];
-      x = (dx_array == NULL) ? dx + batchid * stridex : dx_array[batchid];
-      y = (dy_array == NULL) ? dy + batchid * stridey : dy_array[batchid];
+      A = (dA_array == NULL) ? (dA + batchid * strideA + Aj * ldda + Ai) : (dA_array[batchid] + Aj * ldda + Ai);
+      x = (dx_array == NULL) ? (dx + batchid * stridex + xi * incx     ) : (dx_array[batchid] + xi * incx );
+      y = (dy_array == NULL) ? (dy + batchid * stridey + yi * incy     ) : (dy_array[batchid] + yi * incy );
     }
     T rA[N] = {MAGMA_Z_ZERO};
 
@@ -99,10 +99,10 @@ template<typename T, int N>
 void
 zgemvc_batched_smallsq_kernel(
         const magma_trans_t transA, const T alpha,
-        T const * const * dA_array, const T* dA, int ldda, int strideA,
-        T const * const * dx_array, const T* dx, int incx, int stridex,
+        T const * const * dA_array, const T* dA, int ldda, int strideA, int Ai, int Aj,
+        T const * const * dx_array, const T* dx, int incx, int stridex, int xi,
         const T beta,
-        T**       dy_array,       T* dy, int incy, int stridey,
+        T**      dy_array,       T* dy, int incy, int stridey, int yi,
         const int batchCount, sycl::nd_item<3> item_ct1, uint8_t *dpct_local)
 {
     auto zdata = (T *)dpct_local;
@@ -119,9 +119,9 @@ zgemvc_batched_smallsq_kernel(
     const T* x;
     T* y;
     if(batchid < batchCount) { 
-      A = (dA_array == NULL) ? dA + batchid * strideA : dA_array[batchid];
-      x = (dx_array == NULL) ? dx + batchid * stridex : dx_array[batchid];
-      y = (dy_array == NULL) ? dy + batchid * stridey : dy_array[batchid];
+      A = (dA_array == NULL) ? (dA + batchid * strideA + Aj * ldda + Ai) : (dA_array[batchid] + Aj * ldda + Ai);
+      x = (dx_array == NULL) ? (dx + batchid * stridex + xi * incx)      : (dx_array[batchid] + xi * incx);
+      y = (dy_array == NULL) ? (dy + batchid * stridey + yi * incy)      : (dy_array[batchid] + yi * incy);
     }
     T rA[N] = {MAGMA_Z_ZERO};
 
@@ -184,11 +184,10 @@ zgemvc_batched_smallsq_kernel(
 template <int N>
 static int zgemv_batched_smallsq_kernel_driver(
     magma_trans_t transA, const magmaDoubleComplex alpha,
-    magmaDoubleComplex const * const * dA_array, const magmaDoubleComplex *dA,
-    magma_int_t ldda, magma_int_t strideA, magmaDoubleComplex const * const * dx_array,
-    const magmaDoubleComplex *dx, magma_int_t incx, magma_int_t stridex,
-    const magmaDoubleComplex beta, magmaDoubleComplex **dy_array,
-    magmaDoubleComplex *dy, magma_int_t incy, magma_int_t stridey,
+    magmaDoubleComplex const * const * dA_array, const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA, magma_int_t Ai, magma_int_t Aj,
+    magmaDoubleComplex const * const * dx_array, const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex, magma_int_t xi,
+    const magmaDoubleComplex beta,
+    magmaDoubleComplex**      dy_array,       magmaDoubleComplex* dy, magma_int_t incy, magma_int_t stridey, magma_int_t yi,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_device_t device;
@@ -221,9 +220,9 @@ static int zgemv_batched_smallsq_kernel_driver(
              cgh.parallel_for(sycl::nd_range<3>(grid * threads, threads),
                        [=](sycl::nd_item<3> item_ct1) {
                          zgemvn_batched_smallsq_kernel<magmaDoubleComplex, N>(
-                            alpha, dA_array, dA, ldda, strideA, 
-                              dx_array, dx, incx, stridex,
-                            beta,  dy_array, dy, incy, stridey, batchCount,
+                            alpha, dA_array, dA, ldda, strideA, Ai, Aj, 
+                            dx_array, dx, incx, stridex, xi,
+                            beta,  dy_array, dy, incy, stridey, yi, batchCount,
                             item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                           });
 	   });
@@ -240,9 +239,9 @@ static int zgemv_batched_smallsq_kernel_driver(
                        [=](sycl::nd_item<3> item_ct1) {
                          zgemvc_batched_smallsq_kernel<magmaDoubleComplex, N>(
                            transA, 
-                           alpha, dA_array, dA, ldda, strideA, 
-                              dx_array, dx, incx, stridex,
-                            beta,  dy_array, dy, incy, stridey, batchCount,
+                           alpha, dA_array, dA, ldda, strideA, Ai, Aj,
+                            dx_array, dx, incx, stridex, xi,
+                            beta,  dy_array, dy, incy, stridey, yi, batchCount,
                             item_ct1, dpct_local_acc_ct1.get_multi_ptr<sycl::access::decorated::no>().get());
                          });
 	  });
@@ -259,46 +258,46 @@ static magma_int_t
 zgemv_batched_smallsq_core(
     magma_trans_t transA, magma_int_t n,
     const magmaDoubleComplex alpha,
-    magmaDoubleComplex const * const * dA_array, const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA,
-    magmaDoubleComplex const * const * dx_array, const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex,
+    magmaDoubleComplex const * const * dA_array, const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA, magma_int_t Ai, magma_int_t Aj,
+    magmaDoubleComplex const * const * dx_array, const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex, magma_int_t xi,
     const magmaDoubleComplex beta,
-    magmaDoubleComplex**       dy_array,       magmaDoubleComplex* dy, magma_int_t incy, magma_int_t stridey,
+    magmaDoubleComplex**      dy_array,       magmaDoubleComplex* dy, magma_int_t incy, magma_int_t stridey, magma_int_t yi,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t info = 0;
     switch(n){
-        case  1: info = zgemv_batched_smallsq_kernel_driver< 1>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case  2: info = zgemv_batched_smallsq_kernel_driver< 2>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case  3: info = zgemv_batched_smallsq_kernel_driver< 3>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case  4: info = zgemv_batched_smallsq_kernel_driver< 4>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case  5: info = zgemv_batched_smallsq_kernel_driver< 5>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case  6: info = zgemv_batched_smallsq_kernel_driver< 6>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case  7: info = zgemv_batched_smallsq_kernel_driver< 7>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case  8: info = zgemv_batched_smallsq_kernel_driver< 8>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case  9: info = zgemv_batched_smallsq_kernel_driver< 9>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 10: info = zgemv_batched_smallsq_kernel_driver<10>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 11: info = zgemv_batched_smallsq_kernel_driver<11>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 12: info = zgemv_batched_smallsq_kernel_driver<12>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 13: info = zgemv_batched_smallsq_kernel_driver<13>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 14: info = zgemv_batched_smallsq_kernel_driver<14>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 15: info = zgemv_batched_smallsq_kernel_driver<15>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 16: info = zgemv_batched_smallsq_kernel_driver<16>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 17: info = zgemv_batched_smallsq_kernel_driver<17>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 18: info = zgemv_batched_smallsq_kernel_driver<18>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 19: info = zgemv_batched_smallsq_kernel_driver<19>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 20: info = zgemv_batched_smallsq_kernel_driver<20>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 21: info = zgemv_batched_smallsq_kernel_driver<21>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 22: info = zgemv_batched_smallsq_kernel_driver<22>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 23: info = zgemv_batched_smallsq_kernel_driver<23>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 24: info = zgemv_batched_smallsq_kernel_driver<24>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 25: info = zgemv_batched_smallsq_kernel_driver<25>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 26: info = zgemv_batched_smallsq_kernel_driver<26>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 27: info = zgemv_batched_smallsq_kernel_driver<27>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 28: info = zgemv_batched_smallsq_kernel_driver<28>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 29: info = zgemv_batched_smallsq_kernel_driver<29>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 30: info = zgemv_batched_smallsq_kernel_driver<30>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 31: info = zgemv_batched_smallsq_kernel_driver<31>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
-        case 32: info = zgemv_batched_smallsq_kernel_driver<32>(transA, alpha, dA_array, dA, ldda, strideA, dx_array, dx, incx, stridex, beta, dy_array, dy, incy, stridey, batchCount, queue); break;
+        case  1: info = zgemv_batched_smallsq_kernel_driver< 1>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case  2: info = zgemv_batched_smallsq_kernel_driver< 2>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case  3: info = zgemv_batched_smallsq_kernel_driver< 3>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case  4: info = zgemv_batched_smallsq_kernel_driver< 4>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case  5: info = zgemv_batched_smallsq_kernel_driver< 5>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case  6: info = zgemv_batched_smallsq_kernel_driver< 6>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case  7: info = zgemv_batched_smallsq_kernel_driver< 7>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case  8: info = zgemv_batched_smallsq_kernel_driver< 8>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case  9: info = zgemv_batched_smallsq_kernel_driver< 9>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 10: info = zgemv_batched_smallsq_kernel_driver<10>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 11: info = zgemv_batched_smallsq_kernel_driver<11>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 12: info = zgemv_batched_smallsq_kernel_driver<12>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 13: info = zgemv_batched_smallsq_kernel_driver<13>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 14: info = zgemv_batched_smallsq_kernel_driver<14>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 15: info = zgemv_batched_smallsq_kernel_driver<15>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 16: info = zgemv_batched_smallsq_kernel_driver<16>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 17: info = zgemv_batched_smallsq_kernel_driver<17>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 18: info = zgemv_batched_smallsq_kernel_driver<18>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 19: info = zgemv_batched_smallsq_kernel_driver<19>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 20: info = zgemv_batched_smallsq_kernel_driver<20>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 21: info = zgemv_batched_smallsq_kernel_driver<21>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 22: info = zgemv_batched_smallsq_kernel_driver<22>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 23: info = zgemv_batched_smallsq_kernel_driver<23>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 24: info = zgemv_batched_smallsq_kernel_driver<24>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 25: info = zgemv_batched_smallsq_kernel_driver<25>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 26: info = zgemv_batched_smallsq_kernel_driver<26>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 27: info = zgemv_batched_smallsq_kernel_driver<27>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 28: info = zgemv_batched_smallsq_kernel_driver<28>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 29: info = zgemv_batched_smallsq_kernel_driver<29>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 30: info = zgemv_batched_smallsq_kernel_driver<30>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 31: info = zgemv_batched_smallsq_kernel_driver<31>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
+        case 32: info = zgemv_batched_smallsq_kernel_driver<32>(transA, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue); break;
         default:;
     }
 
@@ -310,10 +309,10 @@ extern "C" magma_int_t
 magmablas_zgemv_batched_smallsq(
     magma_trans_t transA, magma_int_t n,
     const magmaDoubleComplex alpha,
-    magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
-    magmaDoubleComplex const * const * dx_array, magma_int_t incx,
+    magmaDoubleComplex const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
+    magmaDoubleComplex const * const * dx_array, magma_int_t xi, magma_int_t incx,
     const magmaDoubleComplex beta,
-    magmaDoubleComplex**       dy_array, magma_int_t incy,
+    magmaDoubleComplex**      dy_array, magma_int_t yi, magma_int_t incy,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t info = 0;
@@ -334,9 +333,9 @@ magmablas_zgemv_batched_smallsq(
 
     info = zgemv_batched_smallsq_core(
             transA, n,
-            alpha, dA_array, NULL, ldda, 0,
-                   dx_array, NULL, incx, 0,
-            beta,  dy_array, NULL, incy, 0,
+            alpha, dA_array, NULL, ldda, 0, Ai, Aj,
+                   dx_array, NULL, incx, 0, xi,
+            beta,  dy_array, NULL, incy, 0, yi,
             batchCount, queue );
 
     return info;
@@ -347,10 +346,10 @@ extern "C" magma_int_t
 magmablas_zgemv_batched_strided_smallsq(
     magma_trans_t transA, magma_int_t n,
     const magmaDoubleComplex alpha,
-    const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA,
-    const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex,
+    const magmaDoubleComplex* dA, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda, magma_int_t strideA,
+    const magmaDoubleComplex* dx, magma_int_t xi, magma_int_t incx, magma_int_t stridex,
     const magmaDoubleComplex beta,
-    magmaDoubleComplex* dy, magma_int_t incy, magma_int_t stridey,
+    magmaDoubleComplex* dy, magma_int_t yi, magma_int_t incy, magma_int_t stridey,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t info = 0;
@@ -371,9 +370,9 @@ magmablas_zgemv_batched_strided_smallsq(
 
     info = zgemv_batched_smallsq_core(
             transA, n,
-            alpha, NULL, dA, ldda, strideA,
-                   NULL, dx, incx, stridex,
-            beta,  NULL, dy, incy, stridey,
+            alpha, NULL, dA, ldda, strideA, Ai, Aj,
+                   NULL, dx, incx, stridex, xi,
+            beta,  NULL, dy, incy, stridey, yi,
             batchCount, queue );
 
     return info;
