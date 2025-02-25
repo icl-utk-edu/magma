@@ -25,6 +25,16 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+2.10.0 - XXX XX, XXXX
+    * New functionality: Variable-size batch non-pivoting LU factorization
+      - Contributed by Wajih Boukaram, Yang Liu, and Sherry Li at LBNL
+      - magma_<T>getrf_nopiv_vbatched performs a non-pivoting LU factorization on a
+        non-uniform batch of matrices.
+      - An expert interface is available (magma_<T>getrf_nopiv_expert_vbatched) for
+        handling small diagonal elements below certain threshold(s) defined by the user.
+    * Performance improvements for batch Cholesky factorization (magma_<T>potrf_batched)
+    * Performance improvements for batch triangular solve (magma_<T>trsv_batched)
+
 2.9.0 - Jan 23, 2025
     * [DEPRECATED] The MAGMA-sparse package is considered to be "Legacy Support Mode"
       only, meaning the MAGMA-sparse component is not under active development. Many
