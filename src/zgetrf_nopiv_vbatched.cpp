@@ -5,8 +5,9 @@
    Univ. of Colorado, Denver
    @date
 
-   @author Azzam Haidar
-   @author Tingxing Dong
+   @author Wajih-Halim Boukaram
+   @author Yang Liu
+   @author Sherry Li
 
    @precisions normal z -> s d c
 */
@@ -56,7 +57,7 @@ magma_zgetrf_nopiv_vbatched_max_nocheck(
                     info_array, i, batchCount, queue);
 
         if (arginfo != 0 ) return arginfo;
-        
+
         if ( (i + ib) < max_n){
             // trsm
             magmablas_ztrsm_vbatched_core(
@@ -92,13 +93,12 @@ magma_zgetrf_nopiv_vbatched_max_nocheck(
     -------
     ZGETRF NOPIV computes an LU factorization of a general M-by-N matrix A
     without pivoting. It replaces tiny pivots smaller than a specified tolerance
-    by that tolernace
+    by that tolerance
 
     The factorization has the form
         A = L * U
-    where L is lower triangular with unit
-    diagonal elements (lower trapezoidal if m > n), and U is upper
-    triangular (upper trapezoidal if m < n).
+    where L is lower triangular with unit diagonal elements (lower trapezoidal
+    if m > n), and U is upper triangular (upper trapezoidal if m < n).
 
     This is the right-looking Level 3 BLAS version of the algorithm.
 
@@ -145,8 +145,8 @@ magma_zgetrf_nopiv_vbatched_max_nocheck(
 
     @param[in]
     dtol_array  Array of DOUBLEs, dimension (batchCount), for corresponding matrices.
-            Each is an the tolerance that is compared to the diagonal element before
-            the column is scaled by its inverse. If the value of the diagonal is less 
+            Each is the tolerance that is compared to the diagonal element before
+            the column is scaled by its inverse. If the value of the diagonal is less
             than the threshold, the diagonal is replaced by the threshold.
             If the array is set to NULL, then the threshold is set to the eps parameter
 
@@ -163,7 +163,7 @@ magma_zgetrf_nopiv_vbatched_max_nocheck(
                   has been completed, but the factor U is exactly
                   singular, and division by zero will occur if it is used
                   to solve a system of equations. If a tolerance array is specified
-                  the value shows the number of times a tiny pivot was replaced 
+                  the value shows the number of times a tiny pivot was replaced
 
     @param[in]
     WORK        VOID pointer
@@ -214,7 +214,7 @@ magma_zgetrf_nopiv_vbatched_max_nocheck_work(
 
     // split workspace as needed by magma_zgetrf_nopiv_vbatched_max_nocheck
     magma_int_t* minmn           = (magma_int_t*)work;
-    
+
     // init
     magma_ivec_min_vv( batchCount, m, n, minmn, queue);
 
@@ -237,13 +237,12 @@ magma_zgetrf_nopiv_vbatched_max_nocheck_work(
     -------
     ZGETRF NOPIV computes an LU factorization of a general M-by-N matrix A
     without pivoting. It replaces tiny pivots smaller than a specified tolerance
-    by that tolernace
+    by that tolerance.
 
     The factorization has the form
         A = L * U
-    where L is lower triangular with unit
-    diagonal elements (lower trapezoidal if m > n), and U is upper
-    triangular (upper trapezoidal if m < n).
+    where L is lower triangular with unit diagonal elements (lower trapezoidal
+    if m > n), and U is upper triangular (upper trapezoidal if m < n).
 
     This is the right-looking Level 3 BLAS version of the algorithm.
 
@@ -251,11 +250,11 @@ magma_zgetrf_nopiv_vbatched_max_nocheck_work(
     different sizes in parallel. Each matrix is assumed to have its own size and leading
     dimension.
 
-    This is the expert version taking an extra parameter for the tolerance for diagonal 
+    This is the expert version taking an extra parameter for the tolerance for diagonal
     elements. Small diagonal elements will be replaced by the specified tolerance preserving
-    the sign and the info array will report the number of replacements. This is useful in the 
+    the sign and the info array will report the number of replacements. This is useful in the
     context of static pivoting used in sparse solvers such as SuperLU, where the tolerance would
-    be the the norm of the matrix scaled by the machine epsilon for example. 
+    be the the norm of the matrix scaled by the machine epsilon for example.
 
     Arguments
     ---------
@@ -280,8 +279,8 @@ magma_zgetrf_nopiv_vbatched_max_nocheck_work(
 
     @param[in]
     dtol_array  Array of DOUBLEs, dimension (batchCount), for corresponding matrices.
-            Each is an the tolerance that is compared to the diagonal element before
-            the column is scaled by its inverse. If the value of the diagonal is less 
+            Each is the tolerance that is compared to the diagonal element before
+            the column is scaled by its inverse. If the value of the diagonal is less
             than the threshold, the diagonal is replaced by the threshold.
             If the array is set to NULL, then the threshold is set to the eps parameter
 
@@ -298,7 +297,7 @@ magma_zgetrf_nopiv_vbatched_max_nocheck_work(
                   has been completed, but the factor U is exactly
                   singular, and division by zero will occur if it is used
                   to solve a system of equations. If a tolerance array is specified
-                  the value shows the number of times a tiny pivot was replaced 
+                  the value shows the number of times a tiny pivot was replaced
 
     @param[in]
     batchCount  INTEGER
@@ -374,14 +373,12 @@ magma_zgetrf_nopiv_expert_vbatched(
     Purpose
     -------
     ZGETRF NOPIV computes an LU factorization of a general M-by-N matrix A
-    without pivoting. It replaces tiny pivots smaller than a specified tolerance
-    by that tolernace
+    without pivoting.
 
     The factorization has the form
         A = L * U
-    where L is lower triangular with unit
-    diagonal elements (lower trapezoidal if m > n), and U is upper
-    triangular (upper trapezoidal if m < n).
+    where L is lower triangular with unit diagonal elements (lower trapezoidal
+    if m > n), and U is upper triangular (upper trapezoidal if m < n).
 
     This is the right-looking Level 3 BLAS version of the algorithm.
 
@@ -415,7 +412,10 @@ magma_zgetrf_nopiv_expert_vbatched(
       -     = 0:  successful exit
       -     < 0:  if INFO = -i, the i-th argument had an illegal value
                   or another error occured, such as memory allocation failed.
-      -     > 0:  if INFO = i, there were i tiny pivot replacements 
+      -     > 0:  if INFO = i, U(i,i) is exactly zero. The factorization
+                  has been completed, but the factor U is exactly
+                  singular, and division by zero will occur if it is used
+                  to solve a system of equations.
 
     @param[in]
     batchCount  INTEGER
