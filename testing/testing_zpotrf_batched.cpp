@@ -114,8 +114,6 @@ int main( int argc, char** argv)
                 printf("magma_zpotrf_batched returned argument error %lld: %s.\n", (long long) info, magma_strerror( info ));
                 status = -1;
             }
-            if (status == -1)
-                goto cleanup;
 
             /* =====================================================================
                Performs operation using LAPACK
@@ -175,19 +173,20 @@ int main( int argc, char** argv)
                 printf("%10lld %5lld     ---   (  ---  )   %7.2f (%7.2f)     ---\n",
                        (long long) batchCount, (long long) N, gpu_perf, gpu_time*1000. );
             }
-cleanup:
+
             magma_free_cpu( hinfo_magma );
             magma_free_cpu( h_A );
             magma_free_cpu( h_R );
             magma_free( d_A );
             magma_free( d_A_array );
             magma_free( dinfo_magma );
-            if (status == -1)
-                break;
+
             fflush( stdout );
         }
-        if (status == -1)
-            break;
+
+        if ( opts.niter > 1 ) {
+            printf( "\n" );
+        }
     }
 
     opts.cleanup();
