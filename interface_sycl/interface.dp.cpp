@@ -199,7 +199,7 @@ extern "C" magma_int_t magma_init()
 
             // query each device
             for( int dev=0; dev < g_magma_devices_cnt; ++dev ) {
-               if (!(dpct::dev_mgr::instance().get_device(dev).is_host())) {
+               if (!(dpct::dev_mgr::instance().get_device(dev).is_cpu())) {
                  dpct::device_info prop;
                  try { 
                    dpct::dev_mgr::instance().get_device(dev).get_device_info(
@@ -432,7 +432,7 @@ extern "C" void magma_print_environment()
             << ", line:" << __LINE__ << std::endl;
     }
     for( int dev = 0; dev < ndevices; ++dev ) {
-        if (!(dpct::dev_mgr::instance().get_device(dev).is_host())) {
+        if (!(dpct::dev_mgr::instance().get_device(dev).is_cpu())) {
         dpct::device_info prop;
         try {
           dpct::dev_mgr::instance().get_device(dev).get_device_info(prop);
