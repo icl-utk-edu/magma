@@ -22,6 +22,7 @@ hdr += \
 	$(cdir)/zlarfg_devicesfunc.dp.hpp		\
 	$(cdir)/ztrsv_template_device.dp.hpp	\
 	$(cdir)/zgetf2_devicefunc.dp.hpp		\
+	$(cdir)/zgetf2_nopiv_devicefunc.dp.hpp		\
 	$(cdir)/zlaswp_device.dp.hpp		\
 	$(cdir)/zgeqr2_batched_fused.dp.hpp	\
 	$(cdir)/zlarf_batched_fused.dp.hpp	\
@@ -221,6 +222,7 @@ libmagma_src += \
 
 libmagma_src += \
 	$(cdir)/zgetf2_kernels_var.dp.cpp	\
+	$(cdir)/zgetf2_nopiv_kernels_var.dp.cpp	\
 	$(cdir)/zlaswp_vbatched.dp.cpp		\
 	$(cdir)/zpotf2_kernels_var.dp.cpp	\
 
@@ -358,6 +360,11 @@ $(cdir)/sgetf2_kernels_var.$(o_ext): $(cdir)/sgetf2_devicefunc.dp.hpp
 $(cdir)/dgetf2_kernels_var.$(o_ext): $(cdir)/dgetf2_devicefunc.dp.hpp
 $(cdir)/cgetf2_kernels_var.$(o_ext): $(cdir)/cgetf2_devicefunc.dp.hpp
 $(cdir)/zgetf2_kernels_var.$(o_ext): $(cdir)/zgetf2_devicefunc.dp.hpp
+
+$(cdir)/sgetf2_nopiv_kernels_var.$(o_ext): $(cdir)/sgetf2_nopiv_devicefunc.dp.hpp
+$(cdir)/dgetf2_nopiv_kernels_var.$(o_ext): $(cdir)/dgetf2_nopiv_devicefunc.dp.hpp
+$(cdir)/cgetf2_nopiv_kernels_var.$(o_ext): $(cdir)/cgetf2_nopiv_devicefunc.dp.hpp
+$(cdir)/zgetf2_nopiv_kernels_var.$(o_ext): $(cdir)/zgetf2_nopiv_devicefunc.dp.hpp
 
 $(cdir)/ztrsv_batched.$(o_ext): $(cdir)/ztrsv_template_device.dp.hpp $(cdir)/gemv_template_device.dp.hpp $(cdir)/gemm_template_device_defs.dp.hpp
 $(cdir)/ctrsv_batched.$(o_ext): $(cdir)/ctrsv_template_device.dp.hpp $(cdir)/gemv_template_device.dp.hpp $(cdir)/gemm_template_device_defs.dp.hpp
