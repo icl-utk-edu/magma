@@ -28,7 +28,7 @@ magmablas_zgemv_batched_core(
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t info = 0;
-    if(m == n && n <= 32) {
+    if(m == n && n <= 16) {
          info = magmablas_zgemv_batched_smallsq(
                 trans, n,
                 alpha, dA_array, Ai, Aj, ldda,
@@ -59,7 +59,7 @@ magmablas_zgemv_batched_strided_core(
     magma_int_t batchCount, magma_queue_t queue)
 {
      magma_int_t info = 0;
-    if(m == n && n <= 32) {
+    if(m == n && n <= 16) {
         info = magmablas_zgemv_batched_strided_smallsq(
                     trans, n,
                     alpha, dA, Ai, Aj, ldda, strideA,

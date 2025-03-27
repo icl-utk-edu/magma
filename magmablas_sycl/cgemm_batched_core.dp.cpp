@@ -237,15 +237,15 @@ magmablas_cgemm_batched_core(
                         gemm_template_batched_nn<magmaFloatComplex, version(NN,113), 0, 0>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     else if (n < 32)
-                        gemm_template_batched_nn<magmaFloatComplex, version(NN,124), 0, 0>
+                        gemm_template_batched_nn<magmaFloatComplex, version(NN,113), 0, 0>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     else
-                        gemm_template_batched_nn<magmaFloatComplex, version(NN,308), 0, 0>
+                        gemm_template_batched_nn<magmaFloatComplex, version(NN,113), 0, 0>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
                 else
                 {
-                    gemm_template_batched_nn<magmaFloatComplex, version(NN,318), 0, 0>
+                    gemm_template_batched_nn<magmaFloatComplex, version(NN,61), 0, 0>
                     (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
             }
@@ -254,7 +254,7 @@ magmablas_cgemm_batched_core(
             {
                 if (k < 64)
                 {
-                    gemm_template_batched_nt<magmaFloatComplex, version(NT,338), 0, 0>
+                    gemm_template_batched_nt<magmaFloatComplex, version(NT,59), 0, 0>
                     (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
                 else
@@ -266,7 +266,7 @@ magmablas_cgemm_batched_core(
                     }
                     else
                     {
-                        gemm_template_batched_nt<magmaFloatComplex, version(NT,426), 0, 0>
+                        gemm_template_batched_nt<magmaFloatComplex, version(NT,338), 0, 0>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     }
                 }
@@ -276,19 +276,19 @@ magmablas_cgemm_batched_core(
             {
                 if (k < 64)
                 {
-                    gemm_template_batched_nt<magmaFloatComplex, version(NT,338), 0, 1>
+                    gemm_template_batched_nt<magmaFloatComplex, version(NT,59), 0, 1>
                     (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
                 else
                 {
                     if (m < 128)
                     {
-                        gemm_template_batched_nt<magmaFloatComplex, version(NT,338), 0, 1>
+                        gemm_template_batched_nt<magmaFloatComplex, version(NT,119), 0, 1>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     }
                     else
                     {
-                        gemm_template_batched_nt<magmaFloatComplex, version(NT,426), 0, 1>
+                        gemm_template_batched_nt<magmaFloatComplex, version(NT,338), 0, 1>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     }
                 }
@@ -298,12 +298,12 @@ magmablas_cgemm_batched_core(
             {
                 if (k < 16)
                 {
-                    gemm_template_batched_tn<magmaFloatComplex, version(TN,282), 0, 0>
+                    gemm_template_batched_tn<magmaFloatComplex, version(TN,211), 0, 0>
                     (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
                 else
                 {
-                    gemm_template_batched_tn<magmaFloatComplex, version(TN,505), 0, 0>
+                    gemm_template_batched_tn<magmaFloatComplex, version(TN,211), 0, 0>
                     (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
             }
@@ -312,12 +312,12 @@ magmablas_cgemm_batched_core(
             {
                 if (k < 16)
                 {
-                    gemm_template_batched_tn<magmaFloatComplex, version(TN,282), 1, 0>
+                    gemm_template_batched_tn<magmaFloatComplex, version(TN,211), 1, 0>
                     (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
                 else
                 {
-                    gemm_template_batched_tn<magmaFloatComplex, version(TN,505), 1, 0>
+                    gemm_template_batched_tn<magmaFloatComplex, version(TN,211), 1, 0>
                     (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
             }
@@ -328,17 +328,17 @@ magmablas_cgemm_batched_core(
                 {
                     if (m < 128)
                     {
-                        gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 0, 0>
+                        gemm_template_batched_tt<magmaFloatComplex, version(TT,22), 0, 0>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     } else
                     {
-                        gemm_template_batched_tt<magmaFloatComplex, version(TT,175), 0, 0>
+                        gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 0, 0>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     }
                 }
                 else
                 {
-                    gemm_template_batched_tt<magmaFloatComplex, version(TT,175), 0, 0>
+                    gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 0, 0>
                     (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
             }
@@ -349,17 +349,17 @@ magmablas_cgemm_batched_core(
                 {
                     if (m < 128)
                     {
-                        gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 0, 1>
+                        gemm_template_batched_tt<magmaFloatComplex, version(TT,22), 0, 1>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     } else
                     {
-                        gemm_template_batched_tt<magmaFloatComplex, version(TT,175), 0, 1>
+                        gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 0, 1>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     }
                 }
                 else
                 {
-                    gemm_template_batched_tt<magmaFloatComplex, version(TT,175), 0, 1>
+                    gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 0, 1>
                     (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
             }
@@ -370,17 +370,17 @@ magmablas_cgemm_batched_core(
                 {
                     if (m < 128)
                     {
-                        gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 1, 0>
+                        gemm_template_batched_tt<magmaFloatComplex, version(TT,22), 1, 0>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     } else
                     {
-                        gemm_template_batched_tt<magmaFloatComplex, version(TT,175), 1, 0>
+                        gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 1, 0>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     }
                 }
                 else
                 {
-                    gemm_template_batched_tt<magmaFloatComplex, version(TT,175), 1, 0>
+                    gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 1, 0>
                     (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
             }
@@ -391,17 +391,17 @@ magmablas_cgemm_batched_core(
                 {
                     if (m < 128)
                     {
-                        gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 1, 1>
+                        gemm_template_batched_tt<magmaFloatComplex, version(TT,22), 1, 1>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     } else
                     {
-                        gemm_template_batched_tt<magmaFloatComplex, version(TT,175), 1, 1>
+                        gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 1, 1>
                         (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                     }
                 }
                 else
                 {
-                    gemm_template_batched_tt<magmaFloatComplex, version(TT,175), 1, 1>
+                    gemm_template_batched_tt<magmaFloatComplex, version(TT,73), 1, 1>
                     (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
                 }
             }

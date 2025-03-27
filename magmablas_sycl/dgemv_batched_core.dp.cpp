@@ -56,32 +56,32 @@ magmablas_dgemv_batched_internal(
         if (max(m, n) <= 96) { // small size
             if (m < n) { // Fat or square matrix
                 if ( m <= 16) {
-                    gemvn_template_batched<double, version(N, 72)>
+                    gemvn_template_batched<double, version(N, 70)>
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
                 else if ( m <= 32) {
-                    gemvn_template_batched<double, version(N, 100)>
+                    gemvn_template_batched<double, version(N, 101)>
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
                 else if ( m <= 64) {
-                    gemvn_template_batched<double, version(N, 122)>
+                    gemvn_template_batched<double, version(N, 124)>
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
                 else {
-                    gemvn_template_batched<double, version(N, 135)>
+                    gemvn_template_batched<double, version(N, 124)>
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
             } else {   // Tall or square matrix
                 if ( n <= 16) {
-                    gemvn_template_batched<double, version(N, 128)>
-                    ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
-                }
-                else if ( n <= 64) {
                     gemvn_template_batched<double, version(N, 132)>
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
+                else if ( n <= 64) {
+                    gemvn_template_batched<double, version(N, 101)>
+                    ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
+                }
                 else {
-                    gemvn_template_batched<double, version(N, 135)>
+                    gemvn_template_batched<double, version(N, 101)>
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
             }
@@ -93,29 +93,25 @@ magmablas_dgemv_batched_internal(
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
                 else if (m <= 16) {
-                    gemvn_template_batched<double, version(N, 70)>
+                    gemvn_template_batched<double, version(N, 79)>
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
                 else if (m <= 32) {
-                    gemvn_template_batched<double, version(N, 104)>
-                    ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
-                }
-                else if (m <= 32) {
-                    gemvn_template_batched<double, version(N, 124)>
+                    gemvn_template_batched<double, version(N, 110)>
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
                 else {
-                    gemvn_template_batched<double, version(N, 135)>
+                    gemvn_template_batched<double, version(N, 101)>
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
             }
             else { // (m > n) Tall matrix
                 if (m <= 256) {
-                    gemvn_template_batched<double, version(N, 137)>
+                    gemvn_template_batched<double, version(N, 119)>
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
                 else {
-                    gemvn_template_batched<double, version(N, 140)>
+                    gemvn_template_batched<double, version(N, 119)>
                     ( m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
             }
@@ -128,17 +124,17 @@ magmablas_dgemv_batched_internal(
                 ( trans, m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
             }
             else {
-                gemvc_template_batched<double, version(T, 47)>
+                gemvc_template_batched<double, version(T, 42)>
                 ( trans, m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
             }
         } else { // big size
             if (m <= n) { //  Fat or square matrix
                 if (m <= 64) {
-                    gemvc_template_batched<double, version(T, 47)>
+                    gemvc_template_batched<double, version(T, 42)>
                     ( trans, m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
                 else {
-                    gemvc_template_batched<double, version(T, 91)>
+                    gemvc_template_batched<double, version(T, 42)>
                     ( trans, m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
             } else { // (m > n) Tall matrix
@@ -147,7 +143,7 @@ magmablas_dgemv_batched_internal(
                     ( trans, m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
                 else {
-                    gemvc_template_batched<double, version(T, 91)>
+                    gemvc_template_batched<double, version(T, 42)>
                     ( trans, m, n, alpha, dA_array, dA, ldda, strideA, Ai, Aj, dx_array, dx, incx, stridex, xi, beta, dy_array, dy, incy, stridey, yi, batchCount, queue );
                 }
             }
