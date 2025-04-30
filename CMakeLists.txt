@@ -650,7 +650,6 @@ endif()
 
 
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${SPARSE_TEST_DIR}" )
-cmake_policy( SET CMP0037 OLD)
 foreach( TEST ${sparse_testing_all} )
     string( REGEX REPLACE "\\.(cpp|f90|F90)"     "" EXE ${TEST} )
     string( REGEX REPLACE "${SPARSE_TEST_DIR}/" "" EXE ${EXE} )
