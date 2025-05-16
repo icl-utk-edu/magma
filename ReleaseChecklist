@@ -34,7 +34,7 @@ Compilation checks
 Documentation
 	cd docs && ./groups.sh -- any groups unused or undefined?
 	(currently QUARK undefined; geqrf_tile unused)
-	
+
 	cd docs && make
 	check errors in output_err
 	open docs/html/index.html and browse through Modules to see that things look right
@@ -44,23 +44,21 @@ Compile & run with -DNDEBUG (no asserts)
 
 Compile & run on:
 	This script will compile and save output from each make.inc file:
-	tools/checklist_builds.csh [ acml atlas mkl-gcc mkl-icc mkl-gcc-ilp64 mkl-icc-ilp64 ... ]
-	
+	tools/checklist_builds.csh [ atlas mkl-gcc mkl-icc mkl-gcc-ilp64 mkl-icc-ilp64 ... ]
+
 	Linux
 		icc, gcc
 		MKL
 		MKL ILP64
-		ACML 5 or 6
 		OpenBLAS
-	MacOS using gcc & veclib
 	Windows using CMake & MKL
-	
+
 	CUDA 5.0
 	CUDA 5.5
 	CUDA 6.0
 	CUDA 6.5
 	CUDA 7.0
-	
+
 	pgi compilers?
 
 Any compiler warnings?

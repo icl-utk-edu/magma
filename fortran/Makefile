@@ -17,8 +17,7 @@ LDFLAGS    =
 LIBS       = -L$(MAGMADIR)/lib -lmagma -Wl,-rpath,$(MAGMADIR)/lib
 
 # BLAS and LAPACK libraries
-# framework Accelerate is for MacOS
-LIBS      += -framework Accelerate
+LIBS      += -lopenblas
 
 obj = \
 	test.o			\

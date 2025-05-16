@@ -22,14 +22,14 @@ MAGMA README FILE
         make install prefix=/usr/local/magma
 
     MAGMA uses HIP code generation to compile for AMD GPUs.  MAGMA HIP sources will be
-    generated from interface_cuda, magmablas, and sparse into interface_hip, magmablas_hip, 
+    generated from interface_cuda, magmablas, and sparse into interface_hip, magmablas_hip,
     and sparse_hip, respectively.
 
 * Quick start (CMake)
 
     There is also a CMake option to configure and build MAGMA.
     For more Windows-specific instructions, see README-Windows.
-    On Unix & MacOS:
+    On Unix:
 
     Step 0: setup
     If you downloaded an official release (e.g., magma-2.6.0.tar.gz), you can
@@ -57,8 +57,8 @@ MAGMA README FILE
         make install
 
     Options include:
-        -DMAGMA_ENABLE_CUDA=ON to install MAGMA for CUDA. This is default. 
-        -DMAGMA_ENABLE_HIP=ON to install MAGMA for HIP. This option requires 
+        -DMAGMA_ENABLE_CUDA=ON to install MAGMA for CUDA. This is default.
+        -DMAGMA_ENABLE_HIP=ON to install MAGMA for HIP. This option requires
             to specify the hipcc compiler, e.g.,
             cmake -DMAGMA_ENABLE_HIP=ON -DCMAKE_CXX_COMPILER=hipcc ..
 
@@ -69,11 +69,11 @@ MAGMA README FILE
             Kepler, Maxwell, Pascal, Volta, Turing, Ampere
             or valid sm_[0-9][0-9] for NVIDIA GPUs.
             For AMD GPUs include one or more valid GPU gfx numbers
-            (https://llvm.org/docs/AMDGPUUsage.html#target-triples). 
+            (https://llvm.org/docs/AMDGPUUsage.html#target-triples).
 
         -DBLA_VENDOR=vendor, where vendor is one of:
             Intel10_64lp, Intel10_64lp_seq, Intel10_64ilp, Intel10_64ilp_seq,
-            Intel10_32, OpenBLAS, FLAME, ACML, Apple, NAS, Generic.
+            Intel10_32, OpenBLAS, FLAME, Generic, etc.
             See https://cmake.org/cmake/help/latest/module/FindLAPACK.html
                 https://cmake.org/cmake/help/latest/module/FindBLAS.html
 

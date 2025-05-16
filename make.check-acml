@@ -1,8 +1,0 @@
-# check for ACML directories and give user hint how to set them
-ifeq ($(ACMLDIR),)
-$(error Set $$ACMLDIR, preferably in your environment, e.g., run "export ACMLDIR=/opt/acml" in ~/.bashrc, or "setenv ACMLDIR /opt/acml" in ~/.cshrc)
-endif
-
-ifeq ($(wildcard $(ACMLDIR)),)
-$(error $$ACMLDIR=$(ACMLDIR) does not exist. Please set $$ACMLDIR to where ACML is installed.)
-endif

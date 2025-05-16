@@ -24,9 +24,10 @@ This guide is based on the PLASMA coding style guide, though slightly different.
       gcc -std=c99   -Wall -pedantic -c magma.c
 
   This can be done by setting CFLAGS and CXXFLAGS appropriately in make.inc.
-  MAGMA code needs to be portable and work on Unix, MacOS, and Windows. Most
-  MAGMA code is compiled as C++, but uses essentially C style conventions. For
-  example, all externally visible functions are declared `extern "C"` and
+  MAGMA code needs to be portable and work on Unix and Windows.
+  (Since Apple dropped CUDA, macOS support has been dropped.)
+  Most MAGMA code is compiled as C++, but uses essentially C style conventions.
+  For example, all externally visible functions are declared `extern "C"` and
   C-style malloc routines are used, instead of the C++ `new` operator.
 
 - **No Trailing Whitespace:**
@@ -80,49 +81,49 @@ This guide is based on the PLASMA coding style guide, though slightly different.
         {
             if (m <= 0 || n <= 0 || k <= 0) return;  // Avoid
             code_not_inside_if();
-        
+
             if (m <= 0 || n <= 0 || k <= 0)          // Okay
                 return;
-        
+
             if (m <= 0 || n <= 0 || k <= 0) {        // Better
                 return;
             }
-        
+
             if (condition)      // Avoid single statement, multi-line if and loops!
                 magma_zherk( uplo, trans, n, k,
                              alpha, dA(0,0), ldda,
                              beta,  dB(0,0), lddb );
-        
+
             if (condition) {    // Better
                 magma_zherk( uplo, trans, n, k,
                              alpha, dA(0,0), ldda,
                              beta,  dB(0,0), lddb );
             }
-        
+
             if (condition)      // Avoid single block, multi-statement if and loops!
                 for (i=0; i < n; ++i) {
                     A(i,i) = 0;
                     cnt += 1;
                 }
-        
+
             if (condition) {    // Avoid inconsistent indentation! Always use 4 spaces.
               for (i=0; i < n; ++i) {
                     A(i,i) = 0;
                      cnt += 1;
                }
             }
-        
+
             if (condition) {    // Better
                 for (i=0; i < n; ++i) {
                     A(i,i) = 0;
                     cnt += 1;
                 }
             }
-        
+
             if (condition) {    // Avoid excessive newlines
-        
+
                 norm = magma_dnrm2( n, dx(0), incx );
-        
+
             }
         }
   \endcode
@@ -139,7 +140,7 @@ This guide is based on the PLASMA coding style guide, though slightly different.
   \code
         // host pointers are the same for clBLAS, CUDA, and Xeon Phi.
         #define  A(i_,j_)  (A + (i_) + (j_)*lda)
-        
+
         // for clBLAS, return cl_mem object and offset (2 values);
         // for others, return (pointer + offset) (1 value).
         #ifdef MAGMA_HAVE_OPENCL
@@ -147,12 +148,12 @@ This guide is based on the PLASMA coding style guide, though slightly different.
         #else
             #define dA(i_,j_) (dA + (i_) + ((size_t) j_)*lda)
         #endif
-        
+
         // for host pointers, A == A(0,0).
         blasf77_zherk( lapack_uplo_const(uplo), lapack_trans_const(trans), &n, &k,
                        &alpha, A,      &lda,
                        &beta,  B(i,j), &ldb );
-        
+
         // for device pointers, use dA(0,0) instead of dA, to aid porting to OpenCL.
         magma_zherk( uplo, trans, n, k,
                      alpha, dA(0,0), ldda,
@@ -211,17 +212,17 @@ This guide is based on the PLASMA coding style guide, though slightly different.
   fine. Clarity is paramount. For multi-line function calls it is recommended
   that new lines start either after the left paranthesis or indented 4 spaces,
   always aligned with the first argument.
-  
+
   \code
         magma_zherk(                           // Okay; preferred style for prototypes
             uplo, trans, n, k,
             alpha, dA(0,0), ldda,
             beta,  dB(i,j), lddb );
-        
+
         magma_zherk( uplo, trans, n, k,        // Okay
                      alpha, dA(0,0), ldda,
                      beta,  dB(i,j), lddb );
-        
+
         magma_zherk( uplo, trans, n, k,        // Avoid
             alpha, dA(0,0), ldda,
             beta,  dB(i,j), lddb );
