@@ -6,9 +6,9 @@ cmake_minimum_required( VERSION 3.18 )
 option( USE_FORTRAN "Fortran is required for some tester checks, but can be disabled with reduced functionality" ON )
 
 if (USE_FORTRAN)
-    project( MAGMA C CXX Fortran )
+    project( MAGMA LANGUAGES C CXX Fortran )
 else()
-    project( MAGMA C CXX )
+    project( MAGMA LANGUAGES C CXX )
 endif()
 
 
@@ -63,26 +63,10 @@ endif()
 # ----------------------------------------
 # use C++14 and C99
 # see http://stackoverflow.com/questions/10851247/how-to-activate-c-11-in-cmake
-include(CheckCXXCompilerFlag)
-include(CheckCCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-CHECK_CXX_COMPILER_FLAG("-fPIC" COMPILER_SUPPORTS_FPIC)
-if (COMPILER_SUPPORTS_CXX14)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-elseif(COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-    message( WARNING "The compiler ${CMAKE_CXX_COMPILER} doesn't support the -std=c++14 flag. Some code may not compile.")
-endif()
-
-CHECK_C_COMPILER_FLAG("-std=c99" COMPILER_SUPPORTS_C99)
-if (COMPILER_SUPPORTS_C99)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
-else()
-    message( WARNING "The compiler ${CMAKE_C_COMPILER} doesn't support the -std=c99 flag. Some code may not compile.")
-endif()
-
+set( CMAKE_C_STANDARD 99 )
+set( CMAKE_C_STANDARD_REQUIRED OFF )
+set( CMAKE_CXX_STANDARD 14 )
+set( CMAKE_CXX_STANDARD_REQUIRED OFF )
 
 # ----------------------------------------
 # check Fortran name mangling
