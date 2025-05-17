@@ -118,11 +118,18 @@ magma_hgemm(
 		      hipblas_trans_const( transA ),
 		      hipblas_trans_const( transB ),
 		      int(m), int(n), int(k),
-		      (void*)&alpha, (void*)dA, HIPBLAS_R_16F, int(ldda),
-		      (void*)dB, HIPBLAS_R_16F, int(lddb),
-		      (void *)&beta,  (void*)dC, HIPBLAS_R_16F, int(lddc),
-		      HIPBLAS_R_16F,
-		      HIPBLAS_GEMM_DEFAULT);
+		      #if ROCM_VERSION >= 70000
+		      (void*)&alpha, (void*)dA, HIP_R_16F, int(ldda),
+		      (void*)dB, HIP_R_16F, int(lddb),
+		      (void *)&beta,  (void*)dC, HIP_R_16F, int(lddc),
+		      HIP_R_16F,
+	              #else
+	              (void*)&alpha, (void*)dA, HIPBLAS_R_16F, int(ldda),
+                      (void*)dB, HIPBLAS_R_16F, int(lddb),
+                      (void *)&beta,  (void*)dC, HIPBLAS_R_16F, int(lddc),
+                      HIPBLAS_R_16F,
+	              #endif
+                      HIPBLAS_GEMM_DEFAULT);
     }
     else {
         printf("ERROR: unsupported architecture for %s \n", __func__ );
@@ -151,11 +158,18 @@ magma_hgemmx(
 		      hipblas_trans_const( transA ),
 		      hipblas_trans_const( transB ),
 		      int(m), int(n), int(k),
-		      (void*)&alpha, (void*)dA, HIPBLAS_R_16F, int(ldda),
+		      #if ROCM_VERSION >= 70000
+		      (void*)&alpha, (void*)dA, HIP_R_16F, int(ldda),
+                                     (void*)dB, HIP_R_16F, int(lddb),
+		      (void*)&beta,  (void*)dC, HIP_R_32F, int(lddc),
+		      HIP_R_32F,
+	              #else
+	              (void*)&alpha, (void*)dA, HIPBLAS_R_16F, int(ldda),
                                      (void*)dB, HIPBLAS_R_16F, int(lddb),
-		      (void*)&beta,  (void*)dC, HIPBLAS_R_32F, int(lddc),
-		      HIPBLAS_R_32F,
-		      HIPBLAS_GEMM_DEFAULT);
+                      (void*)&beta,  (void*)dC, HIPBLAS_R_32F, int(lddc),
+                      HIPBLAS_R_32F,
+                      #endif
+                      HIPBLAS_GEMM_DEFAULT);
     }
     else {
         printf("ERROR: unsupported architecture for %s \n", __func__ );

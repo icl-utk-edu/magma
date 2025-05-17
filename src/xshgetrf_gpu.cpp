@@ -270,10 +270,17 @@ magma_xshgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
 		                    hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
 		                    int(nextjb), int(m-nextj), int(jb),
+                                    #if ROCM_VERSION >= 70000
+				    &c_neg_one, dAtrsm1_hp,        HIP_R_16F, int(maxnb),
+                                                dApanel_hp,        HIP_R_16F, int(jb),
+                                    &c_one,     dAT(nextj, nextj), HIP_R_32F, int(lddat),
+                                    HIP_R_32F, ALGO);
+                                    #else
 		                    &c_neg_one, dAtrsm1_hp,        HIPBLAS_R_16F, int(maxnb),
 		                                dApanel_hp,        HIPBLAS_R_16F, int(jb),
 		                    &c_one,     dAT(nextj, nextj), HIPBLAS_R_32F, int(lddat),
 		                    HIPBLAS_R_32F, ALGO);
+		                    #endif
                     #endif
                 }
                 else if( mp_algo_type == Magma_MP_GEMEX_I32_O32_C32 ) {
@@ -289,10 +296,17 @@ magma_xshgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(nextjb), int(m-nextj), int(jb),
+			    #if ROCM_VERSION >= 70000
+			    &c_neg_one, dAT(j,     nextj), HIP_R_32F, int(lddat),
+                                        dAT(nextj,     j), HIP_R_32F, int(lddat),
+                            &c_one,     dAT(nextj, nextj), HIP_R_32F, int(lddat),
+                            HIP_R_32F, ALGO);
+                            #else
                             &c_neg_one, dAT(j,     nextj), HIPBLAS_R_32F, int(lddat),
                                         dAT(nextj,     j), HIPBLAS_R_32F, int(lddat),
                             &c_one,     dAT(nextj, nextj), HIPBLAS_R_32F, int(lddat),
                             HIPBLAS_R_32F, ALGO);
+		            #endif
                     #endif
                 }
                 else if( mp_algo_type == Magma_MP_SGEMM ) {
@@ -343,10 +357,17 @@ magma_xshgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
+                            #if ROCM_VERSION >= 70000
+                            &c_neg_one, dAtrsm2_hp              , HIP_R_16F, int(maxm),
+                                        dApanel_hp              , HIP_R_16F, int(jb),
+                            &c_one,     dAT(nextj, nextj+nextjb), HIP_R_32F, int(lddat),
+                            HIP_R_32F, ALGO);
+                            #else			    
                             &c_neg_one, dAtrsm2_hp              , HIPBLAS_R_16F, int(maxm),
                                         dApanel_hp              , HIPBLAS_R_16F, int(jb),
                             &c_one,     dAT(nextj, nextj+nextjb), HIPBLAS_R_32F, int(lddat),
                             HIPBLAS_R_32F, ALGO);
+                            #endif
                     #endif
                 }
                 else if( mp_algo_type == Magma_MP_GEMEX_I32_O32_C32 ) {
@@ -362,10 +383,17 @@ magma_xshgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
+                            #if ROCM_VERSION >= 70000
+			    &c_neg_one, dAT(j    , nextj+nextjb), HIP_R_32F, int(lddat),
+                                        dAT(nextj, j           ), HIP_R_32F, int(lddat),
+                            &c_one,     dAT(nextj, nextj+nextjb), HIP_R_32F, int(lddat),
+                            HIP_R_32F, ALGO);
+                            #else			    
                             &c_neg_one, dAT(j    , nextj+nextjb), HIPBLAS_R_32F, int(lddat),
                                         dAT(nextj, j           ), HIPBLAS_R_32F, int(lddat),
                             &c_one,     dAT(nextj, nextj+nextjb), HIPBLAS_R_32F, int(lddat),
                             HIPBLAS_R_32F, ALGO);
+                            #endif
                     #endif
                 }
                 else if( mp_algo_type == Magma_MP_SGEMM ) {
