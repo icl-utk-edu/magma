@@ -59,7 +59,7 @@ magma_sgemm_fp16_v1(
     hipblasGemmEx( magma_queue_get_hipblas_handle( queue ),
 		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
 		           int(m), int(n), int(k),
-                           #if ROCM_VERSION >= 70000
+                           #if hipblasVersionMajor >= 3
 			   (void*)&alpha, (void*)dhA, HIP_R_16F, (int)ldda,
                                   (void*)dhB, HIP_R_16F, (int)lddb,
                            (void*)&beta,  (void*)dC,  HIP_R_32F, (int)lddc,
@@ -104,7 +104,7 @@ magma_sgemm_fp16_v2(
     hipblasGemmEx( magma_queue_get_hipblas_handle( queue ),
 		           hipblas_trans_const( transA ), hipblas_trans_const( transB ),
 		           int(m), int(n), int(k),
-                           #if ROCM_VERSION >= 70000
+                           #if hipblasVersionMajor >= 3
 			   (void*)&alpha, (void*)dhA, HIP_R_16F, (int)ldda,
                                   (void*)dhB, HIP_R_16F, (int)lddb,
                            (void*)&beta,  (void*)dC,  HIP_R_32F, (int)lddc,

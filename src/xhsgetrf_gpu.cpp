@@ -403,7 +403,7 @@ magma_xhsgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(nextjb), int(m-nextj), int(jb),
-                            #if ROCM_VERSION >= 70000
+                            #if hipblasVersionMajor >= 3
 			    &c_neg_one, dAT_hp(j,     nextj), HIP_R_16F, int(lddat),
                                         dAT_hp(nextj, j    ), HIP_R_16F, int(lddat),
                             &c_one,     dAT_hp(nextj, nextj), HIP_R_16F, int(lddat),
@@ -429,7 +429,7 @@ magma_xhsgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(nextjb), int(m-nextj), int(jb),
-                            #if ROCM_VERSION >= 70000
+                            #if hipblasVersionMajor >= 3
 			    &h_neg_one, dAT_hp(j,     nextj), HIP_R_16F, int(lddat),
                                         dAT_hp(nextj, j    ), HIP_R_16F, int(lddat),
                             &h_one,     dAT_hp(nextj, nextj), HIP_R_16F, int(lddat),
@@ -494,7 +494,7 @@ magma_xhsgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
-                            #if ROCM_VERSION >= 70000
+                            #if hipblasVersionMajor >= 3
 			    &c_neg_one, dAT_hp(j,     nextj+nextjb), HIP_R_16F, int(lddat),
                                         dAT_hp(nextj, j           ), HIP_R_16F, int(lddat),
                             &c_one,     dAT_hp(nextj, nextj+nextjb), HIP_R_16F, int(lddat),
@@ -520,7 +520,7 @@ magma_xhsgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
-                            #if ROCM_VERSION >= 70000
+                            #if hipblasVersionMajor >= 3
 			    &h_neg_one, dAT_hp(j,     nextj+nextjb), HIP_R_16F, int(lddat),
                                         dAT_hp(nextj, j           ), HIP_R_16F, int(lddat),
                             &h_one,     dAT_hp(nextj, nextj+nextjb), HIP_R_16F, int(lddat),

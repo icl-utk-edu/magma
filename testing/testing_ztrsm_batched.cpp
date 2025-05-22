@@ -220,7 +220,7 @@ int main( int argc, char** argv)
                 opts.handle, cublas_side_const(opts.side), cublas_uplo_const(opts.uplo),
                 cublas_trans_const(opts.transA), cublas_diag_const(opts.diag),
                 int(M), int(N), 
-                #if ROCM_VERSION >= 70000
+                #if hipblasVersionMajor >= 3
                 (const hipDoubleComplex*)&alpha,
                 (hipDoubleComplex* const*) d_A_array, int(ldda),
                 (      hipDoubleComplex**) 

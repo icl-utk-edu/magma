@@ -212,7 +212,7 @@ magma_izamax_native(
         hipblasSetPointerMode(queue->hipblas_handle(), CUBLAS_POINTER_MODE_DEVICE);
 
         hipblasIzamax(queue->hipblas_handle(), length, 
-        #if ROCM_VERSION >= 70000
+        #if hipblasVersionMajor >= 3
         (const hipDoubleComplex*)x, 
         #else
         (const hipblasDoubleComplex*)x,

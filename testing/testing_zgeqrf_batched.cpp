@@ -195,7 +195,7 @@ int main( int argc, char** argv)
             #endif
             #else
             hipblasZgeqrfBatched( opts.handle, int(M), int(N),
-                                #if ROCM_VERSION >= 70000
+                                #if hipblasVersionMajor >= 3
                                  (hipDoubleComplex**)dA_array, int(ldda),
                                  (hipDoubleComplex**)dtau_array,
                                 #else

@@ -238,7 +238,7 @@ int main( int argc, char** argv)
                                      dinfo_device, int(batchCount) );
                 #else
                 hipblasZgetrfBatched( opts.handle, int(N),
-                                    #if ROCM_VERSION >= 70000
+                                    #if hipblasVersionMajor >= 3
                                      (hipDoubleComplex**)dA_array, 
                                     #else 
                                      (hipblasDoubleComplex**)dA_array, 

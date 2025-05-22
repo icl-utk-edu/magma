@@ -75,7 +75,7 @@ push(@whitelist, split(',', $whitelist));
 
 @statNames = ("error", "init", "version", "device", "context", "module", "memory", "addressing", "stream", "event", "external_resource_interop", "stream_memory", "execution", "graph", "occupancy", "texture", "surface", "peer", "graphics", "profiler", "openGL", "D3D9", "D3D10", "D3D11", "VDPAU", "EGL", "thread", "complex", "library", "device_library", "device_function", "include", "include_cuda_main_header", "type", "literal", "numeric_literal", "define", "extern_shared", "kernel_launch");
 
-my $rocm_version = `./tools/get-rocm-version.sh`;
+my $hipblasVersion = `./tools/get-hipblas-version.sh`;
 
 sub totalStats {
     my %count = %{ shift() };
@@ -994,8 +994,7 @@ sub simpleSubstitutions {
     #$ft{'type'} += s/\bcuFloatComplex\b/hipFloatComplex/g;
     
     # replace them with hipBLAS types
-
-    if ($rocm_version >= 70000){
+    if ($hipblasVersion >= 30000){
         $ft{'type'} += s/\bcuDoubleComplex\b/hipDoubleComplex/g;
     } else {
         $ft{'type'} += s/\bcuDoubleComplex\b/hipblasDoubleComplex/g;
@@ -1167,7 +1166,7 @@ sub simpleSubstitutions {
     $ft{'numeric_literal'} += s/\bCUBLAS_STATUS_NOT_INITIALIZED\b/HIPBLAS_STATUS_NOT_INITIALIZED/g;
     $ft{'numeric_literal'} += s/\bCUBLAS_STATUS_NOT_SUPPORTED\b/HIPBLAS_STATUS_NOT_SUPPORTED/g;
     $ft{'numeric_literal'} += s/\bCUBLAS_STATUS_SUCCESS\b/HIPBLAS_STATUS_SUCCESS/g;
-    if ($rocm_version >= 70000){
+    if ($hipblasVersion >= 30000){
         $ft{'numeric_literal'} += s/\bCUDA_C_16F\b/HIP_C_16F/g;
         $ft{'numeric_literal'} += s/\bCUDA_C_32F\b/HIP_C_32F/g;
         $ft{'numeric_literal'} += s/\bCUDA_C_64F\b/HIP_C_64F/g;

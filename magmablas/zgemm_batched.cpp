@@ -28,7 +28,7 @@
  *       */
 #ifdef PRECISION_z
   #ifdef MAGMA_HAVE_HIP
-    #if ROCM_VERSION >= 70000
+    #if hipblasVersionMajor >= 3
     typedef hipDoubleComplex BackendFloat_t;
     #else 
     typedef hipblasDoubleComplex BackendFloat_t;
@@ -38,7 +38,7 @@
   #endif
 #elif defined(PRECISION_c)
   #ifdef MAGMA_HAVE_HIP
-    #if ROCM_VERSION >= 70000
+    #if hipblasVersionMajor >= 3
     typedef hipComplex BackendFloat_t;
     #else 
     typedef hipblasComplex BackendFloat_t;

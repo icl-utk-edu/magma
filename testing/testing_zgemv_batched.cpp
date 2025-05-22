@@ -182,7 +182,7 @@ int main( int argc, char** argv)
                 #else
                 hipblasZgemvBatched(opts.handle, hipblas_trans_const(opts.transA),
                                       M, N,
-                                    #if ROCM_VERSION >= 70000
+                                    #if hipblasVersionMajor >= 3
                                       (const hipDoubleComplex *)&alpha,
                                       (const hipDoubleComplex **)d_A_array, ldda,
                                       (const hipDoubleComplex **)d_X_array, incx,
@@ -218,7 +218,7 @@ int main( int argc, char** argv)
                 #else
                 hipblasZgemvStridedBatched(opts.handle, hipblas_trans_const(opts.transA),
                                       M, N,
-                                      #if ROCM_VERSION >= 70000
+                                      #if hipblasVersionMajor >= 3
                                       (const hipDoubleComplex  *)&alpha,
                                       (const hipDoubleComplex  *)d_A, ldda, ldda*N,
                                       (const hipDoubleComplex  *)d_X, incx, incx*Xm,

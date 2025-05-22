@@ -190,7 +190,7 @@ int main( int argc, char** argv)
                   hipblasZgemmBatched(
                                    opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                    int(M), int(N), int(K),
-                                   #if ROCM_VERSION >= 70000
+                                   #if hipblasVersionMajor >= 3
                                    (const hipDoubleComplex*)&alpha,
                                    (const hipDoubleComplex**) d_A_array, int(ldda),
                                    (const hipDoubleComplex**) d_B_array, int(lddb),
@@ -220,7 +220,7 @@ int main( int argc, char** argv)
                 hipblasZgemmStridedBatched(
                                    opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                    int(M), int(N), int(K),
-                                   #if ROCM_VERSION >= 70000
+                                   #if hipblasVersionMajor >= 3
                                    (const hipDoubleComplex*)&alpha,
                                    (const hipDoubleComplex*) d_A, int(ldda), ldda * An,
                                    (const hipDoubleComplex*) d_B, int(lddb), lddb * Bn,
