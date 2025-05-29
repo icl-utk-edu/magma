@@ -62,11 +62,12 @@ endif()
 
 # ----------------------------------------
 # use C++14 and C99
-# see http://stackoverflow.com/questions/10851247/how-to-activate-c-11-in-cmake
 set( CMAKE_C_STANDARD 99 )
 set( CMAKE_C_STANDARD_REQUIRED OFF )
 set( CMAKE_CXX_STANDARD 14 )
 set( CMAKE_CXX_STANDARD_REQUIRED OFF )
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-fPIC" COMPILER_SUPPORTS_FPIC)
 
 # ----------------------------------------
 # check Fortran name mangling
