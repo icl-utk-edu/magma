@@ -105,6 +105,9 @@ FFLAGS      = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument
 F90FLAGS    = -O3 $(FPIC) -DNDEBUG -DADD_ -Wall -Wno-unused-dummy-argument -x f95-cpp-input
 LDFLAGS     =     $(FPIC) $(FOPENMP)
 
+# For backwards compatibility with hipblas older than v3.0.0
+CXXFLAGS += -DROCM_MATHLIBS_API_USE_HIP_COMPLEX 
+
 # add in the default for device compiling
 DEVCCFLAGS  = -O3 -DNDEBUG -DADD_
 

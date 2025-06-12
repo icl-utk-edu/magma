@@ -992,9 +992,8 @@ sub simpleSubstitutions {
     #$ft{'type'} += s/\bcuFloatComplex\b/hipFloatComplex/g;
     
     # replace them with hipBLAS types
-    $ft{'type'} += s/\bcuDoubleComplex\b/hipblasDoubleComplex/g;
+    $ft{'type'} += s/\bcuDoubleComplex\b/hipDoubleComplex/g;
     $ft{'type'} += s/\bcuFloatComplex\b/hipblasFloatComplex/g;
-    
     $ft{'type'} += s/\bcublasDataType_t\b/hipblasDatatype_t/g;
     $ft{'type'} += s/\bcublasDiagType_t\b/hipblasDiagType_t/g;
     $ft{'type'} += s/\bcublasFillMode_t\b/hipblasFillMode_t/g;
@@ -1161,9 +1160,9 @@ sub simpleSubstitutions {
     $ft{'numeric_literal'} += s/\bCUBLAS_STATUS_NOT_INITIALIZED\b/HIPBLAS_STATUS_NOT_INITIALIZED/g;
     $ft{'numeric_literal'} += s/\bCUBLAS_STATUS_NOT_SUPPORTED\b/HIPBLAS_STATUS_NOT_SUPPORTED/g;
     $ft{'numeric_literal'} += s/\bCUBLAS_STATUS_SUCCESS\b/HIPBLAS_STATUS_SUCCESS/g;
-    $ft{'numeric_literal'} += s/\bCUDA_C_16F\b/HIP_C_16F/g;
-    $ft{'numeric_literal'} += s/\bCUDA_C_32F\b/HIP_C_32F/g;
-    $ft{'numeric_literal'} += s/\bCUDA_C_64F\b/HIP_C_64F/g;
+    $ft{'numeric_literal'} += s/\bCUDA_C_16F\b/HIPBLAS_C_16F/g;
+    $ft{'numeric_literal'} += s/\bCUDA_C_32F\b/HIPBLAS_C_32F/g;
+    $ft{'numeric_literal'} += s/\bCUDA_C_64F\b/HIPBLAS_C_64F/g;
     $ft{'numeric_literal'} += s/\bCUDA_ERROR_ALREADY_ACQUIRED\b/hipErrorAlreadyAcquired/g;
     $ft{'numeric_literal'} += s/\bCUDA_ERROR_ALREADY_MAPPED\b/hipErrorAlreadyMapped/g;
     $ft{'numeric_literal'} += s/\bCUDA_ERROR_ARRAY_IS_MAPPED\b/hipErrorArrayIsMapped/g;

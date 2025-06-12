@@ -238,7 +238,12 @@ int main( int argc, char** argv)
                                      dinfo_device, int(batchCount) );
                 #else
                 hipblasZgetrfBatched( opts.handle, int(N),
-                                     (hipblasDoubleComplex**)dA_array, int(ldda), dipiv_device,
+                                    #if hipblasVersionMajor >= 3
+                                     (hipDoubleComplex**)dA_array, 
+                                    #else 
+                                     (hipblasDoubleComplex**)dA_array, 
+                                    #endif
+                                     int(ldda), dipiv_device,
                                      dinfo_device, int(batchCount) );
                 #endif
             }

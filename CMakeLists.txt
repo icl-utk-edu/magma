@@ -304,6 +304,9 @@ if (MAGMA_ENABLE_HIP)
 
     #add_compile_options(${GPU_ARCH_FLAGS})
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_AMD__" )
+    # For backwards compatibility with hipblas older than v3.0.0
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DROCM_MATHLIBS_API_USE_HIP_COMPLEX" )
+
     option(ROCM_CORE "Location of the rocm-core package")
     execute_process(COMMAND "${CMAKE_SOURCE_DIR}/tools/get-rocm-version.sh" "${ROCM_CORE}" OUTPUT_VARIABLE ROCM_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
     message(STATUS "ROCM_VERSION=${ROCM_VERSION}")

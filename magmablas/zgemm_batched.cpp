@@ -28,13 +28,21 @@
  *       */
 #ifdef PRECISION_z
   #ifdef MAGMA_HAVE_HIP
+    #if hipblasVersionMajor >= 3
+    typedef hipDoubleComplex BackendFloat_t;
+    #else 
     typedef hipblasDoubleComplex BackendFloat_t;
+    #endif 
   #else
     typedef cuDoubleComplex BackendFloat_t;
   #endif
 #elif defined(PRECISION_c)
   #ifdef MAGMA_HAVE_HIP
+    #if hipblasVersionMajor >= 3
+    typedef hipComplex BackendFloat_t;
+    #else 
     typedef hipblasComplex BackendFloat_t;
+    #endif 
   #else
     typedef cuFloatComplex BackendFloat_t;
   #endif
