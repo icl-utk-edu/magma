@@ -4,7 +4,7 @@
        Univ. of California, Berkeley
        Univ. of Colorado, Denver
        @date
-       
+
        @author Azzam Haidar
        @author Tingxing Dong
        @author Ahmad Abdelfattah
@@ -14,11 +14,12 @@
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
+#define ZPOTRF_PANEL_BATCHED_USE_BATCH_GEMM
 
 /******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_panel_batched(
-    magma_uplo_t uplo, magma_int_t n, magma_int_t nb,     
+    magma_uplo_t uplo, magma_int_t n, magma_int_t nb,
     magmaDoubleComplex** dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
     magma_int_t *info_array, magma_int_t gbstep,
     magma_int_t batchCount, magma_queue_t queue)
@@ -34,15 +35,15 @@ magma_zpotrf_panel_batched(
     arginfo = magma_zpotf2_batched(
                        uplo, nb,
                        dAarray(ai, aj), ldda,
-                       info_array, gbstep, 
+                       info_array, gbstep,
                        batchCount, queue);
 
     // trsm
     if ((n-nb) > 0) {
-            magmablas_ztrsm_recursive_batched( 
-                    MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit, 
-                    n-nb, nb, MAGMA_Z_ONE, 
-                    dAarray(ai   , aj), ldda, 
+            magmablas_ztrsm_recursive_batched(
+                    MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit,
+                    n-nb, nb, MAGMA_Z_ONE,
+                    dAarray(ai   , aj), ldda,
                     dAarray(ai+nb, aj), ldda, batchCount, queue );
     }
     return arginfo;
@@ -53,9 +54,9 @@ magma_zpotrf_panel_batched(
 /******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_recpanel_batched(
-    magma_uplo_t uplo, magma_int_t m, magma_int_t n, magma_int_t min_recpnb,    
+    magma_uplo_t uplo, magma_int_t m, magma_int_t n, magma_int_t min_recpnb,
     magmaDoubleComplex** dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
-    magma_int_t *info_array, magma_int_t gbstep, 
+    magma_int_t *info_array, magma_int_t gbstep,
     magma_int_t batchCount, magma_queue_t queue)
 {
 #define dAarray(i,j)    dA_array, i, j
@@ -84,20 +85,20 @@ magma_zpotrf_recpanel_batched(
     if (panel_nb <= min_recpnb) {
         arginfo = magma_zpotrf_panel_batched(
                         uplo, m, panel_nb,
-                        dAarray(ai,aj), ldda, 
+                        dAarray(ai,aj), ldda,
                         info_array, gbstep, batchCount, queue);
     }
     else{
         // split A over two [A1 A2]
-        // panel on A1, update on A2 then panel on A1    
+        // panel on A1, update on A2 then panel on A1
         magma_int_t n1 = n/2;
         magma_int_t n2 = n-n1;
 
         // panel on A1
         arginfo = magma_zpotrf_recpanel_batched(
-                        uplo, m, n1, min_recpnb, 
-                        dAarray(ai,aj), ldda, 
-                        info_array, gbstep, 
+                        uplo, m, n1, min_recpnb,
+                        dAarray(ai,aj), ldda,
+                        info_array, gbstep,
                         batchCount, queue);
 
         if (arginfo != 0) {
@@ -105,18 +106,33 @@ magma_zpotrf_recpanel_batched(
         }
 
         // update A2
-        magma_zgemm_batched_core( 
+        #ifdef ZPOTRF_PANEL_BATCHED_USE_BATCH_GEMM
+        magma_zgemm_batched_core(
                         MagmaNoTrans, MagmaConjTrans, m-n1, n2, n1,
-                        alpha, dAarray(ai+n1, aj   ), ldda, 
-                               dAarray(ai+n1, aj   ), ldda, 
-                        beta,  dAarray(ai+n1, aj+n1), ldda, 
+                        alpha, dAarray(ai+n1, aj   ), ldda,
+                               dAarray(ai+n1, aj   ), ldda,
+                        beta,  dAarray(ai+n1, aj+n1), ldda,
                         batchCount, queue );
+        #else
+        magmablas_zherk_batched_core( uplo, MagmaNoTrans, n2, n1,
+                                      alpha, dAarray(ai+n1, aj   ), ldda,
+                                             dAarray(ai+n1, aj   ), ldda,
+                                      beta,  dAarray(ai+n1, aj+n1), ldda,
+                                      batchCount, queue );
+
+        magma_zgemm_batched_core(
+                        MagmaNoTrans, MagmaConjTrans, m-n, n2, n1,
+                        alpha, dAarray(ai+n,  aj   ), ldda,
+                               dAarray(ai+n1, aj   ), ldda,
+                        beta,  dAarray(ai+n,  aj+n1), ldda,
+                        batchCount, queue );
+        #endif
 
         // panel on A2
         arginfo = magma_zpotrf_recpanel_batched(
-                        uplo, m-n1, n2, min_recpnb, 
-                        dAarray(ai+n1,aj+n1), ldda, 
-                        info_array, gbstep+n1, 
+                        uplo, m-n1, n2, min_recpnb,
+                        dAarray(ai+n1,aj+n1), ldda,
+                        info_array, gbstep+n1,
                         batchCount, queue);
     }
 
@@ -128,7 +144,7 @@ magma_zpotrf_recpanel_batched(
 /******************************************************************************/
 extern "C" magma_int_t
 magma_zpotrf_rectile_batched(
-    magma_uplo_t uplo, magma_int_t m, magma_int_t n, magma_int_t min_recpnb,    
+    magma_uplo_t uplo, magma_int_t m, magma_int_t n, magma_int_t min_recpnb,
     magmaDoubleComplex** dA_array, magma_int_t ai, magma_int_t aj, magma_int_t ldda,
     magma_int_t *info_array, magma_int_t gbstep,
     magma_int_t batchCount, magma_queue_t queue)
@@ -161,10 +177,10 @@ magma_zpotrf_rectile_batched(
     }
     else {
         // split A over two [A11 A12;  A21 A22; A31 A32]
-        // panel on tile A11, 
+        // panel on tile A11,
         // trsm on A21, using A11
-        // update on A22 then panel on A22.  
-        // finally a trsm on [A31 A32] using the whole [A11 A12; A21 A22]     
+        // update on A22 then panel on A22.
+        // finally a trsm on [A31 A32] using the whole [A11 A12; A21 A22]
         magma_int_t n1 = n/2;
         magma_int_t n2 = n-n1;
 
@@ -176,17 +192,17 @@ magma_zpotrf_rectile_batched(
                            batchCount, queue);
 
         // TRSM on A21
-        magmablas_ztrsm_recursive_batched( 
-                    MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit, 
-                    n2, n1, MAGMA_Z_ONE, 
-                    dAarray(ai   , aj), ldda, 
+        magmablas_ztrsm_recursive_batched(
+                    MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit,
+                    n2, n1, MAGMA_Z_ONE,
+                    dAarray(ai   , aj), ldda,
                     dAarray(ai+n1, aj), ldda, batchCount, queue );
 
         // update A22
         magma_zgemm_batched_core( MagmaNoTrans, MagmaConjTrans, n2, n2, n1,
-                             alpha, dAarray(ai+n1, aj   ), ldda, 
-                                    dAarray(ai+n1, aj   ), ldda, 
-                             beta,  dAarray(ai+n1, aj+n1), ldda, 
+                             alpha, dAarray(ai+n1, aj   ), ldda,
+                                    dAarray(ai+n1, aj   ), ldda,
+                             beta,  dAarray(ai+n1, aj+n1), ldda,
                              batchCount, queue );
 
         // panel on A22
@@ -199,10 +215,10 @@ magma_zpotrf_rectile_batched(
 
     // TRSM on A3x
     if (m > n) {
-        magmablas_ztrsm_recursive_batched( 
-                    MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit, 
-                    m-n, n, MAGMA_Z_ONE, 
-                    dAarray(ai  , aj), ldda, 
+        magmablas_ztrsm_recursive_batched(
+                    MagmaRight, MagmaLower, MagmaConjTrans, MagmaNonUnit,
+                    m-n, n, MAGMA_Z_ONE,
+                    dAarray(ai  , aj), ldda,
                     dAarray(ai+n, aj), ldda, batchCount, queue );
     }
 

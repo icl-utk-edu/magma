@@ -20,7 +20,7 @@ link=""
 tar=""
 pause=""
 
-usage="Usage: $0 [options] [acml macos mkl-gcc openblas ...]
+usage="Usage: $0 [options] [mkl-gcc openblas ...]
     -h  --help      help
     -j #            parallel make threads, default $j
         --no-clean  skip 'make clean' before build; only one configuration allowed

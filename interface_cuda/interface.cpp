@@ -26,15 +26,11 @@
 #include <mkl_service.h>
 #endif
 
-#if defined(MAGMA_WITH_ACML)
-#include <acml.h>
-#endif
-
 #include <cuda_runtime.h>
 
 // defining MAGMA_LAPACK_H is a hack to NOT include magma_lapack.h
-// via magma_internal.h here, since it conflicts with acml.h and we don't
-// need lapack here, but we want acml.h for the acmlversion() function.
+// via magma_internal.h here, since it conflicts with some vendor's
+// headers (acml.h), and we don't need lapack here.
 #define MAGMA_LAPACK_H
 
 #include "magma_internal.h"
@@ -122,17 +118,6 @@ enum {
 
 // count of (init - finalize) calls
 static int g_init = 0;
-
-#ifndef MAGMA_NO_V1
-    magma_queue_t* g_null_queues = NULL;
-
-    #ifdef HAVE_PTHREAD_KEY
-    pthread_key_t g_magma_queue_key;
-    #else
-    magma_queue_t g_magma_queue = NULL;
-    #endif
-#endif // MAGMA_NO_V1
-
 
 // -----------------------------------------------------------------------------
 // subset of the CUDA device properties, set by magma_init()
@@ -232,29 +217,6 @@ magma_init()
                     #endif
                 }
             }
-
-            #ifndef MAGMA_NO_V1
-                #ifdef HAVE_PTHREAD_KEY
-                    // create thread-specific key
-                    // currently, this is needed only for MAGMA v1 compatability
-                    // see magma_init, magmablas(Set|Get)KernelStream, magmaGetQueue
-                    info = pthread_key_create( &g_magma_queue_key, NULL );
-                    if ( info != 0 ) {
-                        info = MAGMA_ERR_UNKNOWN;
-                        goto cleanup;
-                    }
-                #endif
-
-                // ----- queues with NULL streams (for backwards compatability with MAGMA 1.x)
-                // allocate array of queues with NULL stream
-                size = max( 1, g_magma_devices_cnt ) * sizeof(magma_queue_t);
-                magma_malloc_cpu( (void**) &g_null_queues, size );
-                if ( g_null_queues == NULL ) {
-                    info = MAGMA_ERR_HOST_ALLOC;
-                    goto cleanup;
-                }
-                memset( g_null_queues, 0, size );
-            #endif // MAGMA_NO_V1
         }
 cleanup:
         g_init += 1;  // increment (init - finalize) count
@@ -290,21 +252,6 @@ magma_finalize()
                     magma_free_cpu( g_magma_devices );
                     g_magma_devices = NULL;
                 }
-
-                #ifndef MAGMA_NO_V1
-                if ( g_null_queues != NULL ) {
-                    for( int dev=0; dev < g_magma_devices_cnt; ++dev ) {
-                        magma_queue_destroy( g_null_queues[dev] );
-                        g_null_queues[dev] = NULL;
-                    }
-                    magma_free_cpu( g_null_queues );
-                    g_null_queues = NULL;
-                }
-
-                #ifdef HAVE_PTHREAD_KEY
-                    pthread_key_delete( g_magma_queue_key );
-                #endif
-                #endif // MAGMA_NO_V1
 
                 #ifdef DEBUG_MEMORY
                 magma_warn_leaks( g_pointers_dev, "device" );
@@ -376,7 +323,7 @@ magma_print_environment()
 
     printf( "%% Compiled for CUDA architectures %s\n", MAGMA_CUDA_ARCH );
 
-    // CUDA, OpenCL, OpenMP, MKL, ACML versions all printed on same line
+    // CUDA, OpenCL, OpenMP, MKL versions all printed on same line
     int cuda_runtime=0, cuda_driver=0;
     cudaError_t err;
     err = cudaDriverGetVersion( &cuda_driver );
@@ -428,13 +375,6 @@ magma_print_environment()
             mkl_version.MinorVersion,
             mkl_version.UpdateVersion,
             mkl_get_max_threads() );
-#endif
-
-#if defined(MAGMA_WITH_ACML)
-    // ACML 4 doesn't have acml_build parameter
-    int acml_major, acml_minor, acml_patch, acml_build;
-    acmlversion( &acml_major, &acml_minor, &acml_patch, &acml_build );
-    printf( "ACML %d.%d.%d.%d ", acml_major, acml_minor, acml_patch, acml_build );
 #endif
 
     printf( "\n" );
@@ -540,7 +480,7 @@ magma_is_devptr( const void* A )
                   #endif
 
                 #elif defined(MAGMA_HAVE_HIP)
-		  #if ROCM_VERSION >= 60000
+		  #if HIP_VERSION_MAJOR >= 6
 		    return (attr.type == hipMemoryTypeDevice);
 		  #else
                     return (attr.memoryType == hipMemoryTypeDevice);

@@ -72,10 +72,10 @@ int main( int argc, char** argv)
 
             TESTING_CHECK( magma_imalloc_cpu( &hinfo_magma, batchCount ));
             TESTING_CHECK( magma_zmalloc_cpu( &h_A, n2 ));
-            TESTING_CHECK( magma_zmalloc_pinned( &h_R, n2 ));
+            TESTING_CHECK( magma_zmalloc_cpu( &h_R, n2 ));
             TESTING_CHECK( magma_zmalloc( &d_A, ldda * N * batchCount ));
             TESTING_CHECK( magma_imalloc( &dinfo_magma,  batchCount ));
-            
+
             TESTING_CHECK( magma_malloc( (void**) &d_A_array, batchCount * sizeof(magmaDoubleComplex*) ));
 
             /* Initialize the matrix */
@@ -84,7 +84,7 @@ int main( int argc, char** argv)
             {
                 magma_zmake_hpd( N, h_A + i * lda * N, lda ); // need modification
             }
-            
+
             magma_int_t columns = N * batchCount;
             lapackf77_zlacpy( MagmaFullStr, &N, &(columns), h_A, &lda, h_R, &lda );
 
@@ -96,13 +96,14 @@ int main( int argc, char** argv)
             magma_memset( dinfo_magma, 0, batchCount * sizeof(magma_int_t) );
 
             magma_zset_pointer( d_A_array, d_A, ldda, 0, 0, ldda * N, batchCount, queue );
+
             gpu_time = magma_sync_wtime( opts.queue );
             info = magma_zpotrf_batched( opts.uplo, N, d_A_array, ldda, dinfo_magma, batchCount, queue);
             gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             gpu_perf = gflops / gpu_time;
+
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_magma, 1, hinfo_magma, 1, opts.queue );
-            for (int i=0; i < batchCount; i++)
-            {
+            for (int i=0; i < batchCount; i++) {
                 if (hinfo_magma[i] != 0 ) {
                     printf("magma_zpotrf_batched matrix %lld returned diag error %lld\n",
                             (long long) i, (long long) hinfo_magma[i] );
@@ -110,12 +111,9 @@ int main( int argc, char** argv)
                 }
             }
             if (info != 0) {
-                //printf("magma_zpotrf_batched returned argument error %lld: %s.\n", (long long) info, magma_strerror( info ));
+                printf("magma_zpotrf_batched returned argument error %lld: %s.\n", (long long) info, magma_strerror( info ));
                 status = -1;
-            }                
-            if (status == -1)
-                goto cleanup;
-
+            }
 
             /* =====================================================================
                Performs operation using LAPACK
@@ -129,8 +127,7 @@ int main( int argc, char** argv)
                 magma_set_omp_numthreads(nthreads);
                 #pragma omp parallel for schedule(dynamic)
                 #endif
-                for (magma_int_t s=0; s < batchCount; s++)
-                {
+                for (magma_int_t s=0; s < batchCount; s++) {
                     magma_int_t locinfo;
                     lapackf77_zpotrf( lapack_uplo_const(opts.uplo), &N, h_A + s * lda * N, &lda, &locinfo );
                     if (locinfo != 0) {
@@ -142,10 +139,10 @@ int main( int argc, char** argv)
                 #if !defined (BATCHED_DISABLE_PARCPU) && defined(_OPENMP)
                     magma_set_lapack_numthreads(nthreads);
                 #endif
-            
+
                 cpu_time = magma_wtime() - cpu_time;
                 cpu_perf = gflops / cpu_time;
-                
+
                 /* =====================================================================
                    Check the result compared to LAPACK
                    =================================================================== */
@@ -153,8 +150,7 @@ int main( int argc, char** argv)
                 magma_int_t NN = lda*N;
                 const char* uplo = lapack_uplo_const(opts.uplo);
                 error = 0;
-                for (int i=0; i < batchCount; i++)
-                {
+                for (int i=0; i < batchCount; i++) {
                     double Anorm, err;
                     blasf77_zaxpy(&NN, &c_neg_one, h_A + i * lda*N, &ione, h_R + i * lda*N, &ione);
                     Anorm = safe_lapackf77_zlanhe("f", uplo, &N, h_A + i * lda*N, &lda, work);
@@ -168,7 +164,7 @@ int main( int argc, char** argv)
                 }
                 bool okay = (error < tol);
                 status += ! okay;
-                
+
                 printf("%10lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %s\n",
                        (long long) batchCount, (long long) N, cpu_perf, cpu_time*1000., gpu_perf, gpu_time*1000.,
                        error, (okay ? "ok" : "failed"));
@@ -177,19 +173,16 @@ int main( int argc, char** argv)
                 printf("%10lld %5lld     ---   (  ---  )   %7.2f (%7.2f)     ---\n",
                        (long long) batchCount, (long long) N, gpu_perf, gpu_time*1000. );
             }
-cleanup:
+
             magma_free_cpu( hinfo_magma );
             magma_free_cpu( h_A );
-            magma_free_pinned( h_R );
+            magma_free_cpu( h_R );
             magma_free( d_A );
             magma_free( d_A_array );
             magma_free( dinfo_magma );
-            if (status == -1)
-                break;
+
             fflush( stdout );
         }
-        if (status == -1)
-            break;
 
         if ( opts.niter > 1 ) {
             printf( "\n" );

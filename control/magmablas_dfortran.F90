@@ -585,21 +585,6 @@ subroutine magmablasf_dtrsv( uplo, transA, diag, n, dA, ldda, db, incb, queue )
     magma_devptr_t   :: queue
 end
 
-subroutine magmablasf_dtrsv_outofplace( uplo, transA, diag, n, dA, ldda, db, incb, dx,  &
-        queue, flag )
-    character        :: uplo
-    character        :: transA
-    character        :: diag
-    integer          :: n
-    magma_devptr_t   :: dA
-    integer          :: ldda
-    magma_devptr_t   :: db
-    integer          :: incb
-    magma_devptr_t   :: dx
-    magma_devptr_t   :: queue
-    integer          :: flag
-end
-
 subroutine magmablasf_dgemv( trans, m, n, alpha, dA, ldda, dx, incx, beta, dy, incy,  &
         queue )
     character        :: trans

@@ -111,9 +111,6 @@ CXXFLAGS += -DROCM_MATHLIBS_API_USE_HIP_COMPLEX
 # add in the default for device compiling
 DEVCCFLAGS  = -O3 -DNDEBUG -DADD_
 
-# Add ROCM_VERSION for device compilation
-DEVCCFLAGS += -DROCM_VERSION=$(shell ./tools/get-rocm-version.sh)
-
 # add the flags in a backend-specific way
 ifeq ($(BACKEND),cuda)
     DEVCCFLAGS += -Xcompiler "$(FPIC)" -Xcompiler "$(FOPENMP)" -std=c++11

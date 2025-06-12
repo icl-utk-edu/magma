@@ -63,8 +63,6 @@ testing_src += \
 	$(cdir)/testing_parse_opts.cpp	\
 	$(cdir)/testing_zgenerate.cpp	\
 
-	#$(cdir)/testing_veclib.cpp	\
-
 # ----------
 # Cholesky, GPU interface
 testing_src += \
@@ -233,6 +231,7 @@ testing_src += \
 	\
 	$(cdir)/testing_zpotrf_vbatched.cpp	\
 	$(cdir)/testing_zgetrf_vbatched.cpp	\
+	$(cdir)/testing_zgetrf_nopiv_vbatched.cpp	\
 
 # ----------
 # half precision files
