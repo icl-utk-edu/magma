@@ -82,7 +82,7 @@ interface
     end function
 
     real(c_double) function magma_sync_wtime( queue ) &
-    bind(C, name="magma_wtime")
+    bind(C, name="magma_sync_wtime")
         use iso_c_binding
         type(c_ptr), value :: queue
     end function
