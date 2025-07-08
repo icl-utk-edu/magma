@@ -16,7 +16,8 @@
 BACKEND     ?= cuda
 
 # set these to their real paths
-OPENBLASDIR ?= /usr/local/openblas
+BLIS_DIR    ?= /usr/local/blis
+FLAME_DIR   ?= /usr/local/libflame
 CUDADIR     ?= /usr/local/cuda
 ROCM_PATH   ?= /opt/rocm
 
@@ -73,22 +74,23 @@ DEVCCFLAGS  = -O3         -DNDEBUG -DADD_
 # --------------------
 # libraries
 
-# gcc with OpenBLAS (includes LAPACK)
-LIB       += -lopenblas
+# gcc with BLIS/FLAME
+LIB       += -lflame -lblis
 
 # --------------------
 # directories
 
 # define library directories preferably in your environment, or here.
-LIBDIR    += -L$(OPENBLASDIR)/lib
-INC       +=
+LIBDIR    += -L${FLAME_DIR}/lib -Wl,-rpath,${FLAME_DIR}/lib \
+             -L${BLIS_DIR}/lib -Wl,-rpath,${BLIS_DIR}/lib
+INC       += -I${FLAME_DIR}/include -I${BLIS_DIR}/include
 
 
 # --------------------
 # checks
 
-# check for openblas
--include make.check-openblas
+# check for BLIS & FLAME
+-include make.check-aocl-blis
 
 
 # --------------------
@@ -102,7 +104,7 @@ ifeq ($(BACKEND),cuda)
 
     # link with cuda specific libraries
     INC    += -I$(CUDADIR)/include
-    LIBDIR += -L$(CUDADIR)/lib64
+    LIBDIR += -L$(CUDADIR)/lib64 -Wl,-rpath,${CUDADIR}/lib64
     LIB    += -lcublas -lcusparse -lcudart -lcudadevrt
 endif
 
@@ -113,8 +115,6 @@ ifeq ($(BACKEND),hip)
     DEVCCFLAGS += $(FPIC) -std=c++11
 
     INC    += -I$(ROCM_PATH)/include
-    LIBDIR += -L$(ROCM_PATH)/lib
+    LIBDIR += -L$(ROCM_PATH)/lib -Wl,-rpath,${ROCM_PATH}/lib
     LIB    += -lhipblas -lhipsparse
 endif
-
-
