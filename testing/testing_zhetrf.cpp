@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <algorithm>
 
 // includes, project
 #include "flops.h"
@@ -408,21 +409,15 @@ double get_LDLt_error(
                 if (piv != j) {
                     // apply row-pivoting to previous L
                     for (i=j+2; i < N; i++) {
-                        magmaDoubleComplex val = L(j,i);
-                        L(j,i) = L(piv,i);
-                        L(piv,i) = val;
+                        std::swap( L(j, i), L(piv, i) );
                     }
                     // apply row-pivoting to A
                     for (i=0; i < N; i++) {
-                        magmaDoubleComplex val = A(j,i);
-                        A(j,i) = A(piv,i);
-                        A(piv,i) = val;
+                        std::swap( A(j, i), A(piv, i) );
                     }
                     // apply col-pivoting to A
                     for (i=0; i < N; i++) {
-                        magmaDoubleComplex val = A(i,j);
-                        A(i,j) = A(i,piv);
-                        A(i,piv) = val;
+                        std::swap( A(i, j), A(i, piv) );
                     }
                 }
             }
@@ -438,21 +433,15 @@ double get_LDLt_error(
                 if (piv != j) {
                     // apply row-pivoting to previous L
                     for (i=j+1; i < N; i++) {
-                        magmaDoubleComplex val = L(j,i);
-                        L(j,i) = L(piv,i);
-                        L(piv,i) = val;
+                        std::swap( L(j, i), L(piv, i) );
                     }
                     // apply row-pivoting to A
                     for (i=0; i < N; i++) {
-                        magmaDoubleComplex val = A(j,i);
-                        A(j,i) = A(piv,i);
-                        A(piv,i) = val;
+                        std::swap( A(j, i), A(piv, i) );
                     }
                     // apply col-pivoting to A
                     for (i=0; i < N; i++) {
-                        magmaDoubleComplex val = A(i,j);
-                        A(i,j) = A(i,piv);
-                        A(i,piv) = val;
+                        std::swap( A(i, j), A(i,piv) );
                     }
                 }
             }
@@ -497,21 +486,15 @@ double get_LDLt_error(
                 if (piv != j) {
                     // apply row-pivoting to previous L
                     for (i=0; i < j-1; i++) {
-                        magmaDoubleComplex val = L(j,i);
-                        L(j,i) = L(piv,i);
-                        L(piv,i) = val;
+                        std::swap( L(j, i), L(piv, i) );
                     }
                     // apply row-pivoting to A
                     for (i=0; i < N; i++) {
-                        magmaDoubleComplex val = A(j,i);
-                        A(j,i) = A(piv,i);
-                        A(piv,i) = val;
+                        std::swap( A(j, i), A(piv, i) );
                     }
                     // apply col-pivoting to A
                     for (i=0; i < N; i++) {
-                        magmaDoubleComplex val = A(i,j);
-                        A(i,j) = A(i,piv);
-                        A(i,piv) = val;
+                        std::swap( A(i, j), A(i, piv) );
                     }
                 }
             }
@@ -527,21 +510,15 @@ double get_LDLt_error(
                 if (piv != j) {
                     // apply row-pivoting to previous L
                     for (i=0; i < j; i++) {
-                        magmaDoubleComplex val = L(j,i);
-                        L(j,i) = L(piv,i);
-                        L(piv,i) = val;
+                        std::swap( L(j, i), L(piv, i) );
                     }
                     // apply row-pivoting to A
                     for (i=0; i < N; i++) {
-                        magmaDoubleComplex val = A(j,i);
-                        A(j,i) = A(piv,i);
-                        A(piv,i) = val;
+                        std::swap( A(j, i), A(piv, i) );
                     }
                     // apply col-pivoting to A
                     for (i=0; i < N; i++) {
-                        magmaDoubleComplex val = A(i,j);
-                        A(i,j) = A(i,piv);
-                        A(i,piv) = val;
+                        std::swap( A(i, j), A(i, piv) );
                     }
                 }
             }
@@ -690,15 +667,11 @@ double get_LTLt_error(
         if (piv != j) {
             // apply row-pivoting to A
             for (i=0; i < N; i++) {
-                magmaDoubleComplex val = A(j,i);
-                A(j,i) = A(piv,i);
-                A(piv,i) = val;
+                std::swap( A(j, i), A(piv, i) );
             }
             // apply col-pivoting to A
             for (i=0; i < N; i++) {
-                magmaDoubleComplex val = A(i,j);
-                A(i,j) = A(i,piv);
-                A(i,piv) = val;
+                std::swap( A(i, j), A(i, piv) );
             }
         }
     }
@@ -728,7 +701,7 @@ double get_LTLt_error(
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zhetrf
 */
-int main( int argc, char** argv)
+int main( int argc, char** argv )
 {
     TESTING_CHECK( magma_init() );
     magma_print_environment();
@@ -752,8 +725,8 @@ int main( int argc, char** argv)
 
     // TODO: this doesn't work. Options need to be added to parse_opts()
     //for (int i = 1; i < argc; ++i) {
-    //    if ( strcmp("--cpu-panel", argv[i]) == 0) cpu_panel = 1;
-    //    if ( strcmp("--gpu-panel", argv[i]) == 0) cpu_panel = 0;
+    //    if (strcmp("--cpu-panel", argv[i]) == 0) cpu_panel = 1;
+    //    if (strcmp("--gpu-panel", argv[i]) == 0) cpu_panel = 0;
     //}
 
     printf( "%% --version 1 = Bunch-Kauffman (CPU)\n"
@@ -796,7 +769,7 @@ int main( int argc, char** argv)
 
     double tol = opts.tolerance * lapackf77_dlamch("E");
 
-    if ( opts.check == 2 ) {
+    if (opts.check == 2) {
         printf("%%   M     N   CPU Gflop/s (sec)   GPU Gflop/s (sec)   |Ax-b|/(N*|A|*|x|)\n");
     }
     else {
@@ -816,7 +789,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Performs operation using LAPACK
                =================================================================== */
-            if ( opts.lapack ) {
+            if (opts.lapack) {
                 lwork = -1;
                 lapackf77_zhetrf( lapack_uplo_const(opts.uplo), &N, h_A, &lda, ipiv, &temp, &lwork, &info );
                 lwork = (magma_int_t)MAGMA_Z_REAL( temp );
@@ -891,6 +864,7 @@ int main( int argc, char** argv)
                 magmaDoubleComplex_ptr d_A;
                 TESTING_CHECK( magma_zmalloc( &d_A, N*ldda ));
                 magma_zsetmatrix(N, N, h_A, lda, d_A, ldda, opts.queue );
+
                 gpu_time = magma_wtime();
                 magma_zhetrf_nopiv_gpu( opts.uplo, N, d_A, ldda, &info);
                 gpu_time = magma_wtime() - gpu_time;
@@ -928,6 +902,7 @@ int main( int argc, char** argv)
                 }
                 printf("inertia: positive / negative / zero = %d / %d / %d\n",
                        inert[0], inert[1], inert[2]);
+
                 magma_free( d_A );
             }
             else if (gpu) {
@@ -936,12 +911,13 @@ int main( int argc, char** argv)
                 magmaDoubleComplex_ptr d_A;
                 TESTING_CHECK( magma_zmalloc( &d_A, N*ldda ));
                 magma_zsetmatrix(N, N, h_A, lda, d_A, ldda, opts.queue );
+
                 gpu_time = magma_wtime();
                 magma_zhetrf_gpu( opts.uplo, N, d_A, ldda, ipiv, &info);
                 gpu_time = magma_wtime() - gpu_time;
 
                 magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
-                if ( opts.check == 2 && info == 0) {
+                if (opts.check == 2 && info == 0) {
                     error = get_residual_gpu( opts, (nopiv | nopiv_gpu), opts.uplo, N,
                                               h_A, lda, d_A, ldda, ipiv, solve_time );
                     magma_zgetmatrix(N, N, d_A, ldda, h_A, lda, opts.queue );
@@ -980,7 +956,7 @@ int main( int argc, char** argv)
             /* =====================================================================
                Check the factorization
                =================================================================== */
-            if ( opts.lapack ) {
+            if (opts.lapack) {
                 printf("%5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)",
                        (long long) N, (long long) N, cpu_perf, cpu_time, gpu_perf, gpu_time );
             }
@@ -988,11 +964,11 @@ int main( int argc, char** argv)
                 printf("%5lld %5lld     ---   (  ---  )   %7.2f (%7.2f)",
                        (long long) N, (long long) N, gpu_perf, gpu_time );
             }
-            if ( opts.check == 2 && info == 0) {
+            if (opts.check == 2 && info == 0) {
                 if (aasen) {
                     error = get_residual_aasen( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
                 }
-                else if (!gpu) {
+                else if (! gpu) {
                     error = get_residual( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
                 }
                 // gpu case calls get_residual_gpu before to initialize error and timing.
@@ -1011,7 +987,7 @@ int main( int argc, char** argv)
                 printf("\n");
                 status += ! (error < tol);
             }
-            else if ( opts.check && info == 0 ) {
+            else if (opts.check && info == 0) {
                 if (aasen) {
                     error = get_LTLt_error( opts, (nopiv | nopiv_gpu), opts.uplo, N, h_A, lda, ipiv );
                 }
@@ -1029,7 +1005,7 @@ int main( int argc, char** argv)
             magma_free_pinned( h_A  );
             fflush( stdout );
         }
-        if ( opts.niter > 1 ) {
+        if (opts.niter > 1) {
             printf( "\n" );
         }
     }
