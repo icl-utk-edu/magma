@@ -329,11 +329,11 @@ double get_residual_aasen(
 }
 
 /******************************************************************************/
-// On input, LU and ipiv is LU factorization of A. On output, LU is overwritten.
-// Works for any m, n.
+// On input, LD and ipiv is LDL^T factorization of A. On output, LD is overwritten.
+// Works for any n.
 // Uses init_matrix() to re-generate original A as needed.
 // Returns error in factorization, |PA - LU| / (n |A|)
-// This allocates 3 more matrices to store A, L, and U.
+// This allocates 3 more matrices to store A, L, and D.
 double get_LDLt_error(
     magma_opts &opts,
     bool nopiv, magma_uplo_t uplo, magma_int_t N,
@@ -363,20 +363,26 @@ double get_LDLt_error(
 
     // symmetrize; the pivoting code below assumes a full matrix
     if (opts.uplo == MagmaLower) {
-        // copy L to U
+        // Copy conj(L) to U, and make diagonal real.
         for (j = 0; j < N; ++j) {
             for (i = 0; i < j; ++i) {
-                A(i,j) = A(j,i);
+                A(i, j) = MAGMA_Z_CONJ( A(j, i) );
             }
+            A(j, j) = MAGMA_Z_MAKE( MAGMA_Z_REAL( A(j, j) ), 0 );
         }
     }
     else {
-        // copy U to L
+        // Copy conj(U) to L, and make diagonal real.
         for (j = 0; j < N; ++j) {
             for (i = 0; i < j; ++i) {
-                A(j,i) = A(i,j);
+                A(j, i) = MAGMA_Z_CONJ( A(i, j) );
             }
+            A(j, j) = MAGMA_Z_MAKE( MAGMA_Z_REAL( A(j, j) ), 0 );
         }
+    }
+    if (opts.verbose) {
+        printf( "Aerr = " );
+        magma_zprint( N, N, A, lda );
     }
 
     if (uplo == MagmaUpper) {
@@ -557,6 +563,11 @@ double get_LDLt_error(
     }
     residual = lapackf77_zlange( "Fro", &N, &N, D, &N, work);
 
+    if (opts.verbose) {
+        printf( "Residual = " );
+        magma_zprint( N, N, D, N );
+    }
+
     magma_free_cpu( A );
     magma_free_cpu( L );
     magma_free_cpu( D );
@@ -651,20 +662,26 @@ double get_LTLt_error(
 
     // symmetrize; the pivoting code below assumes a full matrix
     if (opts.uplo == MagmaLower) {
-        // copy L to U
+        // Copy conj(L) to U, and make diagonal real.
         for (j = 0; j < N; ++j) {
             for (i = 0; i < j; ++i) {
-                A(i,j) = A(j,i);
+                A(i, j) = MAGMA_Z_CONJ( A(j, i) );
             }
+            A(j, j) = MAGMA_Z_MAKE( MAGMA_Z_REAL( A(j, j) ), 0 );
         }
     }
     else {
-        // copy U to L
+        // Copy conj(U) to L, and make diagonal real.
         for (j = 0; j < N; ++j) {
             for (i = 0; i < j; ++i) {
-                A(j,i) = A(i,j);
+                A(j, i) = MAGMA_Z_CONJ( A(i, j) );
             }
+            A(j, j) = MAGMA_Z_MAKE( MAGMA_Z_REAL( A(j, j) ), 0 );
         }
+    }
+    if (opts.verbose) {
+        printf( "Aerr = " );
+        magma_zprint( N, N, A, lda );
     }
 
     // apply symmetric pivoting
@@ -693,6 +710,11 @@ double get_LTLt_error(
         }
     }
     residual = lapackf77_zlange( "Fro", &N, &N, T, &N, work);
+
+    if (opts.verbose) {
+        printf( "Residual = " );
+        magma_zprint( N, N, T, N );
+    }
 
     magma_free_cpu( A );
     magma_free_cpu( L );
@@ -829,6 +851,10 @@ int main( int argc, char** argv)
                Performs operation using MAGMA
                =================================================================== */
             init_matrix( opts, N, N, h_A, lda );
+            if (opts.verbose) {
+                printf( "A = " );
+                magma_zprint( N, N, h_A, lda );
+            }
 
             //printf( "A0=" );
             //magma_zprlong( N, N, h_A, lda );
