@@ -82,7 +82,20 @@ For csh/tcsh, put in `~/.cshrc`:
 
     setenv CUDADIR /usr/local/cuda
 
-MAGMA is tested with CUDA >= 7.5. Some functionality requires a newer version.
+#### AMD Optimizing CPU Libraries (AOCL) / BLIS & FLAME
+
+AOCL has adopted the BLIS and libFLAME libraries. These may be installed
+in separate directories. Set `\$BLIS_DIR` and `\$FLAME_DIR` in your
+environment or make.inc file.
+For bash (sh), put in ~/.bashrc (with your system's paths):
+
+    export BLIS_DIR=/opt/blis
+    export FLAME_DIR=/opt/libflame
+
+For csh/tcsh, put in ~/.cshrc:
+
+    setenv BLIS_DIR  /opt/blis
+    setenv FLAME_DIR /opt/libflame
 
 #### Intel MKL
 
@@ -95,8 +108,7 @@ For csh/tcsh, put in ~/.cshrc:
 
     source /opt/intel/bin/compilervars.csh intel64
 
-MAGMA is tested with MKL 11.3.3 (2016), both LP64 and ILP64;
-other versions may work.
+MAGMA is tested with both LP64 and ILP64.
 
 #### ATLAS
 
@@ -122,8 +134,6 @@ For bash (sh), put in ~/.bashrc (with your system's path):
 For csh/tcsh, put in ~/.cshrc:
 
     setenv OPENBLASDIR /opt/openblas
-
-Some bugs exist with OpenBLAS 0.2.19; see BUGS.txt.
 
 
 Linking to BLAS

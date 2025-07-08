@@ -1,0 +1,17 @@
+# check for BLIS & FLAME directories and give user hint how to set them
+
+ifeq ($(BLIS_DIR),)
+$(error Set $$BLIS_DIR, preferably in your environment, e.g., run "export BLIS_DIR=/opt/blis" in ~/.bashrc, or "setenv BLIS_DIR /opt/blis" in ~/.cshrc)
+endif
+
+ifeq ($(wildcard $(BLIS_DIR)),)
+$(error $$BLIS_DIR=$(BLIS_DIR) does not exist. Please set $$BLIS_DIR to where BLIS is installed.)
+endif
+
+ifeq ($(FLAME_DIR),)
+$(error Set $$FLAME_DIR, preferably in your environment, e.g., run "export FLAME_DIR=/opt/libflame" in ~/.bashrc, or "setenv FLAME_DIR /opt/libflame" in ~/.cshrc)
+endif
+
+ifeq ($(wildcard $(FLAME_DIR)),)
+$(error $$FLAME_DIR=$(FLAME_DIR) does not exist. Please set $$FLAME_DIR to where libFLAME is installed.)
+endif
