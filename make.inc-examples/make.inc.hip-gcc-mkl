@@ -36,11 +36,6 @@ BACKEND      = hip
 ROCM_PATH ?= /opt/rocm
 CUDADIR   ?= /usr/local/cuda
 
-# require either hip or cuda
-ifeq (,$(findstring $(BACKEND),hip cuda))
-    $(error "'BACKEND' should be either 'cuda' or 'hip' (got $$BACKEND=$(BACKEND))")
-endif
-
 # --------------------
 # programs
 
