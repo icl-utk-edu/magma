@@ -37,11 +37,6 @@ OPENBLASDIR ?= /usr/local/openblas
 ROCM_PATH   ?= /opt/rocm
 CUDADIR     ?= /usr/local/cuda
 
-# require either hip or cuda
-ifeq (,$(findstring $(BACKEND),hip cuda))
-    $(error "'BACKEND' should be either 'cuda' or 'hip' (got $$BACKEND=$(BACKEND))")
-endif
-
 # --------------------
 # programs
 
@@ -76,7 +71,7 @@ RANLIB      ?= ranlib
 ifeq ($(BACKEND),cuda)
     # See a full table: https://nouveau.freedesktop.org/wiki/CodeNames/
     # note: provided by freedesktop, which is reliable, but not from the vendor
-    GPU_TARGET = Volta Turing Ampere
+    GPU_TARGET ?= Volta Turing Ampere
 else ifeq ($(BACKEND),hip)
     # See a full table:
     #   https://llvm.org/docs/AMDGPUUsage.html#amdgpu-processor-table
