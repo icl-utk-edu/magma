@@ -70,9 +70,11 @@ endif()
 # ----------------------------------------
 # use C++14 and C99
 set( CMAKE_C_STANDARD 99 )
-set( CMAKE_C_STANDARD_REQUIRED OFF )
+set( CMAKE_C_STANDARD_REQUIRED on )
+set( CMAKE_C_EXTENSIONS off )
 set( CMAKE_CXX_STANDARD 14 )
-set( CMAKE_CXX_STANDARD_REQUIRED OFF )
+set( CMAKE_CXX_STANDARD_REQUIRED on )  # prohibit "decay" to older standards (std=c++11, etc.)
+set( CMAKE_CXX_EXTENSIONS off )        # prohibit std=gnu++17, etc.
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-fPIC" COMPILER_SUPPORTS_FPIC)
 
