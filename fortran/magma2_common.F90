@@ -12,15 +12,13 @@ complex(c_double_complex), parameter :: zdummy = 0
 integer(c_int),            parameter :: idummy = 0
 type(c_ptr),               parameter :: ptr_dummy = c_null_ptr
 
-!! Intel ifort chokes on c_sizeof here, so use extension sizeof
-!! see https://software.intel.com/en-us/forums/intel-visual-fortran-compiler-for-windows/topic/495001
 integer(c_size_t), parameter :: &
-    sizeof_real      = sizeof(sdummy), &
-    sizeof_double    = sizeof(ddummy), &
-    sizeof_complex   = sizeof(cdummy), &
-    sizeof_complex16 = sizeof(zdummy), &
-    sizeof_int       = sizeof(idummy), &
-    sizeof_ptr       = sizeof(ptr_dummy)
+    sizeof_real      = c_sizeof(sdummy), &
+    sizeof_double    = c_sizeof(ddummy), &
+    sizeof_complex   = c_sizeof(cdummy), &
+    sizeof_complex16 = c_sizeof(zdummy), &
+    sizeof_int       = c_sizeof(idummy), &
+    sizeof_ptr       = c_sizeof(ptr_dummy)
 
 
 !! =============================================================================
