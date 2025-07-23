@@ -1,10 +1,10 @@
 # ------------------------------------------------------------------------------
 # programs
 #
-# Users should make all changes in make.inc
+# Users should make all changes in make.inc or on the make command line.
 # It should not be necesary to change anything in here.
 
-include make.inc
+-include make.inc
 
 # --------------------
 # configuration
