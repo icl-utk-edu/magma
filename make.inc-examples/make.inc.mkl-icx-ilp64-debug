@@ -15,6 +15,7 @@
 #     Volta/Turing         - NVIDIA compute capability 7.x cards
 #     Ampere/Ada-Lovelace  - NVIDIA compute capability 8.x cards
 #     Hopper               - NVIDIA compute capability 9.x cards
+#     Blackwell            - NVIDIA compute capability 10.x and 12.x cards
 # The default is "Volta Turing Ampere".
 # Note that depending on the CUDA version, some compute capabilities may not be supported
 # See http://developer.nvidia.com/cuda-gpus
