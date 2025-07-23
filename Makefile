@@ -156,6 +156,7 @@ ifeq ($(BACKEND),cuda)
 	endif
 	ifneq ($(findstring Blackwell, $(GPU_TARGET)),)
 		CUDA_ARCH_ += sm_100
+		CUDA_ARCH_ += sm_120
 	endif
 
 
