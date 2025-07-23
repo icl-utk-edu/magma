@@ -8,9 +8,6 @@
 
 # GPU_TARGET contains one or more of the architectures below
 # to specify for which GPUs you want to compile MAGMA:
-#     Fermi                - NVIDIA compute capability 2.x cards
-#     Kepler               - NVIDIA compute capability 3.x cards
-#     Maxwell              - NVIDIA compute capability 5.x cards
 #     Pascal               - NVIDIA compute capability 6.x cards
 #     Volta/Turing         - NVIDIA compute capability 7.x cards
 #     Ampere/Ada-Lovelace  - NVIDIA compute capability 8.x cards
@@ -19,6 +16,7 @@
 # The default is "Volta Turing Ampere".
 # Note that depending on the CUDA version, some compute capabilities may not be supported
 # See http://developer.nvidia.com/cuda-gpus
+# Older architectures are supported if the proper version of CUDA is used
 #
 GPU_TARGET ?= Volta Turing Ampere
 
