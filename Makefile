@@ -158,9 +158,7 @@ ifeq ($(BACKEND),cuda)
 		CUDA_ARCH_ += sm_100
 		CUDA_ARCH_ += sm_120
 	endif
-
-
-	# Remember to add to CMakeLists.txt too!
+	# Remember to add new architectures to CMakeLists.txt too!
 
 	# Next, add compile options for specific smXX
 	# sm_xx is binary, compute_xx is PTX for forward compatability
