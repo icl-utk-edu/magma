@@ -156,6 +156,10 @@ if (MAGMA_ENABLE_CUDA)
                 set( GPU_TARGET "${GPU_TARGET} sm_90 sm_90a" )
             endif()
 
+            if (GPU_TARGET MATCHES Blackwell)
+                set( GPU_TARGET "${GPU_TARGET} sm_100 sm_120" )
+            endif()
+
             # Find all sm_XY and sm_XYZ, then strip off sm_.
             string( REGEX MATCHALL "sm_[0-9][0-9a-z]+" sms "${GPU_TARGET}" )
             string( REPLACE "sm_" "" __cuda_architectures "${sms}" )
