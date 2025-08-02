@@ -35,11 +35,7 @@ my @files2delete = qw(
     sparse/python
 
     sparse/testing/testing_zpardiso.cpp
-    sparse/testing/testing_zparilu_weight.cpp
     sparse/testing/testing_zsolver_allufmc.cpp
-    sparse/testing/testing_zsolver_energy.cpp
-
-    sparse/blas/zilut.cpp
 
     testing/*.txt
     testing/fortran2.cpp
@@ -128,7 +124,7 @@ EOT
     }
 
     myCmd("mkdir $RELEASE_PATH");
-    
+
     # Save current directory
     my $dir = `pwd`;
     chomp $dir;
@@ -220,9 +216,9 @@ EOT
 
     # Generate cuda files
     myCmd("echo -e 'GPU_TARGET = Volta\nFORT = true' > make.inc");
-    
+
     # Compile the documentation
-    print "Compile the documentation\n";                                                                                                     
+    print "Compile the documentation\n";
     myCmd("make docs");
 
     myCmd("make -j generate");

@@ -66,13 +66,6 @@ magma_int_t magma_get_zgetri_batched_ntcol(magma_int_t m, magma_int_t n);
 magma_int_t magma_get_ztrsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n);
 void magma_get_zgbtrf_batched_params(magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t *nb, magma_int_t *threads);
 
-void
-magmablas_zswapdblk_batched(
-    magma_int_t n, magma_int_t nb,
-    magmaDoubleComplex **dA, magma_int_t ldda, magma_int_t inca,
-    magmaDoubleComplex **dB, magma_int_t lddb, magma_int_t incb,
-    magma_int_t batchCount, magma_queue_t queue );
-
   /*
    *  LAPACK batched routines
    */

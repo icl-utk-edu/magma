@@ -1078,7 +1078,6 @@ INPUT                  = \
 	../magmablas/zswap.cu                                       \
 	../magmablas/zswapblk.cu                                    \
 	../magmablas/zswapdblk.cu                                   \
-	../magmablas/zswapdblk_batched.cu                           \
 	../magmablas/zsymmetrize.cu                                 \
 	../magmablas/zsymmetrize_tiles.cu                           \
 	../magmablas/zsymv.cu                                       \
@@ -1116,32 +1115,21 @@ INPUT                  = \
 	../sparse/blas/atomicopsfloat.h                             \
 	../sparse/blas/atomicopsmagmaDoubleComplex.h                \
 	../sparse/blas/atomicopsmagmaFloatComplex.h                 \
-	../sparse/blas/clag2z_sparse.cu                             \
-	../sparse/blas/magma_clag2z.cpp                             \
 	../sparse/blas/magma_z_blaswrapper.cpp                      \
 	../sparse/blas/magma_zcuspaxpy.cpp                          \
 	../sparse/blas/magma_zcuspmm.cpp                            \
 	../sparse/blas/magma_zdiagcheck.cu                          \
 	../sparse/blas/magma_zget_rowptr.cu                         \
-	../sparse/blas/magma_zlag2c.cpp                             \
 	../sparse/blas/magma_zmconjugate.cu                         \
 	../sparse/blas/magma_zmcsrcompressor_gpu.cu                 \
 	../sparse/blas/magma_zpreselect.cu                          \
 	../sparse/blas/magma_zthrsrm.cu                             \
-	../sparse/blas/magma_zthrsselect.cu                         \
 	../sparse/blas/zbajac_csr.cu                                \
 	../sparse/blas/zbajac_csr_overlap.cu                        \
-	../sparse/blas/zbcsrblockinfo.cu                            \
-	../sparse/blas/zbcsrcpy.cu                                  \
-	../sparse/blas/zbcsrlugemm.cu                               \
-	../sparse/blas/zbcsrlupivloc.cu                             \
-	../sparse/blas/zbcsrswp.cu                                  \
-	../sparse/blas/zbcsrtrsv.cu                                 \
 	../sparse/blas/zcgecsrmv_mixed_prec.cu                      \
 	../sparse/blas/zcompact.cu                                  \
 	../sparse/blas/zge3pt.cu                                    \
 	../sparse/blas/zgeaxpy.cu                                   \
-	../sparse/blas/zgeblockstruct.cu                            \
 	../sparse/blas/zgecscsyncfreetrsm.cu                        \
 	../sparse/blas/zgecsr5mv.cu                                 \
 	../sparse/blas/zgecsrmv.cu                                  \
@@ -1150,10 +1138,6 @@ INPUT                  = \
 	../sparse/blas/zgeellmv.cu                                  \
 	../sparse/blas/zgeellrtmv.cu                                \
 	../sparse/blas/zgeelltmv.cu                                 \
-	../sparse/blas/zgeisai.cu                                   \
-	../sparse/blas/zgeisai_16.cu                                \
-	../sparse/blas/zgeisai_32.cu                                \
-	../sparse/blas/zgeisai_8.cu                                 \
 	../sparse/blas/zgeisai_batched32.cu                         \
 	../sparse/blas/zgeisai_maxblock.cu                          \
 	../sparse/blas/zgeisai_trsv.cu                              \
@@ -1161,10 +1145,8 @@ INPUT                  = \
 	../sparse/blas/zgesellcmmv.cu                               \
 	../sparse/blas/zgesellcmv.cu                                \
 	../sparse/blas/zilu.cpp                                     \
-	../sparse/blas/zilut.cpp                                    \
 	../sparse/blas/zjaccard_weights.cu                          \
 	../sparse/blas/zjacobisetup.cu                              \
-	../sparse/blas/zlag2c_sparse.cu                             \
 	../sparse/blas/zlobpcg_maxpy.cu                             \
 	../sparse/blas/zlobpcg_residuals.cu                         \
 	../sparse/blas/zlobpcg_shift.cu                             \
@@ -1192,7 +1174,6 @@ INPUT                  = \
 	../sparse/control/error.cpp                                 \
 	../sparse/control/magma_zcsrsplit.cpp                       \
 	../sparse/control/magma_zdomainoverlap.cpp                  \
-	../sparse/control/magma_zdummy.cpp                          \
 	../sparse/control/magma_zfree.cpp                           \
 	../sparse/control/magma_zmatrixchar.cpp                     \
 	../sparse/control/magma_zmconvert.cpp                       \
@@ -1205,7 +1186,6 @@ INPUT                  = \
 	../sparse/control/magma_zmgenerator.cpp                     \
 	../sparse/control/magma_zmilustruct.cpp                     \
 	../sparse/control/magma_zmio.cpp                            \
-	../sparse/control/magma_zmlumerge.cpp                       \
 	../sparse/control/magma_zmscale.cpp                         \
 	../sparse/control/magma_zmshrink.cpp                        \
 	../sparse/control/magma_zmslice.cpp                         \
@@ -1238,9 +1218,7 @@ INPUT                  = \
 	../sparse/src/magma_z_solver_wrapper.cpp                    \
 	../sparse/src/magma_zcustomprecond.cpp                      \
 	../sparse/src/magma_zcustomspmv.cpp                         \
-	../sparse/src/magma_zmlumerge.cpp                           \
 	../sparse/src/magma_zqr_wrapper.cpp                         \
-	../sparse/src/magma_zwrapper.cpp                            \
 	../sparse/src/zbaiter.cpp                                   \
 	../sparse/src/zbaiter_overlap.cpp                           \
 	../sparse/src/zbicg.cpp                                     \
@@ -1258,17 +1236,14 @@ INPUT                  = \
 	../sparse/src/zcgs_merge.cpp                                \
 	../sparse/src/zcustomic.cpp                                 \
 	../sparse/src/zcustomilu.cpp                                \
-	../sparse/src/zdummy.cpp                                    \
 	../sparse/src/zfgmres.cpp                                   \
 	../sparse/src/zftjacobi.cpp                                 \
-	../sparse/src/zgeisai.cpp                                   \
 	../sparse/src/zgeisai_apply.cpp                             \
 	../sparse/src/zgeisai_lower.cpp                             \
 	../sparse/src/zgeisai_upper.cpp                             \
 	../sparse/src/zidr.cpp                                      \
 	../sparse/src/zidr_merge.cpp                                \
 	../sparse/src/zidr_strms.cpp                                \
-	../sparse/src/ziterict.cpp                                  \
 	../sparse/src/ziterref.cpp                                  \
 	../sparse/src/zjacobi.cpp                                   \
 	../sparse/src/zjacobidomainoverlap.cpp                      \
@@ -1301,7 +1276,6 @@ INPUT                  = \
 	../sparse/src/zqmr_merge.cpp                                \
 	../sparse/src/zresidual.cpp                                 \
 	../sparse/src/zresidualvec.cpp                              \
-	../sparse/src/zsyisai.cpp                                   \
 	../sparse/src/ztfqmr.cpp                                    \
 	../sparse/src/ztfqmr_merge.cpp                              \
 	../sparse/src/ztfqmr_unrolled.cpp                           \
