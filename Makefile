@@ -978,33 +978,6 @@ pkgconfig:
 
 
 # ------------------------------------------------------------------------------
-# files.txt is nearly all (active) files in SVN, excluding directories. Useful for rsync, etc.
-# files-doxygen.txt is all (active) source files in SVN, used by Doxyfile-fast
-
-# excludes non-active directories like obsolete.
-# excludes directories by matching *.* files (\w\.\w) and some exceptions like Makefile.
-files.txt: force
-	hg st -m -a -c \
-		| perl -pe 's/^. +//' | sort \
-		| egrep -v '^\.$$|obsolete|deprecated|contrib\b|^exp' \
-		| egrep '\w\.\w|Makefile|docs|run' \
-		> files.txt
-	egrep -v '(\.html|\.css|\.f|\.in|\.m|\.mtx|\.pl|\.png|\.sh|\.txt)$$|checkdiag|COPYRIGHT|docs|example|make\.|Makefile|quark|README|Release|results|testing_|testing/lin|testing/matgen|tools' files.txt \
-		| perl -pe 'chomp; $$_ = sprintf("\t../%-57s\\\n", $$_);' \
-		> files-doxygen.txt
-
-# files.txt per sub-directory
-subdir_files = $(addsuffix /files.txt,$(subdirs) $(sparse_subdirs))
-
-$(subdir_files): force
-	cd $(dir $@) && hg st -m -a -c -X '*/*' . \
-		| perl -pe 's/^. +//' | sort \
-		| egrep -v '^\.$$|obsolete|deprecated|contrib\b|^exp' \
-		| egrep '\w\.\w|Makefile|docs|run' \
-		> files.txt
-
-
-# ------------------------------------------------------------------------------
 echo:
 	@echo "====="
 	@echo "hdr                $(hdr)\n"
