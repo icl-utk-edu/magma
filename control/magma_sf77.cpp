@@ -280,34 +280,6 @@ void magmaf_sgbsv_native(
         info );
 }
 
-#define magmaf_sgbtf2_native_v2 FORTRAN_NAME( magmaf_sgbtf2_native_v2, MAGMAF_SGBTF2_NATIVE_V2 )
-void magmaf_sgbtf2_native_v2(
-    magma_int_t *m, magma_int_t *n, magma_int_t *kl, magma_int_t *ku,
-    float* dA, magma_int_t *ldda,
-    magma_int_t* ipiv,
-    magma_int_t* info, magma_queue_t *queue )
-{
-    magma_sgbtf2_native_v2(
-        *m, *n, *kl, *ku,
-        dA, *ldda,
-        ipiv,
-        info, *queue );
-}
-
-#define magmaf_sgbtf2_native FORTRAN_NAME( magmaf_sgbtf2_native, MAGMAF_SGBTF2_NATIVE )
-void magmaf_sgbtf2_native(
-    magma_int_t *m, magma_int_t *n, magma_int_t *kl, magma_int_t *ku,
-    float* dA, magma_int_t *ldda,
-    magma_int_t* ipiv,
-    magma_int_t* info, magma_queue_t *queue )
-{
-    magma_sgbtf2_native(
-        *m, *n, *kl, *ku,
-        dA, *ldda,
-        ipiv,
-        info, *queue );
-}
-
 #define magmaf_sgbtrf_native FORTRAN_NAME( magmaf_sgbtrf_native, MAGMAF_SGBTRF_NATIVE )
 void magmaf_sgbtrf_native(
     magma_int_t *m, magma_int_t *n, magma_int_t *kl, magma_int_t *ku,
