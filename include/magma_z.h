@@ -108,20 +108,6 @@ magma_zgbsv_native(
         magmaDoubleComplex* dB, magma_int_t lddb,
         magma_int_t *info);
 
-magma_int_t
-magma_zgbtf2_native_v2(
-    magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
-    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
-    magma_int_t* info, magma_queue_t queue);
-
-magma_int_t
-magma_zgbtf2_native_v2_work(
-    magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
-    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
-    magma_int_t* info,
-    void* device_work, magma_int_t* lwork,
-    magma_queue_t queue);
-
 void
 magma_zgbsv_native_work(
         magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t nrhs,
@@ -129,20 +115,6 @@ magma_zgbsv_native_work(
         magmaDoubleComplex* dB, magma_int_t lddb,
         magma_int_t *info, void* device_work, magma_int_t* lwork,
         magma_queue_t queue);
-
-magma_int_t
-magma_zgbtf2_native(
-    magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
-    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
-    magma_int_t* info, magma_queue_t queue);
-
-magma_int_t
-magma_zgbtf2_native_work(
-    magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku,
-    magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t* ipiv,
-    magma_int_t* info,
-    void* device_work, magma_int_t* lwork,
-    magma_queue_t queue);
 
 magma_int_t
 magma_zgbtrf_native(

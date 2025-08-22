@@ -283,11 +283,7 @@ int main( int argc, char** argv)
                     device_work, lwork, opts.queue);
                 magma_time = magma_sync_wtime( opts.queue ) - magma_time;
             }
-            else if(opts.version == 3) {
-                magma_time = magma_wtime();
-                magma_zgbtf2_native_v2(M, N, KL, KU, dA, lddab, dipiv_magma, &info, opts.queue);
-                magma_time = magma_wtime() - magma_time;
-            }
+
             magma_perf = gflops / magma_time;
             magma_zgetmatrix( Mband, Nband, dA, lddab, h_Amagma, ldab, opts.queue );
 
