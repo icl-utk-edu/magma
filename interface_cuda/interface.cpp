@@ -391,10 +391,18 @@ magma_print_environment()
         check_error( err );
 
         #ifdef MAGMA_HAVE_CUDA
+
+        int clock_khz;
+        #if CUDA_VERSION >= 13000
+        cudaDeviceGetAttribute (&clock_khz, cudaDevAttrClockRate, dev);
+        #else
+        clock_khz = prop.clockRate;
+        #endif
+
         printf( "%% device %d: %s, %.1f MHz clock, %.1f MiB memory, capability %d.%d\n",
                 dev,
                 prop.name,
-                prop.clockRate / 1000.,
+                clock_khz / 1000.,
                 prop.totalGlobalMem / (1024.*1024.),
                 prop.major,
                 prop.minor );
