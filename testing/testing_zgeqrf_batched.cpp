@@ -195,8 +195,13 @@ int main( int argc, char** argv)
             #endif
             #else
             hipblasZgeqrfBatched( opts.handle, int(M), int(N),
+                                #if hipblasVersionMajor >= 3
+                                 (hipDoubleComplex**)dA_array, int(ldda),
+                                 (hipDoubleComplex**)dtau_array,
+                                #else
                                  (hipblasDoubleComplex**)dA_array, int(ldda),
                                  (hipblasDoubleComplex**)dtau_array,
+                                #endif
                                  &device_info, int(batchCount) );
             #endif
 
