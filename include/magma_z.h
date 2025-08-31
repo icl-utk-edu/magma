@@ -507,6 +507,16 @@ magma_zgerbt_gpu(
 
 // CUDA MAGMA only
 magma_int_t
+magma_zgerbt_gpu_async(
+        const magma_bool_t gen, const magma_int_t n, const magma_int_t nrhs,
+        magmaDoubleComplex_ptr const dA, magma_int_t const ldda,
+        magmaDoubleComplex_ptr const dB, magma_int_t const lddb,
+        magmaDoubleComplex_ptr const dU, magmaDoubleComplex_ptr const dV,
+        magma_int_t *info,
+        magma_queue_t queue);
+
+// CUDA MAGMA only
+magma_int_t
 magma_zgerfs_nopiv_gpu(
     magma_trans_t trans, magma_int_t n, magma_int_t nrhs,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
@@ -515,6 +525,20 @@ magma_zgerfs_nopiv_gpu(
     magmaDoubleComplex_ptr dworkd, magmaDoubleComplex_ptr dAF,
     magma_int_t *iter,
     magma_int_t *info);
+
+// CUDA MAGMA only
+magma_int_t
+magma_zgerfs_nopiv_gpu_async(
+        magma_trans_t trans, magma_int_t n, magma_int_t nrhs,
+        magmaDoubleComplex_ptr dA, magma_int_t ldda,
+        magmaDoubleComplex_ptr dB, magma_int_t lddb,
+        magmaDoubleComplex_ptr dX, magma_int_t lddx,
+        magmaDoubleComplex_ptr dworkd, magmaDoubleComplex_ptr dAF,
+        magma_int_t *iter,
+        magma_int_t *info,
+        magma_int_t iter_max,
+        double bwdmax,
+        magma_queue_t queue);
 
 magma_int_t
 magma_zgesdd(
@@ -553,6 +577,13 @@ magma_zgesv_nopiv_gpu(
     magmaDoubleComplex_ptr dB, magma_int_t lddb,
     magma_int_t *info);
 
+magma_int_t
+magma_zgesv_nopiv_gpu_async(
+        magma_int_t n, magma_int_t nrhs,
+        magmaDoubleComplex_ptr dA, magma_int_t ldda,
+        magmaDoubleComplex_ptr dB, magma_int_t lddb,
+        magma_int_t *info, magma_queue_t queue );
+
 // CUDA MAGMA only
 magma_int_t
 magma_zgesv_rbt(
@@ -560,6 +591,26 @@ magma_zgesv_rbt(
     magmaDoubleComplex *A, magma_int_t lda,
     magmaDoubleComplex *B, magma_int_t ldb,
     magma_int_t *info);
+
+// CUDA MAGMA only
+magma_int_t
+magma_zgesv_rbt_async(
+        const magma_bool_t refine, const magma_int_t n, const magma_int_t nrhs,
+        const magmaDoubleComplex *const dA, const magma_int_t lda,
+        magmaDoubleComplex *const dB, const magma_int_t ldb,
+        magma_int_t *info,
+        const magma_int_t iter_max, const double bwdmax,
+        magma_queue_t queue );
+
+// CUDA MAGMA only
+magma_int_t
+magma_zgesv_rbt_refine_async(
+        const magma_int_t n, const magma_int_t nrhs,
+        const magmaDoubleComplex *const dA_, const magma_int_t lda,
+        magmaDoubleComplex *const dB_, const magma_int_t ldb,
+        magma_int_t *info,
+        const magma_int_t iter_max, const double bwdmax,
+        magma_queue_t queue);
 
 magma_int_t
 magma_zgesvd(
@@ -705,6 +756,13 @@ magma_zgetrf_nopiv_gpu(
     magma_int_t *info);
 
 magma_int_t
+magma_zgetrf_nopiv_gpu_async(
+        magma_int_t m, magma_int_t n,
+        magmaDoubleComplex_ptr dA, magma_int_t ldda,
+        magma_int_t *info,
+        magma_queue_t queue);
+
+magma_int_t
 magma_zgetri_gpu(
     magma_int_t n,
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
@@ -748,6 +806,13 @@ magma_zgetrs_nopiv_gpu(
     magmaDoubleComplex_ptr dA, magma_int_t ldda,
     magmaDoubleComplex_ptr dB, magma_int_t lddb,
     magma_int_t *info);
+
+magma_int_t
+magma_zgetrs_nopiv_gpu_async(
+        magma_trans_t trans, magma_int_t n, magma_int_t nrhs,
+        magmaDoubleComplex_ptr dA, magma_int_t ldda,
+        magmaDoubleComplex_ptr dB, magma_int_t lddb,
+        magma_int_t *info, magma_queue_t queue);
 
 // ------------------------------------------------------------ zhe routines
 magma_int_t

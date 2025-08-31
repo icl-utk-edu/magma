@@ -496,6 +496,13 @@ magmablas_ztrtri_diag(
     magmaDoubleComplex_ptr d_dinvA,
     magma_queue_t queue );
 
+void
+magmablas_ztrtri_diag_async(
+    magma_uplo_t uplo, magma_diag_t diag, magma_int_t n,
+    magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
+    magmaDoubleComplex_ptr d_dinvA,
+    magma_queue_t queue );
+
   /*
    * to cleanup (alphabetical order)
    */
@@ -750,6 +757,15 @@ magmablas_zgemm_reduce(
 
 void
 magmablas_ztrsm(
+    magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex alpha,
+    magmaDoubleComplex_const_ptr dA, magma_int_t ldda,
+    magmaDoubleComplex_ptr       dB, magma_int_t lddb,
+    magma_queue_t queue );
+
+void
+magmablas_ztrsm_async(
     magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex alpha,

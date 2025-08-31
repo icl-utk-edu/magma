@@ -201,3 +201,201 @@ cleanup:
 
     return *info;
 }
+
+extern "C" magma_int_t
+magma_zgesv_rbt_async(
+        const magma_bool_t refine, const magma_int_t n, const magma_int_t nrhs,
+        const magmaDoubleComplex *const dA_, const magma_int_t lda,
+        magmaDoubleComplex *const dB_, const magma_int_t ldb,
+        magma_int_t *const info,
+        const magma_int_t iter_max, const double bwdmax,
+        magma_queue_t queue)
+{
+    /* Constants */
+    const magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
+    const magmaDoubleComplex c_one  = MAGMA_Z_ONE;
+
+    /* Local variables */
+    magma_int_t nn = n;//magma_roundup( n, 4 );
+    magmaDoubleComplex_ptr dA=NULL, dB=NULL, dAo=NULL, dBo=NULL, dwork=NULL, dU=NULL, dV=NULL;
+    magma_int_t iter;
+
+    /* Function Body */
+    *info = 0;
+    if ( ! (refine == MagmaTrue) &&
+         ! (refine == MagmaFalse) ) {
+        *info = -1;
+    }
+    else if (n < 0) {
+        *info = -2;
+    } else if (nrhs < 0) {
+        *info = -3;
+    } else if (lda < max(1,n)) {
+        *info = -5;
+    } else if (ldb < max(1,n)) {
+        *info = -7;
+    }
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
+    /* Quick return if possible */
+    if (nrhs == 0 || n == 0)
+        return *info;
+
+    // TODO: investigate failures on AMD GPUs
+    // For now ignore refine and always set it to False
+    // there is probably a bug in the refinement code for the HIP backend
+    #ifdef MAGMA_HAVE_HIP
+    refine = MagmaFalse;
+    #endif
+
+    if (MAGMA_SUCCESS != magma_zmalloc_async( &dA, nn*nn, queue ) ||
+        MAGMA_SUCCESS != magma_zmalloc_async( &dB, nn*nrhs, queue ))
+    {
+        *info = MAGMA_ERR_DEVICE_ALLOC;
+        goto cleanup;
+    }
+
+    /* Allocate memory for the buterfly matrices */
+    if ((MAGMA_SUCCESS != magma_zmalloc_async( &dU, 2*n, queue )) ||
+        (MAGMA_SUCCESS != magma_zmalloc_async( &dV, 2*n, queue ))) {
+        magma_free_async( dU, queue );
+        magma_free_async( dV, queue );
+        *info = MAGMA_ERR_DEVICE_ALLOC;
+        return *info;
+    }
+
+    if (refine == MagmaTrue) {
+        if (MAGMA_SUCCESS != magma_zmalloc_async( &dAo,   nn*nn, queue ) ||
+            MAGMA_SUCCESS != magma_zmalloc_async( &dwork, nn*nrhs, queue ) ||
+            MAGMA_SUCCESS != magma_zmalloc_async( &dBo,   nn*nrhs, queue ))
+        {
+            *info = MAGMA_ERR_DEVICE_ALLOC;
+            goto cleanup;
+        }
+    }
+
+    magmablas_zlaset( MagmaFull, nn, nn, c_zero, c_one, dA, nn, queue );
+
+    magma_zcopymatrix_async( n, n, dA_, lda, dA, nn, queue );
+    magma_zcopymatrix_async( n, nrhs, dB_, ldb, dB, nn, queue );
+
+    *info = magma_zgerbt_gpu_async( MagmaTrue, nn, nrhs, dA, nn, dB, nn, dU, dV, info, queue );
+    if (*info != MAGMA_SUCCESS)  {
+        return *info;
+    }
+
+    if (refine == MagmaTrue) {
+        magma_zcopymatrix_async( nn, nn, dA, nn, dAo, nn, queue );
+        magma_zcopymatrix_async( nn, nrhs, dB, nn, dBo, nn, queue );
+    }
+    /* Solve the system U^TAV.y = U^T.b on the GPU */
+    magma_zgesv_nopiv_gpu_async( nn, nrhs, dA, nn, dB, nn, info, queue );
+
+    /* Iterative refinement */
+    if (refine == MagmaTrue) {
+        magma_zgerfs_nopiv_gpu_async( MagmaNoTrans, nn, nrhs, dAo, nn, dBo, nn, dB, nn, dwork, dA, &iter, info, iter_max, bwdmax, queue );
+    }
+
+    magmablas_zprbt_mv(nn, nrhs, dV, dB, nn, queue);
+
+    magma_zcopymatrix_async( n, nrhs, dB, nn, dB_, ldb, queue );
+
+    cleanup:
+    magma_free_async( dA, queue );
+    magma_free_async( dB, queue );
+    magma_free_async( dU, queue );
+    magma_free_async( dV, queue );
+
+    if (refine == MagmaTrue) {
+        magma_free_async( dAo, queue );
+        magma_free_async( dBo, queue );
+        magma_free_async( dwork, queue );
+    }
+
+    return *info;
+}
+
+extern "C" magma_int_t
+magma_zgesv_rbt_refine_async(
+        const magma_int_t n, const magma_int_t nrhs,
+        const magmaDoubleComplex *const dA_, const magma_int_t lda,
+        magmaDoubleComplex *const dB_, const magma_int_t ldb,
+        magma_int_t *info,
+        const magma_int_t iter_max, const double bwdmax,
+        magma_queue_t queue)
+{
+    /* Constants */
+    const magmaDoubleComplex c_zero = MAGMA_Z_ZERO;
+    const magmaDoubleComplex c_one  = MAGMA_Z_ONE;
+
+    /* Local variables */
+    magma_int_t nn = n;//magma_roundup( n, 4 );
+    magmaDoubleComplex_ptr dA=NULL, dB=NULL, dAo=NULL, dBo=NULL, dwork=NULL;
+    magma_int_t iter;
+
+    /* Function Body */
+    *info = 0;
+    if (n < 0) {
+        *info = -2;
+    } else if (nrhs < 0) {
+        *info = -3;
+    } else if (lda < max(1,n)) {
+        *info = -5;
+    } else if (ldb < max(1,n)) {
+        *info = -7;
+    }
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
+    /* Quick return if possible */
+    if (nrhs == 0 || n == 0)
+        return *info;
+
+    // TODO: investigate failures on AMD GPUs
+    // For now ignore refine and always set it to False
+    // there is probably a bug in the refinement code for the HIP backend
+    #ifdef MAGMA_HAVE_HIP
+    *info = -8;
+    return *info;
+    #endif
+
+    if (MAGMA_SUCCESS != magma_zmalloc_async( &dA, nn*nn, queue ) ||
+        MAGMA_SUCCESS != magma_zmalloc_async( &dB, nn*nrhs, queue ))
+    {
+        *info = MAGMA_ERR_DEVICE_ALLOC;
+        goto cleanup;
+    }
+
+    if (MAGMA_SUCCESS != magma_zmalloc_async( &dAo,   nn*nn, queue ) ||
+        MAGMA_SUCCESS != magma_zmalloc_async( &dwork, nn*nrhs, queue ) ||
+        MAGMA_SUCCESS != magma_zmalloc_async( &dBo,   nn*nrhs, queue ))
+    {
+        *info = MAGMA_ERR_DEVICE_ALLOC;
+        goto cleanup;
+    }
+
+    magmablas_zlaset( MagmaFull, nn, nn, c_zero, c_one, dA, nn, queue );
+
+    magma_zcopymatrix_async( n, n, dA_, lda, dA, nn, queue );
+    magma_zcopymatrix_async( nn, nn, dA_, nn, dAo, nn, queue );
+    magma_zcopymatrix_async( n, nrhs, dB_, ldb, dB, nn, queue );
+    magma_zcopymatrix_async( nn, nrhs, dB_, nn, dBo, nn, queue );
+
+    magma_zgerfs_nopiv_gpu_async( MagmaNoTrans, nn, nrhs, dAo, nn, dBo, nn, dB, nn, dwork, dA, &iter, info, iter_max, bwdmax, queue );
+
+    magma_zcopymatrix_async( n, nrhs, dB, nn, dB_, ldb, queue );
+
+    cleanup:
+    magma_free_async( dA, queue );
+    magma_free_async( dB, queue );
+    magma_free_async( dAo, queue );
+    magma_free_async( dBo, queue );
+    magma_free_async( dwork, queue );
+
+    return *info;
+}

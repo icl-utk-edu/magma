@@ -130,3 +130,63 @@ magma_zgetrs_nopiv_gpu(
     
     return *info;
 }
+
+extern "C" magma_int_t
+magma_zgetrs_nopiv_gpu_async(
+        magma_trans_t trans, magma_int_t n, magma_int_t nrhs,
+        magmaDoubleComplex_ptr dA, magma_int_t ldda,
+        magmaDoubleComplex_ptr dB, magma_int_t lddb,
+        magma_int_t *info, magma_queue_t queue)
+{
+    // Constants
+    const magmaDoubleComplex c_one = MAGMA_Z_ONE;
+
+    // Local variables
+    const bool notran = trans == MagmaNoTrans;
+
+    *info = 0;
+    if ( (! notran) &&
+         (trans != MagmaTrans) &&
+         (trans != MagmaConjTrans) ) {
+        *info = -1;
+    } else if (n < 0) {
+        *info = -2;
+    } else if (nrhs < 0) {
+        *info = -3;
+    } else if (ldda < max(1,n)) {
+        *info = -5;
+    } else if (lddb < max(1,n)) {
+        *info = -7;
+    }
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
+    /* Quick return if possible */
+    if (n == 0 || nrhs == 0) {
+        return *info;
+    }
+
+    if (notran) {
+        /* Solve A * X = B. */
+        if ( nrhs == 1) {
+            magma_ztrsv( MagmaLower, MagmaNoTrans, MagmaUnit,    n, dA, ldda, dB, 1, queue );
+            magma_ztrsv( MagmaUpper, MagmaNoTrans, MagmaNonUnit, n, dA, ldda, dB, 1, queue );
+        } else {
+            magma_ztrsm( MagmaLeft, MagmaLower, MagmaNoTrans, MagmaUnit,    n, nrhs, c_one, dA, ldda, dB, lddb, queue );
+            magma_ztrsm( MagmaLeft, MagmaUpper, MagmaNoTrans, MagmaNonUnit, n, nrhs, c_one, dA, ldda, dB, lddb, queue );
+        }
+    } else {
+        /* Solve A**T * X = B  or  A**H * X = B. */
+        if ( nrhs == 1) {
+            magma_ztrsv( MagmaUpper, trans, MagmaNonUnit, n, dA, ldda, dB, 1, queue );
+            magma_ztrsv( MagmaLower, trans, MagmaUnit,    n, dA, ldda, dB, 1, queue );
+        } else {
+            magma_ztrsm( MagmaLeft, MagmaUpper, trans, MagmaNonUnit, n, nrhs, c_one, dA, ldda, dB, lddb, queue );
+            magma_ztrsm( MagmaLeft, MagmaLower, trans, MagmaUnit,    n, nrhs, c_one, dA, ldda, dB, lddb, queue );
+        }
+    }
+
+    return *info;
+}

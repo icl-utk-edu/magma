@@ -8,6 +8,7 @@
        @precisions normal z -> s d c
 
 */
+#include <limits>
 #include "magma_internal.h"
 
 #define BWDMAX 1.0
@@ -273,5 +274,194 @@ fallback:
 cleanup:
     magma_queue_destroy( queue );
     
+    return *info;
+}
+
+extern "C" magma_int_t
+magma_zgerfs_nopiv_gpu_async(
+        magma_trans_t trans, magma_int_t n, magma_int_t nrhs,
+        magmaDoubleComplex_ptr dA, magma_int_t ldda,
+        magmaDoubleComplex_ptr dB, magma_int_t lddb,
+        magmaDoubleComplex_ptr dX, magma_int_t lddx,
+        magmaDoubleComplex_ptr dworkd, magmaDoubleComplex_ptr dAF,
+        magma_int_t *iter,
+        magma_int_t *info,
+        magma_int_t iter_max,
+        double bwdmax,
+        magma_queue_t queue)
+{
+#define dB(i,j)     (dB + (i) + (j)*lddb)
+#define dX(i,j)     (dX + (i) + (j)*lddx)
+#define dR(i,j)     (dR + (i) + (j)*lddr)
+
+    /* Constants */
+    const magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
+    const magmaDoubleComplex c_one     = MAGMA_Z_ONE;
+    constexpr magma_int_t ione = 1;
+    const auto n_elem = n * nrhs;
+
+    /* Local variables */
+    magmaDoubleComplex_ptr dR;
+    magmaDoubleComplex Xnrmv, Rnrmv;
+    double Anrm, Xnrm, Rnrm, cte, eps, work[1];
+    double sae, best_sae = std::numeric_limits<double>::infinity();
+    magma_int_t i, j, iiter, lddsa, lddr;
+    magmaDoubleComplex_ptr best_dX = nullptr;
+
+    /* Check arguments */
+    *iter = 0;
+    *info = 0;
+    if ( n < 0 )
+        *info = -1;
+    else if ( nrhs < 0 )
+        *info = -2;
+    else if ( ldda < max(1,n))
+        *info = -4;
+    else if ( lddb < max(1,n))
+        *info = -8;
+    else if ( lddx < max(1,n))
+        *info = -10;
+
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
+    if ( n == 0 || nrhs == 0 )
+        return *info;
+
+    lddsa = n;
+    lddr  = n;
+
+    dR  = dworkd;
+
+    eps  = lapackf77_dlamch("Epsilon");
+    if ( bwdmax == 0 ) {
+        Anrm = cte = 0;
+    } else {
+        Anrm = magmablas_zlange(MagmaInfNorm, n, n, dA, ldda, (magmaDouble_ptr) dworkd, n_elem, queue);
+        cte = Anrm * eps * magma_dsqrt((double) n) * bwdmax;
+    }
+
+    // residual dR = dB - dA*dX in double precision
+    magmablas_zlacpy( MagmaFull, n, nrhs, dB, lddb, dR, lddr, queue );
+    if ( nrhs == 1 ) {
+        magma_zgemv( trans, n, n,
+                     c_neg_one, dA, ldda,
+                     dX, 1,
+                     c_one,     dR, 1, queue );
+    }
+    else {
+        magma_zgemm( trans, MagmaNoTrans, n, nrhs, n,
+                     c_neg_one, dA, ldda,
+                     dX, lddx,
+                     c_one,     dR, lddr, queue );
+    }
+
+    if ( bwdmax == 0 ) goto refinement;
+
+    // TODO: use MAGMA_Z_ABS( dX(i,j) ) instead of zlange?
+    // TODO implement Xamax for one GPU copy less
+    for( j=0; j < nrhs; j++ ) {
+        i = magma_izamax( n, dX(0,j), 1, queue ) - 1;
+        magma_zgetmatrix( 1, 1, dX(i,j), 1, &Xnrmv, 1, queue );
+        Xnrm = lapackf77_zlange( "F", &ione, &ione, &Xnrmv, &ione, work );
+
+        i = magma_izamax( n, dR(0,j), 1, queue ) - 1;
+        magma_zgetmatrix( 1, 1, dR(i,j), 1, &Rnrmv, 1, queue );
+        Rnrm = lapackf77_zlange( "F", &ione, &ione, &Rnrmv, &ione, work );
+        //printf("Rnrm : %e, Xnrm*cte : %e\n", Rnrm, Xnrm*cte);
+        if ( Rnrm >  Xnrm*cte ) {
+            goto refinement;
+        }
+    }
+
+    *iter = 0;
+    goto cleanup;
+
+    refinement:
+    magma_zmalloc_async( &best_dX, n_elem, queue );
+    for( iiter=1; iiter < iter_max; ) {
+        *info = 0;
+        // solve dAF*dX = dR
+        // it's okay that dR is used for both dB input and dX output.
+        magma_zgetrs_nopiv_gpu_async( trans, n, nrhs, dAF, lddsa, dR, lddr, info, queue );
+        if (*info != 0) {
+            *iter = -3;
+            goto fallback;
+        }
+
+        // Add correction and setup residual
+        // dX += dR  --and--
+        // dR = dB
+        // This saves going through dR a second time (if done with one more kernel).
+        // -- not really: first time is read, second time is write.
+        for( j=0; j < nrhs; ++j ) {
+            magmablas_zaxpycp( n, dR(0,j), dX(0,j), dB(0,j), queue );
+        }
+
+        // residual dR = dB - dA*dX in double precision
+        if ( nrhs == 1 ) {
+            magma_zgemv( trans, n, n,
+                         c_neg_one, dA, ldda,
+                         dX, 1,
+                         c_one,     dR, 1, queue );
+        }
+        else {
+            magma_zgemm( trans, MagmaNoTrans, n, nrhs, n,
+                         c_neg_one, dA, ldda,
+                         dX, lddx,
+                         c_one,     dR, lddr, queue );
+        }
+
+        /*  Sum of absolute error is compared between each iteration
+         *  and the solution with best residuals copied on the side. */
+        sae = magma_dzasum(n_elem, dR, 1, queue);
+        if (sae < best_sae) {
+            best_sae = sae;
+            magma_zcopymatrix_async(n, nrhs, dX, n, best_dX, n, queue);
+        }
+        if (bwdmax == 0) goto L20;
+
+        /*  Check whether the nrhs normwise backward errors satisfy the
+         *  stopping criterion. If yes, set ITER=IITER > 0 and return. */
+        for( j=0; j < nrhs; ++j ) {
+            i = magma_izamax( n, dX(0,j), 1, queue ) - 1;
+            magma_zgetmatrix( 1, 1, dX(i,j), 1, &Xnrmv, 1, queue );
+            Xnrm = lapackf77_zlange( "F", &ione, &ione, &Xnrmv, &ione, work );
+
+            i = magma_izamax( n, dR(0,j), 1, queue ) - 1;
+            magma_zgetmatrix( 1, 1, dR(i,j), 1, &Rnrmv, 1, queue );
+            Rnrm = lapackf77_zlange( "F", &ione, &ione, &Rnrmv, &ione, work );
+
+            if (  bwdmax == 0 || Rnrm >  Xnrm*cte ) {
+                goto L20;
+            }
+        }
+
+        /*  If we are here, the nrhs normwise backward errors satisfy
+         *  the stopping criterion, we are good to exit. */
+        *iter = iiter;
+        goto cleanup;
+
+        L20:
+        ++iiter;
+    }
+    /* If we are at this place of the code, this is because we have
+     * performed ITER=iter_max iterations and never satisified the
+     * stopping criterion. Set up the ITER flag accordingly. */
+    *iter = -iter_max - 1;
+
+    fallback:
+    /* Iterative refinement failed to converge to a
+     * satisfactory solution. */
+
+    cleanup:
+
+    if (best_dX) {
+        magma_zcopymatrix_async( n, nrhs, best_dX, n, dX, n, queue );
+        magma_free_async( best_dX, queue );
+    }
+
     return *info;
 }

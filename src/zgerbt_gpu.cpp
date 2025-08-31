@@ -169,3 +169,67 @@ magma_zgerbt_gpu(
 
     return *info;
 }
+
+extern "C" magma_int_t
+magma_zgerbt_gpu_async(
+        const magma_bool_t gen, const magma_int_t n, const magma_int_t nrhs,
+        magmaDoubleComplex_ptr const dA, magma_int_t const ldda,
+        magmaDoubleComplex_ptr const dB, magma_int_t const lddb,
+        magmaDoubleComplex_ptr const dU, magmaDoubleComplex_ptr const dV,
+        magma_int_t *info,
+        magma_queue_t queue)
+{
+#define dB(i_, j_) (dB + (i_) + (j_)*lddb)
+
+    /* Function Body */
+    *info = 0;
+    if ( ! (gen == MagmaTrue) &&
+         ! (gen == MagmaFalse) ) {
+        *info = -1;
+    }
+    else if (n < 0) {
+        *info = -2;
+    } else if (nrhs < 0) {
+        *info = -3;
+    } else if (ldda < max(1,n)) {
+        *info = -5;
+    } else if (lddb < max(1,n)) {
+        *info = -7;
+    }
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
+    /* Quick return if possible */
+    if (nrhs == 0 || n == 0)
+        return *info;
+
+    magmaDoubleComplex *U, *V;
+    if (MAGMA_SUCCESS != magma_zmalloc_cpu( &U, 2*n ) ||
+        MAGMA_SUCCESS != magma_zmalloc_cpu( &V, 2*n ))
+    {
+        *info = MAGMA_ERR_HOST_ALLOC;
+        goto cleanup;
+    }
+
+    /* Initialize Butterfly matrix on the CPU */
+    if (gen == MagmaTrue)
+        init_butterfly( 2*n, U, V );
+
+    /* Copy the butterfly to the GPU */
+    magma_zsetvector_async( 2*n, U, 1, dU, 1, queue );
+    magma_zsetvector_async( 2*n, V, 1, dV, 1, queue );
+
+    /* Perform Partial Random Butterfly Transformation on the GPU */
+    magmablas_zprbt( n, dA, ldda, dU, dV, queue );
+
+    /* Compute U^T * b on the GPU*/
+    magmablas_zprbt_mtv(n, nrhs, dU, dB, lddb, queue);
+
+    cleanup:
+    magma_free_cpu( U );
+    magma_free_cpu( V );
+
+    return *info;
+}

@@ -23,6 +23,7 @@
 #include "error.h"
 
 //#ifdef MAGMA_HAVE_CUDA
+#define NOPINNED_ALLOC // Fix for multi GPU systems running jemalloc, where cudaHostAlloc and cudaHostRegister kill parallelism across multiple threads using multiple GPUs
 
 
 #ifdef DEBUG_MEMORY
@@ -78,6 +79,53 @@ magma_malloc( magma_ptr* ptrPtr, size_t size )
 
 
 /***************************************************************************//**
+    Allocates memory on the GPU. CUDA imposes a synchronization.
+    Use magma_free() to free this memory.
+
+    @param[out]
+    ptrPtr  On output, set to the pointer that was allocated.
+            NULL on failure.
+
+    @param[in]
+    size    Size in bytes to allocate. If size = 0, allocates some minimal size.
+
+     @param[in]
+    queue    Magma queue whose CUDA stream is used to put the cudaMalloc on.
+
+    @return MAGMA_SUCCESS
+    @return MAGMA_ERR_DEVICE_ALLOC on failure
+
+    Type-safe versions avoid the need for a (void**) cast and explicit sizeof.
+    @see magma_smalloc_q
+    @see magma_dmalloc_q
+    @see magma_cmalloc_q
+    @see magma_zmalloc_q
+    @see magma_imalloc_q
+    @see magma_index_malloc_q
+
+    @ingroup magma_malloc
+*******************************************************************************/
+extern "C" magma_int_t
+magma_malloc_async( magma_ptr* ptrPtr, size_t size, magma_queue_t queue)
+{
+    // malloc and free sometimes don't work for size=0, so allocate some minimal size
+    if ( size == 0 )
+        size = sizeof(magmaDoubleComplex);
+    if ( cudaSuccess != cudaMallocAsync( ptrPtr, size, queue->cuda_stream() )) {
+        return MAGMA_ERR_DEVICE_ALLOC;
+    }
+
+    #ifdef DEBUG_MEMORY
+    g_pointers_mutex.lock();
+    g_pointers_dev[ *ptrPtr ] = size;
+    g_pointers_mutex.unlock();
+    #endif
+
+    return MAGMA_SUCCESS;
+}
+
+
+/***************************************************************************//**
     @fn magma_free( ptr )
 
     Frees GPU memory previously allocated by magma_malloc().
@@ -106,6 +154,45 @@ magma_free_internal( magma_ptr ptr,
     #endif
 
     cudaError_t err = cudaFree( ptr );
+    check_xerror( err, func, file, line );
+    if ( err != cudaSuccess ) {
+        return MAGMA_ERR_INVALID_PTR;
+    }
+    return MAGMA_SUCCESS;
+}
+
+
+/***************************************************************************//**
+    @fn magma_free( ptr )
+
+    Frees GPU memory previously allocated by magma_malloc().
+
+    @param[in]
+    ptr     Pointer to free.
+    @param[in]
+    queue   MAGMA queue to use the CYDA stream to free on.
+
+    @return MAGMA_SUCCESS
+    @return MAGMA_ERR_INVALID_PTR on failure
+
+    @ingroup magma_malloc
+*******************************************************************************/
+extern "C" magma_int_t
+magma_free_internal_async( magma_ptr ptr,
+    const char* func, const char* file, int line, magma_queue_t queue )
+{
+    #ifdef DEBUG_MEMORY
+    g_pointers_mutex.lock();
+    if ( ptr != NULL && g_pointers_dev.count( ptr ) == 0 ) {
+        fprintf( stderr, "magma_free( %p ) that wasn't allocated with magma_malloc.\n", ptr );
+    }
+    else {
+        g_pointers_dev.erase( ptr );
+    }
+    g_pointers_mutex.unlock();
+    #endif
+
+    cudaError_t err = cudaFreeAsync( ptr, queue->cuda_stream() );
     check_xerror( err, func, file, line );
     if ( err != cudaSuccess ) {
         return MAGMA_ERR_INVALID_PTR;
@@ -162,10 +249,10 @@ magma_malloc_cpu( void** ptrPtr, size_t size )
     }
 #endif
 #else
-    *ptrPtr = malloc( size );
-    if ( *ptrPtr == NULL ) {
-        return MAGMA_ERR_HOST_ALLOC;
-    }
+        *ptrPtr = malloc( size );
+        if ( *ptrPtr == NULL ) {
+            return MAGMA_ERR_HOST_ALLOC;
+        }
 #endif
 
     #ifdef DEBUG_MEMORY
@@ -242,10 +329,15 @@ magma_free_cpu( void* ptr )
 extern "C" magma_int_t
 magma_malloc_pinned( void** ptrPtr, size_t size )
 {
+    #ifdef NOPINNED_ALLOC
+    return magma_malloc_cpu( ptrPtr, size );
+    #endif
+
     // malloc and free sometimes don't work for size=0, so allocate some minimal size
     // (for pinned memory, the error is detected in free)
     if ( size == 0 )
         size = sizeof(magmaDoubleComplex);
+
     if ( cudaSuccess != cudaHostAlloc( ptrPtr, size, cudaHostAllocPortable )) {
         return MAGMA_ERR_HOST_ALLOC;
     }
@@ -277,6 +369,10 @@ extern "C" magma_int_t
 magma_free_pinned_internal( void* ptr,
     const char* func, const char* file, int line )
 {
+    #ifdef NOPINNED_ALLOC
+    return magma_free_cpu( ptr );
+    #endif
+
     #ifdef DEBUG_MEMORY
     g_pointers_mutex.lock();
     if ( ptr != NULL && g_pointers_pin.count( ptr ) == 0 ) {
@@ -293,6 +389,7 @@ magma_free_pinned_internal( void* ptr,
     if ( cudaSuccess != err ) {
         return MAGMA_ERR_INVALID_PTR;
     }
+
     return MAGMA_SUCCESS;
 }
 

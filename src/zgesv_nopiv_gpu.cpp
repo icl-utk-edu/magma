@@ -93,3 +93,38 @@ magma_zgesv_nopiv_gpu(
     
     return *info;
 }
+
+extern "C" magma_int_t
+magma_zgesv_nopiv_gpu_async(
+        magma_int_t n, magma_int_t nrhs,
+        magmaDoubleComplex_ptr dA, magma_int_t ldda,
+        magmaDoubleComplex_ptr dB, magma_int_t lddb,
+        magma_int_t *info, magma_queue_t queue )
+{
+    *info = 0;
+    if (n < 0) {
+        *info = -1;
+    } else if (nrhs < 0) {
+        *info = -2;
+    } else if (ldda < max(1,n)) {
+        *info = -4;
+    } else if (lddb < max(1,n)) {
+        *info = -6;
+    }
+    if (*info != 0) {
+        magma_xerbla( __func__, -(*info) );
+        return *info;
+    }
+
+    /* Quick return if possible */
+    if (n == 0 || nrhs == 0) {
+        return *info;
+    }
+
+    magma_zgetrf_nopiv_gpu_async( n, n, dA, ldda, info, queue );
+    if ( *info == MAGMA_SUCCESS ) {
+        magma_zgetrs_nopiv_gpu_async( MagmaNoTrans, n, nrhs, dA, ldda, dB, lddb, info, queue );
+    }
+
+    return *info;
+}
