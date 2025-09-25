@@ -219,9 +219,9 @@ int main( int argc, char** argv)
             hipblasZtrsmBatched(
                 opts.handle, cublas_side_const(opts.side), cublas_uplo_const(opts.uplo),
                 cublas_trans_const(opts.transA), cublas_diag_const(opts.diag),
-                int(M), int(N), (const hipblasDoubleComplex*)&alpha,
-                (hipblasDoubleComplex* const*) d_A_array, int(ldda),
-                (      hipblasDoubleComplex**) d_B_array, int(lddb), int(batchCount) );
+                int(M), int(N), (const hipDoubleComplex*)&alpha,
+                (hipDoubleComplex* const*) d_A_array, int(ldda),
+                (      hipDoubleComplex**) d_B_array, int(lddb), int(batchCount) );
             #endif
 
             cublas_time = magma_sync_wtime( opts.queue ) - cublas_time;

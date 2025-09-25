@@ -108,12 +108,6 @@ ifeq ($(BACKEND),cuda)
     DEVCCFLAGS += -Xcompiler "$(FPIC)" -Xcompiler "$(FOPENMP)" -std=c++11
 else ifeq ($(BACKEND),hip)
     DEVCCFLAGS += $(FPIC) $(FOPENMP) -std=c++11
-    # check for older versions of ROCM
-    ifeq ($(shell hipconfig --version | cut -b -3),3.0)
-        $(info Building with HIP 3.0)
-        # they don't have hipblasComplex yet, so replace it manually
-        DEVCCFLAGS += -DhipblasComplex=hipComplex -DhipblasDoubleComplex=hipDoubleComplex
-    endif
 endif
 
 

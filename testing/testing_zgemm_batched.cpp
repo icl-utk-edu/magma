@@ -190,11 +190,11 @@ int main( int argc, char** argv)
                   hipblasZgemmBatched(
                                    opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                    int(M), int(N), int(K),
-                                   (const hipblasDoubleComplex*)&alpha,
-                                   (const hipblasDoubleComplex**) d_A_array, int(ldda),
-                                   (const hipblasDoubleComplex**) d_B_array, int(lddb),
-                                   (const hipblasDoubleComplex*)&beta,
-                                   (hipblasDoubleComplex**)d_C_array, int(lddc), int(batchCount) );
+                                   (const hipDoubleComplex*)&alpha,
+                                   (const hipDoubleComplex**) d_A_array, int(ldda),
+                                   (const hipDoubleComplex**) d_B_array, int(lddb),
+                                   (const hipDoubleComplex*)&beta,
+                                   (hipDoubleComplex**)d_C_array, int(lddc), int(batchCount) );
                 #endif
             }
             else{
@@ -211,11 +211,11 @@ int main( int argc, char** argv)
                 hipblasZgemmStridedBatched(
                                    opts.handle, cublas_trans_const(opts.transA), cublas_trans_const(opts.transB),
                                    int(M), int(N), int(K),
-                                   (const hipblasDoubleComplex*)&alpha,
-                                   (const hipblasDoubleComplex*) d_A, int(ldda), ldda * An,
-                                   (const hipblasDoubleComplex*) d_B, int(lddb), lddb * Bn,
-                                   (const hipblasDoubleComplex*)&beta,
-                                   (hipblasDoubleComplex*)d_C, int(lddc), lddc*N, int(batchCount) );
+                                   (const hipDoubleComplex*)&alpha,
+                                   (const hipDoubleComplex*) d_A, int(ldda), ldda * An,
+                                   (const hipDoubleComplex*) d_B, int(lddb), lddb * Bn,
+                                   (const hipDoubleComplex*)&beta,
+                                   (hipDoubleComplex*)d_C, int(lddc), lddc*N, int(batchCount) );
                 #endif
             }
 

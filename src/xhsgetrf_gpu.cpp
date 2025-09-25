@@ -403,10 +403,10 @@ magma_xhsgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(nextjb), int(m-nextj), int(jb),
-                            &c_neg_one, dAT_hp(j,     nextj), HIPBLAS_R_16F, int(lddat),
-                                        dAT_hp(nextj, j    ), HIPBLAS_R_16F, int(lddat),
-                            &c_one,     dAT_hp(nextj, nextj), HIPBLAS_R_16F, int(lddat),
-                            HIPBLAS_R_32F, ALGO);
+                            &c_neg_one, dAT_hp(j,     nextj), HIP_R_16F, int(lddat),
+                                        dAT_hp(nextj, j    ), HIP_R_16F, int(lddat),
+                            &c_one,     dAT_hp(nextj, nextj), HIP_R_16F, int(lddat),
+                            HIPBLAS_COMPUTE_32F, ALGO);
                     #endif
                 }
                 else if( mp_algo_type == Magma_MP_GEMEX_I16_O16_C16 ) {
@@ -422,10 +422,10 @@ magma_xhsgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(nextjb), int(m-nextj), int(jb),
-                            &h_neg_one, dAT_hp(j,     nextj), HIPBLAS_R_16F, int(lddat),
-                                        dAT_hp(nextj, j    ), HIPBLAS_R_16F, int(lddat),
-                            &h_one,     dAT_hp(nextj, nextj), HIPBLAS_R_16F, int(lddat),
-                            HIPBLAS_R_16F, ALGO);
+                            &h_neg_one, dAT_hp(j,     nextj), HIP_R_16F, int(lddat),
+                                        dAT_hp(nextj, j    ), HIP_R_16F, int(lddat),
+                            &h_one,     dAT_hp(nextj, nextj), HIP_R_16F, int(lddat),
+                            HIPBLAS_COMPUTE_16F, ALGO);
                     #endif
                 }
                 else if( mp_algo_type == Magma_MP_HGEMM ) {
@@ -480,10 +480,10 @@ magma_xhsgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
-                            &c_neg_one, dAT_hp(j,     nextj+nextjb), HIPBLAS_R_16F, int(lddat),
-                                        dAT_hp(nextj, j           ), HIPBLAS_R_16F, int(lddat),
-                            &c_one,     dAT_hp(nextj, nextj+nextjb), HIPBLAS_R_16F, int(lddat),
-                            HIPBLAS_R_32F, ALGO);
+                            &c_neg_one, dAT_hp(j,     nextj+nextjb), HIP_R_16F, int(lddat),
+                                        dAT_hp(nextj, j           ), HIP_R_16F, int(lddat),
+                            &c_one,     dAT_hp(nextj, nextj+nextjb), HIP_R_16F, int(lddat),
+                            HIPBLAS_COMPUTE_32F, ALGO);
                     #endif
                 }
                 else if( mp_algo_type == Magma_MP_GEMEX_I16_O16_C16 ) {
@@ -499,10 +499,10 @@ magma_xhsgetrf_gpu(
                     hipblasGemmEx( queues[1]->hipblas_handle(),
                             hipblas_trans_const( MagmaNoTrans ), hipblas_trans_const( MagmaNoTrans ),
                             int(maxn-(nextj+nextjb)), int(m-nextj), int(jb),
-                            &h_neg_one, dAT_hp(j,     nextj+nextjb), HIPBLAS_R_16F, int(lddat),
-                                        dAT_hp(nextj, j           ), HIPBLAS_R_16F, int(lddat),
-                            &h_one,     dAT_hp(nextj, nextj+nextjb), HIPBLAS_R_16F, int(lddat),
-                            HIPBLAS_R_16F, ALGO);
+                            &h_neg_one, dAT_hp(j,     nextj+nextjb), HIP_R_16F, int(lddat),
+                                        dAT_hp(nextj, j           ), HIP_R_16F, int(lddat),
+                            &h_one,     dAT_hp(nextj, nextj+nextjb), HIP_R_16F, int(lddat),
+                            HIPBLAS_COMPUTE_16F, ALGO);
                     #endif
                 }
                 else if( mp_algo_type == Magma_MP_HGEMM ) {
