@@ -986,15 +986,8 @@ sub simpleSubstitutions {
     $ft{'type'} += s/\bcsrilu02Info_t\b/csrilu02Info_t/g;
     $ft{'type'} += s/\bcsrsv2Info_t\b/csrsv2Info_t/g;
     $ft{'type'} += s/\bcuComplex\b/hipComplex/g;
-    
-    # original type subs
-    #$ft{'type'} += s/\bcuDoubleComplex\b/hipDoubleComplex/g;
-    #$ft{'type'} += s/\bcuFloatComplex\b/hipFloatComplex/g;
-    
-    # replace them with hipBLAS types
-    $ft{'type'} += s/\bcuDoubleComplex\b/hipblasDoubleComplex/g;
-    $ft{'type'} += s/\bcuFloatComplex\b/hipblasFloatComplex/g;
-    
+    $ft{'type'} += s/\bcuDoubleComplex\b/hipDoubleComplex/g;
+    $ft{'type'} += s/\bcuFloatComplex\b/hipFloatComplex/g;
     $ft{'type'} += s/\bcublasDataType_t\b/hipblasDatatype_t/g;
     $ft{'type'} += s/\bcublasDiagType_t\b/hipblasDiagType_t/g;
     $ft{'type'} += s/\bcublasFillMode_t\b/hipblasFillMode_t/g;
@@ -1210,9 +1203,9 @@ sub simpleSubstitutions {
     $ft{'numeric_literal'} += s/\bCUDA_ERROR_UNKNOWN\b/hipErrorUnknown/g;
     $ft{'numeric_literal'} += s/\bCUDA_ERROR_UNMAP_FAILED\b/hipErrorUnmapFailed/g;
     $ft{'numeric_literal'} += s/\bCUDA_ERROR_UNSUPPORTED_LIMIT\b/hipErrorUnsupportedLimit/g;
-    $ft{'numeric_literal'} += s/\bCUDA_R_16F\b/HIPBLAS_R_16F/g;
-    $ft{'numeric_literal'} += s/\bCUDA_R_32F\b/HIPBLAS_R_32F/g;
-    $ft{'numeric_literal'} += s/\bCUDA_R_64F\b/HIPBLAS_R_64F/g;
+    $ft{'numeric_literal'} += s/\bCUDA_R_16F\b/HIP_R_16F/g;
+    $ft{'numeric_literal'} += s/\bCUDA_R_32F\b/HIP_R_32F/g;
+    $ft{'numeric_literal'} += s/\bCUDA_R_64F\b/HIP_R_64F/g;
     $ft{'numeric_literal'} += s/\bCUDA_SUCCESS\b/hipSuccess/g;
     $ft{'numeric_literal'} += s/\bCUDNN_16BIT_INDICES\b/HIPDNN_16BIT_INDICES/g;
     $ft{'numeric_literal'} += s/\bCUDNN_32BIT_INDICES\b/HIPDNN_32BIT_INDICES/g;

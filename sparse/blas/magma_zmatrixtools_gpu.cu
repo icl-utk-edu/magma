@@ -14,11 +14,6 @@
 
 #define SWAP(a, b)  { tmp = a; a = b; b = tmp; }
 
-/* For hipSPARSE, they use a separate complex type than for hipBLAS */
-#ifdef MAGMA_HAVE_HIP
-  #define hipblasDoubleComplex hipDoubleComplex
-#endif
-
 
 
 __global__ void 

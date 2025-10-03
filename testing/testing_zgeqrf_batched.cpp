@@ -195,8 +195,8 @@ int main( int argc, char** argv)
             #endif
             #else
             hipblasZgeqrfBatched( opts.handle, int(M), int(N),
-                                 (hipblasDoubleComplex**)dA_array, int(ldda),
-                                 (hipblasDoubleComplex**)dtau_array,
+                                 (hipDoubleComplex**)dA_array, int(ldda),
+                                 (hipDoubleComplex**)dtau_array,
                                  &device_info, int(batchCount) );
             #endif
 

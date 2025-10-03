@@ -21,12 +21,6 @@
 #define PRECISION_z
 
 
-/* For hipSPARSE, they use a separate complex type than for hipBLAS */
-#ifdef MAGMA_HAVE_HIP
-  #define hipblasDoubleComplex hipDoubleComplex
-#endif
-
-
 /***************************************************************************//**
     Purpose
     -------

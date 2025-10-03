@@ -230,8 +230,6 @@ typedef double real_Double_t;
 
     /* double complex */
 
-    //typedef hipblasDoubleComplex magmaDoubleComplex;
-
     /* simple double complex definition that should be binary compatible with hipBLAS */
     typedef struct {
 
@@ -277,9 +275,6 @@ typedef double real_Double_t;
     }
 
     /* float complex */
-
-    //typedef hipComplex magmaFloatComplex;
-    //typedef hipblasComplex magmaFloatComplex;
 
     /* basic definition of float complex that should be binary compatible with hipBLAS */
     typedef struct {

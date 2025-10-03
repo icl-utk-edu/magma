@@ -808,7 +808,7 @@ ifeq ($(BACKEND),cuda)
 d_ext := cu
 else ifeq ($(BACKEND),hip)
 d_ext := cpp
-CXXFLAGS += -D__HIP_PLATFORM_AMD__
+CXXFLAGS += -D__HIP_PLATFORM_AMD__ -DHIPBLAS_V2
 endif
 
 

@@ -118,10 +118,10 @@ magma_hgemm(
 		      hipblas_trans_const( transA ),
 		      hipblas_trans_const( transB ),
 		      int(m), int(n), int(k),
-		      (void*)&alpha, (void*)dA, HIPBLAS_R_16F, int(ldda),
-		      (void*)dB, HIPBLAS_R_16F, int(lddb),
-		      (void *)&beta,  (void*)dC, HIPBLAS_R_16F, int(lddc),
-		      HIPBLAS_R_16F,
+		      (void*)&alpha, (void*)dA, HIP_R_16F, int(ldda),
+		      (void*)dB, HIP_R_16F, int(lddb),
+		      (void *)&beta,  (void*)dC, HIP_R_16F, int(lddc),
+		      HIPBLAS_COMPUTE_16F,
 		      HIPBLAS_GEMM_DEFAULT);
     }
     else {
@@ -151,10 +151,10 @@ magma_hgemmx(
 		      hipblas_trans_const( transA ),
 		      hipblas_trans_const( transB ),
 		      int(m), int(n), int(k),
-		      (void*)&alpha, (void*)dA, HIPBLAS_R_16F, int(ldda),
-                                     (void*)dB, HIPBLAS_R_16F, int(lddb),
-		      (void*)&beta,  (void*)dC, HIPBLAS_R_32F, int(lddc),
-		      HIPBLAS_R_32F,
+		      (void*)&alpha, (void*)dA, HIP_R_16F, int(ldda),
+                                     (void*)dB, HIP_R_16F, int(lddb),
+		      (void*)&beta,  (void*)dC, HIP_R_32F, int(lddc),
+		      HIPBLAS_COMPUTE_32F,
 		      HIPBLAS_GEMM_DEFAULT);
     }
     else {
