@@ -36,6 +36,8 @@ single (s), double (d), single-complex (c), double-complex (z).
         handling small diagonal elements below certain threshold(s) defined by the user.
     * Performance improvements for batch Cholesky factorization (magma_<T>potrf_batched)
     * Performance improvements for batch triangular solve (magma_<T>trsv_batched)
+    * [IMPORTANT] Previously-deprecated MAGMA-sparse functionality has been removed, as
+      well as the MAGMA V1 interface.
 
 2.9.0 - Jan 23, 2025
     * [DEPRECATED] The MAGMA-sparse package is considered to be "Legacy Support Mode"
