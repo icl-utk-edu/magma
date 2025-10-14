@@ -161,7 +161,7 @@ ifeq ($(BACKEND),cuda)
 	# Remember to add new architectures to CMakeLists.txt too!
 
 	# Next, add compile options for specific smXX
-	# sm_xx is binary, compute_xx is PTX for forward compatability
+	# sm_xx is binary, compute_xx is PTX for forward compatibility
 	# MIN_ARCH is lowest requested version
 	#          Use it ONLY in magma_print_environment; elsewhere use __CUDA_ARCH__ or magma_getdevice_arch()
 	# NV_SM    accumulates sm_xx for all requested versions
@@ -261,7 +261,7 @@ else ifeq ($(BACKEND),hip)
 
     ## Suggestion by Mark (from SLATE)
     # Valid architecture numbers
-    # TODO: remove veryold ones?
+    # TODO: remove very old ones?
     VALID_GFXS = 600 601 602 700 701 702 703 704 705 801 802 803 805 810 900 902 904 906 908 909 90a 940 941 942 90c 1010 1011 1012 1030 1031 1032 1033
 
 
