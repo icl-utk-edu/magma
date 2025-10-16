@@ -22,7 +22,7 @@
 
 
 /* ////////////////////////////////////////////////////////////////////////////
-   -- Testing zaxpy
+   -- Testing sort_batched (double)
 */
 int main(int argc, char **argv)
 {
