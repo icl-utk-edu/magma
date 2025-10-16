@@ -706,6 +706,12 @@ typedef enum {
     MagmaHybrid        = 701,
     MagmaNative        = 702
 } magma_mode_t;
+
+typedef enum {
+    MagmaAscending     = 751,
+    MagmaDescending    = 752
+} magma_sort_t;
+
 // -----------------------------------------------------------------------------
 // sparse
 typedef enum {

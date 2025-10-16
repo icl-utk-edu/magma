@@ -66,6 +66,16 @@ magma_int_t magma_get_zgetri_batched_ntcol(magma_int_t m, magma_int_t n);
 magma_int_t magma_get_ztrsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n);
 void magma_get_zgbtrf_batched_params(magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t *nb, magma_int_t *threads);
 
+#ifdef MAGMA_REAL
+magma_int_t
+magmablas_dsort_batched(
+    magma_sort_t sort, magma_int_t n,
+    double const * const * dx_array, magma_int_t incx,
+    double               **dy_array, magma_int_t incy,
+    magma_int_t** dindex_array,
+    magma_int_t batchCount, magma_queue_t queue);
+#endif
+
   /*
    *  LAPACK batched routines
    */
