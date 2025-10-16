@@ -241,6 +241,10 @@ testing_src += \
 	$(cdir)/testing_sgemm_fp16.cpp	\
 
 # ----------
+testing_src += \
+	$(cdir)/testing_dsort_batched.cpp	        \
+
+# ----------
 ifeq ($(FORT), pgfortran)
 	# Does this need fortran_thunking.$(o_ext) ?
 	testing_src += \
