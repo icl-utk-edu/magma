@@ -170,6 +170,7 @@ libmagma_src += \
 	$(cdir)/zlaswp_batched.cu		\
 	$(cdir)/zpotf2_kernels.cu		\
 	$(cdir)/set_pointer.cu			\
+	$(cdir)/sort.cu			\
 	$(cdir)/zset_pointer.cu			\
 	$(cdir)/zsyr2k_batched.cpp		\
 	$(cdir)/dsyrk_batched_core.cu		\
@@ -463,6 +464,8 @@ $(cdir)/zlaswp_vbatched.$(o_ext): $(cdir)/zlaswp_device.cuh
 $(cdir)/claswp_vbatched.$(o_ext): $(cdir)/claswp_device.cuh
 $(cdir)/dlaswp_vbatched.$(o_ext): $(cdir)/dlaswp_device.cuh
 $(cdir)/slaswp_vbatched.$(o_ext): $(cdir)/slaswp_device.cuh
+
+$(cdir)/sort.$(o_ext): $(cdir)/sort.cuh
 
 # ----------------------------------------------------------------------
 # pop first directory
