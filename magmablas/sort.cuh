@@ -85,6 +85,11 @@ magma_int_t next_pow2(magma_int_t n) {
 
 ////////////////////////////////////////////////////////////////////////////////
 // min/max reduction (with key) in shared memory
+// sort: MagmaAscending or MagmaDescending
+// n   : length of vector to be sorted
+// i   : typically threadIdx.x (assuming 1D thread config)
+// x   : vector in shared memory
+// ind : index vector in shared memory
 template<typename T>
 __device__ static __noinline__ void
 minmax_key_sm_device(magma_sort_t sort, const int n, const int i, T* x, int* ind)
@@ -107,6 +112,11 @@ minmax_key_sm_device(magma_sort_t sort, const int n, const int i, T* x, int* ind
 
 ////////////////////////////////////////////////////////////////////////////////
 // sort (with index) in shared memory
+// sort  : MagmaAscending or MagmaDescending
+// n     : length of vector to be sorted
+// tx    : typically threadIdx.x (assuming 1D thread config)
+// sx    : vector in shared memory
+// sindex: index vector in shared memory
 template<typename T>
 __device__ static __noinline__ void
 sort_key_sm_device(magma_sort_t sort, const int n, const int tx, T* sx, int* sindex)
