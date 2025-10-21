@@ -20,29 +20,29 @@
 // conjugation -- double complex
 template<const int conjugate>
 __device__ inline
-magmaDoubleComplex conj(magmaDoubleComplex &x) {return MAGMA_Z_CONJ(x);}
+magmaDoubleComplex conj(const magmaDoubleComplex &x) {return MAGMA_Z_CONJ(x);}
 
 template<>
 __device__ inline
-magmaDoubleComplex conj<0>(magmaDoubleComplex &x) {return x;}
+magmaDoubleComplex conj<0>(const magmaDoubleComplex &x) {return x;}
 
 // conjugation -- single complex
 template<const int conjugate>
 __device__ inline
-magmaFloatComplex conj(magmaFloatComplex &x) {return MAGMA_C_CONJ(x);}
+magmaFloatComplex conj(const magmaFloatComplex &x) {return MAGMA_C_CONJ(x);}
 
 template<>
 __device__ inline
-magmaFloatComplex conj<0>(magmaFloatComplex &x) {return x;}
+magmaFloatComplex conj<0>(const magmaFloatComplex &x) {return x;}
 
-// conjugation -- real single & double
+// conjugation -- real single, double, half
 template<const int conjugate>
 __device__ static inline
-double conj(double &x) {return x;}
+double conj(const double &x) {return x;}
 
 template<const int conjugate>
 __device__ static inline
-float conj(float &x) {return x;}
+float conj(const float &x) {return x;}
 
 template<int conjugate>
 __device__ static inline
@@ -82,6 +82,16 @@ T op(const T& x) {return conj<conjugate>(x);}
     #define div(A, B)        MAGMA_C_DIV(A, B)
     #define fma(A, B, C) C = magmaCfmaf(A, B, C)
     #define make_FloatingPoint(x, y) MAGMA_C_MAKE(x, y)
+#elif defined(PRECISION_h)
+    #define add(A, B)         (A+B)
+    #define mul(A, B)         (A*B)
+    #define div(A, B)         (A/B)
+    #define make_FloatingPoint(x, y) ((magmaHalf)x)
+    #if defined(MAGMA_HAVE_CUDA)
+        #define fma(A, B, C)      C = __hfma (A, B, C)
+    #elif defined(MAGMA_HAVE_HIP)
+        #define fma(A, B, C) C += (A*B)
+    #endif
 #else
     #define add(A, B)         (A+B)
     #define mul(A, B)         (A*B)
