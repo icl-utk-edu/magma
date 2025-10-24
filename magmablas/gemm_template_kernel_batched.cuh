@@ -36,10 +36,10 @@ void gemm_template_batched_nn_kernel(
     extern __shared__ T* sdata_nn[];
     const int batchid = blockIdx.z;
 
-    const int slda = BLK_M+1;    // +1 only required if A is transposed
-    const int sldb = BLK_K+1;    // +1 always required
-    T* sA = (T*)sdata_nn;        // sA is (BLK_M+1) x (BLK_K)
-    T* sB = sA + slda * BLK_K;   // sB is (BLK_K+1) x (BLK_N)
+    const int slda = SLDA(BLK_M);
+    const int sldb = SLDB(BLK_K);
+    T* sA = (T*)sdata_nn;        // sA is slda x (BLK_K)
+    T* sB = sA + slda * BLK_K;   // sB is sldb x (BLK_N)
 
     gemm_template_device_nn
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
@@ -71,10 +71,10 @@ void gemm_template_batched_nt_kernel(
     extern __shared__ T* sdata_nt[];
     const int batchid = blockIdx.z;
 
-    const int slda = BLK_M+1;  // +1 only required if A is transposed
-    const int sldb = BLK_K+1;  // +1 always required
-    T* sA = (T*)sdata_nt;      // sA is (BLK_M+1) x (BLK_K)
-    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
+    const int slda = SLDA(BLK_M);
+    const int sldb = SLDB(BLK_K);
+    T* sA = (T*)sdata_nt;      // sA is slda x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is sldb x (BLK_N)
 
     gemm_template_device_nt
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
@@ -106,10 +106,10 @@ void gemm_template_batched_tn_kernel(
     extern __shared__ T* sdata_tn[];
     const int batchid = blockIdx.z;
 
-    const int slda = BLK_M+1;  // +1 only required if A is transposed
-    const int sldb = BLK_K+1;  // +1 always required
-    T* sA = (T*)sdata_tn;      // sA is (BLK_M+1) x (BLK_K)
-    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
+    const int slda = SLDA(BLK_M);
+    const int sldb = SLDB(BLK_K);
+    T* sA = (T*)sdata_tn;      // sA is slda x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is sldb x (BLK_N)
 
     gemm_template_device_tn
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
@@ -141,10 +141,10 @@ void gemm_template_batched_tt_kernel(
     extern __shared__ T* sdata_tt[];
     const int batchid = blockIdx.z;
 
-    const int slda = BLK_M+1;  // +1 only required if A is transposed
-    const int sldb = BLK_K+1;  // +1 always required
-    T* sA = (T*)sdata_tt;      // sA is (BLK_M+1) x (BLK_K)
-    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
+    const int slda = SLDA(BLK_M);
+    const int sldb = SLDB(BLK_K);
+    T* sA = (T*)sdata_tt;      // sA is slda x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is sldb x (BLK_N)
 
     gemm_template_device_tt
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
@@ -177,8 +177,16 @@ void gemm_template_batched_nn(
 {
     size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
-    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
-    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
+    shmem += SLDA(BLK_M) * BLK_K * sizeof(T);  // sA
+    shmem += SLDB(BLK_K) * BLK_N * sizeof(T);  // sB
+
+    #if CUDA_VERSION >= 9000
+    // always opt-in for shared memory
+    cudaFuncSetAttribute(
+            gemm_template_batched_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    #endif
+
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -209,8 +217,16 @@ void gemm_template_batched_nt(
 {
     size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
-    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
-    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
+    shmem += SLDA(BLK_M) * BLK_K * sizeof(T);  // sA
+    shmem += SLDB(BLK_K) * BLK_N * sizeof(T);  // sB
+
+    #if CUDA_VERSION >= 9000
+    // always opt-in for shared memory
+    cudaFuncSetAttribute(
+            gemm_template_batched_nt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    #endif
+
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -241,8 +257,16 @@ void gemm_template_batched_tn(
 {
     size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
-    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
-    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
+    shmem += SLDA(BLK_M) * BLK_K * sizeof(T);  // sA
+    shmem += SLDB(BLK_K) * BLK_N * sizeof(T);  // sB
+
+    #if CUDA_VERSION >= 9000
+    // always opt-in for shared memory
+    cudaFuncSetAttribute(
+            gemm_template_batched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    #endif
+
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
@@ -273,8 +297,16 @@ void gemm_template_batched_tt(
 {
     size_t shmem = 0;
     magma_int_t max_batchCount = queue->get_maxBatch();
-    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
-    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
+    shmem += SLDA(BLK_M) * BLK_K * sizeof(T);  // sA
+    shmem += SLDB(BLK_K) * BLK_N * sizeof(T);  // sB
+
+    #if CUDA_VERSION >= 9000
+    // always opt-in for shared memory
+    cudaFuncSetAttribute(
+            gemm_template_batched_tt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    #endif
+
     dim3 dimBlock(DIM_X, DIM_Y);
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);

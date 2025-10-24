@@ -31,12 +31,12 @@ void gemm_template_nn_kernel(
 {
     extern __shared__ T* sdata_nn[];
 
-    const int slda = BLK_M+1;    // +1 only required if A is transposed
-    const int sldb = BLK_K+1;    // +1 always required
-    T* sA = (T*)sdata_nn;        // sA is (BLK_M+1) x (BLK_K)
-    T* sB = sA + slda * BLK_K;   // sB is (BLK_K+1) x (BLK_N)
+    const int slda = SLDA(BLK_M);
+    const int sldb = SLDB(BLK_K);
+    T* sA = (T*)sdata_nn;        // sA is slda x (BLK_K)
+    T* sB = sA + slda * BLK_K;   // sB is sldb x (BLK_N)
 
-    gemm_template_device_prefetch_nn
+    gemm_template_device_nn
     <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
     ( M, N, K, A, LDA, B, LDB, C, LDC, alpha, beta, sA, slda, sB, sldb, NULL, 0 );
 }
@@ -57,12 +57,12 @@ void gemm_template_nt_kernel(
 {
     extern __shared__ T* sdata_nt[];
 
-    const int slda = BLK_M+1;  // +1 only required if A is transposed
-    const int sldb = BLK_K+1;  // +1 always required
-    T* sA = (T*)sdata_nt;      // sA is (BLK_M+1) x (BLK_K)
-    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
+    const int slda = SLDA(BLK_M);
+    const int sldb = SLDB(BLK_K);
+    T* sA = (T*)sdata_nt;      // sA is slda x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is sldb x (BLK_N)
 
-    gemm_template_device_prefetch_nt
+    gemm_template_device_nt
     <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
     ( M, N, K, A, LDA, B, LDB, C, LDC, alpha, beta, sA, slda, sB, sldb, NULL, 0 );
 }
@@ -83,12 +83,12 @@ void gemm_template_tn_kernel(
 {
     extern __shared__ T* sdata_tn[];
 
-    const int slda = BLK_M+1;  // +1 only required if A is transposed
-    const int sldb = BLK_K+1;  // +1 always required
-    T* sA = (T*)sdata_tn;      // sA is (BLK_M+1) x (BLK_K)
-    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
+    const int slda = SLDA(BLK_M);
+    const int sldb = SLDB(BLK_K);
+    T* sA = (T*)sdata_tn;      // sA is slda x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is sldb x (BLK_N)
 
-    gemm_template_device_prefetch_tn
+    gemm_template_device_tn
     <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
     ( M, N, K, A, LDA, B, LDB, C, LDC, alpha, beta, sA, slda, sB, sldb, NULL, 0 );
 }
@@ -109,12 +109,12 @@ void gemm_template_tt_kernel(
 {
     extern __shared__ T* sdata_tt[];
 
-    const int slda = BLK_M+1;  // +1 only required if A is transposed
-    const int sldb = BLK_K+1;  // +1 always required
-    T* sA = (T*)sdata_tt;      // sA is (BLK_M+1) x (BLK_K)
-    T* sB = sA + slda * BLK_K; // sB is (BLK_K+1) x (BLK_N)
+    const int slda = SLDA(BLK_M);
+    const int sldb = SLDB(BLK_K);
+    T* sA = (T*)sdata_tt;      // sA is slda x (BLK_K)
+    T* sB = sA + slda * BLK_K; // sB is sldb x (BLK_N)
 
-    gemm_template_device_prefetch_tt
+    gemm_template_device_tt
     <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
     ( M, N, K, A, LDA, B, LDB, C, LDC, alpha, beta, sA, slda, sB, sldb, NULL, 0 );
 }
@@ -135,8 +135,16 @@ void gemm_template_nn(
     T alpha, T beta, magma_queue_t queue)
 {
     size_t shmem = 0;
-    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
-    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
+    shmem += SLDA(BLK_M) * BLK_K * sizeof(T);  // sA
+    shmem += SLDB(BLK_K) * BLK_N * sizeof(T);  // sB
+
+    #if CUDA_VERSION >= 9000
+    // always opt-in for shared memory
+    cudaFuncSetAttribute(
+            gemm_template_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    #endif
+
     dim3 dimBlock(DIM_X, DIM_Y);
     dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), 1 );
     gemm_template_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
@@ -159,8 +167,16 @@ void gemm_template_nt(
     T alpha, T beta, magma_queue_t queue)
 {
     size_t shmem = 0;
-    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
-    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
+    shmem += SLDA(BLK_M) * BLK_K * sizeof(T);  // sA
+    shmem += SLDB(BLK_K) * BLK_N * sizeof(T);  // sB
+
+    #if CUDA_VERSION >= 9000
+    // always opt-in for shared memory
+    cudaFuncSetAttribute(
+            gemm_template_nt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    #endif
+
     dim3 dimBlock(DIM_X, DIM_Y);
     dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), 1 );
     gemm_template_nt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
@@ -183,8 +199,16 @@ void gemm_template_tn(
     T alpha, T beta, magma_queue_t queue)
 {
     size_t shmem = 0;
-    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
-    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
+    shmem += SLDA(BLK_M) * BLK_K * sizeof(T);  // sA
+    shmem += SLDB(BLK_K) * BLK_N * sizeof(T);  // sB
+
+    #if CUDA_VERSION >= 9000
+    // always opt-in for shared memory
+    cudaFuncSetAttribute(
+            gemm_template_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    #endif
+
     dim3 dimBlock(DIM_X, DIM_Y);
     dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), 1 );
     gemm_template_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
@@ -207,8 +231,16 @@ void gemm_template_tt(
     T alpha, T beta, magma_queue_t queue)
 {
     size_t shmem = 0;
-    shmem += (BLK_M+1) * BLK_K * sizeof(T);  // sA
-    shmem += (BLK_K+1) * BLK_N * sizeof(T);  // sB
+    shmem += SLDA(BLK_M) * BLK_K * sizeof(T);  // sA
+    shmem += SLDB(BLK_K) * BLK_N * sizeof(T);  // sB
+
+    #if CUDA_VERSION >= 9000
+    // always opt-in for shared memory
+    cudaFuncSetAttribute(
+            gemm_template_tt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    #endif
+
     dim3 dimBlock(DIM_X, DIM_Y);
     dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), 1 );
     gemm_template_tt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
