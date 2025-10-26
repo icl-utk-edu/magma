@@ -211,7 +211,7 @@ magma_izamax_native(
         hipblasGetPointerMode(queue->hipblas_handle(), &ptr_mode);
         hipblasSetPointerMode(queue->hipblas_handle(), CUBLAS_POINTER_MODE_DEVICE);
 
-        hipblasIzamax(queue->hipblas_handle(), length, (const hipblasDoubleComplex*)x, 1, (int*)(ipiv));
+        hipblasIzamax(queue->hipblas_handle(), length, (const hipDoubleComplex*)x, 1, (int*)(ipiv));
         magma_zpivcast<<< 1, 1, 0, queue->cuda_stream() >>>( ipiv );
 
         hipblasSetPointerMode(queue->hipblas_handle(), ptr_mode);

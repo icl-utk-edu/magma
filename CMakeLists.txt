@@ -109,9 +109,6 @@ endif()
 # ----------------------------------------
 # locate CUDA libraries
 if (MAGMA_ENABLE_CUDA)
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-        set(CMAKE_CUDA_COMPILER_WORKS ON) # Fix for intel compiler and CUDA
-    endif ()
     enable_language( CUDA )
 
     set( CUDA_NAMES
@@ -304,7 +301,7 @@ if (MAGMA_ENABLE_HIP)
     set(GPU_ARCH_FLAGS ${DEVCCFLAGS})
 
     #add_compile_options(${GPU_ARCH_FLAGS})
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_AMD__" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_AMD__ -DHIPBLAS_V2" )
   else()
     message( STATUS "Could not find HIP" )
   endif()

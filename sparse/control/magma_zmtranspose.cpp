@@ -14,11 +14,6 @@
 
 #include <cuda.h>  // for CUDA_VERSION
 
-/* For hipSPARSE, they use a separate complex type than for hipBLAS */
-#ifdef MAGMA_HAVE_HIP
-  #define hipblasDoubleComplex hipDoubleComplex
-#endif
-
 // todo: check if we need buf later
 #if CUDA_VERSION >= 11000
 #define cusparseZcsr2csc(handle, m, n, nnz, valA, rowA, colA, valB, colB, rowB,                \

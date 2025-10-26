@@ -13,15 +13,6 @@
 
 #define PRECISION_z
 
-/* For hipSPARSE, they use a separate complex type than for hipBLAS */
-#if defined(MAGMA_HAVE_HIP)
-  #ifdef PRECISION_z
-    #define hipblasDoubleComplex hipDoubleComplex
-  #elif defined(PRECISION_c)
-    #define hipblasComplex hipComplex
-  #endif
-#endif
-
 #if CUDA_VERSION >= 12000
   #define CUSPARSE_CSRMV_ALG2 CUSPARSE_SPMV_CSR_ALG2
   #define CUSPARSE_CSRMV_ALG1 CUSPARSE_SPMV_CSR_ALG1
@@ -218,17 +209,6 @@ magma_z_spmv(
                 CHECK( magma_zgesellpmv( MagmaNoTrans, A.num_rows, A.num_cols,
                    A.blocksize, A.numblocks, A.alignment,
                    alpha, A.dval, A.dcol, A.drow, x.dval, beta, y.dval, queue ));
-
-                //printf("done.\n");
-            }
-            else if ( A.storage_type == Magma_CSR5 ) {
-                //printf("using CSR5 kernel for SpMV: ");
-                CHECK( magma_zgecsr5mv( MagmaNoTrans, A.num_rows, A.num_cols, 
-                   A.csr5_p, alpha, A.csr5_sigma, A.csr5_bit_y_offset, 
-                   A.csr5_bit_scansum_offset, A.csr5_num_packets, 
-                   A.dtile_ptr, A.dtile_desc, A.dtile_desc_offset_ptr, A.dtile_desc_offset, 
-                   A.dcalibrator, A.csr5_tail_tile_start, 
-                   A.dval, A.drow, A.dcol, x.dval, beta, y.dval, queue ));
 
                 //printf("done.\n");
             }

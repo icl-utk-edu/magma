@@ -161,7 +161,7 @@ ifeq ($(BACKEND),cuda)
 	# Remember to add new architectures to CMakeLists.txt too!
 
 	# Next, add compile options for specific smXX
-	# sm_xx is binary, compute_xx is PTX for forward compatability
+	# sm_xx is binary, compute_xx is PTX for forward compatibility
 	# MIN_ARCH is lowest requested version
 	#          Use it ONLY in magma_print_environment; elsewhere use __CUDA_ARCH__ or magma_getdevice_arch()
 	# NV_SM    accumulates sm_xx for all requested versions
@@ -808,7 +808,7 @@ ifeq ($(BACKEND),cuda)
 d_ext := cu
 else ifeq ($(BACKEND),hip)
 d_ext := cpp
-CXXFLAGS += -D__HIP_PLATFORM_AMD__
+CXXFLAGS += -D__HIP_PLATFORM_AMD__ -DHIPBLAS_V2
 endif
 
 

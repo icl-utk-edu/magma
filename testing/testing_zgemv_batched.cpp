@@ -182,11 +182,11 @@ int main( int argc, char** argv)
                 #else
                 hipblasZgemvBatched(opts.handle, hipblas_trans_const(opts.transA),
                                       M, N,
-                                      (const hipblasDoubleComplex *)&alpha,
-                                      (const hipblasDoubleComplex **)d_A_array, ldda,
-                                      (const hipblasDoubleComplex **)d_X_array, incx,
-                                      (const hipblasDoubleComplex *)&beta,
-                                      (hipblasDoubleComplex **)d_Y_array, incy, batchCount);
+                                      (const hipDoubleComplex *)&alpha,
+                                      (const hipDoubleComplex **)d_A_array, ldda,
+                                      (const hipDoubleComplex **)d_X_array, incx,
+                                      (const hipDoubleComplex *)&beta,
+                                      (hipDoubleComplex **)d_Y_array, incy, batchCount);
                 #endif
             }
             else{
@@ -210,11 +210,11 @@ int main( int argc, char** argv)
                 #else
                 hipblasZgemvStridedBatched(opts.handle, hipblas_trans_const(opts.transA),
                                       M, N,
-                                      (const hipblasDoubleComplex *)&alpha,
-                                      (const hipblasDoubleComplex *)d_A, ldda, ldda*N,
-                                      (const hipblasDoubleComplex *)d_X, incx, incx*Xm,
-                                      (const hipblasDoubleComplex *)&beta,
-                                      (hipblasDoubleComplex *)d_Y, incy, incy*Ym, batchCount);
+                                      (const hipDoubleComplex *)&alpha,
+                                      (const hipDoubleComplex *)d_A, ldda, ldda*N,
+                                      (const hipDoubleComplex *)d_X, incx, incx*Xm,
+                                      (const hipDoubleComplex *)&beta,
+                                      (hipDoubleComplex *)d_Y, incy, incy*Ym, batchCount);
                 #endif
             }
             device_time = magma_sync_wtime( opts.queue ) - device_time;

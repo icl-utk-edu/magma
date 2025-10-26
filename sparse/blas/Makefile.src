@@ -15,10 +15,6 @@ cdir      := sparse/blas
 # alphabetic order by base name (ignoring precision)
 libsparse_src += \
 	$(cdir)/magma_z_blaswrapper.cpp       \
-	$(cdir)/zbajac_csr.cu                 \
-	$(cdir)/zbajac_csr_overlap.cu         \
-	$(cdir)/zgeaxpy.cu                    \
-	$(cdir)/zgecsr5mv.cu                  \
 	$(cdir)/zgecsrmv.cu                   \
 	$(cdir)/zgeellmv.cu                   \
 	$(cdir)/zgeelltmv.cu                  \
@@ -32,8 +28,6 @@ libsparse_src += \
 	$(cdir)/zmdotc.cu                     \
 	$(cdir)/zgemvmdot.cu                  \
 	$(cdir)/zmdot_shfl.cu                 \
-	$(cdir)/zmergebicgstab2.cu            \
-	$(cdir)/zmergebicgstab3.cu            \
 	$(cdir)/zmergeidr.cu                  \
 	$(cdir)/zmergecg.cu                   \
 	$(cdir)/zmergecgs.cu                  \
@@ -44,7 +38,6 @@ libsparse_src += \
 	$(cdir)/zmgeellmv.cu                  \
 	$(cdir)/zmgeelltmv.cu                 \
 	$(cdir)/zmgesellcmmv.cu               \
-	$(cdir)/zpipelinedgmres.cu            \
 	
 # Wrappers to cusparse functions
 libsparse_src += \
@@ -54,56 +47,22 @@ libsparse_src += \
 	$(cdir)/magma_zcuspmm.cpp             \
 	$(cdir)/magma_zcuspaxpy.cpp           \
 
-# Mixed precision SpMV
-libsparse_src += \
-        $(cdir)/zcgecsrmv_mixed_prec.cu        \
-
-# Iterative factorizations
-libsparse_src += \
-	$(cdir)/zparilu.cpp		              \
-	$(cdir)/zparilu_kernels.cu            \
-	$(cdir)/zparic_kernels.cu             \
-	$(cdir)/zparilut_kernels.cu           \
-	$(cdir)/zparilut_candidates.cu        \
-	$(cdir)/magma_zthrsrm.cu	          \
-	$(cdir)/magma_zpreselect.cu           \
-	$(cdir)/magma_zsampleselect.cu        \
-	$(cdir)/magma_zsampleselect_nodp.cu   \
-
-libsparse_dynamic_src += \
-	$(cdir)/magma_dsampleselect_core.cu   \
-	$(cdir)/magma_sampleselect.cu
-
 # Auxiliary routines
 libsparse_src += \
 	$(cdir)/zcompact.cu                   \
 	$(cdir)/magma_zmcsrcompressor_gpu.cu  \
 	$(cdir)/magma_zdiagcheck.cu           \
-	$(cdir)/zgecsrreimsplit.cu            \
-	$(cdir)/zgedensereimsplit.cu          \
 	$(cdir)/magma_zmconjugate.cu          \
-	$(cdir)/magma_zget_rowptr.cu          \
 	$(cdir)/magma_zmatrixtools_gpu.cu     \
 
 # Big data analytics
 libsparse_src += \
 	$(cdir)/zjaccard_weights.cu    \
 	
-# ISAI
-libsparse_src += \
-	$(cdir)/zgeisai_trsv.cu           \
-	$(cdir)/zgeisai_maxblock.cu	\
-	$(cdir)/zgeisai_batched32.cu      \
-
 # Stencil operators
 libsparse_src += \
 	$(cdir)/zge3pt.cu                   \
 	
-
-# Tester routines
-libsparse_src += \
-	$(cdir)/zmergeblockkrylov.cu          \
-
 
 libsparse_src += \
 	$(cdir)/zgecscsyncfreetrsm.cu         \

@@ -13,15 +13,6 @@
 
 #define PRECISION_z
 
-/* For hipSPARSE, they use a separate complex type than for hipBLAS */
-#if defined(MAGMA_HAVE_HIP)
-  #ifdef PRECISION_z
-    #define hipblasDoubleComplex hipDoubleComplex
-  #elif defined(PRECISION_c)
-    #define hipblasComplex hipComplex
-  #endif
-#endif
-
 magma_int_t magma_ztrisolve_analysis(magma_z_matrix M, magma_solve_info_t *solve_info, bool upper_triangular, bool unit_diagonal, bool transpose, magma_queue_t queue)
 {
     magma_int_t info = 0;

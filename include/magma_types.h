@@ -230,8 +230,6 @@ typedef double real_Double_t;
 
     /* double complex */
 
-    //typedef hipblasDoubleComplex magmaDoubleComplex;
-
     /* simple double complex definition that should be binary compatible with hipBLAS */
     typedef struct {
 
@@ -277,9 +275,6 @@ typedef double real_Double_t;
     }
 
     /* float complex */
-
-    //typedef hipComplex magmaFloatComplex;
-    //typedef hipblasComplex magmaFloatComplex;
 
     /* basic definition of float complex that should be binary compatible with hipBLAS */
     typedef struct {
@@ -711,6 +706,12 @@ typedef enum {
     MagmaHybrid        = 701,
     MagmaNative        = 702
 } magma_mode_t;
+
+typedef enum {
+    MagmaAscending     = 751,
+    MagmaDescending    = 752
+} magma_sort_t;
+
 // -----------------------------------------------------------------------------
 // sparse
 typedef enum {

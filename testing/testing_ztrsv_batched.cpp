@@ -153,8 +153,8 @@ int main( int argc, char** argv)
                 device_time = magma_sync_wtime( opts.queue );
                 hipblasZtrsvBatched(
                     opts.handle, hipblas_uplo_const(opts.uplo), hipblas_trans_const(opts.transA), hipblas_diag_const(opts.diag),
-                    (int)N, (const hipblasDoubleComplex **)d_A_array, (int)ldda,
-                            (hipblasDoubleComplex **)d_b_array, (int)1, (int)batchCount );
+                    (int)N, (const hipDoubleComplex **)d_A_array, (int)ldda,
+                            (hipDoubleComplex **)d_b_array, (int)1, (int)batchCount );
                 device_time = magma_sync_wtime( opts.queue ) - device_time;
                 device_perf = gflops / device_time;
             #endif
