@@ -13,35 +13,6 @@
 
 #define COMPLEX
 
-#define PRECISION_z
-
-/* on some platforms (i.e. hipMAGMA on ROCm stack), we define custom types
- * So, to keep the C++ compiler from giving errors, we cast arguments to internal
- * BLAS routines. The hipify script should replace `cu*Complex` with appropriate HIP types
- *
- * FUTURE READERS: If hipBLAS changes numbers to `hipblas*Complex` rather than `hip*Complex`,
- *   these will need more complicated macro if/else blocks
- */
-/*#ifdef PRECISION_z
-  #ifdef MAGMA_HAVE_HIP
-    typedef hipDoubleComplex cuDoubleComplex;
-  #else
-    typedef cuDoubleComplex cuDoubleComplex;
-  #endif
-#elif defined(PRECISION_c)
-  #ifdef MAGMA_HAVE_HIP
-    typedef hipComplex cuDoubleComplex;
-  #else
-    typedef cuFloatComplex cuDoubleComplex;
-  #endif
-#elif defined(PRECISION_d)
-  typedef double cuDoubleComplex;
-#else
-  typedef float cuDoubleComplex;
-#endif
-*/
-//#ifdef MAGMA_HAVE_CUDA
-
 // =============================================================================
 // Level 1 BLAS
 
