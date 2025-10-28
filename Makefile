@@ -1,17 +1,10 @@
-#--------------------------------------------------------------------
-# build process
-#
-#
-
-
-
 # ------------------------------------------------------------------------------
 # programs
 #
-# Users should make all changes in make.inc
+# Users should make all changes in make.inc or on the make command line.
 # It should not be necesary to change anything in here.
 
-include make.inc
+-include make.inc
 
 # --------------------
 # configuration
@@ -23,11 +16,6 @@ BACKEND     ?= cuda
 # set these to their real paths
 CUDADIR     ?= /usr/local/cuda
 ROCM_PATH   ?= /opt/rocm
-
-# require either hip or cuda
-ifeq (,$(findstring $(BACKEND),"hip cuda"))
-    $(error "'BACKEND' should be either 'cuda' or 'hip' (got '$(BACKEND)')")
-endif
 
 # --------------------
 # programs
@@ -41,8 +29,6 @@ NVCC        ?= nvcc
 DEVCC       ?= NONE
 
 # Configuration variables
-HAVE_CUDA  =
-HAVE_HIP   =
 CUDA_ARCH_MIN =
 
 # CMake.src file, which depends on the backend
@@ -51,11 +37,9 @@ CMAKESRC     = CMake.src.$(BACKEND)
 # set from 'BACKEND'
 ifeq ($(BACKEND),cuda)
     DEVCC = $(NVCC)
-	HAVE_CUDA = 1
 
 else ifeq ($(BACKEND),hip)
     DEVCC = $(HIPCC)
-	HAVE_HIP = 1
 
     # if we are using HIP, make sure generated sources are up to date
     # Technically, this 'recursive' make which we don't like to do, but also this is a simple solution
@@ -470,7 +454,7 @@ CONFIGDEPS := include/magma_config.h.in Makefile make.inc
 ALLFLAGS := $(CFLAGS) $(CXXFLAGS) $(DEVCCFLAGS)
 
 # Configuration header
-ifneq (,$(HAVE_CUDA))
+ifeq ($(BACKEND),cuda)
 
     $(CONFIG): $(CONFIGDEPS)
 		cp $< $@
