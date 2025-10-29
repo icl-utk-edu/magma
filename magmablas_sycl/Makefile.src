@@ -171,6 +171,7 @@ libmagma_src += \
 	$(cdir)/zpotf2_kernels.dp.cpp		\
 	$(cdir)/set_pointer.dp.cpp			\
 	$(cdir)/zset_pointer.dp.cpp			\
+	$(cdir)/sort.dp.cpp                     \
 	$(cdir)/zsyr2k_batched.dp.cpp		\
 	$(cdir)/dsyrk_batched_core.dp.cpp		\
 	$(cdir)/ssyrk_batched_core.dp.cpp		\
@@ -463,6 +464,8 @@ $(cdir)/zlaswp_vbatched.$(o_ext): $(cdir)/zlaswp_device.dp.hpp
 $(cdir)/claswp_vbatched.$(o_ext): $(cdir)/claswp_device.dp.hpp
 $(cdir)/dlaswp_vbatched.$(o_ext): $(cdir)/dlaswp_device.dp.hpp
 $(cdir)/slaswp_vbatched.$(o_ext): $(cdir)/slaswp_device.dp.hpp
+
+$(cdir)/sort.$(o_ext): $(cdir)/sort.dp.hpp
 
 # ----------------------------------------------------------------------
 # pop first directory
