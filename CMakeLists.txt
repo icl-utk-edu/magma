@@ -505,7 +505,6 @@ else()
        add_sycl_to_target( TARGET magma SOURCES magmablas_sycl/*.dp.cpp)
        add_sycl_to_target( TARGET magma SOURCES interface_sycl/*.dp.cpp)
        target_link_libraries( magma
-        ${blas_fix}
         ${LAPACK_LIBRARIES}
         IntelSYCL::SYCL_CXX
         MKL::MKL_SYCL
@@ -602,7 +601,6 @@ else()
   add_sycl_to_target(TARGET magma_sparse SOURCES sparse/blas_sycl/*.dp.cpp)
   target_link_libraries( magma_sparse
     magma
-    ${blas_fix}
     ${LAPACK_LIBRARIES}
     IntelSYCL::SYCL_CXX
     MKL::MKL_SYCL
@@ -702,7 +700,7 @@ elseif (MAGMA_ENABLE_HIP)
 #         "${LAPACK_LIBS} hip::device roc::hipblas roc::hipsparse" )
 else()
   string( REPLACE ";" " " LIBS
-    "${blas_fix_lib} ${LAPACK_LIBS} -L${SYCL_LIBRARY_DIR} -lsycl -L${MKL_ROOT}/lib -lmkl_sycl" )
+    "${LAPACK_LIBS} -L${SYCL_LIBRARY_DIR} -lsycl -L${MKL_ROOT}/lib -lmkl_sycl" )
 endif()
 set( MAGMA_REQUIRED "" )
 configure_file( "${pkgconfig}.in" "${pkgconfig}" @ONLY )
