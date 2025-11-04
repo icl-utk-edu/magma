@@ -50,8 +50,8 @@ void gemm_template_device_nn (
     T rC[THR_N][THR_M];
 
     // Registers for the dev->shmem copy
-    T ra[BLK_K/DIM_YA][BLK_M/DIM_XA];
-    T rb[BLK_N/DIM_YB][BLK_K/DIM_XB];
+    T rA[BLK_K/DIM_YA][BLK_M/DIM_XA];
+    T rB[BLK_N/DIM_YB][BLK_K/DIM_XB];
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
@@ -80,8 +80,8 @@ void gemm_template_device_nn (
         boundB  -= BLK_K;
 
         // prefetch A/B gm2reg -- ignore transposition for now
-        read_gm2rg_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, ra);
-        read_gm2rg_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rb);
+        read_gm2rg_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, rA);
+        read_gm2rg_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
         // Multiply
         multiply_full_block<T, BLK_K, THR_M, THR_N, DIM_X, DIM_Y>
@@ -90,8 +90,8 @@ void gemm_template_device_nn (
         __syncthreads();
 
         // mv prefetched blocks into sm with propoer transposition
-        write_rg2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>( ra, sA, slda, txA, tyA );
-        write_rg2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>( rb, sB, sldb, txB, tyB );
+        write_rg2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>( rA, sA, slda, txA, tyA );
+        write_rg2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>( rB, sB, sldb, txB, tyB );
         __syncthreads();
     }
 
@@ -141,8 +141,8 @@ void gemm_template_device_nt (
     T rC[THR_N][THR_M];
 
     // Registers for the dev->shmem copy
-    T ra[BLK_K/DIM_YA][BLK_M/DIM_XA];
-    T rb[BLK_K/DIM_YB][BLK_N/DIM_XB];
+    T rA[BLK_K/DIM_YA][BLK_M/DIM_XA];
+    T rB[BLK_K/DIM_YB][BLK_N/DIM_XB];
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
@@ -171,8 +171,8 @@ void gemm_template_device_nt (
         boundB  -= BLK_K*LDB;
 
         // prefetch A/B gm2reg -- ignore transposition for now
-        read_gm2rg_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, ra);
-        read_gm2rg_notrans<T, BLK_N, BLK_K, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rb);
+        read_gm2rg_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, rA);
+        read_gm2rg_notrans<T, BLK_N, BLK_K, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
         // Multiply
         multiply_full_block<T, BLK_K, THR_M, THR_N, DIM_X, DIM_Y>
@@ -180,8 +180,8 @@ void gemm_template_device_nt (
         __syncthreads();
 
         // mv prefetched blocks into sm with propoer transposition
-        write_rg2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>( ra, sA, slda, txA, tyA );
-        write_rg2sm_trans<T, BLK_N, BLK_K, DIM_XB, DIM_YB, CONJB>( rb, sB, sldb, txB, tyB );
+        write_rg2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>( rA, sA, slda, txA, tyA );
+        write_rg2sm_trans<T, BLK_N, BLK_K, DIM_XB, DIM_YB, CONJB>( rB, sB, sldb, txB, tyB );
 
         __syncthreads();
     }
@@ -232,8 +232,8 @@ void gemm_template_device_tn (
     T rC[THR_N][THR_M];
 
     // Registers for the dev->shmem copy
-    T ra[BLK_M/DIM_YA][BLK_K/DIM_XA];
-    T rb[BLK_N/DIM_YB][BLK_K/DIM_XB];
+    T rA[BLK_M/DIM_YA][BLK_K/DIM_XA];
+    T rB[BLK_N/DIM_YB][BLK_K/DIM_XB];
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
@@ -263,8 +263,8 @@ void gemm_template_device_tn (
         boundB  -= BLK_K;
 
         // prefetch A/B gm2reg -- ignore transposition for now
-        read_gm2rg_notrans<T, BLK_K, BLK_M, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, ra);
-        read_gm2rg_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rb);
+        read_gm2rg_notrans<T, BLK_K, BLK_M, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, rA);
+        read_gm2rg_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
         // Multiply
         multiply_full_block<T, BLK_K, THR_M, THR_N, DIM_X, DIM_Y>
@@ -272,8 +272,8 @@ void gemm_template_device_tn (
         __syncthreads();
 
         // mv prefetched blocks into sm with propoer transposition
-        write_rg2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>( ra, sA, slda, txA, tyA );
-        write_rg2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>( rb, sB, sldb, txB, tyB );
+        write_rg2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>( rA, sA, slda, txA, tyA );
+        write_rg2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>( rB, sB, sldb, txB, tyB );
 
         __syncthreads();
     }
@@ -324,8 +324,8 @@ void gemm_template_device_tt (
     T rC[THR_N][THR_M];
 
     // Registers for the dev->shmem copy
-    T ra[BLK_M/DIM_YA][BLK_K/DIM_XA];
-    T rb[BLK_K/DIM_YB][BLK_N/DIM_XB];
+    T rA[BLK_M/DIM_YA][BLK_K/DIM_XA];
+    T rB[BLK_K/DIM_YB][BLK_N/DIM_XB];
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
@@ -354,8 +354,8 @@ void gemm_template_device_tt (
        boundB  -= BLK_K*LDB;
 
         // prefetch A/B gm2reg -- ignore transposition for now
-        read_gm2rg_notrans<T, BLK_K, BLK_M, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, ra);
-        read_gm2rg_notrans<T, BLK_N, BLK_K, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rb);
+        read_gm2rg_notrans<T, BLK_K, BLK_M, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, rA);
+        read_gm2rg_notrans<T, BLK_N, BLK_K, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
         // Multiply
         multiply_full_block<T, BLK_K, THR_M, THR_N, DIM_X, DIM_Y>
@@ -364,8 +364,8 @@ void gemm_template_device_tt (
         __syncthreads();
 
         // mv prefetched blocks into sm with propoer transposition
-        write_rg2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>( ra, sA, slda, txA, tyA );
-        write_rg2sm_trans<T, BLK_N, BLK_K, DIM_XB, DIM_YB, CONJB>( rb, sB, sldb, txB, tyB );
+        write_rg2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>( rA, sA, slda, txA, tyA );
+        write_rg2sm_trans<T, BLK_N, BLK_K, DIM_XB, DIM_YB, CONJB>( rB, sB, sldb, txB, tyB );
 
         __syncthreads();
     }
