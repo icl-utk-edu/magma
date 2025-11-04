@@ -405,7 +405,7 @@ write_rg2gm(int &M, int &N, T rC[THR_N][THR_M], T* C, int &LDC, T &alpha, T &bet
                     T &regC = rC[n][m];
                     T &memC = C[offsC];
 
-                    memC = mul(alpha, regC);
+                    memC = alpha*regC;
                 }
             }
         }
@@ -422,7 +422,7 @@ write_rg2gm(int &M, int &N, T rC[THR_N][THR_M], T* C, int &LDC, T &alpha, T &bet
                     T &regC = rC[n][m];
                     T &memC = C[offsC];
 
-                    memC = add(mul(alpha, regC), mul(beta, memC));
+                    memC = alpha*regC + beta*memC;
                 }
             }
         }
