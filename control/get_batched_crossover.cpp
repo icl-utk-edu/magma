@@ -306,13 +306,20 @@ static magma_int_t magma_geqrf_batched_get_cutoff_width(
     }
 
     // make sure we don't go out-of-bounds
-    batch_index = min( batch_index, (magma_int_t)((*lookup_table)[m_index].size()-1) );
+    magma_int_t num_m_entries = lookup_table->size();
+    magma_int_t max_m = (*lookup_table)[num_m_entries-1][0];
 
-    cutoff_width = (*lookup_table)[m_index][batch_index];
+    // check if m is within the stored values (first column in lookup_table)
+    // if yes: read the cutoff width
+    // if no : return default cutoff width ('0', which means do not use fused panel)
+    if(m <= max_m) {
+        batch_index = min( batch_index, (magma_int_t)((*lookup_table)[m_index].size()-1) );
+        cutoff_width = (*lookup_table)[m_index][batch_index];
 
-    // if the cutoff_width is equal to the maximum tested width during the tuning sweeps,
-    // this probably means to use the fused update even for larger widths
-    cutoff_width = ( cutoff_width == GEQRF_BATCHED_MAX_TESTED_WIDTH ) ? n : cutoff_width;
+        // if the cutoff_width is equal to the maximum tested width during the tuning sweeps,
+        // this probably means to use the fused update even for larger widths
+        cutoff_width = ( cutoff_width == GEQRF_BATCHED_MAX_TESTED_WIDTH ) ? n : cutoff_width;
+    }
 
     return cutoff_width;
 }
