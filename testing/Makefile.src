@@ -147,6 +147,7 @@ testing_src += \
 	$(cdir)/testing_zunmlq.cpp	\
 	$(cdir)/testing_zunmql.cpp	\
 	$(cdir)/testing_zunmqr.cpp	\
+	$(cdir)/testing_zunmqr_batched.cpp	\
 
 # ----------
 # symmetric eigenvalues, GPU interface
