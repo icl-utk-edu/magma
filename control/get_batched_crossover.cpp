@@ -322,11 +322,16 @@ magma_int_t magma_use_zgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, 
     magma_int_t use_fused_update = 0, cutoff_width = 0;
     std::vector<std::vector<magma_int_t>>* data;
     #ifdef MAGMA_HAVE_CUDA
-    // TODO: add more gpus
-    data = &zgeqrf_panel_decision_a100;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 900){
+        data = &zgeqrf_panel_decision_h100;
+    }
+    else {
+        data = &zgeqrf_panel_decision_a100;
+    }
     #else
-    // TODO: add more gpus
-    data = &zgeqrf_panel_decision_a100;
+    // TODO: add more gpus based on a numerical value for device arch.
+    data = &zgeqrf_panel_decision_mi300a;
     #endif
 
     cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
@@ -339,11 +344,16 @@ magma_int_t magma_use_cgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, 
     magma_int_t use_fused_update = 0, cutoff_width = 0;
     std::vector<std::vector<magma_int_t>>* data;
     #ifdef MAGMA_HAVE_CUDA
-    // TODO: add more gpus
-    data = &cgeqrf_panel_decision_a100;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 900){
+        data = &cgeqrf_panel_decision_h100;
+    }
+    else {
+        data = &cgeqrf_panel_decision_a100;
+    }
     #else
-    // TODO: add more gpus
-    data = &cgeqrf_panel_decision_a100;
+    // TODO: add more gpus based on a numerical value for device arch.
+    data = &cgeqrf_panel_decision_mi300a;
     #endif
 
     cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
@@ -356,11 +366,16 @@ magma_int_t magma_use_dgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, 
     magma_int_t use_fused_update = 0, cutoff_width = 0;
     std::vector<std::vector<magma_int_t>>* data;
     #ifdef MAGMA_HAVE_CUDA
-    // TODO: add more gpus
-    data = &dgeqrf_panel_decision_a100;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 900){
+        data = &dgeqrf_panel_decision_h100;
+    }
+    else {
+        data = &dgeqrf_panel_decision_a100;
+    }
     #else
-    // TODO: add more gpus
-    data = &dgeqrf_panel_decision_a100;
+    // TODO: add more gpus based on a numerical value for device arch.
+    data = &dgeqrf_panel_decision_mi300a;
     #endif
 
     cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
@@ -373,11 +388,16 @@ magma_int_t magma_use_sgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, 
     magma_int_t use_fused_update = 0, cutoff_width = 0;
     std::vector<std::vector<magma_int_t>>* data;
     #ifdef MAGMA_HAVE_CUDA
-    // TODO: add more gpus
-    data = &sgeqrf_panel_decision_a100;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 900){
+        data = &sgeqrf_panel_decision_h100;
+    }
+    else {
+        data = &sgeqrf_panel_decision_a100;
+    }
     #else
-    // TODO: add more gpus
-    data = &sgeqrf_panel_decision_a100;
+    // TODO: add more gpus based on a numerical value for device arch.
+    data = &sgeqrf_panel_decision_mi300a;
     #endif
 
     cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
