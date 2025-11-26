@@ -30,7 +30,8 @@ template<int NB>
 __global__
 __launch_bounds__(MAX_THREADS)
 void
-zlarf_fused_sm_kernel_batched(
+zunm2r_sm_kernel_batched(
+    magma_side_t side, magma_trans_t trans,
     int m, int n, int ib,
     magmaDoubleComplex **dA_array, int Ai, int Aj, int ldda,
     magmaDoubleComplex **dV_array, int Vi, int Vj, int lddv,
@@ -79,20 +80,40 @@ zlarf_fused_sm_kernel_batched(
     }
 
     // read tau and init diag(sV)
+    // if trans == MagmaNoTrans, we read V and tau in reverse order
     if(tx < ib) {
-        stau[tx]  = dtau[tx];
-        sV(tx,tx) = MAGMA_Z_ONE; // does not need a sync before it
+        int rtx   = (trans == MagmaNoTrans) ? NB-tx-1 : tx;
+        sV(tx,rtx) = MAGMA_Z_ONE; // does not need a sync before it
+
+        rtx = (trans == MagmaNoTrans) ? NB-ib+tx  : tx;
+        stau[rtx] = (trans == MagmaNoTrans) ? dtau[ib-tx-1] : MAGMA_Z_CONJ( dtau[tx] );
     }
 
     // read into sV
-    // first loop over NB checks against the diagonal
-    for(int j = 0; j < ib; j++) {
-        sV(tx,j) = (tx > j) ? dV[j * lddv + tx] : sV(tx,j);
-    }
+    if(trans == MagmaNoTrans) {
+        // first loop over NB checks against the diagonal
+        for(int j = NB-1; j >= NB-ib; j--) {
+            sV(tx,j) = (tx > NB-j-1) ? dV[(NB-j-1) * lddv + tx] : sV(tx,j);
+        }
 
-    for(int i = tx+ntx; i < m; i+=ntx) {
+        // read rest of dV
+        for(int i = tx+ntx; i < m; i+=ntx) {
+            for(int j = NB-1; j >= NB-ib; j--) {
+                sV(i,j) = dV[(NB-j-1) * lddv + i];
+            }
+        }
+    }
+    else {
+        // first loop over NB checks against the diagonal
         for(int j = 0; j < ib; j++) {
-            sV(i,j) = dV[j * lddv + i];
+            sV(tx,j) = (tx > j) ? dV[j * lddv + tx] : sV(tx,j);
+        }
+
+        // read rest of dV
+        for(int i = tx+ntx; i < m; i+=ntx) {
+            for(int j = 0; j < ib; j++) {
+                sV(i,j) = dV[j * lddv + i];
+            }
         }
     }
     // end of reading in SV
@@ -127,7 +148,7 @@ zlarf_fused_sm_kernel_batched(
                 for(int i = 0; i < tpc; i++) {
                     zsum += sT(i,tx);
                 }
-                sT(0,tx) = MAGMA_Z_CONJ( stau[j] ) * zsum;
+                sT(0,tx) = stau[j] * zsum;
             }
             __syncthreads();
 
@@ -184,7 +205,7 @@ zlarf_fused_sm_kernel_batched(
                 for(int i = 0; i < tpc; i++) {
                     zsum += sT(i,tx);
                 }
-                sT(0,tx) = MAGMA_Z_CONJ( stau[j] ) * zsum;
+                sT(0,tx) = stau[j] * zsum;
             }
             __syncthreads();
 
@@ -211,7 +232,8 @@ zlarf_fused_sm_kernel_batched(
 ////////////////////////////////////////////////////////////////////////////////
 template<int NB>
 static magma_int_t
-magma_zlarf_fused_sm_kernel_driver_batched(
+magma_zunm2r_sm_kernel_driver_batched(
+    magma_side_t side, magma_trans_t trans,
     magma_int_t m, magma_int_t n, magma_int_t ib,
     magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
     magmaDoubleComplex** dV_array, magma_int_t Vi, magma_int_t Vj, magma_int_t lddv,
@@ -246,7 +268,7 @@ magma_zlarf_fused_sm_kernel_driver_batched(
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
     if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zlarf_fused_sm_kernel_batched<NB>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+        cudaFuncSetAttribute(zunm2r_sm_kernel_batched<NB>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
     #else
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
@@ -261,8 +283,8 @@ magma_zlarf_fused_sm_kernel_driver_batched(
 
     if( check_launch_only == 1 ) return arginfo;
 
-    void *kernel_args[] = {&m, &n, &ib, &dA_array, &Ai, &Aj, &ldda, &dV_array, &Vi, &Vj, &lddv, &dtau_array, &taui, &batchCount};
-    cudaError_t e = cudaLaunchKernel((void*)zlarf_fused_sm_kernel_batched<NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());
+    void *kernel_args[] = {&side, &trans, &m, &n, &ib, &dA_array, &Ai, &Aj, &ldda, &dV_array, &Vi, &Vj, &lddv, &dtau_array, &taui, &batchCount};
+    cudaError_t e = cudaLaunchKernel((void*)zunm2r_sm_kernel_batched<NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());
     if( e != cudaSuccess ) {
         //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
         arginfo = -100;
@@ -275,42 +297,77 @@ magma_zlarf_fused_sm_kernel_driver_batched(
 // instantiates the kernel driver based on n
 extern "C"
 magma_int_t
-magma_zlarf_fused_sm_batched(
-    magma_int_t m, magma_int_t n, magma_int_t nb, magma_int_t ib,
+magma_zunm2r_sm_batched(
+    magma_side_t side, magma_trans_t trans,
+    magma_int_t m, magma_int_t n, magma_int_t nb, magma_int_t k,
     magmaDoubleComplex** dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
     magmaDoubleComplex** dV_array, magma_int_t Vi, magma_int_t Vj, magma_int_t lddv,
     magmaDoubleComplex **dtau_array, magma_int_t taui,
-    magma_int_t nthreads, magma_int_t check_launch_only,
+    magma_int_t check_launch_only,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
     magma_int_t m32 = magma_roundup(m, 32);
 
-    if (m32 < nb)
+    if (side != MagmaLeft) {
+        printf("%s currently supports side = MagmaLeft only\n", __func__);
         arginfo = -1;
-    else if (n < 0)
+    } else if (trans != MagmaNoTrans && trans != Magma_ConjTrans) {
         arginfo = -2;
-    else if (ldda < max(1,m))
+    } else if (m < 0 || m32 < nb) {
+        arginfo = -3;
+    } else if (n < 0) {
         arginfo = -4;
-
-    /* Quick return if possible */
-    if (m == 0 || n == 0)
-        return arginfo;
+    } else if (nb <= 0) {
+        arginfo = -5;
+    } else if (k < 0) {
+        arginfo = -6;
+    } else if (ldda < max(1,m)) {
+        arginfo = -10;
+    } else if (lddv < max(1,m)) {
+        arginfo = -14;
+    } else if (batchCount < 0) {
+        arginfo = -18;
+    }
 
     if (arginfo != 0) {
         magma_xerbla( __func__, -(arginfo) );
         return arginfo;
     }
 
-    switch(nb) {
-        case 1: arginfo = magma_zlarf_fused_sm_kernel_driver_batched<1>( m, n, ib, dA_array, Ai, Aj, ldda, dV_array, Vi, Vj, lddv, dtau_array, taui, nthreads, check_launch_only, batchCount, queue ); break;
-        case 2: arginfo = magma_zlarf_fused_sm_kernel_driver_batched<2>( m, n, ib, dA_array, Ai, Aj, ldda, dV_array, Vi, Vj, lddv, dtau_array, taui, nthreads, check_launch_only, batchCount, queue ); break;
-        case 4: arginfo = magma_zlarf_fused_sm_kernel_driver_batched<4>( m, n, ib, dA_array, Ai, Aj, ldda, dV_array, Vi, Vj, lddv, dtau_array, taui, nthreads, check_launch_only, batchCount, queue ); break;
-        case 8: arginfo = magma_zlarf_fused_sm_kernel_driver_batched<8>( m, n, ib, dA_array, Ai, Aj, ldda, dV_array, Vi, Vj, lddv, dtau_array, taui, nthreads, check_launch_only, batchCount, queue ); break;
-        #if defined(MAGMA_HAVE_CUDA) && !defined(PRECISION_z)
-        case 16: arginfo = magma_zlarf_fused_sm_kernel_driver_batched<16>( m, n, ib, dA_array, Ai, Aj, ldda, dV_array, Vi, Vj, lddv, dtau_array, taui, nthreads, check_launch_only, batchCount, queue ); break;
-        #endif
-        default: arginfo = -100;
+    /* Quick return if possible */
+    if (m == 0 || n == 0 || k == 0 || batchCount == 0)
+        return arginfo;
+
+    magma_int_t istart, istop, istep;
+    if( (side == MagmaLeft  && trans != MagmaNoTrans) ||
+        (side == MagmaRight && trans == MagmaNoTrans) ) {
+        istart = 0;
+        istop  = k;
+        istep  = nb;
     }
+    else {
+        istart = magma_roundup(k-1,nb);
+        istop  = 0;
+        istep  = -nb;
+    }
+
+    magma_int_t locinfo = 0;
+    for(magma_int_t i = istart; (istep < 0 ? i >= istop : i < istop); i+=istep) {
+        magma_int_t ib       = min(nb, k-i);
+        magma_int_t nthreads = magma_get_zgeqr2_fused_sm_batched_nthreads(m-i, ib);
+        switch(nb) {
+            case 1: locinfo = magma_zunm2r_sm_kernel_driver_batched<1>( side, trans, m-i, n, ib, dA_array, Ai+i, Aj, ldda, dV_array, Vi+i, Vj+i, lddv, dtau_array, taui+i, nthreads, check_launch_only, batchCount, queue ); break;
+            case 2: locinfo = magma_zunm2r_sm_kernel_driver_batched<2>( side, trans, m-i, n, ib, dA_array, Ai+i, Aj, ldda, dV_array, Vi+i, Vj+i, lddv, dtau_array, taui+i, nthreads, check_launch_only, batchCount, queue ); break;
+            case 4: locinfo = magma_zunm2r_sm_kernel_driver_batched<4>( side, trans, m-i, n, ib, dA_array, Ai+i, Aj, ldda, dV_array, Vi+i, Vj+i, lddv, dtau_array, taui+i, nthreads, check_launch_only, batchCount, queue ); break;
+            case 8: locinfo = magma_zunm2r_sm_kernel_driver_batched<8>( side, trans, m-i, n, ib, dA_array, Ai+i, Aj, ldda, dV_array, Vi+i, Vj+i, lddv, dtau_array, taui+i, nthreads, check_launch_only, batchCount, queue ); break;
+            default: locinfo = -5; // unsupported nb
+        }
+
+        // accumulate locinfo (useful in checking launch only)
+        // if arginfo = 0 at the end, it means that check launch was successful at every iteration
+        arginfo += locinfo;
+    }
+
     return arginfo;
 }
