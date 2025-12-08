@@ -286,7 +286,7 @@ magma_int_t magma_get_sgeqrf_batched_nb(magma_int_t m)
 #define GEQRF_BATCHED_LOOKUP_TABLE_BATCH_STEP   (100)
 #define GEQRF_BATCHED_MAX_TESTED_WIDTH          (256)
 
-static magma_int_t magma_geqrf_batched_get_cutoff_width(
+magma_int_t magma_zgeqrf_batched_get_cutoff_width(
             magma_int_t m, magma_int_t n, magma_int_t batchCount,
             std::vector<std::vector<magma_int_t>>* lookup_table )
 {
@@ -320,6 +320,23 @@ static magma_int_t magma_geqrf_batched_get_cutoff_width(
         // this probably means to use the fused update even for larger widths
         cutoff_width = ( cutoff_width == GEQRF_BATCHED_MAX_TESTED_WIDTH ) ? n : cutoff_width;
     }
+    else {
+        // here we don't have tuning data
+        // so read the last record in lookup_table and check if the zunm2r (the shared memory kernel)
+        // can be launched with a minimum value of nb
+        // we choose nb = 4 since smaller values don't usually yield an advantage for the fused zunm2r
+        // we also choose side = Left and trans = NoTrans (these do not affect shared memory requirements)
+        magma_int_t nb = 4;
+        magma_int_t zunm2r_sm_size = magma_zunm2r_batched_kernel_sm_size(MagmaLeft, MagmaNoTrans, m, n, nb, nb);
+        magma_int_t shmem_max      = magma_getdevice_shmem_block_optin();
+        cutoff_width = (*lookup_table)[num_m_entries-1][batch_index];
+        if(zunm2r_sm_size > shmem_max) {
+            // we cannot launch the zunm2r_sm kernel, so we set cutoff width to zero
+            // in order to disable the fused zunm2r
+            cutoff_width = 0;
+        }
+
+    }
 
     return cutoff_width;
 }
@@ -341,7 +358,7 @@ magma_int_t magma_use_zgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, 
     data = &zgeqrf_panel_decision_mi300a;
     #endif
 
-    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    cutoff_width     = magma_zgeqrf_batched_get_cutoff_width(m, n, batchCount, data);
     use_fused_update = (n <= cutoff_width) ? 1 : 0;
     return use_fused_update;
 }
@@ -363,7 +380,7 @@ magma_int_t magma_use_cgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, 
     data = &cgeqrf_panel_decision_mi300a;
     #endif
 
-    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    cutoff_width     = magma_zgeqrf_batched_get_cutoff_width(m, n, batchCount, data);
     use_fused_update = (n <= cutoff_width) ? 1 : 0;
     return use_fused_update;
 }
@@ -385,7 +402,7 @@ magma_int_t magma_use_dgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, 
     data = &dgeqrf_panel_decision_mi300a;
     #endif
 
-    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    cutoff_width     = magma_zgeqrf_batched_get_cutoff_width(m, n, batchCount, data);
     use_fused_update = (n <= cutoff_width) ? 1 : 0;
     return use_fused_update;
 }
@@ -407,7 +424,7 @@ magma_int_t magma_use_sgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, 
     data = &sgeqrf_panel_decision_mi300a;
     #endif
 
-    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    cutoff_width     = magma_zgeqrf_batched_get_cutoff_width(m, n, batchCount, data);
     use_fused_update = (n <= cutoff_width) ? 1 : 0;
     return use_fused_update;
 }

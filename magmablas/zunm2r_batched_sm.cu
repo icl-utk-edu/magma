@@ -230,6 +230,31 @@ zunm2r_sm_kernel_batched(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// calculates the shared memory requirement of zunm2r_sm_kernel_batched
+// (m, n) are the dimensions of the 'C' matrix, to be updated by the 'Q' matrix
+// ib is the number of elementary reflectors defining 'Q'
+// nb is the blocking size used internally by the kernel
+//    - it can be considered the maximum value of ib, so (nb >= ib)
+extern "C"
+magma_int_t magma_zunm2r_batched_kernel_sm_size(
+    magma_side_t side, magma_trans_t trans,
+    magma_int_t m, magma_int_t n, magma_int_t ib, magma_int_t nb)
+{
+    magma_int_t nthreads = magma_get_zgeqr2_fused_sm_batched_nthreads(m, ib);
+    magma_int_t ntcol    = max(1, 32/nthreads);
+    magma_int_t TPC      = nthreads / nb;
+
+    magma_int_t shmem = 0;
+    shmem += SLDA(m)   * nb * sizeof(magmaDoubleComplex);  // sA
+    shmem += SLDA(m)   * nb * sizeof(magmaDoubleComplex);  // sV
+    shmem += SLDA(TPC) * nb * sizeof(magmaDoubleComplex);  // sT
+    shmem += nb             * sizeof(magmaDoubleComplex);  // stau
+    shmem *= ntcol;
+
+    return shmem;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 template<int NB>
 static magma_int_t
 magma_zunm2r_sm_kernel_driver_batched(
@@ -245,15 +270,8 @@ magma_zunm2r_sm_kernel_driver_batched(
     magma_getdevice( &device );
     magma_int_t arginfo = 0;
     const magma_int_t ntcol = max(1, 32/nthreads);
-    const magma_int_t TPC   = nthreads / NB;
 
-    magma_int_t shmem = 0;
-    shmem += SLDA(m)   * NB * sizeof(magmaDoubleComplex);  // sA
-    shmem += SLDA(m)   * NB * sizeof(magmaDoubleComplex);  // sV
-    shmem += SLDA(TPC) * NB * sizeof(magmaDoubleComplex);  // sT
-    shmem += NB             * sizeof(magmaDoubleComplex);  // stau
-    shmem *= ntcol;
-
+    magma_int_t shmem = magma_zunm2r_batched_kernel_sm_size(side, trans, m, n, ib, NB);
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
     nthreads = min(nthreads, m);           // nthreads should not be greater than m
     nthreads = max(nthreads, NB);          // nthreads should not be less than NB
