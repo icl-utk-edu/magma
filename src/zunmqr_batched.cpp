@@ -33,7 +33,7 @@
     as returned by ZGEQRF. Q is of order M if SIDE = MagmaLeft and of order N
     if SIDE = MagmaRight.
 
-    - Only SIDE = MagmaRight is supported for now
+    - Only SIDE = MagmaLeft is currently supported
     - This is the batch version of the routine
 
     Arguments

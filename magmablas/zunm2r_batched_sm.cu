@@ -316,23 +316,23 @@ magma_zunm2r_sm_kernel_driver_batched(
     -------
     ZUNM2R overwrites the general complex m-by-n matrix C with
 
-       Q * C    if SIDE = 'L' and TRANS = 'N', or
-       Q**H* C  if SIDE = 'L' and TRANS = 'C', or
+       Q * C    if SIDE = MagmaLeft and TRANS = 'N', or
+       Q**H* C  if SIDE = MagmaLeft and TRANS = 'C', or
 
-       C * Q    if SIDE = 'R' and TRANS = 'N', or
-       C * Q**H if SIDE = 'R' and TRANS = 'C',
+       C * Q    if SIDE = MagmaRight and TRANS = 'N', or
+       C * Q**H if SIDE = MagmaRight and TRANS = 'C',
 
    where Q is a complex unitary matrix defined as the product of k
    elementary reflectors
 
        Q = H(1) H(2) . . . H(k)
 
-   as returned by ZGEQRF. Q is of order m if SIDE = 'L' and of order n
-   if SIDE = 'R'.
+   as returned by ZGEQRF. Q is of order m if SIDE = MagmaLeft and of order n
+   if SIDE = MagmaRight.
 
   - This is an internal batch implementation of ZUNM2R
   - The implementation uses shared memory blocking
-  - Only SIDE = 'L' is currently supported
+  - Only SIDE = MagmaLeft is currently supported
 
     @ingroup magma_unmqr
 *******************************************************************************/
