@@ -17,7 +17,31 @@
 #include "zunm2r_batched.cuh"
 #include "batched_kernel_param.h"
 
-////////////////////////////////////////////////////////////////////////////////
+/***************************************************************************//**
+    Purpose
+    -------
+    ZUNM2R overwrites the general complex m-by-n matrix C with
+
+       Q * C    if SIDE = 'L' and TRANS = 'N', or
+       Q**H* C  if SIDE = 'L' and TRANS = 'C', or
+
+       C * Q    if SIDE = 'R' and TRANS = 'N', or
+       C * Q**H if SIDE = 'R' and TRANS = 'C',
+
+   where Q is a complex unitary matrix defined as the product of k
+   elementary reflectors
+
+       Q = H(1) H(2) . . . H(k)
+
+   as returned by ZGEQRF. Q is of order m if SIDE = 'L' and of order n
+   if SIDE = 'R'.
+
+  - This is an internal batch implementation of ZUNM2R
+  - The implementation uses register blocking
+  - Only SIDE = 'L' is currently supported
+
+    @ingroup magma_unmqr
+*******************************************************************************/
 extern "C" magma_int_t
 magma_zunm2r_reg_medium_batched(
     magma_side_t side, magma_trans_t trans,

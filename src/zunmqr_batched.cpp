@@ -17,7 +17,7 @@
 /***************************************************************************//**
     Purpose
     -------
-    ZUNMQR_GPU overwrites the general complex M-by-N matrix C with
+    ZUNMQR overwrites the general complex M-by-N matrix C with
 
     @verbatim
                                SIDE = MagmaLeft    SIDE = MagmaRight
@@ -33,12 +33,15 @@
     as returned by ZGEQRF. Q is of order M if SIDE = MagmaLeft and of order N
     if SIDE = MagmaRight.
 
+    - Only SIDE = MagmaRight is supported for now
+    - This is the batch version of the routine
+
     Arguments
     ---------
     @param[in]
     side    magma_side_t
       -     = MagmaLeft:   apply Q or Q**H from the Left;
-      -     = MagmaRight:  apply Q or Q**H from the Right.
+      -     = MagmaRight:  apply Q or Q**H from the Right (not currently supported).
 
     @param[in]
     trans   magma_trans_t
@@ -61,64 +64,59 @@
             if SIDE = MagmaRight, N >= K >= 0.
 
     @param[in]
-    dA      COMPLEX_16 array on the GPU, dimension (LDDA,K)
+    dA_array    Array of pointers, dimension (batchCount)
+            Each is a COMPLEX_16 array on the GPU, dimension (LDDA,K)
             The i-th column must contain the vector which defines the
             elementary reflector H(i), for i = 1,2,...,k, as returned by
             ZGEQRF in the first k columns of its array argument dA.
-            dA is modified by the routine but restored on exit.
 
     @param[in]
     ldda    INTEGER
-            The leading dimension of the array dA.
+            The leading dimension of each array dA.
             If SIDE = MagmaLeft,  LDDA >= max(1,M);
             if SIDE = MagmaRight, LDDA >= max(1,N).
 
     @param[in]
-    tau     COMPLEX_16 array, dimension (K)
+    dtau_array    Array of pointers, dimension(batchCount)
+            Each is a COMPLEX_16 array, dimension (K)
             TAU(i) must contain the scalar factor of the elementary
             reflector H(i), as returned by ZGEQRF.
 
     @param[in,out]
-    dC      COMPLEX_16 array on the GPU, dimension (LDDC,N)
+    dC_array    Array of pointers, dimension (batchCount)
+            Each is a COMPLEX_16 array on the GPU, dimension (LDDC,N)
             On entry, the M-by-N matrix C.
             On exit, C is overwritten by (Q*C) or (Q**H * C) or (C * Q**H) or (C*Q).
 
     @param[in]
     lddc    INTEGER
-            The leading dimension of the array DC. LDDC >= max(1,M).
-
-    @param[out]
-    hwork   (workspace) COMPLEX_16 array, dimension (MAX(1,LWORK))
-    \n
-            Currently, zgetrs_gpu assumes that on exit, hwork contains the last
-            block of A and C. This will change and *should not be relied on*!
-
-    @param[in]
-    lwork   INTEGER
-            The dimension of the array HWORK.
-            LWORK >= (M-K+NB)*(N+NB) + N*NB if SIDE = MagmaLeft, and
-            LWORK >= (N-K+NB)*(M+NB) + M*NB if SIDE = MagmaRight,
-            where NB is the given blocksize.
-    \n
-            If LWORK = -1, then a workspace query is assumed; the routine
-            only calculates the optimal size of the HWORK array, returns
-            this value as the first entry of the HWORK array, and no error
-            message related to LWORK is issued by XERBLA.
+            The leading dimension of each array DC. LDDC >= max(1,M).
 
     @param[in,out]
-    dT      COMPLEX_16 array on the GPU that is the output
-            (the 9th argument) of magma_zgeqrf_gpu.
-            Part used as workspace.
+    device_work  Workspace, allocated on device (GPU) memory.
 
-    @param[in]
-    nb      INTEGER
-            This is the blocking size that was used in pre-computing DT, e.g.,
-            the blocking size used in magma_zgeqrf_gpu.
+    @param[in,out]
+    lwork_device   INTEGER pointer
+                   The size of the workspace (device_work) in bytes
+                   - lwork_device[0] < 0: a workspace query is assumed, the routine
+                     calculates the required amount of workspace and returns
+                     it in lwork_device. The workspace itself is not referenced, and no
+                     computation is performed.
+                   - lwork_device[0] >= 0: the routine assumes that the user has provided
+                     a workspace with the size in lwork_device.
 
     @param[out]
-    info    INTEGER
+    dinfo_array    INTEGER array on GPU memory. Each entry is either,
       -     = 0:  successful exit
       -     < 0:  if INFO = -i, the i-th argument had an illegal value
+
+    @param[in]
+    batchCount  INTEGER
+                The number of matrices to operate on.
+
+    @param[in]
+    queue   magma_queue_t
+            Queue to execute in.
 
     @ingroup magma_unmqr
 *******************************************************************************/
