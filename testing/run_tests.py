@@ -1354,6 +1354,8 @@ batched = (
 
 	# ----- QR
 	('testing_zgeqrf_batched',    batch + '               -c',  mn,   ''),
+	('testing_zunmqr_batched',    batch + '               -c',  mnk,  ''),
+	('testing_zunmqr_batched',    batch + '       -C      -c',  mnk,  ''),
 
 	# ----- LU
 	('testing_zgesv_batched',         batch + '           -c',  mn,   ''),

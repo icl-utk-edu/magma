@@ -24,7 +24,7 @@ hdr += \
 	$(cdir)/zgetf2_nopiv_devicefunc.cuh		\
 	$(cdir)/zlaswp_device.cuh		\
 	$(cdir)/zgeqr2_batched_fused.cuh	\
-	$(cdir)/zlarf_batched_fused.cuh	\
+	$(cdir)/zunm2r_batched.cuh	\
 	$(cdir)/zgbtf2_devicefunc.cuh	\
 
 # alphabetic order by base name (ignoring precision)
@@ -163,10 +163,10 @@ libmagma_src += \
 	$(cdir)/zherk_batched.cpp		\
 	$(cdir)/cherk_batched_core.cu		\
 	$(cdir)/zherk_batched_core.cu		\
-	$(cdir)/zlarf_batched_fused_reg.cu	\
-	$(cdir)/zlarf_batched_fused_reg_medium.cu	\
-	$(cdir)/zlarf_batched_fused_reg_tall.cu	\
-	$(cdir)/zlarf_batched_fused_sm.cu	\
+	$(cdir)/zunm2r_batched_reg.cu	\
+	$(cdir)/zunm2r_batched_reg_medium.cu	\
+	$(cdir)/zunm2r_batched_reg_tall.cu	\
+	$(cdir)/zunm2r_batched_sm.cu	\
 	$(cdir)/zlaswp_batched.cu		\
 	$(cdir)/zpotf2_kernels.cu		\
 	$(cdir)/set_pointer.cu			\
@@ -324,20 +324,20 @@ $(cdir)/dgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
 $(cdir)/cgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
 $(cdir)/zgetf2_native_kernel.$(o_ext): control/batched_kernel_param.h
 
-$(cdir)/slarf_batched_fused_reg.$(o_ext): $(cdir)/slarf_batched_fused.cuh
-$(cdir)/dlarf_batched_fused_reg.$(o_ext): $(cdir)/dlarf_batched_fused.cuh
-$(cdir)/clarf_batched_fused_reg.$(o_ext): $(cdir)/clarf_batched_fused.cuh
-$(cdir)/zlarf_batched_fused_reg.$(o_ext): $(cdir)/zlarf_batched_fused.cuh
+$(cdir)/sorm2r_batched_reg.$(o_ext): $(cdir)/sorm2r_batched.cuh
+$(cdir)/dorm2r_batched_reg.$(o_ext): $(cdir)/dorm2r_batched.cuh
+$(cdir)/cunm2r_batched_reg.$(o_ext): $(cdir)/cunm2r_batched.cuh
+$(cdir)/zunm2r_batched_reg.$(o_ext): $(cdir)/zunm2r_batched.cuh
 
-$(cdir)/slarf_batched_fused_reg_medium.$(o_ext): $(cdir)/slarf_batched_fused.cuh
-$(cdir)/dlarf_batched_fused_reg_medium.$(o_ext): $(cdir)/dlarf_batched_fused.cuh
-$(cdir)/clarf_batched_fused_reg_medium.$(o_ext): $(cdir)/clarf_batched_fused.cuh
-$(cdir)/zlarf_batched_fused_reg_medium.$(o_ext): $(cdir)/zlarf_batched_fused.cuh
+$(cdir)/sorm2r_batched_reg_medium.$(o_ext): $(cdir)/sorm2r_batched.cuh
+$(cdir)/dorm2r_batched_reg_medium.$(o_ext): $(cdir)/dorm2r_batched.cuh
+$(cdir)/cunm2r_batched_reg_medium.$(o_ext): $(cdir)/cunm2r_batched.cuh
+$(cdir)/zunm2r_batched_reg_medium.$(o_ext): $(cdir)/zunm2r_batched.cuh
 
-$(cdir)/slarf_batched_fused_reg_tall.$(o_ext): $(cdir)/slarf_batched_fused.cuh
-$(cdir)/dlarf_batched_fused_reg_tall.$(o_ext): $(cdir)/dlarf_batched_fused.cuh
-$(cdir)/clarf_batched_fused_reg_tall.$(o_ext): $(cdir)/clarf_batched_fused.cuh
-$(cdir)/zlarf_batched_fused_reg_tall.$(o_ext): $(cdir)/zlarf_batched_fused.cuh
+$(cdir)/sorm2r_batched_reg_tall.$(o_ext): $(cdir)/sorm2r_batched.cuh
+$(cdir)/dorm2r_batched_reg_tall.$(o_ext): $(cdir)/dorm2r_batched.cuh
+$(cdir)/cunm2r_batched_reg_tall.$(o_ext): $(cdir)/cunm2r_batched.cuh
+$(cdir)/zunm2r_batched_reg_tall.$(o_ext): $(cdir)/zunm2r_batched.cuh
 
 $(cdir)/spotf2_kernels.$(o_ext): $(cdir)/spotf2_devicesfunc.cuh
 $(cdir)/dpotf2_kernels.$(o_ext): $(cdir)/dpotf2_devicesfunc.cuh

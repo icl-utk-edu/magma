@@ -12,6 +12,8 @@
 */
 #include "magma_internal.h"
 
+#define PRECISION_z
+
 /******************************************************************************/
 extern "C" magma_int_t
 magma_zgeqrf_panel_fused_update_batched(
@@ -26,8 +28,14 @@ magma_zgeqrf_panel_fused_update_batched(
     magma_int_t minmn = min(m,n);
     if( m < nb ) return -1;
 
-    // check for square sizes <= 32
-    if( m == n && m <= 32 ){
+    #ifdef PRECISION_z
+    magma_int_t max_smallsq_size = 16;
+    #else
+    magma_int_t max_smallsq_size = 32;
+    #endif
+
+    // check for square sizes <= max_smallsq_size
+    if( m == n && m <= max_smallsq_size ){
         info = magma_zgeqrf_batched_smallsq(
                     m, dA_array, Ai, Aj, ldda,
                     tau_array, taui,
@@ -47,13 +55,13 @@ magma_zgeqrf_panel_fused_update_batched(
             magma_int_t nthreads        = magma_get_zgeqr2_fused_sm_batched_nthreads(m-j, ib);
             magma_int_t zgeqr2_reg_info = magma_zgeqr2_fused_reg_batched(m-j, ib, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, info_array, 1, 1, queue );
             magma_int_t zgeqr2_sm_info  = magma_zgeqr2_fused_sm_batched(m-j, ib, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, info_array, nthreads, 1, 1, queue );
-            magma_int_t zlarf_reg_info  = magma_zlarf_fused_reg_batched(m-j, n-(j+ib), nb, ib, dA_array, Ai+j, Aj+j+ib, ldda, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, 1, 1, queue );
-            magma_int_t zlarf_sm_info   = magma_zlarf_fused_sm_batched(m-j, n-(j+ib), nb, ib, dA_array, Ai+j, Aj+j+ib, ldda, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, nthreads, 1, 1, queue );
+            magma_int_t zunm2r_reg_info = magma_zunm2r_reg_batched(MagmaLeft, Magma_ConjTrans, m-j, n-(j+ib), nb, ib, dA_array, Ai+j, Aj+j+ib, ldda, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, 1, 1, queue );
+            magma_int_t zunm2r_sm_info  = magma_zunm2r_sm_batched(MagmaLeft, Magma_ConjTrans, m-j, n-(j+ib), nb, ib, dA_array, Ai+j, Aj+j+ib, ldda, dA_array, Ai+j, Aj+j, ldda, tau_array, taui+j, 1, 1, queue );
 
             magma_int_t zgeqr2_reg_ok = (zgeqr2_reg_info == 0) ? 1 : 0;
             magma_int_t zgeqr2_sm_ok  = (zgeqr2_sm_info  == 0) ? 1 : 0;
-            magma_int_t zlarf_reg_ok  = (zlarf_reg_info  == 0) ? 1 : 0;
-            magma_int_t zlarf_sm_ok   = (zlarf_sm_info   == 0) ? 1 : 0;
+            magma_int_t zlarf_reg_ok  = (zunm2r_reg_info == 0) ? 1 : 0;
+            magma_int_t zlarf_sm_ok   = (zunm2r_sm_info  == 0) ? 1 : 0;
 
             if( (zgeqr2_reg_ok == 0 && zgeqr2_sm_ok == 0) ||
                 (update_needed == 1 && zlarf_reg_ok  == 0 && zlarf_sm_ok  == 0) ) {
@@ -77,7 +85,8 @@ magma_zgeqrf_panel_fused_update_batched(
             }
 
             // update -- try reg first
-            info = magma_zlarf_fused_reg_batched(
+            info = magma_zunm2r_reg_batched(
+                            MagmaLeft, Magma_ConjTrans,
                             m-j, n-(j+ib), nb, ib,
                             dA_array, Ai+j, Aj+j+ib, ldda,
                             dA_array, Ai+j, Aj+j,    ldda,
@@ -86,11 +95,12 @@ magma_zgeqrf_panel_fused_update_batched(
 
             // if update on reg failed to launch, use sm version
             if( info != 0 ) {
-                info = magma_zlarf_fused_sm_batched(
+                info = magma_zunm2r_sm_batched(
+                            MagmaLeft, Magma_ConjTrans,
                             m-j, n-(j+ib), nb, ib,
                             dA_array, Ai+j, Aj+j+ib, ldda,
                             dA_array, Ai+j, Aj+j,    ldda,
-                            tau_array, taui+j, nthreads, 0,
+                            tau_array, taui+j, 0,
                             batchCount, queue );
             }
         }
@@ -135,7 +145,7 @@ magma_zgeqrf_panel_internal_batched(
 
     // try optimizations for small sizes first
     // try different nb values
-    for(int inb = 16; inb >= 2; inb/=2) {
+    for(int inb = 8; inb >= 2; inb/=2) {
         info = magma_zgeqrf_panel_fused_update_batched(
                     m, n, inb,
                     dA_array, Ai, Aj, ldda,
