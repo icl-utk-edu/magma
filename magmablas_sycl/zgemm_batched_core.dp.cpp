@@ -10,6 +10,7 @@
        @author Mark Gates
        @author Azzam Haidar
        @author Ahmad Abdelfattah
+       @author Natalie Beams
 
 */
 #include <sycl/sycl.hpp>
@@ -17,6 +18,7 @@
 
 #define PRECISION_z
 
+#include "magma_tuning_trees.h"
 #include "gemm_template_kernel_batched.dp.hpp"
 #include "gemm_config/zgemm_param_nn.h"
 #include "gemm_config/zgemm_param_nt.h"
@@ -214,6 +216,7 @@ magmablas_zgemm_batched_core(
         return;
     }
 
+    magma_int_t config = magma_zgemm_batched_get_config(transA, transB, m, n, k);
     magma_int_t shape = 0;
     if      (transA == MagmaNoTrans   && transB == MagmaNoTrans)   { shape = 0; } // nn
     else if (transA == MagmaNoTrans   && transB == MagmaTrans)     { shape = 1; } // nt
@@ -224,87 +227,647 @@ magmablas_zgemm_batched_core(
     else if (transA == MagmaConjTrans && transB == MagmaNoTrans)   { shape = 6; } // cn
     else if (transA == MagmaConjTrans && transB == MagmaTrans)     { shape = 7; } // ct
     else if (transA == MagmaConjTrans && transB == MagmaConjTrans) { shape = 8; } // cc
-    
+   
+    magma_int_t err = 0; 
     switch(shape)
     {
         case 0: // nn
             {
-                gemm_template_batched_nn<magmaDoubleComplex, version(NN,18), 0, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+		switch(config)
+		{
+		    case 0:
+		        {
+		          gemm_template_batched_nn<magmaDoubleComplex, version(NN,0), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 10:
+		        {
+		          gemm_template_batched_nn<magmaDoubleComplex, version(NN,10), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 11:
+		        {
+		          gemm_template_batched_nn<magmaDoubleComplex, version(NN,11), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 19:
+		        {
+		          gemm_template_batched_nn<magmaDoubleComplex, version(NN,19), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 21:
+		        {
+		          gemm_template_batched_nn<magmaDoubleComplex, version(NN,21), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 22:
+		        {
+		          gemm_template_batched_nn<magmaDoubleComplex, version(NN,22), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 3:
+		        {
+		          gemm_template_batched_nn<magmaDoubleComplex, version(NN,3), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 6:
+		        {
+		          gemm_template_batched_nn<magmaDoubleComplex, version(NN,6), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 7:
+		        {
+		          gemm_template_batched_nn<magmaDoubleComplex, version(NN,7), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 9:
+		        {
+		          gemm_template_batched_nn<magmaDoubleComplex, version(NN,9), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
         case 1: // nt
             {
-                if (k <= 8)
-                {
-                    // version 68
-                    gemm_template_batched_nt<magmaDoubleComplex, version(NT,68), 0, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
-                else
-                {
-                    // version 29
-                    gemm_template_batched_nt<magmaDoubleComplex, version(NT,29), 0, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
+		switch(config)
+		{
+		    case 0:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,0), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 14:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,14), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 16:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,16), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 18:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,18), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 3:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,3), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 33:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,33), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 6:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,6), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 64:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,64), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 68:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,68), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 8:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,8), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
         case 2: // nc
             {
-                if (k <= 8)
-                {
-                    // version 68
-                    gemm_template_batched_nt<magmaDoubleComplex, version(NT,68), 0, 1>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
-                else
-                {
-                    // version 29
-                    gemm_template_batched_nt<magmaDoubleComplex, version(NT,29), 0, 1>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
+		switch(config)
+		{
+		    case 0:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,0), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 14:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,14), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 16:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,16), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 18:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,18), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 3:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,3), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 33:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,33), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 6:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,6), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 64:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,64), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 68:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,68), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 8:
+		        {
+		          gemm_template_batched_nt<magmaDoubleComplex, version(NT,8), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
         case 3: // tn
             {
-                // version 56
-                gemm_template_batched_tn<magmaDoubleComplex, version(TN,56), 0, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+		switch(config)
+		{
+		    case 13:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,13), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 148:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,148), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 22:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,22), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 28:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,28), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 3:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,3), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 44:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,44), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 45:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,45), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 47:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,47), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 66:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,66), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 69:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,69), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
         case 6: // cn
             {
-                // version 56
-                gemm_template_batched_tn<magmaDoubleComplex, version(TN,56), 1, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+		switch(config)
+		{
+		    case 13:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,13), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 148:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,148), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 22:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,22), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 28:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,28), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 3:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,3), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 44:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,44), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 45:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,45), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 47:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,47), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 66:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,66), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 69:
+		        {
+		          gemm_template_batched_tn<magmaDoubleComplex, version(TN,69), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
         case 4: // tt
             {
-                // version 13
-                gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 0, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+		switch(config)
+		{
+		    case 0:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,0), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 11:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,11), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 13:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 14:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,14), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 17:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,17), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 19:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,19), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 3:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,3), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 5:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,5), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 53:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,53), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 6:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,6), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
         case 5: // tc
             {
-                // version 13
-                gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 0, 1>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+		switch(config)
+		{
+		    case 0:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,0), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 11:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,11), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 13:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 14:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,14), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 17:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,17), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 19:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,19), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 3:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,3), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 5:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,5), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 53:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,53), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 6:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,6), 0, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
         case 7: // ct
             {
-                // version 13
-                gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 1, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+		switch(config)
+		{
+		    case 0:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,0), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 11:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,11), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 13:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 14:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,14), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 17:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,17), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 19:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,19), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 3:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,3), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 5:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,5), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 53:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,53), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 6:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,6), 1, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
         case 8: // cc
             {
-                // version 13
-                gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 1, 1>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+		switch(config)
+		{
+		    case 0:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,0), 1, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 11:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,11), 1, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 13:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,13), 1, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 14:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,14), 1, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 17:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,17), 1, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 19:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,19), 1, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 3:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,3), 1, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 5:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,5), 1, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 53:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,53), 1, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 6:
+		        {
+		          gemm_template_batched_tt<magmaDoubleComplex, version(TT,6), 1, 1>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
         default:; // propose something
