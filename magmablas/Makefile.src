@@ -124,7 +124,7 @@ libmagma_src += \
 # native kernels
 libmagma_src += \
 	$(cdir)/zgetf2_native_kernel.cu		\
-        $(cdir)/zhetrs.cu                       \
+    $(cdir)/zhetrs.cu                   \
 
 # batched files, alphabetic order by base name (ignoring precision)
 libmagma_src += \
@@ -182,6 +182,9 @@ libmagma_src += \
 	$(cdir)/ztrsv_batched.cu			\
 	$(cdir)/ztrtri_diag_batched.cu		\
 	$(cdir)/zgetf2_nopiv_kernels.cu		\
+
+libmagma_src += \
+	$(cdir)/zheevj_batched_small_sm.cu		\
 
 # vbatched files
 libmagma_src += \
