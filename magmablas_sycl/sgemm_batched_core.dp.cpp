@@ -10,6 +10,7 @@
        @author Mark Gates
        @author Azzam Haidar
        @author Ahmad Abdelfattah
+       @author Natalie Beams
 
 */
 #include <sycl/sycl.hpp>
@@ -17,6 +18,7 @@
 
 #define PRECISION_s
 
+#include "magma_tuning_trees.h"
 #include "gemm_template_kernel_batched.dp.hpp"
 #include "gemm_config/sgemm_param_nn.h"
 #include "gemm_config/sgemm_param_nt.h"
@@ -215,167 +217,304 @@ magmablas_sgemm_batched_core(
         return;
     }
 
+    magma_int_t config = magma_sgemm_batched_get_config(transA, transB, m, n, k);
     magma_int_t shape = 0;
     if      (transA == MagmaNoTrans   && transB == MagmaNoTrans)   { shape = 0; } // nn
     else if (transA == MagmaNoTrans   && transB == MagmaTrans)     { shape = 1; } // nt
-    else if (transA == MagmaNoTrans   && transB == MagmaConjTrans) { shape = 2; } // nc
-    else if (transA == MagmaTrans     && transB == MagmaNoTrans)   { shape = 3; } // tn
-    else if (transA == MagmaTrans     && transB == MagmaTrans)     { shape = 4; } // tt
-    else if (transA == MagmaTrans     && transB == MagmaConjTrans) { shape = 5; } // tc
-    else if (transA == MagmaConjTrans && transB == MagmaNoTrans)   { shape = 6; } // cn
-    else if (transA == MagmaConjTrans && transB == MagmaTrans)     { shape = 7; } // ct
-    else if (transA == MagmaConjTrans && transB == MagmaConjTrans) { shape = 8; } // cc
+    else if (transA == MagmaNoTrans   && transB == MagmaConjTrans) { shape = 1; } // nc
+    else if (transA == MagmaTrans     && transB == MagmaNoTrans)   { shape = 2; } // tn
+    else if (transA == MagmaTrans     && transB == MagmaTrans)     { shape = 3; } // tt
+    else if (transA == MagmaTrans     && transB == MagmaConjTrans) { shape = 3; } // tc
+    else if (transA == MagmaConjTrans && transB == MagmaNoTrans)   { shape = 2; } // cn
+    else if (transA == MagmaConjTrans && transB == MagmaTrans)     { shape = 3; } // ct
+    else if (transA == MagmaConjTrans && transB == MagmaConjTrans) { shape = 3; } // cc
     
+    magma_int_t err = 0; 
     switch(shape)
     {
         case 0: // nn
             {
-                if (k < 64)
-                {
-                    if (k == 8 && n == 24)
-                        gemm_template_batched_nn<float, version(NN,532), 0, 0>
-                        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                    else if (n < 32)
-                        gemm_template_batched_nn<float, version(NN,170), 0, 0>
-                        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                    else
-                        gemm_template_batched_nn<float, version(NN,532), 0, 0>
-                        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
-                else
-                {
-                    gemm_template_batched_nn<float, version(NN,504), 0, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
+		switch(config)
+		{
+		    case 148:
+		        {
+		          gemm_template_batched_nn<float, version(NN,148), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 149:
+		        {
+		          gemm_template_batched_nn<float, version(NN,149), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 16:
+		        {
+		          gemm_template_batched_nn<float, version(NN,16), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 170:
+		        {
+		          gemm_template_batched_nn<float, version(NN,170), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 243:
+		        {
+		          gemm_template_batched_nn<float, version(NN,243), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 261:
+		        {
+		          gemm_template_batched_nn<float, version(NN,261), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 269:
+		        {
+		          gemm_template_batched_nn<float, version(NN,269), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 281:
+		        {
+		          gemm_template_batched_nn<float, version(NN,281), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 285:
+		        {
+		          gemm_template_batched_nn<float, version(NN,285), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 540:
+		        {
+		          gemm_template_batched_nn<float, version(NN,540), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
-        case 1: // nt
+        case 1: // nt, nc
             {
-                gemm_template_batched_nt<float, version(NT,653), 0, 0>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+		switch(config)
+		{
+		    case 158:
+		        {
+		          gemm_template_batched_nt<float, version(NT,158), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 159:
+		        {
+		          gemm_template_batched_nt<float, version(NT,159), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 16:
+		        {
+		          gemm_template_batched_nt<float, version(NT,16), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 182:
+		        {
+		          gemm_template_batched_nt<float, version(NT,182), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 212:
+		        {
+		          gemm_template_batched_nt<float, version(NT,212), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 271:
+		        {
+		          gemm_template_batched_nt<float, version(NT,271), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 289:
+		        {
+		          gemm_template_batched_nt<float, version(NT,289), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 297:
+		        {
+		          gemm_template_batched_nt<float, version(NT,297), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 750:
+		        {
+		          gemm_template_batched_nt<float, version(NT,750), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 776:
+		        {
+		          gemm_template_batched_nt<float, version(NT,776), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
-        case 2: // nc
+        case 2: // tn, cn
             {
-                gemm_template_batched_nt<float, version(NT,653), 0, 1>
-                (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+		switch(config)
+		{
+		    case 239:
+		        {
+		          gemm_template_batched_tn<float, version(TN,239), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 242:
+		        {
+		          gemm_template_batched_tn<float, version(TN,242), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 261:
+		        {
+		          gemm_template_batched_tn<float, version(TN,261), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 282:
+		        {
+		          gemm_template_batched_tn<float, version(TN,282), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 338:
+		        {
+		          gemm_template_batched_tn<float, version(TN,338), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 40:
+		        {
+		          gemm_template_batched_tn<float, version(TN,40), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 438:
+		        {
+		          gemm_template_batched_tn<float, version(TN,438), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 539:
+		        {
+		          gemm_template_batched_tn<float, version(TN,539), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 62:
+		        {
+		          gemm_template_batched_tn<float, version(TN,62), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 772:
+		        {
+		          gemm_template_batched_tn<float, version(TN,772), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
             }
             break;
-        case 3: // tn
+        case 3: // tt, ct, tc, cc
             {
-                if (k < 64)
-                {
-                    gemm_template_batched_tn<float, version(TN,334), 0, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
-                else
-                {
-                    gemm_template_batched_tn<float, version(TN,680), 0, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
-            }
-            break;
-        case 6: // cn
-            {
-                if (k < 64)
-                {
-                    gemm_template_batched_tn<float, version(TN,334), 1, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
-                else
-                {
-                    gemm_template_batched_tn<float, version(TN,680), 1, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
-            }
-            break;
-        case 4: // tt
-            {
-                if (k < 128)
-                {
-                    if (m < 128)
-                    {
-                        gemm_template_batched_tt<float, version(TT,286), 0, 0>
-                        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                    }
-                    else
-                    {
-                        gemm_template_batched_tt<float, version(TT,265), 0, 0>
-                        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                    }
-                }
-                else
-                {
-                    gemm_template_batched_tt<float, version(TT,312), 0, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
-            }
-            break;
-        case 5: // tc
-            {
-                if (k < 128)
-                {
-                    if (m < 128)
-                    {
-                        gemm_template_batched_tt<float, version(TT,286), 0, 1>
-                        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                    }
-                    else
-                    {
-                        gemm_template_batched_tt<float, version(TT,265), 0, 1>
-                        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                    }
-                }
-                else
-                {
-                    gemm_template_batched_tt<float, version(TT,312), 0, 1>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
-            }
-            break;
-        case 7: // ct
-            {
-                if (k < 128)
-                {
-                    if (m < 128)
-                    {
-                        gemm_template_batched_tt<float, version(TT,286), 1, 0>
-                        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                    }
-                    else
-                    {
-                        gemm_template_batched_tt<float, version(TT,265), 1, 0>
-                        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                    }
-                }
-                else
-                {
-                    gemm_template_batched_tt<float, version(TT,312), 1, 0>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
-            }
-            break;
-        case 8: // cc
-            {
-                if (k < 128)
-                {
-                    if (m < 128)
-                    {
-                        gemm_template_batched_tt<float, version(TT,286), 1, 1>
-                        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                    }
-                    else
-                    {
-                        gemm_template_batched_tt<float, version(TT,265), 1, 1>
-                        (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                    }
-                }
-                else
-                {
-                    gemm_template_batched_tt<float, version(TT,312), 1, 1>
-                    (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
-                }
-            }
+		switch(config)
+		{
+		    case 1:
+		        {
+		          gemm_template_batched_tt<float, version(TT,1), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 11:
+		        {
+		          gemm_template_batched_tt<float, version(TT,11), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 133:
+		        {
+		          gemm_template_batched_tt<float, version(TT,133), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 137:
+		        {
+		          gemm_template_batched_tt<float, version(TT,137), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 141:
+		        {
+		          gemm_template_batched_tt<float, version(TT,141), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 153:
+		        {
+		          gemm_template_batched_tt<float, version(TT,153), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 157:
+		        {
+		          gemm_template_batched_tt<float, version(TT,157), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 64:
+		        {
+		          gemm_template_batched_tt<float, version(TT,64), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 75:
+		        {
+		          gemm_template_batched_tt<float, version(TT,75), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+		    case 87:
+		        {
+		          gemm_template_batched_tt<float, version(TT,87), 0, 0>
+                          (m, n, k, dA_array, ldda, dB_array, lddb, dC_array, lddc, alpha, beta, Ai, Aj, Bi, Bj, Ci, Cj, batchCount, queue);
+			}
+			break;
+                    default:
+		        err = 1;
+		}
+		if (err > 0)
+	            printf("Error determining batched GEMM configuration!\n");
+	    }
             break;
         default:; // propose something
     }
