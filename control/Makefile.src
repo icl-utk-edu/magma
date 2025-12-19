@@ -36,6 +36,7 @@ libmagma_src += \
 	$(cdir)/magma_bulge.cpp		\
 	$(cdir)/magma_threadsetting.cpp	\
 	$(cdir)/magma_timer.cpp		\
+	$(cdir)/magma_tuning_trees.cpp  \
 	$(cdir)/magma_winthread.cpp	\
 	$(cdir)/magma_yield.cpp		\
 	$(cdir)/magma_zauxiliary.cpp	\
