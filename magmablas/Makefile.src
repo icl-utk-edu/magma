@@ -184,6 +184,7 @@ libmagma_src += \
 	$(cdir)/zgetf2_nopiv_kernels.cu		\
 
 libmagma_src += \
+	$(cdir)/zgesvj_batched_small_sm.cu		\
 	$(cdir)/zheevj_batched_small_sm.cu		\
 
 # vbatched files

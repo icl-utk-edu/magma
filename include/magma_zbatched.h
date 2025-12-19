@@ -64,9 +64,10 @@ magma_int_t magma_get_zgeqr2_fused_sm_batched_nthreads(magma_int_t m, magma_int_
 magma_int_t magma_get_zgeqrf_batched_ntcol(magma_int_t m, magma_int_t n);
 magma_int_t magma_get_zgetri_batched_ntcol(magma_int_t m, magma_int_t n);
 magma_int_t magma_get_ztrsm_batched_stop_nb(magma_side_t side, magma_int_t m, magma_int_t n);
-void magma_get_zgbtrf_batched_params(magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t *nb, magma_int_t *threads);
 magma_int_t magma_zunm2r_batched_kernel_sm_size(magma_side_t side, magma_trans_t trans, magma_int_t m, magma_int_t n, magma_int_t ib, magma_int_t nb);
 magma_int_t magma_get_zheevj_batched_small_nthreads(magma_int_t n);
+void        magma_get_zgbtrf_batched_params(magma_int_t m, magma_int_t n, magma_int_t kl, magma_int_t ku, magma_int_t *nb, magma_int_t *threads);
+bool        magma_zgesvj_batched_use_fused( magma_vec_t jobu, magma_vec_t jobv, magma_int_t m, magma_int_t n );
 
 #ifdef MAGMA_REAL
 magma_int_t
@@ -708,6 +709,16 @@ magma_zgesv_batched_small(
     magmaDoubleComplex **dB_array, magma_int_t lddb,
     magma_int_t* dinfo_array,
     magma_int_t batchCount, magma_queue_t queue );
+
+magma_int_t
+magma_zgesvj_batched_small_sm(
+    magma_vec_t jobu, magma_vec_t jobv,
+    magma_int_t m, magma_int_t n,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, double **dS_array,
+    magmaDoubleComplex** dU_array, magma_int_t lddu,
+    magmaDoubleComplex** dV_array, magma_int_t lddv,
+    magma_int_t* info_array, magma_int_t batchCount,
+    magma_queue_t queue );
 
 magma_int_t
 magma_zgetf2_batched(
