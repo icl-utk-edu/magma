@@ -11,30 +11,18 @@
        @author Azzam Haidar
        @author Ahmad Abdelfattah
 
-       See [zcds]gemm_fermi.cu for description of related files.
+       See gemm_template_device_defs.cuh for aux. device routines
 */
 
 #ifndef GEMM_TEMPLATE_DEVICE_CUH
 #define GEMM_TEMPLATE_DEVICE_CUH
 
 /******************************************************************************/
-// op<trans>( x ) returns x or conj(x).
-template<const int conjugate, typename T>
-__device__ static inline
-T op( T& x) {return conj<conjugate>(x);}
-
-/******************************************************************************/
-// shared memory accesses
-#define sA(i,j)    sA[(j)*slda + (i)]
-#define sB(i,j)    sB[(j)*sldb + (i)]
-#define sC(i,j)    sC[(j)*sldc + (i)]
-
-/******************************************************************************/
 template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int THR_M, const int THR_N, const int CONJA, const int CONJB>
 static __device__
-void gemm_template_device_prefetch_nn (
+void gemm_template_device_nn (
     int M, int N, int K,
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
@@ -44,59 +32,43 @@ void gemm_template_device_prefetch_nn (
     T* sB, int sldb,
     T* sC, int sldc )
 {
-    int idx = threadIdx.x;  // thread's m dimension
-    int idy = threadIdx.y;  // thread's n dimension
+    int tx = threadIdx.x;  // thread's m dimension
+    int ty = threadIdx.y;  // thread's n dimension
 
-    int idt = DIM_X * idy + idx;    // thread's global number
+    int tid = DIM_X * ty + tx;    // thread's global number
 
-    int idxA = idt % DIM_XA;    // idx within A
-    int idyA = idt / DIM_XA;    // idy within A
+    int txA = tid % DIM_XA;    // tx within A
+    int tyA = tid / DIM_XA;    // ty within A
 
-    int idxB = idt % DIM_XB;    // idx within B
-    int idyB = idt / DIM_XB;    // idy within B
+    int txB = tid % DIM_XB;    // tx within B
+    int tyB = tid / DIM_XB;    // ty within B
 
-    int blx = blockIdx.x;   // block's m dimension
-    int bly = blockIdx.y;   // block's n dimension
+    int bx = blockIdx.x;   // block's m dimension
+    int by = blockIdx.y;   // block's n dimension
 
     // Registers for the innermost loop
     T rC[THR_N][THR_M];
-    T rA[THR_M];
-    T rB[THR_N];
 
     // Registers for the dev->shmem copy
-    T ra[BLK_K/DIM_YA][BLK_M/DIM_XA];
-    T rb[BLK_N/DIM_YB][BLK_K/DIM_XB];
+    T rA[BLK_K/DIM_YA][BLK_M/DIM_XA];
+    T rB[BLK_N/DIM_YB][BLK_K/DIM_XB];
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
-    const T *offs_dA = A + blx*BLK_M     + idyA*LDA + idxA;
-    ptrdiff_t boundA = (LDA*(K-1) + M) - ( blx*BLK_M  + idyA*LDA + idxA ) -1;
+    const T *offs_dA = A + bx*BLK_M     + tyA*LDA + txA;
+    ptrdiff_t boundA = (LDA*(K-1) + M) - ( bx*BLK_M  + tyA*LDA + txA ) -1;
 
-    const T *offs_dB = B + bly*BLK_N*LDB + idyB*LDB + idxB;
-    ptrdiff_t boundB = (LDB*(N-1) + K) - ( bly*BLK_N*LDB + idyB*LDB + idxB ) -1;
+    const T *offs_dB = B + by*BLK_N*LDB + tyB*LDB + txB;
+    ptrdiff_t boundB = (LDB*(N-1) + K) - ( by*BLK_N*LDB + tyB*LDB + txB ) -1;
 
-    int m, n, k, kk;
+    int kk;
 
     // Zero C
-    #pragma unroll
-    for (n = 0; n < THR_N; n++)
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rC[n][m] = make_FloatingPoint(0.0, 0.0);
-
+    zero_rgArray2D<T, THR_M, THR_N>(rC);
     if(K > 0) {
-        #pragma unroll
-        for (n = 0; n < BLK_K; n += DIM_YA)
-            #pragma unroll
-            for (m = 0; m < BLK_M; m += DIM_XA)
-                sA(m+idxA,n+idyA) = fetch(A, m, n, boundA);
-
-        // Load B dev->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_N; n += DIM_YB)
-            #pragma unroll
-            for (m = 0; m < BLK_K; m += DIM_XB)
-                sB(m+idxB,n+idyB) = fetch(B, m, n, boundB);
+        // read A/B gm2sm -- N/N
+        read_gm2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, sA, slda, txA, tyA);
+        read_gm2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, sB, sldb, txB, tyB);
     }
     __syncthreads();
 
@@ -107,59 +79,19 @@ void gemm_template_device_prefetch_nn (
         offs_dB += BLK_K;
         boundB  -= BLK_K;
 
-        // Load A dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_M/DIM_XA; m++)
-                ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
-
-        // Load B dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_N/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XB; m++)
-                rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
+        // prefetch A/B gm2reg -- ignore transposition for now
+        read_gm2rg_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, rA);
+        read_gm2rg_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
         // Multiply
-        #pragma unroll
-        for (k = 0; k < BLK_K; k++) {
-            // Load A shmem->regs
-            #pragma unroll
-            for (m = 0; m < THR_M; m++)
-                rA[m] = sA(m*DIM_X+idx,k);
-
-            // Load B shmem->regs
-            #pragma unroll
-            for (n = 0; n < THR_N; n++)
-                rB[n] = sB(k,n*DIM_Y+idy);
-
-            // Compute
-            #pragma unroll
-            for (n = 0; n < THR_N; n++) {
-                #pragma unroll
-                for (m = 0; m < THR_M; m++) {
-                    fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-                }
-            }
-        }
+        multiply_full_block<T, BLK_K, THR_M, THR_N, DIM_X, DIM_Y>
+        (sA, slda, sB, sldb, rC, tx, ty);
 
         __syncthreads();
 
-        // Load A regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_M/DIM_XA; m++)
-                sA(m*DIM_XA+idxA,n*DIM_YA+idyA) = ra[n][m];
-
-        // Load B regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_N/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XB; m++)
-                sB(m*DIM_XB+idxB,n*DIM_YB+idyB) = rb[n][m];
-
+        // mv prefetched blocks into sm with propoer transposition
+        write_rg2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>( rA, sA, slda, txA, tyA );
+        write_rg2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>( rB, sB, sldb, txB, tyB );
         __syncthreads();
     }
 
@@ -168,45 +100,12 @@ void gemm_template_device_prefetch_nn (
     // It's okay that m,n exceed matrix bounds as all work is in registers
     // or shared memory, and out-of-bounds rC[n][m] will not be saved later.
     kk = K - kk;
-    #pragma unroll
-    for (k = 0; k < kk; k++) {
-        // Load A shmem->regs
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rA[m] = sA(m*DIM_X+idx,k);
-
-        // Load B shmem->regs
-        #pragma unroll
-        for (n = 0; n < THR_N; n++)
-            rB[n] = sB(k,n*DIM_Y+idy);
-
-        // Compute
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-            }
-        }
-    }
+    multiply_partial_block<T, THR_M, THR_N, DIM_X, DIM_Y>
+    (kk,sA, slda, sB, sldb, rC, tx, ty);
 
     // Store C regs->dev
-    #pragma unroll
-    for (n = 0; n < THR_N; n++) {
-        int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-        #pragma unroll
-        for (m = 0; m < THR_M; m++) {
-            int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-            if (coord_dCm < M && coord_dCn < N) {
-                ptrdiff_t offsC = (ptrdiff_t)coord_dCn*(ptrdiff_t)LDC + (ptrdiff_t)coord_dCm;
-
-                T &regC = rC[n][m];
-                T &memC = C[offsC];
-
-                memC = add(mul(alpha, regC), mul(beta, memC));
-            }
-        }
-    }
+    write_rg2gm<T, BLK_M, BLK_N, THR_M, THR_N, DIM_X, DIM_Y>
+    (M, N, rC, C, LDC, alpha, beta, bx, by, tx, ty);
 }
 
 /******************************************************************************/
@@ -214,7 +113,7 @@ template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const in
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int THR_M, const int THR_N, const int CONJA, const int CONJB>
 static __device__
-void gemm_template_device_prefetch_nt (
+void gemm_template_device_nt (
     int M, int N, int K,
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
@@ -224,60 +123,43 @@ void gemm_template_device_prefetch_nt (
     T* sB, int sldb,
     T* sC, int sldc )
 {
-    int idx = threadIdx.x;  // thread's m dimension
-    int idy = threadIdx.y;  // thread's n dimension
+    int tx = threadIdx.x;  // thread's m dimension
+    int ty = threadIdx.y;  // thread's n dimension
 
-    int idt = DIM_X * idy + idx;    // thread's global number
+    int tid = DIM_X * ty + tx;    // thread's global number
 
-    int idxA = idt % DIM_XA;    // idx within A
-    int idyA = idt / DIM_XA;    // idy within A
+    int txA = tid % DIM_XA;    // tx within A
+    int tyA = tid / DIM_XA;    // ty within A
 
-    int idxB = idt % DIM_XB;    // idx within B
-    int idyB = idt / DIM_XB;    // idy within B
+    int txB = tid % DIM_XB;    // tx within B
+    int tyB = tid / DIM_XB;    // ty within B
 
-    int blx = blockIdx.x;   // block's m dimension
-    int bly = blockIdx.y;   // block's n dimension
+    int bx = blockIdx.x;   // block's m dimension
+    int by = blockIdx.y;   // block's n dimension
 
     // Registers for the innermost loop
     T rC[THR_N][THR_M];
-    T rA[THR_M];
-    T rB[THR_N];
 
     // Registers for the dev->shmem copy
-    T ra[BLK_K/DIM_YA][BLK_M/DIM_XA];
-    T rb[BLK_K/DIM_YB][BLK_N/DIM_XB];
+    T rA[BLK_K/DIM_YA][BLK_M/DIM_XA];
+    T rB[BLK_K/DIM_YB][BLK_N/DIM_XB];
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
-    const T *offs_dA = A + blx*BLK_M     + idyA*LDA + idxA;
-    ptrdiff_t boundA = (LDA*(K-1) + M) - ( blx*BLK_M  + idyA*LDA + idxA ) -1;
+    const T *offs_dA = A + bx*BLK_M     + tyA*LDA + txA;
+    ptrdiff_t boundA = (LDA*(K-1) + M) - ( bx*BLK_M  + tyA*LDA + txA ) -1;
 
-    const T *offs_dB = B + bly*BLK_N     + idyB*LDB + idxB;
-    ptrdiff_t boundB = (LDB*(K-1) + N) - ( bly*BLK_N     + idyB*LDB + idxB ) -1;
+    const T *offs_dB = B + by*BLK_N     + tyB*LDB + txB;
+    ptrdiff_t boundB = (LDB*(K-1) + N) - ( by*BLK_N     + tyB*LDB + txB ) -1;
 
-    int m, n, k, kk;
+    int kk;
 
     // Zero C
-    #pragma unroll
-    for (n = 0; n < THR_N; n++)
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rC[n][m] = make_FloatingPoint(0.0, 0.0);
-
+    zero_rgArray2D<T, THR_M, THR_N>(rC);
     if(K > 0) {
-        // Load A dev->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K; n += DIM_YA)
-            #pragma unroll
-            for (m = 0; m < BLK_M; m += DIM_XA)
-                sA(m+idxA,n+idyA) = fetch(A, m, n, boundA);
-
-        // Load B dev->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K; n += DIM_YB)
-            #pragma unroll
-            for (m = 0; m < BLK_N; m += DIM_XB)
-                sB(n+idyB,m+idxB) = fetch(B, m, n, boundB);
+        // read A/B gm2sm -- N/T
+        read_gm2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, sA, slda, txA, tyA);
+        read_gm2sm_trans<T, BLK_N, BLK_K, DIM_XB, DIM_YB, CONJB>(offs_dB, LDB, boundB, sB, sldb, txB, tyB );
     }
     __syncthreads();
 
@@ -288,58 +170,18 @@ void gemm_template_device_prefetch_nt (
         offs_dB += BLK_K*LDB;
         boundB  -= BLK_K*LDB;
 
-        // Load A dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_M/DIM_XA; m++)
-                ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
-
-        // Load B dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_N/DIM_XB; m++)
-                rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
+        // prefetch A/B gm2reg -- ignore transposition for now
+        read_gm2rg_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, rA);
+        read_gm2rg_notrans<T, BLK_N, BLK_K, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
         // Multiply
-        #pragma unroll
-        for (k = 0; k < BLK_K; k++) {
-            // Load A shmem->regs
-            #pragma unroll
-            for (m = 0; m < THR_M; m++)
-                rA[m] = sA(m*DIM_X+idx,k);
-
-            // Load B shmem->regs
-            #pragma unroll
-            for (n = 0; n < THR_N; n++)
-                rB[n] = sB(k,n*DIM_Y+idy);
-
-            // Compute
-            #pragma unroll
-            for (n = 0; n < THR_N; n++) {
-                #pragma unroll
-                for (m = 0; m < THR_M; m++) {
-                    fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-                }
-            }
-        }
-
+        multiply_full_block<T, BLK_K, THR_M, THR_N, DIM_X, DIM_Y>
+        (sA, slda, sB, sldb, rC, tx, ty);
         __syncthreads();
 
-        // Load A regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_M/DIM_XA; m++)
-                sA(m*DIM_XA+idxA,n*DIM_YA+idyA) = ra[n][m];
-
-        // Load B regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_N/DIM_XB; m++)
-                sB(n*DIM_YB+idyB,m*DIM_XB+idxB) = rb[n][m];
+        // mv prefetched blocks into sm with propoer transposition
+        write_rg2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>( rA, sA, slda, txA, tyA );
+        write_rg2sm_trans<T, BLK_N, BLK_K, DIM_XB, DIM_YB, CONJB>( rB, sB, sldb, txB, tyB );
 
         __syncthreads();
     }
@@ -349,45 +191,12 @@ void gemm_template_device_prefetch_nt (
     // It's okay that m,n exceed matrix bounds as all work is in registers
     // or shared memory, and out-of-bounds rC[n][m] will not be saved later.
     kk = K - kk;
-    #pragma unroll
-    for (k = 0; k < kk; k++) {
-        // Load A shmem->regs
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rA[m] = sA(m*DIM_X+idx,k);
-
-        // Load B shmem->regs
-        #pragma unroll
-        for (n = 0; n < THR_N; n++)
-            rB[n] = sB(k,n*DIM_Y+idy);
-
-        // Compute
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-            }
-        }
-    }
+    multiply_partial_block<T, THR_M, THR_N, DIM_X, DIM_Y>
+    (kk,sA, slda, sB, sldb, rC, tx, ty);
 
     // Store C regs->dev
-    #pragma unroll
-    for (n = 0; n < THR_N; n++) {
-        int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-        #pragma unroll
-        for (m = 0; m < THR_M; m++) {
-            int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-            if (coord_dCm < M && coord_dCn < N) {
-                ptrdiff_t offsC = (ptrdiff_t)coord_dCn*(ptrdiff_t)LDC + (ptrdiff_t)coord_dCm;
-
-                T &regC = rC[n][m];
-                T &memC = C[offsC];
-
-                memC = add(mul(alpha, regC), mul(beta, memC));
-            }
-        }
-    }
+    write_rg2gm<T, BLK_M, BLK_N, THR_M, THR_N, DIM_X, DIM_Y>
+    (M, N, rC, C, LDC, alpha, beta, bx, by, tx, ty);
 }
 
 /******************************************************************************/
@@ -395,7 +204,7 @@ template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const in
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int THR_M, const int THR_N, const int CONJA, const int CONJB>
 static __device__
-void gemm_template_device_prefetch_tn (
+void gemm_template_device_tn (
     int M, int N, int K,
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
@@ -405,61 +214,44 @@ void gemm_template_device_prefetch_tn (
     T* sB, int sldb,
     T* sC, int sldc )
 {
-    int idx = threadIdx.x;  // thread's m dimension
-    int idy = threadIdx.y;  // thread's n dimension
+    int tx = threadIdx.x;  // thread's m dimension
+    int ty = threadIdx.y;  // thread's n dimension
 
-    int idt = DIM_X * idy + idx;    // thread's global number
+    int tid = DIM_X * ty + tx;    // thread's global number
 
-    int idxA = idt % DIM_XA;    // idx within A
-    int idyA = idt / DIM_XA;    // idy within A
+    int txA = tid % DIM_XA;    // tx within A
+    int tyA = tid / DIM_XA;    // ty within A
 
-    int idxB = idt % DIM_XB;    // idx within B
-    int idyB = idt / DIM_XB;    // idy within B
+    int txB = tid % DIM_XB;    // tx within B
+    int tyB = tid / DIM_XB;    // ty within B
 
-    int blx = blockIdx.x;   // block's m dimension
-    int bly = blockIdx.y;   // block's n dimension
+    int bx = blockIdx.x;   // block's m dimension
+    int by = blockIdx.y;   // block's n dimension
 
     // Registers for the innermost loop
     T rC[THR_N][THR_M];
-    T rA[THR_M];
-    T rB[THR_N];
 
     // Registers for the dev->shmem copy
-    T ra[BLK_M/DIM_YA][BLK_K/DIM_XA];
-    T rb[BLK_N/DIM_YB][BLK_K/DIM_XB];
+    T rA[BLK_M/DIM_YA][BLK_K/DIM_XA];
+    T rB[BLK_N/DIM_YB][BLK_K/DIM_XB];
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
-    const T *offs_dA = A + blx*BLK_M*LDA + idyA*LDA + idxA;
-    ptrdiff_t boundA = (LDA*(M-1) + K) - ( blx*BLK_M*LDA + idyA*LDA + idxA ) -1;
+    const T *offs_dA = A + bx*BLK_M*LDA + tyA*LDA + txA;
+    ptrdiff_t boundA = (LDA*(M-1) + K) - ( bx*BLK_M*LDA + tyA*LDA + txA ) -1;
 
-    const T *offs_dB = B + bly*BLK_N*LDB + idyB*LDB + idxB;
-    ptrdiff_t boundB = (LDB*(N-1) + K) - ( bly*BLK_N*LDB + idyB*LDB + idxB ) -1;
+    const T *offs_dB = B + by*BLK_N*LDB + tyB*LDB + txB;
+    ptrdiff_t boundB = (LDB*(N-1) + K) - ( by*BLK_N*LDB + tyB*LDB + txB ) -1;
 
-    int m, n, k, kk;
+    int kk;
 
 
     // Zero C
-    #pragma unroll
-    for (n = 0; n < THR_N; n++)
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rC[n][m] = make_FloatingPoint(0.0, 0.0);
-
+    zero_rgArray2D<T, THR_M, THR_N>(rC);
     if(K > 0) {
-        // Load A dev->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_M; n += DIM_YA)
-            #pragma unroll
-            for (m = 0; m < BLK_K; m += DIM_XA)
-                sA(n+idyA,m+idxA) = fetch(A, m, n, boundA);
-
-        // Load B dev->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_N; n += DIM_YB)
-            #pragma unroll
-            for (m = 0; m < BLK_K; m += DIM_XB)
-                sB(m+idxB,n+idyB) = fetch(B, m, n, boundB);
+        // read A/B gm2sm -- T/N
+        read_gm2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>(offs_dA, LDA, boundA, sA, slda, txA, tyA );
+        read_gm2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, sB, sldb, txB, tyB );
     }
     __syncthreads();
 
@@ -470,58 +262,18 @@ void gemm_template_device_prefetch_tn (
         offs_dB += BLK_K;
         boundB  -= BLK_K;
 
-        // Load A dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_M/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XA; m++)
-                ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
-
-        // Load B dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_N/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XB; m++)
-                rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
+        // prefetch A/B gm2reg -- ignore transposition for now
+        read_gm2rg_notrans<T, BLK_K, BLK_M, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, rA);
+        read_gm2rg_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
         // Multiply
-        #pragma unroll
-        for (k = 0; k < BLK_K; k++) {
-            // Load A shmem->regs
-            #pragma unroll
-            for (m = 0; m < THR_M; m++)
-                rA[m] = sA(m*DIM_X+idx,k);
-
-            // Load B shmem->regs
-            #pragma unroll
-            for (n = 0; n < THR_N; n++)
-                rB[n] = sB(k,n*DIM_Y+idy);
-
-            // Compute
-            #pragma unroll
-            for (n = 0; n < THR_N; n++) {
-                #pragma unroll
-                for (m = 0; m < THR_M; m++) {
-                    fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-                }
-            }
-        }
-
+        multiply_full_block<T, BLK_K, THR_M, THR_N, DIM_X, DIM_Y>
+        (sA, slda, sB, sldb, rC, tx, ty);
         __syncthreads();
 
-        // Load A regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_M/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XA; m++)
-                sA(n*DIM_YA+idyA,m*DIM_XA+idxA) = ra[n][m];
-
-        // Load B regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_N/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XB; m++)
-                sB(m*DIM_XB+idxB,n*DIM_YB+idyB) = rb[n][m];
+        // mv prefetched blocks into sm with propoer transposition
+        write_rg2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>( rA, sA, slda, txA, tyA );
+        write_rg2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>( rB, sB, sldb, txB, tyB );
 
         __syncthreads();
     }
@@ -531,45 +283,12 @@ void gemm_template_device_prefetch_tn (
     // It's okay that m,n exceed matrix bounds as all work is in registers
     // or shared memory, and out-of-bounds rC[n][m] will not be saved later.
     kk = K - kk;
-    #pragma unroll
-    for (k = 0; k < kk; k++) {
-        // Load A shmem->regs
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rA[m] = sA(m*DIM_X+idx,k);
-
-        // Load B shmem->regs
-        #pragma unroll
-        for (n = 0; n < THR_N; n++)
-            rB[n] = sB(k,n*DIM_Y+idy);
-
-        // Compute
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-            }
-        }
-    }
+    multiply_partial_block<T, THR_M, THR_N, DIM_X, DIM_Y>
+    (kk,sA, slda, sB, sldb, rC, tx, ty);
 
     // Store C regs->dev
-    #pragma unroll
-    for (n = 0; n < THR_N; n++) {
-        int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-        #pragma unroll
-        for (m = 0; m < THR_M; m++) {
-            int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-            if (coord_dCm < M && coord_dCn < N) {
-                ptrdiff_t offsC = (ptrdiff_t)coord_dCn*(ptrdiff_t)LDC + (ptrdiff_t)coord_dCm;
-
-                T &regC = rC[n][m];
-                T &memC = C[offsC];
-
-                memC = add(mul(alpha, regC), mul(beta, memC));
-            }
-        }
-    }
+    write_rg2gm<T, BLK_M, BLK_N, THR_M, THR_N, DIM_X, DIM_Y>
+    (M, N, rC, C, LDC, alpha, beta, bx, by, tx, ty);
 }
 
 /******************************************************************************/
@@ -577,7 +296,7 @@ template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const in
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int THR_M, const int THR_N, const int CONJA, const int CONJB>
 static __device__
-void gemm_template_device_prefetch_tt (
+void gemm_template_device_tt (
     int M, int N, int K,
     const T* __restrict__ A, int LDA,
     const T* __restrict__ B, int LDB,
@@ -587,60 +306,43 @@ void gemm_template_device_prefetch_tt (
     T* sB, int sldb,
     T* sC, int sldc )
 {
-    int idx = threadIdx.x;  // thread's m dimension
-    int idy = threadIdx.y;  // thread's n dimension
+    int tx = threadIdx.x;  // thread's m dimension
+    int ty = threadIdx.y;  // thread's n dimension
 
-    int idt = DIM_X * idy + idx;    // thread's global number
+    int tid = DIM_X * ty + tx;    // thread's global number
 
-    int idxA = idt % DIM_XA;    // idx within A
-    int idyA = idt / DIM_XA;    // idy within A
+    int txA = tid % DIM_XA;    // tx within A
+    int tyA = tid / DIM_XA;    // ty within A
 
-    int idxB = idt % DIM_XB;    // idx within B
-    int idyB = idt / DIM_XB;    // idy within B
+    int txB = tid % DIM_XB;    // tx within B
+    int tyB = tid / DIM_XB;    // ty within B
 
-    int blx = blockIdx.x;   // block's m dimension
-    int bly = blockIdx.y;   // block's n dimension
+    int bx = blockIdx.x;   // block's m dimension
+    int by = blockIdx.y;   // block's n dimension
 
     // Registers for the innermost loop
     T rC[THR_N][THR_M];
-    T rA[THR_M];
-    T rB[THR_N];
 
     // Registers for the dev->shmem copy
-    T ra[BLK_M/DIM_YA][BLK_K/DIM_XA];
-    T rb[BLK_K/DIM_YB][BLK_N/DIM_XB];
+    T rA[BLK_M/DIM_YA][BLK_K/DIM_XA];
+    T rB[BLK_K/DIM_YB][BLK_N/DIM_XB];
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
-    const T *offs_dA = A + blx*BLK_M*LDA + idyA*LDA + idxA;
-    ptrdiff_t boundA = (LDA*(M-1) + K) - ( blx*BLK_M*LDA + idyA*LDA + idxA ) -1;
+    const T *offs_dA = A + bx*BLK_M*LDA + tyA*LDA + txA;
+    ptrdiff_t boundA = (LDA*(M-1) + K) - ( bx*BLK_M*LDA + tyA*LDA + txA ) -1;
 
-    const T *offs_dB = B + bly*BLK_N     + idyB*LDB + idxB;
-    ptrdiff_t boundB = (LDB*(K-1) + N) - ( bly*BLK_N     + idyB*LDB + idxB ) -1;
+    const T *offs_dB = B + by*BLK_N     + tyB*LDB + txB;
+    ptrdiff_t boundB = (LDB*(K-1) + N) - ( by*BLK_N     + tyB*LDB + txB ) -1;
 
-    int m, n, k, kk;
+    int kk;
 
     // Zero C
-    #pragma unroll
-    for (n = 0; n < THR_N; n++)
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rC[n][m] = make_FloatingPoint(0.0, 0.0);
-
+    zero_rgArray2D<T, THR_M, THR_N>(rC);
     if(K > 0) {
-        // Load A dev->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_M; n += DIM_YA)
-            #pragma unroll
-            for (m = 0; m < BLK_K; m += DIM_XA)
-                sA(n+idyA,m+idxA) = fetch(A, m, n, boundA);
-
-        // Load B dev->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K; n += DIM_YB)
-            #pragma unroll
-            for (m = 0; m < BLK_N; m += DIM_XB)
-                sB(n+idyB,m+idxB) = fetch(B, m, n, boundB);
+        // read A/B gm2sm -- T/T
+        read_gm2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>(offs_dA, LDA, boundA, sA, slda, txA, tyA );
+        read_gm2sm_trans<T, BLK_N, BLK_K, DIM_XB, DIM_YB, CONJB>(offs_dB, LDB, boundB, sB, sldb, txB, tyB );
     }
     __syncthreads();
 
@@ -651,58 +353,19 @@ void gemm_template_device_prefetch_tt (
        offs_dB += BLK_K*LDB;
        boundB  -= BLK_K*LDB;
 
-        // Load A dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_M/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XA; m++)
-                ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
-
-        // Load B dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_N/DIM_XB; m++)
-                rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
+        // prefetch A/B gm2reg -- ignore transposition for now
+        read_gm2rg_notrans<T, BLK_K, BLK_M, DIM_XA, DIM_YA>(offs_dA, LDA, boundA, rA);
+        read_gm2rg_notrans<T, BLK_N, BLK_K, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
         // Multiply
-        #pragma unroll
-        for (k = 0; k < BLK_K; k++) {
-            // Load A shmem->regs
-            #pragma unroll
-            for (m = 0; m < THR_M; m++)
-                rA[m] = sA(m*DIM_X+idx,k);
-
-            // Load B shmem->regs
-            #pragma unroll
-            for (n = 0; n < THR_N; n++)
-                rB[n] = sB(k,n*DIM_Y+idy);
-
-            // Compute
-            #pragma unroll
-            for (n = 0; n < THR_N; n++) {
-                #pragma unroll
-                for (m = 0; m < THR_M; m++) {
-                    fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-                }
-            }
-        }
+        multiply_full_block<T, BLK_K, THR_M, THR_N, DIM_X, DIM_Y>
+        (sA, slda, sB, sldb, rC, tx, ty);
 
         __syncthreads();
 
-        // Load A regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_M/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XA; m++)
-                sA(n*DIM_YA+idyA,m*DIM_XA+idxA) = ra[n][m];
-
-        // Load B regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_N/DIM_XB; m++)
-                sB(n*DIM_YB+idyB,m*DIM_XB+idxB) = rb[n][m];
+        // mv prefetched blocks into sm with propoer transposition
+        write_rg2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>( rA, sA, slda, txA, tyA );
+        write_rg2sm_trans<T, BLK_N, BLK_K, DIM_XB, DIM_YB, CONJB>( rB, sB, sldb, txB, tyB );
 
         __syncthreads();
     }
@@ -712,848 +375,12 @@ void gemm_template_device_prefetch_tt (
     // It's okay that m,n exceed matrix bounds as all work is in registers
     // or shared memory, and out-of-bounds rC[n][m] will not be saved later.
     kk = K - kk;
-    #pragma unroll
-    for (k = 0; k < kk; k++) {
-        // Load A shmem->regs
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rA[m] = sA(m*DIM_X+idx,k);
-
-        // Load B shmem->regs
-        #pragma unroll
-        for (n = 0; n < THR_N; n++)
-            rB[n] = sB(k,n*DIM_Y+idy);
-
-        // Compute
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-            }
-        }
-    }
+    multiply_partial_block<T, THR_M, THR_N, DIM_X, DIM_Y>
+    (kk,sA, slda, sB, sldb, rC, tx, ty);
 
     // Store C regs->dev
-    #pragma unroll
-    for (n = 0; n < THR_N; n++) {
-        int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-        #pragma unroll
-        for (m = 0; m < THR_M; m++) {
-            int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-            if (coord_dCm < M && coord_dCn < N) {
-                ptrdiff_t offsC = (ptrdiff_t)coord_dCn*(ptrdiff_t)LDC + (ptrdiff_t)coord_dCm;
-
-                T &regC = rC[n][m];
-                T &memC = C[offsC];
-
-                memC = add(mul(alpha, regC), mul(beta, memC));
-            }
-        }
-    }
-}
-
-
-/******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
-         const int THR_M, const int THR_N, const int CONJA, const int CONJB>
-static __device__
-void gemm_template_device_nn(
-    int M, int N, int K,
-    const T* __restrict__ A, int LDA,
-    const T* __restrict__ B, int LDB,
-    T*       __restrict__ C, int LDC,
-    T alpha, T beta,
-    T* sA, int slda,
-    T* sB, int sldb,
-    T* sC, int sldc )
-{
-#if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
-    int idx = threadIdx.x;  // thread's m dimension
-    int idy = threadIdx.y;  // thread's n dimension
-
-    int idt = DIM_X * idy + idx;    // thread's global number
-
-    int idxA = idt % DIM_XA;    // idx within A
-    int idyA = idt / DIM_XA;    // idy within A
-
-    int idxB = idt % DIM_XB;    // idx within B
-    int idyB = idt / DIM_XB;    // idy within B
-
-    int blx = blockIdx.x;   // block's m dimension
-    int bly = blockIdx.y;   // block's n dimension
-
-    // Registers for the innermost loop
-    T rC[THR_N][THR_M];
-    T rA[THR_M];
-    T rB[THR_N];
-
-    T ra[BLK_K/DIM_YA][BLK_M/DIM_XA];
-    T rb[BLK_N/DIM_YB][BLK_K/DIM_XB];
-
-    const T *offs_dA = A + blx*BLK_M     + idyA*LDA + idxA;
-    ptrdiff_t boundA = (LDA*(K-1) + M) - ( blx*BLK_M  + idyA*LDA + idxA ) -1;
-
-    const T *offs_dB = B + bly*BLK_N*LDB + idyB*LDB + idxB;
-    ptrdiff_t boundB = (LDB*(N-1) + K) - ( bly*BLK_N*LDB + idyB*LDB + idxB ) -1;
-
-    int m, n, k, kk;
-
-
-    // Zero C
-    #pragma unroll
-    for (n = 0; n < THR_N; n++)
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rC[n][m] = make_FloatingPoint(0.0, 0.0);
-
-    if(K > 0) {
-        #pragma unroll
-        for (n = 0; n < BLK_K; n += DIM_YA)
-            #pragma unroll
-            for (m = 0; m < BLK_M; m += DIM_XA)
-                sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
-
-        #pragma unroll
-        for (n = 0; n < BLK_N; n += DIM_YB)
-            #pragma unroll
-            for (m = 0; m < BLK_K; m += DIM_XB)
-                sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
-    }
-    __syncthreads();
-
-    for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
-        offs_dA += BLK_K*LDA;
-        boundA  -= BLK_K*LDA;
-
-        offs_dB += BLK_K;
-        boundB  -= BLK_K;
-
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_M/DIM_XA; m++)
-                ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
-
-        #pragma unroll
-        for (n = 0; n < BLK_N/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XB; m++)
-                rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
-
-        // Multiply
-        #pragma unroll
-        for (k = 0; k < BLK_K; k++) {
-            // Load A shmem->regs
-            #pragma unroll
-            for (m = 0; m < THR_M; m++)
-                rA[m] = sA(m*DIM_X+idx, k);
-
-            // Load B shmem->regs
-            #pragma unroll
-            for (n = 0; n < THR_N; n++)
-                rB[n] = sB(k, n*DIM_Y+idy);
-
-            // Compute
-            #pragma unroll
-            for (n = 0; n < THR_N; n++) {
-                #pragma unroll
-                for (m = 0; m < THR_M; m++) {
-                    fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-                }
-            }
-        }
-
-        __syncthreads();
-
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_M/DIM_XA; m++)
-                sA(m*DIM_XA+idxA, n*DIM_YA+idyA) = ra[n][m];
-
-        #pragma unroll
-        for (n = 0; n < BLK_N/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XB; m++)
-                sB(m*DIM_XB+idxB, n*DIM_YB+idyB) = rb[n][m];
-
-        __syncthreads();
-    }
-
-    // Multiply last full (BLK_K) or partial block of
-    // columns of op(A) and rows of op(B).
-    // It's okay that m,n exceed matrix bounds as all work is in registers
-    // or shared memory, and out-of-bounds rC[n][m] will not be saved later.
-    kk = K - kk;
-    #pragma unroll
-    for (k = 0; k < kk; k++)
-    {
-        // Load A shmem->regs
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rA[m] = sA(m*DIM_X+idx, k);
-
-        // Load B shmem->regs
-        #pragma unroll
-        for (n = 0; n < THR_N; n++)
-            rB[n] = sB(k, n*DIM_Y+idy);
-
-        // Compute
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-            }
-        }
-    }
-
-    // Store C regs->dev
-    if( beta == make_FloatingPoint(0.0,0.0) ) {
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-                if (coord_dCm < M && coord_dCn < N) {
-                    ptrdiff_t offsC = coord_dCn*(ptrdiff_t)LDC + coord_dCm;
-
-                    T &regC = rC[n][m];
-                    T &memC = C[offsC];
-
-                    memC = mul(alpha, regC);
-                }
-            }
-        }
-    } else {
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-                if (coord_dCm < M && coord_dCn < N) {
-                    ptrdiff_t offsC = coord_dCn*(ptrdiff_t)LDC + coord_dCm;
-
-                    T &regC = rC[n][m];
-                    T &memC = C[offsC];
-
-                    memC = add(mul(alpha, regC), mul(beta, memC));
-                }
-            }
-        }
-    }
-#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
-}
-
-
-/******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
-         const int THR_M, const int THR_N, const int CONJA, const int CONJB>
-static __device__
-void gemm_template_device_nt(
-    int M, int N, int K,
-    const T* __restrict__ A, int LDA,
-    const T* __restrict__ B, int LDB,
-    T*       __restrict__ C, int LDC,
-    T alpha, T beta,
-    T* sA, int slda,
-    T* sB, int sldb,
-    T* sC, int sldc )
-{
-#if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
-    int idx = threadIdx.x;  // thread's m dimension
-    int idy = threadIdx.y;  // thread's n dimension
-
-    int idt = DIM_X * idy + idx;    // thread's global number
-
-    int idxA = idt % DIM_XA;    // idx within A
-    int idyA = idt / DIM_XA;    // idy within A
-
-    int idxB = idt % DIM_XB;    // idx within B
-    int idyB = idt / DIM_XB;    // idy within B
-
-    int blx = blockIdx.x;   // block's m dimension
-    int bly = blockIdx.y;   // block's n dimension
-
-    // Registers for the innermost loop
-    T rC[THR_N][THR_M];
-    T rA[THR_M];
-    T rB[THR_N];
-
-    T ra[BLK_K/DIM_YA][BLK_M/DIM_XA];
-    T rb[BLK_K/DIM_YB][BLK_N/DIM_XB];
-
-    const T *offs_dA = A + blx*BLK_M     + idyA*LDA + idxA;
-    ptrdiff_t boundA = (LDA*(K-1) + M) - ( blx*BLK_M  + idyA*LDA + idxA ) -1;
-
-    const T *offs_dB = B + bly*BLK_N     + idyB*LDB + idxB;
-    ptrdiff_t boundB = (LDB*(K-1) + N) - ( bly*BLK_N     + idyB*LDB + idxB ) -1;
-
-    int m, n, k, kk;
-
-
-    // Zero C
-    #pragma unroll
-    for (n = 0; n < THR_N; n++)
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rC[n][m] = make_FloatingPoint(0.0, 0.0);
-
-    if(K > 0) {
-        #pragma unroll
-        for (n = 0; n < BLK_K; n += DIM_YA)
-            #pragma unroll
-            for (m = 0; m < BLK_M; m += DIM_XA)
-                sA(m+idxA, n+idyA) = fetch(A, m, n, boundA);
-
-        // Load B dev->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K; n += DIM_YB)
-            #pragma unroll
-            for (m = 0; m < BLK_N; m += DIM_XB)
-                sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
-    }
-    __syncthreads();
-
-    for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
-        offs_dA += BLK_K*LDA;
-        boundA  -= BLK_K*LDA;
-
-        offs_dB += BLK_K*LDB;
-        boundB  -= BLK_K*LDB;
-
-        // Load A dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_M/DIM_XA; m++)
-                ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
-
-        // Load B dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_N/DIM_XB; m++)
-                rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
-
-        // Multiply
-        #pragma unroll
-        for (k = 0; k < BLK_K; k++) {
-            // Load A shmem->regs
-            #pragma unroll
-            for (m = 0; m < THR_M; m++)
-                rA[m] = sA(m*DIM_X+idx, k);
-
-            // Load B shmem->regs
-            #pragma unroll
-            for (n = 0; n < THR_N; n++)
-                rB[n] = sB(k, n*DIM_Y+idy);
-
-            // Compute
-            #pragma unroll
-            for (n = 0; n < THR_N; n++) {
-                #pragma unroll
-                for (m = 0; m < THR_M; m++) {
-                    fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-                }
-            }
-        }
-
-        __syncthreads();
-
-        // Load A regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_M/DIM_XA; m++)
-                sA(m*DIM_XA+idxA, n*DIM_YA+idyA) = ra[n][m];
-
-        // Load B regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_N/DIM_XB; m++)
-                sB(n*DIM_YB+idyB, m*DIM_XB+idxB) = rb[n][m];
-        __syncthreads();
-    }
-
-    // Multiply last full (BLK_K) or partial block of
-    // columns of op(A) and rows of op(B).
-    // It's okay that m,n exceed matrix bounds as all work is in registers
-    // or shared memory, and out-of-bounds rC[n][m] will not be saved later.
-    kk = K - kk;
-    #pragma unroll
-    for (k = 0; k < kk; k++)
-    {
-        // Load A shmem->regs
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rA[m] = sA(m*DIM_X+idx, k);
-
-        // Load B shmem->regs
-        #pragma unroll
-        for (n = 0; n < THR_N; n++)
-            rB[n] = sB(k, n*DIM_Y+idy);
-
-        // Compute
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-            }
-        }
-    }
-
-    // Store C regs->dev
-    if( beta == make_FloatingPoint(0.0,0.0) ){
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-                if (coord_dCm < M && coord_dCn < N) {
-                    ptrdiff_t offsC = coord_dCn*(ptrdiff_t)LDC + coord_dCm;
-
-                    T &regC = rC[n][m];
-                    T &memC = C[offsC];
-
-                    memC = mul(alpha, regC);
-                }
-            }
-        }
-    }else{
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-                if (coord_dCm < M && coord_dCn < N) {
-                    ptrdiff_t offsC = coord_dCn*(ptrdiff_t)LDC + coord_dCm;
-
-                    T &regC = rC[n][m];
-                    T &memC = C[offsC];
-
-                    memC = add(mul(alpha, regC), mul(beta, memC));
-                }
-            }
-        }
-    }
-#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
-}
-
-
-/******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
-         const int THR_M, const int THR_N, const int CONJA, const int CONJB>
-static __device__
-void gemm_template_device_tn(
-    int M, int N, int K,
-    const T* __restrict__ A, int LDA,
-    const T* __restrict__ B, int LDB,
-    T*       __restrict__ C, int LDC,
-    T alpha, T beta,
-    T* sA, int slda,
-    T* sB, int sldb,
-    T* sC, int sldc )
-{
-#if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
-    int idx = threadIdx.x;  // thread's m dimension
-    int idy = threadIdx.y;  // thread's n dimension
-
-    int idt = DIM_X * idy + idx;    // thread's global number
-
-    int idxA = idt % DIM_XA;    // idx within A
-    int idyA = idt / DIM_XA;    // idy within A
-
-    int idxB = idt % DIM_XB;    // idx within B
-    int idyB = idt / DIM_XB;    // idy within B
-
-    int blx = blockIdx.x;   // block's m dimension
-    int bly = blockIdx.y;   // block's n dimension
-
-    // Registers for the innermost loop
-    T rC[THR_N][THR_M];
-    T rA[THR_M];
-    T rB[THR_N];
-
-    // Registers for the dev->shmem copy
-    T ra[BLK_M/DIM_YA][BLK_K/DIM_XA];
-    T rb[BLK_N/DIM_YB][BLK_K/DIM_XB];
-
-    // bound is the correction to offs_d in order to not get out of memory bound
-    // so bound could be negative value since offs_d could be out of bound
-    const T *offs_dA = A + blx*BLK_M*LDA + idyA*LDA + idxA;
-    ptrdiff_t boundA = (LDA*(M-1) + K) - ( blx*BLK_M*LDA + idyA*LDA + idxA ) -1;
-
-    const T *offs_dB = B + bly*BLK_N*LDB + idyB*LDB + idxB;
-    ptrdiff_t boundB = (LDB*(N-1) + K) - ( bly*BLK_N*LDB + idyB*LDB + idxB ) -1;
-
-    int m, n, k, kk;
-
-    // Zero C
-    #pragma unroll
-    for (n = 0; n < THR_N; n++)
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rC[n][m] = make_FloatingPoint(0.0, 0.0);
-
-    if(K > 0) {
-        // Load A dev->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_M; n += DIM_YA)
-            #pragma unroll
-            for (m = 0; m < BLK_K; m += DIM_XA)
-                sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
-
-        #pragma unroll
-        for (n = 0; n < BLK_N; n += DIM_YB)
-            #pragma unroll
-            for (m = 0; m < BLK_K; m += DIM_XB)
-                sB(m+idxB, n+idyB) = fetch(B, m, n, boundB);
-    }
-    __syncthreads();
-
-    for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
-        offs_dA += BLK_K;
-        boundA  -= BLK_K;
-
-        offs_dB += BLK_K;
-        boundB  -= BLK_K;
-
-        // Load A dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_M/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XA; m++)
-                ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
-
-        // Load B dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_N/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XB; m++)
-                rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
-
-        // Multiply
-        #pragma unroll
-        for (k = 0; k < BLK_K; k++) {
-            // Load A shmem->regs
-            #pragma unroll
-            for (m = 0; m < THR_M; m++)
-                rA[m] = sA(m*DIM_X+idx, k);
-
-            // Load B shmem->regs
-            #pragma unroll
-            for (n = 0; n < THR_N; n++)
-                rB[n] = sB(k, n*DIM_Y+idy);
-
-            // Compute
-            #pragma unroll
-            for (n = 0; n < THR_N; n++) {
-                #pragma unroll
-                for (m = 0; m < THR_M; m++) {
-                    fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-                }
-            }
-        }
-
-        __syncthreads();
-
-        // Load A regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_M/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XA; m++)
-                sA(n*DIM_YA+idyA, m*DIM_XA+idxA) = ra[n][m];
-
-        // Load B regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_N/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XB; m++)
-                sB(m*DIM_XB+idxB, n*DIM_YB+idyB) = rb[n][m];
-
-        __syncthreads();
-    }
-
-    // Multiply last full (BLK_K) or partial block of
-    // columns of op(A) and rows of op(B).
-    // It's okay that m,n exceed matrix bounds as all work is in registers
-    // or shared memory, and out-of-bounds rC[n][m] will not be saved later.
-    kk = K - kk;
-    #pragma unroll
-    for (k = 0; k < kk; k++)
-    {
-        // Load A shmem->regs
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rA[m] = sA(m*DIM_X+idx, k);
-
-        // Load B shmem->regs
-        #pragma unroll
-        for (n = 0; n < THR_N; n++)
-            rB[n] = sB(k, n*DIM_Y+idy);
-
-        // Compute
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-            }
-        }
-    }
-
-    // Store C regs->dev
-    if( beta == make_FloatingPoint(0.0,0.0) ){
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-                if (coord_dCm < M && coord_dCn < N) {
-                    ptrdiff_t offsC = coord_dCn*(ptrdiff_t)LDC + coord_dCm;
-
-                    T &regC = rC[n][m];
-                    T &memC = C[offsC];
-
-                    memC = mul(alpha, regC);
-                }
-            }
-        }
-    }else{
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-                if (coord_dCm < M && coord_dCn < N) {
-                    ptrdiff_t offsC = coord_dCn*(ptrdiff_t)LDC + coord_dCm;
-
-                    T &regC = rC[n][m];
-                    T &memC = C[offsC];
-
-                    memC = add(mul(alpha, regC), mul(beta, memC));
-                }
-            }
-        }
-    }
-#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
-}
-
-
-/******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int BLK_M, const int BLK_N, const int BLK_K,
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
-         const int THR_M, const int THR_N, const int CONJA, const int CONJB>
-static __device__
-void gemm_template_device_tt(
-    int M, int N, int K,
-    const T* __restrict__ A, int LDA,
-    const T* __restrict__ B, int LDB,
-    T*       __restrict__ C, int LDC,
-    T alpha, T beta,
-    T* sA, int slda,
-    T* sB, int sldb,
-    T* sC, int sldc )
-{
-#if (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP)
-    int idx = threadIdx.x;  // thread's m dimension
-    int idy = threadIdx.y;  // thread's n dimension
-
-    int idt = DIM_X * idy + idx;    // thread's global number
-
-    int idxA = idt % DIM_XA;    // idx within A
-    int idyA = idt / DIM_XA;    // idy within A
-
-    int idxB = idt % DIM_XB;    // idx within B
-    int idyB = idt / DIM_XB;    // idy within B
-
-    int blx = blockIdx.x;   // block's m dimension
-    int bly = blockIdx.y;   // block's n dimension
-
-    // Registers for the innermost loop
-    T rC[THR_N][THR_M];
-    T rA[THR_M];
-    T rB[THR_N];
-
-    // Registers for the dev->shmem copy
-    T ra[BLK_M/DIM_YA][BLK_K/DIM_XA];
-    T rb[BLK_K/DIM_YB][BLK_N/DIM_XB];
-
-    // bound is the correction to offs_d in order to not get out of memory bound
-    // so bound could be negative value since offs_d could be out of bound
-    const T *offs_dA = A + blx*BLK_M*LDA + idyA*LDA + idxA;
-    ptrdiff_t boundA = (LDA*(M-1) + K) - ( blx*BLK_M*LDA + idyA*LDA + idxA ) -1;
-
-    const T *offs_dB = B + bly*BLK_N     + idyB*LDB + idxB;
-    ptrdiff_t boundB = (LDB*(K-1) + N) - ( bly*BLK_N     + idyB*LDB + idxB ) -1;
-
-    int m, n, k, kk;
-
-    // Zero C
-    #pragma unroll
-    for (n = 0; n < THR_N; n++)
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rC[n][m] = make_FloatingPoint(0.0, 0.0);
-
-    if(K > 0) {
-        // Load A dev->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_M; n += DIM_YA)
-            #pragma unroll
-            for (m = 0; m < BLK_K; m += DIM_XA)
-                sA(n+idyA, m+idxA) = fetch(A, m, n, boundA);
-
-        // Load B dev->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K; n += DIM_YB)
-            #pragma unroll
-            for (m = 0; m < BLK_N; m += DIM_XB)
-                sB(n+idyB, m+idxB) = fetch(B, m, n, boundB);
-    }
-    __syncthreads();
-
-    for (kk = 0; kk < K-BLK_K; kk += BLK_K) {
-        offs_dA += BLK_K;
-        boundA  -= BLK_K;
-
-        offs_dB += BLK_K*LDB;
-        boundB  -= BLK_K*LDB;
-
-        // Load A dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_M/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XA; m++)
-                ra[n][m] = fetch(A, m*DIM_XA, n*DIM_YA, boundA);
-
-        // Load B dev->regs
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_N/DIM_XB; m++)
-                rb[n][m] = fetch(B, m*DIM_XB, n*DIM_YB, boundB);
-
-        // Multiply
-        #pragma unroll
-        for (k = 0; k < BLK_K; k++) {
-            // Load A shmem->regs
-            #pragma unroll
-            for (m = 0; m < THR_M; m++)
-                rA[m] = sA(m*DIM_X+idx, k);
-
-            // Load B shmem->regs
-            #pragma unroll
-            for (n = 0; n < THR_N; n++)
-                rB[n] = sB(k, n*DIM_Y+idy);
-
-            // Compute
-            #pragma unroll
-            for (n = 0; n < THR_N; n++) {
-                #pragma unroll
-                for (m = 0; m < THR_M; m++) {
-                    fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-                }
-            }
-        }
-
-        __syncthreads();
-
-        // Load A regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_M/DIM_YA; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_K/DIM_XA; m++)
-                sA(n*DIM_YA+idyA, m*DIM_XA+idxA) = ra[n][m];
-
-        // Load B regs->shmem
-        #pragma unroll
-        for (n = 0; n < BLK_K/DIM_YB; n++)
-            #pragma unroll
-            for (m = 0; m < BLK_N/DIM_XB; m++)
-                sB(n*DIM_YB+idyB, m*DIM_XB+idxB) = rb[n][m];
-
-        __syncthreads();
-    }
-
-    // Multiply last full (BLK_K) or partial block of
-    // columns of op(A) and rows of op(B).
-    // It's okay that m,n exceed matrix bounds as all work is in registers
-    // or shared memory, and out-of-bounds rC[n][m] will not be saved later.
-    kk = K - kk;
-    #pragma unroll
-    for (k = 0; k < kk; k++)
-    {
-        // Load A shmem->regs
-        #pragma unroll
-        for (m = 0; m < THR_M; m++)
-            rA[m] = sA(m*DIM_X+idx, k);
-
-        // Load B shmem->regs
-        #pragma unroll
-        for (n = 0; n < THR_N; n++)
-            rB[n] = sB(k, n*DIM_Y+idy);
-
-        // Compute
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                fma(op<CONJA>(rA[m]), op<CONJB>(rB[n]), rC[n][m]);
-            }
-        }
-    }
-
-    // Store C regs->dev
-    if( beta == make_FloatingPoint(0.0,0.0) ){
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-                if (coord_dCm < M && coord_dCn < N) {
-                    ptrdiff_t offsC = coord_dCn*(ptrdiff_t)LDC + coord_dCm;
-
-                    T &regC = rC[n][m];
-                    T &memC = C[offsC];
-
-                    memC = mul(alpha, regC);
-                }
-            }
-        }
-    } else {
-        #pragma unroll
-        for (n = 0; n < THR_N; n++) {
-            int coord_dCn = bly*BLK_N + n*DIM_Y + idy;
-            #pragma unroll
-            for (m = 0; m < THR_M; m++) {
-                int coord_dCm = blx*BLK_M + m*DIM_X + idx;
-                if (coord_dCm < M && coord_dCn < N) {
-                    ptrdiff_t offsC = (ptrdiff_t)coord_dCn*(ptrdiff_t)LDC + (ptrdiff_t)coord_dCm;
-
-                    T &regC = rC[n][m];
-                    T &memC = C[offsC];
-
-                    memC = add(mul(alpha, regC), mul(beta, memC));
-                }
-            }
-        }
-    }
-#endif /* (__CUDA_ARCH__ >= 200) || defined(MAGMA_HAVE_HIP) */
+    write_rg2gm<T, BLK_M, BLK_N, THR_M, THR_N, DIM_X, DIM_Y>
+    (M, N, rC, C, LDC, alpha, beta, bx, by, tx, ty);
 }
 
 #endif //GEMM_TEMPLATE_DEVICE_CUH

@@ -115,41 +115,112 @@ magma_int_t magma_srecommend_cublas_gemm_batched(
     switch(shape)
     {
         case 0: // nn
-            {
-                use_cublas_gemm_batched = (magma_int_t) ( ( !(  k == 8  &&  n == 24 ) ) // ! (k == 8, n == 24)
+        {
+            use_cublas_gemm_batched = (magma_int_t) ( ( !(  k == 8  &&  n == 24 ) ) // ! (k == 8, n == 24)
                                                        && ( !(  k == 32             ) ) // ! k == 32
                                                         );
-            }
-            break;
+        }
+        break;
 
         case 1: // nt
         case 2: // nc
-            {
-                use_cublas_gemm_batched = (magma_int_t) ( ( !(  k == 8  &&  n == 24 ) ) // ! (k == 8, n == 24)
-                                                       && ( !(  k == 32             ) ) // ! k == 32
+        {
+            use_cublas_gemm_batched = (magma_int_t) ( ( !(  k == 8  &&  n == 24 ) ) // ! (k == 8, n == 24)
+                                                   && ( !(  k == 32             ) ) // ! k == 32
                                                         );
-            }
+        }
             break;
 
         case 3: // tn
         case 6: // cn
-            {
-                use_cublas_gemm_batched = (magma_int_t) ( ( !(  k == 8  &&  n == 24 ) ) // ! (k == 8, n == 24)
-                                                       && (  (  k < 32 )              ) // k < 32
-                                                        );
-            }
-            break;
+        {
+            use_cublas_gemm_batched = 1;
+            if(m == n && m <= 32) {
+                #ifdef MAGMA_HAVE_CUDA
+                switch(n) {
+                    case 15:
+                    case 16: use_cublas_gemm_batched = 0; break;
+                    case  2: use_cublas_gemm_batched = (k >  500) ? 1: 0; break;
+                    case  3: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case  4: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case  5: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case  6: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case  7: use_cublas_gemm_batched = (k >  400) ? 1: 0; break;
+                    case  8: use_cublas_gemm_batched = (k >  600) ? 1: 0; break;
+                    case  9: use_cublas_gemm_batched = (k >  200) ? 1: 0; break;
+                    case 10: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 11: use_cublas_gemm_batched = (k >  500) ? 1: 0; break;
+                    case 12: use_cublas_gemm_batched = (k >  600) ? 1: 0; break;
+                    case 13: use_cublas_gemm_batched = (k > 1200) ? 1: 0; break;
+                    case 14: use_cublas_gemm_batched = (k > 1200) ? 1: 0; break;
+                    case 17: use_cublas_gemm_batched = (k > 1700) ? 1: 0; break;
+                    case 18: use_cublas_gemm_batched = (k > 1900) ? 1: 0; break;
+                    case 19: use_cublas_gemm_batched = (k > 1700) ? 1: 0; break;
+                    case 20: use_cublas_gemm_batched = (k > 1700) ? 1: 0; break;
+                    case 21: use_cublas_gemm_batched = (k > 1700) ? 1: 0; break;
+                    case 22: use_cublas_gemm_batched = (k > 1500) ? 1: 0; break;
+                    case 23: use_cublas_gemm_batched = (k > 1500) ? 1: 0; break;
+                    case 24: use_cublas_gemm_batched = (k > 1300) ? 1: 0; break;
+                    case 25: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 26: use_cublas_gemm_batched = (k >  400) ? 1: 0; break;
+                    case 27: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 28: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 29: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 30: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 31: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 32: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    default: use_cublas_gemm_batched = 1;
+                }
+                #else
+                switch(n) {
+                    case  2:
+                    case  3:
+                    case  4:
+                    case  5:
+                    case  6:
+                    case  7:
+                    case  8:
+                    case  9:
+                    case 10:
+                    case 11:
+                    case 12:
+                    case 13:
+                    case 14:
+                    case 15:
+                    case 16:
+                    case 19: use_cublas_gemm_batched = 0; break;
+                    case 17: use_cublas_gemm_batched = (k > 1500) ? 1: 0; break;
+                    case 18: use_cublas_gemm_batched = (k > 1600) ? 1: 0; break;
+                    case 20: use_cublas_gemm_batched = (k > 1900) ? 1: 0; break;
+                    case 21: use_cublas_gemm_batched = (k > 1800) ? 1: 0; break;
+                    case 22: use_cublas_gemm_batched = (k > 1500) ? 1: 0; break;
+                    case 23: use_cublas_gemm_batched = (k > 1400) ? 1: 0; break;
+                    case 24: use_cublas_gemm_batched = (k > 1900) ? 1: 0; break;
+                    case 25: use_cublas_gemm_batched = (k > 1000) ? 1: 0; break;
+                    case 26: use_cublas_gemm_batched = (k > 1300) ? 1: 0; break;
+                    case 27: use_cublas_gemm_batched = (k >  800) ? 1: 0; break;
+                    case 28: use_cublas_gemm_batched = (k > 1900) ? 1: 0; break;
+                    case 29: use_cublas_gemm_batched = (k >  800) ? 1: 0; break;
+                    case 30: use_cublas_gemm_batched = (k > 1100) ? 1: 0; break;
+                    case 31: use_cublas_gemm_batched = (k >  900) ? 1: 0; break;
+                    case 32: use_cublas_gemm_batched = (k > 1900) ? 1: 0; break;
+                    default: use_cublas_gemm_batched = 1;
+                }
+                #endif  // MAGMA_HAVE_CUDA
+            } // (m == n && m <= 32)
+        }
+        break;
 
         case 4: // tt
         case 5: // tc
         case 7: // ct
         case 8: // cc
-            {
-                use_cublas_gemm_batched = (magma_int_t) ( ( !(  k == 8  &&  n == 24 ) ) // ! (k == 8, n == 24)
+        {
+            use_cublas_gemm_batched = (magma_int_t) ( ( !(  k == 8  &&  n == 24 ) ) // ! (k == 8, n == 24)
                                                        && ( !(  k == 32             ) ) // ! k == 32
                                                         );
-            }
-            break;
+        }
+        break;
 
         default:;
     }
@@ -173,19 +244,95 @@ magma_int_t magma_drecommend_cublas_gemm_batched(
         case 0: // nn
         case 1: // nt
         case 2: // nc
-        case 3: // tn
-        case 6: // cn
         case 4: // tt
         case 5: // tc
         case 7: // ct
         case 8: // cc
-            {
-                use_cublas_gemm_batched = 1;
-            }
-            break;
+        {
+            use_cublas_gemm_batched = 1;
+        }
+        break;
+        case 3: // tn
+        case 6: // cn
+        {
+            use_cublas_gemm_batched = 1;
+            if(m == n && m <= 32) {
+                #ifdef MAGMA_HAVE_CUDA
+                switch(n) {
+                    case  7:
+                    case  8: use_cublas_gemm_batched = 0; break;
+                    case 32: use_cublas_gemm_batched = 1; break;
+                    case  2: use_cublas_gemm_batched = (k >  500) ? 1: 0; break;
+                    case  3: use_cublas_gemm_batched = (k >  200) ? 1: 0; break;
+                    case  4: use_cublas_gemm_batched = (k >  200) ? 1: 0; break;
+                    case  5: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case  6: use_cublas_gemm_batched = (k > 1400) ? 1: 0; break;
+                    case  9: use_cublas_gemm_batched = (k >  800) ? 1: 0; break;
+                    case 10: use_cublas_gemm_batched = (k > 1200) ? 1: 0; break;
+                    case 11: use_cublas_gemm_batched = (k > 1400) ? 1: 0; break;
+                    case 12: use_cublas_gemm_batched = (k > 1400) ? 1: 0; break;
+                    case 13: use_cublas_gemm_batched = (k > 1400) ? 1: 0; break;
+                    case 14: use_cublas_gemm_batched = (k > 1600) ? 1: 0; break;
+                    case 15: use_cublas_gemm_batched = (k > 1600) ? 1: 0; break;
+                    case 16: use_cublas_gemm_batched = (k > 1600) ? 1: 0; break;
+                    case 17: use_cublas_gemm_batched = (k >  700) ? 1: 0; break;
+                    case 18: use_cublas_gemm_batched = (k >  800) ? 1: 0; break;
+                    case 19: use_cublas_gemm_batched = (k >  700) ? 1: 0; break;
+                    case 20: use_cublas_gemm_batched = (k >  800) ? 1: 0; break;
+                    case 21: use_cublas_gemm_batched = (k >  800) ? 1: 0; break;
+                    case 22: use_cublas_gemm_batched = (k > 1000) ? 1: 0; break;
+                    case 23: use_cublas_gemm_batched = (k > 1000) ? 1: 0; break;
+                    case 24: use_cublas_gemm_batched = (k > 1400) ? 1: 0; break;
+                    case 25: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 26: use_cublas_gemm_batched = (k >  400) ? 1: 0; break;
+                    case 27: use_cublas_gemm_batched = (k >  500) ? 1: 0; break;
+                    case 28: use_cublas_gemm_batched = (k >  700) ? 1: 0; break;
+                    case 29: use_cublas_gemm_batched = (k >  700) ? 1: 0; break;
+                    case 30: use_cublas_gemm_batched = (k >  500) ? 1: 0; break;
+                    case 31: use_cublas_gemm_batched = (k >  700) ? 1: 0; break;
+                    default: use_cublas_gemm_batched = 1;
+                }
+                #else
+                switch(n) {
+                    case  2:
+                    case  3:
+                    case  4:
+                    case  5:
+                    case  6:
+                    case  7:
+                    case  8:
+                    case  9:
+                    case 10:
+                    case 11:
+                    case 12:
+                    case 13:
+                    case 14:
+                    case 15:
+                    case 16:
+                    case 17: use_cublas_gemm_batched = 0; break;
+                    case 18: use_cublas_gemm_batched = (k > 1900) ? 1: 0; break;
+                    case 19: use_cublas_gemm_batched = (k > 1600) ? 1: 0; break;
+                    case 20: use_cublas_gemm_batched = (k > 1700) ? 1: 0; break;
+                    case 21: use_cublas_gemm_batched = (k > 1900) ? 1: 0; break;
+                    case 22: use_cublas_gemm_batched = (k > 1700) ? 1: 0; break;
+                    case 23: use_cublas_gemm_batched = (k > 1700) ? 1: 0; break;
+                    case 24: use_cublas_gemm_batched = (k > 1800) ? 1: 0; break;
+                    case 25: use_cublas_gemm_batched = (k >  200) ? 1: 0; break;
+                    case 26: use_cublas_gemm_batched = (k >  200) ? 1: 0; break;
+                    case 27: use_cublas_gemm_batched = (k >  200) ? 1: 0; break;
+                    case 28: use_cublas_gemm_batched = (k >  200) ? 1: 0; break;
+                    case 29: use_cublas_gemm_batched = (k >  200) ? 1: 0; break;
+                    case 30: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 31: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 32: use_cublas_gemm_batched = (k >  600) ? 1: 0; break;
+                    default: use_cublas_gemm_batched = 1;
+                }
+                #endif  // MAGMA_HAVE_CUDA
+            } // (m == n && m <= 32)
+        }
+
         default:;
     }
-    //printf("decision  ==========================================================================>      m%4d     n%4d    k%4d  for cublas %d\n",m,n,k,use_cublas_gemm_batched);
     return use_cublas_gemm_batched;
 }
 
@@ -202,39 +349,111 @@ magma_int_t magma_crecommend_cublas_gemm_batched(
     switch(shape)
     {
         case 0: // nn
-            {
-                use_cublas_gemm_batched = (magma_int_t) ( ( !(  k == 8  &&  n == 24 ) ) // ! (k == 8, n == 24)
-                                                       && (  (  k < 32 )              ) // k < 32
-                                                        );
-            }
-            break;
+        {
+            use_cublas_gemm_batched = (magma_int_t) ( ( !(  k == 8  &&  n == 24 ) ) // ! (k == 8, n == 24)
+                                                   && (  (  k < 32 )              ) // k < 32
+                                                    );
+        }
+        break;
 
         case 1: // nt
         case 2: // nc
-            {
-                // No cublas batched for this case
-                use_cublas_gemm_batched = 0;
-            }
-            break;
+        {
+            // No cublas batched for this case
+            use_cublas_gemm_batched = 0;
+        }
+        break;
 
         case 3: // tn
         case 6: // cn
-            {
-                use_cublas_gemm_batched = (magma_int_t) ( ( k == 16 && n == 16 ) // k == 16, n == 16
-                                                        );
-            }
-            break;
+        {
+            use_cublas_gemm_batched = 1;
+            if(m == n && m <= 32) {
+                #ifdef MAGMA_HAVE_CUDA
+                switch(n) {
+                    case  2:
+                    case  3:
+                    case  4:
+                    case  5:
+                    case  6:
+                    case  7:
+                    case  8:
+                    case  9:
+                    case 10:
+                    case 11:
+                    case 12:
+                    case 13:
+                    case 14:
+                    case 15:
+                    case 16:
+                    case 17:
+                    case 18:
+                    case 19:
+                    case 20:
+                    case 21:
+                    case 22:
+                    case 23:
+                    case 24: use_cublas_gemm_batched = 0; break;
+                    case 25: use_cublas_gemm_batched = (k >  700) ? 1: 0; break;
+                    case 26: use_cublas_gemm_batched = (k >  800) ? 1: 0; break;
+                    case 27: use_cublas_gemm_batched = (k >  800) ? 1: 0; break;
+                    case 28: use_cublas_gemm_batched = (k >  800) ? 1: 0; break;
+                    case 29: use_cublas_gemm_batched = (k >  900) ? 1: 0; break;
+                    case 30: use_cublas_gemm_batched = (k >  700) ? 1: 0; break;
+                    case 31: use_cublas_gemm_batched = (k >  900) ? 1: 0; break;
+                    case 32: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    default: use_cublas_gemm_batched = 1;
+                }
+                #else
+                switch(n) {
+                    case  2:
+                    case  3:
+                    case  4:
+                    case  5:
+                    case  6:
+                    case  7:
+                    case  8:
+                    case  9:
+                    case 10:
+                    case 11:
+                    case 12:
+                    case 13:
+                    case 14:
+                    case 15:
+                    case 16: use_cublas_gemm_batched = 0; break;
+                    case 17:
+                    case 18:
+                    case 19:
+                    case 20:
+                    case 21:
+                    case 22:
+                    case 23:
+                    case 24:
+                    case 25:
+                    case 26:
+                    case 27:
+                    case 28:
+                    case 29:
+                    case 30:
+                    case 31:
+                    case 32: use_cublas_gemm_batched = 1; break;
+                    default: use_cublas_gemm_batched = 1;
+                }
+                #endif  // MAGMA_HAVE_CUDA
+            }  // m == n && m <= 32
+        }
+        break;
 
         case 4: // tt
         case 5: // tc
         case 7: // ct
         case 8: // cc
-            {
-                use_cublas_gemm_batched = (magma_int_t) ( ( !(  k == 8  &&  n == 24 ) ) // ! (k == 8, n == 24)
-                                                       && (  (  k < 32 )              ) // k < 32
-                                                        );
-            }
-            break;
+        {
+            use_cublas_gemm_batched = (magma_int_t) ( ( !(  k == 8  &&  n == 24 ) ) // ! (k == 8, n == 24)
+                                                   && (  (  k < 32 )              ) // k < 32
+                                                    );
+        }
+        break;
 
         default:;
     }
@@ -254,33 +473,96 @@ magma_int_t magma_zrecommend_cublas_gemm_batched(
     switch(shape)
     {
         case 0: // nn
-            {
-                use_cublas_gemm_batched = 1;
-            }
-            break;
-
         case 1: // nt
         case 2: // nc
-            {
-                use_cublas_gemm_batched = 1;
-            }
-            break;
-
-        case 3: // tn
-        case 6: // cn
-            {
-                use_cublas_gemm_batched = (magma_int_t)  (k < 32 ); // k < 32
-            }
-            break;
-
         case 4: // tt
         case 5: // tc
         case 7: // ct
         case 8: // cc
-            {
-                use_cublas_gemm_batched = 1;
-            }
-            break;
+        {
+            use_cublas_gemm_batched = 1;
+        }
+        break;
+
+        case 3: // tn
+        case 6: // cn
+        {
+            use_cublas_gemm_batched = 1;
+            if(m == n && m <= 32) {
+                #ifdef MAGMA_HAVE_CUDA
+                switch(n) {
+                    case  2:
+                    case  3:
+                    case  4:
+                    case  5:
+                    case  6:
+                    case  7:
+                    case  8: use_cublas_gemm_batched = 0; break;
+                    case  9: use_cublas_gemm_batched = (k > 1000) ? 1: 0; break;
+                    case 10: use_cublas_gemm_batched = (k >  900) ? 1: 0; break;
+                    case 11: use_cublas_gemm_batched = (k > 1000) ? 1: 0; break;
+                    case 12: use_cublas_gemm_batched = (k > 1000) ? 1: 0; break;
+                    case 13: use_cublas_gemm_batched = (k > 1200) ? 1: 0; break;
+                    case 14: use_cublas_gemm_batched = (k > 1400) ? 1: 0; break;
+                    case 15: use_cublas_gemm_batched = (k > 1500) ? 1: 0; break;
+                    case 16: use_cublas_gemm_batched = (k > 1600) ? 1: 0; break;
+                    case 17: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 18: use_cublas_gemm_batched = (k >  400) ? 1: 0; break;
+                    case 19: use_cublas_gemm_batched = (k >  400) ? 1: 0; break;
+                    case 20: use_cublas_gemm_batched = (k >  400) ? 1: 0; break;
+                    case 21: use_cublas_gemm_batched = (k >  500) ? 1: 0; break;
+                    case 22: use_cublas_gemm_batched = (k >  500) ? 1: 0; break;
+                    case 23: use_cublas_gemm_batched = (k >  600) ? 1: 0; break;
+                    case 24: use_cublas_gemm_batched = (k >  600) ? 1: 0; break;
+                    case 25: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 26: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 27: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 28: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 29: use_cublas_gemm_batched = (k >  200) ? 1: 0; break;
+                    case 30: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 31: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    case 32: use_cublas_gemm_batched = (k >  100) ? 1: 0; break;
+                    default: use_cublas_gemm_batched = 1;
+                }
+                #else
+                switch(n) {
+                    case 25:
+                    case 26:
+                    case 27:
+                    case 28:
+                    case 29:
+                    case 30:
+                    case 31: use_cublas_gemm_batched = 1; break;
+                    case  2: use_cublas_gemm_batched = (k >  500) ? 1: 0; break;
+                    case  3: use_cublas_gemm_batched = (k >  700) ? 1: 0; break;
+                    case  4: use_cublas_gemm_batched = (k >  800) ? 1: 0; break;
+                    case  5: use_cublas_gemm_batched = (k >  600) ? 1: 0; break;
+                    case  6: use_cublas_gemm_batched = (k > 1100) ? 1: 0; break;
+                    case  7: use_cublas_gemm_batched = (k >  700) ? 1: 0; break;
+                    case  8: use_cublas_gemm_batched = (k > 1000) ? 1: 0; break;
+                    case  9: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 10: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 11: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 12: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 13: use_cublas_gemm_batched = (k >  400) ? 1: 0; break;
+                    case 14: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 15: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 16: use_cublas_gemm_batched = (k >  200) ? 1: 0; break;
+                    case 17: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 18: use_cublas_gemm_batched = (k >  400) ? 1: 0; break;
+                    case 19: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 20: use_cublas_gemm_batched = (k >  400) ? 1: 0; break;
+                    case 21: use_cublas_gemm_batched = (k >  500) ? 1: 0; break;
+                    case 22: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 23: use_cublas_gemm_batched = (k >  300) ? 1: 0; break;
+                    case 24: use_cublas_gemm_batched = (k >  400) ? 1: 0; break;
+                    case 32: use_cublas_gemm_batched = (k >  200) ? 1: 0; break;
+                    default: use_cublas_gemm_batched = 1;
+                }
+                #endif  // MAGMA_HAVE_CUDA
+            }  // m == n && m <= 32
+        }
+        break;
 
         default:;
     }

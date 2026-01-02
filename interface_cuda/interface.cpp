@@ -391,10 +391,11 @@ magma_print_environment()
         check_error( err );
 
         #ifdef MAGMA_HAVE_CUDA
-
+        // clockRate was deprecated in cudaDeviceProp in CUDA 12, removed in CUDA 13;
+        // use cudaDeviceGetAttribute to avoid deprecation warning
         int clock_khz;
-        #if CUDA_VERSION >= 13000
-        cudaDeviceGetAttribute (&clock_khz, cudaDevAttrClockRate, dev);
+        #if CUDART_VERSION >= 12000
+        cudaDeviceGetAttribute( &clock_khz, cudaDevAttrClockRate, dev );
         #else
         clock_khz = prop.clockRate;
         #endif

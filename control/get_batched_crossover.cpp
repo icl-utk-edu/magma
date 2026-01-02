@@ -14,6 +14,106 @@
 #include "magma_internal.h"
 #include "geqrf_batched_panel_decision.h"
 
+
+#ifdef __cplusplus
+////////////////////////////////////////////////////////////////////////////////
+// template wrapper for all precisions of magma_<x>unm2r_batched_kernel_sm_size
+template<typename T>
+magma_int_t magma_unm2r_batched_kernel_sm_size(magma_side_t side, magma_trans_t trans, magma_int_t m, magma_int_t n, magma_int_t ib, magma_int_t nb) = delete;
+
+template<>
+magma_int_t
+magma_unm2r_batched_kernel_sm_size<magmaDoubleComplex>(
+    magma_side_t side, magma_trans_t trans,
+    magma_int_t m, magma_int_t n, magma_int_t ib, magma_int_t nb)
+{return magma_zunm2r_batched_kernel_sm_size(side, trans, m, n, ib, nb);}
+
+template<>
+magma_int_t
+magma_unm2r_batched_kernel_sm_size<magmaFloatComplex>(
+    magma_side_t side, magma_trans_t trans,
+    magma_int_t m, magma_int_t n, magma_int_t ib, magma_int_t nb)
+{return magma_cunm2r_batched_kernel_sm_size(side, trans, m, n, ib, nb);}
+
+template<>
+magma_int_t
+magma_unm2r_batched_kernel_sm_size<double>(
+    magma_side_t side, magma_trans_t trans,
+    magma_int_t m, magma_int_t n, magma_int_t ib, magma_int_t nb)
+{return magma_dorm2r_batched_kernel_sm_size(side, trans, m, n, ib, nb);}
+
+template<>
+magma_int_t
+magma_unm2r_batched_kernel_sm_size<float>(
+    magma_side_t side, magma_trans_t trans,
+    magma_int_t m, magma_int_t n, magma_int_t ib, magma_int_t nb)
+{return magma_sorm2r_batched_kernel_sm_size(side, trans, m, n, ib, nb);}
+
+////////////////////////////////////////////////////////////////////////////////
+// this is a generic search routine for the lookup tables defined in
+// geqrf_batched_panel_decision.h
+template<typename T>
+magma_int_t
+magma_geqrf_batched_get_cutoff_width(
+            magma_int_t m, magma_int_t n, magma_int_t batchCount,
+            std::vector<std::vector<magma_int_t>>* lookup_table )
+{
+    magma_int_t cutoff_width = 0;
+    magma_int_t batch_index  = (magma_int_t) nearbyint( (double)batchCount / (double)GEQRF_BATCHED_LOOKUP_TABLE_BATCH_STEP );
+    batch_index = (batch_index == 0) ? 1 : batch_index;  // the first column in the table is for 'm', not the cutoff-width
+    size_t table_size   = (magma_int_t) lookup_table->size();
+    size_t m_index = 0;
+    // find the closest m
+    magma_int_t dist = (magma_int_t)(INT_MAX);
+    for(size_t i = 0; i < table_size; i++) {
+        double idist = std::abs(m - (*lookup_table)[i][0]);
+        if(idist < dist) {
+            m_index = i;
+            dist    = idist;
+        }
+    }
+
+    // make sure we don't go out-of-bounds
+    magma_int_t num_m_entries = lookup_table->size();
+    magma_int_t max_m = (*lookup_table)[num_m_entries-1][0];
+
+    // check if m is within the stored values (first column in lookup_table)
+    // if yes: read the cutoff width
+    // if no : return default cutoff width ('0', which means do not use fused panel)
+    if(m <= max_m) {
+        batch_index = min( batch_index, (magma_int_t)((*lookup_table)[m_index].size()-1) );
+        cutoff_width = (*lookup_table)[m_index][batch_index];
+
+        // if the cutoff_width is equal to the maximum tested width during the tuning sweeps,
+        // this probably means to use the fused update even for larger widths
+        cutoff_width = ( cutoff_width == GEQRF_BATCHED_MAX_TESTED_WIDTH ) ? n : cutoff_width;
+    }
+    else {
+        // here we don't have tuning data
+        // so read the last record in lookup_table and check if the zunm2r (the shared memory kernel)
+        // can be launched with a minimum value of nb
+        // we choose nb = 4 since smaller values don't usually yield an advantage for the fused zunm2r
+        // we also choose side = Left and trans = NoTrans (these do not affect shared memory requirements)
+        magma_int_t nb = 4;
+        magma_int_t zunm2r_sm_size = magma_unm2r_batched_kernel_sm_size<T>(MagmaLeft, MagmaNoTrans, m, n, nb, nb);
+        magma_int_t shmem_max      = magma_getdevice_shmem_block_optin();
+        cutoff_width = (*lookup_table)[num_m_entries-1][batch_index];
+        if(zunm2r_sm_size > shmem_max) {
+            // we cannot launch the zunm2r_sm kernel, so we set cutoff width to zero
+            // in order to disable the fused zunm2r
+            cutoff_width = 0;
+        }
+
+    }
+
+    return cutoff_width;
+}
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////
+//                   extern "C" block begins here
+////////////////////////////////////////////////////////////////////////////////
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -281,55 +381,24 @@ magma_int_t magma_get_sgeqrf_batched_nb(magma_int_t m)
     @return recommendation (1/0) of using the panel code only (with fused
             update) over the main blocked code
 *******************************************************************************/
-// this is a generic search routine for the lookup tables defined in
-// geqrf_batched_panel_decision.h
-#define GEQRF_BATCHED_LOOKUP_TABLE_BATCH_STEP   (100)
-#define GEQRF_BATCHED_MAX_TESTED_WIDTH          (256)
-
-static magma_int_t magma_geqrf_batched_get_cutoff_width(
-            magma_int_t m, magma_int_t n, magma_int_t batchCount,
-            std::vector<std::vector<magma_int_t>>* lookup_table )
-{
-    magma_int_t cutoff_width = 0;
-    magma_int_t batch_index  = (magma_int_t) nearbyint( (double)batchCount / (double)GEQRF_BATCHED_LOOKUP_TABLE_BATCH_STEP );
-    batch_index = (batch_index == 0) ? 1 : batch_index;  // the first column in the table is for 'm', not the cutoff-width
-    size_t table_size   = (magma_int_t) lookup_table->size();
-    size_t m_index = 0;
-    // find the closest m
-    magma_int_t dist = (magma_int_t)(INT_MAX);
-    for(size_t i = 0; i < table_size; i++) {
-        double idist = std::abs(m - (*lookup_table)[i][0]);
-        if(idist < dist) {
-            m_index = i;
-            dist    = idist;
-        }
-    }
-
-    // make sure we don't go out-of-bounds
-    batch_index = min( batch_index, (magma_int_t)((*lookup_table)[m_index].size()-1) );
-
-    cutoff_width = (*lookup_table)[m_index][batch_index];
-
-    // if the cutoff_width is equal to the maximum tested width during the tuning sweeps,
-    // this probably means to use the fused update even for larger widths
-    cutoff_width = ( cutoff_width == GEQRF_BATCHED_MAX_TESTED_WIDTH ) ? n : cutoff_width;
-
-    return cutoff_width;
-}
-
 magma_int_t magma_use_zgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, magma_int_t batchCount)
 {
     magma_int_t use_fused_update = 0, cutoff_width = 0;
     std::vector<std::vector<magma_int_t>>* data;
     #ifdef MAGMA_HAVE_CUDA
-    // TODO: add more gpus
-    data = &zgeqrf_panel_decision_a100;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 900){
+        data = &zgeqrf_panel_decision_h100;
+    }
+    else {
+        data = &zgeqrf_panel_decision_a100;
+    }
     #else
-    // TODO: add more gpus
-    data = &zgeqrf_panel_decision_a100;
+    // TODO: add more gpus based on a numerical value for device arch.
+    data = &zgeqrf_panel_decision_mi300a;
     #endif
 
-    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    cutoff_width     = magma_geqrf_batched_get_cutoff_width<magmaDoubleComplex>(m, n, batchCount, data);
     use_fused_update = (n <= cutoff_width) ? 1 : 0;
     return use_fused_update;
 }
@@ -339,14 +408,19 @@ magma_int_t magma_use_cgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, 
     magma_int_t use_fused_update = 0, cutoff_width = 0;
     std::vector<std::vector<magma_int_t>>* data;
     #ifdef MAGMA_HAVE_CUDA
-    // TODO: add more gpus
-    data = &cgeqrf_panel_decision_a100;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 900){
+        data = &cgeqrf_panel_decision_h100;
+    }
+    else {
+        data = &cgeqrf_panel_decision_a100;
+    }
     #else
-    // TODO: add more gpus
-    data = &cgeqrf_panel_decision_a100;
+    // TODO: add more gpus based on a numerical value for device arch.
+    data = &cgeqrf_panel_decision_mi300a;
     #endif
 
-    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    cutoff_width     = magma_geqrf_batched_get_cutoff_width<magmaFloatComplex>(m, n, batchCount, data);
     use_fused_update = (n <= cutoff_width) ? 1 : 0;
     return use_fused_update;
 }
@@ -356,14 +430,19 @@ magma_int_t magma_use_dgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, 
     magma_int_t use_fused_update = 0, cutoff_width = 0;
     std::vector<std::vector<magma_int_t>>* data;
     #ifdef MAGMA_HAVE_CUDA
-    // TODO: add more gpus
-    data = &dgeqrf_panel_decision_a100;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 900){
+        data = &dgeqrf_panel_decision_h100;
+    }
+    else {
+        data = &dgeqrf_panel_decision_a100;
+    }
     #else
-    // TODO: add more gpus
-    data = &dgeqrf_panel_decision_a100;
+    // TODO: add more gpus based on a numerical value for device arch.
+    data = &dgeqrf_panel_decision_mi300a;
     #endif
 
-    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    cutoff_width     = magma_geqrf_batched_get_cutoff_width<double>(m, n, batchCount, data);
     use_fused_update = (n <= cutoff_width) ? 1 : 0;
     return use_fused_update;
 }
@@ -373,14 +452,19 @@ magma_int_t magma_use_sgeqrf_batched_fused_update(magma_int_t m, magma_int_t n, 
     magma_int_t use_fused_update = 0, cutoff_width = 0;
     std::vector<std::vector<magma_int_t>>* data;
     #ifdef MAGMA_HAVE_CUDA
-    // TODO: add more gpus
-    data = &sgeqrf_panel_decision_a100;
+    magma_int_t arch = magma_getdevice_arch();
+    if(arch >= 900){
+        data = &sgeqrf_panel_decision_h100;
+    }
+    else {
+        data = &sgeqrf_panel_decision_a100;
+    }
     #else
-    // TODO: add more gpus
-    data = &sgeqrf_panel_decision_a100;
+    // TODO: add more gpus based on a numerical value for device arch.
+    data = &sgeqrf_panel_decision_mi300a;
     #endif
 
-    cutoff_width     = magma_geqrf_batched_get_cutoff_width(m, n, batchCount, data);
+    cutoff_width     = magma_geqrf_batched_get_cutoff_width<float>(m, n, batchCount, data);
     use_fused_update = (n <= cutoff_width) ? 1 : 0;
     return use_fused_update;
 }
