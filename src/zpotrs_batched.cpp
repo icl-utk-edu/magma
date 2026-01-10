@@ -162,5 +162,8 @@ magma_zpotrs_batched(
                 dB_array,    1, batchCount, queue );
         }
     }
+
+    magma_queue_sync(queue);
+
     return info;
 }
