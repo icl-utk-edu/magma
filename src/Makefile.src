@@ -327,6 +327,7 @@ libmagma_src += \
 	$(cdir)/zunmqr_batched.cpp	\
 	\
 	$(cdir)/zgesvj_batched.cpp	\
+	$(cdir)/zgesvj_qr_batched.cpp	\
 
 # ----------
 # vbatched, GPU interface
