@@ -765,6 +765,17 @@ magma_zgesvj_expert_batched_strided(
     magma_int_t batchCount, magma_queue_t queue );
 
 magma_int_t
+magma_zgesvj_qr_expert_batched(
+    magma_vec_t jobu_org, magma_vec_t jobv_org,
+    magma_int_t morg, magma_int_t norg,
+    magmaDoubleComplex** dA_array, magma_int_t ldda, double **dS_array,
+    magmaDoubleComplex** dU_array, magma_int_t lddu,
+    magmaDoubleComplex** dV_array, magma_int_t lddv,
+    magma_int_t* info_array,
+    void *device_work, int64_t *device_lwork,
+    magma_int_t batchCount, magma_queue_t queue );
+
+magma_int_t
 magma_zgesvj_batched_strided(
     magma_vec_t jobu, magma_vec_t jobv,
     magma_int_t morg, magma_int_t norg,
