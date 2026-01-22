@@ -14,25 +14,34 @@
 /***************************************************************************//**
     Purpose
     -------
-    ZGESVJ computes the singular value decomposition (SVD) of an M-by-N
-    matrix A , optionally computing the left and/or right singular vectors.
+    ZGESVJ computes the reduced singular value decomposition (SVD) of an M-by-N
+    matrix A, optionally computing the left and/or right singular vectors.
+
+    The routine first computes a QR factorization of A, followed by an SVD on the
+    R factor. Compared to a direct SVD, better performance is expected on tall-skinny
+    matrices.
+
     The SVD is written as:
 
          A = U * SIGMA * conjugate-transpose(V)
 
-    where SIGMA is an M-by-N matrix which is zero except for its
-    min(m,n) diagonal elements, U is an M-by-M unitary matrix, and
-    V is an N-by-N unitary matrix.  The diagonal elements of SIGMA
-    are the singular values of A; they are real and non-negative, and
-    are returned in descending order.  The first min(m,n) columns of
-    U and V are the left and right singular vectors of A.
+    where:
+    ** SIGMA is a min(m,n)-by-min(m,n) matrix which is zero except for its
+    min(m,n) diagonal elements
+    ** U is an M-by-min(m,n) unitary matrix, and
+    ** V is an N-by-min(m,n) unitary matrix.
+
+    The diagonal elements of SIGMA are the singular values of A; they are real
+    and non-negative, and are returned in descending order.
+    The first min(m,n) columns of U and V are the left and right singular vectors
+    of A.
 
     NOTES:
-
+    ------
     ** This routines computes only the economy size SVD based on the one-sided
        Jacobi algorithm.
 
-    ** As opposed to other SVD algorithms, this routines computes V, not V**H
+    ** This routines computes V, not V**H (if right vectors are required)
 
     ** The one-sided Jacobi algorithm implicitly computes the left singular vectors
        anyway while computing the values.
@@ -40,27 +49,24 @@
     ** This is the batch version of the routine, which performs the SVD
        on a batch of matrices having the same dimensions.
 
-    ** This is the blocked implementation of the algorithm, with an expert interface that
-       allows the user to pass an external workspace on device memory.
-
     Arguments
     ---------
     @param[in]
     jobu    magma_vec_t
             Specifies options for computing all or part of the matrix U:
-      -     = MagmaSomeVec: the first min(m,n) columns of U (the left singular
-                            vectors) are computed.
-      -     = MagmaNoVec:   no columns of U (no left singular vectors) are
-                            written to U. However, the algorithm implicitly computes
-                            them anyway while computing the values.
+      -     = MagmaVec or MagmaSomeVec: the first min(m,n) columns of U (the left singular
+              vectors) are computed.
+      -     = MagmaNoVec: no columns of U (no left singular vectors) are
+              written to U. However, the algorithm implicitly computes
+              them anyway while computing the values.
 
     @param[in]
     jobv    magma_vec_t
             Specifies options for computing the matrix V:
-      -     = MagmaSomeVec: the first min(m,n) rows of V (the right singular
-                            vectors) are returned in the array V;
-      -     = MagmaNoVec:   no rows of V (no right singular vectors) are
-                            computed.
+      -     = MagmaVec or MagmaSomeVec: the first min(m,n) columns of V (the right singular
+              vectors) are returned in the array V;
+      -     = MagmaNoVec: no columns of V (no right singular vectors) are
+              computed.
 
     @param[in]
     m       INTEGER
@@ -75,11 +81,10 @@
              Each is a COMPLEX_16 array, dimension (LDDA,N)
              On entry, the M-by-N matrix A.
              On exit,
-      -      if JOBU = MagmaSomeVec, and dA_array is the same as dU_array,
-             A is overwritten with the first min(m,n) columns of U
-             (the left singular vectors, stored columnwise);
-      -      if JOBU = MagmaNoVec, or dA_array is different from dU_array, then
-             A is unchanged on exit
+      -      if M >= N and JOBU = MagmaVec or MagmaSomeVec, the user has the option to
+             set dU_array = dA_array, upon which A will be overwritten with the
+             first min(m,n) columns of U
+      -      Otherwise A is unchanged on exit
 
     @param[in]
     ldda    INTEGER
@@ -93,7 +98,7 @@
     @param[out]
     dU_array Array of pointers, length (batchCount)
              Each is a COMPLEX_16 array, dimension (LDDU,N)
-      -      if JOBU = MagmaSomeVec, U contains the first min(m,n) columns of U
+      -      if JOBU = MagmaVec or MagmaSomeVec, U contains the first min(m,n) columns of U
              (the left singular vectors, stored columnwise);
       -      if JOBU = MagmaNoVec, U is not referenced.
       -      When M >= N, dU_array could optionally be the same as dA_array
@@ -105,10 +110,9 @@
     @param[out]
     dV_array Array of pointers, length (batchCount)
              Each is a COMPLEX_16 array, dimension (LDDV,N)
-      -      if JOBV = MagmaSomeVec, V contains the first n columns of V
+      -      if JOBV = MagmaVec or MagmaSomeVec, V contains the first min(m,n) columns of V
              (the right singular vectors, stored columnwise);
       -      if JOBV = MagmaNoVec, V is not referenced.
-      -      When M < N, dV_array could optionally be the same as dA_array
 
     @param[in]
     lddv    INTEGER
@@ -153,10 +157,10 @@ magma_zgesvj_qr_expert_batched(
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
-    const bool want_us  = (jobu_org == MagmaSomeVec);
+    const bool want_us  = (jobu_org == MagmaVec || jobu_org == MagmaSomeVec);
     const bool want_un  = (jobu_org == MagmaNoVec);
 
-    const bool want_vs  = (jobv_org == MagmaSomeVec);
+    const bool want_vs  = (jobv_org == MagmaVec || jobv_org == MagmaSomeVec);
     const bool want_vn  = (jobv_org == MagmaNoVec);
 
     // Test the input arguments
