@@ -189,6 +189,11 @@ int main( int argc, char** argv)
     for( int itest = 0; itest < opts.ntest; ++itest ) {
       for( auto jobu = opts.jobu.begin(); jobu != opts.jobu.end(); ++jobu ) {
       for( auto jobv = opts.jobv.begin(); jobv != opts.jobv.end(); ++jobv ) {
+        // magma_zgesvj_batched accepts MagmaVec and MagmaSomeVec (both are equivalent)
+        // GESVD accepts only 's' = some vectors
+        magma_vec_t jobu_cpu = (*jobu == MagmaVec) ? MagmaSomeVec : (*jobu);
+        magma_vec_t jobv_cpu = (*jobv == MagmaVec) ? MagmaSomeVec : (*jobv);
+
         if ( *jobu == MagmaOverwriteVec || *jobu == MagmaAllVec ||
              *jobv == MagmaOverwriteVec || *jobv == MagmaAllVec ) {
             printf( "skipping invalid combination jobu=%c, jobvt=%c\n", lapacke_vec_const(*jobu), lapacke_vec_const(*jobv));
@@ -222,7 +227,7 @@ int main( int argc, char** argv)
             if(opts.lapack) {
                 magma_int_t query_lapack = 0;
                 #ifdef CPU_GESVD
-                lapackf77_zgesvd( lapack_vec_const(*jobu), lapack_vec_const(*jobv), &M, &N,
+                lapackf77_zgesvd( lapack_vec_const(jobu_cpu), lapack_vec_const(jobv_cpu), &M, &N,
                                   unused, &lda, runused,
                                   unused, &ldu,
                                   unused, &ldvt,
@@ -454,7 +459,7 @@ int main( int argc, char** argv)
                 for(magma_int_t s = 0; s < batchCount; s++) {
                     #ifdef CPU_GESVD
                     // gesvd returns vt instead of v
-                    lapackf77_zgesvd( lapack_vec_const(*jobu), lapack_vec_const(*jobv), &M, &N,
+                    lapackf77_zgesvd( lapack_vec_const(jobu_cpu), lapack_vec_const(jobv_cpu), &M, &N,
                                       hR_array[s], &lda, hSref_array[s],
                                       hU_array[s], &ldu,
                                       hV_array[s], &ldvt,
