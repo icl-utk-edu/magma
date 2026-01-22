@@ -813,10 +813,10 @@ magma_zgesvj_expert_batched(
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
-    const bool want_us  = (jobu == MagmaSomeVec);
+    const bool want_us  = (jobu == MagmaVec || jobu == MagmaSomeVec);
     const bool want_un  = (jobu == MagmaNoVec);
 
-    const bool want_vs  = (jobv == MagmaSomeVec);
+    const bool want_vs  = (jobv == MagmaVec || jobv == MagmaSomeVec);
     const bool want_vn  = (jobv == MagmaNoVec);
 
     // Test the input arguments
@@ -1076,10 +1076,10 @@ magma_zgesvj_expert_batched_strided(
 {
     magma_int_t arginfo = 0;
     magma_int_t min_mn  = min(morg, norg);
-    const bool want_us  = (jobu == MagmaSomeVec);
+    const bool want_us  = (jobu == MagmaVec || jobu == MagmaSomeVec);
     const bool want_un  = (jobu == MagmaNoVec);
 
-    const bool want_vs  = (jobv == MagmaSomeVec);
+    const bool want_vs  = (jobv == MagmaVec || jobv == MagmaSomeVec);
     const bool want_vn  = (jobv == MagmaNoVec);
 
     magma_int_t min_strideA = ldda * norg;
@@ -1334,10 +1334,10 @@ magma_zgesvj_batched(
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
-    const bool want_us  = (jobu == MagmaSomeVec);
+    const bool want_us  = (jobu == MagmaVec || jobu == MagmaSomeVec);
     const bool want_un  = (jobu == MagmaNoVec);
 
-    const bool want_vs  = (jobv == MagmaSomeVec);
+    const bool want_vs  = (jobv == MagmaVec || jobv == MagmaSomeVec);
     const bool want_vn  = (jobv == MagmaNoVec);
 
     // Test the input arguments
@@ -1550,10 +1550,10 @@ magma_zgesvj_batched_strided(
 {
     magma_int_t arginfo = 0;
     magma_int_t min_mn  = min(morg, norg);
-    const bool want_us  = (jobu == MagmaSomeVec);
+    const bool want_us  = (jobu == MagmaVec || jobu == MagmaSomeVec);
     const bool want_un  = (jobu == MagmaNoVec);
 
-    const bool want_vs  = (jobv == MagmaSomeVec);
+    const bool want_vs  = (jobv == MagmaVec || jobv == MagmaSomeVec);
     const bool want_vn  = (jobv == MagmaNoVec);
 
     magma_int_t min_strideA = morg * norg;
