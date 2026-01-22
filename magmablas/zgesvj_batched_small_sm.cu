@@ -442,6 +442,10 @@ static magma_int_t magma_zgesvj_batched_get_nthreads(
                 magma_vec_t jobu, magma_vec_t jobv,
                 magma_int_t morg, magma_int_t norg )
 {
+    // treat job{x} = MagmaVec as job = MagmaSomeVec
+    jobu = (jobu == MagmaVec) ? MagmaSomeVec : jobu;
+    jobv = (jobu == MagmaVec) ? MagmaSomeVec : jobv;
+
     // tuning is for m >=  only
     magma_int_t m = (morg >= norg) ? morg : norg;
     //magma_int_t n = (morg >= norg) ? norg : morg;
@@ -626,10 +630,10 @@ magma_zgesvj_batched_small_sm(
     magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
-    const bool want_us  = (jobu == MagmaSomeVec);
+    const bool want_us  = (jobu == MagmaVec || jobu == MagmaSomeVec);
     const bool want_un  = (jobu == MagmaNoVec);
 
-    const bool want_vs  = (jobv == MagmaSomeVec);
+    const bool want_vs  = (jobv == MagmaVec || jobv == MagmaSomeVec);
     const bool want_vn  = (jobv == MagmaNoVec);
 
     // Test the input arguments
