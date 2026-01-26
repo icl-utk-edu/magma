@@ -25,9 +25,9 @@ option(MAGMA_ENABLE_HIP      "Enable the HIP  backend"  OFF)
 if (NOT MAGMA_ENABLE_CUDA AND
     NOT MAGMA_ENABLE_HIP
     )
-  message(STATUS "MAGMA requires one enabled backend!")
-  message(STATUS "Building CUDA backend")
-  set( MAGMA_ENABLE_CUDA ON )
+    message(STATUS "MAGMA requires one enabled backend!")
+    message(STATUS "Building CUDA backend")
+    set( MAGMA_ENABLE_CUDA ON )
 endif()
 
 # ----------------------------------------
@@ -217,87 +217,87 @@ endif()
 # ----------------------------------------
 # locate HIP/ROCm libraries
 if (MAGMA_ENABLE_HIP)
-  set( GPU_TARGET "gfx900" CACHE STRING "HIP architectures to compile for" )
-  list(APPEND CMAKE_PREFIX_PATH /opt/rocm /opt/rocm/lib/cmake/hip)
-  find_package( HIP )
-  if (HIP_FOUND)
-    message( STATUS "Found HIP ${HIP_VERSION}" )
-    message( STATUS "    HIP_INCLUDE_DIRS:   ${HIP_INCLUDE_DIRS}"   )
-    message( STATUS "GPU_TARGET:  ${GPU_TARGET}"   )
+    set( GPU_TARGET "gfx900" CACHE STRING "HIP architectures to compile for" )
+    list(APPEND CMAKE_PREFIX_PATH /opt/rocm /opt/rocm/lib/cmake/hip)
+    find_package( HIP )
+    if (HIP_FOUND)
+        message( STATUS "Found HIP ${HIP_VERSION}" )
+        message( STATUS "    HIP_INCLUDE_DIRS:   ${HIP_INCLUDE_DIRS}"   )
+        message( STATUS "GPU_TARGET:  ${GPU_TARGET}"   )
 
-    include_directories( ${HIP_INCLUDE_DIRS} )
+        include_directories( ${HIP_INCLUDE_DIRS} )
 
-    set(HIP_SEPARABLE_COMPILATION ON)
+        set(HIP_SEPARABLE_COMPILATION ON)
 
-    if (GPU_TARGET MATCHES kaveri)
-      set( GPU_TARGET ${GPU_TARGET} gfx700 )
+        if (GPU_TARGET MATCHES kaveri)
+            set( GPU_TARGET ${GPU_TARGET} gfx700 )
+        endif()
+
+        if (GPU_TARGET MATCHES hawaii)
+            set( GPU_TARGET ${GPU_TARGET} gfx701 )
+        endif()
+
+        if (GPU_TARGET MATCHES kabini)
+            set( GPU_TARGET ${GPU_TARGET} gfx703 )
+        endif()
+
+        if (GPU_TARGET MATCHES mullins)
+            set( GPU_TARGET ${GPU_TARGET} gfx703 )
+        endif()
+
+        if (GPU_TARGET MATCHES bonaire)
+            set( GPU_TARGET ${GPU_TARGET} gfx704 )
+        endif()
+
+        if (GPU_TARGET MATCHES carrizo)
+            set( GPU_TARGET ${GPU_TARGET} gfx801 )
+        endif()
+
+        if (GPU_TARGET MATCHES iceland)
+            set( GPU_TARGET ${GPU_TARGET} gfx802 )
+        endif()
+
+        if (GPU_TARGET MATCHES tonga)
+            set( GPU_TARGET ${GPU_TARGET} gfx802 )
+        endif()
+
+        if (GPU_TARGET MATCHES fiji)
+            set( GPU_TARGET ${GPU_TARGET} gfx803 )
+        endif()
+
+        if (GPU_TARGET MATCHES polaris10)
+            set( GPU_TARGET ${GPU_TARGET} gfx803 )
+        endif()
+
+        if (GPU_TARGET MATCHES tongapro)
+            set( GPU_TARGET ${GPU_TARGET} gfx805 )
+        endif()
+
+        if (GPU_TARGET MATCHES stoney)
+            set( GPU_TARGET ${GPU_TARGET} gfx810 )
+        endif()
+
+        set( DEVCCFLAGS  "" )
+        set(VALID_GFXS "700;701;702;703;704;705;801;802;803;805;810;900;902;904;906;908;909;90c;1010;1011;1012;1030;1031;1032;1033")
+        foreach( GFX ${VALID_GFXS} )
+            if ( GPU_TARGET MATCHES gfx${GFX} )
+                set( DEVCCFLAGS ${DEVCCFLAGS} --offload-arch=gfx${GFX} )
+            endif()
+        endforeach()
+
+        set( DEVCCFLAGS ${DEVCCFLAGS} -fPIC ${FORTRAN_CONVENTION} )
+        set(MAGMA_HAVE_HIP "1")
+        message( STATUS "Define -DMAGMA_HAVE_HIP" )
+
+        set_property(TARGET hip::device APPEND PROPERTY COMPATIBLE_INTERFACE_BOOL INTERFACE_HIP_DEVICE_COMPILE)
+        set_property(TARGET hip::device PROPERTY INTERFACE_HIP_DEVICE_COMPILE ON)
+        set(GPU_ARCH_FLAGS ${DEVCCFLAGS})
+
+        #add_compile_options(${GPU_ARCH_FLAGS})
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_AMD__ -DHIPBLAS_V2" )
+    else()
+        message( STATUS "Could not find HIP" )
     endif()
-
-    if (GPU_TARGET MATCHES hawaii)
-      set( GPU_TARGET ${GPU_TARGET} gfx701 )
-    endif()
-
-    if (GPU_TARGET MATCHES kabini)
-      set( GPU_TARGET ${GPU_TARGET} gfx703 )
-    endif()
-
-    if (GPU_TARGET MATCHES mullins)
-      set( GPU_TARGET ${GPU_TARGET} gfx703 )
-    endif()
-
-    if (GPU_TARGET MATCHES bonaire)
-      set( GPU_TARGET ${GPU_TARGET} gfx704 )
-    endif()
-
-    if (GPU_TARGET MATCHES carrizo)
-      set( GPU_TARGET ${GPU_TARGET} gfx801 )
-    endif()
-
-    if (GPU_TARGET MATCHES iceland)
-      set( GPU_TARGET ${GPU_TARGET} gfx802 )
-    endif()
-
-    if (GPU_TARGET MATCHES tonga)
-      set( GPU_TARGET ${GPU_TARGET} gfx802 )
-    endif()
-
-    if (GPU_TARGET MATCHES fiji)
-      set( GPU_TARGET ${GPU_TARGET} gfx803 )
-    endif()
-
-    if (GPU_TARGET MATCHES polaris10)
-      set( GPU_TARGET ${GPU_TARGET} gfx803 )
-    endif()
-
-    if (GPU_TARGET MATCHES tongapro)
-      set( GPU_TARGET ${GPU_TARGET} gfx805 )
-    endif()
-
-    if (GPU_TARGET MATCHES stoney)
-      set( GPU_TARGET ${GPU_TARGET} gfx810 )
-    endif()
-
-    set( DEVCCFLAGS  "" )
-    set(VALID_GFXS "700;701;702;703;704;705;801;802;803;805;810;900;902;904;906;908;909;90c;1010;1011;1012;1030;1031;1032;1033")
-    foreach( GFX ${VALID_GFXS} )
-      if ( GPU_TARGET MATCHES gfx${GFX} )
-        set( DEVCCFLAGS ${DEVCCFLAGS} --offload-arch=gfx${GFX} )
-      endif()
-    endforeach()
-
-    set( DEVCCFLAGS ${DEVCCFLAGS} -fPIC ${FORTRAN_CONVENTION} )
-    set(MAGMA_HAVE_HIP "1")
-    message( STATUS "Define -DMAGMA_HAVE_HIP" )
-
-    set_property(TARGET hip::device APPEND PROPERTY COMPATIBLE_INTERFACE_BOOL INTERFACE_HIP_DEVICE_COMPILE)
-    set_property(TARGET hip::device PROPERTY INTERFACE_HIP_DEVICE_COMPILE ON)
-    set(GPU_ARCH_FLAGS ${DEVCCFLAGS})
-
-    #add_compile_options(${GPU_ARCH_FLAGS})
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_PLATFORM_AMD__ -DHIPBLAS_V2" )
-  else()
-    message( STATUS "Could not find HIP" )
-  endif()
 endif()
 
 # ----------------------------------------
@@ -392,9 +392,9 @@ include_directories( "${CMAKE_BINARY_DIR}/include" )
 include_directories( include )
 include_directories( control )
 if (MAGMA_ENABLE_CUDA)
-  include_directories( magmablas )  # e.g., shuffle.cuh
+    include_directories( magmablas )  # e.g., shuffle.cuh
 else()
-  include_directories( magmablas_hip )  # e.g., shuffle.cuh
+    include_directories( magmablas_hip )  # e.g., shuffle.cuh
 endif()
 
 # Need to check sizeof(void*) after setting flags above;
@@ -451,31 +451,31 @@ if (WIN32)
 else()
     # Unix doesn't seem to have a problem with mixing C, CUDA, and Fortran files
     if (MAGMA_ENABLE_CUDA)
-    #message(FATAL_ERROR "${libmagma_all}")
-      add_library( magma ${libmagma_all} )
-      target_link_libraries( magma
-        ${LAPACK_LIBRARIES}
-        CUDA::cudart
-        CUDA::cublas
-        CUDA::cusparse
-        magma_nvcc_flags
+        #message(FATAL_ERROR "${libmagma_all}")
+        add_library( magma ${libmagma_all} )
+        target_link_libraries( magma
+            ${LAPACK_LIBRARIES}
+            CUDA::cudart
+            CUDA::cublas
+            CUDA::cusparse
+            magma_nvcc_flags
         )
     else()
-      find_package( hipBLAS )
-      if (hipBLAS_FOUND)
-        message( STATUS "Found rocBLAS ${rocBLAS_VERSION}" )
-      endif()
-      find_package( hipSPARSE )
-      if (hipSPARSE_FOUND)
-        message( STATUS "Found rocSPARSE ${rocSPARSE_VERSION}" )
-      endif()
-      add_library( magma ${libmagma_all} )
-      target_link_libraries( magma
-        hip::host
-        ${LAPACK_LIBRARIES}
-        hip::device
-        roc::hipblas
-        roc::hipsparse
+        find_package( hipBLAS )
+        if (hipBLAS_FOUND)
+            message( STATUS "Found rocBLAS ${rocBLAS_VERSION}" )
+        endif()
+        find_package( hipSPARSE )
+        if (hipSPARSE_FOUND)
+            message( STATUS "Found rocSPARSE ${rocSPARSE_VERSION}" )
+        endif()
+        add_library( magma ${libmagma_all} )
+        target_link_libraries( magma
+            hip::host
+            ${LAPACK_LIBRARIES}
+            hip::device
+            roc::hipblas
+            roc::hipsparse
         )
     endif()
 
@@ -533,33 +533,33 @@ target_link_libraries( tester
 
 # sparse doesn't have Fortran at the moment, so no need for above shenanigans
 if (MAGMA_ENABLE_CUDA)
-  include_directories( sparse/include )
-  include_directories( sparse/control )
+    include_directories( sparse/include )
+    include_directories( sparse/control )
 else()
-  include_directories( sparse_hip/include )
-  include_directories( sparse_hip/control )
+    include_directories( sparse_hip/include )
+    include_directories( sparse_hip/control )
 endif()
 include_directories( testing )
 
 if (MAGMA_ENABLE_CUDA)
-  add_library( magma_sparse ${libsparse_all} )
-  set_property(TARGET magma_sparse PROPERTY CUDA_STANDARD 14)
-  target_link_libraries( magma_sparse
-    magma
-    ${LAPACK_LIBRARIES}
-    CUDA::cudart
-    CUDA::cublas
-    CUDA::cusparse
-    magma_nvcc_flags
+    add_library( magma_sparse ${libsparse_all} )
+    set_property(TARGET magma_sparse PROPERTY CUDA_STANDARD 14)
+    target_link_libraries( magma_sparse
+        magma
+        ${LAPACK_LIBRARIES}
+        CUDA::cudart
+        CUDA::cublas
+        CUDA::cusparse
+        magma_nvcc_flags
     )
 else()
-  add_library( magma_sparse ${libsparse_all} )
-  target_link_libraries( magma_sparse
-    magma
-    ${LAPACK_LIBRARIES}
-    hip::device
-    roc::hipblas
-    roc::hipsparse
+    add_library( magma_sparse ${libsparse_all} )
+    target_link_libraries( magma_sparse
+        magma
+        ${LAPACK_LIBRARIES}
+        hip::device
+        roc::hipblas
+        roc::hipsparse
     )
 endif()
 add_custom_target( sparse-lib DEPENDS magma_sparse )
@@ -595,9 +595,9 @@ add_custom_target( testing DEPENDS ${testing} )
 # compile each sparse tester
 
 if (MAGMA_ENABLE_CUDA)
-  set(SPARSE_TEST_DIR "sparse/testing")
+    set(SPARSE_TEST_DIR "sparse/testing")
 else()
-  set(SPARSE_TEST_DIR "sparse_hip/testing")
+    set(SPARSE_TEST_DIR "sparse_hip/testing")
 endif()
 
 
@@ -620,9 +620,9 @@ install( TARGETS magma magma_sparse
          LIBRARY DESTINATION lib
          ARCHIVE DESTINATION lib )
 if (MAGMA_ENABLE_CUDA)
-  file( GLOB headers include/*.h sparse/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
+    file( GLOB headers include/*.h sparse/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
 else()
-  file( GLOB headers include/*.h sparse_hip/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
+    file( GLOB headers include/*.h sparse_hip/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
 endif()
 if (USE_FORTRAN)
     install( FILES ${headers} ${modules}
@@ -644,12 +644,12 @@ set( INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" )
 set( CFLAGS "${CMAKE_C_FLAGS}" )
 set( CXXFLAGS "${CMAKE_CXX_FLAGS}" )
 if (MAGMA_ENABLE_CUDA)
-  string( REPLACE ";" " " LIBS
-          "${LAPACK_LIBS} -L${CUDAToolkit_LIBRARY_DIR} -lcudart -lcublas -lcusparse")
+    string( REPLACE ";" " " LIBS
+            "${LAPACK_LIBS} -L${CUDAToolkit_LIBRARY_DIR} -lcudart -lcublas -lcusparse")
 else()
-  string( REPLACE ";" " " LIBS
-          "${LAPACK_LIBS} ${HIP} ${rocBLAS} ${rocSPARSE}" )
-#         "${LAPACK_LIBS} hip::device roc::hipblas roc::hipsparse" )
+    string( REPLACE ";" " " LIBS
+            "${LAPACK_LIBS} ${HIP} ${rocBLAS} ${rocSPARSE}" )
+          # "${LAPACK_LIBS} hip::device roc::hipblas roc::hipsparse" )
 endif()
 set( MAGMA_REQUIRED "" )
 configure_file( "${pkgconfig}.in" "${pkgconfig}" @ONLY )
@@ -664,21 +664,21 @@ message( STATUS "    CMAKE_INSTALL_PREFIX:  ${CMAKE_INSTALL_PREFIX}" )
 message( STATUS "    CFLAGS:                ${CMAKE_C_FLAGS}" )
 message( STATUS "    CXXFLAGS:              ${CMAKE_CXX_FLAGS}" )
 if (MAGMA_ENABLE_CUDA)
-  message( STATUS "    NVCCFLAGS:             ${CMAKE_CUDA_FLAGS}" )
+    message( STATUS "    NVCCFLAGS:             ${CMAKE_CUDA_FLAGS}" )
 else()
-  message( STATUS "    DEVCCFLAGS:            ${DEVCCFLAGS}" )
+    message( STATUS "    DEVCCFLAGS:            ${DEVCCFLAGS}" )
 endif()
 message( STATUS "    FFLAGS:                ${CMAKE_Fortran_FLAGS}" )
 message( STATUS "    LIBS:                  ${LIBS}" )
 message( STATUS "    LAPACK_LIBRARIES:      ${LAPACK_LIBRARIES}"      )
 message( STATUS "    INCLUDE_DIRECTORIES:   ${MAGMA_INCLUDE}"   )
 if (MAGMA_ENABLE_CUDA)
-  message( STATUS "    CUDA_CUDART_LIBRARY:   CUDA::cudart"   )
-  message( STATUS "    CUDA_CUBLAS_LIBRARIES: CUDA::cublas" )
-  message( STATUS "    CUDA_cusparse_LIBRARY: CUDA::cusparse" )
+    message( STATUS "    CUDA_CUDART_LIBRARY:   CUDA::cudart"   )
+    message( STATUS "    CUDA_CUBLAS_LIBRARIES: CUDA::cublas" )
+    message( STATUS "    CUDA_cusparse_LIBRARY: CUDA::cusparse" )
 else()
-  message( STATUS "    HIP_LIBRARY:   hip::device"   )
-  message( STATUS "    HIP_BLAS_LIBRARIES: roc::hipblas" )
-  message( STATUS "    HIP_sparse_LIBRARY: roc::hipsparse" )
+    message( STATUS "    HIP_LIBRARY:   hip::device"   )
+    message( STATUS "    HIP_BLAS_LIBRARIES: roc::hipblas" )
+    message( STATUS "    HIP_sparse_LIBRARY: roc::hipsparse" )
 endif()
 message( STATUS "    Fortran modules:       ${modules}" )
