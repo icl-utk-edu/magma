@@ -244,7 +244,7 @@ else ifeq ($(BACKEND),hip)
 
     ## Suggestion by Mark (from SLATE)
     # Valid architecture numbers
-    # TODO: remove very old ones?
+    # TODO: remove veryold ones?
     VALID_GFXS = 600 601 602 700 701 702 703 704 705 801 802 803 805 810 900 902 904 906 908 909 90a 940 941 942 90c 1010 1011 1012 1030 1031 1032 1033
 
     # Generated GFX option
