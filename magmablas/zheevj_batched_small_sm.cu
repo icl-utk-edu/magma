@@ -352,7 +352,12 @@ magma_zheevj_batched_small_sm_driver(
                 shmem += n2     * sizeof(double);                              // eigenvalues
                 shmem += ppairs * (2 * sizeof(double));                        // j00, j11
                 shmem += (n2)       * sizeof(int);   // used internally, no need to make it magma_int_t
-                shmem += ppairs * 1 * sizeof(int);   // used internally, no need to make it magma_int_t
+
+                // the shared memory space below should be an integer array of length = parallel-pairs (ppairs * 1 * sizeof(int))
+                // however, this shows an error in compute-sanitizer for an out-of-bound access
+                // setting it to (ppairs * 2 * sizeof(int)) resolves the problem, but the reason is unclear
+                // TODO: investigate why using (ppairs * 1 * sizeof(int)) causes an out-of-bound access
+                shmem += ppairs * 2 * sizeof(int);   // used internally, no need to make it magma_int_t
 
     magma_int_t nthreads_max, shmem_max;
     cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
