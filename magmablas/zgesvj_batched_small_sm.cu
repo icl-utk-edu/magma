@@ -291,7 +291,9 @@ zgesvj_batched_small_sm_kernel(
         dsSigma[gtx] = s;
     }
     __syncthreads();
-    magmablas_zsort_svd(n2, gtx, dsSigma, sorder);
+    if(n > 1) {
+        magmablas_zsort_svd(n2, gtx, dsSigma, sorder);
+    }
     __syncthreads();
 
     if(gtx < n) {
@@ -350,6 +352,15 @@ magma_zgesvj_batched_small_sm_size(
     magma_int_t n2     = magma_roundup(n, 2);
     magma_int_t ppairs = n2/2;
 
+    // swap jobs if morg < norg
+    // jobu is not used anyway in determining the shared memory space
+    // but jobv does
+    if(morg < norg) {
+        magma_vec_t jtmp = jobu;
+        jobu             = jobv;
+        jobv             = jtmp;
+    }
+
     magma_int_t slda  = SLDA(m);
     magma_int_t sldv  = SLDA(n2);
     magma_int_t shmem  = (slda  * n2 * sizeof(magmaDoubleComplex) ); // the input matrix
@@ -360,7 +371,12 @@ magma_zgesvj_batched_small_sm_size(
                 shmem += ppairs * (2 * sizeof(double));                        // j00, j11
                 shmem += (n2 * sizeof(double));      // singular values
                 shmem += (n2)  * sizeof(int);        // used internally, no need to make it magma_int_t
-                shmem += ppairs * 1 * sizeof(int);   // used internally, no need to make it magma_int_t
+
+                // the shared memory space below should be an integer array of length = parallel-pairs (ppairs * 1 * sizeof(int))
+                // however, this shows an error in compute-sanitizer for an out-of-bound access
+                // setting it to (ppairs * 2 * sizeof(int)) resolves the problem, but the reason is unclear
+                // TODO: investigate why using (ppairs * 1 * sizeof(int)) causes an out-of-bound access
+                shmem += ppairs * 2 * sizeof(int);   // used internally, no need to make it magma_int_t
 
     return shmem;
 }
