@@ -107,6 +107,11 @@ module magma
         integer         :: n
     end function
 
+    integer function magmaf_imalloc( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
     integer function magmaf_free( ptr )
         magma_devptr_t  :: ptr
     end function
@@ -134,6 +139,11 @@ module magma
     end function
 
     integer function magmaf_zmalloc_cpu( ptr, n )
+        magma_devptr_t  :: ptr
+        integer         :: n
+    end function
+
+    integer function magmaf_imalloc_cpu( ptr, n )
         magma_devptr_t  :: ptr
         integer         :: n
     end function
