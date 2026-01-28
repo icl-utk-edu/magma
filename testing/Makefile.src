@@ -255,7 +255,8 @@ ifeq ($(FORT), pgfortran)
 else
 	testing_src += \
 		$(cdir)/testing_zgetrf_gpu_f.F90	\
-		$(cdir)/testing_zgetrf_f.f90
+		$(cdir)/testing_zgetrf_f.f90	\
+		$(cdir)/testing_dgesvj_batched_f.F90
 endif
 
 # fortran_thunking.c is provided by CUDA
