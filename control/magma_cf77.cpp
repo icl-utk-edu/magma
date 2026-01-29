@@ -894,6 +894,24 @@ void magmaf_cgesvd(
         info );
 }
 
+#define magmaf_cgesvj_batched_strided FORTRAN_NAME( magmaf_cgesvj_batched_strided, MAGMAF_CGESVJ_BATCHED_STRIDED )
+void magmaf_cgesvj_batched_strided(
+    const char* jobu, const char* jobv, magma_int_t *morg, magma_int_t *norg,
+    devptr_t *dA, magma_int_t *ldda, magma_int_t *strideA,
+    devptr_t *dS, magma_int_t *strideS,
+    devptr_t *dU, magma_int_t *lddu, magma_int_t *strideU,
+    devptr_t *dV, magma_int_t *lddv, magma_int_t *strideV,
+    devptr_t *dinfo_array, magma_int_t *batchCount, magma_queue_t *queue )
+{
+    magma_cgesvj_batched_strided(
+        magma_vec_const(*jobu), magma_vec_const(*jobv), *morg, *norg,
+        magma_cdevptr(dA), *ldda, *strideA,
+        magma_sdevptr(dS), *strideS,
+        magma_cdevptr(dU), *lddu, *strideU,
+        magma_cdevptr(dV), *lddv, *strideV,
+        magma_idevptr(dinfo_array), *batchCount, *queue );
+}
+
 #define magmaf_cgetf2_gpu FORTRAN_NAME( magmaf_cgetf2_gpu, MAGMAF_CGETF2_GPU )
 void magmaf_cgetf2_gpu(
     magma_int_t *m, magma_int_t *n,

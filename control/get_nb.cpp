@@ -1165,6 +1165,130 @@ magma_int_t magma_get_zgesvd_nb( magma_int_t m, magma_int_t n )
     return magma_get_zgebrd_nb( m, n );
 }
 
+/***************************************************************************//**
+ ** This is an internal routine for selecting one `nb` value out of an array
+    of candidate values for the blocked gesvj routine.
+ ** Performance benchmarks show that the `mid-range` of sizes has no clear winner
+    for blocking sizes, and often alternates between a handful of values. The value
+    that gives the best performance in this case is observed to be the one requiring
+    the least amount of padding to the columns of the input matrix
+*******************************************************************************/
+/// @return nb with the least padding for blocked batch gesvj
+static magma_int_t magma_get_gesvj_nb_min_padding(magma_int_t m, magma_int_t n, magma_int_t max_nb)
+{
+    float n_f = (float)n;
+
+    magma_int_t nb            = max_nb;
+    magma_int_t nbx2          = 2*nb;
+    magma_int_t min_blk_pairs = magma_roundup(n, nbx2) / nbx2;
+    float score               = (n_f / (float)nbx2) / (float)min_blk_pairs;
+    for(auto inb = nb-1; inb > 1; inb--) {
+        nbx2 = inb * 2;
+        magma_int_t blk_pairs = magma_roundup(n, nbx2) / nbx2;
+
+        if(blk_pairs != min_blk_pairs) break;
+
+        float iscore = (n_f / (float)nbx2) / (float)blk_pairs;
+        if(iscore > score) {
+            nb = inb;
+            min_blk_pairs = blk_pairs;
+        }
+    }
+    return nb;
+}
+
+/***************************************************************************//**
+ ** Batch gesvj uses batch heevj, with heevj_nb = 2 x gesvj_nb
+    heev_nb should be small enough so that the matrix (and eigen vectors) fit
+    in the GPU shared memory (that is: 2 x heev_nb^2, plus minimal extra workspace)
+ ** Use the table below for a quick share memory lookup (in KB):
+   gesvj_nb  heev_nb      's'    'd'    'c'    'z'
+    4            8        0.5    1.0    1.0    2.0
+    8           16        2.0    4.0    4.0    8.0
+   12           24        4.5    9.0    9.0   18.0
+   16           32        8.0   16.0   16.0   32.0
+   20           40       12.5   25.0   25.0   50.0
+   24           48       18.0   36.0   36.0   72.0
+   28           56       24.5   49.0   49.0   98.0
+   32           64       32.0   64.0   64.0  128.0
+   36           72       40.5   81.0   81.0  162.0
+   40           80       50.0  100.0  100.0  200.0
+   44           88       60.5  121.0  121.0  242.0
+   48           96       72.0  144.0  144.0  288.0
+   52          104       84.5  169.0  169.0  338.0
+   56          112       98.0  196.0  196.0  392.0
+   60          120      112.5  225.0  225.0  450.0
+   64          128      128.0  256.0  256.0  512.0
+*******************************************************************************/
+/// @return nb for sgesvj_batched based on m, n
+magma_int_t magma_get_sgesvj_batched_nb( magma_int_t m, magma_int_t n )
+{
+    #ifdef MAGMA_HAVE_CUDA
+    magma_int_t nb            =   8; // default value
+    magma_int_t nb_asymptotic =  32;
+
+    #else
+    magma_int_t nb            =   8; // default value
+    magma_int_t nb_asymptotic =  32;
+    #endif
+
+    nb = magma_get_gesvj_nb_min_padding(m, n, nb_asymptotic);
+
+    return nb;
+}
+
+/// @return nb for dgesvj_batched based on m, n
+magma_int_t magma_get_dgesvj_batched_nb( magma_int_t m, magma_int_t n )
+{
+    #ifdef MAGMA_HAVE_CUDA
+    magma_int_t nb            =   8; // default value
+    magma_int_t nb_asymptotic =  32;
+
+    #else
+    magma_int_t nb            =   8; // default value
+    magma_int_t nb_asymptotic =  31;
+    #endif
+
+    nb = magma_get_gesvj_nb_min_padding(m, n, nb_asymptotic);
+
+    return nb;
+}
+
+/// @return nb for cgesvj_batched based on m, n
+magma_int_t magma_get_cgesvj_batched_nb( magma_int_t m, magma_int_t n )
+{
+    #ifdef MAGMA_HAVE_CUDA
+    magma_int_t nb            =   8; // default value
+    magma_int_t nb_asymptotic =  32;
+
+    #else
+    magma_int_t nb            =   8; // default value
+    magma_int_t nb_asymptotic =  31;
+    #endif
+
+    nb = magma_get_gesvj_nb_min_padding(m, n, nb_asymptotic);
+
+    return nb;
+}
+
+/// @return nb for zgesvj_batched based on m, n
+magma_int_t magma_get_zgesvj_batched_nb( magma_int_t m, magma_int_t n )
+{
+    #ifdef MAGMA_HAVE_CUDA
+    magma_int_t arch = magma_getdevice_arch();
+    magma_int_t nb            =   8; // default value
+    magma_int_t nb_asymptotic =  ( arch >= 800 ) ? 32 : 24; // avoid exceeding shared memory size for pre-Ampere GPUs
+
+    #else
+    magma_int_t nb            =  8; // default value
+    magma_int_t nb_asymptotic = 16;
+    #endif
+
+    nb = magma_get_gesvj_nb_min_padding(m, n, nb_asymptotic);
+
+    return nb;
+}
+
 
 /******************************************************************************/
 /// @return nb for ssygst_m based on n

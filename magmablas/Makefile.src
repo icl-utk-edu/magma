@@ -124,7 +124,7 @@ libmagma_src += \
 # native kernels
 libmagma_src += \
 	$(cdir)/zgetf2_native_kernel.cu		\
-        $(cdir)/zhetrs.cu                       \
+    $(cdir)/zhetrs.cu                   \
 
 # batched files, alphabetic order by base name (ignoring precision)
 libmagma_src += \
@@ -182,6 +182,16 @@ libmagma_src += \
 	$(cdir)/ztrsv_batched.cu			\
 	$(cdir)/ztrtri_diag_batched.cu		\
 	$(cdir)/zgetf2_nopiv_kernels.cu		\
+
+libmagma_src += \
+	$(cdir)/zgesvj_batched_small_sm.cu		\
+	$(cdir)/zheevj_batched_small_sm.cu		\
+	$(cdir)/zgesvj_kernels.cu				\
+	$(cdir)/zgesvj_heevj_vector_updates.cu	\
+	$(cdir)/cgesvj_heevj_vector_updates.cu	\
+	$(cdir)/dgesvj_heevj_vector_updates.cu	\
+	$(cdir)/sgesvj_heevj_vector_updates.cu	\
+
 
 # vbatched files
 libmagma_src += \
@@ -464,6 +474,17 @@ $(cdir)/zlaswp_vbatched.$(o_ext): $(cdir)/zlaswp_device.cuh
 $(cdir)/claswp_vbatched.$(o_ext): $(cdir)/claswp_device.cuh
 $(cdir)/dlaswp_vbatched.$(o_ext): $(cdir)/dlaswp_device.cuh
 $(cdir)/slaswp_vbatched.$(o_ext): $(cdir)/slaswp_device.cuh
+
+$(cdir)/zgesvj_heevj_vector_updates.$(o_ext): $(cdir)/gesvj_kernels.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/cgesvj_heevj_vector_updates.$(o_ext): $(cdir)/gesvj_kernels.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/dgesvj_heevj_vector_updates.$(o_ext): $(cdir)/gesvj_kernels.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/sgesvj_heevj_vector_updates.$(o_ext): $(cdir)/gesvj_kernels.cuh $(cdir)/gemm_template_device_defs.cuh
+
+$(cdir)/zgesvj_kernels.$(o_ext): $(cdir)/gesvj_kernels.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/cgesvj_kernels.$(o_ext): $(cdir)/gesvj_kernels.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/dgesvj_kernels.$(o_ext): $(cdir)/gesvj_kernels.cuh $(cdir)/gemm_template_device_defs.cuh
+$(cdir)/sgesvj_kernels.$(o_ext): $(cdir)/gesvj_kernels.cuh $(cdir)/gemm_template_device_defs.cuh
+
 
 $(cdir)/sort.$(o_ext): $(cdir)/sort.cuh
 
