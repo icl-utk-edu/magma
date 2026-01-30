@@ -803,7 +803,7 @@ magma_zgesvj_batched_setup_ptr_arrays(
 void
 magma_zgesvj_batched_test_convergence(
     magma_int_t gesvj_iters_per_sweep, magma_int_t sub_batch, magma_int_t batchCount,
-    int* dheevj_info, int* dheevj_nsweeps,
+    magma_int_t* dheevj_info, int* dheevj_nsweeps,
     int* dheevj_mask, int* all_converged,
     magma_queue_t queue );
 

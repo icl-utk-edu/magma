@@ -87,7 +87,7 @@ __global__ void
 zgesvj_test_convergence_kernel_batched(
         int gesvj_iters_per_sweep,
         int sub_batch, int batchCount,
-        int* dheevj_info, int* dheevj_nsweeps, int* dheevj_mask, int* all_converged )
+        magma_int_t* dheevj_info, int* dheevj_nsweeps, int* dheevj_mask, int* all_converged )
 {
     extern __shared__ int idata[];
 
@@ -115,9 +115,9 @@ zgesvj_test_convergence_kernel_batched(
     const int convergence_sweep_sum = sub_batch * gesvj_iters_per_sweep;
     const int convergence_info_sum  = 0;
 
-    magma_int_t* pb_nsweeps = dheevj_nsweeps + pb_id_capped * sub_batch;
     magma_int_t* pb_info    = dheevj_info    + pb_id_capped * sub_batch;
-    magma_int_t* pb_mask    = dheevj_mask    + pb_id_capped * sub_batch;
+    int* pb_nsweeps = dheevj_nsweeps + pb_id_capped * sub_batch;
+    int* pb_mask    = dheevj_mask    + pb_id_capped * sub_batch;
 
     // reduce nsweeps per problem
     int sweep_sum = 0;
@@ -125,7 +125,7 @@ zgesvj_test_convergence_kernel_batched(
     for(int iter = 0; iter < gesvj_iters_per_sweep; iter++) {
         for(int i = tx; i < sub_batch; i+=bdimx) {
             sweep_sum += pb_nsweeps[i];
-            info_sum  += pb_info[i];
+            info_sum  += (int)(pb_info[i]);
         }
         pb_nsweeps += flat_batchCount;
         pb_info    += flat_batchCount;
@@ -169,7 +169,7 @@ zgesvj_test_convergence_kernel_batched(
 extern "C"
 void magma_zgesvj_batched_test_convergence(
         magma_int_t gesvj_iters_per_sweep, magma_int_t sub_batch, magma_int_t batchCount,
-        int* dheevj_info, int* dheevj_nsweeps, int* dheevj_mask, int* all_converged, magma_queue_t queue )
+        magma_int_t* dheevj_info, int* dheevj_nsweeps, int* dheevj_mask, int* all_converged, magma_queue_t queue )
 {
     constexpr int max_threads_per_pb  = 32;
     constexpr int max_threads_per_blk = 128;    // must be >= max_threads_per_pb

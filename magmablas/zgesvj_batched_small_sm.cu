@@ -427,7 +427,7 @@ magma_zgesvj_batched_small_sm_driver(
     assert( (nthreads * ppairs) >= n2 );
     magma_int_t shmem = magma_zgesvj_batched_small_sm_size(jobu, jobv, morg, norg, nthreads);
 
-    magma_int_t nthreads_max, shmem_max;
+    int nthreads_max, shmem_max; // need to be int for cudaDeviceGetAttribute
     cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
