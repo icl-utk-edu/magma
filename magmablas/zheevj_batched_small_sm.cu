@@ -359,7 +359,7 @@ magma_zheevj_batched_small_sm_driver(
                 // TODO: investigate why using (ppairs * 1 * sizeof(int)) causes an out-of-bound access
                 shmem += ppairs * 2 * sizeof(int);   // used internally, no need to make it magma_int_t
 
-    magma_int_t nthreads_max, shmem_max;
+    int nthreads_max, shmem_max; // need to be int for cudaDeviceGetAttribute
     cudaDeviceGetAttribute (&nthreads_max, cudaDevAttrMaxThreadsPerBlock, device);
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
