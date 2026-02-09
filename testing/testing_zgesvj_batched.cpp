@@ -7,6 +7,7 @@
 
        @precisions normal z -> c d s
        @author Mark Gates
+       @author Ahmad Abdelfattah
 
 */
 
