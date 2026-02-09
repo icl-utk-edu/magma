@@ -5,6 +5,8 @@
        Univ. of Colorado, Denver
        @date
 
+       @precisions normal z -> c d s
+
        @author Ahmad Abdelfattah
 
 */
@@ -14,31 +16,6 @@
 
 #include "gemm_template_device_defs.cuh"
 #include "gesvj_kernels.cuh"
-
-// See gesvj_update_vectors_template_device under magmablas/gesvj_kernels.cuh
-// Parameters: BLK_M, BLK_N, BLK_K, DIM_X, DIM_Y, DIM_XU, DIM_YU, DIM_XG, DIM_YG
-// Constraints:
-// -- BLK_M, BLK_N, and BLK_K fully divisible by { DIM_X, DIM_Y, DIM_XU, DIM_YU, DIM_XG, DIM_YG }
-// -- BLK_N >= NB
-// -- (DIM_X * DIM_Y) == (DIM_Y * DIM_XU) == (DIM_XG * DIM_YG)
-
-#ifdef MAGMA_HAVE_CUDA
-// Tuning for CUDA is done only for nb = {16,32} on a GH200 system
-// TODO: expand tuning for other NB values
-#define zgesvj_update_nb_4  32,  4,  4,  4,  4,  4,  4,  4,  4
-#define zgesvj_update_nb_8  32,  8,  8,  8,  8,  8,  8,  8,  8
-#define zgesvj_update_nb_16 32, 16,  8,  8,  8,  8,  8,  8,  8
-#define zgesvj_update_nb_32 16, 32, 16,  8,  8,  8,  8,  8,  8
-
-#else
-// Tuning for HIP is done only for nb = {16,32} on a MI300A system
-// TODO: expand tuning for other NB values
-#define zgesvj_update_nb_4  32,  4,  4,  4,  4,  4,  4,  4,  4
-#define zgesvj_update_nb_8  32,  8,  8,  8,  8,  8,  8,  8,  8
-#define zgesvj_update_nb_16 16, 16, 16, 16,  8, 16,  8, 16,  8
-#define zgesvj_update_nb_32 16, 32, 16, 16, 16, 16, 16, 16, 16
-
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // See description of gesvj_update_vectors_template_device

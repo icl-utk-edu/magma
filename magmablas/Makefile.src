@@ -188,9 +188,6 @@ libmagma_src += \
 	$(cdir)/zheevj_batched_small_sm.cu		\
 	$(cdir)/zgesvj_kernels.cu				\
 	$(cdir)/zgesvj_heevj_vector_updates.cu	\
-	$(cdir)/cgesvj_heevj_vector_updates.cu	\
-	$(cdir)/dgesvj_heevj_vector_updates.cu	\
-	$(cdir)/sgesvj_heevj_vector_updates.cu	\
 
 
 # vbatched files

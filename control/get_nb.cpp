@@ -1180,11 +1180,11 @@ static magma_int_t magma_get_gesvj_nb_min_padding(magma_int_t m, magma_int_t n, 
 
     magma_int_t nb            = max_nb;
     magma_int_t nbx2          = 2*nb;
-    magma_int_t min_blk_pairs = magma_roundup(n, nbx2) / nbx2;
+    magma_int_t min_blk_pairs = magma_ceildiv(n, nbx2);
     float score               = (n_f / (float)nbx2) / (float)min_blk_pairs;
     for(auto inb = nb-1; inb > 1; inb--) {
         nbx2 = inb * 2;
-        magma_int_t blk_pairs = magma_roundup(n, nbx2) / nbx2;
+        magma_int_t blk_pairs = magma_ceildiv(n, nbx2);
 
         if(blk_pairs != min_blk_pairs) break;
 
@@ -1201,7 +1201,7 @@ static magma_int_t magma_get_gesvj_nb_min_padding(magma_int_t m, magma_int_t n, 
  ** Batch gesvj uses batch heevj, with heevj_nb = 2 x gesvj_nb
     heev_nb should be small enough so that the matrix (and eigen vectors) fit
     in the GPU shared memory (that is: 2 x heev_nb^2, plus minimal extra workspace)
- ** Use the table below for a quick share memory lookup (in KB):
+ ** Use the table below for a quick shared memory lookup (in KB):
    gesvj_nb  heev_nb      's'    'd'    'c'    'z'
     4            8        0.5    1.0    1.0    2.0
     8           16        2.0    4.0    4.0    8.0

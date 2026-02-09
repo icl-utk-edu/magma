@@ -14,6 +14,61 @@
 
 #include "atomics.cuh"
 
+// See gesvj_update_vectors_template_device below
+// Parameters: BLK_M, BLK_N, BLK_K, DIM_X, DIM_Y, DIM_XU, DIM_YU, DIM_XG, DIM_YG
+// Constraints:
+// -- BLK_M, BLK_N, and BLK_K fully divisible by { DIM_X, DIM_Y, DIM_XU, DIM_YU, DIM_XG, DIM_YG }
+// -- BLK_N >= NB
+// -- (DIM_X * DIM_Y) == (DIM_Y * DIM_XU) == (DIM_XG * DIM_YG)
+
+#ifdef MAGMA_HAVE_CUDA
+// Tuning for CUDA is done only for nb = {16,32} on a GH200 system
+// TODO: expand tuning for other NB values
+#define zgesvj_update_nb_4  32,  4,  4,  4,  4,  4,  4,  4,  4
+#define zgesvj_update_nb_8  32,  8,  8,  8,  8,  8,  8,  8,  8
+#define zgesvj_update_nb_16 32, 16,  8,  8,  8,  8,  8,  8,  8
+#define zgesvj_update_nb_32 16, 32, 16,  8,  8,  8,  8,  8,  8
+
+#define cgesvj_update_nb_4  32,  4,  4,  4, 4,  4,  4,  4, 4
+#define cgesvj_update_nb_8  32,  8,  8,  8, 8,  8,  8,  8, 8
+#define cgesvj_update_nb_16 64, 16, 16, 16, 8, 16,  8, 16, 8
+#define cgesvj_update_nb_32 64, 32, 16, 16, 8, 16,  8, 16, 8
+
+#define dgesvj_update_nb_4  32,  4,  4,  4,  4,  4,  4,  4,  4
+#define dgesvj_update_nb_8  32,  8,  8,  8,  8,  8,  8,  8,  8
+#define dgesvj_update_nb_16 64, 16,  8,  8,  8,  8,  8,  8,  8
+#define dgesvj_update_nb_32 64, 32, 16, 16,  8, 16,  8, 16,  8
+
+#define sgesvj_update_nb_4  32,  4,  4,  4,  4,  4,  4,  4,  4
+#define sgesvj_update_nb_8  32,  8,  8,  8,  8,  8,  8,  8,  8
+#define sgesvj_update_nb_16 64, 16,  8,  8,  8,  8,  8,  8,  8
+#define sgesvj_update_nb_32 64, 32, 16, 16,  8, 16,  8, 16,  8
+
+#else
+// Tuning for HIP is done only for nb = {16,32} on a MI300A system
+// TODO: expand tuning for other NB values
+#define zgesvj_update_nb_4  32,  4,  4,  4,  4,  4,  4,  4,  4
+#define zgesvj_update_nb_8  32,  8,  8,  8,  8,  8,  8,  8,  8
+#define zgesvj_update_nb_16 16, 16, 16, 16,  8, 16,  8, 16,  8
+#define zgesvj_update_nb_32 16, 32, 16, 16, 16, 16, 16, 16, 16
+
+#define cgesvj_update_nb_4  32,  4,  4,  4,  4,  4,  4,  4,  4
+#define cgesvj_update_nb_8  32,  8,  8,  8,  8,  8,  8,  8,  8
+#define cgesvj_update_nb_16 16, 16, 16, 16,  8, 16,  8, 16,  8
+#define cgesvj_update_nb_32 16, 32, 16, 16, 16, 16, 16, 16, 16
+
+#define dgesvj_update_nb_4  32,  4,  4,  4,  4,  4,  4,  4,  4
+#define dgesvj_update_nb_8  32,  8,  8,  8,  8,  8,  8,  8,  8
+#define dgesvj_update_nb_16 32, 16, 16, 16,  8, 16,  8, 16,  8
+#define dgesvj_update_nb_32 64, 32, 16, 16, 16, 16, 16, 16, 16
+
+#define sgesvj_update_nb_4  32,  4,  4,  4,  4,  4,  4,  4,  4
+#define sgesvj_update_nb_8  32,  8,  8,  8,  8,  8,  8,  8,  8
+#define sgesvj_update_nb_16 32, 16, 16, 16,  8, 16,  8, 16,  8
+#define sgesvj_update_nb_32 32, 32, 16, 16,  8, 16,  8, 16,  8
+
+#endif
+
 /***************************************************************************//*
   Device function for gesvj update vectors
     - For a given pair of block-column [Ai Aj] in a Jacobi sweep, we compute
@@ -427,54 +482,6 @@ void gesvj_setup_ptr_arrays_kernel_batched(
 /******************************************************************************/
 /*********************     GESVJ Finalize Values         **********************/
 /******************************************************************************/
-// device functions to return the real component of the std four types
-// TODO: move to a more generic header for potential use by other functions
-template<typename T, typename TR>
-__device__ __inline__ TR get_real(T a) = delete;
-
-template<> __device__ __inline__ double
-get_real<magmaDoubleComplex, double>(magmaDoubleComplex a) {return a.x;}
-
-template<> __device__ __inline__ float
-get_real<magmaFloatComplex, float>(magmaFloatComplex a) {return a.x;}
-
-template<> __device__ __inline__ double
-get_real<double, double>(double a){return a;}
-
-template<> __device__ __inline__ float
-get_real<float, float>(float a){return a;}
-
-/******************************************************************************/
-// device function to return the imaginary component of the std four types
-// TODO: move to a more generic header for potential use by other functions
-template<typename T, typename TR>
-__device__ __inline__ TR get_imag(T a) = delete;
-
-template<> __device__ __inline__ double
-get_imag<magmaDoubleComplex, double>(magmaDoubleComplex a) {return a.y;}
-
-template<> __device__ __inline__ float
-get_imag<magmaFloatComplex, float>(magmaFloatComplex a) {return a.y;}
-
-template<> __device__ __inline__ double
-get_imag<double, double>(double a){return 0;}
-
-template<> __device__ __inline__ float
-get_imag<float, float>(float a){return 0;}
-
-/******************************************************************************/
-// device function to set to zero
-// TODO: move to a more generic header for potential use by other functions
-template<typename T>
-__device__ __inline__ T make_zero() {return 0;}
-
-template<>
-__device__ __inline__ magmaFloatComplex make_zero() {return MAGMA_C_ZERO;}
-
-template<>
-__device__ __inline__ magmaDoubleComplex make_zero() {return MAGMA_Z_ZERO;}
-
-/******************************************************************************/
 // device function to compute a x conj(a)
 // TODO: move to a more generic header for potential use by other functions
 template<typename T, typename TR>
@@ -483,15 +490,13 @@ __device__ __inline__ TR compute_a_x_conja(T a) {return a * a;}
 template<>
 __device__ __inline__ float compute_a_x_conja<magmaFloatComplex, float>(magmaFloatComplex a)
 {
-    return (get_real<magmaFloatComplex, float>(a) * get_real<magmaFloatComplex, float>(a) +
-            get_imag<magmaFloatComplex, float>(a) * get_imag<magmaFloatComplex, float>(a));
+    return (MAGMA_C_REAL(a) * MAGMA_C_REAL(a) + MAGMA_C_IMAG(a) * MAGMA_C_IMAG(a));
 }
 
 template<>
 __device__ __inline__ double compute_a_x_conja<magmaDoubleComplex, double>(magmaDoubleComplex a)
 {
-    return (get_real<magmaDoubleComplex, double>(a) * get_real<magmaDoubleComplex, double>(a) +
-            get_imag<magmaDoubleComplex, double>(a) * get_imag<magmaDoubleComplex, double>(a));
+    return (MAGMA_Z_REAL(a) * MAGMA_Z_REAL(a) + MAGMA_Z_IMAG(a) * MAGMA_Z_IMAG(a));
 }
 
 /***************************************************************************//*

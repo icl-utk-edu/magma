@@ -1,3 +1,10 @@
+!!
+!!   -- MAGMA (version 2.0)
+!!      Univ. of Tennessee, Knoxville
+!!      Univ. of California, Berkeley
+!!      Univ. of Colorado, Denver
+!!      @date
+!!
 program testing_dgesvj_batched_f
     use magma
     implicit none
@@ -86,7 +93,7 @@ program testing_dgesvj_batched_f
                 stop
             endif
 
-            !! Initializa the matrix
+            !! Initialize the matrix
             do i = 1, batch*lda*n
                 call random_number(rnumber)
                 hA(i) = rnumber(1)
