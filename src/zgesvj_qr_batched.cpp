@@ -266,7 +266,6 @@ magma_zgesvj_qr_expert_batched(
     magmaDoubleComplex** dtau_array = dR_array  + ws_dR_array;
 
     // set workspace to zero
-    //cudaMemsetAsync(device_work, 0, workspace_bytes, queue->cuda_stream());
     magma_memset_async(device_work, 0, workspace_bytes, queue);
 
     // set pointers
