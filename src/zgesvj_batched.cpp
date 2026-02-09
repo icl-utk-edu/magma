@@ -55,7 +55,7 @@
     jobu    magma_vec_t
             Specifies options for computing all or part of the matrix U:
       -     = MagmaVec or MagmaSomeVec: the first min(m,n) columns of U (the left singular
-              vectors) are computed.
+              vectors) are written.
       -     = MagmaNoVec: no columns of U (no left singular vectors) are
               written to U. However, the algorithm implicitly computes
               them anyway while computing the values.
@@ -138,7 +138,7 @@
 
     @param[in]
     heevj_tol    DOUBLE
-           The tolerance (as multiples of eps) for the Hermitian eigensolver.
+           The tolerance (as multiples of the machine epsilon) for the Hermitian eigensolver.
            This tolerance is used to control if an off-diagonal element in the Gram
            matrix should be annihilated during the Hermitian eigen-decomposition.
            This tolerance can be scaled down by the user as the algorithm progresses
@@ -146,7 +146,7 @@
 
     @param[in]
     heevj_tol_min    DOUBLE
-           The minimum tolerance (as multiples of eps) for the Hermitian eigensolver.
+           The minimum tolerance (as multiples of the machine epsilon) for the Hermitian eigensolver.
            The algorithm optionally scales down heevj_tol as long as it is larger than
            heevj_tol_min.
 
@@ -218,8 +218,8 @@ magma_zgesvj_blocked_expert_batched(
     magma_int_t bpm             = magma_ceildiv(n, nb);  // block columns per matrix
     magma_int_t bpm2            = magma_roundup(bpm, 2); // block columns rounded to be even
     magma_int_t sub_batch       = bpm2 / 2;
-	magma_int_t	flat_batchCount = sub_batch * batchCount;
-	magma_int_t	n2              = bpm2 * nb;
+    magma_int_t	flat_batchCount = sub_batch * batchCount;
+    magma_int_t	n2              = bpm2 * nb;
     magma_int_t iter_per_sweep  = bpm2 - 1;
     int hnot_converged          = 1;   // do not use magma_int_t
 
@@ -711,7 +711,7 @@ magma_zgesvj_blocked_expert_batched(
     jobu    magma_vec_t
             Specifies options for computing all or part of the matrix U:
       -     = MagmaVec or MagmaSomeVec: the first min(m,n) columns of U (the left singular
-              vectors) are computed.
+              vectors) are written.
       -     = MagmaNoVec: no columns of U (no left singular vectors) are
               written to U. However, the algorithm implicitly computes
               them anyway while computing the values.
@@ -948,7 +948,7 @@ magma_zgesvj_expert_batched(
     jobu    magma_vec_t
             Specifies options for computing all or part of the matrix U:
       -     = MagmaVec or MagmaSomeVec: the first min(m,n) columns of U (the left singular
-              vectors) are computed.
+              vectors) are written.
       -     = MagmaNoVec: no columns of U (no left singular vectors) are
               written to U. However, the algorithm implicitly computes
               them anyway while computing the values.
@@ -1246,7 +1246,7 @@ magma_zgesvj_expert_batched_strided(
     jobu    magma_vec_t
             Specifies options for computing all or part of the matrix U:
       -     = MagmaVec or MagmaSomeVec: the first min(m,n) columns of U (the left singular
-              vectors) are computed.
+              vectors) are written.
       -     = MagmaNoVec: no columns of U (no left singular vectors) are
               written to U. However, the algorithm implicitly computes
               them anyway while computing the values.
@@ -1436,7 +1436,7 @@ magma_zgesvj_batched(
     jobu    magma_vec_t
             Specifies options for computing all or part of the matrix U:
       -     = MagmaVec or MagmaSomeVec: the first min(m,n) columns of U (the left singular
-              vectors) are computed.
+              vectors) are written.
       -     = MagmaNoVec: no columns of U (no left singular vectors) are
               written to U. However, the algorithm implicitly computes
               them anyway while computing the values.
