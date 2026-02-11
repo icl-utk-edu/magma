@@ -152,7 +152,10 @@
 
     @param[in]
     heevj_tol_scal    DOUBLE
-           A scaling factor for heevj_tol (heevj_tol_scal >= 1).
+           A scaling factor for heevj_tol, so that:
+             heevj_tol[next-svd-sweep] = max( heevj_tol[current-svd-sweep] / heevj_tol_scal, heevj_tol_min)
+
+           heevj_tol_scal >= 1
 
     @param[in,out]
     device_work  Workspace, allocated on device (GPU) memory.
