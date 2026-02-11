@@ -55,7 +55,7 @@
     jobu    magma_vec_t
             Specifies options for computing all or part of the matrix U:
       -     = MagmaVec or MagmaSomeVec: the first min(m,n) columns of U (the left singular
-              vectors) are computed.
+              vectors) are written.
       -     = MagmaNoVec: no columns of U (no left singular vectors) are
               written to U. However, the algorithm implicitly computes
               them anyway while computing the values.
