@@ -1370,6 +1370,18 @@ batched = (
 
 	('testing_zpotrf_batched',    batch + '         -L    -c2', n,    ''),
 	('#testing_zpotrf_batched',   batch + '         -U    -c2', n,    'upper not implemented'),
+
+	# ----- SVD
+	# direct SVD
+	('testing_zgesvj_batched',    batch + ' --jobu n --jobv n -c -l --version 1',  mn,   ''),
+	('testing_zgesvj_batched',    batch + ' --jobu n --jobv v -c -l --version 1',  mn,   ''),
+	('testing_zgesvj_batched',    batch + ' --jobu v --jobv n -c -l --version 1',  mn,   ''),
+	('testing_zgesvj_batched',    batch + ' --jobu v --jobv v -c -l --version 1',  mn,   ''),
+	# QR + SVD
+	('testing_zgesvj_batched',    batch + ' --jobu n --jobv n -c -l --version 3',  mn,   ''),
+	('testing_zgesvj_batched',    batch + ' --jobu n --jobv v -c -l --version 3',  mn,   ''),
+	('testing_zgesvj_batched',    batch + ' --jobu v --jobv n -c -l --version 3',  mn,   ''),
+	('testing_zgesvj_batched',    batch + ' --jobu v --jobv v -c -l --version 3',  mn,   ''),
 )
 if (opts.batched):
 	tests += batched

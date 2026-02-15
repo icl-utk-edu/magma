@@ -252,7 +252,7 @@ magmablas_dsort_batched(
     }
 
     // Quick return if possible
-    if(n < 2 || batchCount == 0) return arginfo;
+    if(n < 1 || batchCount == 0) return arginfo;
 
     magmablas_sort_batched_kernel_driver<double>(sort, n, dx_array, incx, dy_array, incy, dindex_array, batchCount, queue);
 
@@ -345,7 +345,7 @@ magmablas_ssort_batched(
     }
 
     // Quick return if possible
-    if(n < 2 || batchCount == 0) return arginfo;
+    if(n < 1 || batchCount == 0) return arginfo;
 
     magmablas_sort_batched_kernel_driver<float>(sort, n, dx_array, incx, dy_array, incy, dindex_array, batchCount, queue);
 

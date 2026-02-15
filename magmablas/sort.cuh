@@ -66,6 +66,9 @@ magmablas_swap_scalar_device<double>(double& a, double& b)
 
 ////////////////////////////////////////////////////////////////////////////////
 magma_int_t next_pow2(magma_int_t n) {
+    // n = 1 is a special case
+    if(n == 1) return 2;
+
     n--;
     n |= n >> 1;
     n |= n >> 2;
