@@ -26,9 +26,18 @@ Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
 2.10.0 - XXX XX, XXXX
-    * Support added for NVIDIA Blackwell GPUs (sm_100 and sm_120)
-      - Requires CUDA-12.8 or higher
-    * New functionality: Variable-size batch non-pivoting LU factorization
+    * New Functionality: Batch SVD
+      - magma_<T>gesvj_batched performs a Jacobi-based SVD on a uniform batch of
+        relatively small matrices
+    * New Functionality: Batch QR + SVD
+      - magma_<T>gesvj_qr_batched performs a QR factorization followed by a Jacobi-based
+        SVD on a uniform batch of relatively small matrices
+      - May outperform magma_<T>gesvj_batched on very tall-skinny shapes
+    * New Functionality: Batch UNMQR
+      - magma_<T>unmqr_batched (complex) and magma_<T>ormqr_batched (real) apply the
+        unitary/orthogonal 'Q' matrix from GEQRF to a general M-by-N matrix
+      - Only applying 'Q' from the left is currently supported
+    * New Functionality: Variable-size batch non-pivoting LU factorization
       - Contributed by Wajih Boukaram, Yang Liu, and Sherry Li at LBNL
       - magma_<T>getrf_nopiv_vbatched performs a non-pivoting LU factorization on a
         non-uniform batch of matrices.
@@ -36,6 +45,9 @@ single (s), double (d), single-complex (c), double-complex (z).
         handling small diagonal elements below certain threshold(s) defined by the user.
     * Performance improvements for batch Cholesky factorization (magma_<T>potrf_batched)
     * Performance improvements for batch triangular solve (magma_<T>trsv_batched)
+    * Support for NVIDIA Blackwell GPUs (sm_100 and sm_120)
+      - Requires CUDA-12.8 or higher
+    * Build support CUDA 13 and ROCm 7
     * [IMPORTANT] Previously-deprecated MAGMA-sparse functionality has been removed, as
       well as the MAGMA V1 interface.
 
