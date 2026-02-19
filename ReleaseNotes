@@ -25,7 +25,7 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
-2.10.0 - XXX XX, XXXX
+2.10.0 - Feb 23, 2026
     * New Functionality: Batch SVD
       - magma_<T>gesvj_batched performs a Jacobi-based SVD on a uniform batch of
         relatively small matrices
