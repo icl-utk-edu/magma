@@ -939,6 +939,111 @@ magma_int_t magma_get_strsm_batched_stop_nb(magma_side_t side, magma_int_t m, ma
     }
 }
 
+/***************************************************************************//**
+    @return the the number of threads used in generating/applying a single
+    Jacobi rotation for a parallel Jacobi Hermitian eigensolver
+    The kernel runs entirely in shared memory and is configured using
+    (nthreads * parallel_pairs) threads
+*******************************************************************************/
+/// @see magma_zheevj_batched_small_sm
+magma_int_t
+magma_get_zheevj_batched_small_nthreads(magma_int_t n)
+{
+    #ifdef MAGMA_HAVE_CUDA
+    // tuning is based on benchmarks on H100 using batch = 1k
+    std::vector<magma_int_t> heevj_batch_nb_array = {
+        2,  2,  3,  4,  5,  6,  7,  8,  6,  6,  4,  4,  8,  8,  8,  8,
+        6,  6,  6,  6,  8,  8,  8,  8,  2,  2,  8,  8,  8,  8,  8,  8,
+        8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8, 16, 16,
+        8,  8,  8,  8,  8,  8,  8,  8,  8,  8, 16,  8,  8,  8,  8,  8 };
+    #else
+    // tuning here is based on benchmarks on MI300A using batch = 1k
+    std::vector<magma_int_t> heevj_batch_nb_array = {
+         2,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+        14, 10, 19, 20, 21, 22, 16, 16, 14, 14, 16, 16, 16, 16, 16, 16,
+        14, 14, 14, 14, 24, 24, 24, 24, 24, 24, 16, 16 };
+    #endif
+
+    magma_int_t max_n    = (magma_int_t) heevj_batch_nb_array.size();
+    magma_int_t lookup_n = min(n, max_n);
+    return heevj_batch_nb_array[lookup_n-1];
+}
+
+/// @see magma_cheevj_batched_small_sm
+magma_int_t
+magma_get_cheevj_batched_small_nthreads(magma_int_t n)
+{
+    #ifdef MAGMA_HAVE_CUDA
+    // tuning here is based on benchmarks on H100 using batch = 1k
+    std::vector<magma_int_t> heevj_batch_nb_array = {
+        2,  2,  3,  4,  5,  6,  7,  8,  9,  5, 11,  4,  8,  8,  8,  8,
+        6,  6,  6,  6,  8,  8,  8,  8,  7,  6,  6,  6,  2,  2,  2,  2,
+        6,  6,  6,  6,  4,  2, 14, 14,  6, 10, 10, 10, 16, 16, 16, 16,
+        10, 10,  6,  6, 14, 14, 16, 16, 10, 10, 16, 16, 16, 16, 16, 16 };
+    #else
+    // tuning here is based on benchmarks on MI300A using batch = 1k
+    std::vector<magma_int_t> heevj_batch_nb_array = {
+         2,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+        13, 12, 12, 12, 11, 11,  9, 10,  9,  9, 14, 19, 17, 16, 16, 16,
+        12, 12, 12, 20, 23, 20, 24, 24, 24, 23, 23, 23, 16, 16, 16, 16,
+        18, 20, 18, 16, 18, 16, 16, 14, 22, 16, 12, 12, 14, 16 };
+    #endif
+
+    magma_int_t max_n    = (magma_int_t) heevj_batch_nb_array.size();
+    magma_int_t lookup_n = min(n, max_n);
+    return heevj_batch_nb_array[lookup_n-1];
+}
+
+/// @see magma_dsyevj_batched_small_sm
+magma_int_t
+magma_get_dsyevj_batched_small_nthreads(magma_int_t n)
+{
+    #ifdef MAGMA_HAVE_CUDA
+    // tuning here is based on benchmarks on H100 using batch = 1k
+    std::vector<magma_int_t> heevj_batch_nb_array = {
+         2,  2,  3,  4,  5,  6,  7,  8,  5,  5,  4,  4,  8,  8,  8,  8,
+         6,  6,  6,  6,  8,  8,  8,  4,  6,  6,  6,  6,  2,  2,  2,  2,
+         6,  6,  6,  6, 14, 14, 16, 16, 10, 10, 10, 10, 16, 16, 16, 16,
+        10, 10, 10, 10, 14, 14, 14, 14, 10, 10, 10, 10, 16, 16, 16, 16 };
+    #else
+    // tuning here is based on benchmarks on MI300A using batch = 1k
+    std::vector<magma_int_t> heevj_batch_nb_array = {
+         2,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 10, 14, 15, 16,
+        17, 14, 10, 10, 11, 11,  8,  8,  9,  9, 16, 16, 15, 16, 16, 16,
+        11, 12, 12, 14, 21, 13, 11, 20, 11, 11, 23, 23, 16, 16, 16, 16,
+        10, 10, 17, 19, 19, 19, 16, 16, 16, 16, 16, 16, 16, 16 };
+    #endif
+
+    magma_int_t max_n    = (magma_int_t) heevj_batch_nb_array.size();
+    magma_int_t lookup_n = min(n, max_n);
+    return heevj_batch_nb_array[lookup_n-1];
+}
+
+/// @see magma_ssyevj_batched_small_sm
+magma_int_t
+magma_get_ssyevj_batched_small_nthreads(magma_int_t n)
+{
+    #ifdef MAGMA_HAVE_CUDA
+    // tuning here is based on benchmarks on H100 using batch = 1k
+    std::vector<magma_int_t> heevj_batch_nb_array = {
+        2,  2,  3,  4,  5,  6,  7,  8,  6,  5,  5,  4,  9,  4,  8,  4,
+        6,  6,  6,  6,  7,  5,  5,  5,  7,  7,  4,  4,  2,  2,  2,  2,
+        5,  5,  5,  6,  5,  5,  4,  4,  6,  6,  4,  4,  4,  4,  4,  4,
+        2,  2,  2,  2,  2,  2,  8,  8,  6,  6,  6,  6,  2,  2,  2,  2 };
+    #else
+    // tuning here is based on benchmarks on MI300A using batch = 1k
+    std::vector<magma_int_t> heevj_batch_nb_array = {
+         2,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,  9,
+         9, 10, 10, 12, 11, 11, 10,  8,  9,  9,  9,  7,  8, 17,  8,  8,
+        11,  7,  7, 14, 10, 10, 14, 14, 12, 11, 11, 12, 16, 16, 16, 16,
+         9, 10, 17, 29, 14, 18, 14, 14, 16, 16, 16, 16, 16, 16, 16, 16 };
+    #endif
+
+    magma_int_t max_n    = (magma_int_t) heevj_batch_nb_array.size();
+    magma_int_t lookup_n = min(n, max_n);
+    return heevj_batch_nb_array[lookup_n-1];
+}
+
 // =============================================================================
 /// @}
 // end group magma_tuning

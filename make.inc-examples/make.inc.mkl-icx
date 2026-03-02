@@ -18,7 +18,7 @@
 # See http://developer.nvidia.com/cuda-gpus
 # Older architectures are supported if the proper version of CUDA is used
 #
-GPU_TARGET ?= Volta Turing Ampere
+GPU_TARGET ?= Ampere Hopper
 
 # --------------------
 # programs

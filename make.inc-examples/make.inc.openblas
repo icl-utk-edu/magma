@@ -49,9 +49,9 @@ RANLIB    = ranlib
 
 # set our GPU targets
 ifeq ($(BACKEND),cuda)
-    GPU_TARGET ?= Volta Turing Ampere
+    GPU_TARGET ?= Ampere Hopper
 else ifeq ($(BACKEND),hip)
-    GPU_TARGET ?= gfx900 gfx906 gfx908
+    GPU_TARGET ?= gfx908 gfx90a
 endif
 
 # Use -fPIC to make shared (.so) and static (.a) library;

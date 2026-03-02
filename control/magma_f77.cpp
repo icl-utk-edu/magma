@@ -132,6 +132,12 @@ magma_int_t magmaf_zmalloc( magmaDoubleComplex** ptr, magma_int_t* n )
     return magma_zmalloc( ptr, *n );
 }
 
+#define magmaf_imalloc FORTRAN_NAME( magmaf_imalloc, MAGMAF_IMALLOC )
+magma_int_t magmaf_imalloc( magma_int_t** ptr, magma_int_t* n )
+{
+    return magma_imalloc( ptr, *n );
+}
+
 #define magmaf_free FORTRAN_NAME( magmaf_free, MAGMAF_FREE )
 magma_int_t magmaf_free( void** ptr )
 {
@@ -169,6 +175,12 @@ magma_int_t magmaf_cmalloc_cpu( magmaFloatComplex** ptr, magma_int_t* n )
 magma_int_t magmaf_zmalloc_cpu( magmaDoubleComplex** ptr, magma_int_t* n )
 {
     return magma_zmalloc_cpu( ptr, *n );
+}
+
+#define magmaf_imalloc_cpu FORTRAN_NAME( magmaf_imalloc_cpu, MAGMAF_IMALLOC_CPU )
+magma_int_t magmaf_imalloc_cpu( magma_int_t** ptr, magma_int_t* n )
+{
+    return magma_imalloc_cpu( ptr, *n );
 }
 
 #define magmaf_free_cpu FORTRAN_NAME( magmaf_free_cpu, MAGMAF_FREE_CPU )

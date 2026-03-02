@@ -293,7 +293,8 @@ while ($_) {
 		$args =~ s/ *\)$//;
 
 		# Most MAGMA functions return info; ignore the return value.
-		if ($return eq 'magma_int_t' and $args =~ m/\binfo\b/) {
+		# Also detect `dinfo_array` for select batch routines
+		if ($return eq 'magma_int_t' and ($args =~ m/\binfo\b/ or $args =~ m/\bdinfo_array\b/)) {
 			$return = '';
 		}
 		if ($return eq 'void') {
@@ -322,9 +323,10 @@ while ($_) {
 			$wrapper   = "";
 			$interface = "";
 		}
-		elsif ($func =~ m/^($ignore)$/ or $func =~ m/(_mgpu|_batch|_vbatch|_expert)/) {
-			# ignore auxiliary functions and multi-GPU functions, since
+		elsif ($func =~ m/^($ignore)$/ or ($func =~ m/(_batch)/ and $func !~ m/(_stride)/) or$func =~ m/(_mgpu|_vbatch|_expert)/) {
+			# ignore auxiliary functions, batch and multi-GPU functions, since
 			# we haven't dealt with passing arrays of pointers in Fortran yet
+            # allow batch-stride interfaces
 			$wrapper   = "";
 			$interface = "";
 		}

@@ -71,14 +71,14 @@ RANLIB      ?= ranlib
 ifeq ($(BACKEND),cuda)
     # See a full table: https://nouveau.freedesktop.org/wiki/CodeNames/
     # note: provided by freedesktop, which is reliable, but not from the vendor
-    GPU_TARGET ?= Volta Turing Ampere
+    GPU_TARGET ?= Ampere Hopper
 else ifeq ($(BACKEND),hip)
     # See a full table:
     #   https://llvm.org/docs/AMDGPUUsage.html#amdgpu-processor-table
     # note: provided by LLVM, so not technically from the vendor.
     # Here's ROCm's source: https://rocm.github.io/hardware.html , but it is
     # not specific enough. TODO: find better link?
-    GPU_TARGET ?= gfx900 gfx906 gfx908
+    GPU_TARGET ?= gfx908 gfx90a
 endif
 
 # Use -fPIC to make shared (.so) and static (.a) library;

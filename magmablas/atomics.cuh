@@ -75,4 +75,11 @@ magmablas_iatomic_exchange(long long int* address, long long int val)
 }
 
 /******************************************************************************/
+__device__ static __inline__ int
+magmablas_iatomic_add(int* address, int val)
+{
+    return atomicAdd(address, val);
+}
+
+/******************************************************************************/
 #endif // ATOMICS_CUH

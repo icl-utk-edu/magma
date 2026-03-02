@@ -161,30 +161,6 @@ subroutine magmaf_dgbsv_native( n, kl, ku, nrhs, dA, ldda, dipiv, dB, lddb, info
     integer          :: info
 end
 
-subroutine magmaf_dgbtf2_native_v2( m, n, kl, ku, dA, ldda, ipiv, info, queue )
-    integer          :: m
-    integer          :: n
-    integer          :: kl
-    integer          :: ku
-    double precision :: dA(*)
-    integer          :: ldda
-    integer          :: ipiv(*)
-    integer          :: info
-    magma_devptr_t   :: queue
-end
-
-subroutine magmaf_dgbtf2_native( m, n, kl, ku, dA, ldda, ipiv, info, queue )
-    integer          :: m
-    integer          :: n
-    integer          :: kl
-    integer          :: ku
-    double precision :: dA(*)
-    integer          :: ldda
-    integer          :: ipiv(*)
-    integer          :: info
-    magma_devptr_t   :: queue
-end
-
 subroutine magmaf_dgbtrf_native( m, n, kl, ku, dAB, lddab, dipiv, info )
     integer          :: m
     integer          :: n
@@ -676,6 +652,28 @@ subroutine magmaf_dgesvd( jobu, jobvt, m, n, A, lda, s, U, ldu, VT, ldvt, work, 
     double precision :: work(*)
     integer          :: lwork
     integer          :: info
+end
+
+subroutine magmaf_dgesvj_batched_strided( jobu, jobv, morg, norg, dA, ldda, strideA, dS,  &
+        strideS, dU, lddu, strideU, dV, lddv, strideV, dinfo_array, batchCount, queue )
+    character        :: jobu
+    character        :: jobv
+    integer          :: morg
+    integer          :: norg
+    magma_devptr_t   :: dA
+    integer          :: ldda
+    integer          :: strideA
+    magma_devptr_t   :: dS
+    integer          :: strideS
+    magma_devptr_t   :: dU
+    integer          :: lddu
+    integer          :: strideU
+    magma_devptr_t   :: dV
+    integer          :: lddv
+    integer          :: strideV
+    magma_devptr_t   :: dinfo_array
+    integer          :: batchCount
+    magma_devptr_t   :: queue
 end
 
 subroutine magmaf_dgetf2_gpu( m, n, dA, ldda, ipiv, queue, info )
