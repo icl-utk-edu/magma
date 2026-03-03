@@ -73,29 +73,58 @@ int main(int argc, char **argv)
             /* Initialize the matrices */
             sizeA = lda*N;
             sizeB = ldb*nrhs;
-            //magma_generate_matrix( opts, N, N, h_A, lda );
+
             lapackf77_zlarnv( &ione, ISEED, &sizeA, h_A );
             lapackf77_zlarnv( &ione, ISEED, &sizeB, h_Bmagma );
             lapackf77_zlacpy(MagmaFullStr, &N, &nrhs, h_Bmagma, &ldb, h_Blapack, &ldb);
 
-            /* LU factorization of A -- use the GPU for faster execution */
-            #if 0
-            magma_zsetmatrix( N, N, h_A, lda, d_LU, ldda, opts.queue );
-            magma_zgetrf_native( N, N, d_LU, ldda, ipiv, &info );
-            #else
-            lapackf77_zlacpy(MagmaFullStr, &N, &N, h_A, &lda, h_LU, &lda);
-            lapackf77_zgetrf( &N, &N, h_LU, &lda, ipiv, &info);
+            /* LU factorization of A */
+            lapackf77_zlacpy( MagmaFullStr, &N, &N, h_A, &lda, h_LU, &lda );
+            lapackf77_zgetrf( &N, &N, h_LU, &lda, ipiv, &info );
             magma_zsetmatrix( N, N, h_LU, lda, d_LU, ldda, opts.queue );
-            #endif
 
             magma_zsetmatrix( N, nrhs, h_Bmagma, ldb, d_B, lddb, opts.queue );
 
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
-            gpu_time = magma_wtime();
-            magma_zgetrs_gpu(opts.transA, N, nrhs, d_LU, ldda, ipiv, d_B, lddb, &info);
-            gpu_time = magma_wtime() - gpu_time;
+            if( opts.version == 1 ) {
+                // top-level interface, auto-selects between hybrid/native modes
+                // based on internal tuning
+                gpu_time = magma_wtime();
+                magma_zgetrs_gpu(opts.transA, N, nrhs, d_LU, ldda, ipiv, d_B, lddb, &info);
+                gpu_time = magma_wtime() - gpu_time;
+            }
+            else if( opts.version == 2 || opts.version == 3) {
+                // expert API, forcing hybrid or native mode
+                // version 2 ==> hybrid, otherwise native
+                magma_mode_t mode = (opts.version == 2) ? MagmaHybrid : MagmaNative;
+
+                void *host_work=NULL, *device_work=NULL;
+                magma_int_t lwork_host[1]   = {-1};
+                magma_int_t lwork_device[1] = {-1};
+
+                // query workspace
+                magma_zgetrs_expert_gpu_work(
+                    opts.transA, N, nrhs, NULL, ldda, NULL, NULL, lddb, &info,
+                    mode, NULL, lwork_host, NULL, lwork_device, opts.queue );
+
+                if(lwork_host[0] > 0) {
+                    magma_malloc_cpu( &host_work, lwork_host[0] );
+                }
+
+                if(lwork_device[0] > 0) {
+                    magma_malloc( &device_work, lwork_device[0] );
+                }
+
+                // time the main call only
+                gpu_time = magma_sync_wtime( opts.queue );
+                magma_zgetrs_expert_gpu_work(
+                    opts.transA, N, nrhs, d_LU, ldda, ipiv, d_B, lddb, &info,
+                    mode, host_work, lwork_host,  device_work, lwork_device, opts.queue );
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+
+            }
             gpu_perf = gflops / gpu_time;
             if (info != 0) {
                 printf("magma_zgetrs_gpu returned error %lld: %s.\n",
