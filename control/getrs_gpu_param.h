@@ -9,7 +9,7 @@
 #define DGETRS_GPU_LASWP_THRESHOLD    (100)
 #define SGETRS_GPU_LASWP_THRESHOLD    (200)
 
-#elif   MAGMA_HAVE_HIP
+#elif defined(MAGMA_HAVE_HIP)
 // the gpu laswp kernel is much slower on AMD GPUs
 // compared to nvidia
 // disable it for now by using very large threshold
