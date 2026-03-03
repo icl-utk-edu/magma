@@ -227,6 +227,7 @@ parser.add_option(      '--memcheck',   action='store_true', help='run with cuda
 parser.add_option(      '--tol',        action='store',      help='set tolerance')
 parser.add_option(      '--dev',        action='store',      help='set GPU device to use')
 parser.add_option(      '--batch',      action='store',      help='batch count for batched tests', default='100')
+parser.add_option(      '--nrhs',       action='store',      help='number of right hand sides for linear solvers', default='1')
 parser.add_option(      '--niter',      action='store',      help='number of iterations to repeat', default='1')
 parser.add_option(      '--ngpu',       action='store',      help='number of GPUs for multi-GPU tests; add --mgpu to run only multi-GPU tests', default='2')
 parser.add_option(      '--interactive',action='store_true', help='stop between tests')
@@ -366,6 +367,7 @@ if opts.no_vbatched : opts.vbatched = False
 
 ngpu  = '--ngpu '  + opts.ngpu  + ' '
 batch = '--batch ' + opts.batch + ' '
+nrhs  = '--nrhs '  + opts.nrhs  + ' '
 
 # ----------------------------------------------------------------------
 # problem sizes
@@ -724,8 +726,8 @@ chol = (
 	('testing_zcposv_gpu',       '-L    -c',  n,    ''),
 	('testing_zcposv_gpu',       '-U    -c',  n,    ''),
 
-	('testing_zposv_gpu',        '-L    -c',  n,    ''),
-	('testing_zposv_gpu',        '-U    -c',  n,    ''),
+	('testing_zposv_gpu', nrhs + '-L    -c',  n,    ''),
+	('testing_zposv_gpu', nrhs + '-U    -c',  n,    ''),
 
 	('testing_zpotrf_gpu', '--version 1 -L   -c2',  n,    ''),
 	('testing_zpotrf_gpu', '--version 1 -U   -c2',  n,    ''),
@@ -758,8 +760,8 @@ chol = (
 
 	# ----------
 	# Cholesky, CPU interface
-	('testing_zposv',            '-L    -c',  n,    ''),
-	('testing_zposv',            '-U    -c',  n,    ''),
+	('testing_zposv', nrhs +     '-L    -c',  n,    ''),
+	('testing_zposv', nrhs +     '-U    -c',  n,    ''),
 
 	('testing_zpotrf',           '-L    -c',  n,    ''),
 	('testing_zpotrf',           '-U    -c',  n,    ''),
@@ -810,8 +812,8 @@ if (opts.hesv):
 lu = (
 	# ----------
 	# LU, GPU interface
-	('testing_zcgesv_gpu',             '-c',  n,    ''),
-	('testing_zgesv_gpu',              '-c',  n,    ''),
+	('testing_zcgesv_gpu',              '-c', n,    ''),
+	('testing_zgesv_gpu',  nrhs +       '-c', n,    ''),
 	('testing_zgetrf_gpu', '--version 1 -c2', n,    ''),
 	('testing_zgetrf_gpu', '--version 2 -c2', n,    ''), # zgetrf_nopiv_gpu
 	('testing_zgetrf_gpu', '--version 3 -c2', n,    ''), # zgetrf_native
@@ -820,15 +822,15 @@ lu = (
 	('testing_zgetf2_gpu',             '-c',  n + tall,  ''),
 	('testing_zgetri_gpu',             '-c',  n,    ''),
 	('testing_zgetri_gpu', '--version 2 -c',  n,    ''),
-	('testing_zgetrf_mgpu',    ngpu + '-c2',  n,    ''),
-	('testing_zgetrs_gpu',             '-c',  n,    ''),
-	('testing_zgetrs_gpu',          '-T -c',  n,    ''),
-	('testing_zgetrs_gpu',          '-C -c',  n,    ''),
+	('testing_zgetrf_mgpu',  ngpu + '-c2',   n,    ''),
+	('testing_zgetrs_gpu',   nrhs + '-c',    n,    ''),
+	('testing_zgetrs_gpu',   nrhs + '-T -c', n,    ''),
+	('testing_zgetrs_gpu',   nrhs + '-C -c', n,    ''),
 
 	# ----------
 	# LU, CPU interface
-	('testing_zgesv',                  '-c',  n,    ''),
-	('testing_zgesv_rbt',              '-c',  n,    ''),
+	('testing_zgesv',     nrhs +       '-c',  n,    ''),
+	('testing_zgesv_rbt', nrhs +       '-c',  n,    ''),
 	('testing_zgetrf',    '--version 1 -c2',  n,    ''),
 	('testing_zgetrf',    '--version 2 -c2',  n,    ''),  # zgetrf_nopiv
 	('testing_zgetrf',    '--version 3 -c2',  n,    ''),  # zgetf2_nopiv
@@ -847,8 +849,8 @@ qr = (
 	('testing_zgegqr_gpu', '--version 4 -c',  mn,   ''),
 
 	('testing_zgelqf_gpu',             '-c',  mn,   ''),
-	('testing_zgels_gpu',              '-c',  mn,   ''),
-	('testing_zgels3_gpu',             '-c',  mn,   ''),
+	('testing_zgels_gpu',  nrhs +      '-c',  mn,   ''),
+	('testing_zgels3_gpu', nrhs +      '-c',  mn,   ''),
 
 	('testing_zgeqp3_gpu',             '-c',  mn,   ''),
 	('testing_zgeqr2_gpu',             '-c',  mn,   ''),
@@ -874,7 +876,7 @@ qr = (
 	# ----------
 	# QR, CPU interface
 	('testing_zgelqf',                 '-c',  mn,   ''),
-	('testing_zgels',                  '-c',  mn,   ''),
+	('testing_zgels',  nrhs +          '-c',  mn,   ''),
 	('testing_zgeqlf',                 '-c',  mn,   ''),
 	('testing_zgeqp3',                 '-c',  mn,   ''),
 	('testing_zgeqrf',                '-c2',  mn,   ''),
@@ -1361,15 +1363,15 @@ batched = (
 	('testing_zunmqr_batched',    batch + '       -C      -c',  mnk,  ''),
 
 	# ----- LU
-	('testing_zgesv_batched',         batch + '           -c',  mn,   ''),
-	('testing_zgesv_nopiv_batched',   batch + '           -c',  mn,   ''),
-	('testing_zgetrf_batched',        batch + '           -c',  mn,   ''),
-	('testing_zgetrf_nopiv_batched',  batch + '          -c2',  mn,   ''),
-	('testing_zgetri_batched',        batch + '           -c',  n,    ''),
+	('testing_zgesv_batched',         batch + nrhs + '   -c',  mn,   ''),
+	('testing_zgesv_nopiv_batched',   batch + nrhs + '   -c',  mn,   ''),
+	('testing_zgetrf_batched',        batch + '          -c',  mn,   ''),
+	('testing_zgetrf_nopiv_batched',  batch + '          -c2', mn,   ''),
+	('testing_zgetri_batched',        batch + '          -c',  n,    ''),
 
 	# ----- Cholesky
-	('testing_zposv_batched',     batch + '         -L    -c',  n,    ''),
-	('#testing_zposv_batched',    batch + '         -U    -c',  n,    'upper not implemented'),
+	('testing_zposv_batched',     batch + nrhs + '         -L    -c',  n,    ''),
+	('#testing_zposv_batched',    batch + nrhs + '         -U    -c',  n,    'upper not implemented'),
 
 	('testing_zpotrf_batched',    batch + '         -L    -c2', n,    ''),
 	('#testing_zpotrf_batched',   batch + '         -U    -c2', n,    'upper not implemented'),
