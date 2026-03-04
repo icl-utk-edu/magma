@@ -139,10 +139,6 @@ magma_zgetrs_expert_gpu_work(
         // hybrid mode (laswp on cpu, trsm/trsv are on gpu)
         h_workspace_bytes += n * nrhs * sizeof(magmaDoubleComplex);
     }
-    else {
-        // native mode (everything on gpu)
-        d_workspace_bytes += 0;
-    }
 
     // check for workspace query
     if( *lwork_host < 0 || *lwork_device < 0 ) {
@@ -166,7 +162,6 @@ magma_zgetrs_expert_gpu_work(
     } else if (lddb < max(1,n)) {
         *info = -8;
     } else if ( mode != MagmaHybrid && mode != MagmaNative ) {
-        printf("ERROR: function %s only supported hybrid mode\n", __func__);
         *info = -10;
     }
     else if ( *lwork_host < h_workspace_bytes ) {
@@ -187,8 +182,7 @@ magma_zgetrs_expert_gpu_work(
     }
 
     // Assign pointers
-    magmaDoubleComplex *work = NULL;
-    work = (magmaDoubleComplex*)host_work;
+    magmaDoubleComplex *work = (magmaDoubleComplex*)host_work;
 
     i1 = 1;
     i2 = n;
