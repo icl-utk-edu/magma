@@ -124,6 +124,9 @@ int main(int argc, char **argv)
                     mode, host_work, lwork_host,  device_work, lwork_device, opts.queue );
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
 
+                if( host_work   != NULL ) magma_free_cpu( host_work );
+                if( device_work != NULL ) magma_free( device_work );
+
             }
             gpu_perf = gflops / gpu_time;
             if (info != 0) {
