@@ -168,21 +168,34 @@ magmablas_zlaswp(
 // swapping rows according to pivots stored in params.
 __global__ void zlaswpx_kernel(
     int n,
-    magmaDoubleComplex *dA, int ldx, int ldy,
+    magmaDoubleComplex *dA, int ldx, int ldy, int k1, int k2, int inci, int processed_pivots,
     zlaswp_params_t params )
 {
-    int tid = threadIdx.x + blockDim.x*blockIdx.x;
+    int tid       = threadIdx.x + blockDim.x*blockIdx.x;
+
+    // ** if inci is +ve, pivots are applied in 'normal' order:
+    //    - dA is accessed downwards
+    //    - the kernel is passed dA(k, 0) where k is the number of processed pivots starting at k1-1
+    //    - the kernel driver adjusts the pivots back to be relative to dA(k, 0)
+    // ** if inci is -ve, pivots are applied in reverse order
+    //    - dA is accessed backwards
+    //    - the kernel is passed dA(k, 0) where k is the number of processed pivots starting at k2-1
+    //    - however, the kernel driver does not adjust the pivots
+    //    - pivots remain relative to dA(0, 0), so we need to recover dA(0,0) from dA(k,0)
+    int ldxx      = (inci > 0) ? ldx : -ldx;
+    int i2_offset = (inci > 0) ?   0 : (k1-k2+processed_pivots);
+
     if ( tid < n ) {
         dA += tid*ldy;
         magmaDoubleComplex *A1  = dA;
 
         for( int i1 = 0; i1 < params.npivots; ++i1 ) {
-            int i2 = params.ipiv[i1];
+            int i2 = params.ipiv[i1] + i2_offset ;
             magmaDoubleComplex *A2 = dA + i2*ldx;
             magmaDoubleComplex temp = *A1;
             *A1 = *A2;
             *A2 = temp;
-            A1 += ldx;  // A1 = dA + i1*ldx
+            A1 += ldxx;
         }
     }
 }
@@ -265,7 +278,7 @@ magmablas_zlaswpx(
         info = -4;
     else if ( k2 < 0 || k2 < k1 )
         info = -5;
-    else if ( inci <= 0 )
+    else if ( inci == 0 )
         info = -7;
 
     if (info != 0) {
@@ -277,15 +290,39 @@ magmablas_zlaswpx(
     dim3 grid( magma_ceildiv( n, NTHREADS ) );
     zlaswp_params_t params;
 
-    for( int k = k1-1; k < k2; k += MAX_PIVOTS ) {
-        int npivots = min( MAX_PIVOTS, k2-k );
-        params.npivots = npivots;
-        for( int j = 0; j < npivots; ++j ) {
-            params.ipiv[j] = ipiv[(k+j)*inci] - k - 1;
+    int processed_pivots = 0;
+    if(inci > 0) {
+        // pivots applied in 'normal' order
+        // need to adjust pivots relative to dA(k, 0)
+        // see description in 'zlaswpx_kernel'
+        // the variable 'processed_pivots' is not used by the kernel
+        for( int k = k1-1; k < k2; k += MAX_PIVOTS ) {
+            int npivots = min( MAX_PIVOTS, k2-k );
+            params.npivots = npivots;
+            for( int j = 0; j < npivots; ++j ) {
+                params.ipiv[j] = ipiv[(k+j)*inci] - k - 1;
+            }
+            zlaswpx_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
+            ( n, dA(k,0), ldx, ldy, k1, k2, inci, processed_pivots, params );
+            processed_pivots += npivots;
         }
-        zlaswpx_kernel
-            <<< grid, threads, 0, queue->cuda_stream() >>>
-            ( n, dA(k,0), ldx, ldy, params );
+    }
+    else {
+        // pivots applied in reverse order
+        // pivots are not adjusted, they are relative to dA(0, 0)
+        // see description in 'zlaswpx_kernel'
+        // the variable 'processed_pivots' is necessary to recover dA(0,0) inside
+        // the kernel from dA(k, 0)
+        for( int k = k2-1; k > k1-2; k -= MAX_PIVOTS ) {
+            int npivots = min( MAX_PIVOTS, k-k1+2);
+            params.npivots = npivots;
+            for( int j = 0; j < npivots; ++j ) {
+                params.ipiv[j] = ipiv[(j-k)*inci] - 1;
+            }
+            zlaswpx_kernel<<< grid, threads, 0, queue->cuda_stream() >>>
+            ( n, dA(k,0), ldx, ldy, k1, k2, inci, processed_pivots, params );
+            processed_pivots += npivots;
+        }
     }
 
     #undef dA

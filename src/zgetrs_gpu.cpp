@@ -9,6 +9,14 @@
 
 */
 #include "magma_internal.h"
+#include "getrs_gpu_param.h"
+
+////////////////////////////////////////////////////////////////////////////////
+// Basic tuning to decide whether the LASWP is done on the CPU/GPU
+bool magma_zgetrs_get_laswp_gpu_threshold(magma_int_t n, magma_int_t nrhs)
+{
+    return (nrhs > ZGETRS_GPU_LASWP_THRESHOLD);
+}
 
 /***************************************************************************//**
     Purpose
@@ -121,7 +129,6 @@ magma_zgetrs_expert_gpu_work(
     const magmaDoubleComplex c_one = MAGMA_Z_ONE;
 
     // Local variables
-    magmaDoubleComplex *work = NULL;
     bool notran = (trans == MagmaNoTrans);
     magma_int_t i1, i2, inc;
 
@@ -129,11 +136,8 @@ magma_zgetrs_expert_gpu_work(
     magma_int_t h_workspace_bytes = 0;
     magma_int_t d_workspace_bytes = 0;
     if (mode == MagmaHybrid) {
+        // hybrid mode (laswp on cpu, trsm/trsv are on gpu)
         h_workspace_bytes += n * nrhs * sizeof(magmaDoubleComplex);
-    }
-    else {
-        // native mode, not currently supported
-        d_workspace_bytes += 0;
     }
 
     // check for workspace query
@@ -157,8 +161,7 @@ magma_zgetrs_expert_gpu_work(
         *info = -5;
     } else if (lddb < max(1,n)) {
         *info = -8;
-    } else if ( mode != MagmaHybrid ) {
-        printf("ERROR: function %s only supported hybrid mode\n", __func__);
+    } else if ( mode != MagmaHybrid && mode != MagmaNative ) {
         *info = -10;
     }
     else if ( *lwork_host < h_workspace_bytes ) {
@@ -179,7 +182,7 @@ magma_zgetrs_expert_gpu_work(
     }
 
     // Assign pointers
-    work = (magmaDoubleComplex*)host_work;
+    magmaDoubleComplex *work = (magmaDoubleComplex*)host_work;
 
     i1 = 1;
     i2 = n;
@@ -187,9 +190,14 @@ magma_zgetrs_expert_gpu_work(
         inc = 1;
 
         /* Solve A * X = B. */
-        magma_zgetmatrix( n, nrhs, dB, lddb, work, n, queue );
-        lapackf77_zlaswp( &nrhs, work, &n, &i1, &i2, ipiv, &inc );
-        magma_zsetmatrix( n, nrhs, work, n, dB, lddb, queue );
+        if( mode == MagmaHybrid ) {
+            magma_zgetmatrix( n, nrhs, dB, lddb, work, n, queue );
+            lapackf77_zlaswp( &nrhs, work, &n, &i1, &i2, ipiv, &inc );
+            magma_zsetmatrix( n, nrhs, work, n, dB, lddb, queue );
+        }
+        else {
+            magmablas_zlaswpx(nrhs, dB, 1, lddb, i1, i2, ipiv, inc, queue );
+        }
 
         if ( nrhs == 1) {
             magma_ztrsv( MagmaLower, MagmaNoTrans, MagmaUnit,    n, dA, ldda, dB, 1, queue );
@@ -210,9 +218,14 @@ magma_zgetrs_expert_gpu_work(
             magma_ztrsm( MagmaLeft, MagmaLower, trans, MagmaUnit,    n, nrhs, c_one, dA, ldda, dB, lddb, queue );
         }
 
-        magma_zgetmatrix( n, nrhs, dB, lddb, work, n, queue );
-        lapackf77_zlaswp( &nrhs, work, &n, &i1, &i2, ipiv, &inc );
-        magma_zsetmatrix( n, nrhs, work, n, dB, lddb, queue );
+        if( mode == MagmaHybrid ) {
+            magma_zgetmatrix( n, nrhs, dB, lddb, work, n, queue );
+            lapackf77_zlaswp( &nrhs, work, &n, &i1, &i2, ipiv, &inc );
+            magma_zsetmatrix( n, nrhs, work, n, dB, lddb, queue );
+        }
+        else {
+            magmablas_zlaswpx(nrhs, dB, 1, lddb, i1, i2, ipiv, inc, queue );
+        }
     }
 
     return *info;
@@ -287,7 +300,9 @@ magma_zgetrs_gpu(
     void *host_work = NULL, *device_work=NULL;
     bool notran = (trans == MagmaNoTrans);
 
-    magma_mode_t mode = MagmaHybrid;
+    // decide whether LASWP is on CPU or GPU
+    bool gpu_laswp = magma_zgetrs_get_laswp_gpu_threshold(n, nrhs);
+    magma_mode_t mode = (gpu_laswp) ? MagmaNative : MagmaHybrid;
 
     *info = 0;
     if ( (! notran) &&

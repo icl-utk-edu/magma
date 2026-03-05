@@ -25,6 +25,9 @@ Included are routines for the following algorithms:
 Most routines have all four precisions:
 single (s), double (d), single-complex (c), double-complex (z).
 
+2.11.0 - XXX XX, XXXX
+    * Native (GPU only) mode added to magma_<T>getrs_gpu
+
 2.10.0 - Feb 23, 2026
     * New Functionality: Batch SVD
       - magma_<T>gesvj_batched performs a Jacobi-based SVD on a uniform batch of
