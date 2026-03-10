@@ -412,25 +412,61 @@ configure_file(${CMAKE_SOURCE_DIR}/include/magma_config.h.in  ${CMAKE_BINARY_DIR
 # When building for many CUDA architectures, the .cu object files become very
 # large and the final shared library can exceed the 2 GB limit for 32-bit
 # relocations, causing "relocation truncated to fit" linker errors.
-# Splitting CUDA kernels (.cu) into a separate library keeps each .so small
-# enough.  See https://github.com/icl-utk-edu/magma/issues/39
-#              https://github.com/pytorch/pytorch/pull/49050
-option( MAGMA_BUILD_SPLIT_CUDA "Split CUDA kernels into a separate library to avoid relocation overflow" OFF )
+# Splitting CUDA kernels (.cu) into separate libraries keeps each .so small
+# enough.  The .cu files are sorted alphabetically and distributed round-robin
+# into MAGMA_SPLIT_CUDA_N groups.
+# See https://github.com/icl-utk-edu/magma/issues/39
+#     https://github.com/pytorch/pytorch/pull/49050
+option( MAGMA_BUILD_SPLIT_CUDA "Split CUDA kernels into separate libraries to avoid relocation overflow" OFF )
+set( MAGMA_SPLIT_CUDA_N "2" CACHE STRING
+     "Number of kernel libraries to split .cu files into (increase if you still get relocation errors)" )
 
 if (MAGMA_BUILD_SPLIT_CUDA AND NOT MAGMA_ENABLE_CUDA)
     message( WARNING "MAGMA_BUILD_SPLIT_CUDA only applies to the CUDA backend; ignoring." )
     set( MAGMA_BUILD_SPLIT_CUDA OFF )
 endif()
 
-# Split libmagma_all into .cu and non-.cu source lists when requested.
-if (MAGMA_BUILD_SPLIT_CUDA)
-    foreach( src ${libmagma_all} )
+# ---------------------------------------------------------------------------
+# magma_split_cu_sources( <sources> <n> <cu_prefix> <cpp_var> )
+#
+# Separate .cu from non-.cu files.  The .cu files are sorted alphabetically
+# and distributed round-robin into N lists named
+#   <cu_prefix>_0  ..  <cu_prefix>_(N-1)
+# Non-.cu files are collected in <cpp_var>.
+# ---------------------------------------------------------------------------
+function( magma_split_cu_sources sources n cu_prefix cpp_var )
+    set( _cpp )
+    set( _cu )
+    foreach( src ${sources} )
         if (src MATCHES "\\.cu$")
-            list( APPEND libmagma_cu  ${src} )
+            list( APPEND _cu ${src} )
         else()
-            list( APPEND libmagma_cpp ${src} )
+            list( APPEND _cpp ${src} )
         endif()
     endforeach()
+
+    list( SORT _cu )
+
+    set( _idx 0 )
+    foreach( src ${_cu} )
+        list( APPEND ${cu_prefix}_${_idx} ${src} )
+        math( EXPR _idx "(${_idx} + 1) % ${n}" )
+    endforeach()
+
+    # Export each bucket to the parent scope.
+    math( EXPR _last "${n} - 1" )
+    foreach( _i RANGE 0 ${_last} )
+        set( ${cu_prefix}_${_i} "${${cu_prefix}_${_i}}" PARENT_SCOPE )
+    endforeach()
+
+    set( ${cpp_var} "${_cpp}" PARENT_SCOPE )
+endfunction()
+
+# Split libmagma_all when requested.
+if (MAGMA_BUILD_SPLIT_CUDA)
+    magma_split_cu_sources( "${libmagma_all}" ${MAGMA_SPLIT_CUDA_N}
+        libmagma_cu  libmagma_cpp )
+    message( STATUS "MAGMA_BUILD_SPLIT_CUDA: splitting .cu files into ${MAGMA_SPLIT_CUDA_N} kernel libraries" )
 endif()
 
 # ----------------------------------------
@@ -477,19 +513,23 @@ else()
     # Unix doesn't seem to have a problem with mixing C, CUDA, and Fortran files
     if (MAGMA_ENABLE_CUDA)
       if (MAGMA_BUILD_SPLIT_CUDA)
-        # CUDA kernels in a separate library to avoid relocation overflow.
-        add_library( magma_kernels ${libmagma_cu} )
-        target_link_libraries( magma_kernels
-            ${LAPACK_LIBRARIES}
-            CUDA::cudart
-            CUDA::cublas
-            CUDA::cusparse
-            magma_nvcc_flags
-        )
+        set( magma_kernel_targets )
+        math( EXPR _last "${MAGMA_SPLIT_CUDA_N} - 1" )
+        foreach( _i RANGE 0 ${_last} )
+            add_library( magma_kernels_${_i} ${libmagma_cu_${_i}} )
+            target_link_libraries( magma_kernels_${_i}
+                ${LAPACK_LIBRARIES}
+                CUDA::cudart
+                CUDA::cublas
+                CUDA::cusparse
+                magma_nvcc_flags
+            )
+            list( APPEND magma_kernel_targets magma_kernels_${_i} )
+        endforeach()
 
         add_library( magma ${libmagma_cpp} )
         target_link_libraries( magma
-            magma_kernels
+            ${magma_kernel_targets}
             ${LAPACK_LIBRARIES}
             CUDA::cudart
             CUDA::cublas
@@ -537,7 +577,7 @@ else()
     endif()
 endif()
 if (MAGMA_BUILD_SPLIT_CUDA)
-    add_custom_target( lib DEPENDS magma magma_kernels )
+    add_custom_target( lib DEPENDS magma ${magma_kernel_targets} )
 else()
     add_custom_target( lib DEPENDS magma )
 endif()
@@ -593,30 +633,29 @@ include_directories( testing )
 
 if (MAGMA_ENABLE_CUDA)
   if (MAGMA_BUILD_SPLIT_CUDA)
-    # Split sparse .cu files into a separate library too.
-    foreach( src ${libsparse_all} )
-        if (src MATCHES "\\.cu$")
-            list( APPEND libsparse_cu  ${src} )
-        else()
-            list( APPEND libsparse_cpp ${src} )
-        endif()
-    endforeach()
+    magma_split_cu_sources( "${libsparse_all}" ${MAGMA_SPLIT_CUDA_N}
+        libsparse_cu  libsparse_cpp )
 
-    add_library( magma_sparse_kernels ${libsparse_cu} )
-    set_property(TARGET magma_sparse_kernels PROPERTY CUDA_STANDARD 14)
-    target_link_libraries( magma_sparse_kernels
-        magma
-        ${LAPACK_LIBRARIES}
-        CUDA::cudart
-        CUDA::cublas
-        CUDA::cusparse
-        magma_nvcc_flags
-    )
+    set( magma_sparse_kernel_targets )
+    math( EXPR _last "${MAGMA_SPLIT_CUDA_N} - 1" )
+    foreach( _i RANGE 0 ${_last} )
+        add_library( magma_sparse_kernels_${_i} ${libsparse_cu_${_i}} )
+        set_property(TARGET magma_sparse_kernels_${_i} PROPERTY CUDA_STANDARD 14)
+        target_link_libraries( magma_sparse_kernels_${_i}
+            magma
+            ${LAPACK_LIBRARIES}
+            CUDA::cudart
+            CUDA::cublas
+            CUDA::cusparse
+            magma_nvcc_flags
+        )
+        list( APPEND magma_sparse_kernel_targets magma_sparse_kernels_${_i} )
+    endforeach()
 
     add_library( magma_sparse ${libsparse_cpp} )
     set_property(TARGET magma_sparse PROPERTY CUDA_STANDARD 14)
     target_link_libraries( magma_sparse
-        magma_sparse_kernels
+        ${magma_sparse_kernel_targets}
         magma
         ${LAPACK_LIBRARIES}
         CUDA::cudart
@@ -647,7 +686,7 @@ else()
     )
 endif()
 if (MAGMA_BUILD_SPLIT_CUDA)
-    add_custom_target( sparse-lib DEPENDS magma_sparse magma_sparse_kernels )
+    add_custom_target( sparse-lib DEPENDS magma_sparse ${magma_sparse_kernel_targets} )
 else()
     add_custom_target( sparse-lib DEPENDS magma_sparse )
 endif()
@@ -704,7 +743,8 @@ add_custom_target( sparse-testing DEPENDS ${sparse-testing} )
 # ----------------------------------------
 # what to install
 if (MAGMA_BUILD_SPLIT_CUDA)
-    install( TARGETS magma magma_kernels magma_sparse magma_sparse_kernels
+    install( TARGETS magma ${magma_kernel_targets}
+                     magma_sparse ${magma_sparse_kernel_targets}
              RUNTIME DESTINATION bin
              LIBRARY DESTINATION lib
              ARCHIVE DESTINATION lib )
@@ -748,7 +788,14 @@ else()
 endif()
 set( MAGMA_REQUIRED "" )
 if (MAGMA_BUILD_SPLIT_CUDA)
-    set( MAGMA_PKGCONFIG_LIBS "-lmagma_sparse -lmagma_sparse_kernels -lmagma -lmagma_kernels" )
+    set( MAGMA_PKGCONFIG_LIBS "-lmagma_sparse" )
+    foreach( _t ${magma_sparse_kernel_targets} )
+        string( APPEND MAGMA_PKGCONFIG_LIBS " -l${_t}" )
+    endforeach()
+    string( APPEND MAGMA_PKGCONFIG_LIBS " -lmagma" )
+    foreach( _t ${magma_kernel_targets} )
+        string( APPEND MAGMA_PKGCONFIG_LIBS " -l${_t}" )
+    endforeach()
 else()
     set( MAGMA_PKGCONFIG_LIBS "-lmagma_sparse -lmagma" )
 endif()
