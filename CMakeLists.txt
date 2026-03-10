@@ -632,38 +632,6 @@ endif()
 include_directories( testing )
 
 if (MAGMA_ENABLE_CUDA)
-  if (MAGMA_BUILD_SPLIT_CUDA)
-    magma_split_cu_sources( "${libsparse_all}" ${MAGMA_SPLIT_CUDA_N}
-        libsparse_cu  libsparse_cpp )
-
-    set( magma_sparse_kernel_targets )
-    math( EXPR _last "${MAGMA_SPLIT_CUDA_N} - 1" )
-    foreach( _i RANGE 0 ${_last} )
-        add_library( magma_sparse_kernels_${_i} ${libsparse_cu_${_i}} )
-        set_property(TARGET magma_sparse_kernels_${_i} PROPERTY CUDA_STANDARD 14)
-        target_link_libraries( magma_sparse_kernels_${_i}
-            magma
-            ${LAPACK_LIBRARIES}
-            CUDA::cudart
-            CUDA::cublas
-            CUDA::cusparse
-            magma_nvcc_flags
-        )
-        list( APPEND magma_sparse_kernel_targets magma_sparse_kernels_${_i} )
-    endforeach()
-
-    add_library( magma_sparse ${libsparse_cpp} )
-    set_property(TARGET magma_sparse PROPERTY CUDA_STANDARD 14)
-    target_link_libraries( magma_sparse
-        ${magma_sparse_kernel_targets}
-        magma
-        ${LAPACK_LIBRARIES}
-        CUDA::cudart
-        CUDA::cublas
-        CUDA::cusparse
-        magma_nvcc_flags
-    )
-  else()
     add_library( magma_sparse ${libsparse_all} )
     set_property(TARGET magma_sparse PROPERTY CUDA_STANDARD 14)
     target_link_libraries( magma_sparse
@@ -674,7 +642,6 @@ if (MAGMA_ENABLE_CUDA)
         CUDA::cusparse
         magma_nvcc_flags
     )
-  endif()
 else()
     add_library( magma_sparse ${libsparse_all} )
     target_link_libraries( magma_sparse
@@ -685,11 +652,7 @@ else()
         roc::hipsparse
     )
 endif()
-if (MAGMA_BUILD_SPLIT_CUDA)
-    add_custom_target( sparse-lib DEPENDS magma_sparse ${magma_sparse_kernel_targets} )
-else()
-    add_custom_target( sparse-lib DEPENDS magma_sparse )
-endif()
+add_custom_target( sparse-lib DEPENDS magma_sparse )
 
 
 # ----------------------------------------
@@ -743,8 +706,7 @@ add_custom_target( sparse-testing DEPENDS ${sparse-testing} )
 # ----------------------------------------
 # what to install
 if (MAGMA_BUILD_SPLIT_CUDA)
-    install( TARGETS magma ${magma_kernel_targets}
-                     magma_sparse ${magma_sparse_kernel_targets}
+    install( TARGETS magma ${magma_kernel_targets} magma_sparse
              RUNTIME DESTINATION bin
              LIBRARY DESTINATION lib
              ARCHIVE DESTINATION lib )
@@ -788,11 +750,7 @@ else()
 endif()
 set( MAGMA_REQUIRED "" )
 if (MAGMA_BUILD_SPLIT_CUDA)
-    set( MAGMA_PKGCONFIG_LIBS "-lmagma_sparse" )
-    foreach( _t ${magma_sparse_kernel_targets} )
-        string( APPEND MAGMA_PKGCONFIG_LIBS " -l${_t}" )
-    endforeach()
-    string( APPEND MAGMA_PKGCONFIG_LIBS " -lmagma" )
+    set( MAGMA_PKGCONFIG_LIBS "-lmagma_sparse -lmagma" )
     foreach( _t ${magma_kernel_targets} )
         string( APPEND MAGMA_PKGCONFIG_LIBS " -l${_t}" )
     endforeach()
