@@ -104,6 +104,9 @@ endif()
 if (MAGMA_ENABLE_CUDA)
     enable_language( CUDA )
 
+    # enable binary compression by default
+    set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xfatbin -compress-all")
+
     set( CUDA_NAMES
          "one or more of "
          "Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Ada, Hopper, "
@@ -162,7 +165,34 @@ if (MAGMA_ENABLE_CUDA)
 
             # Find all sm_XY and sm_XYZ, then strip off sm_.
             string( REGEX MATCHALL "sm_[0-9][0-9a-z]+" sms "${GPU_TARGET}" )
-            string( REPLACE "sm_" "" __cuda_architectures "${sms}" )
+            string( REPLACE "sm_" "" sm_codes "${sms}" )
+
+            # remove duplicate sm codes, if any
+            set( sm_codes_distinct "")
+            foreach(arch ${sm_codes})
+                if(NOT sm_codes_distinct MATCHES ${arch})
+                    set( sm_codes_distinct "${sm_codes_distinct}${arch};" )
+                endif()
+            endforeach()
+
+            # find max sm code
+            set( max_arch 0 )
+	    foreach( arch ${sm_codes_distinct})
+                if ( max_arch LESS arch )
+		    set( max_arch "${arch}" )
+		endif()
+            endforeach()
+
+            # Compile the latest specified arch using both binary SASS and PTX
+            # Compile all other architectures with the "-real" suffix (SASS only) 
+            set( __cuda_architectures "")
+            foreach( arch ${sm_codes_distinct})
+		if ( NOT ${max_arch} EQUAL ${arch} )
+		    set( __cuda_architectures "${__cuda_architectures}${arch}-real;" )
+                else()
+		    set( __cuda_architectures "${__cuda_architectures}${arch};" )
+		endif()
+            endforeach()
 
             if (NOT __cuda_architectures)
                 message( FATAL_ERROR
