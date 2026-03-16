@@ -170,10 +170,19 @@ if (MAGMA_ENABLE_CUDA)
             # remove duplicate sm codes, if any
             set( sm_codes_distinct "")
             foreach(arch ${sm_codes})
-                if(NOT sm_codes_distinct MATCHES ${arch})
+                set(arch_found 0)
+                foreach( arch_i ${sm_codes_distinct} )
+                    string(COMPARE EQUAL ${arch_i} ${arch} exact_match)
+                    if( ${exact_match} EQUAL 1 )
+                        set(arch_found 1)
+                        break()
+                    endif()
+                endforeach()
+                if( ${arch_found} EQUAL 0 )
                     set( sm_codes_distinct "${sm_codes_distinct}${arch};" )
                 endif()
             endforeach()
+            # end of remove duplicates logic
 
             # find max sm code
             set( max_arch 0 )
