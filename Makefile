@@ -106,6 +106,9 @@ ifeq ($(BACKEND),cuda)
 	# Add legacy flags
 	DEVCCFLAGS += $(NVCCFLAGS)
 
+        # Add binary compression be default
+        DEVCCFLAGS += -Xfatbin -compress-all
+
 	# ------------------------------------------------------------------------------
 	# NVCC options for the different cards
 	# First, add smXX for architecture names
@@ -161,6 +164,9 @@ ifeq ($(BACKEND),cuda)
     # Now, sort sm's
     SMS      := $(patsubst sm_%,%,$(filter sm_%, $(CUDA_ARCH_)))
     SMS      := $(shell printf "%s\n" $(SMS) | sort -n)
+
+    # remove duplicate sm's, if any
+    SMS := $(shell echo $(SMS) | tr ' ' '\n' | awk '!a[$$0]++' | tr '\n' ' ')
 
     # code=sm_XX is binary, code=compute_XX is PTX
     GENCODE_SM      = -gencode arch=compute_$(sm),code=sm_$(sm)
