@@ -167,7 +167,9 @@ if (MAGMA_ENABLE_CUDA)
             string( REGEX MATCHALL "sm_[0-9][0-9a-z]+" sms "${GPU_TARGET}" )
             string( REPLACE "sm_" "" sm_codes "${sms}" )
 
-            # remove duplicate sm codes, if any
+            # sort sm codes
+            list(SORT sm_codes COMPARE NATURAL)
+
             set( sm_codes_distinct "")
             foreach(arch ${sm_codes})
                 set(arch_found 0)
@@ -184,19 +186,17 @@ if (MAGMA_ENABLE_CUDA)
             endforeach()
             # end of remove duplicates logic
 
-            # find max sm code
-            set( max_arch 0 )
-	    foreach( arch ${sm_codes_distinct})
-                if ( max_arch LESS arch )
-		    set( max_arch "${arch}" )
-		endif()
-            endforeach()
+            # get max_arch (last element in sm_codes_distinct)
+            # first, remove any empty elements
+            list(FILTER sm_codes_distinct EXCLUDE REGEX "^$")
+            list(GET    sm_codes_distinct -1 max_arch)
 
             # Compile the latest specified arch using both binary SASS and PTX
-            # Compile all other architectures with the "-real" suffix (SASS only) 
+            # Compile all other architectures with the "-real" suffix (SASS only)
             set( __cuda_architectures "")
             foreach( arch ${sm_codes_distinct})
-		if ( NOT ${max_arch} EQUAL ${arch} )
+                string(COMPARE EQUAL ${arch} ${max_arch} exact_match)
+		if( ${exact_match} EQUAL 0 )
 		    set( __cuda_architectures "${__cuda_architectures}${arch}-real;" )
                 else()
 		    set( __cuda_architectures "${__cuda_architectures}${arch};" )
