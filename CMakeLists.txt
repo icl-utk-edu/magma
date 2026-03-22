@@ -104,6 +104,9 @@ endif()
 if (MAGMA_ENABLE_CUDA)
     enable_language( CUDA )
 
+    # enable binary compression by default
+    set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xfatbin -compress-all")
+
     set( CUDA_NAMES
          "one or more of "
          "Fermi, Kepler, Maxwell, Pascal, Volta, Turing, Ampere, Ada, Hopper, "
@@ -162,7 +165,43 @@ if (MAGMA_ENABLE_CUDA)
 
             # Find all sm_XY and sm_XYZ, then strip off sm_.
             string( REGEX MATCHALL "sm_[0-9][0-9a-z]+" sms "${GPU_TARGET}" )
-            string( REPLACE "sm_" "" __cuda_architectures "${sms}" )
+            string( REPLACE "sm_" "" sm_codes "${sms}" )
+
+            # sort sm codes
+            list(SORT sm_codes COMPARE NATURAL)
+
+            set( sm_codes_distinct "")
+            foreach(arch ${sm_codes})
+                set(arch_found 0)
+                foreach( arch_i ${sm_codes_distinct} )
+                    string(COMPARE EQUAL ${arch_i} ${arch} exact_match)
+                    if( ${exact_match} EQUAL 1 )
+                        set(arch_found 1)
+                        break()
+                    endif()
+                endforeach()
+                if( ${arch_found} EQUAL 0 )
+                    set( sm_codes_distinct "${sm_codes_distinct}${arch};" )
+                endif()
+            endforeach()
+            # end of remove duplicates logic
+
+            # get max_arch (last element in sm_codes_distinct)
+            # first, remove any empty elements
+            list(FILTER sm_codes_distinct EXCLUDE REGEX "^$")
+            list(GET    sm_codes_distinct -1 max_arch)
+
+            # Compile the latest specified arch using both binary SASS and PTX
+            # Compile all other architectures with the "-real" suffix (SASS only)
+            set( __cuda_architectures "")
+            foreach( arch ${sm_codes_distinct})
+                string(COMPARE EQUAL ${arch} ${max_arch} exact_match)
+                if( ${exact_match} EQUAL 0 )
+                    set( __cuda_architectures "${__cuda_architectures}${arch}-real;" )
+                else()
+                    set( __cuda_architectures "${__cuda_architectures}${arch};" )
+                endif()
+            endforeach()
 
             if (NOT __cuda_architectures)
                 message( FATAL_ERROR
