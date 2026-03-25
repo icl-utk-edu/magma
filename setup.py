@@ -115,17 +115,21 @@ class Build_CMake(setuptools.command.build_py.build_py):
             cpus = str(int(os.cpu_count()))
 
             MKLROOT = "/opt/intel"
+            os.environ["MKLROOT"] = MKLROOT
+            os.environ["LANG"] = "C.UTF-8"
             # find theRock path
+            '''
             path = subprocess.check_output(
-                "find /usr -name librocblas.so 2>/dev/null | head -n 1",
+                "find / -name libhipblas.* 2>/dev/null | head -n 1",
                 shell=True,
                 text=True
                 ).strip()
             if not path:
-                raise RuntimeError("librocblas.so not found (theRock not installed)")
+                raise RuntimeError("librocblas not found (theRock not installed)")
             rocm_path = os.path.dirname(os.path.dirname(path))
             os.environ["ROCM_PATH"] = rocm_path
             os.environ["PATH"] = os.environ["PATH"] + ":" + os.path.join(rocm_path, "bin")
+            '''
 
             print("Building MAGMA for ROCm...")
 
@@ -153,7 +157,7 @@ class Build_CMake(setuptools.command.build_py.build_py):
                     
             # Build commands
             hip_build = f"/usr/bin/make     -f make.gen.hipMAGMA    -j {cpus}"
-            so_build =  f"/usr/bin/make     lib/libmagma.so         -j {cpus}"
+            so_build =  f"/usr/bin/make     lib/libmagma.so         -j {cpus}       MKLROOT={MKLROOT}"
             
             try:
                 print(subprocess_run(hip_build, cwd=ROOT_DIR))
@@ -217,6 +221,7 @@ if __name__ == "__main__":
     arch = detect_gpu_arch()
     version, sha = get_version(arch)
     version = f"{version}.dev0+g{sha[:7]}"
+    version = version.replace("+g", ".g", 1)
 
     print(f"Building wheel {PACKAGE_NAME}-{version}")
 
