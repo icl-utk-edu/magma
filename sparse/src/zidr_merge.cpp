@@ -13,7 +13,6 @@
 */
 
 #include "magmasparse_internal.h"
-#include <cuda_profiler_api.h>
 
 #define RTOLERANCE     lapackf77_dlamch( "E" )
 #define ATOLERANCE     lapackf77_dlamch( "E" )
@@ -293,8 +292,6 @@ magma_zidr_merge(
         solver_par->timing[0] = 0.0;
     }
 
-cudaProfilerStart();
-
     om = MAGMA_Z_ONE;
     innerflag = 0;
 
@@ -545,8 +542,6 @@ cudaProfilerStart();
         // r = rs
         magma_zcopyvector( dr.num_rows, drs.dval, 1, dr.dval, 1, queue );
     }
-
-cudaProfilerStop();
 
     // get last iteration timing
     tempo2 = magma_sync_wtime( queue );
