@@ -16,7 +16,7 @@ ROOT_DIR = os.path.abspath('.')
 PACKAGE_NAME = "magma"
 MAGMA_INCLUDE = os.path.join(ROOT_DIR, "include")
 MAGMA_LIB = os.path.join(ROOT_DIR, "lib")
-MAGMA_VERSION = "2.10.0a0"
+MAGMA_VERSION = "2.11.0"
 
 def detect_gpu_arch():
     if os.getenv("ROCM_PATH") != "" and os.path.exists(os.path.join(os.getenv("ROCM_PATH"), "bin", "hipcc")):
@@ -41,20 +41,6 @@ def find_library(header):
 
 def get_version(arch):
     version = MAGMA_VERSION
-        
-    try:
-        # Get version using current branch name. Will only work when building from release branch.
-        branch_name = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True).stdout.strip()
-
-        # Regular expression pattern to match 'vX.Y.Z'
-        pattern = r'v(\d+\.\d+\.\d+)'
-        match = re.search(pattern, branch_name)
-
-        version = match.group(1) if match else MAGMA_VERSION # Sets version as 'X.Y.Z'
-
-    except Exception:
-        print("Could not find version from branch name.")
-        pass
 
     try:
         sha = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
