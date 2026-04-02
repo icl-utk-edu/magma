@@ -2,7 +2,8 @@ import subprocess
 import os
 
 MKL_VERSION = "2024.2.0"
-MKLROOT = "/opt/intel"
+MKLROOT = os.environ.get("MKLROOT", "/opt/intel")
+print(f"Installing MKL to {MKLROOT}")
 
 os.makedirs(MKLROOT, exist_ok=True)
 
