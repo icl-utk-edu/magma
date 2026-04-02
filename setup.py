@@ -18,16 +18,6 @@ MAGMA_INCLUDE = os.path.join(ROOT_DIR, "include")
 MAGMA_LIB = os.path.join(ROOT_DIR, "lib")
 MAGMA_VERSION = "2.11.0"
 
-def detect_gpu_arch():
-    if os.getenv("ROCM_PATH") != "" and os.path.exists(os.path.join(os.getenv("ROCM_PATH"), "bin", "hipcc")):
-        return "rocm"
-    elif os.getenv("CUDA_HOME") != "" and os.path.exists(os.path.join(os.getenv("CUDA_HOME"), "bin", "nvcc")):
-        return "cuda"
-    else:
-        print("No CUDA or ROCm installation found. Building for CPU.")
-        return None
-
-
 def find_library(header):
 
     searching_for = f"Searching for {header}"
@@ -39,7 +29,7 @@ def find_library(header):
         
     print(f"{searching_for}. Didn't find in Magma Include.")
 
-def get_version(arch):
+def get_version():
     version = MAGMA_VERSION
 
     try:
@@ -48,9 +38,8 @@ def get_version(arch):
         print("Could not find git SHA from branch name.")
         pass
 
-    if arch=='rocm':
+    if "rocm" in os.environ.get("MAGMA_WHEEL_VERSION_SUFFIX", "").lower():
         try:
-        
             with open(os.path.join(os.getenv("ROCM_PATH"), ".info", "version")) as file:
                 rocm_version = file.readline().strip() 
             
@@ -62,8 +51,15 @@ def get_version(arch):
             print("Could not find rocm version from rocm installation.")
             pass
     print(version)
+    
+    else:
+        print("Error: ROCm not found in MAGMA_WHEEL_VERSION_SUFFIX", file=sys.stderr)
+        sys.exit(1)
 
-    return version, sha
+    if not os.environ.get("RELEASE", "0").lower() in ("1", "true", "yes"):
+        version = f"{version}+git{sha[:7]}"
+
+    return version
 
 
 
@@ -91,31 +87,15 @@ class Build_CMake(setuptools.command.build_py.build_py):
     def run(self):
         print("Began run function")
 
-        self.gpu_arch = detect_gpu_arch()
-
-        if self.gpu_arch == "cuda":
+        if "cuda" in os.environ.get("MAGMA_WHEEL_VERSION_SUFFIX", "").lower():
             print("Building MAGMA for CUDA...")
 
-        elif self.gpu_arch == "rocm":
+        elif "rocm" in os.environ.get("MAGMA_WHEEL_VERSION_SUFFIX", "").lower():
 
             cpus = str(int(os.cpu_count()))
 
-            MKLROOT = "/opt/intel"
-            os.environ["MKLROOT"] = MKLROOT
+            MKLROOT = os.environ.get("MKLROOT", "/opt/intel")
             os.environ["LANG"] = "C.UTF-8"
-            # find theRock path
-            '''
-            path = subprocess.check_output(
-                "find / -name libhipblas.* 2>/dev/null | head -n 1",
-                shell=True,
-                text=True
-                ).strip()
-            if not path:
-                raise RuntimeError("librocblas not found (theRock not installed)")
-            rocm_path = os.path.dirname(os.path.dirname(path))
-            os.environ["ROCM_PATH"] = rocm_path
-            os.environ["PATH"] = os.environ["PATH"] + ":" + os.path.join(rocm_path, "bin")
-            '''
 
             print("Building MAGMA for ROCm...")
 
@@ -127,9 +107,9 @@ class Build_CMake(setuptools.command.build_py.build_py):
             # Copy the make.inc file to this directory
             shutil.copy2(os.path.join(ROOT_DIR,"make.inc-examples","make.inc.hip-gcc-mkl"), make_inc)
 
-            gfx_arch = os.environ.get("PYTORCH_ROCM_ARCH").split(';')
+            gfx_arch = os.environ.get("ROCM_GFX_ARCH", "").split(';')
 
-            if len(gfx_arch)==0:
+            if not gfx_arch or gfx_arch == [""]:
                 gfx_arch = subprocess.check_output(['bash', '-c', 'rocm_agent_enumerator']).decode('utf-8').split('\n') 
                 
                 # Remove empty entries and and gfx000
@@ -204,10 +184,7 @@ class clean(setuptools.Command):
 
 if __name__ == "__main__":
 
-    arch = detect_gpu_arch()
-    version, sha = get_version(arch)
-    version = f"{version}.dev0+g{sha[:7]}"
-    version = version.replace("+g", ".g", 1)
+    version = get_version()
 
     print(f"Building wheel {PACKAGE_NAME}-{version}")
 
