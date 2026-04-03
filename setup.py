@@ -46,7 +46,7 @@ def get_version():
             pattern = r'(\d+\.\d+\.\d+)' # Sets version as 'X.Y.Z' from something like X.Y.Z-AB
             match = re.search(pattern, rocm_version)
 
-            version += f"-rocm{match.group(1)}" if match else ""  
+            version += f"+rocm{match.group(1)}" if match else ""  
         except Exception:
             print("Could not find rocm version from rocm installation.")
             pass
@@ -56,7 +56,7 @@ def get_version():
         sys.exit(1)
 
     if not os.environ.get("RELEASE", "0").lower() in ("1", "true", "yes"):
-        version = f"{version}+git{sha[:7]}"
+        version = f"{version}.git{sha[:7]}"
 
     return version
 
