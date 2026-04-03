@@ -46,11 +46,10 @@ def get_version():
             pattern = r'(\d+\.\d+\.\d+)' # Sets version as 'X.Y.Z' from something like X.Y.Z-AB
             match = re.search(pattern, rocm_version)
 
-            version += f"+rocm{match.group(1)}" if match else ""  
+            version += f"-rocm{match.group(1)}" if match else ""  
         except Exception:
             print("Could not find rocm version from rocm installation.")
             pass
-    print(version)
     
     else:
         print("Error: ROCm not found in MAGMA_WHEEL_VERSION_SUFFIX", file=sys.stderr)
