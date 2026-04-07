@@ -184,7 +184,7 @@ int main(int argc, char **argv)
             // workspaces do NOT need to be zero -- set to NAN to prove
             for( dev=0; dev < opts.ngpu; ++dev ) {
                 magma_setdevice( dev );
-                magmablas_zlaset( MagmaFull, ldwork, 1, MAGMA_Z_NAN, MAGMA_Z_NAN, dwork[dev], ldwork, opts.queue );
+                magmablas_zlaset( MagmaFull, ldwork, 1, MAGMA_Z_NAN, MAGMA_Z_NAN, dwork[dev], ldwork, queues[dev] );
             }
             lapackf77_zlaset( "Full", &lhwork, &ione, &MAGMA_Z_NAN, &MAGMA_Z_NAN, hwork, &lhwork );
 
