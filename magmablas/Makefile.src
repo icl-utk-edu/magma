@@ -189,6 +189,8 @@ libmagma_src += \
 	$(cdir)/zgesvj_kernels.cu				\
 	$(cdir)/zgesvj_heevj_vector_updates.cu	\
 
+libmagma_src += \
+	$(cdir)/zpptrf_batched_small.cu		\
 
 # vbatched files
 libmagma_src += \

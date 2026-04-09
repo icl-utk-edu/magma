@@ -26,7 +26,7 @@
 #endif
 #include "../control/magma_threadsetting.h"  // internal header
 
-#define cond (N == 8 && batchCount == 1 && ibatch == 0)
+#define cond (N == 8 && batchCount == 4 && ibatch == 3)
 
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zpptrf_batched
@@ -127,8 +127,13 @@ int main( int argc, char** argv)
             magma_zset_pointer( dAP_array, dAP,    1, 0, 0, sizeAP, batchCount, queue );
             magma_zset_pointer( dA_array,   dA, ldda, 0, 0, ldda*N, batchCount, queue );
 
-            if(opts.version == 1) {
-
+            if( opts.version == 1 ) {
+                gpu_time = magma_sync_wtime( opts.queue );
+                magma_zpptrf_batched_small( opts.uplo, N, dAP_array, dinfo_magma, batchCount, opts.queue );
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+            }
+            else if( opts.version == 2 ) {
+                // slow ref. impl.
                 gpu_time = magma_sync_wtime( opts.queue );
                 // copy dAP to dA
                 for(magma_int_t i = 0; i < batchCount; i++) {
@@ -245,6 +250,12 @@ int main( int argc, char** argv)
                         error = err;
                         break;
                     }
+
+                    if(err >= tol) {
+                        printf("Error at problem %d = %8.4e\n", i, err);
+                        magma_zprint(sizeAP, 1, hRP + i * sizeAP, sizeAP);
+                    }
+
                     error = max( err, error );
                 }
                 bool okay = (error < tol);
