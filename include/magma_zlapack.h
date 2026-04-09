@@ -135,6 +135,8 @@ extern "C" {
 #define lapackf77_zpotrf   FORTRAN_NAME( zpotrf, ZPOTRF )
 #define lapackf77_zpotri   FORTRAN_NAME( zpotri, ZPOTRI )
 #define lapackf77_zpotrs   FORTRAN_NAME( zpotrs, ZPOTRS )
+#define lapackf77_zppsv    FORTRAN_NAME( zppsv,  ZPPSV  )
+#define lapackf77_zpptrf   FORTRAN_NAME( zpptrf, ZPPTRF )
 #define lapackf77_zstedc   FORTRAN_NAME( zstedc, ZSTEDC )
 #define lapackf77_zstein   FORTRAN_NAME( zstein, ZSTEIN )
 #define lapackf77_zstemr   FORTRAN_NAME( zstemr, ZSTEMR )
@@ -934,6 +936,17 @@ void   lapackf77_zpotrs( const char *uplo,
                          const magma_int_t *n, const magma_int_t *nrhs,
                          const magmaDoubleComplex *A, const magma_int_t *lda,
                          magmaDoubleComplex *B, const magma_int_t *ldb,
+                         magma_int_t *info );
+
+void   lapackf77_zpptrf( const char *uplo,
+                         const magma_int_t *n,
+                         magmaDoubleComplex *AP,
+                         magma_int_t *info );
+
+void   lapackf77_zppsv(  const char *uplo,
+                         const magma_int_t *n, const magma_int_t *nrhs,
+                         magmaDoubleComplex *AP,
+                         magmaDoubleComplex *B,  const magma_int_t *ldb,
                          magma_int_t *info );
 
 void   lapackf77_zstedc( const char *compz,
