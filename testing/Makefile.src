@@ -220,6 +220,10 @@ testing_src += \
 	\
 	$(cdir)/testing_zgesvj_batched.cpp	\
 
+# batched routines (packed format)
+testing_src += \
+	$(cdir)/testing_zpptrf_batched.cpp	\
+
 # ----------
 # vbatched BLAS, QR, LU, Cholesky
 testing_src += \
