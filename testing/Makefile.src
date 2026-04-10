@@ -220,6 +220,10 @@ testing_src += \
 	\
 	$(cdir)/testing_zgesvj_batched.cpp	\
 
+testing_src += \
+	$(cdir)/testing_zpotrf_batched_cusolver.cpp	\
+	$(cdir)/testing_zposv_batched_cusolver.cpp	\
+
 # batched routines (packed format)
 testing_src += \
 	$(cdir)/testing_zpptrf_batched.cpp	\
