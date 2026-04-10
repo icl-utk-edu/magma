@@ -251,11 +251,6 @@ int main( int argc, char** argv)
                         break;
                     }
 
-                    if(err >= tol) {
-                        printf("Error at problem %d = %8.4e\n", i, err);
-                        magma_zprint(sizeAP, 1, hRP + i * sizeAP, sizeAP);
-                    }
-
                     error = max( err, error );
                 }
                 bool okay = (error < tol);
