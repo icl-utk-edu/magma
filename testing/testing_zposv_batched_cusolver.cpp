@@ -424,14 +424,7 @@ int main(int argc, char **argv)
 
                 devsolver_destroy(handle);
             }
-            else if (opts.version == 3){
-                info = 0;
-                gpu_time = magma_sync_wtime( opts.queue );
-                magma_zpotrf_batched_tf32(opts.uplo, N, dA_array, ldda, dinfo_array,  batchCount, opts.queue);
-                magma_zpotrs_batched( opts.uplo, N, nrhs, dA_array,ldda, dB_array, lddb, batchCount, opts.queue);
-                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
-            }
-            else if(opts.version == 4) {
+            else if(opts.version == 3) {
                 info = 0;
                 magmaDoubleComplex *dW = NULL;
                 magma_int_t lwork      = 0;
