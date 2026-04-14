@@ -150,7 +150,6 @@ zpptrf_lower_batched_small_kernel_n(
     sA += ty * sizeA;
 
     // read
-    #pragma unroll
     for(int i = tx; i < sizeA; i+=n){
         sA[ i ] = dA[ i ];
     }
@@ -305,7 +304,6 @@ magma_zpptrf_batched_small(
 
     if( n == 0 || batchCount == 0 ) return 0;
 
-    arginfo = -100;
     switch(n){
         case  1: arginfo = zpptrf_lower_batched_small_kernel_driver< 1, 128>(uplo, dAP_array, info_array, batchCount, queue ); break;
         case  2: arginfo = zpptrf_lower_batched_small_kernel_driver< 2, 128>(uplo, dAP_array, info_array, batchCount, queue ); break;
@@ -343,13 +341,20 @@ magma_zpptrf_batched_small(
     }
 
     if(arginfo != 0) {
+        arginfo = 0;
         magma_int_t ntcol = 1;
         magma_int_t shmem = ntcol * (n * (n+1) / 2) * sizeof(magmaDoubleComplex);
         magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
         dim3 threads(n, ntcol, 1);
         dim3 grid(gridx, 1, 1);
 
-        zpptrf_lower_batched_small_kernel_n<<<grid, threads, shmem, queue->cuda_stream()>>>(n, dAP_array, info_array, batchCount);
+        void *kernel_args[] = {&n, &dAP_array, &info_array, &batchCount};
+        cudaError_t e = cudaLaunchKernel((void*)zpptrf_lower_batched_small_kernel_n, grid, threads, kernel_args, shmem, queue->cuda_stream());
+
+        if( e != cudaSuccess ) {
+            //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
+            arginfo = -100;
+        }
     }
 
     return arginfo;
