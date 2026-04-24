@@ -359,3 +359,66 @@ magma_zpptrf_batched_small(
 
     return arginfo;
 }
+
+/***************************************************************************//**
+    Purpose
+    -------
+    PPTF2 computes the Cholesky factorization in blocked algorithm. 
+
+    This is a batched version that factors batchCount N-by-N matrices in parallel.
+
+    Arguments
+    ---------
+    @param[in]
+    n       INTEGER
+            The size of each matrix A.  N >= 0.
+
+    @param[in,out]
+    dAP_array    Array of pointers, dimension (batchCount).
+            Each is a COMPLEX_16 array on the GPU, dimension (LDDA,N).
+            On entry, each pointer is
+
+    @param[out]
+    info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
+      -     = 0:  successful exit
+      -     < 0:  if INFO = -i, the i-th argument had an illegal value
+                  or another error occured, such as memory allocation failed.
+      -     > 0:  if INFO = i,
+
+    @param[in]
+    batchCount  INTEGER
+                The number of matrices to operate on.
+
+    @param[in]
+    queue   magma_queue_t
+            Queue to execute in.
+
+    @ingroup magma_getrf_batched
+*******************************************************************************/
+extern "C" magma_int_t
+magma_zpptf2_batched_small(
+    magma_uplo_t uplo, magma_int_t n,
+    magmaDoubleComplex** dAP_array, magma_int_t* info_array,
+    magma_int_t batchCount, magma_queue_t queue )
+{
+    magma_int_t arginfo = 0;
+
+    if(uplo != MagmaLower)
+        arginfo = -1;
+    else if( (n < 0) || ( n > 64 ) )
+        arginfo = -2;
+    else if ( batchCount < 0 )
+        arginfo = -5;
+
+    if (arginfo != 0) {
+        magma_xerbla( __func__, -(arginfo) );
+        return arginfo;
+    }
+
+    if( n == 0 || batchCount == 0 ) return 0;
+
+    arginfo = magma_zpptrf_lpout_batched(uplo, n, dAP_array, 0, 0, n, 0, info_array, batchCount, queue);
+  
+    return arginfo;
+
+}
