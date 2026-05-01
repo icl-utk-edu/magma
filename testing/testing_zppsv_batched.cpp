@@ -28,7 +28,7 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (N == 8 && batchCount == 2 && ibatch == 1)
+#define cond (N == 8 && batchCount == 1 && ibatch == 0)
 
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zppsv_batched
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     batchCount = opts.batchcount;
 
     printf("%% uplo = %s\n", lapack_uplo_const(opts.uplo) );
-    printf("%% BatchCount   N  NRHS   CPU Gflop/s (sec)   GPU Gflop/s (sec)   ||B - AX|| / N*||A||*||X||\n");
+    printf("%% BatchCount   N  NRHS   CPU Gflop/s (ms)   GPU Gflop/s (ms)   ||B - AX|| / N*||A||*||X||\n");
     printf("%%==========================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
@@ -146,6 +146,16 @@ int main(int argc, char **argv)
 
             if( opts.version == 2 ) {
                 gpu_time = magma_sync_wtime( opts.queue );
+                info = magma_zpptrf_batched_small( opts.uplo, N, dAP_array, dinfo_array, batchCount, opts.queue );
+
+                for(magma_int_t ibatch = 0; ibatch < batchCount; ibatch++) {
+                    if(cond) {
+                        magma_zprint_gpu(sizeAP, 1, dAP+ibatch*sizeAP, sizeAP, opts.queue);
+                        magma_zprint_gpu(N, nrhs, dB+ibatch*lddb*nrhs, lddb, opts.queue);
+                    }
+                }
+
+                magma_zpptrs_batched_small(N, nrhs, dAP_array, dB_array, lddb, batchCount, opts.queue );
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
             else if( opts.version == 1 ) {
@@ -169,7 +179,7 @@ int main(int argc, char **argv)
             }
             gpu_perf = gflops / gpu_time;
 
-            // check correctness of results throught "dinfo_magma" and correctness of argument throught "info"
+            // check correctness of results throught "dinfo_array" and correctness of argument throught "info"
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_array, 1, cpu_info, 1, opts.queue );
             for (int i=0; i < batchCount; i++) {
                 if (cpu_info[i] != 0 ) {
@@ -207,6 +217,7 @@ int main(int argc, char **argv)
                 Rnorm = lapackf77_zlange("I", &N, &nrhs, hB + s * ldb * nrhs, &ldb, work);
                 double err = Rnorm/(N*Anorm*Xnorm);
 
+                //printf("err[%3d] = %.4e\n", s, err);
                 if (std::isnan(err) || std::isinf(err)) {
                     error = err;
                     break;
@@ -243,12 +254,12 @@ int main(int argc, char **argv)
                 cpu_perf = gflops / cpu_time;
 
                 printf( "%10lld %5lld %5lld   %7.2f (%7.2f)   %7.2f (%7.2f)   %8.2e   %s\n",
-                        (long long) batchCount, (long long) N, (long long) nrhs, cpu_perf, cpu_time, gpu_perf, gpu_time,
+                        (long long) batchCount, (long long) N, (long long) nrhs, cpu_perf, cpu_time*1000., gpu_perf, gpu_time*1000.,
                         error, (okay ? "ok" : "failed"));
             }
             else {
                 printf( "%10lld %5lld %5lld     ---   (  ---  )   %7.2f (%7.2f)   %8.2e   %s\n",
-                        (long long) batchCount, (long long) N, (long long) nrhs, gpu_perf, gpu_time,
+                        (long long) batchCount, (long long) N, (long long) nrhs, gpu_perf, gpu_time*1000.,
                         error, (okay ? "ok" : "failed"));
             }
 

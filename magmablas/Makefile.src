@@ -191,6 +191,7 @@ libmagma_src += \
 
 libmagma_src += \
 	$(cdir)/zpptrf_batched_small.cu		\
+	$(cdir)/zpptrs_batched_small.cu		\
 
 # vbatched files
 libmagma_src += \
