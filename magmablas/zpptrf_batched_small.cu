@@ -192,7 +192,7 @@ magma_int_t
 zpptrf_lower_batched_small_kernel_driver(
     magma_uplo_t uplo,
     magmaDoubleComplex** dAP_array, magma_int_t* info_array,
-    magma_int_t batchCount, magma_queue_t queue )
+    int batchCount, magma_queue_t queue )
 {
     magma_device_t device;
     magma_getdevice( &device );
