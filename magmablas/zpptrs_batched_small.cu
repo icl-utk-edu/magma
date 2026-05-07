@@ -146,11 +146,11 @@ zpptrs_lower_batched_small_kernel(
     // Second, solve L^T x = y for x
     #pragma unroll
     for(int i = N-1; i >= 0; i--) {
-        magmaDoubleComplex rTmp = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(i,i));
+        magmaDoubleComplex rTmp = MAGMA_Z_DIV(MAGMA_Z_ONE, MAGMA_Z_CONJ(sA(i,i)) );
         rB[i] *= rTmp;
         #pragma unroll
         for(int j = i-1; j >= 0; j--) {
-            rB[j] -= rB[i] * sA(i,j);
+            rB[j] -= rB[i] * MAGMA_Z_CONJ(sA(i,j));
         }
     }
 
