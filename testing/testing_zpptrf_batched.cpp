@@ -127,12 +127,18 @@ int main( int argc, char** argv)
             magma_zset_pointer( dAP_array, dAP,    1, 0, 0, sizeAP, batchCount, queue );
             magma_zset_pointer( dA_array,   dA, ldda, 0, 0, ldda*N, batchCount, queue );
 
+
             if( opts.version == 1 ) {
+                gpu_time = magma_sync_wtime( opts.queue );
+                info = magma_zpptrf_batched( opts.uplo, N, dAP_array, dinfo_magma, batchCount, opts.queue );
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+            }
+            else if( opts.version == 2 ) {
                 gpu_time = magma_sync_wtime( opts.queue );
                 info = magma_zpptrf_batched_small( opts.uplo, N, dAP_array, dinfo_magma, batchCount, opts.queue );
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
-            else if( opts.version == 2 ) {
+            else if( opts.version == 3 ) {
                 // slow ref. impl.
                 gpu_time = magma_sync_wtime( opts.queue );
                 // copy dAP to dA
