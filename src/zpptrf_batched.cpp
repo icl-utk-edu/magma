@@ -106,7 +106,7 @@ magma_zpptrf_batched(
         arginfo = magma_zpptrf_batched_small( uplo, n, dAP_array, info_array, batchCount, queue );
     }
     else {
-    info = magma_zpptf2_batched_small( uplo, n, dAP_array, info_array, batchCount, queue );
+        arginfo = magma_zpptf2_batched_small( uplo, n, dAP_array, info_array, batchCount, queue );
     }
 
     return arginfo;
