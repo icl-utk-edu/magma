@@ -19,6 +19,7 @@ hdr += \
 	$(cdir)/ztrtri_upper_device.cuh		\
 	$(cdir)/zgerbt.h		\
 	$(cdir)/zpotf2_devicesfunc.cuh		\
+	$(cdir)/zpptf2_devicesfunc.cuh		\
 	$(cdir)/zlarfg_devicesfunc.cuh		\
 	$(cdir)/zgetf2_devicefunc.cuh		\
 	$(cdir)/zgetf2_nopiv_devicefunc.cuh		\
@@ -169,6 +170,7 @@ libmagma_src += \
 	$(cdir)/zunm2r_batched_sm.cu	\
 	$(cdir)/zlaswp_batched.cu		\
 	$(cdir)/zpotf2_kernels.cu		\
+	$(cdir)/zpptf2_kernels.cu		\
 	$(cdir)/set_pointer.cu			\
 	$(cdir)/sort.cu			\
 	$(cdir)/zset_pointer.cu			\
@@ -358,6 +360,11 @@ $(cdir)/spotf2_kernels_var.$(o_ext): $(cdir)/spotf2_devicesfunc.cuh
 $(cdir)/dpotf2_kernels_var.$(o_ext): $(cdir)/dpotf2_devicesfunc.cuh
 $(cdir)/cpotf2_kernels_var.$(o_ext): $(cdir)/cpotf2_devicesfunc.cuh
 $(cdir)/zpotf2_kernels_var.$(o_ext): $(cdir)/zpotf2_devicesfunc.cuh
+
+$(cdir)/spptf2_kernels.$(o_ext): $(cdir)/spptf2_devicesfunc.cuh
+$(cdir)/dpptf2_kernels.$(o_ext): $(cdir)/dpptf2_devicesfunc.cuh
+$(cdir)/cpptf2_kernels.$(o_ext): $(cdir)/cpptf2_devicesfunc.cuh
+$(cdir)/zpptf2_kernels.$(o_ext): $(cdir)/zpptf2_devicesfunc.cuh
 
 $(cdir)/sgetf2_kernels.$(o_ext): $(cdir)/sgetf2_devicefunc.cuh
 $(cdir)/dgetf2_kernels.$(o_ext): $(cdir)/dgetf2_devicefunc.cuh

@@ -187,6 +187,12 @@ int main( int argc, char** argv)
                 }
 
             }
+	    else if (opts.version == 3) {
+	       // blocked version
+                gpu_time = magma_sync_wtime( opts.queue );
+                info = magma_zpptf2_batched_small( opts.uplo, N, dAP_array, dinfo_magma, batchCount, opts.queue );
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+	    }
             gpu_perf = gflops / gpu_time;
 
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_magma, 1, hinfo_magma, 1, opts.queue );
