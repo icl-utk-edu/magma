@@ -164,11 +164,29 @@ magma_zpotrs_batched_vendor_wrapper(
 {
 
     #ifdef MAGMA_HAVE_CUDA
-    cublasFillMode_t uplo_ = (uplo == MagmaLower) ? CUBLAS_FILL_MODE_LOWER : CUBLAS_FILL_MODE_UPPER;
-    magma_zpotrs_batched_vendor( handle, uplo_, (int)n, (int)nrhs,
-                                 (cuDoubleComplex**)dA_array,  (int)ldda,
-                                 (cuDoubleComplex**)dB_array,  (int)lddb,
-                                 (int*)dinfo_array, (int)batchCount );
+    // cusolver batch POTRS works only for single RHS
+    if( nrhs < 2 ) {
+        cublasFillMode_t uplo_ = (uplo == MagmaLower) ? CUBLAS_FILL_MODE_LOWER : CUBLAS_FILL_MODE_UPPER;
+        magma_zpotrs_batched_vendor( handle, uplo_, (int)n, (int)nrhs,
+                                     (cuDoubleComplex**)dA_array,  (int)ldda,
+                                     (cuDoubleComplex**)dB_array,  (int)lddb,
+                                     (int*)dinfo_array, (int)batchCount );
+    }
+    else {
+        magmaDoubleComplex alpha = MAGMA_Z_ONE;
+        cublasZtrsmBatched(
+                magma_queue_get_cublas_handle( queue ), cublas_side_const(MagmaLeft), cublas_uplo_const(uplo),
+                cublas_trans_const(MagmaNoTrans), cublas_diag_const(MagmaNonUnit),
+                int(n), int(nrhs), (const cuDoubleComplex*)&alpha,
+                (const cuDoubleComplex**) dA_array, int(ldda),
+                (      cuDoubleComplex**) dB_array, int(lddb), int(batchCount) );
+        cublasZtrsmBatched(
+                magma_queue_get_cublas_handle( queue ), cublas_side_const(MagmaLeft), cublas_uplo_const(uplo),
+                cublas_trans_const(MagmaConjTrans), cublas_diag_const(MagmaNonUnit),
+                int(n), int(nrhs), (const cuDoubleComplex*)&alpha,
+                (const cuDoubleComplex**) dA_array, int(ldda),
+                (      cuDoubleComplex**) dB_array, int(lddb), int(batchCount) );
+    }
     #else
     const rocblas_fill uplo_ = (uplo == MagmaLower) ? rocblas_fill_lower : rocblas_fill_upper;
     magma_zpotrs_batched_vendor( handle, uplo_, (int)n, (int)nrhs,
@@ -326,7 +344,7 @@ int main(int argc, char **argv)
     const magma_int_t nqueues = 16;
     magma_queue_t      queues[nqueues];
     devsolver_handle_t handles[nqueues];
-    if(opts.version == 4) {
+    if(opts.version == 3) {
         printf("Creating cusolver/rocsolver handles ... ");
         magma_device_t cdev;
         magma_getdevice( &cdev );
@@ -557,7 +575,7 @@ int main(int argc, char **argv)
         }
     }
 
-    if(opts.version == 4) {
+    if(opts.version == 3) {
         for(int i=0; i<nqueues; i++){
             magma_queue_destroy( queues[i] );
             devsolver_destroy(  handles[i] );
