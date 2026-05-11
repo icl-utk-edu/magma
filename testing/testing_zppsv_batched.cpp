@@ -136,6 +136,7 @@ int main(int argc, char **argv)
             magma_zset_pointer( dA_array,  dA,  ldda, 0, 0, ldda*N,    batchCount, queue );
             magma_zset_pointer( dAP_array, dAP,    1, 0, 0, sizeAP,    batchCount, queue );
             magma_zset_pointer( dB_array,  dB,  lddb, 0, 0, lddb*nrhs, batchCount, queue );
+            magma_memset( dinfo_array, 0, batchCount * sizeof(magma_int_t) );
 
             for(magma_int_t ibatch = 0; ibatch < batchCount; ibatch++) {
                 if(cond) {
