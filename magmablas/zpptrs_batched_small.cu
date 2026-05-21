@@ -96,8 +96,6 @@ zpptrs_lower_batched_small_kernel(
     magmaDoubleComplex *sA = (magmaDoubleComplex*)zdata;
     magmaDoubleComplex *sB = sA + sizeA_aligned;
 
-    magmaDoubleComplex rB[N] = {MAGMA_Z_ZERO};
-
     const int local_nrhs = min(NRHS_NB, nrhs - bx * NRHS_NB);
 
     // read A
@@ -118,14 +116,22 @@ zpptrs_lower_batched_small_kernel(
     }
     __syncthreads();
 
+    // compute 1 / diagonal(sA)
+    if(tx < N) {
+        sA(tx, tx) = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(tx,tx));
+    }
+
     // let each thread read one column of B
     // which enables the solve to completely independent of other threads
+    #if 0
+    magmaDoubleComplex rB[N] = {MAGMA_Z_ZERO};
     if(tx < local_nrhs) {
         #pragma unroll
         for(int i = 0; i < N; i++) {
             rB[i] = sB(i, tx);
         }
     }
+    #endif
     __syncthreads();
 
     //print_memory( "sA", sizeA, 1, sA, sizeA, 0, 0, 0, 0, 0, 0);
@@ -135,25 +141,28 @@ zpptrs_lower_batched_small_kernel(
     // First, solve L y = b for y
     #pragma unroll
     for(int i = 0; i < N; i++) {
-        magmaDoubleComplex rTmp = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(i,i));
-        rB[i] *= rTmp;
+        //magmaDoubleComplex rTmp = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(i,i));
+        sB(i,tx) *= sA(i,i);
         #pragma unroll
         for(int j = i+1; j < N; j++) {
-            rB[j] -= rB[i] * sA(j,i);
+            //rB[j] -= rB[i] * sA(j,i);
+            sB(j,tx) -= sB(i,tx) * sA(j,i);
         }
     }
 
     // Second, solve L^T x = y for x
     #pragma unroll
     for(int i = N-1; i >= 0; i--) {
-        magmaDoubleComplex rTmp = MAGMA_Z_DIV(MAGMA_Z_ONE, MAGMA_Z_CONJ(sA(i,i)) );
-        rB[i] *= rTmp;
+        //magmaDoubleComplex rTmp = MAGMA_Z_DIV(MAGMA_Z_ONE, MAGMA_Z_CONJ(sA(i,i)) );
+        sB(i,tx) *= MAGMA_Z_CONJ(sA(i,i));
         #pragma unroll
         for(int j = i-1; j >= 0; j--) {
-            rB[j] -= rB[i] * MAGMA_Z_CONJ(sA(i,j));
+            //rB[j] -= rB[i] * MAGMA_Z_CONJ(sA(i,j));
+            sB(j,tx) -= sB(i, tx) * MAGMA_Z_CONJ( sA(i,j) );
         }
     }
 
+#if 0
     // write B
     if(tx < local_nrhs) {
         #pragma unroll
@@ -161,6 +170,7 @@ zpptrs_lower_batched_small_kernel(
             sB(i, tx) = rB[i];
         }
     }
+#endif
     __syncthreads();
 
     //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
@@ -227,6 +237,12 @@ zpptrs_lower_batched_small_kernel_n(
     }
     __syncthreads();
 
+    // compute 1 / diagonal(sA)
+    if(tx < N) {
+        sA(tx, tx) = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(tx,tx));
+    }
+    __syncthreads();
+
     //print_memory( "sA", sizeA, 1, sA, sizeA, 0, 0, 0, 0, 0, 0);
     //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
 
@@ -234,7 +250,7 @@ zpptrs_lower_batched_small_kernel_n(
     // First, solve L y = b for y (in shared memory)
     // each thread handles one column, so no need to sync
     for(int i = 0; i < n; i++) {
-        magmaDoubleComplex rTmp = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(i,i));
+        magmaDoubleComplex rTmp = sA(i,i);
         sB(i,tx) *= rTmp;
         for(int j = i+1; j < N; j++) {
             sB(j,tx) -= sB(i,tx) * sA(j,i);
@@ -244,10 +260,10 @@ zpptrs_lower_batched_small_kernel_n(
     // Second, solve L^T x = y for x (in shared memory)
     // each thread handles one column, so no need to sync
     for(int i = n-1; i >= 0; i--) {
-        magmaDoubleComplex rTmp = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(i,i));
+        magmaDoubleComplex rTmp = MAGMA_Z_CONJ( sA(i,i) );
         sB(i, tx) *= rTmp;
         for(int j = i-1; j >= 0; j--) {
-            sB(j,tx) -= sB(i, tx) * sA(i,j);
+            sB(j,tx) -= sB(i, tx) * MAGMA_Z_CONJ( sA(i,j) );
         }
     }
     __syncthreads();
