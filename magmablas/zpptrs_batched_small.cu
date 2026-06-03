@@ -325,10 +325,6 @@ zpptrs_lower_batched_small_kernel_driver(
     shmem += ntcol * sizeA_aligned * sizeof(magmaDoubleComplex);
     shmem += ntcol * sizeB_aligned * sizeof(magmaDoubleComplex);
 
-    magma_int_t gridx = magma_ceildiv(nrhs, NRHS_NB);
-    dim3 threads(NRHS_NB, 1, 1);
-    dim3 grid(gridx, 1, batchCount);
-
     int shmem_max = 0;
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
@@ -342,16 +338,24 @@ zpptrs_lower_batched_small_kernel_driver(
     if ( shmem > shmem_max ) {
         arginfo = -100;;
     }
+    else {
+        magma_int_t gridx = magma_ceildiv(nrhs, NRHS_NB);
+        dim3 threads(NRHS_NB, 1, 1);
 
-    void *kernel_args[] = {&nrhs, &dAP_array, &dB_array, &lddb, &batchCount};
-    cudaError_t e = cudaLaunchKernel((void*)zpptrs_lower_batched_small_kernel<N, NRHS_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());
-
-    if( e != cudaSuccess ) {
-        //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
-        arginfo = -100;
+        magma_int_t max_batchCount = queue->get_maxBatch();
+        for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
+            magma_int_t ibatch = min(max_batchCount, batchCount-i);
+            dim3 grid(gridx, 1, ibatch);
+            magmaDoubleComplex** dAP_array_ = dAP_array + i;
+            magmaDoubleComplex** dB_array_  = dB_array  + i;
+            void *kernel_args[] = {&nrhs, &dAP_array_, &dB_array_, &lddb, &ibatch};
+            cudaError_t e = cudaLaunchKernel((void*)zpptrs_lower_batched_small_kernel<N, NRHS_NB>, grid, threads, kernel_args, shmem, queue->cuda_stream());
+            if( e != cudaSuccess ) {
+                //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
+                arginfo = -100;
+            }
+        }
     }
-
-
     return arginfo;
 }
 /***************************************************************************//**
@@ -490,14 +494,19 @@ magma_zpptrs_batched_small(
             // configure grid and threads
             magma_int_t gridx = magma_ceildiv(nrhs, nrhs_nb);
             dim3 threads(nrhs_nb, 1, 1);
-            dim3 grid(gridx, 1, batchCount);
 
-            void *kernel_args[] = {&n, &nrhs, &nrhs_nb, &dAP_array, &dB_array, &lddb, &batchCount};
-            cudaError_t e = cudaLaunchKernel((void*)zpptrs_lower_batched_small_kernel_n, grid, threads, kernel_args, shmem, queue->cuda_stream());
-
-            if( e != cudaSuccess ) {
-                //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
-                arginfo = -300;
+            magma_int_t max_batchCount = queue->get_maxBatch();
+            for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
+                magma_int_t ibatch = min(max_batchCount, batchCount-i);
+                dim3 grid(gridx, 1, ibatch);
+                magmaDoubleComplex** dAP_array_ = dAP_array + i;
+                magmaDoubleComplex** dB_array_  = dB_array  + i;
+                void *kernel_args[] = {&n, &nrhs, &nrhs_nb, &dAP_array_, &dB_array_, &lddb, &batchCount};
+                cudaError_t e = cudaLaunchKernel((void*)zpptrs_lower_batched_small_kernel_n, grid, threads, kernel_args, shmem, queue->cuda_stream());
+                if( e != cudaSuccess ) {
+                    //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
+                    arginfo = -300;
+                }
             }
         }
     }
