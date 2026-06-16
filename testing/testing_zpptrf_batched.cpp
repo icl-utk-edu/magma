@@ -195,17 +195,19 @@ int main( int argc, char** argv)
             gpu_perf = gflops / gpu_time;
 
             magma_getvector( batchCount, sizeof(magma_int_t), dinfo_magma, 1, hinfo_magma, 1, opts.queue );
-            for (int i=0; i < batchCount; i++) {
-                if (hinfo_magma[i] != 0 ) {
-                    printf("magma_zpptrf_batched matrix %lld returned diag error %lld\n",
-                            (long long) i, (long long) hinfo_magma[i] );
-                    status = -1;
-                }
-            }
-
             if (info != 0) {
                 printf("magma_zpptrf_batched returned argument error %lld: %s.\n", (long long) info, magma_strerror( info ));
                 status = -1;
+            }
+            else {
+                // if argument info is 0, check 'numerical' info
+                for (int i=0; i < batchCount; i++) {
+                    if (hinfo_magma[i] != 0 ) {
+                        printf("magma_zpptrf_batched matrix %lld returned diag error %lld\n",
+                                (long long) i, (long long) hinfo_magma[i] );
+                        status = -1;
+                    }
+                }
             }
 
             /* =====================================================================
