@@ -11,6 +11,7 @@
 
    @precisions normal z -> s d c
  */
+#include <cuda.h> // for CUDA_VERSION
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
 
@@ -28,12 +29,16 @@
 #define NTCOL1   (1)
 #endif
 
+#define ZPPTF2_MAX_NTHREADS (1024)
+
 
 #include "zpotf2_devicesfunc.cuh"
 #include "zpptf2_devicesfunc.cuh"
 
 /******************************************************************************/
-__global__ void zpptf2_smlpout_fixwidth_kernel_batched(int m,
+__global__
+__launch_bounds__(ZPPTF2_MAX_NTHREADS)
+void zpptf2_smlpout_fixwidth_kernel_batched(int m,
         magmaDoubleComplex **dA_array, int ai, int aj, int lda,
         int localstep, int gbstep, magma_int_t *info_array, const int batchCount)
 {
@@ -45,7 +50,9 @@ __global__ void zpptf2_smlpout_fixwidth_kernel_batched(int m,
 
 
 /******************************************************************************/
-__global__ void zpptf2_smlpout_anywidth_kernel_batched(int m, int n,
+__global__
+__launch_bounds__(ZPPTF2_MAX_NTHREADS)
+void zpptf2_smlpout_anywidth_kernel_batched(int m, int n,
         magmaDoubleComplex **dA_array, int ai, int aj, int lda,
         int localstep, int gbstep, magma_int_t *info_array, const int batchCount)
 {
@@ -107,12 +114,18 @@ magma_zpptrf_lpout_batched(
         magma_int_t shared_mem_size = ntcol * (sizeof(magmaDoubleComplex)*(nbth+POTF2_NB)*POTF2_NB);
         dim3 threads(nbth, ntcol);
 
-        if ( shared_mem_size > magma_getdevice_shmem_block_optin() )
-        {
+        if ( shared_mem_size > (magma_int_t)magma_getdevice_shmem_block_optin() ) {
             arginfo = -33;
+            printf("Error in %s: required shared memory (%.2f KB) is not supported\n", (float)(shared_mem_size)/1024.);
             magma_xerbla( __func__, -(arginfo) );
             return arginfo;
         }
+
+        #if CUDA_VERSION >= 9000
+        // always opt-in for shared memory
+        cudaFuncSetAttribute(zpptf2_smlpout_fixwidth_kernel_batched, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_mem_size);
+        cudaFuncSetAttribute(zpptf2_smlpout_anywidth_kernel_batched, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_mem_size);
+        #endif
 
         if (ib == POTF2_NB) {
             zpptf2_smlpout_fixwidth_kernel_batched

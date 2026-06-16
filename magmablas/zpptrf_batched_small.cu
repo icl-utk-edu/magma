@@ -363,7 +363,7 @@ magma_zpptrf_batched_small(
 /***************************************************************************//**
     Purpose
     -------
-    PPTF2 computes the Cholesky factorization in blocked algorithm. 
+    PPTF2 computes the Cholesky factorization in blocked algorithm.
 
     This is a batched version that factors batchCount N-by-N matrices in parallel.
 
@@ -405,7 +405,7 @@ magma_zpptf2_batched_small(
 
     if(uplo != MagmaLower)
         arginfo = -1;
-    else if( (n < 0) || ( n > 64 ) )
+    else if( (n < 0) || ( n > 1024 ) )
         arginfo = -2;
     else if ( batchCount < 0 )
         arginfo = -5;
@@ -418,7 +418,7 @@ magma_zpptf2_batched_small(
     if( n == 0 || batchCount == 0 ) return 0;
 
     arginfo = magma_zpptrf_lpout_batched(uplo, n, dAP_array, 0, 0, n, 0, info_array, batchCount, queue);
-  
+
     return arginfo;
 
 }
