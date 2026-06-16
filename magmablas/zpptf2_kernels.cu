@@ -116,7 +116,7 @@ magma_zpptrf_lpout_batched(
 
         if ( shared_mem_size > (magma_int_t)magma_getdevice_shmem_block_optin() ) {
             arginfo = -33;
-            printf("Error in %s: required shared memory (%.2f KB) is not supported\n", (float)(shared_mem_size)/1024.);
+            printf("Error in %s: required shared memory (%.2f KB) is not supported\n", __func__, (float)(shared_mem_size)/1024.);
             magma_xerbla( __func__, -(arginfo) );
             return arginfo;
         }
