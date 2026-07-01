@@ -681,9 +681,7 @@ void magma_generate_matrix(
     real_t sigma_max = 1;
     magma_int_t minmn = min( A.m, A.n );
 
-    // ----------
-    // set sigma to unknown (nan)
-    lapack::laset( "general", sigma.n, 1, nan, nan, sigma(0), sigma.n );
+
 
     // ----- decode matrix type
     MatrixType type = MatrixType::identity;
@@ -747,6 +745,12 @@ void magma_generate_matrix(
     else if (contains( name, "_rcluster1" )) { dist = Dist::rcluster1; }
     else if (contains( name, "_rcluster0" )) { dist = Dist::rcluster0; }
     else if (contains( name, "_specified" )) { dist = Dist::specified; }
+
+    // ----------
+    // set sigma to unknown (nan) if not specified
+    if (dist != Dist::specified) {
+        lapack::laset( "general", sigma.n, 1, nan, nan, sigma(0), sigma.n );
+    }
 
     if (opts.cond != 0
         && (dist == Dist::randn
