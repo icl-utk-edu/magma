@@ -26,7 +26,7 @@
 #endif
 #include "../control/magma_threadsetting.h"  // internal header
 
-#define cond (N == 8 && batchCount == 4 && ibatch == 3)
+#define cond (N == 8 && batchCount == 1 && ibatch == 0)
 
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zpptri_batched
@@ -110,6 +110,12 @@ int main( int argc, char** argv)
                 magma_zsetvector( sizeAP, hAP + i * sizeAP, 1, dAP + i * sizeAP, 1, opts.queue );
             }
 
+            for(magma_int_t ibatch = 0; ibatch < batchCount; ibatch++) {
+                if(cond) {
+                    magma_zprint(sizeAP, 1, hAP + ibatch*sizeAP, sizeAP);
+                }
+            }
+
             /* ====================================================================
                Performs operation using MAGMA
                =================================================================== */
@@ -119,7 +125,17 @@ int main( int argc, char** argv)
             // first, pptrf
             info = magma_zpptrf_batched( opts.uplo, N, dAP_array, dinfo_magma, batchCount, opts.queue );
 
-            if( opts.version == 1 ) {
+            if(opts.version  == 1) {
+                gpu_time = magma_sync_wtime( opts.queue );
+                info = magma_zpptri_batched_small( N, dAP_array, batchCount, dinfo_magma, opts.queue );
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+            }
+            else if( opts.version == 2 ) {
+                gpu_time = magma_sync_wtime( opts.queue );
+                info = magma_zpptri_v2_batched_small( N, dAP_array, batchCount, dinfo_magma, opts.queue );
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+            }
+            else if( opts.version == 3 ) {
                 gpu_time = magma_sync_wtime( opts.queue );
                 for(magma_int_t i = 0; i < batchCount; i++) {
                     magma_int_t locinfo = 0;
