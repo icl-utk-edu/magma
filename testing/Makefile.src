@@ -227,7 +227,7 @@ testing_src += \
 # batched routines (packed format)
 testing_src += \
 	$(cdir)/testing_zpptrf_batched.cpp	\
-	$(cdir)/testing_zpptri_batched.cpp	\
+	$(cdir)/testing_zppinv_batched.cpp	\
 	$(cdir)/testing_zppsv_batched.cpp \
 
 # ----------
