@@ -9,14 +9,13 @@ though you may use them if desired.
 ----------------------------------------
 C example
 
-See example_v2.c for sample code.
+See example.c for sample code.
 
 Include the MAGMA header:
 
     #include "magma_v2.h"
 
-(For the legacy MAGMA v1 interface, see example_v1.c. It includes magma.h
-instead. By default, magma.h includes the legacy cuBLAS v1 interface (cublas.h).
+(The legacy MAGMA v1 interface has been removed By default, magma.h includes the legacy cuBLAS v1 interface (cublas.h).
 You can include cublas_v2.h before magma.h if desired.)
 
 You may also need BLAS and LAPACK functions, which you can get with:
@@ -69,8 +68,8 @@ However, MAGMA always requires -lcusparse.
 
 If it cannot find the shared libraries:
 
-    ./example_v1 
-    ./example_v1: error while loading shared libraries: libmagma.so:
+    ./example 
+    ./example: error while loading shared libraries: libmagma.so:
         cannot open shared object file: No such file or directory
 
 you may need to add these paths to your LD_LIBRARY_PATH. For instance, with

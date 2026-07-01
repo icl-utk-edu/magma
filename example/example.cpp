@@ -6,7 +6,6 @@
 #include "magma_v2.h"      // also includes cublas_v2.h
 #include "magma_lapack.h"  // if you need BLAS & LAPACK
 
-
 // ------------------------------------------------------------
 // Replace with your code to initialize the A matrix.
 // This simply initializes it to random values.
