@@ -15,7 +15,7 @@ Include the MAGMA header:
 
     #include "magma_v2.h"
 
-(The legacy MAGMA v1 interface has been removed By default, magma.h includes the legacy cuBLAS v1 interface (cublas.h).
+(The legacy MAGMA v1 interface has been removed. By default, magma.h includes the legacy cuBLAS v1 interface (cublas.h).
 You can include cublas_v2.h before magma.h if desired.)
 
 You may also need BLAS and LAPACK functions, which you can get with:
