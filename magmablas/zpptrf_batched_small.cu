@@ -211,11 +211,7 @@ zpptrf_lower_batched_small_kernel_driver(
 
     if( N == 0 || batchCount == 0 ) return 0;
 
-    #ifdef MAGMA_HAVE_HIP
-    magma_int_t ntcol = min(1, MAX_THREADS / 64);
-    #else
-    magma_int_t ntcol = min(1, MAX_THREADS / 32);
-    #endif
+    magma_int_t ntcol = min(1, MAX_THREADS / N);
 
     magma_int_t shmem = ntcol * (N * (N+1) / 2) * sizeof(magmaDoubleComplex);
     magma_int_t gridx = magma_ceildiv(batchCount, ntcol);
@@ -302,41 +298,47 @@ magma_zpptrf_batched_small(
         return arginfo;
     }
 
+    #ifdef MAGMA_HAVE_HIP
+    constexpr int ZPPTRF_BATCHED_SMALL_MAX_THREADS = 64;
+    #else
+    constexpr int ZPPTRF_BATCHED_SMALL_MAX_THREADS = 32;
+    #endif
+
     if( n == 0 || batchCount == 0 ) return 0;
 
     switch(n){
-        case  1: arginfo = zpptrf_lower_batched_small_kernel_driver< 1, 128>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case  2: arginfo = zpptrf_lower_batched_small_kernel_driver< 2, 128>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case  3: arginfo = zpptrf_lower_batched_small_kernel_driver< 3, 128>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case  4: arginfo = zpptrf_lower_batched_small_kernel_driver< 4, 128>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case  5: arginfo = zpptrf_lower_batched_small_kernel_driver< 5, 128>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case  6: arginfo = zpptrf_lower_batched_small_kernel_driver< 6, 128>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case  7: arginfo = zpptrf_lower_batched_small_kernel_driver< 7, 128>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case  8: arginfo = zpptrf_lower_batched_small_kernel_driver< 8, 128>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case  9: arginfo = zpptrf_lower_batched_small_kernel_driver< 9,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 10: arginfo = zpptrf_lower_batched_small_kernel_driver<10,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 11: arginfo = zpptrf_lower_batched_small_kernel_driver<11,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 12: arginfo = zpptrf_lower_batched_small_kernel_driver<12,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 13: arginfo = zpptrf_lower_batched_small_kernel_driver<13,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 14: arginfo = zpptrf_lower_batched_small_kernel_driver<14,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 15: arginfo = zpptrf_lower_batched_small_kernel_driver<15,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 16: arginfo = zpptrf_lower_batched_small_kernel_driver<16,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 17: arginfo = zpptrf_lower_batched_small_kernel_driver<17,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 18: arginfo = zpptrf_lower_batched_small_kernel_driver<18,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 19: arginfo = zpptrf_lower_batched_small_kernel_driver<19,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 20: arginfo = zpptrf_lower_batched_small_kernel_driver<20,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 21: arginfo = zpptrf_lower_batched_small_kernel_driver<21,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 22: arginfo = zpptrf_lower_batched_small_kernel_driver<22,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 23: arginfo = zpptrf_lower_batched_small_kernel_driver<23,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 24: arginfo = zpptrf_lower_batched_small_kernel_driver<24,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 25: arginfo = zpptrf_lower_batched_small_kernel_driver<25,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 26: arginfo = zpptrf_lower_batched_small_kernel_driver<26,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 27: arginfo = zpptrf_lower_batched_small_kernel_driver<27,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 28: arginfo = zpptrf_lower_batched_small_kernel_driver<28,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 29: arginfo = zpptrf_lower_batched_small_kernel_driver<29,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 30: arginfo = zpptrf_lower_batched_small_kernel_driver<30,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 31: arginfo = zpptrf_lower_batched_small_kernel_driver<31,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
-        case 32: arginfo = zpptrf_lower_batched_small_kernel_driver<32,  64>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case  1: arginfo = zpptrf_lower_batched_small_kernel_driver< 1, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case  2: arginfo = zpptrf_lower_batched_small_kernel_driver< 2, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case  3: arginfo = zpptrf_lower_batched_small_kernel_driver< 3, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case  4: arginfo = zpptrf_lower_batched_small_kernel_driver< 4, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case  5: arginfo = zpptrf_lower_batched_small_kernel_driver< 5, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case  6: arginfo = zpptrf_lower_batched_small_kernel_driver< 6, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case  7: arginfo = zpptrf_lower_batched_small_kernel_driver< 7, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case  8: arginfo = zpptrf_lower_batched_small_kernel_driver< 8, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case  9: arginfo = zpptrf_lower_batched_small_kernel_driver< 9, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 10: arginfo = zpptrf_lower_batched_small_kernel_driver<10, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 11: arginfo = zpptrf_lower_batched_small_kernel_driver<11, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 12: arginfo = zpptrf_lower_batched_small_kernel_driver<12, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 13: arginfo = zpptrf_lower_batched_small_kernel_driver<13, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 14: arginfo = zpptrf_lower_batched_small_kernel_driver<14, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 15: arginfo = zpptrf_lower_batched_small_kernel_driver<15, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 16: arginfo = zpptrf_lower_batched_small_kernel_driver<16, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 17: arginfo = zpptrf_lower_batched_small_kernel_driver<17, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 18: arginfo = zpptrf_lower_batched_small_kernel_driver<18, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 19: arginfo = zpptrf_lower_batched_small_kernel_driver<19, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 20: arginfo = zpptrf_lower_batched_small_kernel_driver<20, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 21: arginfo = zpptrf_lower_batched_small_kernel_driver<21, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 22: arginfo = zpptrf_lower_batched_small_kernel_driver<22, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 23: arginfo = zpptrf_lower_batched_small_kernel_driver<23, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 24: arginfo = zpptrf_lower_batched_small_kernel_driver<24, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 25: arginfo = zpptrf_lower_batched_small_kernel_driver<25, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 26: arginfo = zpptrf_lower_batched_small_kernel_driver<26, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 27: arginfo = zpptrf_lower_batched_small_kernel_driver<27, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 28: arginfo = zpptrf_lower_batched_small_kernel_driver<28, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 29: arginfo = zpptrf_lower_batched_small_kernel_driver<29, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 30: arginfo = zpptrf_lower_batched_small_kernel_driver<30, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 31: arginfo = zpptrf_lower_batched_small_kernel_driver<31, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
+        case 32: arginfo = zpptrf_lower_batched_small_kernel_driver<32, ZPPTRF_BATCHED_SMALL_MAX_THREADS>(uplo, dAP_array, info_array, batchCount, queue ); break;
         default: arginfo = -100;
     }
 
