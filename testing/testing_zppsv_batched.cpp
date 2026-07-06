@@ -30,6 +30,8 @@
 
 #define cond (N == 8 && batchCount == 1 && ibatch == 0)
 
+// #define TEST_QUEUE_OVERHEAD_PPTRS
+
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zppsv_batched
 */
@@ -161,7 +163,17 @@ int main(int argc, char **argv)
                     }
                 }
 
+                #ifdef TEST_QUEUE_OVERHEAD_PPTRS
+                magma_device_t dev;
+                magma_getdevice( &dev );
+                magma_queue_t qTmp;
+                magma_queue_create(dev, &qTmp);
+                magma_zpptrs_batched_small(N, nrhs, dAP_array, dB_array, lddb, batchCount, qTmp );
+                magma_queue_sync( qTmp );
+                magma_queue_destroy( qTmp );
+                #else
                 magma_zpptrs_batched_small(N, nrhs, dAP_array, dB_array, lddb, batchCount, opts.queue );
+                #endif
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
             else if( opts.version == 3 ) {

@@ -28,6 +28,8 @@
 
 #define cond (N == 8 && batchCount == 4 && ibatch == 3)
 
+// #define TEST_QUEUE_OVERHEAD_PPTRF
+
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zpptrf_batched
 */
@@ -130,7 +132,17 @@ int main( int argc, char** argv)
 
             if( opts.version == 1 ) {
                 gpu_time = magma_sync_wtime( opts.queue );
+                #ifdef TEST_QUEUE_OVERHEAD_PPTRF
+                magma_device_t dev;
+                magma_queue_t qTmp;
+                magma_getdevice( &dev );
+                magma_queue_create(dev, &qTmp);
+                info = magma_zpptrf_batched( opts.uplo, N, dAP_array, dinfo_magma, batchCount, qTmp );
+                magma_queue_sync( qTmp );
+                magma_queue_destroy( qTmp);
+                #else
                 info = magma_zpptrf_batched( opts.uplo, N, dAP_array, dinfo_magma, batchCount, opts.queue );
+                #endif
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
             else if( opts.version == 2 ) {
