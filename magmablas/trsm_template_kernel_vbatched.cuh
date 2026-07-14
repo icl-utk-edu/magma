@@ -41,9 +41,9 @@ void trsm_template_vbatched_lNL_kernel(
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_n, NRHS) ) return;
 
-    trsm_template_device_lNL<T, NB, NRHS>(
+    trsm_template_device_lNL<T, NB, NRHS, 0>(
             diag, my_m, my_n,
-            alpha, Aarray[batchid] + Aj * (int)ldda[batchid] + Ai, (int)ldda[batchid],
+            alpha, Aarray[batchid], Aj, Ai, (int)ldda[batchid],
                    Barray[batchid] + Bj * (int)lddb[batchid] + Bi, (int)lddb[batchid]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,9 +72,9 @@ void trsm_template_vbatched_lNU_kernel(
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_n, NRHS) ) return;
 
-    trsm_template_device_lNU<T, NB, NRHS>(
+    trsm_template_device_lNU<T, NB, NRHS, 0>(
             diag, my_m, my_n,
-            alpha, Aarray[batchid] + (int)ldda[batchid] * Aj  + Ai, (int)ldda[batchid],
+            alpha, Aarray[batchid], Aj, Ai, (int)ldda[batchid],
                    Barray[batchid] + (int)lddb[batchid] * Bj  + Bi, (int)lddb[batchid]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,9 +103,9 @@ void trsm_template_vbatched_lTL_kernel(
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_n, NRHS) ) return;
 
-    trsm_template_device_lTL<T, NB, NRHS, CONJA>(
+    trsm_template_device_lTL<T, NB, NRHS, CONJA, 0>(
             diag, my_m, my_n,
-            alpha, Aarray[batchid] + Aj * (int)ldda[batchid] + Ai, (int)ldda[batchid],
+            alpha, Aarray[batchid], Aj, Ai, (int)ldda[batchid],
                    Barray[batchid] + Bj * (int)lddb[batchid] + Bi, (int)lddb[batchid]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,9 +134,9 @@ void trsm_template_vbatched_lTU_kernel(
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_n, NRHS) ) return;
 
-    trsm_template_device_lTU<T, NB, NRHS, CONJA>(
+    trsm_template_device_lTU<T, NB, NRHS, CONJA, 0>(
             diag, my_m, my_n,
-            alpha, Aarray[batchid] + Aj * (int)ldda[batchid] + Ai, (int)ldda[batchid],
+            alpha, Aarray[batchid], Aj, Ai, (int)ldda[batchid],
                    Barray[batchid] + Bj * (int)lddb[batchid] + Bi, (int)lddb[batchid]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,9 +165,9 @@ void trsm_template_vbatched_rNL_kernel(
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_m, NRHS) ) return;
 
-    trsm_template_device_rNL<T, NB, NRHS>(
+    trsm_template_device_rNL<T, NB, NRHS, 0>(
             diag, my_m, my_n,
-            alpha, Aarray[batchid] + Aj * (int)ldda[batchid] + Ai, (int)ldda[batchid],
+            alpha, Aarray[batchid], Aj, Ai, (int)ldda[batchid],
                    Barray[batchid] + Bj * (int)lddb[batchid] + Bi, (int)lddb[batchid]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -196,9 +196,9 @@ void trsm_template_vbatched_rNU_kernel(
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_m, NRHS) ) return;
 
-    trsm_template_device_rNU<T, NB, NRHS>(
+    trsm_template_device_rNU<T, NB, NRHS, 0>(
             diag, my_m, my_n,
-            alpha, Aarray[batchid] + Aj * (int)ldda[batchid] + Ai, (int)ldda[batchid],
+            alpha, Aarray[batchid], Aj, Ai, (int)ldda[batchid],
                    Barray[batchid] + Bj * (int)lddb[batchid] + Bi, (int)lddb[batchid]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -227,9 +227,9 @@ void trsm_template_vbatched_rTL_kernel(
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_m, NRHS) ) return;
 
-    trsm_template_device_rTL<T, NB, NRHS, CONJA>(
+    trsm_template_device_rTL<T, NB, NRHS, CONJA, 0>(
             diag, my_m, my_n,
-            alpha, Aarray[batchid] + Aj * (int)ldda[batchid] + Ai, (int)ldda[batchid],
+            alpha, Aarray[batchid], Aj, Ai, (int)ldda[batchid],
                    Barray[batchid] + Bj * (int)lddb[batchid] + Bi, (int)lddb[batchid]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -258,9 +258,9 @@ void trsm_template_vbatched_rTU_kernel(
     if(my_m <= 0 || my_n <= 0) return;
     if( blockIdx.x >= magma_ceildiv(my_m, NRHS) ) return;
 
-    trsm_template_device_rTU<T, NB, NRHS, CONJA>(
+    trsm_template_device_rTU<T, NB, NRHS, CONJA, 0>(
             diag, my_m, my_n,
-            alpha, Aarray[batchid] + Aj * (int)ldda[batchid] + Ai, (int)ldda[batchid],
+            alpha, Aarray[batchid], Aj, Ai, (int)ldda[batchid],
                    Barray[batchid] + Bj * (int)lddb[batchid] + Bi, (int)lddb[batchid]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////

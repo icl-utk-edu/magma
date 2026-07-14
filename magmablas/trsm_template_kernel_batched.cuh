@@ -16,7 +16,7 @@
 #include "trsm_template_device.cuh"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS>
+template <typename T, const int NB, const int NRHS, const int PACKEDA>
 static __global__
 __launch_bounds__(NRHS)
 void trsm_template_batched_lNL_kernel(
@@ -27,13 +27,13 @@ void trsm_template_batched_lNL_kernel(
 {
     const int batchid = blockIdx.z;
 
-    trsm_template_device_lNL<T, NB, NRHS>(
+    trsm_template_device_lNL<T, NB, NRHS, PACKEDA>(
             diag, m, n,
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
+            alpha, Aarray[batchid], coffA, roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS>
+template <typename T, const int NB, const int NRHS, const int PACKEDA>
 static __global__
 __launch_bounds__(NRHS)
 void trsm_template_batched_lNU_kernel(
@@ -44,13 +44,13 @@ void trsm_template_batched_lNU_kernel(
 {
     int batchid = blockIdx.z;
 
-    trsm_template_device_lNU<T, NB, NRHS>(
+    trsm_template_device_lNU<T, NB, NRHS, PACKEDA>(
             diag, m, n,
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
+            alpha, Aarray[batchid], coffA, roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS, const int CONJA>
+template <typename T, const int NB, const int NRHS, const int CONJA, const int PACKEDA>
 static __global__
 __launch_bounds__(NRHS)
 void trsm_template_batched_lTL_kernel(
@@ -61,13 +61,13 @@ void trsm_template_batched_lTL_kernel(
 {
     int batchid = blockIdx.z;
 
-    trsm_template_device_lTL<T, NB, NRHS, CONJA>(
+    trsm_template_device_lTL<T, NB, NRHS, CONJA, PACKEDA>(
             diag, m, n,
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
+            alpha, Aarray[batchid], coffA, roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS, const int CONJA>
+template <typename T, const int NB, const int NRHS, const int CONJA, const int PACKEDA>
 static __global__
 __launch_bounds__(NRHS)
 void trsm_template_batched_lTU_kernel(
@@ -78,13 +78,13 @@ void trsm_template_batched_lTU_kernel(
 {
     int batchid = blockIdx.z;
 
-    trsm_template_device_lTU<T, NB, NRHS, CONJA>(
+    trsm_template_device_lTU<T, NB, NRHS, CONJA, PACKEDA>(
             diag, m, n,
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
+            alpha, Aarray[batchid], coffA, roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS>
+template <typename T, const int NB, const int NRHS, const int PACKEDA>
 static __global__
 __launch_bounds__(NRHS)
 void trsm_template_batched_rNL_kernel(
@@ -95,13 +95,13 @@ void trsm_template_batched_rNL_kernel(
 {
     int batchid = blockIdx.z;
 
-    trsm_template_device_rNL<T, NB, NRHS>(
+    trsm_template_device_rNL<T, NB, NRHS, PACKEDA>(
             diag, m, n,
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
+            alpha, Aarray[batchid], coffA, roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS>
+template <typename T, const int NB, const int NRHS, const int PACKEDA>
 static __global__
 __launch_bounds__(NRHS)
 void trsm_template_batched_rNU_kernel(
@@ -112,13 +112,13 @@ void trsm_template_batched_rNU_kernel(
 {
     int batchid = blockIdx.z;
 
-    trsm_template_device_rNU<T, NB, NRHS>(
+    trsm_template_device_rNU<T, NB, NRHS, PACKEDA>(
             diag, m, n,
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
+            alpha, Aarray[batchid], coffA, roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS, const int CONJA>
+template <typename T, const int NB, const int NRHS, const int CONJA, const int PACKEDA>
 static __global__
 __launch_bounds__(NRHS)
 void trsm_template_batched_rTL_kernel(
@@ -129,13 +129,13 @@ void trsm_template_batched_rTL_kernel(
 {
     int batchid = blockIdx.z;
 
-    trsm_template_device_rTL<T, NB, NRHS, CONJA>(
+    trsm_template_device_rTL<T, NB, NRHS, CONJA, PACKEDA>(
             diag, m, n,
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
+            alpha, Aarray[batchid], coffA, roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS, const int CONJA>
+template <typename T, const int NB, const int NRHS, const int CONJA, const int PACKEDA>
 static __global__
 __launch_bounds__(NRHS)
 void trsm_template_batched_rTU_kernel(
@@ -146,9 +146,9 @@ void trsm_template_batched_rTU_kernel(
 {
     int batchid = blockIdx.z;
 
-    trsm_template_device_rTU<T, NB, NRHS, CONJA>(
+    trsm_template_device_rTU<T, NB, NRHS, CONJA, PACKEDA>(
             diag, m, n,
-            alpha, Aarray[batchid] + coffA * ldda + roffA, ldda,
+            alpha, Aarray[batchid], coffA, roffA, ldda,
                    Barray[batchid] + coffB * lddb + roffB, lddb);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,7 +156,7 @@ void trsm_template_batched_rTU_kernel(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // lNx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS>
+template <typename T, const int NB, const int NRHS, const int PACKEDA>
 void trsm_template_batched_lNx(
     magma_uplo_t uplo, magma_diag_t diag,
     magma_int_t m, magma_int_t n,
@@ -173,7 +173,7 @@ void trsm_template_batched_lNx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             dim3 grid( magma_ceildiv(n, NRHS), 1, ibatch );
 
-            trsm_template_batched_lNL_kernel<T, NB, NRHS>
+            trsm_template_batched_lNL_kernel<T, NB, NRHS, PACKEDA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
             (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
         }
@@ -182,7 +182,7 @@ void trsm_template_batched_lNx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             dim3 grid( magma_ceildiv(n, NRHS), 1, ibatch );
 
-            trsm_template_batched_lNU_kernel<T, NB, NRHS>
+            trsm_template_batched_lNU_kernel<T, NB, NRHS, PACKEDA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
             (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
         }
@@ -191,7 +191,7 @@ void trsm_template_batched_lNx(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // lTx, lCx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS, const int CONJA>
+template <typename T, const int NB, const int NRHS, const int CONJA, const int PACKEDA>
 void trsm_template_batched_lTx(
     magma_uplo_t uplo, magma_diag_t diag,
     magma_int_t m, magma_int_t n,
@@ -208,7 +208,7 @@ void trsm_template_batched_lTx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             dim3 grid( magma_ceildiv(n, NRHS), 1, ibatch );
 
-            trsm_template_batched_lTL_kernel<T, NB, NRHS, CONJA>
+            trsm_template_batched_lTL_kernel<T, NB, NRHS, CONJA, PACKEDA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
             (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
         }
@@ -217,7 +217,7 @@ void trsm_template_batched_lTx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             dim3 grid( magma_ceildiv(n, NRHS), 1, ibatch );
 
-            trsm_template_batched_lTU_kernel<T, NB, NRHS, CONJA>
+            trsm_template_batched_lTU_kernel<T, NB, NRHS, CONJA, PACKEDA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
             (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
         }
@@ -226,7 +226,7 @@ void trsm_template_batched_lTx(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // rNx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS>
+template <typename T, const int NB, const int NRHS, const int PACKEDA>
 void trsm_template_batched_rNx(
     magma_uplo_t uplo, magma_diag_t diag,
     magma_int_t m, magma_int_t n,
@@ -243,7 +243,7 @@ void trsm_template_batched_rNx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             dim3 grid( magma_ceildiv(m, NRHS), 1, ibatch );
 
-            trsm_template_batched_rNL_kernel<T, NB, NRHS>
+            trsm_template_batched_rNL_kernel<T, NB, NRHS, PACKEDA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
             (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
         }
@@ -252,7 +252,7 @@ void trsm_template_batched_rNx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             dim3 grid( magma_ceildiv(m, NRHS), 1, ibatch );
 
-            trsm_template_batched_rNU_kernel<T, NB, NRHS>
+            trsm_template_batched_rNU_kernel<T, NB, NRHS, PACKEDA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
             (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
         }
@@ -261,7 +261,7 @@ void trsm_template_batched_rNx(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // rTx, rCx
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int NRHS, const int CONJA>
+template <typename T, const int NB, const int NRHS, const int CONJA, const int PACKEDA>
 void trsm_template_batched_rTx(
     magma_uplo_t uplo, magma_diag_t diag,
     magma_int_t m, magma_int_t n,
@@ -278,7 +278,7 @@ void trsm_template_batched_rTx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             dim3 grid( magma_ceildiv(m, NRHS), 1, ibatch );
 
-            trsm_template_batched_rTL_kernel<T, NB, NRHS, CONJA>
+            trsm_template_batched_rTL_kernel<T, NB, NRHS, CONJA, PACKEDA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
             (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
         }
@@ -287,7 +287,7 @@ void trsm_template_batched_rTx(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             dim3 grid( magma_ceildiv(m, NRHS), 1, ibatch );
 
-            trsm_template_batched_rTU_kernel<T, NB, NRHS, CONJA>
+            trsm_template_batched_rTU_kernel<T, NB, NRHS, CONJA, PACKEDA>
             <<< grid, threads, 0, queue->cuda_stream() >>>
             (diag, m, n, alpha, dA_array+i, ldda, dB_array+i, lddb, roffA, coffA, roffB, coffB);
         }
@@ -296,7 +296,9 @@ void trsm_template_batched_rTx(
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // template wrapper
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<typename T, const int NB, const int NRHS>
+// PACKEDA > 0 means the kernel will not access any element in the "other" half of the 
+// triangular matrix. Used for matrices in packed format.
+template<typename T, const int NB, const int NRHS, const int PACKEDA>
 void trsm_small_batched(
         magma_side_t side, magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
         magma_int_t m, magma_int_t n,
@@ -316,27 +318,27 @@ void trsm_small_batched(
     switch(shape)
     {
         case 0: // lNx
-            trsm_template_batched_lNx<T, NB, NRHS>
+            trsm_template_batched_lNx<T, NB, NRHS, PACKEDA>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         case 1: // lTx
-            trsm_template_batched_lTx<T, NB, NRHS, 0>
+            trsm_template_batched_lTx<T, NB, NRHS, 0, PACKEDA>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         case 2: // lCx
-            trsm_template_batched_lTx<T, NB, NRHS, 1>
+            trsm_template_batched_lTx<T, NB, NRHS, 1, PACKEDA>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         case 3: // rNx
-            trsm_template_batched_rNx<T, NB, NRHS>
+            trsm_template_batched_rNx<T, NB, NRHS, PACKEDA>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         case 4: // rTx
-            trsm_template_batched_rTx<T, NB, NRHS, 0>
+            trsm_template_batched_rTx<T, NB, NRHS, 0, PACKEDA>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         case 5: // rCx
-            trsm_template_batched_rTx<T, NB, NRHS, 1>
+            trsm_template_batched_rTx<T, NB, NRHS, 1, PACKEDA>
             (uplo, diag, m, n, alpha, dA_array, ldda, dB_array, lddb, roffA, coffA, roffB, coffB, batchCount, queue);
             break;
         default:; // propose something

@@ -20,8 +20,8 @@ void trsv_template_NL_kernel(
         T* dA,  int ldda,
         T* dx,  int incx)
 {
-    trsv_template_device_NL<T, NB>
-    (diag, n, dA, ldda, dx, incx);
+    trsv_template_device_NL<T, NB, 0>
+    (diag, n, dA, 0, 0, ldda, dx, incx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,8 +33,8 @@ void trsv_template_NU_kernel(
         T* dA,  int ldda,
         T* dx,  int incx )
 {
-    trsv_template_device_NU<T, NB>
-    (diag, n, dA, ldda, dx, incx);
+    trsv_template_device_NU<T, NB, 0>
+    (diag, n, dA, 0, 0, ldda, dx, incx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,8 +46,8 @@ void trsv_template_TL_kernel(
         T* dA, int ldda,
         T* dx, int incx )
 {
-    trsv_template_device_TL<T, NB, CONJA>
-    (diag, n, dA, ldda, dx, incx);
+    trsv_template_device_TL<T, NB, CONJA, 0>
+    (diag, n, dA, 0, 0, ldda, dx, incx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,8 +59,8 @@ void trsv_template_TU_kernel(
         T* dA, int ldda,
         T* dx, int incx)
 {
-    trsv_template_device_TU<T, NB, CONJA>
-    (diag, n, dA, ldda, dx, incx);
+    trsv_template_device_TU<T, NB, CONJA, 0>
+    (diag, n, dA, 0, 0, ldda, dx, incx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

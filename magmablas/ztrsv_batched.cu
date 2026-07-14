@@ -31,15 +31,15 @@ magmablas_ztrsv_small_batched(
         magma_int_t batchCount, magma_queue_t queue )
 {
     if     ( n <=  2 )
-        trsv_small_batched<magmaDoubleComplex,  2>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
+        trsv_small_batched<magmaDoubleComplex,  2, 0>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
     else if( n <=  4 )
-        trsv_small_batched<magmaDoubleComplex,  4>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
+        trsv_small_batched<magmaDoubleComplex,  4, 0>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
     else if( n <=  8 )
-        trsv_small_batched<magmaDoubleComplex,  8>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
+        trsv_small_batched<magmaDoubleComplex,  8, 0>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
     else if( n <= 16 )
-        trsv_small_batched<magmaDoubleComplex, 16>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
+        trsv_small_batched<magmaDoubleComplex, 16, 0>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
     else if( n <= 32 )
-        trsv_small_batched<magmaDoubleComplex, 32>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
+        trsv_small_batched<magmaDoubleComplex, 32, 0>(uplo, transA, diag, n, dA_array, ldda, dx_array, incx, Ai, Aj, xi, batchCount, queue );
     else
         printf("error in function %s: nrowA must be less than 32\n", __func__);
 }
