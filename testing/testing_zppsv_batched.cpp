@@ -152,7 +152,7 @@ int main(int argc, char **argv)
             }
             else if( opts.version == 2 ) {
                 gpu_time = magma_sync_wtime( opts.queue );
-                info = magma_zpptrf_batched_small( opts.uplo, N, dAP_array, dinfo_array, batchCount, opts.queue );
+                info = magma_zpptrf_batched( opts.uplo, N, dAP_array, dinfo_array, batchCount, opts.queue );
 
                 for(magma_int_t ibatch = 0; ibatch < batchCount; ibatch++) {
                     if(cond) {
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
                     }
                 }
 
-                magma_zpptrs_batched_small(N, nrhs, dAP_array, dB_array, lddb, batchCount, opts.queue );
+                magma_zpptrs_batched(opts.uplo, N, nrhs, dAP_array, dB_array, lddb, batchCount, opts.queue );
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
             else if( opts.version == 3 ) {
