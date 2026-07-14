@@ -12,7 +12,7 @@
 #define TRSV_TEMPLATE_KERNEL_BATCHED_CUH
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB>
+template <typename T, const int NB, const int PACKEDA>
 static __global__
 __launch_bounds__(NB)
 void trsv_template_batched_NL_kernel(
@@ -24,14 +24,14 @@ void trsv_template_batched_NL_kernel(
     const int batchid = blockIdx.z;
 
 
-    trsv_template_device_NL<T, NB>(
+    trsv_template_device_NL<T, NB, PACKEDA>(
         diag, n,
-        Aarray[batchid] + coffA * ldda + roffA, ldda,
+        Aarray[batchid], coffA, roffA, ldda,
         xarray[batchid] +  offx * incx, incx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB>
+template <typename T, const int NB, const int PACKEDA>
 static __global__
 __launch_bounds__(NB)
 void trsv_template_batched_NU_kernel(
@@ -42,14 +42,14 @@ void trsv_template_batched_NU_kernel(
 {
     int batchid = blockIdx.z;
 
-    trsv_template_device_NU<T, NB>(
+    trsv_template_device_NU<T, NB, PACKEDA>(
         diag, n,
-        Aarray[batchid] + coffA * ldda + roffA, ldda,
+        Aarray[batchid], coffA, roffA, ldda,
         xarray[batchid] +  offx * incx, incx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int CONJA>
+template <typename T, const int NB, const int CONJA, const int PACKEDA>
 static __global__
 __launch_bounds__(NB)
 void trsv_template_batched_TL_kernel(
@@ -60,14 +60,14 @@ void trsv_template_batched_TL_kernel(
 {
     int batchid = blockIdx.z;
 
-    trsv_template_device_TL<T, NB, CONJA>(
+    trsv_template_device_TL<T, NB, CONJA, PACKEDA>(
         diag, n,
-        Aarray[batchid] + coffA * ldda + roffA, ldda,
+        Aarray[batchid], coffA, roffA, ldda,
         xarray[batchid] +  offx * incx, incx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template <typename T, const int NB, const int CONJA>
+template <typename T, const int NB, const int CONJA, const int PACKEDA>
 static __global__
 __launch_bounds__(NB)
 void trsv_template_batched_TU_kernel(
@@ -78,16 +78,18 @@ void trsv_template_batched_TU_kernel(
 {
     int batchid = blockIdx.z;
 
-    trsv_template_device_TU<T, NB, CONJA>(
+    trsv_template_device_TU<T, NB, CONJA, PACKEDA>(
         diag, n,
-        Aarray[batchid] + coffA * ldda + roffA, ldda,
+        Aarray[batchid], coffA, roffA, ldda,
         xarray[batchid] +  offx * incx, incx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // kernel wrapper
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-template<typename T, const int NB>
+// PACKEDA > 0 means the kernel will not access any element in the "other" half of the
+// triangular matrix. Used for matrices in packed format.
+template<typename T, const int NB, const int PACKEDA>
 void trsv_small_batched(
         magma_uplo_t uplo, magma_trans_t transA, magma_diag_t diag,
         magma_int_t n,
@@ -114,7 +116,7 @@ void trsv_small_batched(
                 magma_int_t ibatch = min(max_batchCount, batchCount-i);
                 dim3 grid( 1, 1, ibatch );
 
-                trsv_template_batched_NL_kernel<T, NB>
+                trsv_template_batched_NL_kernel<T, NB, PACKEDA>
                 <<< grid, threads, 0, queue->cuda_stream() >>>
                 (diag, n, dA_array+i, ldda, dx_array+i, incx, roffA, coffA, offx);
             }
@@ -124,7 +126,7 @@ void trsv_small_batched(
                 magma_int_t ibatch = min(max_batchCount, batchCount-i);
                 dim3 grid( 1, 1, ibatch );
 
-                trsv_template_batched_TL_kernel<T, NB, 0>
+                trsv_template_batched_TL_kernel<T, NB, 0, PACKEDA>
                 <<< grid, threads, 0, queue->cuda_stream() >>>
                 (diag, n, dA_array+i, ldda, dx_array+i, incx, roffA, coffA, offx);
             }
@@ -134,7 +136,7 @@ void trsv_small_batched(
                 magma_int_t ibatch = min(max_batchCount, batchCount-i);
                 dim3 grid( 1, 1, ibatch );
 
-                trsv_template_batched_TL_kernel<T, NB, 1>
+                trsv_template_batched_TL_kernel<T, NB, 1, PACKEDA>
                 <<< grid, threads, 0, queue->cuda_stream() >>>
                 (diag, n, dA_array+i, ldda, dx_array+i, incx, roffA, coffA, offx);
             }
@@ -144,7 +146,7 @@ void trsv_small_batched(
                 magma_int_t ibatch = min(max_batchCount, batchCount-i);
                 dim3 grid( 1, 1, ibatch );
 
-                trsv_template_batched_NU_kernel<T, NB>
+                trsv_template_batched_NU_kernel<T, NB, PACKEDA>
                 <<< grid, threads, 0, queue->cuda_stream() >>>
                 (diag, n, dA_array+i, ldda, dx_array+i, incx, roffA, coffA, offx);
             }
@@ -154,7 +156,7 @@ void trsv_small_batched(
                 magma_int_t ibatch = min(max_batchCount, batchCount-i);
                 dim3 grid( 1, 1, ibatch );
 
-                trsv_template_batched_TU_kernel<T, NB, 0>
+                trsv_template_batched_TU_kernel<T, NB, 0, PACKEDA>
                 <<< grid, threads, 0, queue->cuda_stream() >>>
                 (diag, n, dA_array+i, ldda, dx_array+i, incx, roffA, coffA, offx);
             }
@@ -164,7 +166,7 @@ void trsv_small_batched(
                 magma_int_t ibatch = min(max_batchCount, batchCount-i);
                 dim3 grid( 1, 1, ibatch );
 
-                trsv_template_batched_TU_kernel<T, NB, 1>
+                trsv_template_batched_TU_kernel<T, NB, 1, PACKEDA>
                 <<< grid, threads, 0, queue->cuda_stream() >>>
                 (diag, n, dA_array+i, ldda, dx_array+i, incx, roffA, coffA, offx);
             }

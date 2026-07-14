@@ -81,6 +81,7 @@ magma_zpptrs_batched(
     magmaDoubleComplex **dB_array, magma_int_t lddb,
     magma_int_t batchCount, magma_queue_t queue)
 {
+    magmaDoubleComplex c_one = MAGMA_Z_ONE;
     magma_int_t arginfo = 0;
     if ( uplo != MagmaLower ) {
         printf("Only uplo = MagmaLower is currently supported\n");
@@ -105,11 +106,52 @@ magma_zpptrs_batched(
         return arginfo;
     }
 
-    if( nrhs == 1 ) {
-        arginfo = magma_zpptrs_1rhs_batched_small(n, nrhs, dAP_array, dB_array, lddb, batchCount, queue );
+    // Specialized kernel for small sizes
+    if (n <= 32) {
+        if( nrhs == 1 ) {
+            arginfo = magma_zpptrs_1rhs_batched_small(n, nrhs, dAP_array, dB_array, lddb, batchCount, queue );
+        }
+        else {
+            arginfo = magma_zpptrs_batched_small(n, nrhs, dAP_array, dB_array, lddb, batchCount, queue );
+        }
     }
+    // Otherwise, use recursive algorithm
     else {
-        arginfo = magma_zpptrs_batched_small(n, nrhs, dAP_array, dB_array, lddb, batchCount, queue );
+        if (nrhs > 1){
+            // A = L L^T
+            // solve LY=B, where Y = L^{T} X
+            magmablas_ztrsm_packed_batched(
+                    MagmaLeft, MagmaLower, MagmaNoTrans, MagmaNonUnit,
+                    n, nrhs,
+                    c_one,
+                    dAP_array, n,
+                    dB_array, lddb, batchCount, queue );
+    
+            // solve L^{T}X=B
+            magmablas_ztrsm_packed_batched(
+                    MagmaLeft, MagmaLower, MagmaConjTrans, MagmaNonUnit,
+                    n, nrhs, c_one,
+                    dAP_array, n,
+                    dB_array, lddb, batchCount, queue );
+        }
+        else
+        {
+            // A = L L^T
+            // solve LX = B
+            magmablas_ztrsm_packed_batched(
+                MagmaLeft, MagmaLower, MagmaNoTrans, MagmaNonUnit,
+    		n, 1, c_one,
+                dAP_array, n,
+                dB_array, lddb, batchCount, queue );
+    
+            // solve L^{T} X= B
+            magmablas_ztrsm_packed_batched(
+                MagmaLeft, MagmaLower, MagmaConjTrans, MagmaNonUnit,
+    		n, 1, c_one,
+                dAP_array, n,
+                dB_array, lddb, batchCount, queue );
+        }
+        magma_queue_sync(queue);
     }
 
     return arginfo;
