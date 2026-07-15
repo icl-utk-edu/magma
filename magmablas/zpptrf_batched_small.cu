@@ -396,7 +396,7 @@ magma_zpptrf_batched_small(
     @ingroup magma_getrf_batched
 *******************************************************************************/
 extern "C" magma_int_t
-magma_zpptf2_batched_small(
+magma_zpptf2_batched(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex** dAP_array, magma_int_t* info_array,
     magma_int_t batchCount, magma_queue_t queue )
@@ -405,7 +405,7 @@ magma_zpptf2_batched_small(
 
     if(uplo != MagmaLower)
         arginfo = -1;
-    else if( (n < 0) || ( n > 64 ) )
+    else if ( n < 0 )
         arginfo = -2;
     else if ( batchCount < 0 )
         arginfo = -5;

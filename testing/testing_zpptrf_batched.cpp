@@ -189,7 +189,7 @@ int main( int argc, char** argv)
             else if (opts.version == 4) {
                 // blocked version
                 gpu_time = magma_sync_wtime( opts.queue );
-                info = magma_zpptf2_batched_small( opts.uplo, N, dAP_array, dinfo_magma, batchCount, opts.queue );
+                info = magma_zpptf2_batched( opts.uplo, N, dAP_array, dinfo_magma, batchCount, opts.queue );
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
             gpu_perf = gflops / gpu_time;
