@@ -28,7 +28,7 @@
 #include "../control/magma_threadsetting.h"  // internal header
 #endif
 
-#define cond (N == 8 && batchCount == 1 && ibatch == 0)
+#define cond (N == 9 && batchCount == 1 && ibatch == 0)
 
 // #define TEST_QUEUE_OVERHEAD_PPTRS
 
@@ -177,6 +177,25 @@ int main(int argc, char **argv)
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
             else if( opts.version == 3 ) {
+                // query workspace
+                int64_t device_lwork[1] = {-1};
+                void* device_work = NULL;
+                magma_zppsv_inv_batched(opts.uplo, N, nrhs, NULL, NULL, lddb, NULL, device_lwork, NULL, batchCount, opts.queue);
+
+                if(device_lwork[0] > 0) {
+                    magma_malloc((void**)&device_work, device_lwork[0]);
+                }
+
+                gpu_time = magma_sync_wtime( opts.queue );
+                magma_zppsv_inv_batched(opts.uplo, N, nrhs, dAP_array, dB_array, lddb, device_work, device_lwork, dinfo_array, batchCount, opts.queue);
+                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+
+                // free workspace, if any
+                if( device_work != NULL) {
+                    magma_free( device_work );
+                }
+            }
+            else if( opts.version == 4 ) {
                 // slow ref. impl.
 
                 gpu_time = magma_sync_wtime( opts.queue );
