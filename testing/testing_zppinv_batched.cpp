@@ -123,10 +123,22 @@ int main( int argc, char** argv)
             magma_zset_pointer( dAP_array, dAP,    1, 0, 0, sizeAP, batchCount, queue );
 
             if(opts.version  == 1) {
+                // query workspace
+                int64_t device_lwork[1] = {-1};
+                void* device_work = NULL;
+                info = magma_zppinv_batched( opts.uplo, N, NULL, device_work, device_lwork, NULL, batchCount, opts.queue);
+                if(device_lwork[0] > 0) {
+                    magma_malloc((void**)&device_work, device_lwork[0]);
+                }
+
                 gpu_time = magma_sync_wtime( opts.queue );
-                info = magma_zpptrf_batched( opts.uplo, N, dAP_array, dinfo_magma, batchCount, opts.queue );
-                info = magma_zpptri_batched_small( N, dAP_array, batchCount, dinfo_magma, opts.queue );
+                info = magma_zppinv_batched( opts.uplo, N, dAP_array, device_work, device_lwork, dinfo_magma, batchCount, opts.queue);
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+
+                // free workspace, if any
+                if( device_work != NULL) {
+                    magma_free( device_work );
+                }
             }
             else if( opts.version == 2 ) {
                 gpu_time = magma_sync_wtime( opts.queue );
