@@ -6,7 +6,7 @@
        Univ. of Colorado, Denver
        @date
 
-       @author Azzam Haidar
+       @author Ahmad Abdelfattah
 
        @precisions normal z -> s d c
 */
@@ -105,7 +105,12 @@ magma_zpptrs_batched(
         return arginfo;
     }
 
-    arginfo = magma_zpptrs_batched_small(n, nrhs, dAP_array, dB_array, lddb, batchCount, queue );
+    if( nrhs == 1 ) {
+        arginfo = magma_zpptrs_1rhs_batched_small(n, nrhs, dAP_array, dB_array, lddb, batchCount, queue );
+    }
+    else {
+        arginfo = magma_zpptrs_batched_small(n, nrhs, dAP_array, dB_array, lddb, batchCount, queue );
+    }
 
     return arginfo;
 }
