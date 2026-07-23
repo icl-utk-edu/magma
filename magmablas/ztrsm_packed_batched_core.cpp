@@ -8,7 +8,7 @@
        @precisions normal z -> s d c
 
        @author Ahmad Abdelfattah
-       
+       @author Natalie Beams
 */
 #include "magma_internal.h"
 

@@ -131,18 +131,16 @@ magma_zpptrs_batched(
     {
         // A = L L^T
         // solve LX = B
-        magmablas_ztrsm_packed_batched(
-            MagmaLeft, MagmaLower, MagmaNoTrans, MagmaNonUnit,
-		n, 1, c_one,
+        magmablas_ztrsv_packed_batched(
+            MagmaLower, MagmaNoTrans, MagmaNonUnit, n,
             dAP_array, n,
-            dB_array, lddb, batchCount, queue );
+            dB_array,    1, batchCount, queue );
 
         // solve L^{T} X= B
-        magmablas_ztrsm_packed_batched(
-            MagmaLeft, MagmaLower, MagmaConjTrans, MagmaNonUnit,
-		n, 1, c_one,
+        magmablas_ztrsv_packed_batched(
+            MagmaLower, MagmaConjTrans, MagmaNonUnit, n,
             dAP_array, n,
-            dB_array, lddb, batchCount, queue );
+            dB_array,    1, batchCount, queue );
     }
 
     magma_queue_sync(queue);

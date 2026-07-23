@@ -15,8 +15,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /* common functions */
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-#define LPACKED(i_, j_, N_) (N_*j_ - j_*(j_+1)/2 + i_)
-#define UPACKED(i_, j_) (j_*(j_+1)/2 + i_)
+#define LPACKED(i_, j_, N_) (N_*(j_) - (j_)*(j_+1)/2 + i_)
+#define UPACKED(i_, j_) ((j_)*(j_+1)/2 + i_)
 
 template<typename T, const int NB, const int CONJA>
 __device__ __inline__
@@ -45,7 +45,7 @@ void read_packed_sA(int tx, T* A, int coffA, int roffA, T* sA, int n, int ldda, 
     if (n == NB) {
         #pragma unroll
         for(int i = 0; i < NB; i++){
-  	   if (roffA + tx >= coffA + i) {
+           if ((roffA + tx >= coffA + i) && (roffA + tx < ldda)) {
               index = LPACKED(roffA + tx, coffA + i, ldda);
               sA[i * slda + tx] = (CONJA == 0) ? A[index] : conj(A[index]);
 	   }
@@ -53,7 +53,7 @@ void read_packed_sA(int tx, T* A, int coffA, int roffA, T* sA, int n, int ldda, 
     }
     else {
         for(int i = 0; i < n; i++){
-  	   if (roffA + tx >= coffA + i) {
+           if ((roffA + tx >= coffA + i) && (roffA + tx < ldda)) {
               index = LPACKED(roffA + tx, coffA + i, ldda);
               sA[i * slda + tx] = (CONJA == 0) ? A[index] : conj(A[index]);
 	   }
@@ -65,7 +65,7 @@ void read_packed_sA(int tx, T* A, int coffA, int roffA, T* sA, int n, int ldda, 
     if (n == NB) {
         #pragma unroll
         for(int i = 0; i < NB; i++){
-  	   if (roffA + tx <= coffA + i) {
+           if ((roffA + tx <= coffA + i) && (coffA + i < ldda)) {
               index = UPACKED(roffA + tx, coffA + i);
               sA[i * slda + tx] = (CONJA == 0) ? A[index] : conj(A[index]);
 	   }
@@ -73,7 +73,7 @@ void read_packed_sA(int tx, T* A, int coffA, int roffA, T* sA, int n, int ldda, 
     }
     else {
         for(int i = 0; i < n; i++){
-  	   if (roffA + tx <= coffA + i) {
+           if ((roffA + tx <= coffA + i) && (coffA + i < ldda)) {
               index = UPACKED(roffA + tx, coffA + i);
               sA[i * slda + tx] = (CONJA == 0) ? A[index] : conj(A[index]);
 	   }
