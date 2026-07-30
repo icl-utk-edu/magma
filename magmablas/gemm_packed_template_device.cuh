@@ -54,7 +54,7 @@ void gemm_packed_template_device_nn(
     T rA[BLK_K/DIM_YA][BLK_M/DIM_XA];
     T rB[BLK_N/DIM_YB][BLK_K/DIM_XB];
 
-    ptrdiff_t  boundA = (LDA*K*(K+1)/2) - 1;
+    ptrdiff_t  boundA = (LDA*(LDA+1)/2) - 1;
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
@@ -147,7 +147,7 @@ void gemm_packed_template_device_nt (
     T rA[BLK_K/DIM_YA][BLK_M/DIM_XA];
     T rB[BLK_K/DIM_YB][BLK_N/DIM_XB];
 
-    ptrdiff_t boundA = LDA*K*(K+1)/2 - 1;
+    ptrdiff_t boundA = LDA*(LDA+1)/2 - 1;
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
@@ -240,7 +240,7 @@ void gemm_packed_template_device_tn (
     T rA[BLK_M/DIM_YA][BLK_K/DIM_XA];
     T rB[BLK_N/DIM_YB][BLK_K/DIM_XB];
 
-    ptrdiff_t boundA = (LDA*M*(M+1)/2) - 1;
+    ptrdiff_t boundA = (LDA*(LDA+1)/2) - 1;
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
@@ -334,7 +334,7 @@ void gemm_packed_template_device_tt (
     T rA[BLK_M/DIM_YA][BLK_K/DIM_XA];
     T rB[BLK_K/DIM_YB][BLK_N/DIM_XB];
 
-    ptrdiff_t boundA = (LDA*M*(M+1)/2) - 1;
+    ptrdiff_t boundA = (LDA*(LDA+1)/2) - 1;
 
     // bound is the correction to offs_d in order to not get out of memory bound
     // so bound could be negative value since offs_d could be out of bound
