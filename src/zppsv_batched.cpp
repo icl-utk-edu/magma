@@ -271,7 +271,7 @@ magma_zppsv_inv_batched(
     arginfo = magma_zpptrf_batched( uplo, n, dAP_array, dinfo_array, batchCount, queue );
     if( arginfo == 0 ) {
         arginfo = magma_zpptri_v2_batched_small( n, dAP_array, batchCount, dinfo_array, queue );
-        arginfo = magma_zppinv_apply_batched_small(n, nrhs, dAP_array, dB_array, lddb, batchCount, queue );
+        magma_zhemm_packed_inplace_batched(MagmaLeft, uplo, n, nrhs, dAP_array, dB_array, lddb, batchCount, queue);
     }
 
     return arginfo;
