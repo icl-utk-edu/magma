@@ -177,17 +177,18 @@ int main(int argc, char **argv)
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
             else if( opts.version == 3 ) {
-                // query workspace
+                // query workspace for the inverse
                 int64_t device_lwork[1] = {-1};
                 void* device_work = NULL;
-                magma_zppsv_inv_batched(opts.uplo, N, nrhs, NULL, NULL, lddb, NULL, device_lwork, NULL, batchCount, opts.queue);
+                magma_zppinv_batched(opts.uplo, N, NULL, NULL, device_lwork, NULL, batchCount, opts.queue);
 
                 if(device_lwork[0] > 0) {
                     magma_malloc((void**)&device_work, device_lwork[0]);
                 }
 
                 gpu_time = magma_sync_wtime( opts.queue );
-                magma_zppsv_inv_batched(opts.uplo, N, nrhs, dAP_array, dB_array, lddb, device_work, device_lwork, dinfo_array, batchCount, opts.queue);
+                magma_zppinv_batched(opts.uplo, N, dAP_array, device_work, device_lwork, dinfo_array, batchCount, opts.queue);
+                magma_zhemm_packed_inplace_batched(MagmaLeft, opts.uplo, N, nrhs, dAP_array, dB_array, lddb, batchCount, opts.queue);
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
 
                 // free workspace, if any
