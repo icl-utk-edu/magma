@@ -47,14 +47,11 @@ magmablas_ztrsm_packed_recursive_batched(
     
     magma_int_t nrowA = (side == MagmaLeft ? m : n);
     magma_int_t shape = 0;
+    // Currently only implemented for MagmaLeft
     if      (side == MagmaLeft   && transA == MagmaNoTrans  && uplo == MagmaLower) { shape = 0; } // lNL
     else if (side == MagmaLeft   && transA == MagmaNoTrans  && uplo == MagmaUpper) { shape = 1; } // lNU
     else if (side == MagmaLeft   && transA != MagmaNoTrans  && uplo == MagmaLower) { shape = 2; } // lTL | lCL
     else if (side == MagmaLeft   && transA != MagmaNoTrans  && uplo == MagmaUpper) { shape = 3; } // lTU | lCU
-    else if (side == MagmaRight  && transA == MagmaNoTrans  && uplo == MagmaLower) { shape = 4; } // rNL
-    else if (side == MagmaRight  && transA == MagmaNoTrans  && uplo == MagmaUpper) { shape = 5; } // rNU
-    else if (side == MagmaRight  && transA != MagmaNoTrans  && uplo == MagmaLower) { shape = 6; } // rTL | rCL
-    else if (side == MagmaRight  && transA != MagmaNoTrans  && uplo == MagmaUpper) { shape = 7; } // rTU | rCU
     
     magma_int_t batrsm_stop_nb = magma_get_ztrsm_batched_stop_nb(side, m, n);
     // stopping condition
@@ -78,7 +75,7 @@ magmablas_ztrsm_packed_recursive_batched(
                         batchCount, queue );
 
                 magmablas_zgemm_packed_batched_core( 
-                        MagmaNoTrans, MagmaNoTrans, 
+                        MagmaNoTrans, MagmaLower, 
                         m2, n, m1, 
                         c_negone, dA_array(Ai+m1, Aj), ldda, 
                                   dB_array(Bi   , Bj), lddb, 
@@ -106,7 +103,7 @@ magmablas_ztrsm_packed_recursive_batched(
                         batchCount, queue );
                         
                 magmablas_zgemm_packed_batched_core( 
-                        MagmaNoTrans, MagmaNoTrans, 
+                        MagmaNoTrans, MagmaUpper, 
                         m1, n, m2, 
                         c_negone, dA_array(Ai   , Aj+m1), ldda, 
                                   dB_array(Bi+m1,    Bj), lddb, 
@@ -134,7 +131,7 @@ magmablas_ztrsm_packed_recursive_batched(
                         batchCount, queue );
 
                 magmablas_zgemm_packed_batched_core( 
-                        transA, MagmaNoTrans, 
+                        transA, MagmaLower,
                         m1, n, m2, 
                         c_negone, dA_array(Ai+m1, Aj), ldda, 
                                   dB_array(Bi+m1, Bj), lddb, 
@@ -162,7 +159,7 @@ magmablas_ztrsm_packed_recursive_batched(
                         batchCount, queue );
 
                 magmablas_zgemm_packed_batched_core( 
-                        transA, MagmaNoTrans, 
+                        transA, MagmaUpper, 
                         m2, n, m1, 
                         c_negone, dA_array(Ai   , Aj+m1), ldda, 
                                   dB_array(Bi   ,    Bj), lddb, 
@@ -174,118 +171,6 @@ magmablas_ztrsm_packed_recursive_batched(
                         m2, n, c_one, 
                         dA_array(Ai+m1, Aj+m1), ldda, 
                         dB_array(Bi+m1,    Bj), lddb, 
-                        batchCount, queue );
-            }
-            break;
-        case 4: // rNL
-             {
-                const int n2 = magma_get_ztrsm_packed_batched_nb(n); 
-                const int n1 = n - n2;
-
-                magmablas_ztrsm_packed_recursive_batched( 
-                        side, uplo, transA, diag, 
-                        m, n2, alpha, 
-                        dA_array(Ai+n1, Aj+n1), ldda, 
-                        dB_array(Bi,    Bj+n1), lddb, 
-                        batchCount, queue );
-
-                magmablas_zgemm_packed_batched_core( 
-                        MagmaNoTrans, transA, 
-                        m, n1, n2, 
-                        c_negone, dB_array(Bi   , Bj+n1), lddb, 
-                                  dA_array(Ai+n1,    Aj), ldda, 
-                        alpha   , dB_array(Bi   ,    Bj), lddb, 
-                        batchCount, queue );
-
-                magmablas_ztrsm_packed_recursive_batched( 
-                        side, uplo, transA, diag, 
-                        m, n1, c_one, 
-                        dA_array(Ai, Aj), ldda, 
-                        dB_array(Bi, Bj), lddb, 
-                        batchCount, queue );
-            }
-            break;
-        case 5: // rNU
-            {
-                const int n1 = magma_get_ztrsm_packed_batched_nb(n); 
-                const int n2 = n - n1;
-
-                magmablas_ztrsm_packed_recursive_batched( 
-                        side, uplo, transA, diag, 
-                        m, n1, alpha, 
-                        dA_array(Ai, Aj), ldda, 
-                        dB_array(Bi, Bj), lddb, 
-                        batchCount, queue );
-
-                magmablas_zgemm_packed_batched_core( 
-                        MagmaNoTrans, transA, 
-                        m, n2, n1, 
-                        c_negone, dB_array(Bi,    Bj), lddb, 
-                                  dA_array(Ai, Aj+n1), ldda, 
-                        alpha   , dB_array(Bi, Bj+n1), lddb, 
-                        batchCount, queue );
-
-                magmablas_ztrsm_packed_recursive_batched( 
-                        side, uplo, transA, diag, 
-                        m, n2, c_one, 
-                        dA_array(Ai+n1, Aj+n1), ldda, 
-                        dB_array(Bi,    Bj+n1), lddb, 
-                        batchCount, queue );
-            }
-            break;
-        case 6: // rTL | rCL
-            {
-                const int n1 = magma_get_ztrsm_packed_batched_nb(n); 
-                const int n2 = n - n1;
-
-                magmablas_ztrsm_packed_recursive_batched( 
-                        side, uplo, transA, diag, 
-                        m, n1, alpha, 
-                        dA_array(Ai, Aj), ldda, 
-                        dB_array(Bi, Bj), lddb, 
-                        batchCount, queue );
-
-                magmablas_zgemm_packed_batched_core( 
-                        MagmaNoTrans, transA, 
-                        m, n2, n1, 
-                        c_negone, dB_array(Bi   ,    Bj), lddb, 
-                                  dA_array(Ai+n1,    Aj), ldda, 
-                        alpha   , dB_array(Bi   , Bj+n1), lddb, 
-                        batchCount, queue );
-
-                magmablas_ztrsm_packed_recursive_batched( 
-                        side, uplo, transA, diag, 
-                        m, n2, c_one, 
-                        dA_array(Ai+n1, Aj+n1), ldda, 
-                        dB_array(Bi,    Bj+n1), lddb, 
-                        batchCount, queue );
-            }
-            break;
-        case 7: // rTU | rCU
-            {
-                const int n2 = magma_get_ztrsm_packed_batched_nb(n); 
-                const int n1 = n - n2;
-
-                magmablas_ztrsm_packed_recursive_batched( 
-                        side, uplo, transA, diag, 
-                        m, n2, alpha, 
-                        dA_array(Ai+n1, Aj+n1), ldda, 
-                        dB_array(Bi,    Bj+n1), lddb, 
-                        batchCount, queue );
-
-                magmablas_zgemm_packed_batched_core( 
-                        MagmaNoTrans, transA, 
-                        m, n1, n2, 
-                        c_negone, dB_array(Bi, Bj+n1), lddb, 
-                                  dA_array(Ai, Aj+n1), ldda, 
-                        alpha   , dB_array(Bi,    Bj), lddb, 
-                        batchCount, queue );
-
-                magmablas_ztrsm_packed_recursive_batched( 
-                        side, uplo, transA, diag, 
-                        m, n1, c_one, 
-                        dA_array(Ai, Aj), ldda, 
-                        dB_array(Bi, Bj), lddb,  
                         batchCount, queue );
             }
             break;
@@ -310,7 +195,7 @@ magmablas_ztrsm_packed_batched(
 
     magma_int_t nrowA = (side == MagmaLeft ? m : n);
     magma_int_t info = 0;
-    if ( side != MagmaLeft && side != MagmaRight ) {
+    if ( side != MagmaLeft ) {
         info = -1;
     } else if ( uplo != MagmaUpper && uplo != MagmaLower ) {
         info = -2;

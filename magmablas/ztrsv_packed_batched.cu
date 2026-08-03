@@ -105,7 +105,7 @@ magmablas_ztrsv_packed_recursive_batched(
                 batchCount, queue );
 
             magmablas_zgemv_packed_batched_core(
-                transA, n2, n1,
+                transA, uplo, n2, n1,
                 c_negone, dA_array(Ai+n1, Aj), ldda,
                           dx_array(xi       ), incx,
                 c_one,    dx_array(xi+n1    ), incx,
@@ -128,7 +128,7 @@ magmablas_ztrsv_packed_recursive_batched(
                 batchCount, queue );
 
             magmablas_zgemv_packed_batched_core(
-                transA, n1, n2,
+                transA, uplo, n1, n2,
                 c_negone, dA_array(Ai, Aj+n1), ldda,
                           dx_array(xi+n1    ), incx,
                 c_one,    dx_array(xi       ), incx,
@@ -151,7 +151,7 @@ magmablas_ztrsv_packed_recursive_batched(
                 batchCount, queue );
 
             magmablas_zgemv_packed_batched_core(
-                transA, n2, n1,
+                transA, uplo, n2, n1,
                 c_negone, dA_array(Ai+n1, Aj), ldda,
                           dx_array(xi+n1    ), incx,
                 c_one,    dx_array(xi       ), incx,
@@ -175,7 +175,7 @@ magmablas_ztrsv_packed_recursive_batched(
                 batchCount, queue );
 
             magmablas_zgemv_packed_batched_core(
-                transA, n1, n2,
+                transA, uplo, n1, n2,
                 c_negone, dA_array(Ai, Aj+n1), ldda,
                           dx_array(xi       ), incx,
                 c_one,    dx_array(xi+n1    ), incx,

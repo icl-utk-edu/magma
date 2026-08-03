@@ -100,7 +100,7 @@ magmablas_zgemm_batched_core(
 
 void
 magmablas_zgemm_packed_batched_core(
-    magma_trans_t transA, magma_trans_t transB,
+    magma_trans_t transA, magma_uplo_t uplo,
     magma_int_t m, magma_int_t n, magma_int_t k,
     magmaDoubleComplex alpha,
     magmaDoubleComplex const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
@@ -144,7 +144,7 @@ magmablas_zgemm_batched(
 
 void
 magmablas_zgemm_packed_batched(
-    magma_trans_t transA, magma_trans_t transB,
+    magma_trans_t transA, magma_uplo_t uplo,
     magma_int_t m, magma_int_t n, magma_int_t k,
     magmaDoubleComplex alpha,
     magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
@@ -1186,7 +1186,7 @@ magmablas_zgemv_batched_core(
 
 void
 magmablas_zgemv_packed_batched_core(
-    magma_trans_t trans, magma_int_t m, magma_int_t n,
+    magma_trans_t trans, magma_uplo_t uplo, magma_int_t m, magma_int_t n,
     const magmaDoubleComplex alpha,
     magmaDoubleComplex const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
     magmaDoubleComplex const * const * dx_array, magma_int_t xi, magma_int_t incx,
@@ -1206,7 +1206,7 @@ magmablas_zgemv_batched_internal(
 
 void
 magmablas_zgemv_packed_batched_internal(
-    magma_trans_t trans, magma_int_t m, magma_int_t n,
+    magma_trans_t trans, magma_uplo_t uplo, magma_int_t m, magma_int_t n,
     const magmaDoubleComplex alpha,
     magmaDoubleComplex const * const * dA_array, const magmaDoubleComplex* dA, magma_int_t ldda, magma_int_t strideA, magma_int_t Ai, magma_int_t Aj,
     magmaDoubleComplex const * const * dx_array, const magmaDoubleComplex* dx, magma_int_t incx, magma_int_t stridex, magma_int_t xi,
@@ -1236,7 +1236,7 @@ magmablas_zgemv_batched(
 
 void
 magmablas_zgemv_packed_batched(
-    magma_trans_t trans, magma_int_t m, magma_int_t n,
+    magma_trans_t trans, magma_uplo_t uplo, magma_int_t m, magma_int_t n,
     const magmaDoubleComplex alpha,
     magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
     magmaDoubleComplex const * const * dx_array, magma_int_t incx,
