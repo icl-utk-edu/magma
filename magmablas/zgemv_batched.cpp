@@ -50,7 +50,7 @@ magmablas_zgemv_batched_core(
 // This is an internal routine, interface could change, please see zgemv_batched.cpp for more details
 extern "C" void
 magmablas_zgemv_packed_batched_core(
-    magma_trans_t trans, magma_int_t m, magma_int_t n,
+    magma_trans_t trans, magma_uplo_t uplo, magma_int_t m, magma_int_t n,
     const magmaDoubleComplex alpha,
     magmaDoubleComplex const * const * dA_array, magma_int_t Ai, magma_int_t Aj, magma_int_t ldda,
     magmaDoubleComplex const * const * dx_array, magma_int_t xi, magma_int_t incx,
@@ -59,7 +59,7 @@ magmablas_zgemv_packed_batched_core(
     magma_int_t batchCount, magma_queue_t queue)
 {
     magmablas_zgemv_packed_batched_internal(
-        trans, m, n,
+        trans, uplo, m, n,
         alpha, dA_array, NULL, ldda, 0, Ai, Aj,
                dx_array, NULL, incx, 0, xi,
         beta,  dy_array, NULL, incy, 0, yi,
@@ -230,8 +230,11 @@ magmablas_zgemv_batched(
 
     This is the batch version of the routine, using pointer-to-pointer (P2P)
     interface. All matrices and vectors must have the same dimension(s).
-    Additionally, the matrices must all be stored in packed format (for symmetric
-    matrices).
+    Additionally, the matrices must all be stored in packed format for Hermitian/
+    symmetric matrices, but the application must only require a block of each
+    matrix that is entirely contained in the explicitly-stored portion (lower or
+    upper). For application of the full matrix in packed format, see
+    zhemv_packed.
 
     Arguments
     ----------
@@ -242,6 +245,16 @@ magmablas_zgemv_batched(
       -     = MagmaNoTrans:    y := alpha*A  *x + beta*y
       -     = MagmaTrans:      y := alpha*A^T*x + beta*y
       -     = MagmaConjTrans:  y := alpha*A^H*x + beta*y
+
+    @param[in]
+    uplo    magma_uplo_t
+            On entry, uplo specifies whether the upper or lower
+            triangular part of the Hermitian matrix A stored:
+
+            uplo = MagmaUpper   Only the upper triangular part of the
+                                matrix is stored.
+            uplo = MagmaLower   Only the lower triangular part of the
+                                matrix is stored.
 
     @param[in]
     m       INTEGER
@@ -301,7 +314,7 @@ magmablas_zgemv_batched(
 *******************************************************************************/
 extern "C" void
 magmablas_zgemv_packed_batched(
-    magma_trans_t trans, magma_int_t m, magma_int_t n,
+    magma_trans_t trans, magma_uplo_t uplo, magma_int_t m, magma_int_t n,
     const magmaDoubleComplex alpha,
     magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
     magmaDoubleComplex const * const * dx_array, magma_int_t incx,
@@ -312,16 +325,18 @@ magmablas_zgemv_packed_batched(
     magma_int_t info = 0;
     if ( trans != MagmaNoTrans && trans != MagmaTrans && trans != MagmaConjTrans )
         info = -1;
-    else if ( m < 0 )
+    if ( uplo != MagmaLower && uplo != MagmaUpper )
         info = -2;
-    else if ( n < 0 )
+    else if ( m < 0 )
         info = -3;
+    else if ( n < 0 )
+        info = -4;
     else if ( ldda < m )
-        info = -6;
+        info = -7;
     else if ( incx == 0 )
-        info = -8;
+        info = -9;
     else if ( incy == 0 )
-        info = -11;
+        info = -12;
 
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
@@ -329,7 +344,7 @@ magmablas_zgemv_packed_batched(
     }
 
     magmablas_zgemv_packed_batched_core(
-        trans, m, n,
+        trans, uplo, m, n,
         alpha, dA_array, 0, 0, ldda,
                dx_array, 0,    incx,
         beta,  dy_array, 0,    incy,

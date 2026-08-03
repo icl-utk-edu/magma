@@ -16,7 +16,8 @@
 #include "gemm_template_device_defs.cuh"// use make_FloatingPoint
 
 // formula for lower part access
-#define PACKED(i_, j_, N_) (N_*(j_) - (j_)*(j_+1)/2 + i_)
+#define LPACKED(i_, j_, N_) (N_*(j_) - (j_)*(j_+1)/2 + i_)
+#define UPACKED(i_, j_) ((j_)*(j_+1)/2 + i_)
 /******************************************************************************/
 // op<trans>( x ) returns x or conj(x).
 template< const magma_trans_t conjugate, typename T >
@@ -32,7 +33,7 @@ T op( T& x )
 
 
 /******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE> 
+template<typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE, const int LOWER> 
 static __device__ void
 gemvn_packed_template_device(
     int m, int n, T alpha,
@@ -71,7 +72,7 @@ gemvn_packed_template_device(
         {
             for (int col=ty; col < n; col += DIM_Y)
             {  
-                res += A[(ind + roffA >= col + coffA) ? PACKED(ind + roffA, col + coffA, lda) : PACKED(col + coffA, ind + roffA, lda)] * x[col*incx];
+                res += A[(LOWER > 0) ? LPACKED(ind + roffA, col + coffA, lda) : UPACKED(ind + roffA, col + coffA)] * x[col*incx];
             }
         }
 
@@ -117,7 +118,7 @@ gemvn_packed_template_device(
 
 
 /******************************************************************************/
-template<typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE,  magma_trans_t trans> 
+template<typename T, const int DIM_X, const int DIM_Y, const int TILE_SIZE,  magma_trans_t trans, const int LOWER> 
 static __device__ void
 gemvc_packed_template_device(
     int m, int n, T alpha,
@@ -173,10 +174,10 @@ gemvc_packed_template_device(
         if (col < n)
         {    
             for (int i=0; i < mfull; i += DIM_X) {
-                res += op<trans>(A[(tx_roff + i + roffA >= col + coffA) ? PACKED(tx_roff + i + roffA, col + coffA, lda) : PACKED(col + coffA, tx_roff + i + roffA, lda)]) * x[(tx_roff + i)*incx];
+                res += op<trans>(A[(LOWER > 0) ? LPACKED(tx_roff + i + roffA, col + coffA, lda) : UPACKED(tx_roff + i + roffA, col + coffA)]) * x[(tx_roff + i)*incx];
             }
             if ( tx + mfull < m ) {
-                res += op<trans>(A[(tx_roff + mfull + roffA >= col + coffA) ? PACKED(tx_roff + mfull + roffA, col + coffA, lda) : PACKED(col + coffA, tx_roff + mfull + roffA, lda)]) * x[(tx_roff + mfull)*incx];
+                res += op<trans>(A[(LOWER > 0) ? LPACKED(tx_roff + mfull + roffA, col + coffA, lda) : UPACKED(tx_roff + mfull + roffA, col + coffA)]) * x[(tx_roff + mfull)*incx];
             }
         }
         sdata[tx + ty * DIM_X] = res;

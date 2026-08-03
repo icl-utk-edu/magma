@@ -236,7 +236,7 @@ magmablas_zgemm_batched( magma_trans_t transA, magma_trans_t transB,
 
 /*******************************************************************************/
 extern "C" void
-magmablas_zgemm_packed_batched( magma_trans_t transA, magma_trans_t transB,
+magmablas_zgemm_packed_batched( magma_trans_t transA, magma_uplo_t uplo,
                      magma_int_t m, magma_int_t n, magma_int_t k,
                      magmaDoubleComplex alpha,
                      magmaDoubleComplex const * const * dA_array, magma_int_t ldda,
@@ -246,7 +246,7 @@ magmablas_zgemm_packed_batched( magma_trans_t transA, magma_trans_t transB,
                      magma_int_t batchCount, magma_queue_t queue )
 {
     magmablas_zgemm_packed_batched_core(
-                transA, transB, m, n, k,
+                transA, uplo, m, n, k,
                 alpha, dA_array, 0, 0, ldda,
                        dB_array, 0, 0, lddb,
                  beta, dC_array, 0, 0, lddc,

@@ -23,7 +23,7 @@ template <typename T, const int DIM_X, const int DIM_Y,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
 static __global__
-void gemm_packed_template_batched_nn_kernel(
+void gemm_lower_packed_template_batched_nn_kernel(
     int M, int N, int K,
     T const * const * Aarray, int LDA,
     T const * const * Barray, int LDB,
@@ -41,7 +41,7 @@ void gemm_packed_template_batched_nn_kernel(
     T* sA = (T*)sdata_nn;        // sA is slda x (BLK_K)
     T* sB = sA + slda * BLK_K;   // sB is sldb x (BLK_N)
 
-    gemm_packed_template_device_nn
+    gemm_lower_packed_template_device_nn
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
         ( M, N, K,
           Aarray[batchid], coffA, roffA, LDA,
@@ -58,42 +58,7 @@ template <typename T, const int DIM_X, const int DIM_Y,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
 static __global__
-void gemm_packed_template_batched_nt_kernel(
-    int M, int N, int K,
-    T const * const * Aarray, int LDA,
-    T const * const * Barray, int LDB,
-    T**       Carray, int LDC,
-    T alpha, T beta,
-    int roffA, int coffA,
-    int roffB, int coffB,
-    int roffC, int coffC )
-{
-    extern __shared__ T* sdata_nt[];
-    const int batchid = blockIdx.z;
-
-    const int slda = SLDA(BLK_M);
-    const int sldb = SLDB(BLK_K);
-    T* sA = (T*)sdata_nt;      // sA is slda x (BLK_K)
-    T* sB = sA + slda * BLK_K; // sB is sldb x (BLK_N)
-
-    gemm_packed_template_device_nt
-        <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
-        ( M, N, K,
-          Aarray[batchid], coffA, roffA, LDA,
-          Barray[batchid], coffB, roffB, LDB,
-          Carray[batchid] + LDC *  coffC + roffC, LDC,
-          alpha, beta,
-          sA, slda, sB, sldb, NULL, 0 );
-}
-
-
-/******************************************************************************/
-template <typename T, const int DIM_X, const int DIM_Y,
-         const int BLK_M, const int BLK_N, const int BLK_K,
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
-         const int CONJA, const int CONJB>
-static __global__
-void gemm_packed_template_batched_tn_kernel(
+void gemm_lower_packed_template_batched_tn_kernel(
     int M, int N, int K,
     T const * const * Aarray, int LDA,
     T const * const * Barray, int LDB,
@@ -111,7 +76,41 @@ void gemm_packed_template_batched_tn_kernel(
     T* sA = (T*)sdata_tn;      // sA is slda x (BLK_K)
     T* sB = sA + slda * BLK_K; // sB is sldb x (BLK_N)
 
-    gemm_packed_template_device_tn
+    gemm_lower_packed_template_device_tn
+        <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
+        ( M, N, K,
+          Aarray[batchid], coffA, roffA, LDA,
+          Barray[batchid], coffB, roffB, LDB,
+          Carray[batchid] + LDC *  coffC + roffC, LDC,
+          alpha, beta,
+          sA, slda, sB, sldb, NULL, 0 );
+}
+
+/******************************************************************************/
+template <typename T, const int DIM_X, const int DIM_Y,
+         const int BLK_M, const int BLK_N, const int BLK_K,
+         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
+         const int CONJA, const int CONJB>
+static __global__
+void gemm_upper_packed_template_batched_nn_kernel(
+    int M, int N, int K,
+    T const * const * Aarray, int LDA,
+    T const * const * Barray, int LDB,
+    T**       Carray, int LDC,
+    T alpha, T beta,
+    int roffA, int coffA,
+    int roffB, int coffB,
+    int roffC, int coffC )
+{
+    extern __shared__ T* sdata_nn[];
+    const int batchid = blockIdx.z;
+
+    const int slda = SLDA(BLK_M);
+    const int sldb = SLDB(BLK_K);
+    T* sA = (T*)sdata_nn;        // sA is slda x (BLK_K)
+    T* sB = sA + slda * BLK_K;   // sB is sldb x (BLK_N)
+
+    gemm_upper_packed_template_device_nn
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
         ( M, N, K,
           Aarray[batchid], coffA, roffA, LDA,
@@ -128,7 +127,7 @@ template <typename T, const int DIM_X, const int DIM_Y,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
 static __global__
-void gemm_packed_template_batched_tt_kernel(
+void gemm_upper_packed_template_batched_tn_kernel(
     int M, int N, int K,
     T const * const * Aarray, int LDA,
     T const * const * Barray, int LDB,
@@ -138,15 +137,15 @@ void gemm_packed_template_batched_tt_kernel(
     int roffB, int coffB,
     int roffC, int coffC )
 {
-    extern __shared__ T* sdata_tt[];
+    extern __shared__ T* sdata_tn[];
     const int batchid = blockIdx.z;
 
     const int slda = SLDA(BLK_M);
     const int sldb = SLDB(BLK_K);
-    T* sA = (T*)sdata_tt;      // sA is slda x (BLK_K)
+    T* sA = (T*)sdata_tn;      // sA is slda x (BLK_K)
     T* sB = sA + slda * BLK_K; // sB is sldb x (BLK_N)
 
-    gemm_packed_template_device_tt
+    gemm_upper_packed_template_device_tn
         <T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, (BLK_M/DIM_X), (BLK_N/DIM_Y), CONJA, CONJB>
         ( M, N, K,
           Aarray[batchid], coffA, roffA, LDA,
@@ -156,7 +155,6 @@ void gemm_packed_template_batched_tt_kernel(
           sA, slda, sB, sldb, NULL, 0 );
 }
 
-
 /******************************************************************************/
 // kernel wrappers
 // NN
@@ -164,7 +162,7 @@ template <typename T, const int DIM_X, const int DIM_Y,
          const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
-void gemm_packed_template_batched_nn(
+void gemm_lower_packed_template_batched_nn(
     magma_int_t m, magma_int_t n, magma_int_t k,
     T const * const * dA_array, magma_int_t ldda,
     T const * const * dB_array, magma_int_t lddb,
@@ -183,7 +181,7 @@ void gemm_packed_template_batched_nn(
     #if CUDA_VERSION >= 9000
     // always opt-in for shared memory
     cudaFuncSetAttribute(
-            gemm_packed_template_batched_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            gemm_lower_packed_template_batched_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
             cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     #endif
 
@@ -191,47 +189,7 @@ void gemm_packed_template_batched_nn(
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), ibatch );
-        gemm_packed_template_batched_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
-        <<< dimGrid, dimBlock, shmem, queue->cuda_stream() >>>
-        (m, n, k, dA_array+i, ldda, dB_array+i, lddb, dC_array+i, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
-    }
-}
-
-
-/******************************************************************************/
-// NT, NC
-template <typename T, const int DIM_X, const int DIM_Y,
-         const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
-         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
-         const int CONJA, const int CONJB>
-void gemm_packed_template_batched_nt(
-    magma_int_t m, magma_int_t n, magma_int_t k,
-    T const * const * dA_array, magma_int_t ldda,
-    T const * const * dB_array, magma_int_t lddb,
-    T**       dC_array, magma_int_t lddc,
-    T alpha, T beta,
-    magma_int_t roffA, magma_int_t coffA,
-    magma_int_t roffB, magma_int_t coffB,
-    magma_int_t roffC, magma_int_t coffC,
-    magma_int_t batchCount, magma_queue_t queue)
-{
-    size_t shmem = 0;
-    magma_int_t max_batchCount = queue->get_maxBatch();
-    shmem += SLDA(BLK_M) * BLK_K * sizeof(T);  // sA
-    shmem += SLDB(BLK_K) * BLK_N * sizeof(T);  // sB
-
-    #if CUDA_VERSION >= 9000
-    // always opt-in for shared memory
-    cudaFuncSetAttribute(
-            gemm_packed_template_batched_nt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
-            cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
-    #endif
-
-    dim3 dimBlock(DIM_X, DIM_Y);
-    for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
-        magma_int_t ibatch = min(max_batchCount, batchCount-i);
-        dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), ibatch );
-        gemm_packed_template_batched_nt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
+        gemm_lower_packed_template_batched_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
         <<< dimGrid, dimBlock, shmem, queue->cuda_stream() >>>
         (m, n, k, dA_array+i, ldda, dB_array+i, lddb, dC_array+i, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
     }
@@ -244,7 +202,7 @@ template <typename T, const int DIM_X, const int DIM_Y,
          const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
-void gemm_packed_template_batched_tn(
+void gemm_lower_packed_template_batched_tn(
     magma_int_t m, magma_int_t n, magma_int_t k,
     T const * const * dA_array, magma_int_t ldda,
     T const * const * dB_array, magma_int_t lddb,
@@ -263,7 +221,7 @@ void gemm_packed_template_batched_tn(
     #if CUDA_VERSION >= 9000
     // always opt-in for shared memory
     cudaFuncSetAttribute(
-            gemm_packed_template_batched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            gemm_lower_packed_template_batched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
             cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     #endif
 
@@ -271,7 +229,46 @@ void gemm_packed_template_batched_tn(
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), ibatch );
-        gemm_packed_template_batched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
+        gemm_lower_packed_template_batched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
+        <<< dimGrid, dimBlock, shmem, queue->cuda_stream() >>>
+        (m, n, k, dA_array+i, ldda, dB_array+i, lddb, dC_array+i, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
+    }
+}
+
+/******************************************************************************/
+// NN - upper
+template <typename T, const int DIM_X, const int DIM_Y,
+         const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
+         const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
+         const int CONJA, const int CONJB>
+void gemm_upper_packed_template_batched_nn(
+    magma_int_t m, magma_int_t n, magma_int_t k,
+    T const * const * dA_array, magma_int_t ldda,
+    T const * const * dB_array, magma_int_t lddb,
+    T**       dC_array, magma_int_t lddc,
+    T alpha, T beta,
+    magma_int_t roffA, magma_int_t coffA,
+    magma_int_t roffB, magma_int_t coffB,
+    magma_int_t roffC, magma_int_t coffC,
+    magma_int_t batchCount, magma_queue_t queue)
+{
+    size_t shmem = 0;
+    magma_int_t max_batchCount = queue->get_maxBatch();
+    shmem += SLDA(BLK_M) * BLK_K * sizeof(T);  // sA
+    shmem += SLDB(BLK_K) * BLK_N * sizeof(T);  // sB
+
+    #if CUDA_VERSION >= 9000
+    // always opt-in for shared memory
+    cudaFuncSetAttribute(
+            gemm_upper_packed_template_batched_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+    #endif
+
+    dim3 dimBlock(DIM_X, DIM_Y);
+    for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
+        magma_int_t ibatch = min(max_batchCount, batchCount-i);
+        dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), ibatch );
+        gemm_upper_packed_template_batched_nn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
         <<< dimGrid, dimBlock, shmem, queue->cuda_stream() >>>
         (m, n, k, dA_array+i, ldda, dB_array+i, lddb, dC_array+i, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
     }
@@ -279,12 +276,12 @@ void gemm_packed_template_batched_tn(
 
 
 /******************************************************************************/
-// TT, TC, CT, CC
+// TN, CN -- upper
 template <typename T, const int DIM_X, const int DIM_Y,
          const int BLK_M, const int BLK_N, const int BLK_K, const int dim_vec,
          const int DIM_XA, const int DIM_YA, const int DIM_XB, const int DIM_YB,
          const int CONJA, const int CONJB>
-void gemm_packed_template_batched_tt(
+void gemm_upper_packed_template_batched_tn(
     magma_int_t m, magma_int_t n, magma_int_t k,
     T const * const * dA_array, magma_int_t ldda,
     T const * const * dB_array, magma_int_t lddb,
@@ -303,7 +300,7 @@ void gemm_packed_template_batched_tt(
     #if CUDA_VERSION >= 9000
     // always opt-in for shared memory
     cudaFuncSetAttribute(
-            gemm_packed_template_batched_tt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
+            gemm_upper_packed_template_batched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>,
             cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     #endif
 
@@ -311,10 +308,9 @@ void gemm_packed_template_batched_tt(
     for(magma_int_t i = 0; i < batchCount; i += max_batchCount) {
         magma_int_t ibatch = min(max_batchCount, batchCount-i);
         dim3 dimGrid( magma_ceildiv( m, BLK_M ), magma_ceildiv( n, BLK_N ), ibatch );
-        gemm_packed_template_batched_tt_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
+        gemm_upper_packed_template_batched_tn_kernel<T, DIM_X, DIM_Y, BLK_M, BLK_N, BLK_K, DIM_XA, DIM_YA, DIM_XB, DIM_YB, CONJA, CONJB>
         <<< dimGrid, dimBlock, shmem, queue->cuda_stream() >>>
         (m, n, k, dA_array+i, ldda, dB_array+i, lddb, dC_array+i, lddc, alpha, beta, roffA, coffA, roffB, coffB, roffC, coffC);
     }
 }
-
 #endif //GEMM_PACKED_TEMPLATE_KERNEL_BATCHED_CUH

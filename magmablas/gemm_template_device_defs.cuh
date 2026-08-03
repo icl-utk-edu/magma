@@ -69,7 +69,8 @@ T op(const T& x) {return conj<conjugate>(x);}
 
 // =============================================================================
 #define fetch(A, m, n, bound)         A[min(n*LD##A+m, bound)]
-#define fetch_packed(A, m, n, bound)  A[min(LD##A*(n) - (n)*(n+1)/2 + m, bound)]
+#define fetch_lower_packed(A, m, n, bound)  A[min(LD##A*(n) - (n)*(n+1)/2 + m, bound)]
+#define fetch_upper_packed(A, m, n, bound)  A[min((n)*(n+1)/2 + m, bound)]
 // =============================================================================
 #if defined(PRECISION_z)
     #define add(A, B)        MAGMA_Z_ADD(A, B)
@@ -239,9 +240,10 @@ read_gm2rg_notrans(
 // Assuming 2D thread-config: DIM_X x DIM_Y
 // boundA is the last element that can be read without going out-of-bound
 // Partial blocks are padded with zeros
+// This is for a packed matrix where the lower half is stored
 template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y>
 static __device__ __inline__ void
-read_packed_gm2sm_notrans(
+read_lower_packed_gm2sm_notrans(
     const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
           T*              sA, int &slda,
     const int &tx, const int &ty,
@@ -252,7 +254,7 @@ read_packed_gm2sm_notrans(
         for (int n = 0; n < BLK_COL; n += DIM_Y)
             #pragma unroll
             for (int m = 0; m < BLK_ROW; m += DIM_X) {
-                sA(m+tx,n+ty) = fetch_packed(A, m + roffA, n + coffA, boundA);
+                sA(m+tx,n+ty) = fetch_lower_packed(A, m + roffA, n + coffA, boundA);
             }
     }
     else {
@@ -263,7 +265,44 @@ read_packed_gm2sm_notrans(
             #pragma unroll
             for (int m = 0; m < BLK_ROW; m += DIM_X) {
                 mtx = m + tx;
-                sA(mtx,nty) = (mtx >= mb || nty >= nb) ? make_FloatingPoint(0, 0) : fetch_packed(A, m + roffA, n + coffA, boundA);
+                sA(mtx,nty) = (mtx >= mb || nty >= nb) ? make_FloatingPoint(0, 0) : fetch_lower_packed(A, m + roffA, n + coffA, boundA);
+            }
+        }
+    }
+}
+
+/******************************************************************************/
+// read a block from packed global memory to shared memory -- non-transposed
+// Block dimensions are mb x nb, assumed be default as BLK_ROW x BLK_COL
+// Assuming 2D thread-config: DIM_X x DIM_Y
+// boundA is the last element that can be read without going out-of-bound
+// Partial blocks are padded with zeros
+// This is for a packed matrix where the upper half is stored
+template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y>
+static __device__ __inline__ void
+read_upper_packed_gm2sm_notrans(
+    const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
+          T*              sA, int &slda,
+    const int &tx, const int &ty,
+    const int mb = BLK_ROW, const int nb = BLK_COL )
+{
+    if(mb == BLK_ROW && nb == BLK_COL) {
+        #pragma unroll
+        for (int n = 0; n < BLK_COL; n += DIM_Y)
+            #pragma unroll
+            for (int m = 0; m < BLK_ROW; m += DIM_X) {
+                sA(m+tx,n+ty) = fetch_upper_packed(A, m + roffA, n + coffA, boundA);
+            }
+    }
+    else {
+        int mtx, nty;
+        #pragma unroll
+        for (int n = 0; n < BLK_COL; n += DIM_Y) {
+            nty = n + ty;
+            #pragma unroll
+            for (int m = 0; m < BLK_ROW; m += DIM_X) {
+                mtx = m + tx;
+                sA(mtx,nty) = (mtx >= mb || nty >= nb) ? make_FloatingPoint(0, 0) : fetch_upper_packed(A, m + roffA, n + coffA, boundA);
             }
         }
     }
@@ -276,9 +315,10 @@ read_packed_gm2sm_notrans(
 // boundA is the last element that can be read without going out-of-bound
 // Partial blocks are padded with zeros
 // if CONJA = 1, the block is conjugate-transposed
+// This is for a packed matrix where the lower half is stored
 template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y, int CONJA>
 static __device__ __inline__ void
-read_packed_gm2sm_trans(
+read_lower_packed_gm2sm_trans(
     const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
           T*              sA, int &slda,
     const int &tx, const int &ty,
@@ -289,7 +329,7 @@ read_packed_gm2sm_trans(
         for (int n = 0; n < BLK_COL; n += DIM_Y)
             #pragma unroll
             for (int m = 0; m < BLK_ROW; m += DIM_X)
-                sA(n+ty,m+tx) = op<T, CONJA>( fetch_packed(A, m + roffA, n + coffA, boundA) );
+                sA(n+ty,m+tx) = op<T, CONJA>( fetch_lower_packed(A, m + roffA, n + coffA, boundA) );
     }
     else {
         int mtx, nty;
@@ -299,20 +339,59 @@ read_packed_gm2sm_trans(
             #pragma unroll
             for (int m = 0; m < BLK_ROW; m += DIM_X) {
                 mtx = m + tx;
-                sA(nty,mtx) = (mtx >= mb || nty >= nb) ? make_FloatingPoint(0, 0) : op<T, CONJA>( fetch_packed(A, m + roffA, n + coffA, boundA) );
+                sA(nty,mtx) = (mtx >= mb || nty >= nb) ? make_FloatingPoint(0, 0) : op<T, CONJA>( fetch_lower_packed(A, m + roffA, n + coffA, boundA) );
             }
         }
     }
 }
 
 /******************************************************************************/
+// read a block from packed global memory to shared memory -- transpose it in shared memory
+// Block dimensions are mb x nb, assumed be default as BLK_ROW x BLK_COL
+// Assuming 2D thread-config: DIM_X x DIM_Y
+// boundA is the last element that can be read without going out-of-bound
+// Partial blocks are padded with zeros
+// if CONJA = 1, the block is conjugate-transposed
+// This is for a packed matrix where the upper half is stored
+template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y, int CONJA>
+static __device__ __inline__ void
+read_upper_packed_gm2sm_trans(
+    const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
+          T*              sA, int &slda,
+    const int &tx, const int &ty,
+    const int mb = BLK_ROW, const int nb = BLK_COL )
+{
+    if(mb == BLK_ROW && nb == BLK_COL) {
+        #pragma unroll
+        for (int n = 0; n < BLK_COL; n += DIM_Y)
+            #pragma unroll
+            for (int m = 0; m < BLK_ROW; m += DIM_X)
+                sA(n+ty,m+tx) = op<T, CONJA>( fetch_upper_packed(A, m + roffA, n + coffA, boundA) );
+    }
+    else {
+        int mtx, nty;
+        #pragma unroll
+        for (int n = 0; n < BLK_COL; n += DIM_Y) {
+            nty = n+ty;
+            #pragma unroll
+            for (int m = 0; m < BLK_ROW; m += DIM_X) {
+                mtx = m + tx;
+                sA(nty,mtx) = (mtx >= mb || nty >= nb) ? make_FloatingPoint(0, 0) : op<T, CONJA>( fetch_upper_packed(A, m + roffA, n + coffA, boundA) );
+            }
+        }
+    }
+}
+
+
+/******************************************************************************/
 // read a block from packed global memory to registers -- non-transposed
 // Block dimensions are BLK_ROW x BLK_COL
 // Assuming 2D thread-config: DIM_X x DIM_Y
 // Partial blocks are padded with the element pointed to by boundA
+// This is for a packed matrix where the lower half is stored
 template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y>
 static __device__ __inline__ void
-read_packed_gm2rg_notrans(
+read_lower_packed_gm2rg_notrans(
     const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
           T  rg[BLK_COL/DIM_Y][BLK_ROW/DIM_X])
 {
@@ -320,7 +399,26 @@ read_packed_gm2rg_notrans(
     for (int n = 0; n < BLK_COL/DIM_Y; n++)
         #pragma unroll
         for (int m = 0; m < BLK_ROW/DIM_X; m++)
-            rg[n][m] = fetch_packed(A, m*DIM_X + roffA, n*DIM_Y + coffA, boundA);
+            rg[n][m] = fetch_lower_packed(A, m*DIM_X + roffA, n*DIM_Y + coffA, boundA);
+}
+
+/******************************************************************************/
+// read a block from packed global memory to registers -- non-transposed
+// Block dimensions are BLK_ROW x BLK_COL
+// Assuming 2D thread-config: DIM_X x DIM_Y
+// Partial blocks are padded with the element pointed to by boundA
+// This is for a packed matrix where the upper half is stored
+template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y>
+static __device__ __inline__ void
+read_upper_packed_gm2rg_notrans(
+    const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
+          T  rg[BLK_COL/DIM_Y][BLK_ROW/DIM_X])
+{
+    #pragma unroll
+    for (int n = 0; n < BLK_COL/DIM_Y; n++)
+        #pragma unroll
+        for (int m = 0; m < BLK_ROW/DIM_X; m++)
+            rg[n][m] = fetch_upper_packed(A, m*DIM_X + roffA, n*DIM_Y + coffA, boundA);
 }
 
 /******************************************************************************/
