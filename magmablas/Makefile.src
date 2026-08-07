@@ -156,6 +156,7 @@ libmagma_src += \
 	$(cdir)/zgemv_packed_batched_core.cu		\
 	$(cdir)/zgemv_batched_smallsq.cu		\
 	$(cdir)/zhemv_batched_core.cu		\
+	$(cdir)/zhemv_packed_batched_core.cu		\
 	$(cdir)/zgeqr2_batched.cu		\
 	$(cdir)/zgeqr2_batched_fused_reg.cu		\
 	$(cdir)/zgeqr2_batched_fused_reg_medium.cu		\
@@ -436,6 +437,11 @@ $(cdir)/zhemv_batched_core.$(o_ext): $(cdir)/hemv_template_kernel_batched.cuh $(
 $(cdir)/chemv_batched_core.$(o_ext): $(cdir)/hemv_template_kernel_batched.cuh $(cdir)/hemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 $(cdir)/dsymv_batched_core.$(o_ext): $(cdir)/hemv_template_kernel_batched.cuh $(cdir)/hemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 $(cdir)/ssymv_batched_core.$(o_ext): $(cdir)/hemv_template_kernel_batched.cuh $(cdir)/hemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+
+$(cdir)/zhemv_packed_batched_core.$(o_ext): $(cdir)/hemv_packed_template_kernel_batched.cuh $(cdir)/hemv_packed_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/chemv_packed_batched_core.$(o_ext): $(cdir)/hemv_packed_template_kernel_batched.cuh $(cdir)/hemv_packed_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/dsymv_packed_batched_core.$(o_ext): $(cdir)/hemv_packed_template_kernel_batched.cuh $(cdir)/hemv_packed_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/ssymv_packed_batched_core.$(o_ext): $(cdir)/hemv_packed_template_kernel_batched.cuh $(cdir)/hemv_packed_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 
 $(cdir)/zgemv_vbatched_core.$(o_ext): $(cdir)/gemv_template_kernel_vbatched.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
 $(cdir)/cgemv_vbatched_core.$(o_ext): $(cdir)/gemv_template_kernel_vbatched.cuh $(cdir)/gemv_template_device.cuh $(cdir)/gemm_template_device_defs.cuh
