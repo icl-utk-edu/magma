@@ -151,6 +151,7 @@ blas = [
     ('sscal',          'dscal',          'sscal',          'dscal'           ),
     ('sswap',          'dswap',          'cswap',          'zswap'           ),
     ('ssymm',          'dsymm',          'chemm',          'zhemm'           ),
+    ('sspmm',          'dspmm',          'chpmm',          'zhpmm'           ),
     ('ssytrs',         'dsytrs',         'chetrs',         'zhetrs'          ),
     ('ssymm',          'dsymm',          'csymm',          'zsymm'           ),
     ('ssymv',          'dsymv',          'chemv',          'zhemv'           ),
