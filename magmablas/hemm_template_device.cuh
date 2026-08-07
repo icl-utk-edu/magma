@@ -15,6 +15,12 @@
 
 #ifndef HEMM_TEMPLATE_DEVICE_CUH
 #define HEMM_TEMPLATE_DEVICE_CUH
+
+// TODO: HEMM should be refactored to use the new `fetch` macro
+// in gemm_template_device_defs.cuh, as was done for GEMM in
+// PR #70.
+#define fetch_offs(A, m, n, bound)    offs_d##A[min(n*LD##A+m, bound)]
+
 /******************************************************************************/
 // op<trans>( x ) returns x or conj(x).
 template<typename T, const int CONJA>
@@ -72,13 +78,13 @@ void hemm_template_device_ll(
         for (int n = 0; n < BLK_M; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sA[n+ty][m+tx] = fetch(A, m, n, boundA);
+                sA[n+ty][m+tx] = fetch_offs(A, m, n, boundA);
         
         #pragma unroll
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
         __syncthreads();
 
@@ -110,7 +116,7 @@ void hemm_template_device_ll(
         for (int n = 0; n < BLK_M; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sA[n+ty][m+tx] = fetch(A, m, n, boundA);    
+                sA[n+ty][m+tx] = fetch_offs(A, m, n, boundA);
         __syncthreads();
         
         // read B block
@@ -118,7 +124,7 @@ void hemm_template_device_ll(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
         // mirror A block - copy lower to upper
         #pragma unroll
@@ -174,7 +180,7 @@ void hemm_template_device_ll(
         for (int n = 0; n < BLK_M; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM){
-                tmp = fetch(A, m, n, boundA); 
+                tmp = fetch_offs(A, m, n, boundA);
                 sA[m+tx][n+ty] = OP<T, CONJA>( tmp );
             }
         
@@ -182,7 +188,7 @@ void hemm_template_device_ll(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
         __syncthreads();
 
@@ -213,7 +219,7 @@ void hemm_template_device_ll(
     for (int n = 0; n < BLK_M; n += DIM)
         #pragma unroll
         for (int m = 0; m < BLK_M; m += DIM){
-            tmp = fetch(A, m, n, boundA);
+            tmp = fetch_offs(A, m, n, boundA);
             sA[m+tx][n+ty] = OP<T, CONJA>( tmp );
         }
     
@@ -221,7 +227,7 @@ void hemm_template_device_ll(
     for (int n = 0; n < BLK_N; n += DIM)
         #pragma unroll
         for (int m = 0; m < BLK_M; m += DIM)
-            sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+            sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
     __syncthreads();
     // Multiply
@@ -305,7 +311,7 @@ void hemm_template_device_lu(
         for (int n = 0; n < BLK_M; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM){
-                tmp = fetch(A, m, n, boundA); 
+                tmp = fetch_offs(A, m, n, boundA);
                 sA[m+tx][n+ty] = OP<T, CONJA>( tmp );
             }
         
@@ -313,7 +319,7 @@ void hemm_template_device_lu(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
         __syncthreads();
 
@@ -345,7 +351,7 @@ void hemm_template_device_lu(
         for (int n = 0; n < BLK_M; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sA[n+ty][m+tx] = fetch(A, m, n, boundA);
+                sA[n+ty][m+tx] = fetch_offs(A, m, n, boundA);
         __syncthreads();
         
         // read B block
@@ -353,7 +359,7 @@ void hemm_template_device_lu(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
         // mirror A block - copy upper to lower
         #pragma unroll
@@ -409,13 +415,13 @@ void hemm_template_device_lu(
         for (int n = 0; n < BLK_M; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sA[n+ty][m+tx] = fetch(A, m, n, boundA);
+                sA[n+ty][m+tx] = fetch_offs(A, m, n, boundA);
         
         #pragma unroll
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
 
         offs_dA += BLK_M*LDA;
         boundA  -= BLK_M*LDA;
@@ -445,13 +451,13 @@ void hemm_template_device_lu(
     for (int n = 0; n < BLK_M; n += DIM)
         #pragma unroll
         for (int m = 0; m < BLK_M; m += DIM)
-            sA[n+ty][m+tx] = fetch(A, m, n, boundA);
+            sA[n+ty][m+tx] = fetch_offs(A, m, n, boundA);
     
     #pragma unroll
     for (int n = 0; n < BLK_N; n += DIM)
         #pragma unroll
         for (int m = 0; m < BLK_M; m += DIM)
-            sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+            sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
     __syncthreads();
     // Multiply
@@ -533,7 +539,7 @@ void hemm_template_device_rl(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_N; m += DIM){
-                tmp = fetch(A, m, n, boundA); 
+                tmp = fetch_offs(A, m, n, boundA);
                 sA[m+tx][n+ty] = OP<T, CONJA>( tmp );
             }
         
@@ -541,7 +547,7 @@ void hemm_template_device_rl(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
         __syncthreads();
 
@@ -573,7 +579,7 @@ void hemm_template_device_rl(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_N; m += DIM)
-                sA[n+ty][m+tx] = fetch(A, m, n, boundA);
+                sA[n+ty][m+tx] = fetch_offs(A, m, n, boundA);
         __syncthreads();
         
         // read B block
@@ -581,7 +587,7 @@ void hemm_template_device_rl(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
         // mirror A block - copy lower to upper
         #pragma unroll
@@ -637,14 +643,14 @@ void hemm_template_device_rl(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_N; m += DIM){ 
-                sA[n+ty][m+tx] = fetch(A, m, n, boundA);
+                sA[n+ty][m+tx] = fetch_offs(A, m, n, boundA);
             }
         
         #pragma unroll
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
         __syncthreads();
 
@@ -675,14 +681,14 @@ void hemm_template_device_rl(
     for (int n = 0; n < BLK_N; n += DIM)
         #pragma unroll
         for (int m = 0; m < BLK_N; m += DIM){
-            sA[n+ty][m+tx] = fetch(A, m, n, boundA);
+            sA[n+ty][m+tx] = fetch_offs(A, m, n, boundA);
         }
     
     #pragma unroll
     for (int n = 0; n < BLK_N; n += DIM)
         #pragma unroll
         for (int m = 0; m < BLK_M; m += DIM)
-            sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+            sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
     __syncthreads();
     // Multiply
@@ -764,14 +770,14 @@ void hemm_template_device_ru(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_N; m += DIM){ 
-                sA[n+ty][m+tx] = fetch(A, m, n, boundA);
+                sA[n+ty][m+tx] = fetch_offs(A, m, n, boundA);
             }
         
         #pragma unroll
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
         __syncthreads();
 
@@ -803,7 +809,7 @@ void hemm_template_device_ru(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_N; m += DIM)
-                sA[n+ty][m+tx] = fetch(A, m, n, boundA);
+                sA[n+ty][m+tx] = fetch_offs(A, m, n, boundA);
         __syncthreads();
         
         // read B block
@@ -811,7 +817,7 @@ void hemm_template_device_ru(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
         // mirror A block - copy upper to lower
         #pragma unroll
@@ -867,7 +873,7 @@ void hemm_template_device_ru(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_N; m += DIM){
-                tmp = fetch(A, m, n, boundA); 
+                tmp = fetch_offs(A, m, n, boundA);
                 sA[m+tx][n+ty] = OP<T, CONJA>( tmp );
             }
         
@@ -875,7 +881,7 @@ void hemm_template_device_ru(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_M; m += DIM)
-                sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
         __syncthreads();
 
@@ -906,7 +912,7 @@ void hemm_template_device_ru(
         for (int n = 0; n < BLK_N; n += DIM)
             #pragma unroll
             for (int m = 0; m < BLK_N; m += DIM){
-                tmp = fetch(A, m, n, boundA); 
+                tmp = fetch_offs(A, m, n, boundA);
                 sA[m+tx][n+ty] = OP<T, CONJA>( tmp );
             }
 
@@ -914,7 +920,7 @@ void hemm_template_device_ru(
     for (int n = 0; n < BLK_N; n += DIM)
         #pragma unroll
         for (int m = 0; m < BLK_M; m += DIM)
-            sB[n+ty][m+tx] = fetch(B, m, n, boundB);
+            sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
     
     __syncthreads();
     // Multiply
