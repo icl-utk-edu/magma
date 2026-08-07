@@ -1,0 +1,491 @@
+/*
+    -- MAGMA (version 1.1) --
+       Univ. of Tennessee, Knoxville
+       Univ. of California, Berkeley
+       Univ. of Colorado, Denver
+       @date
+       
+       @author Jakub Kurzak
+       @author Stan Tomov
+       @author Mark Gates
+       @author Azzam Haidar
+       @author Ahmad Abdelfattah
+       @author Natalie Beams
+
+*/
+
+#ifndef HEMM_PACKED_TEMPLATE_DEVICE_CUH
+#define HEMM_PACKED_TEMPLATE_DEVICE_CUH
+
+// TODO: HEMM should be refactored to use the new `fetch` macro
+// in gemm_template_device_defs.cuh, as was done for GEMM in
+// PR #70.
+#define fetch_offs(A, m, n, bound)    offs_d##A[min(n*LD##A+m, bound)]
+
+/******************************************************************************/
+// op<trans>( x ) returns x or conj(x).
+template<typename T, const int CONJA>
+__device__ static inline T OP( T& x )
+{
+    if(CONJA == 1) return conj(x);
+    else return x;
+}
+
+/******************************************************************************/
+template<class T, const int DIM, const int BLK_M, const int BLK_N, 
+         const int THR_M, const int THR_N, const int CONJA>
+static __device__ 
+void hemm_packed_template_device_ll(
+    int M, int N, 
+    const T* __restrict__ A, int roffA, int coffA, int LDA,
+    const T* __restrict__ B, int LDB,
+    T*       __restrict__ C, int LDC,
+    T alpha, T beta )
+{
+    const int tx = threadIdx.x;  // thread's m dimension
+    const int ty = threadIdx.y;  // thread's n dimension
+
+    const int bx = blockIdx.x;   // block's m dimension
+    const int by = blockIdx.y;   // block's n dimension
+
+    __shared__ T sA[BLK_M][BLK_M+1];
+    __shared__ T sB[BLK_N][BLK_M+1];
+
+    // Registers for the innermost loop
+    T rC[THR_N][THR_M];
+    T tmp; 
+   
+    int rowA = bx * BLK_M + tx + roffA;
+    int colA = ty + coffA;
+    ptrdiff_t boundA = (LDA*(LDA+1)/2) - 1;
+    
+    const T *offs_dB = B + by*BLK_N*LDB + ty*LDB + tx;
+    ptrdiff_t boundB = (LDB*(N-1) + M) - ( by*BLK_N*LDB + ty*LDB + tx ) -1;
+    
+    // Zero C
+    #pragma unroll
+    for (int n = 0; n < THR_N; n++)
+        #pragma unroll
+        for (int m = 0; m < THR_M; m++)
+            rC[n][m] = make_FloatingPoint(0.0, 0.0);
+    
+    const int part_1 = BLK_M * bx;
+    const int part_2 = min(BLK_M, M - part_1);
+    const int part_3 = M - ( part_1 + part_2 ); 
+    int kk;
+    
+    // part 1
+    for (kk = 0; kk < part_1; kk += BLK_M){
+        #pragma unroll
+        for (int n = 0; n < BLK_M; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM)
+                sA[n+ty][m+tx] = fetch_lower_packed(A, rowA + m, colA + n, boundA);
+        
+        #pragma unroll
+        for (int n = 0; n < BLK_N; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM)
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
+    
+        __syncthreads();
+
+	colA += BLK_M;
+
+        offs_dB += BLK_M;
+        boundB  -= BLK_M;
+        
+        // Multiply
+        #pragma unroll
+        for (int k = 0; k < BLK_M; k++)
+        {
+            #pragma unroll
+            for (int n = 0; n < THR_N; n++) {
+                #pragma unroll
+                for (int m = 0; m < THR_M; m++) {
+                    fma( sA[k][m*DIM+tx], sB[n*DIM+ty][k], rC[n][m]);
+                }
+            }
+        }
+        __syncthreads();
+    }
+    
+    //part 2
+    if(part_2 > 0){
+        // read diagonal A block
+        #pragma unroll
+        for (int n = 0; n < BLK_M; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM)
+                sA[n+ty][m+tx] = fetch_lower_packed(A, rowA + m, colA + n, boundA);
+        __syncthreads();
+        
+        // read B block
+        #pragma unroll
+        for (int n = 0; n < BLK_N; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM)
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
+    
+        // mirror A block - copy lower to upper
+        #pragma unroll
+        for (int n = 0; n < BLK_M; n += DIM){
+            if(ty > tx){
+                sA[n+ty][n+tx] = OP<T, CONJA>( sA[n+tx][n+ty] );
+            }else if(ty == tx){
+                sA[n+ty][n+tx] = make_FloatingPoint( real(sA[n+ty][n+tx]), 0.0 );
+            }
+            #pragma unroll
+            for (int m = n+DIM; m < BLK_M; m += DIM)
+                sA[m+ty][n+tx] = OP<T, CONJA>( sA[n+tx][m+ty] );
+        }
+        
+        // advance pointers 
+	rowA += BLK_M;
+        
+        offs_dB += BLK_M;
+        boundB  -= BLK_M;
+        
+        __syncthreads();
+        // Multiply - account for irregular sizes
+        if(part_2 < BLK_M){
+            #pragma unroll
+            for (int k = 0; k < part_2; k++){
+                #pragma unroll
+                for (int n = 0; n < THR_N; n++) {
+                    #pragma unroll
+                    for (int m = 0; m < THR_M; m++) {
+                        fma( sA[k][m*DIM+tx], sB[n*DIM+ty][k], rC[n][m]);
+                    }
+                }
+            }
+        }else{
+            #pragma unroll
+            for (int k = 0; k < BLK_M; k++){
+                #pragma unroll
+                for (int n = 0; n < THR_N; n++) {
+                    #pragma unroll
+                    for (int m = 0; m < THR_M; m++) {
+                        fma( sA[k][m*DIM+tx], sB[n*DIM+ty][k], rC[n][m]);
+                    }
+                }
+            }
+        }
+        __syncthreads();
+    }
+    
+    // part three
+    for (kk = 0; kk < part_3-BLK_M; kk += BLK_M){
+        #pragma unroll
+        for (int n = 0; n < BLK_M; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM){
+                tmp = fetch_lower_packed(A, rowA + m, colA + n, boundA);
+                sA[m+tx][n+ty] = OP<T, CONJA>( tmp );
+            }
+        
+        #pragma unroll
+        for (int n = 0; n < BLK_N; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM)
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
+    
+        __syncthreads();
+
+        rowA += BLK_M;
+        
+        offs_dB += BLK_M;
+        boundB  -= BLK_M;
+        
+        // Multiply
+        #pragma unroll
+        for (int k = 0; k < BLK_M; k++)
+        {
+            #pragma unroll
+            for (int n = 0; n < THR_N; n++) {
+                #pragma unroll
+                for (int m = 0; m < THR_M; m++) {
+                    fma( sA[k][m*DIM+tx], sB[n*DIM+ty][k], rC[n][m]);
+                }
+            }
+        }
+        __syncthreads();
+    }
+    
+    // Multiply last full (BLK_M) or partial block
+    kk = part_3 - kk;
+    #pragma unroll
+    for (int n = 0; n < BLK_M; n += DIM)
+        #pragma unroll
+        for (int m = 0; m < BLK_M; m += DIM){
+            tmp = fetch_lower_packed(A, rowA + m, colA + n, boundA);
+            sA[m+tx][n+ty] = OP<T, CONJA>( tmp );
+        }
+    
+    #pragma unroll
+    for (int n = 0; n < BLK_N; n += DIM)
+        #pragma unroll
+        for (int m = 0; m < BLK_M; m += DIM)
+            sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
+    
+    __syncthreads();
+    // Multiply
+    #pragma unroll
+    for (int k = 0; k < kk; k++){
+        #pragma unroll
+        for (int n = 0; n < THR_N; n++) {
+            #pragma unroll
+            for (int m = 0; m < THR_M; m++) {
+                fma( sA[k][m*DIM+tx], sB[n*DIM+ty][k], rC[n][m] );
+            }
+        }
+    }
+
+    // Store C regs->dev
+    #pragma unroll
+    for (int n = 0; n < THR_N; n++) {
+        int coord_dCn = by*BLK_N + n*DIM + ty;
+        #pragma unroll
+        for (int m = 0; m < THR_M; m++) {
+            int coord_dCm = bx*BLK_M + m*DIM + tx;
+            if (coord_dCm < M && coord_dCn < N) {
+                int offsC = coord_dCn*LDC + coord_dCm;
+
+                T &regC = rC[n][m];
+                T &memC = C[offsC];
+
+                memC = add(mul(alpha, regC), mul(beta, memC));
+            }
+        }
+    }
+}
+
+/******************************************************************************/
+template<class T, const int DIM, const int BLK_M, const int BLK_N, 
+         const int THR_M, const int THR_N, const int CONJA>
+static __device__ 
+void hemm_packed_template_device_lu(
+    int M, int N, 
+    const T* __restrict__ A, int roffA, int coffA, int LDA,
+    const T* __restrict__ B, int LDB,
+    T*       __restrict__ C, int LDC,
+    T alpha, T beta )
+{
+    const int tx = threadIdx.x;  // thread's m dimension
+    const int ty = threadIdx.y;  // thread's n dimension
+
+    const int bx = blockIdx.x;   // block's m dimension
+    const int by = blockIdx.y;   // block's n dimension
+
+    __shared__ T sA[BLK_M][BLK_M+1];
+    __shared__ T sB[BLK_N][BLK_M+1];
+
+    // Registers for the innermost loop
+    T rC[THR_N][THR_M];
+    T tmp; 
+    
+    int rowA = tx + roffA;
+    int colA = bx * BLK_M + ty + coffA;
+    ptrdiff_t boundA = (LDA*(LDA+1)/2) - 1;
+    
+    const T *offs_dB = B + by*BLK_N*LDB + ty*LDB + tx;
+    ptrdiff_t boundB = (LDB*(N-1) + M) - ( by*BLK_N*LDB + ty*LDB + tx ) -1;
+    
+    // Zero C
+    #pragma unroll
+    for (int n = 0; n < THR_N; n++)
+        #pragma unroll
+        for (int m = 0; m < THR_M; m++)
+            rC[n][m] = make_FloatingPoint(0.0, 0.0);
+    
+    const int part_1 = BLK_M * bx;
+    const int part_2 = min(BLK_M, M - part_1);
+    const int part_3 = M - ( part_1 + part_2 ); 
+    int kk;
+
+    
+    // part 1
+    for (kk = 0; kk < part_1; kk += BLK_M)
+    {
+        #pragma unroll
+        for (int n = 0; n < BLK_M; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM){
+                tmp = fetch_upper_packed(A, rowA + m, colA + n, boundA);
+                sA[m+tx][n+ty] = OP<T, CONJA>( tmp );
+            }
+        
+        #pragma unroll
+        for (int n = 0; n < BLK_N; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM)
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
+    
+        __syncthreads();
+
+        rowA += BLK_M;
+
+        offs_dB += BLK_M;
+        boundB  -= BLK_M;
+        
+        // Multiply
+        #pragma unroll
+        for (int k = 0; k < BLK_M; k++)
+        {
+            #pragma unroll
+            for (int n = 0; n < THR_N; n++) {
+                #pragma unroll
+                for (int m = 0; m < THR_M; m++) {
+                    fma( sA[k][m*DIM+tx], sB[n*DIM+ty][k], rC[n][m]);
+                }
+            }
+        }
+        __syncthreads();
+    }
+    
+    //part 2
+    if(part_2 > 0){
+        // read diagonal A block
+        #pragma unroll
+        for (int n = 0; n < BLK_M; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM)
+                sA[n+ty][m+tx] = fetch_upper_packed(A, rowA + m, colA + n, boundA);
+        __syncthreads();
+        
+        // read B block
+        #pragma unroll
+        for (int n = 0; n < BLK_N; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM)
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
+    
+        // mirror A block - copy upper to lower
+        #pragma unroll
+        for (int n = 0; n < BLK_M; n += DIM){
+            if(ty < tx){
+                sA[n+ty][n+tx] = OP<T, CONJA>( sA[n+tx][n+ty] );
+            }else if(ty == tx){
+                sA[n+ty][n+tx] = make_FloatingPoint( real(sA[n+ty][n+tx]), 0.0 );
+            }
+            #pragma unroll
+            for (int m = n+DIM; m < BLK_M; m += DIM)
+                sA[n+ty][m+tx] = OP<T, CONJA>( sA[m+tx][n+ty] );
+        }
+        
+        // advance pointers 
+	colA += BLK_M;
+
+        offs_dB += BLK_M;
+        boundB  -= BLK_M;
+        
+        __syncthreads();
+        // Multiply
+        if(part_2 < BLK_M){
+            #pragma unroll
+            for (int k = 0; k < part_2; k++){
+                #pragma unroll
+                for (int n = 0; n < THR_N; n++) {
+                    #pragma unroll
+                    for (int m = 0; m < THR_M; m++) {
+                        fma( sA[k][m*DIM+tx], sB[n*DIM+ty][k], rC[n][m]);
+                    }
+                }
+            }
+        }else{
+            #pragma unroll
+            for (int k = 0; k < BLK_M; k++){
+                #pragma unroll
+                for (int n = 0; n < THR_N; n++) {
+                    #pragma unroll
+                    for (int m = 0; m < THR_M; m++) {
+                        fma( sA[k][m*DIM+tx], sB[n*DIM+ty][k], rC[n][m]);
+                    }
+                }
+            }
+        }
+        __syncthreads();
+    }
+    
+    // part three
+    for (kk = 0; kk < part_3-BLK_M; kk += BLK_M){
+        #pragma unroll
+        for (int n = 0; n < BLK_M; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM)
+                sA[n+ty][m+tx] = fetch_upper_packed(A, rowA + m, colA + n, boundA);
+        
+        #pragma unroll
+        for (int n = 0; n < BLK_N; n += DIM)
+            #pragma unroll
+            for (int m = 0; m < BLK_M; m += DIM)
+                sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
+
+	colA += BLK_M;
+        
+        offs_dB += BLK_M;
+        boundB  -= BLK_M;
+        
+        __syncthreads();
+        // Multiply
+        #pragma unroll
+        for (int k = 0; k < BLK_M; k++)
+        {
+            #pragma unroll
+            for (int n = 0; n < THR_N; n++) {
+                #pragma unroll
+                for (int m = 0; m < THR_M; m++) {
+                    fma( sA[k][m*DIM+tx], sB[n*DIM+ty][k], rC[n][m]);
+                }
+            }
+        }
+        __syncthreads();
+    }
+    
+    // Multiply last full (BLK_M) or partial block
+    kk = part_3 - kk;
+    #pragma unroll
+    for (int n = 0; n < BLK_M; n += DIM)
+        #pragma unroll
+        for (int m = 0; m < BLK_M; m += DIM)
+            sA[n+ty][m+tx] = fetch_upper_packed(A, rowA + m, colA + n, boundA);
+    
+    #pragma unroll
+    for (int n = 0; n < BLK_N; n += DIM)
+        #pragma unroll
+        for (int m = 0; m < BLK_M; m += DIM)
+            sB[n+ty][m+tx] = fetch_offs(B, m, n, boundB);
+    
+    __syncthreads();
+    // Multiply
+    #pragma unroll
+    for (int k = 0; k < kk; k++){
+        #pragma unroll
+        for (int n = 0; n < THR_N; n++) {
+            #pragma unroll
+            for (int m = 0; m < THR_M; m++) {
+                fma( sA[k][m*DIM+tx], sB[n*DIM+ty][k], rC[n][m] );
+            }
+        }
+    }
+
+    // Store C regs->dev
+    #pragma unroll
+    for (int n = 0; n < THR_N; n++) {
+        int coord_dCn = by*BLK_N + n*DIM + ty;
+        #pragma unroll
+        for (int m = 0; m < THR_M; m++) {
+            int coord_dCm = bx*BLK_M + m*DIM + tx;
+            if (coord_dCm < M && coord_dCn < N) {
+                int offsC = coord_dCn*LDC + coord_dCm;
+
+                T &regC = rC[n][m];
+                T &memC = C[offsC];
+
+                memC = add(mul(alpha, regC), mul(beta, memC));
+            }
+        }
+    }
+}
+/******************************************************************************/
+#endif //HEMM_PACKED_TEMPLATE_DEVICE_CUH

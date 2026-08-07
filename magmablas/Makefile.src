@@ -169,6 +169,7 @@ libmagma_src += \
 	$(cdir)/zgetrf_batched_smallsq_noshfl.cu\
 	$(cdir)/getrf_setup_pivinfo.cu		\
 	$(cdir)/zhemm_batched_core.cu		\
+	$(cdir)/zhemm_packed_batched_core.cu		\
 	$(cdir)/zher2k_batched.cpp		\
 	$(cdir)/zherk_batched.cpp		\
 	$(cdir)/cherk_batched_core.cu		\
@@ -488,6 +489,11 @@ $(cdir)/zhemm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(
 $(cdir)/chemm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 $(cdir)/dsymm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 $(cdir)/ssymm_batched_core.$(o_ext): $(cdir)/hemm_template_kernel_batched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+
+$(cdir)/zhemm_packed_batched_core.$(o_ext): $(cdir)/hemm_packed_template_kernel_batched.cuh $(cdir)/hemm_packed_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/chemm_packed_batched_core.$(o_ext): $(cdir)/hemm_packed_template_kernel_batched.cuh $(cdir)/hemm_packed_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/dsymm_packed_batched_core.$(o_ext): $(cdir)/hemm_packed_template_kernel_batched.cuh $(cdir)/hemm_packed_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
+$(cdir)/ssymm_packed_batched_core.$(o_ext): $(cdir)/hemm_packed_template_kernel_batched.cuh $(cdir)/hemm_packed_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 
 $(cdir)/zhemm_vbatched_core.$(o_ext): $(cdir)/hemm_template_kernel_vbatched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
 $(cdir)/chemm_vbatched_core.$(o_ext): $(cdir)/hemm_template_kernel_vbatched.cuh $(cdir)/hemm_template_device.cuh $(cdir)/gemm_template_device_defs.cuh control/batched_kernel_param.h
