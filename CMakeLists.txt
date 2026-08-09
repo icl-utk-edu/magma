@@ -11,6 +11,13 @@ else()
     project( MAGMA LANGUAGES C CXX )
 endif()
 
+FIND_PROGRAM(PROGRAM_CCACHE ccache)
+IF (PROGRAM_CCACHE)
+    SET(CMAKE_CXX_COMPILER_LAUNCHER ${PROGRAM_CCACHE})
+    SET(CMAKE_C_COMPILER_LAUNCHER ${PROGRAM_CCACHE})
+    SET(CMAKE_CUDA_COMPILER_LAUNCHER ${PROGRAM_CCACHE})
+    SET(CMAKE_OPENCL_COMPILER_LAUNCHER ${PROGRAM_CCACHE})
+ENDIF ()
 
 # ----------------------------------------
 # to show compile commands, set this here or use 'make VERBOSE=1'
