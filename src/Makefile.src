@@ -105,12 +105,14 @@ libmagma_src += \
 	$(cdir)/zgeqr2x_gpu-v3.cpp	\
 	$(cdir)/zgeqrs3_gpu.cpp		\
 	$(cdir)/zgeqrs_gpu.cpp		\
+	$(cdir)/zgelqs_gpu.cpp		\
 	$(cdir)/zlarfb_gpu.cpp		\
 	$(cdir)/zlarfb_gpu_gemm.cpp	\
 	$(cdir)/zungqr_gpu.cpp		\
 	$(cdir)/zunmql2_gpu.cpp		\
 	$(cdir)/zunmqr2_gpu.cpp		\
 	$(cdir)/zunmqr_gpu.cpp		\
+	$(cdir)/zunmlq_gpu.cpp		\
 	\
 	$(cdir)/zgeqrf_mgpu.cpp		\
 	\
