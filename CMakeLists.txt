@@ -529,6 +529,10 @@ else()
         endforeach()
     endif()
 endif()
+
+target_include_directories( magma PUBLIC
+    $<INSTALL_INTERFACE:include>
+)
 add_custom_target( lib DEPENDS magma )
 
 
@@ -601,6 +605,10 @@ else()
         roc::hipsparse
     )
 endif()
+
+target_include_directories( magma_sparse PUBLIC
+    $<INSTALL_INTERFACE:include>
+)
 add_custom_target( sparse-lib DEPENDS magma_sparse )
 
 
@@ -654,10 +662,22 @@ add_custom_target( sparse-testing DEPENDS ${sparse-testing} )
 
 # ----------------------------------------
 # what to install
-install( TARGETS magma magma_sparse
+set( MAGMA_INSTALL_LIBDIR "lib" )
+if(DEFINED CMAKE_INSTALL_LIBDIR AND NOT "${CMAKE_INSTALL_LIBDIR}" STREQUAL "")
+    set( MAGMA_INSTALL_LIBDIR "${CMAKE_INSTALL_LIBDIR}" )
+endif()
+
+set( MAGMA_INSTALL_TARGETS magma magma_sparse )
+if (TARGET magma_nvcc_flags)
+    list( APPEND MAGMA_INSTALL_TARGETS magma_nvcc_flags )
+endif()
+
+install( TARGETS ${MAGMA_INSTALL_TARGETS}
+         EXPORT magmaTargets
          RUNTIME DESTINATION bin
-         LIBRARY DESTINATION lib
-         ARCHIVE DESTINATION lib )
+         LIBRARY DESTINATION "${MAGMA_INSTALL_LIBDIR}"
+         ARCHIVE DESTINATION "${MAGMA_INSTALL_LIBDIR}" )
+         
 if (MAGMA_ENABLE_CUDA)
     file( GLOB headers include/*.h sparse/include/*.h "${CMAKE_BINARY_DIR}/include/*.h" )
 else()
@@ -677,7 +697,8 @@ foreach(dir ${MAGMA_INCLUDE})
     string(APPEND INCLUDE_COMPILER_STRING "-I${dir} ")
 endforeach()
 set( MAGMA_INCLUDE "${INCLUDE_COMPILER_STRING}" )
-set( pkgconfig lib/pkgconfig/magma.pc )
+set( MAGMA_PKGCONFIG_LIBDIR "\${exec_prefix}/${MAGMA_INSTALL_LIBDIR}" )
+set( pkgconfig "${MAGMA_INSTALL_LIBDIR}/pkgconfig/magma.pc" )
 message( STATUS "pkgconfig ${pkgconfig}" )
 set( INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" )
 set( CFLAGS "${CMAKE_C_FLAGS}" )
@@ -693,7 +714,23 @@ endif()
 set( MAGMA_REQUIRED "" )
 configure_file( "${pkgconfig}.in" "${pkgconfig}" @ONLY )
 install( FILES "${CMAKE_BINARY_DIR}/${pkgconfig}"
-         DESTINATION lib/pkgconfig )
+         DESTINATION "${MAGMA_INSTALL_LIBDIR}/pkgconfig" )
+
+include (CMakePackageConfigHelpers)
+
+configure_package_config_file(
+    "${CMAKE_SOURCE_DIR}/magmaConfig.cmake.in"
+    "${CMAKE_BINARY_DIR}/magmaConfig.cmake"
+    INSTALL_DESTINATION "${MAGMA_INSTALL_LIBDIR}/cmake/magma"
+)
+
+install(EXPORT magmaTargets
+        FILE magmaTargets.cmake
+        NAMESPACE magma::
+        DESTINATION "${MAGMA_INSTALL_LIBDIR}/cmake/magma")
+
+install(FILES "${CMAKE_BINARY_DIR}/magmaConfig.cmake"
+        DESTINATION "${MAGMA_INSTALL_LIBDIR}/cmake/magma")
 
 # ----------------------------------------
 get_directory_property( compile_definitions COMPILE_DEFINITIONS )
