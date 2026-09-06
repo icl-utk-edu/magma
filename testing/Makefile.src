@@ -229,6 +229,7 @@ testing_src += \
 	$(cdir)/testing_zpptrf_batched.cpp	\
 	$(cdir)/testing_zppinv_batched.cpp	\
 	$(cdir)/testing_zppsv_batched.cpp \
+	$(cdir)/testing_zppsv_batched_rounds.cpp \
 
 # ----------
 # vbatched BLAS, QR, LU, Cholesky
