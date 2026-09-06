@@ -69,8 +69,8 @@ int main(int argc, char **argv)
 
     printf("%% uplo = %s\n", lapack_uplo_const(opts.uplo) );
     printf("%% # solve rounds = %lld\n", (long long)nrounds );
-    printf("%% BatchCount   N  NRHS   CPU Gflop/s (ms)   GPU Gflop/s (ms)   ||B - AX|| / N*||A||*||X||\n");
-    printf("%%==========================================================================================\n");
+    printf("%% BatchCount   N  NRHS   Rounds   CPU Gflop/s (ms)   GPU Gflop/s (ms)   ||B - AX|| / N*||A||*||X||\n");
+    printf("%%=================================================================================================\n");
     for( int itest = 0; itest < opts.ntest; ++itest ) {
         for( int iter = 0; iter < opts.niter; ++iter ) {
             N = opts.nsize[itest];
@@ -218,8 +218,8 @@ int main(int argc, char **argv)
             bool okay = (error < tol);
             status += ! okay;
 
-            printf( "%10lld %5lld %5lld     ---   (  ---  )   %7.2f (%7.2f)   %8.2e   %s\n",
-                    (long long) batchCount, (long long) N, (long long) nrhs, gpu_perf, gpu_time*1000.,
+            printf( "%10lld %5lld %5lld   %6lld     ---   (  ---  )   %7.2f (%7.2f)   %8.2e   %s\n",
+                    (long long) batchCount, (long long) N, (long long) nrhs, (long long) nrounds, gpu_perf, gpu_time*1000.,
                     error, (okay ? "ok" : "failed"));
 
             magma_free_cpu( hA  );
