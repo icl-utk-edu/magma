@@ -142,8 +142,9 @@ magma_zunmqr_batched(
     // nb is limited to 32 because of limitations in batch larft
     nb    = 32;
 
-    // lookup recommendation for using zunm2r (from the batch qr factorization tuning)
-    magma_int_t use_fused_update = magma_use_zgeqrf_batched_fused_update(m, n, batchCount);
+    // For now, disabling fused unm2r seems to perform better (based on batch tall-skinny SVD)
+    magma_int_t use_fused_update = 0;
+    // magma_int_t use_fused_update = magma_use_zgeqrf_batched_fused_update(m, n, batchCount);
 
     // for zunm2r, check if fused routines could be launched
     magma_int_t zunm2r_reg_info     = -1;
@@ -152,7 +153,7 @@ magma_zunmqr_batched(
     magma_int_t zunm2r_reg_nb = 0;
     magma_int_t zunm2r_sm_nb  = 0;
     if(use_fused_update == 1) {
-        for(magma_int_t inb = 8; inb > 1; inb /= 2) {
+        for(magma_int_t inb = 8; inb > 2; inb /= 2) {
             zunm2r_reg_info = magma_zunm2r_reg_batched(
                                 side, trans, m, n, inb, k,
                                 dC_array, 0, 0, lddc,
@@ -165,7 +166,7 @@ magma_zunmqr_batched(
             }
         }
 
-        for(magma_int_t inb = 8; inb > 1; inb /= 2) {
+        for(magma_int_t inb = 8; inb > 2; inb /= 2) {
             zunm2r_sm_info = magma_zunm2r_sm_batched(
                                 side, trans, m, n, inb, k,
                                 dC_array, 0, 0, lddc,
