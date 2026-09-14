@@ -243,7 +243,7 @@ read_gm2rg_notrans(
 // This is for a packed matrix where the lower half is stored
 template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y>
 static __device__ __inline__ void
-read_lower_packed_gm2sm_notrans(
+read_lower_offdiag_packed_gm2sm_notrans(
     const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
           T*              sA, int &slda,
     const int &tx, const int &ty,
@@ -280,7 +280,7 @@ read_lower_packed_gm2sm_notrans(
 // This is for a packed matrix where the upper half is stored
 template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y>
 static __device__ __inline__ void
-read_upper_packed_gm2sm_notrans(
+read_upper_offdiag_packed_gm2sm_notrans(
     const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
           T*              sA, int &slda,
     const int &tx, const int &ty,
@@ -318,7 +318,7 @@ read_upper_packed_gm2sm_notrans(
 // This is for a packed matrix where the lower half is stored
 template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y, int CONJA>
 static __device__ __inline__ void
-read_lower_packed_gm2sm_trans(
+read_lower_offdiag_packed_gm2sm_trans(
     const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
           T*              sA, int &slda,
     const int &tx, const int &ty,
@@ -355,7 +355,7 @@ read_lower_packed_gm2sm_trans(
 // This is for a packed matrix where the upper half is stored
 template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y, int CONJA>
 static __device__ __inline__ void
-read_upper_packed_gm2sm_trans(
+read_upper_offdiag_packed_gm2sm_trans(
     const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
           T*              sA, int &slda,
     const int &tx, const int &ty,
@@ -391,7 +391,7 @@ read_upper_packed_gm2sm_trans(
 // This is for a packed matrix where the lower half is stored
 template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y>
 static __device__ __inline__ void
-read_lower_packed_gm2rg_notrans(
+read_lower_offdiag_packed_gm2rg_notrans(
     const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
           T  rg[BLK_COL/DIM_Y][BLK_ROW/DIM_X])
 {
@@ -410,7 +410,7 @@ read_lower_packed_gm2rg_notrans(
 // This is for a packed matrix where the upper half is stored
 template<typename T, int BLK_ROW, int BLK_COL, int DIM_X, int DIM_Y>
 static __device__ __inline__ void
-read_upper_packed_gm2rg_notrans(
+read_upper_offdiag_packed_gm2rg_notrans(
     const T* __restrict__  A, int &coffA, int &roffA, int &LDA, ptrdiff_t &boundA,
           T  rg[BLK_COL/DIM_Y][BLK_ROW/DIM_X])
 {

@@ -69,7 +69,7 @@ void gemm_lower_packed_template_device_nn(
         // read A/B gm2sm -- N/N
         int col = tyA + coffA;
         int row = bx*BLK_M + txA + roffA;
-        read_lower_packed_gm2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, sA, slda, txA, tyA);
+        read_lower_offdiag_packed_gm2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, sA, slda, txA, tyA);
 
 	read_gm2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, sB, sldb, txB, tyB);
     }
@@ -82,7 +82,7 @@ void gemm_lower_packed_template_device_nn(
         // prefetch A/B gm2reg -- ignore transposition for now
         int col = tyA + coffA + BLK_K + kk;
         int row = bx*BLK_M + txA + roffA;
-        read_lower_packed_gm2rg_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, rA);
+        read_lower_offdiag_packed_gm2rg_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, rA);
 
 	read_gm2rg_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
@@ -163,7 +163,7 @@ void gemm_lower_packed_template_device_tn (
         // read A/B gm2sm -- T/N
 	int col = bx*BLK_M + tyA + coffA;
 	int row = txA + roffA;
-        read_lower_packed_gm2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>(A, col, row, LDA, boundA, sA, slda, txA, tyA );
+        read_lower_offdiag_packed_gm2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>(A, col, row, LDA, boundA, sA, slda, txA, tyA );
 
 	read_gm2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, sB, sldb, txB, tyB );
     }
@@ -176,7 +176,7 @@ void gemm_lower_packed_template_device_tn (
         // prefetch A/B gm2reg -- ignore transposition for now
 	int col = bx*BLK_M + tyA + coffA;
 	int row = txA + roffA + BLK_K + kk;
-        read_lower_packed_gm2rg_notrans<T, BLK_K, BLK_M, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, rA);
+        read_lower_offdiag_packed_gm2rg_notrans<T, BLK_K, BLK_M, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, rA);
 
 	read_gm2rg_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
@@ -256,7 +256,7 @@ void gemm_upper_packed_template_device_nn(
         // read A/B gm2sm -- N/N
         int col = tyA + coffA;
         int row = bx*BLK_M + txA + roffA;
-        read_upper_packed_gm2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, sA, slda, txA, tyA);
+        read_upper_offdiag_packed_gm2sm_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, sA, slda, txA, tyA);
 
 	read_gm2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, sB, sldb, txB, tyB);
     }
@@ -269,7 +269,7 @@ void gemm_upper_packed_template_device_nn(
         // prefetch A/B gm2reg -- ignore transposition for now
         int col = tyA + coffA + BLK_K + kk;
         int row = bx*BLK_M + txA + roffA;
-        read_upper_packed_gm2rg_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, rA);
+        read_upper_offdiag_packed_gm2rg_notrans<T, BLK_M, BLK_K, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, rA);
 
 	read_gm2rg_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
@@ -350,7 +350,7 @@ void gemm_upper_packed_template_device_tn(
         // read A/B gm2sm -- T/N
 	int col = bx*BLK_M + tyA + coffA;
 	int row = txA + roffA;
-        read_upper_packed_gm2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>(A, col, row, LDA, boundA, sA, slda, txA, tyA );
+        read_upper_offdiag_packed_gm2sm_trans<T, BLK_K, BLK_M, DIM_XA, DIM_YA, CONJA>(A, col, row, LDA, boundA, sA, slda, txA, tyA );
 
 	read_gm2sm_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, sB, sldb, txB, tyB );
     }
@@ -363,7 +363,7 @@ void gemm_upper_packed_template_device_tn(
         // prefetch A/B gm2reg -- ignore transposition for now
 	int col = bx*BLK_M + tyA + coffA;
 	int row = txA + roffA + BLK_K + kk;
-        read_upper_packed_gm2rg_notrans<T, BLK_K, BLK_M, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, rA);
+        read_upper_offdiag_packed_gm2rg_notrans<T, BLK_K, BLK_M, DIM_XA, DIM_YA>(A, col, row, LDA, boundA, rA);
 
 	read_gm2rg_notrans<T, BLK_K, BLK_N, DIM_XB, DIM_YB>(offs_dB, LDB, boundB, rB);
 
