@@ -121,7 +121,7 @@ magma_zppinv_batched(
 
     arginfo = magma_zpptrf_batched( uplo, n, dAP_array, dinfo_array, batchCount, queue);
     if ( arginfo == MAGMA_SUCCESS ) {
-        arginfo = magma_zpptri_v2_batched_small(n, dAP_array, batchCount, dinfo_array, queue );
+        arginfo = magma_zpptri_batched_small(n, dAP_array, batchCount, dinfo_array, queue );
     }
 
     return arginfo;

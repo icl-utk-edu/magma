@@ -19,9 +19,14 @@
 #define DBG
 
 // formula for lower part access
-#define  sA(i, j)  sA[N*(j) - (j)*((j)+1)/2 + (i)]
-#define sAi(i, j) sAi[N*(j) - (j)*((j)+1)/2 + (i)]
-//#define sAi(i, j) sAi[N*(j) - (j)*((j)+1)/2 + (i)]
+#define sA(i, j) sA[N*j - j*(j+1)/2 + i]
+
+// leading dimension in shared memory (for the inverse)
+#define SLDB(n)    ( ((n+1)%4) == 0 ? (n) : (n+1) )
+
+// the inverse is stored in column major then converted
+// to packed format when written to global memory
+#define sB(i, j) sB[(j) * sldb + (i)]
 
 #define ZPPTRI_KERNEL_MAX_THREADS (64)
 
@@ -51,134 +56,104 @@ __device__ void print_memory(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-template<typename T>
-__device__ void print_matrix_packed_lower(
-                const char* msg,
-                int N, T* sA,
-                int tx, int ty, int tz,
-                int bx, int by, int bz)
-{
-#if defined(PRECISION_d) && defined(DBG)
-    __syncthreads();
-    if(threadIdx.x == tx && threadIdx.y == ty && threadIdx.z == tz &&
-       blockIdx.x  == bx && blockIdx.y  == by && blockIdx.z  == bz) {
-        printf("%s = [ \n", msg);
-        for(int i = 0; i < N; i++) {
-            for(int j = 0; j < N; j++) {
-                if(i >= j)
-                    printf("%8.4f  ", (double)(sA(i,j)));
-                else
-                   printf("%8.4f  ", (double)(0.));
-            }
-            printf("\n");
-        }
-        printf("]; \n");
-    }
-    __syncthreads();
-#endif
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// N is the size of the packed matrix
 template<int N>
 __global__
-#ifdef MAGMA_HAVE_HIP
 __launch_bounds__(N)
-#endif
 void
 zpptri_lower_batched_small_kernel(
         magmaDoubleComplex** dAP_array,
-        int batchCount, magma_int_t *info_array)
+        int batchCount,
+        magma_int_t *info_array )
 {
     extern __shared__ magmaDoubleComplex zdata[];
 
     constexpr int alignment_bytes = 128;
     constexpr int alignment       = alignment_bytes / sizeof(magmaDoubleComplex);
     constexpr int sizeA           = (N+1)*N/2;
+    constexpr int sizeA_aligned   = ( (sizeA + alignment - 1) / alignment) * alignment;
     constexpr int sizeA_N         = ( sizeA / N ) * N;
-    constexpr int sizeA_aligned   = ((sizeA+alignment-1)/alignment) * alignment;
 
-    const int tx      = threadIdx.x;
+    const int sldb = SLDB(N);
+
+    const int tx  = threadIdx.x;
     const int batchid = blockIdx.x;
 
-    magmaDoubleComplex* dA  = dAP_array[batchid];
-    magmaDoubleComplex *sA  = (magmaDoubleComplex*)zdata;
-    magmaDoubleComplex *sAi = sA + sizeA_aligned;
+    magmaDoubleComplex* dA = dAP_array[batchid];
+    magmaDoubleComplex *sA = (magmaDoubleComplex*)zdata;
+    magmaDoubleComplex *sB = sA + sizeA_aligned;
+
+    // init B to identity
+    #pragma unroll
+    for(int i = 0; i < N; i++) {
+        sB(tx, i) = MAGMA_Z_ZERO;
+    }
+    sB(tx, tx) = MAGMA_Z_ONE;
 
     // read A
     #pragma unroll
     for(int i = 0; i < sizeA_N; i+=N){
-         sA[ i + tx ] = dA[ i + tx ];
-        sAi[ i + tx ] = MAGMA_Z_ZERO;
+        sA[ i + tx ] = dA[ i + tx ];
     }
 
     if(tx < (sizeA - sizeA_N)) {
-         sA[sizeA_N + tx] = dA[sizeA_N + tx];
-        sAi[sizeA_N + tx] = MAGMA_Z_ZERO;
+        sA[sizeA_N + tx] = dA[sizeA_N + tx];
     }
     __syncthreads();
-
-    //print_matrix_packed_lower("sA", N, sA, 0, 0, 0, 0, 0, 0);
 
     // compute 1 / diagonal(sA)
-     sA(tx, tx) = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(tx,tx));
-    sAi(tx, tx) = MAGMA_Z_ONE;
+    sA(tx, tx) = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(tx,tx));
     __syncthreads();
 
-    //print_matrix_packed_lower("sAi", N, sAi, 0, 0, 0, 0, 0, 0);
+    //print_memory( "sA", sizeA, 1, sA, sizeA, 0, 0, 0, 0, 0, 0);
+    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
 
-    // Solving L L^T x = I (I)
-    // First, solve L y = I for y
-    // For now, we do not take full advantage of the identity matrix being the RHS
+    // Solving L L^T x = b
+    // First, solve L y = b for y
     #pragma unroll
     for(int i = 0; i < N; i++) {
-        if(tx <= i) {
-            sAi(i,tx) = sAi(i,tx) * sA(i,i);
-            #pragma unroll
-            for(int j = i+1; j < N; j++) {
-                sAi(j,tx) -= sAi(i,tx) * sA(j,i);
-            }
+        sB(i,tx) *= sA(i,i);
+        #pragma unroll
+        for(int j = i+1; j < N; j++) {
+            sB(j,tx) -= sB(i,tx) * sA(j,i);
         }
-        //print_matrix_packed_lower("sTmp", N, sAi, 0, 0, 0, 0, 0, 0);
     }
-
-    //print_matrix_packed_lower("sAi-1", N, sAi, 0, 0, 0, 0, 0, 0);
 
     // Second, solve L^T x = y for x
     #pragma unroll
     for(int i = N-1; i >= 0; i--) {
-        if( tx <= i ) {
-            sAi(i,tx) *= MAGMA_Z_CONJ(sA(i,i));
-        }
-
+        sB(i,tx) *= MAGMA_Z_CONJ(sA(i,i));
         #pragma unroll
         for(int j = i-1; j >= 0; j--) {
-            if(tx <= j) {
-                sAi(j,tx) -= sAi(i, tx) * MAGMA_Z_CONJ( sA(i,j) );
-            }
+            sB(j,tx) -= sB(i, tx) * MAGMA_Z_CONJ( sA(i,j) );
         }
     }
     __syncthreads();
 
-    //print_matrix_packed_lower("sAi-2", N, sAi, 0, 0, 0, 0, 0, 0);
+    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
 
-    // overwrite A
+    // convert the inverse in sB from col-major to packed in sA
+    #pragma unroll
+    for(int j = 0; j < N; j++) {
+        if(tx >= j) {
+            sA(tx,j) = sB(tx,j);
+        }
+    }
+    __syncthreads();
+
+    // write the inverse to global memory
     #pragma unroll
     for(int i = 0; i < sizeA_N; i+=N){
-        dA[ i + tx ] = sAi[ i + tx ];
+        dA[ i + tx ] = sA[ i + tx ];
     }
 
     if(tx < (sizeA - sizeA_N)) {
-        dA[sizeA_N + tx] = sAi[sizeA_N + tx];
+        dA[sizeA_N + tx] = sA[sizeA_N + tx];
     }
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 __global__
-#ifdef MAGMA_HAVE_HIP
 __launch_bounds__(ZPPTRI_KERNEL_MAX_THREADS)
-#endif
 void
 zpptri_lower_batched_small_kernel_n(
         int n, magmaDoubleComplex** dAP_array,
@@ -187,70 +162,71 @@ zpptri_lower_batched_small_kernel_n(
 
     extern __shared__ magmaDoubleComplex zdata[];
 
-    constexpr int alignment_bytes = 128;
-    constexpr int alignment       = alignment_bytes / sizeof(magmaDoubleComplex);
+    const int N               = n;    // for macro expansion
+    const int alignment_bytes = 128;
+    const int alignment       = alignment_bytes / sizeof(magmaDoubleComplex);
+    const int sizeA           = (n+1)*n/2;
+    const int sizeA_aligned   = ( (sizeA + alignment - 1) / alignment) * alignment;
 
-    const int N             = n;    // just for the macro expansion of 'sA' and 'sAi'
-    const int sizeA         = (n+1)*n/2;
-    const int sizeA_aligned = ((sizeA+alignment-1)/alignment) * alignment;
+    const int sldb          = SLDB(N);
 
-    const int tx      = threadIdx.x;
-    const int ntx     = blockDim.x;
+    const int tx  = threadIdx.x;
     const int batchid = blockIdx.x;
 
-    magmaDoubleComplex* dA  = dAP_array[batchid];
-    magmaDoubleComplex *sA  = (magmaDoubleComplex*)zdata;
-    magmaDoubleComplex *sAi = sA + sizeA_aligned;
+    magmaDoubleComplex* dA = dAP_array[batchid];
+    magmaDoubleComplex *sA = (magmaDoubleComplex*)zdata;
+    magmaDoubleComplex *sB = sA + sizeA_aligned;
+
+    // init B to identity
+    for(int i = 0; i < n; i++) {
+        sB(tx, i) = MAGMA_Z_ZERO;
+    }
+    sB(tx, tx) = MAGMA_Z_ONE;
 
     // read A
-    for(int i = tx; i < sizeA; i+=ntx) {
-         sA[ i ] = dA[ i ];
-        sAi[ i ] = MAGMA_Z_ZERO;
+    for(int i = tx; i < sizeA; i+=n){
+        sA[ i ] = dA[ i ];
     }
     __syncthreads();
-
-    //print_matrix_packed_lower("sA", N, sA, 0, 0, 0, 0, 0, 0);
 
     // compute 1 / diagonal(sA)
-     sA(tx, tx) = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(tx,tx));
-    sAi(tx, tx) = MAGMA_Z_ONE;
+    sA(tx, tx) = MAGMA_Z_DIV(MAGMA_Z_ONE, sA(tx,tx));
     __syncthreads();
 
-    //print_matrix_packed_lower("sAi", N, sAi, 0, 0, 0, 0, 0, 0);
+    //print_memory( "sA", sizeA, 1, sA, sizeA, 0, 0, 0, 0, 0, 0);
+    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
 
-    // Solving L L^T x = I (I)
-    // First, solve L y = I for y
+    // Solving L L^T x = b
+    // First, solve L y = b for y
     for(int i = 0; i < n; i++) {
-        if(tx <= i) {
-            sAi(i,tx) = sAi(i,tx) * sA(i,i);
-            for(int j = i+1; j < n; j++) {
-                sAi(j,tx) -= sAi(i,tx) * sA(j,i);
-            }
+        sB(i,tx) *= sA(i,i);
+        for(int j = i+1; j < n; j++) {
+            sB(j,tx) -= sB(i,tx) * sA(j,i);
         }
-        //print_matrix_packed_lower("sTmp", N, sAi, 0, 0, 0, 0, 0, 0);
     }
-
-    //print_matrix_packed_lower("sAi-1", N, sAi, 0, 0, 0, 0, 0, 0);
 
     // Second, solve L^T x = y for x
     for(int i = n-1; i >= 0; i--) {
-        if( tx <= i ) {
-            sAi(i,tx) *= MAGMA_Z_CONJ(sA(i,i));
-        }
-
+        sB(i,tx) *= MAGMA_Z_CONJ(sA(i,i));
         for(int j = i-1; j >= 0; j--) {
-            if(tx <= j) {
-                sAi(j,tx) -= sAi(i, tx) * MAGMA_Z_CONJ( sA(i,j) );
-            }
+            sB(j,tx) -= sB(i, tx) * MAGMA_Z_CONJ( sA(i,j) );
         }
     }
     __syncthreads();
 
-    //print_matrix_packed_lower("sAi-2", N, sAi, 0, 0, 0, 0, 0, 0);
+    //print_memory( "sB", N, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
 
-    // overwrite A
-    for(int i = tx; i < sizeA; i+=ntx){
-        dA[ i ] = sAi[ i ];
+    // convert the inverse in sB from col-major to packed in sA
+    for(int j = 0; j < n; j++) {
+        if(tx >= j) {
+            sA(tx,j) = sB(tx,j);
+        }
+    }
+    __syncthreads();
+
+    // write the inverse to global memory
+    for(int i = tx; i < sizeA; i+=n){
+        dA[ i ] = sA[ i ];
     }
 }
 
@@ -286,9 +262,13 @@ zpptri_lower_batched_small_kernel_driver(
     constexpr int sizeA           = (N+1)*N/2;
     constexpr int sizeA_aligned   = ((sizeA+alignment-1)/alignment) * alignment;
 
+    constexpr int sizeB           = SLDB(N) * N;
+    constexpr int sizeB_aligned   = ((sizeB+alignment-1)/alignment) * alignment;
+
     // configure shared memory
     magma_int_t shmem = 0;
-    shmem += 2 * ntcol * sizeA_aligned * sizeof(magmaDoubleComplex);
+    shmem += ntcol * sizeA_aligned * sizeof(magmaDoubleComplex);
+    shmem += ntcol * sizeB_aligned * sizeof(magmaDoubleComplex);
 
     int shmem_max = 0;
     #if CUDA_VERSION >= 9000
@@ -352,7 +332,8 @@ zpptri_lower_batched_small_kernel_driver(
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zpptri_batched_small(
-    magma_int_t n, magmaDoubleComplex** dAP_array,
+    magma_int_t n,
+    magmaDoubleComplex** dAP_array,
     magma_int_t batchCount, magma_int_t *info_array,
     magma_queue_t queue )
 {
@@ -361,7 +342,7 @@ magma_zpptri_batched_small(
     if(n < 0 || n > 64)
         arginfo = -1;
     else if ( batchCount < 0 )
-        arginfo = -3;
+        arginfo = -4;
 
     if (arginfo != 0) {
         magma_xerbla( __func__, -(arginfo) );
@@ -371,38 +352,38 @@ magma_zpptri_batched_small(
     if( n == 0 || batchCount == 0 ) return 0;
 
     switch(n){
-        case  1: arginfo = zpptri_lower_batched_small_kernel_driver< 1>(dAP_array, batchCount, info_array, queue ); break;
-        case  2: arginfo = zpptri_lower_batched_small_kernel_driver< 2>(dAP_array, batchCount, info_array, queue ); break;
-        case  3: arginfo = zpptri_lower_batched_small_kernel_driver< 3>(dAP_array, batchCount, info_array, queue ); break;
-        case  4: arginfo = zpptri_lower_batched_small_kernel_driver< 4>(dAP_array, batchCount, info_array, queue ); break;
-        case  5: arginfo = zpptri_lower_batched_small_kernel_driver< 5>(dAP_array, batchCount, info_array, queue ); break;
-        case  6: arginfo = zpptri_lower_batched_small_kernel_driver< 6>(dAP_array, batchCount, info_array, queue ); break;
-        case  7: arginfo = zpptri_lower_batched_small_kernel_driver< 7>(dAP_array, batchCount, info_array, queue ); break;
-        case  8: arginfo = zpptri_lower_batched_small_kernel_driver< 8>(dAP_array, batchCount, info_array, queue ); break;
-        case  9: arginfo = zpptri_lower_batched_small_kernel_driver< 9>(dAP_array, batchCount, info_array, queue ); break;
-        case 10: arginfo = zpptri_lower_batched_small_kernel_driver<10>(dAP_array, batchCount, info_array, queue ); break;
-        case 11: arginfo = zpptri_lower_batched_small_kernel_driver<11>(dAP_array, batchCount, info_array, queue ); break;
-        case 12: arginfo = zpptri_lower_batched_small_kernel_driver<12>(dAP_array, batchCount, info_array, queue ); break;
-        case 13: arginfo = zpptri_lower_batched_small_kernel_driver<13>(dAP_array, batchCount, info_array, queue ); break;
-        case 14: arginfo = zpptri_lower_batched_small_kernel_driver<14>(dAP_array, batchCount, info_array, queue ); break;
-        case 15: arginfo = zpptri_lower_batched_small_kernel_driver<15>(dAP_array, batchCount, info_array, queue ); break;
-        case 16: arginfo = zpptri_lower_batched_small_kernel_driver<16>(dAP_array, batchCount, info_array, queue ); break;
-        case 17: arginfo = zpptri_lower_batched_small_kernel_driver<17>(dAP_array, batchCount, info_array, queue ); break;
-        case 18: arginfo = zpptri_lower_batched_small_kernel_driver<18>(dAP_array, batchCount, info_array, queue ); break;
-        case 19: arginfo = zpptri_lower_batched_small_kernel_driver<19>(dAP_array, batchCount, info_array, queue ); break;
-        case 20: arginfo = zpptri_lower_batched_small_kernel_driver<20>(dAP_array, batchCount, info_array, queue ); break;
-        case 21: arginfo = zpptri_lower_batched_small_kernel_driver<21>(dAP_array, batchCount, info_array, queue ); break;
-        case 22: arginfo = zpptri_lower_batched_small_kernel_driver<22>(dAP_array, batchCount, info_array, queue ); break;
-        case 23: arginfo = zpptri_lower_batched_small_kernel_driver<23>(dAP_array, batchCount, info_array, queue ); break;
-        case 24: arginfo = zpptri_lower_batched_small_kernel_driver<24>(dAP_array, batchCount, info_array, queue ); break;
-        case 25: arginfo = zpptri_lower_batched_small_kernel_driver<25>(dAP_array, batchCount, info_array, queue ); break;
-        case 26: arginfo = zpptri_lower_batched_small_kernel_driver<26>(dAP_array, batchCount, info_array, queue ); break;
-        case 27: arginfo = zpptri_lower_batched_small_kernel_driver<27>(dAP_array, batchCount, info_array, queue ); break;
-        case 28: arginfo = zpptri_lower_batched_small_kernel_driver<28>(dAP_array, batchCount, info_array, queue ); break;
-        case 29: arginfo = zpptri_lower_batched_small_kernel_driver<29>(dAP_array, batchCount, info_array, queue ); break;
-        case 30: arginfo = zpptri_lower_batched_small_kernel_driver<30>(dAP_array, batchCount, info_array, queue ); break;
-        case 31: arginfo = zpptri_lower_batched_small_kernel_driver<31>(dAP_array, batchCount, info_array, queue ); break;
-        case 32: arginfo = zpptri_lower_batched_small_kernel_driver<32>(dAP_array, batchCount, info_array, queue ); break;
+        case  1: arginfo = zpptri_lower_batched_small_kernel_driver< 1>( dAP_array, batchCount, info_array, queue ); break;
+        case  2: arginfo = zpptri_lower_batched_small_kernel_driver< 2>( dAP_array, batchCount, info_array, queue ); break;
+        case  3: arginfo = zpptri_lower_batched_small_kernel_driver< 3>( dAP_array, batchCount, info_array, queue ); break;
+        case  4: arginfo = zpptri_lower_batched_small_kernel_driver< 4>( dAP_array, batchCount, info_array, queue ); break;
+        case  5: arginfo = zpptri_lower_batched_small_kernel_driver< 5>( dAP_array, batchCount, info_array, queue ); break;
+        case  6: arginfo = zpptri_lower_batched_small_kernel_driver< 6>( dAP_array, batchCount, info_array, queue ); break;
+        case  7: arginfo = zpptri_lower_batched_small_kernel_driver< 7>( dAP_array, batchCount, info_array, queue ); break;
+        case  8: arginfo = zpptri_lower_batched_small_kernel_driver< 8>( dAP_array, batchCount, info_array, queue ); break;
+        case  9: arginfo = zpptri_lower_batched_small_kernel_driver< 9>( dAP_array, batchCount, info_array, queue ); break;
+        case 10: arginfo = zpptri_lower_batched_small_kernel_driver<10>( dAP_array, batchCount, info_array, queue ); break;
+        case 11: arginfo = zpptri_lower_batched_small_kernel_driver<11>( dAP_array, batchCount, info_array, queue ); break;
+        case 12: arginfo = zpptri_lower_batched_small_kernel_driver<12>( dAP_array, batchCount, info_array, queue ); break;
+        case 13: arginfo = zpptri_lower_batched_small_kernel_driver<13>( dAP_array, batchCount, info_array, queue ); break;
+        case 14: arginfo = zpptri_lower_batched_small_kernel_driver<14>( dAP_array, batchCount, info_array, queue ); break;
+        case 15: arginfo = zpptri_lower_batched_small_kernel_driver<15>( dAP_array, batchCount, info_array, queue ); break;
+        case 16: arginfo = zpptri_lower_batched_small_kernel_driver<16>( dAP_array, batchCount, info_array, queue ); break;
+        case 17: arginfo = zpptri_lower_batched_small_kernel_driver<17>( dAP_array, batchCount, info_array, queue ); break;
+        case 18: arginfo = zpptri_lower_batched_small_kernel_driver<18>( dAP_array, batchCount, info_array, queue ); break;
+        case 19: arginfo = zpptri_lower_batched_small_kernel_driver<19>( dAP_array, batchCount, info_array, queue ); break;
+        case 20: arginfo = zpptri_lower_batched_small_kernel_driver<20>( dAP_array, batchCount, info_array, queue ); break;
+        case 21: arginfo = zpptri_lower_batched_small_kernel_driver<21>( dAP_array, batchCount, info_array, queue ); break;
+        case 22: arginfo = zpptri_lower_batched_small_kernel_driver<22>( dAP_array, batchCount, info_array, queue ); break;
+        case 23: arginfo = zpptri_lower_batched_small_kernel_driver<23>( dAP_array, batchCount, info_array, queue ); break;
+        case 24: arginfo = zpptri_lower_batched_small_kernel_driver<24>( dAP_array, batchCount, info_array, queue ); break;
+        case 25: arginfo = zpptri_lower_batched_small_kernel_driver<25>( dAP_array, batchCount, info_array, queue ); break;
+        case 26: arginfo = zpptri_lower_batched_small_kernel_driver<26>( dAP_array, batchCount, info_array, queue ); break;
+        case 27: arginfo = zpptri_lower_batched_small_kernel_driver<27>( dAP_array, batchCount, info_array, queue ); break;
+        case 28: arginfo = zpptri_lower_batched_small_kernel_driver<28>( dAP_array, batchCount, info_array, queue ); break;
+        case 29: arginfo = zpptri_lower_batched_small_kernel_driver<29>( dAP_array, batchCount, info_array, queue ); break;
+        case 30: arginfo = zpptri_lower_batched_small_kernel_driver<30>( dAP_array, batchCount, info_array, queue ); break;
+        case 31: arginfo = zpptri_lower_batched_small_kernel_driver<31>( dAP_array, batchCount, info_array, queue ); break;
+        case 32: arginfo = zpptri_lower_batched_small_kernel_driver<32>( dAP_array, batchCount, info_array, queue ); break;
         default: arginfo = -100;
     }
 
@@ -416,11 +397,16 @@ magma_zpptri_batched_small(
         const int alignment_bytes = 128;
         const int alignment       = alignment_bytes / sizeof(magmaDoubleComplex);
         const int sizeA           = (n+1)*n/2;
-        const int sizeA_aligned   = magma_roundup(sizeA, alignment);
+        const int sizeA_aligned   = ( (sizeA + alignment - 1) / alignment) * alignment;
+
+        const int sldb          = SLDB(n);
+        const int sizeB         = sldb * n;
+        const int sizeB_aligned = ( (sizeB + alignment - 1) / alignment) * alignment;
 
         // configure shared memory
         magma_int_t shmem = 0;
-        shmem += 2 * sizeA_aligned * sizeof(magmaDoubleComplex);
+        shmem += sizeA_aligned * sizeof(magmaDoubleComplex);
+        shmem += sizeB_aligned * sizeof(magmaDoubleComplex);
 
         int shmem_max = 0;
         #if CUDA_VERSION >= 9000
@@ -433,7 +419,7 @@ magma_zpptri_batched_small(
         #endif    // CUDA_VERSION >= 9000
 
         if ( shmem > shmem_max ) {
-            arginfo = -100;;
+            arginfo = -200;;
         }
         else {
             // configure grid and threads
@@ -443,7 +429,7 @@ magma_zpptri_batched_small(
             cudaError_t e = cudaLaunchKernel((void*)zpptri_lower_batched_small_kernel_n, grid, threads, kernel_args, shmem, queue->cuda_stream());
             if( e != cudaSuccess ) {
                 //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
-                arginfo = -100;
+                arginfo = -300;
             }
         }
     }
