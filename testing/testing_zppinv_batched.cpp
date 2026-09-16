@@ -143,7 +143,7 @@ int main( int argc, char** argv)
             else if( opts.version == 2 ) {
                 gpu_time = magma_sync_wtime( opts.queue );
                 info = magma_zpptrf_batched( opts.uplo, N, dAP_array, dinfo_magma, batchCount, opts.queue );
-                info = magma_zpptri_batched_small( N, dAP_array, batchCount, dinfo_magma, opts.queue );
+                info = magma_zpptri_batched_small( opts.uplo, N, dAP_array, batchCount, dinfo_magma, opts.queue );
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
             else if( opts.version == 3 ) {

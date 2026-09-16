@@ -298,48 +298,63 @@ zpptri_lower_batched_small_kernel_driver(
 /***************************************************************************//**
     Purpose
     -------
-    PPTRF computes
+    PPTRI computes the inverse of a Hermitian positive definite matrix A using
+    the Cholesky factorization A = U**H*U or A = L*L**H computed by PPTRF.
 
     This is a batched version that factors batchCount N-by-N matrices in parallel.
 
     Arguments
     ---------
     @param[in]
+    uplo    magma_uplo_t
+      -     = MagmaUpper:  Upper triangle of A is stored;
+      -     = MagmaLower:  Lower triangle of A is stored.
+            Only MagmaLower is supported.
+
+    @param[in]
     n       INTEGER
-            The size of each matrix A.  N >= 0.
+            The size of each matrix A.  0 < N <= 64.
 
     @param[in,out]
-    dAP_array    Array of pointers, dimension (batchCount).
-            Each is a COMPLEX_16 array on the GPU, dimension (LDDA,N).
-            On entry, each pointer is
-
-    @param[out]
-    info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
-      -     = 0:  successful exit
-      -     < 0:  if INFO = -i, the i-th argument had an illegal value
-                  or another error occured, such as memory allocation failed.
-      -     > 0:  if INFO = i,
+    dAP_array  Array of pointers, dimension (batchCount).
+             Each is COMPLEX*16 array, dimension (n*(n+1)/2)
+             On entry, the upper or lower triangle of the Hermitian matrix
+             A, packed columnwise in a linear array. The j-th column of AP
+             is stored in the array AP as follows:
+               - if UPLO = 'U', AP(i + (j-1)*j/2) = A(i,j)      for 1<=i<=j;
+               - if UPLO = 'L', AP(i + (j-1)*(2n-j)/2) = A(i,j) for j<=i<=n.
 
     @param[in]
     batchCount  INTEGER
                 The number of matrices to operate on.
 
+    @param[out]
+    info_array  Array of INTEGERs, dimension (batchCount), for corresponding matrices.
+      -     = 0:  successful exit
+      -     < 0:  if INFO = -i, the i-th argument had an illegal value.
+      -     > 0:  if INFO = i, the (i,i) element of the factor U or L is
+                  zero, and the inverse could not be computed.
+
     @param[in]
     queue   magma_queue_t
             Queue to execute in.
 
-    @ingroup magma_getrf_batched
+    @ingroup magma_potrf_batched
 *******************************************************************************/
 extern "C" magma_int_t
 magma_zpptri_batched_small(
-    magma_int_t n,
+    magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex** dAP_array,
     magma_int_t batchCount, magma_int_t *info_array,
     magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
 
-    if(n < 0 || n > 64)
+    if( uplo != MagmaLower ) {
+        printf("%s only supports uplo = MagmaLower\n", __func__);
+        arginfo = -1;
+    }
+    else if(n < 0 || n > 64)
         arginfo = -1;
     else if ( batchCount < 0 )
         arginfo = -4;

@@ -569,6 +569,7 @@ magma_zpptrf_batched_small(
 
 magma_int_t
 magma_zpptri_batched_small(
+    magma_uplo_t uplo,
     magma_int_t n, magmaDoubleComplex** dAP_array,
     magma_int_t batchCount, magma_int_t *info_array,
     magma_queue_t queue );
