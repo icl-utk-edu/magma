@@ -56,20 +56,21 @@ int main( int argc, char** argv )
         for( int iter = 0; iter < opts.niter; ++iter ) {
             M = opts.msize[itest];
             N = opts.nsize[itest];
-            if ( M < N ) {
-                printf( "%5lld %5lld %5lld   skipping because M < N is not yet supported.\n", (long long) M, (long long) N, (long long) nrhs );
-                continue;
-            }
             min_mn = min(M, N);
             max_mn = max(M, N);
             lda    = M;
             ldb    = max_mn;
             ldda   = magma_roundup( M, opts.align );  // multiple of 32 by default
             lddb   = magma_roundup( max_mn, opts.align );  // multiple of 32 by default
-            nb     = magma_get_zgeqrf_nb( M, N );
-            gflops = (FLOPS_ZGEQRF( M, N ) + FLOPS_ZGEQRS( M, N, nrhs )) / 1e9;
-            
-            lworkgpu = (M - N + nb)*(nrhs + nb) + nrhs*nb;
+            if ( M >= N ) {
+                nb     = magma_get_zgeqrf_nb( M, N );
+                gflops = (FLOPS_ZGEQRF( M, N ) + FLOPS_ZGEQRS( M, N, nrhs )) / 1e9;
+                lworkgpu = (M - N + nb)*(nrhs + nb) + nrhs*nb;
+            } else {
+                nb     = magma_get_zgelqf_nb( M, N );
+                gflops = (FLOPS_ZGELQF( M, N )) / 1e9;  // approximate
+                lworkgpu = nb * N;
+            }
             
             // query for workspace size
             lhwork = -1;
