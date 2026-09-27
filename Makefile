@@ -948,9 +948,10 @@ pkgconfig:
 	mkdir -p $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)/pkgconfig
 	cat lib/pkgconfig/magma.pc.in                   | \
 	sed -e s:@INSTALL_PREFIX@:"$(prefix)":          | \
-	sed -e s:@CFLAGS@:"$(INSTALL_FLAGS) $(INC)":    | \
+	sed -e s:@CXXFLAGS@:"$(INSTALL_FLAGS) $(INC)":  | \
 	sed -e s:@LIBS@:"$(INSTALL_LDFLAGS) $(LIBS)":   | \
-	sed -e s:@MAGMA_REQUIRED@::                       \
+	sed -e s:@MAGMA_INCLUDE@::                      | \
+	sed -e s:@MAGMA_REQUIRED@::                     \
 	    > $(DESTDIR)$(prefix)/lib$(LIB_SUFFIX)/pkgconfig/magma.pc
 
 
