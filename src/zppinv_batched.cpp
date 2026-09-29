@@ -87,16 +87,39 @@ magma_zppinv_batched(
     magma_int_t *dinfo_array,
     magma_int_t batchCount, magma_queue_t queue)
 {
+#define PPINV_V2
+
+#define dAP_array(i,j)   dAP_array, i, j
+#define   dB_array(i,j)   dB_array, i, j
+#define dB11_array(i,j) dB11_array, i, j
+#define dB21_array(i,j) dB21_array, i, j
+#define dB22_array(i,j) dB22_array, i, j
+
     magma_int_t arginfo = 0;
+
+    #ifdef PPINV_V2
+    magma_int_t n_even = magma_roundup(n, 2);
+    magma_int_t n1 = n_even / 2;
+    magma_int_t n2 = n - n1;
+    #endif
 
     // calculate workspace
     int64_t workspace_bytes = 0;
+    if(n >  0) {
+        #ifndef PPINV_V2
+        workspace_bytes  = batchCount * n * n * sizeof(magmaDoubleComplex);
+        workspace_bytes += batchCount * sizeof(magmaDoubleComplex*);
+        #else
+        workspace_bytes  = batchCount * (n*n1 + n2*n2) * sizeof(magmaDoubleComplex);
+        workspace_bytes += 3 * batchCount * sizeof(magmaDoubleComplex*);
+        #endif
+    }
 
     if ( uplo != MagmaLower ) {
         arginfo = -1;
         printf("Only uplo = MagmaLower is currently supported\n");
     }
-    else if ( n < 0 || n > 64)
+    else if ( n < 0 )
         arginfo = -2;
     else if ( device_lwork[0] > 0 && device_lwork[0] < workspace_bytes)
         arginfo = -5;
@@ -120,9 +143,118 @@ magma_zppinv_batched(
     }
 
     arginfo = magma_zpptrf_batched( uplo, n, dAP_array, dinfo_array, batchCount, queue);
-    if ( arginfo == MAGMA_SUCCESS ) {
-        arginfo = magma_zpptri_batched_small(uplo, n, dAP_array, batchCount, dinfo_array, queue );
-    }
+    if ( arginfo == MAGMA_SUCCESS )  {
+        if( n <= 32 ) {
+            //arginfo = magma_zpptri_batched_small(uplo, n, dAP_array, batchCount, dinfo_array, queue );
+            arginfo = magma_zpptri_batched_small_v2(uplo, n, dAP_array, device_work, batchCount, dinfo_array, queue );
+        }
+        else {
+            #ifndef PPINV_V2
 
+            // set ptr array for RHS and set it to identity
+            magma_int_t lddb = n;
+            magmaDoubleComplex *dB = (magmaDoubleComplex*)device_work;
+            magmaDoubleComplex **dB_array = (magmaDoubleComplex**)(dB + batchCount * n * n );
+            magma_zset_pointer( dB_array, dB, lddb, 0, 0, lddb*n, batchCount, queue );
+            magmablas_zlaset_batched(MagmaFull, n, n, MAGMA_Z_ZERO, MAGMA_Z_ONE, dB_array, lddb, batchCount, queue);
+            // solve
+            arginfo = magma_zpptrs_batched( uplo, n, n, dAP_array, dB_array, lddb,  batchCount, queue );
+            // copy back to packed format
+            magmablas_zlacpy_full2packed_batched( uplo, n, n, uplo, n, dB_array, 0, 0, lddb, dAP_array, 0, 0, batchCount, queue );
+            #else
+            // split workspace
+            magma_int_t lddb_1 = n;
+            magma_int_t lddb_2 = n2;
+
+            const magmaDoubleComplex c_one    = MAGMA_Z_ONE;
+            const magmaDoubleComplex c_negone = MAGMA_Z_NEG_ONE;
+
+            magmaDoubleComplex *dB11 = (magmaDoubleComplex*)device_work;
+            magmaDoubleComplex *dB22 = dB11 + (batchCount * lddb_1 * n1);
+            magmaDoubleComplex **dB11_array = (magmaDoubleComplex**)(dB22 + batchCount * lddb_2 * n2 );
+            magmaDoubleComplex **dB21_array = dB11_array + batchCount;
+            magmaDoubleComplex **dB22_array = dB21_array + batchCount;
+            // setup ptr arrays
+            magma_zset_pointer( dB11_array, dB11, lddb_1,  0, 0, lddb_1*n1, batchCount, queue );
+            magma_zset_pointer( dB21_array, dB11, lddb_1, n1, 0, lddb_1*n1, batchCount, queue );
+            magma_zset_pointer( dB22_array, dB22, lddb_2, 0,  0, lddb_2*n2, batchCount, queue );
+
+            // set RHS to identity
+            magmablas_zlaset_internal_batched(MagmaFull,  n, n1, MAGMA_Z_ZERO, MAGMA_Z_ONE, dB11_array(0,0), lddb_1, batchCount, queue);
+            magmablas_zlaset_internal_batched(MagmaFull, n2, n2, MAGMA_Z_ZERO, MAGMA_Z_ONE, dB22_array(0,0), lddb_2, batchCount, queue);
+
+            // fwd solve 1/2
+            magmablas_ztrsm_packed_recursive_batched(
+                        MagmaLeft, uplo, MagmaNoTrans, MagmaNonUnit,
+                        n, n1, MAGMA_Z_ONE,
+                         dAP_array(0, 0), n,
+                        dB11_array(0, 0), lddb_1,
+                        batchCount, queue );
+
+            //printf("fwd: B11\n");
+            //magma_zprint_gpu(n, n1, dB11, lddb_1, queue);
+
+            // fwd solve 2/2
+            magmablas_ztrsm_packed_recursive_batched(
+                        MagmaLeft, uplo, MagmaNoTrans, MagmaNonUnit,
+                        n2, n2, MAGMA_Z_ONE,
+                         dAP_array(n1, n1), n,
+                        dB22_array( 0,  0), lddb_2,
+                        batchCount, queue );
+
+            //printf("fwd: B22\n");
+            //magma_zprint_gpu(n2, n2, dB22, lddb_2, queue);
+
+           // bwd solve 1/4
+            magmablas_ztrsm_packed_recursive_batched(
+                        MagmaLeft, uplo, MagmaConjTrans, MagmaNonUnit,
+                        n2, n2, MAGMA_Z_ONE,
+                         dAP_array(n1, n1), n,
+                        dB22_array(0, 0), lddb_2,
+                        batchCount, queue );
+
+            //printf("bwd: B22\n");
+            //magma_zprint_gpu(n2, n2, dB22, lddb_2, queue);
+
+           // bwd solve 2/4
+            magmablas_ztrsm_packed_recursive_batched(
+                        MagmaLeft, uplo, MagmaConjTrans, MagmaNonUnit,
+                        n2, n1, MAGMA_Z_ONE,
+                         dAP_array(n1, n1), n,
+                        dB21_array(0, 0), lddb_1,
+                        batchCount, queue );
+
+            //printf("bwd: B21\n");
+            //magma_zprint_gpu(n2, n1, dB11+n1, lddb_1, queue);
+
+           // bwd solve 3/4
+            magmablas_zgemm_packed_batched_core(
+                        MagmaConjTrans, uplo,
+                        n1, n1, n2,
+                        c_negone,  dAP_array(n1, 0), n,
+                                  dB21_array( 0, 0), lddb_1,
+                        c_one   , dB11_array( 0, 0), lddb_1,
+                        batchCount, queue );
+
+            //printf("bwd: B11\n");
+            //magma_zprint_gpu(n1, n1, dB11, lddb_1, queue);
+
+           // bwd solve 4/4
+            magmablas_ztrsm_packed_recursive_batched(
+                        MagmaLeft, uplo, MagmaConjTrans, MagmaNonUnit,
+                        n1, n1, MAGMA_Z_ONE,
+                         dAP_array(0, 0), n,
+                        dB11_array(0, 0), lddb_1,
+                        batchCount, queue );
+
+            //printf("bwd: B11\n");
+            //magma_zprint_gpu(n1, n1, dB11, lddb_1, queue);
+
+            // copy back to packed format
+            magmablas_zlacpy_full2packed_batched( uplo,  n, n1, uplo, n, dB11_array(0, 0), lddb_1, dAP_array( 0,  0), batchCount, queue );
+            magmablas_zlacpy_full2packed_batched( uplo, n2, n2, uplo, n, dB22_array(0, 0), lddb_2, dAP_array(n1, n1), batchCount, queue );
+            #endif
+        }
+    }
     return arginfo;
 }
