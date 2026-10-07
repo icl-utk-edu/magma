@@ -13,7 +13,10 @@
 #include "magma_internal.h"
 
 #define dA(i_, j_)   dA[ (j_) * ldda  + (i_)]
-#define dAP(i_, j_) dAP[N*(j_) - (j_)*((j_)+1)/2 + (i_)]
+
+#define dAP_LOWER(i_, j_) dAP[npacked*(j_) - (j_)*(j_+1)/2 + (i_)]
+#define dAP_UPPER(i_, j_) dAP[(j_)*(j_+1)/2 + (i_)]
+
 
 #define BLK_X 32
 #define BLK_Y  4
@@ -74,7 +77,7 @@ void zlacpy_full2packed_kernel_batched(
             Specifies the part of the matrix dA to be copied to dAP.
       -     = MagmaUpper:      Upper triangular part
       -     = MagmaLower:      Lower triangular part
-            Otherwise:  All of each matrix dA
+            = MagmaFull:       All dA is copied (this means an off-diagonal part of A is copied to AP)
 
     @param[in]
     m       INTEGER
@@ -100,14 +103,15 @@ void zlacpy_full2packed_kernel_batched(
             The N-by-N matrix dA.
             If UPLO = MagmaUpper, only the upper triangle part is copied to dAP;
             if UPLO = MagmaLower, only the lower triangle part is copied to dAP.
+            if UPLO = MagmaFull,  all of A is copied to AP (in this case, an off-diagonal block)
 
     @param[in]
     Ai      INTEGER
-            The row offset of A.
+            The row offset defining the beginning of A.
 
     @param[in]
     Aj      INTEGER
-            The column offset of A.
+            The column offset defining the beginning of A.
 
     @param[in]
     ldda    INTEGER
@@ -120,11 +124,11 @@ void zlacpy_full2packed_kernel_batched(
 
     @param[in]
     APi     INTEGER
-            The row offset of AP.
+            The row offset defining the beginning of AP.
 
     @param[in]
     APj     INTEGER
-            The column offset of AP.
+            The column offset defining the beginning of AP.
 
     @param[in]
     queue   magma_queue_t
