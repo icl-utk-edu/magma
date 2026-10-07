@@ -26,8 +26,6 @@
 #endif
 #include "../control/magma_threadsetting.h"  // internal header
 
-#define cond (N == 8 && batchCount == 1 && ibatch == 0)
-
 /* ////////////////////////////////////////////////////////////////////////////
    -- Testing zpptri_batched
 */
@@ -108,12 +106,6 @@ int main( int argc, char** argv)
             // set matrix (packed format) cpu -> gpu
             for(magma_int_t i = 0; i < batchCount; i++) {
                 magma_zsetvector( sizeAP, hAP + i * sizeAP, 1, dAP + i * sizeAP, 1, opts.queue );
-            }
-
-            for(magma_int_t ibatch = 0; ibatch < batchCount; ibatch++) {
-                if(cond) {
-                    magma_zprint(sizeAP, 1, hAP + ibatch*sizeAP, sizeAP);
-                }
             }
 
             /* ====================================================================
@@ -207,13 +199,6 @@ int main( int argc, char** argv)
                 // get matrix (packed format) gpu -> cpu
                 for(magma_int_t i = 0; i < batchCount; i++) {
                     magma_zgetvector( sizeAP, dAP + i * sizeAP, 1, hRP + i * sizeAP, 1, opts.queue );
-                }
-
-                for(magma_int_t ibatch = 0; ibatch < batchCount; ibatch++) {
-                    if(cond) {
-                        magma_zprint(sizeAP, 1, hRP + ibatch*sizeAP, sizeAP);
-                        magma_zprint(sizeAP, 1, hAP + ibatch*sizeAP, sizeAP);
-                    }
                 }
 
                 error = 0;
