@@ -76,6 +76,7 @@ static inline __device__ void zpotf2_sminout_anywidth_device(const int m, const 
 
 
 /******************************************************************************/
+template<int NB>
 static inline __device__ void zpotf2_sminout_fixsize_device(const int m, magmaDoubleComplex *A, const int lda, int* info)
 {
     const int tx = threadIdx.x;
@@ -83,7 +84,7 @@ static inline __device__ void zpotf2_sminout_fixsize_device(const int m, magmaDo
     int linfo = 0;
 
     #pragma unroll
-    for (int iter=0; iter < POTF2_NB; iter++)
+    for (int iter=0; iter < NB; iter++)
     {
         //sqrt(diag) and zdscal
         #ifdef ENABLE_COND2
@@ -105,8 +106,8 @@ static inline __device__ void zpotf2_sminout_fixsize_device(const int m, magmaDo
             A[ tx + iter * lda ] *= factor;
 
             //A[ tx + iter * lda ]  = tx == iter ? MAGMA_Z_MAKE(xreal, 0.0) : A[ tx + iter * lda ] * factor;
-            //if (tx < POTF2_NB) row[ tx ] = MAGMA_Z_CONJ( A[ tx + iter * lda ] );
-            //if (tx < POTF2_NB) A[ iter + tx * lda ] = MAGMA_Z_CONJ( A[ tx + iter * lda ] );
+            //if (tx < NB) row[ tx ] = MAGMA_Z_CONJ( A[ tx + iter * lda ] );
+            //if (tx < NB) A[ iter + tx * lda ] = MAGMA_Z_CONJ( A[ tx + iter * lda ] );
         #ifdef ENABLE_COND2
         }
         #endif
@@ -120,7 +121,7 @@ static inline __device__ void zpotf2_sminout_fixsize_device(const int m, magmaDo
         {
         #endif
             #pragma unroll
-            for (int j=iter+1; j < POTF2_NB; j++)
+            for (int j=iter+1; j < NB; j++)
             {
                 A [tx + j * lda] -= A[tx + iter * lda]  *  MAGMA_Z_CONJ(A[iter * lda + j]);
                 //A [tx + j * lda] -= A[tx + iter * lda]  *  row[j];
@@ -138,14 +139,15 @@ static inline __device__ void zpotf2_sminout_fixsize_device(const int m, magmaDo
 
 
 /******************************************************************************/
+template<int NB>
 static inline __device__ void zgemm_v20_1_fixsize_device(int m, int k,
         const magmaDoubleComplex* __restrict__ A0, const int lda,
         magmaDoubleComplex *sC, magmaDoubleComplex  *sB)
 {
     const int tx = threadIdx.x;
-    magmaDoubleComplex rC[POTF2_NB];
-    magmaDoubleComplex rA[POTF2_NB];
-    magmaDoubleComplex rp[POTF2_NB];
+    magmaDoubleComplex rC[NB];
+    magmaDoubleComplex rA[NB];
+    magmaDoubleComplex rp[NB];
 
     // prefetch next block.
     #ifdef ENABLE_COND4
@@ -153,7 +155,7 @@ static inline __device__ void zgemm_v20_1_fixsize_device(int m, int k,
     {
     #endif
         #pragma unroll
-        for (int i=0; i < POTF2_NB; i++)
+        for (int i=0; i < NB; i++)
         {
             rp[i] = A0[tx + i * lda];
             rC[i] = MAGMA_Z_ZERO;
@@ -168,7 +170,7 @@ static inline __device__ void zgemm_v20_1_fixsize_device(int m, int k,
 
     // accumulate
     #pragma unroll
-    for (int iter=0; iter < k; iter += POTF2_NB)
+    for (int iter=0; iter < k; iter += NB)
     {
         #ifdef ENABLE_COND4
         if (tx < m)
@@ -176,7 +178,7 @@ static inline __device__ void zgemm_v20_1_fixsize_device(int m, int k,
         #endif
             // rp to rA
             #pragma unroll
-            for (int i=0; i < POTF2_NB; i++)
+            for (int i=0; i < NB; i++)
             {
                 rA[i] = rp[i];
             }
@@ -185,12 +187,12 @@ static inline __device__ void zgemm_v20_1_fixsize_device(int m, int k,
         #endif
 
         // rA to sB
-        if (tx < POTF2_NB)
+        if (tx < NB)
         {
             #pragma unroll
-            for (int i=0; i < POTF2_NB; i++)
+            for (int i=0; i < NB; i++)
             {
-                sB[tx + i * POTF2_NB] = MAGMA_Z_CONJ(rp[i]);
+                sB[tx + i * NB] = MAGMA_Z_CONJ(rp[i]);
             }
         }
 
@@ -202,9 +204,9 @@ static inline __device__ void zgemm_v20_1_fixsize_device(int m, int k,
         {
         #endif
             #pragma unroll
-            for (int i=0; i < POTF2_NB; i++)
+            for (int i=0; i < NB; i++)
             {
-                rp[i] = A0[tx + (i+(iter+POTF2_NB)) * lda];
+                rp[i] = A0[tx + (i+(iter+NB)) * lda];
             }
         #ifdef ENABLE_COND4
         }
@@ -217,13 +219,13 @@ static inline __device__ void zgemm_v20_1_fixsize_device(int m, int k,
         {
         #endif
             #pragma unroll
-            for (int i=0; i < POTF2_NB; i++)
+            for (int i=0; i < NB; i++)
             {
                 #pragma unroll
-                for (int col=0; col < POTF2_NB; col++)
+                for (int col=0; col < NB; col++)
                 {
-                    // A0 is multiplied by POTF2_NB times
-                    rC[col] +=  rA[i] * sB[col + i * POTF2_NB];
+                    // A0 is multiplied by NB times
+                    rC[col] +=  rA[i] * sB[col + i * NB];
                 }
             }
         #ifdef ENABLE_COND4
@@ -238,7 +240,7 @@ static inline __device__ void zgemm_v20_1_fixsize_device(int m, int k,
     {
     #endif
         #pragma unroll
-        for (int i=0; i < POTF2_NB; i++)
+        for (int i=0; i < NB; i++)
         {
             sC[tx + i *m] = rp[i] - rC[i];
         }
@@ -250,14 +252,15 @@ static inline __device__ void zgemm_v20_1_fixsize_device(int m, int k,
 
 
 /******************************************************************************/
+template<int NB>
 static inline __device__ void zgemm_v20_1_anywidth_device(int m, int n, int k,
         const magmaDoubleComplex* __restrict__ A0, int lda,
         magmaDoubleComplex *sC, magmaDoubleComplex  *sB)
 {
     const int tx = threadIdx.x;
-    magmaDoubleComplex rC[POTF2_NB];
-    magmaDoubleComplex rA[POTF2_NB];
-    magmaDoubleComplex rp[POTF2_NB];
+    magmaDoubleComplex rC[NB];
+    magmaDoubleComplex rA[NB];
+    magmaDoubleComplex rp[NB];
 
     const int bound_A = lda*(k+n-1)+m-1;
 
@@ -267,7 +270,7 @@ static inline __device__ void zgemm_v20_1_anywidth_device(int m, int n, int k,
     {
     #endif
         #pragma unroll
-        for (int i=0; i < POTF2_NB; i++)
+        for (int i=0; i < NB; i++)
         {
             rp[i] = A0[min(bound_A, tx + i * lda)];
             rC[i] = MAGMA_Z_ZERO;
@@ -282,7 +285,7 @@ static inline __device__ void zgemm_v20_1_anywidth_device(int m, int n, int k,
 
     // accumulate
     #pragma unroll
-    for (int iter=0; iter < k; iter += POTF2_NB)
+    for (int iter=0; iter < k; iter += NB)
     {
         #ifdef ENABLE_COND5
         if (tx < m)
@@ -290,7 +293,7 @@ static inline __device__ void zgemm_v20_1_anywidth_device(int m, int n, int k,
         #endif
             // rp to rA
             #pragma unroll
-            for (int i=0; i < POTF2_NB; i++)
+            for (int i=0; i < NB; i++)
             {
                 rA[i] = rp[i];
             }
@@ -299,12 +302,12 @@ static inline __device__ void zgemm_v20_1_anywidth_device(int m, int n, int k,
         #endif
 
         // rA to sB
-        if (tx < POTF2_NB)
+        if (tx < NB)
         {
             #pragma unroll
-            for (int i=0; i < POTF2_NB; i++)
+            for (int i=0; i < NB; i++)
             {
-                sB[tx + i * POTF2_NB] = MAGMA_Z_CONJ(rp[i]);
+                sB[tx + i * NB] = MAGMA_Z_CONJ(rp[i]);
             }
         }
 
@@ -316,9 +319,9 @@ static inline __device__ void zgemm_v20_1_anywidth_device(int m, int n, int k,
         {
         #endif
             #pragma unroll
-            for (int i=0; i < POTF2_NB; i++)
+            for (int i=0; i < NB; i++)
             {
-                rp[i] = A0[min(bound_A, tx + (i+(iter+POTF2_NB)) * lda)]; // min(bound,xxx) is to avoid reading out of bound
+                rp[i] = A0[min(bound_A, tx + (i+(iter+NB)) * lda)]; // min(bound,xxx) is to avoid reading out of bound
             }
         #ifdef ENABLE_COND5
         }
@@ -331,13 +334,13 @@ static inline __device__ void zgemm_v20_1_anywidth_device(int m, int n, int k,
         {
         #endif
             #pragma unroll
-            for (int i=0; i < POTF2_NB; i++)
+            for (int i=0; i < NB; i++)
             {
                 #pragma unroll
-                for (int col=0; col < POTF2_NB; col++)
+                for (int col=0; col < NB; col++)
                 {
-                    // A0 is multiplied by POTF2_NB times
-                    rC[col] +=  rA[i] * sB[col + i * POTF2_NB];
+                    // A0 is multiplied by NB times
+                    rC[col] +=  rA[i] * sB[col + i * NB];
                 }
             }
         #ifdef ENABLE_COND5
@@ -352,7 +355,7 @@ static inline __device__ void zgemm_v20_1_anywidth_device(int m, int n, int k,
     {
     #endif
         #pragma unroll
-        for (int i=0; i < POTF2_NB; i++)
+        for (int i=0; i < NB; i++)
         {
             sC[tx + i *m] = rp[i] - rC[i];
         }
@@ -364,6 +367,7 @@ static inline __device__ void zgemm_v20_1_anywidth_device(int m, int n, int k,
 
 
 /******************************************************************************/
+template<int NB>
 static inline __device__ void zpotf2_smlpout_fixwidth_device(const int m,
         magmaDoubleComplex *A0, magmaDoubleComplex *A, int lda,
         const int localstep, const int gbstep,
@@ -379,20 +383,20 @@ static inline __device__ void zpotf2_smlpout_fixwidth_device(const int m,
     const int orginfo = (*info);
     int panel_info = 0, newinfo = 0;
     const int tx = threadIdx.x;
-    magmaDoubleComplex *sdata_A = shared_data + threadIdx.y * (m+POTF2_NB)*POTF2_NB;
-    magmaDoubleComplex *sdata_B = sdata_A + m * POTF2_NB;
+    magmaDoubleComplex *sdata_A = shared_data + threadIdx.y * (m+NB)*NB;
+    magmaDoubleComplex *sdata_B = sdata_A + m * NB;
 
 
     #if 1
-    zgemm_v20_1_fixsize_device(m, localstep,
+    zgemm_v20_1_fixsize_device<NB>(m, localstep,
                        A0, lda, sdata_A, sdata_B);
     #else
-    zgemm_v20_1_anywidth_device(m, POTF2_NB, localstep,
+    zgemm_v20_1_anywidth_device<NB>(m, NB, localstep,
                        A0, lda, sdata_A, sdata_B);
     #endif
 
     // panel fact. in shared memory
-    zpotf2_sminout_fixsize_device(m, sdata_A, m, &panel_info);
+    zpotf2_sminout_fixsize_device<NB>(m, sdata_A, m, &panel_info);
     //----------------------------------------------------
     // Check for not SPD generating info
     #ifndef BATCH_DISABLE_CHECKING
@@ -410,7 +414,7 @@ static inline __device__ void zpotf2_smlpout_fixwidth_device(const int m,
     {
     #endif
         #pragma unroll
-        for (int i=0; i < POTF2_NB; i++)
+        for (int i=0; i < NB; i++)
         {
             #ifdef BATCH_DISABLE_CLEANUP
             A[tx + i * lda] = sdata_A[tx + i * m];
@@ -426,6 +430,7 @@ static inline __device__ void zpotf2_smlpout_fixwidth_device(const int m,
 
 
 /******************************************************************************/
+template<int NB>
 static inline __device__ void zpotf2_smlpout_anywidth_device(const int m, const int n,
         magmaDoubleComplex *A0, magmaDoubleComplex *A, int lda,
         const int localstep, const int gbstep,
@@ -440,15 +445,15 @@ static inline __device__ void zpotf2_smlpout_anywidth_device(const int m, const 
     const int orginfo = (*info);
     int panel_info = 0, newinfo = 0;
     const int tx = threadIdx.x;
-    magmaDoubleComplex *sdata_A = shared_data + threadIdx.y * (m+POTF2_NB)*POTF2_NB;
-    magmaDoubleComplex *sdata_B = sdata_A + m * POTF2_NB;
+    magmaDoubleComplex *sdata_A = shared_data + threadIdx.y * (m+NB)*NB;
+    magmaDoubleComplex *sdata_B = sdata_A + m * NB;
 
     #if 0
-    zgemm_v20_1_fixsize_device(m, localstep,
+    zgemm_v20_1_fixsize_device<NB>(m, localstep,
                        A0, lda, sdata_A, sdata_B);
-    zpotf2_sminout_fixsize_device(m, sdata_A, m);
+    zpotf2_sminout_fixsize_device<NB>(m, sdata_A, m);
     #else
-    zgemm_v20_1_anywidth_device(m, n, localstep,
+    zgemm_v20_1_anywidth_device<NB>(m, n, localstep,
                        A0, lda, sdata_A, sdata_B);
     #endif
 

@@ -36,6 +36,7 @@
 #include "zpptf2_devicesfunc.cuh"
 
 /******************************************************************************/
+template<int NB>
 __global__
 __launch_bounds__(ZPPTF2_MAX_NTHREADS)
 void zpptf2_smlpout_fixwidth_kernel_batched(int m,
@@ -45,11 +46,13 @@ void zpptf2_smlpout_fixwidth_kernel_batched(int m,
     const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
     if (batchid >= batchCount) return;
     magmaDoubleComplex *dA = dA_array[batchid] + aj * lda + ai;
-    zpptf2_smlpout_fixwidth_device(m, dA, localstep, dA+PACKED(localstep, localstep, lda), lda, localstep, gbstep, &(info_array[batchid]));
+    zpptf2_smlpout_fixwidth_device<NB>
+    (m, dA, localstep, dA+PACKED(localstep, localstep, lda), lda, localstep, gbstep, &(info_array[batchid]));
 }
 
 
 /******************************************************************************/
+template<int NB>
 __global__
 __launch_bounds__(ZPPTF2_MAX_NTHREADS)
 void zpptf2_smlpout_anywidth_kernel_batched(int m, int n,
@@ -59,7 +62,8 @@ void zpptf2_smlpout_anywidth_kernel_batched(int m, int n,
     const int batchid = blockIdx.x * blockDim.y + threadIdx.y;
     if (batchid >= batchCount) return;
     magmaDoubleComplex *dA = dA_array[batchid] + aj * lda + ai;
-    zpptf2_smlpout_anywidth_device(m, n, dA, localstep, dA+PACKED(localstep, localstep, lda), lda, localstep, gbstep, &(info_array[batchid]));
+    zpptf2_smlpout_anywidth_device<NB>
+    (m, n, dA, localstep, dA+PACKED(localstep, localstep, lda), lda, localstep, gbstep, &(info_array[batchid]));
 }
 
 /******************************************************************************/
@@ -97,8 +101,9 @@ magma_zpptrf_lpout_batched(
     }
 
     magma_int_t  ib, rows;
-    for (magma_int_t j = 0; j < n; j += POTF2_NB) {
-        ib   = min(POTF2_NB, n-j);
+    constexpr int pptf2_nb = POTF2_NB;
+    for (magma_int_t j = 0; j < n; j += pptf2_nb) {
+        ib   = min(pptf2_nb, n-j);
         rows = m-j;
 
         // tuning ntcol
@@ -111,7 +116,7 @@ magma_zpptrf_lpout_batched(
         const magma_int_t nTB = magma_ceildiv( batchCount, ntcol );
         dim3 dimGrid(nTB, 1, 1);
         magma_int_t nbth = rows;
-        magma_int_t shared_mem_size = ntcol * (sizeof(magmaDoubleComplex)*(nbth+POTF2_NB)*POTF2_NB);
+        magma_int_t shared_mem_size = ntcol * (sizeof(magmaDoubleComplex)*(nbth+pptf2_nb)*pptf2_nb);
         dim3 threads(nbth, ntcol);
 
         if ( shared_mem_size > (magma_int_t)magma_getdevice_shmem_block_optin() ) {
@@ -123,17 +128,17 @@ magma_zpptrf_lpout_batched(
 
         #if CUDA_VERSION >= 9000
         // always opt-in for shared memory
-        cudaFuncSetAttribute(zpptf2_smlpout_fixwidth_kernel_batched, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_mem_size);
-        cudaFuncSetAttribute(zpptf2_smlpout_anywidth_kernel_batched, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_mem_size);
+        cudaFuncSetAttribute(zpptf2_smlpout_fixwidth_kernel_batched<pptf2_nb>, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_mem_size);
+        cudaFuncSetAttribute(zpptf2_smlpout_anywidth_kernel_batched<pptf2_nb>, cudaFuncAttributeMaxDynamicSharedMemorySize, shared_mem_size);
         #endif
 
-        if (ib == POTF2_NB) {
-            zpptf2_smlpout_fixwidth_kernel_batched
+        if (ib == pptf2_nb) {
+            zpptf2_smlpout_fixwidth_kernel_batched<pptf2_nb>
                 <<< dimGrid, threads, shared_mem_size, queue->cuda_stream() >>>
                 (rows, dA_array, ai, aj, lda, j, gbstep, info_array, batchCount);
         }
         else {
-            zpptf2_smlpout_anywidth_kernel_batched
+            zpptf2_smlpout_anywidth_kernel_batched<pptf2_nb>
                 <<< dimGrid, threads, shared_mem_size, queue->cuda_stream() >>>
                 (rows, ib, dA_array, ai, aj, lda, j, gbstep, info_array, batchCount);
         }

@@ -20,18 +20,19 @@
 #define PACKED(i_, j_, N_) (N_*j_ - j_*(j_+1)/2 + i_)
 /******************************************************************************/
 // See corresponding device function in zpotf2_devicesfunc.cuh
+template<int NB>
 static inline __device__ void zgemm_packed_v20_1_fixsize_device(int m, int k,
         const magmaDoubleComplex* __restrict__ A0, int A0_row_start, const int lda,
         magmaDoubleComplex *sC, magmaDoubleComplex  *sB)
 {
     const int tx = threadIdx.x;
-    magmaDoubleComplex rC[POTF2_NB];
-    magmaDoubleComplex rA[POTF2_NB];
-    magmaDoubleComplex rp[POTF2_NB];
+    magmaDoubleComplex rC[NB];
+    magmaDoubleComplex rA[NB];
+    magmaDoubleComplex rp[NB];
 
     // prefetch next block.
     #pragma unroll
-    for (int i=0; i < POTF2_NB; i++)
+    for (int i=0; i < NB; i++)
     {
         rp[i] = A0[(i > tx + A0_row_start) ? PACKED(i, (tx + A0_row_start), lda) : PACKED((tx + A0_row_start), i, lda)];
         rC[i] = MAGMA_Z_ZERO;
@@ -43,22 +44,22 @@ static inline __device__ void zgemm_packed_v20_1_fixsize_device(int m, int k,
 
     // accumulate
     #pragma unroll
-    for (int iter=0; iter < k; iter += POTF2_NB)
+    for (int iter=0; iter < k; iter += NB)
     {
         // rp to rA
         #pragma unroll
-        for (int i=0; i < POTF2_NB; i++)
+        for (int i=0; i < NB; i++)
         {
             rA[i] = rp[i];
         }
 
         // rA to sB
-        if (tx < POTF2_NB)
+        if (tx < NB)
         {
             #pragma unroll
-            for (int i=0; i < POTF2_NB; i++)
+            for (int i=0; i < NB; i++)
             {
-                sB[tx + i * POTF2_NB] = MAGMA_Z_CONJ(rp[i]);
+                sB[tx + i * NB] = MAGMA_Z_CONJ(rp[i]);
             }
         }
 
@@ -66,23 +67,23 @@ static inline __device__ void zgemm_packed_v20_1_fixsize_device(int m, int k,
 
         // prefetch next block. Azzam
         #pragma unroll
-        for (int i=0; i < POTF2_NB; i++)
+        for (int i=0; i < NB; i++)
         {
-            rp[i] = A0[(i+iter+POTF2_NB > tx + A0_row_start) ?
-		       PACKED((i+iter+POTF2_NB), (tx + A0_row_start), lda) :
-                       PACKED((tx + A0_row_start), (i+iter+POTF2_NB), lda)];
+            rp[i] = A0[(i+iter+NB > tx + A0_row_start) ?
+		       PACKED((i+iter+NB), (tx + A0_row_start), lda) :
+                       PACKED((tx + A0_row_start), (i+iter+NB), lda)];
         }
         //__syncthreads();
 
         // multiply current block
         #pragma unroll
-        for (int i=0; i < POTF2_NB; i++)
+        for (int i=0; i < NB; i++)
         {
             #pragma unroll
-            for (int col=0; col < POTF2_NB; col++)
+            for (int col=0; col < NB; col++)
             {
-                // A0 is multiplied by POTF2_NB times
-                rC[col] +=  rA[i] * sB[col + i * POTF2_NB];
+                // A0 is multiplied by NB times
+                rC[col] +=  rA[i] * sB[col + i * NB];
             }
         }
     __syncthreads();
@@ -90,7 +91,7 @@ static inline __device__ void zgemm_packed_v20_1_fixsize_device(int m, int k,
 
     // finalizing gemm.
     #pragma unroll
-    for (int i=0; i < POTF2_NB; i++)
+    for (int i=0; i < NB; i++)
     {
         sC[tx + i *m] = rp[i] - rC[i];
     }
@@ -99,21 +100,22 @@ static inline __device__ void zgemm_packed_v20_1_fixsize_device(int m, int k,
 
 
 /******************************************************************************/
+template<int NB>
 static inline __device__ void zgemm_packed_v20_1_anywidth_device(int m, int n, int k,
         const magmaDoubleComplex* __restrict__ A0, int A0_row_start, int lda,
         magmaDoubleComplex *sC, magmaDoubleComplex  *sB)
 {
     const int tx = threadIdx.x;
-    magmaDoubleComplex rC[POTF2_NB];
-    magmaDoubleComplex rA[POTF2_NB];
-    magmaDoubleComplex rp[POTF2_NB];
+    magmaDoubleComplex rC[NB];
+    magmaDoubleComplex rA[NB];
+    magmaDoubleComplex rp[NB];
 
     // k+n is the total number of columns in the matrix
     const int bound_A = (k+n)*(k+n+1)/2 - 1;
 
     // prefetch next block.
     #pragma unroll
-    for (int i=0; i < POTF2_NB; i++)
+    for (int i=0; i < NB; i++)
     {
         rp[i] = A0[min(bound_A, (i > tx + A0_row_start) ? PACKED(i, (tx + A0_row_start), lda) :
 			                                  PACKED((tx + A0_row_start), i, lda))];
@@ -126,22 +128,22 @@ static inline __device__ void zgemm_packed_v20_1_anywidth_device(int m, int n, i
 
     // accumulate
     #pragma unroll
-    for (int iter=0; iter < k; iter += POTF2_NB)
+    for (int iter=0; iter < k; iter += NB)
     {
         // rp to rA
         #pragma unroll
-        for (int i=0; i < POTF2_NB; i++)
+        for (int i=0; i < NB; i++)
         {
             rA[i] = rp[i];
         }
 
         // rA to sB
-        if (tx < POTF2_NB)
+        if (tx < NB)
         {
             #pragma unroll
-            for (int i=0; i < POTF2_NB; i++)
+            for (int i=0; i < NB; i++)
             {
-                sB[tx + i * POTF2_NB] = MAGMA_Z_CONJ(rp[i]);
+                sB[tx + i * NB] = MAGMA_Z_CONJ(rp[i]);
             }
         }
 
@@ -149,23 +151,23 @@ static inline __device__ void zgemm_packed_v20_1_anywidth_device(int m, int n, i
 
         // prefetch next block. Azzam
         #pragma unroll
-        for (int i=0; i < POTF2_NB; i++)
+        for (int i=0; i < NB; i++)
         {
-            rp[i] = A0[min(bound_A, (i+iter+POTF2_NB > tx + A0_row_start) ?
-	    	                   PACKED((i+iter+POTF2_NB), (tx + A0_row_start), lda) :
-                                   PACKED((tx + A0_row_start), (i+iter+POTF2_NB), lda))];
+            rp[i] = A0[min(bound_A, (i+iter+NB > tx + A0_row_start) ?
+	    	                   PACKED((i+iter+NB), (tx + A0_row_start), lda) :
+                                   PACKED((tx + A0_row_start), (i+iter+NB), lda))];
         }
         //__syncthreads();
 
         // multiply current block
         #pragma unroll
-        for (int i=0; i < POTF2_NB; i++)
+        for (int i=0; i < NB; i++)
         {
             #pragma unroll
-            for (int col=0; col < POTF2_NB; col++)
+            for (int col=0; col < NB; col++)
             {
-                // A0 is multiplied by POTF2_NB times
-                rC[col] +=  rA[i] * sB[col + i * POTF2_NB];
+                // A0 is multiplied by NB times
+                rC[col] +=  rA[i] * sB[col + i * NB];
             }
         }
     __syncthreads();
@@ -173,7 +175,7 @@ static inline __device__ void zgemm_packed_v20_1_anywidth_device(int m, int n, i
 
     // finalizing gemm.
     #pragma unroll
-    for (int i=0; i < POTF2_NB; i++)
+    for (int i=0; i < NB; i++)
     {
         sC[tx + i *m] = rp[i] - rC[i];
     }
@@ -182,6 +184,7 @@ static inline __device__ void zgemm_packed_v20_1_anywidth_device(int m, int n, i
 
 
 /******************************************************************************/
+template<int NB>
 static inline __device__ void zpptf2_smlpout_fixwidth_device(const int m,
         magmaDoubleComplex *A0, int A0_row_start, magmaDoubleComplex *A, int lda,
         const int localstep, const int gbstep,
@@ -197,14 +200,14 @@ static inline __device__ void zpptf2_smlpout_fixwidth_device(const int m,
     const int orginfo = (*info);
     int panel_info = 0, newinfo = 0;
     const int tx = threadIdx.x;
-    magmaDoubleComplex *sdata_A = shared_data + threadIdx.y * (m+POTF2_NB)*POTF2_NB;
-    magmaDoubleComplex *sdata_B = sdata_A + m * POTF2_NB;
+    magmaDoubleComplex *sdata_A = shared_data + threadIdx.y * (m+NB)*NB;
+    magmaDoubleComplex *sdata_B = sdata_A + m * NB;
 
-    zgemm_packed_v20_1_fixsize_device(m, localstep,
-                       A0, A0_row_start, lda, sdata_A, sdata_B);
+    zgemm_packed_v20_1_fixsize_device<NB>
+    (m, localstep, A0, A0_row_start, lda, sdata_A, sdata_B);
 
     // panel fact. in shared memory
-    zpotf2_sminout_fixsize_device(m, sdata_A, m, &panel_info);
+    zpotf2_sminout_fixsize_device<NB>(m, sdata_A, m, &panel_info);
     //----------------------------------------------------
     // Check for not SPD generating info
     #ifndef BATCH_DISABLE_CHECKING
@@ -218,7 +221,7 @@ static inline __device__ void zpptf2_smlpout_fixwidth_device(const int m,
 
     //copy sdata_A to A
     #pragma unroll
-    for (int i=0; i < POTF2_NB; i++)
+    for (int i=0; i < NB; i++)
     {
         #ifdef BATCH_DISABLE_CLEANUP
         A[PACKED(tx, i, m)] = sdata_A[tx + i * m];
@@ -230,6 +233,7 @@ static inline __device__ void zpptf2_smlpout_fixwidth_device(const int m,
 
 
 /******************************************************************************/
+template<int NB>
 static inline __device__ void zpptf2_smlpout_anywidth_device(const int m, const int n,
         magmaDoubleComplex *A0, int A0_row_start, magmaDoubleComplex *A, int lda,
         const int localstep, const int gbstep,
@@ -244,10 +248,10 @@ static inline __device__ void zpptf2_smlpout_anywidth_device(const int m, const 
     const int orginfo = (*info);
     int panel_info = 0, newinfo = 0;
     const int tx = threadIdx.x;
-    magmaDoubleComplex *sdata_A = shared_data + threadIdx.y * (m+POTF2_NB)*POTF2_NB;
-    magmaDoubleComplex *sdata_B = sdata_A + m * POTF2_NB;
+    magmaDoubleComplex *sdata_A = shared_data + threadIdx.y * (m+NB)*NB;
+    magmaDoubleComplex *sdata_B = sdata_A + m * NB;
 
-    zgemm_packed_v20_1_anywidth_device(m, n, localstep,
+    zgemm_packed_v20_1_anywidth_device<NB>(m, n, localstep,
                        A0, A0_row_start, lda, sdata_A, sdata_B);
 
     zpotf2_sminout_anywidth_device(m, n, sdata_A, m, &panel_info);
