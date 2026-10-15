@@ -13,7 +13,7 @@
 /***************************************************************************//**
     Purpose
     -------
-    ZHEMM-Packed performs the in-place update:
+    ZHPMM performs the in-place update:
             B = AP * B     side='left', or
             B = B  * AP    side='right'
     , where AP is a Hermitian positive definite matrix stored in packed
@@ -85,7 +85,7 @@
     @ingroup magma_posv_batched
 *******************************************************************************/
 extern "C" void
-magma_zhemm_packed_inplace_batched(
+magma_zhpmm_inplace_batched(
     magma_side_t side, magma_uplo_t uplo,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex **dAP_array,
@@ -124,9 +124,9 @@ magma_zhemm_packed_inplace_batched(
 
     // special case
     if( side == MagmaLeft && n == 1 ) {
-        magma_zhemv_packed_inplace_batched_small( uplo, m, dAP_array, dB_array, lddb, batchCount, queue );
+        magma_zhpmv_inplace_batched_small( uplo, m, dAP_array, dB_array, lddb, batchCount, queue );
     }
     else {
-        magma_zhemm_packed_inplace_batched_small(side, uplo, m, n, dAP_array, dB_array, lddb, batchCount, queue );
+        magma_zhpmm_inplace_batched_small(side, uplo, m, n, dAP_array, dB_array, lddb, batchCount, queue );
     }
 }
