@@ -178,7 +178,7 @@ int main(int argc, char **argv)
                     magma_zsetmatrix( N, nrhs*batchCount, hB, ldb, dB, lddb, opts.queue );
 
                     x_time = magma_sync_wtime( opts.queue );
-                    magma_zhemm_packed_inplace_batched(MagmaLeft, opts.uplo, N, nrhs, dAP_array, dB_array, lddb, batchCount, opts.queue);
+                    magma_zhpmm_inplace_batched(MagmaLeft, opts.uplo, N, nrhs, dAP_array, dB_array, lddb, batchCount, opts.queue);
                     x_time = magma_sync_wtime( opts.queue ) - x_time;
                     gpu_time += x_time;
                 }
