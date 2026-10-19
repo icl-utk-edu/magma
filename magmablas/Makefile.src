@@ -210,7 +210,6 @@ libmagma_src += \
 	$(cdir)/zpptri_batched_small.cu		\
 	$(cdir)/zlacpy_packed.cu		\
 	$(cdir)/zhpmm_inplace_batched.cu		\
-	$(cdir)/zhpmm_inplace_batched_small.cu		\
 	$(cdir)/zhpmv_inplace_batched.cu		\
 
 # vbatched files
