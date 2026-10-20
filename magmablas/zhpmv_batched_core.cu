@@ -9,7 +9,7 @@
 
        @author Ahmad Abdelfattah
        @author Natalie Beams
-       
+
 */
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
@@ -18,30 +18,30 @@
 #include "hpmv_template_kernel_batched.cuh"
 
 /******************************************************************************/
-extern "C" void 
+extern "C" void
 magmablas_zhpmv_batched_core(
-        magma_uplo_t uplo, magma_int_t n, 
+        magma_uplo_t uplo, magma_int_t n,
         magmaDoubleComplex alpha, magmaDoubleComplex **dA_array, magma_int_t ldda,
                                   magmaDoubleComplex **dX_array, magma_int_t incx,
         magmaDoubleComplex beta,  magmaDoubleComplex **dY_array, magma_int_t incy,
-        magma_int_t offA, magma_int_t offX, magma_int_t offY, 
+        magma_int_t offA, magma_int_t offX, magma_int_t offY,
         magma_int_t batchCount, magma_queue_t queue )
 {
     if(uplo == MagmaLower){
         const int param[] = {ZHEMV_BATCHED_LOWER};
         const int nb = param[0];
         hpmv_diag_template_batched<magmaDoubleComplex, ZHEMV_BATCHED_LOWER>
-                ( uplo, n, 
-                  alpha, dA_array, ldda, 
-                         dX_array, incx, 
-                  beta,  dY_array, incy, 
+                ( uplo, n,
+                  alpha, dA_array, ldda,
+                         dX_array, incx,
+                  beta,  dY_array, incy,
                   offA, offX, offY, batchCount, queue);
         if(n > nb){
             hpmv_lower_template_batched<magmaDoubleComplex, ZHEMV_BATCHED_LOWER>
-                ( n, alpha, 
-                  dA_array, ldda, 
-                  dX_array, incx, 
-                  dY_array, incy, 
+                ( n, alpha,
+                  dA_array, ldda,
+                  dX_array, incx,
+                  dY_array, incy,
                   offA, offX, offY, batchCount, queue);
         }
     }
@@ -49,17 +49,17 @@ magmablas_zhpmv_batched_core(
         const int param[] = {ZHEMV_BATCHED_UPPER};
         const int nb = param[0];
         hpmv_diag_template_batched<magmaDoubleComplex, ZHEMV_BATCHED_UPPER>
-                ( uplo, n, 
-                  alpha, dA_array, ldda, 
-                         dX_array, incx, 
-                  beta,  dY_array, incy, 
+                ( uplo, n,
+                  alpha, dA_array, ldda,
+                         dX_array, incx,
+                  beta,  dY_array, incy,
                   offA, offX, offY, batchCount, queue);
         if(n > nb){
             hpmv_upper_template_batched<magmaDoubleComplex, ZHEMV_BATCHED_UPPER>
-                ( n, alpha, 
-                  dA_array, ldda, 
-                  dX_array, incx, 
-                  dY_array, incy, 
+                ( n, alpha,
+                  dA_array, ldda,
+                  dX_array, incx,
+                  dY_array, incy,
                   offA, offX, offY, batchCount, queue);
         }
     }
@@ -76,7 +76,7 @@ magmablas_zhpmv_batched_core(
     where alpha and beta are scalars, x and y are n element vectors and
     A is an n by n Hermitian matrix stored in a packed format (only upper
     or lower portion).
-    This is the fixed size batched version of the operation. 
+    This is the fixed size batched version of the operation.
 
     Arguments
     ----------
@@ -98,7 +98,7 @@ magmablas_zhpmv_batched_core(
             On entry, ALPHA specifies the scalar alpha.
 
     @param[in]
-    dA_array    Array of pointers, dimension(batchCount). 
+    dA_array    Array of pointers, dimension(batchCount).
             Each is a COMPLEX_16 array A of DIMENSION ( LDDA, n ).
             Note that the imaginary parts of the diagonal elements need
             not be set and are assumed to be zero.
@@ -113,7 +113,7 @@ magmablas_zhpmv_batched_core(
             would not be fully coalescent.
 
     @param[in]
-    dX_array    Array of pointers, dimension(batchCount). 
+    dX_array    Array of pointers, dimension(batchCount).
             Each is a COMPLEX_16 array X of dimension at least
             ( 1 + ( n - 1 )*abs( INCX ) ).
             Before entry, the incremented array X must contain the n
@@ -130,7 +130,7 @@ magmablas_zhpmv_batched_core(
             supplied as zero then Y need not be set on input.
 
     @param[in,out]
-    dY_array    Array of pointers, dimension(batchCount). 
+    dY_array    Array of pointers, dimension(batchCount).
             Each is a COMPLEX_16 array Y of dimension at least
             ( 1 + ( n - 1 )*abs( INCY ) ).
             Before entry, the incremented array Y must contain the n
@@ -144,17 +144,17 @@ magmablas_zhpmv_batched_core(
 
     @param[in]
     batchCount    INTEGER.
-            The number of problems to operate on. 
-    
+            The number of problems to operate on.
+
     @param[in]
     queue   magma_queue_t
             Queue to execute in.
 
     @ingroup magma_hemv_batched
 *******************************************************************************/
-extern "C" void 
+extern "C" void
 magmablas_zhpmv_batched(
-        magma_uplo_t uplo, magma_int_t n, 
+        magma_uplo_t uplo, magma_int_t n,
         magmaDoubleComplex alpha, magmaDoubleComplex **dA_array, magma_int_t ldda,
                                   magmaDoubleComplex **dX_array, magma_int_t incx,
         magmaDoubleComplex beta,  magmaDoubleComplex **dY_array, magma_int_t incy,
@@ -173,21 +173,36 @@ magmablas_zhpmv_batched(
         info = -10;
     } else if ( batchCount < 0 )
         info = -11;
-    
+
     if (info != 0) {
         magma_xerbla( __func__, -(info) );
         return;
     }
 
     if ( (n == 0) || ( MAGMA_Z_EQUAL(alpha, MAGMA_Z_ZERO) && MAGMA_Z_EQUAL(beta, MAGMA_Z_ONE) ) )
-        return;    
-    
-    magmablas_zhpmv_batched_core( 
-            uplo, n, 
-            alpha, dA_array, ldda, 
+        return;
+
+    bool zhpmv_small_inplace = (
+            uplo     == MagmaLower   &&
+            n        <= 32           &&
+            alpha    == MAGMA_Z_ONE  &&
+            beta     == MAGMA_Z_ZERO &&
+            dY_array == dX_array     &&
+            incy     == incx);
+
+    if( zhpmv_small_inplace ) {
+        magma_zhpmv_inplace_batched_small(
+            uplo, n, dA_array,
+            dX_array, incx, batchCount, queue );
+        return;
+    }
+
+    magmablas_zhpmv_batched_core(
+            uplo, n,
+            alpha, dA_array, ldda,
                    dX_array, incx,
-            beta,  dY_array, incy,  
-            0, 0, 0, 
+            beta,  dY_array, incy,
+            0, 0, 0,
             batchCount, queue );
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////

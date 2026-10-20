@@ -9,7 +9,7 @@
 
        @author Ahmad Abdelfattah
        @author Natalie Beams
-       
+
 */
 #include "magma_internal.h"
 #include "batched_kernel_param.h"
@@ -18,24 +18,24 @@
 #include "hpmm_template_kernel_batched.cuh"
 
 /******************************************************************************/
-extern "C" void 
+extern "C" void
 magmablas_zhpmm_batched_core(
-        magma_side_t side, magma_uplo_t uplo, 
-        magma_int_t m, magma_int_t n, 
-        magmaDoubleComplex alpha, 
+        magma_side_t side, magma_uplo_t uplo,
+        magma_int_t m, magma_int_t n,
+        magmaDoubleComplex alpha,
         magmaDoubleComplex **dA_array, magma_int_t ldda,
-        magmaDoubleComplex **dB_array, magma_int_t lddb, 
-        magmaDoubleComplex beta, 
-        magmaDoubleComplex **dC_array, magma_int_t lddc, 
-        magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, magma_int_t roffC, magma_int_t coffC, 
+        magmaDoubleComplex **dB_array, magma_int_t lddb,
+        magmaDoubleComplex beta,
+        magmaDoubleComplex **dC_array, magma_int_t lddc,
+        magma_int_t roffA, magma_int_t coffA, magma_int_t roffB, magma_int_t coffB, magma_int_t roffC, magma_int_t coffC,
         magma_int_t batchCount, magma_queue_t queue )
 {
     if(side == MagmaLeft){
         hpmm_template_batched<magmaDoubleComplex, ZHEMM_BATCHED_LEFT>(
-            side, uplo, m, n, 
+            side, uplo, m, n,
             dA_array, ldda,
-            dB_array, lddb, 
-            dC_array, lddc, alpha, beta, 
+            dB_array, lddb,
+            dC_array, lddc, alpha, beta,
             roffA, coffA, roffB, coffB, roffC, coffC, batchCount, queue);
     }
 }
@@ -67,7 +67,7 @@ magmablas_zhpmm_batched_core(
     @param[in]
     uplo    magma_uplo_t
             On entry, uplo specifies whether the upper or lower
-            triangular part of each Hermitian matrix A is stored in the 
+            triangular part of each Hermitian matrix A is stored in the
 	    packed format:
 
             uplo = MagmaUpper   Only the upper triangular part of the
@@ -104,7 +104,7 @@ magmablas_zhpmm_batched_core(
             otherwise                   ldda >= max( 1, n ).
 
     @param[in]
-    dB_array      Array of pointers, dimension(batchCount). 
+    dB_array      Array of pointers, dimension(batchCount).
             Each is a COMPLEX*16 array B of DIMENSION ( lddb, n ).
             Before entry, the leading m by n part of the array B must
             contain the matrix B.
@@ -120,7 +120,7 @@ magmablas_zhpmm_batched_core(
             supplied as zero then C need not be set on input.
 
     @param[in,out]
-    dC_array      Array of pointers, dimension(batchCount). 
+    dC_array      Array of pointers, dimension(batchCount).
             Each is a COMPLEX*16 array C of DIMENSION ( lddc, n ).
             Before entry, the leading m by n part of the array C must
             contain the matrix C, except when beta is zero, in which
@@ -140,19 +140,19 @@ magmablas_zhpmm_batched_core(
     @param[in]
     queue   magma_queue_t
             Queue to execute in.
-    
+
 
     @ingroup magma_hemm_batched
 *******************************************************************************/
-extern "C" void 
+extern "C" void
 magmablas_zhpmm_batched(
-        magma_side_t side, magma_uplo_t uplo, 
-        magma_int_t m, magma_int_t n, 
-        magmaDoubleComplex alpha, 
+        magma_side_t side, magma_uplo_t uplo,
+        magma_int_t m, magma_int_t n,
+        magmaDoubleComplex alpha,
         magmaDoubleComplex **dA_array, magma_int_t ldda,
-        magmaDoubleComplex **dB_array, magma_int_t lddb, 
-        magmaDoubleComplex beta, 
-        magmaDoubleComplex **dC_array, magma_int_t lddc, 
+        magmaDoubleComplex **dB_array, magma_int_t lddb,
+        magmaDoubleComplex beta,
+        magmaDoubleComplex **dC_array, magma_int_t lddc,
         magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t nrowa = (side == MagmaLeft ? m : n);
@@ -165,6 +165,8 @@ magmablas_zhpmm_batched(
         info = -3;
     } else if ( n < 0 ) {
         info = -4;
+    } else if ( dB_array == dC_array && nrowa > 32 ) {
+        info = -6;
     } else if ( ldda < max(1,nrowa) ) {
         info = -7;
     } else if ( lddb < max(1,m) ) {
@@ -177,13 +179,42 @@ magmablas_zhpmm_batched(
         magma_xerbla( __func__, -(info) );
         return;
     }
-    
-    magmablas_zhpmm_batched_core( 
-            side, uplo, 
-            m, n, 
-            alpha, dA_array, ldda, 
-                   dB_array, lddb, 
-            beta,  dC_array, lddc, 
-            0, 0, 0, 0, 0, 0, 
+
+    bool zhpmm_small_inplace = (
+            side     == MagmaLeft    &&
+            uplo     == MagmaLower   &&
+            m        <= 32           &&
+            alpha    == MAGMA_Z_ONE  &&
+            beta     == MAGMA_Z_ZERO &&
+            dC_array == dB_array     &&
+            lddc     == lddb);
+
+    // check for in-place zhpmm/zhpmv
+    if( zhpmm_small_inplace ) {
+        magma_zhpmm_inplace_batched(
+            side, uplo, m, n,
+            dA_array, dB_array, lddb, batchCount, queue);
+        return;
+    }
+
+    // check for out-of-place hpmv
+    if( side == MagmaLeft && n == 1 ) {
+        magma_int_t ione = 1;
+        magmablas_zhpmv_batched(
+            uplo, m,
+            alpha, dA_array,ldda,
+                   dB_array, ione,
+            beta,  dC_array, ione,
+            batchCount, queue );
+        return;
+    }
+
+    magmablas_zhpmm_batched_core(
+            side, uplo,
+            m, n,
+            alpha, dA_array, ldda,
+                   dB_array, lddb,
+            beta,  dC_array, lddc,
+            0, 0, 0, 0, 0, 0,
             batchCount, queue );
 }
