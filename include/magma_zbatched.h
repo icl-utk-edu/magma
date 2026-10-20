@@ -532,7 +532,7 @@ void
 magma_zhpmv_inplace_batched_small(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex** dAP_array,
-    magmaDoubleComplex** dB_array, magma_int_t lddb,
+    magmaDoubleComplex** dX_array, magma_int_t incx,
     magma_int_t batchCount, magma_queue_t queue );
 
 magma_int_t
