@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     magmaDoubleComplex c_one     = MAGMA_Z_ONE;
     magmaDoubleComplex c_neg_one = MAGMA_Z_NEG_ONE;
     magmaDoubleComplex *hA, *hAP, *hB, *hX;
-    magmaDoubleComplex_ptr dA, dAP, dB;
+    magmaDoubleComplex_ptr dA, dAP, dB, dX;
     magma_int_t *cpu_info;
     magma_int_t *dinfo_array;
     magma_int_t N, nrhs, lda, ldb, ldda, lddb, info, sizeA, sizeAP, sizeA_batch, sizeAP_batch, sizeB, sizeB_batch;
@@ -56,6 +56,7 @@ int main(int argc, char **argv)
 
     magmaDoubleComplex **dA_array = NULL, **dAP_array = NULL;
     magmaDoubleComplex **dB_array = NULL;
+    magmaDoubleComplex **dX_array = NULL;
 
     magma_opts opts( MagmaOptsBatched );
     opts.parse_opts( argc, argv );
@@ -97,6 +98,7 @@ int main(int argc, char **argv)
 
             TESTING_CHECK( magma_zmalloc( &dA,  ldda*N*batchCount    ));
             TESTING_CHECK( magma_zmalloc( &dB,  lddb*nrhs*batchCount ));
+            TESTING_CHECK( magma_zmalloc( &dX,  lddb*nrhs*batchCount ));
             TESTING_CHECK( magma_zmalloc( &dAP, sizeAP_batch         ));
 
             TESTING_CHECK( magma_imalloc( &dinfo_array, batchCount ));
@@ -104,6 +106,7 @@ int main(int argc, char **argv)
             TESTING_CHECK( magma_malloc( (void**) &dA_array,  batchCount * sizeof(magmaDoubleComplex*) ));
             TESTING_CHECK( magma_malloc( (void**) &dAP_array, batchCount * sizeof(magmaDoubleComplex*) ));
             TESTING_CHECK( magma_malloc( (void**) &dB_array,  batchCount * sizeof(magmaDoubleComplex*) ));
+            TESTING_CHECK( magma_malloc( (void**) &dX_array,  batchCount * sizeof(magmaDoubleComplex*) ));
 
             /* Initialize the matrix in column-major format*/
             lapackf77_zlarnv( &ione, ISEED, &sizeA_batch, hA );
@@ -138,6 +141,7 @@ int main(int argc, char **argv)
             magma_zset_pointer( dA_array,  dA,  ldda, 0, 0, ldda*N,    batchCount, queue );
             magma_zset_pointer( dAP_array, dAP,    1, 0, 0, sizeAP,    batchCount, queue );
             magma_zset_pointer( dB_array,  dB,  lddb, 0, 0, lddb*nrhs, batchCount, queue );
+            magma_zset_pointer( dX_array,  dX,  lddb, 0, 0, lddb*nrhs, batchCount, queue );
             magma_memset( dinfo_array, 0, batchCount * sizeof(magma_int_t) );
 
             for(magma_int_t ibatch = 0; ibatch < batchCount; ibatch++) {
@@ -153,30 +157,6 @@ int main(int argc, char **argv)
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
             }
             else if( opts.version == 2 ) {
-                gpu_time = magma_sync_wtime( opts.queue );
-                info = magma_zpptrf_batched( opts.uplo, N, dAP_array, dinfo_array, batchCount, opts.queue );
-
-                for(magma_int_t ibatch = 0; ibatch < batchCount; ibatch++) {
-                    if(cond) {
-                        magma_zprint_gpu(sizeAP, 1, dAP+ibatch*sizeAP, sizeAP, opts.queue);
-                        magma_zprint_gpu(N, nrhs, dB+ibatch*lddb*nrhs, lddb, opts.queue);
-                    }
-                }
-
-                #ifdef TEST_QUEUE_OVERHEAD_PPTRS
-                magma_device_t dev;
-                magma_getdevice( &dev );
-                magma_queue_t qTmp;
-                magma_queue_create(dev, &qTmp);
-                magma_zpptrs_batched(opts.uplo, N, nrhs, dAP_array, dB_array, lddb, batchCount, qTmp );
-                magma_queue_sync( qTmp );
-                magma_queue_destroy( qTmp );
-                #else
-                magma_zpptrs_batched(opts.uplo, N, nrhs, dAP_array, dB_array, lddb, batchCount, opts.queue );
-                #endif
-                gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
-            }
-            else if( opts.version == 3 ) {
                 // query workspace for the inverse
                 int64_t device_lwork[1] = {-1};
                 void* device_work = NULL;
@@ -188,32 +168,42 @@ int main(int argc, char **argv)
 
                 gpu_time = magma_sync_wtime( opts.queue );
                 magma_zppinv_batched(opts.uplo, N, dAP_array, device_work, device_lwork, dinfo_array, batchCount, opts.queue);
-                magma_zhpmm_inplace_batched(MagmaLeft, opts.uplo, N, nrhs, dAP_array, dB_array, lddb, batchCount, opts.queue);
+                magmablas_zhpmm_batched(MagmaLeft, opts.uplo, N, nrhs, MAGMA_Z_ONE, dAP_array, N, dB_array, lddb, MAGMA_Z_ZERO, dX_array, lddb, batchCount, opts.queue );
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+
+                // copy result back to dB
+                magmablas_zlacpy_batched( MagmaFull, N, nrhs, dX_array, lddb, dB_array, lddb, batchCount, queue );
 
                 // free workspace, if any
                 if( device_work != NULL) {
                     magma_free( device_work );
                 }
             }
-            else if( opts.version == 4 ) {
-                // slow ref. impl.
-
-                gpu_time = magma_sync_wtime( opts.queue );
-                // copy dAP to dA
-                for(magma_int_t i = 0; i < batchCount; i++) {
-                    magmaDoubleComplex *dAtmp  = dA  + i * ( N * ldda );
-                    magmaDoubleComplex *dAPtmp = dAP + i * ( N * (N+1) / 2 );
-                    for(magma_int_t j = 0; j < N; j++) {
-                        magma_int_t length = N-j;
-                        magma_zcopyvector(length, dAPtmp, 1, dAtmp + j*ldda + j, 1, opts.queue );
-                        dAPtmp += length;
-                    }
+            else if( opts.version == 3 ) {
+                // Use inverse + in-place HPMM, for small matrices only
+                if( N > 32 ) {
+                    printf("Skipping incompatible size for in-place HPMM, must be <= 32\n");
+                    continue;
                 }
 
-                // solve in column major
-                info = magma_zposv_batched(opts.uplo, N, nrhs, dA_array, ldda, dB_array, lddb, dinfo_array, batchCount, queue);
+                // query workspace for the inverse
+                int64_t device_lwork[1] = {-1};
+                void* device_work = NULL;
+                magma_zppinv_batched(opts.uplo, N, NULL, NULL, device_lwork, NULL, batchCount, opts.queue);
+
+                if(device_lwork[0] > 0) {
+                    magma_malloc((void**)&device_work, device_lwork[0]);
+                }
+
+                gpu_time = magma_sync_wtime( opts.queue );
+                magma_zppinv_batched(opts.uplo, N, dAP_array, device_work, device_lwork, dinfo_array, batchCount, opts.queue);
+                magmablas_zhpmm_batched(MagmaLeft, opts.uplo, N, nrhs, MAGMA_Z_ONE, dAP_array, N, dB_array, lddb, MAGMA_Z_ZERO, dB_array, lddb, batchCount, opts.queue );
                 gpu_time = magma_sync_wtime( opts.queue ) - gpu_time;
+
+                // free workspace, if any
+                if( device_work != NULL) {
+                    magma_free( device_work );
+                }
             }
             gpu_perf = gflops / gpu_time;
 
@@ -311,12 +301,14 @@ int main(int argc, char **argv)
             magma_free( dA  );
             magma_free( dAP );
             magma_free( dB  );
+            magma_free( dX  );
 
             magma_free( dinfo_array );
 
             magma_free( dA_array  );
             magma_free( dAP_array );
             magma_free( dB_array  );
+            magma_free( dX_array  );
 
             fflush( stdout );
         }
