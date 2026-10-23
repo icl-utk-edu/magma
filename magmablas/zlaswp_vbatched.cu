@@ -242,7 +242,7 @@ magma_zlaswp_left_rowserial_vbatched(
 
         zlaswp_left_rowserial_kernel_vbatched
         <<< grid, min_BLK_SIZE_n, 0, queue->cuda_stream() >>>
-        (n, M, N, dA_array, Ai, Aj, ldda, ipiv_array, ipiv_offset, k1, k2);
+        (n, M+i, N+i, dA_array+i, Ai, Aj, ldda+i, ipiv_array+i, ipiv_offset, k1, k2);
     }
 }
 
@@ -270,7 +270,7 @@ magma_zlaswp_right_rowserial_vbatched(
 
         zlaswp_right_rowserial_kernel_vbatched
         <<< grid, min_BLK_SIZE_n, 0, queue->cuda_stream() >>>
-        (n, M, N, dA_array, Ai, Aj, ldda, ipiv_array, ipiv_offset, k1, k2);
+        (n, M+i, N+i, dA_array+i, Ai, Aj, ldda+i, ipiv_array+i, ipiv_offset, k1, k2);
     }
 }
 
@@ -301,7 +301,7 @@ magma_zlaswp_left_rowparallel_vbatched(
         size_t shmem = sizeof(magmaDoubleComplex) * height * width;
         zlaswp_left_rowparallel_kernel_vbatched
         <<< grid, height, shmem, queue->cuda_stream() >>>
-        ( n, width, M, N, dA_array, Ai, Aj, ldda, pivinfo_array, pivinfo_i, k1, k2);
+        ( n, width, M+i, N+i, dA_array+i, Ai, Aj, ldda+i, pivinfo_array+i, pivinfo_i, k1, k2);
     }
 }
 
@@ -332,7 +332,7 @@ magma_zlaswp_right_rowparallel_vbatched(
         size_t shmem = sizeof(magmaDoubleComplex) * height * width;
         zlaswp_right_rowparallel_kernel_vbatched
         <<< grid, height, shmem, queue->cuda_stream() >>>
-        ( n, width, M, N, dA_array, Ai, Aj, ldda, pivinfo_array, pivinfo_i, k1, k2);
+        ( n, width, M+i, N+i, dA_array+i, Ai, Aj, ldda+i, pivinfo_array+i, pivinfo_i, k1, k2);
     }
 }
 
