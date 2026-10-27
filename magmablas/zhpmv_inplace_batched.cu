@@ -30,9 +30,11 @@ template<int N, int NTCOL>
 __global__
 __launch_bounds__(N*NTCOL)
 void
-zhpmv_lower_inplace_batched_small_kernel(
+zhpmv_lower_batched_small_kernel(
         magmaDoubleComplex** dAP_array,
-        magmaDoubleComplex** dX_array, int incx, int batchCount)
+        magmaDoubleComplex** dX_array, int incx,
+        magmaDoubleComplex** dY_array, int incy,
+        int batchCount)
 {
     extern __shared__ magmaDoubleComplex zdata[];
 
@@ -51,6 +53,7 @@ zhpmv_lower_inplace_batched_small_kernel(
 
     magmaDoubleComplex* dA = dAP_array[batchid];
     magmaDoubleComplex* dX = dX_array[batchid];
+    magmaDoubleComplex* dY = dY_array[batchid];
 
     magmaDoubleComplex *sA = (magmaDoubleComplex*)zdata;
     magmaDoubleComplex *sB = sA + (nty * sizeA_aligned);
@@ -88,16 +91,17 @@ zhpmv_lower_inplace_batched_small_kernel(
     }
 
     // update B
-    dX[ tx * incx ] = rC;
+    dY[ tx * incy ] = rC;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // kernel driver
 template<int N>
 magma_int_t
-zhpmv_inplace_batched_small_kernel_driver(
+zhpmv_batched_small_kernel_driver(
     magmaDoubleComplex** dAP_array,
     magmaDoubleComplex** dX_array, magma_int_t incx,
+    magmaDoubleComplex** dY_array, magma_int_t incy,
     int batchCount, magma_queue_t queue )
 {
     magma_device_t device;
@@ -106,8 +110,10 @@ zhpmv_inplace_batched_small_kernel_driver(
 
     if( incx < 1 )
         arginfo = -3;
+    else if ( incy < 1 )
+        arginfo = -5;
     else if ( batchCount < 0 )
-        arginfo = -4;
+        arginfo = -6;
 
     if (arginfo != 0) {
         return arginfo;
@@ -137,7 +143,7 @@ zhpmv_inplace_batched_small_kernel_driver(
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
     if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zhpmv_lower_inplace_batched_small_kernel<N, NTCOL>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+        cudaFuncSetAttribute(zhpmv_lower_batched_small_kernel<N, NTCOL>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
     #else
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
@@ -149,8 +155,8 @@ zhpmv_inplace_batched_small_kernel_driver(
     else {
         dim3 threads(N, NTCOL, 1);
         dim3 grid(magma_ceildiv(batchCount,NTCOL), 1, 1);
-        void *kernel_args[] = {&dAP_array, &dX_array, &incx, &batchCount};
-        cudaError_t e = cudaLaunchKernel((void*)zhpmv_lower_inplace_batched_small_kernel<N, NTCOL>, grid, threads, kernel_args, shmem, queue->cuda_stream());
+        void *kernel_args[] = {&dAP_array, &dX_array, &incx, &dY_array, &incy, &batchCount};
+        cudaError_t e = cudaLaunchKernel((void*)zhpmv_lower_batched_small_kernel<N, NTCOL>, grid, threads, kernel_args, shmem, queue->cuda_stream());
         if( e != cudaSuccess ) {
             //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
             arginfo = -100;
@@ -193,12 +199,22 @@ zhpmv_inplace_batched_small_kernel_driver(
             ( 1 + ( n - 1 )*abs( INCX ) ).
             Before entry, the incremented array X must contain the n
             element vector X.
-            On exit, X is overwritten with the product A*x
 
     @param[in]
     incx    INTEGER.
             On entry, INCX specifies the increment for the elements of
-            X. INCX must not be zero.
+            X. INCX must be >= 1.
+
+    @param[in]
+    dY_array    Array of pointers, dimension(batchCount).
+            Each is a COMPLEX_16 array Y of dimension at least
+            ( 1 + ( n - 1 )*abs( INCY ) ).
+            The product A*x
+
+    @param[in]
+    incy    INTEGER.
+            On entry, INCY specifies the increment for the elements of
+            Y. INCY must be >= 1.
 
     @param[in]
     batchCount  INTEGER
@@ -211,10 +227,11 @@ zhpmv_inplace_batched_small_kernel_driver(
     @ingroup magma_getrf_batched
 *******************************************************************************/
 extern "C" void
-magma_zhpmv_inplace_batched_small(
+magma_zhpmv_batched_small(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex** dAP_array,
     magmaDoubleComplex** dX_array, magma_int_t incx,
+    magmaDoubleComplex** dY_array, magma_int_t incy,
     magma_int_t batchCount, magma_queue_t queue )
 {
     magma_int_t arginfo = 0;
@@ -225,8 +242,10 @@ magma_zhpmv_inplace_batched_small(
         arginfo = -2;
     else if( incx < 1 )
         arginfo = -5;
+    else if( incy < 1 )
+        arginfo = -7;
     else if ( batchCount < 0 )
-        arginfo = -6;
+        arginfo = -8;
 
     if (arginfo != 0) {
         magma_xerbla( __func__, -(arginfo) );
@@ -236,38 +255,38 @@ magma_zhpmv_inplace_batched_small(
     if( n == 0 || batchCount == 0 ) return;
 
     switch(n){
-        case  1: arginfo = zhpmv_inplace_batched_small_kernel_driver< 1>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case  2: arginfo = zhpmv_inplace_batched_small_kernel_driver< 2>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case  3: arginfo = zhpmv_inplace_batched_small_kernel_driver< 3>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case  4: arginfo = zhpmv_inplace_batched_small_kernel_driver< 4>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case  5: arginfo = zhpmv_inplace_batched_small_kernel_driver< 5>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case  6: arginfo = zhpmv_inplace_batched_small_kernel_driver< 6>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case  7: arginfo = zhpmv_inplace_batched_small_kernel_driver< 7>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case  8: arginfo = zhpmv_inplace_batched_small_kernel_driver< 8>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case  9: arginfo = zhpmv_inplace_batched_small_kernel_driver< 9>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 10: arginfo = zhpmv_inplace_batched_small_kernel_driver<10>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 11: arginfo = zhpmv_inplace_batched_small_kernel_driver<11>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 12: arginfo = zhpmv_inplace_batched_small_kernel_driver<12>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 13: arginfo = zhpmv_inplace_batched_small_kernel_driver<13>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 14: arginfo = zhpmv_inplace_batched_small_kernel_driver<14>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 15: arginfo = zhpmv_inplace_batched_small_kernel_driver<15>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 16: arginfo = zhpmv_inplace_batched_small_kernel_driver<16>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 17: arginfo = zhpmv_inplace_batched_small_kernel_driver<17>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 18: arginfo = zhpmv_inplace_batched_small_kernel_driver<18>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 19: arginfo = zhpmv_inplace_batched_small_kernel_driver<19>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 20: arginfo = zhpmv_inplace_batched_small_kernel_driver<20>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 21: arginfo = zhpmv_inplace_batched_small_kernel_driver<21>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 22: arginfo = zhpmv_inplace_batched_small_kernel_driver<22>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 23: arginfo = zhpmv_inplace_batched_small_kernel_driver<23>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 24: arginfo = zhpmv_inplace_batched_small_kernel_driver<24>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 25: arginfo = zhpmv_inplace_batched_small_kernel_driver<25>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 26: arginfo = zhpmv_inplace_batched_small_kernel_driver<26>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 27: arginfo = zhpmv_inplace_batched_small_kernel_driver<27>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 28: arginfo = zhpmv_inplace_batched_small_kernel_driver<28>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 29: arginfo = zhpmv_inplace_batched_small_kernel_driver<29>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 30: arginfo = zhpmv_inplace_batched_small_kernel_driver<30>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 31: arginfo = zhpmv_inplace_batched_small_kernel_driver<31>(dAP_array, dX_array, incx, batchCount, queue ); break;
-        case 32: arginfo = zhpmv_inplace_batched_small_kernel_driver<32>(dAP_array, dX_array, incx, batchCount, queue ); break;
+        case  1: arginfo = zhpmv_batched_small_kernel_driver< 1>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case  2: arginfo = zhpmv_batched_small_kernel_driver< 2>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case  3: arginfo = zhpmv_batched_small_kernel_driver< 3>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case  4: arginfo = zhpmv_batched_small_kernel_driver< 4>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case  5: arginfo = zhpmv_batched_small_kernel_driver< 5>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case  6: arginfo = zhpmv_batched_small_kernel_driver< 6>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case  7: arginfo = zhpmv_batched_small_kernel_driver< 7>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case  8: arginfo = zhpmv_batched_small_kernel_driver< 8>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case  9: arginfo = zhpmv_batched_small_kernel_driver< 9>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 10: arginfo = zhpmv_batched_small_kernel_driver<10>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 11: arginfo = zhpmv_batched_small_kernel_driver<11>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 12: arginfo = zhpmv_batched_small_kernel_driver<12>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 13: arginfo = zhpmv_batched_small_kernel_driver<13>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 14: arginfo = zhpmv_batched_small_kernel_driver<14>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 15: arginfo = zhpmv_batched_small_kernel_driver<15>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 16: arginfo = zhpmv_batched_small_kernel_driver<16>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 17: arginfo = zhpmv_batched_small_kernel_driver<17>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 18: arginfo = zhpmv_batched_small_kernel_driver<18>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 19: arginfo = zhpmv_batched_small_kernel_driver<19>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 20: arginfo = zhpmv_batched_small_kernel_driver<20>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 21: arginfo = zhpmv_batched_small_kernel_driver<21>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 22: arginfo = zhpmv_batched_small_kernel_driver<22>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 23: arginfo = zhpmv_batched_small_kernel_driver<23>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 24: arginfo = zhpmv_batched_small_kernel_driver<24>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 25: arginfo = zhpmv_batched_small_kernel_driver<25>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 26: arginfo = zhpmv_batched_small_kernel_driver<26>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 27: arginfo = zhpmv_batched_small_kernel_driver<27>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 28: arginfo = zhpmv_batched_small_kernel_driver<28>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 29: arginfo = zhpmv_batched_small_kernel_driver<29>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 30: arginfo = zhpmv_batched_small_kernel_driver<30>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 31: arginfo = zhpmv_batched_small_kernel_driver<31>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
+        case 32: arginfo = zhpmv_batched_small_kernel_driver<32>(dAP_array, dX_array, incx, dY_array, incy, batchCount, queue ); break;
         default:;
     }
 }

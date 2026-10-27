@@ -25,6 +25,7 @@
 
 // regular access for dB/sB
 #define dB(i, j) dB[(j) * lddb + (i)]
+#define dC(i, j) dC[(j) * lddc + (i)]
 #define sA(i, j) sA[(j) * slda + (i)]
 #define sB(i, j) sB[(j) * sldb + (i)]
 
@@ -42,10 +43,11 @@ __global__
 __launch_bounds__(TX*TY)
 #endif
 void
-zhpmm_inplace_batched_small_kernel(
+zhpmm_lower_left_small_batched_kernel(
         int n,
         magmaDoubleComplex** dAP_array,
         magmaDoubleComplex** dB_array, int lddb,
+        magmaDoubleComplex** dC_array, int lddc,
         int batchCount)
 {
     extern __shared__ magmaDoubleComplex zdata[];
@@ -67,9 +69,11 @@ zhpmm_inplace_batched_small_kernel(
 
     magmaDoubleComplex* dA = dAP_array[batchid];
     magmaDoubleComplex* dB = dB_array[batchid];
+    magmaDoubleComplex* dC = dC_array[batchid];
 
     // advance dB
     dB += bx * BLOCK_Y * lddb;
+    dC += bx * BLOCK_Y * lddc;
 
     magmaDoubleComplex *sA = (magmaDoubleComplex*)zdata;
     magmaDoubleComplex *sB = sA + sizeA_aligned;
@@ -107,9 +111,6 @@ zhpmm_inplace_batched_small_kernel(
     }
     __syncthreads();
 
-    //print_memory( "sA2", M, M,          sA, slda,  0, 0, 0, 0, 0, 0);
-    //print_memory( "sB", M, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
-
     // multiply
     #pragma unroll
     for(int k = 0; k < BLOCK_K; k++) {
@@ -122,15 +123,13 @@ zhpmm_inplace_batched_small_kernel(
         }
     }
 
-    //print_memory( "sB", M, local_nrhs, sB, sldb,  0, 0, 0, 0, 0, 0);
-
-    // update B
+    // write C
     #pragma unroll
     for(int j = 0; j < BLOCK_Y; j+=TY) {
         #pragma unroll
         for(int i = 0; i < BLOCK_X; i+=TX) {
             if( (i+tx) < M && (j + ty) < local_nrhs) {
-                dB(i+tx, j+ty) = rC[j/TY][i/TX];
+                dC(i+tx, j+ty) = rC[j/TY][i/TX];
             }
         }
     }
@@ -139,10 +138,11 @@ zhpmm_inplace_batched_small_kernel(
 ////////////////////////////////////////////////////////////////////////////////
 template<int M, int BLOCK_Y, int TX, int TY>
 magma_int_t
-zhpmm_inplace_batched_small_kernel_driver(
+zhpmm_lower_left_small_batched_kernel_driver(
     int n,
     magmaDoubleComplex** dAP_array,
     magmaDoubleComplex** dB_array, magma_int_t lddb,
+    magmaDoubleComplex** dC_array, magma_int_t lddc,
     int batchCount, magma_queue_t queue )
 {
     magma_device_t device;
@@ -153,8 +153,10 @@ zhpmm_inplace_batched_small_kernel_driver(
         arginfo = -1;
     else if( lddb < M )
         arginfo = -4;
+    else if( lddc < M )
+        arginfo = -6;
     else if ( batchCount < 0 )
-        arginfo = -5;
+        arginfo = -7;
 
     if (arginfo != 0) {
         return arginfo;
@@ -194,7 +196,7 @@ zhpmm_inplace_batched_small_kernel_driver(
     #if CUDA_VERSION >= 9000
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlockOptin, device);
     if (shmem <= shmem_max) {
-        cudaFuncSetAttribute(zhpmm_inplace_batched_small_kernel<M, BLOCK_Y, TX, TY>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
+        cudaFuncSetAttribute(zhpmm_lower_left_small_batched_kernel<M, BLOCK_Y, TX, TY>, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem);
     }
     #else
     cudaDeviceGetAttribute (&shmem_max, cudaDevAttrMaxSharedMemoryPerBlock, device);
@@ -212,9 +214,10 @@ zhpmm_inplace_batched_small_kernel_driver(
             magma_int_t ibatch = min(max_batchCount, batchCount-i);
             dim3 grid(gridx, 1, ibatch);
             magmaDoubleComplex** dAP_array_ = dAP_array + i;
-            magmaDoubleComplex** dB_array_     = dB_array     + i;
-            void *kernel_args[] = {&n, &dAP_array_, &dB_array_, &lddb, &ibatch};
-            cudaError_t e = cudaLaunchKernel((void*)zhpmm_inplace_batched_small_kernel<M, BLOCK_Y, TX, TY>, grid, threads, kernel_args, shmem, queue->cuda_stream());
+            magmaDoubleComplex** dB_array_  = dB_array  + i;
+            magmaDoubleComplex** dC_array_  = dC_array  + i;
+            void *kernel_args[] = {&n, &dAP_array_, &dB_array_, &lddb, &dC_array_, &lddc, &ibatch};
+            cudaError_t e = cudaLaunchKernel((void*)zhpmm_lower_left_small_batched_kernel<M, BLOCK_Y, TX, TY>, grid, threads, kernel_args, shmem, queue->cuda_stream());
             if( e != cudaSuccess ) {
                 //printf("error in %s : failed to launch kernel %s\n", __func__, cudaGetErrorString(e));
                 arginfo = -100;
@@ -226,9 +229,9 @@ zhpmm_inplace_batched_small_kernel_driver(
 /***************************************************************************//**
     Purpose
     -------
-    ZHPMM performs the in-place update:
-            B = AP * B     side='left', or
-            B = B  * AP    side='right'
+    ZHPMM performs the update:
+            C = AP * B     side='left', or
+            C = B  * AP    side='right' (not currently supported)
     , where AP is a Hermitian positive definite matrix stored in packed
     format, and B is a general matrix that is stored in column-major format.
     The packed format stores either the lower (uplo = 'L') or
@@ -236,6 +239,8 @@ zhpmm_inplace_batched_small_kernel_driver(
 
     ** Only side = 'left' is currently supported
     ** Only uplo = 'L'    is currently supported
+    ** For small sizes, the update can be done in-place
+       (B and C point to the same matrix)
 
     ** This is the batch version of the operation, performing the computation
        on many independent matrices having the same dimensions.
@@ -261,31 +266,40 @@ zhpmm_inplace_batched_small_kernel_driver(
 
     @param[in]
     m       INTEGER
-            On entry, m specifies the number of rows of each matrix B.
+            On entry, m specifies the number of rows of each matrix C.
             m >= 0.
 
     @param[in]
     n       INTEGER
-            On entry, n specifies the number of columns of each matrix AP.
+            On entry, n specifies the number of columns of each matrix C.
             n >= 0.
 
     @param[in]
     dAP_array    Array of pointers, dimension (batchCount).
-             Each is a COMPLEX*16 array, dimension (n*(n+1)/2)
+             Each is a COMPLEX*16 array, dimension (m*(m+1)/2)
              On entry, the upper or lower triangle part of each matrix AP,
              packed columnwise in a linear array.
+             Unchanged on exit.
 
-             Unchanged nn exit.
-
-    @param[in,out]
+    @param[in]
     dB_array Array of pointers, dimension (batchCount).
              Each is a COMPLEX*16 array, dimension (lddb,n)
                - On entry, the input matrix B.
-               - On exit, the updated matrix B.
+               - Unchanged on exit
+                 (unless dB_array = dC_array, which is permissible for small sizes)
 
     @param[in]
     lddb    INTEGER
-            The leading dimension of each array B.  lddb >= max(1,n).
+            The leading dimension of each array B.  lddb >= max(1,m).
+
+    @param[out]
+    dC_array Array of pointers, dimension (batchCount).
+             Each is a COMPLEX*16 array, dimension (lddc,n)
+               - On exit, the updated matrix C.
+
+    @param[in]
+    lddc    INTEGER
+            The leading dimension of each array C.  lddc >= max(1,m).
 
     @param[in]
     batchCount  INTEGER
@@ -298,7 +312,7 @@ zhpmm_inplace_batched_small_kernel_driver(
     @ingroup magma_posv_batched
 *******************************************************************************/
 extern "C" void
-magma_zhpmm_inplace_batched_small(
+magma_zhpmm_small_batched_core(
     magma_side_t side, magma_uplo_t uplo,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex** dAP_array,
@@ -333,40 +347,40 @@ magma_zhpmm_inplace_batched_small(
 
     switch(m){
         #ifdef TUNE_PPINV_APPLY
-        case TUNE_PPINV_N: arginfo = zhpmm_inplace_batched_small_kernel_driver< PPINV_BX, PPINV_BY, PPINV_TX, PPINV_TY>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case TUNE_PPINV_N: arginfo = zhpmm_lower_left_small_batched_kernel_driver< PPINV_BX, PPINV_BY, PPINV_TX, PPINV_TY>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
         #else
-        case  1: arginfo = zhpmm_inplace_batched_small_kernel_driver< 1, 32,  1,  1>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  2: arginfo = zhpmm_inplace_batched_small_kernel_driver< 2, 32,  2, 16>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  3: arginfo = zhpmm_inplace_batched_small_kernel_driver< 3, 30,  3, 10>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  4: arginfo = zhpmm_inplace_batched_small_kernel_driver< 4, 32,  4,  8>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  5: arginfo = zhpmm_inplace_batched_small_kernel_driver< 5, 30,  5,  6>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  6: arginfo = zhpmm_inplace_batched_small_kernel_driver< 6, 30,  6,  5>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  7: arginfo = zhpmm_inplace_batched_small_kernel_driver< 7, 32,  7,  4>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  8: arginfo = zhpmm_inplace_batched_small_kernel_driver< 8, 32,  8,  8>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case  9: arginfo = zhpmm_inplace_batched_small_kernel_driver< 9, 36, 9,   6>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 10: arginfo = zhpmm_inplace_batched_small_kernel_driver<10, 30, 10,  3>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 11: arginfo = zhpmm_inplace_batched_small_kernel_driver<11, 11, 11, 11>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 12: arginfo = zhpmm_inplace_batched_small_kernel_driver<12, 12, 12, 12>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 13: arginfo = zhpmm_inplace_batched_small_kernel_driver<13, 13, 13, 13>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 14: arginfo = zhpmm_inplace_batched_small_kernel_driver<14, 14, 14, 14>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 15: arginfo = zhpmm_inplace_batched_small_kernel_driver<15, 15, 15, 15>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 16: arginfo = zhpmm_inplace_batched_small_kernel_driver<16, 16, 16, 16>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 17: arginfo = zhpmm_inplace_batched_small_kernel_driver<17, 15, 17, 15>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 18: arginfo = zhpmm_inplace_batched_small_kernel_driver<18, 32,  9,  8>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 19: arginfo = zhpmm_inplace_batched_small_kernel_driver<19, 19, 19, 19>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 20: arginfo = zhpmm_inplace_batched_small_kernel_driver<20, 20, 20, 20>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 21: arginfo = zhpmm_inplace_batched_small_kernel_driver<21, 21, 21, 21>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 22: arginfo = zhpmm_inplace_batched_small_kernel_driver<22, 22, 22, 22>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 23: arginfo = zhpmm_inplace_batched_small_kernel_driver<23, 23, 23, 23>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 24: arginfo = zhpmm_inplace_batched_small_kernel_driver<24, 24, 24, 24>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 25: arginfo = zhpmm_inplace_batched_small_kernel_driver<25, 25, 25, 25>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 26: arginfo = zhpmm_inplace_batched_small_kernel_driver<26, 26, 26, 26>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 27: arginfo = zhpmm_inplace_batched_small_kernel_driver<27, 40, 9,  10>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 28: arginfo = zhpmm_inplace_batched_small_kernel_driver<28, 28, 28, 28>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 29: arginfo = zhpmm_inplace_batched_small_kernel_driver<29, 29, 29, 29>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 30: arginfo = zhpmm_inplace_batched_small_kernel_driver<30, 30, 30, 30>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 31: arginfo = zhpmm_inplace_batched_small_kernel_driver<31, 31, 31, 31>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
-        case 32: arginfo = zhpmm_inplace_batched_small_kernel_driver<32, 32, 32,  4>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case  1: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 1, 32,  1,  1>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case  2: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 2, 32,  2, 16>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case  3: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 3, 30,  3, 10>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case  4: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 4, 32,  4,  8>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case  5: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 5, 30,  5,  6>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case  6: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 6, 30,  6,  5>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case  7: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 7, 32,  7,  4>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case  8: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 8, 32,  8,  8>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case  9: arginfo = zhpmm_lower_left_small_batched_kernel_driver< 9, 36, 9,   6>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 10: arginfo = zhpmm_lower_left_small_batched_kernel_driver<10, 30, 10,  3>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 11: arginfo = zhpmm_lower_left_small_batched_kernel_driver<11, 11, 11, 11>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 12: arginfo = zhpmm_lower_left_small_batched_kernel_driver<12, 12, 12, 12>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 13: arginfo = zhpmm_lower_left_small_batched_kernel_driver<13, 13, 13, 13>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 14: arginfo = zhpmm_lower_left_small_batched_kernel_driver<14, 14, 14, 14>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 15: arginfo = zhpmm_lower_left_small_batched_kernel_driver<15, 15, 15, 15>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 16: arginfo = zhpmm_lower_left_small_batched_kernel_driver<16, 16, 16, 16>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 17: arginfo = zhpmm_lower_left_small_batched_kernel_driver<17, 15, 17, 15>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 18: arginfo = zhpmm_lower_left_small_batched_kernel_driver<18, 32,  9,  8>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 19: arginfo = zhpmm_lower_left_small_batched_kernel_driver<19, 19, 19, 19>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 20: arginfo = zhpmm_lower_left_small_batched_kernel_driver<20, 20, 20, 20>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 21: arginfo = zhpmm_lower_left_small_batched_kernel_driver<21, 21, 21, 21>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 22: arginfo = zhpmm_lower_left_small_batched_kernel_driver<22, 22, 22, 22>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 23: arginfo = zhpmm_lower_left_small_batched_kernel_driver<23, 23, 23, 23>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 24: arginfo = zhpmm_lower_left_small_batched_kernel_driver<24, 24, 24, 24>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 25: arginfo = zhpmm_lower_left_small_batched_kernel_driver<25, 25, 25, 25>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 26: arginfo = zhpmm_lower_left_small_batched_kernel_driver<26, 26, 26, 26>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 27: arginfo = zhpmm_lower_left_small_batched_kernel_driver<27, 40, 9,  10>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 28: arginfo = zhpmm_lower_left_small_batched_kernel_driver<28, 28, 28, 28>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 29: arginfo = zhpmm_lower_left_small_batched_kernel_driver<29, 29, 29, 29>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 30: arginfo = zhpmm_lower_left_small_batched_kernel_driver<30, 30, 30, 30>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 31: arginfo = zhpmm_lower_left_small_batched_kernel_driver<31, 31, 31, 31>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
+        case 32: arginfo = zhpmm_lower_left_small_batched_kernel_driver<32, 32, 32,  4>(n, dAP_array, dB_array, lddb, batchCount, queue ); break;
         #endif
         default:;
     }
@@ -447,11 +461,12 @@ magma_zhpmm_inplace_batched_small(
     @ingroup magma_posv_batched
 *******************************************************************************/
 extern "C" void
-magma_zhpmm_inplace_batched(
+magma_zhpmm_small_batched(
     magma_side_t side, magma_uplo_t uplo,
     magma_int_t m, magma_int_t n,
     magmaDoubleComplex **dAP_array,
     magmaDoubleComplex **dB_array, magma_int_t lddb,
+    magmaDoubleComplex **dC_array, magma_int_t lddc,
     magma_int_t batchCount, magma_queue_t queue)
 {
     magma_int_t arginfo = 0;
@@ -464,7 +479,7 @@ magma_zhpmm_inplace_batched(
         arginfo = -2;
         printf("Only uplo = MagmaLower is currently supported\n");
     }
-    else if ( m < 0 || m > 64 ) {
+    else if ( m < 0 || m > 32 ) {
         arginfo = -3;
     }
     else if ( n < 0 ) {
@@ -473,8 +488,11 @@ magma_zhpmm_inplace_batched(
     else if ( lddb < max(1,m) ) {
         arginfo = -7;
     }
+    else if ( lddc < max(1,m) ) {
+        arginfo = -9;
+    }
     else if ( batchCount < 0 )
-        arginfo = -8;
+        arginfo = -10;
 
     if (arginfo != 0) {
         magma_xerbla( __func__, -(arginfo) );
@@ -485,11 +503,11 @@ magma_zhpmm_inplace_batched(
     if ( m == 0 || n == 0 || batchCount == 0 ) return;
 
     // special case
-    if( side == MagmaLeft && n == 1 ) {
-        magma_zhpmv_inplace_batched_small( uplo, m, dAP_array, dB_array, lddb, batchCount, queue );
+    if( side == MagmaLeft && m <= 32 && n == 1 ) {
+        magma_zhpmv_batched_small( uplo, m, dAP_array, dB_array, 1, dC_array, 1, batchCount, queue );
     }
     else {
-        magma_zhpmm_inplace_batched_small(side, uplo, m, n, dAP_array, dB_array, lddb, batchCount, queue );
+        magma_zhpmm_small_batched_core(side, uplo, m, n, dAP_array, dB_array, lddb, batchCount, queue );
     }
 }
 

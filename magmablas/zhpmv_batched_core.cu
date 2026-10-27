@@ -182,18 +182,17 @@ magmablas_zhpmv_batched(
     if ( (n == 0) || ( MAGMA_Z_EQUAL(alpha, MAGMA_Z_ZERO) && MAGMA_Z_EQUAL(beta, MAGMA_Z_ONE) ) )
         return;
 
-    bool zhpmv_small_inplace = (
+    bool zhpmv_small = (
             uplo     == MagmaLower   &&
             n        <= 32           &&
             alpha    == MAGMA_Z_ONE  &&
-            beta     == MAGMA_Z_ZERO &&
-            dY_array == dX_array     &&
-            incy     == incx);
+            beta     == MAGMA_Z_ZERO );
 
-    if( zhpmv_small_inplace ) {
-        magma_zhpmv_inplace_batched_small(
+    if( zhpmv_small ) {
+        magma_zhpmv_batched_small(
             uplo, n, dA_array,
-            dX_array, incx, batchCount, queue );
+            dX_array, incx,
+            dY_array, incy, batchCount, queue );
         return;
     }
 

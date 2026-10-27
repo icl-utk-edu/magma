@@ -191,7 +191,7 @@ magmablas_zhpmm_batched(
 
     // check for in-place zhpmm/zhpmv
     if( zhpmm_small_inplace ) {
-        magma_zhpmm_inplace_batched(
+        magma_zhpmm_small_batched(
             side, uplo, m, n,
             dA_array, dB_array, lddb, batchCount, queue);
         return;
