@@ -197,7 +197,7 @@ magmablas_zhpmm_batched(
         magma_int_t ione = 1;
         magmablas_zhpmv_batched(
             uplo, m,
-            alpha, dAP_array,nrowa,
+            alpha, dAP_array,
                    dB_array, ione,
             beta,  dC_array, ione,
             batchCount, queue );
