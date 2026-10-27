@@ -189,7 +189,7 @@ magmablas_zhpmv_batched(
             beta     == MAGMA_Z_ZERO );
 
     if( zhpmv_small ) {
-        magma_zhpmv_batched_small(
+        magma_zhpmv_small_batched(
             uplo, n, dA_array,
             dX_array, incx,
             dY_array, incy, batchCount, queue );

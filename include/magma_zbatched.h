@@ -529,7 +529,7 @@ magmablas_zhpmv_batched(
         magma_int_t batchCount, magma_queue_t queue );
 
 void
-magma_zhpmv_batched_small(
+magma_zhpmv_small_batched(
     magma_uplo_t uplo, magma_int_t n,
     magmaDoubleComplex** dAP_array,
     magmaDoubleComplex** dX_array, magma_int_t incx,

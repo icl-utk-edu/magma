@@ -504,7 +504,7 @@ magma_zhpmm_small_batched(
 
     // special case
     if( side == MagmaLeft && m <= 32 && n == 1 ) {
-        magma_zhpmv_batched_small( uplo, m, dAP_array, dB_array, 1, dC_array, 1, batchCount, queue );
+        magma_zhpmv_small_batched( uplo, m, dAP_array, dB_array, 1, dC_array, 1, batchCount, queue );
     }
     else {
         magma_zhpmm_small_batched_core(side, uplo, m, n, dAP_array, dB_array, lddb, batchCount, queue );
